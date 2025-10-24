@@ -433,6 +433,9 @@ async def run_full_pipeline(
         queue: deque[str] = deque()
         seen_raw_configs: set[str] = set()
         for raw_config in gathered_configs:
+            if raw_config.strip().startswith("ssr://"):
+                logger.debug("Skipping unsupported ssr:// proxy")
+                continue
             if raw_config in seen_raw_configs:
                 stats["duplicates_skipped"] += 1
                 continue

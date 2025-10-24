@@ -452,16 +452,16 @@ body.dark .github-btn:hover {
 
     /* Fix hero text size on mobile */
     .hero {
-        padding: calc(var(--space-unit) * 4) 0;
+        padding: calc(var(--space-unit) * 2) 0;
     }
 
     .hero h1 {
-        font-size: clamp(2rem, 10vw, 3rem) !important;
+        font-size: clamp(1.8rem, 10vw, 2.5rem) !important;
         letter-spacing: -0.02em;
     }
 
     .hero .subtitle {
-        font-size: 1rem;
+        font-size: 0.9rem;
         padding: 0 calc(var(--space-unit) * 1);
     }
 
@@ -472,8 +472,8 @@ body.dark .github-btn:hover {
 
     .stats-card-inner {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 1.5);
-        padding: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1);
+        padding: calc(var(--space-unit) * 1.5);
     }
 
     .stat-item {
@@ -502,7 +502,7 @@ body.dark .github-btn:hover {
     /* Fix downloads grid for narrow mobile */
     .downloads-grid {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
     }
 
     .download-card {
@@ -512,7 +512,7 @@ body.dark .github-btn:hover {
     /* Fix info cards stacking */
     .info-column {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
     }
 
     .info-card {
@@ -533,14 +533,14 @@ body.dark .github-btn:hover {
 
     /* Fix button sizing on mobile */
     .btn {
-        padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2);
-        font-size: 0.9rem;
+        padding: calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 1.75);
+        font-size: 0.85rem;
     }
 
     .hero-actions {
         flex-direction: column;
         width: 100%;
-        gap: calc(var(--space-unit) * 1.5);
+        gap: calc(var(--space-unit) * 1);
     }
 
     .hero-actions .btn {
@@ -550,13 +550,13 @@ body.dark .github-btn:hover {
 
     /* Fix header logo on mobile */
     .header-logo-wrapper {
-        font-size: 1.4rem;
-        gap: calc(var(--space-unit) * 1.5);
+        font-size: 1.2rem;
+        gap: calc(var(--space-unit) * 1);
     }
 
     .header-logo-wrapper .header-logo {
-        width: 40px;
-        height: 40px;
+        width: 32px;
+        height: 32px;
     }
 
     /* Fix theme button sizing */
@@ -1002,11 +1002,40 @@ body.dark .filter-input:focus + .feather {
 }
 
 /* Enhanced Filter Controls */
-.filter-row {
+.filter-controls {
     display: flex;
-    gap: calc(var(--space-unit) * 3);
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 2);
+}
+
+.filter-row, .actions-row {
+    display: flex;
     flex-wrap: wrap;
+    gap: calc(var(--space-unit) * 2);
     align-items: center;
+}
+
+.actions-row {
+    justify-content: space-between;
+}
+
+.filter-input-group {
+    flex: 1 1 180px; /* Flex grow, shrink, and basis */
+}
+
+.batch-actions {
+    display: flex;
+    gap: calc(var(--space-unit) * 1.5);
+}
+
+.page-size-controls {
+    flex-shrink: 0;
+}
+
+.filter-summary {
+    text-align: right;
+    flex: 1;
+    min-width: 150px; /* Ensure it doesn't get too squished */
 }
 
 .filter-select {
@@ -1044,6 +1073,13 @@ body.dark .filter-input:focus + .feather {
     align-items: center;
     gap: calc(var(--space-unit) * 1.5);
     flex-shrink: 0;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.batch-actions {
+    display: flex;
+    gap: calc(var(--space-unit) * 1.5);
 }
 
 .filter-label {
@@ -1458,6 +1494,23 @@ body.dark #preloader {
     justify-content: center;
     align-items: center;
     padding: calc(var(--space-unit) * 2) 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand-primary) transparent;
+}
+
+.pagination-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.pagination-container::-webkit-scrollbar-thumb {
+    background-color: var(--brand-primary);
+    border-radius: var(--radius-full);
+}
+
+.pagination-container::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .pagination-btn {
@@ -1486,4 +1539,24 @@ body.dark #preloader {
 .pagination-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Country Flag Styles */
+.location-cell {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 1.5);
+}
+
+.country-flag {
+    width: 24px;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.country-flag-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
 }

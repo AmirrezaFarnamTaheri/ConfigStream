@@ -106,48 +106,66 @@
                 </div>
 
                 <div class="filter-controls">
-                    <!-- Protocol, Country, City Selects -->
-                    <div class="filter-input-group">
-                        <i data-feather="list"></i>
-                        <select id="filterProtocol" class="filter-input filter-select" aria-label="Filter by protocol">
-                            <option value="">All Protocols</option>
-                            <option value="vmess">VMess</option>
-                            <option value="vless">VLESS</option>
-                            <option value="trojan">Trojan</option>
-                            <option value="shadowsocks">Shadowsocks</option>
-                            <option value="hysteria">Hysteria</option>
-                            <option value="hysteria2">Hysteria2</option>
-                            <option value="tuic">TUIC</option>
-                            <option value="wireguard">WireGuard</option>
-                        </select>
-                    </div>
-                    <div class="filter-input-group">
-                        <i data-feather="map-pin"></i>
-                        <select id="filterCountry" class="filter-input filter-select" aria-label="Filter by country">
-                            <option value="">All Countries</option>
-                        </select>
-                    </div>
-                    <div class="filter-input-group">
-                        <i data-feather="navigation"></i>
-                        <select id="filterCity" class="filter-input filter-select" aria-label="Filter by city">
-                            <option value="">All Cities</option>
-                        </select>
-                    </div>
-
-                    <!-- Latency Range -->
-                    <div class="filter-input-group filter-range-group">
-                        <i data-feather="activity"></i>
-                        <label for="filterLatencyMin" class="filter-label sr-only">Latency (ms):</label>
-                        <input type="number" id="filterLatencyMin" class="filter-input filter-number" placeholder="Min Latency" min="0" max="5000" aria-label="Minimum latency">
-                        <span class="filter-separator">-</span>
-                        <input type="number" id="filterLatencyMax" class="filter-input filter-number" placeholder="Max Latency" min="0" max="5000" aria-label="Maximum latency">
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="filter-actions">
+                    <div class="filter-row">
+                        <!-- Protocol, Country, City Selects -->
+                        <div class="filter-input-group">
+                            <i data-feather="list"></i>
+                            <select id="filterProtocol" class="filter-input filter-select" aria-label="Filter by protocol">
+                                <option value="">All Protocols</option>
+                                <option value="vmess">VMess</option>
+                                <option value="vless">VLESS</option>
+                                <option value="trojan">Trojan</option>
+                                <option value="shadowsocks">Shadowsocks</option>
+                                <option value="hysteria">Hysteria</option>
+                                <option value="hysteria2">Hysteria2</option>
+                                <option value="tuic">TUIC</option>
+                                <option value="wireguard">WireGuard</option>
+                            </select>
+                        </div>
+                        <div class="filter-input-group">
+                            <i data-feather="map-pin"></i>
+                            <select id="filterCountry" class="filter-input filter-select" aria-label="Filter by country">
+                                <option value="">All Countries</option>
+                            </select>
+                        </div>
+                        <div class="filter-input-group">
+                            <i data-feather="navigation"></i>
+                            <select id="filterCity" class="filter-input filter-select" aria-label="Filter by city">
+                                <option value="">All Cities</option>
+                            </select>
+                        </div>
+                        <!-- Latency Range -->
+                        <div class="filter-input-group filter-range-group">
+                            <i data-feather="activity"></i>
+                            <label for="filterLatencyMin" class="filter-label sr-only">Latency (ms):</label>
+                            <input type="number" id="filterLatencyMin" class="filter-input filter-number" placeholder="Min Latency" min="0" max="5000" aria-label="Minimum latency">
+                            <span class="filter-separator">-</span>
+                            <input type="number" id="filterLatencyMax" class="filter-input filter-number" placeholder="Max Latency" min="0" max="5000" aria-label="Maximum latency">
+                        </div>
                         <button id="clearFilters" class="btn btn-secondary btn-icon" aria-label="Clear all filters">
                             <i data-feather="x"></i>
                         </button>
+                    </div>
+
+                    <div class="actions-row">
+                        <div class="batch-actions">
+                             <button id="copyFiltered" class="btn btn-secondary">
+                                <i data-feather="copy"></i>
+                                <span>Copy Filtered</span>
+                            </button>
+                            <button id="downloadFiltered" class="btn btn-primary">
+                                <i data-feather="download"></i>
+                                <span>Download Filtered</span>
+                            </button>
+                        </div>
+                        <div class="page-size-controls">
+                            <label for="pageSize" class="sr-only">Proxies per page:</label>
+                            <select id="pageSize" class="filter-input filter-select">
+                                <option value="25">25 per page</option>
+                                <option value="50" selected>50 per page</option>
+                                <option value="100">100 per page</option>
+                            </select>
+                        </div>
                         <div class="filter-summary" id="filterSummary" role="status" aria-live="polite">
                             <span id="filterCount">Loading...</span>
                         </div>
