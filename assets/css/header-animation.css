@@ -1,45 +1,8 @@
 /* ============================================
-   HEADER LOGO ANIMATION - Part 2
+   HEADER LOGO ANIMATION
    ============================================ */
 
-.site-header {
-  position: sticky;
-  top: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  transition: all 0.3s ease;
-}
-
-.header-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-/* Logo Wrapper */
-.header-logo-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-/* Header Logo */
-.header-logo {
-  width: 50px;
-  height: 50px;
-  transition: transform 0.3s ease;
-}
-
-.header-logo-wrapper:hover .header-logo {
-  transform: scale(1.1);
-}
+/* Note: Main header styles are in style.css */
 
 /* Logo circle - starts colorful */
 .header-circle {
@@ -117,84 +80,6 @@
   100% { opacity: 0; }
 }
 
-/* Logo text */
-.header-logo-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  opacity: 0;
-  animation: textFadeIn 0.5s ease-out 0.8s forwards;
-  transition: all 0.3s ease;
-}
-
-@keyframes textFadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-/* Animation completed state */
-.header-logo.animation-complete .gradient-start,
-.header-logo.animation-complete .gradient-mid,
-.header-logo.animation-complete .gradient-end {
-  transition: stop-color 0.4s ease-out;
-  stop-color: #1a1a1a;
-}
-
-.header-logo.animation-complete .header-circle {
-  stroke: #1a1a1a;
-}
-
-.header-logo.animation-complete .header-wave {
-  stroke: #1a1a1a;
-}
-
-.header-logo.animation-complete .header-particle {
-  fill: #1a1a1a;
-}
-
-.header-logo.animation-complete + .header-logo-text {
-  background: #1a1a1a;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Skip animation class */
-.header-logo.skip-animation {
-  animation: none;
-}
-
-.header-logo.skip-animation .gradient-start,
-.header-logo.skip-animation .gradient-mid,
-.header-logo.skip-animation .gradient-end {
-  stop-color: #1a1a1a;
-}
-
-.header-logo.skip-animation .header-circle {
-  stroke: #1a1a1a;
-}
-
-.header-logo.skip-animation .header-wave {
-  stroke: #1a1a1a;
-  opacity: 1;
-  stroke-dashoffset: 0;
-}
-
-.header-logo.skip-animation .header-particle {
-  opacity: 0.7;
-}
-
-.header-logo.skip-animation + .header-logo-text {
-  opacity: 1;
-  background: #1a1a1a;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 
 /* Reduced motion - instant black logo */
 @media (prefers-reduced-motion: reduce) {
@@ -236,42 +121,4 @@
   }
 }
 
-/* Mobile optimization */
-@media (max-width: 768px) {
-  .header-logo {
-    width: 40px;
-    height: 40px;
-  }
-
-  .header-logo-text {
-    font-size: 1.25rem;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .site-header {
-    background: rgba(26, 26, 26, 0.95);
-  }
-
-  .header-logo.animation-complete .gradient-start,
-  .header-logo.animation-complete .gradient-mid,
-  .header-logo.animation-complete .gradient-end {
-    stop-color: #ffffff;
-  }
-
-  .header-logo.animation-complete .header-circle,
-  .header-logo.animation-complete .header-wave {
-    stroke: #ffffff;
-  }
-
-  .header-logo.animation-complete .header-particle {
-    fill: #ffffff;
-  }
-
-  .header-logo.animation-complete + .header-logo-text {
-    background: #ffffff;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
+/* Mobile optimization handled in style.css */
