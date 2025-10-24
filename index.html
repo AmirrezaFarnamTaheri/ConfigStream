@@ -211,7 +211,7 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>Our system is fully automated using GitHub Actions. Every 6 hours, we fetch proxies from public sources, deduplicate them, test each one for connectivity and security, geolocate offline, and generate fresh configuration files. Between full rebuilds, hourly retests verify existing proxies and demote or remove those that have gone offline, ensuring you always get working configurations.</p>
+                                <p>Our system is fully automated using GitHub Actions. We perform hourly retests of existing proxies to verify connectivity and demote or remove those that have gone offline. Every 3 hours, we fetch fresh proxies from public sources, deduplicate them, test each one for security and performance, add geolocation data, and generate updated configuration files—ensuring you always get working, tested configurations.</p>
                             </div>
                         </div>
                     </section>
@@ -222,10 +222,12 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>We take security seriously. Every proxy is subjected to a series of automated tests before being listed:</p>
+                                <p>We take security seriously. Every proxy is subjected to comprehensive automated tests before being listed:</p>
                                 <ul class="info-list">
-                                    <li><strong>Connectivity Testing:</strong> Verifies each proxy can establish connections and handle real traffic with multiple test endpoints.</li>
-                                    <li><strong>TLS &amp; Protocol Validation:</strong> Confirms secure handshakes and validates protocol-specific requirements for each proxy type.</li>
+                                    <li><strong>Content Injection Detection:</strong> Filters out proxies that modify page content or inject malicious code.</li>
+                                    <li><strong>SSL/TLS Validation:</strong> Ensures secure HTTPS connections and validates certificate chains.</li>
+                                    <li><strong>Header Preservation:</strong> Verifies proxies don't strip important security headers.</li>
+                                    <li><strong>Port Scanning Prevention:</strong> Removes proxies with suspicious open ports.</li>
                                     <li><strong>Performance Measurement:</strong> Records latency and response times to help you choose fast, reliable proxies.</li>
                                 </ul>
                             </div>
@@ -238,11 +240,11 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>This service is designed for accessibility, not for guaranteed privacy. Please be aware of the following:</p>
+                                <p>This service is designed for bypassing restrictions, not for guaranteed privacy. Please be aware of the following:</p>
                                 <ul class="info-list info-list-danger">
-                                    <li><strong>No Anonymity:</strong> Your IP address may still be visible to the proxy operator.</li>
-                                    <li><strong>Variable Speed:</strong> Performance can be inconsistent, even with hourly retests demoting stale results.</li>
-                                    <li><strong>No Support:</strong> As a free service, we cannot offer user support.</li>
+                                    <li><strong>Limited Privacy:</strong> Your traffic passes through third-party servers whose operators may log activity.</li>
+                                    <li><strong>Variable Speed:</strong> Performance varies by location, server load, and network conditions.</li>
+                                    <li><strong>No Guarantees:</strong> As a free, community-driven service, uptime and support are best-effort only.</li>
                                 </ul>
                             </div>
                         </div>
@@ -260,12 +262,13 @@
                     </section>
                     <section class="card notice-card" style="--delay: 1.4s;">
                         <h3><i data-feather="alert-triangle"></i> Important Security Notice</h3>
-                        <p>These are <strong>free, public proxies</strong> from unknown operators. While we test for malicious behavior, we cannot guarantee your privacy. Assume your traffic may be monitored.</p>
+                        <p>These are <strong>free, public proxies</strong> from unknown operators. While we test for malicious behavior including content injection, SSL validation, and suspicious ports, we cannot guarantee your privacy. Assume your traffic may be monitored.</p>
                         <ul class="notice-list">
-                            <li><strong>DO NOT</strong> use for banking, logins, or sensitive data.</li>
-                            <li><strong>GOOD FOR</strong> casual browsing and bypassing geo-restrictions.</li>
+                            <li><strong>DO NOT</strong> use for banking, logins, passwords, or any sensitive data.</li>
+                            <li><strong>GOOD FOR</strong> accessing geo-restricted content and general web browsing.</li>
+                            <li><strong>REMEMBER</strong> all traffic passes through third-party servers that may log your activity.</li>
                         </ul>
-                        <p class="text-center"><strong>Use at your own risk.</strong></p>
+                        <p class="text-center"><strong>Use responsibly and at your own risk.</strong></p>
                     </section>
                 </div>
             </div>

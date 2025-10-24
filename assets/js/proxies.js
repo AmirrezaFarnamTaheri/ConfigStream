@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${location}</span>
                     </td>
                     <td>${latency}</td>
-                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="link"></i></button></td>
+                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
                 </tr>
             `;
         }).join('');
@@ -201,8 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listeners for filters
     protocolFilter.addEventListener('input', renderTable);
-    countryFilter.addEventListener('input', renderTable);
-    cityFilter.addEventListener('input', renderTable);
+    countryFilter.addEventListener('input', () => {
+        const selectedOption = countryFilter.options[countryFilter.selectedIndex];
+        const countryCode = selectedOption.dataset.countryCode || '';
+        updateFlagDisplay(countryCode, 'country');
+        renderTable();
+    });
+    cityFilter.addEventListener('input', () => {
+        const selectedOption = cityFilter.options[cityFilter.selectedIndex];
+        const countryCode = selectedOption.dataset.countryCode || '';
+        updateFlagDisplay(countryCode, 'city');
+        renderTable();
+    });
 
     if (latencyMinInput) {
         latencyMinInput.addEventListener('input', renderTable);
@@ -251,6 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cityFilter.value = '';
             if (latencyMinInput) latencyMinInput.value = '';
             if (latencyMaxInput) latencyMaxInput.value = '';
+            updateFlagDisplay('', 'country');
+            updateFlagDisplay('', 'city');
             renderTable();
         });
     }
@@ -276,18 +288,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Helper function to get country name from country code
+    function getCountryName(countryCode) {
+        const countryNames = {
+            'US': 'United States', 'GB': 'United Kingdom', 'CA': 'Canada', 'DE': 'Germany',
+            'FR': 'France', 'NL': 'Netherlands', 'SG': 'Singapore', 'JP': 'Japan',
+            'AU': 'Australia', 'IN': 'India', 'BR': 'Brazil', 'RU': 'Russia',
+            'CN': 'China', 'HK': 'Hong Kong', 'KR': 'South Korea', 'IT': 'Italy',
+            'ES': 'Spain', 'SE': 'Sweden', 'CH': 'Switzerland', 'PL': 'Poland'
+        };
+        return countryNames[countryCode] || countryCode;
+    }
+
+    // Helper function to update flag displays
+    function updateFlagDisplay(countryCode, type = 'country') {
+        const displayEl = type === 'country'
+            ? document.getElementById('countryFlagDisplay')
+            : document.getElementById('cityFlagDisplay');
+
+        if (!displayEl) return;
+
+        if (!countryCode || countryCode === '') {
+            displayEl.innerHTML = '<i data-feather="globe" class="country-flag-icon-small"></i>';
+            if (window.inlineIcons) window.inlineIcons.replace();
+        } else {
+            displayEl.innerHTML = `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" alt="${countryCode}" onerror="this.outerHTML='<i data-feather=\\'globe\\' class=\\'country-flag-icon-small\\'></i>'">`;
+        }
+    }
+
     // Populate filter dropdowns dynamically with only available options
     function populateFilters() {
         // Get unique protocols, countries and cities (excluding XX and invalid values)
         const protocols = new Set();
         const countries = new Set();
         const cities = new Set();
+        const cityToCountry = new Map(); // Map cities to their country codes
 
         allProxies.forEach(p => {
             if (p.protocol) protocols.add(p.protocol);
             // Exclude XX and empty country codes
-            if (p.country_code && p.country_code !== 'XX') countries.add(p.country_code);
-            if (p.city) cities.add(p.city);
+            if (p.country_code && p.country_code !== 'XX') {
+                countries.add(p.country_code);
+                if (p.city) {
+                    cities.add(p.city);
+                    cityToCountry.set(p.city, p.country_code);
+                }
+            }
         });
 
         // Populate protocol filter
@@ -300,13 +346,14 @@ document.addEventListener('DOMContentLoaded', () => {
             protocolFilter.appendChild(option);
         });
 
-        // Sort and populate country filter
+        // Sort and populate country filter with flags
         const sortedCountries = Array.from(countries).sort();
         countryFilter.length = 1; // Preserve "All Countries"
         sortedCountries.forEach(country => {
             const option = document.createElement('option');
             option.value = country;
-            option.textContent = country;
+            option.textContent = `${country} - ${getCountryName(country)}`;
+            option.dataset.countryCode = country;
             countryFilter.appendChild(option);
         });
 
@@ -317,8 +364,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const option = document.createElement('option');
             option.value = city;
             option.textContent = city;
+            option.dataset.countryCode = cityToCountry.get(city) || '';
             cityFilter.appendChild(option);
         });
+
+        // Store city to country mapping for later use
+        window.cityToCountryMap = cityToCountry;
     }
 
     async function fetchAndRenderProxies() {
