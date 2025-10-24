@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr class="${rowClasses.join(' ')}" style="--delay: ${index * 0.03}s" data-source="${p.source}">
                     <td>${protocol}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
                     <td class="location-cell">
-                        ${p.country_code ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" alt="${p.country_code}" class="country-flag">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
+                        ${p.country_code ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" alt="${p.country_code}" class="country-flag" onerror="this.onerror=null;this.outerHTML='<i data-feather=\\\'globe\\\' class=\\\'country-flag-icon\\\'></i>'">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
                         <span>${location}</span>
                     </td>
                     <td>${latency}</td>
@@ -124,26 +124,72 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderPagination = (totalProxies) => {
-        const pageNumbers = [];
-        for (let i = 1; i <= Math.ceil(totalProxies / proxiesPerPage); i++) {
-            pageNumbers.push(i);
+        const totalPages = Math.ceil(totalProxies / proxiesPerPage) || 1;
+
+        let paginationHTML = '';
+
+        // Previous Button
+        paginationHTML += `<button class="pagination-btn" id="first-btn" ${currentPage === 1 ? 'disabled' : ''}>&laquo; First</button>`;
+        paginationHTML += `<button class="pagination-btn" id="prev-btn" ${currentPage === 1 ? 'disabled' : ''}>&lsaquo; Prev</button>`;
+
+        // Page numbers with ellipsis
+        const maxPagesToShow = 5;
+        let startPage, endPage;
+
+        if (totalPages <= maxPagesToShow) {
+            startPage = 1;
+            endPage = totalPages;
+        } else {
+            if (currentPage <= Math.floor(maxPagesToShow / 2)) {
+                startPage = 1;
+                endPage = maxPagesToShow;
+            } else if (currentPage + Math.floor(maxPagesToShow / 2) >= totalPages) {
+                startPage = totalPages - maxPagesToShow + 1;
+                endPage = totalPages;
+            } else {
+                startPage = currentPage - Math.floor(maxPagesToShow / 2);
+                endPage = currentPage + Math.floor(maxPagesToShow / 2);
+            }
         }
 
-        paginationContainer.innerHTML = `
-            <button class="pagination-btn" id="prev-btn" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
-            ${pageNumbers.map(number => `
-                <button class="pagination-btn ${number === currentPage ? 'active' : ''}" data-page="${number}">${number}</button>
-            `).join('')}
-            <button class="pagination-btn" id="next-btn" ${currentPage === pageNumbers.length ? 'disabled' : ''}>Next</button>
-        `;
+        if (startPage > 1) {
+            paginationHTML += `<button class="pagination-btn" data-page="1">1</button>`;
+            if (startPage > 2) {
+                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+            }
+            paginationHTML += `<button class="pagination-btn" data-page="${totalPages}">${totalPages}</button>`;
+        }
+
+        // Next Button
+        paginationHTML += `<button class="pagination-btn" id="next-btn" ${currentPage === totalPages ? 'disabled' : ''}>Next &rsaquo;</button>`;
+        paginationHTML += `<button class="pagination-btn" id="last-btn" ${currentPage === totalPages ? 'disabled' : ''}>Last &raquo;</button>`;
+
+        paginationContainer.innerHTML = paginationHTML;
     };
 
     paginationContainer.addEventListener('click', (e) => {
-        if (e.target.matches('#prev-btn')) {
-            currentPage--;
+        const totalPages = Math.ceil(getFilteredProxies().length / proxiesPerPage) || 1;
+        if (e.target.matches('#first-btn')) {
+            currentPage = 1;
+            renderTable();
+        } else if (e.target.matches('#prev-btn')) {
+            currentPage = Math.max(1, currentPage - 1);
             renderTable();
         } else if (e.target.matches('#next-btn')) {
-            currentPage++;
+            currentPage = Math.min(totalPages, currentPage + 1);
+            renderTable();
+        } else if (e.target.matches('#last-btn')) {
+            currentPage = totalPages;
             renderTable();
         } else if (e.target.matches('.pagination-btn[data-page]')) {
             currentPage = parseInt(e.target.dataset.page);

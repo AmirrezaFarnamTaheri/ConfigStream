@@ -1541,6 +1541,14 @@ body.dark #preloader {
     cursor: not-allowed;
 }
 
+.pagination-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-unit) calc(var(--space-unit) * 1.5);
+    color: var(--text-secondary);
+}
+
 /* Country Flag Styles */
 .location-cell {
     display: flex;
@@ -1559,4 +1567,169 @@ body.dark #preloader {
     width: 20px;
     height: 20px;
     color: var(--text-secondary);
+}
+
+/* Redesigned Filter Controls */
+.filter-controls-redesigned {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-unit);
+    margin-bottom: calc(var(--space-unit) * 3);
+}
+
+.filter-bar, .actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-unit);
+    align-items: center;
+}
+
+.actions-bar {
+    justify-content: space-between;
+}
+
+.filter-group, .action-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-unit);
+    align-items: center;
+    flex-grow: 1;
+}
+
+.filter-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1 1 180px;
+    min-width: 150px;
+    background-color: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    transition: all var(--transition-fast);
+}
+
+.filter-input-wrapper:focus-within {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+.filter-input-wrapper .filter-icon {
+    position: absolute;
+    left: calc(var(--space-unit) * 1.5);
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: color var(--transition-fast);
+}
+
+.filter-input-wrapper:focus-within .filter-icon {
+    color: var(--brand-primary);
+}
+
+.filter-controls-redesigned select, .filter-controls-redesigned input {
+    width: 100%;
+    padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 5);
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.filter-controls-redesigned select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right calc(var(--space-unit) * 2) center;
+    padding-right: calc(var(--space-unit) * 5);
+}
+
+.filter-controls-redesigned input:focus {
+    outline: none;
+}
+
+.latency-wrapper {
+    flex-grow: 0.5;
+}
+.latency-wrapper input {
+    text-align: center;
+    padding-left: calc(var(--space-unit) * 2);
+    padding-right: 0;
+}
+.latency-wrapper span {
+    color: var(--text-secondary);
+    padding: 0 var(--space-unit);
+}
+
+.pagination-info {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 2);
+}
+
+#filterSummary {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.page-size-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0 calc(var(--space-unit) * 1.5);
+}
+
+.page-size-wrapper select {
+    padding: calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 4) calc(var(--space-unit) * 1.25) var(--space-unit);
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.page-size-wrapper select:focus {
+    outline: none;
+}
+
+.page-size-wrapper i {
+    position: absolute;
+    right: calc(var(--space-unit) * 1.5);
+    pointer-events: none;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .filter-bar, .actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter-group, .action-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    .filter-input-wrapper {
+        min-width: 100%;
+    }
+    .actions-bar {
+        flex-direction: column-reverse; /* Put pagination info on top */
+    }
+    .pagination-info {
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: var(--space-unit);
+    }
+    .action-group {
+        flex-direction: row;
+        justify-content: stretch;
+    }
+    .action-group .btn {
+        flex-grow: 1;
+        justify-content: center;
+    }
 }
