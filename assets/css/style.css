@@ -1044,6 +1044,13 @@ body.dark .filter-input:focus + .feather {
     align-items: center;
     gap: calc(var(--space-unit) * 1.5);
     flex-shrink: 0;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.batch-actions {
+    display: flex;
+    gap: calc(var(--space-unit) * 1.5);
 }
 
 .filter-label {
@@ -1458,6 +1465,23 @@ body.dark #preloader {
     justify-content: center;
     align-items: center;
     padding: calc(var(--space-unit) * 2) 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--brand-primary) transparent;
+}
+
+.pagination-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.pagination-container::-webkit-scrollbar-thumb {
+    background-color: var(--brand-primary);
+    border-radius: var(--radius-full);
+}
+
+.pagination-container::-webkit-scrollbar-track {
+    background: transparent;
 }
 
 .pagination-btn {
@@ -1486,4 +1510,24 @@ body.dark #preloader {
 .pagination-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Country Flag Styles */
+.location-cell {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 1.5);
+}
+
+.country-flag {
+    width: 24px;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.country-flag-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--text-secondary);
 }

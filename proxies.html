@@ -145,11 +145,21 @@
 
                     <!-- Actions -->
                     <div class="filter-actions">
-                        <button id="clearFilters" class="btn btn-secondary btn-icon" aria-label="Clear all filters">
-                            <i data-feather="x"></i>
-                        </button>
                         <div class="filter-summary" id="filterSummary" role="status" aria-live="polite">
                             <span id="filterCount">Loading...</span>
+                        </div>
+                        <div class="batch-actions">
+                            <button id="copyFiltered" class="btn btn-secondary">
+                                <i data-feather="copy"></i>
+                                <span>Copy Filtered</span>
+                            </button>
+                            <button id="downloadFiltered" class="btn btn-primary">
+                                <i data-feather="download"></i>
+                                <span>Download Filtered</span>
+                            </button>
+                            <button id="clearFilters" class="btn btn-secondary btn-icon" aria-label="Clear all filters">
+                                <i data-feather="x"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
