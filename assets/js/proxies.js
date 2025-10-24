@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const latencyMinInput = document.getElementById('filterLatencyMin');
     const latencyMaxInput = document.getElementById('filterLatencyMax');
     const paginationContainer = document.getElementById('pagination-container');
-    const pageSizeSelector = document.getElementById('pageSizeSelector');
+    const pageSizeSelector = document.getElementById('pageSize');
 
     // Early return if required elements don't exist
     if (!protocolFilter || !countryFilter || !tableBody || !emptyState) return;
@@ -91,7 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentProxies = filteredProxies.slice(indexOfFirstProxy, indexOfLastProxy);
 
         tableBody.innerHTML = currentProxies.map((p, index) => {
-            const country = p.country_code || 'Unknown';
+            // Handle XX or unknown country codes
+            const countryCode = (p.country_code && p.country_code !== 'XX') ? p.country_code : null;
+            const country = countryCode || 'Unknown';
             const city = p.city || '';
             const location = city ? `${city}, ${country}` : country;
             const latency = p.latency ? `${p.latency}ms` : 'N/A';
@@ -108,11 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr class="${rowClasses.join(' ')}" style="--delay: ${index * 0.03}s" data-source="${p.source}">
                     <td>${protocol}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
                     <td class="location-cell">
-                        ${p.country_code ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" alt="${p.country_code}" class="country-flag">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
+                        ${countryCode ? `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" alt="${countryCode}" class="country-flag" onerror="this.onerror=null;this.outerHTML='<i data-feather=\\\'globe\\\' class=\\\'country-flag-icon\\\'></i>'">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
                         <span>${location}</span>
                     </td>
                     <td>${latency}</td>
-                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}"><i data-feather="copy"></i></button></td>
+                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
                 </tr>
             `;
         }).join('');
@@ -124,26 +126,72 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderPagination = (totalProxies) => {
-        const pageNumbers = [];
-        for (let i = 1; i <= Math.ceil(totalProxies / proxiesPerPage); i++) {
-            pageNumbers.push(i);
+        const totalPages = Math.ceil(totalProxies / proxiesPerPage) || 1;
+
+        let paginationHTML = '';
+
+        // Previous Button
+        paginationHTML += `<button class="pagination-btn" id="first-btn" ${currentPage === 1 ? 'disabled' : ''}>&laquo; First</button>`;
+        paginationHTML += `<button class="pagination-btn" id="prev-btn" ${currentPage === 1 ? 'disabled' : ''}>&lsaquo; Prev</button>`;
+
+        // Page numbers with ellipsis
+        const maxPagesToShow = 5;
+        let startPage, endPage;
+
+        if (totalPages <= maxPagesToShow) {
+            startPage = 1;
+            endPage = totalPages;
+        } else {
+            if (currentPage <= Math.floor(maxPagesToShow / 2)) {
+                startPage = 1;
+                endPage = maxPagesToShow;
+            } else if (currentPage + Math.floor(maxPagesToShow / 2) >= totalPages) {
+                startPage = totalPages - maxPagesToShow + 1;
+                endPage = totalPages;
+            } else {
+                startPage = currentPage - Math.floor(maxPagesToShow / 2);
+                endPage = currentPage + Math.floor(maxPagesToShow / 2);
+            }
         }
 
-        paginationContainer.innerHTML = `
-            <button class="pagination-btn" id="prev-btn" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
-            ${pageNumbers.map(number => `
-                <button class="pagination-btn ${number === currentPage ? 'active' : ''}" data-page="${number}">${number}</button>
-            `).join('')}
-            <button class="pagination-btn" id="next-btn" ${currentPage === pageNumbers.length ? 'disabled' : ''}>Next</button>
-        `;
+        if (startPage > 1) {
+            paginationHTML += `<button class="pagination-btn" data-page="1">1</button>`;
+            if (startPage > 2) {
+                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            paginationHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `<span class="pagination-ellipsis">...</span>`;
+            }
+            paginationHTML += `<button class="pagination-btn" data-page="${totalPages}">${totalPages}</button>`;
+        }
+
+        // Next Button
+        paginationHTML += `<button class="pagination-btn" id="next-btn" ${currentPage === totalPages ? 'disabled' : ''}>Next &rsaquo;</button>`;
+        paginationHTML += `<button class="pagination-btn" id="last-btn" ${currentPage === totalPages ? 'disabled' : ''}>Last &raquo;</button>`;
+
+        paginationContainer.innerHTML = paginationHTML;
     };
 
     paginationContainer.addEventListener('click', (e) => {
-        if (e.target.matches('#prev-btn')) {
-            currentPage--;
+        const totalPages = Math.ceil(getFilteredProxies().length / proxiesPerPage) || 1;
+        if (e.target.matches('#first-btn')) {
+            currentPage = 1;
+            renderTable();
+        } else if (e.target.matches('#prev-btn')) {
+            currentPage = Math.max(1, currentPage - 1);
             renderTable();
         } else if (e.target.matches('#next-btn')) {
-            currentPage++;
+            currentPage = Math.min(totalPages, currentPage + 1);
+            renderTable();
+        } else if (e.target.matches('#last-btn')) {
+            currentPage = totalPages;
             renderTable();
         } else if (e.target.matches('.pagination-btn[data-page]')) {
             currentPage = parseInt(e.target.dataset.page);
@@ -153,8 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listeners for filters
     protocolFilter.addEventListener('input', renderTable);
-    countryFilter.addEventListener('input', renderTable);
-    cityFilter.addEventListener('input', renderTable);
+    countryFilter.addEventListener('input', () => {
+        const selectedOption = countryFilter.options[countryFilter.selectedIndex];
+        const countryCode = selectedOption.dataset.countryCode || '';
+        updateFlagDisplay(countryCode, 'country');
+        renderTable();
+    });
+    cityFilter.addEventListener('input', () => {
+        const selectedOption = cityFilter.options[cityFilter.selectedIndex];
+        const countryCode = selectedOption.dataset.countryCode || '';
+        updateFlagDisplay(countryCode, 'city');
+        renderTable();
+    });
 
     if (latencyMinInput) {
         latencyMinInput.addEventListener('input', renderTable);
@@ -203,6 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cityFilter.value = '';
             if (latencyMinInput) latencyMinInput.value = '';
             if (latencyMaxInput) latencyMaxInput.value = '';
+            updateFlagDisplay('', 'country');
+            updateFlagDisplay('', 'city');
             renderTable();
         });
     }
@@ -228,24 +288,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Populate filter dropdowns dynamically
+    // Helper function to get country name from country code
+    function getCountryName(countryCode) {
+        const countryNames = {
+            'US': 'United States', 'GB': 'United Kingdom', 'CA': 'Canada', 'DE': 'Germany',
+            'FR': 'France', 'NL': 'Netherlands', 'SG': 'Singapore', 'JP': 'Japan',
+            'AU': 'Australia', 'IN': 'India', 'BR': 'Brazil', 'RU': 'Russia',
+            'CN': 'China', 'HK': 'Hong Kong', 'KR': 'South Korea', 'IT': 'Italy',
+            'ES': 'Spain', 'SE': 'Sweden', 'CH': 'Switzerland', 'PL': 'Poland'
+        };
+        return countryNames[countryCode] || countryCode;
+    }
+
+    // Helper function to update flag displays
+    function updateFlagDisplay(countryCode, type = 'country') {
+        const displayEl = type === 'country'
+            ? document.getElementById('countryFlagDisplay')
+            : document.getElementById('cityFlagDisplay');
+
+        if (!displayEl) return;
+
+        if (!countryCode || countryCode === '') {
+            displayEl.innerHTML = '<i data-feather="globe" class="country-flag-icon-small"></i>';
+            if (window.inlineIcons) window.inlineIcons.replace();
+        } else {
+            displayEl.innerHTML = `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" alt="${countryCode}" onerror="this.outerHTML='<i data-feather=\\'globe\\' class=\\'country-flag-icon-small\\'></i>'">`;
+        }
+    }
+
+    // Populate filter dropdowns dynamically with only available options
     function populateFilters() {
-        // Get unique countries and cities
+        // Get unique protocols, countries and cities (excluding XX and invalid values)
+        const protocols = new Set();
         const countries = new Set();
         const cities = new Set();
+        const cityToCountry = new Map(); // Map cities to their country codes
 
         allProxies.forEach(p => {
-            if (p.country_code) countries.add(p.country_code);
-            if (p.city) cities.add(p.city);
+            if (p.protocol) protocols.add(p.protocol);
+            // Exclude XX and empty country codes
+            if (p.country_code && p.country_code !== 'XX') {
+                countries.add(p.country_code);
+                if (p.city) {
+                    cities.add(p.city);
+                    cityToCountry.set(p.city, p.country_code);
+                }
+            }
         });
 
-        // Sort and populate country filter
+        // Populate protocol filter
+        const sortedProtocols = Array.from(protocols).sort();
+        protocolFilter.length = 1; // Preserve "All Protocols"
+        sortedProtocols.forEach(protocol => {
+            const option = document.createElement('option');
+            option.value = protocol;
+            option.textContent = protocol.toUpperCase();
+            protocolFilter.appendChild(option);
+        });
+
+        // Sort and populate country filter with flags
         const sortedCountries = Array.from(countries).sort();
         countryFilter.length = 1; // Preserve "All Countries"
         sortedCountries.forEach(country => {
             const option = document.createElement('option');
             option.value = country;
-            option.textContent = country;
+            option.textContent = `${country} - ${getCountryName(country)}`;
+            option.dataset.countryCode = country;
             countryFilter.appendChild(option);
         });
 
@@ -256,8 +364,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const option = document.createElement('option');
             option.value = city;
             option.textContent = city;
+            option.dataset.countryCode = cityToCountry.get(city) || '';
             cityFilter.appendChild(option);
         });
+
+        // Store city to country mapping for later use
+        window.cityToCountryMap = cityToCountry;
     }
 
     async function fetchAndRenderProxies() {

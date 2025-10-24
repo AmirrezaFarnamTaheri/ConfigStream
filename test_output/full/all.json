@@ -1,0 +1,1588 @@
+[
+  {
+    "config": "vless://08cb0591-5193-4a0c-9105-ceb09fba67fe@3.70.168.130:25670?security=&encryption=none&headerType=none&type=tcp#\ud83d\udce2+\u0633\u0631\u0648\u0631\u0627\u06cc+\u0628\u06cc\u0634\u062a\u0631+\u0647\u0631+\u0631\u0648\u0632+\u062a\u0648+\u06a9\u0627\u0646\u0627\u0644++\ud83d\udc49+@Fast78_Channel",
+    "protocol": "vless",
+    "address": "3.70.168.130",
+    "port": 25670,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udce2+\u0633\u0631\u0648\u0631\u0627\u06cc+\u0628\u06cc\u0634\u062a\u0631+\u0647\u0631+\u0631\u0648\u0632+\u062a\u0648+\u06a9\u0627\u0646\u0627\u0644++\ud83d\udc49+@Fast78_Channel",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.655496+00:00"
+  },
+  {
+    "config": "vless://29187857-4a1f-4d1e-88eb-0016771e0dbb@162.159.152.53:443?path=/-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-SKYPRO_VPN-?ed=2560&security=tls&alpn=h3&encryption=none&fp=chrome&type=ws&sni=vless.hubp.de#@\ud835\udc46\ud835\udc3e\ud835\udc4c\ud835\udc43\ud835\udc45\ud835\udc42_\ud835\udc49\ud835\udc43\ud835\udc41",
+    "protocol": "vless",
+    "address": "162.159.152.53",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@\ud835\udc46\ud835\udc3e\ud835\udc4c\ud835\udc43\ud835\udc45\ud835\udc42_\ud835\udc49\ud835\udc43\ud835\udc41",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:09.959319+00:00"
+  },
+  {
+    "config": "vless://c941bade-fe86-49d5-87fc-509a0f8db591@91.98.206.2:443?security=reality&encryption=none&pbk=U593zOEZ2sAAD_NXXxAwj9Ez-eIzfXbZPZglX1K6PzM&host=Join----JKVPN---Join----JKVPN----Join----JKVPN----Join----JKVPN&headerType=none&fp=chrome&spx=/TELEGRAM--CHANEL--JKVPN--JKVPN&type=tcp&flow=xtls-rprx-vision&sni=www.tgju.org&sid=8be6aa26#\ud835\udddd\ud835\uddfc\ud835\uddf6\ud835\uddfb \u27a0 @V2rayNG_CaFe | \u06a9\u0627\u0646\u0627\u0644 \u0645\u0627 \ud83e\udec6",
+    "protocol": "vless",
+    "address": "91.98.206.2",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud835\udddd\ud835\uddfc\ud835\uddf6\ud835\uddfb \u27a0 @V2rayNG_CaFe | \u06a9\u0627\u0646\u0627\u0644 \u0645\u0627 \ud83e\udec6",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.091847+00:00"
+  },
+  {
+    "config": "vless://a1adc189-2a21-4c07-a231-b4997199d69d@tnl36.radvinmax.ir:8764?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tnl36-843",
+    "protocol": "vless",
+    "address": "tnl36.radvinmax.ir",
+    "port": 8764,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tnl36-843",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.291313+00:00"
+  },
+  {
+    "config": "vless://37d04b77-d08c-4f34-958d-d9f2ff9cc32a@Zula.iR:80?type=ws&path=/telegram,@BINEXTIFY-telegram,@BINEXTIFY-telegram,@BINEXTIFY-telegram,@BINEXTIFY-telegram,@BINEXTIFY-telegram,@BINEXTIFY-telegram,@BINEXTIFY-telegram,@BINEXTIFY-telegram,@BINEXTIFY?ed=2560&host=binextv.iransheep.web.tr.&security=none#BinexTiFy\ud83e\udeb8-zoxhg5u5",
+    "protocol": "vless",
+    "address": "zula.ir",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "BinexTiFy\ud83e\udeb8-zoxhg5u5",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:09.953700+00:00"
+  },
+  {
+    "config": "trojan://tunnel-astrovpn_official192@92.112.126.22:8441?security=tls&sni=zula.ir.AstroVPN-official.AstroVPN-official.workers.dev.AstroVPN_Official.org.AstroVPN.com.AstroVPN_Official.xyz.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.monster.AstroVPN_OfficialJoinTelegram-------------AstroVPN_Official----------Join.ir&alpn=http/1.1&allowInsecure=1&type=tcp&headerType=none&host=92.112.126.22#[AstroVPN_Official] \ud83c\uddf3\ud83c\uddf1",
+    "protocol": "trojan",
+    "address": "92.112.126.22",
+    "port": 8441,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "[AstroVPN_Official] \ud83c\uddf3\ud83c\uddf1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.722942+00:00"
+  },
+  {
+    "config": "vless://0aa52581-ee0c-436f-a8dd-a438e3bdfef6@turkey.huqpmfood.ir:1331?encryption=none&type=xhttp&mode=auto&path=/@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1-@MaSTeRSeRVeR1&security=reality&fp=chrome&sni=stackoverflow.com&pbk=m8Tuf48MMB9ILy--1nfwGRPJOEbgHOdylaLS_JQ66DM&sid=89345bea5809f46d#\ud83c\uddf9\ud83c\uddf7 All Operator @MaSTeRSeRVeR1",
+    "protocol": "vless",
+    "address": "turkey.huqpmfood.ir",
+    "port": 1331,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddf9\ud83c\uddf7 All Operator @MaSTeRSeRVeR1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.351847+00:00"
+  },
+  {
+    "config": "vless://daa53d5c-fd2f-4cf6-9bec-3f6aa4cc7ffa@test.fast.hosting-ip.com:80?mode=auto&path=/telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE,telegram-CONFiGLiNE?ed=2048&security=none&encryption=none&host=configlinechannel.com&type=xhttp#[\ud83c\uddf3\ud83c\uddf1]@configLINE(3)",
+    "protocol": "vless",
+    "address": "test.fast.hosting-ip.com",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "[\ud83c\uddf3\ud83c\uddf1]@configLINE(3)",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:09.892237+00:00"
+  },
+  {
+    "config": "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogInBlYXNvZnQtMTh85YWz5rOo55S15oqlaHR0cHM6Ly90Lm1lL2FpZmVueGlhbmcyMDIuLi5fIiwNCiAgImFkZCI6ICIxMDcuMTY3LjMwLjEzMiIsDQogICJwb3J0IjogIjQzOTAwIiwNCiAgImlkIjogIjU4ZTU2MGI0LWJiYTYtNDg0My1iZTVmLTgzMzIxMDIyZmEwZCIsDQogICJhaWQiOiAiNjQiLA0KICAic2N5IjogImF1dG8iLA0KICAibmV0IjogInRjcCIsDQogICJ0eXBlIjogIm5vbmUiLA0KICAiaG9zdCI6ICIiLA0KICAicGF0aCI6ICIiLA0KICAidGxzIjogIiIsDQogICJzbmkiOiAiIiwNCiAgImFscG4iOiAiIiwNCiAgImZwIjogIiINCn0=",
+    "protocol": "vmess",
+    "address": "107.167.30.132",
+    "port": 43900,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "peasoft-18|\u5173\u6ce8\u7535\u62a5https://t.me/aifenxiang202..._",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:09.806888+00:00"
+  },
+  {
+    "config": "vless://e2c0df8c-b678-4b34-ada2-992369f17b7d@tn14.radmehrmax.ir:8088?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tn14-150",
+    "protocol": "vless",
+    "address": "tn14.radmehrmax.ir",
+    "port": 8088,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tn14-150",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.358992+00:00"
+  },
+  {
+    "config": "vless://0fc95877-cdc3-458f-8b00-d554c99ecbfb@cb6.connectbaash.info:4406?security=&encryption=none&host=www.varzesh3.com&headerType=http&type=tcp#telegram \ud83c\udf4a v2ray_configs_pools",
+    "protocol": "vless",
+    "address": "cb6.connectbaash.info",
+    "port": 4406,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "telegram \ud83c\udf4a v2ray_configs_pools",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.841582+00:00"
+  },
+  {
+    "config": "vless://365b5d91-3712-471e-9357-f9e950e4569a@172.66.156.81:80?path=/@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy&security=&encryption=none=-@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann&host=websocket.network.www.speedtest.net.flutter.dev.russia.python.vegaskala.com.&type=ws#\ud83c\uddf3\ud83c\uddf1@ghalagyann",
+    "protocol": "vless",
+    "address": "172.66.156.81",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddf3\ud83c\uddf1@ghalagyann",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.372096+00:00"
+  },
+  {
+    "config": "vless://ca8be316-c8da-4baa-b131-213e67777e15@62.60.204.227:51160/?type=ws&encryption=none&path=/#@Geek_Spot",
+    "protocol": "vless",
+    "address": "62.60.204.227",
+    "port": 51160,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@Geek_Spot",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.783285+00:00"
+  },
+  {
+    "config": "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIvCfj4FSRUxBWS0xMDQuMjEuNjIuMTY0LTAxMTEiLA0KICAiYWRkIjogIngubGVvbmFyZC5ldS5vcmciLA0KICAicG9ydCI6ICI0NDMiLA0KICAiaWQiOiAiMTQ0MWFmNDEtNWNlZS00OTdlLWE0N2MtYzI2YWYxNjlmOWZmIiwNCiAgImFpZCI6ICIwIiwNCiAgInNjeSI6ICJhdXRvIiwNCiAgIm5ldCI6ICJ3cyIsDQogICJ0eXBlIjogImF1dG8iLA0KICAiaG9zdCI6ICJ4Lmxlb25hcmQuZXUub3JnIiwNCiAgInBhdGgiOiAiLyIsDQogICJ0bHMiOiAidGxzIiwNCiAgInNuaSI6ICIiLA0KICAiYWxwbiI6ICIiDQp9",
+    "protocol": "vmess",
+    "address": "x.leonard.eu.org",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udfc1RELAY-104.21.62.164-0111",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.101826+00:00"
+  },
+  {
+    "config": "vless://0b2b00c2-be56-4be6-abda-5e329afb7bce@37.156.44.111:443?security=reality&encryption=none&pbk=b_hJSqrd_USUBlX5A9-iJTBd0qndoAH9DW3Ct-HpGxc&headerType=none&fp=chrome&type=tcp&sni=chess.com&sid=4d01fba3#MCI-@V2ray_Alpha--10",
+    "protocol": "vless",
+    "address": "37.156.44.111",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "MCI-@V2ray_Alpha--10",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.774146+00:00"
+  },
+  {
+    "config": "vless://cd79807f-bcef-46b8-93b6-229676a0c1a0@de.nitroo-tech.ru:443?security=reality&encryption=none&pbk=y_AlGiUJiCRWCT8FyrfUm-Cmpm0bl0cSUMRP3VZ9X0I&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=google.com&sid=89dbda1a1c9369#09",
+    "protocol": "vless",
+    "address": "de.nitroo-tech.ru",
+    "port": 443,
+    "latency": 1263.05,
+    "country": "Germany",
+    "country_code": "DE",
+    "city": "Frankfurt am Main",
+    "remarks": "09",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-24T15:23:10.907867+00:00"
+  },
+  {
+    "config": "ss://YWVzLTEyOC1nY206c2hhZG93c29ja3M=@141.98.101.179:443#\ud83c\udf10\ud835\udc23\ud835\udc28\ud835\udc22\ud835\udc0d-@\ud835\udc05\ud835\udc11\ud835\udc04\ud835\udc04\ud835\udc15\ud835\udfd0\ud835\udc11\ud835\udc0d\ud835\udc06",
+    "protocol": "shadowsocks",
+    "address": "141.98.101.179",
+    "port": 443,
+    "latency": 470.14,
+    "country": "United Kingdom",
+    "country_code": "GB",
+    "city": "Stretford",
+    "remarks": "\ud83c\udf10\ud835\udc23\ud835\udc28\ud835\udc22\ud835\udc0d-@\ud835\udc05\ud835\udc11\ud835\udc04\ud835\udc04\ud835\udc15\ud835\udfd0\ud835\udc11\ud835\udc0d\ud835\udc06",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-24T15:23:10.190588+00:00"
+  },
+  {
+    "config": "vless://7ca7dab3-e542-4f50-bd7a-2b50389b083b@tnl15.radnikmax.ir:8098?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tnl15-746",
+    "protocol": "vless",
+    "address": "tnl15.radnikmax.ir",
+    "port": 8098,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tnl15-746",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.313537+00:00"
+  },
+  {
+    "config": "vless://5f688e31-b35b-434c-9a48-1b694b886a22@a.de.maviks.ru:443?security=reality&encryption=none&pbk=lyLhdojpACv6B3tHViJvPjNGATedXYRMnpAt4n4Siyo&host=Join---i10VPN---Join---i10VPN---Join---i10VPN---Join---i10VPN&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.microsoft.com&sid=f203719d3ff9a5f5#@i10VPN \ud83d\ude80| \u0628\u0627 \u0645\u0627 \u0645\u062a\u0635\u0644 \u0628\u0645\u0648\u0646\u26a1",
+    "protocol": "vless",
+    "address": "a.de.maviks.ru",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@i10VPN \ud83d\ude80| \u0628\u0627 \u0645\u0627 \u0645\u062a\u0635\u0644 \u0628\u0645\u0648\u0646\u26a1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.184741+00:00"
+  },
+  {
+    "config": "trojan://tunnel-astrovpn_official028@92.112.126.22:8441?security=tls&sni=zula.ir.AstroVPN-official.AstroVPN-official.workers.dev.AstroVPN_Official.org.AstroVPN.com.AstroVPN_Official.xyz.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.AstroVPN_Official.monster.AstroVPN_OfficialJoinTelegram-------------AstroVPN_Official----------Join.ir&alpn=http/1.1&allowInsecure=1&type=tcp&headerType=none&host=92.112.126.22#[@AstroVPN_Official] \ud83c\uddf3\ud83c\uddf1",
+    "protocol": "trojan",
+    "address": "92.112.126.22",
+    "port": 8441,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "[@AstroVPN_Official] \ud83c\uddf3\ud83c\uddf1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.713574+00:00"
+  },
+  {
+    "config": "vless://bb7b030f-fd37-488a-be1f-1a26d874cb26@91.99.145.167:8443?type=xhttp&path=/xhttp&host=&mode=stream-one&security=none#telegram \ud83d\ude80 v2ray_configs_pools",
+    "protocol": "vless",
+    "address": "91.99.145.167",
+    "port": 8443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "telegram \ud83d\ude80 v2ray_configs_pools",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:09.967139+00:00"
+  },
+  {
+    "config": "vless://a3a0643a-5fec-4d6b-8bab-9c5620f671a0@www.speedtest.net:80?security=none&type=ws&headerType=&path=/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420/Telegram,@EXPRESSVPN_420?ed=2080&host=s6.inFo.laLezaRanegomaNandish.suB420-mohaMad.OnlinE.#\ud83c\uddf3\ud83c\uddf1  @EXPRESSVPN_420 |All1",
+    "protocol": "vless",
+    "address": "www.speedtest.net",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddf3\ud83c\uddf1  @EXPRESSVPN_420 |All1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:09.869909+00:00"
+  },
+  {
+    "config": "vless://f61a4285-7264-4d07-9408-7b9ba1922c26@111.118.118.177:12566?encryption=none&security=tls&sni=gaosir.unfeeling.sbs&type=ws&host=gaosir.unfeeling.sbs&path=%2FTelegram%F0%9F%87%A8%F0%9F%87%B3%40WangCai2%2F%3Fed%3D2560#%E7%BE%8E%E5%9B%BD%28yudou678.top%20%E7%8E%89%E8%B1%86%E5%85%8D%E8%B4%B9%E8%8A%82%E7%82%B9%29",
+    "protocol": "vless",
+    "address": "111.118.118.177",
+    "port": 12566,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\u7f8e\u56fd(yudou678.top \u7389\u8c46\u514d\u8d39\u8282\u70b9)",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.835018+00:00"
+  },
+  {
+    "config": "vless://583ceab3-4022-4553-9158-9bedc625ad4e@89.116.180.186:8880?encryption=none&security=none&sni=Telegram-channel-WangCai2&type=ws&host=ip.langmanshanxi.top&path=/#@AYMH19 \u06a9\u0627\u0646\u0627\u0644 \u062a\u0644\u06af\u0631\u0627\u0645",
+    "protocol": "vless",
+    "address": "89.116.180.186",
+    "port": 8880,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@AYMH19 \u06a9\u0627\u0646\u0627\u0644 \u062a\u0644\u06af\u0631\u0627\u0645",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.045902+00:00"
+  },
+  {
+    "config": "vless://12345678-1234-1234-1234-123456789123@88.216.69.54:2096?path=/snippets#&security=tls&encryption=none&host=sni.aizrf.com&type=ws&sni=sni.aizrf.com#@HiByeVPNN\ud83d\udc48\u26a1\u2764\ufe0f\u200d\ud83d\udd25",
+    "protocol": "vless",
+    "address": "88.216.69.54",
+    "port": 2096,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "&security=tls&encryption=none&host=sni.aizrf.com&type=ws&sni=sni.aizrf.com#@HiByeVPNN\ud83d\udc48\u26a1\u2764\ufe0f\u200d\ud83d\udd25",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:09.857071+00:00"
+  },
+  {
+    "config": "vless://3a4524bb-5d17-4c09-b523-6ab1e1a41d81@45.12.135.7:8443?security=reality&encryption=none&pbk=blSlAMMTv5UdIZiQd6VtBlS7kfZJ9xpw9H95Ouohbxs&host=/?BIA_TELEGRAM@MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=ya.ru&sid=4bb9dbdad476124c#@MARAMBASHI \ud83d\udc8b",
+    "protocol": "vless",
+    "address": "45.12.135.7",
+    "port": 8443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@MARAMBASHI \ud83d\udc8b",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.532507+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@185.231.205.234:8880?mode=gun&security=&encryption=none&type=grpc#\ud83c\uddeb\ud83c\uddf7\ud835\udc23\ud835\udc28\ud835\udc22\ud835\udc0d-@\ud835\udc05\ud835\udc11\ud835\udc04\ud835\udc04\ud835\udc15\ud835\udfd0\ud835\udc11\ud835\udc0d\ud835\udc06",
+    "protocol": "vless",
+    "address": "185.231.205.234",
+    "port": 8880,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddeb\ud83c\uddf7\ud835\udc23\ud835\udc28\ud835\udc22\ud835\udc0d-@\ud835\udc05\ud835\udc11\ud835\udc04\ud835\udc04\ud835\udc15\ud835\udfd0\ud835\udc11\ud835\udc0d\ud835\udc06",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.012793+00:00"
+  },
+  {
+    "config": "hysteria2://Yet-Another-Public-Config-1@206.71.158.37:35000?insecure=1&sni=YAPC-1.afshin.irr\u2661ya&obfs=salamander&obfs-password=Yet-Another-Public-Config-1&note=@freeOnlineVPN#\ud83c\uddf3\ud83c\uddf1 - NL - @freeOnlineVPN",
+    "protocol": "hysteria2",
+    "address": "206.71.158.37",
+    "port": 35000,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddf3\ud83c\uddf1 - NL - @freeOnlineVPN",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.048492+00:00"
+  },
+  {
+    "config": "vless://5c0b1139-9b84-42d5-b09c-f96070f52ab5@tnl39.vipradvin.ir:8220?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tnl39-1280",
+    "protocol": "vless",
+    "address": "tnl39.vipradvin.ir",
+    "port": 8220,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tnl39-1280",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.472743+00:00"
+  },
+  {
+    "config": "trojan://af4dc66a-ec88-4057-9e46-777b584577f7@ar.mjt001.com:443?allowInsecure=1&sni=ar.mjt001.com#AR%e9%98%bf%e6%a0%b9%e5%bb%b7(youtube%e9%98%bf%e4%bc%9f%e7%a7%91%e6%8a%80)",
+    "protocol": "trojan",
+    "address": "ar.mjt001.com",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "AR\u963f\u6839\u5ef7(youtube\u963f\u4f1f\u79d1\u6280)",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.585213+00:00"
+  },
+  {
+    "config": "vless://5a46d270-a8ba-463c-aa5b-1f5080d63bc6@tn14.radmehrmax.ir:8088?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tn14-371",
+    "protocol": "vless",
+    "address": "tn14.radmehrmax.ir",
+    "port": 8088,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tn14-371",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.438423+00:00"
+  },
+  {
+    "config": "vless://d814beb3-f48d-4bbe-b6ba-b084ffea4d91@37.32.6.8:35021?security=none&type=tcp&headerType=http&path=/&host=skyroom.online#telegram \ud83c\udf08 v2ray_configs_pools",
+    "protocol": "vless",
+    "address": "37.32.6.8",
+    "port": 35021,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "telegram \ud83c\udf08 v2ray_configs_pools",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.347516+00:00"
+  },
+  {
+    "config": "ss://YWVzLTI1Ni1nY206OFdETFNDVklGQjRJMjZHQg==@154.196.244.21:16011#@awlix_ir",
+    "protocol": "shadowsocks",
+    "address": "154.196.244.21",
+    "port": 16011,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@awlix_ir",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.278597+00:00"
+  },
+  {
+    "config": "trojan://BxceQaOe@36.156.102.115:36698?allowInsecure=1#%F0%9F%87%B8%F0%9F%87%AC%20%E6%96%B0%E5%8A%A0%E5%9D%A13%7C%40ripaojiedian",
+    "protocol": "trojan",
+    "address": "36.156.102.115",
+    "port": 36698,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddf8\ud83c\uddec \u65b0\u52a0\u57613|@ripaojiedian",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.384517+00:00"
+  },
+  {
+    "config": "vless://3bba9a08-157f-442b-b814-313e3ec7f350@54.36.117.130:25369?mode=gun&security=none&encryption=none&type=grpc&serviceName=ZEDMODEON-ZEDMODEON-ZEDMODEON-bia-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON#wi-fi-@iran_v2ray1 \ud83c\udde9\ud83c\uddea",
+    "protocol": "vless",
+    "address": "54.36.117.130",
+    "port": 25369,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "wi-fi-@iran_v2ray1 \ud83c\udde9\ud83c\uddea",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.467732+00:00"
+  },
+  {
+    "config": "vless://1a6fe500-59da-4598-8576-256f06765ffb@212.41.11.152:443?security=reality&encryption=none&pbk=J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=ru.sfasti.ru&sid=16895459a2c7768d#WiFi-@V2rayAlpha--7",
+    "protocol": "vless",
+    "address": "212.41.11.152",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "WiFi-@V2rayAlpha--7",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.399130+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpvWklvQTY5UTh5aGNRVjhrYTNQYTNB@45.87.175.28:8080#WiFi-@IRAN_V2RAY1",
+    "protocol": "shadowsocks",
+    "address": "45.87.175.28",
+    "port": 8080,
+    "latency": 333.32,
+    "country": "United States",
+    "country_code": "US",
+    "city": "New York",
+    "remarks": "WiFi-@IRAN_V2RAY1",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-24T15:23:10.604207+00:00"
+  },
+  {
+    "config": "vless://0c04dd79-71ad-475e-9a22-8fe625afccbb@ZuLa.ir:8080?type=grpc&serviceName=Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH-Telegram-FILTERK0SH?ed=8880&path=/telegram---VPNCUSTOMIZE--telegram--VPNCUSTOMIZE--telegram--VPNCUSTOMIZE--telegram--VPNCUSTOMIZE--telegram----VPNCUSTOMIZE?ed=2048&security=none&encryption=none&host=seyyed.webdade.ip-ddns.com&type=ws#\ud83c\udde9\ud83c\uddea@FILTERK0SH+|+All",
+    "protocol": "vless",
+    "address": "zula.ir",
+    "port": 8080,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udde9\ud83c\uddea@FILTERK0SH+|+All",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.491545+00:00"
+  },
+  {
+    "config": "vless://71b12692-0e7d-4765-b570-5b99aefe6c9a@Www.speedtest.net:80?path=/?ed=#TELEGRAM-MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI?ed=512&security=none&encryption=none&host=LI.fOxmAsTEr.iR&type=ws#@MARAMBASHI \ud83e\udde1",
+    "protocol": "vless",
+    "address": "www.speedtest.net",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "TELEGRAM-MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI?ed=512&security=none&encryption=none&host=LI.fOxmAsTEr.iR&type=ws#@MARAMBASHI \ud83e\udde1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.460596+00:00"
+  },
+  {
+    "config": "vless://6fae85ca-395a-4f27-9eb2-75123befc475@ru.sfasti.ru:443?security=reality&encryption=none&pbk=J_jQq9-SWQZjiMhuPaFV7V2MaJ4pkKgVRaz7x6tmvy8&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=ru.sfasti.ru&sid=16895459a2c7768d#All-@IRAN_V2RAY1",
+    "protocol": "vless",
+    "address": "ru.sfasti.ru",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "All-@IRAN_V2RAY1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:11.471034+00:00"
+  },
+  {
+    "config": "vless://37f4edbc-17c5-4c41-af56-f5f72db60757@142.132.161.197:443?type=tcp&encryption=none&path=/@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM----------@VPN_ROOM--------@VPN_ROOM&headerType=http&security=tls&fp=chrome&alpn=http/1.1&sni=followme.amin-1.ir&ech=AFP+DQBPAAAgACBtMwA93WzNjtrI3IDMlTPYX/ZEMw67DkaSoNOSqnTlbwAkAAEAAQABAAIAAQADAAIAAQACAAIAAgADAAMAAQADAAIAAwADAAAAAA==#@bored_vpn",
+    "protocol": "vless",
+    "address": "142.132.161.197",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@bored_vpn",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.675723+00:00"
+  },
+  {
+    "config": "vless://54c06c38-a570-4ba0-9ae2-405eb24e8627@193.233.19.241:9090?security=tls&encryption=none&headerType=none&fp=chrome&type=tcp&sni=shop.smnsoft.com#@Hddify",
+    "protocol": "vless",
+    "address": "193.233.19.241",
+    "port": 9090,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@Hddify",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.627907+00:00"
+  },
+  {
+    "config": "vless://21d29623-3b91-4494-8402-08372da813a9@m31a.vip784.com:33801?security=none&encryption=none&host=varzesh3.ir&headerType=http&type=tcp#Channel id:  @vpnserverrr\ud83c\uddeb\ud83c\uddf7",
+    "protocol": "vless",
+    "address": "m31a.vip784.com",
+    "port": 33801,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "Channel id:  @vpnserverrr\ud83c\uddeb\ud83c\uddf7",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.757123+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp3YldFMU1nY01ORWtRSFZIbEpacTdH@81.90.29.169:58080#limo",
+    "protocol": "shadowsocks",
+    "address": "81.90.29.169",
+    "port": 58080,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "limo",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.888383+00:00"
+  },
+  {
+    "config": "vless://712e7715-0f22-4a5e-a986-a39427853fa3@cumhuriyet.com.tr:80?flow=&type=ws&host=Vmessorg.paradoxone.ir&path=/@vmessorg----@vmessorg-----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg?ed=2480&security=none#\ud83c\udde9\ud83c\uddea Telegram @SRCVPN",
+    "protocol": "vless",
+    "address": "cumhuriyet.com.tr",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udde9\ud83c\uddea Telegram @SRCVPN",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:11.008729+00:00"
+  },
+  {
+    "config": "vless://9d6315f7-f272-4806-97c8-5fdaafad391e@104.24.31.150:80?encryption=none&security=none&type=ws&host=lot.sosant.dpdns.org&path=%2F%3Fed%3D2570#%F0%9F%94%92%20VL-WS-NONE%20%F0%9F%8F%B4%E2%80%8D%E2%98%A0%EF%B8%8F%20NA-104.24.31.150%3A80",
+    "protocol": "vless",
+    "address": "104.24.31.150",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udd12 VL-WS-NONE \ud83c\udff4\u200d\u2620\ufe0f NA-104.24.31.150:80",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:10.991349+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@103.231.75.129:8880?encryption=none&security=none&type=grpc#@v2ray_configs_pool",
+    "protocol": "vless",
+    "address": "103.231.75.129",
+    "port": 8880,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@v2ray_configs_pool",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.052312+00:00"
+  },
+  {
+    "config": "vless://624c4065-f2c9-49d9-9a9d-be0182ed4c25@Filter5050.nabxcsjghjs2004.shop:22113?type=grpc&serviceName=&security=reality&fp=chrome&pbk=NY4vf2xmEysVkOcgDnGASs9E_kJS1QxqRo7uFSzwh3g&sni=cdn.discordapp.com&sid=a7cf4983&spx=/#Filter5050-Test",
+    "protocol": "vless",
+    "address": "filter5050.nabxcsjghjs2004.shop",
+    "port": 22113,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "Filter5050-Test",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:11.100512+00:00"
+  },
+  {
+    "config": "trojan://BxceQaOe@36.156.102.69:194?allowInsecure=1#%E9%A6%99%E6%B8%AF5%7C%40ripaojiedian",
+    "protocol": "trojan",
+    "address": "36.156.102.69",
+    "port": 194,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\u9999\u6e2f5|@ripaojiedian",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.178250+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpvWklvQTY5UTh5aGNRVjhrYTNQYTNB@193.29.139.235:8080#Irancell--@V2rayAlpha--8",
+    "protocol": "shadowsocks",
+    "address": "193.29.139.235",
+    "port": 8080,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "Irancell--@V2rayAlpha--8",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.528691+00:00"
+  },
+  {
+    "config": "vless://641cc79b-163f-42ba-8006-609b5ec61f20@tnl38.vipradvin.ir:8099?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tnl38-1197",
+    "protocol": "vless",
+    "address": "tnl38.vipradvin.ir",
+    "port": 8099,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tnl38-1197",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.078985+00:00"
+  },
+  {
+    "config": "vless://53fff6cc-b4ec-43e8-ade5-e0c42972fc33@193.151.135.21:44443?security=reality&encryption=none&pbk=XHjKkrNBYXOaamOx8IUCrwX0zp5dAQRVErHiQ5bwAEQ&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=www.speedtest.net#\ud83d\udd10 @AblNet7 \ud83c\uddee\ud83c\uddf7 \u673a\u573a\u63a8\u8350",
+    "protocol": "vless",
+    "address": "193.151.135.21",
+    "port": 44443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udd10 @AblNet7 \ud83c\uddee\ud83c\uddf7 \u673a\u573a\u63a8\u8350",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:19.805078+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpLdWlxazJjUDBCTVdyZ21lOUlmRXZw@38.180.211.126:443#WiFi--@V2rayAlpha--3",
+    "protocol": "shadowsocks",
+    "address": "38.180.211.126",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "WiFi--@V2rayAlpha--3",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.096119+00:00"
+  },
+  {
+    "config": "trojan://ea39fa94f1ee00999337ea1fd3318e69@160.16.68.250:5321?security=tls&headerType=none&type=tcp&sni=www.nintendogames.net#\ud83d\udd10 @AblNet7 \ud83c\uddf8\ud83c\uddec",
+    "protocol": "trojan",
+    "address": "160.16.68.250",
+    "port": 5321,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udd10 @AblNet7 \ud83c\uddf8\ud83c\uddec",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.988412+00:00"
+  },
+  {
+    "config": "vless://f35b4e93-09c0-4818-a8a9-e43aa7dc2143@tnl38.vipradvin.ir:8099?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tnl38-1158",
+    "protocol": "vless",
+    "address": "tnl38.vipradvin.ir",
+    "port": 8099,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tnl38-1158",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:14.893091+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@185.231.205.186:8880?security=&encryption=none&type=grpc#JOIN \u27aa@FILTERK0SH",
+    "protocol": "vless",
+    "address": "185.231.205.186",
+    "port": 8880,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "JOIN \u27aa@FILTERK0SH",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:19.891901+00:00"
+  },
+  {
+    "config": "vless://8e6acce9-8b56-7190-d491-7d84f8189e26@5.181.171.2:443?security=reality&encryption=none&pbk=YNGotlyAx3ELUmi4lxOUjiEDmibqf1pPUTE9o3YYT2Y&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=speed.cloudflare.com#\ud83d\udc8e\u06a9\u0627\u0646\u0641\u06cc\u06af \u0647\u0627\u06cc \u0628\u06cc\u0634\u062a\u0631 \u062f\u0631 \u0686\u0646\u0644 \u062a\u0644\u06af\u0631\u0627\u0645\ud83d\udc8e Config_Rayegan@",
+    "protocol": "vless",
+    "address": "5.181.171.2",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udc8e\u06a9\u0627\u0646\u0641\u06cc\u06af \u0647\u0627\u06cc \u0628\u06cc\u0634\u062a\u0631 \u062f\u0631 \u0686\u0646\u0644 \u062a\u0644\u06af\u0631\u0627\u0645\ud83d\udc8e Config_Rayegan@",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.089138+00:00"
+  },
+  {
+    "config": "vless://ab01d17f-ed9f-4546-afda-434adfd71401@45.89.105.72:443?mode=gun&security=reality&encryption=none&pbk=pwaWnYpE_MEvgwRxITFmHeSCiRJaYGyUBWh4zwDLn2w&fp=chrome&type=grpc&serviceName=b02b809d4d1b4f502c6fc275&sni=www.google.com&sid=0acd50cd4ee97bb6#@meli_proxyy",
+    "protocol": "vless",
+    "address": "45.89.105.72",
+    "port": 443,
+    "latency": 3486.3,
+    "country": "India",
+    "country_code": "IN",
+    "city": "New Delhi",
+    "remarks": "@meli_proxyy",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-24T15:23:18.430504+00:00"
+  },
+  {
+    "config": "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIvCfh7rwn4e4576O5Zu944CQWW91VHViZS3nlLHpm7bplovlp4vjgJEiLA0KICAiYWRkIjogImRvd25sb2FkdmlwLmNmZCIsDQogICJwb3J0IjogIjQ0MyIsDQogICJpZCI6ICIzYjI3YTQ3MC03NjM5LTRhMjctOTBjNi0xYjIzYmZkMDdjN2IiLA0KICAiYWlkIjogIjAiLA0KICAic2N5IjogImF1dG8iLA0KICAibmV0IjogIndzIiwNCiAgInR5cGUiOiAibm9uZSIsDQogICJob3N0IjogInVzMS5qc2pjLnNicyIsDQogICJwYXRoIjogIi9qc2pjL3VzMSIsDQogICJ0bHMiOiAidGxzIiwNCiAgInNuaSI6ICIiDQp9",
+    "protocol": "vmess",
+    "address": "downloadvip.cfd",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddfa\ud83c\uddf8\u7f8e\u56fd\u3010YouTube-\u7531\u96f6\u958b\u59cb\u3011",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.191301+00:00"
+  },
+  {
+    "config": "vless://bcfaacaa-faec-4042-a599-75e5352b3e63@172.66.40.99:443?path=/@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7@V2RAYFAST_7?ed=2048&security=tls&alpn=h2,http/1.1&encryption=none&host=www.dollardoon.com&fp=chrome&type=ws&sni=www.dollardoon.com#\ud83c\udde9\ud83c\uddea @G0dv2ray",
+    "protocol": "vless",
+    "address": "172.66.40.99",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udde9\ud83c\uddea @G0dv2ray",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.277147+00:00"
+  },
+  {
+    "config": "vless://34853e50-d053-4f30-9893-0587fc39ed61@tnl15.radnikmax.ir:8098?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tnl15-575",
+    "protocol": "vless",
+    "address": "tnl15.radnikmax.ir",
+    "port": 8098,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tnl15-575",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.164959+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpvWklvQTY5UTh5aGNRVjhrYTNQYTNB@193.29.139.177:8080#\ud83d\udc8e\u06a9\u0627\u0646\u0641\u06cc\u06af \u0647\u0627\u06cc \u0628\u06cc\u0634\u062a\u0631 \u062f\u0631 \u0686\u0646\u0644 \u062a\u0644\u06af\u0631\u0627\u0645\ud83d\udc8e Config_Rayegan@",
+    "protocol": "shadowsocks",
+    "address": "193.29.139.177",
+    "port": 8080,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udc8e\u06a9\u0627\u0646\u0641\u06cc\u06af \u0647\u0627\u06cc \u0628\u06cc\u0634\u062a\u0631 \u062f\u0631 \u0686\u0646\u0644 \u062a\u0644\u06af\u0631\u0627\u0645\ud83d\udc8e Config_Rayegan@",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.171576+00:00"
+  },
+  {
+    "config": "ss://YWVzLTI1Ni1nY206ZGFkYTA4MDE=@54.81.226.31:80#52",
+    "protocol": "shadowsocks",
+    "address": "54.81.226.31",
+    "port": 80,
+    "latency": 1662.01,
+    "country": "United States",
+    "country_code": "US",
+    "city": "Ashburn",
+    "remarks": "52",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-24T15:23:16.837707+00:00"
+  },
+  {
+    "config": "vless://033bb687-202b-40f1-81e0-400182ffb617@Filter5050.nabxcsjghjs2004.shop:22113?mode=gun&security=reality&encryption=none&pbk=NY4vf2xmEysVkOcgDnGASs9E_kJS1QxqRo7uFSzwh3g&fp=chrome&spx=/&type=grpc&serviceName=&sni=cdn.discordapp.com&sid=a7cf4983#Filter5050-Test1",
+    "protocol": "vless",
+    "address": "filter5050.nabxcsjghjs2004.shop",
+    "port": 22113,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "Filter5050-Test1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.496576+00:00"
+  },
+  {
+    "config": "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIuS8iuacl+OAkFlvdVR1YmUt55Sx6Zu26ZaL5aeL44CRXzMiLA0KICAiYWRkIjogImFwYXJhdC5wZXJzaWFubWl6YmFuLmNvbSIsDQogICJwb3J0IjogIjQ0MzMiLA0KICAiaWQiOiAiODg3OTBhMWItZjA1OS00MGM3LTljOWQtYjdjOTQzYjQ0MjBiIiwNCiAgImFpZCI6ICIwIiwNCiAgInNjeSI6ICJhdXRvIiwNCiAgIm5ldCI6ICJ0Y3AiLA0KICAidHlwZSI6ICJub25lIiwNCiAgImhvc3QiOiAiYXBhcmF0LnBlcnNpYW5taXpiYW4uY29tIiwNCiAgInBhdGgiOiAiLyIsDQogICJ0bHMiOiAidGxzIiwNCiAgInNuaSI6ICIiDQp9",
+    "protocol": "vmess",
+    "address": "aparat.persianmizban.com",
+    "port": 4433,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\u4f0a\u6717\u3010YouTube-\u7531\u96f6\u958b\u59cb\u3011_3",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.552569+00:00"
+  },
+  {
+    "config": "vless://64fdaf06-bcfa-4bdc-8fb1-d8a9bd513f0c@109.122.249.131:3232?security=&encryption=none&host=zula.ir&headerType=http&type=tcp#\ud83c\uddee\ud83c\uddf7 MCI - @FREEV2RNG 2",
+    "protocol": "vless",
+    "address": "109.122.249.131",
+    "port": 3232,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddee\ud83c\uddf7 MCI - @FREEV2RNG 2",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.390967+00:00"
+  },
+  {
+    "config": "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIvCfh7rwn4e4X1VTX+e+juWbvV/mrKLov47orqLpmIV5dWnnp5HmioBfMjA5IiwNCiAgImFkZCI6ICIyMDYuMTY4LjE5MS42NyIsDQogICJwb3J0IjogIjgwIiwNCiAgImlkIjogIjc5OTdiNWEwLWYyZjktMTFlZC1iNDM2LTIwNWM2ZDVmNWQ3OCIsDQogICJhaWQiOiAiMCIsDQogICJzY3kiOiAiYXV0byIsDQogICJuZXQiOiAid3MiLA0KICAidHlwZSI6ICJub25lIiwNCiAgImhvc3QiOiAiZXNldC5jb20iLA0KICAicGF0aCI6ICIvcjJ2dDU5eDgiLA0KICAidGxzIjogIiIsDQogICJzbmkiOiAiIg0KfQ==",
+    "protocol": "vmess",
+    "address": "206.168.191.67",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddfa\ud83c\uddf8_US_\u7f8e\u56fd_\u6b22\u8fce\u8ba2\u9605yui\u79d1\u6280_209",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.733842+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@185.234.64.155:8880?mode=gun&security=&encryption=none&type=grpc#\ud83c\uddeb\ud83c\uddf7@FreakConfig",
+    "protocol": "vless",
+    "address": "185.234.64.155",
+    "port": 8880,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddeb\ud83c\uddf7@FreakConfig",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.572694+00:00"
+  },
+  {
+    "config": "vless://85808aed-e4a3-4e7f-ae75-f68cb45d5608@VPNCUSTOMIZE.fastly80-3.hosting-ip.com:80?path=/Channel----VPNCUSTOMIZE----VPNCUSTOMIZE----VPNCUSTOMIZE---VPNCUSTOMIZE---VPNCUSTOMIZE---VPNCUSTOMIZE&security=none&alpn=h3,h2,http/1.1&encryption=none&host=Telegram-VPNCUSTOMIZE-VPNCUSTOMIZE.ir&fp=chrome&type=ws#MTN & MCI @V2RayFa",
+    "protocol": "vless",
+    "address": "vpncustomize.fastly80-3.hosting-ip.com",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "MTN & MCI @V2RayFa",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.681795+00:00"
+  },
+  {
+    "config": "vless://c2ec47f4-873f-573f-7d8d-d79d7ad452e6@85.90.197.100:9956?security=reality&encryption=none&pbk=YWfCdTnr4FAOMYTY2dLrMtQUokyxOGpPhYEEszPj20E&host=/?BIA_TELEGRAM@MARAMBASHI_MARAMBASHI_MARAMBASHI_MARAMBASHI&headerType=none&fp=chrome&type=tcp&flow=xtls-rprx-vision&sni=store.steampowered.com#@MARAMBASHI \ud83e\ude75",
+    "protocol": "vless",
+    "address": "85.90.197.100",
+    "port": 9956,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@MARAMBASHI \ud83e\ude75",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.593798+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprMWRCT21PQjRvcWk3VW1wMzdhMWJR@45.87.175.185:8080#@v2ray_configs_pool",
+    "protocol": "shadowsocks",
+    "address": "45.87.175.185",
+    "port": 8080,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@v2ray_configs_pool",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:21.292614+00:00"
+  },
+  {
+    "config": "vless://caaf0e88-9139-48c2-b712-fcacde7a3a45@85.133.240.49:31086?security=none&encryption=none&host=fast.com&headerType=http&fp=chrome&type=tcp#@Geek_Spot",
+    "protocol": "vless",
+    "address": "85.133.240.49",
+    "port": 31086,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@Geek_Spot",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.606183+00:00"
+  },
+  {
+    "config": "vless://575a7246-e065-4ded-d05b-5500cd6cbe21@172.67.72.39:2052?flow=&type=ws&host=Vmessorg.paradoxone.ir&path=/@vmessorg----@vmessorg-----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg----@vmessorg?ed=2480&security=none#\ud83c\udde9\ud83c\uddea Telegram @SRCVPN \u00b2",
+    "protocol": "vless",
+    "address": "172.67.72.39",
+    "port": 2052,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udde9\ud83c\uddea Telegram @SRCVPN \u00b2",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.741068+00:00"
+  },
+  {
+    "config": "vless://a832739c-655e-49f9-884c-352672f52c6d@91.99.179.41:10138?type=grpc&encryption=none&serviceName=/@FAST78_CHANNEL-TEL--@FAST78_CHANNEL-TEL--@FAST78_CHANNEL-TEL--@FAST78_CHANNEL-JOIN-@FAST78_CHANNEL-TEL--@FAST78_CHANNEL-JOIN-@FAST78_CHANNEL-TEL-@FAST78_CHANNEL-TEL--@FAST78_CHANNEL-JOIN-@FAST78_CHANNEL-TEL--@FAST78_CHANNEL&authority=&security=none#\ud83d\udce2+\u0633\u0631\u0648\u0631\u0627\u06cc+\u0628\u06cc\u0634\u062a\u0631+\u0647\u0631+\u0631\u0648\u0632+\u062a\u0648+\u06a9\u0627\u0646\u0627\u0644++\ud83d\udc49+@Fast78_Channel",
+    "protocol": "vless",
+    "address": "91.99.179.41",
+    "port": 10138,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udce2+\u0633\u0631\u0648\u0631\u0627\u06cc+\u0628\u06cc\u0634\u062a\u0631+\u0647\u0631+\u0631\u0648\u0632+\u062a\u0648+\u06a9\u0627\u0646\u0627\u0644++\ud83d\udc49+@Fast78_Channel",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.864319+00:00"
+  },
+  {
+    "config": "vless://08cb0591-5193-4a0c-9105-ceb09fba67fe@63.178.9.121:25670?security=none&encryption=none&headerType=none&type=tcp#@Daily_Configs",
+    "protocol": "vless",
+    "address": "63.178.9.121",
+    "port": 25670,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@Daily_Configs",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.643412+00:00"
+  },
+  {
+    "config": "vless://b5e8bfe7-6cdb-402d-b243-1e0f53ebb582@185.234.66.82:443?path=/jzmdpvws&security=tls&encryption=none&type=ws#\ud83c\udf10\ud835\udc23\ud835\udc28\ud835\udc22\ud835\udc0d-@\ud835\udc05\ud835\udc11\ud835\udc04\ud835\udc04\ud835\udc15\ud835\udfd0\ud835\udc11\ud835\udc0d\ud835\udc06",
+    "protocol": "vless",
+    "address": "185.234.66.82",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udf10\ud835\udc23\ud835\udc28\ud835\udc22\ud835\udc0d-@\ud835\udc05\ud835\udc11\ud835\udc04\ud835\udc04\ud835\udc15\ud835\udfd0\ud835\udc11\ud835\udc0d\ud835\udc06",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.653663+00:00"
+  },
+  {
+    "config": "vless://d342d11e-d424-4583-b36e-524ab1f0afa4@wetest.xn--vip-ob6fs36j.cloudflare.182682.xyz:443?path=/snippets/ip=tw.tp81.netlib.re:81?ed=2560&security=tls&encryption=none&host=xn--kwr11l51ffzytxy.CMLiussss.dedyn.io&type=ws&sni=xn--kwr11l51ffzytxy.CMLiussss.dedyn.io#IR-@V2ray_Alpha--20",
+    "protocol": "vless",
+    "address": "wetest.xn--vip-ob6fs36j.cloudflare.182682.xyz",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "IR-@V2ray_Alpha--20",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.289081+00:00"
+  },
+  {
+    "config": "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIlx1MDAzRVx1MDAzRUB2bWVzc2lyYW46OlhYIiwNCiAgImFkZCI6ICJ3d3cueGluanVjLmNvbSIsDQogICJwb3J0IjogIjgwIiwNCiAgImlkIjogIjJmMzhmODQ4LWE4OTktNGM4Ny05ODA3LTIwN2E0MTYxNWUzYyIsDQogICJhaWQiOiAiMCIsDQogICJzY3kiOiAiYXV0byIsDQogICJuZXQiOiAid3MiLA0KICAidHlwZSI6ICItLS0iLA0KICAiaG9zdCI6ICJoay5mcmVleXlkcy5kcGRucy5vcmciLA0KICAicGF0aCI6ICIvcm9uZ3NldmVuP2VkPTIwNDgiLA0KICAidGxzIjogIiIsDQogICJzbmkiOiAiIiwNCiAgImFscG4iOiAiIiwNCiAgImZwIjogIiINCn0=",
+    "protocol": "vmess",
+    "address": "www.xinjuc.com",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": ">>@vmessiran::XX",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:18.342362+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@185.234.64.94:8880?mode=gun&security=none&encryption=none&type=grpc#MCi--@IRAN_V2RAY1",
+    "protocol": "vless",
+    "address": "185.234.64.94",
+    "port": 8880,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "MCi--@IRAN_V2RAY1",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.797595+00:00"
+  },
+  {
+    "config": "vless://9dd24d01-2b7a-4bd8-8c76-129d6ca89b8c@104.16.43.245:443?path=%2F&security=tls&encryption=none&host=kawaiifreevpn-7ds.pages.dev&fp=chrome&type=ws&sni=kawaiifreevpn-7ds.pages.dev#@meli_proxyy",
+    "protocol": "vless",
+    "address": "104.16.43.245",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@meli_proxyy",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.000973+00:00"
+  },
+  {
+    "config": "hysteria2://a28e61d9-61f9-4058-be6c-cc4ad07e01a4@gb03.tehuicloud.top:57338?insecure=1&sni=gb03.tehuicloud.top#gb03",
+    "protocol": "hysteria2",
+    "address": "gb03.tehuicloud.top",
+    "port": 57338,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "gb03",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:15.963141+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpDREFHRVlBQjFndmNJckZaWWhVYkVN@62.133.63.222:48981#@v2ray_configs_pool",
+    "protocol": "shadowsocks",
+    "address": "62.133.63.222",
+    "port": 48981,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@v2ray_configs_pool",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:21.294752+00:00"
+  },
+  {
+    "config": "vless://f581fe5c-98dc-42ed-a9fd-5233a1b74835@tn14.radmehrmax.ir:8088?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tn14-169",
+    "protocol": "vless",
+    "address": "tn14.radmehrmax.ir",
+    "port": 8088,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tn14-169",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:20.924983+00:00"
+  },
+  {
+    "config": "vless://8a009663-9afa-4f0f-aac0-23e743a89e08@ipw.gfdv54cvghhgfhgj-njhgj64.info:2096?path=/zwtnbvws&security=tls&encryption=none&host=638899133731250519.amsterdam-prx-dnraaal.info&type=ws&sni=638899133731250519.amsterdam-prx-dnraaal.info#telegram \ud83c\udfaa v2ray_configs_pools",
+    "protocol": "vless",
+    "address": "ipw.gfdv54cvghhgfhgj-njhgj64.info",
+    "port": 2096,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "telegram \ud83c\udfaa v2ray_configs_pools",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.182895+00:00"
+  },
+  {
+    "config": "trojan://ea39fa94f1ee00999337ea1fd3318e69@203.198.122.144:443?security=tls&headerType=none&type=tcp&sni=www.nintendogames.net#@meli_proxyy",
+    "protocol": "trojan",
+    "address": "203.198.122.144",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@meli_proxyy",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:21.083612+00:00"
+  },
+  {
+    "config": "vless://ddc27bd6-6efa-47cf-8bfc-acaf973ba6b3@famous-danger.oneeat.co:80?path=/&security=none&encryption=none&type=ws#\ud83d\udc8e\u06a9\u0627\u0646\u0641\u06cc\u06af \u0647\u0627\u06cc \u0628\u06cc\u0634\u062a\u0631 \u062f\u0631 \u0686\u0646\u0644 \u062a\u0644\u06af\u0631\u0627\u0645\ud83d\udc8e Config_Rayegan@",
+    "protocol": "vless",
+    "address": "famous-danger.oneeat.co",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udc8e\u06a9\u0627\u0646\u0641\u06cc\u06af \u0647\u0627\u06cc \u0628\u06cc\u0634\u062a\u0631 \u062f\u0631 \u0686\u0646\u0644 \u062a\u0644\u06af\u0631\u0627\u0645\ud83d\udc8e Config_Rayegan@",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.216708+00:00"
+  },
+  {
+    "config": "vless://3100c077-31fe-4539-bdb4-bdf965065ecf@tn6.adamlinux.ir:8051?encryption=none&security=none&type=tcp&headerType=http#VL-VIP-tn6-474",
+    "protocol": "vless",
+    "address": "tn6.adamlinux.ir",
+    "port": 8051,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "VL-VIP-tn6-474",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.353940+00:00"
+  },
+  {
+    "config": "vless://04bd0ad9-807e-4af0-999f-a2452c8c19cc@141.227.166.102:31154?mode=gun&security=none&encryption=none&authority=&type=grpc&serviceName=ZEDMODEON-ZEDMODEON-ZEDMODEON-bia-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON-ZEDMODEON#@TEHRANARGO",
+    "protocol": "vless",
+    "address": "141.227.166.102",
+    "port": 31154,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "@TEHRANARGO",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:21.254328+00:00"
+  },
+  {
+    "config": "trojan://your_password@43.218.139.54:443/?type=tcp&security=tls&sni=aws-id-jakarta-1.f1rocketnode.com&allowInsecure=1#Subscription%20link%20Ghanged",
+    "protocol": "trojan",
+    "address": "43.218.139.54",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "Subscription link Ghanged",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.263947+00:00"
+  },
+  {
+    "config": "vless://d7dbeb1e-268c-465c-8f59-489f14703efd@5.182.36.251:16331?security=reality&encryption=none&pbk=wYtc0dMr5fw5bBQkbLNpTqtu0m4B9NKnOyEWjRJUmzk&headerType=none&fp=chrome&spx=/@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-?ed=2560&type=tcp&sni=yahoo.com&sid=910aab#\ud83c\udde8\ud83c\udded  \u293f \ud835\udc02\ud835\udc21\ud835\udc1a\ud835\udc27\ud835\udc27\ud835\udc1e\ud835\udc25 @V2WRAY",
+    "protocol": "vless",
+    "address": "5.182.36.251",
+    "port": 16331,
+    "latency": 721.78,
+    "country": "Switzerland",
+    "country_code": "CH",
+    "city": "Unknown",
+    "remarks": "\ud83c\udde8\ud83c\udded  \u293f \ud835\udc02\ud835\udc21\ud835\udc1a\ud835\udc27\ud835\udc27\ud835\udc1e\ud835\udc25 @V2WRAY",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-24T15:23:17.002642+00:00"
+  },
+  {
+    "config": "vless://401374e6-df77-41fb-f638-dad8184f175b@185.236.232.98:80?security=&encryption=none&type=grpc#\ud83d\udce2+\u0633\u0631\u0648\u0631\u0627\u06cc+\u0628\u06cc\u0634\u062a\u0631+\u0647\u0631+\u0631\u0648\u0632+\u062a\u0648+\u06a9\u0627\u0646\u0627\u0644++\ud83d\udc49+@Fast78_Channel",
+    "protocol": "vless",
+    "address": "185.236.232.98",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83d\udce2+\u0633\u0631\u0648\u0631\u0627\u06cc+\u0628\u06cc\u0634\u062a\u0631+\u0647\u0631+\u0631\u0648\u0632+\u062a\u0648+\u06a9\u0627\u0646\u0627\u0644++\ud83d\udc49+@Fast78_Channel",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:21.327750+00:00"
+  },
+  {
+    "config": "vless://9c6f0b9b-f7a3-4119-9df2-954eda5f5d6d@G0dv2ray.fast.hosting-ip.com:80?path=/-LiV2ry@LIGHTNING6-TEL--@LIGHTNING6-TEL--@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL-@LIGHTNING6-TEL--@LIGHTNING6-JOIN-@LIGHTNING6-TEL--@LIGHTNING6?ed=2048&security=none&encryption=none&host=fotofactory.pk&type=xhttp#\ud83c\udde9\ud83c\uddea @G0dv2ray",
+    "protocol": "vless",
+    "address": "g0dv2ray.fast.hosting-ip.com",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udde9\ud83c\uddea @G0dv2ray",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:16.404491+00:00"
+  },
+  {
+    "config": "vless://7606bb75-416a-4f99-ba20-019cb25543cf@91.107.137.185:443?mode=stream-one&path=/xhttp&security=none&encryption=none&type=xhttp#All-@V2rayAlpha--18",
+    "protocol": "vless",
+    "address": "91.107.137.185",
+    "port": 443,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "All-@V2rayAlpha--18",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:21.405755+00:00"
+  },
+  {
+    "config": "vless://2282c596-5761-4547-b117-d7f5e5b79780@ae2.howfast.ir:42539?note=---Telegram---@NetifyVPN---Telegram---@NetifyVPN---Telegram---@NetifyVPN---Telegram---@NetifyVPN---&security=none&encryption=none&host=zhaket.com&headerType=http&type=tcp#\ud83c\udde6\ud83c\uddea[Telegram:NetifyVPN]",
+    "protocol": "vless",
+    "address": "ae2.howfast.ir",
+    "port": 42539,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\udde6\ud83c\uddea[Telegram:NetifyVPN]",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:22.284370+00:00"
+  },
+  {
+    "config": "vless://f61a4285-7264-4d07-9408-7b9ba1922c26@118.91.78.76:50001?encryption=none&security=tls&sni=gaosir.unfeeling.sbs&type=ws&host=gaosir.unfeeling.sbs&path=Telegram%40%E8%8A%82%E7%82%B9%E7%8B%82%E9%AD%94%2F%3Fed%3D2560#%E9%9F%A9%E5%9B%BD%28yudou678.top%20%E7%8E%89%E8%B1%86%E5%85%8D%E8%B4%B9%E8%8A%82%E7%82%B9%29",
+    "protocol": "vless",
+    "address": "118.91.78.76",
+    "port": 50001,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\u97e9\u56fd(yudou678.top \u7389\u8c46\u514d\u8d39\u8282\u70b9)",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:22.286478+00:00"
+  },
+  {
+    "config": "vless://53fcd5fb-b997-41f6-8cc1-3eb6d34c5d52@v2ngnet.xero-network.ir:4455?encryption=none&type=xhttp&mode=auto&path=/@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-@v2ngnet-&security=reality&fp=chrome&sni=stackoverflow.com&pbk=l_LBBQyt6du7ZgBadETGtx8zLgUd36-4mZVCSI9qqwA&sid=077dc29a23d311f2#\ud83c\uddec\ud83c\udde7 @V2ngNet",
+    "protocol": "vless",
+    "address": "v2ngnet.xero-network.ir",
+    "port": 4455,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddec\ud83c\udde7 @V2ngNet",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:17.024092+00:00"
+  },
+  {
+    "config": "vless://cf1d29a2-926d-40eb-972e-6e11f7f28d57@my.aparatco.co.uk:2525?encryption=none&security=none&type=tcp&headerType=http&host=takhfifan.com#%F0%9F%87%AE%F0%9F%87%B7IR_622_%40Surfboardv2ray",
+    "protocol": "vless",
+    "address": "my.aparatco.co.uk",
+    "port": 2525,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddee\ud83c\uddf7IR_622_@Surfboardv2ray",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:22.127146+00:00"
+  },
+  {
+    "config": "vless://5e9b8528-f88a-4faa-a229-196395f7cdff@rayphoriahub.iranfastshop.ir:7401?security=reality&encryption=none&pbk=mNJNJwzm8sozJ7cXa62Fu3cHYUb0efZs4ue-ZHCIN2o&headerType=none&fp=chrome&spx=/F------Telegram------RayphoriaHub---------Telegram------RayphoriaHub---------Telegram------RayphoriaHub---------Telegram------RayphoriaHub---------Telegram------RayphoriaHub&type=tcp&flow=xtls-rprx-vision&sni=preview.redd.it&sid=8de0d97b17#\u06a9\u0627\u0646\u0641\u06cc\u06af \u0648\u06cc\u0698\u0647 \u0631\u0627\u06cc\u06af\u0627\u0646 \u0648 \u0627\u062e\u062a\u0635\u0627\u0635\u06cc \u0641\u0631\u0648\u0634\u06cc \ud83c\udde9\ud83c\uddea\ud83c\uddf3\ud83c\uddf1\ud83c\uddeb\ud83c\uddee @RayphoriaHub",
+    "protocol": "vless",
+    "address": "rayphoriahub.iranfastshop.ir",
+    "port": 7401,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\u06a9\u0627\u0646\u0641\u06cc\u06af \u0648\u06cc\u0698\u0647 \u0631\u0627\u06cc\u06af\u0627\u0646 \u0648 \u0627\u062e\u062a\u0635\u0627\u0635\u06cc \u0641\u0631\u0648\u0634\u06cc \ud83c\udde9\ud83c\uddea\ud83c\uddf3\ud83c\uddf1\ud83c\uddeb\ud83c\uddee @RayphoriaHub",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:17.470448+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@94.156.250.122:990#@Daily_Configs",
+    "protocol": "shadowsocks",
+    "address": "94.156.250.122",
+    "port": 990,
+    "latency": 4438.15,
+    "country": "United Kingdom",
+    "country_code": "GB",
+    "city": "City of London",
+    "remarks": "@Daily_Configs",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-24T15:23:21.961940+00:00"
+  },
+  {
+    "config": "vless://b05758e6-bbe6-4de6-8d2e-8e7d7c95524a@172.66.156.81:80?path=/@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy----@Shh_Proxy&security=&encryption=none=-@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann---@ghalagyann&host=websocket.network.www.speedtest.net.flutter.dev.russia.python.vegaskala.com.&type=ws#\ud83c\uddf3\ud83c\uddf1@ghalagyann | All\u00b9",
+    "protocol": "vless",
+    "address": "172.66.156.81",
+    "port": 80,
+    "latency": null,
+    "country": "",
+    "country_code": "",
+    "city": "",
+    "remarks": "\ud83c\uddf3\ud83c\uddf1@ghalagyann | All\u00b9",
+    "is_working": false,
+    "security_issues": [
+      "All test URLs failed"
+    ],
+    "tested_at": "2025-10-24T15:23:18.697056+00:00"
+  }
+]

@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues"
   },
-  "homepage": "https://github.com/AmirrezaFarnamTaheri/ConfigStream#readme"
+  "homepage": "https://github.com/AmirrezaFarnamTaheri/ConfigStream#readme",
+  "dependencies": {
+    "playwright": "^1.56.1"
+  }
 }
