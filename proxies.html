@@ -116,12 +116,18 @@
                             </div>
                             <div class="filter-input-wrapper">
                                 <i data-feather="map-pin" class="filter-icon"></i>
+                                <span class="country-flag-display" id="countryFlagDisplay">
+                                    <i data-feather="globe" class="country-flag-icon-small"></i>
+                                </span>
                                 <select id="filterCountry" aria-label="Filter by country">
                                     <option value="">All Countries</option>
                                 </select>
                             </div>
                             <div class="filter-input-wrapper">
                                 <i data-feather="navigation" class="filter-icon"></i>
+                                <span class="city-flag-display" id="cityFlagDisplay">
+                                    <i data-feather="globe" class="country-flag-icon-small"></i>
+                                </span>
                                 <select id="filterCity" aria-label="Filter by city">
                                     <option value="">All Cities</option>
                                 </select>
@@ -172,7 +178,9 @@
                         <p>Loading and testing live proxies...</p>
                     </div>
                     <div id="emptyState" class="empty-state hidden">
-                        <i data-feather="frown"></i>
+                        <div class="empty-state-icon">
+                            <i data-feather="frown"></i>
+                        </div>
                         <h3>No Matches Found</h3>
                         <p>Your search for proxies didn't return any results. Please try adjusting your filters.</p>
                     </div>
