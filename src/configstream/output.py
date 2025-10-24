@@ -88,10 +88,26 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
     rejected_dir = output_dir / "rejected"
     rejected_dir.mkdir(parents=True, exist_ok=True)
 
+    # Categorize security failures by specific issue type
+    security_by_category: Dict[str, List[Proxy]] = {}
+    for proxy in security_failed:
+        if isinstance(proxy.security_issues, dict):
+            for category in proxy.security_issues.keys():
+                if category not in security_by_category:
+                    security_by_category[category] = []
+                security_by_category[category].append(proxy)
+
+    # Save each security category to its own file
+    for category, proxies_list in security_by_category.items():
+        category_path = rejected_dir / f"{category}.json"
+        category_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies_list], indent=2))
+        output_files[f"rejected_{category}"] = str(category_path)
+
+    # Save general security issues file (all security failures)
     if security_failed:
-        security_path = rejected_dir / "security_issues.json"
+        security_path = rejected_dir / "all_security_issues.json"
         security_path.write_text(json.dumps([proxy_to_dict(p) for p in security_failed], indent=2))
-        output_files["rejected_security"] = str(security_path)
+        output_files["rejected_security_all"] = str(security_path)
 
     if connectivity_failed:
         connectivity_path = rejected_dir / "no_response.json"
@@ -100,12 +116,17 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
         )
         output_files["rejected_connectivity"] = str(connectivity_path)
 
-    # Generate summary stats
+    # Generate summary stats with detailed security categorization
+    security_summary = {
+        category: len(proxies) for category, proxies in security_by_category.items()
+    }
+
     summary = {
         "total_tested": len(all_proxies),
         "passed": len(passed),
         "rejected": {
-            "security_issues": len(security_failed),
+            "total_security_issues": len(security_failed),
+            "security_by_category": security_summary,
             "no_response": len(connectivity_failed),
         },
         "by_protocol": {k: len(v) for k, v in protocols.items()},
