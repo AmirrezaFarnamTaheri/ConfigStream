@@ -522,3 +522,24 @@ https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/splitted/vmess
 https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/splitted/vless
 https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/splitted/trojan
 https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/splitted/ss
+
+# Additional high-quality sources for better coverage
+https://raw.githubusercontent.com/mfuu/v2ray/refs/heads/master/v2ray
+https://raw.githubusercontent.com/vveg26/chromego_merge/refs/heads/main/sub/merged_proxies.yaml
+https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/refs/heads/master/all
+https://raw.githubusercontent.com/Leon406/SubCrawler/refs/heads/main/sub/share/all
+https://raw.githubusercontent.com/peasoft/NoMoreWalls/refs/heads/master/list.txt
+https://raw.githubusercontent.com/aiboboxx/v2rayfree/refs/heads/main/v2
+https://raw.githubusercontent.com/Pawdroid/Free-servers/refs/heads/main/sub
+https://raw.githubusercontent.com/ermaozi/get_subscribe/refs/heads/main/subscribe/v2ray.txt
+https://raw.githubusercontent.com/ts-sf/fly/refs/heads/main/v2
+https://raw.githubusercontent.com/yu-steven/openit/refs/heads/main/Clash.yaml
+https://raw.githubusercontent.com/anaer/Sub/refs/heads/main/clash.yaml
+https://raw.githubusercontent.com/Lewis-1217/FreeProxy/refs/heads/main/clash.yaml
+https://raw.githubusercontent.com/w1770946466/Auto_proxy/refs/heads/main/Long_term_subscription_num
+https://raw.githubusercontent.com/mahdibland/V2RayAggregator/refs/heads/master/Eternity.txt
+https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml
+https://raw.githubusercontent.com/freefq/free/refs/heads/master/v2
+https://raw.githubusercontent.com/ripaojiedian/freenode/refs/heads/main/clash
+https://raw.githubusercontent.com/Jonnyan404/pub-v2ray-sub/refs/heads/main/clash
+https://raw.githubusercontent.com/tbbatbb/Proxy/refs/heads/master/dist/clash.config.yaml
