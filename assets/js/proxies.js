@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const latencyMinInput = document.getElementById('filterLatencyMin');
     const latencyMaxInput = document.getElementById('filterLatencyMax');
     const paginationContainer = document.getElementById('pagination-container');
-    const pageSizeSelector = document.getElementById('pageSizeSelector');
+    const pageSizeSelector = document.getElementById('pageSize');
 
     // Early return if required elements don't exist
     if (!protocolFilter || !countryFilter || !tableBody || !emptyState) return;
@@ -91,7 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentProxies = filteredProxies.slice(indexOfFirstProxy, indexOfLastProxy);
 
         tableBody.innerHTML = currentProxies.map((p, index) => {
-            const country = p.country_code || 'Unknown';
+            // Handle XX or unknown country codes
+            const countryCode = (p.country_code && p.country_code !== 'XX') ? p.country_code : null;
+            const country = countryCode || 'Unknown';
             const city = p.city || '';
             const location = city ? `${city}, ${country}` : country;
             const latency = p.latency ? `${p.latency}ms` : 'N/A';
@@ -108,11 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr class="${rowClasses.join(' ')}" style="--delay: ${index * 0.03}s" data-source="${p.source}">
                     <td>${protocol}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
                     <td class="location-cell">
-                        ${p.country_code ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" alt="${p.country_code}" class="country-flag" onerror="this.onerror=null;this.outerHTML='<i data-feather=\\\'globe\\\' class=\\\'country-flag-icon\\\'></i>'">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
+                        ${countryCode ? `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" alt="${countryCode}" class="country-flag" onerror="this.onerror=null;this.outerHTML='<i data-feather=\\\'globe\\\' class=\\\'country-flag-icon\\\'></i>'">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
                         <span>${location}</span>
                     </td>
                     <td>${latency}</td>
-                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}"><i data-feather="copy"></i></button></td>
+                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="link"></i></button></td>
                 </tr>
             `;
         }).join('');
@@ -274,15 +276,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Populate filter dropdowns dynamically
+    // Populate filter dropdowns dynamically with only available options
     function populateFilters() {
-        // Get unique countries and cities
+        // Get unique protocols, countries and cities (excluding XX and invalid values)
+        const protocols = new Set();
         const countries = new Set();
         const cities = new Set();
 
         allProxies.forEach(p => {
-            if (p.country_code) countries.add(p.country_code);
+            if (p.protocol) protocols.add(p.protocol);
+            // Exclude XX and empty country codes
+            if (p.country_code && p.country_code !== 'XX') countries.add(p.country_code);
             if (p.city) cities.add(p.city);
+        });
+
+        // Populate protocol filter
+        const sortedProtocols = Array.from(protocols).sort();
+        protocolFilter.length = 1; // Preserve "All Protocols"
+        sortedProtocols.forEach(protocol => {
+            const option = document.createElement('option');
+            option.value = protocol;
+            option.textContent = protocol.toUpperCase();
+            protocolFilter.appendChild(option);
         });
 
         // Sort and populate country filter
