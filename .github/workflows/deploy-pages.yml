@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+on:
+  workflow_run:
+    workflows: ["ConfigStream Pipeline"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout site content
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Build Pages artifact
+        run: |
+          set -euxo pipefail
+          rm -rf github_pages_root
+          mkdir -p github_pages_root
+
+          cp -v .nojekyll github_pages_root/.nojekyll || true
+          cp -v index.html proxies.html statistics.html sw.js github_pages_root/
+          cp -rv assets github_pages_root/assets
+          cp -rv output github_pages_root/output
+
+          ts=$(date +%Y%m%d%H%M%S)
+          sed -i "s/const VERSION = '[^']*'/const VERSION = '${ts}'/" github_pages_root/assets/js/cache-config.js
+
+          test -s github_pages_root/index.html
+          test -d github_pages_root/output
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: github_pages_root
+          retention-days: 1
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify deployment
+        run: echo "Pages deployed to: ${{ steps.deployment.outputs.page_url }}"

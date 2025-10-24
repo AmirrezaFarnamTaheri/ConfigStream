@@ -1,0 +1,19 @@
+# Exclude output directories
+output*/
+
+# Ignore large sample files generated during testing or distribution
+ping*_vpn_detailed.csv
+ping*_vpn_report.json
+ping*_vpn_singbox.json
+ping*_vpn_subscription_base64.txt
+ping*_vpn_subscription_raw.txt
+
+# Ignore caches
+__pycache__/
+*.pyc
+*.pyo
+*.cache
+.pytest_cache/
+
+# Ignore tests
+tests/

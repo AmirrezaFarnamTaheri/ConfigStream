@@ -1,0 +1,203 @@
+/* ============================================
+   LOADING SCREEN - Part 1
+   ============================================ */
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+}
+
+.loading-screen.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading-container {
+  text-align: center;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+/* Logo Animation */
+.loading-logo {
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 2rem;
+  animation: logoFloat 2s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.05); }
+}
+
+.loading-logo object,
+.loading-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+}
+
+.logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Rotating circle */
+.logo-circle {
+  animation: rotate 3s linear infinite;
+  transform-origin: center;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Flowing particles */
+.particle {
+  animation: particleOrbit 2s ease-in-out infinite;
+  opacity: 0;
+}
+
+.particle-1 { animation-delay: 0s; }
+.particle-2 { animation-delay: 0.5s; }
+.particle-3 { animation-delay: 1s; }
+.particle-4 { animation-delay: 1.5s; }
+
+@keyframes particleOrbit {
+  0% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(0); }
+}
+
+/* Waves animation */
+.wave {
+  animation: waveFlow 1.5s ease-in-out infinite;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+}
+
+.wave-1 { animation-delay: 0s; }
+.wave-2 { animation-delay: 0.2s; }
+.wave-3 { animation-delay: 0.4s; }
+
+@keyframes waveFlow {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Loading Message */
+.loading-message {
+  margin-top: 2rem;
+}
+
+.loading-text {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0 0 1rem;
+  letter-spacing: 0.5px;
+}
+
+/* Animated dots */
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  animation: dotBounce 1.4s infinite ease-in-out;
+  opacity: 0.6;
+}
+
+.dot:nth-child(1) { animation-delay: 0s; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotBounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Progress Hint (shows after delay) */
+.loading-hint {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  margin-top: 1.5rem;
+  opacity: 0;
+  animation: fadeInHint 0.5s ease-out 2s forwards;
+}
+
+@keyframes fadeInHint {
+  to { opacity: 1; }
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .loading-screen,
+  .loading-logo,
+  .logo-circle,
+  .particle,
+  .wave,
+  .dot,
+  .loading-hint {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .loading-logo {
+    transform: none;
+  }
+
+  .particle {
+    opacity: 0.5;
+  }
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+  .loading-logo {
+    width: 120px;
+    height: 120px;
+  }
+
+  .loading-text {
+    font-size: 1rem;
+  }
+}

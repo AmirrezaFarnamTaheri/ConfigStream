@@ -1,0 +1,29 @@
+"""Serialization helpers for deterministic JSON outputs."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Any, cast
+
+try:  # pragma: no cover - optional speed-up
+    import orjson  # type: ignore[import-not-found]
+except Exception:  # pragma: no cover - fallback to stdlib
+    orjson = None  # type: ignore[assignment]
+
+
+def dumps(data: Any) -> str:
+    if orjson is not None:
+        return cast(
+            str,
+            orjson.dumps(
+                data,
+                option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
+            ).decode(),
+        )
+    return json.dumps(data, indent=2, sort_keys=True)
+
+
+def dump_to_path(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(dumps(data), encoding="utf-8")

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Explore and filter our full list of tested VPN configurations. Find the best proxy by location, protocol, and latency.">
+    <title>Proxy List - ConfigStream</title>
+    <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
+    <link rel="alternate icon" href="assets/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/state-manager.css">
+    <link rel="stylesheet" href="assets/css/error-handler.css">
+    <link rel="stylesheet" href="assets/css/loading.css">
+    <link rel="stylesheet" href="assets/css/header-animation.css">
+    <link rel="stylesheet" href="assets/css/logo-animations.css">
+    <link rel="stylesheet" href="assets/css/health-score.css">
+    <link rel="stylesheet" href="assets/css/proxy-history-chart.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen" role="status" aria-live="polite">
+      <div class="loading-container">
+        <!-- Logo Animation -->
+        <div class="loading-logo">
+        </div>
+        
+        <!-- Loading Message -->
+        <div class="loading-message">
+          <p class="loading-text" id="loadingText">Fetching latest configurations...</p>
+          <div class="loading-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+        
+        <!-- Progress hint -->
+        <p class="loading-hint" id="loadingHint">Taking longer than usual...</p>
+      </div>
+      
+      <!-- Screen reader -->
+      <span class="sr-only" aria-atomic="true" id="loadingAnnounce">Loading content, please wait</span>
+    </div>
+    <div class="nav-overlay"></div>
+    <header class="header">
+        <div class="container">
+            <div class="header-logo-wrapper">
+              <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-logo" id="headerLogo" aria-label="ConfigStream Logo">
+                <defs>
+                    <linearGradient id="logo-gradient-header" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="var(--brand-primary)">
+                            <animate attributeName="stop-color" values="var(--brand-primary);var(--brand-tertiary);var(--brand-secondary);var(--brand-primary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                        <stop offset="50%" stop-color="var(--brand-tertiary)">
+                            <animate attributeName="stop-color" values="var(--brand-tertiary);var(--brand-secondary);var(--brand-primary);var(--brand-tertiary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                        <stop offset="100%" stop-color="var(--brand-secondary)">
+                            <animate attributeName="stop-color" values="var(--brand-secondary);var(--brand-primary);var(--brand-tertiary);var(--brand-secondary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                    </linearGradient>
+                    <filter id="logo-shadow-header" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="1" dy="2" stdDeviation="3.5" flood-color="var(--brand-secondary)" flood-opacity="0.25"/>
+                    </filter>
+                </defs>
+                <g filter="url(#logo-shadow-header)">
+                    <path d="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" stroke="url(#logo-gradient-header)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <animate attributeName="d" values="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17;M33 10C40.1797 10 46 15.8203 46 23C46 30.1797 40.1797 36 33 36H17;M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" dur="8s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" stroke="url(#logo-gradient-header)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <animate attributeName="d" values="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33;M17 40C9.8203 40 4 34.1797 4 27C4 19.8203 9.8203 14 17 14H33;M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" dur="8s" repeatCount="indefinite" />
+                    </path>
+                </g>
+              </svg>
+              <span class="header-logo-text">ConfigStream</span>
+            </div>
+            <nav class="nav" id="main-nav" aria-label="Main navigation">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="proxies.html" class="nav-link">Proxy List</a>
+                <a href="statistics.html" class="nav-link">Analytics</a>
+            </nav>
+            <div class="header-actions">
+                <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
+                    <div class="theme-btn-inner">
+                        <i data-feather="moon" class="moon-icon"></i>
+                        <i data-feather="sun" class="sun-icon"></i>
+                    </div>
+                </button>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
+                    <i data-feather="github"></i>
+                </a>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
+                    <i data-feather="menu" class="menu-icon"></i>
+                    <i data-feather="x" class="close-icon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section id="proxies-card" class="card">
+                <div class="card-header">
+                    <h2>Live Proxy List</h2>
+                    <p>Explore our complete list of vetted proxies. Search, sort, and find the perfect connection for your needs.</p>
+                </div>
+
+                <div class="filter-controls">
+                    <!-- Protocol, Country, City Selects -->
+                    <div class="filter-input-group">
+                        <i data-feather="list"></i>
+                        <select id="filterProtocol" class="filter-input filter-select" aria-label="Filter by protocol">
+                            <option value="">All Protocols</option>
+                            <option value="vmess">VMess</option>
+                            <option value="vless">VLESS</option>
+                            <option value="trojan">Trojan</option>
+                            <option value="shadowsocks">Shadowsocks</option>
+                            <option value="hysteria">Hysteria</option>
+                            <option value="hysteria2">Hysteria2</option>
+                            <option value="tuic">TUIC</option>
+                            <option value="wireguard">WireGuard</option>
+                        </select>
+                    </div>
+                    <div class="filter-input-group">
+                        <i data-feather="map-pin"></i>
+                        <select id="filterCountry" class="filter-input filter-select" aria-label="Filter by country">
+                            <option value="">All Countries</option>
+                        </select>
+                    </div>
+                    <div class="filter-input-group">
+                        <i data-feather="navigation"></i>
+                        <select id="filterCity" class="filter-input filter-select" aria-label="Filter by city">
+                            <option value="">All Cities</option>
+                        </select>
+                    </div>
+
+                    <!-- Latency Range -->
+                    <div class="filter-input-group filter-range-group">
+                        <i data-feather="activity"></i>
+                        <label for="filterLatencyMin" class="filter-label sr-only">Latency (ms):</label>
+                        <input type="number" id="filterLatencyMin" class="filter-input filter-number" placeholder="Min Latency" min="0" max="5000" aria-label="Minimum latency">
+                        <span class="filter-separator">-</span>
+                        <input type="number" id="filterLatencyMax" class="filter-input filter-number" placeholder="Max Latency" min="0" max="5000" aria-label="Maximum latency">
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="filter-actions">
+                        <button id="clearFilters" class="btn btn-secondary btn-icon" aria-label="Clear all filters">
+                            <i data-feather="x"></i>
+                        </button>
+                        <div class="filter-summary" id="filterSummary" role="status" aria-live="polite">
+                            <span id="filterCount">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div id="loadingContainer" class="loader" role="status" aria-live="polite">
+                        <object data="assets/svg/logo-loading.svg" type="image/svg+xml" width="80" height="80" aria-hidden="true">
+                            <img src="assets/svg/favicon.svg" alt="" />
+                        </object>
+                        <p>Loading and testing live proxies...</p>
+                    </div>
+                    <div id="emptyState" class="empty-state hidden">
+                        <i data-feather="frown"></i>
+                        <h3>No Matches Found</h3>
+                        <p>Your search for proxies didn't return any results. Please try adjusting your filters.</p>
+                    </div>
+                    <table id="proxiesTable" class="proxies-table hidden" aria-live="polite">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="protocol" aria-sort="none">Protocol <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="location" aria-sort="none">Location <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="latency" aria-sort="ascending">Latency <i data-feather="chevron-down"></i></th>
+                                <th>Copy Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="proxiesTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="pagination-container" class="pagination-container"></div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
+            </div>
+            <p>A passion project for a free and open internet. ✨</p>
+            <p class="last-updated">Last updated: <span id="footerUpdate" class="loading">checking...</span></p>
+        </div>
+    </footer>
+
+    <!-- Inline icons (MIT licensed Feather icons, self-hosted for zero external dependencies) -->
+    <script src="assets/js/inline-icons.js"></script>
+
+    <!-- CRITICAL: Load cache config FIRST -->
+    <script src="assets/js/cache-config.js" defer></script>
+
+    <!-- Then load other scripts -->
+    <script src="assets/js/error-handler.js" defer></script>
+    <script src="assets/js/state-manager.js" defer></script>
+    <script src="assets/js/utils.js" defer></script>
+    <script src="assets/js/cache-manager.js" defer></script>
+    <script src="assets/js/loading-controller.js" defer></script>
+    <script src="assets/js/logo-controller.js" defer></script>
+    <script src="assets/js/health-score.js" defer></script>
+    <script src="assets/js/incremental-loader.js" defer></script>
+    <script src="assets/js/proxy-history-chart.js" defer></script>
+    <script src="assets/js/main.js" defer></script>
+    <script src="assets/js/proxies.js" defer></script>
+</body>
+</html>

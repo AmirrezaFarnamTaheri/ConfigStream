@@ -1,0 +1,84 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Primary Gradient (Purple to Pink) -->
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea" />
+      <stop offset="50%" style="stop-color:#764ba2" />
+      <stop offset="100%" style="stop-color:#f093fb" />
+    </linearGradient>
+
+    <!-- Flow Gradient (for animation effect) -->
+    <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+      <stop offset="50%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Drop Shadow -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#667eea" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Outer C Arc (Protective Container) -->
+  <path id="outerC" 
+        d="M 150 40 A 60 60 0 1 1 150 160" 
+        stroke="url(#primaryGradient)" 
+        stroke-width="8" 
+        stroke-linecap="round"
+        fill="none"
+        filter="url(#shadow)"/>
+
+  <!-- Inner S Stream (Flowing Data) -->
+  <g id="innerS">
+    <!-- Top curve of S -->
+    <path d="M 70 70 Q 90 60 110 70 Q 130 80 130 100" 
+          stroke="url(#primaryGradient)" 
+          stroke-width="6" 
+          stroke-linecap="round"
+          fill="none"/>
+    
+    <!-- Bottom curve of S -->
+    <path d="M 130 100 Q 130 120 110 130 Q 90 140 70 130" 
+          stroke="url(#primaryGradient)" 
+          stroke-width="6" 
+          stroke-linecap="round"
+          fill="none"/>
+  </g>
+
+  <!-- Flowing Data Particles -->
+  <g id="dataParticles">
+    <circle cx="75" cy="75" r="3" fill="#667eea" opacity="0.8"/>
+    <circle cx="95" cy="68" r="2.5" fill="#764ba2" opacity="0.7"/>
+    <circle cx="115" cy="75" r="3" fill="#f093fb" opacity="0.8"/>
+    
+    <circle cx="125" cy="95" r="2" fill="#667eea" opacity="0.6"/>
+    <circle cx="120" cy="110" r="2.5" fill="#764ba2" opacity="0.7"/>
+    
+    <circle cx="105" cy="125" r="3" fill="#f093fb" opacity="0.8"/>
+    <circle cx="85" cy="132" r="2.5" fill="#667eea" opacity="0.7"/>
+    <circle cx="75" cy="125" r="2" fill="#764ba2" opacity="0.6"/>
+  </g>
+
+  <!-- Connection Lines (Neural Network Style) -->
+  <g id="connections" opacity="0.3">
+    <line x1="75" y1="75" x2="95" y2="68" stroke="#667eea" stroke-width="1"/>
+    <line x1="95" y1="68" x2="115" y2="75" stroke="#764ba2" stroke-width="1"/>
+    <line x1="115" y1="75" x2="125" y2="95" stroke="#f093fb" stroke-width="1"/>
+    <line x1="125" y1="95" x2="120" y2="110" stroke="#667eea" stroke-width="1"/>
+    <line x1="120" y1="110" x2="105" y2="125" stroke="#764ba2" stroke-width="1"/>
+    <line x1="105" y1="125" x2="85" y2="132" stroke="#f093fb" stroke-width="1"/>
+  </g>
+
+  <!-- Center Dot (Connection Point) -->
+  <circle cx="100" cy="100" r="5" fill="url(#primaryGradient)" filter="url(#glow)"/>
+</svg>

@@ -1,0 +1,25 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "🚀 **Automated Free VPN Configuration Aggregator**",
+  "main": "sw.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AmirrezaFarnamTaheri/ConfigStream.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues"
+  },
+  "homepage": "https://github.com/AmirrezaFarnamTaheri/ConfigStream#readme"
+}

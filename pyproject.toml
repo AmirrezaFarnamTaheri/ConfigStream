@@ -1,0 +1,166 @@
+[build-system]
+requires = ["setuptools>=78.1.1", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "configstream"
+version = "1.0.0"
+description = "VPN configuration aggregator and merger"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "GPL-3.0"}
+authors = [
+    {name = "Amirreza 'Farnam' Taheri", email = "taherifarnam@gmail.com"}
+]
+keywords = ["vpn", "v2ray", "clash", "proxy", "configuration", "aggregator"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "aiohttp",
+    "aiohttp-socks",
+    "aiodns",
+    "nest-asyncio",
+    # "telethon",  # Removed - unused dependency
+    "PyYAML",
+    "geoip2",
+    "pydantic>=2",
+    "pydantic-settings",
+    "rich",
+    "click",
+    "aiohttp-proxy",
+    "singbox2proxy~=0.2.0",
+    "requests",
+    "httpx",
+    "orjson",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-aiohttp",
+    "pyfakefs",
+    "types-PyYAML",
+    "types-requests",
+    "types-psutil",
+    "flake8",
+    "mypy",
+    "pre-commit",
+    "pip-audit",
+    "pytest-mock",
+    "setuptools>=78.1.1",
+]
+
+[project.urls]
+Homepage = "https://amirrezafarnamtaheri.github.io/ConfigStream/"
+Repository = "https://github.com/AmirrezaFarnamTaheri/ConfigStream"
+Issues = "https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues"
+
+[project.scripts]
+configstream = "configstream.cli:main"
+pip-audit = "configstream.tools.pip_audit_wrapper:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--cov=configstream",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+asyncio_mode = "auto"
+norecursedirs = ["__pycache__"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311", "py312"]
+include = "\\.pyi?$"
+extend-exclude = """
+/(
+  # directories
+  \\.eggs
+  | \\.git
+  | \\.hg
+  | \\.mypy_cache
+  | \\.tox
+  | \\.venv
+  | build
+  | dist
+)/
+"""
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+exclude = ["tests/"]
+
+[[tool.mypy.overrides]]
+module = [
+    "aiohttp",
+    "aiohttp.*",
+    "aiohttp_proxy",
+    "singbox2proxy",
+    "singbox2proxy.*",
+    "click",
+    "rich",
+    "rich.*",
+    "yaml",
+    "geoip2",
+    "geoip2.*"
+]
+ignore_missing_imports = true
+
+[tool.flake8]
+extend-ignore = ["E501", "E302", "E303", "E305", "E306", "W291", "W293"]
+per-file-ignores = [
+    "tests/*:E402,F401",
+]
+max-line-length = 100
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    ".mypy_cache",
+    ".pytest_cache",
+]
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-docstring",
+    "too-few-public-methods",
+    "R0801",  # duplicate-code
+]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.pip-audit]
+ignore-vulns = [
+    { id = "GHSA-4xh5-x5gv-qwph", reason = "pip is an installer dependency without an upstream fix; vulnerability tracked until patched release is available." }
+]

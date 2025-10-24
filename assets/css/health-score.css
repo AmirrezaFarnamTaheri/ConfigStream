@@ -1,0 +1,60 @@
+/* Health Score Styling */
+.health-score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+}
+
+.health-score-icon {
+    font-size: 1rem;
+}
+
+.health-score-value {
+    font-variant-numeric: tabular-nums;
+}
+
+.health-excellent {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+}
+
+.health-good {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.health-fair {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+}
+
+.health-poor {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .health-excellent {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+[data-theme="dark"] .health-good {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+[data-theme="dark"] .health-fair {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+[data-theme="dark"] .health-poor {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}

@@ -1,0 +1,36 @@
+name: Retest
+
+on:
+  schedule:
+    - cron: "20 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  retest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install
+        run: pip install -e .[dev]
+      - name: Retest last export
+        run: python -m configstream.cli retest --input output/proxies.json --outdir output
+      - name: Validate JSON (non-blocking)
+        run: |
+          pip install jsonschema || true
+          jsonschema -i output/proxies.json schema/proxy.schema.json || echo "::warning ::schema validation failed"
+      - name: Commit updated outputs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: hourly retest refresh [skip ci]"
+          file_pattern: output/**

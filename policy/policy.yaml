@@ -1,0 +1,8 @@
+security:
+  drop_non_tls: true
+  drop_ss_non_aead: true
+policy:
+  block_asn: []
+  prefer_asn: []
+  block_countries: []
+  prefer_countries: []

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ConfigStream Proxy",
+  "type": "object",
+  "required": ["id", "scheme", "host", "port", "config"],
+  "properties": {
+    "id": {"type": "string"},
+    "scheme": {"type": "string"},
+    "host": {"type": "string"},
+    "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+    "config": {"type": "string"},
+    "remarks": {"type": "string"},
+    "scores": {
+      "type": "object",
+      "additionalProperties": {"type": "number"}
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,81 @@
+<header class="header">
+    <div class="container">
+    <!-- Animated logo -->
+    <div class="header-logo-wrapper">
+      <svg viewBox="0 0 200 200" class="header-logo" id="headerLogo" aria-label="ConfigStream Logo">
+        <defs>
+          <!-- Stream gradient (colorful initially) -->
+          <linearGradient id="headerStreamGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" class="gradient-start" style="stop-color:#667eea" />
+            <stop offset="50%" class="gradient-mid" style="stop-color:#764ba2" />
+            <stop offset="100%" class="gradient-end" style="stop-color:#f093fb" />
+          </linearGradient>
+
+          <!-- Flow effect -->
+          <linearGradient id="flowEffect" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:0" />
+            <stop offset="50%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:1" />
+            <stop offset="100%" style="stop-color:rgba(255,255,255,0.8);stop-opacity:0" />
+          </linearGradient>
+
+          <!-- Mask for flow effect -->
+          <mask id="flowMask">
+            <rect x="0" y="0" width="200" height="200" fill="url(#flowEffect)">
+              <animate attributeName="x" from="-200" to="200" dur="1.2s" fill="freeze" />
+            </rect>
+          </mask>
+        </defs>
+
+        <!-- Main circle -->
+        <circle cx="100" cy="100" r="45" fill="none"
+                stroke="url(#headerStreamGradient)" stroke-width="3"
+                class="header-circle" />
+
+        <!-- Flow overlay -->
+        <circle cx="100" cy="100" r="45" fill="none"
+                stroke="white" stroke-width="3"
+                mask="url(#flowMask)"
+                class="header-flow" />
+
+        <!-- Center waves -->
+        <g class="header-waves">
+          <path d="M75,95 Q85,85 95,95 T115,95" stroke="url(#headerStreamGradient)"
+                stroke-width="2.5" fill="none" class="header-wave header-wave-1" />
+          <path d="M75,100 Q85,90 95,100 T115,100" stroke="url(#headerStreamGradient)"
+                stroke-width="2.5" fill="none" class="header-wave header-wave-2" />
+          <path d="M75,105 Q85,95 95,105 T115,105" stroke="url(#headerStreamGradient)"
+                stroke-width="2.5" fill="none" class="header-wave header-wave-3" />
+        </g>
+
+        <!-- Data particles -->
+        <g class="header-particles">
+          <circle cx="130" cy="70" r="2" fill="url(#headerStreamGradient)" class="header-particle" />
+          <circle cx="70" cy="130" r="2" fill="url(#headerStreamGradient)" class="header-particle" />
+          <circle cx="140" cy="120" r="2" fill="url(#headerStreamGradient)" class="header-particle" />
+        </g>
+      </svg>
+
+      <!-- Logo text -->
+      <span class="header-logo-text">ConfigStream</span>
+    </div>
+        <nav class="nav" id="main-nav" aria-label="Main navigation">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="proxies.html" class="nav-link">Proxy List</a>
+            <a href="statistics.html" class="nav-link">Analytics</a>
+        </nav>
+        <div class="header-actions">
+            <button class="theme-switcher" id="theme-switcher" aria-label="Toggle color theme" title="Toggle color theme">
+                <i data-feather="sun"></i>
+                <i data-feather="moon" style="display: none;"></i>
+            </button>
+            <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="btn btn-secondary github-btn" target="_blank" rel="noopener noreferrer">
+                <i data-feather="github"></i>
+                <span>GitHub</span>
+            </a>
+            <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation" aria-controls="main-nav" aria-expanded="false">
+                <i data-feather="menu"></i>
+                <i data-feather="x" style="display: none;"></i>
+            </button>
+        </div>
+    </div>
+</header>

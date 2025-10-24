@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ConfigStream Metadata",
+  "type": "object",
+  "required": ["generated_at", "source_count", "entry_count_raw", "entry_count_final"],
+  "properties": {
+    "generated_at": {"type": "string"},
+    "source_count": {"type": "integer", "minimum": 0},
+    "entry_count_raw": {"type": "integer", "minimum": 0},
+    "entry_count_final": {"type": "integer", "minimum": 0},
+    "stale_count": {"type": "integer", "minimum": 0},
+    "warnings": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": true
+}

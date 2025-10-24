@@ -1,0 +1,28 @@
+[run]
+source = src/configstream
+omit =
+    */test*.py
+    */__pycache__/*
+    */tools/*
+    # Unused/future modules (not currently integrated)
+    */dedup.py
+    */diskqueue.py
+    */dns_cache.py
+    */etag_cache.py
+    */freshness.py
+    */http_client.py
+    */serialize.py
+    */sharding.py
+    */geoip_offline.py
+    */auto_detect.py
+    */__main__.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod

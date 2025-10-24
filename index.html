@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Access the free, open internet with ConfigStream. We provide auto-updating, security-tested VPN configurations for everyone.">
+    <title>ConfigStream - Your Gateway to the Open Internet</title>
+    <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
+    <link rel="alternate icon" href="assets/images/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/state-manager.css">
+    <link rel="stylesheet" href="assets/css/error-handler.css">
+    <link rel="stylesheet" href="assets/css/loading.css">
+    <link rel="stylesheet" href="assets/css/header-animation.css">
+    <link rel="stylesheet" href="assets/css/logo-animations.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen" role="status" aria-live="polite">
+      <div class="loading-container">
+        <!-- Logo Animation -->
+        <div class="loader-logo">
+        </div>
+        
+        <!-- Loading Message -->
+        <div class="loading-message">
+          <p class="loading-text" id="loadingText">Fetching latest configurations...</p>
+          <div class="loading-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+        
+        <!-- Progress hint -->
+        <p class="loading-hint" id="loadingHint">Taking longer than usual...</p>
+      </div>
+      
+      <!-- Screen reader -->
+      <span class="sr-only" aria-atomic="true" id="loadingAnnounce">Loading content, please wait</span>
+    </div>
+    <div class="nav-overlay"></div>
+    <header class="header">
+        <div class="container">
+            <div class="header-logo-wrapper">
+              <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-logo" id="headerLogo" aria-label="ConfigStream Logo">
+                <defs>
+                    <linearGradient id="logo-gradient-header" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="var(--brand-primary)">
+                            <animate attributeName="stop-color" values="var(--brand-primary);var(--brand-tertiary);var(--brand-secondary);var(--brand-primary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                        <stop offset="50%" stop-color="var(--brand-tertiary)">
+                            <animate attributeName="stop-color" values="var(--brand-tertiary);var(--brand-secondary);var(--brand-primary);var(--brand-tertiary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                        <stop offset="100%" stop-color="var(--brand-secondary)">
+                            <animate attributeName="stop-color" values="var(--brand-secondary);var(--brand-primary);var(--brand-tertiary);var(--brand-secondary)" dur="8s" repeatCount="indefinite"></animate>
+                        </stop>
+                    </linearGradient>
+                    <filter id="logo-shadow-header" x="-30%" y="-30%" width="160%" height="160%">
+                        <feDropShadow dx="1" dy="2" stdDeviation="3.5" flood-color="var(--brand-secondary)" flood-opacity="0.25"/>
+                    </filter>
+                </defs>
+                <g filter="url(#logo-shadow-header)">
+                    <path d="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" stroke="url(#logo-gradient-header)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <animate attributeName="d" values="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17;M33 10C40.1797 10 46 15.8203 46 23C46 30.1797 40.1797 36 33 36H17;M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" dur="8s" repeatCount="indefinite" />
+                    </path>
+                    <path d="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" stroke="url(#logo-gradient-header)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                        <animate attributeName="d" values="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33;M17 40C9.8203 40 4 34.1797 4 27C4 19.8203 9.8203 14 17 14H33;M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" dur="8s" repeatCount="indefinite" />
+                    </path>
+                </g>
+              </svg>
+              <span class="header-logo-text">ConfigStream</span>
+            </div>
+            <nav class="nav" id="main-nav" aria-label="Main navigation">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="proxies.html" class="nav-link">Proxy List</a>
+                <a href="statistics.html" class="nav-link">Analytics</a>
+            </nav>
+            <div class="header-actions">
+                <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
+                    <div class="theme-btn-inner">
+                        <i data-feather="moon" class="moon-icon"></i>
+                        <i data-feather="sun" class="sun-icon"></i>
+                    </div>
+                </button>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
+                    <i data-feather="github"></i>
+                </a>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
+                    <i data-feather="menu" class="menu-icon"></i>
+                    <i data-feather="x" class="close-icon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="hero text-center">
+                <h1 style="--delay: 0.1s;">Unlock the Internet</h1>
+                <p class="subtitle" style="--delay: 0.2s;">
+                    Access a world of information with our free, auto-updating VPN configurations. Fresh proxies stream in throughout each run, so you can rely on a continuously tested path to a free and open internet.
+                </p>
+                <div class="hero-actions" style="--delay: 0.3s;">
+                    <a href="proxies.html" class="btn btn-primary">
+                        <i data-feather="zap"></i>
+                        <span>Browse Proxies</span>
+                    </a>
+                    <a href="#downloads" class="btn btn-secondary">
+                        <i data-feather="download"></i>
+                        <span>Get Configs</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="stats-card" style="--delay: 0.4s;">
+                <div class="stats-card-inner">
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="totalConfigs" class="stat-value loading">0</div>
+                            <div class="stat-label">Proxies Tested</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="check-circle"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="workingConfigs" class="stat-value loading">0</div>
+                            <div class="stat-label">Currently Online</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="clock"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div class="stat-value">3 hrs</div>
+                            <div class="stat-label">Update Frequency</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="main-grid">
+                <div class="accordion-container">
+                    <section id="downloads" class="card accordion-item" style="--delay: 0.5s;" aria-labelledby="downloads-heading">
+                        <button class="accordion-header" aria-expanded="true">
+                            <div class="card-header text-center">
+                                <h2 id="downloads-heading">Get Your Configs</h2>
+                                <p class="subtitle">Choose your preferred format. All downloads contain our latest tested proxies.</p>
+                            </div>
+                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content">
+                            <div>
+                                <div class="downloads-grid">
+                                    <div class="download-card" style="--delay: 0.6s;">
+                                        <div class="download-icon"><i data-feather="copy"></i></div>
+                                        <div class="download-info">
+                                            <h3 class="download-title">Base64 Subscription</h3>
+                                            <p class="download-desc">A single link for easy import into V2Ray, Xray, and other compatible clients.</p>
+                                        </div>
+                                        <button class="btn btn-primary copy-btn" data-file="output/vpn_subscription_base64.txt">
+                                            <i data-feather="copy"></i>
+                                            <span>Copy Link</span>
+                                        </button>
+                                    </div>
+                                    <div class="download-card" style="--delay: 0.7s;">
+                                        <div class="download-icon"><i data-feather="download"></i></div>
+                                        <div class="download-info">
+                                            <h3 class="download-title">Clash Config</h3>
+                                            <p class="download-desc">A ready-to-use YAML file, perfect for Clash users.</p>
+                                        </div>
+                                        <a href="output/clash.yaml" class="btn btn-primary" download>
+                                            <i data-feather="download"></i>
+                                            <span>Download</span>
+                                        </a>
+                                    </div>
+                                    <div class="download-card" style="--delay: 0.8s;">
+                                        <div class="download-icon"><i data-feather="file-text"></i></div>
+                                        <div class="download-info">
+                                            <h3 class="download-title">Raw Proxy Links</h3>
+                                            <p class="download-desc">A simple text file with one proxy per line for custom scripts.</p>
+                                        </div>
+                                        <button class="btn btn-primary copy-btn" data-file="output/configs_raw.txt">
+                                            <i data-feather="copy"></i>
+                                            <span>Copy Content</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="info-column accordion-container">
+                    <section class="card info-card accordion-item" style="--delay: 0.9s;">
+                        <button class="accordion-header" aria-expanded="true">
+                            <h3><i data-feather="globe"></i> Our Mission</h3>
+                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content">
+                            <div>
+                                <p>We believe that everyone has the right to access information without restriction. Our mission is to empower users worldwide with the tools they need to stay connected and informed, bypassing digital barriers and promoting a more open internet.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="card info-card accordion-item" style="--delay: 1.0s;">
+                        <button class="accordion-header" aria-expanded="false">
+                            <h3><i data-feather="activity"></i> How It Works</h3>
+                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content">
+                            <div>
+                                <p>Our system, powered by GitHub Actions, gathers public sources in sequential 10k-proxy phases. After each phase we deduplicate, test, geo-tag offline, and update every download so results stay current while the run continues. Full rebuilds land every three hours, and hourly retests keep the last export honest.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="card info-card accordion-item" style="--delay: 1.1s;">
+                        <button class="accordion-header" aria-expanded="false">
+                            <h3><i data-feather="shield"></i> Automated Security</h3>
+                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content">
+                            <div>
+                                <p>We take security seriously. Every proxy is subjected to a series of automated tests before being listed:</p>
+                                <ul class="info-list">
+                                    <li><strong>TLS &amp; Protocol Checks:</strong> Confirms encrypted handshakes and blocks unsafe ciphers.</li>
+                                    <li><strong>Live Traffic Probe:</strong> Routes real HTTP requests through multiple endpoints to verify reliability.</li>
+                                    <li><strong>Privacy Signals:</strong> Measures DNS-over-HTTPS support and throughput to detect tampering.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="card info-card accordion-item" style="--delay: 1.2s;">
+                        <button class="accordion-header" aria-expanded="false">
+                            <h3><i data-feather="slash"></i> Limitations</h3>
+                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content">
+                            <div>
+                                <p>This service is designed for accessibility, not for guaranteed privacy. Please be aware of the following:</p>
+                                <ul class="info-list info-list-danger">
+                                    <li><strong>No Anonymity:</strong> Your IP address may still be visible to the proxy operator.</li>
+                                    <li><strong>Variable Speed:</strong> Performance can be inconsistent, even with hourly retests demoting stale results.</li>
+                                    <li><strong>No Support:</strong> As a free service, we cannot offer user support.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="card info-card accordion-item" style="--delay: 1.3s;">
+                        <button class="accordion-header" aria-expanded="false">
+                            <h3><i data-feather="users"></i> Community-Powered</h3>
+                            <i data-feather="chevron-down" class="accordion-icon"></i>
+                        </button>
+                        <div class="accordion-content">
+                            <div>
+                                <p>This project thrives on community contributions. The proxy sources are publicly available on GitHub, and we welcome contributions from developers to help us improve our testing methods and expand our reach.</p>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="card notice-card" style="--delay: 1.4s;">
+                        <h3><i data-feather="alert-triangle"></i> Important Security Notice</h3>
+                        <p>These are <strong>free, public proxies</strong> from unknown operators. While we test for malicious behavior, we cannot guarantee your privacy. Assume your traffic may be monitored.</p>
+                        <ul class="notice-list">
+                            <li><strong>DO NOT</strong> use for banking, logins, or sensitive data.</li>
+                            <li><strong>GOOD FOR</strong> casual browsing and bypassing geo-restrictions.</li>
+                        </ul>
+                        <p class="text-center"><strong>Use at your own risk.</strong></p>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
+            </div>
+            <p>A passion project for a free and open internet. ✨</p>
+            <p class="last-updated">Last updated: <span id="footerUpdate" class="loading">checking...</span></p>
+        </div>
+    </footer>
+
+    <!-- CRITICAL: Load cache config FIRST -->
+    <script src="assets/js/cache-config.js" defer></script>
+
+    <!-- Then load other scripts -->
+    <script src="assets/js/error-handler.js" defer></script>
+    <script src="assets/js/state-manager.js" defer></script>
+    <script src="assets/js/utils.js" defer></script>
+    <script src="assets/js/cache-manager.js" defer></script>
+    <script src="assets/js/loading-controller.js" defer></script>
+    <script src="assets/js/logo-controller.js" defer></script>
+    <script src="assets/js/main.js" defer></script>
+    <script defer>
+      document.addEventListener('DOMContentLoaded', () => {
+        const buildId = (window.ConfigStreamCache && window.ConfigStreamCache.VERSION) || Date.now().toString();
+        const base = document.baseURI;
+        document.querySelectorAll('a[href^="output/"]').forEach((anchor) => {
+          const href = anchor.getAttribute('href');
+          if (!href) {
+            return;
+          }
+
+          try {
+            const url = new URL(href, base);
+            url.searchParams.set('v', buildId);
+            anchor.setAttribute('href', url.toString());
+          } catch (error) {
+            console.warn('[CacheBuster] Skipping invalid href', href, error);
+          }
+        });
+      });
+    </script>
+    <script src="assets/js/inline-icons.js"></script>
+</body>
+</html>

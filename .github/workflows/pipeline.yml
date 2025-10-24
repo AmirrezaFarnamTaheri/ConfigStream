@@ -1,0 +1,79 @@
+name: ConfigStream Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pipeline:
+    name: Run Pipeline
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Restore test cache and GeoIP database
+        uses: actions/cache@v3
+        with:
+          path: |
+            data/test_cache.db
+            data/GeoLite2-City.mmdb
+          key: configstream-cache-${{ github.run_number }}
+          restore-keys: |
+            configstream-cache-
+
+      - name: Install dependencies
+        run: pip install -e .[dev]
+
+      - name: Run pipeline
+        run: |
+          set -euxo pipefail
+          python -m configstream.cli merge \
+            --sources sources.txt \
+            --output output \
+            --max-workers 32 \
+            --timeout 6 \
+            --show-metrics \
+            --max-latency 5000 | tee pipeline.log
+
+      - name: Show diff
+        run: |
+          git status --short
+          git diff --stat || true
+
+      - name: Commit updated output
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update ConfigStream outputs [skip ci]"
+          file_pattern: |
+            output/**
+            proxies.html
+            statistics.html
+          push_options: '--force-with-lease'
+
+      - name: Upload pipeline artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-output-${{ github.run_id }}
+          path: |
+            output/**
+            pipeline.log
