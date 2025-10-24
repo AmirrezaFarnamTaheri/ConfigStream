@@ -25,6 +25,7 @@ venv/
 ENV/
 env/
 
+output/	full
 
 # IDE
 .vscode/
