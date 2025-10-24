@@ -1,0 +1,28 @@
+{
+  "generated_at": "2025-10-24T15:23:22.438628+00:00",
+  "total_proxies": 100,
+  "working_proxies": 7,
+  "success_rate": 7.0,
+  "protocol_distribution": {
+    "vless": 73,
+    "trojan": 8,
+    "vmess": 6,
+    "shadowsocks": 11,
+    "hysteria2": 2
+  },
+  "country_distribution": {
+    "Unknown": 93,
+    "Germany": 1,
+    "United Kingdom": 2,
+    "United States": 2,
+    "India": 1,
+    "Switzerland": 1
+  },
+  "latency": {
+    "min": 333.32,
+    "max": 4438.15,
+    "mean": 1767.8214285714284,
+    "median": 1263.05,
+    "stdev": 1590.9005647895217
+  }
+}
