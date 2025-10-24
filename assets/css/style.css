@@ -1002,11 +1002,40 @@ body.dark .filter-input:focus + .feather {
 }
 
 /* Enhanced Filter Controls */
-.filter-row {
+.filter-controls {
     display: flex;
-    gap: calc(var(--space-unit) * 3);
+    flex-direction: column;
+    gap: calc(var(--space-unit) * 2);
+}
+
+.filter-row, .actions-row {
+    display: flex;
     flex-wrap: wrap;
+    gap: calc(var(--space-unit) * 2);
     align-items: center;
+}
+
+.actions-row {
+    justify-content: space-between;
+}
+
+.filter-input-group {
+    flex: 1 1 180px; /* Flex grow, shrink, and basis */
+}
+
+.batch-actions {
+    display: flex;
+    gap: calc(var(--space-unit) * 1.5);
+}
+
+.page-size-controls {
+    flex-shrink: 0;
+}
+
+.filter-summary {
+    text-align: right;
+    flex: 1;
+    min-width: 150px; /* Ensure it doesn't get too squished */
 }
 
 .filter-select {

@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allProxies = [];
     let currentSort = { key: 'latency', asc: true };
     let currentPage = 1;
-    const proxiesPerPage = 50;
+    let proxiesPerPage = 50; // Default value, can be changed by the user
 
     const protocolFilter = document.getElementById('filterProtocol');
     const countryFilter = document.getElementById('filterCountry');
@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const latencyMinInput = document.getElementById('filterLatencyMin');
     const latencyMaxInput = document.getElementById('filterLatencyMax');
     const paginationContainer = document.getElementById('pagination-container');
+    const pageSizeSelector = document.getElementById('pageSizeSelector');
 
     // Early return if required elements don't exist
     if (!protocolFilter || !countryFilter || !tableBody || !emptyState) return;
@@ -160,6 +161,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (latencyMaxInput) {
         latencyMaxInput.addEventListener('input', renderTable);
+    }
+    if (pageSizeSelector) {
+        pageSizeSelector.addEventListener('change', (e) => {
+            proxiesPerPage = parseInt(e.target.value);
+            currentPage = 1; // Reset to first page
+            renderTable();
+        });
     }
 
     // Batch actions
