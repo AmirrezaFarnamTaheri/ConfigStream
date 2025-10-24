@@ -200,6 +200,8 @@ async function fetchStatistics() {
     const response = await fetchWithRetry(url, 3, 1000);
     const data = await response.json();
 
+    console.log('Fetched statistics data:', data);
+
     cache.statistics = {
       data,
       expiry: Date.now() + CACHE_CONFIG.statsExpiry
@@ -393,6 +395,7 @@ function formatTimestamp(timestamp, format = 'MM/DD/YYYY HH:mm:ss') {
  * @returns {boolean} Success indicator
  */
 function updateElement(selector, content, options = {}) {
+  console.log(`Updating element ${selector} with content:`, content);
   const {
     method = 'textContent',
     clearFirst = false,
@@ -453,6 +456,7 @@ function updateElement(selector, content, options = {}) {
       return false;
     }
 
+    element.classList.remove('loading');
     return true;
   } catch (error) {
     console.error('[updateElement] Error setting content:', error);
