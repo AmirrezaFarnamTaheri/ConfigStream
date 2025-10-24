@@ -543,3 +543,83 @@ https://raw.githubusercontent.com/freefq/free/refs/heads/master/v2
 https://raw.githubusercontent.com/ripaojiedian/freenode/refs/heads/main/clash
 https://raw.githubusercontent.com/Jonnyan404/pub-v2ray-sub/refs/heads/main/clash
 https://raw.githubusercontent.com/tbbatbb/Proxy/refs/heads/master/dist/clash.config.yaml
+
+# Additional 50+ high-quality diverse proxy sources for comprehensive coverage
+# V2Ray/VMess/VLESS Collectors
+https://raw.githubusercontent.com/itsyebekhe/HiN-VPN/main/subscription/normal/mix
+https://raw.githubusercontent.com/coldwater-10/V2rayCollector/main/vmess_iran.txt
+https://raw.githubusercontent.com/coldwater-10/V2rayCollector/main/vless_iran.txt
+https://raw.githubusercontent.com/Bardiafa/Free-V2ray-Config/main/Splitted-By-Protocol/vmess.txt
+https://raw.githubusercontent.com/Bardiafa/Free-V2ray-Config/main/Splitted-By-Protocol/vless.txt
+https://raw.githubusercontent.com/Bardiafa/Free-V2ray-Config/main/Splitted-By-Protocol/trojan.txt
+
+# Shadowsocks Collectors
+https://raw.githubusercontent.com/Pawdroid/Free-servers/main/shadowsocks
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/ss
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/shadowsocks
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/splitted/shadowsocks
+
+# Hysteria & Hysteria2 Sources
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/hysteria
+https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/protocols/hysteria2
+https://raw.githubusercontent.com/dream4network/telegram-configs-collector/main/protocols/hysteria2
+
+# TUIC Protocol Sources
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/tuic
+https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/protocols/tuic
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/tuic.txt
+
+# Reality Protocol Sources
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/reality
+https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/protocols/reality
+https://raw.githubusercontent.com/dream4network/telegram-configs-collector/main/protocols/reality
+https://raw.githubusercontent.com/NiREvil/vless/main/sub/reality
+
+# Clash Meta Optimized
+https://raw.githubusercontent.com/Misaka-blog/chromego_merge/main/sub/merged_proxies_new.txt
+https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/master/collected-proxies/clash-meta/proxies.yaml
+https://raw.githubusercontent.com/lagzian/SS-Collector/main/mixed_clash.yaml
+
+# Country-Specific Sources
+https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Location/US.txt
+https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Location/DE.txt
+https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Location/GB.txt
+https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Location/FR.txt
+https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Location/NL.txt
+
+# Mixed Protocol Aggregators
+https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.txt
+https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/sub_merge.txt
+https://raw.githubusercontent.com/IranianCypherpunks/Sub/main/config
+https://raw.githubusercontent.com/sashalsk/V2Ray/main/V2Config_base64
+
+# Telegram Channel Collectors
+https://raw.githubusercontent.com/xray-telegram-collector/V2Ray-Telegram-Config-Collector/main/vmess.txt
+https://raw.githubusercontent.com/xray-telegram-collector/V2Ray-Telegram-Config-Collector/main/vless.txt
+https://raw.githubusercontent.com/xray-telegram-collector/V2Ray-Telegram-Config-Collector/main/trojan.txt
+https://raw.githubusercontent.com/xray-telegram-collector/V2Ray-Telegram-Config-Collector/main/ss.txt
+
+# Iranian Proxy Providers
+https://raw.githubusercontent.com/IranianSingBoxConfigs/ConfigCollector/main/sub/mix_base64
+https://raw.githubusercontent.com/IranianSingBoxConfigs/ConfigCollector/main/sub/vless
+https://raw.githubusercontent.com/IranianSingBoxConfigs/ConfigCollector/main/sub/vmess
+https://raw.githubusercontent.com/IranianSingBoxConfigs/ConfigCollector/main/sub/trojan
+
+# Sing-Box Format Sources
+https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/singbox/mix
+https://raw.githubusercontent.com/IranianSingBoxConfigs/ConfigCollector/main/singbox/mix
+
+# Quality Filtered Sources
+https://raw.githubusercontent.com/yebekhe/vpn-fail/main/sub-link
+https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt
+https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list_raw.txt
+
+# High-Quality Curated Lists
+https://raw.githubusercontent.com/sarina-telegram/v2ray-configs/main/mixed.txt
+https://raw.githubusercontent.com/resasanian/Mirza/main/all.txt
+https://raw.githubusercontent.com/shabane/kamaji/master/hub/merged.txt
+
+# Additional Clash Format
+https://raw.githubusercontent.com/Flik6/getNode/main/sub/clash.yaml
+https://raw.githubusercontent.com/bingoYB/node_processing/main/dist/all.txt
+https://raw.githubusercontent.com/rxsweet/proxies/main/sub/free.txt
