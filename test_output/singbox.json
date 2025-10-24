@@ -1,0 +1,81 @@
+{
+  "outbounds": [
+    {
+      "type": "shadowsocks",
+      "tag": "WiFi-@IRAN_V2RAY1",
+      "server": "45.87.175.28",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "\ud83c\udf10\ud835\udc23\ud835\udc28\ud835\udc22\ud835\udc0d-@\ud835\udc05\ud835\udc11\ud835\udc04\ud835\udc04\ud835\udc15\ud835\udfd0\ud835\udc11\ud835\udc0d\ud835\udc06",
+      "server": "141.98.101.179",
+      "server_port": 443,
+      "method": "aes-128-gcm",
+      "password": "shadowsocks"
+    },
+    {
+      "type": "tcp",
+      "tag": "\ud83c\udde8\ud83c\udded  \u293f \ud835\udc02\ud835\udc21\ud835\udc1a\ud835\udc27\ud835\udc27\ud835\udc1e\ud835\udc25 @V2WRAY",
+      "server": "5.182.36.251",
+      "server_port": 16331,
+      "uuid": "d7dbeb1e-268c-465c-8f59-489f14703efd",
+      "security": "reality",
+      "encryption": "none",
+      "pbk": "wYtc0dMr5fw5bBQkbLNpTqtu0m4B9NKnOyEWjRJUmzk",
+      "headerType": "none",
+      "fp": "chrome",
+      "spx": "/@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-?ed=2560",
+      "sni": "yahoo.com",
+      "sid": "910aab"
+    },
+    {
+      "type": "tcp",
+      "tag": "09",
+      "server": "de.nitroo-tech.ru",
+      "server_port": 443,
+      "uuid": "cd79807f-bcef-46b8-93b6-229676a0c1a0",
+      "security": "reality",
+      "encryption": "none",
+      "pbk": "y_AlGiUJiCRWCT8FyrfUm-Cmpm0bl0cSUMRP3VZ9X0I",
+      "headerType": "none",
+      "fp": "chrome",
+      "flow": "xtls-rprx-vision",
+      "sni": "google.com",
+      "sid": "89dbda1a1c9369"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "52",
+      "server": "54.81.226.31",
+      "server_port": 80,
+      "method": "aes-256-gcm",
+      "password": "dada0801"
+    },
+    {
+      "type": "grpc",
+      "tag": "@meli_proxyy",
+      "server": "45.89.105.72",
+      "server_port": 443,
+      "uuid": "ab01d17f-ed9f-4546-afda-434adfd71401",
+      "mode": "gun",
+      "security": "reality",
+      "encryption": "none",
+      "pbk": "pwaWnYpE_MEvgwRxITFmHeSCiRJaYGyUBWh4zwDLn2w",
+      "fp": "chrome",
+      "serviceName": "b02b809d4d1b4f502c6fc275",
+      "sni": "www.google.com",
+      "sid": "0acd50cd4ee97bb6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "@Daily_Configs",
+      "server": "94.156.250.122",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    }
+  ]
+}
