@@ -211,7 +211,7 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>Our system, powered by GitHub Actions, gathers public sources in sequential 10k-proxy phases. After each phase we deduplicate, test, geo-tag offline, and update every download so results stay current while the run continues. Full rebuilds land every three hours, and hourly retests keep the last export honest.</p>
+                                <p>Our system is fully automated using GitHub Actions. Every 6 hours, we fetch proxies from public sources, deduplicate them, test each one for connectivity and security, geolocate offline, and generate fresh configuration files. Between full rebuilds, hourly retests verify existing proxies and demote or remove those that have gone offline, ensuring you always get working configurations.</p>
                             </div>
                         </div>
                     </section>
@@ -224,9 +224,9 @@
                             <div>
                                 <p>We take security seriously. Every proxy is subjected to a series of automated tests before being listed:</p>
                                 <ul class="info-list">
-                                    <li><strong>TLS &amp; Protocol Checks:</strong> Confirms encrypted handshakes and blocks unsafe ciphers.</li>
-                                    <li><strong>Live Traffic Probe:</strong> Routes real HTTP requests through multiple endpoints to verify reliability.</li>
-                                    <li><strong>Privacy Signals:</strong> Measures DNS-over-HTTPS support and throughput to detect tampering.</li>
+                                    <li><strong>Connectivity Testing:</strong> Verifies each proxy can establish connections and handle real traffic with multiple test endpoints.</li>
+                                    <li><strong>TLS &amp; Protocol Validation:</strong> Confirms secure handshakes and validates protocol-specific requirements for each proxy type.</li>
+                                    <li><strong>Performance Measurement:</strong> Records latency and response times to help you choose fast, reliable proxies.</li>
                                 </ul>
                             </div>
                         </div>
