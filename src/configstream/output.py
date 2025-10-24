@@ -19,24 +19,21 @@ def generate_base64_subscription(proxies: List[Proxy]) -> str:
 
 def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> Dict[str, str]:
     """
-    Generate categorized output files for better organization and smaller file sizes.
-
-    Categories:
-    - passed_filters.json: Working proxies with no security issues
-    - insecure.json: Proxies with security issues
-    - unavailable.json: Proxies that failed connectivity tests
-    - by_protocol/: Separate files for each protocol
-    - by_country/: Separate files for each country
+    Generate categorized output files with smart organization:
+    - Main outputs (by_protocol/, by_country/) contain ONLY passed proxies
+    - Rejected proxies are saved separately in rejected/ directory by failure reason
+    - No duplication - each proxy appears in only one place
+    - No need to gitignore anything - all files are reasonably sized
 
     Returns:
         Dictionary mapping category names to file paths
     """
     output_files: Dict[str, str] = {}
 
-    # Categorize proxies by status
+    # Categorize proxies: passed vs rejected with reasons
     passed = [p for p in all_proxies if p.is_working and not p.security_issues]
-    insecure = [p for p in all_proxies if p.security_issues]
-    unavailable = [p for p in all_proxies if not p.is_working]
+    security_failed = [p for p in all_proxies if p.security_issues]
+    connectivity_failed = [p for p in all_proxies if not p.is_working and not p.security_issues]
 
     # Helper function to serialize proxy to dict
     def proxy_to_dict(proxy: Proxy) -> Dict:
@@ -55,22 +52,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
             "tested_at": proxy.tested_at,
         }
 
-    # Generate status-based files
-    passed_path = output_dir / "passed_filters.json"
-    passed_path.write_text(json.dumps([proxy_to_dict(p) for p in passed], indent=2))
-    output_files["passed_filters"] = str(passed_path)
-
-    if insecure:
-        insecure_path = output_dir / "insecure.json"
-        insecure_path.write_text(json.dumps([proxy_to_dict(p) for p in insecure], indent=2))
-        output_files["insecure"] = str(insecure_path)
-
-    if unavailable:
-        unavailable_path = output_dir / "unavailable.json"
-        unavailable_path.write_text(json.dumps([proxy_to_dict(p) for p in unavailable], indent=2))
-        output_files["unavailable"] = str(unavailable_path)
-
-    # Generate protocol-based breakdown
+    # Generate protocol-based breakdown (ONLY passed proxies)
     protocol_dir = output_dir / "by_protocol"
     protocol_dir.mkdir(parents=True, exist_ok=True)
 
@@ -86,7 +68,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
         protocol_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
         output_files[f"protocol_{protocol}"] = str(protocol_path)
 
-    # Generate country-based breakdown
+    # Generate country-based breakdown (ONLY passed proxies)
     country_dir = output_dir / "by_country"
     country_dir.mkdir(parents=True, exist_ok=True)
 
@@ -102,12 +84,30 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
         country_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
         output_files[f"country_{country_code}"] = str(country_path)
 
+    # Save rejected proxies in rejected/ directory by failure reason
+    rejected_dir = output_dir / "rejected"
+    rejected_dir.mkdir(parents=True, exist_ok=True)
+
+    if security_failed:
+        security_path = rejected_dir / "security_issues.json"
+        security_path.write_text(json.dumps([proxy_to_dict(p) for p in security_failed], indent=2))
+        output_files["rejected_security"] = str(security_path)
+
+    if connectivity_failed:
+        connectivity_path = rejected_dir / "no_response.json"
+        connectivity_path.write_text(
+            json.dumps([proxy_to_dict(p) for p in connectivity_failed], indent=2)
+        )
+        output_files["rejected_connectivity"] = str(connectivity_path)
+
     # Generate summary stats
     summary = {
         "total_tested": len(all_proxies),
-        "passed_filters": len(passed),
-        "insecure": len(insecure),
-        "unavailable": len(unavailable),
+        "passed": len(passed),
+        "rejected": {
+            "security_issues": len(security_failed),
+            "no_response": len(connectivity_failed),
+        },
         "by_protocol": {k: len(v) for k, v in protocols.items()},
         "by_country": {k: len(v) for k, v in countries.items()},
     }
