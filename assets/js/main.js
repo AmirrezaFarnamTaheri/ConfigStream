@@ -59,7 +59,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateElement('totalConfigs', stats.total_tested || 0);
                 }
                 if (document.getElementById('workingConfigs')) {
-                    updateElement('workingConfigs', stats.working || 0);
+                    updateElement('workingConfigs', stats.total_working || 0);
+                }
+                if (document.getElementById('updateFrequency')) {
+                    updateElement('updateFrequency', '3 hrs');
                 }
             }
 
