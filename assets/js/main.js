@@ -50,25 +50,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (metadata && metadata.generated_at) {
                 const date = new Date(metadata.generated_at);
                 const formatted = formatTimestamp(date);
-                updateElement('footerUpdate', formatted);
+                updateElement('#footerUpdate', formatted);
             }
 
             // Update stats card
             if (stats) {
-                if (document.getElementById('totalConfigs')) {
-                    updateElement('totalConfigs', stats.total_tested || 0);
-                }
-                if (document.getElementById('workingConfigs')) {
-                    updateElement('workingConfigs', stats.working || 0);
-                }
+                updateElement('#totalConfigs', stats.total_tested || 0);
+                updateElement('#workingConfigs', stats.total_working || 0);
+                updateElement('#updateFrequency', '6 hrs');
             }
 
         } catch (error) {
             window.stateManager.setError('Failed to initialize page data.', error);
             // Update UI to show that data loading failed
-            updateElement('footerUpdate', 'N/A');
-            updateElement('totalConfigs', 'N/A');
-            updateElement('workingConfigs', 'N/A');
+            updateElement('#footerUpdate', 'N/A');
+            updateElement('#totalConfigs', 'N/A');
+            updateElement('#workingConfigs', 'N/A');
         } finally {
             window.stateManager.setLoading(false);
             // Hide preloader after data fetching is complete

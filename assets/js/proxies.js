@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allProxies = [];
     let currentSort = { key: 'latency', asc: true };
     let currentPage = 1;
-    const proxiesPerPage = 50;
+    let proxiesPerPage = 50; // Default value, can be changed by the user
 
     const protocolFilter = document.getElementById('filterProtocol');
     const countryFilter = document.getElementById('filterCountry');
@@ -14,22 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyState = document.getElementById('emptyState');
     const proxiesTable = document.getElementById('proxiesTable');
     const clearFiltersBtn = document.getElementById('clearFilters');
+    const copyFilteredBtn = document.getElementById('copyFiltered');
+    const downloadFilteredBtn = document.getElementById('downloadFiltered');
     const filterCount = document.getElementById('filterCount');
     const latencyMinInput = document.getElementById('filterLatencyMin');
     const latencyMaxInput = document.getElementById('filterLatencyMax');
     const paginationContainer = document.getElementById('pagination-container');
+    const pageSizeSelector = document.getElementById('pageSizeSelector');
 
     // Early return if required elements don't exist
     if (!protocolFilter || !countryFilter || !tableBody || !emptyState) return;
 
-    const renderTable = () => {
+    const getFilteredProxies = () => {
         const protoFilter = protocolFilter.value.toLowerCase();
         const countryFilterValue = countryFilter.value.toLowerCase();
         const cityFilterValue = cityFilter.value.toLowerCase();
         const latencyMin = latencyMinInput && latencyMinInput.value ? parseInt(latencyMinInput.value) : null;
         const latencyMax = latencyMaxInput && latencyMaxInput.value ? parseInt(latencyMaxInput.value) : null;
 
-        const filteredProxies = allProxies.filter(p => {
+        return allProxies.filter(p => {
             const protocol = p.protocol.toLowerCase();
             const country = p.country_code ? p.country_code.toLowerCase() : '';
             const city = p.city ? p.city.toLowerCase() : '';
@@ -43,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return matchesProtocol && matchesCountry && matchesCity && matchesLatencyMin && matchesLatencyMax;
         });
+    };
+
+    const renderTable = () => {
+        const filteredProxies = getFilteredProxies();
 
         // Update filter count
         if (filterCount) {
@@ -100,7 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return `
                 <tr class="${rowClasses.join(' ')}" style="--delay: ${index * 0.03}s" data-source="${p.source}">
                     <td>${protocol}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
-                    <td>${location}</td>
+                    <td class="location-cell">
+                        ${p.country_code ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" alt="${p.country_code}" class="country-flag">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
+                        <span>${location}</span>
+                    </td>
                     <td>${latency}</td>
                     <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}"><i data-feather="copy"></i></button></td>
                 </tr>
@@ -151,6 +161,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (latencyMaxInput) {
         latencyMaxInput.addEventListener('input', renderTable);
+    }
+    if (pageSizeSelector) {
+        pageSizeSelector.addEventListener('change', (e) => {
+            proxiesPerPage = parseInt(e.target.value);
+            currentPage = 1; // Reset to first page
+            renderTable();
+        });
+    }
+
+    // Batch actions
+    if (copyFilteredBtn) {
+        copyFilteredBtn.addEventListener('click', () => {
+            const proxies = getFilteredProxies();
+            const configs = proxies.map(p => p.config).join('\n');
+            copyToClipboard(configs, copyFilteredBtn);
+        });
+    }
+
+    if (downloadFilteredBtn) {
+        downloadFilteredBtn.addEventListener('click', () => {
+            const proxies = getFilteredProxies();
+            const configs = proxies.map(p => p.config).join('\n');
+            const blob = new Blob([configs], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'filtered_proxies.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        });
     }
 
     // Clear filters button
