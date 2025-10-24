@@ -448,3 +448,22 @@ def _parse_xray(c: str) -> Optional[Proxy]:
         logger.debug("XRay config missing UUID.")
         return None
     return proxy
+
+
+def _parse_snell(c: str) -> Optional[Proxy]:
+    """Parse Snell proxy configuration."""
+    return _parse_url_scheme(c, "snell", 443)
+
+
+def _parse_brook(c: str) -> Optional[Proxy]:
+    """Parse Brook proxy configuration."""
+    return _parse_url_scheme(c, "brook", 9999)
+
+
+def _parse_juicity(c: str) -> Optional[Proxy]:
+    """Parse Juicity proxy configuration."""
+    proxy = _parse_url_scheme(c, "juicity", 443)
+    if proxy and not proxy.uuid:
+        logger.debug("Juicity config missing UUID.")
+        return None
+    return proxy

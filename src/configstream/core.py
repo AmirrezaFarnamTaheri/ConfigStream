@@ -6,10 +6,13 @@ from typing import Any, Dict, Optional
 import aiohttp
 
 from .parsers import (
+    _parse_brook,
     _parse_generic,
     _parse_hysteria,
     _parse_hysteria2,
+    _parse_juicity,
     _parse_naive,
+    _parse_snell,
     _parse_ss,
     _parse_ssr,
     _parse_trojan,
@@ -152,6 +155,12 @@ def parse_config(config_string: str) -> Proxy | None:
             return _parse_naive(config_string)
         if config_string.startswith("xray://") or config_string.startswith("xtls://"):
             return _parse_xray(config_string)
+        if config_string.startswith("snell://"):
+            return _parse_snell(config_string)
+        if config_string.startswith("brook://"):
+            return _parse_brook(config_string)
+        if config_string.startswith("juicity://"):
+            return _parse_juicity(config_string)
         if config_string.lstrip().startswith("{"):
             parsed_v2ray = _parse_v2ray_json(config_string)
             if parsed_v2ray:

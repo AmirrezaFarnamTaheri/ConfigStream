@@ -25,7 +25,8 @@ venv/
 ENV/
 env/
 
-output/	full
+# Ignore full unfiltered outputs to save space
+output/full/
 
 # IDE
 .vscode/

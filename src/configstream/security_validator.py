@@ -268,12 +268,14 @@ def validate_batch_configs(proxies: List[Proxy], leniency: bool = False) -> List
             if not is_secure:
                 insecure_count += 1
                 logger.warning(
-                    f"Insecure proxy detected: {proxy.address}:{proxy.port} (issues: {', '.join(issues)})"
+                    f"Insecure proxy detected: {proxy.address}:{proxy.port} "
+                    f"(issues: {', '.join(issues)})"
                 )
                 proxy.is_secure = False
                 proxy.security_issues.extend(issues)
         logger.info(
-            f"Security validation (leniency mode): Detected {insecure_count} insecure proxies, but not filtering."
+            f"Security validation (leniency mode): Detected {insecure_count} "
+            f"insecure proxies, but not filtering."
         )
         return proxies
 
