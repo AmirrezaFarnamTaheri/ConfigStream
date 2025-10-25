@@ -56,6 +56,26 @@ def test_cache_set_and_get(temp_cache, sample_proxy):
     assert cached.country == "US"
 
 
+def test_cache_persists_across_instances(temp_cache, sample_proxy):
+    """Ensure cached results are retrievable with a new cache instance."""
+
+    temp_cache.set(sample_proxy)
+
+    new_cache = TestResultCache(db_path=temp_cache.db_path, ttl_seconds=60)
+    fresh_proxy = Proxy(
+        config=sample_proxy.config,
+        protocol=sample_proxy.protocol,
+        address=sample_proxy.address,
+        port=sample_proxy.port,
+    )
+
+    cached = new_cache.get(fresh_proxy)
+
+    assert cached is not None
+    assert cached.is_working is True
+    assert cached.latency == sample_proxy.latency
+
+
 def test_cache_ttl_expiration(temp_cache, sample_proxy):
     """Test cache TTL expiration."""
     # Create cache with 0 second TTL
