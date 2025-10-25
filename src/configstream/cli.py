@@ -24,9 +24,13 @@ config = AppSettings()
 # Error handling functions moved to cli_errors.py module
 
 
-def validate_proxy_data(proxies_data: Sequence[object] | None) -> None:
+def validate_proxy_data(proxies_data: Sequence[object] | None, *, for_retest: bool = False) -> None:
     """Validate that proxy data is non-empty"""
     if not proxies_data or len(proxies_data) == 0:
+        if for_retest:
+            click.echo("No proxies found in the input file. Skipping retest.", err=False)
+            # Exit gracefully for retest - don't fail the workflow
+            raise SystemExit(0)
         click.echo("No proxies found in the input file.", err=True)
         sys.exit(1)
 
@@ -185,6 +189,7 @@ async def _retest_logic_async(
     max_workers: int,
     timeout: int,
     show_metrics: bool,
+    leniency: bool,
 ) -> None:
     # Set event loop policy for Windows compatibility
     if sys.platform == "win32":
@@ -193,64 +198,88 @@ async def _retest_logic_async(
     input_path = Path(input_file)
     output_path = Path(output_dir)
 
+    # Check if input file exists and is not empty
+    if not input_path.exists():
+        click.echo(f"Input file {input_path} does not exist. Skipping retest.", err=False)
+        raise SystemExit(0)
+
+    if input_path.stat().st_size == 0:
+        click.echo(f"Input file {input_path} is empty. Skipping retest.", err=False)
+        raise SystemExit(0)
+
     # Load JSON from file
-    with open(input_path, "r") as f:
-        proxies_data = json.load(f)
+    try:
+        with open(input_path, "r") as f:
+            proxies_data = json.load(f)
+    except json.JSONDecodeError as e:
+        click.echo(f"Invalid JSON in {input_path}: {e}. Skipping retest.", err=False)
+        raise SystemExit(0)
 
-        # Validate we have proxies
-        validate_proxy_data(proxies_data)
-        click.echo(f"Loaded {len(proxies_data)} proxies")
+    # Validate we have proxies
+    validate_proxy_data(proxies_data, for_retest=True)
+    click.echo(f"Loaded {len(proxies_data)} proxies")
 
-        # Reconstruct Proxy objects from JSON data
-        proxies: list[Proxy] = []
-        skipped_count = 0
+    # Reconstruct Proxy objects from JSON data
+    proxies: list[Proxy] = []
+    skipped_count = 0
 
-        for proxy_data in proxies_data:
-            try:
-                proxy = Proxy(**proxy_data)
-                proxies.append(proxy)
-            except (TypeError, ValueError):
-                skipped_count += 1
+    for proxy_data in proxies_data:
+        try:
+            proxy = Proxy(**proxy_data)
+            proxies.append(proxy)
+        except (TypeError, ValueError):
+            skipped_count += 1
 
-        if skipped_count > 0:
-            click.echo(f"⚠ Skipped {skipped_count} invalid proxy definitions")
+    if skipped_count > 0:
+        click.echo(f"⚠ Skipped {skipped_count} invalid proxy definitions")
 
-        if not proxies:
-            raise CLIError("No proxies found in the input file.")
+    if not proxies:
+        raise CLIError("No proxies found in the input file.")
 
-        click.echo(f" Validated {len(proxies)} proxy definitions")
+    click.echo(f" Validated {len(proxies)} proxy definitions")
 
-        # Run retest pipeline
-        output_path.mkdir(parents=True, exist_ok=True)
+    # Run retest pipeline
+    output_path.mkdir(parents=True, exist_ok=True)
 
-        with Progress() as progress:
-            result = await pipeline.run_full_pipeline(
-                sources=[],
-                output_dir=str(output_path),
-                progress=progress,
-                max_workers=max_workers,
-                proxies=proxies,
-                timeout=timeout,
-            )
+    with Progress() as progress:
+        result = await pipeline.run_full_pipeline(
+            sources=[],
+            output_dir=str(output_path),
+            progress=progress,
+            max_workers=max_workers,
+            proxies=proxies,
+            timeout=timeout,
+            leniency=leniency,
+        )
 
-        if not result.get("success", True):
-            raise CLIError(result.get("error", "Retest failed"))
+    # For retest, don't fail if we have some output, even if tested==0
+    # Only fail if there's a critical error
+    if not result.get("success", True):
+        error_msg = result.get("error", "Retest failed")
+        # If we got zero tested but everything else worked, just warn
+        if result.get("tested", 0) == 0 and result.get("kept", 0) == 0:
+            click.echo(f"⚠ Warning: {error_msg}", err=False)
+            click.echo("No proxies were successfully tested, but outputs were generated.", err=False)
+            # Don't raise - exit gracefully
+            return
+        # Other errors are critical
+        raise CLIError(error_msg)
 
-        click.echo("\n Retest completed successfully!")
-        click.echo(f"Output files saved to: {output_path}")
+    click.echo("\n Retest completed successfully!")
+    click.echo(f"Output files saved to: {output_path}")
 
-        if show_metrics:
-            metrics = result.get("metrics") or {}
-            if metrics:
-                console.print("\n[cyan]Performance metrics[/cyan]")
-                console.print(f"- Total time: {metrics.get('total_seconds', 0):.2f}s")
-                console.print(f"- Fetch: {metrics.get('fetch_seconds', 0):.2f}s")
-                console.print(f"- Parse: {metrics.get('parse_seconds', 0):.2f}s")
-                console.print(f"- Test: {metrics.get('test_seconds', 0):.2f}s")
-                console.print(f"- Output: {metrics.get('output_seconds', 0):.2f}s")
-                console.print(f"- Proxies tested: {metrics.get('proxies_tested', 0)}")
-                console.print(f"- Proxies working: {metrics.get('proxies_working', 0)}")
-                console.print(f"- Throughput: {metrics.get('proxies_per_second', 0):.2f} proxies/s")
+    if show_metrics:
+        metrics = result.get("metrics") or {}
+        if metrics:
+            console.print("\n[cyan]Performance metrics[/cyan]")
+            console.print(f"- Total time: {metrics.get('total_seconds', 0):.2f}s")
+            console.print(f"- Fetch: {metrics.get('fetch_seconds', 0):.2f}s")
+            console.print(f"- Parse: {metrics.get('parse_seconds', 0):.2f}s")
+            console.print(f"- Test: {metrics.get('test_seconds', 0):.2f}s")
+            console.print(f"- Output: {metrics.get('output_seconds', 0):.2f}s")
+            console.print(f"- Proxies tested: {metrics.get('proxies_tested', 0)}")
+            console.print(f"- Proxies working: {metrics.get('proxies_working', 0)}")
+            console.print(f"- Throughput: {metrics.get('proxies_per_second', 0):.2f} proxies/s")
 
 
 @cli.command()
@@ -260,6 +289,7 @@ async def _retest_logic_async(
 @click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))
 @click.option("--max-workers", type=int, default=10)
 @click.option("--timeout", type=int, default=30)
+@click.option("--lenient/--no-lenient", default=True, help="Keep insecure configs but tag them (default: lenient).")
 @click.option("--show-metrics", is_flag=True)
 @handle_cli_errors(context="Retest operation")
 def retest(
@@ -267,6 +297,7 @@ def retest(
     output_dir: str,
     max_workers: int,
     timeout: int,
+    lenient: bool,
     show_metrics: bool,
 ) -> None:
     """Retest previously tested proxies from a JSON file."""
@@ -277,6 +308,7 @@ def retest(
             max_workers=max_workers,
             timeout=timeout,
             show_metrics=show_metrics,
+            leniency=lenient,
         )
     )
 

@@ -29,6 +29,14 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
     ensure_directory(db_path.parent)
     conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+
+    # Enable WAL mode and performance optimizations
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA temp_store=MEMORY")
+    conn.execute("PRAGMA mmap_size=268435456")  # 256 MB
+    conn.execute("PRAGMA cache_size=-80000")  # ~80 MB cache
+
     with conn:
         conn.executescript(CREATE_SQL)
     return conn
