@@ -6,7 +6,9 @@ from configstream.selection import select_chosen_proxies, get_selection_stats
 from configstream.constants import CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
 
 
-def create_test_proxy(protocol: str, latency: float, working: bool = True, security_issues: dict = None) -> Proxy:
+def create_test_proxy(
+    protocol: str, latency: float, working: bool = True, security_issues: dict = None
+) -> Proxy:
     """Helper to create test proxy."""
     return Proxy(
         config=f"{protocol}://test",

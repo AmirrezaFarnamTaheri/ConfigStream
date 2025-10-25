@@ -133,7 +133,6 @@ def _maybe_decode_base64(payload: str) -> str:
 
 
 # ==== BEGIN: robust network fetch helpers ====
-logger = logging.getLogger(__name__)
 
 _GITHUB_HOST_HINTS = (
     "raw.githubusercontent.com",
@@ -508,12 +507,6 @@ async def run_full_pipeline(
                     subset = batch[start : start + batch_size]
                     batch_number = index + 1
                     if total_batches > 1:
-                        logger.info(
-                            "Testing batch %d/%d (%d proxies)",
-                            batch_number,
-                            total_batches,
-                            len(subset),
-                        )
                         logger.info(
                             "Testing %s batch %d/%d (%d proxies)",
                             label,

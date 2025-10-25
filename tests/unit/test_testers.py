@@ -41,7 +41,7 @@ async def test_singbox_tester_failure_masked():
         result = await tester.test(proxy)
 
         assert result.is_working is False
-        assert "Connection failed: [MASKED]" in result.security_issues
+        assert "Connection failed: [MASKED]" in result.security_issues.get("connectivity", [])
         assert result.tested_at
 
 
@@ -58,7 +58,9 @@ async def test_singbox_tester_failure_unmasked():
         result = await tester.test(proxy)
 
         assert result.is_working is False
-        assert "Connection failed: Connection error" in result.security_issues
+        assert "Connection failed: Connection error" in result.security_issues.get(
+            "connectivity", []
+        )
 
 
 @pytest.mark.asyncio
@@ -113,7 +115,7 @@ async def test_singbox_tester_all_urls_fail():
             result = await tester.test(proxy)
 
             assert result.is_working is False
-            assert "All test URLs failed" in result.security_issues
+            assert "All test URLs failed" in result.security_issues.get("connectivity", [])
 
 
 @pytest.mark.asyncio
