@@ -23,9 +23,9 @@ SECURITY_CATEGORIES = {
     "ADDRESS_PRIVATE": "address_private_ip",
     "ADDRESS_SUSPICIOUS": "address_suspicious",
     "PROTOCOL_UNKNOWN": "protocol_invalid",
-    "INJECTION_RISK": "injection_attempt",
-    "CONFIG_TOO_LONG": "config_format",
-    "CONFIG_NULL_BYTE": "config_malformed",
+    "INJECTION_RISK": "suspicious_injection_attempt",
+    "CONFIG_TOO_LONG": "suspicious_config_format",
+    "CONFIG_NULL_BYTE": "suspicious_config_malformed",
 }
 
 
@@ -157,9 +157,9 @@ class SecurityValidator:
                 issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Special address: {address}"
                 return issues
 
-        # DNS rebinding protection
+        # DNS rebinding protection - check for hex notation or octal notation
         if address_lower.startswith("0x") or (
-            address_lower.startswith("0") and "." in address_lower[:4]
+            address_lower.startswith("0") and "." in address_lower
         ):
             logger.warning(f"Non-standard IP notation: {address}")
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = f"Non-standard notation: {address}"
@@ -180,13 +180,13 @@ class SecurityValidator:
         issues = {}
 
         if not config:
-            issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = "Empty config"
+            issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = "Suspicious: Empty config"
             return issues
 
         # Check for null bytes
         if "\x00" in config:
             logger.error("Null byte detected in config")
-            issues[SECURITY_CATEGORIES["CONFIG_NULL_BYTE"]] = "Contains null byte"
+            issues[SECURITY_CATEGORIES["CONFIG_NULL_BYTE"]] = "Suspicious: Contains null byte"
             return issues
 
         # Check for suspicious shell patterns and injection attempts
@@ -212,7 +212,7 @@ class SecurityValidator:
             if re.search(pattern, config, re.IGNORECASE):
                 logger.error(f"Suspicious pattern detected: {pattern}")
                 issues[SECURITY_CATEGORIES["INJECTION_RISK"]] = (
-                    "Potential injection pattern detected"
+                    "Suspicious: Potential injection pattern detected"
                 )
                 return issues
 

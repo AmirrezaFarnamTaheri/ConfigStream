@@ -40,7 +40,7 @@ def test_core_parse_variations():
 
 def test_parsers_comprehensive_coverage():
     """Comprehensive parser coverage."""
-    from configstream.parsers import _parse_vmess, _parse_vless, _parse_ss
+    from configstream.parsers import _parse_vmess
     import base64
 
     # Valid VMess base64

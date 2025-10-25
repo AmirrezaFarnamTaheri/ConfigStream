@@ -73,7 +73,6 @@ def test_state_updates_are_batched():
       expect(updates).toEqual([1, 2, 3]);
     });
     """
-    pass
 
 
 def test_prevents_infinite_loops():
@@ -100,7 +99,6 @@ def test_prevents_infinite_loops():
       expect(callCount).toBeLessThanOrEqual(manager.maxUpdateDepth);
     });
     """
-    pass
 
 
 # For Python async testing, here's an actual example:
@@ -121,7 +119,6 @@ async def test_async_file_operations_dont_block(file_io_pool):
     """
     from configstream.async_file_ops import read_file_async
     from pathlib import Path
-    import time
 
     # Create test file
     test_file = Path("/tmp/test_async.txt")

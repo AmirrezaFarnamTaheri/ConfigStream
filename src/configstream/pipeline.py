@@ -474,7 +474,7 @@ async def run_full_pipeline(
                     if proxy.config:
                         seen_raw_configs.add(proxy.config)
 
-        batch_size = 750  # Increased from 500 for better performance
+        batch_size = 500  # Process proxies in batches for better memory management
         effective_timeout_sec = float(timeout)
         if max_latency is not None and max_latency > 0:
             effective_timeout_sec = min(effective_timeout_sec, max_latency / 1000.0)
