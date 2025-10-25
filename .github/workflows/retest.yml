@@ -23,8 +23,18 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install
         run: pip install -e .[dev]
+      - name: Check previous output existence
+        id: check_output
+        run: |
+          if [ ! -s output/proxies.json ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "No previous output/proxies.json or file is empty; skipping retest."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
       - name: Retest last export
-        run: python -m configstream.cli retest --input output/proxies.json --outdir output --timeout 30 --max-workers 20
+        if: steps.check_output.outputs.skip != 'true'
+        run: python -m configstream.cli retest --input output/proxies.json --outdir output --timeout 45 --max-workers 20 --lenient
       - name: Validate JSON (non-blocking)
         run: |
           pip install jsonschema || true
