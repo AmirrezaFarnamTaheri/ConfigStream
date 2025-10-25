@@ -124,7 +124,7 @@ class LoadingController {
   }
 
   hideLoadingScreen() {
-    if (this.loadingScreen) {
+    if (this.loadingScreen && !this.loadingScreen.classList.contains('hidden')) {
       this.loadingScreen.classList.add('hidden');
 
       // Remove from DOM after transition
@@ -132,19 +132,23 @@ class LoadingController {
         if (this.loadingScreen && this.loadingScreen.parentNode) {
           this.loadingScreen.parentNode.removeChild(this.loadingScreen);
         }
-      }, 400);
-
+      }, 600);
     }
   }
 }
 
-// Initialize on DOM ready
+// Initialize on DOM ready (but only once)
+let loadingControllerInstance = null;
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
-    new LoadingController();
+    if (!loadingControllerInstance) {
+      loadingControllerInstance = new LoadingController();
+    }
   });
 } else {
-  new LoadingController();
+  if (!loadingControllerInstance) {
+    loadingControllerInstance = new LoadingController();
+  }
 }
 
 /* ============================================
