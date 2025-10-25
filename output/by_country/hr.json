@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "46.183.184.60",
     "port": 989,
-    "latency": 532.98,
+    "latency": 554.01,
     "country": "Croatia",
     "country_code": "HR",
     "city": "Unknown",
     "remarks": "\ud83c\udded\ud83c\uddf7HR-46.183.184.60-5299",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:47:15.291881+00:00"
+    "tested_at": "2025-10-25T06:53:29.652838+00:00"
   }
 ]

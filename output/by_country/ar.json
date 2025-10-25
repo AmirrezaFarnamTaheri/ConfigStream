@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "38.54.45.129",
     "port": 990,
-    "latency": 575.16,
+    "latency": 515.6,
     "country": "Argentina",
     "country_code": "AR",
     "city": "Unknown",
     "remarks": "\ud83c\udde6\ud83c\uddf7AR-38.54.45.129-5426",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:50:14.327769+00:00"
+    "tested_at": "2025-10-25T06:49:45.263100+00:00"
   }
 ]

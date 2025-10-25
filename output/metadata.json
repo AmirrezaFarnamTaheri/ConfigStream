@@ -1,32 +1,32 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-10-25T05:27:06.797165+00:00",
-  "updated_at": "2025-10-25T05:59:52.235246+00:00",
-  "proxy_count": 3855,
-  "working_count": 3855,
+  "generated_at": "2025-10-25T06:27:50.664728+00:00",
+  "updated_at": "2025-10-25T07:00:53.404684+00:00",
+  "proxy_count": 3813,
+  "working_count": 3813,
   "source_count": 106,
-  "tested_count": 33580,
+  "tested_count": 33579,
   "fallback_available": false,
   "phase_summaries": [
     {
       "phase": 1,
       "source": "fetched",
       "fetched": 10000,
-      "parsed": 9914,
-      "tested": 9728,
-      "working": 2449,
-      "new_working": 2449,
-      "cumulative_working": 2449
+      "parsed": 9915,
+      "tested": 9737,
+      "working": 2428,
+      "new_working": 2428,
+      "cumulative_working": 2428
     },
     {
       "phase": 2,
       "source": "fetched",
       "fetched": 10000,
       "parsed": 9893,
-      "tested": 9750,
-      "working": 519,
-      "new_working": 519,
-      "cumulative_working": 2968
+      "tested": 9745,
+      "working": 512,
+      "new_working": 512,
+      "cumulative_working": 2940
     },
     {
       "phase": 3,
@@ -34,59 +34,59 @@
       "fetched": 10000,
       "parsed": 9518,
       "tested": 9303,
-      "working": 179,
-      "new_working": 179,
-      "cumulative_working": 3147
+      "working": 173,
+      "new_working": 173,
+      "cumulative_working": 3113
     },
     {
       "phase": 4,
       "source": "fetched",
-      "fetched": 6605,
-      "parsed": 5043,
-      "tested": 4799,
-      "working": 708,
-      "new_working": 708,
-      "cumulative_working": 3855
+      "fetched": 6600,
+      "parsed": 5038,
+      "tested": 4794,
+      "working": 700,
+      "new_working": 700,
+      "cumulative_working": 3813
     }
   ],
-  "cache_bust": 1761371992235,
+  "cache_bust": 1761375653404,
   "stats": {
-    "generated_at": "2025-10-25T05:27:06.797165+00:00",
-    "generated_now": "2025-10-25T05:59:52.234879+00:00",
-    "total_fetched": 36605,
-    "total_tested": 33580,
-    "total_working": 3855,
-    "total_filtered": 3855,
-    "duplicates_skipped": 9802,
-    "success_rate": 11.48,
-    "average_latency_ms": 635.25,
+    "generated_at": "2025-10-25T06:27:50.664728+00:00",
+    "generated_now": "2025-10-25T07:00:53.404422+00:00",
+    "total_fetched": 36600,
+    "total_tested": 33579,
+    "total_working": 3813,
+    "total_filtered": 3813,
+    "duplicates_skipped": 9818,
+    "success_rate": 11.36,
+    "average_latency_ms": 747.01,
     "protocol_distribution": {
-      "vless": 2598,
-      "vmess": 154,
-      "trojan": 87,
-      "shadowsocks": 1006,
-      "hysteria2": 10
+      "vless": 2571,
+      "vmess": 150,
+      "trojan": 91,
+      "shadowsocks": 992,
+      "hysteria2": 9
     },
     "phase_summaries": [
       {
         "phase": 1,
         "source": "fetched",
         "fetched": 10000,
-        "parsed": 9914,
-        "tested": 9728,
-        "working": 2449,
-        "new_working": 2449,
-        "cumulative_working": 2449
+        "parsed": 9915,
+        "tested": 9737,
+        "working": 2428,
+        "new_working": 2428,
+        "cumulative_working": 2428
       },
       {
         "phase": 2,
         "source": "fetched",
         "fetched": 10000,
         "parsed": 9893,
-        "tested": 9750,
-        "working": 519,
-        "new_working": 519,
-        "cumulative_working": 2968
+        "tested": 9745,
+        "working": 512,
+        "new_working": 512,
+        "cumulative_working": 2940
       },
       {
         "phase": 3,
@@ -94,21 +94,21 @@
         "fetched": 10000,
         "parsed": 9518,
         "tested": 9303,
-        "working": 179,
-        "new_working": 179,
-        "cumulative_working": 3147
+        "working": 173,
+        "new_working": 173,
+        "cumulative_working": 3113
       },
       {
         "phase": 4,
         "source": "fetched",
-        "fetched": 6605,
-        "parsed": 5043,
-        "tested": 4799,
-        "working": 708,
-        "new_working": 708,
-        "cumulative_working": 3855
+        "fetched": 6600,
+        "parsed": 5038,
+        "tested": 4794,
+        "working": 700,
+        "new_working": 700,
+        "cumulative_working": 3813
       }
     ],
-    "cache_bust": 1761371992234
+    "cache_bust": 1761375653404
   }
 }

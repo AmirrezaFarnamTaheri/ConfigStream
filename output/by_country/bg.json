@@ -1,72 +1,44 @@
 [
   {
-    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638960582852354160.paris-blkaft-aaap.info:8880?encryption=none&security=&sni=&type=grpc&alpn=&host=&path=#%3E%3E%40DailyV2RY%3A%3ABG",
-    "protocol": "vless",
-    "address": "638960582852354160.paris-blkaft-aaap.info",
-    "port": 8880,
-    "latency": 437.87,
-    "country": "Bulgaria",
-    "country_code": "BG",
-    "city": "Unknown",
-    "remarks": ">>@DailyV2RY::BG",
-    "is_working": true,
-    "security_issues": [],
-    "tested_at": "2025-10-25T05:31:36.788942+00:00"
-  },
-  {
-    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638960022058726038.birjand-blkaft-aaak.info:8880?mode=gun&security=none&encryption=none&type=grpc#%3E%3E%40v2ray_configs_pool%3A%3ABG",
-    "protocol": "vless",
-    "address": "638960022058726038.birjand-blkaft-aaak.info",
-    "port": 8880,
-    "latency": 490.58,
-    "country": "Bulgaria",
-    "country_code": "BG",
-    "city": "Unknown",
-    "remarks": ">>@v2ray_configs_pool::BG",
-    "is_working": true,
-    "security_issues": [],
-    "tested_at": "2025-10-25T05:32:16.173719+00:00"
-  },
-  {
     "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638966574572431911.rome-blkaft-aaau.info:8880?mode=gun&security=none&encryption=none&type=grpc#%3E%3E%40DailyV2RY%3A%3ABG",
     "protocol": "vless",
     "address": "638966574572431911.rome-blkaft-aaau.info",
     "port": 8880,
-    "latency": 349.93,
+    "latency": 329.32,
     "country": "Bulgaria",
     "country_code": "BG",
     "city": "Unknown",
     "remarks": ">>@DailyV2RY::BG",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:34:14.611626+00:00"
+    "tested_at": "2025-10-25T06:33:33.579934+00:00"
   },
   {
-    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638966574572431911.rome-blkaft-aaau.info:8880?mode=gun&security=none&encryption=none&type=grpc#MTMVPN 1",
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638960582852354160.paris-blkaft-aaap.info:8880?encryption=none&security=&sni=&type=grpc&alpn=&host=&path=#%3E%3E%40DailyV2RY%3A%3ABG",
     "protocol": "vless",
-    "address": "638966574572431911.rome-blkaft-aaau.info",
+    "address": "638960582852354160.paris-blkaft-aaap.info",
     "port": 8880,
-    "latency": 291.69,
+    "latency": 418.62,
     "country": "Bulgaria",
     "country_code": "BG",
     "city": "Unknown",
-    "remarks": "MTMVPN 1",
+    "remarks": ">>@DailyV2RY::BG",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:35:04.733632+00:00"
+    "tested_at": "2025-10-25T06:36:03.094246+00:00"
   },
   {
     "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@37.19.203.147:989#%F0%9F%87%A7%F0%9F%87%ACBG-37.19.203.147-0253",
     "protocol": "shadowsocks",
     "address": "37.19.203.147",
     "port": 989,
-    "latency": 413.51,
+    "latency": 454.17,
     "country": "Bulgaria",
     "country_code": "BG",
     "city": "Unknown",
     "remarks": "\ud83c\udde7\ud83c\uddecBG-37.19.203.147-0253",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:46:02.294585+00:00"
+    "tested_at": "2025-10-25T06:48:02.792947+00:00"
   }
 ]

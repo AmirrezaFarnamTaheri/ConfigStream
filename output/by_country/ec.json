@@ -1,16 +1,44 @@
 [
   {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@38.165.231.25:990#@sunflowerplato\ud83c\udf3b",
+    "protocol": "shadowsocks",
+    "address": "38.165.231.25",
+    "port": 990,
+    "latency": 479.4,
+    "country": "Ecuador",
+    "country_code": "EC",
+    "city": "Quito",
+    "remarks": "@sunflowerplato\ud83c\udf3b",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:38:06.551679+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@38.165.231.25:990#@AblNet7 \ud83c\uddee\ud83c\uddf7 \u0646\u062a \u0645\u0644\u06cc \ud83c\uddea\ud83c\udde8",
+    "protocol": "shadowsocks",
+    "address": "38.165.231.25",
+    "port": 990,
+    "latency": 443.59,
+    "country": "Ecuador",
+    "country_code": "EC",
+    "city": "Quito",
+    "remarks": "@AblNet7 \ud83c\uddee\ud83c\uddf7 \u0646\u062a \u0645\u0644\u06cc \ud83c\uddea\ud83c\udde8",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:39:32.751805+00:00"
+  },
+  {
     "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpmOGY3YUN6Y1BLYnNGOHAz@185.47.253.227:990#%F0%9F%87%AA%F0%9F%87%A8EC-185.47.253.227-5338",
     "protocol": "shadowsocks",
     "address": "185.47.253.227",
     "port": 990,
-    "latency": 348.76,
+    "latency": 403.14,
     "country": "Ecuador",
     "country_code": "EC",
     "city": "Unknown",
     "remarks": "\ud83c\uddea\ud83c\udde8EC-185.47.253.227-5338",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:49:51.093209+00:00"
+    "tested_at": "2025-10-25T06:46:07.120102+00:00"
   }
 ]

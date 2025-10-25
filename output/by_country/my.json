@@ -1,44 +1,72 @@
 [
   {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638966471315850594.lahijan-blkaft-aaas.info:8880?mode=gun&security=none&encryption=none&type=grpc#@meli_proxyy",
+    "protocol": "vless",
+    "address": "638966471315850594.lahijan-blkaft-aaas.info",
+    "port": 8880,
+    "latency": 1055.18,
+    "country": "Malaysia",
+    "country_code": "MY",
+    "city": "Kuala Pilah",
+    "remarks": "@meli_proxyy",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:30:50.721726+00:00"
+  },
+  {
     "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638934019837083133.lisbon-drc-tusaby.info:8880?security=&encryption=none&type=grpc#%3E%3E%40configV2rayNG%3A%3AMY",
     "protocol": "vless",
     "address": "638934019837083133.lisbon-drc-tusaby.info",
     "port": 8880,
-    "latency": 920.73,
+    "latency": 853.79,
     "country": "Malaysia",
     "country_code": "MY",
     "city": "Unknown",
     "remarks": ">>@configV2rayNG::MY",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:29:11.850379+00:00"
+    "tested_at": "2025-10-25T06:31:33.049350+00:00"
   },
   {
     "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638930176646994428.gorgan-drc-tusabt.info:8880?security=&encryption=none&type=grpc#%3E%3E%40configV2rayNG%3A%3AMY",
     "protocol": "vless",
     "address": "638930176646994428.gorgan-drc-tusabt.info",
     "port": 8880,
-    "latency": 845.28,
+    "latency": 888.43,
     "country": "Malaysia",
     "country_code": "MY",
     "city": "Unknown",
     "remarks": ">>@configV2rayNG::MY",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:29:44.828605+00:00"
+    "tested_at": "2025-10-25T06:34:14.045744+00:00"
   },
   {
     "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638943425567574299.brussels-prx-dnraacp.info:8880?security=&encryption=none&type=grpc#%3E%3E%40configV2rayNG%3A%3AMY",
     "protocol": "vless",
     "address": "638943425567574299.brussels-prx-dnraacp.info",
     "port": 8880,
-    "latency": 1081.0,
+    "latency": 1190.07,
     "country": "Malaysia",
     "country_code": "MY",
     "city": "Unknown",
     "remarks": ">>@configV2rayNG::MY",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:33:20.766449+00:00"
+    "tested_at": "2025-10-25T06:35:34.708185+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpmOGY3YUN6Y1BLYnNGOHAz@103.243.215.17:990#@v2ray_configs_pools\u2764\ufe0f\u200d\ud83d\udd25\u26a1",
+    "protocol": "shadowsocks",
+    "address": "103.243.215.17",
+    "port": 990,
+    "latency": 646.55,
+    "country": "Malaysia",
+    "country_code": "MY",
+    "city": "Kuala Lumpur",
+    "remarks": "@v2ray_configs_pools\u2764\ufe0f\u200d\ud83d\udd25\u26a1",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:39:00.751721+00:00"
   }
 ]

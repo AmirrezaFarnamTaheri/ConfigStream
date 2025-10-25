@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "38.54.59.180",
     "port": 990,
-    "latency": 530.81,
+    "latency": 541.61,
     "country": "Egypt",
     "country_code": "EG",
     "city": "Unknown",
     "remarks": "\ud83c\uddea\ud83c\uddecEG-38.54.59.180-5618",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:50:21.428385+00:00"
+    "tested_at": "2025-10-25T06:49:20.857932+00:00"
   }
 ]

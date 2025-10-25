@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "185.93.173.60",
     "port": 990,
-    "latency": 3667.92,
+    "latency": 2661.28,
     "country": "Bolivia",
     "country_code": "BO",
     "city": "Unknown",
     "remarks": "\ud83c\udde7\ud83c\uddf4BO-185.93.173.60-5386",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:57:24.476761+00:00"
+    "tested_at": "2025-10-25T07:00:31.609929+00:00"
   }
 ]
