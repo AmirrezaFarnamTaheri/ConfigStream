@@ -404,8 +404,8 @@ body.dark .nav-link:hover, body.dark .nav-link[aria-current="page"] {
     gap: calc(var(--space-unit) * 2);
 }
 .theme-btn, .github-btn {
-    width: 44px;
-    height: 44px;
+        width: 48px;
+        height: 48px;
     border-radius: 50%;
     background: var(--bg-glass);
     border: 1px solid var(--border);
@@ -554,9 +554,14 @@ body.dark .github-btn:hover {
 
     /* Improve button touch targets */
     .btn {
-        min-height: 44px;
-        padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2.5);
+        min-height: 48px;
+        padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
         -webkit-tap-highlight-color: transparent;
+        transition: transform 0.2s ease-out;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
     }
 
     .github-btn {
@@ -602,7 +607,7 @@ body.dark .github-btn:hover {
 
     /* Fix mobile padding and spacing */
     .container {
-        padding: 0 calc(var(--space-unit) * 2);
+        padding: 0 calc(var(--space-unit) * 3);
     }
 
     main {
@@ -619,7 +624,7 @@ body.dark .github-btn:hover {
     }
 
     .hero h1 {
-        font-size: clamp(2.2rem, 10vw, 3rem) !important;
+        font-size: clamp(2rem, 10vw, 2.8rem) !important;
         letter-spacing: -0.02em;
     }
 
@@ -659,7 +664,7 @@ body.dark .github-btn:hover {
     }
 
     .card-header h2 {
-        font-size: 1.35rem;
+        font-size: 1.5rem;
         line-height: 1.3;
     }
 
@@ -684,11 +689,11 @@ body.dark .github-btn:hover {
     }
 
     .info-card {
-        padding: calc(var(--space-unit) * 3);
+        padding: calc(var(--space-unit) * 2.5);
     }
 
     .info-card h3 {
-        font-size: 1.2rem;
+        font-size: 1.3rem;
     }
 
     #downloads .accordion-header .card-header {
@@ -797,6 +802,7 @@ main {
 @media (max-width: 992px) {
     .main-grid {
         grid-template-columns: 1fr;
+        gap: calc(var(--space-unit) * 3);
     }
     .info-column {
         grid-template-columns: 1fr;
@@ -2431,10 +2437,7 @@ body.dark #preloader {
 
     /* Better mobile card spacing */
     .card {
-        margin-left: calc(var(--space-unit) * -2);
-        margin-right: calc(var(--space-unit) * -2);
-        width: calc(100% + var(--space-unit) * 4);
-        border-radius: 0;
+        padding: calc(var(--space-unit) * 2);
     }
     .main-grid {
         padding: 0;
@@ -2467,7 +2470,7 @@ body.dark #preloader {
     }
 
     .download-card {
-        padding: calc(var(--space-unit) * 2);
+        padding: calc(var(--space-unit) * 2.5);
     }
 
     .download-title {
@@ -2480,5 +2483,12 @@ body.dark #preloader {
 
     .charts-grid {
         grid-template-columns: 1fr;
+    }
+
+    #proxies-card .accordion-header {
+        padding: calc(var(--space-unit) * 2);
+        border-radius: var(--radius-lg);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
     }
 }
