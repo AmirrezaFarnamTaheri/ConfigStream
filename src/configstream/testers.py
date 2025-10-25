@@ -69,7 +69,8 @@ class SingBoxTester(ProxyTester):
 
             if not sb_proxy or not sb_proxy.http_proxy_url:
                 proxy.is_working = False
-                proxy.security_issues.append("Proxy http_proxy_url is not set")
+                if isinstance(proxy.security_issues, list):
+                    proxy.security_issues.append("Proxy http_proxy_url is not set")
                 return proxy
 
             connector = ProxyConnector.from_url(sb_proxy.http_proxy_url)
@@ -88,11 +89,16 @@ class SingBoxTester(ProxyTester):
             ]
             test_urls = prioritized_urls + fallback_urls
 
-            # Try multiple test URLs with optimized timeout
+            # Try multiple test URLs with optimized timeout and early termination
             for url_index, test_url in enumerate(test_urls):
                 try:
-                    # Use shorter timeout for subsequent URLs after first failure
-                    current_timeout = self.timeout if url_index == 0 else min(self.timeout, 5.0)
+                    # Use progressively shorter timeouts for efficiency
+                    if url_index == 0:
+                        current_timeout = self.timeout
+                    elif url_index < 3:
+                        current_timeout = min(self.timeout, 5.0)
+                    else:
+                        current_timeout = min(self.timeout, 3.0)  # Even shorter for fallback URLs
 
                     async with aiohttp.ClientSession(connector=connector) as session:
                         # monotonic timer on current running loop
@@ -121,16 +127,19 @@ class SingBoxTester(ProxyTester):
                     continue
 
             if not proxy.is_working:
-                proxy.security_issues.append("All test URLs failed")
+                if isinstance(proxy.security_issues, list):
+                    proxy.security_issues.append("All test URLs failed")
 
         except RuntimeError as e:
             proxy.is_working = False
-            proxy.security_issues.append(f"SingBox error: {e}")
+            if isinstance(proxy.security_issues, list):
+                proxy.security_issues.append(f"SingBox error: {e}")
             logger.debug(f"SingBoxProxy error for {proxy.config}: {e}")
         except Exception as e:
             proxy.is_working = False
             error_details = "[MASKED]" if self.config.MASK_SENSITIVE_DATA else str(e)
-            proxy.security_issues.append(f"Connection failed: {error_details}")
+            if isinstance(proxy.security_issues, list):
+                proxy.security_issues.append(f"Connection failed: {error_details}")
             logger.error(f"Proxy test error for {proxy.config}: {str(e)[:100]}")
         finally:
             if sb_proxy:

@@ -20606,3 +20606,39 @@ Stderr: [36mINFO[0m[0000] network: updated default interface Wi-Fi, index 10
 2025-10-24 15:23:23,596 - configstream.pipeline - INFO - [pipeline.py:785] - 352 insecure proxies were filtered out
 2025-10-24 15:23:23,645 - configstream.pipeline - INFO - [pipeline.py:838] - Reached max_proxies limit (100); skipping remaining phases.
 2025-10-24 15:23:23,646 - configstream.pipeline - INFO - [pipeline.py:978] - Pipeline completed successfully in 31.5 seconds
+2025-10-25 05:38:54,729 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 05:38:54,731 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 05:38:54,731 - configstream.pipeline - INFO - [pipeline.py:356] - Starting pipeline with 5 sources and 0 supplied proxies
+2025-10-25 05:38:54,738 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml (ClientConnectorDNSError); retrying in 1.5s (attempt 1/3)
+2025-10-25 05:38:54,738 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_Iranian.yml (ClientConnectorDNSError); retrying in 1.5s (attempt 1/3)
+2025-10-25 05:38:54,739 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/2dust/ProxySU/master/sub/sub.txt (ClientConnectorDNSError); retrying in 1.5s (attempt 1/3)
+2025-10-25 05:38:54,739 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml (ClientConnectorDNSError); retrying in 1.5s (attempt 1/3)
+2025-10-25 05:38:54,739 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt (ClientConnectorDNSError); retrying in 1.5s (attempt 1/3)
+2025-10-25 05:38:56,242 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt (ClientConnectorDNSError); retrying in 3.0s (attempt 2/3)
+2025-10-25 05:38:56,243 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_Iranian.yml (ClientConnectorDNSError); retrying in 3.0s (attempt 2/3)
+2025-10-25 05:38:56,243 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/2dust/ProxySU/master/sub/sub.txt (ClientConnectorDNSError); retrying in 3.0s (attempt 2/3)
+2025-10-25 05:38:56,243 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml (ClientConnectorDNSError); retrying in 3.0s (attempt 2/3)
+2025-10-25 05:38:56,243 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml (ClientConnectorDNSError); retrying in 3.0s (attempt 2/3)
+2025-10-25 05:38:59,246 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/2dust/ProxySU/master/sub/sub.txt (ClientConnectorDNSError); retrying in 4.5s (attempt 3/3)
+2025-10-25 05:38:59,246 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_Iranian.yml (ClientConnectorDNSError); retrying in 4.5s (attempt 3/3)
+2025-10-25 05:38:59,247 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml (ClientConnectorDNSError); retrying in 4.5s (attempt 3/3)
+2025-10-25 05:38:59,247 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml (ClientConnectorDNSError); retrying in 4.5s (attempt 3/3)
+2025-10-25 05:38:59,247 - configstream.pipeline - WARNING - [pipeline.py:195] - Fetch failed for https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt (ClientConnectorDNSError); retrying in 4.5s (attempt 3/3)
+2025-10-25 05:39:03,748 - configstream.pipeline - ERROR - [pipeline.py:207] - Fetch permanently failed for https://raw.githubusercontent.com/2dust/ProxySU/master/sub/sub.txt: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,748 - configstream.pipeline - ERROR - [pipeline.py:281] - Failed to fetch https://raw.githubusercontent.com/2dust/ProxySU/master/sub/sub.txt: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,748 - configstream.pipeline - ERROR - [pipeline.py:207] - Fetch permanently failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_Iranian.yml: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,748 - configstream.pipeline - ERROR - [pipeline.py:281] - Failed to fetch https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_Iranian.yml: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,749 - configstream.pipeline - ERROR - [pipeline.py:207] - Fetch permanently failed for https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,749 - configstream.pipeline - ERROR - [pipeline.py:281] - Failed to fetch https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,749 - configstream.pipeline - ERROR - [pipeline.py:207] - Fetch permanently failed for https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,749 - configstream.pipeline - ERROR - [pipeline.py:281] - Failed to fetch https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,749 - configstream.pipeline - ERROR - [pipeline.py:207] - Fetch permanently failed for https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,749 - configstream.pipeline - ERROR - [pipeline.py:281] - Failed to fetch https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt: Cannot connect to host raw.githubusercontent.com:443 ssl:default [Could not contact DNS servers]
+2025-10-25 05:39:03,749 - configstream.pipeline - INFO - [pipeline.py:440] - PIPELINE: Fetched 0 raw proxy configs.
+2025-10-25 05:39:03,749 - configstream.pipeline - INFO - [pipeline.py:459] - PIPELINE: Prepared 0 unique configs for sequential processing.
+2025-10-25 05:39:03,750 - configstream.pipeline - ERROR - [pipeline.py:1020] - Pipeline failed with exception: float() argument must be a string or a real number, not 'ClientTimeout'
+Traceback (most recent call last):
+  File "/home/user/ConfigStream/src/configstream/pipeline.py", line 477, in run_full_pipeline
+    effective_timeout_sec = float(timeout)
+                            ^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'ClientTimeout'

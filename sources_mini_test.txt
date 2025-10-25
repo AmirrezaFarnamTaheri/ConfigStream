@@ -1,11 +1,5 @@
-# Mini-batch test sources (10 diverse sources)
-https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/mix
-https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/All_Configs_Sub.txt
-https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Protocol/vmess.txt
-https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Protocol/vless.txt
-https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/trojan.txt
-https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/protocols/shadowsocks
-https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/hysteria2
-https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.txt
-https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/Eternity.txt
-https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2
+https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt
+https://raw.githubusercontent.com/2dust/ProxySU/master/sub/sub.txt
+https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml
+https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml
+https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_Iranian.yml
