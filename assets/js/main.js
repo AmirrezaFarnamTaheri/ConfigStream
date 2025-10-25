@@ -141,7 +141,7 @@ function initAccordion() {
     const accordionContainers = document.querySelectorAll('.accordion-container');
     if (accordionContainers.length === 0) return;
 
-    const isMobile = () => window.innerWidth <= 768;
+    const isMobile = () => window.innerWidth <= 992;
 
     const setupAccordion = (container) => {
         const items = container.querySelectorAll('.accordion-item');
