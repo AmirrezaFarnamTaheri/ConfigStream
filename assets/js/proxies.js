@@ -108,13 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return `
                 <tr class="${rowClasses.join(' ')}" style="--delay: ${index * 0.03}s" data-source="${p.source}">
-                    <td>${protocol}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
-                    <td class="location-cell">
+                    <td data-label="Protocol">${protocol}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
+                    <td data-label="Location" class="location-cell">
                         ${countryCode ? `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" alt="${countryCode}" class="country-flag" onerror="this.onerror=null;this.outerHTML='<i data-feather=\\\'globe\\\' class=\\\'country-flag-icon\\\'></i>'">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
                         <span>${location}</span>
                     </td>
-                    <td>${latency}</td>
-                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
+                    <td data-label="Latency">${latency}</td>
+                    <td data-label="Copy"><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
                 </tr>
             `;
         }).join('');
@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'PG': ['#000000', '#D21034', '#FFE600', '#FFFFFF'],
             'PH': ['#0038A8', '#FFFFFF', '#CE1126', '#FCD116'],
             'PK': ['#00401A', '#FFFFFF'],
-            'PL': ['#FFFFFF', '#DC143C'],
+            'PL': ['#DC143C', '#FFFFFF'],
             'PM': ['#002395', '#FFFFFF', '#ED2939'],
             'PR': ['#ED0026', '#FFFFFF', '#0050F0'],
             'PS': ['#000000', '#FFFFFF', '#009639', '#DE2129'],
@@ -809,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Countries with light flags that need inverted button text
         const lightFlagCountries = [
             'AR', 'AT', 'CA', 'CH', 'CY', 'DK', 'EE', 'FI', 'GE', 'GR', 'HK', 'ID', 'IL',
-            'JP', 'KR', 'LT', 'LV', 'PL', 'PT', 'SA', 'SG', 'TR', 'UA', 'UY'
+            'JP', 'KR', 'LT', 'LV', 'NG', 'PL', 'PT', 'SA', 'SG', 'TR', 'UA', 'UY'
         ];
 
         if (colorScheme) {
