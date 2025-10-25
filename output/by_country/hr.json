@@ -1,0 +1,16 @@
+[
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@46.183.184.60:989#%F0%9F%87%AD%F0%9F%87%B7HR-46.183.184.60-5299",
+    "protocol": "shadowsocks",
+    "address": "46.183.184.60",
+    "port": 989,
+    "latency": 532.98,
+    "country": "Croatia",
+    "country_code": "HR",
+    "city": "Unknown",
+    "remarks": "\ud83c\udded\ud83c\uddf7HR-46.183.184.60-5299",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:47:15.291881+00:00"
+  }
+]

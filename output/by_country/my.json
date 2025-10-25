@@ -1,0 +1,44 @@
+[
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638934019837083133.lisbon-drc-tusaby.info:8880?security=&encryption=none&type=grpc#%3E%3E%40configV2rayNG%3A%3AMY",
+    "protocol": "vless",
+    "address": "638934019837083133.lisbon-drc-tusaby.info",
+    "port": 8880,
+    "latency": 920.73,
+    "country": "Malaysia",
+    "country_code": "MY",
+    "city": "Unknown",
+    "remarks": ">>@configV2rayNG::MY",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:29:11.850379+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638930176646994428.gorgan-drc-tusabt.info:8880?security=&encryption=none&type=grpc#%3E%3E%40configV2rayNG%3A%3AMY",
+    "protocol": "vless",
+    "address": "638930176646994428.gorgan-drc-tusabt.info",
+    "port": 8880,
+    "latency": 845.28,
+    "country": "Malaysia",
+    "country_code": "MY",
+    "city": "Unknown",
+    "remarks": ">>@configV2rayNG::MY",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:29:44.828605+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638943425567574299.brussels-prx-dnraacp.info:8880?security=&encryption=none&type=grpc#%3E%3E%40configV2rayNG%3A%3AMY",
+    "protocol": "vless",
+    "address": "638943425567574299.brussels-prx-dnraacp.info",
+    "port": 8880,
+    "latency": 1081.0,
+    "country": "Malaysia",
+    "country_code": "MY",
+    "city": "Unknown",
+    "remarks": ">>@configV2rayNG::MY",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:33:20.766449+00:00"
+  }
+]

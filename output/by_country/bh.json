@@ -1,0 +1,30 @@
+[
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@154.205.146.153:990#limo",
+    "protocol": "shadowsocks",
+    "address": "154.205.146.153",
+    "port": 990,
+    "latency": 5378.61,
+    "country": "Bahrain",
+    "country_code": "BH",
+    "city": "Manama",
+    "remarks": "limo",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:36:59.957852+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@154.205.146.153:990#@AblNet7 \ud83c\uddee\ud83c\uddf7 \u0646\u062a \u0645\u0644\u06cc \ud83c\udde7\ud83c\udded",
+    "protocol": "shadowsocks",
+    "address": "154.205.146.153",
+    "port": 990,
+    "latency": 1553.72,
+    "country": "Bahrain",
+    "country_code": "BH",
+    "city": "Manama",
+    "remarks": "@AblNet7 \ud83c\uddee\ud83c\uddf7 \u0646\u062a \u0645\u0644\u06cc \ud83c\udde7\ud83c\udded",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:42:36.726850+00:00"
+  }
+]

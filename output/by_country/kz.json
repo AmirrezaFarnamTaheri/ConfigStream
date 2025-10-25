@@ -1,0 +1,30 @@
+[
+  {
+    "config": "vless://2a9ed01e-5455-44b4-a66a-76ee8165f0ac@77.73.232.61:19747?security=reality&encryption=none&pbk=ZO9dTeg1slvTXgVsBsaJ1BDvz_YUImTLJjbHs-GdVyM&headerType=&fp=chrome&type=tcp&sni=yahoo.com&sid=2001#JOIN \u27aa@FILTERK0SH\u3010\ud83c\uddf0\ud83c\uddff\u3011",
+    "protocol": "vless",
+    "address": "77.73.232.61",
+    "port": 19747,
+    "latency": 1430.61,
+    "country": "Kazakhstan",
+    "country_code": "KZ",
+    "city": "Unknown",
+    "remarks": "JOIN \u27aa@FILTERK0SH\u3010\ud83c\uddf0\ud83c\uddff\u3011",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:31:26.769109+00:00"
+  },
+  {
+    "config": "vmess://eyJhZGQiOiIzaC1rYXpha2hzdGFuMS4wOXZwbi5jb20iLCJhaWQiOiIwIiwiYWxwbiI6IiIsImZwIjoiIiwiaG9zdCI6IiIsImlkIjoiNTY3ZjRiZTUtMTJhYi00MmUxLWI4ZDktZGI2ZmQxZmRkMzFjIiwibmV0Ijoid3MiLCJwYXRoIjoiL3ZtZXNzLyIsInBvcnQiOiI4MCIsInBzIjoiQ2hhbm5lbDogQGF4cHJveHkgIPCfh7Dwn4e/MTUzMSIsInNjeSI6ImF1dG8iLCJzbmkiOiIiLCJ0bHMiOiIiLCJ0eXBlIjoiIiwidiI6IjIifQ==",
+    "protocol": "vmess",
+    "address": "3h-kazakhstan1.09vpn.com",
+    "port": 80,
+    "latency": 1043.17,
+    "country": "Kazakhstan",
+    "country_code": "KZ",
+    "city": "Unknown",
+    "remarks": "Channel: @axproxy  \ud83c\uddf0\ud83c\uddff1531",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:47:32.988918+00:00"
+  }
+]

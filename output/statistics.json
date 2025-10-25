@@ -1,191 +1,61 @@
 {
-  "generated_at": "2025-10-25T01:26:18.111685+00:00",
-  "generated_now": "2025-10-25T03:55:24.849762+00:00",
-  "total_fetched": 166304,
-  "total_tested": 149142,
-  "total_working": 10458,
-  "total_filtered": 10458,
-  "duplicates_skipped": 79890,
-  "success_rate": 7.01,
-  "average_latency_ms": 683.35,
+  "generated_at": "2025-10-25T05:27:06.797165+00:00",
+  "generated_now": "2025-10-25T05:59:52.234879+00:00",
+  "total_fetched": 36605,
+  "total_tested": 33580,
+  "total_working": 3855,
+  "total_filtered": 3855,
+  "duplicates_skipped": 9802,
+  "success_rate": 11.48,
+  "average_latency_ms": 635.25,
   "protocol_distribution": {
-    "shadowsocks": 4234,
-    "vless": 5603,
-    "trojan": 148,
-    "vmess": 387,
-    "hysteria2": 86
+    "vless": 2598,
+    "vmess": 154,
+    "trojan": 87,
+    "shadowsocks": 1006,
+    "hysteria2": 10
   },
   "phase_summaries": [
     {
       "phase": 1,
       "source": "fetched",
       "fetched": 10000,
-      "parsed": 9888,
-      "tested": 9754,
-      "working": 1432,
-      "new_working": 1432,
-      "cumulative_working": 1432
+      "parsed": 9914,
+      "tested": 9728,
+      "working": 2449,
+      "new_working": 2449,
+      "cumulative_working": 2449
     },
     {
       "phase": 2,
       "source": "fetched",
       "fetched": 10000,
-      "parsed": 9843,
-      "tested": 9491,
-      "working": 2837,
-      "new_working": 2837,
-      "cumulative_working": 4269
+      "parsed": 9893,
+      "tested": 9750,
+      "working": 519,
+      "new_working": 519,
+      "cumulative_working": 2968
     },
     {
       "phase": 3,
       "source": "fetched",
       "fetched": 10000,
-      "parsed": 8225,
-      "tested": 7929,
-      "working": 1485,
-      "new_working": 1485,
-      "cumulative_working": 5754
+      "parsed": 9518,
+      "tested": 9303,
+      "working": 179,
+      "new_working": 179,
+      "cumulative_working": 3147
     },
     {
       "phase": 4,
       "source": "fetched",
-      "fetched": 10000,
-      "parsed": 8145,
-      "tested": 7935,
-      "working": 984,
-      "new_working": 984,
-      "cumulative_working": 6738
-    },
-    {
-      "phase": 5,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 6484,
-      "tested": 6074,
-      "working": 328,
-      "new_working": 328,
-      "cumulative_working": 7066
-    },
-    {
-      "phase": 6,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9584,
-      "tested": 9150,
-      "working": 424,
-      "new_working": 424,
-      "cumulative_working": 7490
-    },
-    {
-      "phase": 7,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9986,
-      "tested": 9626,
-      "working": 1054,
-      "new_working": 1054,
-      "cumulative_working": 8544
-    },
-    {
-      "phase": 8,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 8566,
-      "tested": 8358,
-      "working": 1611,
-      "new_working": 1611,
-      "cumulative_working": 10155
-    },
-    {
-      "phase": 9,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9719,
-      "tested": 9503,
-      "working": 135,
-      "new_working": 135,
-      "cumulative_working": 10290
-    },
-    {
-      "phase": 10,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9799,
-      "tested": 9612,
-      "working": 1,
-      "new_working": 1,
-      "cumulative_working": 10291
-    },
-    {
-      "phase": 11,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9949,
-      "tested": 9824,
-      "working": 0,
-      "new_working": 0,
-      "cumulative_working": 10291
-    },
-    {
-      "phase": 12,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9874,
-      "tested": 9739,
-      "working": 0,
-      "new_working": 0,
-      "cumulative_working": 10291
-    },
-    {
-      "phase": 13,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9785,
-      "tested": 9612,
-      "working": 0,
-      "new_working": 0,
-      "cumulative_working": 10291
-    },
-    {
-      "phase": 14,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9378,
-      "tested": 9235,
-      "working": 0,
-      "new_working": 0,
-      "cumulative_working": 10291
-    },
-    {
-      "phase": 15,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9318,
-      "tested": 8686,
-      "working": 0,
-      "new_working": 0,
-      "cumulative_working": 10291
-    },
-    {
-      "phase": 16,
-      "source": "fetched",
-      "fetched": 10000,
-      "parsed": 9741,
-      "tested": 9202,
-      "working": 1,
-      "new_working": 1,
-      "cumulative_working": 10292
-    },
-    {
-      "phase": 17,
-      "source": "fetched",
-      "fetched": 6304,
-      "parsed": 5623,
-      "tested": 5412,
-      "working": 166,
-      "new_working": 166,
-      "cumulative_working": 10458
+      "fetched": 6605,
+      "parsed": 5043,
+      "tested": 4799,
+      "working": 708,
+      "new_working": 708,
+      "cumulative_working": 3855
     }
   ],
-  "cache_bust": 1761364524849
+  "cache_bust": 1761371992234
 }

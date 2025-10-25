@@ -1,0 +1,30 @@
+[
+  {
+    "config": "vless://f667a096-5231-4cfb-8759-92bb32473139@77.91.68.70:55983/?type=tcp&encryption=none&flow=&sni=yahoo.com&fp=chrome&security=reality&pbk=nWQ7b9l9X6N3PrXLgIzOvMM8iSYrqjVHEb9ikWxqYSg&sid=0e#%3E%3E%40oneclickvpnkeys%3A%3AAM",
+    "protocol": "vless",
+    "address": "77.91.68.70",
+    "port": 55983,
+    "latency": 1457.52,
+    "country": "Armenia",
+    "country_code": "AM",
+    "city": "Unknown",
+    "remarks": ">>@oneclickvpnkeys::AM",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:31:49.683242+00:00"
+  },
+  {
+    "config": "vless://f667a096-5231-4cfb-8759-92bb32473139@77.91.68.70:55983?security=reality&encryption=none&pbk=nWQ7b9l9X6N3PrXLgIzOvMM8iSYrqjVHEb9ikWxqYSg&headerType=none&fp=chrome&spx=/@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-?ed=2560&type=tcp&sni=yahoo.com&sid=0e#\ud83c\udde6\ud83c\uddf2 \u293f \ud835\udc02\ud835\udc21\ud835\udc1a\ud835\udc27\ud835\udc27\ud835\udc1e\ud835\udc25 @V2WRAY",
+    "protocol": "vless",
+    "address": "77.91.68.70",
+    "port": 55983,
+    "latency": 1636.27,
+    "country": "Armenia",
+    "country_code": "AM",
+    "city": "Unknown",
+    "remarks": "\ud83c\udde6\ud83c\uddf2 \u293f \ud835\udc02\ud835\udc21\ud835\udc1a\ud835\udc27\ud835\udc27\ud835\udc1e\ud835\udc25 @V2WRAY",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:35:17.923176+00:00"
+  }
+]

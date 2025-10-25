@@ -1,0 +1,16 @@
+[
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@212.102.54.45:990#%F0%9F%87%AE%F0%9F%87%B9IT-212.102.54.45-0211",
+    "protocol": "shadowsocks",
+    "address": "212.102.54.45",
+    "port": 990,
+    "latency": 389.57,
+    "country": "Italy",
+    "country_code": "IT",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddee\ud83c\uddf9IT-212.102.54.45-0211",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:51:59.600145+00:00"
+  }
+]

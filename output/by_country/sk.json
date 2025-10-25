@@ -1,0 +1,16 @@
+[
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@156.146.40.194:989#%F0%9F%87%B8%F0%9F%87%B0SK-156.146.40.194-0231",
+    "protocol": "shadowsocks",
+    "address": "156.146.40.194",
+    "port": 989,
+    "latency": 431.65,
+    "country": "Slovakia",
+    "country_code": "SK",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf8\ud83c\uddf0SK-156.146.40.194-0231",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:52:26.380801+00:00"
+  }
+]

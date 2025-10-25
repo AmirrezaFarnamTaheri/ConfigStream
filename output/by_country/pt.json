@@ -1,0 +1,30 @@
+[
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@185.231.233.112:989#%F0%9F%87%B5%F0%9F%87%B9PT-185.231.233.112-5467",
+    "protocol": "shadowsocks",
+    "address": "185.231.233.112",
+    "port": 989,
+    "latency": 1312.77,
+    "country": "Portugal",
+    "country_code": "PT",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf5\ud83c\uddf9PT-185.231.233.112-5467",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:46:08.365647+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpmOGY3YUN6Y1BLYnNGOHAz@185.231.233.173:990#Portugal%20L4-Web",
+    "protocol": "shadowsocks",
+    "address": "185.231.233.173",
+    "port": 990,
+    "latency": 474.85,
+    "country": "Portugal",
+    "country_code": "PT",
+    "city": "Lisbon",
+    "remarks": "Portugal L4-Web",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:58:29.064449+00:00"
+  }
+]

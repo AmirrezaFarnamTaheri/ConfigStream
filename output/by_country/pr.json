@@ -1,0 +1,16 @@
+[
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpmOGY3YUN6Y1BLYnNGOHAz@185.47.255.22:990#%F0%9F%87%B5%F0%9F%87%B7PR-185.47.255.22-5335",
+    "protocol": "shadowsocks",
+    "address": "185.47.255.22",
+    "port": 990,
+    "latency": 268.03,
+    "country": "Puerto Rico",
+    "country_code": "PR",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf5\ud83c\uddf7PR-185.47.255.22-5335",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:49:25.607511+00:00"
+  }
+]
