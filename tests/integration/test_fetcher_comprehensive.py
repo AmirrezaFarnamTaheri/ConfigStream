@@ -10,7 +10,7 @@ This test suite demonstrates three testing approaches:
 import asyncio
 import pytest
 from aiohttp import web
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch
 import time
 import random
 
@@ -19,7 +19,6 @@ from configstream.fetcher import (
     fetch_multiple_sources,
     SourceFetcher,
     FetchResult,
-    RateLimitError,
 )
 
 

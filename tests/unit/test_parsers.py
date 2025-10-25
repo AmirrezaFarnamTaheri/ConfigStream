@@ -1,4 +1,3 @@
-import pytest
 from configstream.core import parse_config
 
 

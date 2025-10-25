@@ -1,6 +1,7 @@
 """ISO 3166-1 alpha-2 country codes mapped to display names."""
 
 COUNTRY_NAMES = {
+    "XX": "Unknown",
     "AD": "Andorra",
     "AE": "United Arab Emirates",
     "AF": "Afghanistan",

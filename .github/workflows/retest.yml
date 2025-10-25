@@ -24,7 +24,7 @@ jobs:
       - name: Install
         run: pip install -e .[dev]
       - name: Retest last export
-        run: python -m configstream.cli retest --input output/proxies.json --outdir output
+        run: python -m configstream.cli retest --input output/proxies.json --outdir output --timeout 30 --max-workers 20
       - name: Validate JSON (non-blocking)
         run: |
           pip install jsonschema || true

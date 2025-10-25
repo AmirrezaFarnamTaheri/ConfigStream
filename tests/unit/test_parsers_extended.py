@@ -1,6 +1,5 @@
 """Extended tests for parser edge cases and error handling."""
 
-import pytest
 from configstream.parsers import (
     _parse_vmess,
     _parse_vless,

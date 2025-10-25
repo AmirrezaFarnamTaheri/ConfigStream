@@ -2,7 +2,6 @@
 
 import json
 import pytest
-from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from configstream.proxy_history import ProxyHistoryTracker
 from configstream.models import Proxy

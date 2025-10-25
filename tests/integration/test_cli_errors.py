@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
-import sys
+from unittest.mock import patch
 import json
 from configstream.cli_errors import (
     CLIError,

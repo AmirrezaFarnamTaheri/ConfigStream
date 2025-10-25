@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize copy buttons
     initCopyButtons();
 
-    // Initialize feather icons
-    if (typeof feather !== 'undefined') {
-        feather.replace();
+    // Initialize inline icons
+    if (window.inlineIcons) {
+        window.inlineIcons.replace();
     }
 
     // Initialize mobile navigation

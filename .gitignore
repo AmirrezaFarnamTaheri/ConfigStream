@@ -30,6 +30,10 @@ htmlcov/
 *.log
 configstream.log
 
+# Test artifacts
+data/test_cache.db
+test_output/
+
 # Virtual Environment
 venv/
 ENV/

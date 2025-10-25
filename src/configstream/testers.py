@@ -27,12 +27,14 @@ class ProxyTester:
         timeout: float = 10.0,
         config: AppSettings | None = None,
         cache: Optional["TestResultCache"] = None,
+        max_retries: int = 2,
     ) -> None:
         self.timeout = timeout
         self.config = config or AppSettings()
         self.cache = cache
         self.cache_hits = 0
         self.cache_misses = 0
+        self.max_retries = max_retries
 
     async def test(self, proxy: Proxy) -> Proxy:
         raise NotImplementedError
@@ -91,40 +93,72 @@ class SingBoxTester(ProxyTester):
 
             # Try multiple test URLs with optimized timeout and early termination
             for url_index, test_url in enumerate(test_urls):
-                try:
-                    # Use progressively shorter timeouts for efficiency
-                    if url_index == 0:
-                        current_timeout = self.timeout
-                    elif url_index < 3:
-                        current_timeout = min(self.timeout, 5.0)
-                    else:
-                        current_timeout = min(self.timeout, 3.0)  # Even shorter for fallback URLs
+                # Retry logic for transient failures
+                for retry in range(self.max_retries + 1):
+                    try:
+                        # Use progressively shorter timeouts for efficiency
+                        if url_index == 0:
+                            current_timeout = self.timeout
+                        elif url_index < 3:
+                            current_timeout = min(self.timeout, 5.0)
+                        else:
+                            current_timeout = min(
+                                self.timeout, 3.0
+                            )  # Even shorter for fallback URLs
 
-                    async with aiohttp.ClientSession(connector=connector) as session:
-                        # monotonic timer on current running loop
-                        start_time = asyncio.get_running_loop().time()
-                        async with session.get(
-                            test_url,
-                            timeout=aiohttp.ClientTimeout(total=current_timeout),
-                        ) as response:
-                            # Treat any 2xx as success; 204 is common, but many probes return 200.
-                            if 200 <= response.status < 300:
-                                end_time = asyncio.get_running_loop().time()
-                                latency_ms = max((end_time - start_time) * 1000, 0.01)
-                                proxy.latency = round(latency_ms, 2)
-                                proxy.is_working = True
-                                # Early exit on success - no need to test other URLs
-                                break
-                except (asyncio.TimeoutError, aiohttp.ClientError) as e:
-                    logger.debug(
-                        f"Proxy {proxy.address}:{proxy.port} failed test URL "
-                        f"{test_url} with {e.__class__.__name__}"
-                    )
-                    # try next URL
-                    continue
-                except Exception as e:
-                    logger.debug(f"Test URL {test_url} failed with unexpected error: {e}")
-                    continue
+                        # Add exponential backoff for retries
+                        if retry > 0:
+                            await asyncio.sleep(0.5 * (2 ** (retry - 1)))
+                            logger.debug(
+                                f"Retry {retry}/{self.max_retries} for {proxy.address}:{proxy.port}"
+                            )
+
+                        # Use optimized timeout settings for better stability
+                        async with aiohttp.ClientSession(
+                            connector=connector,
+                            connector_owner=False,
+                            timeout=aiohttp.ClientTimeout(
+                                total=current_timeout,
+                                connect=min(current_timeout * 0.3, 3.0),
+                                sock_read=min(current_timeout * 0.5, 5.0),
+                            ),
+                        ) as session:
+                            # monotonic timer on current running loop
+                            start_time = asyncio.get_running_loop().time()
+                            async with session.get(
+                                test_url,
+                            ) as response:
+                                # Treat any 2xx as success
+                                # 204 is common, but many probes return 200
+                                if 200 <= response.status < 300:
+                                    end_time = asyncio.get_running_loop().time()
+                                    latency_ms = max((end_time - start_time) * 1000, 0.01)
+                                    proxy.latency = round(latency_ms, 2)
+                                    proxy.is_working = True
+                                    # Early exit on success - no need to test other URLs
+                                    break
+                        # If we get here without exception, break retry loop
+                        if proxy.is_working:
+                            break
+                    except (asyncio.TimeoutError, aiohttp.ClientError) as e:
+                        if retry == self.max_retries:
+                            logger.debug(
+                                f"Proxy {proxy.address}:{proxy.port} failed test URL "
+                                f"{test_url} after {retry + 1} attempts with {e.__class__.__name__}"
+                            )
+                        # Continue to next retry or next URL
+                        continue
+                    except Exception as e:
+                        if retry == self.max_retries:
+                            logger.debug(
+                                f"Test URL {test_url} failed after {retry + 1} attempts "
+                                f"with unexpected error: {e}"
+                            )
+                        continue
+
+                # Break URL loop if proxy is working
+                if proxy.is_working:
+                    break
 
             if not proxy.is_working:
                 if isinstance(proxy.security_issues, list):

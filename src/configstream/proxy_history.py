@@ -8,7 +8,7 @@ trend analysis and reliability visualization.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, cast
 from datetime import datetime, timezone
 
 from .models import Proxy
@@ -95,7 +95,8 @@ class ProxyHistoryTracker:
         Returns:
             History data or None
         """
-        return self.history_data.get(config)
+        result = self.history_data.get(config)
+        return cast(Optional[Dict], result)
 
     def get_reliability_score(self, config: str, lookback_days: int = 7) -> float:
         """
