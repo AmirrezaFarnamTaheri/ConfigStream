@@ -33,10 +33,17 @@ class TestResultCache:
         self._init_db()
 
     def _init_db(self) -> None:
-        """Initialize the SQLite database with required schema."""
+        """Initialize the SQLite database with required schema and optimizations."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         with sqlite3.connect(self.db_path) as conn:
+            # Enable WAL mode for better concurrency and performance
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA temp_store=MEMORY")
+            conn.execute("PRAGMA mmap_size=268435456")  # 256 MB
+            conn.execute("PRAGMA cache_size=-80000")  # ~80 MB cache
+
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS test_results (
@@ -60,7 +67,7 @@ class TestResultCache:
                 """
             )
             conn.commit()
-            logger.info("Test cache initialized at %s", self.db_path)
+            logger.info("Test cache initialized at %s with WAL mode", self.db_path)
 
     def get(self, proxy: Proxy) -> Optional[Proxy]:
         """
