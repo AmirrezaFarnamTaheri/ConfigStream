@@ -2380,7 +2380,50 @@ body.dark #preloader {
 
     /* Better mobile card spacing */
     .card {
-        margin-left: calc(var(--space-unit) * 2);
-        margin-right: calc(var(--space-unit) * 2);
+        margin-left: calc(var(--space-unit) * -2);
+        margin-right: calc(var(--space-unit) * -2);
+        width: calc(100% + var(--space-unit) * 4);
+        border-radius: 0;
+    }
+    .main-grid {
+        padding: 0;
+    }
+    .info-column .card {
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        border-radius: var(--radius-lg);
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: clamp(1.8rem, 12vw, 2.2rem) !important;
+    }
+
+    .hero .subtitle {
+        font-size: 0.85rem;
+    }
+
+    .stat-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-unit);
+    }
+
+    .stat-value {
+        font-size: clamp(1.5rem, 10vw, 1.8rem) !important;
+    }
+
+    .download-card {
+        padding: calc(var(--space-unit) * 2);
+    }
+
+    .download-title {
+        font-size: 1.1rem;
+    }
+
+    .info-card h3 {
+        font-size: 1.1rem;
     }
 }
