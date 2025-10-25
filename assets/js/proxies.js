@@ -324,104 +324,55 @@ document.addEventListener('DOMContentLoaded', () => {
         // Comprehensive map of country codes to their flag colors with enhanced gradients
         const countryColors = {
             // Americas
-            'US': { primary: '#B22234', secondary: '#3C3B6E', accent: '#FFFFFF' }, // Red, Blue, White
-            'CA': { primary: '#FF0000', secondary: '#FFFFFF', accent: '#FF0000' }, // Red and White
-            'BR': { primary: '#009B3A', secondary: '#FEDD00', accent: '#002776' }, // Green, Yellow, Blue
-            'MX': { primary: '#006847', secondary: '#CE1126', accent: '#FFFFFF' }, // Green, Red, White
-            'AR': { primary: '#74ACDF', secondary: '#FFFFFF', accent: '#FCBF49' }, // Blue, White, Yellow
-            'CL': { primary: '#0039A6', secondary: '#FFFFFF', accent: '#D52B1E' }, // Blue, White, Red
-            'CO': { primary: '#FCD116', secondary: '#003893', accent: '#CE1126' }, // Yellow, Blue, Red
-            'PE': { primary: '#D91023', secondary: '#FFFFFF', accent: '#D91023' }, // Red and White
-            'VE': { primary: '#FFCC00', secondary: '#00247D', accent: '#CF142B' }, // Yellow, Blue, Red
+            'US': ['#B22234', '#3C3B6E', '#FFFFFF'],
+            'CA': ['#FF0000', '#FFFFFF'],
+            'BR': ['#009B3A', '#FEDD00', '#002776'],
+            'MX': ['#006847', '#CE1126', '#FFFFFF'],
+            'AR': ['#74ACDF', '#FFFFFF', '#FCBF49'],
 
             // Europe
-            'GB': { primary: '#012169', secondary: '#C8102E', accent: '#FFFFFF' }, // Blue, Red, White
-            'DE': { primary: '#000000', secondary: '#DD0000', accent: '#FFCE00' }, // Black, Red, Yellow
-            'FR': { primary: '#002395', secondary: '#FFFFFF', accent: '#ED2939' }, // Blue, White, Red
-            'IT': { primary: '#009246', secondary: '#FFFFFF', accent: '#CE2B37' }, // Green, White, Red
-            'ES': { primary: '#AA151B', secondary: '#F1BF00', accent: '#AA151B' }, // Red and Yellow
-            'NL': { primary: '#AE1C28', secondary: '#FFFFFF', accent: '#21468B' }, // Red, White, Blue
-            'SE': { primary: '#006AA7', secondary: '#FECC00', accent: '#006AA7' }, // Blue and Yellow
-            'CH': { primary: '#FF0000', secondary: '#FFFFFF', accent: '#FF0000' }, // Red and White
-            'PL': { primary: '#FFFFFF', secondary: '#DC143C', accent: '#DC143C' }, // White and Red
-            'BE': { primary: '#000000', secondary: '#FDDA24', accent: '#EF3340' }, // Black, Yellow, Red
-            'AT': { primary: '#ED2939', secondary: '#FFFFFF', accent: '#ED2939' }, // Red and White
-            'NO': { primary: '#BA0C2F', secondary: '#00205B', accent: '#FFFFFF' }, // Red, Blue, White
-            'DK': { primary: '#C8102E', secondary: '#FFFFFF', accent: '#C8102E' }, // Red and White
-            'FI': { primary: '#003580', secondary: '#FFFFFF', accent: '#003580' }, // Blue and White
-            'PT': { primary: '#006600', secondary: '#FF0000', accent: '#FFE900' }, // Green, Red, Yellow
-            'GR': { primary: '#0D5EAF', secondary: '#FFFFFF', accent: '#0D5EAF' }, // Blue and White
-            'CZ': { primary: '#11457E', secondary: '#FFFFFF', accent: '#D7141A' }, // Blue, White, Red
-            'HU': { primary: '#CE2939', secondary: '#FFFFFF', accent: '#477050' }, // Red, White, Green
-            'RO': { primary: '#002B7F', secondary: '#FCD116', accent: '#CE1126' }, // Blue, Yellow, Red
-            'IE': { primary: '#169B62', secondary: '#FFFFFF', accent: '#FF883E' }, // Green, White, Orange
-            'UA': { primary: '#0057B7', secondary: '#FFDD00', accent: '#0057B7' }, // Blue and Yellow
-            'RU': { primary: '#FFFFFF', secondary: '#0039A6', accent: '#D52B1E' }, // White, Blue, Red
+            'GB': ['#012169', '#C8102E', '#FFFFFF'],
+            'DE': ['#000000', '#DD0000', '#FFCE00'],
+            'FR': ['#002395', '#FFFFFF', '#ED2939'],
+            'IT': ['#009246', '#FFFFFF', '#CE2B37'],
+            'ES': ['#AA151B', '#F1BF00'],
+            'NL': ['#AE1C28', '#FFFFFF', '#21468B'],
+            'SE': ['#006AA7', '#FECC00'],
+            'CH': ['#FF0000', '#FFFFFF'],
+            'PL': ['#FFFFFF', '#DC143C'],
+            'UA': ['#0057B7', '#FFDD00'],
+            'RU': ['#FFFFFF', '#0039A6', '#D52B1E'],
 
             // Asia-Pacific
-            'SG': { primary: '#EF3340', secondary: '#FFFFFF', accent: '#EF3340' }, // Red and White
-            'JP': { primary: '#BC002D', secondary: '#FFFFFF', accent: '#BC002D' }, // Red and White
-            'CN': { primary: '#DE2910', secondary: '#FFDE00', accent: '#DE2910' }, // Red and Yellow
-            'HK': { primary: '#DE2910', secondary: '#FFFFFF', accent: '#DE2910' }, // Red and White
-            'KR': { primary: '#FFFFFF', secondary: '#CD2E3A', accent: '#0047A0' }, // White, Red, Blue
-            'IN': { primary: '#FF9933', secondary: '#FFFFFF', accent: '#138808' }, // Orange, White, Green
-            'AU': { primary: '#012169', secondary: '#FFFFFF', accent: '#E4002B' }, // Blue, White, Red
-            'NZ': { primary: '#00247D', secondary: '#FFFFFF', accent: '#CC142B' }, // Blue, White, Red
-            'TH': { primary: '#A51931', secondary: '#F4F5F8', accent: '#2D2A4A' }, // Red, White, Blue
-            'MY': { primary: '#CC0001', secondary: '#FFFFFF', accent: '#010066' }, // Red, White, Blue
-            'ID': { primary: '#FF0000', secondary: '#FFFFFF', accent: '#FF0000' }, // Red and White
-            'PH': { primary: '#0038A8', secondary: '#CE1126', accent: '#FCD116' }, // Blue, Red, Yellow
-            'VN': { primary: '#DA251D', secondary: '#FFFF00', accent: '#DA251D' }, // Red and Yellow
-            'PK': { primary: '#01411C', secondary: '#FFFFFF', accent: '#01411C' }, // Green and White
-            'BD': { primary: '#006A4E', secondary: '#F42A41', accent: '#006A4E' }, // Green and Red
-            'LK': { primary: '#8B0000', secondary: '#FFB300', accent: '#006600' }, // Maroon, Yellow, Green
-            'MM': { primary: '#FECB00', secondary: '#EA2839', accent: '#34B233' }, // Yellow, Red, Green
-            'KH': { primary: '#032EA1', secondary: '#E00025', accent: '#FFFFFF' }, // Blue, Red, White
-            'TW': { primary: '#FE0000', secondary: '#000095', accent: '#FFFFFF' }, // Red, Blue, White
+            'SG': ['#EF3340', '#FFFFFF'],
+            'JP': ['#BC002D', '#FFFFFF'],
+            'CN': ['#DE2910', '#FFDE00'],
+            'HK': ['#DE2910', '#FFFFFF'],
+            'KR': ['#FFFFFF', '#CD2E3A', '#0047A0'],
+            'IN': ['#FF9933', '#FFFFFF', '#138808'],
+            'AU': ['#012169', '#FFFFFF', '#E4002B'],
 
             // Middle East & Africa
-            'AE': { primary: '#00732F', secondary: '#FF0000', accent: '#000000' }, // Green, Red, Black
-            'SA': { primary: '#165C2B', secondary: '#FFFFFF', accent: '#165C2B' }, // Green and White
-            'IL': { primary: '#0038B8', secondary: '#FFFFFF', accent: '#0038B8' }, // Blue and White
-            'TR': { primary: '#E30A17', secondary: '#FFFFFF', accent: '#E30A17' }, // Red and White
-            'IR': { primary: '#239F40', secondary: '#FFFFFF', accent: '#DA0000' }, // Green, White, Red
-            'EG': { primary: '#CE1126', secondary: '#FFFFFF', accent: '#000000' }, // Red, White, Black
-            'ZA': { primary: '#007A4D', secondary: '#FFB81C', accent: '#DE3831' }, // Green, Yellow, Red
-            'NG': { primary: '#008751', secondary: '#FFFFFF', accent: '#008751' }, // Green and White
-            'KE': { primary: '#000000', secondary: '#BB0000', accent: '#006600' }, // Black, Red, Green
-            'MA': { primary: '#C1272D', secondary: '#006233', accent: '#C1272D' }, // Red and Green
+            'AE': ['#00732F', '#FF0000', '#000000', '#FFFFFF'],
+            'SA': ['#165C2B', '#FFFFFF'],
+            'IL': ['#0038B8', '#FFFFFF'],
+            'TR': ['#E30A17', '#FFFFFF'],
         };
 
-        const body = document.body;
+        const root = document.documentElement;
         const colorScheme = countryColors[countryCode];
 
         if (colorScheme) {
-            // Create sophisticated gradient with country colors
-            const gradient = `linear-gradient(135deg, ${colorScheme.primary} 0%, ${colorScheme.secondary} 50%, ${colorScheme.accent} 100%)`;
-
-            // Apply smooth transition to body background
-            body.style.transition = 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-            body.style.background = gradient;
-
-            // Also update CSS custom properties for consistent theming
-            const root = document.documentElement;
-            root.style.setProperty('--country-primary', colorScheme.primary);
-            root.style.setProperty('--country-secondary', colorScheme.secondary);
-            root.style.setProperty('--country-accent', colorScheme.accent);
-
-            // Add subtle overlay color to cards and elements
-            root.style.setProperty('--country-overlay', `${colorScheme.primary}15`);
+            document.body.classList.add('country-selected');
+            root.style.setProperty('--brand-primary', colorScheme[0]);
+            root.style.setProperty('--brand-secondary', colorScheme[1] || colorScheme[0]);
+            root.style.setProperty('--brand-tertiary', colorScheme[2] || colorScheme[1] || colorScheme[0]);
         } else {
-            // Reset to default background with smooth transition
-            body.style.transition = 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
-            body.style.background = '';
-
-            // Reset custom properties
-            const root = document.documentElement;
-            root.style.removeProperty('--country-primary');
-            root.style.removeProperty('--country-secondary');
-            root.style.removeProperty('--country-accent');
-            root.style.removeProperty('--country-overlay');
+            document.body.classList.remove('country-selected');
+            // Reset to default theme colors
+            root.style.removeProperty('--brand-primary');
+            root.style.removeProperty('--brand-secondary');
+            root.style.removeProperty('--brand-tertiary');
         }
     }
 
