@@ -404,8 +404,8 @@ body.dark .nav-link:hover, body.dark .nav-link[aria-current="page"] {
     gap: calc(var(--space-unit) * 2);
 }
 .theme-btn, .github-btn {
-        width: 48px;
-        height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: var(--bg-glass);
     border: 1px solid var(--border);
@@ -501,7 +501,7 @@ body.dark .github-btn:hover {
     border-radius: var(--radius-md);
 }
 
-@media (max-width: 992px) {
+@media (max-width: 768px) {
     /* Prevent all horizontal overflow on mobile */
     html, body {
         max-width: 100vw !important;
@@ -530,8 +530,6 @@ body.dark .github-btn:hover {
         z-index: 1001; /* Above overlay */
         visibility: hidden;
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        max-height: 100vh;
-        overflow-y: auto;
     }
     body.dark .nav {
       background: var(--bg-secondary);
@@ -554,14 +552,9 @@ body.dark .github-btn:hover {
 
     /* Improve button touch targets */
     .btn {
-        min-height: 48px;
-        padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
+        min-height: 44px;
+        padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2.5);
         -webkit-tap-highlight-color: transparent;
-        transition: transform 0.2s ease-out;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
     }
 
     .github-btn {
@@ -607,7 +600,7 @@ body.dark .github-btn:hover {
 
     /* Fix mobile padding and spacing */
     .container {
-        padding: 0 calc(var(--space-unit) * 3);
+        padding: 0 calc(var(--space-unit) * 2);
     }
 
     main {
@@ -619,12 +612,8 @@ body.dark .github-btn:hover {
         padding: calc(var(--space-unit) * 2) 0;
     }
 
-    .hero {
-        padding: calc(var(--space-unit) * 4) 0;
-    }
-
     .hero h1 {
-        font-size: clamp(2rem, 10vw, 2.8rem) !important;
+        font-size: clamp(1.8rem, 10vw, 2.5rem) !important;
         letter-spacing: -0.02em;
     }
 
@@ -640,8 +629,8 @@ body.dark .github-btn:hover {
 
     .stats-card-inner {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 1.5);
-        padding: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1);
+        padding: calc(var(--space-unit) * 1.5);
     }
 
     .stat-item {
@@ -664,7 +653,7 @@ body.dark .github-btn:hover {
     }
 
     .card-header h2 {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
         line-height: 1.3;
     }
 
@@ -675,7 +664,7 @@ body.dark .github-btn:hover {
     /* Fix downloads grid for narrow mobile */
     .downloads-grid {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
     }
 
     .download-card {
@@ -685,15 +674,15 @@ body.dark .github-btn:hover {
     /* Fix info cards stacking */
     .info-column {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
     }
 
     .info-card {
-        padding: calc(var(--space-unit) * 2.5);
+        padding: calc(var(--space-unit) * 3);
     }
 
     .info-card h3 {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 
     #downloads .accordion-header .card-header {
@@ -802,7 +791,6 @@ main {
 @media (max-width: 992px) {
     .main-grid {
         grid-template-columns: 1fr;
-        gap: calc(var(--space-unit) * 3);
     }
     .info-column {
         grid-template-columns: 1fr;
@@ -2293,7 +2281,7 @@ body.dark #preloader {
     .filter-bar, .actions-bar {
         flex-direction: column;
         align-items: stretch;
-        gap: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
     }
     .filter-group, .action-group {
         flex-direction: column;
@@ -2371,38 +2359,6 @@ body.dark #preloader {
     .proxies-table td {
         padding: calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 1);
     }
-    .proxies-table {
-        display: block;
-    }
-    .proxies-table thead {
-        display: none;
-    }
-    .proxies-table tbody {
-        display: block;
-    }
-    .proxies-table tr {
-        display: block;
-        margin-bottom: var(--space-unit);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--border);
-        padding: calc(var(--space-unit) * 2);
-    }
-    .proxies-table td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: calc(var(--space-unit) * 1) 0;
-        border: none;
-    }
-    .proxies-table td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        margin-right: var(--space-unit);
-        color: var(--text-secondary);
-    }
-    .proxies-table td:last-child {
-        justify-content: flex-end;
-    }
 }
 
 /* ===== COMPREHENSIVE MOBILE IMPROVEMENTS ===== */
@@ -2437,7 +2393,10 @@ body.dark #preloader {
 
     /* Better mobile card spacing */
     .card {
-        padding: calc(var(--space-unit) * 2);
+        margin-left: calc(var(--space-unit) * -2);
+        margin-right: calc(var(--space-unit) * -2);
+        width: calc(100% + var(--space-unit) * 4);
+        border-radius: 0;
     }
     .main-grid {
         padding: 0;
@@ -2470,7 +2429,7 @@ body.dark #preloader {
     }
 
     .download-card {
-        padding: calc(var(--space-unit) * 2.5);
+        padding: calc(var(--space-unit) * 2);
     }
 
     .download-title {
@@ -2479,16 +2438,5 @@ body.dark #preloader {
 
     .info-card h3 {
         font-size: 1.1rem;
-    }
-
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-
-    #proxies-card .accordion-header {
-        padding: calc(var(--space-unit) * 2);
-        border-radius: var(--radius-lg);
-        background: var(--bg-secondary);
-        border: 1px solid var(--border);
     }
 }
