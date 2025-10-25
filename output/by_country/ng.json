@@ -1,0 +1,72 @@
+[
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638948510378508794.mashhad-drc-tusacaf.info:8880?mode=gun&security=none&encryption=none&type=grpc#%3E%3E%40v2ray1_ng%3A%3ALT",
+    "protocol": "vless",
+    "address": "638948510378508794.mashhad-drc-tusacaf.info",
+    "port": 8880,
+    "latency": 511.23,
+    "country": "Nigeria",
+    "country_code": "NG",
+    "city": "Unknown",
+    "remarks": ">>@v2ray1_ng::LT",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:30:16.609247+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638948510378508794.mashhad-drc-tusacaf.info:8880?security=&encryption=none&type=grpc#%3E%3E%40ShadowsocksM%3A%3ALT",
+    "protocol": "vless",
+    "address": "638948510378508794.mashhad-drc-tusacaf.info",
+    "port": 8880,
+    "latency": 586.72,
+    "country": "Nigeria",
+    "country_code": "NG",
+    "city": "Unknown",
+    "remarks": ">>@ShadowsocksM::LT",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:31:20.143494+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638948510378508794.mashhad-drc-tusacaf.info:8880?mode=gun&security=none&encryption=none&type=grpc#@Selinc",
+    "protocol": "vless",
+    "address": "638948510378508794.mashhad-drc-tusacaf.info",
+    "port": 8880,
+    "latency": 877.21,
+    "country": "Nigeria",
+    "country_code": "NG",
+    "city": "Unknown",
+    "remarks": "@Selinc",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:36:26.969279+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpkQUhNMXBtOGFnN0tkbHJVeWxRaTZ0@promo18v.bystrivpn.ru:443#%40v2ray1_ng",
+    "protocol": "shadowsocks",
+    "address": "promo18v.bystrivpn.ru",
+    "port": 443,
+    "latency": 548.97,
+    "country": "Nigeria",
+    "country_code": "NG",
+    "city": "Unknown",
+    "remarks": "@v2ray1_ng",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:58:54.345431+00:00"
+  },
+  {
+    "config": "vless://df0680ca-e43c-498d-ed86-8e196eedd012@638948510378508794.mashhad-drc-tusacaf.info:8880?mode=gun&amp;security=none&amp;encryption=none&amp;type=grpc#%40v2ray1_ng",
+    "protocol": "vless",
+    "address": "638948510378508794.mashhad-drc-tusacaf.info",
+    "port": 8880,
+    "latency": 563.2,
+    "country": "Nigeria",
+    "country_code": "NG",
+    "city": "Unknown",
+    "remarks": "@v2ray1_ng",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T07:00:29.874609+00:00"
+  }
+]

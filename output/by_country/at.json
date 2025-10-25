@@ -1,16 +1,30 @@
 [
   {
+    "config": "vless://81e9e522-2efd-4709-996d-74e46f4edaf8@213.176.94.129:443?security=reality&encryption=none&pbk=flIlSQ8NWZl0ofim794-EaQhz2OnH1hN7imrQAPheRY&headerType=none&fp=chrome&type=tcp&sni=www.amazon.com&sid=53ba1e37#MTN-@IRAN_V2RAY1",
+    "protocol": "vless",
+    "address": "213.176.94.129",
+    "port": 443,
+    "latency": 2571.59,
+    "country": "Austria",
+    "country_code": "AT",
+    "city": "Vienna",
+    "remarks": "MTN-@IRAN_V2RAY1",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:30:43.792485+00:00"
+  },
+  {
     "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@185.180.12.81:989#%F0%9F%87%A6%F0%9F%87%B9AT-185.180.12.81-0729",
     "protocol": "shadowsocks",
     "address": "185.180.12.81",
     "port": 989,
-    "latency": 459.65,
+    "latency": 466.38,
     "country": "Austria",
     "country_code": "AT",
     "city": "Unknown",
     "remarks": "\ud83c\udde6\ud83c\uddf9AT-185.180.12.81-0729",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:58:56.902326+00:00"
+    "tested_at": "2025-10-25T06:54:18.139898+00:00"
   }
 ]

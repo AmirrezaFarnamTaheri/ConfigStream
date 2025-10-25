@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "212.102.54.45",
     "port": 990,
-    "latency": 389.57,
+    "latency": 359.6,
     "country": "Italy",
     "country_code": "IT",
     "city": "Unknown",
     "remarks": "\ud83c\uddee\ud83c\uddf9IT-212.102.54.45-0211",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:51:59.600145+00:00"
+    "tested_at": "2025-10-25T06:48:37.243681+00:00"
   }
 ]

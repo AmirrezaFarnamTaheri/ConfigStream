@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "154.205.159.100",
     "port": 990,
-    "latency": 747.58,
+    "latency": 941.06,
     "country": "Indonesia",
     "country_code": "ID",
     "city": "Unknown",
     "remarks": "\ud83c\uddee\ud83c\udde9ID-154.205.159.100-5421",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:49:40.694650+00:00"
+    "tested_at": "2025-10-25T06:46:48.278777+00:00"
   }
 ]

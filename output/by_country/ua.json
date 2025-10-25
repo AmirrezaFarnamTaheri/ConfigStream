@@ -1,30 +1,16 @@
 [
   {
-    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpmOGY3YUN6Y1BLYnNGOHAz@176.103.53.105:990#MCI-@V2rayAlpha--2",
-    "protocol": "shadowsocks",
-    "address": "176.103.53.105",
-    "port": 990,
-    "latency": 758.85,
-    "country": "Ukraine",
-    "country_code": "UA",
-    "city": "Kyiv",
-    "remarks": "MCI-@V2rayAlpha--2",
-    "is_working": true,
-    "security_issues": [],
-    "tested_at": "2025-10-25T05:37:17.949334+00:00"
-  },
-  {
     "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpmOGY3YUN6Y1BLYnNGOHAz@176.103.53.105:990#Ukraine%20XServer",
     "protocol": "shadowsocks",
     "address": "176.103.53.105",
     "port": 990,
-    "latency": 405.53,
+    "latency": 471.04,
     "country": "Ukraine",
     "country_code": "UA",
     "city": "Kyiv",
     "remarks": "Ukraine XServer",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:53:45.773493+00:00"
+    "tested_at": "2025-10-25T06:56:28.333390+00:00"
   }
 ]

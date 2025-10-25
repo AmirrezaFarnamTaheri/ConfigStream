@@ -4,13 +4,13 @@
     "protocol": "vless",
     "address": "81.208.170.142",
     "port": 1500,
-    "latency": 955.42,
+    "latency": 1020.02,
     "country": "Saudi Arabia",
     "country_code": "SA",
     "city": "Unknown",
     "remarks": ">>@oneclickvpnkeys::SA",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:31:59.593940+00:00"
+    "tested_at": "2025-10-25T06:35:34.236512+00:00"
   }
 ]

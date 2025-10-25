@@ -4,41 +4,41 @@
     "protocol": "shadowsocks",
     "address": "197.140.29.76",
     "port": 990,
-    "latency": 605.21,
+    "latency": 520.7,
     "country": "Algeria",
     "country_code": "DZ",
     "city": "Unknown",
     "remarks": "\ud83d\udd10 @AblNet7 \ud83c\udde9\ud83c\uddff \u673a\u573a\u63a8\u8350",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:43:41.745168+00:00"
-  },
-  {
-    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@197.140.29.76:990#%F0%9F%87%A9%F0%9F%87%BFDZ-197.140.29.76-0260",
-    "protocol": "shadowsocks",
-    "address": "197.140.29.76",
-    "port": 990,
-    "latency": 641.51,
-    "country": "Algeria",
-    "country_code": "DZ",
-    "city": "Unknown",
-    "remarks": "\ud83c\udde9\ud83c\uddffDZ-197.140.29.76-0260",
-    "is_working": true,
-    "security_issues": [],
-    "tested_at": "2025-10-25T05:49:33.238135+00:00"
+    "tested_at": "2025-10-25T06:42:12.701851+00:00"
   },
   {
     "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@102.207.216.176:990#%F0%9F%87%A9%F0%9F%87%BFDZ-102.207.216.176-0315",
     "protocol": "shadowsocks",
     "address": "102.207.216.176",
     "port": 990,
-    "latency": 634.31,
+    "latency": 609.83,
     "country": "Algeria",
     "country_code": "DZ",
     "city": "Unknown",
     "remarks": "\ud83c\udde9\ud83c\uddffDZ-102.207.216.176-0315",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:51:47.081968+00:00"
+    "tested_at": "2025-10-25T06:51:42.287016+00:00"
+  },
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpBUmd2R1p5d0ErZ2FjZ0dWMjZCdm11MDUrd1ptUlcvaitBZFUrWjhCdDQ0PQ==@197.140.29.76:990#%F0%9F%87%A9%F0%9F%87%BFDZ-197.140.29.76-0260",
+    "protocol": "shadowsocks",
+    "address": "197.140.29.76",
+    "port": 990,
+    "latency": 650.65,
+    "country": "Algeria",
+    "country_code": "DZ",
+    "city": "Unknown",
+    "remarks": "\ud83c\udde9\ud83c\uddffDZ-197.140.29.76-0260",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T06:53:01.059910+00:00"
   }
 ]

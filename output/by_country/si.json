@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "192.71.244.150",
     "port": 989,
-    "latency": 518.28,
+    "latency": 520.83,
     "country": "Slovenia",
     "country_code": "SI",
     "city": "Unknown",
     "remarks": "\ud83c\uddf8\ud83c\uddeeSI-192.71.244.150-5288",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:50:45.941008+00:00"
+    "tested_at": "2025-10-25T06:45:50.723963+00:00"
   }
 ]

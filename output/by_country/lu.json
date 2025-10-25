@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "109.61.46.43",
     "port": 990,
-    "latency": 386.95,
+    "latency": 491.02,
     "country": "Luxembourg",
     "country_code": "LU",
     "city": "Unknown",
     "remarks": "\ud83c\uddf1\ud83c\uddfaLU-109.61.46.43-0219",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:50:02.924323+00:00"
+    "tested_at": "2025-10-25T06:50:38.903563+00:00"
   }
 ]

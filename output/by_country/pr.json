@@ -4,13 +4,13 @@
     "protocol": "shadowsocks",
     "address": "185.47.255.22",
     "port": 990,
-    "latency": 268.03,
+    "latency": 288.55,
     "country": "Puerto Rico",
     "country_code": "PR",
     "city": "Unknown",
     "remarks": "\ud83c\uddf5\ud83c\uddf7PR-185.47.255.22-5335",
     "is_working": true,
     "security_issues": [],
-    "tested_at": "2025-10-25T05:49:25.607511+00:00"
+    "tested_at": "2025-10-25T06:48:22.387091+00:00"
   }
 ]
