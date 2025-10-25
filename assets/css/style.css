@@ -501,7 +501,7 @@ body.dark .github-btn:hover {
     border-radius: var(--radius-md);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     /* Prevent all horizontal overflow on mobile */
     html, body {
         max-width: 100vw !important;
@@ -530,6 +530,8 @@ body.dark .github-btn:hover {
         z-index: 1001; /* Above overlay */
         visibility: hidden;
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        max-height: 100vh;
+        overflow-y: auto;
     }
     body.dark .nav {
       background: var(--bg-secondary);
@@ -612,8 +614,12 @@ body.dark .github-btn:hover {
         padding: calc(var(--space-unit) * 2) 0;
     }
 
+    .hero {
+        padding: calc(var(--space-unit) * 4) 0;
+    }
+
     .hero h1 {
-        font-size: clamp(1.8rem, 10vw, 2.5rem) !important;
+        font-size: clamp(2.2rem, 10vw, 3rem) !important;
         letter-spacing: -0.02em;
     }
 
@@ -629,8 +635,8 @@ body.dark .github-btn:hover {
 
     .stats-card-inner {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 1);
-        padding: calc(var(--space-unit) * 1.5);
+        gap: calc(var(--space-unit) * 1.5);
+        padding: calc(var(--space-unit) * 2);
     }
 
     .stat-item {
@@ -664,7 +670,7 @@ body.dark .github-btn:hover {
     /* Fix downloads grid for narrow mobile */
     .downloads-grid {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 1.5);
+        gap: calc(var(--space-unit) * 2);
     }
 
     .download-card {
@@ -674,7 +680,7 @@ body.dark .github-btn:hover {
     /* Fix info cards stacking */
     .info-column {
         grid-template-columns: 1fr !important;
-        gap: calc(var(--space-unit) * 1.5);
+        gap: calc(var(--space-unit) * 2);
     }
 
     .info-card {
@@ -2281,7 +2287,7 @@ body.dark #preloader {
     .filter-bar, .actions-bar {
         flex-direction: column;
         align-items: stretch;
-        gap: calc(var(--space-unit) * 1.5);
+        gap: calc(var(--space-unit) * 2);
     }
     .filter-group, .action-group {
         flex-direction: column;
@@ -2358,6 +2364,38 @@ body.dark #preloader {
     .proxies-table th,
     .proxies-table td {
         padding: calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 1);
+    }
+    .proxies-table {
+        display: block;
+    }
+    .proxies-table thead {
+        display: none;
+    }
+    .proxies-table tbody {
+        display: block;
+    }
+    .proxies-table tr {
+        display: block;
+        margin-bottom: var(--space-unit);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        padding: calc(var(--space-unit) * 2);
+    }
+    .proxies-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: calc(var(--space-unit) * 1) 0;
+        border: none;
+    }
+    .proxies-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        margin-right: var(--space-unit);
+        color: var(--text-secondary);
+    }
+    .proxies-table td:last-child {
+        justify-content: flex-end;
     }
 }
 
@@ -2438,5 +2476,9 @@ body.dark #preloader {
 
     .info-card h3 {
         font-size: 1.1rem;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
     }
 }
