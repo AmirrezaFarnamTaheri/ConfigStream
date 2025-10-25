@@ -390,8 +390,8 @@ async def test_run_full_pipeline_all_proxies_filtered_by_security(
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_multiple_batches(mocker, tmp_path, caplog, no_pool_shutdown):
-    # Create more proxies than the batch size (default 500)
-    num_proxies = 510
+    # Create more proxies than the batch size (1000)
+    num_proxies = 1010
     configs = "\n".join([create_valid_vmess_config(f"p{i}") for i in range(num_proxies)])
     mocker.patch(
         "configstream.pipeline.read_multiple_files_async",
