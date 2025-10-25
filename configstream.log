@@ -21463,3 +21463,609 @@ TypeError: float() argument must be a string or a real number, not 'ClientTimeou
 2025-10-25 10:45:03,698 - configstream.testers - ERROR - [testers.py:143] - Proxy test error for vmess://config: Connection error
 2025-10-25 10:45:03,707 - configstream.testers - ERROR - [testers.py:143] - Proxy test error for vmess://config: Connection error
 2025-10-25 10:45:03,776 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpbe6v9onp/test.db
+2025-10-25 13:38:38,298 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:38:38,309 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:38:38,536 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:38:38,634 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 4 configs from http://127.0.0.1:33247/proxies (Status: 200, Time: 0.01s)
+2025-10-25 13:38:38,651 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:39903/flaky: 500, message='Server error: 500', url='http://127.0.0.1:39903/flaky'
+2025-10-25 13:38:39,002 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:39903/flaky: 500, message='Server error: 500', url='http://127.0.0.1:39903/flaky'
+2025-10-25 13:38:39,372 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39903/flaky (Status: 200, Time: 0.00s)
+2025-10-25 13:38:39,885 - configstream.fetcher - WARNING - [fetcher.py:230] - Timeout fetching http://127.0.0.1:38625/slow (attempt 1/1)
+2025-10-25 13:38:39,889 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://127.0.0.1:38625/slow after 1 attempts. Last error: Timeout after 1 seconds
+2025-10-25 13:38:39,902 - configstream.fetcher - WARNING - [fetcher.py:218] - Rate limit hit for http://127.0.0.1:39061/limited; retrying in 60.2s (attempt 1/1)
+2025-10-25 13:39:40,197 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://127.0.0.1:39061/limited after 1 attempts. Last error: Rate limited. Retry after 60.0 seconds
+2025-10-25 13:39:40,211 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 0 configs from http://127.0.0.1:41011/empty (Status: 200, Time: 0.00s)
+2025-10-25 13:39:40,224 - configstream.fetcher - WARNING - [fetcher.py:161] - Unexpected content type for http://127.0.0.1:36415/html: text/html; charset=utf-8
+2025-10-25 13:39:40,227 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 0 configs from http://127.0.0.1:36415/html (Status: 200, Time: 0.00s)
+2025-10-25 13:39:40,241 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42089/redirect (Status: 200, Time: 0.01s)
+2025-10-25 13:39:40,260 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:34385/source1 (Status: 200, Time: 0.01s)
+2025-10-25 13:39:40,262 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:34385/source2 (Status: 200, Time: 0.01s)
+2025-10-25 13:39:40,265 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:34385/source3: 500, message='Server error: 500', url='http://127.0.0.1:34385/source3'
+2025-10-25 13:39:41,423 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:34385/source3: 500, message='Server error: 500', url='http://127.0.0.1:34385/source3'
+2025-10-25 13:39:43,622 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:34385/source3: 500, message='Server error: 500', url='http://127.0.0.1:34385/source3'
+2025-10-25 13:39:43,624 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://127.0.0.1:34385/source3 after 3 attempts. Last error: HTTP error: 500, message='Server error: 500', url='http://127.0.0.1:34385/source3'
+2025-10-25 13:39:43,627 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 2/3 sources successful, 2 total configs collected
+2025-10-25 13:39:43,635 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for not-a-url: Invalid URL format: not-a-url
+2025-10-25 13:39:43,637 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for http://: Invalid URL format: http://
+2025-10-25 13:39:43,639 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for ://missing-scheme: Invalid URL format: ://missing-scheme
+2025-10-25 13:39:43,641 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for http://[invalid: Invalid IPv6 URL
+2025-10-25 13:39:43,652 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://test.com: Connection refused
+2025-10-25 13:39:44,851 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://test.com: Connection refused
+2025-10-25 13:39:47,127 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://test.com: Connection refused
+2025-10-25 13:39:47,130 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://test.com after 3 attempts. Last error: HTTP error: Connection refused
+2025-10-25 13:39:47,269 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.12s)
+2025-10-25 13:39:47,271 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.12s)
+2025-10-25 13:39:47,273 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.12s)
+2025-10-25 13:39:47,275 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:39:47,277 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:39:47,279 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:39:47,281 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:39:47,283 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:39:47,284 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:39:47,286 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39841/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:39:47,290 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 1/10 sources successful, 1 total configs collected
+2025-10-25 13:39:47,341 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_6 (Status: 200, Time: 0.03s)
+2025-10-25 13:39:47,349 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_7 (Status: 200, Time: 0.04s)
+2025-10-25 13:39:47,352 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_1 (Status: 200, Time: 0.05s)
+2025-10-25 13:39:47,354 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_0 (Status: 200, Time: 0.05s)
+2025-10-25 13:39:47,358 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_8 (Status: 200, Time: 0.04s)
+2025-10-25 13:39:47,360 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_4 (Status: 200, Time: 0.05s)
+2025-10-25 13:39:47,363 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_5 (Status: 200, Time: 0.05s)
+2025-10-25 13:39:47,365 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_2 (Status: 200, Time: 0.06s)
+2025-10-25 13:39:47,368 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_3 (Status: 200, Time: 0.06s)
+2025-10-25 13:39:47,370 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_9 (Status: 200, Time: 0.06s)
+2025-10-25 13:39:47,380 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_11 (Status: 200, Time: 0.06s)
+2025-10-25 13:39:47,383 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_15 (Status: 200, Time: 0.06s)
+2025-10-25 13:39:47,385 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_10 (Status: 200, Time: 0.07s)
+2025-10-25 13:39:47,387 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_14 (Status: 200, Time: 0.07s)
+2025-10-25 13:39:47,391 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_18 (Status: 200, Time: 0.07s)
+2025-10-25 13:39:47,394 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_19 (Status: 200, Time: 0.07s)
+2025-10-25 13:39:47,396 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_12 (Status: 200, Time: 0.08s)
+2025-10-25 13:39:47,398 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_17 (Status: 200, Time: 0.08s)
+2025-10-25 13:39:47,408 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_13 (Status: 200, Time: 0.09s)
+2025-10-25 13:39:47,412 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:35239/source_16 (Status: 200, Time: 0.09s)
+2025-10-25 13:39:47,416 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 20/20 sources successful, 20 total configs collected
+2025-10-25 13:39:47,431 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 2 configs from http://127.0.0.1:41361/s1 (Status: 200, Time: 0.01s)
+2025-10-25 13:39:47,433 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:41361/s2 (Status: 200, Time: 0.01s)
+2025-10-25 13:39:47,436 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 2/2 sources successful, 3 total configs collected
+2025-10-25 13:39:47,448 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 100 configs from http://127.0.0.1:37093/many (Status: 200, Time: 0.00s)
+2025-10-25 13:39:47,450 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 1/1 sources successful, 100 total configs collected
+2025-10-25 13:39:47,475 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source 'ftp://invalid.com': Unsupported URL scheme: ftp
+2025-10-25 13:39:47,477 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source '': Source is empty
+2025-10-25 13:39:47,502 - configstream.pipeline - INFO - [pipeline.py:295] - No usable configurations found in http://example.com/source
+2025-10-25 13:39:47,515 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,517 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,519 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:39:47,521 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:39:47,523 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,534 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,537 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,551 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:39:47,554 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:39:47,557 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 5000ms
+2025-10-25 13:39:47,568 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:39:47,570 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.1 seconds
+2025-10-25 13:39:47,578 - configstream.pipeline - ERROR - [pipeline.py:343] - No sources provided and no proxies supplied for retest
+2025-10-25 13:39:47,587 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,589 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,591 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:39:47,592 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:39:47,594 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,596 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,598 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,600 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:39:47,603 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:39:47,604 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 0 proxies with latency <= 5000ms
+2025-10-25 13:39:47,606 - configstream.pipeline - WARNING - [pipeline.py:951] - No working proxies detected in phase-1; keeping tested proxies as fallback
+2025-10-25 13:39:47,614 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 2 categorized output files
+2025-10-25 13:39:47,615 - configstream.pipeline - WARNING - [pipeline.py:998] - No proxies passed all filters across all phases
+2025-10-25 13:39:47,617 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:39:47,628 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,630 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,632 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 3 raw proxy configs.
+2025-10-25 13:39:47,633 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 3 unique configs for sequential processing.
+2025-10-25 13:39:47,635 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,637 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,639 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,641 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 3/3 proxies passed
+2025-10-25 13:39:47,643 - configstream.pipeline - INFO - [pipeline.py:870] - Limiting phase-1 to 2 proxies to respect max_proxies
+2025-10-25 13:39:47,645 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:39:47,648 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 2 proxies with latency <= 5000ms
+2025-10-25 13:39:47,660 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:39:47,662 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:39:47,672 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,673 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 0 sources and 3 supplied proxies
+2025-10-25 13:39:47,675 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 0 raw proxy configs.
+2025-10-25 13:39:47,676 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 0 unique configs for sequential processing.
+2025-10-25 13:39:47,678 - configstream.pipeline - INFO - [pipeline.py:469] - Using 3 supplied proxies
+2025-10-25 13:39:47,679 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 1.00s
+2025-10-25 13:39:47,681 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,683 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,686 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:39:47,689 - configstream.pipeline - INFO - [pipeline.py:897] - Filtered phase-1 to 2 proxies in US
+2025-10-25 13:39:47,691 - configstream.pipeline - INFO - [pipeline.py:910] - Filtered phase-1 to 2 proxies with latency >= 50ms
+2025-10-25 13:39:47,692 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 1000ms
+2025-10-25 13:39:47,703 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 4 categorized output files
+2025-10-25 13:39:47,705 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:39:47,716 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,718 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,720 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:39:47,722 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:39:47,723 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,726 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,727 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,730 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:39:47,732 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:39:47,735 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 5000ms
+2025-10-25 13:39:47,745 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:39:47,747 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:39:47,757 - configstream.pipeline - WARNING - [pipeline.py:428] - Failed to fetch http://failing-remote.com/source: Fetch failed!
+2025-10-25 13:39:47,760 - configstream.pipeline - ERROR - [pipeline.py:983] - No configurations could be parsed
+2025-10-25 13:39:47,770 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,771 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,773 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 0 raw proxy configs.
+2025-10-25 13:39:47,775 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 0 unique configs for sequential processing.
+2025-10-25 13:39:47,776 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,778 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,780 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,782 - configstream.pipeline - ERROR - [pipeline.py:983] - No configurations could be parsed
+2025-10-25 13:39:47,790 - configstream.pipeline - ERROR - [pipeline.py:343] - No sources provided and no proxies supplied for retest
+2025-10-25 13:39:47,802 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,804 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,805 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:39:47,807 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:39:47,808 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,810 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,812 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,815 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:39:47,817 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:39:47,820 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 5000ms
+2025-10-25 13:39:47,878 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:39:47,880 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.1 seconds
+2025-10-25 13:39:47,890 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,891 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,893 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:39:47,895 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:39:47,896 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,898 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,900 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:47,902 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:39:47,904 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: 127.0.0.1:443
+2025-10-25 13:39:47,905 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/1 proxies passed
+2025-10-25 13:39:47,907 - configstream.pipeline - INFO - [pipeline.py:811] - 1 insecure proxies were filtered out
+2025-10-25 13:39:47,909 - configstream.pipeline - ERROR - [pipeline.py:983] - No configurations could be parsed or all were deemed insecure
+2025-10-25 13:39:47,926 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:47,927 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:39:47,952 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 510 raw proxy configs.
+2025-10-25 13:39:47,955 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 510 unique configs for sequential processing.
+2025-10-25 13:39:47,956 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:39:47,958 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:39:47,960 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:39:48,088 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 510/510 proxies passed
+2025-10-25 13:39:48,163 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:39:48,218 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 510 proxies with latency <= 5000ms
+2025-10-25 13:39:49,030 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:39:49,033 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 1.1 seconds
+2025-10-25 13:39:49,418 - configstream.async_file_ops - ERROR - [async_file_ops.py:103] - File not found: /tmp/pytest-of-jules/pytest-0/test_read_file_async_not_found0/does_not_exist.txt
+2025-10-25 13:39:49,452 - configstream.async_file_ops - INFO - [async_file_ops.py:239] - Read 10/10 files successfully
+2025-10-25 13:39:49,460 - configstream.async_file_ops - WARNING - [async_file_ops.py:227] - Failed to read /tmp/pytest-of-jules/pytest-0/test_read_multiple_files_handl0/missing.txt: [Errno 2] No such file or directory: '/tmp/pytest-of-jules/pytest-0/test_read_multiple_files_handl0/missing.txt'
+2025-10-25 13:39:49,465 - configstream.async_file_ops - INFO - [async_file_ops.py:239] - Read 2/3 files successfully
+2025-10-25 13:39:49,637 - configstream.async_file_ops - INFO - [async_file_ops.py:239] - Read 100/100 files successfully
+2025-10-25 13:39:49,651 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-0/test_warm_cache_prioritizes_hi0/test_cache.db
+2025-10-25 13:39:49,754 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-0/test_warm_cache_with_no_cached0/test_cache.db
+2025-10-25 13:39:49,767 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-0/test_warm_cache_with_all_cache0/test_cache.db
+2025-10-25 13:39:49,956 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-0/test_warm_cache_with_empty_lis0/test_cache.db
+2025-10-25 13:39:49,972 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-0/test_warm_cache_ordering_corre0/test_cache.db
+2025-10-25 13:39:50,181 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpunbvwxr4/test.db
+2025-10-25 13:39:50,268 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpb21xj5fc/test.db
+2025-10-25 13:39:50,285 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpvckou3is/cache.db
+2025-10-25 13:39:50,293 - configstream.security_validator - WARNING - [security_validator.py:334] - Security validation is running in leniency mode. No proxies will be filtered.
+2025-10-25 13:39:50,295 - configstream.security_validator - INFO - [security_validator.py:354] - Security validation (leniency mode): Detected 0 insecure proxies, but not filtering.
+2025-10-25 13:39:50,296 - configstream.security_validator - WARNING - [security_validator.py:334] - Security validation is running in leniency mode. No proxies will be filtered.
+2025-10-25 13:39:50,298 - configstream.security_validator - INFO - [security_validator.py:354] - Security validation (leniency mode): Detected 0 insecure proxies, but not filtering.
+2025-10-25 13:39:50,436 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpxv3l77jp/test.db
+2025-10-25 13:39:51,545 - configstream.test_cache - INFO - [test_cache.py:228] - Cleaned up 1 expired cache entries
+2025-10-25 13:39:51,558 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:39:51,571 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-Country...
+2025-10-25 13:39:51,573 - configstream.geoip - INFO - [geoip.py:51] - GeoLite2-Country downloaded successfully
+2025-10-25 13:39:51,575 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-City...
+2025-10-25 13:39:51,577 - configstream.geoip - INFO - [geoip.py:51] - GeoLite2-City downloaded successfully
+2025-10-25 13:39:51,591 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-Country...
+2025-10-25 13:39:51,593 - configstream.geoip - ERROR - [geoip.py:54] - Failed to download GeoLite2-Country: Download failed
+2025-10-25 13:39:51,595 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-City...
+2025-10-25 13:39:51,597 - configstream.geoip - ERROR - [geoip.py:54] - Failed to download GeoLite2-City: Download failed
+2025-10-25 13:39:51,721 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 10 proxies for fallback use
+2025-10-25 13:39:51,811 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 600 proxies for fallback use
+2025-10-25 13:39:51,819 - configstream.intelligent_fallback - WARNING - [intelligent_fallback.py:40] - No proxies to save for fallback
+2025-10-25 13:39:51,826 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 10 proxies for fallback use
+2025-10-25 13:39:51,828 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:92] - Loaded 10 fallback proxies from 2025-10-25T13:39:51.824463+00:00
+2025-10-25 13:39:51,832 - configstream.intelligent_fallback - WARNING - [intelligent_fallback.py:72] - No fallback data available
+2025-10-25 13:39:51,837 - configstream.intelligent_fallback - ERROR - [intelligent_fallback.py:100] - Failed to load fallback data: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-10-25 13:39:51,851 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:92] - Loaded 1 fallback proxies from 2025-10-23T00:00:00Z
+2025-10-25 13:39:51,862 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 1 proxies for fallback use
+2025-10-25 13:39:51,864 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:92] - Loaded 1 fallback proxies from 2025-10-25T13:39:51.862047+00:00
+2025-10-25 13:39:51,954 - configstream.parsers - WARNING - [parsers.py:26] - Expected string, got NoneType
+2025-10-25 13:39:52,172 - configstream.parsers - ERROR - [parsers.py:35] - Base64 input too large: 52428801 bytes (max: 52428800)
+2025-10-25 13:39:52,178 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'#', '&', '$', '(', '^', '*', '!', '@', ')', '%'}
+2025-10-25 13:39:52,186 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'!'}
+2025-10-25 13:39:52,203 - configstream.parsers - WARNING - [parsers.py:102] - Payload has 15000 lines, truncating to 10000
+2025-10-25 13:39:52,309 - configstream.parsers - WARNING - [parsers.py:123] - VMess config too long: 20000 bytes
+2025-10-25 13:39:52,335 - configstream.parsers - WARNING - [parsers.py:69] - Decoded data is not valid UTF-8
+2025-10-25 13:39:52,363 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'-'}
+2025-10-25 13:39:52,367 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'-'}
+2025-10-25 13:39:52,387 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'#', '&', '$', '(', '^', '*', '@', '!', ')', '%'}
+2025-10-25 13:39:52,509 - configstream.parsers - ERROR - [parsers.py:35] - Base64 input too large: 62914560 bytes (max: 52428800)
+2025-10-25 13:39:52,515 - configstream.parsers - WARNING - [parsers.py:26] - Expected string, got int
+2025-10-25 13:39:52,546 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'!'}
+2025-10-25 13:39:52,560 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'#', '@', '!'}
+2025-10-25 13:39:52,561 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'#', '@', '!'}
+2025-10-25 13:39:52,639 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source '': Source is empty
+2025-10-25 13:39:52,641 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source 'ftp://invalid.com': Unsupported URL scheme: ftp
+2025-10-25 13:39:52,759 - configstream.proxy_history - INFO - [proxy_history.py:211] - Exported history visualization data to /tmp/pytest-of-jules/pytest-0/test_export_for_visualization0/viz.json
+2025-10-25 13:39:52,765 - configstream.proxy_history - INFO - [proxy_history.py:211] - Exported history visualization data to /tmp/pytest-of-jules/pytest-0/test_export_skips_empty_entrie0/viz.json
+2025-10-25 13:39:52,773 - configstream.proxy_history - INFO - [proxy_history.py:247] - Cleaned up history for 1 proxies
+2025-10-25 13:39:53,982 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 21
+2025-10-25 13:39:53,984 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 22
+2025-10-25 13:39:53,986 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 23
+2025-10-25 13:39:53,991 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:39:53,993 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:39:53,994 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 0.0.0.0
+2025-10-25 13:39:53,998 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 192.168.1.1
+2025-10-25 13:39:53,999 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 10.0.0.1
+2025-10-25 13:39:54,001 - configstream.security_validator - WARNING - [security_validator.py:138] - Private IP range detected: 172.16.0.1
+2025-10-25 13:39:54,002 - configstream.security_validator - WARNING - [security_validator.py:138] - Private IP range detected: 172.31.255.255
+2025-10-25 13:39:54,003 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 169.254.1.1
+2025-10-25 13:39:54,009 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: ::1
+2025-10-25 13:39:54,010 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: fe80::1
+2025-10-25 13:39:54,012 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: fc00::1
+2025-10-25 13:39:54,013 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: fd00::1
+2025-10-25 13:39:54,017 - configstream.security_validator - WARNING - [security_validator.py:164] - Non-standard IP notation: 0x7f000001
+2025-10-25 13:39:54,018 - configstream.security_validator - WARNING - [security_validator.py:164] - Non-standard IP notation: 0177.0.0.1
+2025-10-25 13:39:54,029 - configstream.security_validator - ERROR - [security_validator.py:188] - Null byte detected in config
+2025-10-25 13:39:54,033 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: \$\(
+2025-10-25 13:39:54,034 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: ;\s*rm\s
+2025-10-25 13:39:54,036 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: &&\s*rm\s
+2025-10-25 13:39:54,037 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: \|\s*sh
+2025-10-25 13:39:54,039 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: `
+2025-10-25 13:39:54,040 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: eval\s*\(
+2025-10-25 13:39:54,045 - configstream.security_validator - WARNING - [security_validator.py:221] - Config too long: 15008 chars
+2025-10-25 13:39:54,058 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:39:54,059 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:39:54,061 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 0.0.0.0
+2025-10-25 13:39:54,064 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 192.168.1.1
+2025-10-25 13:39:54,066 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 10.0.0.1
+2025-10-25 13:39:54,067 - configstream.security_validator - WARNING - [security_validator.py:138] - Private IP range detected: 172.16.0.1
+2025-10-25 13:39:54,085 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 22
+2025-10-25 13:39:54,087 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:39:54,088 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: localhost:22
+2025-10-25 13:39:54,090 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 2/3 proxies passed
+2025-10-25 13:39:54,093 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:39:54,095 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: 127.0.0.1:443
+2025-10-25 13:39:54,096 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/1 proxies passed
+2025-10-25 13:39:54,099 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:39:54,103 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/0 proxies passed
+2025-10-25 13:39:54,106 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 22
+2025-10-25 13:39:54,107 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:39:54,109 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: localhost:22
+2025-10-25 13:39:54,110 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 23
+2025-10-25 13:39:54,111 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:39:54,113 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: 127.0.0.1:23
+2025-10-25 13:39:54,114 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/2 proxies passed
+2025-10-25 13:39:54,209 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpg7bd3a9u/test.db
+2025-10-25 13:39:54,219 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpu6navz5i/test.db
+2025-10-25 13:39:54,233 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmprv6_ibgq/test.db
+2025-10-25 13:39:54,236 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmprv6_ibgq/test.db
+2025-10-25 13:39:54,248 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpgh0z2h29/test.db
+2025-10-25 13:39:54,263 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpw636eg3i/test.db
+2025-10-25 13:39:54,275 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp4pdh49es/test.db
+2025-10-25 13:39:54,278 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp4pdh49es/test.db
+2025-10-25 13:39:54,283 - configstream.test_cache - INFO - [test_cache.py:228] - Cleaned up 1 expired cache entries
+2025-10-25 13:39:54,292 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp10e1t88s/test.db
+2025-10-25 13:39:54,310 - configstream.testers - ERROR - [testers.py:177] - Proxy test error for vmess://config: Connection error
+2025-10-25 13:39:54,318 - configstream.testers - ERROR - [testers.py:177] - Proxy test error for vmess://config: Connection error
+2025-10-25 13:40:07,405 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpxj1gyunl/test.db
+2025-10-25 13:40:55,944 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:40:55,956 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:40:56,170 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:40:56,269 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 4 configs from http://127.0.0.1:33535/proxies (Status: 200, Time: 0.01s)
+2025-10-25 13:40:56,288 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:34233/flaky: 500, message='Server error: 500', url='http://127.0.0.1:34233/flaky'
+2025-10-25 13:40:56,648 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:34233/flaky: 500, message='Server error: 500', url='http://127.0.0.1:34233/flaky'
+2025-10-25 13:40:56,925 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:34233/flaky (Status: 200, Time: 0.00s)
+2025-10-25 13:40:57,439 - configstream.fetcher - WARNING - [fetcher.py:230] - Timeout fetching http://127.0.0.1:44411/slow (attempt 1/1)
+2025-10-25 13:40:57,443 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://127.0.0.1:44411/slow after 1 attempts. Last error: Timeout after 1 seconds
+2025-10-25 13:40:57,456 - configstream.fetcher - WARNING - [fetcher.py:218] - Rate limit hit for http://127.0.0.1:41337/limited; retrying in 60.3s (attempt 1/1)
+2025-10-25 13:41:57,834 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://127.0.0.1:41337/limited after 1 attempts. Last error: Rate limited. Retry after 60.0 seconds
+2025-10-25 13:41:57,847 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 0 configs from http://127.0.0.1:42533/empty (Status: 200, Time: 0.00s)
+2025-10-25 13:41:57,859 - configstream.fetcher - WARNING - [fetcher.py:161] - Unexpected content type for http://127.0.0.1:41117/html: text/html; charset=utf-8
+2025-10-25 13:41:57,860 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 0 configs from http://127.0.0.1:41117/html (Status: 200, Time: 0.00s)
+2025-10-25 13:41:57,873 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:36145/redirect (Status: 200, Time: 0.00s)
+2025-10-25 13:41:57,890 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:41785/source1 (Status: 200, Time: 0.01s)
+2025-10-25 13:41:57,892 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:41785/source2 (Status: 200, Time: 0.01s)
+2025-10-25 13:41:57,894 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:41785/source3: 500, message='Server error: 500', url='http://127.0.0.1:41785/source3'
+2025-10-25 13:41:59,187 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:41785/source3: 500, message='Server error: 500', url='http://127.0.0.1:41785/source3'
+2025-10-25 13:42:01,347 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://127.0.0.1:41785/source3: 500, message='Server error: 500', url='http://127.0.0.1:41785/source3'
+2025-10-25 13:42:01,349 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://127.0.0.1:41785/source3 after 3 attempts. Last error: HTTP error: 500, message='Server error: 500', url='http://127.0.0.1:41785/source3'
+2025-10-25 13:42:01,352 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 2/3 sources successful, 2 total configs collected
+2025-10-25 13:42:01,359 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for not-a-url: Invalid URL format: not-a-url
+2025-10-25 13:42:01,361 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for http://: Invalid URL format: http://
+2025-10-25 13:42:01,363 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for ://missing-scheme: Invalid URL format: ://missing-scheme
+2025-10-25 13:42:01,365 - configstream.fetcher - ERROR - [fetcher.py:99] - URL validation failed for http://[invalid: Invalid IPv6 URL
+2025-10-25 13:42:01,373 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://test.com: Connection refused
+2025-10-25 13:42:02,571 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://test.com: Connection refused
+2025-10-25 13:42:04,656 - configstream.fetcher - WARNING - [fetcher.py:239] - Client error fetching http://test.com: Connection refused
+2025-10-25 13:42:04,660 - configstream.fetcher - ERROR - [fetcher.py:258] - Failed to fetch http://test.com after 3 attempts. Last error: HTTP error: Connection refused
+2025-10-25 13:42:04,807 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:42:04,809 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:42:04,812 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:42:04,814 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:42:04,816 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:42:04,819 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:42:04,821 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.13s)
+2025-10-25 13:42:04,823 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.14s)
+2025-10-25 13:42:04,826 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.14s)
+2025-10-25 13:42:04,828 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:42819/slow (Status: 200, Time: 0.14s)
+2025-10-25 13:42:04,833 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 1/10 sources successful, 1 total configs collected
+2025-10-25 13:42:04,888 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_4 (Status: 200, Time: 0.04s)
+2025-10-25 13:42:04,890 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_1 (Status: 200, Time: 0.04s)
+2025-10-25 13:42:04,894 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_7 (Status: 200, Time: 0.04s)
+2025-10-25 13:42:04,897 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_2 (Status: 200, Time: 0.05s)
+2025-10-25 13:42:04,909 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_3 (Status: 200, Time: 0.06s)
+2025-10-25 13:42:04,912 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_5 (Status: 200, Time: 0.06s)
+2025-10-25 13:42:04,915 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_9 (Status: 200, Time: 0.06s)
+2025-10-25 13:42:04,918 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_6 (Status: 200, Time: 0.06s)
+2025-10-25 13:42:04,921 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_8 (Status: 200, Time: 0.06s)
+2025-10-25 13:42:04,924 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_0 (Status: 200, Time: 0.08s)
+2025-10-25 13:42:04,927 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_10 (Status: 200, Time: 0.07s)
+2025-10-25 13:42:04,933 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_12 (Status: 200, Time: 0.07s)
+2025-10-25 13:42:04,935 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_11 (Status: 200, Time: 0.07s)
+2025-10-25 13:42:04,938 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_13 (Status: 200, Time: 0.07s)
+2025-10-25 13:42:04,955 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_15 (Status: 200, Time: 0.09s)
+2025-10-25 13:42:04,958 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_14 (Status: 200, Time: 0.09s)
+2025-10-25 13:42:04,960 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_18 (Status: 200, Time: 0.09s)
+2025-10-25 13:42:04,964 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_19 (Status: 200, Time: 0.10s)
+2025-10-25 13:42:04,970 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_16 (Status: 200, Time: 0.10s)
+2025-10-25 13:42:04,972 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:45561/source_17 (Status: 200, Time: 0.11s)
+2025-10-25 13:42:04,977 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 20/20 sources successful, 20 total configs collected
+2025-10-25 13:42:04,994 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 2 configs from http://127.0.0.1:39731/s1 (Status: 200, Time: 0.01s)
+2025-10-25 13:42:04,997 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 1 configs from http://127.0.0.1:39731/s2 (Status: 200, Time: 0.01s)
+2025-10-25 13:42:04,999 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 2/2 sources successful, 3 total configs collected
+2025-10-25 13:42:05,013 - configstream.fetcher - INFO - [fetcher.py:201] - Successfully fetched 100 configs from http://127.0.0.1:33019/many (Status: 200, Time: 0.00s)
+2025-10-25 13:42:05,016 - configstream.fetcher - INFO - [fetcher.py:367] - Fetch complete: 1/1 sources successful, 100 total configs collected
+2025-10-25 13:42:05,044 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source 'ftp://invalid.com': Unsupported URL scheme: ftp
+2025-10-25 13:42:05,047 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source '': Source is empty
+2025-10-25 13:42:05,074 - configstream.pipeline - INFO - [pipeline.py:295] - No usable configurations found in http://example.com/source
+2025-10-25 13:42:05,089 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,091 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,093 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:42:05,096 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:42:05,098 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,100 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,103 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,119 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:42:05,122 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:42:05,126 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 5000ms
+2025-10-25 13:42:05,139 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:42:05,141 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.1 seconds
+2025-10-25 13:42:05,151 - configstream.pipeline - ERROR - [pipeline.py:343] - No sources provided and no proxies supplied for retest
+2025-10-25 13:42:05,162 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,163 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,165 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:42:05,167 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:42:05,169 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,171 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,174 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,176 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:42:05,178 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:42:05,181 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 0 proxies with latency <= 5000ms
+2025-10-25 13:42:05,183 - configstream.pipeline - WARNING - [pipeline.py:951] - No working proxies detected in phase-1; keeping tested proxies as fallback
+2025-10-25 13:42:05,192 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 2 categorized output files
+2025-10-25 13:42:05,194 - configstream.pipeline - WARNING - [pipeline.py:998] - No proxies passed all filters across all phases
+2025-10-25 13:42:05,196 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:42:05,210 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,212 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,214 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 3 raw proxy configs.
+2025-10-25 13:42:05,216 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 3 unique configs for sequential processing.
+2025-10-25 13:42:05,217 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,220 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,222 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,225 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 3/3 proxies passed
+2025-10-25 13:42:05,228 - configstream.pipeline - INFO - [pipeline.py:870] - Limiting phase-1 to 2 proxies to respect max_proxies
+2025-10-25 13:42:05,230 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:42:05,234 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 2 proxies with latency <= 5000ms
+2025-10-25 13:42:05,248 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:42:05,250 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:42:05,262 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,264 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 0 sources and 3 supplied proxies
+2025-10-25 13:42:05,266 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 0 raw proxy configs.
+2025-10-25 13:42:05,268 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 0 unique configs for sequential processing.
+2025-10-25 13:42:05,269 - configstream.pipeline - INFO - [pipeline.py:469] - Using 3 supplied proxies
+2025-10-25 13:42:05,271 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 1.00s
+2025-10-25 13:42:05,273 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,275 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,278 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:42:05,281 - configstream.pipeline - INFO - [pipeline.py:897] - Filtered phase-1 to 2 proxies in US
+2025-10-25 13:42:05,284 - configstream.pipeline - INFO - [pipeline.py:910] - Filtered phase-1 to 2 proxies with latency >= 50ms
+2025-10-25 13:42:05,286 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 1000ms
+2025-10-25 13:42:05,299 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 4 categorized output files
+2025-10-25 13:42:05,301 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:42:05,314 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,315 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,318 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:42:05,320 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:42:05,322 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,324 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,326 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,329 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:42:05,331 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:42:05,335 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 5000ms
+2025-10-25 13:42:05,347 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:42:05,349 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:42:05,361 - configstream.pipeline - WARNING - [pipeline.py:428] - Failed to fetch http://failing-remote.com/source: Fetch failed!
+2025-10-25 13:42:05,364 - configstream.pipeline - ERROR - [pipeline.py:983] - No configurations could be parsed
+2025-10-25 13:42:05,375 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,377 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,379 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 0 raw proxy configs.
+2025-10-25 13:42:05,381 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 0 unique configs for sequential processing.
+2025-10-25 13:42:05,382 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,385 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,387 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,389 - configstream.pipeline - ERROR - [pipeline.py:983] - No configurations could be parsed
+2025-10-25 13:42:05,398 - configstream.pipeline - ERROR - [pipeline.py:343] - No sources provided and no proxies supplied for retest
+2025-10-25 13:42:05,409 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,411 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,413 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:42:05,415 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:42:05,417 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,419 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,421 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,424 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:42:05,426 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:42:05,430 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1 proxies with latency <= 5000ms
+2025-10-25 13:42:05,442 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:42:05,444 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 0.0 seconds
+2025-10-25 13:42:05,455 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,457 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,459 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1 raw proxy configs.
+2025-10-25 13:42:05,461 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1 unique configs for sequential processing.
+2025-10-25 13:42:05,462 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,464 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,467 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,469 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:42:05,471 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: 127.0.0.1:443
+2025-10-25 13:42:05,473 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/1 proxies passed
+2025-10-25 13:42:05,475 - configstream.pipeline - INFO - [pipeline.py:811] - 1 insecure proxies were filtered out
+2025-10-25 13:42:05,477 - configstream.pipeline - ERROR - [pipeline.py:983] - No configurations could be parsed or all were deemed insecure
+2025-10-25 13:42:05,503 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:05,505 - configstream.pipeline - INFO - [pipeline.py:357] - Starting pipeline with 1 sources and 0 supplied proxies
+2025-10-25 13:42:05,558 - configstream.pipeline - INFO - [pipeline.py:441] - PIPELINE: Fetched 1010 raw proxy configs.
+2025-10-25 13:42:05,562 - configstream.pipeline - INFO - [pipeline.py:460] - PIPELINE: Prepared 1010 unique configs for sequential processing.
+2025-10-25 13:42:05,564 - configstream.pipeline - INFO - [pipeline.py:482] - Using effective test timeout of 10.00s
+2025-10-25 13:42:05,566 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at data/test_cache.db
+2025-10-25 13:42:05,568 - configstream.pipeline - INFO - [pipeline.py:486] - Test cache initialized: {'total_entries': 100, 'valid_entries': 100, 'expired_entries': 0, 'average_health_score': 0.07, 'ttl_seconds': 86400}
+2025-10-25 13:42:05,899 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1010/1010 proxies passed
+2025-10-25 13:42:05,969 - configstream.pipeline - INFO - [pipeline.py:511] - Testing batch 1/2 (1000 proxies)
+2025-10-25 13:42:05,971 - configstream.pipeline - INFO - [pipeline.py:517] - Testing phase-1 batch 1/2 (1000 proxies)
+2025-10-25 13:42:06,070 - configstream.pipeline - INFO - [pipeline.py:511] - Testing batch 2/2 (10 proxies)
+2025-10-25 13:42:06,072 - configstream.pipeline - INFO - [pipeline.py:517] - Testing phase-1 batch 2/2 (10 proxies)
+2025-10-25 13:42:06,076 - configstream.pipeline - WARNING - [pipeline.py:547] - GeoIP database not found at data/GeoLite2-City.mmdb
+2025-10-25 13:42:06,189 - configstream.pipeline - INFO - [pipeline.py:924] - Filtered phase-1 to 1010 proxies with latency <= 5000ms
+2025-10-25 13:42:07,981 - configstream.pipeline - INFO - [pipeline.py:742] - Generated 3 categorized output files
+2025-10-25 13:42:07,984 - configstream.pipeline - INFO - [pipeline.py:1004] - Pipeline completed successfully in 2.5 seconds
+2025-10-25 13:42:08,319 - configstream.async_file_ops - ERROR - [async_file_ops.py:103] - File not found: /tmp/pytest-of-jules/pytest-1/test_read_file_async_not_found0/does_not_exist.txt
+2025-10-25 13:42:08,351 - configstream.async_file_ops - INFO - [async_file_ops.py:239] - Read 10/10 files successfully
+2025-10-25 13:42:08,359 - configstream.async_file_ops - WARNING - [async_file_ops.py:227] - Failed to read /tmp/pytest-of-jules/pytest-1/test_read_multiple_files_handl0/missing.txt: [Errno 2] No such file or directory: '/tmp/pytest-of-jules/pytest-1/test_read_multiple_files_handl0/missing.txt'
+2025-10-25 13:42:08,365 - configstream.async_file_ops - INFO - [async_file_ops.py:239] - Read 2/3 files successfully
+2025-10-25 13:42:08,572 - configstream.async_file_ops - INFO - [async_file_ops.py:239] - Read 100/100 files successfully
+2025-10-25 13:42:08,586 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-1/test_warm_cache_prioritizes_hi0/test_cache.db
+2025-10-25 13:42:08,695 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-1/test_warm_cache_with_no_cached0/test_cache.db
+2025-10-25 13:42:08,708 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-1/test_warm_cache_with_all_cache0/test_cache.db
+2025-10-25 13:42:08,923 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-1/test_warm_cache_with_empty_lis0/test_cache.db
+2025-10-25 13:42:08,940 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/pytest-of-jules/pytest-1/test_warm_cache_ordering_corre0/test_cache.db
+2025-10-25 13:42:09,158 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp00h8ymve/test.db
+2025-10-25 13:42:09,242 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpy4alnyyk/test.db
+2025-10-25 13:42:09,260 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmprgys6l_h/cache.db
+2025-10-25 13:42:09,268 - configstream.security_validator - WARNING - [security_validator.py:334] - Security validation is running in leniency mode. No proxies will be filtered.
+2025-10-25 13:42:09,270 - configstream.security_validator - INFO - [security_validator.py:354] - Security validation (leniency mode): Detected 0 insecure proxies, but not filtering.
+2025-10-25 13:42:09,272 - configstream.security_validator - WARNING - [security_validator.py:334] - Security validation is running in leniency mode. No proxies will be filtered.
+2025-10-25 13:42:09,273 - configstream.security_validator - INFO - [security_validator.py:354] - Security validation (leniency mode): Detected 0 insecure proxies, but not filtering.
+2025-10-25 13:42:09,414 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp764zwnjj/test.db
+2025-10-25 13:42:10,525 - configstream.test_cache - INFO - [test_cache.py:228] - Cleaned up 1 expired cache entries
+2025-10-25 13:42:10,538 - configstream.geoip - INFO - [geoip.py:39] - GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.
+2025-10-25 13:42:10,554 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-Country...
+2025-10-25 13:42:10,556 - configstream.geoip - INFO - [geoip.py:51] - GeoLite2-Country downloaded successfully
+2025-10-25 13:42:10,558 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-City...
+2025-10-25 13:42:10,560 - configstream.geoip - INFO - [geoip.py:51] - GeoLite2-City downloaded successfully
+2025-10-25 13:42:10,575 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-Country...
+2025-10-25 13:42:10,578 - configstream.geoip - ERROR - [geoip.py:54] - Failed to download GeoLite2-Country: Download failed
+2025-10-25 13:42:10,580 - configstream.geoip - INFO - [geoip.py:49] - Downloading GeoLite2-City...
+2025-10-25 13:42:10,582 - configstream.geoip - ERROR - [geoip.py:54] - Failed to download GeoLite2-City: Download failed
+2025-10-25 13:42:10,710 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 10 proxies for fallback use
+2025-10-25 13:42:10,805 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 600 proxies for fallback use
+2025-10-25 13:42:10,813 - configstream.intelligent_fallback - WARNING - [intelligent_fallback.py:40] - No proxies to save for fallback
+2025-10-25 13:42:10,820 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 10 proxies for fallback use
+2025-10-25 13:42:10,822 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:92] - Loaded 10 fallback proxies from 2025-10-25T13:42:10.818629+00:00
+2025-10-25 13:42:10,827 - configstream.intelligent_fallback - WARNING - [intelligent_fallback.py:72] - No fallback data available
+2025-10-25 13:42:10,832 - configstream.intelligent_fallback - ERROR - [intelligent_fallback.py:100] - Failed to load fallback data: Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+2025-10-25 13:42:10,840 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:92] - Loaded 1 fallback proxies from 2025-10-23T00:00:00Z
+2025-10-25 13:42:10,852 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:62] - Saved 1 proxies for fallback use
+2025-10-25 13:42:10,854 - configstream.intelligent_fallback - INFO - [intelligent_fallback.py:92] - Loaded 1 fallback proxies from 2025-10-25T13:42:10.852163+00:00
+2025-10-25 13:42:10,952 - configstream.parsers - WARNING - [parsers.py:26] - Expected string, got NoneType
+2025-10-25 13:42:11,077 - configstream.parsers - ERROR - [parsers.py:35] - Base64 input too large: 52428801 bytes (max: 52428800)
+2025-10-25 13:42:11,084 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'^', '(', '*', ')', '@', '!', '%', '$', '&', '#'}
+2025-10-25 13:42:11,092 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'!'}
+2025-10-25 13:42:11,109 - configstream.parsers - WARNING - [parsers.py:102] - Payload has 15000 lines, truncating to 10000
+2025-10-25 13:42:11,223 - configstream.parsers - WARNING - [parsers.py:123] - VMess config too long: 20000 bytes
+2025-10-25 13:42:11,250 - configstream.parsers - WARNING - [parsers.py:69] - Decoded data is not valid UTF-8
+2025-10-25 13:42:11,281 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'-'}
+2025-10-25 13:42:11,286 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'-'}
+2025-10-25 13:42:11,307 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'^', '(', '*', ')', '@', '!', '%', '$', '&', '#'}
+2025-10-25 13:42:11,469 - configstream.parsers - ERROR - [parsers.py:35] - Base64 input too large: 62914560 bytes (max: 52428800)
+2025-10-25 13:42:11,476 - configstream.parsers - WARNING - [parsers.py:26] - Expected string, got int
+2025-10-25 13:42:11,508 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'!'}
+2025-10-25 13:42:11,522 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'!', '@', '#'}
+2025-10-25 13:42:11,523 - configstream.parsers - WARNING - [parsers.py:40] - Invalid base64 characters: {'!', '@', '#'}
+2025-10-25 13:42:11,602 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source '': Source is empty
+2025-10-25 13:42:11,604 - configstream.pipeline - WARNING - [pipeline.py:101] - Skipping invalid source 'ftp://invalid.com': Unsupported URL scheme: ftp
+2025-10-25 13:42:11,724 - configstream.proxy_history - INFO - [proxy_history.py:211] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_export_for_visualization0/viz.json
+2025-10-25 13:42:11,730 - configstream.proxy_history - INFO - [proxy_history.py:211] - Exported history visualization data to /tmp/pytest-of-jules/pytest-1/test_export_skips_empty_entrie0/viz.json
+2025-10-25 13:42:11,736 - configstream.proxy_history - INFO - [proxy_history.py:247] - Cleaned up history for 1 proxies
+2025-10-25 13:42:12,945 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 21
+2025-10-25 13:42:12,947 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 22
+2025-10-25 13:42:12,948 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 23
+2025-10-25 13:42:12,954 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:42:12,956 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:42:12,957 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 0.0.0.0
+2025-10-25 13:42:12,960 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 192.168.1.1
+2025-10-25 13:42:12,962 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 10.0.0.1
+2025-10-25 13:42:12,963 - configstream.security_validator - WARNING - [security_validator.py:138] - Private IP range detected: 172.16.0.1
+2025-10-25 13:42:12,965 - configstream.security_validator - WARNING - [security_validator.py:138] - Private IP range detected: 172.31.255.255
+2025-10-25 13:42:12,966 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 169.254.1.1
+2025-10-25 13:42:12,972 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: ::1
+2025-10-25 13:42:12,973 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: fe80::1
+2025-10-25 13:42:12,974 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: fc00::1
+2025-10-25 13:42:12,976 - configstream.security_validator - WARNING - [security_validator.py:156] - Special address detected: fd00::1
+2025-10-25 13:42:12,979 - configstream.security_validator - WARNING - [security_validator.py:164] - Non-standard IP notation: 0x7f000001
+2025-10-25 13:42:12,981 - configstream.security_validator - WARNING - [security_validator.py:164] - Non-standard IP notation: 0177.0.0.1
+2025-10-25 13:42:12,991 - configstream.security_validator - ERROR - [security_validator.py:188] - Null byte detected in config
+2025-10-25 13:42:12,995 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: \$\(
+2025-10-25 13:42:12,997 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: ;\s*rm\s
+2025-10-25 13:42:12,998 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: &&\s*rm\s
+2025-10-25 13:42:12,999 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: \|\s*sh
+2025-10-25 13:42:13,001 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: `
+2025-10-25 13:42:13,002 - configstream.security_validator - ERROR - [security_validator.py:213] - Suspicious pattern detected: eval\s*\(
+2025-10-25 13:42:13,010 - configstream.security_validator - WARNING - [security_validator.py:221] - Config too long: 15008 chars
+2025-10-25 13:42:13,033 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:42:13,035 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:42:13,038 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 0.0.0.0
+2025-10-25 13:42:13,043 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 192.168.1.1
+2025-10-25 13:42:13,045 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 10.0.0.1
+2025-10-25 13:42:13,048 - configstream.security_validator - WARNING - [security_validator.py:138] - Private IP range detected: 172.16.0.1
+2025-10-25 13:42:13,077 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 22
+2025-10-25 13:42:13,080 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:42:13,083 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: localhost:22
+2025-10-25 13:42:13,084 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 2/3 proxies passed
+2025-10-25 13:42:13,090 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:42:13,093 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: 127.0.0.1:443
+2025-10-25 13:42:13,095 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/1 proxies passed
+2025-10-25 13:42:13,100 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 1/1 proxies passed
+2025-10-25 13:42:13,105 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/0 proxies passed
+2025-10-25 13:42:13,110 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 22
+2025-10-25 13:42:13,112 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: localhost
+2025-10-25 13:42:13,115 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: localhost:22
+2025-10-25 13:42:13,118 - configstream.security_validator - WARNING - [security_validator.py:92] - Dangerous port detected: 23
+2025-10-25 13:42:13,120 - configstream.security_validator - WARNING - [security_validator.py:110] - Suspicious address pattern: 127.0.0.1
+2025-10-25 13:42:13,123 - configstream.security_validator - WARNING - [security_validator.py:370] - Insecure proxy filtered: 127.0.0.1:23
+2025-10-25 13:42:13,126 - configstream.security_validator - INFO - [security_validator.py:378] - Security validation: 0/2 proxies passed
+2025-10-25 13:42:13,274 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp_w7qzpi8/test.db
+2025-10-25 13:42:13,290 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp1atofnyt/test.db
+2025-10-25 13:42:13,314 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpn228_0tu/test.db
+2025-10-25 13:42:13,320 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpn228_0tu/test.db
+2025-10-25 13:42:13,337 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpjlbqqke8/test.db
+2025-10-25 13:42:13,357 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmp4ftu79es/test.db
+2025-10-25 13:42:13,377 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmps1cuxosg/test.db
+2025-10-25 13:42:13,382 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmps1cuxosg/test.db
+2025-10-25 13:42:13,392 - configstream.test_cache - INFO - [test_cache.py:228] - Cleaned up 1 expired cache entries
+2025-10-25 13:42:13,409 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpxmodm0c6/test.db
+2025-10-25 13:42:13,440 - configstream.testers - ERROR - [testers.py:177] - Proxy test error for vmess://config: Connection error
+2025-10-25 13:42:13,454 - configstream.testers - ERROR - [testers.py:177] - Proxy test error for vmess://config: Connection error
+2025-10-25 13:42:26,557 - configstream.test_cache - INFO - [test_cache.py:63] - Test cache initialized at /tmp/tmpbb56s9k4/test.db
