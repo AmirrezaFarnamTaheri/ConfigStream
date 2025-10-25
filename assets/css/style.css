@@ -36,8 +36,8 @@
     --border: rgba(0, 0, 0, 0.07);
     --text-primary: #0a192f;
     --text-secondary: #334155;
-    --shadow-1: rgba(163, 177, 198, 0.6);
-    --shadow-2: rgba(255, 255, 255, 0.9);
+    --shadow-1: rgba(163, 177, 198, 0.4);
+    --shadow-2: rgba(255, 255, 255, 1);
     --brand-primary: #5E55F1;
     --brand-secondary: #D83A8D;
     --brand-tertiary: #A855F7;
@@ -72,18 +72,38 @@ body.dark {
 
 html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
     max-width: 100%;
 }
 
 body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    transition: background-color var(--transition-base), color var(--transition-base);
+    transition: background-color var(--transition-slow), color var(--transition-base);
     font-family: var(--font-sans);
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100%;
     position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-tertiary) 100%);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+}
+
+body.country-selected::before {
+    opacity: 0.15;
+}
+
+body.dark.country-selected::before {
+    opacity: 0.1;
 }
 
 /* Prevent horizontal overflow on all content */
@@ -99,7 +119,6 @@ pre, code {
 
 .container, .main-content, main, section {
     max-width: 100%;
-    overflow-x: hidden;
 }
 
 /* 5. Main Content & Cards - Neumorphic Glassmorphism */
@@ -271,18 +290,18 @@ body.dark a:focus {
 }
 .header {
     position: sticky;
-    top: 0;
-    z-index: 999; /* Positioned below the overlay */
+    top: -1px; /* Prevents 1px gap on some browsers */
+    z-index: 999;
     padding: calc(var(--space-unit) * 2) 0;
-    transition: all var(--transition-fast);
+    transition: background-color var(--transition-fast), border-bottom var(--transition-fast), box-shadow var(--transition-fast);
 }
+
 .header.scrolled {
     background: var(--bg-glass);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     border-bottom: 1px solid var(--border);
     box-shadow: 0 4px 30px rgba(0,0,0,0.08);
-    transition: background-color var(--transition-fast), backdrop-filter var(--transition-fast), border-bottom var(--transition-fast), box-shadow var(--transition-fast);
 }
 body.dark .header.scrolled {
     background: var(--bg-glass);
@@ -347,25 +366,27 @@ body.dark .header-logo-wrapper {
     gap: var(--space-unit);
 }
 .nav-link {
-    padding: calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 2);
+    padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2);
     color: var(--text-secondary);
     font-weight: 600;
     font-size: 0.95rem;
     border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
+    transition: color var(--transition-fast);
     position: relative;
     text-decoration: none;
+    line-height: 1;
 }
 body.dark .nav-link { color: var(--text-secondary); }
 .nav-link::after {
     content: '';
     position: absolute;
-    bottom: -4px;
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     width: 0;
     height: 2px;
     background: var(--brand-gradient);
+    border-radius: 1px;
     transition: width var(--transition-fast);
 }
 .nav-link:hover, .nav-link[aria-current="page"] {
@@ -755,7 +776,7 @@ body.dark .github-btn:hover {
     }
 }
 main {
-    padding: 0;
+    padding-top: calc(var(--space-unit) * 4);
 }
 
 /* Main Grid Layout */
@@ -1149,10 +1170,10 @@ body.dark .btn-secondary:hover {
 }
 .footer {
     text-align: center;
-    padding: calc(var(--space-unit) * 4) 0;
+    padding: calc(var(--space-unit) * 6) 0;
     color: var(--text-secondary);
     border-top: 1px solid var(--border);
-    margin-top: calc(var(--space-unit) * 6);
+    margin-top: calc(var(--space-unit) * 10);
 }
 body.dark .footer {
     color: var(--text-secondary);
@@ -1183,7 +1204,7 @@ body.dark .footer .social-links a:hover { color: var(--brand-primary); }
 }
 .hero {
     text-align: center;
-    padding: calc(var(--space-unit) * 4) 0 calc(var(--space-unit) * 6) 0;
+    padding: calc(var(--space-unit) * 8) 0;
     position: relative;
 }
 .hero h1 {
