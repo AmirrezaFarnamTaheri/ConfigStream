@@ -127,11 +127,12 @@ module = [
     "singbox2proxy",
     "singbox2proxy.*",
     "click",
-    "rich",
+    "rich", 
     "rich.*",
     "yaml",
     "geoip2",
-    "geoip2.*"
+    "geoip2.*",
+    "psutil",
 ]
 ignore_missing_imports = true
 
