@@ -69,5 +69,13 @@ class ProxyFilter:
             result = list(filter_callable(result))
         return ProxyFilter(result)
 
+    def working_only(self) -> "ProxyFilter":
+        """Filter to only working proxies."""
+        return ProxyFilter([p for p in self._proxies if p.is_working])
+
+    def limit(self, count: int) -> "ProxyFilter":
+        """Limit to first N proxies."""
+        return ProxyFilter(self._proxies[:count])
+
     def to_list(self) -> List[Proxy]:
         return list(self._proxies)
