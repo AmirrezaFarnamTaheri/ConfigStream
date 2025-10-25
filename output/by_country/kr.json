@@ -1,0 +1,58 @@
+[
+  {
+    "config": "vless://ead2118c-8b60-4805-b264-bb794c8600d0@3.36.62.128:443?encryption=none&security=reality&flow=xtls-rprx-vision&type=tcp&sni=www.ebay.com&pbk=yh4yX6_pM_VzpAx-tYb33PCzHYE6vC9w7Ov1FwNUjR8&fp=chrome#%3E%3E%40DailyV2RY%3A%3AKR",
+    "protocol": "vless",
+    "address": "3.36.62.128",
+    "port": 443,
+    "latency": 974.47,
+    "country": "South Korea",
+    "country_code": "KR",
+    "city": "Unknown",
+    "remarks": ">>@DailyV2RY::KR",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:33:15.027384+00:00"
+  },
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@154.90.63.177:989#%F0%9F%87%B0%F0%9F%87%B7KR-154.90.63.177-5424",
+    "protocol": "shadowsocks",
+    "address": "154.90.63.177",
+    "port": 989,
+    "latency": 1046.85,
+    "country": "South Korea",
+    "country_code": "KR",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf0\ud83c\uddf7KR-154.90.63.177-5424",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:49:39.150938+00:00"
+  },
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@154.90.62.168:989#%F0%9F%87%B0%F0%9F%87%B7KR-154.90.62.168-5425",
+    "protocol": "shadowsocks",
+    "address": "154.90.62.168",
+    "port": 989,
+    "latency": 968.96,
+    "country": "South Korea",
+    "country_code": "KR",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf0\ud83c\uddf7KR-154.90.62.168-5425",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:50:32.773650+00:00"
+  },
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6cXdlclJFV1FAQA==@p141.panda001.net:4652#%F0%9F%87%B0%F0%9F%87%B7KR-218.237.185.230-5568",
+    "protocol": "shadowsocks",
+    "address": "p141.panda001.net",
+    "port": 4652,
+    "latency": 1713.04,
+    "country": "South Korea",
+    "country_code": "KR",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf0\ud83c\uddf7KR-218.237.185.230-5568",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:55:02.440711+00:00"
+  }
+]

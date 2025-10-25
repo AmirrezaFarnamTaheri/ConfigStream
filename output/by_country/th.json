@@ -1,0 +1,16 @@
+[
+  {
+    "config": "vmess://ewogICAgImFkZCI6ICIzOC42MC4xNTYuNTkiLAogICAgImFpZCI6IDAsCiAgICAiaG9zdCI6ICIiLAogICAgImlkIjogIjIxM2QxOTNhLWNmMWYtNDQ1My1lY2ZjLTI3NGE1NTg2YzY0YiIsCiAgICAibmV0IjogIndzIiwKICAgICJwYXRoIjogIi8iLAogICAgInBvcnQiOiAzMzM2NywKICAgICJwcyI6ICLwn4e58J+HrVRILTM4LjYwLjE1Ni41OS0wMjY2IiwKICAgICJ0bHMiOiAiIiwKICAgICJ0eXBlIjogImF1dG8iLAogICAgInNlY3VyaXR5IjogImF1dG8iLAogICAgInNraXAtY2VydC12ZXJpZnkiOiB0cnVlLAogICAgInNuaSI6ICIiCn0=",
+    "protocol": "vmess",
+    "address": "38.60.156.59",
+    "port": 33367,
+    "latency": 1105.06,
+    "country": "Thailand",
+    "country_code": "TH",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf9\ud83c\uddedTH-38.60.156.59-0266",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:30:25.697860+00:00"
+  }
+]

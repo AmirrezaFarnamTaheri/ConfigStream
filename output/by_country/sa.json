@@ -1,0 +1,16 @@
+[
+  {
+    "config": "vless://sGLzG6kUwBpZd73sW0nq@81.208.170.142:1500/?type=grpc&encryption=none&flow=&sni=www.ebay.com&fp=chrome&security=reality&pbk=VQxVgczORkbSNdDrkNOYs6zMBINpViztTKDuWCeQsVE&sid=775eb6408888248e#%3E%3E%40oneclickvpnkeys%3A%3ASA",
+    "protocol": "vless",
+    "address": "81.208.170.142",
+    "port": 1500,
+    "latency": 955.42,
+    "country": "Saudi Arabia",
+    "country_code": "SA",
+    "city": "Unknown",
+    "remarks": ">>@oneclickvpnkeys::SA",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:31:59.593940+00:00"
+  }
+]

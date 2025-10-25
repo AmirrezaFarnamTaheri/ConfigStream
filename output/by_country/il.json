@@ -1,0 +1,16 @@
+[
+  {
+    "config": "vless://0e8a6896-ad90-4a3b-89a3-77d64aa409e2@ilta-wzxrxkdhbjpnprhkkpplsjwawhssvollvxzdhqshiqckwdgrdm.orbnet.xyz:443?security=reality&amp;encryption=none&amp;pbk=YVDo7U4O-AT2fa5H9E7hyYHKgfZd1vB6UdbAf2ggWQE&amp;headerType=none&amp;fp=chrome&amp;type=tcp&amp;flow=xtls-rprx-vision&amp;sni=i2pd.website&amp;sid=55e6af1a35e64a98#%40VMESSIR4N+%D8%AC%D9%87%D8%AA+%D8%AE%D8%B1%DB%8C%D8%AF+%DA%A9%D8%A7%D9%86%D9%81%DB%8C%DA%AF",
+    "protocol": "vless",
+    "address": "ilta-wzxrxkdhbjpnprhkkpplsjwawhssvollvxzdhqshiqckwdgrdm.orbnet.xyz",
+    "port": 443,
+    "latency": 810.48,
+    "country": "Israel",
+    "country_code": "IL",
+    "city": "Tel Aviv",
+    "remarks": "@VMESSIR4N+\u062c\u0647\u062a+\u062e\u0631\u06cc\u062f+\u06a9\u0627\u0646\u0641\u06cc\u06af",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:54:04.393385+00:00"
+  }
+]

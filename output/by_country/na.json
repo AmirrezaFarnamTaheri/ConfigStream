@@ -1,0 +1,30 @@
+[
+  {
+    "config": "vless://161fa2ac-9618-4a3c-bc9b-5420ecc1826e@104.21.47.6:443?path=/?@VPN_ROOM------@VPN_ROOM&security=tls&encryption=none&host=v2ray-vmess-free.irnoen.workers.dev&fp=chrome&type=ws&sni=v2ray-vmess-free.irnoen.workers.dev#\ud83d\udd10 @AblNet7 \ud83c\uddf3\ud83c\udde6",
+    "protocol": "vless",
+    "address": "104.21.47.6",
+    "port": 443,
+    "latency": 115.87,
+    "country": "Namibia",
+    "country_code": "NA",
+    "city": "Unknown",
+    "remarks": "\ud83d\udd10 @AblNet7 \ud83c\uddf3\ud83c\udde6",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:29:25.006717+00:00"
+  },
+  {
+    "config": "vless://169221de-6408-4143-9e66-6f77de385e94@172.67.204.84:443?path=/@cassiusvpn-@cassiusvpn-@cassiusvpn-@cassiusvpn-@cassiusvpn-?ed=2048&security=tls&encryption=none&host=cassiusvpn-cassiusvpn-000.stat-4.workers.dev&fp=chrome&type=ws&sni=cassiusvpn-cassiusvpn-000.stat-4.workers.dev#\ud83d\udd10 @AblNet7 \ud83c\uddf3\ud83c\udde6",
+    "protocol": "vless",
+    "address": "172.67.204.84",
+    "port": 443,
+    "latency": 86.89,
+    "country": "Namibia",
+    "country_code": "NA",
+    "city": "Unknown",
+    "remarks": "\ud83d\udd10 @AblNet7 \ud83c\uddf3\ud83c\udde6",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:34:50.482398+00:00"
+  }
+]

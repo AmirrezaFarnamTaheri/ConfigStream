@@ -1,0 +1,30 @@
+[
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@46.183.185.37:989#%F0%9F%87%B2%F0%9F%87%B0MK-46.183.185.37-5387",
+    "protocol": "shadowsocks",
+    "address": "46.183.185.37",
+    "port": 989,
+    "latency": 419.62,
+    "country": "North Macedonia",
+    "country_code": "MK",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf2\ud83c\uddf0MK-46.183.185.37-5387",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:46:33.497667+00:00"
+  },
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@46.183.185.15:989#%F0%9F%87%B2%F0%9F%87%B0MK-46.183.185.15-4669",
+    "protocol": "shadowsocks",
+    "address": "46.183.185.15",
+    "port": 989,
+    "latency": 4190.39,
+    "country": "North Macedonia",
+    "country_code": "MK",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddf2\ud83c\uddf0MK-46.183.185.15-4669",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:51:33.110638+00:00"
+  }
+]

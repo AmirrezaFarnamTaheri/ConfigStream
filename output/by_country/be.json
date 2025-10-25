@@ -1,0 +1,58 @@
+[
+  {
+    "config": "vless://34c9f621-0614-4b7f-aab3-c4400bb15a89@45.83.20.34:58164?security=reality&encryption=none&pbk=7cbcFHSx2vqz38zW9BmlSIHTTSdNtlgv_S5uZ0MSIAE&headerType=none&fp=chrome&type=tcp&sni=yahoo.com&sid=788456bc#%3E%3E%40V2RAY_VMESS_free%3A%3ABE",
+    "protocol": "vless",
+    "address": "45.83.20.34",
+    "port": 58164,
+    "latency": 628.38,
+    "country": "Belgium",
+    "country_code": "BE",
+    "city": "Unknown",
+    "remarks": ">>@V2RAY_VMESS_free::BE",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:31:32.718241+00:00"
+  },
+  {
+    "config": "vless://34c9f621-0614-4b7f-aab3-c4400bb15a89@45.83.20.34:58164/?type=tcp&encryption=none&flow=&sni=yahoo.com&fp=chrome&security=reality&pbk=7cbcFHSx2vqz38zW9BmlSIHTTSdNtlgv_S5uZ0MSIAE&sid=788456bc#%3E%3E%40oneclickvpnkeys%3A%3ABE",
+    "protocol": "vless",
+    "address": "45.83.20.34",
+    "port": 58164,
+    "latency": 603.73,
+    "country": "Belgium",
+    "country_code": "BE",
+    "city": "Unknown",
+    "remarks": ">>@oneclickvpnkeys::BE",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:31:39.103694+00:00"
+  },
+  {
+    "config": "vless://34c9f621-0614-4b7f-aab3-c4400bb15a89@45.83.20.34:58164?security=reality&encryption=none&pbk=7cbcFHSx2vqz38zW9BmlSIHTTSdNtlgv_S5uZ0MSIAE&headerType=none&fp=chrome&spx=/@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-@V2WRAY-?ed=2560&type=tcp&sni=yahoo.com&sid=788456bc#\ud83c\udde7\ud83c\uddea\u293f \ud835\udc02\ud835\udc21\ud835\udc1a\ud835\udc27\ud835\udc27\ud835\udc1e\ud835\udc25 @V2WRAY",
+    "protocol": "vless",
+    "address": "45.83.20.34",
+    "port": 58164,
+    "latency": 629.35,
+    "country": "Belgium",
+    "country_code": "BE",
+    "city": "Unknown",
+    "remarks": "\ud83c\udde7\ud83c\uddea\u293f \ud835\udc02\ud835\udc21\ud835\udc1a\ud835\udc27\ud835\udc27\ud835\udc1e\ud835\udc25 @V2WRAY",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:32:49.848892+00:00"
+  },
+  {
+    "config": "ss://YWVzLTI1Ni1jZmI6ZjhmN2FDemNQS2JzRjhwMw==@192.71.249.78:989#%F0%9F%87%A7%F0%9F%87%AABE-192.71.249.78-5298",
+    "protocol": "shadowsocks",
+    "address": "192.71.249.78",
+    "port": 989,
+    "latency": 308.25,
+    "country": "Belgium",
+    "country_code": "BE",
+    "city": "Unknown",
+    "remarks": "\ud83c\udde7\ud83c\uddeaBE-192.71.249.78-5298",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:46:35.115382+00:00"
+  }
+]

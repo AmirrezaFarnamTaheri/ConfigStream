@@ -1,0 +1,16 @@
+[
+  {
+    "config": "ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpmOGY3YUN6Y1BLYnNGOHAz@154.205.159.100:990#%F0%9F%87%AE%F0%9F%87%A9ID-154.205.159.100-5421",
+    "protocol": "shadowsocks",
+    "address": "154.205.159.100",
+    "port": 990,
+    "latency": 747.58,
+    "country": "Indonesia",
+    "country_code": "ID",
+    "city": "Unknown",
+    "remarks": "\ud83c\uddee\ud83c\udde9ID-154.205.159.100-5421",
+    "is_working": true,
+    "security_issues": [],
+    "tested_at": "2025-10-25T05:49:40.694650+00:00"
+  }
+]
