@@ -298,7 +298,12 @@ document.addEventListener('DOMContentLoaded', () => {
             'FR': 'France', 'NL': 'Netherlands', 'SG': 'Singapore', 'JP': 'Japan',
             'AU': 'Australia', 'IN': 'India', 'BR': 'Brazil', 'RU': 'Russia',
             'CN': 'China', 'HK': 'Hong Kong', 'KR': 'South Korea', 'IT': 'Italy',
-            'ES': 'Spain', 'SE': 'Sweden', 'CH': 'Switzerland', 'PL': 'Poland'
+            'ES': 'Spain', 'SE': 'Sweden', 'CH': 'Switzerland', 'PL': 'Poland',
+            'UA': 'Ukraine', 'NO': 'Norway', 'FI': 'Finland', 'DK': 'Denmark',
+            'BE': 'Belgium', 'AT': 'Austria', 'IE': 'Ireland', 'PT': 'Portugal',
+            'NZ': 'New Zealand', 'ID': 'Indonesia', 'MY': 'Malaysia', 'TH': 'Thailand',
+            'VN': 'Vietnam', 'AE': 'United Arab Emirates', 'SA': 'Saudi Arabia',
+            'IL': 'Israel', 'TR': 'Turkey', 'ZA': 'South Africa', 'EG': 'Egypt', 'NG': 'Nigeria'
         };
         return countryNames[countryCode] || countryCode;
     }
@@ -342,6 +347,14 @@ document.addEventListener('DOMContentLoaded', () => {
             'PL': ['#FFFFFF', '#DC143C'],
             'UA': ['#0057B7', '#FFDD00'],
             'RU': ['#FFFFFF', '#0039A6', '#D52B1E'],
+            'NO': ['#EF2B2D', '#002868', '#FFFFFF'],
+            'FI': ['#003580', '#FFFFFF'],
+            'DK': ['#C60C30', '#FFFFFF'],
+            'BE': ['#000000', '#FAE042', '#ED2939'],
+            'AT': ['#ED2939', '#FFFFFF'],
+            'IE': ['#169B62', '#FFFFFF', '#FF883E'],
+            'PT': ['#046A38', '#DA291C', '#FFC72C'],
+
 
             // Asia-Pacific
             'SG': ['#EF3340', '#FFFFFF'],
@@ -351,28 +364,49 @@ document.addEventListener('DOMContentLoaded', () => {
             'KR': ['#FFFFFF', '#CD2E3A', '#0047A0'],
             'IN': ['#FF9933', '#FFFFFF', '#138808'],
             'AU': ['#012169', '#FFFFFF', '#E4002B'],
+            'NZ': ['#012169', '#FFFFFF', '#C8102E'],
+            'ID': ['#CE1126', '#FFFFFF'],
+            'MY': ['#010066', '#CC0000', '#FFFFFF', '#FFCC00'],
+            'TH': ['#A51931', '#FFFFFF', '#2D2A4A'],
+            'VN': ['#DA251D', '#FFFF00'],
+
 
             // Middle East & Africa
             'AE': ['#00732F', '#FF0000', '#000000', '#FFFFFF'],
             'SA': ['#165C2B', '#FFFFFF'],
             'IL': ['#0038B8', '#FFFFFF'],
             'TR': ['#E30A17', '#FFFFFF'],
+            'ZA': ['#007749', '#000000', '#FFB612', '#DE3831', '#FFFFFF', '#001489'],
+            'EG': ['#CE1126', '#FFFFFF', '#000000'],
+            'NG': ['#008751', '#FFFFFF'],
         };
 
         const root = document.documentElement;
         const colorScheme = countryColors[countryCode];
+        const downloadBtn = document.getElementById('downloadFiltered');
+
+        // Countries with light flags that need inverted button text
+        const lightFlagCountries = ['SG', 'HK', 'TR', 'JP'];
 
         if (colorScheme) {
             document.body.classList.add('country-selected');
             root.style.setProperty('--brand-primary', colorScheme[0]);
             root.style.setProperty('--brand-secondary', colorScheme[1] || colorScheme[0]);
             root.style.setProperty('--brand-tertiary', colorScheme[2] || colorScheme[1] || colorScheme[0]);
+
+            if (lightFlagCountries.includes(countryCode.toUpperCase())) {
+                downloadBtn.classList.add('btn-primary-inverted');
+            } else {
+                downloadBtn.classList.remove('btn-primary-inverted');
+            }
+
         } else {
             document.body.classList.remove('country-selected');
             // Reset to default theme colors
             root.style.removeProperty('--brand-primary');
             root.style.removeProperty('--brand-secondary');
             root.style.removeProperty('--brand-tertiary');
+            downloadBtn.classList.remove('btn-primary-inverted');
         }
     }
 
@@ -412,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedCountries.forEach(country => {
             const option = document.createElement('option');
             option.value = country;
-            option.textContent = country; // Only show country code
+            option.textContent = getCountryName(country);
             option.dataset.countryCode = country;
             countryFilter.appendChild(option);
         });
