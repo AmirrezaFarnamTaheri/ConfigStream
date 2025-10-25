@@ -7,7 +7,7 @@ Implements the selection algorithm:
 - Ensures diversity across protocols while prioritizing quality
 """
 
-from typing import List, Dict
+from typing import Any, Dict, List
 from collections import defaultdict
 
 from .models import Proxy
@@ -32,15 +32,14 @@ def select_chosen_proxies(all_proxies: List[Proxy]) -> List[Proxy]:
     """
     # Filter to only working proxies without security issues
     working = [
-        p for p in all_proxies
-        if p.is_working and not p.security_issues and p.latency is not None
+        p for p in all_proxies if p.is_working and not p.security_issues and p.latency is not None
     ]
 
     if not working:
         return []
 
     # Sort all proxies by latency (best first)
-    working_sorted = sorted(working, key=lambda p: p.latency or float('inf'))
+    working_sorted = sorted(working, key=lambda p: p.latency or float("inf"))
 
     # Group by protocol
     by_protocol: Dict[str, List[Proxy]] = defaultdict(list)
@@ -72,12 +71,12 @@ def select_chosen_proxies(all_proxies: List[Proxy]) -> List[Proxy]:
                 remaining_needed -= 1
 
     # Re-sort final list by latency for clean output
-    chosen.sort(key=lambda p: p.latency or float('inf'))
+    chosen.sort(key=lambda p: p.latency or float("inf"))
 
     return chosen[:CHOSEN_TOTAL_TARGET]
 
 
-def get_selection_stats(all_proxies: List[Proxy], chosen: List[Proxy]) -> Dict[str, any]:
+def get_selection_stats(all_proxies: List[Proxy], chosen: List[Proxy]) -> Dict[str, Any]:
     """
     Generate statistics about the selection process.
 

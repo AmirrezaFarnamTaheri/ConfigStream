@@ -160,7 +160,9 @@ async def fetch_from_source(
 
                 # Handle 304 Not Modified - cache hit!
                 if response.status_code == 304:
-                    logger.info(f"Cache hit (304 Not Modified) for {source} in {response_time:.2f}s")
+                    logger.info(
+                        f"Cache hit (304 Not Modified) for {source} in {response_time:.2f}s"
+                    )
                     return FetchResult(
                         source=source,
                         configs=[],
@@ -295,7 +297,9 @@ async def fetch_from_source(
                 backoff = min(backoff * 2, 60)
 
         # All attempts failed
-        logger.error(f"Failed to fetch {source} after {max_retries} attempts. Last error: {last_error}")
+        logger.error(
+            f"Failed to fetch {source} after {max_retries} attempts. Last error: {last_error}"
+        )
         return FetchResult(source=source, configs=[], success=False, error=last_error)
 
     # Run fetch with optional per-host semaphore
@@ -303,12 +307,12 @@ async def fetch_from_source(
     if semaphore:
         try:
             async with semaphore:
-                return await _fetch_with_semaphore()
+                return await _fetch_with_semaphore()  # type: ignore[no-any-return]
         except Exception:
             # Ensure semaphore release on all exceptions
             raise
     else:
-        return await _fetch_with_semaphore()
+        return await _fetch_with_semaphore()  # type: ignore[no-any-return]
 
 
 def _parse_retry_after_header(header_value: str | None) -> float | None:
@@ -388,7 +392,9 @@ async def fetch_multiple_sources(
     rate_limiter = RateLimiter(requests_per_second=2.0)
 
     # Create per-host semaphores for concurrency limiting
-    host_semaphores: Dict[str, asyncio.Semaphore] = defaultdict(lambda: asyncio.Semaphore(per_host_limit))
+    host_semaphores: Dict[str, asyncio.Semaphore] = defaultdict(
+        lambda: asyncio.Semaphore(per_host_limit)
+    )
 
     # Create a global semaphore to limit total concurrent requests
     global_semaphore = asyncio.Semaphore(max_concurrent)
