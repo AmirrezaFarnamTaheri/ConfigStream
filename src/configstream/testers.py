@@ -1,6 +1,8 @@
 import asyncio
+import importlib
 import logging
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional
 from typing import TYPE_CHECKING, ClassVar, Optional
 from urllib.parse import urlparse
 
@@ -13,7 +15,15 @@ from .constants import TEST_URLS
 from singbox2proxy import SingBoxProxy
 
 if TYPE_CHECKING:
+    from singbox2proxy import SingBoxProxy as _SingBoxProxy
     from .test_cache import TestResultCache
+
+    SingBoxProxyType = _SingBoxProxy
+else:
+    SingBoxProxyType = Any  # pragma: no cover
+
+
+SingBoxProxy: Callable[[str], Any] | None = None
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +153,9 @@ class SingBoxTester(ProxyTester):
                 return cached_result
             self.cache_misses += 1
 
+        # Perform actual test
+        singbox_factory = self._get_singbox_factory()
+        sb_proxy: SingBoxProxyType | None = None
         # For HTTP/SOCKS5 proxies, test directly to avoid Sing-Box overhead
         if proxy.protocol.lower() in ("http", "https", "socks", "socks5", "socks4", "socks4a"):
             logger.debug(f"Using direct test for {proxy.protocol} proxy {proxy.address}:{proxy.port}")
@@ -159,7 +172,7 @@ class SingBoxTester(ProxyTester):
             # Run the synchronous SingBoxProxy constructor in a thread to avoid
             # blocking the event loop. The constructor calls start() and waits
             # for the process to be ready.
-            sb_proxy = await loop.run_in_executor(None, lambda: SingBoxProxy(proxy.config))
+            sb_proxy = await loop.run_in_executor(None, lambda: singbox_factory(proxy.config))
 
             if not sb_proxy or not sb_proxy.http_proxy_url:
                 proxy.is_working = False
@@ -286,6 +299,23 @@ class SingBoxTester(ProxyTester):
             self.cache.set(proxy)
 
         return proxy
+
+    @staticmethod
+    def _get_singbox_factory() -> Callable[[str], Any]:
+        """Return a callable that constructs ``SingBoxProxy`` instances."""
+
+        global SingBoxProxy
+
+        if SingBoxProxy is not None:
+            return SingBoxProxy
+
+        try:
+            module = importlib.import_module("singbox2proxy")
+            SingBoxProxy = getattr(module, "SingBoxProxy")
+        except Exception as exc:  # pragma: no cover - depends on optional dependency
+            raise RuntimeError("singbox2proxy is not available") from exc
+
+        return SingBoxProxy
 
     def get_cache_stats(self) -> dict:
         """Get cache hit/miss statistics."""

@@ -5,6 +5,7 @@ This module provides a SQLite-based cache for proxy test results,
 significantly reducing retest time by skipping recently validated proxies.
 """
 
+import hashlib
 import logging
 import sqlite3
 import time
@@ -82,7 +83,7 @@ class TestResultCache:
         if not proxy.config:
             return None
 
-        config_hash = hash(proxy.config)
+        config_hash = self._compute_hash(proxy.config)
         current_time = time.time()
         cutoff_time = current_time - self.ttl_seconds
 
@@ -95,7 +96,7 @@ class TestResultCache:
                 FROM test_results
                 WHERE config_hash = ? AND tested_at > ?
                 """,
-                (str(config_hash), cutoff_time),
+                (config_hash, cutoff_time),
             )
             row = cursor.fetchone()
 
@@ -131,14 +132,14 @@ class TestResultCache:
         if not proxy.config:
             return
 
-        config_hash = hash(proxy.config)
+        config_hash = self._compute_hash(proxy.config)
         current_time = time.time()
 
         with sqlite3.connect(self.db_path) as conn:
             # Check if entry exists
             cursor = conn.execute(
                 "SELECT test_count, success_count FROM test_results WHERE config_hash = ?",
-                (str(config_hash),),
+                (config_hash,),
             )
             row = cursor.fetchone()
 
@@ -162,7 +163,7 @@ class TestResultCache:
                         current_time,
                         test_count,
                         success_count,
-                        str(config_hash),
+                        config_hash,
                     ),
                 )
             else:
@@ -176,7 +177,7 @@ class TestResultCache:
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
                     """,
                     (
-                        str(config_hash),
+                        config_hash,
                         proxy.config,
                         int(proxy.is_working),
                         proxy.latency,
@@ -202,12 +203,12 @@ class TestResultCache:
         if not proxy.config:
             return 0.5  # Default neutral score
 
-        config_hash = hash(proxy.config)
+        config_hash = self._compute_hash(proxy.config)
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
                 "SELECT test_count, success_count FROM test_results WHERE config_hash = ?",
-                (str(config_hash),),
+                (config_hash,),
             )
             row = cursor.fetchone()
 
@@ -215,6 +216,13 @@ class TestResultCache:
                 return float(row[1]) / float(row[0])  # type: ignore[no-any-return]
 
         return 0.5  # Default neutral score for new proxies
+
+    @staticmethod
+    def _compute_hash(config: str) -> str:
+        """Return a stable hash for a configuration string."""
+
+        digest = hashlib.sha256(config.encode("utf-8")).hexdigest()
+        return digest
 
     def cleanup_expired(self) -> int:
         """
