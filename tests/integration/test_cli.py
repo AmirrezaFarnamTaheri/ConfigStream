@@ -1,7 +1,6 @@
 import pytest
 from click.testing import CliRunner
 from configstream.cli import cli
-from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture

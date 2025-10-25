@@ -2,7 +2,6 @@
 
 import json
 import pytest
-from pathlib import Path
 from configstream.source_quality import SourceQualityTracker
 from configstream.models import Proxy
 

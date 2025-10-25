@@ -118,8 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
         }).join('');
-        if (typeof feather !== 'undefined') {
-            feather.replace();
+        if (window.inlineIcons) {
+            window.inlineIcons.replace();
         }
 
         renderPagination(filteredProxies.length);
@@ -291,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper function to get country name from country code
     function getCountryName(countryCode) {
         const countryNames = {
+            'XX': 'Unknown',
             'US': 'United States', 'GB': 'United Kingdom', 'CA': 'Canada', 'DE': 'Germany',
             'FR': 'France', 'NL': 'Netherlands', 'SG': 'Singapore', 'JP': 'Japan',
             'AU': 'Australia', 'IN': 'India', 'BR': 'Brazil', 'RU': 'Russia',
@@ -326,8 +327,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         allProxies.forEach(p => {
             if (p.protocol) protocols.add(p.protocol);
-            // Exclude XX and empty country codes
-            if (p.country_code && p.country_code !== 'XX') {
+            // Exclude empty country codes
+            if (p.country_code) {
                 countries.add(p.country_code);
                 if (p.city) {
                     cities.add(p.city);
@@ -352,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedCountries.forEach(country => {
             const option = document.createElement('option');
             option.value = country;
-            option.textContent = `${country} - ${getCountryName(country)}`;
+            option.textContent = `${country} ${getCountryName(country)}`;
             option.dataset.countryCode = country;
             countryFilter.appendChild(option);
         });
@@ -363,8 +364,9 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedCities.forEach(city => {
             const option = document.createElement('option');
             option.value = city;
-            option.textContent = city;
-            option.dataset.countryCode = cityToCountry.get(city) || '';
+            const countryCode = cityToCountry.get(city) || '';
+            option.textContent = countryCode ? `${city} (${countryCode})` : city;
+            option.dataset.countryCode = countryCode;
             cityFilter.appendChild(option);
         });
 

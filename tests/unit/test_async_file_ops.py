@@ -5,9 +5,7 @@ These tests verify that our async file operations work correctly and
 actually provide the expected performance benefits.
 """
 
-import asyncio
 import pytest
-from pathlib import Path
 from configstream.async_file_ops import (
     read_file_async,
     write_file_async,

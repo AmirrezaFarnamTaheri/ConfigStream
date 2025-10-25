@@ -171,7 +171,6 @@ def test_singbox_tester_cache_integration():
     """Test tester with cache integration."""
     from configstream.testers import SingBoxTester
     from configstream.test_cache import TestResultCache
-    from configstream.models import Proxy
     import tempfile
     from pathlib import Path
 

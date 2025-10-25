@@ -72,6 +72,8 @@ body.dark {
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 body {
@@ -79,6 +81,25 @@ body {
     color: var(--text-primary);
     transition: background-color var(--transition-base), color var(--transition-base);
     font-family: var(--font-sans);
+    overflow-x: hidden;
+    max-width: 100%;
+    position: relative;
+}
+
+/* Prevent horizontal overflow on all content */
+img, video, iframe, embed, object {
+    max-width: 100%;
+    height: auto;
+}
+
+pre, code {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.container, .main-content, main, section {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 /* 5. Main Content & Cards - Neumorphic Glassmorphism */
@@ -460,6 +481,16 @@ body.dark .github-btn:hover {
 }
 
 @media (max-width: 768px) {
+    /* Prevent all horizontal overflow on mobile */
+    html, body {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+
+    * {
+        max-width: 100%;
+    }
+
     /* Enhanced touch targets for mobile */
     .nav {
         position: fixed;
@@ -689,12 +720,15 @@ body.dark .github-btn:hover {
     .table-container {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
-        margin: 0 calc(var(--space-unit) * -3);
-        padding: 0 calc(var(--space-unit) * 3);
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        max-width: 100vw;
     }
 
     .proxies-table {
         min-width: 600px;
+        max-width: 100%;
     }
 
     .proxies-table th,
@@ -2264,5 +2298,42 @@ body.dark #preloader {
     .proxies-table th,
     .proxies-table td {
         padding: calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 1);
+    }
+}
+
+/* ===== COMPREHENSIVE MOBILE IMPROVEMENTS ===== */
+@media (max-width: 768px) {
+    /* Prevent all forms of horizontal scrolling */
+    select, input, textarea, button {
+        min-height: 44px !important;
+        font-size: 16px !important; /* Prevent iOS zoom */
+        max-width: 100%;
+    }
+
+    /* Ensure all filter inputs are touch-friendly */
+    .filter-input-group select,
+    .filter-input-group input {
+        width: 100% !important;
+        min-height: 48px !important;
+    }
+
+    /* Better mobile table experience */
+    .table-wrapper {
+        max-width: 100vw;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Improve copy buttons on mobile */
+    .copy-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: calc(var(--space-unit) * 1.5);
+    }
+
+    /* Better mobile card spacing */
+    .card {
+        margin-left: calc(var(--space-unit) * 2);
+        margin-right: calc(var(--space-unit) * 2);
     }
 }
