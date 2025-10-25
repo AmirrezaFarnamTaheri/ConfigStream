@@ -1152,6 +1152,16 @@ body.dark .btn-secondary {
 .btn-primary:focus-visible {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 30%, transparent), 0 8px 20px -6px var(--brand-secondary);
 }
+
+/* Inverted style for light backgrounds */
+.btn-primary-inverted span {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
 body.dark .btn-secondary:hover {
     border-color: var(--brand-primary);
     color: var(--brand-primary);
