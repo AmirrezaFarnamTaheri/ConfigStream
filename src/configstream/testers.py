@@ -69,7 +69,8 @@ class SingBoxTester(ProxyTester):
 
             if not sb_proxy or not sb_proxy.http_proxy_url:
                 proxy.is_working = False
-                proxy.security_issues.append("Proxy http_proxy_url is not set")
+                if isinstance(proxy.security_issues, list):
+                    proxy.security_issues.append("Proxy http_proxy_url is not set")
                 return proxy
 
             connector = ProxyConnector.from_url(sb_proxy.http_proxy_url)
@@ -126,16 +127,19 @@ class SingBoxTester(ProxyTester):
                     continue
 
             if not proxy.is_working:
-                proxy.security_issues.append("All test URLs failed")
+                if isinstance(proxy.security_issues, list):
+                    proxy.security_issues.append("All test URLs failed")
 
         except RuntimeError as e:
             proxy.is_working = False
-            proxy.security_issues.append(f"SingBox error: {e}")
+            if isinstance(proxy.security_issues, list):
+                proxy.security_issues.append(f"SingBox error: {e}")
             logger.debug(f"SingBoxProxy error for {proxy.config}: {e}")
         except Exception as e:
             proxy.is_working = False
             error_details = "[MASKED]" if self.config.MASK_SENSITIVE_DATA else str(e)
-            proxy.security_issues.append(f"Connection failed: {error_details}")
+            if isinstance(proxy.security_issues, list):
+                proxy.security_issues.append(f"Connection failed: {error_details}")
             logger.error(f"Proxy test error for {proxy.config}: {str(e)[:100]}")
         finally:
             if sb_proxy:
