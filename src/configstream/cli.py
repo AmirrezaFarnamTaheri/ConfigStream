@@ -259,7 +259,9 @@ async def _retest_logic_async(
         # If we got zero tested but everything else worked, just warn
         if result.get("tested", 0) == 0 and result.get("kept", 0) == 0:
             click.echo(f"⚠ Warning: {error_msg}", err=False)
-            click.echo("No proxies were successfully tested, but outputs were generated.", err=False)
+            click.echo(
+                "No proxies were successfully tested, but outputs were generated.", err=False
+            )
             # Don't raise - exit gracefully
             return
         # Other errors are critical
@@ -289,7 +291,11 @@ async def _retest_logic_async(
 @click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))
 @click.option("--max-workers", type=int, default=10)
 @click.option("--timeout", type=int, default=30)
-@click.option("--lenient/--no-lenient", default=True, help="Keep insecure configs but tag them (default: lenient).")
+@click.option(
+    "--lenient/--no-lenient",
+    default=True,
+    help="Keep insecure configs but tag them (default: lenient).",
+)
 @click.option("--show-metrics", is_flag=True)
 @handle_cli_errors(context="Retest operation")
 def retest(
