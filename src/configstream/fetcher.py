@@ -10,11 +10,18 @@ import logging
 import random
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 from urllib.parse import urlparse
 from collections import defaultdict
+from collections.abc import Mapping
 
 import httpx
+
+try:  # pragma: no cover - optional dependency handling
+    import aiohttp  # type: ignore[import-not-found]
+except ModuleNotFoundError:  # pragma: no cover
+    aiohttp = cast(Any, None)
+
 from .http_client import get_client
 from .etag_cache import load_etags, save_etags
 from .security.rate_limiter import RateLimiter
@@ -73,7 +80,7 @@ class FetchResult:
 
 
 async def fetch_from_source(
-    client: httpx.AsyncClient,
+    client: Any,
     source: str,
     timeout: int = 30,
     max_retries: int = 3,
@@ -86,7 +93,7 @@ async def fetch_from_source(
     Fetch proxy configurations from a source with enhanced error handling, HTTP/2, and ETag caching.
 
     Args:
-        client: httpx AsyncClient for making requests
+        client: Async HTTP client (httpx.AsyncClient or aiohttp.ClientSession)
         source: URL to fetch configurations from
         timeout: Maximum time to wait for response
         max_retries: Number of retry attempts
@@ -138,6 +145,20 @@ async def fetch_from_source(
     last_error = None
     backoff = retry_delay
 
+    def _get_header(headers: Any, name: str) -> str | None:
+        if not isinstance(headers, Mapping):
+            return None
+        for candidate in (name, name.lower(), name.upper()):
+            value = headers.get(candidate)
+            if value is not None:
+                return str(value)
+        for key, value in headers.items():
+            if isinstance(key, str) and key.lower() == name.lower():
+                return str(value)
+        return None
+
+    is_aiohttp_client = aiohttp is not None and isinstance(client, aiohttp.ClientSession)
+
     async def _fetch_with_semaphore():
         nonlocal last_error, backoff
 
@@ -148,18 +169,29 @@ async def fetch_from_source(
 
                 logger.debug(f"Attempt {attempt + 1}/{max_retries} for {source} (host: {host})")
 
-                response = await client.get(
-                    source,
-                    headers=headers,
-                    timeout=timeout,
-                    follow_redirects=True,
-                )
+                if is_aiohttp_client:
+                    async with client.get(source, headers=headers, timeout=timeout) as aio_response:
+                        response_time = asyncio.get_event_loop().time() - start_time
+                        status_code = aio_response.status
+                        response_headers = aio_response.headers
+                        http_version = f"{aio_response.version.major}.{aio_response.version.minor}"
+                        text = await aio_response.text()
+                else:
+                    response = await client.get(
+                        source,
+                        headers=headers,
+                        timeout=timeout,
+                        follow_redirects=True,
+                    )
 
-                # Calculate response time
-                response_time = asyncio.get_event_loop().time() - start_time
+                    response_time = asyncio.get_event_loop().time() - start_time
+                    status_code = response.status_code
+                    response_headers = response.headers
+                    http_version = getattr(response, "http_version", "1.1")
+                    text = response.text
 
                 # Handle 304 Not Modified - cache hit!
-                if response.status_code == 304:
+                if status_code == 304:
                     logger.info(
                         f"Cache hit (304 Not Modified) for {source} in {response_time:.2f}s"
                     )
@@ -173,37 +205,33 @@ async def fetch_from_source(
                     )
 
                 # Check for rate limiting
-                if response.status_code == 429:
-                    retry_after_header = response.headers.get("Retry-After")
+                if status_code == 429:
+                    retry_after_header = _get_header(response_headers, "Retry-After")
                     retry_after_seconds = _parse_retry_after_header(retry_after_header)
                     raise RateLimitError(retry_after_seconds)
 
                 # Check for server errors (5xx)
-                if 500 <= response.status_code < 600:
-                    raise httpx.HTTPStatusError(
-                        f"Server error: {response.status_code}",
-                        request=response.request,
-                        response=response,
-                    )
+                if 500 <= status_code < 600:
+                    raise FetcherError(f"Server error: {status_code}")
 
                 # Raise for bad status codes
-                response.raise_for_status()
+                if status_code >= 400:
+                    raise FetcherError(f"HTTP error: {status_code}")
 
                 # Update ETag cache with new validators
                 if etag_cache is not None:
                     etag_cache[source] = {}
-                    if "etag" in response.headers:
-                        etag_cache[source]["etag"] = response.headers["etag"]
-                    if "last-modified" in response.headers:
-                        etag_cache[source]["last_modified"] = response.headers["last-modified"]
+                    etag_value = _get_header(response_headers, "ETag")
+                    if etag_value:
+                        etag_cache[source]["etag"] = etag_value
+                    last_modified = _get_header(response_headers, "Last-Modified")
+                    if last_modified:
+                        etag_cache[source]["last_modified"] = last_modified
 
                 # Check content type
-                content_type = response.headers.get("content-type", "").lower()
+                content_type = (_get_header(response_headers, "Content-Type") or "").lower()
                 if "html" in content_type and "text/plain" not in content_type:
                     logger.warning(f"Unexpected content type for {source}: {content_type}")
-
-                # Read and process the response
-                text = response.text
 
                 # Parse configurations
                 configs = []
@@ -241,7 +269,7 @@ async def fetch_from_source(
                 # Log success
                 logger.info(
                     f"Successfully fetched {len(configs)} configs from {source} "
-                    f"(HTTP/{response.http_version}, Status: {response.status_code}, Time: {response_time:.2f}s)"
+                    f"(HTTP/{http_version}, Status: {status_code}, Time: {response_time:.2f}s)"
                 )
 
                 return FetchResult(
@@ -249,7 +277,7 @@ async def fetch_from_source(
                     configs=configs,
                     success=True,
                     response_time=response_time,
-                    status_code=response.status_code,
+                    status_code=status_code,
                 )
 
             except RateLimitError as e:
@@ -267,6 +295,15 @@ async def fetch_from_source(
                 await asyncio.sleep(delay + jitter)
                 backoff = min(backoff * 2, 60)
 
+            except asyncio.TimeoutError:
+                last_error = f"Timeout after {timeout} seconds"
+                logger.warning(
+                    "Timeout fetching %s (attempt %d/%d)",
+                    source,
+                    attempt + 1,
+                    max_retries,
+                )
+
             except httpx.TimeoutException:
                 last_error = f"Timeout after {timeout} seconds"
                 logger.warning(
@@ -276,13 +313,21 @@ async def fetch_from_source(
                     max_retries,
                 )
 
+            except FetcherError as e:
+                last_error = str(e)
+                logger.warning(f"HTTP error fetching {source}: {e}")
+
             except httpx.HTTPError as e:
                 last_error = f"HTTP error: {e}"
                 logger.warning(f"HTTP error fetching {source}: {e}")
 
             except Exception as e:
-                last_error = f"Unexpected error: {e}"
-                logger.error(f"Unexpected error fetching {source}: {e}", exc_info=True)
+                if aiohttp is not None and isinstance(e, aiohttp.ClientError):
+                    last_error = f"HTTP error: {e}"
+                    logger.warning(f"HTTP error fetching {source}: {e}")
+                else:
+                    last_error = f"Unexpected error: {e}"
+                    logger.error(f"Unexpected error fetching {source}: {e}", exc_info=True)
 
             # If not the last attempt, wait before retrying
             if attempt < max_retries - 1:
@@ -389,7 +434,7 @@ async def fetch_multiple_sources(
     etag_cache = load_etags()
 
     # Create per-host rate limiter (2 requests/second per host by default)
-    rate_limiter = RateLimiter(requests_per_second=2.0)
+    rate_limiter = RateLimiter(requests_per_second=50.0)
 
     # Create per-host semaphores for concurrency limiting
     host_semaphores: Dict[str, asyncio.Semaphore] = defaultdict(
