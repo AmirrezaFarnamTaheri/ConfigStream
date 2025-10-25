@@ -259,7 +259,7 @@ async def _retest_logic_async(
 )
 @click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))
 @click.option("--max-workers", type=int, default=10)
-@click.option("--timeout", type=int, default=10)
+@click.option("--timeout", type=int, default=30)
 @click.option("--show-metrics", is_flag=True)
 @handle_cli_errors(context="Retest operation")
 def retest(
