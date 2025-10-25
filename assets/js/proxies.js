@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'PG': ['#000000', '#D21034', '#FFE600', '#FFFFFF'],
             'PH': ['#0038A8', '#FFFFFF', '#CE1126', '#FCD116'],
             'PK': ['#00401A', '#FFFFFF'],
-            'PL': ['#FFFFFF', '#DC143C'],
+            'PL': ['#DC143C', '#FFFFFF'],
             'PM': ['#002395', '#FFFFFF', '#ED2939'],
             'PR': ['#ED0026', '#FFFFFF', '#0050F0'],
             'PS': ['#000000', '#FFFFFF', '#009639', '#DE2129'],
@@ -809,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Countries with light flags that need inverted button text
         const lightFlagCountries = [
             'AR', 'AT', 'CA', 'CH', 'CY', 'DK', 'EE', 'FI', 'GE', 'GR', 'HK', 'ID', 'IL',
-            'JP', 'KR', 'LT', 'LV', 'PL', 'PT', 'SA', 'SG', 'TR', 'UA', 'UY'
+            'JP', 'KR', 'LT', 'LV', 'NG', 'PL', 'PT', 'SA', 'SG', 'TR', 'UA', 'UY'
         ];
 
         if (colorScheme) {
