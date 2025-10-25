@@ -28,6 +28,7 @@ from .output import (
     generate_shadowrocket_subscription,
     generate_quantumult_config,
     generate_surge_config,
+    generate_categorized_outputs,
 )
 from .testers import SingBoxTester
 from .performance import PerformanceTracker
@@ -719,6 +720,19 @@ async def run_full_pipeline(
                     report_path = output_path / "report.json"
                     report_path.write_text(json.dumps(stats_report, indent=2))
                     output_files["report"] = str(report_path)
+
+                    # Generate categorized outputs for better organization
+                    try:
+                        categorized_files = generate_categorized_outputs(
+                            all_tested_proxies, output_path
+                        )
+                        output_files.update(categorized_files)
+                        logger.info(
+                            "Generated %d categorized output files",
+                            len(categorized_files),
+                        )
+                    except Exception as exc:  # pragma: no cover - defensive
+                        logger.warning("Failed to generate categorized outputs: %s", exc)
             except Exception as exc:  # pragma: no cover - defensive
                 logger.error("Failed to generate outputs: %s", exc)
                 raise

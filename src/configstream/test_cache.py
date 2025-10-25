@@ -245,7 +245,11 @@ class TestResultCache:
                 SELECT
                     COUNT(*) as total_entries,
                     SUM(CASE WHEN tested_at > ? THEN 1 ELSE 0 END) as valid_entries,
-                    AVG(CASE WHEN tested_at > ? THEN success_count * 1.0 / test_count ELSE NULL END) as avg_health_score
+                    AVG(
+                        CASE WHEN tested_at > ?
+                        THEN success_count * 1.0 / test_count
+                        ELSE NULL END
+                    ) as avg_health_score
                 FROM test_results
                 """,
                 (cutoff_time, cutoff_time),
