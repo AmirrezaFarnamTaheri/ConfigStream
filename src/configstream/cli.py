@@ -252,19 +252,8 @@ async def _retest_logic_async(
             leniency=leniency,
         )
 
-    # For retest, don't fail if we have some output, even if tested==0
-    # Only fail if there's a critical error
     if not result.get("success", True):
         error_msg = result.get("error", "Retest failed")
-        # If we got zero tested but everything else worked, just warn
-        if result.get("tested", 0) == 0 and result.get("kept", 0) == 0:
-            click.echo(f"⚠ Warning: {error_msg}", err=False)
-            click.echo(
-                "No proxies were successfully tested, but outputs were generated.", err=False
-            )
-            # Don't raise - exit gracefully
-            return
-        # Other errors are critical
         raise CLIError(error_msg)
 
     click.echo("\n Retest completed successfully!")

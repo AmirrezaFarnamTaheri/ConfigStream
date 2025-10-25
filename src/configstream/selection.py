@@ -50,25 +50,31 @@ def select_chosen_proxies(all_proxies: List[Proxy]) -> List[Proxy]:
     chosen = []
     chosen_ids = set()
 
+    per_protocol_cap = CHOSEN_TOP_PER_PROTOCOL if len(by_protocol) > 1 else CHOSEN_TOTAL_TARGET
+
     # Step 1: Take top N per protocol
+    protocol_counts: Dict[str, int] = defaultdict(int)
     for protocol, proxies in sorted(by_protocol.items()):
         # Already sorted by latency globally, so just take first N for this protocol
-        protocol_top = proxies[:CHOSEN_TOP_PER_PROTOCOL]
+        protocol_top = proxies[:per_protocol_cap]
         for p in protocol_top:
             if p.id not in chosen_ids:
                 chosen.append(p)
                 chosen_ids.add(p.id)
+                protocol_counts[protocol] += 1
 
     # Step 2: Fill remaining slots from all remaining proxies
     if len(chosen) < CHOSEN_TOTAL_TARGET:
-        remaining_needed = CHOSEN_TOTAL_TARGET - len(chosen)
         for proxy in working_sorted:
             if len(chosen) >= CHOSEN_TOTAL_TARGET:
                 break
             if proxy.id not in chosen_ids:
+                protocol = proxy.protocol.lower()
+                if protocol_counts[protocol] >= per_protocol_cap:
+                    continue
                 chosen.append(proxy)
                 chosen_ids.add(proxy.id)
-                remaining_needed -= 1
+                protocol_counts[protocol] += 1
 
     # Re-sort final list by latency for clean output
     chosen.sort(key=lambda p: p.latency or float("inf"))
