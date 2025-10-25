@@ -668,6 +668,13 @@ body.dark .github-btn:hover {
         padding: calc(var(--space-unit) * 2);
     }
 
+    #downloads .accordion-header .card-header h2 {
+        font-size: 1.4rem;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        hyphens: auto;
+    }
+
     .accordion-content > div {
         padding-top: var(--space-unit);
     }
@@ -748,7 +755,7 @@ body.dark .github-btn:hover {
     }
 }
 main {
-    padding: calc(var(--space-unit) * 6) 0;
+    padding: calc(var(--space-unit) * 2) 0;
 }
 
 /* Main Grid Layout */
@@ -1853,10 +1860,19 @@ body.dark #preloader {
     background: var(--bg-primary);
 }
 .loader-logo {
-    width: 80px;
-    height: 80px;
-    background: url('../svg/logo-loading.svg') no-repeat center center;
-    background-size: contain;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-logo object,
+.loader-logo img,
+.loader-logo svg {
+    width: 100%;
+    height: 100%;
 }
 
 #preloader.hidden {
@@ -2221,19 +2237,29 @@ body.dark #preloader {
 }
 
 @media (max-width: 768px) {
+    /* Reduce filter controls padding in portrait mode */
+    .filter-controls-redesigned {
+        padding: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
+        margin-bottom: calc(var(--space-unit) * 2);
+    }
+
     .filter-bar, .actions-bar {
         flex-direction: column;
         align-items: stretch;
+        gap: calc(var(--space-unit) * 1.5);
     }
     .filter-group, .action-group {
         flex-direction: column;
         width: 100%;
+        gap: calc(var(--space-unit) * 1);
     }
     .filter-input-wrapper {
         min-width: 100%;
     }
     .actions-bar {
         flex-direction: column-reverse; /* Put pagination info on top */
+        padding-top: calc(var(--space-unit) * 1.5);
     }
     .pagination-info {
         width: 100%;

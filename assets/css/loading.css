@@ -88,37 +88,9 @@
   margin: 0 auto 2.5rem;
   position: relative;
   animation: logoFloat 3s ease-in-out infinite;
-  filter: drop-shadow(0 15px 40px rgba(0, 0, 0, 0.4));
-}
-
-/* Colorful glow effect behind logo */
-.loading-logo::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle,
-    rgba(94, 85, 241, 0.6) 0%,
-    rgba(216, 58, 141, 0.4) 50%,
-    rgba(168, 85, 247, 0.3) 100%);
-  border-radius: 50%;
-  animation: pulseGlow 2s ease-in-out infinite;
-  z-index: -1;
-  filter: blur(30px);
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(0.9);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.1);
-    opacity: 1;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes logoFloat {
@@ -301,11 +273,6 @@
     width: 140px;
     height: 140px;
     margin-bottom: 2rem;
-  }
-
-  .loading-logo::before {
-    width: 160px;
-    height: 160px;
   }
 
   .loading-container {
