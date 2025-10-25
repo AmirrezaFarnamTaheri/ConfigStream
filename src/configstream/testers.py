@@ -3,8 +3,6 @@ import importlib
 import logging
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional
-from typing import TYPE_CHECKING, ClassVar, Optional
-from urllib.parse import urlparse
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
@@ -23,7 +21,7 @@ else:
     SingBoxProxyType = Any  # pragma: no cover
 
 
-SingBoxProxy: Callable[[str], Any] | None = None
+SingBoxProxy: Callable[[str], Any] | None = None  # type: ignore[assignment,no-redef]  # noqa: F811
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +53,7 @@ class ProxyTester:
 class SingBoxTester(ProxyTester):
     """Proxy tester using sing-box with optional caching and direct testing for HTTP/SOCKS5."""
 
-    async def _test_direct_http_socks(self, proxy: Proxy) -> Proxy:
+    async def _test_direct_http_socks(self, proxy: Proxy) -> Optional[Proxy]:
         """
         Test HTTP/SOCKS5 proxies directly without Sing-Box for better performance.
 
@@ -67,7 +65,11 @@ class SingBoxTester(ProxyTester):
                 proxy_url = f"{proxy.protocol}://{proxy.address}:{proxy.port}"
             elif proxy.protocol.lower() in ("socks", "socks5", "socks4", "socks4a"):
                 # Normalize to socks5
-                protocol = "socks5" if proxy.protocol.lower() in ("socks", "socks5") else proxy.protocol.lower()
+                protocol = (
+                    "socks5"
+                    if proxy.protocol.lower() in ("socks", "socks5")
+                    else proxy.protocol.lower()
+                )
                 proxy_url = f"{protocol}://{proxy.address}:{proxy.port}"
             else:
                 # Fallback to Sing-Box for complex protocols
@@ -155,18 +157,21 @@ class SingBoxTester(ProxyTester):
 
         # Perform actual test
         singbox_factory = self._get_singbox_factory()
-        sb_proxy: SingBoxProxyType | None = None
         # For HTTP/SOCKS5 proxies, test directly to avoid Sing-Box overhead
         if proxy.protocol.lower() in ("http", "https", "socks", "socks5", "socks4", "socks4a"):
-            logger.debug(f"Using direct test for {proxy.protocol} proxy {proxy.address}:{proxy.port}")
+            logger.debug(
+                f"Using direct test for {proxy.protocol} proxy {proxy.address}:{proxy.port}"
+            )
             direct_result = await self._test_direct_http_socks(proxy)
             if direct_result:
                 return direct_result
             # If direct test failed, fall back to Sing-Box
-            logger.debug(f"Direct test failed, falling back to Sing-Box for {proxy.address}:{proxy.port}")
+            logger.debug(
+                f"Direct test failed, falling back to Sing-Box for {proxy.address}:{proxy.port}"
+            )
 
         # Perform Sing-Box test for complex protocols or fallback
-        sb_proxy: SingBoxProxy | None = None
+        sb_proxy: Any = None
         loop = asyncio.get_running_loop()
         try:
             # Run the synchronous SingBoxProxy constructor in a thread to avoid
@@ -178,7 +183,9 @@ class SingBoxTester(ProxyTester):
                 proxy.is_working = False
                 if "configuration_error" not in proxy.security_issues:
                     proxy.security_issues["configuration_error"] = []
-                proxy.security_issues["configuration_error"].append("Proxy http_proxy_url is not set")
+                proxy.security_issues["configuration_error"].append(
+                    "Proxy http_proxy_url is not set"
+                )
                 return proxy
 
             connector = ProxyConnector.from_url(sb_proxy.http_proxy_url)
@@ -307,7 +314,7 @@ class SingBoxTester(ProxyTester):
         global SingBoxProxy
 
         if SingBoxProxy is not None:
-            return SingBoxProxy
+            return SingBoxProxy  # type: ignore[no-any-return]
 
         try:
             module = importlib.import_module("singbox2proxy")
@@ -315,7 +322,7 @@ class SingBoxTester(ProxyTester):
         except Exception as exc:  # pragma: no cover - depends on optional dependency
             raise RuntimeError("singbox2proxy is not available") from exc
 
-        return SingBoxProxy
+        return SingBoxProxy  # type: ignore[no-any-return]
 
     def get_cache_stats(self) -> dict:
         """Get cache hit/miss statistics."""

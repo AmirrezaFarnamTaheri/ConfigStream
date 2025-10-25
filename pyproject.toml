@@ -38,7 +38,8 @@ dependencies = [
     "aiohttp-proxy",
     "singbox2proxy~=0.2.0",
     "requests",
-    "httpx",
+    "httpx[http2]",
+    "h2",
     "orjson",
 ]
 
@@ -58,6 +59,8 @@ dev = [
     "pip-audit",
     "pytest-mock",
     "setuptools>=78.1.1",
+    "h2",
+    "httpx[http2]",
 ]
 
 [project.urls]
