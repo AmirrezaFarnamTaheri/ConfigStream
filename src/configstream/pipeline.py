@@ -187,7 +187,8 @@ async def fetch_text_with_rate_limit(
                     continue
 
                 resp.raise_for_status()
-                return await resp.text()
+                text: str = await resp.text()
+                return text
 
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             last_exc = e
@@ -480,8 +481,8 @@ async def run_full_pipeline(
 
         logger.info("Using effective test timeout of %.2fs", effective_timeout_sec)
 
-        # Initialize test result cache with extended TTL (2 hours)
-        test_cache = TestResultCache(ttl_seconds=7200)  # Increased from 1 hour
+        # Initialize test result cache with 24-hour TTL for maximum cache hits
+        test_cache = TestResultCache(ttl_seconds=86400)  # 24 hours for 60-70% hit rate
         logger.info("Test cache initialized: %s", test_cache.get_stats())
 
         tester = SingBoxTester(timeout=effective_timeout_sec, cache=test_cache)
