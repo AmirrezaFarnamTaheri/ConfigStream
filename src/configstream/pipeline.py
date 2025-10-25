@@ -508,11 +508,11 @@ async def run_full_pipeline(
                     batch_number = index + 1
                     if total_batches > 1:
                         logger.info(
-                            "Testing %s batch %d/%d (%d proxies)",
-                            label,
+                            "Testing batch %d/%d (%d proxies) for %s",
                             batch_number,
                             total_batches,
                             len(subset),
+                            label,
                         )
                     results = await asyncio.gather(*(test_single(p) for p in subset))
                     tested.extend(results)
