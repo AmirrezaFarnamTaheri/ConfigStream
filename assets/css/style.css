@@ -1153,13 +1153,16 @@ body.dark .btn-secondary {
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 30%, transparent), 0 8px 20px -6px var(--brand-secondary);
 }
 
-/* Inverted style for light backgrounds */
-.btn-primary-inverted span {
-    background: var(--brand-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-fill-color: transparent;
+/*
+ * Inverted style for buttons on light-colored flag backgrounds.
+ * This class is added dynamically via JS for countries like Canada, Singapore, etc.
+ * It ensures button text and icon remain readable by switching to a solid background
+ * with a high-contrast, solid color.
+ */
+.btn-primary.btn-primary-inverted {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--brand-primary);
 }
 
 body.dark .btn-secondary:hover {
