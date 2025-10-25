@@ -50,8 +50,9 @@ logger = logging.getLogger(__name__)
 PipelineResult = Dict[str, Any]
 
 
-CHUNK_SIZE = 10_000
-MAX_PIPELINE_PHASES = 30
+CHUNK_SIZE = 15_000  # Increased from 10k for better throughput
+MAX_PIPELINE_PHASES = 40  # Increased from 30 for larger source lists
+FETCH_CONCURRENCY = 20  # Optimized concurrent fetching
 
 
 class SourceValidationError(ValueError):
@@ -397,7 +398,7 @@ async def run_full_pipeline(
                         if progress and file_task is not None:
                             progress.update(file_task, advance=1)
 
-            # Fetch remote sources (existing HTTP fetching code)
+            # Fetch remote sources with optimized concurrency
             if remote_sources:
                 if progress:
                     fetch_task = progress.add_task(
@@ -405,7 +406,17 @@ async def run_full_pipeline(
                     )
 
                 with tracker.phase("fetch"):
-                    async with aiohttp.ClientSession() as session:
+                    # Use connection pooling and optimized timeouts
+                    connector = aiohttp.TCPConnector(
+                        limit=100,
+                        limit_per_host=10,
+                        ttl_dns_cache=300,
+                        enable_cleanup_closed=True,
+                    )
+                    fetch_timeout = aiohttp.ClientTimeout(total=30, connect=10, sock_read=20)
+                    async with aiohttp.ClientSession(
+                        connector=connector, timeout=fetch_timeout
+                    ) as session:
                         results = await asyncio.gather(
                             *(_fetch_source(session, source) for source in remote_sources),
                             return_exceptions=True,
@@ -462,15 +473,15 @@ async def run_full_pipeline(
                     if proxy.config:
                         seen_raw_configs.add(proxy.config)
 
-        batch_size = 500
+        batch_size = 750  # Increased from 500 for better performance
         effective_timeout_sec = float(timeout)
         if max_latency is not None and max_latency > 0:
             effective_timeout_sec = min(effective_timeout_sec, max_latency / 1000.0)
 
         logger.info("Using effective test timeout of %.2fs", effective_timeout_sec)
 
-        # Initialize test result cache (1 hour TTL)
-        test_cache = TestResultCache(ttl_seconds=3600)
+        # Initialize test result cache with extended TTL (2 hours)
+        test_cache = TestResultCache(ttl_seconds=7200)  # Increased from 1 hour
         logger.info("Test cache initialized: %s", test_cache.get_stats())
 
         tester = SingBoxTester(timeout=effective_timeout_sec, cache=test_cache)

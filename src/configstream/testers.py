@@ -88,11 +88,16 @@ class SingBoxTester(ProxyTester):
             ]
             test_urls = prioritized_urls + fallback_urls
 
-            # Try multiple test URLs with optimized timeout
+            # Try multiple test URLs with optimized timeout and early termination
             for url_index, test_url in enumerate(test_urls):
                 try:
-                    # Use shorter timeout for subsequent URLs after first failure
-                    current_timeout = self.timeout if url_index == 0 else min(self.timeout, 5.0)
+                    # Use progressively shorter timeouts for efficiency
+                    if url_index == 0:
+                        current_timeout = self.timeout
+                    elif url_index < 3:
+                        current_timeout = min(self.timeout, 5.0)
+                    else:
+                        current_timeout = min(self.timeout, 3.0)  # Even shorter for fallback URLs
 
                     async with aiohttp.ClientSession(connector=connector) as session:
                         # monotonic timer on current running loop
