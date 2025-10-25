@@ -4,7 +4,6 @@ from pathlib import Path
 import json
 import base64
 import aiohttp
-import asyncio
 import binascii
 import logging
 

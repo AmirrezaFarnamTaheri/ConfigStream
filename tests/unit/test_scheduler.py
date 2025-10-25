@@ -1,12 +1,10 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from pathlib import Path
 import json
 import asyncio
 from datetime import timedelta
 
 from configstream.scheduler import RetestScheduler
-from configstream.models import Proxy
 
 
 @pytest.fixture

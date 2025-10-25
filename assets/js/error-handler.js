@@ -109,8 +109,8 @@ class ErrorBoundary {
         </div>
       `;
 
-      if (window.feather) {
-        window.feather.replace();
+      if (window.inlineIcons) {
+        window.inlineIcons.replace();
       }
     }
   }

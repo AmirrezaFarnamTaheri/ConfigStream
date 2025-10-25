@@ -5,7 +5,6 @@ These tests verify that our parsers correctly reject malformed or
 malicious input without crashing.
 """
 
-import pytest
 from configstream.parsers import (
     _validate_b64_input,
     _safe_b64_decode,
@@ -71,7 +70,6 @@ class TestBase64Validation:
         # This test is conceptual - we can't easily create a base64
         # input that decodes to >100MB in a unit test
         # In practice, this is tested via integration tests
-        pass
 
 
 class TestConfigLineExtraction:

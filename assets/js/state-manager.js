@@ -392,10 +392,10 @@ class UIStateManager {
     
     document.body.appendChild(notification);
     
-    if (window.feather) {
-      window.feather.replace();
+    if (window.inlineIcons) {
+      window.inlineIcons.replace();
     }
-    
+
     // Auto-remove after 8 seconds
     setTimeout(() => {
       if (notification.parentElement) {
@@ -431,12 +431,12 @@ class UIStateManager {
     `;
     
     document.body.appendChild(notification);
-    
-    if (window.feather) {
-      window.feather.replace();
+
+    if (window.inlineIcons) {
+      window.inlineIcons.replace();
     }
   }
-  
+
   hideSuccessNotification() {
     const notification = document.getElementById('success-notification');
     if (notification) {

@@ -675,23 +675,23 @@ async function copyToClipboard(text, button) {
     // Visual feedback
     const originalHTML = button.innerHTML;
     button.innerHTML = '<i data-feather="check"></i>';
-    if (typeof feather !== 'undefined') {
-      feather.replace();
+    if (window.inlineIcons) {
+      window.inlineIcons.replace();
     }
     button.classList.add('copied');
 
     setTimeout(() => {
       button.innerHTML = originalHTML;
-      if (typeof feather !== 'undefined') {
-        feather.replace();
+      if (window.inlineIcons) {
+        window.inlineIcons.replace();
       }
       button.classList.remove('copied');
     }, 2000);
   } catch (error) {
     console.error('Failed to copy:', error);
     button.innerHTML = '<i data-feather="x"></i>';
-    if (typeof feather !== 'undefined') {
-      feather.replace();
+    if (window.inlineIcons) {
+      window.inlineIcons.replace();
     }
   }
 }

@@ -1,6 +1,5 @@
 """Tests for security validation functionality."""
 
-import pytest
 from configstream.security_validator import (
     SecurityValidator,
     validate_batch_configs,

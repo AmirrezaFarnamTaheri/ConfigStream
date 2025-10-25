@@ -2,7 +2,6 @@
 
 import json
 import pytest
-from pathlib import Path
 from configstream.intelligent_fallback import FallbackManager
 from configstream.models import Proxy
 
