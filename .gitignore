@@ -20,12 +20,22 @@ wheels/
 .installed.cfg
 *.egg
 
+# Testing & Coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+
+# Logs
+*.log
+configstream.log
+
 # Virtual Environment
 venv/
 ENV/
 env/
 
-output/	full
+# No output ignores needed - all files are categorized and reasonably sized
 
 # IDE
 .vscode/

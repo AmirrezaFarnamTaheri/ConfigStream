@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 
 @dataclass
@@ -19,7 +19,8 @@ class Proxy:
     latency: Optional[float] = None
     is_working: bool = False
     is_secure: bool = True
-    security_issues: List[str] = field(default_factory=list)
+    # Support both old List[str] format and new Dict[str, List[str]] categorized format
+    security_issues: Union[List[str], Dict[str, List[str]]] = field(default_factory=list)
     tested_at: str = ""
     details: Dict[str, Any] = field(default_factory=dict)
     throughput_kbps: Optional[int] = None

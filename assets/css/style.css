@@ -460,6 +460,7 @@ body.dark .github-btn:hover {
 }
 
 @media (max-width: 768px) {
+    /* Enhanced touch targets for mobile */
     .nav {
         position: fixed;
         top: 0;
@@ -476,6 +477,7 @@ body.dark .github-btn:hover {
         gap: calc(var(--space-unit) * 3);
         z-index: 1001; /* Above overlay */
         visibility: hidden;
+        -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
     body.dark .nav {
       background: var(--bg-secondary);
@@ -490,6 +492,17 @@ body.dark .github-btn:hover {
     .nav-link {
         font-size: 1.2rem;
         width: 100%;
+        min-height: 44px; /* iOS minimum touch target */
+        display: flex;
+        align-items: center;
+        -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+    }
+
+    /* Improve button touch targets */
+    .btn {
+        min-height: 44px;
+        padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2.5);
+        -webkit-tap-highlight-color: transparent;
     }
 
     .github-btn {
@@ -498,15 +511,17 @@ body.dark .github-btn:hover {
 
     .mobile-nav-toggle {
         display: flex;
-        width: 44px;
-        height: 44px;
+        width: 48px; /* Increased for better touch */
+        height: 48px;
         justify-content: center;
         align-items: center;
         background: transparent;
         border: none;
         cursor: pointer;
         color: var(--text-primary);
-        position: relative; /* Ensure z-index is applied */
+        position: relative;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation; /* Prevent double-tap zoom */
     }
     .mobile-nav-toggle .close-icon { display: none; }
 

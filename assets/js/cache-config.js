@@ -9,7 +9,8 @@
   'use strict';
   
   // Semantic version for cache invalidation
-  const VERSION = '1.0.3';
+  // Increment this to force cache refresh across all users
+  const VERSION = '1.1.0';
   const CACHE_PREFIX = 'configstream';
   
   // Create cache configuration object
@@ -52,9 +53,13 @@
       networkFirst: [
         'output/proxies.json',
         'output/statistics.json',
-        'output/vpn_subscription_base64.txt'
+        'output/vpn_subscription_base64.txt',
+        // HTML pages should always be fresh to ensure navigation works
+        'index.html',
+        'proxies.html',
+        'statistics.html'
       ],
-      
+
       // Use cache first, update in background
       // These are static assets that rarely change
       cacheFirst: [
@@ -68,10 +73,7 @@
         'assets/js/logo-controller.js',
         'assets/js/cache-manager.js',
         'assets/js/cache-config.js',
-        'assets/js/unified-cache.js',
-        'index.html',
-        'proxies.html',
-        'statistics.html'
+        'assets/js/unified-cache.js'
       ]
     },
     

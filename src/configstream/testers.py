@@ -62,8 +62,9 @@ class SingBoxTester(ProxyTester):
         sb_proxy: SingBoxProxy | None = None
         loop = asyncio.get_running_loop()
         try:
-            # Run the synchronous SingBoxProxy constructor in a thread to avoid blocking the event loop.
-            # The constructor itself calls start() and waits for the process to be ready.
+            # Run the synchronous SingBoxProxy constructor in a thread to avoid
+            # blocking the event loop. The constructor calls start() and waits
+            # for the process to be ready.
             sb_proxy = await loop.run_in_executor(None, lambda: SingBoxProxy(proxy.config))
 
             if not sb_proxy or not sb_proxy.http_proxy_url:
@@ -110,7 +111,8 @@ class SingBoxTester(ProxyTester):
                                 break
                 except (asyncio.TimeoutError, aiohttp.ClientError) as e:
                     logger.debug(
-                        f"Proxy {proxy.address}:{proxy.port} failed test URL {test_url} with {e.__class__.__name__}"
+                        f"Proxy {proxy.address}:{proxy.port} failed test URL "
+                        f"{test_url} with {e.__class__.__name__}"
                     )
                     # try next URL
                     continue
