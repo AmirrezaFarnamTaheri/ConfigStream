@@ -205,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedOption = countryFilter.options[countryFilter.selectedIndex];
         const countryCode = selectedOption.dataset.countryCode || '';
         updateFlagDisplay(countryCode, 'country');
+        updateBackgroundGradient(countryCode);
         renderTable();
     });
     cityFilter.addEventListener('input', () => {
@@ -263,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (latencyMaxInput) latencyMaxInput.value = '';
             updateFlagDisplay('', 'country');
             updateFlagDisplay('', 'city');
+            updateBackgroundGradient('');
             renderTable();
         });
     }
@@ -317,6 +319,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Helper function to update background gradient based on country flag colors
+    function updateBackgroundGradient(countryCode) {
+        // Map of country codes to their flag colors
+        const countryColors = {
+            'US': ['#B22234', '#3C3B6E'], // Red and Blue
+            'GB': ['#012169', '#C8102E'], // Blue and Red
+            'CA': ['#FF0000', '#FFFFFF'], // Red and White
+            'DE': ['#000000', '#DD0000', '#FFCE00'], // Black, Red, Yellow
+            'FR': ['#002395', '#FFFFFF', '#ED2939'], // Blue, White, Red
+            'NL': ['#AE1C28', '#FFFFFF', '#21468B'], // Red, White, Blue
+            'SG': ['#EF3340', '#FFFFFF'], // Red and White
+            'JP': ['#BC002D', '#FFFFFF'], // Red and White
+            'AU': ['#012169', '#FFFFFF', '#E4002B'], // Blue, White, Red
+            'IN': ['#FF9933', '#FFFFFF', '#138808'], // Orange, White, Green
+            'BR': ['#009B3A', '#FEDD00'], // Green and Yellow
+            'RU': ['#FFFFFF', '#0039A6', '#D52B1E'], // White, Blue, Red
+            'CN': ['#DE2910', '#FFDE00'], // Red and Yellow
+            'HK': ['#DE2910', '#FFFFFF'], // Red and White
+            'KR': ['#FFFFFF', '#CD2E3A', '#0047A0'], // White, Red, Blue
+            'IT': ['#009246', '#FFFFFF', '#CE2B37'], // Green, White, Red
+            'ES': ['#AA151B', '#F1BF00'], // Red and Yellow
+            'SE': ['#006AA7', '#FECC00'], // Blue and Yellow
+            'CH': ['#FF0000', '#FFFFFF'], // Red and White
+            'PL': ['#FFFFFF', '#DC143C'], // White and Red
+        };
+
+        const body = document.body;
+        const colors = countryColors[countryCode];
+
+        if (colors && colors.length >= 2) {
+            // Create a gradient with the country's flag colors
+            const gradient = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[colors.length - 1]} 100%)`;
+            body.style.transition = 'background 1.5s ease';
+            body.style.background = gradient;
+        } else {
+            // Reset to default background
+            body.style.transition = 'background 1.5s ease';
+            body.style.background = '';
+        }
+    }
+
     // Populate filter dropdowns dynamically with only available options
     function populateFilters() {
         // Get unique protocols, countries and cities (excluding XX and invalid values)
@@ -353,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedCountries.forEach(country => {
             const option = document.createElement('option');
             option.value = country;
-            option.textContent = `${country} ${getCountryName(country)}`;
+            option.textContent = country; // Only show country code
             option.dataset.countryCode = country;
             countryFilter.appendChild(option);
         });
