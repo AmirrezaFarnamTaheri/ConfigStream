@@ -6,6 +6,7 @@ from typing import Dict, List, cast
 import yaml
 
 from .models import Proxy
+from .selection import select_chosen_proxies, get_selection_stats
 
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
@@ -132,6 +133,17 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
         "by_protocol": {k: len(v) for k, v in protocols.items()},
         "by_country": {k: len(v) for k, v in countries.items()},
     }
+
+    # Generate "chosen" subset (top 40 per protocol, fill to 1000)
+    chosen_proxies = select_chosen_proxies(all_proxies)
+    if chosen_proxies:
+        chosen_path = output_dir / "chosen.json"
+        chosen_path.write_text(json.dumps([proxy_to_dict(p) for p in chosen_proxies], indent=2))
+        output_files["chosen"] = str(chosen_path)
+
+        # Add selection stats to summary
+        selection_stats = get_selection_stats(all_proxies, chosen_proxies)
+        summary["chosen_selection"] = selection_stats
 
     summary_path = output_dir / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2))

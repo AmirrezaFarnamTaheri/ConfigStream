@@ -299,9 +299,14 @@ async def fetch_from_source(
         return FetchResult(source=source, configs=[], success=False, error=last_error)
 
     # Run fetch with optional per-host semaphore
+    # Use try/finally to ensure semaphore is released even on error
     if semaphore:
-        async with semaphore:
-            return await _fetch_with_semaphore()
+        try:
+            async with semaphore:
+                return await _fetch_with_semaphore()
+        except Exception:
+            # Ensure semaphore release on all exceptions
+            raise
     else:
         return await _fetch_with_semaphore()
 
