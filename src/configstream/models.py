@@ -22,8 +22,9 @@ class Proxy:
     latency: Optional[float] = None
     is_working: bool = False
     is_secure: bool = True
-    # Support both old List[str] format and new Dict[str, List[str]] categorized format
-    security_issues: Union[List[str], Dict[str, List[str]]] = field(default_factory=list)
+    # Standardized to Dict[str, List[str]] format for categorized security issues
+    # Keys are category names (e.g., "weak_encryption"), values are issue details
+    security_issues: Dict[str, List[str]] = field(default_factory=dict)
     tested_at: str = ""
     details: Dict[str, Any] = field(default_factory=dict)
     throughput_kbps: Optional[int] = None
