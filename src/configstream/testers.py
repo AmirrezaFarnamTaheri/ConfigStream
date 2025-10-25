@@ -9,6 +9,7 @@ from aiohttp_socks import ProxyConnector
 
 from .config import AppSettings
 from .models import Proxy
+from .constants import TEST_URLS
 from singbox2proxy import SingBoxProxy
 
 if TYPE_CHECKING:
@@ -66,9 +67,9 @@ class SingBoxTester(ProxyTester):
 
             # Use the same test URLs as Sing-Box tests
             prioritized_urls = [
-                self.config.TEST_URLS["google"],
-                self.config.TEST_URLS["cloudflare"],
-                self.config.TEST_URLS["gstatic"],
+                TEST_URLS["google"],
+                TEST_URLS["cloudflare"],
+                TEST_URLS["gstatic"],
             ]
 
             for url_index, test_url in enumerate(prioritized_urls):
@@ -108,8 +109,10 @@ class SingBoxTester(ProxyTester):
                     break
 
             if not proxy.is_working:
-                if isinstance(proxy.security_issues, list):
-                    proxy.security_issues.append("Direct test: all test URLs failed")
+                # security_issues is now always Dict[str, List[str]]
+                if "connectivity" not in proxy.security_issues:
+                    proxy.security_issues["connectivity"] = []
+                proxy.security_issues["connectivity"].append("Direct test: all test URLs failed")
 
         except Exception as e:
             logger.debug(f"Direct test failed for {proxy.address}:{proxy.port}: {e}")
@@ -160,8 +163,9 @@ class SingBoxTester(ProxyTester):
 
             if not sb_proxy or not sb_proxy.http_proxy_url:
                 proxy.is_working = False
-                if isinstance(proxy.security_issues, list):
-                    proxy.security_issues.append("Proxy http_proxy_url is not set")
+                if "configuration_error" not in proxy.security_issues:
+                    proxy.security_issues["configuration_error"] = []
+                proxy.security_issues["configuration_error"].append("Proxy http_proxy_url is not set")
                 return proxy
 
             connector = ProxyConnector.from_url(sb_proxy.http_proxy_url)
@@ -250,19 +254,22 @@ class SingBoxTester(ProxyTester):
                     break
 
             if not proxy.is_working:
-                if isinstance(proxy.security_issues, list):
-                    proxy.security_issues.append("All test URLs failed")
+                if "connectivity" not in proxy.security_issues:
+                    proxy.security_issues["connectivity"] = []
+                proxy.security_issues["connectivity"].append("All test URLs failed")
 
         except RuntimeError as e:
             proxy.is_working = False
-            if isinstance(proxy.security_issues, list):
-                proxy.security_issues.append(f"SingBox error: {e}")
+            if "singbox_error" not in proxy.security_issues:
+                proxy.security_issues["singbox_error"] = []
+            proxy.security_issues["singbox_error"].append(f"SingBox error: {e}")
             logger.debug(f"SingBoxProxy error for {proxy.config}: {e}")
         except Exception as e:
             proxy.is_working = False
             error_details = "[MASKED]" if self.config.MASK_SENSITIVE_DATA else str(e)
-            if isinstance(proxy.security_issues, list):
-                proxy.security_issues.append(f"Connection failed: {error_details}")
+            if "connectivity" not in proxy.security_issues:
+                proxy.security_issues["connectivity"] = []
+            proxy.security_issues["connectivity"].append(f"Connection failed: {error_details}")
             logger.error(f"Proxy test error for {proxy.config}: {str(e)[:100]}")
         finally:
             if sb_proxy:

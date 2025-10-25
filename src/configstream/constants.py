@@ -42,3 +42,31 @@ VALID_PROTOCOLS = [
     "socks4",
     "socks5",
 ]
+
+# Test URLs for proxy validation (centralized configuration)
+TEST_URLS = {
+    "google": "https://www.google.com/generate_204",
+    "cloudflare": "https://www.cloudflare.com/cdn-cgi/trace",
+    "gstatic": "https://www.gstatic.com/generate_204",
+    "firefox": "http://detectportal.firefox.com/success.txt",
+    "httpbin": "https://httpbin.org/status/200",
+    "amazon": "https://www.amazon.com/robots.txt",
+    "bing": "https://www.bing.com/robots.txt",
+    "github": "https://api.github.com",
+}
+
+# Security issue categories (standardized)
+SECURITY_CATEGORIES = [
+    "weak_encryption",
+    "insecure_transport",
+    "dangerous_port",
+    "suspicious_domain",
+    "invalid_certificate",
+    "missing_auth",
+    "configuration_error",
+    "deprecated_protocol",
+]
+
+# Selection criteria for "chosen" proxies
+CHOSEN_TOP_PER_PROTOCOL = 40  # Top N proxies per protocol
+CHOSEN_TOTAL_TARGET = 1000  # Total target for chosen list
