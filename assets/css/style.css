@@ -583,7 +583,7 @@ body.dark .github-btn:hover {
     }
 
     main {
-        padding: calc(var(--space-unit) * 3) 0;
+        padding: 0;
     }
 
     /* Fix hero text size on mobile */
@@ -755,7 +755,7 @@ body.dark .github-btn:hover {
     }
 }
 main {
-    padding: calc(var(--space-unit) * 2) 0;
+    padding: 0;
 }
 
 /* Main Grid Layout */
@@ -1152,7 +1152,7 @@ body.dark .btn-secondary:hover {
     padding: calc(var(--space-unit) * 4) 0;
     color: var(--text-secondary);
     border-top: 1px solid var(--border);
-    margin-top: calc(var(--space-unit) * 8);
+    margin-top: calc(var(--space-unit) * 6);
 }
 body.dark .footer {
     color: var(--text-secondary);
@@ -1183,7 +1183,7 @@ body.dark .footer .social-links a:hover { color: var(--brand-primary); }
 }
 .hero {
     text-align: center;
-    padding: calc(var(--space-unit) * 6) 0 calc(var(--space-unit) * 8) 0;
+    padding: calc(var(--space-unit) * 4) 0 calc(var(--space-unit) * 6) 0;
     position: relative;
 }
 .hero h1 {
