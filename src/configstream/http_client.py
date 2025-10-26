@@ -7,12 +7,7 @@ from typing import AsyncIterator
 
 import httpx  # type: ignore[import-not-found]
 
-try:  # pragma: no cover - optional dependency used only when available
-    import h2  # type: ignore[import-not-found]
-except ModuleNotFoundError:  # pragma: no cover
-    HTTP2_AVAILABLE = False
-else:  # pragma: no cover
-    HTTP2_AVAILABLE = True
+HTTP2_AVAILABLE = True
 
 DEFAULT_TIMEOUT = httpx.Timeout(20.0, connect=10.0, read=15.0)
 POOL_LIMITS = httpx.Limits(max_keepalive_connections=100, max_connections=200)

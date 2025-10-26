@@ -40,6 +40,7 @@ ENV/
 env/
 
 # No output ignores needed - all files are categorized and reasonably sized
+output/.etag-cache.json
 
 # IDE
 .vscode/
