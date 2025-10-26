@@ -14,8 +14,10 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from collections import deque
 from urllib.parse import urlparse
 
-import aiohttp
+import httpx
 import geoip2.database
+
+from .http_client import get_client
 from rich.progress import Progress
 
 from .models import Proxy
@@ -132,86 +134,6 @@ def _maybe_decode_base64(payload: str) -> str:
     return decoded_text
 
 
-# ==== BEGIN: robust network fetch helpers ====
-
-_GITHUB_HOST_HINTS = (
-    "raw.githubusercontent.com",
-    "githubusercontent.com",
-    "api.github.com",
-    "github.com",
-)
-
-
-async def fetch_text_with_rate_limit(
-    session: aiohttp.ClientSession,
-    url: str,
-    timeout_seconds: float,
-    *,
-    max_attempts: int = 3,
-) -> str:
-    """
-    GET text from `url` with:
-      - optional Authorization header for GitHub hosts (uses GITHUB_TOKEN or GH_TOKEN)
-      - gentle backoff on 403/429 (GitHub rate limits)
-      - retry on ClientError/Timeout
-    Returns decoded text or raises the last exception.
-    """
-    headers = {}
-    token = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
-    if token and any(hint in url for hint in _GITHUB_HOST_HINTS):
-        headers["Authorization"] = f"token {token}"
-
-    client_timeout = aiohttp.ClientTimeout(total=float(timeout_seconds))
-    last_exc: Exception | None = None
-
-    for attempt in range(1, max_attempts + 1):
-        try:
-            async with session.get(url, timeout=client_timeout, headers=headers) as resp:
-                if resp.status in (403, 429):
-                    retry_after = resp.headers.get("Retry-After")
-                    delay_value = (
-                        float(int(retry_after))
-                        if retry_after and retry_after.isdigit()
-                        else float(2 * attempt)  # linear-ish backoff: 2,4,6s
-                    )
-                    logger.warning(
-                        "Rate limited (%s) on %s; backing off %ss (attempt %d/%d)",
-                        resp.status,
-                        url,
-                        delay_value,
-                        attempt,
-                        max_attempts,
-                    )
-                    await asyncio.sleep(delay_value)
-                    continue
-
-                resp.raise_for_status()
-                text: str = await resp.text()
-                return text
-
-        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-            last_exc = e
-            delay = 1.5 * attempt  # 1.5, 3.0, 4.5s
-            logger.warning(
-                "Fetch failed for %s (%s); retrying in %.1fs (attempt %d/%d)",
-                url,
-                e.__class__.__name__,
-                delay,
-                attempt,
-                max_attempts,
-            )
-            await asyncio.sleep(delay)
-
-    # Final failure
-    if last_exc:
-        logger.error("Fetch permanently failed for %s: %s", url, last_exc)
-        raise last_exc
-    raise RuntimeError("fetch_text_with_rate_limit: unreachable")
-
-
-# ==== END: robust network fetch helpers ====
-
-
 # ==== BEGIN: de-dup + seeded shuffle helpers ====
 def _proxy_key(p) -> Tuple[str, str, int, str, str]:
     """
@@ -271,16 +193,17 @@ def dedupe_and_shuffle(proxies: List) -> List:
 # ==== END: de-dup + seeded shuffle helpers ====
 
 
-async def _fetch_source(session: aiohttp.ClientSession, source_url: str) -> Tuple[List[str], int]:
+async def _fetch_source(client: httpx.AsyncClient, source_url: str) -> Tuple[List[str], int]:
     """Fetch a proxy list from a single source."""
     try:
-        text = await fetch_text_with_rate_limit(
-            session, source_url, timeout_seconds=FETCH_TIMEOUT_SECONDS
-        )
-    except (aiohttp.ClientError, asyncio.TimeoutError, RuntimeError) as exc:
+        async with get_client(retries=3) as client:
+            response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
+            response.raise_for_status()
+    except httpx.HTTPError as exc:
         logger.error("Failed to fetch %s: %s", source_url, exc)
         return [], 0
 
+    text = response.text
     if not text or not text.strip():
         logger.warning("Empty response from %s", source_url)
         return [], 0
@@ -406,19 +329,9 @@ async def run_full_pipeline(
                     )
 
                 with tracker.phase("fetch"):
-                    # Use connection pooling and optimized timeouts
-                    connector = aiohttp.TCPConnector(
-                        limit=100,
-                        limit_per_host=10,
-                        ttl_dns_cache=300,
-                        enable_cleanup_closed=True,
-                    )
-                    fetch_timeout = aiohttp.ClientTimeout(total=30, connect=10, sock_read=20)
-                    async with aiohttp.ClientSession(
-                        connector=connector, timeout=fetch_timeout
-                    ) as session:
+                    async with get_client() as client:
                         results = await asyncio.gather(
-                            *(_fetch_source(session, source) for source in remote_sources),
+                            *(_fetch_source(client, source) for source in remote_sources),
                             return_exceptions=True,
                         )
 
@@ -530,7 +443,6 @@ async def run_full_pipeline(
             geo_task = (
                 progress.add_task(f"Geolocating {label}", total=len(batch)) if progress else None
             )
-            http_session: aiohttp.ClientSession | None = None
             try:
                 geoip_db_path = Path("data/GeoLite2-City.mmdb")
                 if geoip_reader is None and geoip_db_path.exists():
@@ -538,10 +450,9 @@ async def run_full_pipeline(
                     logger.info("Loaded GeoIP database from %s", geoip_db_path)
                 elif geoip_reader is None:
                     logger.warning("GeoIP database not found at %s", geoip_db_path)
+
                 working_items = [proxy for proxy in batch if proxy.is_working]
                 if working_items:
-                    geo_timeout = aiohttp.ClientTimeout(total=5)
-                    http_session = aiohttp.ClientSession(timeout=geo_timeout)
                     with tracker.phase("geo"):
                         for proxy in batch:
                             if proxy.is_working:
@@ -557,7 +468,6 @@ async def run_full_pipeline(
                                     await geolocate_proxy(
                                         proxy,
                                         geoip_reader,
-                                        session=http_session,
                                     )
                                     if (
                                         proxy.country_code not in {"", "XX"}
@@ -576,8 +486,6 @@ async def run_full_pipeline(
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("GeoIP lookup failed during %s: %s", label, exc)
             finally:
-                if http_session:
-                    await http_session.close()
                 if progress and geo_task is not None:
                     progress.update(geo_task, completed=len(batch))
 

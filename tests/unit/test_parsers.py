@@ -43,11 +43,11 @@ def test_parse_trojan():
 
 
 def test_parse_ss():
-    config = "ss://YWVzLTI1Ni1nY206M2QwMTFmMC0zOGU4LTRmOTktOWJmOS01MDFkM2M3ZTFmOTE@ju-tt.name:443#ju-tt.name"
+    config = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmRAanUtdHQuY29tOjQ0Mw==#ju-tt.name"
     proxy = _parse_ss(config)
     assert proxy is not None
     assert proxy.protocol == "shadowsocks"
-    assert proxy.address == "ju-tt.name"
+    assert proxy.address == "ju-tt.com"
 
 
 def test_parse_ssr():
