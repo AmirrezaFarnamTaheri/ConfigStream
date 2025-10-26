@@ -177,24 +177,43 @@ def _parse_vless(config: str) -> Optional[Proxy]:
 
 
 def _parse_ss(config: str) -> Optional[Proxy]:
+    """Parse a Shadowsocks (ss://) URL."""
     try:
-        if "@" not in config:
-            return None
-        encoded_part, host_part = config.replace("ss://", "").split("@", 1)
-        if len(encoded_part) > 1000:
-            return None  # Limit on encoded part
+        # 1. Handle base64-encoded variant (ss://method:pass@host:port)
+        if "@" in config and not config.startswith("ss://ey"):
+            parsed = urlparse(config)
+            if not parsed.hostname or not parsed.password or not parsed.username:
+                return None
 
-        decoded_info = _safe_b64_decode(encoded_part)
-        if not decoded_info or ":" not in decoded_info:
-            return None
-        method, password = decoded_info.split(":", 1)
+            return Proxy(
+                config=config,
+                protocol="shadowsocks",
+                address=parsed.hostname,
+                port=parsed.port or 8388,
+                remarks=unquote(parsed.fragment or ""),
+                details={"method": parsed.username, "password": parsed.password},
+            )
 
-        host, port_remark = host_part.split(":", 1)
-        if len(host) > 255:
+        # 2. Handle SIP002 variant (ss://b64_part#remark)
+        if not config.startswith("ss://"):
             return None
-        port_str, remark = port_remark.split("#", 1) if "#" in port_remark else (port_remark, "")
+
+        # Extract base64 part and remark
+        parts = config[5:].split("#", 1)
+        b64_part = parts[0]
+        remark = unquote(parts[1]) if len(parts) > 1 else ""
+
+        # Decode and parse the main part
+        decoded = _safe_b64_decode(b64_part)
+        if "@" not in decoded:
+            return None
+
+        method_pass, host_port = decoded.split("@", 1)
+        method, password = method_pass.split(":", 1)
+        host, port_str = host_port.split(":", 1)
         port = int(port_str)
-        if not (1 <= port <= 65535):
+
+        if not (1 <= port <= 65535) or not host:
             return None
 
         return Proxy(
@@ -202,7 +221,7 @@ def _parse_ss(config: str) -> Optional[Proxy]:
             protocol="shadowsocks",
             address=host,
             port=port,
-            remarks=unquote(remark or "")[:200],
+            remarks=remark,
             details={"method": method, "password": password},
         )
     except (ValueError, IndexError, binascii.Error) as e:

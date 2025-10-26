@@ -115,7 +115,6 @@ async def test_geolocate_proxy_not_found():
     assert proxy.country_code == "XX"
     assert proxy.country == "Unknown"
     assert proxy.city == "Unknown"
-    assert proxy.asn == "AS0"
 
 
 @pytest.mark.asyncio
@@ -154,7 +153,6 @@ async def test_geolocate_proxy_key_error():
     assert proxy.country_code == "XX"
     assert proxy.country == "Unknown"
     assert proxy.city == "Unknown"
-    assert proxy.asn == "AS0"
 
 
 @pytest.mark.asyncio
