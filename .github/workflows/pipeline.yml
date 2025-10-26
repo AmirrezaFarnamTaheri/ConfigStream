@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "0 */8 * * *"
+    - cron: "0 */4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   pipeline:
-    name: Run Pipeline
+    name: Run Rotational Batch Pipeline
     runs-on: ubuntu-latest
     env:
       PYTHONPATH: src
@@ -21,6 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          # Fetch all history so we can diff against the previous commit
           fetch-depth: 0
 
       - name: Set up Python
@@ -43,16 +44,31 @@ jobs:
       - name: Install dependencies
         run: pip install -e .[dev]
 
-      - name: Run pipeline
+      - name: Determine which batch to run
+        id: batch_selector
+        run: |
+          # This will result in a number from 1 to 6, rotating every 4 hours.
+          # (0, 4, 8, 12, 16, 20) -> (1, 2, 3, 4, 5, 6)
+          batch_number=$(( ( $(date -u +%H) / 4 ) + 1 ))
+          echo "batch_number=${batch_number}" >> $GITHUB_OUTPUT
+
+      - name: Run pipeline for Batch ${{ steps.batch_selector.outputs.batch_number }}
         run: |
           set -euxo pipefail
+          batch_num="${{ steps.batch_selector.outputs.batch_number }}"
+          echo "Running pipeline for batch ${batch_num}"
           python -m configstream.cli merge \
-            --sources sources.txt \
-            --output output \
+            --sources "sources/batch_${batch_num}.txt" \
+            --output "output_batch_${batch_num}" \
             --max-workers 32 \
             --timeout 24 \
             --show-metrics \
-            --max-latency 6000 | tee pipeline.log
+            --max-latency 6000 | tee "pipeline_batch_${batch_num}.log"
+
+      - name: Run merge script
+        run: |
+          echo "Merging results from all batches..."
+          python scripts/merge_batches.py
 
       - name: Show diff
         run: |
@@ -63,18 +79,20 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update ConfigStream outputs [skip ci]"
-          add_options: '-f'
+          commit_message: "chore(data): update batch ${{ steps.batch_selector.outputs.batch_number }} and merge outputs"
+          # We need to add all batch outputs to preserve their state, plus the final merged output.
           file_pattern: |
-            output/**
-            proxies.html
-            statistics.html
-          push_options: '--force-with-lease'
+            output/
+            output_batch_*/
+          push_options: '--force'
+          add_options: '-f'
 
       - name: Upload pipeline artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline-output-${{ github.run_id }}
+          name: pipeline-run-${{ github.run_id }}
           path: |
-            output/**
-            pipeline.log
+            output/
+            output_batch_*/
+            *.log
