@@ -1,9 +1,9 @@
-import asyncio
 import logging
 import re
 from typing import Any, Callable, Dict, Optional
 
-import aiohttp
+import httpx
+from .http_client import get_client
 
 from .parsers import (
     _parse_brook,
@@ -32,13 +32,6 @@ logger = logging.getLogger(__name__)
 
 _FLAG_PATTERN = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
 _CODE_PATTERN = re.compile(r"(?<![A-Z0-9])([A-Z]{2})(?![A-Z0-9])")
-
-
-def _normalise_defaults(proxy: Proxy) -> None:
-    proxy.country = proxy.country or "Unknown"
-    proxy.country_code = proxy.country_code or "XX"
-    proxy.city = proxy.city or "Unknown"
-    proxy.asn = proxy.asn or "AS0"
 
 
 def _flag_to_country_code(flag: str) -> Optional[str]:
@@ -79,34 +72,21 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
 
 
 async def _lookup_geoip_http(
-    address: str,
-    session: Optional[aiohttp.ClientSession] = None,
-    timeout_seconds: float = 5.0,
+    address: str, timeout_seconds: float = 5.0
 ) -> Optional[Dict[str, Any]]:
     if not address:
         return None
 
-    owns_session = False
-    client_session = session
-
-    if client_session is None:
-        timeout = aiohttp.ClientTimeout(total=timeout_seconds)
-        client_session = aiohttp.ClientSession(timeout=timeout)
-        owns_session = True
-
     try:
-        url = f"http://ip-api.com/json/{address}?fields=status,country,countryCode,city,as"
-        async with client_session.get(url) as response:
-            if response.status != 200:
-                return None
-            payload = await response.json(content_type=None)
-    except (aiohttp.ClientError, asyncio.TimeoutError, ValueError):
+        async with get_client() as client:
+            url = f"http://ip-api.com/json/{address}?fields=status,country,countryCode,city,as"
+            response = await client.get(url, timeout=timeout_seconds)
+            response.raise_for_status()
+            payload = response.json()
+    except (httpx.HTTPError, ValueError):
         return None
-    finally:
-        if owns_session and client_session is not None:
-            await client_session.close()
 
-    if payload.get("status") != "success":
+    if not isinstance(payload, dict) or payload.get("status") != "success":
         return None
 
     asn_value = payload.get("as") or ""
@@ -201,50 +181,48 @@ def parse_config_batch(config_strings: list[str]) -> list[Proxy]:
     return parsed
 
 
-async def geolocate_proxy(
-    proxy: Proxy,
-    geoip_reader=None,
-    *,
-    session: Optional[aiohttp.ClientSession] = None,
-) -> Proxy:
-    _normalise_defaults(proxy)
+async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Proxy:
+    """Geolocate a proxy using remarks, a local DB, or a fallback HTTP lookup."""
 
-    if proxy.country_code not in {"", "XX"} and proxy.country in {"", "Unknown"}:
-        mapped = _country_payload_from_code(proxy.country_code)
-        if mapped:
-            proxy.country = mapped["country"]
-
-    if proxy.country_code not in {"", "XX"} and proxy.country != "Unknown":
+    # 1. If country code is valid, ensure country name is consistent.
+    if proxy.country_code and proxy.country_code != "XX":
+        if not proxy.country or proxy.country == "Unknown":
+            payload = _country_payload_from_code(proxy.country_code)
+            if payload:
+                proxy.country = payload["country"]
         return proxy
 
+    # 2. Try to infer from remarks (e.g., flags, country codes).
     inferred = _infer_country_from_remarks(proxy.remarks)
     if inferred:
         proxy.country = inferred["country"]
         proxy.country_code = inferred["country_code"]
         return proxy
 
-    if geoip_reader is not None:
+    # 3. Use the local GeoIP database if available.
+    if geoip_reader:
         try:
             response = geoip_reader.city(proxy.address)
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.debug("GeoIP database lookup failed for %s: %s", proxy.address, exc)
-        else:
             proxy.country = response.country.name or "Unknown"
             proxy.country_code = response.country.iso_code or "XX"
             proxy.city = response.city.name or "Unknown"
-            autonomous = getattr(response, "autonomous_system", None)
-            if autonomous and autonomous.autonomous_system_number:
-                proxy.asn = f"AS{autonomous.autonomous_system_number}"
-            else:
-                proxy.asn = proxy.asn or "AS0"
+            if response.autonomous_system.autonomous_system_number:
+                proxy.asn = f"AS{response.autonomous_system.autonomous_system_number}"
             return proxy
+        except Exception:  # pragma: no cover
+            logger.debug(f"GeoIP DB lookup failed for {proxy.address}")
 
-    http_result = await _lookup_geoip_http(proxy.address, session=session)
+    # 4. Fallback to an external HTTP-based lookup.
+    http_result = await _lookup_geoip_http(proxy.address)
     if http_result:
-        proxy.country = http_result["country"]
-        proxy.country_code = http_result["country_code"]
-        proxy.city = http_result["city"]
-        proxy.asn = http_result.get("asn", "AS0") or "AS0"
-        return proxy
+        proxy.country = http_result.get("country", "Unknown")
+        proxy.country_code = http_result.get("country_code", "XX")
+        proxy.city = http_result.get("city", "Unknown")
+        proxy.asn = http_result.get("asn", "AS0")
+    else:
+        proxy.country = "Unknown"
+        proxy.country_code = "XX"
+        proxy.city = "Unknown"
+        proxy.asn = "AS0"
 
     return proxy
