@@ -245,8 +245,8 @@ class TestShadowsocksParser:
         """Test parsing a valid Shadowsocks configuration"""
         import base64
 
-        method_pass = base64.b64encode(b"aes-256-gcm:password").decode()
-        config = f"ss://{method_pass}@example.com:443#TestServer"
+        method_pass_host_port = base64.b64encode(b"aes-256-gcm:password@example.com:443").decode()
+        config = f"ss://{method_pass_host_port}#TestServer"
 
         result = _parse_ss(config)
 
@@ -267,8 +267,8 @@ class TestShadowsocksParser:
         """Test that configs without name/fragment still parse"""
         import base64
 
-        method_pass = base64.b64encode(b"aes-256-gcm:password").decode()
-        config = f"ss://{method_pass}@example.com:443"
+        method_pass_host_port = base64.b64encode(b"aes-256-gcm:password@example.com:443").decode()
+        config = f"ss://{method_pass_host_port}"
 
         result = _parse_ss(config)
 

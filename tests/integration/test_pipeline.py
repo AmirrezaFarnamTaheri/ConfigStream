@@ -125,17 +125,16 @@ class TestMaybeDecodeBase64:
 
 @pytest.mark.asyncio
 class TestFetchSource:
-    # ... (all tests in this class are fine)
-    @patch("aiohttp.ClientSession.get")
-    async def test_fetch_source_no_usable_configs(self, mock_get):
-        mock_response = AsyncMock()
-        mock_response.status = 200
-        mock_response.raise_for_status = MagicMock()
-        mock_response.text.return_value = "just some random text"
-        mock_get.return_value.__aenter__.return_value = mock_response
+    @patch("configstream.pipeline.get_client")
+    async def test_fetch_source_no_usable_configs(self, mock_get_client):
+        mock_client = AsyncMock()
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = "just some random text"
+        mock_client.get.return_value = mock_response
+        mock_get_client.return_value.__aenter__.return_value = mock_client
 
-        async with aiohttp.ClientSession() as session:
-            configs, count = await _fetch_source(session, "http://example.com/source")
+        configs, count = await _fetch_source(mock_client, "http://example.com/source")
 
         assert count == 0
         assert configs == []

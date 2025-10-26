@@ -1,57 +1,15 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Testing & Coverage
-.coverage
-.coverage.*
-htmlcov/
+# Cache files
 .pytest_cache/
-
-# Logs
-*.log
-configstream.log
-
-# Test artifacts
-data/test_cache.db
-test_output/
-
-# Virtual Environment
-venv/
-ENV/
-env/
-
-# No output ignores needed - all files are categorized and reasonably sized
+.mypy_cache/
+.ruff_cache/
+htmlcov/
 output/.etag-cache.json
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Environment
+# Environment files
 .env
+.venv
 
-# OS
-.DS_Store
-Thumbs.db
+# Build artifacts
+dist/
+build/
+*.egg-info/
