@@ -293,16 +293,30 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
         return None
 
 
-def _parse_generic(config: str) -> Proxy | None:
+def _parse_generic_url_scheme(config: str) -> Optional[Proxy]:
+    """Parse generic URL-based schemes like http, socks."""
     try:
         parsed = urlparse(config)
         if not parsed.hostname:
             return None
+
+        default_ports = {
+            "http": 80,
+            "https": 443,
+            "ssh": 22,
+            "socks": 1080,
+            "socks4": 1080,
+            "socks5": 1080,
+        }
+        port = parsed.port or default_ports.get(parsed.scheme, 80)
+        if not (1 <= port <= 65535):
+            return None
+
         return Proxy(
             config=config,
             protocol=parsed.scheme,
             address=parsed.hostname,
-            port=parsed.port or 80,
+            port=port,
             uuid=parsed.username or "",
             details={"password": parsed.password or ""},
             remarks=unquote(parsed.fragment or ""),
@@ -312,7 +326,7 @@ def _parse_generic(config: str) -> Proxy | None:
         return None
 
 
-def _parse_naive(config: str) -> Proxy | None:
+def _parse_naive(config: str) -> Optional[Proxy]:
     try:
         parsed = urlparse(config.replace("naive+", ""))
         if not parsed.hostname:
@@ -333,7 +347,7 @@ def _parse_naive(config: str) -> Proxy | None:
         return None
 
 
-def _parse_v2ray_json(config: str) -> Proxy | None:
+def _parse_v2ray_json(config: str) -> Optional[Proxy]:
     stripped = config.strip()
     if not stripped.startswith("{"):
         return None

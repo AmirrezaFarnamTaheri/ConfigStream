@@ -13,9 +13,7 @@ from typing import Any
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Remove config dictionaries whose security_issues contain the target phrase."
-        )
+        description=("Remove config dictionaries whose security_issues contain the target phrase.")
     )
     parser.add_argument(
         "input_path",
@@ -58,11 +56,7 @@ def main() -> int:
         return 1
 
     phrase = args.phrase
-    filtered = [
-        entry
-        for entry in data
-        if phrase not in (entry.get("security_issues") or [])
-    ]
+    filtered = [entry for entry in data if phrase not in (entry.get("security_issues") or [])]
     removed = len(data) - len(filtered)
 
     if removed == 0:

@@ -1,21 +1,22 @@
-
 import json
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 import sys
-from dataclasses import asdict, is_dataclass
+from dataclasses import asdict
 
 # Add src to python path to allow importing from configstream
 root_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(root_dir / 'src'))
+sys.path.insert(0, str(root_dir / "src"))
 
 try:
     from configstream.models import Proxy
-    # This function is internal but is the most reliable way to generate links
-    from configstream.output import _generate_subscription_links
+    from configstream.output import generate_base64_subscription
 except ImportError:
-    print("Error: Could not import from 'src/configstream'. Ensure it is installed in editable mode.", file=sys.stderr)
+    print(
+        "Error: Could not import from 'src/configstream'. Ensure it is installed in editable mode.",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
@@ -25,8 +26,8 @@ def merge_batches():
     This script reads the index.json from each batch, deduplicates the proxies,
     and then regenerates all output files from the merged data.
     """
-    output_dir = root_dir / 'output'
-    batch_output_dirs = sorted(list(root_dir.glob('output_batch_*')))
+    output_dir = root_dir / "output"
+    batch_output_dirs = sorted(list(root_dir.glob("output_batch_*")))
 
     all_proxies_map = {}
 
@@ -35,12 +36,12 @@ def merge_batches():
             print(f"Info: Batch directory {batch_dir} not found. Skipping.")
             continue
 
-        index_file = batch_dir / 'index.json'
+        index_file = batch_dir / "index.json"
         if not index_file.exists():
             print(f"Info: index.json not found in {batch_dir}. Skipping.")
             continue
 
-        with open(index_file, 'r') as f:
+        with open(index_file, "r") as f:
             try:
                 proxies_data = json.load(f)
                 for proxy_data in proxies_data:
@@ -58,14 +59,14 @@ def merge_batches():
 
     # Clear the existing output directory
     output_dir.mkdir(exist_ok=True)
-    for f in output_dir.glob('*.*'):
+    for f in output_dir.glob("*.*"):
         if f.is_file():
             f.unlink()
 
     # --- Regenerate output files ---
 
     # 1. index.json
-    with open(output_dir / 'index.json', 'w') as f:
+    with open(output_dir / "index.json", "w") as f:
         json.dump([asdict(p) for p in merged_proxies], f, indent=2)
 
     # 2. Individual protocol files (*.txt)
@@ -74,19 +75,19 @@ def merge_batches():
         proxies_by_protocol[proxy.protocol].append(proxy.config)
 
     for protocol, configs in proxies_by_protocol.items():
-        with open(output_dir / f'{protocol}.txt', 'w') as f:
+        with open(output_dir / f"{protocol}.txt", "w") as f:
             # Corrected newline bug
-            f.write('\n'.join(configs))
+            f.write("\n".join(configs))
 
     # 3. Subscription files (all.txt, base64.txt, etc.)
     all_configs = [p.config for p in merged_proxies]
     if all_configs:
-        with open(output_dir / 'all.txt', 'w') as f:
-            f.write('\n'.join(all_configs))
+        with open(output_dir / "all.txt", "w") as f:
+            f.write("\n".join(all_configs))
 
-        base64_configs = _generate_subscription_links(merged_proxies)
-        with open(output_dir / 'base64.txt', 'w') as f:
-            f.write('\n'.join(base64_configs))
+        base64_subscription_content = generate_base64_subscription(merged_proxies)
+        with open(output_dir / "base64.txt", "w") as f:
+            f.write(base64_subscription_content)
 
     # 4. statistics.json
     stats = {
@@ -101,21 +102,24 @@ def merge_batches():
 
     if country_counts:
         stats["proxies_by_country"] = dict(sorted(country_counts.items()))
-        stats["top_10_countries"] = sorted(country_counts.items(), key=lambda item: item[1], reverse=True)[:10]
+        stats["top_10_countries"] = sorted(
+            country_counts.items(), key=lambda item: item[1], reverse=True
+        )[:10]
 
-    with open(output_dir / 'statistics.json', 'w') as f:
+    with open(output_dir / "statistics.json", "w") as f:
         json.dump(stats, f, indent=2)
 
     # 5. metadata.json
     metadata = {
         "last_updated_utc": datetime.now(timezone.utc).isoformat(),
-        "total_proxies": len(merged_proxies)
+        "total_proxies": len(merged_proxies),
     }
 
-    with open(output_dir / 'metadata.json', 'w') as f:
+    with open(output_dir / "metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
 
     print(f"Successfully merged {len(merged_proxies)} unique proxies from all batches.")
+
 
 if __name__ == "__main__":
     merge_batches()
