@@ -18,22 +18,28 @@ from configstream.models import Proxy
         ("wg://", "_parse_wireguard"),
         ("naive+https://", "_parse_naive"),
         ("xray://", "_parse_xray"),
-        ("http://", "_parse_generic"),
+        ("http://", "_parse_generic_url_scheme"),
         ('{"v": "2"}', "_parse_v2ray_json"),
         ("hysteria2://", "_parse_hysteria2"),
         ("wireguard://", "_parse_wireguard"),
         ("xtls://", "_parse_xray"),
-        ("ssh://", "_parse_generic"),
-        ("https://", "_parse_generic"),
-        ("socks://", "_parse_generic"),
-        ("socks4://", "_parse_generic"),
-        ("socks5://", "_parse_generic"),
+        ("ssh://", "_parse_generic_url_scheme"),
+        ("https://", "_parse_generic_url_scheme"),
+        ("socks://", "_parse_generic_url_scheme"),
+        ("socks4://", "_parse_generic_url_scheme"),
+        ("socks5://", "_parse_generic_url_scheme"),
     ],
 )
 def test_parse_config_calls_correct_parser(config_string, parser_name):
     """Test that parse_config calls the correct parser based on the protocol."""
-    with patch(f"configstream.core.{parser_name}") as mock_parser:
-        parse_config(config_string)
+    with patch(f"configstream.parsers.{parser_name}") as mock_parser:
+        # We need to reload the core module to ensure it picks up the patched parsers
+        from importlib import reload
+        from configstream import core
+
+        reload(core)
+
+        core.parse_config(config_string)
         mock_parser.assert_called_once_with(config_string)
 
 
