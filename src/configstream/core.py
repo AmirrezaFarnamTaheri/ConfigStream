@@ -1,13 +1,13 @@
 import asyncio
 import logging
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import aiohttp
 
 from .parsers import (
     _parse_brook,
-    _parse_generic,
+    _parse_generic_url_scheme,
     _parse_hysteria,
     _parse_hysteria2,
     _parse_juicity,
@@ -124,7 +124,43 @@ async def _lookup_geoip_http(
     }
 
 
+ParserFunc = Callable[[str], Optional[Proxy]]
+
+
+def _create_parser_map() -> Dict[str, ParserFunc]:
+    """Create a mapping from protocol prefixes to parser functions."""
+    return {
+        "vmess://": _parse_vmess,
+        "vless://": _parse_vless,
+        "ss://": _parse_ss,
+        "ssr://": _parse_ssr,
+        "trojan://": _parse_trojan,
+        "hysteria://": _parse_hysteria,
+        "hy2://": _parse_hysteria2,
+        "hysteria2://": _parse_hysteria2,
+        "tuic://": _parse_tuic,
+        "wg://": _parse_wireguard,
+        "wireguard://": _parse_wireguard,
+        "naive+https://": _parse_naive,
+        "xray://": _parse_xray,
+        "xtls://": _parse_xray,
+        "snell://": _parse_snell,
+        "brook://": _parse_brook,
+        "juicity://": _parse_juicity,
+    }
+
+
+# Pre-compute the parser map at module load time for efficiency
+_parser_map = _create_parser_map()
+_generic_protocols = {"ssh", "http", "https", "socks", "socks4", "socks5"}
+
+
 def parse_config(config_string: str) -> Proxy | None:
+    """
+    Parse a proxy configuration string and return a Proxy object.
+
+    This function uses a dispatch table for efficient protocol matching.
+    """
     if not config_string or not isinstance(config_string, str):
         return None
 
@@ -133,49 +169,26 @@ def parse_config(config_string: str) -> Proxy | None:
         return None
 
     try:
-        if config_string.startswith("vmess://"):
-            return _parse_vmess(config_string)
-        if config_string.startswith("vless://"):
-            return _parse_vless(config_string)
-        if config_string.startswith("ss://"):
-            return _parse_ss(config_string)
-        if config_string.startswith("ssr://"):
-            return _parse_ssr(config_string)
-        if config_string.startswith("trojan://"):
-            return _parse_trojan(config_string)
-        if config_string.startswith("hysteria://"):
-            return _parse_hysteria(config_string)
-        if config_string.startswith("hy2://") or config_string.startswith("hysteria2://"):
-            return _parse_hysteria2(config_string)
-        if config_string.startswith("tuic://"):
-            return _parse_tuic(config_string)
-        if config_string.startswith("wg://") or config_string.startswith("wireguard://"):
-            return _parse_wireguard(config_string)
-        if config_string.startswith("naive+https://"):
-            return _parse_naive(config_string)
-        if config_string.startswith("xray://") or config_string.startswith("xtls://"):
-            return _parse_xray(config_string)
-        if config_string.startswith("snell://"):
-            return _parse_snell(config_string)
-        if config_string.startswith("brook://"):
-            return _parse_brook(config_string)
-        if config_string.startswith("juicity://"):
-            return _parse_juicity(config_string)
+        # Fast path for common protocols using the pre-computed map
+        for prefix, parser in _parser_map.items():
+            if config_string.startswith(prefix):
+                return parser(config_string)
+
+        # Special case for JSON-based V2Ray configs
         if config_string.lstrip().startswith("{"):
-            parsed_v2ray = _parse_v2ray_json(config_string)
-            if parsed_v2ray:
-                return parsed_v2ray
-        if any(
-            config_string.startswith(f"{p}://")
-            for p in ["ssh", "http", "https", "socks", "socks4", "socks5"]
-        ):
-            return _parse_generic(config_string)
+            return _parse_v2ray_json(config_string)
+
+        # Fallback for generic URL-based schemes
+        if "://" in config_string:
+            protocol = config_string.split("://", 1)[0]
+            if protocol in _generic_protocols:
+                return _parse_generic_url_scheme(config_string)
 
         logger.debug(f"Unknown protocol in config: {config_string[:50]}...")
         return None
 
     except Exception as e:
-        logger.debug(f"Error parsing config: {e}")
+        logger.debug(f"Error parsing config '{config_string[:50]}...': {e}")
         return None
 
 

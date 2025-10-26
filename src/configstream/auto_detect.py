@@ -17,7 +17,7 @@ from .parsers import (
     _parse_hysteria2,
     _parse_tuic,
     _parse_wireguard,
-    _parse_generic,
+    _parse_generic_url_scheme,
 )
 
 
@@ -64,11 +64,11 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 "tuic": _parse_tuic,
                 "wg": _parse_wireguard,
                 "wireguard": _parse_wireguard,
-                "http": _parse_generic,
-                "https": _parse_generic,
-                "socks": _parse_generic,
-                "socks4": _parse_generic,
-                "socks5": _parse_generic,
+                "http": _parse_generic_url_scheme,
+                "https": _parse_generic_url_scheme,
+                "socks": _parse_generic_url_scheme,
+                "socks4": _parse_generic_url_scheme,
+                "socks5": _parse_generic_url_scheme,
             },
         )
 
@@ -115,7 +115,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
 
             elif port in [1080, 10808]:  # SOCKS ports
                 try:
-                    return _parse_generic(config)
+                    return _parse_generic_url_scheme(config)
                 except Exception:
                     pass
 
@@ -132,7 +132,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         _parse_hysteria,
         _parse_tuic,
         _parse_wireguard,
-        _parse_generic,
+        _parse_generic_url_scheme,
     )
 
     for parser in fallback_parsers:
