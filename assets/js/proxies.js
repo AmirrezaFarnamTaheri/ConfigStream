@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyState = document.getElementById('emptyState');
     const proxiesTable = document.getElementById('proxiesTable');
     const clearFiltersBtn = document.getElementById('clearFilters');
+    const copyAllBtn = document.getElementById('copyAll');
     const copyFilteredBtn = document.getElementById('copyFiltered');
     const downloadFilteredBtn = document.getElementById('downloadFiltered');
     const filterCount = document.getElementById('filterCount');
@@ -72,6 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSort.key === 'location') {
                 valA = a.country_code || '';
                 valB = b.country_code || '';
+            } else if (currentSort.key === 'health') {
+                valA = a.uptime || 0;
+                valB = b.uptime || 0;
             } else {
                 valA = a[currentSort.key];
                 valB = b[currentSort.key];
@@ -99,6 +103,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const latency = p.latency ? `${p.latency}ms` : 'N/A';
             const protocol = p.protocol || 'N/A';
             const config = p.config || '';
+            const uptime = p.uptime !== undefined ? (p.uptime * 100).toFixed(2) : 'N/A';
+            let healthStatus = 'na';
+            if (uptime > 95) healthStatus = 'high';
+            else if (uptime > 80) healthStatus = 'medium';
+            else if (uptime !== 'N/A') healthStatus = 'low';
+
             const rowClasses = ['proxy-row'];
             if (p.source === 'fallback') {
                 rowClasses.push('proxy-row--fallback');
@@ -114,6 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${location}</span>
                     </td>
                     <td>${latency}</td>
+                    <td class="health-cell">
+                        <span class="health-indicator health-indicator--${healthStatus}"></span>
+                        <span>${uptime}%</span>
+                    </td>
                     <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
                 </tr>
             `;
@@ -238,6 +252,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Batch actions
+    if (copyAllBtn) {
+        copyAllBtn.addEventListener('click', () => {
+            const configs = allProxies.map(p => p.config).join('\n');
+            copyToClipboard(configs, copyAllBtn);
+        });
+    }
+
     if (copyFilteredBtn) {
         copyFilteredBtn.addEventListener('click', () => {
             const proxies = getFilteredProxies();

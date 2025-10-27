@@ -232,7 +232,11 @@ async def _process_sources(
     remote_sources = [s for s in sources_to_fetch if s.startswith(("http://", "https://"))]
 
     if local_sources:
-        file_task = progress.add_task("Reading local sources...", total=len(local_sources)) if progress else None
+        file_task = (
+            progress.add_task("Reading local sources...", total=len(local_sources))
+            if progress
+            else None
+        )
         with tracker.phase("read_files"):
             file_results = await read_multiple_files_async(local_sources, max_concurrent=5)
             for file_path, content in file_results:
@@ -247,7 +251,11 @@ async def _process_sources(
                     progress.update(file_task, advance=1)
 
     if remote_sources:
-        fetch_task = progress.add_task("Fetching remote sources...", total=len(remote_sources)) if progress else None
+        fetch_task = (
+            progress.add_task("Fetching remote sources...", total=len(remote_sources))
+            if progress
+            else None
+        )
         with tracker.phase("fetch"):
             async with get_client() as client:
                 results = await asyncio.gather(
