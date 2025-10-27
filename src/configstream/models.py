@@ -87,3 +87,20 @@ class Proxy:
             return ""
         value = self.details.get("path") or self.details.get("path".upper())
         return str(value) if value is not None else ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the Proxy object to a dictionary for JSON serialization."""
+        return {
+            "config": self.config,
+            "protocol": self.protocol,
+            "address": self.address,
+            "port": self.port,
+            "latency": self.latency,
+            "country": self.country,
+            "country_code": self.country_code,
+            "city": self.city,
+            "remarks": self.remarks,
+            "is_working": self.is_working,
+            "security_issues": self.security_issues,
+            "tested_at": self.tested_at,
+        }
