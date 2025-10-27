@@ -2,22 +2,14 @@ import json
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-import sys
 from dataclasses import asdict
 
-# Add src to python path to allow importing from configstream
-root_dir = Path(__file__).parent.parent
-sys.path.insert(0, str(root_dir / "src"))
+from configstream.models import Proxy
+from configstream.output import generate_base64_subscription
 
-try:
-    from configstream.models import Proxy
-    from configstream.output import generate_base64_subscription
-except ImportError:
-    print(
-        "Error: Could not import from 'src/configstream'. Ensure it is installed in editable mode.",
-        file=sys.stderr,
-    )
-    sys.exit(1)
+
+# Get the root directory of the project
+root_dir = Path(__file__).parent.parent
 
 
 def merge_batches():

@@ -68,7 +68,7 @@ jobs:
       - name: Run merge script
         run: |
           echo "Merging results from all batches..."
-          python scripts/merge_batches.py
+          python -m scripts.merge_batches
 
       - name: Show diff
         run: |

@@ -209,6 +209,8 @@ def _parse_ss(config: str) -> Optional[Proxy]:
             return None
 
         method_pass, host_port = decoded.split("@", 1)
+        if ":" not in method_pass or ":" not in host_port:
+            return None
         method, password = method_pass.split(":", 1)
         host, port_str = host_port.split(":", 1)
         port = int(port_str)
