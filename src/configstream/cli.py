@@ -44,6 +44,20 @@ def cli() -> None:
     setup_logging(config.LOG_LEVEL, config.MASK_SENSITIVE_DATA)
 
 
+def _display_metrics(metrics: dict) -> None:
+    if not metrics:
+        return
+    console.print("\n[cyan]Performance metrics[/cyan]")
+    console.print(f"- Total time: {metrics.get('total_seconds', 0):.2f}s")
+    console.print(f"- Fetch: {metrics.get('fetch_seconds', 0):.2f}s")
+    console.print(f"- Parse: {metrics.get('parse_seconds', 0):.2f}s")
+    console.print(f"- Test: {metrics.get('test_seconds', 0):.2f}s")
+    console.print(f"- Geo: {metrics.get('geo_seconds', 0):.2f}s")
+    console.print(f"- Output: {metrics.get('output_seconds', 0):.2f}s")
+    console.print(f"- Proxies tested: {metrics.get('proxies_tested', 0)}")
+    console.print(f"- Proxies working: {metrics.get('proxies_working', 0)}")
+    console.print(f"- Throughput: {metrics.get('proxies_per_second', 0):.2f} proxies/s")
+
 async def _merge_logic_async(
     sources_file: str,
     output_dir: str,
@@ -54,7 +68,6 @@ async def _merge_logic_async(
     max_workers: int,
     timeout: int,
     show_metrics: bool,
-    verbose: bool,
     leniency: bool,
 ) -> None:
     # Download GeoIP databases
@@ -107,18 +120,7 @@ async def _merge_logic_async(
     click.echo(f"Output files saved to: {output_dir}")
 
     if show_metrics:
-        metrics = result.get("metrics") or {}
-        if metrics:
-            console.print("\n[cyan]Performance metrics[/cyan]")
-            console.print(f"- Total time: {metrics.get('total_seconds', 0):.2f}s")
-            console.print(f"- Fetch: {metrics.get('fetch_seconds', 0):.2f}s")
-            console.print(f"- Parse: {metrics.get('parse_seconds', 0):.2f}s")
-            console.print(f"- Test: {metrics.get('test_seconds', 0):.2f}s")
-            console.print(f"- Geo: {metrics.get('geo_seconds', 0):.2f}s")
-            console.print(f"- Output: {metrics.get('output_seconds', 0):.2f}s")
-            console.print(f"- Proxies tested: {metrics.get('proxies_tested', 0)}")
-            console.print(f"- Proxies working: {metrics.get('proxies_working', 0)}")
-            console.print(f"- Throughput: {metrics.get('proxies_per_second', 0):.2f} proxies/s")
+        _display_metrics(result.get("metrics") or {})
 
 
 @cli.command()
@@ -133,7 +135,6 @@ async def _merge_logic_async(
 @click.option("--max-workers", type=int, default=25)
 @click.option("--timeout", type=int, default=10)
 @click.option("--show-metrics", is_flag=True)
-@click.option("--verbose", is_flag=True)
 @click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")
 @handle_cli_errors(context="Merge operation")
 def merge(
@@ -146,7 +147,6 @@ def merge(
     max_workers: int,
     timeout: int,
     show_metrics: bool,
-    verbose: bool,
     leniency: bool,
 ) -> None:
     """Run the full pipeline: fetch, test, and generate outputs."""
@@ -161,7 +161,6 @@ def merge(
             max_workers=max_workers,
             timeout=timeout,
             show_metrics=show_metrics,
-            verbose=verbose,
             leniency=leniency,
         )
     )
@@ -260,17 +259,7 @@ async def _retest_logic_async(
     click.echo(f"Output files saved to: {output_path}")
 
     if show_metrics:
-        metrics = result.get("metrics") or {}
-        if metrics:
-            console.print("\n[cyan]Performance metrics[/cyan]")
-            console.print(f"- Total time: {metrics.get('total_seconds', 0):.2f}s")
-            console.print(f"- Fetch: {metrics.get('fetch_seconds', 0):.2f}s")
-            console.print(f"- Parse: {metrics.get('parse_seconds', 0):.2f}s")
-            console.print(f"- Test: {metrics.get('test_seconds', 0):.2f}s")
-            console.print(f"- Output: {metrics.get('output_seconds', 0):.2f}s")
-            console.print(f"- Proxies tested: {metrics.get('proxies_tested', 0)}")
-            console.print(f"- Proxies working: {metrics.get('proxies_working', 0)}")
-            console.print(f"- Throughput: {metrics.get('proxies_per_second', 0):.2f} proxies/s")
+        _display_metrics(result.get("metrics") or {})
 
 
 @cli.command()
