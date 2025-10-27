@@ -42,7 +42,7 @@ jobs:
             configstream-cache-
 
       - name: Install dependencies
-        run: pip install -e .[dev]
+        run: pip install --no-cache-dir -e .[dev]
 
       - name: Determine which batch to run
         id: batch_selector
@@ -63,7 +63,8 @@ jobs:
             --max-workers 32 \
             --timeout 24 \
             --show-metrics \
-            --max-latency 6000 | tee "pipeline_batch_${batch_num}.log"
+            --max-latency 6000 \
+            --log-file "pipeline_batch_${batch_num}.log"
 
       - name: Run merge script
         run: |
@@ -85,7 +86,7 @@ jobs:
             output/
             output_batch_*/
           push_options: '--force'
-          add_options: '-f'
+          add_options: '--force'
 
       - name: Upload pipeline artifact
         if: always()

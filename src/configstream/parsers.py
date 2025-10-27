@@ -150,30 +150,12 @@ def _parse_vmess(config: str) -> Optional[Proxy]:
         return None
 
 
-def _parse_vless(config: str) -> Optional[Proxy]:
-    try:
-        parsed = urlparse(config)
-        if not parsed.hostname or len(parsed.hostname) > 255:
-            return None
-        port = parsed.port or 443
-        if not (1 <= port <= 65535):
-            return None
-        uuid = parsed.username or ""
-        if not uuid or len(uuid) > 100:
-            return None
-
-        return Proxy(
-            config=config,
-            protocol="vless",
-            address=parsed.hostname,
-            port=port,
-            uuid=uuid,
-            remarks=unquote(parsed.fragment or "")[:200],
-            details={k: v[0] for k, v in parse_qs(parsed.query).items()},
-        )
-    except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse VLESS: {e}")
+def _parse_vless(c: str) -> Optional[Proxy]:
+    proxy = _parse_url_scheme(c, "vless", 443)
+    if proxy and not proxy.uuid:
+        logger.debug("VLESS config missing UUID.")
         return None
+    return proxy
 
 
 def _parse_ss(config: str) -> Optional[Proxy]:
@@ -229,29 +211,8 @@ def _parse_ss(config: str) -> Optional[Proxy]:
         return None
 
 
-def _parse_trojan(config: str) -> Optional[Proxy]:
-    try:
-        parsed = urlparse(config)
-        if not parsed.hostname or len(parsed.hostname) > 255:
-            return None
-        port = parsed.port or 443
-        if not (1 <= port <= 65535):
-            return None
-        uuid = parsed.username or ""
-        # Trojan passwords can be empty
-
-        return Proxy(
-            config=config,
-            protocol="trojan",
-            address=parsed.hostname,
-            port=port,
-            uuid=uuid,
-            remarks=unquote(parsed.fragment or "")[:200],
-            details=parse_qs(parsed.query),
-        )
-    except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Trojan: {e}")
-        return None
+def _parse_trojan(c: str) -> Optional[Proxy]:
+    return _parse_url_scheme(c, "trojan", 443)
 
 
 def _parse_ssr(config: str) -> Optional[Proxy]:
@@ -312,39 +273,6 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
         return None
 
 
-def _parse_generic_url_scheme(config: str) -> Optional[Proxy]:
-    """Parse generic URL-based schemes like http, socks."""
-    try:
-        parsed = urlparse(config)
-        if not parsed.hostname:
-            return None
-
-        default_ports = {
-            "http": 80,
-            "https": 443,
-            "ssh": 22,
-            "socks": 1080,
-            "socks4": 1080,
-            "socks5": 1080,
-        }
-        port = parsed.port or default_ports.get(parsed.scheme, 80)
-        if not (1 <= port <= 65535):
-            return None
-
-        return Proxy(
-            config=config,
-            protocol=parsed.scheme,
-            address=parsed.hostname,
-            port=port,
-            uuid=parsed.username or "",
-            details={"password": parsed.password or ""},
-            remarks=unquote(parsed.fragment or ""),
-        )
-    except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Generic config: {str(e)[:50]}")
-        return None
-
-
 def _parse_naive(config: str) -> Optional[Proxy]:
     try:
         parsed = urlparse(config.replace("naive+", ""))
@@ -374,6 +302,124 @@ def _parse_v2ray_json(config: str) -> Optional[Proxy]:
         data = json.loads(stripped)
     except json.JSONDecodeError:
         return None
+
+    outbound = data.get("outbound")
+    outbounds = data.get("outbounds")
+    if not outbound and isinstance(outbounds, list) and outbounds:
+        outbound = outbounds[0]
+    if not outbound:
+        return None
+
+    protocol = outbound.get("protocol", "v2ray")
+    settings = outbound.get("settings", {})
+    server_info = None
+    for key in ("vnext", "servers"):
+        nodes = settings.get(key)
+        if isinstance(nodes, list) and nodes:
+            server_info = nodes[0]
+            break
+
+    if not server_info:
+        return None
+
+    address = server_info.get("address") or server_info.get("server") or server_info.get("ip")
+    port = server_info.get("port")
+    if not address or port is None:
+        return None
+
+    users = server_info.get("users")
+    uuid = ""
+    if isinstance(users, list) and users:
+        uuid = users[0].get("id", "")
+
+    metadata = {
+        "protocol": protocol,
+        "settings": settings,
+    }
+    remarks = outbound.get("tag", data.get("remark", ""))
+
+    return Proxy(
+        config=config,
+        protocol="v2ray",
+        address=address,
+        port=int(port),
+        uuid=uuid,
+        remarks=remarks or "",
+        details=metadata,
+    )
+
+
+# Generic parser for URL-based schemes
+def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
+    try:
+        parsed = urlparse(config)
+        if not parsed.hostname or len(parsed.hostname) > 255:
+            return None
+        port = parsed.port or default_port
+        if not (1 <= port <= 65535):
+            return None
+
+        return Proxy(
+            config=config,
+            protocol=protocol,
+            address=parsed.hostname,
+            port=port,
+            uuid=parsed.username or "",
+            remarks=unquote(parsed.fragment or "")[:200],
+            details=parse_qs(parsed.query),
+        )
+    except (ValueError, IndexError) as e:
+        logger.debug(f"Failed to parse {protocol.upper()}: {e}")
+        return None
+
+def _parse_hysteria(c: str) -> Optional[Proxy]:
+    return _parse_url_scheme(c, "hysteria", 443)
+
+def _parse_hysteria2(c: str) -> Optional[Proxy]:
+    proxy = _parse_url_scheme(c, "hysteria2", 443)
+    if proxy and not proxy.uuid:
+        logger.debug("Hysteria2 config missing password.")
+        return None
+    return proxy
+
+def _parse_tuic(c: str) -> Optional[Proxy]:
+    return _parse_url_scheme(c, "tuic", 443)
+
+def _parse_wireguard(c: str) -> Optional[Proxy]:
+    proxy = _parse_url_scheme(c, "wireguard", 51820)
+    if not proxy:
+        return None
+    if (
+        not proxy.details
+        or "private_key" not in proxy.details
+        or not proxy.details.get("private_key")
+    ):
+        logger.debug("WireGuard config missing private_key.")
+        return None
+    return proxy
+
+def _parse_xray(c: str) -> Optional[Proxy]:
+    proxy = _parse_url_scheme(c, "xray", 443)
+    if not proxy or not proxy.uuid:
+        logger.debug("XRay config missing UUID.")
+        return None
+    return proxy
+
+def _parse_snell(c: str) -> Optional[Proxy]:
+    """Parse Snell proxy configuration."""
+    return _parse_url_scheme(c, "snell", 443)
+
+def _parse_brook(c: str) -> Optional[Proxy]:
+    """Parse Brook proxy configuration."""
+    return _parse_url_scheme(c, "brook", 9999)
+
+def _parse_juicity(c: str) -> Optional[Proxy]:
+    """Parse Juicity proxy configuration."""
+    proxy = _parse_url_scheme(c, "juicity", 443)
+    if proxy and not proxy.uuid:
+        logger.debug("Juicity config missing UUID.")
+        return None
+    return proxy
 
     outbound = data.get("outbound")
     outbounds = data.get("outbounds")

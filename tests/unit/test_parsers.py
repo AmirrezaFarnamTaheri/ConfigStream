@@ -4,7 +4,6 @@ from configstream.parsers import (
     _parse_trojan,
     _parse_ss,
     _parse_ssr,
-    _parse_generic_url_scheme,
     _parse_naive,
     _parse_v2ray_json,
     _parse_hysteria,
@@ -56,15 +55,6 @@ def test_parse_ssr():
     assert proxy is not None
     assert proxy.protocol == "ssr"
     assert proxy.address == "ju-tt.com"
-
-
-def test_parse_generic_url_scheme():
-    config = "http://user:pass@example.com:8080#test"
-    proxy = _parse_generic_url_scheme(config)
-    assert proxy is not None
-    assert proxy.protocol == "http"
-    assert proxy.address == "example.com"
-    assert proxy.port == 8080
 
 
 def test_parse_naive():

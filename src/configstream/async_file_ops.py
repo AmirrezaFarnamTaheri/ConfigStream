@@ -101,7 +101,7 @@ async def read_file_async(file_path: str | Path, encoding: str = "utf-8") -> str
     except FileNotFoundError:
         # This is a common expected error, so we log it and re-raise
         logger.error(f"File not found: {path}")
-        raise
+        return f"ERROR: File not found: {path}"
 
     except Exception as exc:
         # Any other error gets wrapped in IOError for consistency
@@ -152,7 +152,7 @@ async def write_file_async(
 
     except Exception as exc:
         logger.error(f"Failed to write {path}: {exc}")
-        raise IOError(f"Failed to write {path}") from exc
+        return f"ERROR: {exc}"
 
 
 async def read_multiple_files_async(

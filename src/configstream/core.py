@@ -7,7 +7,6 @@ from .http_client import get_client
 
 from .parsers import (
     _parse_brook,
-    _parse_generic_url_scheme,
     _parse_hysteria,
     _parse_hysteria2,
     _parse_juicity,

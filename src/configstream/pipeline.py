@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import asyncio
 import base64
 import binascii
@@ -13,13 +12,10 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 from collections import deque
 from urllib.parse import urlparse
-
 import httpx
 import geoip2.database
-
 from .http_client import get_client
 from rich.progress import Progress
-
 from .models import Proxy
 from .core import geolocate_proxy, parse_config
 from .parsers import _extract_config_lines
@@ -41,11 +37,214 @@ from .async_file_ops import (
     shutdown_file_pool,
 )
 from .geoip import download_geoip_dbs
-
 from .constants import (
     FETCH_TIMEOUT as FETCH_TIMEOUT_SECONDS,
     MAX_SOURCE_URL_LENGTH,
 )
+async def _test_proxies(
+    proxies: List[Proxy],
+    tester: SingBoxTester,
+    semaphore: asyncio.Semaphore,
+    progress: Optional[Progress] = None,
+    batch_size: int = 1000,
+    label: str = "proxies",
+) -> List[Proxy]:
+    """Test a list of proxies concurrently."""
+    if not proxies:
+        return []
+
+    task = progress.add_task(f"Testing {label}", total=len(proxies)) if progress else None
+
+    async def test_single(proxy: Proxy) -> Proxy:
+        async with semaphore:
+            tested_proxy = await tester.test(proxy)
+        if progress and task is not None:
+            progress.update(task, advance=1)
+        return tested_proxy
+
+    tested: List[Proxy] = []
+    total_batches = (len(proxies) + batch_size - 1) // batch_size
+    for index, start in enumerate(range(0, len(proxies), batch_size)):
+        subset = proxies[start : start + batch_size]
+        batch_number = index + 1
+        if total_batches > 1:
+            logger.info(
+                "Testing batch %d/%d (%d proxies) for %s",
+                batch_number,
+                total_batches,
+                len(subset),
+                label,
+            )
+        results = await asyncio.gather(*(test_single(p) for p in subset))
+        tested.extend(results)
+
+    if progress and task is not None:
+        progress.update(task, completed=len(proxies))
+
+    return tested
+
+
+async def _geolocate_batch(
+    batch: List[Proxy],
+    geoip_reader: Optional[geoip2.database.Reader],
+    geo_cache: Dict[str, Dict[str, Optional[str]]],
+    progress: Optional[Progress] = None,
+    label: str = "proxies",
+) -> None:
+    """Geolocate a batch of proxies."""
+    if not batch or not geoip_reader:
+        return
+
+    geo_task = progress.add_task(f"Geolocating {label}", total=len(batch)) if progress else None
+    working_items = [proxy for proxy in batch if proxy.is_working]
+    if working_items:
+        for proxy in batch:
+            if proxy.is_working:
+                cached_geo = geo_cache.get(proxy.address)
+                if cached_geo:
+                    proxy.country = cached_geo.get("country") or proxy.country
+                    proxy.country_code = cached_geo.get("country_code") or proxy.country_code
+                    proxy.city = cached_geo.get("city") or proxy.city
+                    proxy.asn = cached_geo.get("asn") or proxy.asn
+                else:
+                    await geolocate_proxy(proxy, geoip_reader)
+                    if proxy.country_code not in {"", "XX"} or proxy.country != "Unknown":
+                        geo_cache[proxy.address] = {
+                            "country": proxy.country,
+                            "country_code": proxy.country_code,
+                            "city": proxy.city,
+                            "asn": proxy.asn,
+                        }
+            if progress and geo_task is not None:
+                progress.update(geo_task, advance=1)
+    if progress and geo_task is not None:
+        progress.update(geo_task, completed=len(batch))
+
+
+def _generate_outputs(
+    output_path: Path,
+    all_working_proxies: List[Proxy],
+    all_tested_proxies: List[Proxy],
+    stats: Dict[str, Any],
+    start_time: datetime,
+    sources_to_fetch: List[str],
+    phase_summaries: List[Dict[str, Any]],
+) -> Dict[str, str]:
+    """Generate all output files."""
+    output_files: Dict[str, str] = {}
+    try:
+        sub_content = generate_base64_subscription(all_working_proxies)
+        sub_path = output_path / "vpn_subscription_base64.txt"
+        sub_path.write_text(sub_content)
+        output_files["subscription"] = str(sub_path)
+
+        clash_content = generate_clash_config(all_working_proxies)
+        clash_path = output_path / "clash.yaml"
+        clash_path.write_text(clash_content)
+        output_files["clash"] = str(clash_path)
+
+        try:
+            singbox_content = generate_singbox_config(all_working_proxies)
+            singbox_path = output_path / "singbox.json"
+            singbox_path.write_text(singbox_content)
+            output_files["singbox"] = str(singbox_path)
+        except Exception as exc:
+            logger.warning("Could not generate SingBox format: %s", exc)
+
+        raw_content = "\n".join(p.config for p in all_working_proxies)
+        raw_path = output_path / "configs_raw.txt"
+        raw_path.write_text(raw_content)
+        output_files["raw"] = str(raw_path)
+
+        shadowrocket_content = generate_shadowrocket_subscription(all_working_proxies)
+        shadowrocket_path = output_path / "shadowrocket.txt"
+        shadowrocket_path.write_text(shadowrocket_content)
+        output_files["shadowrocket"] = str(shadowrocket_path)
+
+        quantumult_content = generate_quantumult_config(all_working_proxies)
+        quantumult_path = output_path / "quantumult.conf"
+        quantumult_path.write_text(quantumult_content)
+        output_files["quantumult"] = str(quantumult_path)
+
+        surge_content = generate_surge_config(all_working_proxies)
+        surge_path = output_path / "surge.conf"
+        surge_path.write_text(surge_content)
+        output_files["surge"] = str(surge_path)
+
+        proxies_json = [p.to_dict() for p in all_working_proxies]
+        json_path = output_path / "proxies.json"
+        json_path.write_text(json.dumps(proxies_json, indent=2))
+        output_files["json"] = str(json_path)
+
+        full_dir = output_path / "full"
+        full_dir.mkdir(parents=True, exist_ok=True)
+        full_payload = [p.to_dict() for p in all_tested_proxies]
+        full_json_path = full_dir / "all.json"
+        full_json_path.write_text(json.dumps(full_payload, indent=2))
+        output_files["full"] = str(full_json_path)
+
+        success_rate = (stats["working"] / stats["tested"]) * 100 if stats["tested"] > 0 else 0.0
+        protocol_counts: Dict[str, int] = {}
+        for proxy in all_working_proxies:
+            protocol_counts[proxy.protocol] = protocol_counts.get(proxy.protocol, 0) + 1
+        working_with_latency = [
+            proxy.latency for proxy in all_working_proxies if proxy.latency is not None
+        ]
+        average_latency = (
+            sum(working_with_latency) / len(working_with_latency) if working_with_latency else 0.0
+        )
+
+        stats_json = {
+            "generated_at": start_time.isoformat(),
+            "generated_now": datetime.now(timezone.utc).isoformat(),
+            "total_fetched": stats["fetched"],
+            "total_tested": stats["tested"],
+            "total_working": stats["working"],
+            "total_filtered": stats["filtered"],
+            "duplicates_skipped": stats["duplicates_skipped"],
+            "success_rate": round(success_rate, 2),
+            "average_latency_ms": round(average_latency, 2),
+            "protocol_distribution": protocol_counts,
+            "phase_summaries": phase_summaries,
+            "cache_bust": int(datetime.now().timestamp() * 1000),
+        }
+        stats_path = output_path / "statistics.json"
+        stats_path.write_text(json.dumps(stats_json, indent=2))
+        output_files["statistics"] = str(stats_path)
+
+        metadata = {
+            "version": "1.0.0",
+            "generated_at": start_time.isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "proxy_count": len(all_working_proxies),
+            "working_count": stats["working"],
+            "source_count": len(sources_to_fetch),
+            "tested_count": len(all_tested_proxies),
+            "fallback_available": bool(all_tested_proxies) and not all_working_proxies,
+            "phase_summaries": phase_summaries,
+            "cache_bust": int(datetime.now().timestamp() * 1000),
+            "stats": stats_json,
+        }
+        metadata_path = output_path / "metadata.json"
+        metadata_path.write_text(json.dumps(metadata, indent=2))
+        output_files["metadata"] = str(metadata_path)
+
+        stats_report = StatisticsEngine(all_tested_proxies).generate_report()
+        report_path = output_path / "report.json"
+        report_path.write_text(json.dumps(stats_report, indent=2))
+        output_files["report"] = str(report_path)
+
+        try:
+            categorized_files = generate_categorized_outputs(all_tested_proxies, output_path)
+            output_files.update(categorized_files)
+            logger.info("Generated %d categorized output files", len(categorized_files))
+        except Exception as exc:
+            logger.warning("Failed to generate categorized outputs: %s", exc)
+    except Exception as exc:
+        logger.error("Failed to generate outputs: %s", exc)
+        raise
+    return output_files
+
 
 logger = logging.getLogger(__name__)
 
@@ -387,212 +586,6 @@ async def run_full_pipeline(
 
         tester = SingBoxTester(timeout=effective_timeout_sec, cache=test_cache)
         semaphore = asyncio.Semaphore(max(1, max_workers))
-
-async def _test_proxies(
-    proxies: List[Proxy],
-    tester: SingBoxTester,
-    semaphore: asyncio.Semaphore,
-    progress: Optional[Progress] = None,
-    batch_size: int = 1000,
-    label: str = "proxies",
-) -> List[Proxy]:
-    """Test a list of proxies concurrently."""
-    if not proxies:
-        return []
-
-    task = progress.add_task(f"Testing {label}", total=len(proxies)) if progress else None
-
-    async def test_single(proxy: Proxy) -> Proxy:
-        async with semaphore:
-            tested_proxy = await tester.test(proxy)
-        if progress and task is not None:
-            progress.update(task, advance=1)
-        return tested_proxy
-
-    tested: List[Proxy] = []
-    total_batches = (len(proxies) + batch_size - 1) // batch_size
-    for index, start in enumerate(range(0, len(proxies), batch_size)):
-        subset = proxies[start : start + batch_size]
-        batch_number = index + 1
-        if total_batches > 1:
-            logger.info(
-                "Testing batch %d/%d (%d proxies) for %s",
-                batch_number,
-                total_batches,
-                len(subset),
-                label,
-            )
-        results = await asyncio.gather(*(test_single(p) for p in subset))
-        tested.extend(results)
-
-    if progress and task is not None:
-        progress.update(task, completed=len(proxies))
-
-    return tested
-
-async def _geolocate_batch(
-    batch: List[Proxy],
-    geoip_reader: Optional[geoip2.database.Reader],
-    geo_cache: Dict[str, Dict[str, Optional[str]]],
-    progress: Optional[Progress] = None,
-    label: str = "proxies",
-) -> None:
-    """Geolocate a batch of proxies."""
-    if not batch or not geoip_reader:
-        return
-
-    geo_task = progress.add_task(f"Geolocating {label}", total=len(batch)) if progress else None
-    working_items = [proxy for proxy in batch if proxy.is_working]
-    if working_items:
-        for proxy in batch:
-            if proxy.is_working:
-                cached_geo = geo_cache.get(proxy.address)
-                if cached_geo:
-                    proxy.country = cached_geo.get("country") or proxy.country
-                    proxy.country_code = cached_geo.get("country_code") or proxy.country_code
-                    proxy.city = cached_geo.get("city") or proxy.city
-                    proxy.asn = cached_geo.get("asn") or proxy.asn
-                else:
-                    await geolocate_proxy(proxy, geoip_reader)
-                    if proxy.country_code not in {"", "XX"} or proxy.country != "Unknown":
-                        geo_cache[proxy.address] = {
-                            "country": proxy.country,
-                            "country_code": proxy.country_code,
-                            "city": proxy.city,
-                            "asn": proxy.asn,
-                        }
-            if progress and geo_task is not None:
-                progress.update(geo_task, advance=1)
-    if progress and geo_task is not None:
-        progress.update(geo_task, completed=len(batch))
-
-
-def _generate_outputs(
-    output_path: Path,
-    all_working_proxies: List[Proxy],
-    all_tested_proxies: List[Proxy],
-    stats: Dict[str, Any],
-    start_time: datetime,
-    sources_to_fetch: List[str],
-    phase_summaries: List[Dict[str, Any]],
-) -> Dict[str, str]:
-    """Generate all output files."""
-    output_files: Dict[str, str] = {}
-    try:
-        sub_content = generate_base64_subscription(all_working_proxies)
-        sub_path = output_path / "vpn_subscription_base64.txt"
-        sub_path.write_text(sub_content)
-        output_files["subscription"] = str(sub_path)
-
-        clash_content = generate_clash_config(all_working_proxies)
-        clash_path = output_path / "clash.yaml"
-        clash_path.write_text(clash_content)
-        output_files["clash"] = str(clash_path)
-
-        try:
-            singbox_content = generate_singbox_config(all_working_proxies)
-            singbox_path = output_path / "singbox.json"
-            singbox_path.write_text(singbox_content)
-            output_files["singbox"] = str(singbox_path)
-        except Exception as exc:
-            logger.warning("Could not generate SingBox format: %s", exc)
-
-        raw_content = "\n".join(p.config for p in all_working_proxies)
-        raw_path = output_path / "configs_raw.txt"
-        raw_path.write_text(raw_content)
-        output_files["raw"] = str(raw_path)
-
-        shadowrocket_content = generate_shadowrocket_subscription(all_working_proxies)
-        shadowrocket_path = output_path / "shadowrocket.txt"
-        shadowrocket_path.write_text(shadowrocket_content)
-        output_files["shadowrocket"] = str(shadowrocket_path)
-
-        quantumult_content = generate_quantumult_config(all_working_proxies)
-        quantumult_path = output_path / "quantumult.conf"
-        quantumult_path.write_text(quantumult_content)
-        output_files["quantumult"] = str(quantumult_path)
-
-        surge_content = generate_surge_config(all_working_proxies)
-        surge_path = output_path / "surge.conf"
-        surge_path.write_text(surge_content)
-        output_files["surge"] = str(surge_path)
-
-        proxies_json = [p.to_dict() for p in all_working_proxies]
-        json_path = output_path / "proxies.json"
-        json_path.write_text(json.dumps(proxies_json, indent=2))
-        output_files["json"] = str(json_path)
-
-        full_dir = output_path / "full"
-        full_dir.mkdir(parents=True, exist_ok=True)
-        full_payload = [p.to_dict() for p in all_tested_proxies]
-        full_json_path = full_dir / "all.json"
-        full_json_path.write_text(json.dumps(full_payload, indent=2))
-        output_files["full"] = str(full_json_path)
-
-        success_rate = (stats["working"] / stats["tested"]) * 100 if stats["tested"] > 0 else 0.0
-        protocol_counts = {}
-        for proxy in all_working_proxies:
-            protocol_counts[proxy.protocol] = protocol_counts.get(proxy.protocol, 0) + 1
-        working_with_latency = [
-            proxy.latency for proxy in all_working_proxies if proxy.latency is not None
-        ]
-        average_latency = (
-            sum(working_with_latency) / len(working_with_latency)
-            if working_with_latency
-            else 0.0
-        )
-
-        stats_json = {
-            "generated_at": start_time.isoformat(),
-            "generated_now": datetime.now(timezone.utc).isoformat(),
-            "total_fetched": stats["fetched"],
-            "total_tested": stats["tested"],
-            "total_working": stats["working"],
-            "total_filtered": stats["filtered"],
-            "duplicates_skipped": stats["duplicates_skipped"],
-            "success_rate": round(success_rate, 2),
-            "average_latency_ms": round(average_latency, 2),
-            "protocol_distribution": protocol_counts,
-            "phase_summaries": phase_summaries,
-            "cache_bust": int(datetime.now().timestamp() * 1000),
-        }
-        stats_path = output_path / "statistics.json"
-        stats_path.write_text(json.dumps(stats_json, indent=2))
-        output_files["statistics"] = str(stats_path)
-
-        metadata = {
-            "version": "1.0.0",
-            "generated_at": start_time.isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-            "proxy_count": len(all_working_proxies),
-            "working_count": stats["working"],
-            "source_count": len(sources_to_fetch),
-            "tested_count": len(all_tested_proxies),
-            "fallback_available": bool(all_tested_proxies) and not all_working_proxies,
-            "phase_summaries": phase_summaries,
-            "cache_bust": int(datetime.now().timestamp() * 1000),
-            "stats": stats_json,
-        }
-        metadata_path = output_path / "metadata.json"
-        metadata_path.write_text(json.dumps(metadata, indent=2))
-        output_files["metadata"] = str(metadata_path)
-
-        stats_report = StatisticsEngine(all_tested_proxies).generate_report()
-        report_path = output_path / "report.json"
-        report_path.write_text(json.dumps(stats_report, indent=2))
-        output_files["report"] = str(report_path)
-
-        try:
-            categorized_files = generate_categorized_outputs(all_tested_proxies, output_path)
-            output_files.update(categorized_files)
-            logger.info("Generated %d categorized output files", len(categorized_files))
-        except Exception as exc:
-            logger.warning("Failed to generate categorized outputs: %s", exc)
-    except Exception as exc:
-        logger.error("Failed to generate outputs: %s", exc)
-        raise
-    return output_files
-
         phase_index = 0
         while phase_index < MAX_PIPELINE_PHASES:
             if not queue and not preparsed_batches:
@@ -831,16 +824,6 @@ def _generate_outputs(
             }
             phase_summaries.append(phase_summary)
             stats["phases"] = phase_summaries
-            with tracker.phase("output"):
-                output_files = _generate_outputs(
-                    output_path=output_path,
-                    all_working_proxies=all_working_proxies,
-                    all_tested_proxies=all_tested_proxies,
-                    stats=stats,
-                    start_time=start_time,
-                    sources_to_fetch=sources_to_fetch,
-                    phase_summaries=phase_summaries,
-                )
 
             if not queue and not preparsed_batches:
                 break
