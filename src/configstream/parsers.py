@@ -66,8 +66,8 @@ def _safe_b64_decode(data: str) -> str:
         try:
             return decoded_bytes.decode("utf-8")
         except UnicodeDecodeError:
-            logger.warning("Decoded data is not valid UTF-8")
-            return data
+            logger.debug("Decoded data is not valid UTF-8, trying latin-1")
+            return decoded_bytes.decode("latin-1")
     except (binascii.Error, ValueError) as exc:
         logger.warning(f"Base64 decode failed: {exc}")
         return data
@@ -256,54 +256,75 @@ def _parse_trojan(config: str) -> Optional[Proxy]:
         return None
 
 
+def _b64_normalize(s: str) -> str:
+    # Convert urlsafe to standard and pad
+    s = s.replace('-', '+').replace('_', '/')
+    return s + '=' * (-len(s) % 4)
+
 def _parse_ssr(config: str) -> Optional[Proxy]:
     try:
         if not config.startswith("ssr://"):
             return None
-        encoded = config[len("ssr://") :]
-        if len(encoded) > 4096:
+
+        payload = config[len("ssr://"):]
+        if len(payload) > 4096:
             return None
 
-        decoded = _safe_b64_decode(encoded)
-        if not decoded:
+        # 1) decode the entire payload first
+        decoded_all = _safe_b64_decode(_b64_normalize(payload))
+        if not decoded_all:
             return None
 
-        parts = decoded.split(":", 5)
-        if len(parts) < 6:
+        # 2) split AFTER decoding
+        main, _, qs = decoded_all.partition("/?")
+
+        # 3) parse the main part
+        parts = main.split(":", 5)
+        if len(parts) != 6:
             return None
 
-        server, port_str, protocol, cipher, obfs, tail = parts
+        server, port_str, protocol, cipher, obfs, pwd_part = parts
         if len(server) > 255:
             return None
+
         port = int(port_str)
         if not (1 <= port <= 65535):
             return None
 
-        password_part, _, param_str = tail.partition("/?")
-        password = _safe_b64_decode(password_part)
+        # Password may be base64 (urlsafe, no pad); some generators also put it plain.
+        password = _safe_b64_decode(_b64_normalize(pwd_part))
 
-        params = parse_qs(param_str)
-        params_decoded = {}
-        for k, v in params.items():
-            if v:
-                val = v[0]
-                # SSR params are base64 encoded without padding
-                # Add padding before decoding
-                padded_val = val + "=" * (-len(val) % 4)
-                decoded_val = _safe_b64_decode(padded_val)
-                # If decoding fails, _safe_b64_decode returns the original string.
-                # We check if the original string was valid b64 to detect failure.
-                if decoded_val == padded_val and _validate_b64_input(val) is None:
-                    logger.debug(f"Invalid base64 in SSR param '{k}': {val}")
-                    return None
-                params_decoded[k] = decoded_val
+        # 4) parse params; keep blanks
+        raw_params = parse_qs(qs, keep_blank_values=True)
+        params_decoded: dict[str, str] = {}
+
+        for k, vals in raw_params.items():
+            if not vals:
+                continue
+            val = vals[0]
+            if val == "":
+                params_decoded[k] = ""
+                continue
+
+            v_norm = _b64_normalize(val)
+            decoded_val = _safe_b64_decode(v_norm)
+
+            # If it wasn’t valid base64, don’t fail hard—keep original.
+            if decoded_val == v_norm and _validate_b64_input(v_norm) is None:
+                logger.debug(f"SSR param '{k}' not valid base64: {val!r}; leaving as-is.")
+                decoded_val = val
+
+            params_decoded[k] = decoded_val
+
+        # remarks is already decoded in params_decoded; don’t decode twice
+        remarks = params_decoded.get("remarks", "")
 
         return Proxy(
             config=config,
             protocol="ssr",
             address=server,
             port=port,
-            remarks=_safe_b64_decode(params_decoded.get("remarks", "")),
+            remarks=remarks,
             details={
                 "protocol": protocol,
                 "cipher": cipher,

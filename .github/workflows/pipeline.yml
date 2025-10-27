@@ -58,11 +58,13 @@ jobs:
 
       - name: Install sing-box
         run: |
-          LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/tags/v1.9.0-beta.7" | grep "browser_download_url.*linux-amd64" | cut -d : -f 2,3 | tr -d \\")
+          LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "browser_download_url.*linux-amd64" | cut -d '"' -f 4)
           curl -L -o sing-box.tar.gz $LATEST_URL
           tar -xzf sing-box.tar.gz
-          mv sing-box-1.9.0-beta.7-linux-amd64/sing-box /usr/local/bin/
-          rm -rf sing-box.tar.gz sing-box-1.9.0-beta.7-linux-amd64
+          # The extracted directory name can vary, so we find it dynamically
+          EXTRACTED_DIR=$(tar -tzf sing-box.tar.gz | head -1 | cut -f1 -d"/")
+          mv $EXTRACTED_DIR/sing-box /usr/local/bin/
+          rm -rf sing-box.tar.gz $EXTRACTED_DIR
 
       - name: Run tests
         run: python -m pytest --cov=src/configstream --cov-report=term-missing
@@ -97,13 +99,13 @@ jobs:
           restore-keys: |
             configstream-cache-
 
+      - name: Install dependencies
+        run: pip install -e .[dev]
+
       - name: Download GeoIP databases
         env:
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: python -m configstream.cli update-databases
-
-      - name: Install dependencies
-        run: pip install -e .[dev]
 
       - name: Determine which batch to run
         id: batch_selector
