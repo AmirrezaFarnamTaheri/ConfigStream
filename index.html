@@ -101,7 +101,7 @@
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;">Unlock the Internet</h1>
                 <p class="subtitle" style="--delay: 0.2s;">
-                    Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from 240+ curated sources stream in every 6 hours, so you can rely on a continuously tested path to a free and open internet.
+                    Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from over 240 curated sources stream in every 4 hours, ensuring you always have a reliable path to the open internet.
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
@@ -196,12 +196,18 @@
                 <div class="info-column accordion-container">
                     <section class="card info-card accordion-item" style="--delay: 0.9s;">
                         <button class="accordion-header" aria-expanded="true">
-                            <h3><i data-feather="globe"></i> Our Mission</h3>
+                            <h3><i data-feather="play-circle"></i> Getting Started</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>We believe that everyone has the right to access information without restriction. Our mission is to empower users worldwide with the tools they need to stay connected and informed, bypassing digital barriers and promoting a more open internet.</p>
+                                <p>Using ConfigStream is easy. Just grab a configuration and import it into your favorite VPN client. Here’s how:</p>
+                                <ol class="info-list">
+                                    <li><strong>Choose a Format:</strong> Pick from Base64, Clash, or Raw links in the "Get Your Configs" section.</li>
+                                    <li><strong>Copy or Download:</strong> Copy the subscription link or download the configuration file.</li>
+                                    <li><strong>Import to Your Client:</strong> Open your VPN client (like V2Ray, Clash, or NekoBox) and import the configuration from the clipboard or file.</li>
+                                    <li><strong>Connect:</strong> Select a proxy from the imported list and connect. You're all set!</li>
+                                </ol>
                             </div>
                         </div>
                     </section>
@@ -212,41 +218,38 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>Our system is fully automated using GitHub Actions. We perform hourly retests of existing proxies to verify connectivity and demote or remove those that have gone offline. Every 3 hours, we fetch fresh proxies from public sources, deduplicate them, test each one for security and performance, add geolocation data, and generate updated configuration files—ensuring you always get working, tested configurations.</p>
+                                <p>Our system is fully automated using GitHub Actions. Every 4 hours, we fetch fresh proxies from public sources, deduplicate them, test each one for security and performance, add geolocation data, and generate updated configuration files—ensuring you always get working, tested configurations.</p>
                             </div>
                         </div>
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.1s;">
                         <button class="accordion-header" aria-expanded="false">
-                            <h3><i data-feather="shield"></i> Automated Security</h3>
+                            <h3><i data-feather="shield"></i> Our Security Promise</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>We take security seriously. Every proxy from our 240+ curated sources is subjected to comprehensive automated tests before being listed:</p>
+                                <p>We take your security seriously. Before any proxy is listed, it undergoes a rigorous, automated validation process:</p>
                                 <ul class="info-list">
-                                    <li><strong>Content Injection Detection:</strong> Filters out proxies that modify page content or inject malicious code.</li>
-                                    <li><strong>SSL/TLS Validation:</strong> Ensures secure HTTPS connections and validates certificate chains.</li>
-                                    <li><strong>Header Preservation:</strong> Verifies proxies don't strip important security headers.</li>
-                                    <li><strong>Port Scanning Prevention:</strong> Removes proxies with suspicious open ports.</li>
-                                    <li><strong>Performance Measurement:</strong> Records latency and response times with intelligent caching (2-hour TTL) to help you choose fast, reliable proxies.</li>
-                                    <li><strong>Batch Processing:</strong> Optimized pipeline with 750-proxy batches and concurrent testing for maximum efficiency.</li>
+                                    <li><strong>No Content Injection:</strong> We block proxies that attempt to inject ads, trackers, or malicious scripts into your web traffic.</li>
+                                    <li><strong>Verified Connections:</strong> We ensure all connections use valid SSL/TLS certificates to protect you from man-in-the-middle attacks.</li>
+                                    <li><strong>Preserved Security Headers:</strong> Our tests confirm that important security headers are not stripped from your requests.</li>
+                                    <li><strong>Safe Ports Only:</strong> We actively scan for and block proxies with suspicious or insecure open ports.</li>
                                 </ul>
                             </div>
                         </div>
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.2s;">
                         <button class="accordion-header" aria-expanded="false">
-                            <h3><i data-feather="slash"></i> Limitations</h3>
+                            <h3><i data-feather="file-text"></i> Formats Explained</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>This service is designed for bypassing restrictions, not for guaranteed privacy. Please be aware of the following:</p>
-                                <ul class="info-list info-list-danger">
-                                    <li><strong>Limited Privacy:</strong> Your traffic passes through third-party servers whose operators may log activity.</li>
-                                    <li><strong>Variable Speed:</strong> Performance varies by location, server load, and network conditions.</li>
-                                    <li><strong>No Guarantees:</strong> As a free, community-driven service, uptime and support are best-effort only.</li>
+                                <ul class="info-list">
+                                    <li><strong>Base64 Subscription:</strong> A single, shareable link that’s easy to import into clients like V2Ray, Xray, and NekoBox. This is the most convenient option for most users.</li>
+                                    <li><strong>Clash Config:</strong> A downloadable YAML file specifically for users of Clash, a popular rule-based proxy client.</li>
+                                    <li><strong>Raw Proxy Links:</strong> A plain text file with one proxy configuration per line, ideal for developers and custom scripts.</li>
                                 </ul>
                             </div>
                         </div>
@@ -258,7 +261,7 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>This project thrives on community contributions with over 240 carefully curated proxy sources from trusted repositories. The sources are publicly available on GitHub, and we welcome contributions from developers to help us improve our testing methods, add new sources, and expand our reach. Our automated pipeline runs every 6 hours, continuously updating configurations with the latest proxies.</p>
+                                <p>This project is powered by the community, with over 240 curated proxy sources from trusted repositories. Our automated pipeline runs every 4 hours, continuously updating configurations with the latest proxies. We welcome contributions to help us improve our testing, add new sources, and expand our reach.</p>
                             </div>
                         </div>
                     </section>

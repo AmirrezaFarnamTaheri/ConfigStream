@@ -84,7 +84,7 @@ def _is_plausible_proxy_config(config: str) -> bool:
     if "://" not in config:
         return False
     protocol, rest = config.split("://", 1)
-    if len(protocol) > 20 or len(rest) < 5:
+    if len(protocol) > 20 or len(rest) < 4:
         return False
     special_char_count = sum(1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=")
     if special_char_count > len(rest) * 0.5:
@@ -179,49 +179,49 @@ def _parse_vless(config: str) -> Optional[Proxy]:
 def _parse_ss(config: str) -> Optional[Proxy]:
     """Parse a Shadowsocks (ss://) URL."""
     try:
-        # 1. Handle base64-encoded variant (ss://method:pass@host:port)
-        if "@" in config and not config.startswith("ss://ey"):
-            parsed = urlparse(config)
-            if not parsed.hostname or not parsed.password or not parsed.username:
-                return None
-
-            return Proxy(
-                config=config,
-                protocol="shadowsocks",
-                address=parsed.hostname,
-                port=parsed.port or 8388,
-                remarks=unquote(parsed.fragment or ""),
-                details={"method": parsed.username, "password": parsed.password},
-            )
-
-        # 2. Handle SIP002 variant (ss://b64_part#remark)
         if not config.startswith("ss://"):
             return None
 
-        # Extract base64 part and remark
+        # Separate remark from the main part
         parts = config[5:].split("#", 1)
-        b64_part = parts[0]
+        main_part = parts[0]
         remark = unquote(parts[1]) if len(parts) > 1 else ""
 
-        # Decode and parse the main part
-        decoded = _safe_b64_decode(b64_part)
-        if "@" not in decoded:
-            return None
+        # The part before the @ is either plain text or base64 encoded
+        if "@" in main_part:
+            user_info, host_info = main_part.split("@", 1)
+            # Potentially base64 encoded user_info
+            try:
+                decoded_user_info = _safe_b64_decode(user_info)
+                if ":" in decoded_user_info:
+                    user_info = decoded_user_info
+            except (binascii.Error, ValueError):
+                pass # Not base64, proceed
+        else:
+             # SIP002: ss://<base64-encoded-part>
+             decoded_main = _safe_b64_decode(main_part)
+             if "@" not in decoded_main:
+                 return None
+             user_info, host_info = decoded_main.split("@", 1)
 
-        method_pass, host_port = decoded.split("@", 1)
-        if ":" not in method_pass or ":" not in host_port:
+        # Parse user_info
+        if ":" not in user_info:
             return None
-        method, password = method_pass.split(":", 1)
-        host, port_str = host_port.split(":", 1)
+        method, password = user_info.split(":", 1)
+
+        # Parse host_info
+        if ":" not in host_info:
+            return None
+        host, port_str = host_info.rsplit(":", 1)
+
         port = int(port_str)
-
         if not (1 <= port <= 65535) or not host:
             return None
 
         return Proxy(
             config=config,
             protocol="shadowsocks",
-            address=host,
+            address=host.strip("[]"), # Handle IPv6
             port=port,
             remarks=remark,
             details={"method": method, "password": password},
@@ -287,10 +287,13 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
         for k, v in params.items():
             if v:
                 val = v[0]
-                decoded_val = _safe_b64_decode(val)
+                # SSR params are base64 encoded without padding
+                # Add padding before decoding
+                padded_val = val + "=" * (-len(val) % 4)
+                decoded_val = _safe_b64_decode(padded_val)
                 # If decoding fails, _safe_b64_decode returns the original string.
                 # We check if the original string was valid b64 to detect failure.
-                if decoded_val == val and _validate_b64_input(val) is None:
+                if decoded_val == padded_val and _validate_b64_input(val) is None:
                     logger.debug(f"Invalid base64 in SSR param '{k}': {val}")
                     return None
                 params_decoded[k] = decoded_val
@@ -300,7 +303,7 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
             protocol="ssr",
             address=server,
             port=port,
-            remarks=params_decoded.get("remarks", "")[:200],
+            remarks=_safe_b64_decode(params_decoded.get("remarks", "")),
             details={
                 "protocol": protocol,
                 "cipher": cipher,
