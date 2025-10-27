@@ -110,9 +110,9 @@ def test_parse_ssr_known_good():
     assert proxy.details["cipher"] == "aes-256-cfb"
     assert proxy.details["obfs"] == "tls1.2_ticket_auth"
     assert proxy.details["password"] == "211369654"  # password is base64 decoded
-    assert proxy.details["params"]["obfsparam"] == "ucloednnlcm5hbi5jb20" # base64 decoded
-    assert proxy.details["params"]["protoparam"] == "183899919" # base64 decoded
-    assert proxy.details["params"]["group"] == "www" # base64 decoded
+    assert proxy.details["params"]["obfsparam"] == "ucloednnlcm5hbi5jb20"  # base64 decoded
+    assert proxy.details["params"]["protoparam"] == "183899919"  # base64 decoded
+    assert proxy.details["params"]["group"] == "www"  # base64 decoded
 
 
 def test_parse_ssr_urlsafe_base64():
@@ -136,7 +136,7 @@ def test_parse_ssr_plain_text_params():
     proxy = _parse_ssr(config)
     assert proxy is not None
     assert proxy.remarks == "E隮"
-    assert proxy.details["params"]["obfsparam"] == "invalid!" # This is plain text
+    assert proxy.details["params"]["obfsparam"] == "invalid!"  # This is plain text
 
 
 def test_parse_ssr_empty_and_no_value_params():
@@ -149,11 +149,11 @@ def test_parse_ssr_empty_and_no_value_params():
     assert proxy.address == "1.2.3.4"
     assert proxy.details["password"] == "pass"
     assert "remarks" in proxy.details["params"]
-    assert proxy.details["params"]["remarks"] == "" # empty value
+    assert proxy.details["params"]["remarks"] == ""  # empty value
     assert "noval" in proxy.details["params"]
-    assert proxy.details["params"]["noval"] == "" # no value becomes empty string
+    assert proxy.details["params"]["noval"] == ""  # no value becomes empty string
     assert proxy.details["params"]["group"] == "www"
-    assert proxy.remarks == "" # remarks param is empty
+    assert proxy.remarks == ""  # remarks param is empty
 
 
 def test_parse_ssr_no_params():
@@ -163,7 +163,7 @@ def test_parse_ssr_no_params():
     assert proxy is not None
     assert proxy.address == "1.2.3.4"
     assert proxy.details["password"] == "Password"
-    assert proxy.remarks == "" # No remarks param, so it's empty
+    assert proxy.remarks == ""  # No remarks param, so it's empty
     assert proxy.details["params"] == {}
 
 
@@ -210,9 +210,11 @@ def test_parse_hysteria():
     assert proxy.details["protocol"] == ["udp"]
     assert proxy.details["auth"] == ["someauth"]
 
+
 def test_parse_hysteria2_missing_password():
     config = "hysteria2://1.2.3.4:443"
     assert _parse_hysteria2(config) is None
+
 
 def test_parse_hysteria2_valid():
     config = "hysteria2://password@1.2.3.4:443#Test"
@@ -285,6 +287,7 @@ def test_parse_juicity_valid():
     assert proxy.protocol == "juicity"
     assert proxy.uuid == "uuid"
 
+
 def test_parse_v2ray_json_valid():
     config = """
     {
@@ -316,9 +319,11 @@ def test_parse_v2ray_json_valid():
     assert proxy.port == 1234
     assert proxy.uuid == "uuid"
 
+
 def test_parse_v2ray_json_invalid():
     assert _parse_v2ray_json("{not_json") is None
     assert _parse_v2ray_json('{"outbounds": []}') is None
+
 
 def test_parse_naive_valid():
     config = "naive+https://user:pass@example.com#test"
@@ -329,8 +334,10 @@ def test_parse_naive_valid():
     assert proxy.uuid == "user"
     assert proxy.details["password"] == "pass"
 
+
 def test_parse_naive_invalid():
     assert _parse_naive("naive+https://example.com") is None
+
 
 def test_parse_generic_url_scheme_http():
     config = "http://user:pass@example.com:8080#test"
@@ -339,6 +346,7 @@ def test_parse_generic_url_scheme_http():
     assert proxy.protocol == "http"
     assert proxy.port == 8080
 
+
 def test_parse_generic_url_scheme_socks5():
     config = "socks5://user:pass@example.com:1080#test"
     proxy = _parse_generic_url_scheme(config)
@@ -346,23 +354,7 @@ def test_parse_generic_url_scheme_socks5():
     assert proxy.protocol == "socks5"
     assert proxy.port == 1080
 
+
 def test_parse_ss_invalid_port():
     config = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ=@1.2.3.4:99999#test"
     assert _parse_ss(config) is None
-
-
-def test_parse_ssr_known_good():
-    config = "ssr://MjA3LjI0Ni4xMDYuMjI3OjgwOTk6YXV0aF9hZXMxMjhfbWQ1OmFlcy0yNTYtY2ZiOnRsczEuMl90aWNrZXRfYXV0aDpNakV4TXpZNU5qVTAvP29iZnNwYXJhbT1kWE5sY201aGJpNWpiMjAmcHJvdG9wYXJhbT1NVGd6T0RrNU9URTUmcmVtYXJrcz1kM2QzJmdyb3VwPWQzZDM"
-    proxy = _parse_ssr(config)
-    assert proxy is not None
-    assert proxy.protocol == "ssr"
-    assert proxy.address == "207.246.106.227"
-    assert proxy.port == 8099
-    assert proxy.remarks == "www"
-    assert proxy.details["protocol"] == "auth_aes128_md5"
-    assert proxy.details["cipher"] == "aes-256-cfb"
-    assert proxy.details["obfs"] == "tls1.2_ticket_auth"
-    assert proxy.details["password"] == "211369654"
-    assert proxy.details["params"]["obfsparam"] == "usernan.com"
-    assert proxy.details["params"]["protoparam"] == "183899919"
-    assert proxy.details["params"]["group"] == "www"
