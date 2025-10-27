@@ -196,13 +196,13 @@ def _parse_ss(config: str) -> Optional[Proxy]:
                 if ":" in decoded_user_info:
                     user_info = decoded_user_info
             except (binascii.Error, ValueError):
-                pass # Not base64, proceed
+                pass  # Not base64, proceed
         else:
-             # SIP002: ss://<base64-encoded-part>
-             decoded_main = _safe_b64_decode(main_part)
-             if "@" not in decoded_main:
-                 return None
-             user_info, host_info = decoded_main.split("@", 1)
+            # SIP002: ss://<base64-encoded-part>
+            decoded_main = _safe_b64_decode(main_part)
+            if "@" not in decoded_main:
+                return None
+            user_info, host_info = decoded_main.split("@", 1)
 
         # Parse user_info
         if ":" not in user_info:
@@ -221,7 +221,7 @@ def _parse_ss(config: str) -> Optional[Proxy]:
         return Proxy(
             config=config,
             protocol="shadowsocks",
-            address=host.strip("[]"), # Handle IPv6
+            address=host.strip("[]"),  # Handle IPv6
             port=port,
             remarks=remark,
             details={"method": method, "password": password},
@@ -258,15 +258,16 @@ def _parse_trojan(config: str) -> Optional[Proxy]:
 
 def _b64_normalize(s: str) -> str:
     # Convert urlsafe to standard and pad
-    s = s.replace('-', '+').replace('_', '/')
-    return s + '=' * (-len(s) % 4)
+    s = s.replace("-", "+").replace("_", "/")
+    return s + "=" * (-len(s) % 4)
+
 
 def _parse_ssr(config: str) -> Optional[Proxy]:
     try:
         if not config.startswith("ssr://"):
             return None
 
-        payload = config[len("ssr://"):]
+        payload = config[len("ssr://") :]
         if len(payload) > 4096:
             return None
 

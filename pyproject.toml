@@ -117,22 +117,26 @@ extend-exclude = """
 python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
-exclude = ["tests/"]
+exclude = ["tests/", "jules-scratch/"]
 
 [[tool.mypy.overrides]]
 module = [
     "aiohttp",
     "aiohttp.*",
     "aiohttp_proxy",
+    "aiohttp_socks",
+    "aiohttp_socks.*",
     "singbox2proxy",
     "singbox2proxy.*",
     "click",
-    "rich", 
+    "rich",
     "rich.*",
     "yaml",
     "geoip2",
     "geoip2.*",
     "psutil",
+    "httpx",
+    "httpx.*",
 ]
 ignore_missing_imports = true
 
