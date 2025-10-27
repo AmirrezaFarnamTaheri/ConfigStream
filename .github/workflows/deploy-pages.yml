@@ -25,10 +25,17 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout site content
+      - name: Checkout with PAT
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_PAT }} # Needed to trigger workflow_run
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pipeline-run-${{ github.event.workflow_run.id }}
+          path: artifacts
 
       - name: Build Pages artifact
         run: |
@@ -39,13 +46,17 @@ jobs:
           cp -v .nojekyll github_pages_root/.nojekyll || true
           cp -v index.html proxies.html statistics.html sw.js github_pages_root/
           cp -rv assets github_pages_root/assets
-          cp -rv output github_pages_root/output
+
+          # Use the output from the pipeline run
+          cp -rv artifacts/output github_pages_root/
 
           ts=$(date +%Y%m%d%H%M%S)
           sed -i "s/const VERSION = '[^']*'/const VERSION = '${ts}'/" github_pages_root/assets/js/cache-config.js
 
           test -s github_pages_root/index.html
           test -d github_pages_root/output
+          # Ensure there is some data to deploy
+          test -n "$(find github_pages_root/output -name '*.json' -print -quit)"
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3

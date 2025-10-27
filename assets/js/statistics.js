@@ -8,9 +8,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Early return if required elements don't exist
     if (!chartsContainer || !chartsEmptyState) return;
 
+    async function fetchProxyHistory() {
+        try {
+            const response = await fetchWithCache('output/proxy_history.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch proxy history:', error);
+            return null;
+        }
+    }
+
     async function renderCharts() {
         try {
-            const stats = await fetchStatistics();
+            const [stats, history] = await Promise.all([fetchStatistics(), fetchProxyHistory()]);
 
             if (!stats || !stats.protocols || Object.keys(stats.protocols).length === 0) {
                 chartsContainer.classList.add('hidden');
@@ -90,8 +103,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            // ASN Chart
+            const asnChartCanvas = document.getElementById('asnChart');
+            const topAsns = Object.entries(stats.asns || {}).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            if (topAsns.length > 0) {
+                new Chart(asnChartCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: topAsns.map(a => a[0]),
+                        datasets: [{
+                            label: 'Proxy Count',
+                            data: topAsns.map(a => a[1]),
+                            backgroundColor: 'rgba(54, 210, 153, 0.7)',
+                            borderColor: 'rgba(54, 210, 153, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: commonOptions
+                });
+            }
+
+            // Time-series Chart
+            const timeChartCanvas = document.getElementById('timeChart');
+            if (history && history.length > 0) {
+                new Chart(timeChartCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: history.map(h => new Date(h.timestamp).toLocaleTimeString()),
+                        datasets: [{
+                            label: 'Working Proxies',
+                            data: history.map(h => h.working),
+                            fill: false,
+                            borderColor: 'rgba(255, 86, 48, 1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: commonOptions
+                });
+            }
+
         } catch (error) {
             console.error('Error rendering charts:', error);
+            chartsContainer.classList.add('hidden');
+            chartsEmptyState.classList.remove('hidden');
         }
     }
     renderCharts();

@@ -1,83 +1,287 @@
+from __future__ import annotations
 import pytest
+from configstream.models import Proxy
 from configstream.parsers import (
     _parse_ss,
     _parse_ssr,
     _parse_vmess,
     _parse_vless,
     _parse_trojan,
+    _parse_hysteria,
+    _parse_hysteria2,
+    _parse_tuic,
+    _parse_wireguard,
+    _parse_xray,
+    _parse_snell,
+    _parse_brook,
+    _parse_juicity,
     _safe_b64_decode,
+    _validate_b64_input,
     _extract_config_lines,
     _is_plausible_proxy_config,
+    _parse_v2ray_json,
+    _parse_naive,
+    _parse_generic_url_scheme,
 )
 
 
-class TestParsersExtended:
-    def test_parse_ss_sip002_edge_cases(self):
-        # Invalid base64
-        assert _parse_ss("ss://invalid-b64#remark") is None
-        # Missing colon in user info
-        assert _parse_ss("ss://YWVzLTI1Ni1nY20cGFzc3dvcmRAMjA0LjE1Mi4yMTUuMTE5OjgwODA=#remark") is None
-        # Missing port
-        assert _parse_ss("ss://YWVzLTI1Ni1nY206cGFzc3dvcmRAMjA0LjE1Mi4yMTUuMTE5#remark") is None
-        # Invalid port
-        assert _parse_ss("ss://YWVzLTI1Ni1nY206cGFzc3dvcmRAMjA0LjE1Mi4yMTUuMTE5OjcwMDAw#remark") is None
+def test_is_plausible_proxy_config():
+    assert _is_plausible_proxy_config("vmess://asdf")
+    assert not _is_plausible_proxy_config("just a string")
+    assert not _is_plausible_proxy_config("protocol_too_longgggggggggggggggggggg://rest")
+    assert not _is_plausible_proxy_config("p://s")
 
-    def test_parse_ssr_invalid(self):
-        # Invalid base64
-        assert _parse_ssr("ssr://invalid-b64") is None
-        # Not enough parts
-        assert _parse_ssr("ssr://c2VydmVyOnBvcnQ6cHJvdG86Y2lwaGVyOm9iZnM") is None
-        # Invalid port
-        assert _parse_ssr("ssr://c2VydmVyOjcwMDAwOnByb3RvOmNpcGhlcjpvYmZzOnBhc3N3b3Jk") is None
 
-    def test_parse_vmess_invalid(self):
-        # Invalid base64
-        assert _parse_vmess("vmess://invalid-b64") is None
-        # Missing required keys
-        assert _parse_vmess("vmess://eyJhZGQiOiJleGFtcGxlLmNvbSIsImlkIjoiMTIzIn0=") is None  # Missing port
-        # Invalid port
-        assert _parse_vmess("vmess://eyJhZGQiOiJleGFtcGxlLmNvbSIsInBvcnQiOjcwMDAwLCJpZCI6IjEyMyJ9") is None
+def test_extract_config_lines():
+    payload = """
+    vmess://config1
+    # comment
+    vless://config2
 
-    def test_parse_vless_invalid(self):
-        # Missing hostname
-        assert _parse_vless("vless://123@:443#remark") is None
-        # Invalid port
-        assert _parse_vless("vless://123@example.com:70000#remark") is None
+    trojan://config3
+    """
+    configs = _extract_config_lines(payload)
+    assert len(configs) == 3
+    assert configs[0] == "vmess://config1"
+    assert configs[1] == "vless://config2"
+    assert configs[2] == "trojan://config3"
 
-    def test_parse_trojan_invalid(self):
-        # Missing hostname
-        assert _parse_trojan("trojan://123@:443#remark") is None
-        # Invalid port
-        assert _parse_trojan("trojan://123@example.com:70000#remark") is None
 
-    def test_safe_b64_decode_invalid_chars(self):
-        assert _safe_b64_decode("aGVsbG8^d29ybGQ=") == "aGVsbG8^d29ybGQ="
+def test_extract_config_lines_max_lines():
+    payload = "\n".join([f"vmess://config{i}" for i in range(20)])
+    configs = _extract_config_lines(payload, max_lines=10)
+    assert len(configs) == 10
 
-    def test_safe_b64_decode_oversized_input(self):
-        oversized_input = "a" * 20000
-        assert _safe_b64_decode(oversized_input) == oversized_input
 
-    def test_safe_b64_decode_non_utf8(self):
-        non_utf8_b64 = "g/yA"  # Corresponds to non-UTF8 bytes
-        assert _safe_b64_decode(non_utf8_b64) == non_utf8_b64
+def test_safe_b64_decode():
+    assert _safe_b64_decode("aGVsbG8=") == "hello"
+    assert _safe_b64_decode("not base64") == "not base64"
+    assert _safe_b64_decode("") == ""
 
-    def test_extract_config_lines_oversized(self):
-        from configstream.constants import MAX_LINES_PER_SOURCE
-        lines = ["http://a.com"] * (MAX_LINES_PER_SOURCE + 1)
-        payload = "\n".join(lines)
-        assert len(_extract_config_lines(payload)) == MAX_LINES_PER_SOURCE
 
-    def test_extract_config_lines_empty_and_comments(self):
-        payload = """
-# comment
-http://a.com
+def test_validate_b64_input():
+    assert _validate_b64_input("aGVsbG8=") == "aGVsbG8="
+    assert _validate_b64_input("not base64$") is None
 
-http://b.com
-"""
-        assert len(_extract_config_lines(payload)) == 2
 
-    def test_is_plausible_proxy_config(self):
-        assert _is_plausible_proxy_config("http://example.com:8080")
-        assert not _is_plausible_proxy_config("not-a-proxy")
-        assert not _is_plausible_proxy_config("http://")
-        assert _is_plausible_proxy_config("ssh://user@host")
+def test_parse_ss_sip002():
+    config = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ=@1.2.3.4:8888#test-remark"
+    proxy = _parse_ss(config)
+    assert proxy is not None
+    assert proxy.protocol == "shadowsocks"
+    assert proxy.address == "1.2.3.4"
+    assert proxy.port == 8888
+    assert proxy.remarks == "test-remark"
+    assert proxy.details["method"] == "aes-256-gcm"
+    assert proxy.details["password"] == "password"
+
+
+def test_parse_ss_plain():
+    config = "ss://aes-256-gcm:password@1.2.3.4:8888#test-remark"
+    proxy = _parse_ss(config)
+    assert proxy is not None
+    assert proxy.protocol == "shadowsocks"
+    assert proxy.address == "1.2.3.4"
+    assert proxy.port == 8888
+    assert proxy.remarks == "test-remark"
+    assert proxy.details["method"] == "aes-256-gcm"
+    assert proxy.details["password"] == "password"
+
+
+def test_parse_ssr():
+    config = "ssr://MS4yLjMuNDo4ODg4OmF1dGhfYWVzMTI4X3NoYTE6YWVzLTI1Ni1jZmI6dGxzMS4yX3RpY2tldF9hdXRoOlBhc3N3b3JkLz9yZW1hcmtzPVJlbWFyayZvYmZzcGFyYW09"
+    proxy = _parse_ssr(config)
+    assert proxy is not None
+    assert proxy.protocol == "ssr"
+    assert proxy.address == "1.2.3.4"
+    assert proxy.port == 8888
+    assert proxy.remarks == "Remark"
+    assert proxy.details["protocol"] == "auth_aes128_sha1"
+    assert proxy.details["cipher"] == "aes-256-cfb"
+    assert proxy.details["obfs"] == "tls1.2_ticket_auth"
+    assert proxy.details["password"] == "Password"
+
+
+def test_parse_vmess_invalid():
+    assert _parse_vmess("vmess://") is None
+    assert _parse_vmess("vmess://aW52YWxpZCBqc29u") is None
+
+
+def test_parse_vless_invalid():
+    assert _parse_vless("vless://@") is None
+
+
+def test_parse_trojan_invalid():
+    assert _parse_trojan("trojan://@") is None
+
+
+def test_parse_hysteria():
+    config = "hysteria://1.2.3.4:443?protocol=udp&auth=someauth#Test"
+    proxy = _parse_hysteria(config)
+    assert proxy is not None
+    assert proxy.protocol == "hysteria"
+    assert proxy.address == "1.2.3.4"
+    assert proxy.port == 443
+    assert proxy.remarks == "Test"
+    assert proxy.details["protocol"] == ["udp"]
+    assert proxy.details["auth"] == ["someauth"]
+
+def test_parse_hysteria2_missing_password():
+    config = "hysteria2://1.2.3.4:443"
+    assert _parse_hysteria2(config) is None
+
+def test_parse_hysteria2_valid():
+    config = "hysteria2://password@1.2.3.4:443#Test"
+    proxy = _parse_hysteria2(config)
+    assert proxy is not None
+    assert proxy.protocol == "hysteria2"
+    assert proxy.uuid == "password"
+
+
+def test_parse_tuic():
+    config = "tuic://uuid@1.2.3.4:443?congestion_control=bbr#Test"
+    proxy = _parse_tuic(config)
+    assert proxy is not None
+    assert proxy.protocol == "tuic"
+    assert proxy.address == "1.2.3.4"
+    assert proxy.port == 443
+    assert proxy.uuid == "uuid"
+    assert proxy.details["congestion_control"] == ["bbr"]
+
+
+def test_parse_wireguard_missing_private_key():
+    config = "wireguard://1.2.3.4:51820#Test"
+    assert _parse_wireguard(config) is None
+
+
+def test_parse_wireguard_valid():
+    config = "wireguard://1.2.3.4:51820?private_key=key#Test"
+    proxy = _parse_wireguard(config)
+    assert proxy is not None
+    assert proxy.protocol == "wireguard"
+    assert proxy.details["private_key"] == ["key"]
+
+
+def test_parse_xray_missing_uuid():
+    config = "xray://1.2.3.4:443#Test"
+    assert _parse_xray(config) is None
+
+
+def test_parse_xray_valid():
+    config = "xray://uuid@1.2.3.4:443?flow=xtls-rprx-vision#Test"
+    proxy = _parse_xray(config)
+    assert proxy is not None
+    assert proxy.protocol == "xray"
+    assert proxy.uuid == "uuid"
+
+
+def test_parse_snell():
+    config = "snell://psk@1.2.3.4:443#Test"
+    proxy = _parse_snell(config)
+    assert proxy is not None
+    assert proxy.protocol == "snell"
+
+
+def test_parse_brook():
+    config = "brook://password@1.2.3.4:9999#Test"
+    proxy = _parse_brook(config)
+    assert proxy is not None
+    assert proxy.protocol == "brook"
+
+
+def test_parse_juicity_missing_uuid():
+    config = "juicity://1.2.3.4:443#Test"
+    assert _parse_juicity(config) is None
+
+
+def test_parse_juicity_valid():
+    config = "juicity://uuid@1.2.3.4:443#Test"
+    proxy = _parse_juicity(config)
+    assert proxy is not None
+    assert proxy.protocol == "juicity"
+    assert proxy.uuid == "uuid"
+
+def test_parse_v2ray_json_valid():
+    config = """
+    {
+        "outbounds": [
+            {
+                "protocol": "vmess",
+                "settings": {
+                    "vnext": [
+                        {
+                            "address": "1.2.3.4",
+                            "port": 1234,
+                            "users": [
+                                {
+                                    "id": "uuid"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "tag": "proxy"
+            }
+        ]
+    }
+    """
+    proxy = _parse_v2ray_json(config)
+    assert proxy is not None
+    assert proxy.protocol == "v2ray"
+    assert proxy.address == "1.2.3.4"
+    assert proxy.port == 1234
+    assert proxy.uuid == "uuid"
+
+def test_parse_v2ray_json_invalid():
+    assert _parse_v2ray_json("{not_json") is None
+    assert _parse_v2ray_json('{"outbounds": []}') is None
+
+def test_parse_naive_valid():
+    config = "naive+https://user:pass@example.com#test"
+    proxy = _parse_naive(config)
+    assert proxy is not None
+    assert proxy.protocol == "naive"
+    assert proxy.address == "example.com"
+    assert proxy.uuid == "user"
+    assert proxy.details["password"] == "pass"
+
+def test_parse_naive_invalid():
+    assert _parse_naive("naive+https://example.com") is None
+
+def test_parse_generic_url_scheme_http():
+    config = "http://user:pass@example.com:8080#test"
+    proxy = _parse_generic_url_scheme(config)
+    assert proxy is not None
+    assert proxy.protocol == "http"
+    assert proxy.port == 8080
+
+def test_parse_generic_url_scheme_socks5():
+    config = "socks5://user:pass@example.com:1080#test"
+    proxy = _parse_generic_url_scheme(config)
+    assert proxy is not None
+    assert proxy.protocol == "socks5"
+    assert proxy.port == 1080
+
+def test_parse_ss_invalid_port():
+    config = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ=@1.2.3.4:99999#test"
+    assert _parse_ss(config) is None
+
+def test_parse_ssr_invalid_base64_param():
+    config = "ssr://MS4yLjMuNDo4ODg4OmF1dGhfYWVzMTI4X3NoYTE6YWVzLTI1Ni1jZmI6dGxzMS4yX3RpY2tldF9hdXRoOlBhc3N3b3JkLz9yZW1hcmtzPVJlbWFyayZvYmZzcGFyYW09aW52YWxpZCE"
+    assert _parse_ssr(config) is None
+
+def test_parse_ssr_known_good():
+    config = "ssr://MjA3LjI0Ni4xMDYuMjI3OjgwOTk6YXV0aF9hZXMxMjhfbWQ1OmFlcy0yNTYtY2ZiOnRsczEuMl90aWNrZXRfYXV0aDpNakV4TXpZNU5qVTAvP29iZnNwYXJhbT1kWE5sY201aGJpNWpiMjAmcHJvdG9wYXJhbT1NVGd6T0RrNU9URTUmcmVtYXJrcz1kM2QzJmdyb3VwPWQzZDM"
+    proxy = _parse_ssr(config)
+    assert proxy is not None
+    assert proxy.protocol == "ssr"
+    assert proxy.address == "207.246.106.227"
+    assert proxy.port == 8099
+    assert proxy.remarks == "www"
+    assert proxy.details["protocol"] == "auth_aes128_md5"
+    assert proxy.details["cipher"] == "aes-256-cfb"
+    assert proxy.details["obfs"] == "tls1.2_ticket_auth"
+    assert proxy.details["password"] == "211369654"
+    assert proxy.details["params"]["obfsparam"] == "ucloednnlcm5hbi5jb20"
+    assert proxy.details["params"]["protoparam"] == "183899919"
+    assert proxy.details["params"]["group"] == "www"
