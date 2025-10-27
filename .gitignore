@@ -4,6 +4,7 @@
 .ruff_cache/
 htmlcov/
 output/.etag-cache.json
+.coverage
 
 # Environment files
 .env

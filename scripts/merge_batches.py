@@ -2,7 +2,6 @@ import json
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-import sys
 from dataclasses import asdict
 
 from configstream.models import Proxy
