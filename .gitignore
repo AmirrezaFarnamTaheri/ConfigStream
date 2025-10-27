@@ -9,6 +9,12 @@ output/.etag-cache.json
 .env
 .venv
 
+# Python cache
+__pycache__/
+
+# Log files
+*.log
+
 # Build artifacts
 dist/
 build/
