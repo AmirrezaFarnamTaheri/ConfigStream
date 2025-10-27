@@ -195,8 +195,16 @@ async def _retest_logic_async(
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-    input_path = Path(input_file)
-    output_path = Path(output_dir)
+    input_path = Path(input_file).resolve()  # Resolve to absolute path
+    output_path = Path(output_dir).resolve()
+
+    # Security: Ensure input file is within the output directory to prevent path traversal
+    if output_path not in input_path.parents:
+        click.echo(
+            f"Error: Input file {input_path} must be inside the output directory {output_path} for security reasons.",
+            err=True,
+        )
+        raise SystemExit(1)
 
     # Check if input file exists and is not empty
     if not input_path.exists():
