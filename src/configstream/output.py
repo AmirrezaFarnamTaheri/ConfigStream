@@ -10,12 +10,14 @@ from .selection import select_chosen_proxies, get_selection_stats
 
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
+    # This function is misnamed; it should return a plain text,
+    # newline-separated list of configs, not a base64 encoded string.
+    # The frontend expects plain text.
     working_proxies = [p for p in proxies if p.is_working]
     if not working_proxies:
         return ""
     configs = [p.config for p in working_proxies]
-    encoded = base64.b64encode("\n".join(configs).encode("utf-8"))
-    return encoded.decode("utf-8")
+    return "\n".join(configs)
 
 
 def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> Dict[str, str]:

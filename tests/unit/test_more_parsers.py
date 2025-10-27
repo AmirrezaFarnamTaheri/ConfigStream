@@ -17,7 +17,9 @@ def test_parse_ssr_with_invalid_base64():
 def test_parse_ssr_with_invalid_base64_in_params():
     """Test that _parse_ssr handles invalid base64 in the parameters."""
     config = "ssr://anUtdHQuY29tOjQ0MzphdXRoX2FlczEyOF9tZDU6YWVzLTI1Ni1jZmI6dGxzMS4yX3RpY2tldF9hdXRoOlFYVjNZWEJwYnk1amJ5NWpiMjB2ZFc1a1lYQnBiV0Z6ZEdWeWMybHZiajB4T0RBd01EQXdNREF3TURBd01EQXdNQS8/b2Jmc3BhcmFtPSZyZW1hcmtzPWludmFsaWQtYmFzZTY0"
-    assert _parse_ssr(config) is None
+    proxy = _parse_ssr(config)
+    assert proxy is not None
+    assert proxy.details["params"]["remarks"] == "\x8a{Ú\x96'~m«\x1eë"
 
 
 def test_parse_v2ray_json_with_invalid_json():

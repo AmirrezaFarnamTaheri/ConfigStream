@@ -29,6 +29,16 @@
     --transition-base: 800ms cubic-bezier(0.65, 0, 0.35, 1);
     --transition-slow: 1200ms cubic-bezier(0.65, 0, 0.35, 1);
 
+    /* Z-Indexes */
+    --z-index-background: -1;
+    --z-index-header: 999;
+    --z-index-nav-overlay: 1000;
+    --z-index-nav-panel: 1001;
+    --z-index-nav-toggle: 1002;
+    --z-index-preloader: 9999;
+    --z-index-content-low: 1;
+    --z-index-content-high: 2;
+
     /* Light Theme Colors */
     --bg-primary: #f0f4f8;
     --bg-secondary: #ffffff;
@@ -93,7 +103,7 @@ body::before {
     width: 100%;
     height: 100%;
     background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-tertiary) 100%);
-    z-index: -1;
+    z-index: var(--z-index-background);
     opacity: 0;
     transition: opacity var(--transition-slow);
 }
@@ -291,7 +301,7 @@ body.dark a:focus {
 .header {
     position: sticky;
     top: -1px; /* Prevents 1px gap on some browsers */
-    z-index: 999;
+    z-index: var(--z-index-header);
     padding: calc(var(--space-unit) * 2) 0;
     transition: background-color var(--transition-fast), border-bottom var(--transition-fast), box-shadow var(--transition-fast);
 }
@@ -485,7 +495,7 @@ body.dark .github-btn:hover {
 
 .mobile-nav-toggle {
     display: none;
-    z-index: 1002; /* Above nav panel */
+    z-index: var(--z-index-nav-toggle); /* Above nav panel */
 }
 .mobile-nav-toggle:focus {
     outline: none;
@@ -530,7 +540,7 @@ body.dark .github-btn:hover {
         transition: transform var(--transition-base);
         box-shadow: -10px 0 30px rgba(0,0,0,0.1);
         gap: calc(var(--space-unit) * 3);
-        z-index: 1001; /* Above overlay */
+        z-index: var(--z-index-nav-panel); /* Above overlay */
         visibility: hidden;
         -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
@@ -590,7 +600,7 @@ body.dark .github-btn:hover {
         width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.5);
-        z-index: 1000; /* Above header, below nav panel */
+        z-index: var(--z-index-nav-overlay); /* Above header, below nav panel */
         opacity: 0;
         visibility: hidden;
         transition: opacity var(--transition-base), visibility var(--transition-base);
@@ -1887,7 +1897,7 @@ body.dark .stat-label {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 9999;
+    z-index: var(--z-index-preloader);
     background: var(--bg-primary);
     display: grid;
     place-items: center;
@@ -2396,9 +2406,7 @@ body.dark #preloader {
 
     /* Better mobile card spacing */
     .card {
-        margin-left: calc(var(--space-unit) * -2);
-        margin-right: calc(var(--space-unit) * -2);
-        width: calc(100% + var(--space-unit) * 4);
+        width: 100%;
         border-radius: 0;
     }
     .main-grid {
