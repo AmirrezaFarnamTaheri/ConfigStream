@@ -4,10 +4,17 @@
 .ruff_cache/
 htmlcov/
 output/.etag-cache.json
+.coverage
 
 # Environment files
 .env
 .venv
+
+# Python cache
+__pycache__/
+
+# Log files
+*.log
 
 # Build artifacts
 dist/

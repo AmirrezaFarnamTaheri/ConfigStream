@@ -58,6 +58,7 @@ def _display_metrics(metrics: dict) -> None:
     console.print(f"- Proxies working: {metrics.get('proxies_working', 0)}")
     console.print(f"- Throughput: {metrics.get('proxies_per_second', 0):.2f} proxies/s")
 
+
 async def _merge_logic_async(
     sources_file: str,
     output_dir: str,

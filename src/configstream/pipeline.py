@@ -219,6 +219,55 @@ async def _fetch_source(client: httpx.AsyncClient, source_url: str) -> Tuple[Lis
     return configs, len(configs)
 
 
+async def _process_sources(
+    sources_to_fetch: List[str],
+    progress: Optional[Progress],
+    tracker: PerformanceTracker,
+) -> Tuple[List[str], int]:
+    """Fetch and parse proxy configurations from sources."""
+    gathered_configs: List[str] = []
+    raw_fetch_total = 0
+
+    local_sources = [s for s in sources_to_fetch if not s.startswith(("http://", "https://"))]
+    remote_sources = [s for s in sources_to_fetch if s.startswith(("http://", "https://"))]
+
+    if local_sources:
+        file_task = progress.add_task("Reading local sources...", total=len(local_sources)) if progress else None
+        with tracker.phase("read_files"):
+            file_results = await read_multiple_files_async(local_sources, max_concurrent=5)
+            for file_path, content in file_results:
+                if content.startswith("ERROR:"):
+                    logger.warning(f"Failed to read {file_path}: {content}")
+                    continue
+                configs = _extract_config_lines(content)
+                if configs:
+                    gathered_configs.extend(configs)
+                    raw_fetch_total += len(configs)
+                if progress and file_task is not None:
+                    progress.update(file_task, advance=1)
+
+    if remote_sources:
+        fetch_task = progress.add_task("Fetching remote sources...", total=len(remote_sources)) if progress else None
+        with tracker.phase("fetch"):
+            async with get_client() as client:
+                results = await asyncio.gather(
+                    *(_fetch_source(client, source) for source in remote_sources),
+                    return_exceptions=True,
+                )
+            for source, result in zip(remote_sources, results):
+                if isinstance(result, BaseException):
+                    logger.warning(f"Failed to fetch {source}: {result}")
+                    continue
+                configs, count = result
+                if configs:
+                    gathered_configs.extend(configs)
+                raw_fetch_total += count
+                if progress and fetch_task is not None:
+                    progress.update(fetch_task, advance=1)
+
+    return gathered_configs, raw_fetch_total
+
+
 async def run_full_pipeline(
     sources: Sequence[str],
     output_dir: str,
@@ -282,73 +331,9 @@ async def run_full_pipeline(
             len(supplied_proxies),
         )
 
-        fetch_task = None
-
-        gathered_configs: List[str] = []
-        raw_fetch_total = 0
-        if sources_to_fetch:
-            # NEW: Async file reading for local sources
-            # Instead of synchronous Path.read_text(), use async version
-
-            # Identify local file sources vs HTTP URLs
-            local_sources = [
-                s for s in sources_to_fetch if not s.startswith(("http://", "https://"))
-            ]
-            remote_sources = [s for s in sources_to_fetch if s.startswith(("http://", "https://"))]
-
-            # Read local files concurrently
-            if local_sources:
-                if progress:
-                    file_task = progress.add_task(
-                        "Reading local sources...", total=len(local_sources)
-                    )
-
-                with tracker.phase("read_files"):
-                    # Read all local files concurrently
-                    file_results = await read_multiple_files_async(local_sources, max_concurrent=5)
-
-                    for file_path, content in file_results:
-                        if content.startswith("ERROR:"):
-                            logger.warning(f"Failed to read {file_path}: {content}")
-                            continue
-
-                        # Extract configs from file content
-                        configs = _extract_config_lines(content)
-                        if configs:
-                            gathered_configs.extend(configs)
-                            raw_fetch_total += len(configs)
-
-                        if progress and file_task is not None:
-                            progress.update(file_task, advance=1)
-
-            # Fetch remote sources with optimized concurrency
-            if remote_sources:
-                if progress:
-                    fetch_task = progress.add_task(
-                        "Fetching remote sources...", total=len(remote_sources)
-                    )
-
-                with tracker.phase("fetch"):
-                    async with get_client() as client:
-                        results = await asyncio.gather(
-                            *(_fetch_source(client, source) for source in remote_sources),
-                            return_exceptions=True,
-                        )
-
-                    for source, result in zip(remote_sources, results):
-                        if isinstance(result, BaseException):
-                            logger.warning(f"Failed to fetch {source}: {result}")
-                            continue
-
-                        configs, count = result
-                        if configs:
-                            gathered_configs.extend(configs)
-                        raw_fetch_total += count
-
-                        if progress and fetch_task is not None:
-                            progress.update(fetch_task, advance=1)
-        else:
-            logger.debug("Skipping fetch step; no sources supplied")
+        gathered_configs, raw_fetch_total = await _process_sources(
+            sources_to_fetch, progress, tracker
+        )
 
         logger.info("PIPELINE: Fetched %d raw proxy configs.", raw_fetch_total)
 
