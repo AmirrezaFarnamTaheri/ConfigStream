@@ -38,11 +38,8 @@ def sample_proxies():
 def test_generate_base64_subscription(sample_proxies):
     """Test the base64 subscription generation."""
     result = generate_base64_subscription(sample_proxies)
-    import base64
-
-    decoded = base64.b64decode(result).decode()
-    assert "vmess://" in decoded
-    assert "ss://" in decoded
+    expected_configs = [p.config for p in sample_proxies if p.is_working]
+    assert result == "\n".join(expected_configs)
 
 
 def test_generate_clash_config(sample_proxies):

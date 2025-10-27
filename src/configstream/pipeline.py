@@ -280,7 +280,7 @@ async def run_full_pipeline(
     sources: Sequence[str],
     output_dir: str,
     progress: Optional[Progress] = None,
-    max_workers: int = 10,  # noqa: ARG001 - reserved for future concurrency
+    max_workers: int = 10,
     max_proxies: Optional[int] = None,
     country_filter: Optional[str] = None,
     min_latency: Optional[int] = None,
@@ -622,7 +622,7 @@ async def run_full_pipeline(
                     metadata_path.write_text(json.dumps(metadata, indent=2))
                     output_files["metadata"] = str(metadata_path)
 
-                    stats_report = StatisticsEngine(all_tested_proxies).generate_report()
+                    stats_report = StatisticsEngine(all_working_proxies).generate_report()
                     report_path = output_path / "report.json"
                     report_path.write_text(json.dumps(stats_report, indent=2))
                     output_files["report"] = str(report_path)
@@ -630,7 +630,7 @@ async def run_full_pipeline(
                     # Generate categorized outputs for better organization
                     try:
                         categorized_files = generate_categorized_outputs(
-                            all_tested_proxies, output_path
+                            all_working_proxies, output_path
                         )
                         output_files.update(categorized_files)
                         logger.info(

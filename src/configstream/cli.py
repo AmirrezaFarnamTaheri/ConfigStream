@@ -270,11 +270,7 @@ async def _retest_logic_async(
 @click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))
 @click.option("--max-workers", type=int, default=10)
 @click.option("--timeout", type=int, default=30)
-@click.option(
-    "--lenient/--no-lenient",
-    default=True,
-    help="Keep insecure configs but tag them (default: lenient).",
-)
+@click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")
 @click.option("--show-metrics", is_flag=True)
 @handle_cli_errors(context="Retest operation")
 def retest(
@@ -282,7 +278,7 @@ def retest(
     output_dir: str,
     max_workers: int,
     timeout: int,
-    lenient: bool,
+    leniency: bool,
     show_metrics: bool,
 ) -> None:
     """Retest previously tested proxies from a JSON file."""
@@ -293,7 +289,7 @@ def retest(
             max_workers=max_workers,
             timeout=timeout,
             show_metrics=show_metrics,
-            leniency=lenient,
+            leniency=leniency,
         )
     )
 

@@ -158,7 +158,6 @@ async def test_run_full_pipeline_success(mocker, tmp_path, no_pool_shutdown):
     )
 
     result = await run_full_pipeline(sources=["source.txt"], output_dir=str(tmp_path))
-
     assert result["success"] is True
     assert result["stats"]["fetched"] > 0
     assert result["stats"]["working"] > 0
@@ -198,10 +197,12 @@ async def test_run_full_pipeline_no_working_proxies(mocker, tmp_path, no_pool_sh
     fallback_payload = json.loads(fallback_path.read_text())
     assert len(fallback_payload) == result["stats"]["tested"]
     assert fallback_payload[0]["is_working"] is False
+    assert result["error"] is None
 
     metadata = json.loads((tmp_path / "metadata.json").read_text())
     assert metadata["fallback_available"] is True
     assert metadata["tested_count"] == result["stats"]["tested"]
+    assert result["error"] is None
 
 
 @pytest.mark.asyncio
