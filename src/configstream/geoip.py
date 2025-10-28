@@ -23,7 +23,8 @@ class GeoIPManager:
     }
 
     def __init__(self, license_key: str | None = None):
-        self.license_key = license_key or os.getenv("MAXMIND_LICENSE_KEY")
+        key = license_key or os.getenv("MAXMIND_LICENSE_KEY")
+        self.license_key = key if key else None
         self.data_dir = Path("data")
         self.data_dir.mkdir(exist_ok=True)
         self.logger = logging.getLogger(__name__)

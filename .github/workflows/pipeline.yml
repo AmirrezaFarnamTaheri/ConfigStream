@@ -121,6 +121,7 @@ jobs:
       - name: Determine which batch to run
         id: batch_selector
         run: |
+          set -euxo pipefail
           # This will result in a number from 1 to 6, rotating every 4 hours.
           # (0, 4, 8, 12, 16, 20) -> (1, 2, 3, 4, 5, 6)
           batch_number=$(( ( $(date -u +%H) / 4 ) + 1 ))
@@ -133,12 +134,12 @@ jobs:
           set -euxo pipefail
           echo "Running pipeline for batch $BATCH_NUMBER"
           python -m configstream.cli merge \
-            --sources "sources/batch_$BATCH_NUMBER.txt" \
-            --output "output_batch_$BATCH_NUMBER" \
+            --sources "sources/batch_${BATCH_NUMBER}.txt" \
+            --output "output_batch_${BATCH_NUMBER}" \
             --max-workers 32 \
             --timeout 24 \
             --show-metrics \
-            --max-latency 6000 | tee "pipeline_batch_$BATCH_NUMBER.log"
+            --max-latency 6000 | tee "pipeline_batch_${BATCH_NUMBER}.log"
 
       - name: Run merge script
         run: |
