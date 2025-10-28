@@ -15,7 +15,7 @@ jobs:
   lint:
     name: Lint and Static Analysis
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: false
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
   test:
     name: Run Test Suite
     runs-on: ubuntu-latest
-    continue-on-error: true
+    continue-on-error: false
     env:
       PYTHONPATH: src
       MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
@@ -57,7 +57,17 @@ jobs:
       - name: Install dependencies
         run: pip install -e .[dev]
 
+      - name: Cache sing-box binary
+        id: cache-sing-box
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/bin/sing-box
+          key: sing-box-linux-amd64-${{ github.sha }}
+          restore-keys: |
+            sing-box-linux-amd64-
+
       - name: Install sing-box
+        if: steps.cache-sing-box.outputs.cache-hit != 'true'
         run: |
           LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "browser_download_url.*linux-amd64" | cut -d '"' -f 4)
           curl -L -o sing-box.tar.gz $LATEST_URL
@@ -103,7 +113,17 @@ jobs:
       - name: Install dependencies
         run: pip install -e .[dev]
 
+      - name: Cache sing-box binary
+        id: cache-sing-box
+        uses: actions/cache@v3
+        with:
+          path: /usr/local/bin/sing-box
+          key: sing-box-linux-amd64-${{ github.sha }}
+          restore-keys: |
+            sing-box-linux-amd64-
+
       - name: Install sing-box
+        if: steps.cache-sing-box.outputs.cache-hit != 'true'
         run: |
           LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "browser_download_url.*linux-amd64" | cut -d '"' -f 4)
           curl -L -o sing-box.tar.gz $LATEST_URL
