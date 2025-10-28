@@ -42,6 +42,7 @@ jobs:
     continue-on-error: true
     env:
       PYTHONPATH: src
+      MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -102,6 +103,16 @@ jobs:
       - name: Install dependencies
         run: pip install -e .[dev]
 
+      - name: Install sing-box
+        run: |
+          LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "browser_download_url.*linux-amd64" | cut -d '"' -f 4)
+          curl -L -o sing-box.tar.gz $LATEST_URL
+          tar -xzf sing-box.tar.gz
+          # The extracted directory name can vary, so we find it dynamically
+          EXTRACTED_DIR=$(tar -tzf sing-box.tar.gz | head -1 | cut -f1 -d"/")
+          mv $EXTRACTED_DIR/sing-box /usr/local/bin/
+          rm -rf sing-box.tar.gz $EXTRACTED_DIR
+
       - name: Download GeoIP databases
         env:
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
@@ -116,17 +127,18 @@ jobs:
           echo "batch_number=${batch_number}" >> $GITHUB_OUTPUT
 
       - name: Run pipeline for Batch ${{ steps.batch_selector.outputs.batch_number }}
+        env:
+          BATCH_NUMBER: ${{ steps.batch_selector.outputs.batch_number }}
         run: |
           set -euxo pipefail
-          batch_num="${{ steps.batch_selector.outputs.batch_number }}"
-          echo "Running pipeline for batch ${batch_num}"
+          echo "Running pipeline for batch $BATCH_NUMBER"
           python -m configstream.cli merge \
-            --sources "sources/batch_${batch_num}.txt" \
-            --output "output_batch_${batch_num}" \
+            --sources "sources/batch_$BATCH_NUMBER.txt" \
+            --output "output_batch_$BATCH_NUMBER" \
             --max-workers 32 \
             --timeout 24 \
             --show-metrics \
-            --max-latency 6000 | tee "pipeline_batch_${batch_num}.log"
+            --max-latency 6000 | tee "pipeline_batch_$BATCH_NUMBER.log"
 
       - name: Run merge script
         run: |
