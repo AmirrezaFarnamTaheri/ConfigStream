@@ -76,6 +76,9 @@ pip-audit = "configstream.tools.pip_audit_wrapper:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"configstream" = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]

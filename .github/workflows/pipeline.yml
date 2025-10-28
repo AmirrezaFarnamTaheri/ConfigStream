@@ -106,6 +106,7 @@ jobs:
           path: |
             data/test_cache.db
             data/GeoLite2-City.mmdb
+            output/.etag-cache.json
           key: configstream-cache-${{ github.run_number }}
           restore-keys: |
             configstream-cache-

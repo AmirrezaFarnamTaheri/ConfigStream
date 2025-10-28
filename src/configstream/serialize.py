@@ -26,4 +26,6 @@ def dumps(data: Any) -> str:
 
 def dump_to_path(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(dumps(data), encoding="utf-8")
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(dumps(data), encoding="utf-8")
+    tmp.replace(path)
