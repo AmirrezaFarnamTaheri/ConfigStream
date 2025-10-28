@@ -1,23 +1,22 @@
 """Protocol auto-detection for proxy configurations."""
 
-# import json  # noqa: F401
+import binascii
+import json
 import logging
-
-# import re  # noqa: F401
 from typing import Optional, Protocol, cast
 from urllib.parse import urlparse
 
 from .models import Proxy
 from .parsers import (
-    _parse_vmess,
-    _parse_vless,
-    _parse_ss,
-    _parse_trojan,
+    _parse_generic_url_scheme,
     _parse_hysteria,
     _parse_hysteria2,
+    _parse_ss,
+    _parse_trojan,
     _parse_tuic,
+    _parse_vmess,
+    _parse_vless,
     _parse_wireguard,
-    _parse_generic_url_scheme,
 )
 
 
@@ -77,8 +76,8 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 result = parser_map[scheme](config)
                 if result:
                     return result
-            except Exception as e:
-                logger.debug(f"Parser {scheme} failed: {e}")
+            except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
+                logger.debug("Parser %s failed: %s", scheme, exc)
 
     # Try JSON parsing (V2Ray JSON format)
     if config.startswith("{"):
@@ -88,8 +87,8 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             result = _parse_v2ray_json(config)
             if result:
                 return result
-        except Exception:
-            pass
+        except (ValueError, KeyError, json.JSONDecodeError) as exc:
+            logger.debug("v2ray json parser skipped: %s", exc)
 
     # Port-based heuristics
     try:
@@ -110,16 +109,22 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                         result = parser(config)
                         if result:
                             return result
-                    except Exception:
+                    except (ValueError, KeyError) as exc:
+                        logger.debug(
+                            "TLS candidate parser %s skipped: %s",
+                            parser.__name__,
+                            exc,
+                        )
                         continue
 
             elif port in [1080, 10808]:  # SOCKS ports
                 try:
                     return _parse_generic_url_scheme(config)
-                except Exception:
-                    pass
+                except ValueError as exc:
+                    logger.debug("SOCKS candidate parser skipped: %s", exc)
 
-    except Exception:
+    except (ValueError, AttributeError):
+        # Handles cases where urlparse fails or port is not present
         pass
 
     # Fallback: try all parsers
@@ -141,7 +146,12 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             if result:
                 logger.info(f"Auto-detected protocol: {result.protocol}")
                 return result
-        except Exception:
+        except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
+            logger.debug(
+                "Fallback parser %s skipped: %s",
+                parser.__name__,
+                exc,
+            )
             continue
 
     return None
