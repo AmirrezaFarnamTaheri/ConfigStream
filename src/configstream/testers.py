@@ -86,7 +86,9 @@ class SingBoxTester(ProxyTester):
                 for url_index, test_url in enumerate(prioritized_urls):
                     for retry in range(self.max_retries + 1):
                         try:
-                            current_timeout = min(self.timeout, 5.0) if url_index > 0 else self.timeout
+                            current_timeout = (
+                                min(self.timeout, 5.0) if url_index > 0 else self.timeout
+                            )
 
                             if retry > 0:
                                 await asyncio.sleep(0.5 * (2 ** (retry - 1)))
