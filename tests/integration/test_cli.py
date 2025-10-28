@@ -36,9 +36,7 @@ def test_cli_retest_success(runner, mocker, tmp_path):
         '[{"config": "vmess://foo", "protocol": "vmess", "address": "1.1.1.1", "port": 443}]'
     )
 
-    result = runner.invoke(
-        cli, ["retest", "--input", str(proxies_file), "--output", str(tmp_path)]
-    )
+    result = runner.invoke(cli, ["retest", "--input", str(proxies_file), "--output", str(tmp_path)])
     assert result.exit_code == 0
     assert "Retest completed successfully" in result.output
 
@@ -53,9 +51,7 @@ def test_cli_retest_failure(runner, mocker, tmp_path):
         '[{"config": "vmess://foo", "protocol": "vmess", "address": "1.1.1.1", "port": 443}]'
     )
 
-    result = runner.invoke(
-        cli, ["retest", "--input", str(proxies_file), "--output", str(tmp_path)]
-    )
+    result = runner.invoke(cli, ["retest", "--input", str(proxies_file), "--output", str(tmp_path)])
     assert result.exit_code != 0
     assert "Test error" in result.output
 
