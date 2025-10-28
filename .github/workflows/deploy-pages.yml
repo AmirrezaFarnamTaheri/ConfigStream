@@ -34,7 +34,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: pipeline-run-${{ github.event.workflow_run.id }}
+          name: pipeline-run-${{ github.event.workflow_run.head_sha || github.sha }}
           path: artifacts
 
       - name: Build Pages artifact
