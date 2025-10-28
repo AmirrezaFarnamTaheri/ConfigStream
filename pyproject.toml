@@ -54,6 +54,7 @@ dev = [
     "types-requests",
     "types-psutil",
     "flake8",
+    "black",
     "mypy",
     "pre-commit",
     "pip-audit",
