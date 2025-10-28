@@ -112,7 +112,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                     except (ValueError, KeyError) as exc:
                         logger.debug(
                             "TLS candidate parser %s skipped: %s",
-                            parser.__name__,
+                            parser.__name__,  # type: ignore[attr-defined]
                             exc,
                         )
                         continue
@@ -149,7 +149,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
             logger.debug(
                 "Fallback parser %s skipped: %s",
-                parser.__name__,
+                parser.__name__,  # type: ignore[attr-defined]
                 exc,
             )
             continue
