@@ -2,7 +2,7 @@ import asyncio
 import importlib
 import logging
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, cast
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
@@ -276,13 +276,13 @@ class SingBoxTester(ProxyTester):
         """Return a callable that constructs ``SingBoxProxy`` instances."""
         global SingBoxProxy
         if SingBoxProxy is not None:
-            return SingBoxProxy
+            return cast(Callable[[str], Any], SingBoxProxy)
         try:
             module = importlib.import_module("singbox2proxy")
             SingBoxProxy = getattr(module, "SingBoxProxy")
         except Exception as exc:
             raise RuntimeError("singbox2proxy is not available") from exc
-        return SingBoxProxy
+        return cast(Callable[[str], Any], SingBoxProxy)
 
     def get_cache_stats(self) -> dict:
         """Get cache hit/miss statistics."""
