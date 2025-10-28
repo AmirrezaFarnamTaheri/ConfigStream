@@ -154,7 +154,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline-run-${{ github.run_id }}
+          name: pipeline-run-${{ github.sha }}
           path: |
             output/
             output_batch_*/

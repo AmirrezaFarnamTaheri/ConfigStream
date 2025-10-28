@@ -110,7 +110,7 @@ def test_parse_ssr_known_good():
     assert proxy.details["cipher"] == "aes-256-cfb"
     assert proxy.details["obfs"] == "tls1.2_ticket_auth"
     assert proxy.details["password"] == "211369654"  # password is base64 decoded
-    assert proxy.details["params"]["obfsparam"] == "ucloednnlcm5hbi5jb20"  # base64 decoded
+    assert proxy.details["params"]["obfsparam"] == "usernan.com"  # base64 decoded
     assert proxy.details["params"]["protoparam"] == "183899919"  # base64 decoded
     assert proxy.details["params"]["group"] == "www"  # base64 decoded
 

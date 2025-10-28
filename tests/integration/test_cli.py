@@ -29,23 +29,29 @@ def test_cli_merge_failure(runner, mocker):
     assert "Pipeline failed" in result.output
 
 
-def test_cli_retest_success(runner, mocker):
+def test_cli_retest_success(runner, mocker, tmp_path):
     mocker.patch("configstream.cli.pipeline.run_full_pipeline", return_value={"success": True})
-    result = runner.invoke(
-        cli, ["retest", "--input", "tests/fixtures/proxies.json", "--output", "/tmp/"]
+    proxies_file = tmp_path / "proxies.json"
+    proxies_file.write_text(
+        '[{"config": "vmess://foo", "protocol": "vmess", "address": "1.1.1.1", "port": 443}]'
     )
+
+    result = runner.invoke(cli, ["retest", "--input", str(proxies_file), "--output", str(tmp_path)])
     assert result.exit_code == 0
     assert "Retest completed successfully" in result.output
 
 
-def test_cli_retest_failure(runner, mocker):
+def test_cli_retest_failure(runner, mocker, tmp_path):
     mocker.patch(
         "configstream.cli.pipeline.run_full_pipeline",
         return_value={"success": False, "error": "Test error"},
     )
-    result = runner.invoke(
-        cli, ["retest", "--input", "tests/fixtures/proxies.json", "--output", "/tmp/"]
+    proxies_file = tmp_path / "proxies.json"
+    proxies_file.write_text(
+        '[{"config": "vmess://foo", "protocol": "vmess", "address": "1.1.1.1", "port": 443}]'
     )
+
+    result = runner.invoke(cli, ["retest", "--input", str(proxies_file), "--output", str(tmp_path)])
     assert result.exit_code != 0
     assert "Test error" in result.output
 
@@ -111,14 +117,26 @@ def test_cli_retest_no_valid_proxies(runner, fs):
     assert "No proxies found" in result.output
 
 
-def test_cli_retest_show_metrics(runner, mocker):
+def test_cli_retest_show_metrics(runner, mocker, tmp_path):
     mocker.patch(
         "configstream.cli.pipeline.run_full_pipeline",
         return_value={"success": True, "metrics": {"total_seconds": 2.34}},
     )
+    proxies_file = tmp_path / "proxies.json"
+    proxies_file.write_text(
+        '[{"config": "vmess://foo", "protocol": "vmess", "address": "1.1.1.1", "port": 443}]'
+    )
+
     result = runner.invoke(
         cli,
-        ["retest", "--input", "tests/fixtures/proxies.json", "--output", "/tmp/", "--show-metrics"],
+        [
+            "retest",
+            "--input",
+            str(proxies_file),
+            "--output",
+            str(tmp_path),
+            "--show-metrics",
+        ],
     )
     assert result.exit_code == 0
     assert "Performance metrics" in result.output
