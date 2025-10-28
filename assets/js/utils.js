@@ -146,43 +146,53 @@ async function fetchProxies() {
     return cache.proxies.data;
   }
 
+  let enrichedProxies;
+
   try {
+    // First, try to fetch the primary, smaller file
     const url = `output/proxies.json${getCacheBust()}`;
-    const response = await fetchWithRetry(url, 3, 1000);
+    const response = await fetchWithRetry(url, 2, 500); // Shorter timeout for the primary
     const data = await response.json();
 
     if (!Array.isArray(data)) {
       throw new Error('Invalid proxy data format: expected array');
     }
 
-    let enrichedProxies = enrichProxyList(data);
+    enrichedProxies = enrichProxyList(data);
 
+    // If the primary file is empty, immediately try the fallback
     if (enrichedProxies.length === 0) {
-      try {
-        enrichedProxies = await fetchFallbackSnapshot();
-      } catch (fallbackError) {
-        console.error('❌ Fallback snapshot unavailable:', fallbackError);
-        throw fallbackError;
+      console.warn('⚠️ Primary proxy list is empty, attempting fallback.');
+      enrichedProxies = await fetchFallbackSnapshot();
+    }
+  } catch (primaryError) {
+    console.error(`❌ Failed to fetch primary proxies.json: ${primaryError.message}. Attempting fallback.`);
+    try {
+      // If the primary fetch fails for any reason (e.g., 404), try the fallback
+      enrichedProxies = await fetchFallbackSnapshot();
+    } catch (fallbackError) {
+      console.error('❌ Fallback snapshot also failed:', fallbackError);
+      // If stale data is available, use it as a last resort
+      if (cache.proxies.data) {
+        console.log('📦 Using stale proxies from cache as last resort.');
+        return cache.proxies.data;
       }
+      // If there's no cache, re-throw the original error to be caught by the UI
+      throw primaryError;
     }
-
-    cache.proxies = {
-      data: enrichedProxies,
-      expiry: Date.now() + CACHE_CONFIG.proxiesExpiry
-    };
-
-    console.log(`✅ Loaded ${enrichedProxies.length} proxies${
-      enrichedProxies[0]?.source === 'fallback' ? ' (fallback)' : ''
-    }`);
-    return enrichedProxies;
-  } catch (error) {
-    console.error('❌ Failed to fetch proxies:', error);
-    if (cache.proxies.data) {
-      console.log('📦 Using stale proxies from cache');
-      return cache.proxies.data;
-    }
-    throw error;
   }
+
+  // Cache the successfully fetched (or fallback) data
+  cache.proxies = {
+    data: enrichedProxies,
+    expiry: Date.now() + CACHE_CONFIG.proxiesExpiry
+  };
+
+  console.log(`✅ Loaded ${enrichedProxies.length} proxies${
+    enrichedProxies.length > 0 && enrichedProxies[0].source === 'fallback' ? ' (from fallback)' : ''
+  }`);
+
+  return enrichedProxies;
 }
 
 /**
