@@ -3,14 +3,14 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
-from src.configstream.etag_cache import ETAG_CACHE_PATH, load_etags, save_etags
+from configstream.etag_cache import ETAG_CACHE_PATH, load_etags, save_etags
 
 
 def test_save_and_load_etags(tmp_path):
     """Verify that etags can be saved to and loaded from the cache."""
     cache_file = tmp_path / "etags.json"
 
-    with patch("src.configstream.etag_cache.ETAG_CACHE_PATH", cache_file):
+    with patch("configstream.etag_cache.ETAG_CACHE_PATH", cache_file):
 
         # 1. Start with an empty cache
         assert load_etags() == {}
@@ -40,7 +40,7 @@ def test_save_and_load_etags(tmp_path):
 def test_load_etags_nonexistent_file(tmp_path):
     """Verify that loading from a nonexistent cache file returns an empty dict."""
     cache_file = tmp_path / "nonexistent.json"
-    with patch("src.configstream.etag_cache.ETAG_CACHE_PATH", cache_file):
+    with patch("configstream.etag_cache.ETAG_CACHE_PATH", cache_file):
         assert load_etags() == {}
 
 
@@ -48,5 +48,5 @@ def test_load_etags_invalid_json(tmp_path):
     """Verify that loading from a corrupt cache file returns an empty dict."""
     cache_file = tmp_path / "invalid.json"
     cache_file.write_text("this is not json")
-    with patch("src.configstream.etag_cache.ETAG_CACHE_PATH", cache_file):
+    with patch("configstream.etag_cache.ETAG_CACHE_PATH", cache_file):
         assert load_etags() == {}
