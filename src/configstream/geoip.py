@@ -111,9 +111,9 @@ class GeoIPManager:
         all_exist = True
         for db_path in required_dbs:
             if db_path.exists() and db_path.stat().st_size > 0:
-                print(f"✅ {db_path.name} exists ({db_path.stat().st_size} bytes)")
+                self.logger.info("GeoIP %s exists (%d bytes)", db_path.name, db_path.stat().st_size)
             else:
-                print(f"❌ {db_path.name} missing or empty")
+                self.logger.error("GeoIP %s missing or empty", db_path.name)
                 all_exist = False
 
         return all_exist
