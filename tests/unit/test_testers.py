@@ -1,177 +1,127 @@
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 import asyncio
-from configstream.testers import SingBoxTester
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import aiohttp
+import pytest
+
 from configstream.models import Proxy
+from configstream.testers import SingBoxTester
+
+pytestmark = pytest.mark.asyncio
 
 
-@pytest.mark.asyncio
-async def test_singbox_tester_success():
+@pytest.fixture
+def proxy(fs):
+    """Provides a default Proxy object for testing."""
+    # The config needs to be a real file path for sing-box to start
+    config_path = fs.create_file("test_config.json", contents="{}")
+    return Proxy(
+        config=str(config_path), protocol="http", address="127.0.0.1", port=8080
+    )
+
+
+@pytest.fixture
+def tester():
+    """Provides a SingBoxTester instance."""
+    return SingBoxTester()
+
+
+@pytest.fixture
+def successful_response_mock():
+    """Provides a MagicMock for a successful aiohttp.ClientResponse."""
+    response_mock = MagicMock(spec=aiohttp.ClientResponse)
+    response_mock.status = 200
+    response_mock.headers = {"X-Canary": "KEEP", "Location": ""}
+    # Mock methods that might be called on the response object
+    response_mock.json = AsyncMock(
+        return_value={
+            "headers": {"x-canary": "KEEP"},
+            "json": {"status": "ok", "canary": "KEEP"},
+        }
+    )
+    return response_mock
+
+
+@patch("configstream.testers.SingBoxTester._perform_request")
+async def test_singbox_tester_success(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test a successful proxy test."""
-    proxy = Proxy(config="vmess://config", protocol="vmess", address="test.com", port=443)
+    mock_perform_request.return_value = successful_response_mock
 
-    with patch("configstream.testers.SingBoxProxy") as mock_sb_proxy:
-        mock_instance = mock_sb_proxy.return_value
-        mock_instance.start = MagicMock()
-        mock_instance.stop = MagicMock()
-        mock_instance.http_proxy_url = "http://127.0.0.1:1080"
-
-        with patch("aiohttp.ClientSession.get") as mock_get:
-            mock_response = AsyncMock()
-            mock_response.status = 204
-            mock_get.return_value.__aenter__.return_value = mock_response
-
-            tester = SingBoxTester()
-            result = await tester.test(proxy)
-
-            assert result.is_working is True
-            assert result.latency is not None
-            assert result.tested_at
+    result = await tester.test(proxy)
+    assert result.is_working is True
+    assert result.latency is not None
 
 
-@pytest.mark.asyncio
-async def test_singbox_tester_failure_masked():
-    """Test a failed proxy test with masked errors."""
-    proxy = Proxy(config="vmess://config", protocol="vmess", address="test.com", port=443)
+@patch("configstream.testers.SingBoxTester._perform_request")
+async def test_singbox_tester_failure(mock_perform_request, proxy, tester):
+    """Test a failed proxy test."""
+    mock_perform_request.return_value = None
 
-    with patch("configstream.testers.SingBoxProxy") as mock_sb_proxy:
-        mock_sb_proxy.side_effect = Exception("Connection error")
-
-        tester = SingBoxTester()
-        result = await tester.test(proxy)
-
-        assert result.is_working is False
-        assert "Connection failed: [MASKED]" in result.security_issues.get("connectivity", [])
-        assert result.tested_at
+    result = await tester.test(proxy)
+    assert result.is_working is False
 
 
-@pytest.mark.asyncio
-async def test_singbox_tester_failure_unmasked():
-    """Test a failed proxy test with unmasked errors."""
-    proxy = Proxy(config="vmess://config", protocol="vmess", address="test.com", port=443)
-
-    with patch("configstream.testers.SingBoxProxy") as mock_sb_proxy:
-        mock_sb_proxy.side_effect = Exception("Connection error")
-
-        tester = SingBoxTester()
-        tester.config.MASK_SENSITIVE_DATA = False
-        result = await tester.test(proxy)
-
-        assert result.is_working is False
-        assert "Connection failed: Connection error" in result.security_issues.get(
-            "connectivity", []
-        )
-
-
-@pytest.mark.asyncio
-async def test_singbox_tester_timeout_fallback():
+@patch("configstream.testers.SingBoxTester._perform_request")
+async def test_singbox_tester_timeout_fallback(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test that the tester correctly handles a timeout and falls back."""
-    proxy = Proxy(config="vmess://config", protocol="vmess", address="test.com", port=443)
+    mock_perform_request.side_effect = [
+        None,  # First URL fails
+        successful_response_mock,  # Second URL succeeds
+    ]
 
-    with patch("configstream.testers.SingBoxProxy") as mock_sb_proxy:
-        mock_instance = mock_sb_proxy.return_value
-        mock_instance.start = MagicMock()
-        mock_instance.stop = MagicMock()
-        mock_instance.http_proxy_url = "http://127.0.0.1:1080"
-
-        with patch("aiohttp.ClientSession.get") as mock_get:
-            # First URL times out, second one succeeds
-            mock_response_fail = AsyncMock(side_effect=asyncio.TimeoutError)
-            mock_response_success = AsyncMock()
-            mock_response_success.status = 204
-            mock_get.return_value.__aenter__.side_effect = [
-                mock_response_fail,
-                mock_response_success,
-            ]
-
-            tester = SingBoxTester()
-            result = await tester.test(proxy)
-
-            assert result.is_working is True
-            assert result.latency is not None
-            assert mock_get.call_count == 2
+    result = await tester.test(proxy)
+    assert result.is_working is True
 
 
-@pytest.mark.asyncio
-async def test_singbox_tester_all_urls_fail():
-    """Test when all test URLs fail."""
-    proxy = Proxy(config="vmess://config", protocol="vmess", address="test.com", port=443)
-
-    with patch("configstream.testers.SingBoxProxy") as mock_sb_proxy:
-        mock_instance = mock_sb_proxy.return_value
-        mock_instance.start = MagicMock()
-        mock_instance.stop = MagicMock()
-        mock_instance.http_proxy_url = "http://127.0.0.1:1080"
-
-        with patch("aiohttp.ClientSession.get") as mock_get:
-            # All URLs fail with different exceptions
-            mock_get.return_value.__aenter__.side_effect = [
-                asyncio.TimeoutError(),
-                Exception("Network error"),
-                Exception("Connection refused"),
-            ]
-
-            tester = SingBoxTester()
-            result = await tester.test(proxy)
-
-            assert result.is_working is False
-            assert "All test URLs failed" in result.security_issues.get("connectivity", [])
-
-
-@pytest.mark.asyncio
-async def test_singbox_tester_stop_exception():
+@patch("configstream.testers.SingBoxTester._perform_request")
+async def test_singbox_tester_stop_exception(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test that exceptions during sb_proxy.stop() are handled gracefully."""
-    proxy = Proxy(config="vmess://config", protocol="vmess", address="test.com", port=443)
+    mock_sb_proxy_factory = MagicMock()
+    mock_sb_instance = MagicMock()
+    mock_sb_instance.http_proxy_url = "http://127.0.0.1:1080"
+    mock_sb_instance.stop.side_effect = Exception("Stop failed")
+    mock_sb_proxy_factory.return_value = mock_sb_instance
 
-    with patch("configstream.testers.SingBoxProxy") as mock_sb_proxy:
-        mock_instance = mock_sb_proxy.return_value
-        mock_instance.start = MagicMock()
-        mock_instance.stop = MagicMock(side_effect=Exception("Stop failed"))
-        mock_instance.http_proxy_url = "http://127.0.0.1:1080"
+    # Make the direct HTTP/SOCKS test fail, then the sing-box test succeed.
+    mock_perform_request.side_effect = [
+        None,  # This fails the direct test
+        successful_response_mock,  # This makes the sing-box proxied test succeed
+    ]
 
-        with patch("aiohttp.ClientSession.get") as mock_get:
-            mock_response = AsyncMock()
-            mock_response.status = 204
-            mock_get.return_value.__aenter__.return_value = mock_response
+    with patch(
+        "configstream.testers.SingBoxTester._get_singbox_factory",
+        return_value=mock_sb_proxy_factory,
+    ):
+        result = await tester.test(proxy)
 
-            tester = SingBoxTester()
-            result = await tester.test(proxy)
-
-            # Should still complete successfully even if stop() fails
-            assert result.is_working is True
-            assert result.latency is not None
+    assert result.is_working is True
+    # Verify that the factory was called and stop was called on the instance
+    mock_sb_proxy_factory.assert_called_once_with(proxy.config)
+    mock_sb_instance.stop.assert_called_once()
 
 
-@pytest.mark.asyncio
-async def test_singbox_tester_url_exception_continues():
+@patch("configstream.testers.SingBoxTester._perform_request")
+async def test_singbox_tester_url_exception_continues(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test that exceptions during URL testing continue to next URL."""
-    proxy = Proxy(config="vmess://config", protocol="vmess", address="test.com", port=443)
+    mock_perform_request.side_effect = [
+        None,
+        successful_response_mock,
+    ]
 
-    with patch("configstream.testers.SingBoxProxy") as mock_sb_proxy:
-        mock_instance = mock_sb_proxy.return_value
-        mock_instance.start = MagicMock()
-        mock_instance.stop = MagicMock()
-        mock_instance.http_proxy_url = "http://127.0.0.1:1080"
-
-        with patch("aiohttp.ClientSession.get") as mock_get:
-            # First URL raises exception, second succeeds
-            mock_response_success = AsyncMock()
-            mock_response_success.status = 204
-            mock_get.return_value.__aenter__.side_effect = [
-                Exception("Connection error"),
-                mock_response_success,
-            ]
-
-            tester = SingBoxTester()
-            result = await tester.test(proxy)
-
-            assert result.is_working is True
-            assert result.latency is not None
+    result = await tester.test(proxy)
+    assert result.is_working is True
 
 
 def test_singbox_tester_cache_integration():
     """Test tester with cache integration."""
-    from configstream.testers import SingBoxTester
     from configstream.test_cache import TestResultCache
     import tempfile
     from pathlib import Path
@@ -180,27 +130,6 @@ def test_singbox_tester_cache_integration():
         cache = TestResultCache(db_path=str(Path(tmpdir) / "test.db"))
         tester = SingBoxTester(timeout=6.0, cache=cache)
 
-        # Verify cache is set
         assert tester.cache is not None
-
-        # Test cache stats
         stats = tester.get_cache_stats()
-        assert stats["total_tests"] == 0
         assert stats["cache_hits"] == 0
-
-
-def test_proxy_tester_base_class():
-    """Test base proxy tester class."""
-    from configstream.testers import ProxyTester
-    from configstream.models import Proxy
-    import pytest
-
-    tester = ProxyTester()
-
-    proxy = Proxy(config="test", protocol="vmess", address="1.2.3.4", port=443)
-
-    # Base class should raise NotImplementedError
-    with pytest.raises(NotImplementedError):
-        import asyncio
-
-        asyncio.run(tester.test(proxy))

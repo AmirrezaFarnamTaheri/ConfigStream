@@ -5,6 +5,9 @@ from configstream.security_validator import (
     validate_batch_configs,
     DANGEROUS_PORTS,
     VALID_PROTOCOLS,
+    ValidationPolicy,
+    STRICT_POLICY,
+    TEST_POLICY,
 )
 from configstream.models import Proxy
 
@@ -17,12 +20,14 @@ class TestSecurityValidator:
         proxy = Proxy(
             config="vmess://test",
             protocol="vmess",
-            address="example.com",
+            address="valid-proxy-domain.com",
             port=443,
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+        is_secure, issues = SecurityValidator.validate_proxy_config(
+            proxy, policy=TEST_POLICY
+        )
 
         assert is_secure is True
         assert len(issues) == 0
@@ -33,15 +38,18 @@ class TestSecurityValidator:
             proxy = Proxy(
                 config="vmess://test",
                 protocol="vmess",
-                address="example.com",
+                address="valid-proxy-domain.com",
                 port=port,
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=TEST_POLICY
+            )
 
             assert is_secure is False
-            assert any("port" in issue.lower() for issue in issues)
+            assert "port_security" in issues
+            assert any("port" in issue.lower() for issue in issues["port_security"])
 
     def test_invalid_port_range(self):
         """Test that ports outside valid range are rejected."""
@@ -51,15 +59,18 @@ class TestSecurityValidator:
             proxy = Proxy(
                 config="vmess://test",
                 protocol="vmess",
-                address="example.com",
+                address="valid-proxy-domain.com",
                 port=port,
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=TEST_POLICY
+            )
 
             assert is_secure is False
-            assert any("port" in issue.lower() for issue in issues)
+            assert "port_security" in issues
+            assert any("port" in issue.lower() for issue in issues["port_security"])
 
     def test_localhost_address_rejected(self):
         """Test that localhost addresses are rejected."""
@@ -74,10 +85,17 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=STRICT_POLICY
+            )
 
             assert is_secure is False
-            assert any("address" in issue.lower() for issue in issues)
+            assert (
+                "address_private_ip" in issues or "address_suspicious" in issues
+            ), f"Expected 'address_private_ip' or 'address_suspicious' for {address}"
+
+            category = "address_private_ip" if "address_private_ip" in issues else "address_suspicious"
+            assert any("address" in issue.lower() for issue in issues[category])
 
     def test_private_ip_ranges_rejected(self):
         """Test that private IP ranges are rejected."""
@@ -98,10 +116,13 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=STRICT_POLICY
+            )
 
             assert is_secure is False
-            assert any("address" in issue.lower() for issue in issues)
+            assert "address_private_ip" in issues
+            assert any("address" in issue.lower() for issue in issues["address_private_ip"])
 
     def test_empty_address_rejected(self):
         """Test that empty addresses are rejected."""
@@ -113,10 +134,13 @@ class TestSecurityValidator:
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+        is_secure, issues = SecurityValidator.validate_proxy_config(
+            proxy, policy=TEST_POLICY
+        )
 
         assert is_secure is False
-        assert any("address" in issue.lower() for issue in issues)
+        assert "address_suspicious" in issues
+        assert any("address" in issue.lower() for issue in issues["address_suspicious"])
 
     def test_ipv6_special_addresses_rejected(self):
         """Test that special IPv6 addresses are rejected."""
@@ -136,10 +160,13 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=STRICT_POLICY
+            )
 
             assert is_secure is False, f"IPv6 address {ip} should be rejected"
-            assert any("address" in issue.lower() for issue in issues)
+            assert "address_private_ip" in issues
+            assert any("address" in issue.lower() for issue in issues["address_private_ip"])
 
     def test_non_standard_ip_notation_rejected(self):
         """Test that non-standard IP notations are rejected."""
@@ -157,40 +184,49 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=STRICT_POLICY
+            )
 
             assert is_secure is False, f"Non-standard IP {ip} should be rejected"
-            assert any("address" in issue.lower() for issue in issues)
+            assert "address_suspicious" in issues
+            assert any(
+                "notation" in issue.lower() for issue in issues["address_suspicious"]
+            )
 
     def test_empty_config_string_rejected(self):
         """Test that empty config strings are rejected."""
         proxy = Proxy(
             config="",
             protocol="vmess",
-            address="example.com",
+            address="valid-proxy-domain.com",
             port=443,
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+        is_secure, issues = SecurityValidator.validate_proxy_config(
+            proxy, policy=TEST_POLICY
+        )
 
         assert is_secure is False
-        assert any("suspicious" in issue.lower() for issue in issues)
+        assert "suspicious_config_format" in issues
 
     def test_unknown_protocol_rejected(self):
         """Test that unknown protocols are rejected."""
         proxy = Proxy(
             config="unknownprotocol://test",
             protocol="unknownprotocol",
-            address="example.com",
+            address="valid-proxy-domain.com",
             port=443,
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+        is_secure, issues = SecurityValidator.validate_proxy_config(
+            proxy, policy=TEST_POLICY
+        )
 
         assert is_secure is False
-        assert any("protocol" in issue.lower() for issue in issues)
+        assert "protocol_invalid" in issues
 
     def test_known_protocols_accepted(self):
         """Test that all known safe protocols are accepted."""
@@ -198,12 +234,14 @@ class TestSecurityValidator:
             proxy = Proxy(
                 config=f"{protocol}://test",
                 protocol=protocol,
-                address="example.com",
+                address="valid-proxy-domain.com",
                 port=8080,
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=TEST_POLICY
+            )
 
             assert is_secure is True, f"Protocol {protocol} should be safe"
             assert len(issues) == 0
@@ -213,15 +251,17 @@ class TestSecurityValidator:
         proxy = Proxy(
             config="vmess://test\x00malicious",
             protocol="vmess",
-            address="example.com",
+            address="valid-proxy-domain.com",
             port=443,
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+        is_secure, issues = SecurityValidator.validate_proxy_config(
+            proxy, policy=TEST_POLICY
+        )
 
         assert is_secure is False
-        assert any("suspicious" in issue.lower() for issue in issues)
+        assert "suspicious_config_malformed" in issues
 
     def test_command_injection_patterns_rejected(self):
         """Test that command injection patterns are rejected."""
@@ -238,15 +278,17 @@ class TestSecurityValidator:
             proxy = Proxy(
                 config=config,
                 protocol="vmess",
-                address="example.com",
+                address="valid-proxy-domain.com",
                 port=443,
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+            is_secure, issues = SecurityValidator.validate_proxy_config(
+                proxy, policy=TEST_POLICY
+            )
 
             assert is_secure is False
-            assert any("suspicious" in issue.lower() for issue in issues)
+            assert "suspicious_injection_attempt" in issues
 
     def test_excessively_long_config_rejected(self):
         """Test that excessively long configs are rejected."""
@@ -255,16 +297,17 @@ class TestSecurityValidator:
         proxy = Proxy(
             config=long_config,
             protocol="vmess",
-            address="example.com",
+            address="valid-proxy-domain.com",
             port=443,
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(proxy)
+        is_secure, issues = SecurityValidator.validate_proxy_config(
+            proxy, policy=TEST_POLICY
+        )
 
-        # Should log warning but might not reject (depends on implementation)
-        # This test documents the behavior
-        assert isinstance(is_secure, bool)
+        assert is_secure is False
+        assert "suspicious_config_format" in issues
 
 
 class TestURLValidation:
@@ -272,14 +315,14 @@ class TestURLValidation:
 
     def test_valid_http_url(self):
         """Test that valid HTTP URL passes."""
-        is_valid, error = SecurityValidator.validate_url("http://example.com/path")
+        is_valid, error = SecurityValidator.validate_url("http://valid-proxy-domain.com/path")
 
         assert is_valid is True
         assert error is None
 
     def test_valid_https_url(self):
         """Test that valid HTTPS URL passes."""
-        is_valid, error = SecurityValidator.validate_url("https://example.com/path")
+        is_valid, error = SecurityValidator.validate_url("https://valid-proxy-domain.com/path")
 
         assert is_valid is True
         assert error is None
@@ -293,14 +336,18 @@ class TestURLValidation:
 
     def test_missing_scheme_rejected(self):
         """Test that URL without scheme is rejected."""
-        is_valid, error = SecurityValidator.validate_url("example.com/path")
+        is_valid, error = SecurityValidator.validate_url("valid-proxy-domain.com/path")
 
         assert is_valid is False
         assert "scheme" in error.lower()
 
     def test_invalid_scheme_rejected(self):
         """Test that non-HTTP schemes are rejected."""
-        invalid_schemes = ["ftp://example.com", "file:///etc/passwd", "javascript:alert(1)"]
+        invalid_schemes = [
+            "ftp://valid-proxy-domain.com",
+            "file:///etc/passwd",
+            "javascript:alert(1)",
+        ]
 
         for url in invalid_schemes:
             is_valid, error = SecurityValidator.validate_url(url)
@@ -357,7 +404,7 @@ class TestLogSanitization:
 
     def test_password_in_url_masked(self):
         """Test that passwords in URLs are masked."""
-        message = "Connecting to http://user:password123@example.com/"
+        message = "Connecting to http://user:password123@valid-proxy-domain.com/"
         sanitized = SecurityValidator.sanitize_log_message(message, mask_patterns=True)
 
         assert "password123" not in sanitized
@@ -403,7 +450,7 @@ class TestBatchValidation:
             Proxy(
                 config="vmess://safe1",
                 protocol="vmess",
-                address="example.com",
+                address="valid-proxy-domain.com",
                 port=443,
                 uuid="uuid1",
             ),
@@ -417,13 +464,13 @@ class TestBatchValidation:
             Proxy(
                 config="vless://safe2",
                 protocol="vless",
-                address="test.com",
+                address="another-valid-proxy.net",
                 port=8080,
                 uuid="uuid3",
             ),
         ]
 
-        secure_proxies = validate_batch_configs(proxies)
+        secure_proxies = validate_batch_configs(proxies, policy=TEST_POLICY)
 
         assert len(secure_proxies) == 2
         assert all(p.address not in ["localhost"] for p in secure_proxies)
@@ -440,7 +487,7 @@ class TestBatchValidation:
             ),
         ]
 
-        validate_batch_configs(proxies)
+        validate_batch_configs(proxies, policy=STRICT_POLICY)
 
         assert proxies[0].is_secure is False
         assert len(proxies[0].security_issues) > 0
@@ -451,20 +498,20 @@ class TestBatchValidation:
             Proxy(
                 config="vmess://test",
                 protocol="vmess",
-                address="example.com",
+                address="valid-proxy-domain.com",
                 port=443,
                 uuid="uuid1",
             ),
         ]
 
-        secure_proxies = validate_batch_configs(proxies)
+        secure_proxies = validate_batch_configs(proxies, policy=TEST_POLICY)
 
         assert len(secure_proxies) == 1
-        assert secure_proxies[0].address == "example.com"
+        assert secure_proxies[0].address == "valid-proxy-domain.com"
 
     def test_empty_batch_returns_empty_list(self):
         """Test that empty batch returns empty list."""
-        secure_proxies = validate_batch_configs([])
+        secure_proxies = validate_batch_configs([], policy=TEST_POLICY)
 
         assert secure_proxies == []
 

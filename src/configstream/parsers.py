@@ -102,14 +102,17 @@ def _extract_config_lines(payload: str, max_lines: int = MAX_LINES_PER_SOURCE) -
         logger.warning(f"Payload has {len(lines)} lines, truncating to {max_lines}")
         lines = lines[:max_lines]
 
-    valid_protocols_tuple = tuple(f"{p}://" for p in VALID_PROTOCOLS)
+    valid_prefixes = {p for p in VALID_PROTOCOLS if not p.endswith("://")}
+    valid_prefixes.update({p + "://" for p in VALID_PROTOCOLS})
 
     configs = []
-    for i, line in enumerate(lines, 1):
+    for line in lines:
         candidate = line.strip()
         if not candidate or candidate.startswith("#") or len(candidate) > MAX_CONFIG_LINE_LENGTH:
             continue
-        if candidate.startswith(valid_protocols_tuple) and _is_plausible_proxy_config(candidate):
+
+        protocol = candidate.split("://", 1)[0]
+        if protocol in valid_prefixes and _is_plausible_proxy_config(candidate):
             configs.append(candidate)
     return configs
 

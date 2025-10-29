@@ -81,16 +81,22 @@ jobs:
         run: python -m pytest --cov=src/configstream --cov-report=term-missing
 
   pipeline:
-    name: Run Rotational Batch Pipeline
+    name: Run Batch Shard (${{ matrix.batch_number }})
     runs-on: ubuntu-latest
     needs: [lint, test]
+    strategy:
+      matrix:
+        batch_number: [1, 2, 3, 4, 5, 6]
+      fail-fast: false # Allow other shards to continue if one fails
+
     env:
       PYTHONPATH: src
+      BATCH_NUMBER: ${{ matrix.batch_number }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Fetch all history so we can diff against the previous commit
           fetch-depth: 0
 
       - name: Set up Python
@@ -129,7 +135,6 @@ jobs:
           LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "browser_download_url.*linux-amd64" | cut -d '"' -f 4)
           curl -L -o sing-box.tar.gz $LATEST_URL
           tar -xzf sing-box.tar.gz
-          # The extracted directory name can vary, so we find it dynamically
           EXTRACTED_DIR=$(tar -tzf sing-box.tar.gz | head -1 | cut -f1 -d"/")
           mv $EXTRACTED_DIR/sing-box /usr/local/bin/
           rm -rf sing-box.tar.gz $EXTRACTED_DIR
@@ -139,20 +144,7 @@ jobs:
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: python -m configstream.cli update-databases
 
-      - name: Determine which batch to run
-        id: batch_selector
-        run: |
-          set -euxo pipefail
-          # This will result in a number from 1 to 6, rotating every 4 hours.
-          # (0, 4, 8, 12, 16, 20) -> (1, 2, 3, 4, 5, 6)
-          # By using 10# prefix, we force bash to interpret the hour as a base-10 number,
-          # avoiding the "value too great for base" error for hours like 08 and 09.
-          batch_number=$(( ( 10#$(date -u +%H) / 4 ) + 1 ))
-          echo "batch_number=${batch_number}" >> $GITHUB_OUTPUT
-
-      - name: Run pipeline for Batch ${{ steps.batch_selector.outputs.batch_number }}
-        env:
-          BATCH_NUMBER: ${{ steps.batch_selector.outputs.batch_number }}
+      - name: Run pipeline for Batch ${{ env.BATCH_NUMBER }}
         run: |
           set -euxo pipefail
           echo "Running pipeline for batch $BATCH_NUMBER"
@@ -164,10 +156,55 @@ jobs:
             --show-metrics \
             --max-latency 6000 | tee "pipeline_batch_${BATCH_NUMBER}.log"
 
-      - name: Run merge script
+      - name: Upload shard artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shard-run-${{ github.sha }}-${{ env.BATCH_NUMBER }}
+          path: |
+            output_batch_${{ env.BATCH_NUMBER }}/
+            pipeline_batch_${{ env.BATCH_NUMBER }}.log
+
+  merge_results:
+    name: Merge and Commit Shard Results
+    runs-on: ubuntu-latest
+    needs: pipeline
+    if: success() # Only run if all shards succeeded
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download shard artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: shard-run-${{ github.sha }}-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Restore previous outputs for merge
         run: |
-          echo "Merging results from all batches..."
-          python -m scripts.merge_batches
+          set -euxo pipefail
+          # Check if any artifacts were downloaded
+          if [ -z "$(ls -A artifacts)" ]; then
+            echo "No artifacts found to restore."
+            exit 0
+          fi
+          # The structure will be artifacts/output_batch_N/...
+          # We need to move them to the correct locations.
+          find artifacts -mindepth 1 -maxdepth 1 -type d -name 'output_batch_*' -exec mv {} . \;
+          find artifacts -type f -name '*.log' -exec mv {} . \;
+
+
+      - name: Run merge script
+        run: python -m scripts.merge_batches
 
       - name: Show diff
         run: |
@@ -178,15 +215,12 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore(data): update batch ${{ steps.batch_selector.outputs.batch_number }} and merge outputs"
-          # We need to add all batch outputs to preserve their state, plus the final merged output.
-          file_pattern: |
-            output/
-            output_batch_*/
+          commit_message: "chore(data): update outputs from all batches"
+          file_pattern: "output/ output_batch_*/"
           push_options: '--force'
           add_options: '-f'
 
-      - name: Upload pipeline artifact
+      - name: Upload final pipeline artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
