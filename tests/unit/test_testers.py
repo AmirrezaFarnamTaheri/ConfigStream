@@ -7,17 +7,13 @@ import pytest
 from configstream.models import Proxy
 from configstream.testers import SingBoxTester
 
-pytestmark = pytest.mark.asyncio
-
 
 @pytest.fixture
 def proxy(fs):
     """Provides a default Proxy object for testing."""
     # The config needs to be a real file path for sing-box to start
     config_path = fs.create_file("test_config.json", contents="{}")
-    return Proxy(
-        config=str(config_path), protocol="http", address="127.0.0.1", port=8080
-    )
+    return Proxy(config=str(config_path), protocol="http", address="127.0.0.1", port=8080)
 
 
 @pytest.fixture
@@ -42,6 +38,7 @@ def successful_response_mock():
     return response_mock
 
 
+@pytest.mark.asyncio
 @patch("configstream.testers.SingBoxTester._perform_request")
 async def test_singbox_tester_success(
     mock_perform_request, proxy, tester, successful_response_mock
@@ -54,6 +51,7 @@ async def test_singbox_tester_success(
     assert result.latency is not None
 
 
+@pytest.mark.asyncio
 @patch("configstream.testers.SingBoxTester._perform_request")
 async def test_singbox_tester_failure(mock_perform_request, proxy, tester):
     """Test a failed proxy test."""
@@ -63,6 +61,7 @@ async def test_singbox_tester_failure(mock_perform_request, proxy, tester):
     assert result.is_working is False
 
 
+@pytest.mark.asyncio
 @patch("configstream.testers.SingBoxTester._perform_request")
 async def test_singbox_tester_timeout_fallback(
     mock_perform_request, proxy, tester, successful_response_mock
@@ -77,6 +76,7 @@ async def test_singbox_tester_timeout_fallback(
     assert result.is_working is True
 
 
+@pytest.mark.asyncio
 @patch("configstream.testers.SingBoxTester._perform_request")
 async def test_singbox_tester_stop_exception(
     mock_perform_request, proxy, tester, successful_response_mock
@@ -106,6 +106,7 @@ async def test_singbox_tester_stop_exception(
     mock_sb_instance.stop.assert_called_once()
 
 
+@pytest.mark.asyncio
 @patch("configstream.testers.SingBoxTester._perform_request")
 async def test_singbox_tester_url_exception_continues(
     mock_perform_request, proxy, tester, successful_response_mock

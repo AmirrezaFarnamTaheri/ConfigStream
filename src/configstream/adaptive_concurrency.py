@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import asyncio
-import time
 from collections import defaultdict, deque
-from typing import Deque, Dict, List, Optional
-from pathlib import Path
+from typing import Deque, Dict, Optional
 
 from .metrics_emitter import MetricsEmitter, HostMetrics
 
+
 class HostWindow:
     """Tracks performance metrics for a single host over a rolling window."""
+
     __slots__ = ("latencies", "successes", "errors", "limit")
 
     def __init__(self, initial_limit: int = 2):
@@ -52,7 +52,7 @@ class HostWindow:
             "p50_latency": p50,
             "p95_latency": p95,
             "error_rate": error_rate,
-            "concurrency_limit": self.limit,
+            "concurrency_limit": int(self.limit),
         }
 
         # Reset stats for the next window
@@ -61,6 +61,7 @@ class HostWindow:
         self.errors = 0
 
         return metrics
+
 
 class AIMDController:
     """Manages adaptive concurrency for multiple hosts."""
@@ -76,7 +77,9 @@ class AIMDController:
     ):
         self._host_windows: Dict[str, HostWindow] = defaultdict(lambda: HostWindow(initial_limit))
         self._metrics_emitter = metrics_emitter
-        self._host_semaphores: Dict[str, asyncio.Semaphore] = defaultdict(lambda: asyncio.Semaphore(initial_limit))
+        self._host_semaphores: Dict[str, asyncio.Semaphore] = defaultdict(
+            lambda: asyncio.Semaphore(initial_limit)
+        )
         self._loop = loop
         self._initial_limit = initial_limit
         self._min_limit = min_limit
@@ -116,7 +119,15 @@ class AIMDController:
                 metrics = window.adjust(self._min_limit, self._max_limit)
 
                 if self._metrics_emitter and metrics:
-                    self._metrics_emitter.record(HostMetrics(host=host, **metrics))
+                    self._metrics_emitter.record(
+                        HostMetrics(
+                            host=host,
+                            p50_latency=float(metrics["p50_latency"]),
+                            p95_latency=float(metrics["p95_latency"]),
+                            error_rate=float(metrics["error_rate"]),
+                            concurrency_limit=int(metrics["concurrency_limit"]),
+                        )
+                    )
 
                 if old_limit != window.limit:
                     # To prevent deadlocks, we must drain the old semaphore
@@ -130,6 +141,6 @@ class AIMDController:
                         try:
                             old_semaphore.release()
                         except ValueError:
-                            pass # Already at max value
+                            pass  # Already at max value
 
                     self._host_semaphores[host] = new_semaphore

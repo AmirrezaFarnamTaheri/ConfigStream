@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 class TestResultCache:
     """SQLite-backed cache for proxy test results."""
 
+    __test__ = False
+
     def __init__(self, db_path: str = "data/test_cache.db", ttl_seconds: int = 3600):
         """
         Initialize the test result cache.

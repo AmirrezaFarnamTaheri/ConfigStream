@@ -25,9 +25,7 @@ class TestSecurityValidator:
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(
-            proxy, policy=TEST_POLICY
-        )
+        is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
         assert is_secure is True
         assert len(issues) == 0
@@ -43,9 +41,7 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=TEST_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
             assert is_secure is False
             assert "port_security" in issues
@@ -64,9 +60,7 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=TEST_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
             assert is_secure is False
             assert "port_security" in issues
@@ -85,16 +79,16 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=STRICT_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=STRICT_POLICY)
 
             assert is_secure is False
             assert (
                 "address_private_ip" in issues or "address_suspicious" in issues
             ), f"Expected 'address_private_ip' or 'address_suspicious' for {address}"
 
-            category = "address_private_ip" if "address_private_ip" in issues else "address_suspicious"
+            category = (
+                "address_private_ip" if "address_private_ip" in issues else "address_suspicious"
+            )
             assert any("address" in issue.lower() for issue in issues[category])
 
     def test_private_ip_ranges_rejected(self):
@@ -116,9 +110,7 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=STRICT_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=STRICT_POLICY)
 
             assert is_secure is False
             assert "address_private_ip" in issues
@@ -134,9 +126,7 @@ class TestSecurityValidator:
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(
-            proxy, policy=TEST_POLICY
-        )
+        is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
         assert is_secure is False
         assert "address_suspicious" in issues
@@ -160,9 +150,7 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=STRICT_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=STRICT_POLICY)
 
             assert is_secure is False, f"IPv6 address {ip} should be rejected"
             assert "address_private_ip" in issues
@@ -184,15 +172,11 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=STRICT_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=STRICT_POLICY)
 
             assert is_secure is False, f"Non-standard IP {ip} should be rejected"
             assert "address_suspicious" in issues
-            assert any(
-                "notation" in issue.lower() for issue in issues["address_suspicious"]
-            )
+            assert any("notation" in issue.lower() for issue in issues["address_suspicious"])
 
     def test_empty_config_string_rejected(self):
         """Test that empty config strings are rejected."""
@@ -204,9 +188,7 @@ class TestSecurityValidator:
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(
-            proxy, policy=TEST_POLICY
-        )
+        is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
         assert is_secure is False
         assert "suspicious_config_format" in issues
@@ -221,9 +203,7 @@ class TestSecurityValidator:
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(
-            proxy, policy=TEST_POLICY
-        )
+        is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
         assert is_secure is False
         assert "protocol_invalid" in issues
@@ -239,9 +219,7 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=TEST_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
             assert is_secure is True, f"Protocol {protocol} should be safe"
             assert len(issues) == 0
@@ -256,9 +234,7 @@ class TestSecurityValidator:
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(
-            proxy, policy=TEST_POLICY
-        )
+        is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
         assert is_secure is False
         assert "suspicious_config_malformed" in issues
@@ -283,9 +259,7 @@ class TestSecurityValidator:
                 uuid="test-uuid",
             )
 
-            is_secure, issues = SecurityValidator.validate_proxy_config(
-                proxy, policy=TEST_POLICY
-            )
+            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
             assert is_secure is False
             assert "suspicious_injection_attempt" in issues
@@ -302,9 +276,7 @@ class TestSecurityValidator:
             uuid="test-uuid",
         )
 
-        is_secure, issues = SecurityValidator.validate_proxy_config(
-            proxy, policy=TEST_POLICY
-        )
+        is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
 
         assert is_secure is False
         assert "suspicious_config_format" in issues
