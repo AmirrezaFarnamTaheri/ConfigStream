@@ -1,6 +1,7 @@
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import pytest
 
 from configstream.models import Proxy
@@ -10,9 +11,13 @@ pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture
-def proxy():
+def proxy(fs):
     """Provides a default Proxy object for testing."""
-    return Proxy(config="test_config", protocol="http", address="127.0.0.1", port=8080)
+    # The config needs to be a real file path for sing-box to start
+    config_path = fs.create_file("test_config.json", contents="{}")
+    return Proxy(
+        config=str(config_path), protocol="http", address="127.0.0.1", port=8080
+    )
 
 
 @pytest.fixture
@@ -21,10 +26,28 @@ def tester():
     return SingBoxTester()
 
 
+@pytest.fixture
+def successful_response_mock():
+    """Provides a MagicMock for a successful aiohttp.ClientResponse."""
+    response_mock = MagicMock(spec=aiohttp.ClientResponse)
+    response_mock.status = 200
+    response_mock.headers = {"X-Canary": "KEEP", "Location": ""}
+    # Mock methods that might be called on the response object
+    response_mock.json = AsyncMock(
+        return_value={
+            "headers": {"x-canary": "KEEP"},
+            "json": {"status": "ok", "canary": "KEEP"},
+        }
+    )
+    return response_mock
+
+
 @patch("configstream.testers.SingBoxTester._perform_request")
-async def test_singbox_tester_success(mock_perform_request, proxy, tester):
+async def test_singbox_tester_success(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test a successful proxy test."""
-    mock_perform_request.return_value = AsyncMock(status=200)
+    mock_perform_request.return_value = successful_response_mock
 
     result = await tester.test(proxy)
     assert result.is_working is True
@@ -41,38 +64,56 @@ async def test_singbox_tester_failure(mock_perform_request, proxy, tester):
 
 
 @patch("configstream.testers.SingBoxTester._perform_request")
-async def test_singbox_tester_timeout_fallback(mock_perform_request, proxy, tester):
+async def test_singbox_tester_timeout_fallback(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test that the tester correctly handles a timeout and falls back."""
     mock_perform_request.side_effect = [
         None,  # First URL fails
-        AsyncMock(status=200),  # Second URL succeeds
+        successful_response_mock,  # Second URL succeeds
     ]
 
     result = await tester.test(proxy)
     assert result.is_working is True
 
 
-@patch("configstream.testers.SingBoxProxy")
 @patch("configstream.testers.SingBoxTester._perform_request")
-async def test_singbox_tester_stop_exception(mock_perform_request, mock_sb_proxy, proxy, tester):
+async def test_singbox_tester_stop_exception(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test that exceptions during sb_proxy.stop() are handled gracefully."""
-    mock_instance = mock_sb_proxy.return_value
-    mock_instance.start = MagicMock()
-    mock_instance.stop = MagicMock(side_effect=Exception("Stop failed"))
-    mock_instance.http_proxy_url = "http://127.0.0.1:1080"
+    mock_sb_proxy_factory = MagicMock()
+    mock_sb_instance = MagicMock()
+    mock_sb_instance.http_proxy_url = "http://127.0.0.1:1080"
+    mock_sb_instance.stop.side_effect = Exception("Stop failed")
+    mock_sb_proxy_factory.return_value = mock_sb_instance
 
-    mock_perform_request.return_value = AsyncMock(status=200)
+    # Make the direct HTTP/SOCKS test fail, then the sing-box test succeed.
+    mock_perform_request.side_effect = [
+        None,  # This fails the direct test
+        successful_response_mock,  # This makes the sing-box proxied test succeed
+    ]
 
-    result = await tester.test(proxy)
+    with patch(
+        "configstream.testers.SingBoxTester._get_singbox_factory",
+        return_value=mock_sb_proxy_factory,
+    ):
+        result = await tester.test(proxy)
+
     assert result.is_working is True
+    # Verify that the factory was called and stop was called on the instance
+    mock_sb_proxy_factory.assert_called_once_with(proxy.config)
+    mock_sb_instance.stop.assert_called_once()
 
 
 @patch("configstream.testers.SingBoxTester._perform_request")
-async def test_singbox_tester_url_exception_continues(mock_perform_request, proxy, tester):
+async def test_singbox_tester_url_exception_continues(
+    mock_perform_request, proxy, tester, successful_response_mock
+):
     """Test that exceptions during URL testing continue to next URL."""
     mock_perform_request.side_effect = [
         None,
-        AsyncMock(status=200),
+        successful_response_mock,
     ]
 
     result = await tester.test(proxy)
