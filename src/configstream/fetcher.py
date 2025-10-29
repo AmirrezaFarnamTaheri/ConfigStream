@@ -31,6 +31,8 @@ from .hedged_requests import hedged_get
 from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
 from .dns_prewarm import prewarm_dns_cache
+from .metrics_emitter import MetricsEmitter
+from pathlib import Path
 
 # Configure structured logging for better debugging
 logger = logging.getLogger(__name__)
@@ -385,7 +387,11 @@ class SourceFetcher:
 
 
 async def fetch_multiple_sources(
-    sources: list[str], max_concurrent: int = 10, timeout: int = 30, per_host_limit: int = 4
+    sources: list[str],
+    max_concurrent: int = 10,
+    timeout: int = 30,
+    per_host_limit: int = 4,
+    client: httpx.AsyncClient | None = None,
 ) -> dict[str, FetchResult]:
     """
     Fetch from multiple sources concurrently with HTTP/2, ETag caching, and rate limiting.
@@ -395,6 +401,7 @@ async def fetch_multiple_sources(
         max_concurrent: Maximum concurrent requests
         timeout: Timeout per request
         per_host_limit: Maximum concurrent requests per host
+        client: Optional httpx.AsyncClient to use for requests.
 
     Returns:
         Dictionary mapping source URL to FetchResult
@@ -412,7 +419,10 @@ async def fetch_multiple_sources(
 
     # Initialize AIMD controller for adaptive concurrency
     loop = asyncio.get_running_loop()
-    controller = AIMDController(loop, initial_limit=per_host_limit)
+    metrics_emitter = MetricsEmitter(Path("metrics.jsonl"))
+    controller = AIMDController(
+        loop, initial_limit=per_host_limit, metrics_emitter=metrics_emitter
+    )
     controller.start_tuner()
 
     # Initialize Circuit Breaker Manager
@@ -425,10 +435,10 @@ async def fetch_multiple_sources(
     # Create a global semaphore to limit total concurrent requests
     global_semaphore = asyncio.Semaphore(max_concurrent)
 
-    async def fetch_with_semaphore(client, source):
+    async def fetch_with_semaphore(http_client, source):
         async with global_semaphore:
             return await fetch_from_source(
-                client,
+                http_client,
                 source,
                 timeout,
                 etag_cache=etag_cache,
@@ -437,30 +447,34 @@ async def fetch_multiple_sources(
                 breaker_manager=breaker_manager,
             )
 
+    async def _run_tasks(http_client):
+        tasks = [fetch_with_semaphore(http_client, source) for source in sources]
+        fetch_results: List[FetchResult | BaseException] = await asyncio.gather(
+            *tasks, return_exceptions=True
+        )
+        for source, result in zip(sources, fetch_results):
+            if isinstance(result, BaseException):
+                logger.error(f"Unhandled exception for {source}: {result}")
+                results[source] = FetchResult(
+                    source=source, configs=[], success=False, error=str(result)
+                )
+            else:
+                results[source] = result
+
     try:
-        # Use HTTP/2 client with connection pooling
-        async with get_client() as client:
-            tasks = [fetch_with_semaphore(client, source) for source in sources]
-
-            # Use asyncio.gather with return_exceptions to handle failures gracefully
-            fetch_results: List[FetchResult | BaseException] = await asyncio.gather(
-                *tasks, return_exceptions=True
-            )
-
-            for source, result in zip(sources, fetch_results):
-                if isinstance(result, BaseException):
-                    # Handle exceptions that escaped the try-catch
-                    logger.error(f"Unhandled exception for {source}: {result}")
-                    results[source] = FetchResult(
-                        source=source, configs=[], success=False, error=str(result)
-                    )
-                else:
-                    results[source] = result
+        if client:
+            await _run_tasks(client)
+        else:
+            async with get_client() as new_client:
+                await _run_tasks(new_client)
     finally:
         await controller.stop_tuner()
 
     # Save updated ETag cache
     save_etags(etag_cache)
+
+    # Write metrics to file
+    metrics_emitter.write_metrics()
 
     # Log summary
     successful = sum(1 for r in results.values() if r.success)
