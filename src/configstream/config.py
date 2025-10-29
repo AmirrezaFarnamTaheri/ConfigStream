@@ -76,6 +76,9 @@ class AppSettings:
     CANARY_URL = os.getenv("CANARY_URL", "https://httpbin.org")
 
     # Feature flags and knobs for performance and stability
+    DNS_CACHE_ENABLED: bool = os.getenv("DNS_CACHE_ENABLED", "True").lower() == "true"
+    CIRCUIT_BREAKER_ENABLED: bool = os.getenv("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
+    HEDGING_ENABLED: bool = os.getenv("HEDGING_ENABLED", "True").lower() == "true"
     AIMD_ENABLED: bool = os.getenv("AIMD_ENABLED", "True").lower() == "true"
     AIMD_P50_MS: int = int(os.getenv("AIMD_P50_MS", "400"))
     AIMD_P95_MS: int = int(os.getenv("AIMD_P95_MS", "1500"))
