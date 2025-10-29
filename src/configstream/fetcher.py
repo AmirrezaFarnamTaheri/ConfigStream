@@ -25,6 +25,12 @@ except ModuleNotFoundError:  # pragma: no cover
 from .http_client import get_client
 from .etag_cache import load_etags, save_etags
 from .security.rate_limiter import RateLimiter
+from .adaptive_concurrency import AIMDController
+from .constants import VALID_PROTOCOLS
+from .hedged_requests import hedged_get
+from .config import AppSettings
+from .circuit_breaker import CircuitBreakerManager
+from .dns_prewarm import prewarm_dns_cache
 
 # Configure structured logging for better debugging
 logger = logging.getLogger(__name__)
@@ -87,7 +93,8 @@ async def fetch_from_source(
     retry_delay: float = 1.0,
     etag_cache: Dict[str, Dict[str, str]] | None = None,
     rate_limiter: RateLimiter | None = None,
-    host_semaphores: Dict[str, asyncio.Semaphore] | None = None,
+    controller: AIMDController | None = None,
+    breaker_manager: CircuitBreakerManager | None = None,
 ) -> FetchResult:
     """
     Fetch proxy configurations from a source with enhanced error handling, HTTP/2, and ETag caching.
@@ -100,7 +107,7 @@ async def fetch_from_source(
         retry_delay: Initial delay between retries (exponential backoff)
         etag_cache: Optional ETag cache dict for conditional GETs
         rate_limiter: Optional per-host rate limiter
-        host_semaphores: Optional per-host concurrency semaphores
+        controller: Optional adaptive concurrency controller.
 
     Returns:
         FetchResult object containing configs and metadata
@@ -125,7 +132,15 @@ async def fetch_from_source(
             await asyncio.sleep(wait_time)
 
     # Apply per-host concurrency limit
-    semaphore = host_semaphores.get(host) if host_semaphores else None
+    semaphore = controller.get_semaphore(host) if controller else None
+
+    # Check circuit breaker state
+    app_settings = AppSettings()
+    if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
+        breaker = breaker_manager.get_breaker(host)
+        if breaker.is_open:
+            logger.warning(f"Circuit breaker is open for {host}. Skipping request.")
+            return FetchResult(source, [], False, error="Circuit breaker open")
 
     # Build headers with optional ETag validators
     headers = {
@@ -163,38 +178,46 @@ async def fetch_from_source(
         nonlocal last_error, backoff
 
         for attempt in range(max_retries):
+            start_time = asyncio.get_event_loop().time()
+            success = False
+            response_time = timeout  # Default to timeout if exception occurs before assignment
             try:
-                # Start timing the request
-                start_time = asyncio.get_event_loop().time()
-
                 logger.debug(f"Attempt {attempt + 1}/{max_retries} for {source} (host: {host})")
 
-                if is_aiohttp_client:
-                    async with client.get(source, headers=headers, timeout=timeout) as aio_response:
-                        response_time = asyncio.get_event_loop().time() - start_time
-                        status_code = aio_response.status
-                        response_headers = aio_response.headers
-                        http_version = f"{aio_response.version.major}.{aio_response.version.minor}"
-                        text = await aio_response.text()
+                app_settings = AppSettings()
+                if app_settings.HEDGING_ENABLED and not is_aiohttp_client:
+                    _, response = await hedged_get(
+                        client,
+                        source,
+                        timeout=timeout,
+                        hedge_after=app_settings.HEDGE_AFTER_MS / 1000.0,
+                    )
+                    if not response:
+                        raise httpx.RequestError("Hedged request failed")
+                elif is_aiohttp_client:
+                    aio_response = await client.get(source, headers=headers, timeout=timeout)
+                    response = aio_response
                 else:
                     response = await client.get(
-                        source,
-                        headers=headers,
-                        timeout=timeout,
-                        follow_redirects=True,
+                        source, headers=headers, timeout=timeout, follow_redirects=True
                     )
 
-                    response_time = asyncio.get_event_loop().time() - start_time
+                response_time = asyncio.get_event_loop().time() - start_time
+
+                if is_aiohttp_client:
+                    status_code = response.status
+                    response_headers = response.headers
+                    http_version = f"{response.version.major}.{response.version.minor}"
+                    text = await response.text()
+                else:
                     status_code = response.status_code
                     response_headers = response.headers
                     http_version = getattr(response, "http_version", "1.1")
                     text = response.text
 
-                # Handle 304 Not Modified - cache hit!
                 if status_code == 304:
-                    logger.info(
-                        f"Cache hit (304 Not Modified) for {source} in {response_time:.2f}s"
-                    )
+                    logger.info(f"Cache hit (304 Not Modified) for {source} in {response_time:.2f}s")
+                    success = True
                     return FetchResult(
                         source=source,
                         configs=[],
@@ -204,21 +227,16 @@ async def fetch_from_source(
                         error="not-modified",
                     )
 
-                # Check for rate limiting
                 if status_code == 429:
                     retry_after_header = _get_header(response_headers, "Retry-After")
                     retry_after_seconds = _parse_retry_after_header(retry_after_header)
                     raise RateLimitError(retry_after_seconds)
 
-                # Check for server errors (5xx)
                 if 500 <= status_code < 600:
                     raise FetcherError(f"Server error: {status_code}")
-
-                # Raise for bad status codes
                 if status_code >= 400:
                     raise FetcherError(f"HTTP error: {status_code}")
 
-                # Update ETag cache with new validators
                 if etag_cache is not None:
                     etag_cache[source] = {}
                     etag_value = _get_header(response_headers, "ETag")
@@ -228,50 +246,24 @@ async def fetch_from_source(
                     if last_modified:
                         etag_cache[source]["last_modified"] = last_modified
 
-                # Check content type
                 content_type = (_get_header(response_headers, "Content-Type") or "").lower()
                 if "html" in content_type and "text/plain" not in content_type:
                     logger.warning(f"Unexpected content type for {source}: {content_type}")
 
-                # Parse configurations
                 configs = []
                 for line in text.splitlines():
                     line = line.strip()
-
-                    # Skip empty lines and comments
                     if not line or line.startswith("#"):
                         continue
-
-                    # Basic validation for proxy configs
-                    if any(
-                        line.startswith(prefix)
-                        for prefix in [
-                            "vmess://",
-                            "vless://",
-                            "ss://",
-                            "trojan://",
-                            "hysteria://",
-                            "hysteria2://",
-                            "tuic://",
-                            "wireguard://",
-                            "naive://",
-                            "http://",
-                            "https://",
-                            "socks://",
-                            "socks5://",
-                            "socks4://",
-                        ]
-                    ):
+                    if any(line.startswith(f"{proto}://") for proto in VALID_PROTOCOLS):
                         configs.append(line)
                     else:
                         logger.debug(f"Skipping invalid config line: {line[:50]}...")
-
-                # Log success
                 logger.info(
                     f"Successfully fetched {len(configs)} configs from {source} "
                     f"(HTTP/{http_version}, Status: {status_code}, Time: {response_time:.2f}s)"
                 )
-
+                success = True
                 return FetchResult(
                     source=source,
                     configs=configs,
@@ -286,41 +278,19 @@ async def fetch_from_source(
                 last_error = str(e)
                 logger.warning(
                     "Rate limit hit for %s (host: %s); retrying in %.1fs (attempt %d/%d)",
-                    source,
-                    host,
-                    delay + jitter,
-                    attempt + 1,
-                    max_retries,
+                    source, host, delay + jitter, attempt + 1, max_retries
                 )
                 await asyncio.sleep(delay + jitter)
                 backoff = min(backoff * 2, 60)
-
-            except asyncio.TimeoutError:
+            except (asyncio.TimeoutError, httpx.TimeoutException):
                 last_error = f"Timeout after {timeout} seconds"
-                logger.warning(
-                    "Timeout fetching %s (attempt %d/%d)",
-                    source,
-                    attempt + 1,
-                    max_retries,
-                )
-
-            except httpx.TimeoutException:
-                last_error = f"Timeout after {timeout} seconds"
-                logger.warning(
-                    "Timeout fetching %s (attempt %d/%d)",
-                    source,
-                    attempt + 1,
-                    max_retries,
-                )
-
+                logger.warning("Timeout fetching %s (attempt %d/%d)", source, attempt + 1, max_retries)
             except FetcherError as e:
                 last_error = str(e)
                 logger.warning(f"HTTP error fetching {source}: {e}")
-
             except httpx.HTTPError as e:
                 last_error = f"HTTP error: {e}"
                 logger.warning(f"HTTP error fetching {source}: {e}")
-
             except Exception as e:
                 if aiohttp is not None and isinstance(e, aiohttp.ClientError):
                     last_error = f"HTTP error: {e}"
@@ -328,16 +298,21 @@ async def fetch_from_source(
                 else:
                     last_error = f"Unexpected error: {e}"
                     logger.error(f"Unexpected error fetching {source}: {e}", exc_info=True)
+            finally:
+                if controller:
+                    final_response_time = asyncio.get_event_loop().time() - start_time
+                    controller.record(host, final_response_time, success)
+                if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
+                    breaker = breaker_manager.get_breaker(host)
+                    if success:
+                        breaker.record_success()
+                    else:
+                        breaker.record_failure()
 
-            # If not the last attempt, wait before retrying
             if attempt < max_retries - 1:
                 delay = min(backoff, 30)
                 jitter = random.uniform(0, 0.3)
-                logger.debug(
-                    "Waiting %.1fs before retrying %s",
-                    delay + jitter,
-                    source,
-                )
+                logger.debug("Waiting %.1fs before retrying %s", delay + jitter, source)
                 await asyncio.sleep(delay + jitter)
                 backoff = min(backoff * 2, 60)
 
@@ -350,14 +325,10 @@ async def fetch_from_source(
     # Run fetch with optional per-host semaphore
     # Use try/finally to ensure semaphore is released even on error
     if semaphore:
-        try:
-            async with semaphore:
-                return await _fetch_with_semaphore()  # type: ignore[no-any-return]
-        except Exception:
-            # Ensure semaphore release on all exceptions
-            raise
+        async with semaphore:
+            return await _fetch_with_semaphore()
     else:
-        return await _fetch_with_semaphore()  # type: ignore[no-any-return]
+        return await _fetch_with_semaphore()
 
 
 def _parse_retry_after_header(header_value: str | None) -> float | None:
@@ -430,15 +401,25 @@ async def fetch_multiple_sources(
     """
     results: Dict[str, FetchResult] = {}
 
+    # Pre-warm DNS cache for top hosts
+    await prewarm_dns_cache(sources)
+
     # Load ETag cache
     etag_cache = load_etags()
 
     # Create per-host rate limiter (2 requests/second per host by default)
     rate_limiter = RateLimiter(requests_per_second=50.0)
 
-    # Create per-host semaphores for concurrency limiting
-    host_semaphores: Dict[str, asyncio.Semaphore] = defaultdict(
-        lambda: asyncio.Semaphore(per_host_limit)
+    # Initialize AIMD controller for adaptive concurrency
+    loop = asyncio.get_running_loop()
+    controller = AIMDController(loop, initial_limit=per_host_limit)
+    controller.start_tuner()
+
+    # Initialize Circuit Breaker Manager
+    app_settings = AppSettings()
+    breaker_manager = CircuitBreakerManager(
+        failure_threshold=app_settings.CIRCUIT_TRIP_CONN_ERRORS,
+        recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,
     )
 
     # Create a global semaphore to limit total concurrent requests
@@ -452,27 +433,31 @@ async def fetch_multiple_sources(
                 timeout,
                 etag_cache=etag_cache,
                 rate_limiter=rate_limiter,
-                host_semaphores=host_semaphores,
+                controller=controller,
+                breaker_manager=breaker_manager,
             )
 
-    # Use HTTP/2 client with connection pooling
-    async with get_client() as client:
-        tasks = [fetch_with_semaphore(client, source) for source in sources]
+    try:
+        # Use HTTP/2 client with connection pooling
+        async with get_client() as client:
+            tasks = [fetch_with_semaphore(client, source) for source in sources]
 
-        # Use asyncio.gather with return_exceptions to handle failures gracefully
-        fetch_results: List[FetchResult | BaseException] = await asyncio.gather(
-            *tasks, return_exceptions=True
-        )
+            # Use asyncio.gather with return_exceptions to handle failures gracefully
+            fetch_results: List[FetchResult | BaseException] = await asyncio.gather(
+                *tasks, return_exceptions=True
+            )
 
-        for source, result in zip(sources, fetch_results):
-            if isinstance(result, BaseException):
-                # Handle exceptions that escaped the try-catch
-                logger.error(f"Unhandled exception for {source}: {result}")
-                results[source] = FetchResult(
-                    source=source, configs=[], success=False, error=str(result)
-                )
-            else:
-                results[source] = result
+            for source, result in zip(sources, fetch_results):
+                if isinstance(result, BaseException):
+                    # Handle exceptions that escaped the try-catch
+                    logger.error(f"Unhandled exception for {source}: {result}")
+                    results[source] = FetchResult(
+                        source=source, configs=[], success=False, error=str(result)
+                    )
+                else:
+                    results[source] = result
+    finally:
+        await controller.stop_tuner()
 
     # Save updated ETag cache
     save_etags(etag_cache)
