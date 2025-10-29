@@ -18,6 +18,11 @@ SUSPICIOUS_DOMAINS = ["localhost", "127.0.0.1", "0.0.0.0", "169.254.", "192.168.
 MIN_SAFE_PORT = 1024
 MAX_PORT = 65535
 
+# URL for a known, trusted endpoint to test proxy integrity (header/body tampering).
+# This should be a service you control or a highly reliable public one like httpbin.
+CANARY_URL = "https://httpbin.org/"
+
+
 # Protocols
 VALID_PROTOCOLS = [
     "vmess",

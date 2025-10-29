@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import httpx
 
 try:  # pragma: no cover - dependency availability guard
     import aiohttp
@@ -127,77 +128,40 @@ def fs(tmp_path, monkeypatch):
 
 
 @pytest.fixture
-def aiohttp_client():
-    """Minimal implementation of pytest-aiohttp's aiohttp_client fixture."""
+async def http_server_factory():
+    """Factory for creating aiohttp servers."""
+    if aiohttp is None or web is None:
+        pytest.skip("aiohttp is required for http_server_factory fixture")
 
-    if aiohttp is None or web is None or URL is None:  # pragma: no cover - dependency guard
-        pytest.skip("aiohttp is required for aiohttp_client fixture")
+    runners = []
 
-    clients: list[SimpleNamespace] = []
+    async def create_server(app):
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, "127.0.0.1", 0)
+        await site.start()
 
-    async def create_client(app: web.Application) -> SimpleNamespace:
-        server_loop = asyncio.new_event_loop()
-        thread = threading.Thread(target=server_loop.run_forever, daemon=True)
-        thread.start()
+        # Get the actual port from the running server's site info
+        site = list(runner.sites)[0]
+        port = site._server.sockets[0].getsockname()[1]
+        server_url = f"http://127.0.0.1:{port}"
+        runners.append(runner)
+        return server_url
 
-        async def start_server() -> tuple[web.AppRunner, web.TCPSite, str, int]:
-            runner = web.AppRunner(app)
-            await runner.setup()
-            site = web.TCPSite(runner, "127.0.0.1", 0)
-            await site.start()
-            server = site._server  # pragma: no cover - mirrors pytest-aiohttp internals
-            if server is None or not server.sockets:
-                raise RuntimeError("aiohttp test server failed to start")
-            sock = server.sockets[0]
-            host, port = sock.getsockname()[:2]
-            return runner, site, host, port
+    yield create_server
 
-        runner, site, host, port = asyncio.run_coroutine_threadsafe(
-            start_server(), server_loop
-        ).result()
+    for runner in runners:
+        await runner.cleanup()
 
-        base_url = f"http://{host}:{port}"
-        session = aiohttp.ClientSession()
+@pytest.fixture
+async def http_client_factory(http_server_factory):
+    """Factory for creating HTTPX clients."""
 
-        def make_url(path: str = "/"):
-            path = path or "/"
-            if not path.startswith("/"):
-                path = "/" + path
-            return URL(base_url + path)
-
-        client = SimpleNamespace(
-            runner=runner,
-            site=site,
-            session=session,
-            server=SimpleNamespace(make_url=make_url),
-            loop=server_loop,
-            thread=thread,
-        )
-        clients.append(client)
-        return client
+    async def create_client(app):
+        base_url = await http_server_factory(app)
+        return httpx.AsyncClient(base_url=base_url)
 
     yield create_client
-
-    if clients:
-
-        async def close_session(session: aiohttp.ClientSession) -> None:
-            if not session.closed:
-                await session.close()
-
-        for client in clients:
-            # Close client session using a dedicated loop
-            temp_loop = asyncio.new_event_loop()
-            try:
-                temp_loop.run_until_complete(close_session(client.session))
-            finally:
-                temp_loop.close()
-
-            # Shut down the aiohttp server running on its own loop
-            asyncio.run_coroutine_threadsafe(client.site.stop(), client.loop).result()
-            asyncio.run_coroutine_threadsafe(client.runner.cleanup(), client.loop).result()
-            client.loop.call_soon_threadsafe(client.loop.stop)
-            client.thread.join()
-            client.loop.close()
 
 
 @pytest.fixture

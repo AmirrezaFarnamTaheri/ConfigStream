@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -72,3 +73,21 @@ class AppSettings:
     # Logging
     MASK_SENSITIVE_DATA = True
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+    CANARY_URL = os.getenv("CANARY_URL", "https://httpbin.org")
+
+    # Feature flags and knobs for performance and stability
+    DNS_CACHE_ENABLED: bool = os.getenv("DNS_CACHE_ENABLED", "True").lower() == "true"
+    CIRCUIT_BREAKER_ENABLED: bool = os.getenv("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
+    HEDGING_ENABLED: bool = os.getenv("HEDGING_ENABLED", "True").lower() == "true"
+    AIMD_ENABLED: bool = os.getenv("AIMD_ENABLED", "True").lower() == "true"
+    AIMD_P50_MS: int = int(os.getenv("AIMD_P50_MS", "400"))
+    AIMD_P95_MS: int = int(os.getenv("AIMD_P95_MS", "1500"))
+    PER_HOST_MAX_CONCURRENCY: int = int(os.getenv("PER_HOST_MAX_CONCURRENCY", "32"))
+    HEDGE_AFTER_MS: Optional[int] = int(os.getenv("HEDGE_AFTER_MS", "800"))
+    HEDGE_MAX_EXTRA: int = int(os.getenv("HEDGE_MAX_EXTRA", "1"))
+    CIRCUIT_TRIP_CONN_ERRORS: int = int(os.getenv("CIRCUIT_TRIP_CONN_ERRORS", "5"))
+    CIRCUIT_TRIP_5XX_RATE: float = float(os.getenv("CIRCUIT_TRIP_5XX_RATE", "0.2"))
+    CIRCUIT_OPEN_SEC: int = int(os.getenv("CIRCUIT_OPEN_SEC", "120"))
+    QUEUE_MAX_TRIES: int = int(os.getenv("QUEUE_MAX_TRIES", "5"))
+    TLS_TESTS_ALLOW_INSECURE: bool = os.getenv("TLS_TESTS_ALLOW_INSECURE", "False").lower() == "true"
+    TLS_TESTS_ENABLED: bool = os.getenv("TLS_TESTS_ENABLED", "True").lower() == "true"

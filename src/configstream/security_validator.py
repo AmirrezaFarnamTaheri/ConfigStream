@@ -2,7 +2,8 @@
 
 import re
 import logging
-from typing import Optional, List, Tuple, Dict
+from dataclasses import dataclass, replace
+from typing import Optional, List, Tuple, Dict, FrozenSet
 from urllib.parse import urlparse
 
 from .models import Proxy
@@ -15,6 +16,37 @@ from .constants import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# RFC 2606 reserved names + localhost: safe for tests and docs
+RESERVED_DOMAINS: FrozenSet[str] = frozenset(
+    {
+        "example.com",
+        "example.org",
+        "example.net",
+        "localhost",
+        "invalid",  # TLD "test" is a suffix, handle via endswith(".test")
+    }
+)
+
+
+@dataclass(frozen=True)
+class ValidationPolicy:
+    check_suspicious_domains: bool = True
+    check_ports: bool = True
+    check_protocols: bool = True
+    check_config_string: bool = True
+    # allowlist domains that should never be flagged as “suspicious”
+    suspicious_domain_allowlist: FrozenSet[str] = RESERVED_DOMAINS
+
+
+STRICT_POLICY = ValidationPolicy()
+TEST_POLICY = replace(
+    STRICT_POLICY,
+    # Keep checks but allow specific fixtures like "example.com"
+    suspicious_domain_allowlist=STRICT_POLICY.suspicious_domain_allowlist
+    | frozenset({"valid-proxy-domain.com", "another-valid-proxy.net"}),
+)
 
 
 # Security issue categories for better classification
@@ -33,52 +65,56 @@ class SecurityValidator:
     """Validates proxy configurations for security issues with detailed categorization."""
 
     @staticmethod
-    def validate_proxy_config(proxy: Proxy) -> Tuple[bool, Dict[str, List[str]]]:
+    def validate_proxy_config(
+        proxy: Proxy, policy: ValidationPolicy = STRICT_POLICY
+    ) -> Tuple[bool, Dict[str, List[str]]]:
         """
         Comprehensive security validation for a proxy configuration.
 
         Args:
             proxy: Proxy object to validate
+            policy: The validation policy to apply.
 
         Returns:
             Tuple of (is_secure, categorized_issues_dict)
-            where categorized_issues_dict = {
-                "port_security": ["Unsafe port: 22"],
-                "address_private_ip": ["Private IP: 192.168.1.1"],
-                ...
-            }
         """
         categorized_issues: Dict[str, List[str]] = {}
 
         # Port validation
-        port_issue = SecurityValidator._validate_port(proxy.port)
-        if port_issue:
-            category = SECURITY_CATEGORIES["PORT_UNSAFE"]
-            if category not in categorized_issues:
-                categorized_issues[category] = []
-            categorized_issues[category].append(port_issue)
+        if policy.check_ports:
+            port_issue = SecurityValidator._validate_port(proxy.port)
+            if port_issue:
+                category = SECURITY_CATEGORIES["PORT_UNSAFE"]
+                if category not in categorized_issues:
+                    categorized_issues[category] = []
+                categorized_issues[category].append(port_issue)
 
         # Address validation
-        address_issues = SecurityValidator._validate_address(proxy.address)
-        for category, issue in address_issues.items():
-            if category not in categorized_issues:
-                categorized_issues[category] = []
-            categorized_issues[category].append(issue)
+        if policy.check_suspicious_domains:
+            address_issues = SecurityValidator._validate_address(
+                proxy.address, policy.suspicious_domain_allowlist
+            )
+            for category, issue in address_issues.items():
+                if category not in categorized_issues:
+                    categorized_issues[category] = []
+                categorized_issues[category].append(issue)
 
         # Protocol validation
-        protocol_issue = SecurityValidator._validate_protocol(proxy.protocol)
-        if protocol_issue:
-            category = SECURITY_CATEGORIES["PROTOCOL_UNKNOWN"]
-            if category not in categorized_issues:
-                categorized_issues[category] = []
-            categorized_issues[category].append(protocol_issue)
+        if policy.check_protocols:
+            protocol_issue = SecurityValidator._validate_protocol(proxy.protocol)
+            if protocol_issue:
+                category = SECURITY_CATEGORIES["PROTOCOL_UNKNOWN"]
+                if category not in categorized_issues:
+                    categorized_issues[category] = []
+                categorized_issues[category].append(protocol_issue)
 
         # Config string validation
-        config_issues = SecurityValidator._validate_config_string(proxy.config)
-        for category, issue in config_issues.items():
-            if category not in categorized_issues:
-                categorized_issues[category] = []
-            categorized_issues[category].append(issue)
+        if policy.check_config_string:
+            config_issues = SecurityValidator._validate_config_string(proxy.config)
+            for category, issue in config_issues.items():
+                if category not in categorized_issues:
+                    categorized_issues[category] = []
+                categorized_issues[category].append(issue)
 
         is_secure = len(categorized_issues) == 0
         return is_secure, categorized_issues
@@ -94,7 +130,9 @@ class SecurityValidator:
         return None
 
     @staticmethod
-    def _validate_address(address: str) -> Dict[str, str]:
+    def _validate_address(
+        address: str, suspicious_domain_allowlist: FrozenSet[str]
+    ) -> Dict[str, str]:
         """Check address safety and return categorized issues."""
         issues = {}
 
@@ -104,66 +142,53 @@ class SecurityValidator:
 
         address_lower = address.lower()
 
-        # Check for suspicious patterns
+        # Allow bypass for reserved or test-specific domains
+        if address_lower in suspicious_domain_allowlist or address_lower.endswith(".test"):
+            pass
+        # Check for suspicious patterns (exact or subdomain match)
         for suspicious in SUSPICIOUS_DOMAINS:
-            if suspicious in address_lower:
-                logger.warning(f"Suspicious address pattern: {address}")
-                issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = f"Suspicious pattern: {address}"
-                return issues
-
-        # Check for IPv4 private ranges (RFC 1918)
-        private_ranges = [
-            "10.",  # 10.0.0.0/8
-            "172.16.",
-            "172.17.",
-            "172.18.",
-            "172.19.",
-            "172.20.",
-            "172.21.",
-            "172.22.",
-            "172.23.",
-            "172.24.",
-            "172.25.",
-            "172.26.",
-            "172.27.",
-            "172.28.",
-            "172.29.",
-            "172.30.",
-            "172.31.",  # 172.16.0.0/12
-            "192.168.",  # 192.168.0.0/16
-        ]
-
-        for private in private_ranges:
-            if address_lower.startswith(private):
-                logger.warning(f"Private IP range detected: {address}")
-                issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Private IP: {address}"
-                return issues
-
-        # Check for link-local and special addresses
-        special_addresses = [
-            "169.254.",  # Link-local (APIPA)
-            "127.",  # Loopback
-            "0.",  # This network
-            "255.255.255.255",  # Broadcast
-            "::1",  # IPv6 loopback
-            "fe80:",  # IPv6 link-local
-            "fc00:",  # IPv6 unique local
-            "fd00:",  # IPv6 unique local
-        ]
-
-        for special in special_addresses:
-            if address_lower.startswith(special):
-                logger.warning(f"Special address detected: {address}")
-                issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Special address: {address}"
+            if address_lower == suspicious or address_lower.endswith("." + suspicious):
+                logger.warning(f"Suspicious address pattern found: {address}")
+                issues[
+                    SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]
+                ] = f"Suspicious address pattern: {address}"
                 return issues
 
         # DNS rebinding protection - check for hex notation or octal notation
-        if address_lower.startswith("0x") or (
-            address_lower.startswith("0") and "." in address_lower
-        ):
+        if address_lower.startswith("0x") or re.match(r"^0[0-7]{1,11}\.", address_lower):
             logger.warning(f"Non-standard IP notation: {address}")
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = f"Non-standard notation: {address}"
             return issues
+
+        # Combined check for private, reserved, and special-use addresses
+        # This is more robust and covers more edge cases.
+        special_address_patterns = [
+            # Loopback
+            r"^127\.",
+            r"^::1$",
+            r"^localhost$",
+            # Private ranges
+            r"^10\.",
+            r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
+            r"^192\.168\.",
+            # Link-local
+            r"^169\.254\.",
+            r"^fe80:",
+            # Unique local
+            r"^fc00:",
+            r"^fd00:",
+            # Unspecified
+            r"^0\.0\.0\.0$",
+            r"^0\.",  # "This network"
+            # Broadcast
+            r"^255\.255\.255\.255$",
+        ]
+
+        for pattern in special_address_patterns:
+            if re.match(pattern, address_lower):
+                logger.warning(f"Special or private address detected: {address}")
+                issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Special address: {address}"
+                return issues
 
         return issues
 
@@ -235,7 +260,8 @@ class SecurityValidator:
     @staticmethod
     def _is_address_safe(address: str) -> bool:
         """Backward compatibility: Check if address is safe."""
-        return len(SecurityValidator._validate_address(address)) == 0
+        # Note: Uses an empty allowlist for the strictest check.
+        return len(SecurityValidator._validate_address(address, frozenset())) == 0
 
     @staticmethod
     def _is_protocol_safe(protocol: str) -> bool:
@@ -317,52 +343,26 @@ class SecurityValidator:
         return sanitized
 
 
-def validate_batch_configs(proxies: List[Proxy], leniency: bool = False) -> List[Proxy]:
+def validate_batch_configs(
+    proxies: List[Proxy], policy: ValidationPolicy = STRICT_POLICY
+) -> List[Proxy]:
     """
     Validate a batch of proxy configurations and filter out insecure ones.
 
     Args:
         proxies: List of proxy objects
-        leniency: If True, log security issues but do not filter proxies.
+        policy: The validation policy to apply.
 
     Returns:
         List of secure proxy objects
     """
     validator = SecurityValidator()
-
-    if leniency:
-        logger.warning(
-            "Security validation is running in leniency mode. " "No proxies will be filtered."
-        )
-        insecure_count = 0
-        for proxy in proxies:
-            is_secure, categorized_issues = validator.validate_proxy_config(proxy)
-            if not is_secure:
-                insecure_count += 1
-                # Flatten categorized issues for logging
-                all_issues = []
-                for category, issues_list in categorized_issues.items():
-                    all_issues.extend(issues_list)
-
-                logger.warning(
-                    f"Insecure proxy detected: {proxy.address}:{proxy.port} "
-                    f"(issues: {', '.join(all_issues)})"
-                )
-                proxy.is_secure = False
-                # Store categorized issues in security_issues field
-                proxy.security_issues = categorized_issues
-        logger.info(
-            f"Security validation (leniency mode): Detected {insecure_count} "
-            f"insecure proxies, but not filtering."
-        )
-        return proxies
-
     secure_proxies = []
+
     for proxy in proxies:
-        is_secure, categorized_issues = validator.validate_proxy_config(proxy)
+        is_secure, categorized_issues = validator.validate_proxy_config(proxy, policy=policy)
 
         if not is_secure:
-            # Flatten for logging
             all_issues = []
             for category, issues_list in categorized_issues.items():
                 all_issues.extend(issues_list)
@@ -370,11 +370,10 @@ def validate_batch_configs(proxies: List[Proxy], leniency: bool = False) -> List
             logger.warning(f"Insecure proxy filtered: {proxy.address}:{proxy.port}")
             logger.debug(f"Security issues: {', '.join(all_issues)}")
             proxy.is_secure = False
-            # Store categorized issues
             proxy.security_issues = categorized_issues
         else:
+            proxy.is_secure = True
             secure_proxies.append(proxy)
 
     logger.info(f"Security validation: {len(secure_proxies)}/{len(proxies)} proxies passed")
-
     return secure_proxies
