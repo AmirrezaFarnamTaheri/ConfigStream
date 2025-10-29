@@ -149,9 +149,9 @@ class SecurityValidator:
         for suspicious in SUSPICIOUS_DOMAINS:
             if address_lower == suspicious or address_lower.endswith("." + suspicious):
                 logger.warning(f"Suspicious address pattern found: {address}")
-                issues[
-                    SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]
-                ] = f"Suspicious address pattern: {address}"
+                issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
+                    f"Suspicious address pattern: {address}"
+                )
                 return issues
 
         # DNS rebinding protection - check for hex notation or octal notation

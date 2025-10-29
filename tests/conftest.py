@@ -153,6 +153,7 @@ async def http_server_factory():
     for runner in runners:
         await runner.cleanup()
 
+
 @pytest.fixture
 async def http_client_factory(http_server_factory):
     """Factory for creating HTTPX clients."""

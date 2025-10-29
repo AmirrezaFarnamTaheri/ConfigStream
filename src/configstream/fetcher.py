@@ -193,6 +193,7 @@ async def fetch_from_source(
                         source,
                         timeout=timeout,
                         hedge_after=app_settings.HEDGE_AFTER_MS / 1000.0,
+                        headers=headers,
                     )
                     if not response:
                         raise httpx.RequestError("Hedged request failed")

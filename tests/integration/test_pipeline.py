@@ -374,7 +374,15 @@ async def test_run_full_pipeline_all_proxies_filtered_by_security(
 async def test_run_full_pipeline_multiple_batches(mocker, tmp_path, caplog, no_pool_shutdown):
     # Create more proxies than the batch size (1000)
     num_proxies = 1010
-    proxies = [Proxy(config=create_valid_vmess_config(f"p{i}"), protocol="vmess", address=f"{i}.com", port=443) for i in range(num_proxies)]
+    proxies = [
+        Proxy(
+            config=create_valid_vmess_config(f"p{i}"),
+            protocol="vmess",
+            address=f"{i}.com",
+            port=443,
+        )
+        for i in range(num_proxies)
+    ]
     proxy_configs = [p.config for p in proxies]
     mocker.patch(
         "configstream.pipeline._process_sources",
