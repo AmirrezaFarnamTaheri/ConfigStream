@@ -174,19 +174,23 @@ def test_models_all_properties():
 
 def test_security_validator_levels():
     """Test security validator with different levels."""
-    from configstream.security_validator import validate_batch_configs
+    from configstream.security_validator import (
+        validate_batch_configs,
+        STRICT_POLICY,
+        TEST_POLICY,
+    )
 
     proxies = [
         Proxy(config="test1", protocol="vmess", address="1.1.1.1", port=443, is_secure=True),
         Proxy(config="test2", protocol="trojan", address="2.2.2.2", port=443, is_secure=False),
     ]
 
-    # Test normal leniency
-    result = validate_batch_configs(proxies, leniency="normal")
+    # Test with strict policy
+    result = validate_batch_configs(proxies, policy=STRICT_POLICY)
     assert isinstance(result, list)
 
-    # Test lenient
-    result = validate_batch_configs(proxies, leniency="lenient")
+    # Test with test policy
+    result = validate_batch_configs(proxies, policy=TEST_POLICY)
     assert isinstance(result, list)
 
 

@@ -1,16 +1,18 @@
 import asyncio
 import importlib
+import json
 import logging
+import ssl
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, cast
+from urllib.parse import urljoin
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
 
 from .config import AppSettings
+from .constants import CANARY_URL, TEST_URLS
 from .models import Proxy
-from .constants import TEST_URLS
-from singbox2proxy import SingBoxProxy
 
 if TYPE_CHECKING:
     from singbox2proxy import SingBoxProxy as _SingBoxProxy
@@ -18,18 +20,21 @@ if TYPE_CHECKING:
 
     SingBoxProxyType = _SingBoxProxy
 else:
-    SingBoxProxyType = Any  # pragma: no cover
+    SingBoxProxyType = Any
 
-
-SingBoxProxy: Callable[[str], Any] | None = None  # type: ignore[assignment,no-redef]  # noqa: F811
-
+SingBoxProxy: Callable[[str], Any] | None = None
 logger = logging.getLogger(__name__)
 
 
-class ProxyTester:
-    """Abstract base class for proxy testers."""
+def _strict_ssl_context() -> ssl.SSLContext:
+    """Create a strict SSL context for TLS validation."""
+    ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+    ctx.check_hostname = True
+    ctx.verify_mode = ssl.CERT_REQUIRED
+    return ctx
 
-    # Keep a class-level reference to the sing-box binary path to avoid repeated lookups
+
+class ProxyTester:
     _singbox_path: ClassVar[str | None] = None
 
     def __init__(
@@ -51,239 +56,161 @@ class ProxyTester:
 
 
 class SingBoxTester(ProxyTester):
-    """Proxy tester using sing-box with optional caching and direct testing for HTTP/SOCKS5."""
+
+    async def _perform_request(self, session, method, url, **kwargs):
+        """A simple wrapper to perform a request and handle exceptions."""
+        try:
+            async with session.request(method, url, **kwargs) as response:
+                return response
+        except Exception:
+            return None
+
+    async def _https_probe(self, session, url, **kwargs):
+        """Perform a request with specific SSL context handling for TLS checks."""
+        ssl_ctx = None if self.config.TLS_TESTS_ALLOW_INSECURE else _strict_ssl_context()
+        try:
+            async with session.get(url, ssl=ssl_ctx, **kwargs) as r:
+                return True, r
+        except ssl.SSLCertVerificationError as e:
+            issue = "TLS_HOST_MISMATCH" if "hostname" in str(e).lower() else "TLS_CERT_INVALID"
+            return False, issue
+        except ssl.SSLError:
+            return False, "TLS_CERT_INVALID"
+        except Exception:
+            return False, "CONNECTION_FAILED"
+
+    async def _run_integrity_checks(self, proxy: Proxy, connector: ProxyConnector) -> None:
+        """Run a series of runtime security checks against a known endpoint."""
+        canary_headers = {"X-Canary": "KEEP", "Accept": "application/json"}
+        expected_body = {"status": "ok", "canary": "KEEP"}
+
+        async with aiohttp.ClientSession(connector=connector) as session:
+            # 1. Test Header and Body Integrity
+            resp = await self._perform_request(
+                session, "GET", urljoin(CANARY_URL, "/echo"), headers=canary_headers, timeout=5
+            )
+            if resp and resp.status == 200:
+                if resp.headers.get("X-Canary") != "KEEP":
+                    proxy.security_issues.setdefault("header_tamper", []).append("HEADER_STRIP")
+                body = await resp.json()
+                if body.get("headers", {}).get("x-canary") != "KEEP":
+                    proxy.security_issues.setdefault("header_tamper", []).append("HEADER_STRIP")
+                if body.get("json") != expected_body:
+                    proxy.security_issues.setdefault("body_tamper", []).append("BODY_TAMPER")
+
+            # 2. Test Redirect Downgrade
+            resp = await self._perform_request(
+                session, "GET", urljoin(CANARY_URL, "/redirect-to-http"), allow_redirects=False, timeout=5
+            )
+            if resp and resp.status == 302 and "http://" in resp.headers.get("Location", ""):
+                proxy.security_issues.setdefault("redirect", []).append("REDIRECT_DOWNGRADE")
+
+            # 3. TLS Checks (if enabled)
+            if self.config.TLS_TESTS_ENABLED:
+                urls_to_probe = {
+                    "https://wrong.host.badssl.com/": "TLS_HOST_MISMATCH",
+                    "https://self-signed.badssl.com/": "TLS_CERT_INVALID",
+                }
+                for url, expected_issue in urls_to_probe.items():
+                    success, result = await self._https_probe(session, url, timeout=5)
+                    if not success and result == expected_issue:
+                        # This is the expected failure, so the proxy is correctly handling TLS
+                        pass
+                    elif success:
+                        # If the request succeeds, it means the proxy is insecurely ignoring TLS errors
+                        proxy.security_issues.setdefault("tls", []).append(f"INSECURE_{expected_issue}")
+                    else:
+                        # A different error occurred
+                        proxy.security_issues.setdefault("tls", []).append(f"PROBE_FAILED_{result}")
 
     async def _test_direct_http_socks(self, proxy: Proxy) -> Optional[Proxy]:
-        """
-        Test HTTP/SOCKS5 proxies directly without Sing-Box for better performance.
-
-        This bypasses the expensive process spawning overhead for simple proxy types.
-        """
+        """Test HTTP/SOCKS5 proxies directly for performance."""
         try:
-            # Determine proxy URL format
-            if proxy.protocol.lower() in ("http", "https"):
-                proxy_url = f"{proxy.protocol}://{proxy.address}:{proxy.port}"
-            elif proxy.protocol.lower() in ("socks", "socks5", "socks4", "socks4a"):
-                # Normalize to socks5
-                protocol = (
-                    "socks5"
-                    if proxy.protocol.lower() in ("socks", "socks5")
-                    else proxy.protocol.lower()
-                )
+            protocol = proxy.protocol.lower()
+            proxy_url = ""
+            if protocol in ("http", "https"):
                 proxy_url = f"{protocol}://{proxy.address}:{proxy.port}"
+            elif protocol in ("socks", "socks5", "socks4", "socks4a"):
+                proxy_url = f"socks5://{proxy.address}:{proxy.port}"
             else:
-                # Fallback to Sing-Box for complex protocols
                 return None
 
             connector = ProxyConnector.from_url(proxy_url)
-            prioritized_urls = [
-                TEST_URLS["google"],
-                TEST_URLS["cloudflare"],
-                TEST_URLS["gstatic"],
-            ]
-
             async with aiohttp.ClientSession(connector=connector) as session:
-                for url_index, test_url in enumerate(prioritized_urls):
-                    for retry in range(self.max_retries + 1):
-                        try:
-                            current_timeout = (
-                                min(self.timeout, 5.0) if url_index > 0 else self.timeout
-                            )
-
-                            if retry > 0:
-                                await asyncio.sleep(0.5 * (2 ** (retry - 1)))
-
-                            timeout_config = aiohttp.ClientTimeout(
-                                total=current_timeout,
-                                connect=min(current_timeout * 0.3, 3.0),
-                                sock_read=min(current_timeout * 0.5, 5.0),
-                            )
-
-                            start_time = asyncio.get_running_loop().time()
-                            async with session.get(test_url, timeout=timeout_config) as response:
-                                if 200 <= response.status < 300:
-                                    end_time = asyncio.get_running_loop().time()
-                                    latency_ms = max((end_time - start_time) * 1000, 0.01)
-                                    proxy.latency = round(latency_ms, 2)
-                                    proxy.is_working = True
-                                    break
-
-                            if proxy.is_working:
-                                break
-                        except (asyncio.TimeoutError, aiohttp.ClientError):
-                            if retry == self.max_retries:
-                                continue
-                            continue
-
-                    if proxy.is_working:
+                for url in [TEST_URLS["google"], TEST_URLS["cloudflare"]]:
+                    start_time = asyncio.get_running_loop().time()
+                    resp = await self._perform_request(session, "GET", url, timeout=self.timeout)
+                    if resp and 200 <= resp.status < 300:
+                        proxy.latency = round((asyncio.get_running_loop().time() - start_time) * 1000, 2)
+                        proxy.is_working = True
+                        await self._run_integrity_checks(proxy, connector)
                         break
-
             if not proxy.is_working:
-                if "connectivity" not in proxy.security_issues:
-                    proxy.security_issues["connectivity"] = []
-                proxy.security_issues["connectivity"].append("Direct test: all test URLs failed")
-
+                proxy.security_issues.setdefault("connectivity", []).append("Direct test failed")
         except Exception as e:
             logger.debug(f"Direct test failed for {proxy.address}:{proxy.port}: {e}")
             return None
-
-        proxy.tested_at = datetime.now(timezone.utc).isoformat()
-
-        if self.cache:
-            self.cache.set(proxy)
-
+        finally:
+            proxy.tested_at = datetime.now(timezone.utc).isoformat()
+            if self.cache:
+                self.cache.set(proxy)
         return proxy
 
     async def test(self, proxy: Proxy) -> Proxy:
-        """Tests a proxy using sing-box and aiohttp, with optional cache lookup and direct testing for HTTP/SOCKS5."""
-        if self.cache:
-            cached_result = self.cache.get(proxy)
-            if cached_result:
-                self.cache_hits += 1
-                logger.debug(
-                    "Using cached result for %s:%s (working=%s, latency=%s)",
-                    proxy.address,
-                    proxy.port,
-                    cached_result.is_working,
-                    cached_result.latency,
-                )
-                return cached_result
-            self.cache_misses += 1
+        """Tests a proxy with optional caching, direct testing, and integrity checks."""
+        if self.cache and (cached := self.cache.get(proxy)):
+            self.cache_hits += 1
+            return cached
+        self.cache_misses += 1
+
+        if proxy.protocol.lower() in ("http", "https", "socks", "socks5", "socks4"):
+            if direct_result := await self._test_direct_http_socks(proxy):
+                return direct_result
 
         singbox_factory = self._get_singbox_factory()
-        if proxy.protocol.lower() in ("http", "https", "socks", "socks5", "socks4", "socks4a"):
-            logger.debug(
-                f"Using direct test for {proxy.protocol} proxy {proxy.address}:{proxy.port}"
-            )
-            direct_result = await self._test_direct_http_socks(proxy)
-            if direct_result:
-                return direct_result
-            logger.debug(
-                f"Direct test failed, falling back to Sing-Box for {proxy.address}:{proxy.port}"
-            )
-
         sb_proxy: Any = None
         loop = asyncio.get_running_loop()
         try:
             sb_proxy = await loop.run_in_executor(None, lambda: singbox_factory(proxy.config))
-
             if not sb_proxy or not sb_proxy.http_proxy_url:
-                proxy.is_working = False
-                if "configuration_error" not in proxy.security_issues:
-                    proxy.security_issues["configuration_error"] = []
-                proxy.security_issues["configuration_error"].append(
-                    "Proxy http_proxy_url is not set"
-                )
+                proxy.security_issues.setdefault("config", []).append("SingBox config error")
                 return proxy
 
             connector = ProxyConnector.from_url(sb_proxy.http_proxy_url)
-            prioritized_urls = [
-                self.config.TEST_URLS["google"],
-                self.config.TEST_URLS["cloudflare"],
-                self.config.TEST_URLS["gstatic"],
-            ]
-            fallback_urls = [
-                url
-                for name, url in self.config.TEST_URLS.items()
-                if name not in {"google", "cloudflare", "gstatic"}
-            ]
-            test_urls = prioritized_urls + fallback_urls
-
             async with aiohttp.ClientSession(connector=connector) as session:
-                for url_index, test_url in enumerate(test_urls):
-                    for retry in range(self.max_retries + 1):
-                        try:
-                            if url_index == 0:
-                                current_timeout = self.timeout
-                            elif url_index < 3:
-                                current_timeout = min(self.timeout, 5.0)
-                            else:
-                                current_timeout = min(self.timeout, 3.0)
-
-                            if retry > 0:
-                                await asyncio.sleep(0.5 * (2 ** (retry - 1)))
-                                logger.debug(
-                                    f"Retry {retry}/{self.max_retries} for {proxy.address}:{proxy.port}"
-                                )
-
-                            timeout_config = aiohttp.ClientTimeout(
-                                total=current_timeout,
-                                connect=min(current_timeout * 0.3, 3.0),
-                                sock_read=min(current_timeout * 0.5, 5.0),
-                            )
-
-                            start_time = asyncio.get_running_loop().time()
-                            async with session.get(test_url, timeout=timeout_config) as response:
-                                if 200 <= response.status < 300:
-                                    end_time = asyncio.get_running_loop().time()
-                                    latency_ms = max((end_time - start_time) * 1000, 0.01)
-                                    proxy.latency = round(latency_ms, 2)
-                                    proxy.is_working = True
-                                    break
-
-                            if proxy.is_working:
-                                break
-                        except (asyncio.TimeoutError, aiohttp.ClientError) as e:
-                            if retry == self.max_retries:
-                                logger.debug(
-                                    f"Proxy {proxy.address}:{proxy.port} failed test URL "
-                                    f"{test_url} after {retry + 1} attempts with {e.__class__.__name__}"
-                                )
-                            continue
-                        except Exception as e:
-                            if retry == self.max_retries:
-                                logger.debug(
-                                    f"Test URL {test_url} failed after {retry + 1} attempts "
-                                    f"with unexpected error: {e}"
-                                )
-                            continue
-
-                    if proxy.is_working:
+                for url in [TEST_URLS["google"], TEST_URLS["cloudflare"]]:
+                    start_time = asyncio.get_running_loop().time()
+                    resp = await self._perform_request(session, "GET", url, timeout=self.timeout)
+                    if resp and 200 <= resp.status < 300:
+                        proxy.latency = round((asyncio.get_running_loop().time() - start_time) * 1000, 2)
+                        proxy.is_working = True
+                        await self._run_integrity_checks(proxy, connector)
                         break
-
             if not proxy.is_working:
-                if "connectivity" not in proxy.security_issues:
-                    proxy.security_issues["connectivity"] = []
-                proxy.security_issues["connectivity"].append("All test URLs failed")
-
-        except RuntimeError as e:
-            proxy.is_working = False
-            if "singbox_error" not in proxy.security_issues:
-                proxy.security_issues["singbox_error"] = []
-            proxy.security_issues["singbox_error"].append(f"SingBox error: {e}")
-            logger.debug(f"SingBoxProxy error for {proxy.config}: {e}")
+                proxy.security_issues.setdefault("connectivity", []).append("All test URLs failed")
         except Exception as e:
-            proxy.is_working = False
-            error_details = "[MASKED]" if self.config.MASK_SENSITIVE_DATA else str(e)
-            if "connectivity" not in proxy.security_issues:
-                proxy.security_issues["connectivity"] = []
-            proxy.security_issues["connectivity"].append(f"Connection failed: {error_details}")
-            logger.error(f"Proxy test error for {proxy.config}: {str(e)[:100]}")
+            proxy.security_issues.setdefault("error", []).append(f"Test failed: {e}")
         finally:
             if sb_proxy:
                 try:
                     await loop.run_in_executor(None, sb_proxy.stop)
-                except Exception as e:
-                    logger.debug(f"Error stopping SingBoxProxy: {e}")
-
-        proxy.tested_at = datetime.now(timezone.utc).isoformat()
-
-        if self.cache:
-            self.cache.set(proxy)
-
+                except Exception:
+                    pass
+            proxy.tested_at = datetime.now(timezone.utc).isoformat()
+            if self.cache:
+                self.cache.set(proxy)
         return proxy
 
     @staticmethod
     def _get_singbox_factory() -> Callable[[str], Any]:
-        """Return a callable that constructs ``SingBoxProxy`` instances."""
+        """Lazily import and return the SingBoxProxy factory."""
         global SingBoxProxy
-        if SingBoxProxy is not None:
-            return cast(Callable[[str], Any], SingBoxProxy)
-        try:
-            module = importlib.import_module("singbox2proxy")
-            SingBoxProxy = getattr(module, "SingBoxProxy")
-        except Exception as exc:
-            raise RuntimeError("singbox2proxy is not available") from exc
+        if SingBoxProxy is None:
+            try:
+                module = importlib.import_module("singbox2proxy")
+                SingBoxProxy = getattr(module, "SingBoxProxy")
+            except Exception as exc:
+                raise RuntimeError("singbox2proxy is not available") from exc
         return cast(Callable[[str], Any], SingBoxProxy)
 
     def get_cache_stats(self) -> dict:
