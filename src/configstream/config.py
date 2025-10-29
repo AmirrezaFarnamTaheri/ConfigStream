@@ -89,5 +89,7 @@ class AppSettings:
     CIRCUIT_TRIP_5XX_RATE: float = float(os.getenv("CIRCUIT_TRIP_5XX_RATE", "0.2"))
     CIRCUIT_OPEN_SEC: int = int(os.getenv("CIRCUIT_OPEN_SEC", "120"))
     QUEUE_MAX_TRIES: int = int(os.getenv("QUEUE_MAX_TRIES", "5"))
-    TLS_TESTS_ALLOW_INSECURE: bool = os.getenv("TLS_TESTS_ALLOW_INSECURE", "False").lower() == "true"
+    TLS_TESTS_ALLOW_INSECURE: bool = (
+        os.getenv("TLS_TESTS_ALLOW_INSECURE", "False").lower() == "true"
+    )
     TLS_TESTS_ENABLED: bool = os.getenv("TLS_TESTS_ENABLED", "True").lower() == "true"

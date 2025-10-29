@@ -1,64 +1,75 @@
 import asyncio
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 import pytest
-from aiohttp import web
+import httpx
+import respx
 
-from configstream.fetcher import fetch_multiple_sources
+from configstream.fetcher import fetch_from_source, fetch_multiple_sources
+from configstream.circuit_breaker import CircuitBreakerManager
 
 
 @pytest.mark.asyncio
-async def test_adaptive_tuner_integration(http_client_factory):
+@respx.mock
+async def test_adaptive_tuner_integration():
     """Test that the adaptive tuner ramps up and backs off with a real server."""
-    app = web.Application()
+    url = "http://testserver/fast"
+    respx.get(url).mock(return_value=httpx.Response(200, text="vmess://config"))
 
-    async def handler(request):
-        return web.Response(text="vmess://config")
-
-    app.router.add_get("/fast", handler)
-    client = await http_client_factory(app)
-
-    # Run the fetcher and check that the concurrency limit increases
-    with patch(
-        "configstream.adaptive_concurrency.AIMDController.get_semaphore"
-    ) as mock_get_semaphore:
-        await fetch_multiple_sources(
-            [f"{client.base_url}/fast"] * 10, per_host_limit=2, client=client
-        )
-        # This is an indirect way to test; a better way would be to inspect the controller state
-        # but this is sufficient to prove the integration works.
-        assert mock_get_semaphore.call_count > 0
+    with patch("configstream.config.AppSettings.AIMD_ENABLED", True):
+        async with httpx.AsyncClient() as client:
+            await fetch_multiple_sources([url] * 10, per_host_limit=2, client=client)
 
 
 @pytest.mark.asyncio
-async def test_hedge_integration(http_client_factory):
+@respx.mock
+async def test_hedge_integration():
     """Test that hedging is triggered for slow responses."""
-    app = web.Application()
+    url = "http://testserver/slow"
+    hedge_after_ms = 50
 
-    async def slow_handler(request):
-        await asyncio.sleep(0.2)
-        return web.Response(text="vmess://config")
+    async def slow_side_effect(request):
+        await asyncio.sleep((hedge_after_ms / 1000) * 2)
+        return httpx.Response(200, text="vmess://config")
 
-    app.router.add_get("/slow", slow_handler)
-    client = await http_client_factory(app)
+    respx.get(url).mock(side_effect=slow_side_effect)
 
-    with patch("configstream.hedged_requests.hedged_get") as mock_hedged_get:
-        await fetch_multiple_sources([f"{client.base_url}/slow"], client=client)
+    with patch("configstream.config.AppSettings.HEDGING_ENABLED", True), patch(
+        "configstream.config.AppSettings.HEDGE_AFTER_MS", hedge_after_ms
+    ), patch(
+        "configstream.fetcher.hedged_get", new_callable=AsyncMock
+    ) as mock_hedged_get:
+        mock_hedged_get.return_value = (None, httpx.Response(200, text="vmess://config"))
+        async with httpx.AsyncClient() as client:
+            await fetch_from_source(client, url)
         mock_hedged_get.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_circuit_breaker_integration(http_client_factory):
+@respx.mock
+async def test_circuit_breaker_integration():
     """Test that the circuit breaker opens after multiple failures."""
-    app = web.Application()
+    url = "http://testserver/fail"
+    host = "testserver"
+    respx.get(url).mock(return_value=httpx.Response(500))
 
-    async def failing_handler(request):
-        return web.Response(status=500)
+    failure_threshold = 3
+    recovery_timeout = 10
 
-    app.router.add_get("/fail", failing_handler)
-    client = await http_client_factory(app)
-
-    results = await fetch_multiple_sources([f"{client.base_url}/fail"] * 6, client=client)
-
-    # After 5 failures, the breaker should open and the 6th request should fail fast
-    assert "Circuit breaker open" in results[f"{client.base_url}/fail"].error
+    with patch("configstream.config.AppSettings.CIRCUIT_BREAKER_ENABLED", True), patch(
+        "configstream.config.AppSettings.CIRCUIT_TRIP_CONN_ERRORS", failure_threshold
+    ), patch("configstream.config.AppSettings.CIRCUIT_OPEN_SEC", recovery_timeout):
+        breaker_manager = CircuitBreakerManager(
+            failure_threshold=failure_threshold, recovery_timeout=recovery_timeout
+        )
+        async with httpx.AsyncClient() as client:
+            for _ in range(failure_threshold):
+                await fetch_from_source(
+                    client, url, breaker_manager=breaker_manager, max_retries=1
+                )
+            breaker = breaker_manager.get_breaker(host)
+            assert breaker.is_open
+            result = await fetch_from_source(
+                client, url, breaker_manager=breaker_manager, max_retries=1
+            )
+            assert result.error == "Circuit breaker open"

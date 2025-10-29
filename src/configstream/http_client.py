@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from typing import AsyncIterator, List, Dict, Any
+from typing import AsyncIterator
 
 import httpx  # type: ignore[import-not-found]
 
@@ -44,6 +44,7 @@ async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
     user agent so providers can more easily identify ConfigStream traffic.
     """
     app_settings = AppSettings()
+    transport: httpx.AsyncHTTPTransport
     if app_settings.DNS_CACHE_ENABLED:
         transport = CachedDNS_AsyncHTTPTransport(retries=retries)
     else:

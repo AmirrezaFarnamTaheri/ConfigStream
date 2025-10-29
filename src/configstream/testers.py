@@ -1,6 +1,5 @@
 import asyncio
 import importlib
-import json
 import logging
 import ssl
 from datetime import datetime, timezone
@@ -100,7 +99,11 @@ class SingBoxTester(ProxyTester):
 
             # 2. Test Redirect Downgrade
             resp = await self._perform_request(
-                session, "GET", urljoin(CANARY_URL, "/redirect-to-http"), allow_redirects=False, timeout=5
+                session,
+                "GET",
+                urljoin(CANARY_URL, "/redirect-to-http"),
+                allow_redirects=False,
+                timeout=5,
             )
             if resp and resp.status == 302 and "http://" in resp.headers.get("Location", ""):
                 proxy.security_issues.setdefault("redirect", []).append("REDIRECT_DOWNGRADE")
@@ -118,7 +121,9 @@ class SingBoxTester(ProxyTester):
                         pass
                     elif success:
                         # If the request succeeds, it means the proxy is insecurely ignoring TLS errors
-                        proxy.security_issues.setdefault("tls", []).append(f"INSECURE_{expected_issue}")
+                        proxy.security_issues.setdefault("tls", []).append(
+                            f"INSECURE_{expected_issue}"
+                        )
                     else:
                         # A different error occurred
                         proxy.security_issues.setdefault("tls", []).append(f"PROBE_FAILED_{result}")
@@ -141,7 +146,9 @@ class SingBoxTester(ProxyTester):
                     start_time = asyncio.get_running_loop().time()
                     resp = await self._perform_request(session, "GET", url, timeout=self.timeout)
                     if resp and 200 <= resp.status < 300:
-                        proxy.latency = round((asyncio.get_running_loop().time() - start_time) * 1000, 2)
+                        proxy.latency = round(
+                            (asyncio.get_running_loop().time() - start_time) * 1000, 2
+                        )
                         proxy.is_working = True
                         await self._run_integrity_checks(proxy, connector)
                         break
@@ -182,7 +189,9 @@ class SingBoxTester(ProxyTester):
                     start_time = asyncio.get_running_loop().time()
                     resp = await self._perform_request(session, "GET", url, timeout=self.timeout)
                     if resp and 200 <= resp.status < 300:
-                        proxy.latency = round((asyncio.get_running_loop().time() - start_time) * 1000, 2)
+                        proxy.latency = round(
+                            (asyncio.get_running_loop().time() - start_time) * 1000, 2
+                        )
                         proxy.is_working = True
                         await self._run_integrity_checks(proxy, connector)
                         break

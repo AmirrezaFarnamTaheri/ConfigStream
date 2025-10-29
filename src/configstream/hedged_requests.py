@@ -4,7 +4,7 @@ from typing import Any, Tuple
 
 
 async def hedged_get(
-    client: Any, url: str, timeout: float, hedge_after: float
+    client: Any, url: str, timeout: float, hedge_after: float, headers: dict[str, str]
 ) -> Tuple[bool, Any | None]:
     """
     Performs a GET request, hedging with a second request if the first takes too long.
@@ -15,7 +15,7 @@ async def hedged_get(
     async def _once(task_id: int):
         """Wraps the client call and puts the result on the queue."""
         try:
-            r = await client.get(url, timeout=timeout)
+            r = await client.get(url, timeout=timeout, headers=headers)
             await q.put((task_id, True, r))
         except Exception as e:
             await q.put((task_id, False, e))

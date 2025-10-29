@@ -45,7 +45,5 @@ class CircuitBreakerManager:
 
     def get_breaker(self, key: str) -> CircuitBreaker:
         if key not in self._breakers:
-            self._breakers[key] = CircuitBreaker(
-                self._failure_threshold, self._recovery_timeout
-            )
+            self._breakers[key] = CircuitBreaker(self._failure_threshold, self._recovery_timeout)
         return self._breakers[key]
