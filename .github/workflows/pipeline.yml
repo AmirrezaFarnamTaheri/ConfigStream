@@ -169,7 +169,7 @@ jobs:
     name: Merge and Commit Shard Results
     runs-on: ubuntu-latest
     needs: pipeline
-    if: success() # Only run if all shards succeeded
+    if: always() # Always run to capture logs and partial results
 
     steps:
       - name: Checkout

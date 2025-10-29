@@ -62,7 +62,7 @@ async def test_stale_job_recovery_on_connect(tmp_db_path: Path):
     assert rows["stale_job_1"]["status"] == "new"
     assert rows["stale_job_1"]["tries"] == 2  # Tries should be incremented
     assert rows["stale_job_1"]["updated_at"] > stale_time  # Timestamp updated
-    assert rows["stale_job_1"]["updated_at"] >= int(time.time()) - 5 # Check if it's recent
+    assert rows["stale_job_1"]["updated_at"] >= int(time.time()) - 5  # Check if it's recent
 
 
 async def test_busy_timeout_prevents_locking_errors(tmp_db_path: Path):

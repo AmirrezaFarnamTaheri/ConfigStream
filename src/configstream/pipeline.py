@@ -695,8 +695,6 @@ async def run_full_pipeline(
                 proxies_to_test = parsed_from_sources
                 parsed_count = len(parsed_from_sources)
 
-                from .security_validator import validate_batch_configs
-
                 if proxies_to_test:
                     from .security_validator import (
                         validate_batch_configs,
@@ -706,9 +704,7 @@ async def run_full_pipeline(
 
                     policy = TEST_POLICY if leniency else STRICT_POLICY
                     insecure_before = len(proxies_to_test)
-                    proxies_to_test = validate_batch_configs(
-                        proxies_to_test, policy=policy
-                    )
+                    proxies_to_test = validate_batch_configs(proxies_to_test, policy=policy)
                     insecure_removed = insecure_before - len(proxies_to_test)
                     if insecure_removed > 0:
                         logger.info("%d insecure proxies were filtered out", insecure_removed)

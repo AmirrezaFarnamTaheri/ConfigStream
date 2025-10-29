@@ -11,8 +11,10 @@ from configstream.dns_prewarm import prewarm_dns_cache
 async def test_dns_cache_resolve_and_cache():
     cache = DNSCache(ttl=10)
 
-    with patch('asyncio.get_running_loop') as mock_loop:
-        mock_loop.return_value.getaddrinfo = AsyncMock(return_value=[(None, None, None, None, ('1.2.3.4', 0))])
+    with patch("asyncio.get_running_loop") as mock_loop:
+        mock_loop.return_value.getaddrinfo = AsyncMock(
+            return_value=[(None, None, None, None, ("1.2.3.4", 0))]
+        )
 
         # First call should resolve and cache
         addr = await cache.resolve("example.com")
@@ -36,7 +38,7 @@ async def test_prewarm_dns_cache():
         "http://example.com/4",
     ]
 
-    with patch('configstream.dns_prewarm.DEFAULT_CACHE.resolve') as mock_resolve:
+    with patch("configstream.dns_prewarm.DEFAULT_CACHE.resolve") as mock_resolve:
         await prewarm_dns_cache(sources, top_n=1)
 
         # Should only resolve the most common host

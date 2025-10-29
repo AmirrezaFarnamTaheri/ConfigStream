@@ -25,9 +25,7 @@ async def test_fetch_works_with_hedging_disabled(http_client_factory):
         settings.HEDGING_ENABLED = False
         settings.CIRCUIT_BREAKER_ENABLED = False  # Disable to prevent TypeError
 
-        results = await fetch_multiple_sources(
-            [f"{client.base_url}/fast"], client=client
-        )
+        results = await fetch_multiple_sources([f"{client.base_url}/fast"], client=client)
 
     assert results[f"{client.base_url}/fast"].success is True
     assert results[f"{client.base_url}/fast"].error is None
