@@ -18,7 +18,7 @@ ConfigStream has a **robust, production-ready CI/CD pipeline** with 5 GitHub Act
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  CI.yml          →  Test on PR/Push (Python 3.10-3.12)     │
-│  Pipeline.yml    →  Every 6 hours + Manual (Main Pipeline) │
+│  Pipeline.yml    →  Every 4 hours + Manual (Main Pipeline) │
 │  Retest.yml      →  Every hour + Manual (Re-validate)      │
 │  Deploy-Pages    →  Auto after Pipeline (GitHub Pages)     │
 │  Release.yml     →  On version tag (PyPI + GitHub Release) │
@@ -77,7 +77,7 @@ Steps:
 
 **Purpose:** Full proxy aggregation and testing
 **Triggers:**
-- 🕐 Every 6 hours (cron: "0 */6 * * *")
+- 🕐 Every 4 hours (cron: "0 */4 * * *")
 - 📌 Push to main
 - 🔀 Pull Requests
 - 🔘 Manual dispatch
@@ -191,11 +191,11 @@ Command: python -m configstream.cli retest
 - ✅ Hourly freshness without full pipeline overhead
 - ✅ Validates JSON schema (non-blocking)
 - ✅ Faster than full pipeline (no source fetching)
-- ✅ Complementary to 6-hour full pipeline
+- ✅ Complementary to 4-hour full pipeline
 
 **Efficiency Analysis:**
 ```
-Full Pipeline (6h):  Fetch 240 sources → Parse → Test → Output
+Full Pipeline (4h):  Fetch 240 sources → Parse → Test → Output
 Retest (1h):        Load JSON → Re-test existing → Output
 
 Time Savings: ~70-80% (no fetch/parse overhead)
@@ -715,7 +715,7 @@ def compare_metrics(current_file, previous_file, threshold=0.2):
 | Workflow | Schedule | Manual | Push | PR | Tag |
 |----------|----------|--------|------|----|----|
 | CI       | -        | ✅     | ✅   | ✅ | -  |
-| Pipeline | Every 6h | ✅     | ✅   | ✅ | -  |
+| Pipeline | Every 4h | ✅     | ✅   | ✅ | -  |
 | Retest   | Hourly   | ✅     | -    | -  | -  |
 | Deploy   | -        | ✅     | -    | -  | -  |
 | Release  | -        | -      | -    | -  | ✅ |

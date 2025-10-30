@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (stats) {
                 updateElement('#totalConfigs', stats.total_tested || 0);
                 updateElement('#workingConfigs', stats.total_working || 0);
-                updateElement('#updateFrequency', '6 hrs');
+                updateElement('#updateFrequency', '4 hrs');
             }
 
         } catch (error) {

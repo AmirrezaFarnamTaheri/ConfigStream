@@ -14,10 +14,11 @@ except Exception:  # pragma: no cover - fallback to stdlib
 
 def dumps(data: Any) -> str:
     if orjson is not None:
-        return orjson.dumps(
+        result: str = orjson.dumps(
             data,
             option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS,
         ).decode()
+        return result
     return json.dumps(data, indent=2, sort_keys=True)
 
 
