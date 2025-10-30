@@ -188,7 +188,8 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
             ],
         }
     )
-    return clash_yaml
+    result: str = clash_yaml
+    return result
 
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
