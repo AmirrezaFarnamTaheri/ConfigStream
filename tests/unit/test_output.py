@@ -15,7 +15,12 @@ def sample_proxies():
     """Fixture for a list of sample Proxy objects."""
     return [
         Proxy(
-            config="vmess://ewogICJ2IjogIjIiLAogICJwcyI6ICJVUy1WTWVzcyIsCiAgImFkZCI6ICJ1cy5leGFtcGxlLmNvbSIsCiAgInBvcnQiOiA0NDMsCiAgImlkIjogInRlc3QtdXVpZCIsCiAgIm5ldCI6ICJ3cyIsCiAgInR5cGUiOiAibm9uZSIsCiAgImhvc3QiOiAiIiwKICAicGF0aCI6ICIvIiwKICAidGxzIjogIm5vbmUiCn0=",
+            config=(
+                "vmess://ewogICJ2IjogIjIiLAogICJwcyI6ICJVUy1WTWVzcyIsCiAgImFkZCI6ICJ1cy5leGFtcGx"
+                "lLmNvbSIsCiAgInBvcnQiOiA0NDMsCiAgImlkIjogInRlc3QtdXVpZCIsCiAgIm5ldCI6ICJ3cyIsC"
+                "iAgInR5cGUiOiAibm9uZSIsCiAgImhvc3QiOiAiIiwKICAicGF0aCI6ICIvIiwKICAidGxzIjogIm"
+                "5vbmUiCn0="
+            ),
             protocol="vmess",
             address="us.example.com",
             port=443,
