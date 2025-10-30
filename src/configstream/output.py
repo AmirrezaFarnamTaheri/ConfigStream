@@ -3,7 +3,10 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None  # type: ignore[assignment]
 
 from .models import Proxy
 from .selection import select_chosen_proxies, get_selection_stats
@@ -155,6 +158,10 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
 
 
 def generate_clash_config(proxies: List[Proxy]) -> str:
+    # If yaml is not available, return empty config
+    if yaml is None:
+        return ""
+
     working_proxies = [p for p in proxies if p.is_working]
     clash_proxies = []
     for proxy in working_proxies:
