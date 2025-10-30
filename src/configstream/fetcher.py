@@ -12,13 +12,12 @@ from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Any, Dict, List, cast
 from urllib.parse import urlparse
-from collections import defaultdict
 from collections.abc import Mapping
 
 import httpx
 
 try:  # pragma: no cover - optional dependency handling
-    import aiohttp  # type: ignore[import-not-found]
+    import aiohttp
 except ModuleNotFoundError:  # pragma: no cover
     aiohttp = cast(Any, None)
 
@@ -176,23 +175,26 @@ async def fetch_from_source(
 
     is_aiohttp_client = aiohttp is not None and isinstance(client, aiohttp.ClientSession)
 
-    async def _fetch_with_semaphore():
+    async def _fetch_with_semaphore() -> FetchResult:
         nonlocal last_error, backoff
 
         for attempt in range(max_retries):
             start_time = asyncio.get_event_loop().time()
             success = False
-            response_time = timeout  # Default to timeout if exception occurs before assignment
+            response_time: float = float(
+                timeout
+            )  # Default to timeout if exception occurs before assignment
             try:
                 logger.debug(f"Attempt {attempt + 1}/{max_retries} for {source} (host: {host})")
 
                 app_settings = AppSettings()
                 if app_settings.HEDGING_ENABLED and not is_aiohttp_client:
+                    hedge_ms = app_settings.HEDGE_AFTER_MS or 500  # Default to 500ms if None
                     _, response = await hedged_get(
                         client,
                         source,
                         timeout=timeout,
-                        hedge_after=app_settings.HEDGE_AFTER_MS / 1000.0,
+                        hedge_after=float(hedge_ms) / 1000.0,
                         headers=headers,
                     )
                     if not response:
@@ -219,7 +221,9 @@ async def fetch_from_source(
                     text = response.text
 
                 if status_code == 304:
-                    logger.info(f"Cache hit (304 Not Modified) for {source} in {response_time:.2f}s")
+                    logger.info(
+                        f"Cache hit (304 Not Modified) for {source} in {response_time:.2f}s"
+                    )
                     success = True
                     return FetchResult(
                         source=source,
@@ -281,13 +285,19 @@ async def fetch_from_source(
                 last_error = str(e)
                 logger.warning(
                     "Rate limit hit for %s (host: %s); retrying in %.1fs (attempt %d/%d)",
-                    source, host, delay + jitter, attempt + 1, max_retries
+                    source,
+                    host,
+                    delay + jitter,
+                    attempt + 1,
+                    max_retries,
                 )
                 await asyncio.sleep(delay + jitter)
                 backoff = min(backoff * 2, 60)
             except (asyncio.TimeoutError, httpx.TimeoutException):
                 last_error = f"Timeout after {timeout} seconds"
-                logger.warning("Timeout fetching %s (attempt %d/%d)", source, attempt + 1, max_retries)
+                logger.warning(
+                    "Timeout fetching %s (attempt %d/%d)", source, attempt + 1, max_retries
+                )
             except FetcherError as e:
                 last_error = str(e)
                 logger.warning(f"HTTP error fetching {source}: {e}")
@@ -421,9 +431,7 @@ async def fetch_multiple_sources(
     # Initialize AIMD controller for adaptive concurrency
     loop = asyncio.get_running_loop()
     metrics_emitter = MetricsEmitter(Path("metrics.jsonl"))
-    controller = AIMDController(
-        loop, initial_limit=per_host_limit, metrics_emitter=metrics_emitter
-    )
+    controller = AIMDController(loop, initial_limit=per_host_limit, metrics_emitter=metrics_emitter)
     controller.start_tuner()
 
     # Initialize Circuit Breaker Manager
@@ -436,7 +444,7 @@ async def fetch_multiple_sources(
     # Create a global semaphore to limit total concurrent requests
     global_semaphore = asyncio.Semaphore(max_concurrent)
 
-    async def fetch_with_semaphore(http_client, source):
+    async def fetch_with_semaphore(http_client: Any, source: str) -> FetchResult:
         async with global_semaphore:
             return await fetch_from_source(
                 http_client,
@@ -448,7 +456,7 @@ async def fetch_multiple_sources(
                 breaker_manager=breaker_manager,
             )
 
-    async def _run_tasks(http_client):
+    async def _run_tasks(http_client: Any) -> None:
         tasks = [fetch_with_semaphore(http_client, source) for source in sources]
         fetch_results: List[FetchResult | BaseException] = await asyncio.gather(
             *tasks, return_exceptions=True

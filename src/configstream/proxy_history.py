@@ -8,7 +8,7 @@ trend analysis and reliability visualization.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional, cast
+from typing import Any, Dict, Optional, cast
 from datetime import datetime, timezone
 
 from .models import Proxy
@@ -34,11 +34,12 @@ class ProxyHistoryTracker:
         self.history_path.parent.mkdir(parents=True, exist_ok=True)
         self.history_data = self._load_history()
 
-    def _load_history(self) -> Dict:
+    def _load_history(self) -> Dict[str, Any]:
         """Load history data from disk."""
         if self.history_path.exists():
             try:
-                return json.loads(self.history_path.read_text())  # type: ignore[no-any-return]
+                data: Dict[str, Any] = json.loads(self.history_path.read_text())
+                return data
             except Exception as e:
                 logger.warning("Failed to load proxy history: %s", e)
         return {}
@@ -85,7 +86,7 @@ class ProxyHistoryTracker:
 
         self._save_history()
 
-    def get_proxy_history(self, config: str) -> Optional[Dict]:
+    def get_proxy_history(self, config: str) -> Optional[Dict[str, Any]]:
         """
         Get history for a specific proxy.
 
@@ -96,7 +97,7 @@ class ProxyHistoryTracker:
             History data or None
         """
         result = self.history_data.get(config)
-        return cast(Optional[Dict], result)
+        return cast(Optional[Dict[str, Any]], result)
 
     def get_reliability_score(self, config: str, lookback_days: int = 7) -> float:
         """
@@ -119,7 +120,7 @@ class ProxyHistoryTracker:
 
         return working_count / len(entries) if entries else 0.5
 
-    def get_trend_data(self, config: str, points: int = 30) -> Dict:
+    def get_trend_data(self, config: str, points: int = 30) -> Dict[str, Any]:
         """
         Get trend data for charting.
 
@@ -142,7 +143,7 @@ class ProxyHistoryTracker:
             "status": [1 if e["is_working"] else 0 for e in entries],
         }
 
-    def get_summary_stats(self, config: str) -> Dict:
+    def get_summary_stats(self, config: str) -> Dict[str, Any]:
         """
         Get summary statistics for a proxy.
 

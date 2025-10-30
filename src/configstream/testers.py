@@ -3,7 +3,7 @@ import importlib
 import logging
 import ssl
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, cast
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, Tuple, cast
 from urllib.parse import urljoin
 
 import aiohttp
@@ -56,7 +56,7 @@ class ProxyTester:
 
 class SingBoxTester(ProxyTester):
 
-    async def _perform_request(self, session, method, url, **kwargs):
+    async def _perform_request(self, session: Any, method: str, url: str, **kwargs: Any) -> Any:
         """A simple wrapper to perform a request and handle exceptions."""
         try:
             async with session.request(method, url, **kwargs) as response:
@@ -64,7 +64,7 @@ class SingBoxTester(ProxyTester):
         except Exception:
             return None
 
-    async def _https_probe(self, session, url, **kwargs):
+    async def _https_probe(self, session: Any, url: str, **kwargs: Any) -> Tuple[bool, Any]:
         """Perform a request with specific SSL context handling for TLS checks."""
         ssl_ctx = None if self.config.TLS_TESTS_ALLOW_INSECURE else _strict_ssl_context()
         try:
@@ -222,7 +222,7 @@ class SingBoxTester(ProxyTester):
                 raise RuntimeError("singbox2proxy is not available") from exc
         return cast(Callable[[str], Any], SingBoxProxy)
 
-    def get_cache_stats(self) -> dict:
+    def get_cache_stats(self) -> dict[str, Any]:
         """Get cache hit/miss statistics."""
         total = self.cache_hits + self.cache_misses
         hit_rate = self.cache_hits / total if total > 0 else 0.0

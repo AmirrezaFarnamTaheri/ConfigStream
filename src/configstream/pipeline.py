@@ -135,7 +135,7 @@ def _maybe_decode_base64(payload: str) -> str:
 
 
 # ==== BEGIN: de-dup + seeded shuffle helpers ====
-def _proxy_key(p) -> Tuple[str, str, int, str, str]:
+def _proxy_key(p: Any) -> Tuple[str, str, int, str, str]:
     """
     Build a stable identity for a proxy. Adjust fields if your Proxy model differs.
     """
@@ -147,14 +147,14 @@ def _proxy_key(p) -> Tuple[str, str, int, str, str]:
     return (proto, addr, port, uuid, config)
 
 
-def dedupe_and_shuffle(proxies: List) -> List:
+def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
     """
     Remove duplicates, then shuffle.
     Shuffling is deterministic on push/PR events (if CONFIGSTREAM_SHUFFLE_SEED is set)
     for reproducibility, and random on scheduled or manual runs to ensure variety.
     """
     seen = set()
-    unique: List = []
+    unique: List[Proxy] = []
     for p in proxies:
         k = _proxy_key(p)
         if k in seen:

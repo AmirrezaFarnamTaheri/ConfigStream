@@ -11,7 +11,7 @@ import sqlite3
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from .models import Proxy
 
@@ -215,7 +215,7 @@ class TestResultCache:
             row = cursor.fetchone()
 
             if row and row[0] > 0:
-                return float(row[1]) / float(row[0])  # type: ignore[no-any-return]
+                return float(row[1]) / float(row[0])
 
         return 0.5  # Default neutral score for new proxies
 
@@ -246,7 +246,7 @@ class TestResultCache:
 
             return deleted
 
-    def get_stats(self) -> dict:
+    def get_stats(self) -> dict[str, Any]:
         """
         Get cache statistics.
 

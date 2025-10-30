@@ -1,7 +1,7 @@
 import base64
 import json
 from pathlib import Path
-from typing import Dict, List, cast
+from typing import Any, Dict, List, cast
 
 import yaml
 
@@ -39,7 +39,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
     connectivity_failed = [p for p in all_proxies if not p.is_working and not p.security_issues]
 
     # Helper function to serialize proxy to dict
-    def proxy_to_dict(proxy: Proxy) -> Dict:
+    def proxy_to_dict(proxy: Proxy) -> Dict[str, Any]:
         return {
             "config": proxy.config,
             "protocol": proxy.protocol,

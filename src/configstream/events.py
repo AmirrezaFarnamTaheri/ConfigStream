@@ -32,18 +32,18 @@ class Event:
 class EventBus:
     """Central event bus for pub/sub pattern"""
 
-    def __init__(self):
-        self.subscribers: dict[EventType, list[Callable]] = {}
+    def __init__(self) -> None:
+        self.subscribers: dict[EventType, list[Callable[..., Any]]] = {}
         self.event_history: list[Event] = []
         self.max_history = 1000
 
-    def subscribe(self, event_type: EventType, handler: Callable) -> None:
+    def subscribe(self, event_type: EventType, handler: Callable[..., Any]) -> None:
         """Subscribe to event type"""
         if event_type not in self.subscribers:
             self.subscribers[event_type] = []
         self.subscribers[event_type].append(handler)
 
-    def unsubscribe(self, event_type: EventType, handler: Callable) -> None:
+    def unsubscribe(self, event_type: EventType, handler: Callable[..., Any]) -> None:
         """Unsubscribe from event type"""
         if event_type in self.subscribers:
             self.subscribers[event_type].remove(handler)
