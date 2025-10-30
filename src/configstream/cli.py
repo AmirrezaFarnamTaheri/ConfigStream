@@ -4,7 +4,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence
 
 import click
 from rich.console import Console
@@ -35,8 +35,8 @@ def validate_proxy_data(proxies_data: Sequence[object] | None, *, for_retest: bo
         sys.exit(1)
 
 
-@click.group()
-@click.version_option(version="1.0.0")
+@click.group()  # type: ignore[misc]
+@click.version_option(version="1.0.0")  # type: ignore[misc]
 def cli() -> None:
     """
     ConfigStream: Automated VPN Configuration Aggregator.
@@ -44,7 +44,7 @@ def cli() -> None:
     setup_logging(config.LOG_LEVEL, config.MASK_SENSITIVE_DATA)
 
 
-def _display_metrics(metrics: dict) -> None:
+def _display_metrics(metrics: dict[str, Any]) -> None:
     if not metrics:
         return
     console.print("\n[cyan]Performance metrics[/cyan]")
@@ -124,19 +124,19 @@ async def _merge_logic_async(
         _display_metrics(result.get("metrics") or {})
 
 
-@cli.command()
-@click.option(
+@cli.command()  # type: ignore[misc]
+@click.option(  # type: ignore[misc]
     "--sources", "sources_file", required=True, type=click.Path(exists=True, dir_okay=False)
 )
-@click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))
-@click.option("--max-proxies", type=int)
-@click.option("--country", "country_filter", type=str)
-@click.option("--min-latency", type=int)
-@click.option("--max-latency", type=int, default=5000)
-@click.option("--max-workers", type=int, default=25)
-@click.option("--timeout", type=int, default=10)
-@click.option("--show-metrics", is_flag=True)
-@click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")
+@click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))  # type: ignore[misc]
+@click.option("--max-proxies", type=int)  # type: ignore[misc]
+@click.option("--country", "country_filter", type=str)  # type: ignore[misc]
+@click.option("--min-latency", type=int)  # type: ignore[misc]
+@click.option("--max-latency", type=int, default=5000)  # type: ignore[misc]
+@click.option("--max-workers", type=int, default=25)  # type: ignore[misc]
+@click.option("--timeout", type=int, default=10)  # type: ignore[misc]
+@click.option("--show-metrics", is_flag=True)  # type: ignore[misc]
+@click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")  # type: ignore[misc]
 @handle_cli_errors(context="Merge operation")
 def merge(
     sources_file: str,
@@ -177,7 +177,7 @@ async def _update_databases_logic_async() -> None:
         console.print("   Check MAXMIND_LICENSE_KEY environment variable or GitHub secret.")
 
 
-@cli.command()
+@cli.command()  # type: ignore[misc]
 def update_databases() -> None:
     """Update GeoIP databases for proxy geolocation."""
     asyncio.run(_update_databases_logic_async())
@@ -271,15 +271,15 @@ async def _retest_logic_async(
         _display_metrics(result.get("metrics") or {})
 
 
-@cli.command()
-@click.option(
+@cli.command()  # type: ignore[misc]
+@click.option(  # type: ignore[misc]
     "--input", "input_file", default="output/proxies.json", type=click.Path(dir_okay=False)
 )
-@click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))
-@click.option("--max-workers", type=int, default=10)
-@click.option("--timeout", type=int, default=30)
-@click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")
-@click.option("--show-metrics", is_flag=True)
+@click.option("--output", "output_dir", default="output", type=click.Path(file_okay=False))  # type: ignore[misc]
+@click.option("--max-workers", type=int, default=10)  # type: ignore[misc]
+@click.option("--timeout", type=int, default=30)  # type: ignore[misc]
+@click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")  # type: ignore[misc]
+@click.option("--show-metrics", is_flag=True)  # type: ignore[misc]
 @handle_cli_errors(context="Retest operation")
 def retest(
     input_file: str,

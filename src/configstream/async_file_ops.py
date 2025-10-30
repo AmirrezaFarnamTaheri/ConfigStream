@@ -294,7 +294,7 @@ async def list_files_async(directory: str | Path, pattern: str = "*") -> List[Pa
 
 
 # Cleanup function - ensures threads are properly shut down
-def start_file_pool():
+def start_file_pool() -> None:
     """
     Re-initialize the file I/O thread pool.
 
@@ -311,7 +311,7 @@ def start_file_pool():
         logger.debug("FILE_IO_POOL already active, no recreation needed")
 
 
-def shutdown_file_pool():
+def shutdown_file_pool() -> None:
     """
     Gracefully shut down the file I/O thread pool
 

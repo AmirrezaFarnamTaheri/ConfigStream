@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Iterable, List
+from typing import Any, Iterable, List, Tuple
 
 from .models import Proxy
 
 
-def proxy_key(proxy: Proxy) -> tuple:
+def proxy_key(proxy: Proxy) -> Tuple[Any, ...]:
     """Generate a stable key representing the proxy endpoint semantics."""
 
     return (
@@ -24,7 +24,7 @@ def proxy_key(proxy: Proxy) -> tuple:
 def dedupe_keep_best(proxies: Iterable[Proxy]) -> List[Proxy]:
     """Deduplicate proxies, keeping the copy with the best measured quality."""
 
-    best: dict[tuple, Proxy] = {}
+    best: dict[Tuple[Any, ...], Proxy] = {}
 
     for proxy in proxies:
         key = proxy_key(proxy)

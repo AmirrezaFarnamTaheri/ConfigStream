@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Any, cast
 
 try:  # pragma: no cover - optional speed-up
-    import orjson  # type: ignore[import-not-found]
+    import orjson
 except Exception:  # pragma: no cover - fallback to stdlib
-    orjson = None  # type: ignore[assignment]
+    orjson = None
 
 
 def dumps(data: Any) -> str:

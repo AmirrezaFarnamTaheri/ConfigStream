@@ -167,7 +167,9 @@ def safe_operation(
         handle_cli_error(e, context=context or "Unexpected error", exit_code=1, verbose=verbose)
 
 
-def handle_cli_errors(context: str = "", exit_on_keyboard_interrupt: bool = True):
+def handle_cli_errors(
+    context: str = "", exit_on_keyboard_interrupt: bool = True
+) -> Callable[[F], F]:
     """
     Decorator to handle CLI errors automatically.
 
@@ -232,10 +234,10 @@ class ErrorContext:
         self.operation = operation
         self.exit_on_error = exit_on_error
 
-    def __enter__(self):
+    def __enter__(self) -> "ErrorContext":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> bool:
         if exc_type is None:
             return False
 

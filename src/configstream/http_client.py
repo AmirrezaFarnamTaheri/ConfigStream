@@ -5,13 +5,13 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-import httpx  # type: ignore[import-not-found]
+import httpx
 
 from .dns_cache import DEFAULT_CACHE
 from .config import AppSettings
 
 try:  # pragma: no cover - optional dependency used only when available
-    import h2  # type: ignore[import-not-found]  # noqa: F401
+    import h2  # noqa: F401
 except ModuleNotFoundError:  # pragma: no cover
     HTTP2_AVAILABLE = False
 else:  # pragma: no cover
@@ -21,7 +21,7 @@ DEFAULT_TIMEOUT = httpx.Timeout(20.0, connect=10.0, read=15.0)
 POOL_LIMITS = httpx.Limits(max_keepalive_connections=100, max_connections=200)
 
 
-class CachedDNS_AsyncHTTPTransport(httpx.AsyncHTTPTransport):
+class CachedDNS_AsyncHTTPTransport(httpx.AsyncHTTPTransport):  # type: ignore[misc]
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         app_settings = AppSettings()
         if app_settings.DNS_CACHE_ENABLED:

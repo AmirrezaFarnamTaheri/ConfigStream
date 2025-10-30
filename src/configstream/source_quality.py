@@ -8,7 +8,7 @@ to focus crawling on high-quality sources.
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 from datetime import datetime, timezone
 
 from .models import Proxy
@@ -30,11 +30,12 @@ class SourceQualityTracker:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.quality_data = self.load_quality_data()
 
-    def load_quality_data(self) -> Dict:
+    def load_quality_data(self) -> Dict[str, Any]:
         """Load quality data from disk."""
         if self.db_path.exists():
             try:
-                return json.loads(self.db_path.read_text())  # type: ignore[no-any-return]
+                data: Dict[str, Any] = json.loads(self.db_path.read_text())
+                return data
             except Exception as e:
                 logger.warning("Failed to load source quality data: %s", e)
         return {}
@@ -117,9 +118,10 @@ class SourceQualityTracker:
         elif stats["total_fetches"] >= 5:
             score += 5.0
 
-        return round(min(score, 100.0), 2)  # type: ignore[no-any-return]
+        result: float = round(min(score, 100.0), 2)
+        return result
 
-    def get_top_sources(self, limit: int = 10) -> List[tuple]:
+    def get_top_sources(self, limit: int = 10) -> List[Tuple[str, float]]:
         """
         Get top quality sources.
 
@@ -135,7 +137,7 @@ class SourceQualityTracker:
         scored_sources.sort(key=lambda x: x[1], reverse=True)
         return scored_sources[:limit]
 
-    def get_quality_report(self) -> Dict:
+    def get_quality_report(self) -> Dict[str, Any]:
         """
         Generate quality report for all sources.
 

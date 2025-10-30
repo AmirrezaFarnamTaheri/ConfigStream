@@ -8,7 +8,7 @@ import json
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict
 
 
 @dataclass
@@ -40,7 +40,7 @@ class PipelineMetrics:
     # Protocol distribution
     protocol_counts: Dict[str, int] = field(default_factory=dict)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert metrics to dictionary for JSON export."""
         return {
             "counters": {
