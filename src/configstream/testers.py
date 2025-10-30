@@ -120,7 +120,7 @@ class SingBoxTester(ProxyTester):
                         # This is the expected failure, so the proxy is correctly handling TLS
                         pass
                     elif success:
-                        # If the request succeeds, it means the proxy is insecurely ignoring TLS errors
+                        # If successful, proxy is insecurely ignoring TLS errors
                         proxy.security_issues.setdefault("tls", []).append(
                             f"INSECURE_{expected_issue}"
                         )

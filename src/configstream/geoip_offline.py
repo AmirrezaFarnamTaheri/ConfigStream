@@ -11,7 +11,7 @@ from typing import Any
 try:  # pragma: no cover - optional dependency path
     import geoip2.database
 except Exception:  # pragma: no cover - handled gracefully at runtime
-    geoip2 = None
+    geoip2 = None  # type: ignore[assignment]
 
 
 @dataclass

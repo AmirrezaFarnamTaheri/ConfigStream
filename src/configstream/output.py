@@ -1,7 +1,7 @@
 import base64
 import json
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List
 
 import yaml
 
@@ -181,7 +181,7 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
             ],
         }
     )
-    return cast(str, clash_yaml)
+    return clash_yaml
 
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
