@@ -6,7 +6,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
-ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically re-tested hourly, with a full merge of new sources every 3 hours via GitHub Actions. This process includes comprehensive security testing and geolocation data.
+ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 4 hours via GitHub Actions. This process includes comprehensive security testing and geolocation data.
 
 ## 🌐 Get Fresh Configurations
 
@@ -17,7 +17,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 ## ✨ Features
 
 ### 🤖 Fully Automated
-- **Hourly Retesting & 3-Hourly Merges** via GitHub Actions
+- **Automated Updates Every 4 Hours** via GitHub Actions
 - **Zero manual intervention** required
 - **Cache-busting** ensures clients always get fresh data
 
@@ -57,7 +57,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 
 ```mermaid
 graph LR
-    A[GitHub Actions<br/>Hourly/3-Hourly] -->|Trigger| B[Fetch Sources]
+    A[GitHub Actions<br/>Every 4 Hours] -->|Trigger| B[Fetch Sources]
     B --> C[Parse & Normalise]
     C --> D[Disk Queue]
     D --> E[Async Testing]
@@ -262,8 +262,7 @@ pytest -v
 ### GitHub Actions Workflow
 
 The automation workflow (`pipeline.yml`) runs:
-- **Hourly** to re-test existing proxies.
-- **Every 3 hours** (at 00:00, 03:00, 06:00, etc. UTC) to perform a full merge of new sources.
+- **Every 4 hours** (at 00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC) to fetch, test, and merge proxies from all sources.
 - **On manual trigger** via workflow_dispatch.
 - **On source file changes** (e.g., updates to `sources.txt`).
 

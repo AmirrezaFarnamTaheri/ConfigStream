@@ -12,6 +12,58 @@ from .models import Proxy
 from .selection import select_chosen_proxies, get_selection_stats
 
 
+def get_country_flag(country_code: str) -> str:
+    """Convert country code to flag emoji."""
+    if not country_code or len(country_code) != 2:
+        return ""
+    # Convert country code to flag emoji using Unicode regional indicator symbols
+    return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in country_code.upper())
+
+
+def format_proxy_names_with_rank(proxies: List[Proxy]) -> None:
+    """
+    Format proxy names with protocol rank, country flag, and original name.
+    Format: "PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME" (truncated at 80 chars)
+
+    Modifies proxies in-place by updating their remarks field.
+    """
+    # Group proxies by protocol and sort by latency within each group
+    protocol_groups: Dict[str, List[Proxy]] = {}
+    for proxy in proxies:
+        protocol = proxy.protocol.upper()
+        if protocol not in protocol_groups:
+            protocol_groups[protocol] = []
+        protocol_groups[protocol].append(proxy)
+
+    # Sort each protocol group by latency and assign ranks
+    for protocol, group in protocol_groups.items():
+        # Sort by latency (lower is better)
+        sorted_group = sorted(
+            group, key=lambda p: p.latency if p.latency is not None else float("inf")
+        )
+
+        # Assign formatted names with ranks
+        for rank, proxy in enumerate(sorted_group, start=1):
+            # Get country flag emoji
+            flag = get_country_flag(proxy.country_code) if proxy.country_code else ""
+
+            # Get original name or use a default
+            original_name = proxy.remarks if proxy.remarks else f"{proxy.address}:{proxy.port}"
+
+            # Format: "PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME"
+            if flag:
+                formatted_name = f"{protocol}-{rank} [{flag}] ||| {original_name}"
+            else:
+                formatted_name = f"{protocol}-{rank} ||| {original_name}"
+
+            # Truncate to 80 characters
+            if len(formatted_name) > 80:
+                formatted_name = formatted_name[:77] + "..."
+
+            # Update the proxy's remarks field
+            proxy.remarks = formatted_name
+
+
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
     # This function is misnamed; it should return a plain text,
     # newline-separated list of configs, not a base64 encoded string.
@@ -188,7 +240,8 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
             ],
         }
     )
-    return clash_yaml
+    result: str = clash_yaml
+    return result
 
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
