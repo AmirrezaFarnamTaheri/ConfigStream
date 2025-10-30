@@ -21,7 +21,7 @@ def get_country_flag(country_code: str) -> str:
     try:
         # Convert to regional indicator symbols
         return "".join(chr(127397 + ord(c)) for c in country_code.upper())
-    except:
+    except (ValueError, TypeError):
         return "🌍"
 
 
@@ -39,7 +39,9 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
     ranked_proxies = []
     for protocol, protocol_proxies in proxies_by_protocol.items():
         # Sort by latency (None values go to end)
-        protocol_proxies.sort(key=lambda p: (p.latency is None, p.latency if p.latency else float('inf')))
+        protocol_proxies.sort(
+            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf"))
+        )
 
         # Rename with rank
         for rank, proxy in enumerate(protocol_proxies, start=1):
@@ -50,6 +52,10 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
             # New remarks format: PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME
             new_remarks = f"{protocol_upper}-{rank} [{country_flag}] ||| {original_name}"
 
+            # Truncate at 80 characters to avoid overly long names
+            if len(new_remarks) > 80:
+                new_remarks = new_remarks[:77] + "..."
+
             # Create updated proxy with new remarks
             updated_proxy = replace(proxy, remarks=new_remarks)
             ranked_proxies.append(updated_proxy)
@@ -57,7 +63,9 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
     return ranked_proxies
 
 
-def select_top_configs(ranked_proxies: List[Proxy], top_per_protocol: int = 50, total_limit: int = 1000) -> List[Proxy]:
+def select_top_configs(
+    ranked_proxies: List[Proxy], top_per_protocol: int = 50, total_limit: int = 1000
+) -> List[Proxy]:
     """
     Select top configs: top N per protocol, then fill to total_limit from overall ranking.
 
@@ -85,7 +93,8 @@ def select_top_configs(ranked_proxies: List[Proxy], top_per_protocol: int = 50, 
             if proxy.config not in selected_configs:
                 selected.append(proxy)
                 selected_configs.add(proxy.config)
-        print(f"  Selected {len(top_n)} from {protocol} (available: {len(protocol_proxies)})")
+        available_count = len(protocol_proxies)
+        print(f"  Selected {len(top_n)} from {protocol} " f"(available: {available_count})")
 
     print(f"Total selected from per-protocol top {top_per_protocol}: {len(selected)}")
 
@@ -94,7 +103,7 @@ def select_top_configs(ranked_proxies: List[Proxy], top_per_protocol: int = 50, 
         # Sort all proxies by latency overall
         overall_ranked = sorted(
             ranked_proxies,
-            key=lambda p: (p.latency is None, p.latency if p.latency else float('inf'))
+            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf")),
         )
 
         # Fill the gap
@@ -105,7 +114,7 @@ def select_top_configs(ranked_proxies: List[Proxy], top_per_protocol: int = 50, 
                 selected.append(proxy)
                 selected_configs.add(proxy.config)
 
-        print(f"Filled gap with {len(selected) - len(selected_configs) + len(selected_configs)} configs from overall ranking")
+        print("Filled gap with additional configs from overall ranking")
 
     print(f"Total chosen configs: {len(selected)}")
     return selected
@@ -150,14 +159,14 @@ def merge_batches():
     merged_proxies = list(all_proxies_map.values())
 
     # Sort proxies by latency for consistent output
-    merged_proxies.sort(key=lambda p: (p.latency is None, p.latency if p.latency else float('inf')))
+    merged_proxies.sort(key=lambda p: (p.latency is None, p.latency if p.latency else float("inf")))
 
-    print(f"\n=== Step 1: Ranking and Renaming ===")
+    print("\n=== Step 1: Ranking and Renaming ===")
     # Rank and rename all proxies by protocol
     ranked_proxies = rank_and_rename_proxies(merged_proxies)
     print(f"Ranked {len(ranked_proxies)} proxies by protocol and latency")
 
-    print(f"\n=== Step 2: Selecting Top Configs ===")
+    print("\n=== Step 2: Selecting Top Configs ===")
     # Select top 1000 configs (top 50 per protocol + fill from overall)
     chosen_proxies = select_top_configs(ranked_proxies, top_per_protocol=50, total_limit=1000)
 
@@ -168,24 +177,24 @@ def merge_batches():
             f.unlink()
 
     # --- Regenerate output files ---
-    print(f"\n=== Step 3: Generating Output Files ===")
+    print("\n=== Step 3: Generating Output Files ===")
 
     # 1. index.json (legacy format - all ranked proxies)
     with open(output_dir / "index.json", "w") as f:
         json.dump([asdict(p) for p in ranked_proxies], f, indent=2)
-    print(f"✓ Generated index.json ({len(ranked_proxies)} proxies)")
+    print("✓ Generated index.json ({len(ranked_proxies)} proxies)")
 
     # 2. proxies.json (frontend expects this - all ranked proxies!)
     with open(output_dir / "proxies.json", "w") as f:
         json.dump([asdict(p) for p in ranked_proxies], f, indent=2)
-    print(f"✓ Generated proxies.json ({len(ranked_proxies)} proxies)")
+    print("✓ Generated proxies.json ({len(ranked_proxies)} proxies)")
 
     # 3. full/all.json (fallback data for frontend - all ranked)
     full_dir = output_dir / "full"
     full_dir.mkdir(exist_ok=True)
     with open(full_dir / "all.json", "w") as f:
         json.dump([asdict(p) for p in ranked_proxies], f, indent=2)
-    print(f"✓ Generated full/all.json ({len(ranked_proxies)} proxies)")
+    print("✓ Generated full/all.json ({len(ranked_proxies)} proxies)")
 
     # 4. Individual protocol files (*.txt) - from ranked proxies
     proxies_by_protocol = defaultdict(list)
@@ -195,22 +204,22 @@ def merge_batches():
     for protocol, configs in proxies_by_protocol.items():
         with open(output_dir / f"{protocol}.txt", "w") as f:
             f.write("\n".join(configs))
-    print(f"✓ Generated {len(proxies_by_protocol)} protocol files")
+    print("✓ Generated {len(proxies_by_protocol)} protocol files")
 
     # 5. Subscription files (all.txt, base64.txt - from all ranked)
     all_configs = [p.config for p in ranked_proxies]
     if all_configs:
         with open(output_dir / "all.txt", "w") as f:
             f.write("\n".join(all_configs))
-        print(f"✓ Generated all.txt ({len(all_configs)} configs)")
+        print("✓ Generated all.txt ({len(all_configs)} configs)")
 
         base64_subscription_content = generate_base64_subscription(ranked_proxies)
         with open(output_dir / "base64.txt", "w") as f:
             f.write(base64_subscription_content)
-        print(f"✓ Generated base64.txt")
+        print("✓ Generated base64.txt")
 
     # 6. CHOSEN subset files (top 1000 configs)
-    print(f"\n=== Generating CHOSEN Subset Files ===")
+    print("\n=== Generating CHOSEN Subset Files ===")
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
 
@@ -229,7 +238,7 @@ def merge_batches():
     chosen_base64 = generate_base64_subscription(chosen_proxies)
     with open(chosen_dir / "base64.txt", "w") as f:
         f.write(chosen_base64)
-    print(f"✓ Generated chosen/base64.txt")
+    print("✓ Generated chosen/base64.txt")
 
     # chosen/protocols (individual protocol files for chosen)
     chosen_by_protocol = defaultdict(list)
@@ -242,7 +251,7 @@ def merge_batches():
     print(f"✓ Generated {len(chosen_by_protocol)} chosen protocol files")
 
     # 7. statistics.json
-    print(f"\n=== Generating Statistics ===")
+    print("\n=== Generating Statistics ===")
     # Count working proxies (from ranked list)
     working_proxies = sum(1 for p in ranked_proxies if p.is_working)
     working_chosen = sum(1 for p in chosen_proxies if p.is_working)
@@ -262,31 +271,28 @@ def merge_batches():
         # Fields for main page stats card (all ranked proxies)
         "total_tested": len(ranked_proxies),
         "total_working": working_proxies,
-
         # Fields for analytics page charts
         "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
         "countries": dict(sorted(country_counts.items())),
         "asns": dict(sorted(asn_counts.items())),
-
         # Chosen subset stats
         "chosen": {
             "total": len(chosen_proxies),
             "working": working_chosen,
             "protocols": {k: len(v) for k, v in chosen_by_protocol.items()},
         },
-
         # Legacy/compatibility fields (keep for backward compatibility)
         "total_proxies": len(ranked_proxies),
         "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
         "proxies_by_country": dict(sorted(country_counts.items())),
-        "top_10_countries": sorted(
-            country_counts.items(), key=lambda item: item[1], reverse=True
-        )[:10],
+        "top_10_countries": sorted(country_counts.items(), key=lambda item: item[1], reverse=True)[
+            :10
+        ],
     }
 
     with open(output_dir / "statistics.json", "w") as f:
         json.dump(stats, f, indent=2)
-    print(f"✓ Generated statistics.json")
+    print("✓ Generated statistics.json")
 
     # 8. metadata.json
     metadata = {
@@ -297,13 +303,13 @@ def merge_batches():
 
     with open(output_dir / "metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
-    print(f"✓ Generated metadata.json")
+    print("✓ Generated metadata.json")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies")
-    print(f"✅ Ranked all proxies by protocol and latency")
+    print("✅ Ranked all proxies by protocol and latency")
     print(f"✅ Selected top {len(chosen_proxies)} configs (available at output/chosen/)")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
 
 if __name__ == "__main__":
