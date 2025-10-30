@@ -88,7 +88,7 @@ Your site: `https://YOUR\_USERNAME.github.io/ConfigStream/`
 
 
 
-Workflow runs every 6 hours automatically.
+Workflow runs every 4 hours automatically.
 
 
 
@@ -247,5 +247,5 @@ ConfigStream/
 
 
 
-Your ConfigStream will now automatically update every 6 hours with fresh VPN configurations!
+Your ConfigStream will now automatically update every 4 hours with fresh VPN configurations!
 

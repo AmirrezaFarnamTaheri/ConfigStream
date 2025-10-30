@@ -97,21 +97,38 @@ def merge_batches():
             f.write(base64_subscription_content)
 
     # 6. statistics.json
-    stats = {
-        "total_proxies": len(merged_proxies),
-        "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
-        "proxies_by_country": {},
-        "top_10_countries": [],
-    }
+    # Count working proxies
+    working_proxies = sum(1 for p in merged_proxies if p.is_working)
+
+    # Count proxies by country
     country_counts = defaultdict(int)
     for proxy in merged_proxies:
         country_counts[proxy.country] += 1
 
-    if country_counts:
-        stats["proxies_by_country"] = dict(sorted(country_counts.items()))
-        stats["top_10_countries"] = sorted(
+    # Count proxies by ASN
+    asn_counts = defaultdict(int)
+    for proxy in merged_proxies:
+        if proxy.asn:
+            asn_counts[proxy.asn] += 1
+
+    stats = {
+        # Fields for main page stats card
+        "total_tested": len(merged_proxies),
+        "total_working": working_proxies,
+
+        # Fields for analytics page charts
+        "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
+        "countries": dict(sorted(country_counts.items())),
+        "asns": dict(sorted(asn_counts.items())),
+
+        # Legacy/compatibility fields (keep for backward compatibility)
+        "total_proxies": len(merged_proxies),
+        "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
+        "proxies_by_country": dict(sorted(country_counts.items())),
+        "top_10_countries": sorted(
             country_counts.items(), key=lambda item: item[1], reverse=True
-        )[:10]
+        )[:10],
+    }
 
     with open(output_dir / "statistics.json", "w") as f:
         json.dump(stats, f, indent=2)
