@@ -1,0 +1,21 @@
+{
+  "outbounds": [
+    {
+      "type": "ss",
+      "tag": "Test Shadowsocks",
+      "server": "8.8.8.8",
+      "server_port": 8388,
+      "method": "aes-256-gcm",
+      "password": "testpass"
+    },
+    {
+      "type": "vmess",
+      "tag": "Test VMess Proxy",
+      "server": "1.1.1.1",
+      "server_port": 443,
+      "uuid": "12345678-1234-1234-1234-1234567890ab",
+      "network": "ws",
+      "path": "/"
+    }
+  ]
+}
