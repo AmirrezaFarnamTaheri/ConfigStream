@@ -1,15 +1,16 @@
 import json
+import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from dataclasses import asdict
 
-from configstream.models import Proxy
-from configstream.output import generate_base64_subscription
-
-
-# Get the root directory of the project
+# Add src directory to path for imports
 root_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(root_dir / "src"))
+
+from configstream.models import Proxy  # noqa: E402
+from configstream.output import generate_base64_subscription  # noqa: E402
 
 
 def merge_batches():
