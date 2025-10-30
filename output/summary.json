@@ -1,0 +1,13 @@
+{
+  "total_tested": 2,
+  "passed": 0,
+  "rejected": {
+    "total_security_issues": 2,
+    "security_by_category": {
+      "error": 2
+    },
+    "no_response": 0
+  },
+  "by_protocol": {},
+  "by_country": {}
+}
