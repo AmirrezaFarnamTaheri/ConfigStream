@@ -20,6 +20,8 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **Automated Updates Every 4 Hours** via GitHub Actions
 - **Zero manual intervention** required
 - **Cache-busting** ensures clients always get fresh data
+- **570+ curated sources** from public repositories and Telegram channels
+- **Multi-protocol collection** from diverse geographic regions
 
 ### 🔒 Comprehensive Security Testing
 - **Content injection detection** - Filters out proxies that modify page content
@@ -231,15 +233,35 @@ ConfigStream/
 
 ## 📊 Supported Protocols
 
-- ✅ **VMess** - V2Ray's original protocol
-- ✅ **VLESS** - Lightweight V2Ray protocol (including REALITY)
-- ✅ **Shadowsocks** - Fast and secure SOCKS5 proxy
-- ✅ **Trojan** - TLS-based proxy protocol
-- ✅ **Hysteria / Hysteria2** - UDP-based high-performance protocol
-- ✅ **TUIC** - QUIC-based proxy protocol
-- ✅ **WireGuard** - Modern, fast VPN protocol
-- ✅ **Naive** - Censorship-resistant proxy
-- ✅ **HTTP/HTTPS/SOCKS** - Traditional proxy protocols
+ConfigStream supports **20+ VPN protocols** for comprehensive configuration collection:
+
+### Core Protocols
+- ✅ **VMess** - V2Ray's original protocol with multiple transport options
+- ✅ **VLESS** - Lightweight V2Ray protocol (including REALITY support)
+- ✅ **Shadowsocks (SS)** - Fast and secure SOCKS5 proxy with AEAD ciphers
+- ✅ **Shadowsocks 2022 (SS2022)** - Modern Shadowsocks standard with improved security
+- ✅ **ShadowsocksR (SSR)** - Enhanced Shadowsocks with obfuscation
+- ✅ **Trojan** - TLS-based proxy protocol for censorship circumvention
+- ✅ **Trojan-Go** - Enhanced Trojan with WebSocket support
+
+### High-Performance Protocols
+- ✅ **Hysteria** - UDP-based high-performance protocol (v1)
+- ✅ **Hysteria2 (HY2)** - Next-generation Hysteria with improved congestion control
+- ✅ **TUIC** - QUIC-based proxy protocol for low-latency connections
+- ✅ **WireGuard** - Modern, fast VPN protocol with minimal attack surface
+
+### Advanced Protocols
+- ✅ **XRay** - Enhanced V2Ray core with performance optimizations
+- ✅ **XTLS** - Extreme TLS with vision and splice modes
+- ✅ **Naive** - Censorship-resistant proxy based on Chromium network stack
+- ✅ **Snell** - Surge-designed high-performance protocol
+- ✅ **Brook** - Simple cross-platform proxy protocol
+- ✅ **Juicity** - Modern QUIC-based protocol
+
+### Traditional Protocols
+- ✅ **HTTP/HTTPS** - Standard HTTP proxies with CONNECT support
+- ✅ **SOCKS4/SOCKS5** - Classic SOCKS proxy protocols
+- ✅ **SSH** - SSH tunneling support
 
 ## 🧪 Testing
 
@@ -289,10 +311,32 @@ Contributions are welcome! Here's how you can help:
 
 ### Adding New Sources
 
+We welcome community contributions of high-quality configuration sources!
+
+**Current Sources:** 570+ URLs across 6 batch files, including:
+- GitHub repositories with automated updates
+- Telegram channel collectors
+- Protocol-specific aggregators
+- Country-specific configuration lists
+
+**To Add New Sources:**
 1. Fork the repository
-2. Add URLs to `sources.txt` (one per line)
-3. Test locally: `configstream merge --sources sources.txt`
-4. Submit a pull request
+2. Add URLs to appropriate `sources/batch_*.txt` file (one per line)
+3. Ensure sources provide raw configuration strings (not web pages)
+4. Preferred sources:
+   - Auto-updating repositories (updates every 15-60 minutes)
+   - Protocol-specific splits (vmess, vless, trojan, etc.)
+   - Verified and tested configurations
+5. Test locally: `configstream merge --sources sources/batch_1.txt`
+6. Submit a pull request with source description
+
+**Source Quality Guidelines:**
+- ✅ Direct raw.githubusercontent.com URLs
+- ✅ Regularly updated (at least daily)
+- ✅ Multiple protocols supported
+- ✅ Base64 or plain text format
+- ❌ Avoid HTML pages or login-required sources
+- ❌ Avoid single-config sources (prefer bulk lists)
 
 ### Reporting Issues
 
