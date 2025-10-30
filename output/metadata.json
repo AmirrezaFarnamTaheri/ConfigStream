@@ -1,4 +1,54 @@
 {
-  "last_updated_utc": "2025-10-30T18:22:49.489745+00:00",
-  "total_proxies": 0
+  "version": "1.0.0",
+  "generated_at": "2025-10-30T16:17:42.292854+00:00",
+  "updated_at": "2025-10-30T17:01:06.503108+00:00",
+  "proxy_count": 2486,
+  "working_count": 2486,
+  "source_count": 92,
+  "tested_count": 11385,
+  "fallback_available": false,
+  "phase_summaries": [
+    {
+      "phase": 1,
+      "source": "fetched",
+      "fetched": 15000,
+      "parsed": 11512,
+      "tested": 11385,
+      "working": 2486,
+      "new_working": 2486,
+      "cumulative_working": 2486
+    }
+  ],
+  "cache_bust": 1761843666503,
+  "stats": {
+    "generated_at": "2025-10-30T16:17:42.292854+00:00",
+    "generated_now": "2025-10-30T17:01:06.502923+00:00",
+    "total_fetched": 15000,
+    "total_tested": 11385,
+    "total_working": 2486,
+    "total_filtered": 2486,
+    "duplicates_skipped": 2515,
+    "success_rate": 21.84,
+    "average_latency_ms": 1527.85,
+    "protocol_distribution": {
+      "hysteria2": 111,
+      "shadowsocks": 570,
+      "vless": 1782,
+      "vmess": 19,
+      "trojan": 4
+    },
+    "phase_summaries": [
+      {
+        "phase": 1,
+        "source": "fetched",
+        "fetched": 15000,
+        "parsed": 11512,
+        "tested": 11385,
+        "working": 2486,
+        "new_working": 2486,
+        "cumulative_working": 2486
+      }
+    ],
+    "cache_bust": 1761843666502
+  }
 }
