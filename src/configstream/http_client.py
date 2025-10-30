@@ -27,7 +27,9 @@ class CachedDNS_AsyncHTTPTransport(httpx.AsyncHTTPTransport):
         if app_settings.DNS_CACHE_ENABLED:
             host = request.url.host
             cached_ip = await DEFAULT_CACHE.resolve(host)
-            if cached_ip:
+            # Only use cached DNS for HTTP, not HTTPS
+            # HTTPS requires proper hostname for SSL certificate validation
+            if cached_ip and request.url.scheme == "http":
                 # Rebuild the URL with the cached IP, preserving other components
                 url = request.url
                 request.url = url.copy_with(host=cached_ip)
