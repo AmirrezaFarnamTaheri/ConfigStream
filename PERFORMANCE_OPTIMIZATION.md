@@ -546,7 +546,7 @@ class OptimizedProxy:
 
 #### 4.1 Incremental Pipeline
 
-**Current:** Full rebuild every 6 hours
+**Current:** Full rebuild every 4 hours
 **Improved:** Incremental updates
 
 ```python

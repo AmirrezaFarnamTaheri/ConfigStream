@@ -63,7 +63,7 @@ from configstream.fetcher import fetch_from_source
 ### Workflow Optimization
 
 #### CI/CD Performance
-- Runs every 6 hours
+- Runs every 4 hours
 - Typical execution: 25-35 minutes (1000+ proxies)
 - GitHub Actions worker: 2 vCPU, 7GB RAM
 - Optimize: increase workers, reduce proxies, or use faster hardware

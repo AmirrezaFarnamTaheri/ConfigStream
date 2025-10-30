@@ -235,8 +235,7 @@ Supported formats:
 4. **Deployment**: Auto-deploy to GitHub Pages
 
 #### Scheduling
-- **Hourly**: Re-test existing proxies
-- **Every 3 hours**: Fetch new sources and full pipeline
+- **Every 4 hours**: Fetch sources, test proxies, and run full pipeline
 - **On push**: Validation and testing only
 
 ### 10. Known Limitations
