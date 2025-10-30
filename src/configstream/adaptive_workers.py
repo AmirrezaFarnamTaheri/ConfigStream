@@ -1,7 +1,11 @@
 """Adaptive worker scaling based on system resources."""
 
 import os
-import psutil
+
+try:
+    import psutil
+except ImportError:
+    psutil = None  # type: ignore[assignment]
 
 
 def calculate_optimal_workers(max_workers: int = 32, min_workers: int = 8) -> int:
@@ -18,6 +22,10 @@ def calculate_optimal_workers(max_workers: int = 32, min_workers: int = 8) -> in
     try:
         # Get CPU count
         cpu_count = os.cpu_count() or 4
+
+        # If psutil is not available, return a reasonable default
+        if psutil is None:
+            return min(max_workers, cpu_count * 4)
 
         # Get CPU usage (lower usage = more workers available)
         cpu_usage = psutil.cpu_percent(interval=0.1)

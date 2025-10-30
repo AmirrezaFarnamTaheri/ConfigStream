@@ -13,9 +13,7 @@ async def test_hedged_get_fast_response():
     client = MagicMock()
     client.get = AsyncMock(return_value="fast_response")
 
-    ok, response = await hedged_get(
-        client, "http://fast.com", timeout=2, hedge_after=1, headers={}
-    )
+    ok, response = await hedged_get(client, "http://fast.com", timeout=2, hedge_after=1, headers={})
     assert ok
     assert response == "fast_response"
     client.get.assert_called_once()

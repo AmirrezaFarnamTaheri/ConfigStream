@@ -6,7 +6,7 @@ import json
 import sqlite3
 import time
 from pathlib import Path
-from typing import Iterable, Iterator, List, Tuple
+from typing import Any, Iterable, Iterator, List, Tuple
 
 from .async_file_ops import ensure_directory
 
@@ -65,7 +65,7 @@ def reap_stale_processing(conn: sqlite3.Connection, stale_sec: int = 600) -> Non
         )
 
 
-def enqueue_many(conn: sqlite3.Connection, items: Iterable[Tuple[str, dict]]) -> None:
+def enqueue_many(conn: sqlite3.Connection, items: Iterable[Tuple[str, dict[str, Any]]]) -> None:
     now = int(time.time())
     with conn:
         conn.executemany(
@@ -74,7 +74,7 @@ def enqueue_many(conn: sqlite3.Connection, items: Iterable[Tuple[str, dict]]) ->
         )
 
 
-def take_batch(conn: sqlite3.Connection, limit: int = 500) -> List[Tuple[str, dict]]:
+def take_batch(conn: sqlite3.Connection, limit: int = 500) -> List[Tuple[str, dict[str, Any]]]:
     now = int(time.time())
     with conn:
         rows = conn.execute(
@@ -109,7 +109,7 @@ def requeue(conn: sqlite3.Connection, ids: Iterable[str]) -> None:
         )
 
 
-def iter_all(conn: sqlite3.Connection) -> Iterator[dict]:
+def iter_all(conn: sqlite3.Connection) -> Iterator[dict[str, Any]]:
     cursor = conn.execute("SELECT payload FROM jobs WHERE status != 'processing'")
     for row in cursor:
         yield json.loads(row[0])

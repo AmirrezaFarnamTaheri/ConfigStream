@@ -1,6 +1,28 @@
 {
-  "total_proxies": 0,
-  "proxies_by_protocol": {},
-  "proxies_by_country": {},
-  "top_10_countries": []
+  "generated_at": "2025-10-30T06:33:34.779682+00:00",
+  "generated_now": "2025-10-30T06:33:41.303659+00:00",
+  "total_fetched": 3,
+  "total_tested": 3,
+  "total_working": 2,
+  "total_filtered": 2,
+  "duplicates_skipped": 0,
+  "success_rate": 66.67,
+  "average_latency_ms": 75.35,
+  "protocol_distribution": {
+    "ss": 1,
+    "vmess": 1
+  },
+  "phase_summaries": [
+    {
+      "phase": 1,
+      "source": "supplied",
+      "fetched": 3,
+      "parsed": 3,
+      "tested": 3,
+      "working": 2,
+      "new_working": 2,
+      "cumulative_working": 2
+    }
+  ],
+  "cache_bust": 1761806021303
 }

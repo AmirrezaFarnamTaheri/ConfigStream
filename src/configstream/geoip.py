@@ -4,6 +4,7 @@ import logging
 import os
 import tarfile
 from pathlib import Path
+from typing import Any
 
 import aiohttp
 
@@ -68,7 +69,7 @@ class GeoIPManager:
         # Download with timeout
         async with session.get(
             url,
-            timeout=aiohttp.ClientTimeout(total=300),  # type: ignore[call-arg]
+            timeout=aiohttp.ClientTimeout(total=300),
             ssl=True,  # 5 minutes
         ) as response:
             if response.status != 200:
@@ -141,7 +142,7 @@ class GeoIPService:
 
             self.reader = geoip2.database.Reader(str(self.db_path))
 
-    async def geolocate(self, proxy_config) -> dict | None:
+    async def geolocate(self, proxy_config: Any) -> dict[str, Any] | None:
         """
         Geolocate a proxy configuration.
 

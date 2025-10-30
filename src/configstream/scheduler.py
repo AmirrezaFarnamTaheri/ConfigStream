@@ -31,7 +31,7 @@ class RetestScheduler:
         self.proxies_file = Path(proxies_file)
         self.output_dir = output_dir
         self.interval = interval
-        self._task: asyncio.Task | None = None
+        self._task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
 
     async def _load_proxies(self) -> List[Proxy]:

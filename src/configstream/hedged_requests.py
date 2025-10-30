@@ -1,5 +1,4 @@
 import asyncio
-import time
 from typing import Any, Tuple
 
 
@@ -10,9 +9,9 @@ async def hedged_get(
     Performs a GET request, hedging with a second request if the first takes too long.
     Uses a queue to get the first result reliably.
     """
-    q: asyncio.Queue = asyncio.Queue()
+    q: asyncio.Queue[Tuple[int, bool, Any]] = asyncio.Queue()
 
-    async def _once(task_id: int):
+    async def _once(task_id: int) -> None:
         """Wraps the client call and puts the result on the queue."""
         try:
             r = await client.get(url, timeout=timeout, headers=headers)
@@ -25,11 +24,11 @@ async def hedged_get(
 
     # Wait for either the first task to finish or the hedge timer to expire
     try:
-        done, pending = await asyncio.wait(
+        done, _ = await asyncio.wait(
             [task1], timeout=hedge_after, return_when=asyncio.FIRST_COMPLETED
         )
     except asyncio.TimeoutError:
-        done, pending = set(), {task1}
+        done, _ = set(), {task1}
 
     if task1 in done:
         _, ok, result = await q.get()
@@ -45,18 +44,16 @@ async def hedged_get(
         # Wait for the first result from the queue
         task_id, ok, result = await asyncio.wait_for(q.get(), timeout=timeout)
 
-        # Cancel all other tasks
-        for t in tasks:
-            if not t.done():
-                t.cancel()
-        await asyncio.sleep(0) # allow cancellation to propagate
-
         if not ok:
             raise result
 
         return ok, result
-    except (asyncio.TimeoutError, Exception) as e:
-        for t in tasks:
-            t.cancel()
-        await asyncio.sleep(0)
+    except (asyncio.TimeoutError, Exception):
         return False, None
+    finally:
+        # Cancel all tasks and wait for them to finish to prevent resource leaks
+        for t in tasks:
+            if not t.done():
+                t.cancel()
+        # Wait for all tasks to complete their cancellation
+        await asyncio.gather(*tasks, return_exceptions=True)

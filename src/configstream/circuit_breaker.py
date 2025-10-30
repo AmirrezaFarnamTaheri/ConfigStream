@@ -15,15 +15,15 @@ class CircuitBreaker:
         self.recovery_timeout = recovery_timeout
         self.failure_count = 0
         self.state = CircuitBreakerState.CLOSED
-        self.last_failure_time = 0
+        self.last_failure_time: float = 0.0
 
-    def record_failure(self):
+    def record_failure(self) -> None:
         self.failure_count += 1
         if self.failure_count >= self.failure_threshold:
             self.state = CircuitBreakerState.OPEN
             self.last_failure_time = time.monotonic()
 
-    def record_success(self):
+    def record_success(self) -> None:
         self.failure_count = 0
         self.state = CircuitBreakerState.CLOSED
 

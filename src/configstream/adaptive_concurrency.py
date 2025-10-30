@@ -85,7 +85,7 @@ class AIMDController:
         self._min_limit = min_limit
         self._max_limit = max_limit
         self._adjust_interval = adjust_interval
-        self._tuner_task: asyncio.Task | None = None
+        self._tuner_task: asyncio.Task[None] | None = None
 
     def start_tuner(self) -> None:
         """Starts the background task that periodically adjusts concurrency limits."""

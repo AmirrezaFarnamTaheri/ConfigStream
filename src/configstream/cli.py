@@ -4,7 +4,7 @@ import asyncio
 import json
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence
 
 import click
 from rich.console import Console
@@ -44,7 +44,7 @@ def cli() -> None:
     setup_logging(config.LOG_LEVEL, config.MASK_SENSITIVE_DATA)
 
 
-def _display_metrics(metrics: dict) -> None:
+def _display_metrics(metrics: dict[str, Any]) -> None:
     if not metrics:
         return
     console.print("\n[cyan]Performance metrics[/cyan]")
@@ -201,7 +201,8 @@ async def _retest_logic_async(
     # Security: Ensure input file is within the output directory to prevent path traversal
     if output_path not in input_path.parents:
         click.echo(
-            f"Error: Input file {input_path} must be inside the output directory {output_path} for security reasons.",
+            f"Error: Input file {input_path} must be inside the output "
+            f"directory {output_path} for security reasons.",
             err=True,
         )
         raise SystemExit(1)
