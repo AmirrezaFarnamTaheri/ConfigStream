@@ -1,0 +1,30 @@
+{
+  "generated_at": "2025-10-30T16:17:39.817084+00:00",
+  "generated_now": "2025-10-30T16:59:30.718235+00:00",
+  "total_fetched": 15000,
+  "total_tested": 14171,
+  "total_working": 1940,
+  "total_filtered": 1940,
+  "duplicates_skipped": 7866,
+  "success_rate": 13.69,
+  "average_latency_ms": 1235.49,
+  "protocol_distribution": {
+    "shadowsocks": 1562,
+    "vmess": 88,
+    "hysteria2": 24,
+    "vless": 266
+  },
+  "phase_summaries": [
+    {
+      "phase": 1,
+      "source": "fetched",
+      "fetched": 15000,
+      "parsed": 14378,
+      "tested": 14171,
+      "working": 1940,
+      "new_working": 1940,
+      "cumulative_working": 1940
+    }
+  ],
+  "cache_bust": 1761843570718
+}

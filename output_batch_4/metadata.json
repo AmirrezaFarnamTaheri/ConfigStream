@@ -1,0 +1,54 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-10-30T16:17:40.680619+00:00",
+  "updated_at": "2025-10-30T17:09:26.172557+00:00",
+  "proxy_count": 2874,
+  "working_count": 2874,
+  "source_count": 94,
+  "tested_count": 14078,
+  "fallback_available": false,
+  "phase_summaries": [
+    {
+      "phase": 1,
+      "source": "fetched",
+      "fetched": 15000,
+      "parsed": 14174,
+      "tested": 14078,
+      "working": 2874,
+      "new_working": 2874,
+      "cumulative_working": 2874
+    }
+  ],
+  "cache_bust": 1761844166172,
+  "stats": {
+    "generated_at": "2025-10-30T16:17:40.680619+00:00",
+    "generated_now": "2025-10-30T17:09:26.172365+00:00",
+    "total_fetched": 15000,
+    "total_tested": 14078,
+    "total_working": 2874,
+    "total_filtered": 2874,
+    "duplicates_skipped": 1655,
+    "success_rate": 20.41,
+    "average_latency_ms": 1343.65,
+    "protocol_distribution": {
+      "shadowsocks": 884,
+      "vless": 1513,
+      "vmess": 463,
+      "trojan": 5,
+      "hysteria2": 9
+    },
+    "phase_summaries": [
+      {
+        "phase": 1,
+        "source": "fetched",
+        "fetched": 15000,
+        "parsed": 14174,
+        "tested": 14078,
+        "working": 2874,
+        "new_working": 2874,
+        "cumulative_working": 2874
+      }
+    ],
+    "cache_bust": 1761844166172
+  }
+}

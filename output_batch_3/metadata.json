@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-10-30T16:17:39.817084+00:00",
+  "updated_at": "2025-10-30T16:59:30.718441+00:00",
+  "proxy_count": 1940,
+  "working_count": 1940,
+  "source_count": 93,
+  "tested_count": 14171,
+  "fallback_available": false,
+  "phase_summaries": [
+    {
+      "phase": 1,
+      "source": "fetched",
+      "fetched": 15000,
+      "parsed": 14378,
+      "tested": 14171,
+      "working": 1940,
+      "new_working": 1940,
+      "cumulative_working": 1940
+    }
+  ],
+  "cache_bust": 1761843570718,
+  "stats": {
+    "generated_at": "2025-10-30T16:17:39.817084+00:00",
+    "generated_now": "2025-10-30T16:59:30.718235+00:00",
+    "total_fetched": 15000,
+    "total_tested": 14171,
+    "total_working": 1940,
+    "total_filtered": 1940,
+    "duplicates_skipped": 7866,
+    "success_rate": 13.69,
+    "average_latency_ms": 1235.49,
+    "protocol_distribution": {
+      "shadowsocks": 1562,
+      "vmess": 88,
+      "hysteria2": 24,
+      "vless": 266
+    },
+    "phase_summaries": [
+      {
+        "phase": 1,
+        "source": "fetched",
+        "fetched": 15000,
+        "parsed": 14378,
+        "tested": 14171,
+        "working": 1940,
+        "new_working": 1940,
+        "cumulative_working": 1940
+      }
+    ],
+    "cache_bust": 1761843570718
+  }
+}
