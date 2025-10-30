@@ -221,7 +221,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(data): update outputs from all batches"
-          file_pattern: "output/ output_batch_*/"
+          file_pattern: "output/"
           push_options: '--force'
           add_options: '-f'
 
