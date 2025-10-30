@@ -234,6 +234,27 @@ def _parse_ss(config: str) -> Optional[Proxy]:
         return None
 
 
+def _parse_ss2022(config: str) -> Optional[Proxy]:
+    """Parse a Shadowsocks 2022 (ss2022://) URL - uses same format as SS."""
+    try:
+        if not config.startswith("ss2022://"):
+            return None
+
+        # Convert ss2022:// to ss:// format for parsing
+        ss_config = "ss://" + config[9:]
+        proxy = _parse_ss(ss_config)
+
+        if proxy:
+            # Update the original config and protocol
+            proxy.config = config
+            proxy.protocol = "ss2022"
+
+        return proxy
+    except Exception as e:
+        logger.debug(f"Failed to parse Shadowsocks 2022: {e}")
+        return None
+
+
 def _parse_trojan(config: str) -> Optional[Proxy]:
     try:
         parsed = urlparse(config)
