@@ -29,12 +29,16 @@ def merge_batches():
             print(f"Info: Batch directory {batch_dir} not found. Skipping.")
             continue
 
-        index_file = batch_dir / "index.json"
-        if not index_file.exists():
-            print(f"Info: index.json not found in {batch_dir}. Skipping.")
+        # Try proxies.json first (new format), then fallback to index.json (old format)
+        proxies_file = batch_dir / "proxies.json"
+        if not proxies_file.exists():
+            proxies_file = batch_dir / "index.json"
+
+        if not proxies_file.exists():
+            print(f"Info: Neither proxies.json nor index.json found in {batch_dir}. Skipping.")
             continue
 
-        with open(index_file, "r") as f:
+        with open(proxies_file, "r") as f:
             try:
                 proxies_data = json.load(f)
                 for proxy_data in proxies_data:
@@ -43,7 +47,7 @@ def merge_batches():
                     if proxy.config not in all_proxies_map:
                         all_proxies_map[proxy.config] = proxy
             except (json.JSONDecodeError, TypeError) as e:
-                print(f"Warning: Could not process {index_file}. Error: {e}. Skipping.")
+                print(f"Warning: Could not process {proxies_file}. Error: {e}. Skipping.")
 
     merged_proxies = list(all_proxies_map.values())
 
@@ -58,11 +62,21 @@ def merge_batches():
 
     # --- Regenerate output files ---
 
-    # 1. index.json
+    # 1. index.json (legacy format)
     with open(output_dir / "index.json", "w") as f:
         json.dump([asdict(p) for p in merged_proxies], f, indent=2)
 
-    # 2. Individual protocol files (*.txt)
+    # 2. proxies.json (frontend expects this!)
+    with open(output_dir / "proxies.json", "w") as f:
+        json.dump([asdict(p) for p in merged_proxies], f, indent=2)
+
+    # 3. full/all.json (fallback data for frontend)
+    full_dir = output_dir / "full"
+    full_dir.mkdir(exist_ok=True)
+    with open(full_dir / "all.json", "w") as f:
+        json.dump([asdict(p) for p in merged_proxies], f, indent=2)
+
+    # 4. Individual protocol files (*.txt)
     proxies_by_protocol = defaultdict(list)
     for proxy in merged_proxies:
         proxies_by_protocol[proxy.protocol].append(proxy.config)
@@ -72,7 +86,7 @@ def merge_batches():
             # Corrected newline bug
             f.write("\n".join(configs))
 
-    # 3. Subscription files (all.txt, base64.txt, etc.)
+    # 5. Subscription files (all.txt, base64.txt, etc.)
     all_configs = [p.config for p in merged_proxies]
     if all_configs:
         with open(output_dir / "all.txt", "w") as f:
@@ -82,7 +96,7 @@ def merge_batches():
         with open(output_dir / "base64.txt", "w") as f:
             f.write(base64_subscription_content)
 
-    # 4. statistics.json
+    # 6. statistics.json
     stats = {
         "total_proxies": len(merged_proxies),
         "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
@@ -102,7 +116,7 @@ def merge_batches():
     with open(output_dir / "statistics.json", "w") as f:
         json.dump(stats, f, indent=2)
 
-    # 5. metadata.json
+    # 7. metadata.json
     metadata = {
         "last_updated_utc": datetime.now(timezone.utc).isoformat(),
         "total_proxies": len(merged_proxies),
