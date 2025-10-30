@@ -99,7 +99,11 @@ def test_parse_ss_plain():
 
 def test_parse_ssr_known_good():
     # This is a real-world example of a valid SSR config.
-    config = "ssr://MjA3LjI0Ni4xMDYuMjI3OjgwOTk6YXV0aF9hZXMxMjhfbWQ1OmFlcy0yNTYtY2ZiOnRsczEuMl90aWNrZXRfYXV0aDpNakV4TXpZNU5qVTAvP29iZnNwYXJhbT1kWE5sY201aGJpNWpiMjAmcHJvdG9wYXJhbT1NVGd6T0RrNU9URTUmcmVtYXJrcz1kM2QzJmdyb3VwPWQzZDM"
+    config = (
+        "ssr://MjA3LjI0Ni4xMDYuMjI3OjgwOTk6YXV0aF9hZXMxMjhfbWQ1OmFlcy0yNTYtY2ZiOnRsczEuMl90aWNr"
+        "ZXRfYXV0aDpNakV4TXpZNU5qVTAvP29iZnNwYXJhbT1kWE5sY201aGJpNWpiMjAmcHJvdG9wYXJhbT1NVGd6"
+        "T0RrNU9URTUmcmVtYXJrcz1kM2QzJmdyb3VwPWQzZDM"
+    )
     proxy = _parse_ssr(config)
     assert proxy is not None
     assert proxy.protocol == "ssr"
@@ -132,7 +136,10 @@ def test_parse_ssr_urlsafe_base64():
 def test_parse_ssr_plain_text_params():
     # The new parser should not fail if a parameter is not valid base64.
     # It should be passed through as-is. This is the opposite of the old test.
-    config = "ssr://MS4yLjMuNDo4ODg4OmF1dGhfYWVzMTI4X3NoYTE6YWVzLTI1Ni1jZmI6dGxzMS4yX3RpY2tldF9hdXRoOlBhc3N3b3JkLz9yZW1hcmtzPVJlbWFyayZvYmZzcGFyYW09aW52YWxpZCE"
+    config = (
+        "ssr://MS4yLjMuNDo4ODg4OmF1dGhfYWVzMTI4X3NoYTE6YWVzLTI1Ni1jZmI6dGxzMS4yX3RpY2tldF9hdXRo"
+        "OlBhc3N3b3JkLz9yZW1hcmtzPVJlbWFyayZvYmZzcGFyYW09aW52YWxpZCE"
+    )
     proxy = _parse_ssr(config)
     assert proxy is not None
     assert proxy.remarks == "E隮"

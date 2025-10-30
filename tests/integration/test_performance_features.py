@@ -34,11 +34,11 @@ async def test_hedge_integration():
 
     respx.get(url).mock(side_effect=slow_side_effect)
 
-    with patch("configstream.config.AppSettings.HEDGING_ENABLED", True), patch(
-        "configstream.config.AppSettings.HEDGE_AFTER_MS", hedge_after_ms
-    ), patch(
-        "configstream.fetcher.hedged_get", new_callable=AsyncMock
-    ) as mock_hedged_get:
+    with (
+        patch("configstream.config.AppSettings.HEDGING_ENABLED", True),
+        patch("configstream.config.AppSettings.HEDGE_AFTER_MS", hedge_after_ms),
+        patch("configstream.fetcher.hedged_get", new_callable=AsyncMock) as mock_hedged_get,
+    ):
         mock_hedged_get.return_value = (None, httpx.Response(200, text="vmess://config"))
         async with httpx.AsyncClient() as client:
             await fetch_from_source(client, url)
@@ -56,17 +56,17 @@ async def test_circuit_breaker_integration():
     failure_threshold = 3
     recovery_timeout = 10
 
-    with patch("configstream.config.AppSettings.CIRCUIT_BREAKER_ENABLED", True), patch(
-        "configstream.config.AppSettings.CIRCUIT_TRIP_CONN_ERRORS", failure_threshold
-    ), patch("configstream.config.AppSettings.CIRCUIT_OPEN_SEC", recovery_timeout):
+    with (
+        patch("configstream.config.AppSettings.CIRCUIT_BREAKER_ENABLED", True),
+        patch("configstream.config.AppSettings.CIRCUIT_TRIP_CONN_ERRORS", failure_threshold),
+        patch("configstream.config.AppSettings.CIRCUIT_OPEN_SEC", recovery_timeout),
+    ):
         breaker_manager = CircuitBreakerManager(
             failure_threshold=failure_threshold, recovery_timeout=recovery_timeout
         )
         async with httpx.AsyncClient() as client:
             for _ in range(failure_threshold):
-                await fetch_from_source(
-                    client, url, breaker_manager=breaker_manager, max_retries=1
-                )
+                await fetch_from_source(client, url, breaker_manager=breaker_manager, max_retries=1)
             breaker = breaker_manager.get_breaker(host)
             assert breaker.is_open
             result = await fetch_from_source(

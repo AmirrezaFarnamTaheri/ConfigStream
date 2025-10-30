@@ -5,7 +5,7 @@ This module prioritizes testing proxies with known good performance
 to ensure the best proxies are always available quickly.
 """
 
-from typing import List
+from typing import Any, List
 from .models import Proxy
 from .test_cache import TestResultCache
 
@@ -38,7 +38,7 @@ def warm_cache(cache: TestResultCache, proxies: List[Proxy]) -> List[Proxy]:
     return [p for p, _ in cached if _ > 70] + uncached + [p for p, s in cached if s <= 70]
 
 
-def get_cache_warming_strategy(total_proxies: int) -> dict:
+def get_cache_warming_strategy(total_proxies: int) -> dict[str, Any]:
     """
     Get recommended cache warming strategy based on proxy count.
 

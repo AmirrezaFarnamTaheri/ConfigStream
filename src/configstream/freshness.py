@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 
 def apply_ttl(
-    proxy, now: datetime | None = None, ttl_hours: int = 24, drop_hours: int = 48
+    proxy: Any, now: datetime | None = None, ttl_hours: int = 24, drop_hours: int = 48
 ) -> bool:
     """Mark ``proxy`` stale depending on the age of ``tested_at``.
 

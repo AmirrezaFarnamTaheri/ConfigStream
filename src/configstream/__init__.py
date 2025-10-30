@@ -18,12 +18,32 @@ if sys.platform.startswith("win"):
     except AttributeError:  # pragma: no cover - non-Windows platforms
         pass
 
-# Import key components to be available at the package level
-from .models import Proxy
-from .testers import SingBoxTester
-from .core import parse_config
-from .pipeline import run_full_pipeline
-from .config import AppSettings
+
+# Lazy imports to avoid loading heavy dependencies when not needed
+def __getattr__(name):
+    """Lazy loading of package components to avoid unnecessary imports."""
+    if name == "Proxy":
+        from .models import Proxy
+
+        return Proxy
+    elif name == "SingBoxTester":
+        from .testers import SingBoxTester
+
+        return SingBoxTester
+    elif name == "parse_config":
+        from .core import parse_config
+
+        return parse_config
+    elif name == "run_full_pipeline":
+        from .pipeline import run_full_pipeline
+
+        return run_full_pipeline
+    elif name == "AppSettings":
+        from .config import AppSettings
+
+        return AppSettings
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
 
 # Define the public API of the package
 __all__ = [

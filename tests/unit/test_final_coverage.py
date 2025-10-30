@@ -26,7 +26,7 @@ def test_additional_parser_edge_cases():
     text = """
     # Comment line
     vmess://config1
-    
+
     vless://config2
     # Another comment
     """

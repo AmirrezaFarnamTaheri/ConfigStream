@@ -1,9 +1,12 @@
 import base64
 import json
 from pathlib import Path
-from typing import Dict, List, cast
+from typing import Any, Dict, List
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None  # type: ignore[assignment]
 
 from .models import Proxy
 from .selection import select_chosen_proxies, get_selection_stats
@@ -39,7 +42,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
     connectivity_failed = [p for p in all_proxies if not p.is_working and not p.security_issues]
 
     # Helper function to serialize proxy to dict
-    def proxy_to_dict(proxy: Proxy) -> Dict:
+    def proxy_to_dict(proxy: Proxy) -> Dict[str, Any]:
         return {
             "config": proxy.config,
             "protocol": proxy.protocol,
@@ -155,6 +158,10 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
 
 
 def generate_clash_config(proxies: List[Proxy]) -> str:
+    # If yaml is not available, return empty config
+    if yaml is None:
+        return ""
+
     working_proxies = [p for p in proxies if p.is_working]
     clash_proxies = []
     for proxy in working_proxies:
@@ -181,7 +188,7 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
             ],
         }
     )
-    return cast(str, clash_yaml)
+    return clash_yaml
 
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
