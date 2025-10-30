@@ -89,3 +89,13 @@ https://raw.githubusercontent.com/NiREvil/vless/main/sub/reality
 https://raw.githubusercontent.com/10ium/ScrapeAndCategorize/refs/heads/main/output_configs/Vietnam.txt
 https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/mixed_iran.txt
 https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub8.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/Splitted-By-Protocol/vmess.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/Splitted-By-Protocol/vless.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/Splitted-By-Protocol/trojan.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/Splitted-By-Protocol/ss.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/Splitted-By-Protocol/ssr.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub1_shuffled.conf
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub2_shuffled.conf
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub5_shuffled.conf
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub10_shuffled.conf
+https://raw.githubusercontent.com/4n0nymou3/multi-proxy-config-fetcher/refs/heads/main/configs/singbox_configs.json
