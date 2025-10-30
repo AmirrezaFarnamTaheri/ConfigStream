@@ -179,7 +179,8 @@ async def fetch_from_source(
         nonlocal last_error, backoff
 
         for attempt in range(max_retries):
-            start_time = asyncio.get_event_loop().time()
+            loop = asyncio.get_running_loop()
+            start_time = loop.time()
             success = False
             response_time: float = float(
                 timeout
@@ -207,7 +208,7 @@ async def fetch_from_source(
                         source, headers=headers, timeout=timeout, follow_redirects=True
                     )
 
-                response_time = asyncio.get_event_loop().time() - start_time
+                response_time = loop.time() - start_time
 
                 if is_aiohttp_client:
                     status_code = response.status
