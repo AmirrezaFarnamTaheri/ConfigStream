@@ -44,18 +44,16 @@ async def hedged_get(
         # Wait for the first result from the queue
         task_id, ok, result = await asyncio.wait_for(q.get(), timeout=timeout)
 
-        # Cancel all other tasks
-        for t in tasks:
-            if not t.done():
-                t.cancel()
-        await asyncio.sleep(0)  # allow cancellation to propagate
-
         if not ok:
             raise result
 
         return ok, result
     except (asyncio.TimeoutError, Exception):
-        for t in tasks:
-            t.cancel()
-        await asyncio.sleep(0)
         return False, None
+    finally:
+        # Cancel all tasks and wait for them to finish to prevent resource leaks
+        for t in tasks:
+            if not t.done():
+                t.cancel()
+        # Wait for all tasks to complete their cancellation
+        await asyncio.gather(*tasks, return_exceptions=True)

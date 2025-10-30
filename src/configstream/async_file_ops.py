@@ -144,7 +144,7 @@ async def write_file_async(
         logger.debug(f"Writing {len(content)} bytes to {path}")
         path.write_text(content, encoding=encoding)
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
 
     try:
         await loop.run_in_executor(FILE_IO_POOL, write_sync)
@@ -260,7 +260,7 @@ async def file_exists_async(file_path: str | Path) -> bool:
     def exists_sync() -> bool:
         return path.exists()
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(FILE_IO_POOL, exists_sync)
 
 
@@ -289,7 +289,7 @@ async def list_files_async(directory: str | Path, pattern: str = "*") -> List[Pa
         # glob() returns an iterator, we convert to list
         return list(dir_path.glob(pattern))
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(FILE_IO_POOL, list_sync)
 
 

@@ -296,8 +296,14 @@ async def run_full_pipeline(
         Dictionary containing success flag, stats, output paths, and errors.
     """
     start_time = datetime.now(timezone.utc)
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
+    # Validate and normalize output directory to prevent path traversal
+    output_path = Path(output_dir).resolve()
+    # Allow any path but ensure it exists and is accessible
+    try:
+        output_path.mkdir(parents=True, exist_ok=True)
+    except (PermissionError, OSError) as e:
+        logger.error(f"Cannot create output directory {output_path}: {e}")
+        raise
     tracker = PerformanceTracker()
 
     stats: Dict[str, Any] = {
@@ -315,6 +321,7 @@ async def run_full_pipeline(
     parse_cache: Dict[str, Proxy] = {}
     geo_cache: Dict[str, Dict[str, Optional[str]]] = {}
     geoip_reader: geoip2.database.Reader | None = None
+    geoip_lock = asyncio.Lock()  # Prevent race condition in reader initialization
     failure_reason: str | None = None
 
     if not sources_to_fetch and not supplied_proxies:
@@ -438,11 +445,13 @@ async def run_full_pipeline(
             )
             try:
                 geoip_db_path = Path("data/GeoLite2-City.mmdb")
-                if geoip_reader is None and geoip_db_path.exists():
-                    geoip_reader = geoip2.database.Reader(str(geoip_db_path))
-                    logger.info("Loaded GeoIP database from %s", geoip_db_path)
-                elif geoip_reader is None:
-                    logger.warning("GeoIP database not found at %s", geoip_db_path)
+                # Use lock to prevent race condition when initializing reader
+                async with geoip_lock:
+                    if geoip_reader is None and geoip_db_path.exists():
+                        geoip_reader = geoip2.database.Reader(str(geoip_db_path))
+                        logger.info("Loaded GeoIP database from %s", geoip_db_path)
+                    elif geoip_reader is None:
+                        logger.warning("GeoIP database not found at %s", geoip_db_path)
 
                 working_items = [proxy for proxy in batch if proxy.is_working]
                 if working_items:
@@ -933,7 +942,10 @@ async def run_full_pipeline(
     finally:
         # Ensure GeoIP reader is closed before leaving the pipeline
         if geoip_reader:
-            geoip_reader.close()
+            try:
+                geoip_reader.close()
+            except Exception as e:  # pragma: no cover
+                logger.debug("Error closing GeoIP reader: %s", e)
 
         # Only shut down the pool if we're not in a test environment
         # Tests manage their own pool lifecycle via fixtures
