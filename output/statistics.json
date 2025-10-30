@@ -103,6 +103,17 @@
     "Vietnam": 363
   },
   "asns": {},
+  "chosen": {
+    "total": 1000,
+    "working": 1000,
+    "protocols": {
+      "shadowsocks": 227,
+      "hysteria2": 50,
+      "vless": 646,
+      "vmess": 51,
+      "trojan": 26
+    }
+  },
   "total_proxies": 8594,
   "proxies_by_protocol": {
     "shadowsocks": 3353,
