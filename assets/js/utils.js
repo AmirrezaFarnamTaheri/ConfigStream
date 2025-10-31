@@ -402,6 +402,7 @@ function formatTimestamp(timestamp, format = 'MM/DD/YYYY HH:mm:ss') {
  * @param {string} options.method - 'textContent' or 'innerHTML'
  * @param {boolean} options.clearFirst - Clear existing content first
  * @param {boolean} options.throwError - Throw errors instead of logging
+ * @param {boolean} options.trustedHTML - Skip sanitization for trusted internal HTML
  * @returns {boolean} Success indicator
  */
 function updateElement(selector, content, options = {}) {
@@ -409,7 +410,8 @@ function updateElement(selector, content, options = {}) {
   const {
     method = 'textContent',
     clearFirst = false,
-    throwError = false
+    throwError = false,
+    trustedHTML = false
   } = options;
 
   // Step 1: Validate selector
@@ -455,9 +457,13 @@ function updateElement(selector, content, options = {}) {
   try {
     if (method === 'innerHTML') {
       // WARNING: innerHTML can execute scripts if content contains malicious HTML
-      // Only use this for trusted content
-      const sanitized = sanitizeHTML(String(content));
-      element.innerHTML = sanitized;
+      // Only use trustedHTML for internal, verified content
+      if (trustedHTML) {
+        element.innerHTML = String(content);
+      } else {
+        const sanitized = sanitizeHTML(String(content));
+        element.innerHTML = sanitized;
+      }
     } else if (method === 'textContent') {
       // Safe: textContent automatically escapes HTML
       element.textContent = String(content);
