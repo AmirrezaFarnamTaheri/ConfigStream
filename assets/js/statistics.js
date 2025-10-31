@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return metrics;
     }
 
-    function updateSummaryStats(stats, proxies) {
+    function updateSummaryStats(stats, proxies, metadata) {
         // Update summary statistics
         if (stats.total_proxies !== undefined) {
             updateElement('#totalProxies', stats.total_proxies.toLocaleString());
@@ -81,21 +81,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const metrics = calculateMetrics(stats, proxies);
 
         if (metrics.avgLatency !== undefined) {
-            updateElement('#avgLatency', `${metrics.avgLatency}<span class="metric-unit">ms</span>`, { method: 'innerHTML' });
+            updateElement('#avgLatency', `${metrics.avgLatency}<span class="metric-unit">ms</span>`, { method: 'innerHTML', trustedHTML: true });
         }
 
         if (metrics.successRate !== undefined) {
-            updateElement('#successRate', `${metrics.successRate}<span class="metric-unit">%</span>`, { method: 'innerHTML' });
+            updateElement('#successRate', `${metrics.successRate}<span class="metric-unit">%</span>`, { method: 'innerHTML', trustedHTML: true });
         }
 
         // Update last updated time
-        const now = new Date();
-        updateElement('#lastUpdated', now.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }));
+        if (metadata && metadata.generated_at) {
+            const date = new Date(metadata.generated_at);
+            const formattedTime = date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            updateElement('#lastUpdated', formattedTime);
+
+            // Also update footer timestamp
+            const footerTimestamp = formatTimestamp(date);
+            updateElement('#footerUpdate', footerTimestamp);
+        } else {
+            // Fallback to current time if metadata is not available
+            const now = new Date();
+            const formattedTime = now.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            updateElement('#lastUpdated', formattedTime);
+            const footerTimestamp = formatTimestamp(now);
+            updateElement('#footerUpdate', footerTimestamp);
+        }
     }
 
     function updateInsights(stats, proxies) {
@@ -139,10 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function renderCharts() {
         try {
-            const [stats, history, proxies] = await Promise.all([
+            const [stats, history, proxies, metadata] = await Promise.all([
                 fetchStatistics(),
                 fetchProxyHistory(),
-                fetchProxies()
+                fetchProxies(),
+                fetchMetadata()
             ]);
 
             // Store for later use
@@ -156,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Update summary stats and insights
-            updateSummaryStats(stats, proxies);
+            updateSummaryStats(stats, proxies, metadata);
             updateInsights(stats, proxies);
 
             chartsContainer.classList.remove('hidden');
