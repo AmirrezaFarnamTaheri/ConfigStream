@@ -101,9 +101,43 @@
 
     <main>
         <div class="container">
-            <section id="charts-card" class="card">
+            <!-- Summary Statistics Cards -->
+            <section class="stats-card" style="--delay: 0.1s;">
+                <div class="stats-card-inner">
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="totalProxies" class="stat-value loading">0</div>
+                            <div class="stat-label">Total Proxies</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="check-circle"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="workingProxies" class="stat-value loading">0</div>
+                            <div class="stat-label">Working Proxies</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="globe"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="totalCountries" class="stat-value loading">0</div>
+                            <div class="stat-label">Countries</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="activity"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="totalProtocols" class="stat-value loading">0</div>
+                            <div class="stat-label">Protocols</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="charts-card" class="card" style="--delay: 0.2s;">
                 <div class="card-header">
-                    <h2>Analytics</h2>
+                    <h2>Analytics Dashboard</h2>
                     <p>Discover trends in our proxy data, from protocol distribution to the top countries in our network.</p>
                 </div>
 

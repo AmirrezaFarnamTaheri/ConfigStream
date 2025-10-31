@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": "2025-10-29T22:00:00Z",
+    "working": 8421,
+    "tested": 8891,
+    "success_rate": 94.7
+  },
+  {
+    "timestamp": "2025-10-30T02:00:00Z",
+    "working": 8389,
+    "tested": 8756,
+    "success_rate": 95.8
+  },
+  {
+    "timestamp": "2025-10-30T06:00:00Z",
+    "working": 8456,
+    "tested": 8823,
+    "success_rate": 95.8
+  },
+  {
+    "timestamp": "2025-10-30T10:00:00Z",
+    "working": 8512,
+    "tested": 8892,
+    "success_rate": 95.7
+  },
+  {
+    "timestamp": "2025-10-30T14:00:00Z",
+    "working": 8478,
+    "tested": 8845,
+    "success_rate": 95.9
+  },
+  {
+    "timestamp": "2025-10-30T18:00:00Z",
+    "working": 8594,
+    "tested": 8594,
+    "success_rate": 100.0
+  }
+]
