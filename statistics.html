@@ -281,6 +281,38 @@
                             <canvas id="timeChart" role="img" aria-label="Line chart showing the number of working proxies over time"></canvas>
                         </div>
                     </div>
+
+                    <!-- Latency Distribution -->
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h3>Latency Distribution</h3>
+                                    <p class="chart-desc">Response time distribution across proxies</p>
+                                </div>
+                                <button class="chart-action" aria-label="Export chart data">
+                                    <i data-feather="more-vertical"></i>
+                                </button>
+                            </div>
+                            <canvas id="latencyChart" role="img" aria-label="Histogram showing latency distribution"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Protocol Performance Comparison -->
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h3>Protocol Performance</h3>
+                                    <p class="chart-desc">Average latency by protocol type</p>
+                                </div>
+                                <button class="chart-action" aria-label="Export chart data">
+                                    <i data-feather="more-vertical"></i>
+                                </button>
+                            </div>
+                            <canvas id="protocolPerformanceChart" role="img" aria-label="Bar chart comparing protocol performance"></canvas>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="chartsEmptyState" class="empty-state hidden">

@@ -92,3 +92,12 @@ https://raw.githubusercontent.com/Misaka-blog/chromego_merge/main/sub/merged_pro
 https://raw.githubusercontent.com/10ium/ScrapeAndCategorize/refs/heads/main/output_configs/CostaRica.txt
 https://raw.githubusercontent.com/HosseinKoofi/GO_V2rayCollector/main/vless_iran.txt
 https://raw.githubusercontent.com/10ium/ScrapeAndCategorize/refs/heads/main/output_configs/Samoa.txt
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/trojan.txt
+https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/all.txt
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/hysteria.txt
+https://raw.githubusercontent.com/ircfspace/tconfig/refs/heads/main/vmess
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/vless.txt
+https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/trojan.txt
+https://raw.githubusercontent.com/ircfspace/tconfig/refs/heads/main/vless
+https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/vmess.txt
+https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/vless.txt

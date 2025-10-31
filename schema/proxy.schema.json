@@ -2,18 +2,41 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ConfigStream Proxy",
   "type": "object",
-  "required": ["id", "scheme", "host", "port", "config"],
+  "required": ["config", "protocol", "address", "port"],
   "properties": {
-    "id": {"type": "string"},
-    "scheme": {"type": "string"},
-    "host": {"type": "string"},
+    "config": {"type": "string", "minLength": 1},
+    "protocol": {"type": "string", "minLength": 1},
+    "address": {"type": "string", "minLength": 1},
     "port": {"type": "integer", "minimum": 1, "maximum": 65535},
-    "config": {"type": "string"},
+    "uuid": {"type": "string"},
     "remarks": {"type": "string"},
+    "country": {"type": "string"},
+    "country_code": {"type": "string"},
+    "city": {"type": "string"},
+    "asn": {"type": "string"},
+    "latency": {"type": ["number", "null"]},
+    "is_working": {"type": "boolean"},
+    "is_secure": {"type": "boolean"},
+    "security_issues": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string"}
+      }
+    },
+    "tested_at": {"type": "string"},
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "throughput_kbps": {"type": ["integer", "null"]},
+    "dns_over_https_ok": {"type": ["boolean", "null"]},
+    "age_seconds": {"type": "integer"},
+    "stale": {"type": "boolean"},
     "scores": {
       "type": "object",
       "additionalProperties": {"type": "number"}
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }
