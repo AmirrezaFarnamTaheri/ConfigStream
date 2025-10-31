@@ -1,31 +1,31 @@
 {
-  "generated_at": "2025-10-31T17:34:28.098423+00:00",
-  "generated_now": "2025-10-31T19:17:04.993285+00:00",
-  "total_fetched": 8016,
-  "total_tested": 8016,
-  "total_working": 7656,
-  "total_filtered": 7656,
+  "generated_at": "2025-10-31T19:27:38.867107+00:00",
+  "generated_now": "2025-10-31T21:00:37.693284+00:00",
+  "total_fetched": 7656,
+  "total_tested": 7656,
+  "total_working": 7390,
+  "total_filtered": 7390,
   "duplicates_skipped": 0,
-  "success_rate": 95.51,
-  "average_latency_ms": 1228.13,
+  "success_rate": 96.53,
+  "average_latency_ms": 1173.19,
   "protocol_distribution": {
-    "vmess": 503,
-    "vless": 3972,
-    "shadowsocks": 3027,
+    "vmess": 480,
+    "vless": 3820,
+    "shadowsocks": 2940,
     "hysteria2": 130,
-    "trojan": 24
+    "trojan": 20
   },
   "phase_summaries": [
     {
       "phase": 1,
       "source": "supplied",
-      "fetched": 8016,
-      "parsed": 8016,
-      "tested": 8016,
-      "working": 7656,
-      "new_working": 7656,
-      "cumulative_working": 7656
+      "fetched": 7656,
+      "parsed": 7656,
+      "tested": 7656,
+      "working": 7390,
+      "new_working": 7390,
+      "cumulative_working": 7390
     }
   ],
-  "cache_bust": 1761938224993
+  "cache_bust": 1761944437693
 }
