@@ -99,3 +99,5 @@ https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/
 https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub5_shuffled.conf
 https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub10_shuffled.conf
 https://raw.githubusercontent.com/4n0nymou3/multi-proxy-config-fetcher/refs/heads/main/configs/singbox_configs.json
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub5.txt
+https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Splitted-By-Protocol/trojan.txt

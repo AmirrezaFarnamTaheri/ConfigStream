@@ -92,3 +92,12 @@ https://raw.githubusercontent.com/yebekhe/ConfigCollector/main/hysteria/mix
 https://raw.githubusercontent.com/Epodonios/v2ray-configs/refs/heads/main/Sub6.txt
 https://raw.githubusercontent.com/Created-By/Telegram-Eag1e_YT/refs/heads/main/%40Eag1e_YT
 https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity
+https://raw.githubusercontent.com/Raad63/telegram-configs-collector-sub/refs/heads/main/vmess.txt
+https://raw.githubusercontent.com/ndsphonemy/TG-Proxy-Parser/refs/heads/main/all.txt
+https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/shadowsocks.txt
+https://raw.githubusercontent.com/ircfspace/tconfig/refs/heads/main/ss
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/vmess.txt
+https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/trojan.txt
+https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Splitted-By-Protocol/vless.txt
+https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/wireguard.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub4.txt

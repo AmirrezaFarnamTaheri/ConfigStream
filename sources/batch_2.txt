@@ -93,3 +93,11 @@ https://github.com/4n0nymou3/multi-proxy-config-fetcher/raw/refs/heads/main/conf
 https://raw.githubusercontent.com/vveg26/chromego_merge/refs/heads/main/sub/merged_proxies.yaml
 https://raw.githubusercontent.com/10ium/ScrapeAndCategorize/refs/heads/main/output_configs/Paraguay.txt
 https://raw.githubusercontent.com/Leon406/SubCrawler/refs/heads/main/sub/share/all
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub3.txt
+https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/shadowsocks.txt
+https://raw.githubusercontent.com/ircfspace/tconfig/refs/heads/main/trojan
+https://raw.githubusercontent.com/Raad63/telegram-configs-collector-sub/refs/heads/main/all.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub2.txt
+https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/vless.txt
+https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/hysteria2.txt
+https://raw.githubusercontent.com/DiDiten/multi-proxy-config-fetcher/refs/heads/main/configs/singbox_configs.json

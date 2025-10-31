@@ -92,3 +92,12 @@ https://raw.githubusercontent.com/Stinsonysm/GO_V2rayCollector/refs/heads/main/t
 https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/vless.txt
 https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge.txt
 https://raw.githubusercontent.com/Epodonios/v2ray-configs/refs/heads/main/Sub4.txt
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/all.txt
+https://raw.githubusercontent.com/Raad63/telegram-configs-collector-sub/refs/heads/main/vless.txt
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/tuic.txt
+https://raw.githubusercontent.com/ndsphonemy/TG-Proxy-Parser/refs/heads/main/juicity.txt
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/shadowsocks.txt
+https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/vmess.txt
+https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Splitted-By-Protocol/ss.txt
+https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/juicity.txt
+https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/tuic.txt
