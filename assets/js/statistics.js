@@ -10,7 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchProxyHistory() {
         try {
-            const response = await fetchWithCache('output/proxy_history.json');
+            const url = `output/proxy_history.json?cb=${Date.now()}`;
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -18,6 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error('Failed to fetch proxy history:', error);
             return null;
+        }
+    }
+
+    function updateSummaryStats(stats) {
+        // Update summary statistics
+        if (stats.total_proxies !== undefined) {
+            updateElement('#totalProxies', stats.total_proxies.toLocaleString());
+        }
+        if (stats.total_working !== undefined) {
+            updateElement('#workingProxies', stats.total_working.toLocaleString());
+        }
+        if (stats.countries !== undefined) {
+            updateElement('#totalCountries', Object.keys(stats.countries).length);
+        }
+        if (stats.protocols !== undefined) {
+            updateElement('#totalProtocols', Object.keys(stats.protocols).length);
         }
     }
 
@@ -31,14 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Update summary stats
+            updateSummaryStats(stats);
+
             chartsContainer.classList.remove('hidden');
             chartsEmptyState.classList.add('hidden');
 
             const style = getComputedStyle(document.body);
-            const textColor = style.getPropertyValue('--text-primary-dark');
-            const gridColor = style.getPropertyValue('--border-dark');
+            const textColor = style.getPropertyValue('--text-primary') || '#333';
+            const gridColor = style.getPropertyValue('--border') || '#e0e0e0';
+            const bgColor = style.getPropertyValue('--bg-secondary') || '#fff';
 
-            const commonOptions = {
+            const commonPluginOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
@@ -47,7 +68,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             color: textColor
                         }
                     }
-                },
+                }
+            };
+
+            const commonScaleOptions = {
                 scales: {
                     x: {
                         ticks: { color: textColor },
@@ -60,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
 
-            // Protocol Chart
+            // Protocol Chart (Doughnut - no scales needed)
             const protocolChartCanvas = document.getElementById('protocolChart');
             if (stats.protocols && Object.keys(stats.protocols).length > 0) {
                 new Chart(protocolChartCanvas, {
@@ -75,11 +99,21 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'rgba(54, 210, 153, 0.8)',
                                 'rgba(255, 206, 86, 0.8)',
                                 'rgba(153, 102, 255, 0.8)',
+                                'rgba(255, 159, 64, 0.8)',
                             ],
-                            borderColor: style.getPropertyValue('--bg-secondary-dark'),
+                            borderColor: bgColor,
+                            borderWidth: 2
                         }]
                     },
-                    options: { ...commonOptions, plugins: { legend: { ...commonOptions.plugins.legend, position: 'bottom' } } }
+                    options: {
+                        ...commonPluginOptions,
+                        plugins: {
+                            legend: {
+                                ...commonPluginOptions.plugins.legend,
+                                position: 'bottom'
+                            }
+                        }
+                    }
                 });
             }
 
@@ -99,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             borderWidth: 1
                         }]
                     },
-                    options: commonOptions
+                    options: { ...commonPluginOptions, ...commonScaleOptions }
                 });
             }
 
@@ -119,8 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             borderWidth: 1
                         }]
                     },
-                    options: commonOptions
+                    options: { ...commonPluginOptions, ...commonScaleOptions }
                 });
+            } else {
+                // Hide ASN chart if no data
+                const asnContainer = asnChartCanvas.closest('.chart-container');
+                if (asnContainer) {
+                    asnContainer.style.display = 'none';
+                }
             }
 
             // Time-series Chart
@@ -135,10 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             data: history.map(h => h.working),
                             fill: false,
                             borderColor: 'rgba(255, 86, 48, 1)',
-                            tension: 0.1
+                            backgroundColor: 'rgba(255, 86, 48, 0.1)',
+                            tension: 0.3
                         }]
                     },
-                    options: commonOptions
+                    options: { ...commonPluginOptions, ...commonScaleOptions }
                 });
             }
 
