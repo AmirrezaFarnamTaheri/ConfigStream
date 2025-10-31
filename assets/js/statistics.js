@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Early return if required elements don't exist
     if (!chartsContainer || !chartsEmptyState) return;
 
+    let currentStats = null;
+    let currentProxies = null;
+
     async function fetchProxyHistory() {
         try {
             const url = `output/proxy_history.json?cb=${Date.now()}`;
@@ -22,25 +25,129 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateSummaryStats(stats) {
+    function calculateMetrics(stats, proxies) {
+        // Calculate additional metrics
+        const metrics = {};
+
+        // Success rate
+        if (stats.total_proxies && stats.total_working) {
+            metrics.successRate = ((stats.total_working / stats.total_proxies) * 100).toFixed(1);
+        }
+
+        // Average latency
+        if (proxies && proxies.length > 0) {
+            const validLatencies = proxies
+                .filter(p => p.latency && p.latency > 0 && p.latency < 10000)
+                .map(p => p.latency);
+
+            if (validLatencies.length > 0) {
+                metrics.avgLatency = Math.round(
+                    validLatencies.reduce((a, b) => a + b, 0) / validLatencies.length
+                );
+                metrics.minLatency = Math.min(...validLatencies);
+            }
+        }
+
+        return metrics;
+    }
+
+    function updateSummaryStats(stats, proxies) {
         // Update summary statistics
         if (stats.total_proxies !== undefined) {
             updateElement('#totalProxies', stats.total_proxies.toLocaleString());
         }
+
         if (stats.total_working !== undefined) {
             updateElement('#workingProxies', stats.total_working.toLocaleString());
+
+            // Update percentage
+            const successRate = stats.total_proxies > 0
+                ? ((stats.total_working / stats.total_proxies) * 100).toFixed(1)
+                : 0;
+            updateElement('#workingProxiesPercent', `${successRate}% active`, { method: 'innerHTML' });
+            updateElement('#successRate', successRate);
         }
+
         if (stats.countries !== undefined) {
-            updateElement('#totalCountries', Object.keys(stats.countries).length);
+            const countryCount = Object.keys(stats.countries).length;
+            updateElement('#totalCountries', countryCount);
         }
+
         if (stats.protocols !== undefined) {
             updateElement('#totalProtocols', Object.keys(stats.protocols).length);
+        }
+
+        // Calculate and update additional metrics
+        const metrics = calculateMetrics(stats, proxies);
+
+        if (metrics.avgLatency !== undefined) {
+            updateElement('#avgLatency', `${metrics.avgLatency}<span class="metric-unit">ms</span>`, { method: 'innerHTML' });
+        }
+
+        if (metrics.successRate !== undefined) {
+            updateElement('#successRate', `${metrics.successRate}<span class="metric-unit">%</span>`, { method: 'innerHTML' });
+        }
+
+        // Update last updated time
+        const now = new Date();
+        updateElement('#lastUpdated', now.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }));
+    }
+
+    function updateInsights(stats, proxies) {
+        const metrics = calculateMetrics(stats, proxies);
+
+        // Network Health Score (based on success rate and diversity)
+        if (metrics.successRate !== undefined) {
+            const healthScore = parseFloat(metrics.successRate);
+            let healthGrade = 'Poor';
+            if (healthScore >= 90) healthGrade = 'Excellent';
+            else if (healthScore >= 75) healthGrade = 'Good';
+            else if (healthScore >= 50) healthGrade = 'Fair';
+
+            updateElement('#networkHealthScore', healthGrade);
+            updateElement('#networkHealthDesc', `${metrics.successRate}% of proxies are active and responding`);
+        }
+
+        // Top Region
+        if (stats.countries && Object.keys(stats.countries).length > 0) {
+            const topCountry = Object.entries(stats.countries)
+                .sort((a, b) => b[1] - a[1])[0];
+            const flag = getCountryFlag(topCountry[0]);
+            updateElement('#topRegion', `${flag} ${topCountry[0]}`);
+            updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
+        }
+
+        // Best Protocol
+        if (stats.protocols && Object.keys(stats.protocols).length > 0) {
+            const topProtocol = Object.entries(stats.protocols)
+                .sort((a, b) => b[1] - a[1])[0];
+            updateElement('#bestProtocol', topProtocol[0].toUpperCase());
+            updateElement('#bestProtocolDesc', `${topProtocol[1]} proxies using this protocol`);
+        }
+
+        // Fastest Response
+        if (metrics.minLatency !== undefined) {
+            updateElement('#fastestLatency', `${metrics.minLatency}ms`);
+            updateElement('#fastestLatencyDesc', `Best response time in the network`);
         }
     }
 
     async function renderCharts() {
         try {
-            const [stats, history] = await Promise.all([fetchStatistics(), fetchProxyHistory()]);
+            const [stats, history, proxies] = await Promise.all([
+                fetchStatistics(),
+                fetchProxyHistory(),
+                fetchProxies()
+            ]);
+
+            // Store for later use
+            currentStats = stats;
+            currentProxies = proxies;
 
             if (!stats || !stats.protocols || Object.keys(stats.protocols).length === 0) {
                 chartsContainer.classList.add('hidden');
@@ -48,8 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Update summary stats
-            updateSummaryStats(stats);
+            // Update summary stats and insights
+            updateSummaryStats(stats, proxies);
+            updateInsights(stats, proxies);
 
             chartsContainer.classList.remove('hidden');
             chartsEmptyState.classList.add('hidden');
@@ -189,5 +297,74 @@ document.addEventListener('DOMContentLoaded', () => {
             chartsEmptyState.classList.remove('hidden');
         }
     }
+
+    // Refresh Data Button
+    const refreshBtn = document.getElementById('refreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+            const icon = refreshBtn.querySelector('i');
+            icon.style.animation = 'spin 1s linear infinite';
+            refreshBtn.disabled = true;
+
+            try {
+                // Clear cache
+                if (window.api && window.api.clearCache) {
+                    window.api.clearCache();
+                }
+
+                // Re-render everything
+                await renderCharts();
+
+                // Success feedback
+                setTimeout(() => {
+                    icon.style.animation = '';
+                    refreshBtn.disabled = false;
+                }, 500);
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                icon.style.animation = '';
+                refreshBtn.disabled = false;
+            }
+        });
+    }
+
+    // Export Data Button
+    const exportBtn = document.getElementById('exportData');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            if (!currentStats) {
+                alert('No data available to export');
+                return;
+            }
+
+            const exportData = {
+                exported_at: new Date().toISOString(),
+                statistics: currentStats,
+                proxies_count: currentProxies ? currentProxies.length : 0,
+                metrics: calculateMetrics(currentStats, currentProxies)
+            };
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `analytics-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    // Initial render
     renderCharts();
 });
+
+// Add spin animation for refresh button
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
