@@ -101,74 +101,243 @@
 
     <main>
         <div class="container">
-            <!-- Summary Statistics Cards -->
-            <section class="stats-card" style="--delay: 0.1s;">
-                <div class="stats-card-inner">
-                    <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
-                        <div class="stat-value-wrapper">
-                            <div id="totalProxies" class="stat-value loading">0</div>
-                            <div class="stat-label">Total Proxies</div>
+            <!-- Hero Section -->
+            <section class="analytics-hero">
+                <div class="analytics-hero-content">
+                    <h1>Analytics Dashboard</h1>
+                    <p class="subtitle">Real-time insights into your global proxy network performance and distribution</p>
+                    <div class="analytics-meta">
+                        <div class="meta-item">
+                            <i data-feather="clock"></i>
+                            <span>Last Updated: <strong id="lastUpdated">Loading...</strong></span>
                         </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="check-circle"></i></div>
-                        <div class="stat-value-wrapper">
-                            <div id="workingProxies" class="stat-value loading">0</div>
-                            <div class="stat-label">Working Proxies</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="globe"></i></div>
-                        <div class="stat-value-wrapper">
-                            <div id="totalCountries" class="stat-value loading">0</div>
-                            <div class="stat-label">Countries</div>
-                        </div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="activity"></i></div>
-                        <div class="stat-value-wrapper">
-                            <div id="totalProtocols" class="stat-value loading">0</div>
-                            <div class="stat-label">Protocols</div>
+                        <div class="meta-actions">
+                            <button id="refreshData" class="btn btn-secondary btn-icon" aria-label="Refresh data" title="Refresh data">
+                                <i data-feather="refresh-cw"></i>
+                            </button>
+                            <button id="exportData" class="btn btn-secondary btn-icon" aria-label="Export data" title="Export analytics data">
+                                <i data-feather="download"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </section>
 
+            <!-- Key Metrics Grid -->
+            <section class="metrics-grid" style="--delay: 0.1s;">
+                <div class="metric-card metric-primary">
+                    <div class="metric-icon">
+                        <i data-feather="server"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">Total Proxies</div>
+                        <div id="totalProxies" class="metric-value loading">0</div>
+                        <div id="totalProxiesTrend" class="metric-trend">
+                            <span class="trend-indicator">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card metric-success">
+                    <div class="metric-icon">
+                        <i data-feather="check-circle"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">Active Proxies</div>
+                        <div id="workingProxies" class="metric-value loading">0</div>
+                        <div id="workingProxiesPercent" class="metric-trend">
+                            <span class="trend-indicator">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card metric-info">
+                    <div class="metric-icon">
+                        <i data-feather="globe"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">Countries</div>
+                        <div id="totalCountries" class="metric-value loading">0</div>
+                        <div class="metric-trend">
+                            <span class="trend-indicator">Global Coverage</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card metric-warning">
+                    <div class="metric-icon">
+                        <i data-feather="zap"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">Avg Latency</div>
+                        <div id="avgLatency" class="metric-value loading">0<span class="metric-unit">ms</span></div>
+                        <div id="avgLatencyTrend" class="metric-trend">
+                            <span class="trend-indicator">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card metric-accent">
+                    <div class="metric-icon">
+                        <i data-feather="activity"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">Protocols</div>
+                        <div id="totalProtocols" class="metric-value loading">0</div>
+                        <div class="metric-trend">
+                            <span class="trend-indicator">Types Available</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="metric-card metric-special">
+                    <div class="metric-icon">
+                        <i data-feather="trending-up"></i>
+                    </div>
+                    <div class="metric-content">
+                        <div class="metric-label">Success Rate</div>
+                        <div id="successRate" class="metric-value loading">0<span class="metric-unit">%</span></div>
+                        <div id="successRateTrend" class="metric-trend">
+                            <span class="trend-indicator">—</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
             <section id="charts-card" class="card" style="--delay: 0.2s;">
                 <div class="card-header">
-                    <h2>Analytics Dashboard</h2>
-                    <p>Discover trends in our proxy data, from protocol distribution to the top countries in our network.</p>
+                    <div>
+                        <h2>Data Visualizations</h2>
+                        <p>Interactive charts showing distribution patterns and trends across your proxy network</p>
+                    </div>
+                    <button id="toggleCharts" class="btn btn-secondary" aria-label="Toggle charts view">
+                        <i data-feather="maximize-2"></i>
+                        <span>Expand All</span>
+                    </button>
                 </div>
 
                 <div id="chartsContainer" class="charts-grid">
-                    <div class="chart-container">
-                        <h3>Protocol Distribution</h3>
-                        <canvas id="protocolChart" role="img" aria-label="Doughnut chart showing proxy protocol distribution."></canvas>
+                    <!-- Protocol Distribution -->
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h3>Protocol Distribution</h3>
+                                    <p class="chart-desc">Breakdown of proxy protocols in the network</p>
+                                </div>
+                                <button class="chart-action" aria-label="Export chart data">
+                                    <i data-feather="more-vertical"></i>
+                                </button>
+                            </div>
+                            <canvas id="protocolChart" role="img" aria-label="Doughnut chart showing proxy protocol distribution"></canvas>
+                        </div>
                     </div>
-                    <div class="chart-container">
-                        <h3>Top 10 Countries</h3>
-                        <canvas id="countryChart" role="img" aria-label="Bar chart showing top 10 countries with the most proxies."></canvas>
+
+                    <!-- Geographic Distribution -->
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h3>Geographic Distribution</h3>
+                                    <p class="chart-desc">Top 10 countries by proxy count</p>
+                                </div>
+                                <button class="chart-action" aria-label="Export chart data">
+                                    <i data-feather="more-vertical"></i>
+                                </button>
+                            </div>
+                            <canvas id="countryChart" role="img" aria-label="Bar chart showing top 10 countries with the most proxies"></canvas>
+                        </div>
                     </div>
-                    <div class="chart-container">
-                        <h3>ASN Distribution</h3>
-                        <canvas id="asnChart" role="img" aria-label="Bar chart showing top 10 ASNs with the most proxies."></canvas>
+
+                    <!-- ASN Distribution -->
+                    <div class="chart-wrapper">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h3>Network Providers</h3>
+                                    <p class="chart-desc">Top autonomous systems hosting proxies</p>
+                                </div>
+                                <button class="chart-action" aria-label="Export chart data">
+                                    <i data-feather="more-vertical"></i>
+                                </button>
+                            </div>
+                            <canvas id="asnChart" role="img" aria-label="Bar chart showing top 10 ASNs with the most proxies"></canvas>
+                        </div>
                     </div>
-                    <div class="chart-container">
-                        <h3>Time-series Analysis</h3>
-                        <canvas id="timeChart" role="img" aria-label="Line chart showing the number of working proxies over time."></canvas>
+
+                    <!-- Time-series Analysis -->
+                    <div class="chart-wrapper chart-full-width">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <div>
+                                    <h3>Historical Performance</h3>
+                                    <p class="chart-desc">Active proxy count trends over time</p>
+                                </div>
+                                <button class="chart-action" aria-label="Export chart data">
+                                    <i data-feather="more-vertical"></i>
+                                </button>
+                            </div>
+                            <canvas id="timeChart" role="img" aria-label="Line chart showing the number of working proxies over time"></canvas>
+                        </div>
                     </div>
                 </div>
+
                 <div id="chartsEmptyState" class="empty-state hidden">
                     <div class="empty-state-icon">
-                        <i data-feather="server-off"></i>
+                        <i data-feather="bar-chart-2"></i>
                     </div>
-                    <h3>No Data to Display</h3>
-                    <p>We're currently gathering data to generate analytics. Please check back in a few hours for a full report.</p>
-                    <a href="index.html" class="btn btn-secondary">
+                    <h3>No Analytics Data Available</h3>
+                    <p>We're currently collecting data to generate comprehensive analytics. Check back soon for detailed insights into your proxy network.</p>
+                    <a href="index.html" class="btn btn-primary">
                         <i data-feather="home"></i>
                         <span>Return Home</span>
                     </a>
+                </div>
+            </section>
+
+            <!-- Insights Section -->
+            <section id="insights-section" class="insights-section" style="--delay: 0.3s;">
+                <h2 class="section-title">
+                    <i data-feather="lightbulb"></i>
+                    <span>Network Insights</span>
+                </h2>
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <div class="insight-icon insight-icon-primary">
+                            <i data-feather="shield"></i>
+                        </div>
+                        <h3>Network Health</h3>
+                        <div id="networkHealthScore" class="insight-score loading">—</div>
+                        <p id="networkHealthDesc" class="insight-desc">Calculating network reliability...</p>
+                    </div>
+
+                    <div class="insight-card">
+                        <div class="insight-icon insight-icon-success">
+                            <i data-feather="map-pin"></i>
+                        </div>
+                        <h3>Top Region</h3>
+                        <div id="topRegion" class="insight-score loading">—</div>
+                        <p id="topRegionDesc" class="insight-desc">Analyzing geographic distribution...</p>
+                    </div>
+
+                    <div class="insight-card">
+                        <div class="insight-icon insight-icon-warning">
+                            <i data-feather="trending-up"></i>
+                        </div>
+                        <h3>Best Protocol</h3>
+                        <div id="bestProtocol" class="insight-score loading">—</div>
+                        <p id="bestProtocolDesc" class="insight-desc">Evaluating protocol performance...</p>
+                    </div>
+
+                    <div class="insight-card">
+                        <div class="insight-icon insight-icon-info">
+                            <i data-feather="clock"></i>
+                        </div>
+                        <h3>Fastest Response</h3>
+                        <div id="fastestLatency" class="insight-score loading">—</div>
+                        <p id="fastestLatencyDesc" class="insight-desc">Measuring response times...</p>
+                    </div>
                 </div>
             </section>
         </div>
