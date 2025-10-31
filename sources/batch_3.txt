@@ -101,3 +101,12 @@ https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/
 https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Splitted-By-Protocol/ss.txt
 https://raw.githubusercontent.com/sahar-km/v2ray-collector/refs/heads/main/juicity.txt
 https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/tuic.txt
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/ss.txt
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/b64trojan.txt
+https://raw.githubusercontent.com/R-the-coder/V2ray-configs/main/ss.txt
+https://raw.githubusercontent.com/R-the-coder/V2ray-configs/main/hysteria2.txt
+https://raw.githubusercontent.com/R-the-coder/V2ray-configs/main/vless.txt
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/trojan.txt
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/b64mix.txt
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/port_443.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub7_shuffled.conf

@@ -1,3 +1,31 @@
+// Country name to ISO code mapping
+const countryNameToCode = {
+    'Algeria': 'DZ', 'Argentina': 'AR', 'Armenia': 'AM', 'Australia': 'AU',
+    'Austria': 'AT', 'Azerbaijan': 'AZ', 'Bahrain': 'BH', 'Belarus': 'BY',
+    'Belgium': 'BE', 'Belize': 'BZ', 'Bolivia': 'BO', 'Brazil': 'BR',
+    'Bulgaria': 'BG', 'Canada': 'CA', 'Central African Republic': 'CF',
+    'Chile': 'CL', 'China': 'CN', 'Colombia': 'CO', 'Costa Rica': 'CR',
+    'Croatia': 'HR', 'Cyprus': 'CY', 'Czechia': 'CZ', 'Denmark': 'DK',
+    'Ecuador': 'EC', 'Egypt': 'EG', 'Estonia': 'EE', 'Finland': 'FI',
+    'France': 'FR', 'Germany': 'DE', 'Greece': 'GR', 'Guadeloupe': 'GP',
+    'Guatemala': 'GT', 'Hong Kong': 'HK', 'Hungary': 'HU', 'Iceland': 'IS',
+    'India': 'IN', 'Indonesia': 'ID', 'Iran': 'IR', 'Ireland': 'IE',
+    'Israel': 'IL', 'Italy': 'IT', 'Japan': 'JP', 'Kazakhstan': 'KZ',
+    'Latvia': 'LV', 'Lithuania': 'LT', 'Luxembourg': 'LU', 'Malaysia': 'MY',
+    'Malta': 'MT', 'Mexico': 'MX', 'Moldova': 'MD', 'Montenegro': 'ME',
+    'Morocco': 'MA', 'Netherlands': 'NL', 'The Netherlands': 'NL', 'Nigeria': 'NG',
+    'North Macedonia': 'MK', 'Palestine': 'PS', 'Panama': 'PA', 'Paraguay': 'PY',
+    'Peru': 'PE', 'Poland': 'PL', 'Portugal': 'PT', 'Puerto Rico': 'PR',
+    'Qatar': 'QA', 'Romania': 'RO', 'Russia': 'RU', 'Saint Martin': 'MF',
+    'Serbia': 'RS', 'Seychelles': 'SC', 'Singapore': 'SG', 'Slovakia': 'SK',
+    'Slovenia': 'SI', 'South Africa': 'ZA', 'South Georgia': 'GS',
+    'South Korea': 'KR', 'Spain': 'ES', 'Sweden': 'SE', 'Switzerland': 'CH',
+    'Taiwan': 'TW', 'Thailand': 'TH', 'Togo': 'TG', 'Tonga': 'TO',
+    'Turkey': 'TR', 'Türkiye': 'TR', 'Ukraine': 'UA',
+    'United Arab Emirates': 'AE', 'United Kingdom': 'GB', 'United States': 'US',
+    'United States Minor Outlying Islands': 'UM', 'Venezuela': 'VE', 'Vietnam': 'VN'
+};
+
 // Page-specific logic for the statistics page
 document.addEventListener('DOMContentLoaded', () => {
     if (!document.getElementById('charts-card')) return;
@@ -89,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Update last updated time
-        if (metadata && metadata.generated_at) {
-            const date = new Date(metadata.generated_at);
+        if (metadata && metadata.last_updated_utc) {
+            const date = new Date(metadata.last_updated_utc);
             const formattedTime = date.toLocaleString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -136,8 +164,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (stats.countries && Object.keys(stats.countries).length > 0) {
             const topCountry = Object.entries(stats.countries)
                 .sort((a, b) => b[1] - a[1])[0];
-            const flag = getCountryFlag(topCountry[0]);
-            updateElement('#topRegion', `${flag} ${topCountry[0]}`);
+            const countryName = topCountry[0];
+            const countryCode = countryNameToCode[countryName] || countryName;
+            const flag = getCountryFlag(countryCode);
+            updateElement('#topRegion', `${flag} ${countryName}`);
             updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
         }
 

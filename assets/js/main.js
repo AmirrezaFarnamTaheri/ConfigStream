@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Update footer timestamp
-            if (metadata && metadata.generated_at) {
-                const date = new Date(metadata.generated_at);
+            if (metadata && metadata.last_updated_utc) {
+                const date = new Date(metadata.last_updated_utc);
                 const formatted = formatTimestamp(date);
                 updateElement('#footerUpdate', formatted);
             }
