@@ -34,7 +34,7 @@ jobs:
           fi
       - name: Retest last export
         if: steps.check_output.outputs.skip != 'true'
-        run: python -m configstream.cli retest --input output/proxies.json --outdir output --timeout 45 --max-workers 20 --lenient
+        run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 45 --max-workers 20 --lenient
       - name: Validate JSON (non-blocking)
         run: |
           pip install jsonschema || true

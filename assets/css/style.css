@@ -1046,6 +1046,64 @@ body.dark .card-header p { color: var(--text-secondary); }
     text-align: left;
 }
 
+/* Analytics Charts Section */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(450px, 100%), 1fr));
+    gap: calc(var(--space-unit) * 4);
+    margin-top: calc(var(--space-unit) * 3);
+}
+
+.chart-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: calc(var(--space-unit) * 3);
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+    transition: all var(--transition-fast);
+}
+
+body.dark .chart-container {
+    background: var(--bg-secondary);
+    border-color: var(--border);
+}
+
+.chart-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px var(--shadow-1);
+}
+
+.chart-container h3 {
+    font-size: 1.25rem;
+    margin-bottom: calc(var(--space-unit) * 2);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.chart-container canvas {
+    flex: 1;
+    max-height: 320px !important;
+    width: 100% !important;
+    height: auto !important;
+}
+
+@media (max-width: 768px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+        gap: calc(var(--space-unit) * 2);
+    }
+
+    .chart-container {
+        height: 350px;
+    }
+
+    .chart-container canvas {
+        max-height: 270px !important;
+    }
+}
+
 /* Downloads Section */
 .downloads-grid {
     display: grid;
