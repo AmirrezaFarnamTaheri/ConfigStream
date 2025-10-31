@@ -222,7 +222,6 @@ jobs:
         with:
           commit_message: "chore(data): update outputs from all batches"
           file_pattern: "output/"
-          push_options: '--force'
           add_options: '-f'
 
       - name: Upload final pipeline artifact
