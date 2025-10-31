@@ -101,3 +101,11 @@ https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions
 https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/vless.txt
 https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/main/hysteria2.txt
 https://raw.githubusercontent.com/DiDiten/multi-proxy-config-fetcher/refs/heads/main/configs/singbox_configs.json
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub15_shuffled.conf
+https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/vmess.txt
+https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/main/vmess_iran.txt
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/port_8880.txt
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/b64ss.txt
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/port_2087.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub8_shuffled.conf
+https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/main/trojan_iran.txt
