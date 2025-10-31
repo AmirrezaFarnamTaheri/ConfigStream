@@ -31,6 +31,7 @@ from .output import (
     generate_quantumult_config,
     generate_surge_config,
     generate_categorized_outputs,
+    format_proxy_names_with_rank,
 )
 from .testers import SingBoxTester
 from .performance import PerformanceTracker
@@ -494,6 +495,9 @@ async def run_full_pipeline(
         def _write_outputs() -> None:
             try:
                 with tracker.phase("output"):
+                    # Format proxy names with protocol rank, country flag, and original name
+                    format_proxy_names_with_rank(all_working_proxies)
+
                     sub_content = generate_base64_subscription(all_working_proxies)
                     sub_path = output_path / "vpn_subscription_base64.txt"
                     sub_path.write_text(sub_content)
