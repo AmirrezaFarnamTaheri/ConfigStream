@@ -2470,4 +2470,99 @@ body.dark #preloader {
     .info-card h3 {
         font-size: 1.1rem;
     }
+
+    .charts-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .chart-container {
+        min-height: 350px !important;
+    }
+}
+
+/* ===========================
+   Analytics Page - Charts
+   =========================== */
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: calc(var(--space-unit) * 4);
+    margin-top: calc(var(--space-unit) * 4);
+}
+
+.chart-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: calc(var(--space-unit) * 4);
+    min-height: 400px;
+    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+body.dark .chart-container {
+    background: var(--bg-secondary);
+    border-color: var(--border);
+}
+
+.chart-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+body.dark .chart-container:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+}
+
+.chart-container h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: calc(var(--space-unit) * 3);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 1.5);
+}
+
+.chart-container h3::before {
+    content: '';
+    width: 4px;
+    height: 24px;
+    background: var(--brand-gradient);
+    border-radius: var(--radius-full);
+}
+
+.chart-container canvas {
+    flex: 1;
+    max-height: 100%;
+    width: 100% !important;
+    height: auto !important;
+}
+
+/* Responsive grid layout */
+@media (max-width: 1200px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container {
+        min-height: 350px;
+        max-height: 450px;
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        padding: calc(var(--space-unit) * 3);
+        min-height: 300px;
+        max-height: 400px;
+    }
+
+    .chart-container h3 {
+        font-size: 1.1rem;
+    }
 }

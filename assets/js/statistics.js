@@ -61,12 +61,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const commonPluginOptions = {
                 responsive: true,
-                maintainAspectRatio: false,
+                maintainAspectRatio: true,
+                aspectRatio: 2,
                 plugins: {
                     legend: {
                         labels: {
-                            color: textColor
+                            color: textColor,
+                            padding: 12,
+                            font: {
+                                size: 12,
+                                family: "'Be Vietnam Pro', sans-serif"
+                            }
                         }
+                    },
+                    tooltip: {
+                        backgroundColor: bgColor,
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: gridColor,
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8
                     }
                 }
             };
@@ -94,20 +109,23 @@ document.addEventListener('DOMContentLoaded', () => {
                         datasets: [{
                             data: Object.values(stats.protocols),
                             backgroundColor: [
-                                'rgba(76, 154, 255, 0.8)',
-                                'rgba(255, 86, 48, 0.8)',
-                                'rgba(54, 210, 153, 0.8)',
-                                'rgba(255, 206, 86, 0.8)',
-                                'rgba(153, 102, 255, 0.8)',
-                                'rgba(255, 159, 64, 0.8)',
+                                'rgba(94, 85, 241, 0.85)',
+                                'rgba(216, 58, 141, 0.85)',
+                                'rgba(168, 85, 247, 0.85)',
+                                'rgba(0, 191, 165, 0.85)',
+                                'rgba(255, 86, 48, 0.85)',
+                                'rgba(255, 206, 86, 0.85)',
                             ],
                             borderColor: bgColor,
-                            borderWidth: 2
+                            borderWidth: 3,
+                            hoverOffset: 8
                         }]
                     },
                     options: {
                         ...commonPluginOptions,
+                        aspectRatio: 1.5,
                         plugins: {
+                            ...commonPluginOptions.plugins,
                             legend: {
                                 ...commonPluginOptions.plugins.legend,
                                 position: 'bottom'
@@ -128,12 +146,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         datasets: [{
                             label: 'Proxy Count',
                             data: topCountries.map(c => c[1]),
-                            backgroundColor: 'rgba(76, 154, 255, 0.7)',
-                            borderColor: 'rgba(76, 154, 255, 1)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(94, 85, 241, 0.75)',
+                            borderColor: 'rgba(94, 85, 241, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false
                         }]
                     },
-                    options: { ...commonPluginOptions, ...commonScaleOptions }
+                    options: {
+                        ...commonPluginOptions,
+                        ...commonScaleOptions,
+                        scales: {
+                            ...commonScaleOptions.scales,
+                            y: {
+                                ...commonScaleOptions.scales.y,
+                                beginAtZero: true
+                            }
+                        }
+                    }
                 });
             }
 
@@ -148,12 +178,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         datasets: [{
                             label: 'Proxy Count',
                             data: topAsns.map(a => a[1]),
-                            backgroundColor: 'rgba(54, 210, 153, 0.7)',
-                            borderColor: 'rgba(54, 210, 153, 1)',
-                            borderWidth: 1
+                            backgroundColor: 'rgba(0, 191, 165, 0.75)',
+                            borderColor: 'rgba(0, 191, 165, 1)',
+                            borderWidth: 2,
+                            borderRadius: 8,
+                            borderSkipped: false
                         }]
                     },
-                    options: { ...commonPluginOptions, ...commonScaleOptions }
+                    options: {
+                        ...commonPluginOptions,
+                        ...commonScaleOptions,
+                        scales: {
+                            ...commonScaleOptions.scales,
+                            y: {
+                                ...commonScaleOptions.scales.y,
+                                beginAtZero: true
+                            }
+                        }
+                    }
                 });
             } else {
                 // Hide ASN chart if no data
@@ -173,14 +215,36 @@ document.addEventListener('DOMContentLoaded', () => {
                         datasets: [{
                             label: 'Working Proxies',
                             data: history.map(h => h.working),
-                            fill: false,
-                            borderColor: 'rgba(255, 86, 48, 1)',
-                            backgroundColor: 'rgba(255, 86, 48, 0.1)',
-                            tension: 0.3
+                            fill: true,
+                            borderColor: 'rgba(216, 58, 141, 1)',
+                            backgroundColor: 'rgba(216, 58, 141, 0.15)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointBackgroundColor: 'rgba(216, 58, 141, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 6
                         }]
                     },
-                    options: { ...commonPluginOptions, ...commonScaleOptions }
+                    options: {
+                        ...commonPluginOptions,
+                        ...commonScaleOptions,
+                        scales: {
+                            ...commonScaleOptions.scales,
+                            y: {
+                                ...commonScaleOptions.scales.y,
+                                beginAtZero: true
+                            }
+                        }
+                    }
                 });
+            } else {
+                // Hide time chart if no data
+                const timeContainer = timeChartCanvas.closest('.chart-container');
+                if (timeContainer) {
+                    timeContainer.style.display = 'none';
+                }
             }
 
         } catch (error) {
