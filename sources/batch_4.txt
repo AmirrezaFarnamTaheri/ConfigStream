@@ -101,3 +101,11 @@ https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/
 https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Splitted-By-Protocol/vless.txt
 https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/wireguard.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub4.txt
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/trojan_iran.txt
+https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/main/vless_iran.txt
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/trojan.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub6_shuffled.conf
+https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/main/mixed_iran.txt
+https://raw.githubusercontent.com/R-the-coder/V2ray-configs/main/config.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub13_shuffled.conf
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub4_shuffled.conf
