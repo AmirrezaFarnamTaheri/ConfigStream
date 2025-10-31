@@ -20,7 +20,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **Automated Updates Every 4 Hours** via GitHub Actions
 - **Zero manual intervention** required
 - **Cache-busting** ensures clients always get fresh data
-- **570+ curated sources** from public repositories and Telegram channels
+- **668+ curated sources** from public repositories and Telegram channels
 - **Multi-protocol collection** from diverse geographic regions
 
 ### 🔒 Comprehensive Security Testing
@@ -330,7 +330,7 @@ Contributions are welcome! Here's how you can help:
 
 We welcome community contributions of high-quality configuration sources!
 
-**Current Sources:** 570+ URLs across 6 batch files, including:
+**Current Sources:** 668+ URLs across 6 batch files, including:
 - GitHub repositories with automated updates
 - Telegram channel collectors
 - Protocol-specific aggregators

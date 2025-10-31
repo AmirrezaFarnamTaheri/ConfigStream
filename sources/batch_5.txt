@@ -101,3 +101,12 @@ https://raw.githubusercontent.com/Amirinventor2010/configs-collector/refs/heads/
 https://raw.githubusercontent.com/ircfspace/tconfig/refs/heads/main/vless
 https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/vmess.txt
 https://raw.githubusercontent.com/M450ud/config-fetcher/refs/heads/main/configs/vless.txt
+https://raw.githubusercontent.com/R-the-coder/V2ray-configs/main/warp.txt
+https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/shadowsocks.txt
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/port_80.txt
+https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/vless.txt
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/b64vless.txt
+https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub11_shuffled.conf
+https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/other.txt
+https://raw.githubusercontent.com/R-the-coder/V2ray-configs/main/ssr.txt
+https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/mix.txt
