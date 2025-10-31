@@ -92,8 +92,14 @@ Universal format compatible with:
 
 **Usage:** Paste the subscription link into your client
 
+**⭐ Chosen Top 1000** (Recommended for most users):
 ```
-https://amirrezafarnamtaheri.github.io/ConfigStream/output/vpn_subscription_base64.txt
+https://amirrezafarnamtaheri.github.io/ConfigStream/output/chosen/base64.txt
+```
+
+**All Configs** (Full collection):
+```
+https://amirrezafarnamtaheri.github.io/ConfigStream/output/base64.txt
 ```
 
 ### 2. Clash Configuration
@@ -104,12 +110,20 @@ Ready-to-use YAML for:
 - Clash Android
 
 **Usage:** Download and import the YAML file
+```
+https://amirrezafarnamtaheri.github.io/ConfigStream/output/full/clash.yaml
+```
 
 ### 3. Raw Configs
 Unencoded configuration links for:
 - Manual import
 - Advanced users
 - Custom scripts
+
+**Usage:** One proxy configuration per line
+```
+https://amirrezafarnamtaheri.github.io/ConfigStream/output/all.txt
+```
 
 ### 4. JSON Data
 Detailed information including:
@@ -215,9 +229,12 @@ ConfigStream/
 │       ├── config.py              # Configuration management
 │       └── logo.svg               # Project logo
 ├── output/                        # Generated configs (auto-updated)
-│   ├── vpn_subscription_base64.txt
-│   ├── clash.yaml
-│   ├── configs_raw.txt
+│   ├── base64.txt                 # All configs in base64 format
+│   ├── all.txt                    # Raw proxy links
+│   ├── chosen/                    # Top 1000 curated proxies
+│   │   └── base64.txt             # Best selection, ranked by latency
+│   ├── full/                      # Additional formats
+│   │   └── clash.yaml             # Clash configuration
 │   ├── proxies.json               # Detailed proxy data
 │   ├── statistics.json            # Aggregate statistics
 │   └── metadata.json              # Update metadata

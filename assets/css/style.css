@@ -2447,6 +2447,26 @@ body.dark #preloader {
         font-size: 1.1rem;
     }
 
+    .download-desc {
+        font-size: 0.85rem;
+    }
+
+    .download-icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: calc(var(--space-unit) * 2);
+    }
+
+    .download-icon .feather, .download-icon .inline-icon {
+        width: 20px;
+        height: 20px;
+    }
+
+    .download-card .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
     .info-card h3 {
         font-size: 1.1rem;
     }
