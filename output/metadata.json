@@ -1,54 +1,54 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-10-31T15:35:20.937021+00:00",
-  "updated_at": "2025-10-31T17:23:42.621496+00:00",
-  "proxy_count": 8016,
-  "working_count": 8016,
+  "generated_at": "2025-10-31T17:34:28.098423+00:00",
+  "updated_at": "2025-10-31T19:17:04.993611+00:00",
+  "proxy_count": 7656,
+  "working_count": 7656,
   "source_count": 0,
-  "tested_count": 8594,
+  "tested_count": 8016,
   "fallback_available": false,
   "phase_summaries": [
     {
       "phase": 1,
       "source": "supplied",
-      "fetched": 8594,
-      "parsed": 8594,
-      "tested": 8594,
-      "working": 8016,
-      "new_working": 8016,
-      "cumulative_working": 8016
+      "fetched": 8016,
+      "parsed": 8016,
+      "tested": 8016,
+      "working": 7656,
+      "new_working": 7656,
+      "cumulative_working": 7656
     }
   ],
-  "cache_bust": 1761931422621,
+  "cache_bust": 1761938224993,
   "stats": {
-    "generated_at": "2025-10-31T15:35:20.937021+00:00",
-    "generated_now": "2025-10-31T17:23:42.621244+00:00",
-    "total_fetched": 8594,
-    "total_tested": 8594,
-    "total_working": 8016,
-    "total_filtered": 8016,
+    "generated_at": "2025-10-31T17:34:28.098423+00:00",
+    "generated_now": "2025-10-31T19:17:04.993285+00:00",
+    "total_fetched": 8016,
+    "total_tested": 8016,
+    "total_working": 7656,
+    "total_filtered": 7656,
     "duplicates_skipped": 0,
-    "success_rate": 93.27,
-    "average_latency_ms": 1208.28,
+    "success_rate": 95.51,
+    "average_latency_ms": 1228.13,
     "protocol_distribution": {
-      "vmess": 515,
-      "vless": 4157,
-      "hysteria2": 132,
-      "shadowsocks": 3188,
+      "vmess": 503,
+      "vless": 3972,
+      "shadowsocks": 3027,
+      "hysteria2": 130,
       "trojan": 24
     },
     "phase_summaries": [
       {
         "phase": 1,
         "source": "supplied",
-        "fetched": 8594,
-        "parsed": 8594,
-        "tested": 8594,
-        "working": 8016,
-        "new_working": 8016,
-        "cumulative_working": 8016
+        "fetched": 8016,
+        "parsed": 8016,
+        "tested": 8016,
+        "working": 7656,
+        "new_working": 7656,
+        "cumulative_working": 7656
       }
     ],
-    "cache_bust": 1761931422621
+    "cache_bust": 1761938224993
   }
 }
