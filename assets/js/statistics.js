@@ -281,14 +281,131 @@ document.addEventListener('DOMContentLoaded', () => {
                         datasets: [{
                             label: 'Working Proxies',
                             data: history.map(h => h.working),
-                            fill: false,
+                            fill: true,
                             borderColor: 'rgba(255, 86, 48, 1)',
                             backgroundColor: 'rgba(255, 86, 48, 0.1)',
-                            tension: 0.3
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointHoverRadius: 5
                         }]
                     },
-                    options: { ...commonPluginOptions, ...commonScaleOptions }
+                    options: {
+                        ...commonPluginOptions,
+                        ...commonScaleOptions,
+                        plugins: {
+                            ...commonPluginOptions.plugins,
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Active Proxies: ${context.parsed.y}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 });
+            }
+
+            // Latency Distribution Chart
+            const latencyChartCanvas = document.getElementById('latencyChart');
+            if (proxies && proxies.length > 0) {
+                const validLatencies = proxies
+                    .filter(p => p.latency && p.latency > 0 && p.latency < 10000)
+                    .map(p => p.latency);
+
+                if (validLatencies.length > 0) {
+                    // Create histogram bins
+                    const bins = [0, 100, 200, 500, 1000, 2000, 5000, 10000];
+                    const binLabels = ['<100ms', '100-200ms', '200-500ms', '500ms-1s', '1-2s', '2-5s', '5-10s'];
+                    const binCounts = new Array(bins.length - 1).fill(0);
+
+                    validLatencies.forEach(latency => {
+                        for (let i = 0; i < bins.length - 1; i++) {
+                            if (latency >= bins[i] && latency < bins[i + 1]) {
+                                binCounts[i]++;
+                                break;
+                            }
+                        }
+                    });
+
+                    new Chart(latencyChartCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: binLabels,
+                            datasets: [{
+                                label: 'Proxy Count',
+                                data: binCounts,
+                                backgroundColor: 'rgba(153, 102, 255, 0.7)',
+                                borderColor: 'rgba(153, 102, 255, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            ...commonPluginOptions,
+                            ...commonScaleOptions,
+                            plugins: {
+                                ...commonPluginOptions.plugins,
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Protocol Performance Chart
+            const protocolPerformanceCanvas = document.getElementById('protocolPerformanceChart');
+            if (proxies && proxies.length > 0) {
+                // Calculate average latency per protocol
+                const protocolLatencies = {};
+                const protocolCounts = {};
+
+                proxies.forEach(p => {
+                    if (p.protocol && p.latency && p.latency > 0 && p.latency < 10000) {
+                        if (!protocolLatencies[p.protocol]) {
+                            protocolLatencies[p.protocol] = 0;
+                            protocolCounts[p.protocol] = 0;
+                        }
+                        protocolLatencies[p.protocol] += p.latency;
+                        protocolCounts[p.protocol]++;
+                    }
+                });
+
+                const protocolAvgLatencies = Object.entries(protocolLatencies)
+                    .map(([protocol, totalLatency]) => ({
+                        protocol,
+                        avgLatency: Math.round(totalLatency / protocolCounts[protocol])
+                    }))
+                    .sort((a, b) => a.avgLatency - b.avgLatency)
+                    .slice(0, 10);
+
+                if (protocolAvgLatencies.length > 0) {
+                    new Chart(protocolPerformanceCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: protocolAvgLatencies.map(p => p.protocol.toUpperCase()),
+                            datasets: [{
+                                label: 'Avg Latency (ms)',
+                                data: protocolAvgLatencies.map(p => p.avgLatency),
+                                backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                                borderColor: 'rgba(255, 206, 86, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            ...commonPluginOptions,
+                            ...commonScaleOptions,
+                            indexAxis: 'y',
+                            plugins: {
+                                ...commonPluginOptions.plugins,
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                }
             }
 
         } catch (error) {
