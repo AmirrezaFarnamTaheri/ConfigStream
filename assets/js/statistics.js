@@ -165,8 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const topCountry = Object.entries(stats.countries)
                 .sort((a, b) => b[1] - a[1])[0];
             const countryName = topCountry[0];
-            const countryCode = countryNameToCode[countryName] || countryName;
-            const flag = getCountryFlag(countryCode);
+            const countryCode = countryNameToCode[countryName];
+            // Only use flag if we have a valid 2-letter country code
+            const flag = countryCode ? getCountryFlag(countryCode) : '🌍';
             updateElement('#topRegion', `${flag} ${countryName}`);
             updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
         }
