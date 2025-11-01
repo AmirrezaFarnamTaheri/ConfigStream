@@ -1,7 +1,0 @@
-https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge.txt
-https://raw.githubusercontent.com/tbbatbb/Proxy/master/dist/v2ray.config.txt
-https://raw.githubusercontent.com/soroushmirzaei/V2Ray-configs/main/All-Configs-base64.txt
-https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/category-ads-all
-https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/category-porn-all
-https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/category-gambling-all
-https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/category-malicious-all
