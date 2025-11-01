@@ -2129,6 +2129,48 @@ body.dark .proxies-table tbody tr:hover td {
     transform: scale(1.15) rotate(-5deg);
 }
 
+/* Status Badge Styles */
+.status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 0.75);
+    padding: calc(var(--space-unit) * 0.75) calc(var(--space-unit) * 1.5);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.status-badge.status-online {
+    background: color-mix(in srgb, var(--success-color) 15%, transparent);
+    color: var(--success-color);
+    border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);
+}
+
+.status-badge.status-offline {
+    background: color-mix(in srgb, var(--danger-color) 15%, transparent);
+    color: var(--danger-color);
+    border: 1px solid color-mix(in srgb, var(--danger-color) 30%, transparent);
+}
+
+.status-icon {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+body.dark .status-badge.status-online {
+    background: color-mix(in srgb, var(--success-color) 20%, transparent);
+}
+
+body.dark .status-badge.status-offline {
+    background: color-mix(in srgb, var(--danger-color) 20%, transparent);
+}
 
 /* Empty State Styles */
 .empty-state {
