@@ -6,7 +6,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
-ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 4 hours via GitHub Actions. This process includes comprehensive security testing and geolocation data.
+ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions. This process includes comprehensive security testing and geolocation data.
 
 ## 🌐 Get Fresh Configurations
 
@@ -17,7 +17,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 ## ✨ Features
 
 ### 🤖 Fully Automated
-- **Automated Updates Every 4 Hours** via GitHub Actions
+- **Automated Updates Every 6 Hours** via GitHub Actions
 - **Zero manual intervention** required
 - **Cache-busting** ensures clients always get fresh data
 - **668+ curated sources** from public repositories and Telegram channels
@@ -59,7 +59,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 
 ```mermaid
 graph LR
-    A[GitHub Actions<br/>Every 4 Hours] -->|Trigger| B[Fetch Sources]
+    A[GitHub Actions<br/>Every 6 Hours] -->|Trigger| B[Fetch Sources]
     B --> C[Parse & Normalise]
     C --> D[Disk Queue]
     D --> E[Async Testing]
@@ -76,7 +76,7 @@ graph LR
 2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers
 3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps)
 4. **Test** - Sing-box verification with latency budgets and retry heuristics
-5. **Secure** - Drop plaintext and non-AEAD configurations only
+5. **Secure** - Security testing with detailed issue tracking and categorization
 6. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token)
 7. **Score** - Compute balanced, speed, privacy, and stability rankings
 8. **Generate** - Emit canonical + ranked JSON outputs with metadata
@@ -301,7 +301,7 @@ pytest -v
 ### GitHub Actions Workflow
 
 The automation workflow (`pipeline.yml`) runs:
-- **Every 4 hours** (at 00:00, 04:00, 08:00, 12:00, 16:00, 20:00 UTC) to fetch, test, and merge proxies from all sources.
+- **Every 6 hours** (at 00:00, 06:00, 12:00, 18:00 UTC) to fetch, test, and merge proxies from all sources.
 - **On manual trigger** via workflow_dispatch.
 - **On source file changes** (e.g., updates to `sources.txt`).
 
