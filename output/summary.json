@@ -1,0 +1,13 @@
+{
+  "total_tested": 8163,
+  "passed": 0,
+  "rejected": {
+    "total_security_issues": 8163,
+    "security_by_category": {
+      "tls": 8163
+    },
+    "no_response": 0
+  },
+  "by_protocol": {},
+  "by_country": {}
+}
