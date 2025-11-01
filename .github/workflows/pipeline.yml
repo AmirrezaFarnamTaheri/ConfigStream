@@ -223,6 +223,7 @@ jobs:
           commit_message: "chore(data): update outputs from all batches"
           file_pattern: "output/"
           add_options: '-f'
+          pull: '--rebase --autostash'
 
       - name: Upload final pipeline artifact
         if: always()
