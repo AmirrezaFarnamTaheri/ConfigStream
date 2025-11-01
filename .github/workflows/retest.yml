@@ -2,7 +2,7 @@ name: Retest
 
 on:
   schedule:
-    - cron: "20 * * * *"
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:

@@ -586,8 +586,15 @@ async def run_full_pipeline(
                         (stats["working"] / stats["tested"]) * 100 if stats["tested"] > 0 else 0.0
                     )
                     protocol_counts: Dict[str, int] = {}
+                    country_counts: Dict[str, int] = {}
+                    asn_counts: Dict[str, int] = {}
+
                     for proxy in all_working_proxies:
                         protocol_counts[proxy.protocol] = protocol_counts.get(proxy.protocol, 0) + 1
+                        country = proxy.country or "Unknown"
+                        country_counts[country] = country_counts.get(country, 0) + 1
+                        if proxy.asn:
+                            asn_counts[proxy.asn] = asn_counts.get(proxy.asn, 0) + 1
 
                     working_with_latency = [
                         proxy.latency for proxy in all_working_proxies if proxy.latency is not None
@@ -609,6 +616,8 @@ async def run_full_pipeline(
                         "success_rate": round(success_rate, 2),
                         "average_latency_ms": round(average_latency, 2),
                         "protocol_distribution": protocol_counts,
+                        "countries": dict(sorted(country_counts.items())),
+                        "asns": dict(sorted(asn_counts.items())),
                         "phase_summaries": phase_summaries,
                         "cache_bust": int(datetime.now().timestamp() * 1000),
                     }
@@ -620,7 +629,7 @@ async def run_full_pipeline(
                     metadata = {
                         "version": "1.0.0",
                         "generated_at": start_time.isoformat(),
-                        "updated_at": datetime.now(timezone.utc).isoformat(),
+                        "last_updated_utc": datetime.now(timezone.utc).isoformat(),
                         "proxy_count": len(all_working_proxies),
                         "working_count": stats["working"],
                         "source_count": len(sources_to_fetch),

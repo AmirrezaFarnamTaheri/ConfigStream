@@ -18,8 +18,8 @@ ConfigStream has a **robust, production-ready CI/CD pipeline** with 5 GitHub Act
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  CI.yml          →  Test on PR/Push (Python 3.10-3.12)     │
-│  Pipeline.yml    →  Every 4 hours + Manual (Main Pipeline) │
-│  Retest.yml      →  Every hour + Manual (Re-validate)      │
+│  Pipeline.yml    →  Every 6 hours + Manual (Main Pipeline) │
+│  Retest.yml      →  Every 30 min + Manual (Re-validate)    │
 │  Deploy-Pages    →  Auto after Pipeline (GitHub Pages)     │
 │  Release.yml     →  On version tag (PyPI + GitHub Release) │
 │                                                              │
@@ -77,7 +77,7 @@ Steps:
 
 **Purpose:** Full proxy aggregation and testing
 **Triggers:**
-- 🕐 Every 4 hours (cron: "0 */4 * * *")
+- 🕐 Every 6 hours (cron: "0 */6 * * *")
 - 📌 Push to main
 - 🔀 Pull Requests
 - 🔘 Manual dispatch
@@ -165,7 +165,7 @@ Pipeline Command:
 
 **Purpose:** Re-validate previously tested proxies
 **Triggers:**
-- 🕐 Every hour (cron: "20 * * * *")
+- 🕐 Every 30 minutes (cron: "*/30 * * * *")
 - 🔘 Manual dispatch
 
 **Status:** ✅ **VALIDATED** - Efficient re-testing strategy
@@ -185,18 +185,18 @@ Command: python -m configstream.cli retest
 2. Reconstructs Proxy objects from JSON
 3. Re-runs testing without fetching sources
 4. Updates outputs with fresh test results
-5. Auto-commits hourly updates
+5. Auto-commits updates every 30 minutes
 
 **Strengths:**
-- ✅ Hourly freshness without full pipeline overhead
+- ✅ High freshness (30-minute updates) without full pipeline overhead
 - ✅ Validates JSON schema (non-blocking)
 - ✅ Faster than full pipeline (no source fetching)
-- ✅ Complementary to 4-hour full pipeline
+- ✅ Complementary to 6-hour full pipeline
 
 **Efficiency Analysis:**
 ```
-Full Pipeline (4h):  Fetch 240 sources → Parse → Test → Output
-Retest (1h):        Load JSON → Re-test existing → Output
+Full Pipeline (6h):  Fetch 240 sources → Parse → Test → Output
+Retest (30min):     Load JSON → Re-test existing → Output
 
 Time Savings: ~70-80% (no fetch/parse overhead)
 Resource Usage: Lower (smaller proxy set)
