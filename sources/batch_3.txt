@@ -1,3 +1,4 @@
+https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/main/trojan_iran.txt
 https://raw.githubusercontent.com/mfuu/v2ray/refs/heads/master/v2ray
 https://raw.githubusercontent.com/Barry-far/V2ray-Configs/main/Splitted-By-Protocol/reality.txt
 https://raw.githubusercontent.com/xray-telegram-collector/V2Ray-Telegram-Config-Collector/main/hysteria
@@ -110,3 +111,5 @@ https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/tr
 https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/b64mix.txt
 https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/port_443.txt
 https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub7_shuffled.conf
+https://raw.githubusercontent.com/coldwater-10/V2rayCollector/main/trojan_iran.txt
+https://raw.githubusercontent.com/dream4network/telegram-configs-collector/main/protocols/hysteria

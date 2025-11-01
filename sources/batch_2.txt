@@ -1,6 +1,3 @@
-https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Protocol/reality.txt
-https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/ss
-https://raw.githubusercontent.com/10ium/ScrapeAndCategorize/refs/heads/main/output_configs/Ukraine.txt
 http://azadiazinjamigzare.github.io/SingBox
 https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml
 https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/Long_term_subscription8
@@ -108,4 +105,3 @@ https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/po
 https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/b64ss.txt
 https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/port_2087.txt
 https://raw.githubusercontent.com/M-Mashreghi/Free-V2ray-Collector/main/shuffle/Sub8_shuffled.conf
-https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/main/trojan_iran.txt
