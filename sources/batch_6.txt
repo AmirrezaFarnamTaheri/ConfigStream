@@ -1,6 +1,3 @@
-https://github.com/Epodonios/v2ray-configs/raw/main/Splitted-By-Protocol/trojan.txt
-https://raw.githubusercontent.com/lagzian/SS-Collector/main/mixed_base64.txt
-https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/amin_o__o_bitplatform.yaml
 https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Protocol/vmess.txt
 https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/splitted/vmess
 https://raw.githubusercontent.com/MahsaNetConfigTopic/config/refs/heads/main/xray_final.txt
