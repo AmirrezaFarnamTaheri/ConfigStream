@@ -136,7 +136,7 @@ pre, code {
     background: var(--bg-glass);
     backdrop-filter: blur(40px) saturate(200%);
     -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     padding: calc(var(--space-unit) * 6);
     box-shadow:
         8px 8px 18px var(--shadow-1),
@@ -664,11 +664,15 @@ body.dark .github-btn:hover {
     .card {
         padding: calc(var(--space-unit) * 3);
         border-radius: var(--radius-lg);
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .card-header {
         margin: calc(var(--space-unit) * -3) calc(var(--space-unit) * -3) calc(var(--space-unit) * 2);
         padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 2.5);
+        max-width: calc(100% + calc(var(--space-unit) * 6));
+        box-sizing: border-box;
     }
 
     .card-header h2 {
@@ -830,7 +834,7 @@ main {
     font-family: inherit;
     font-size: inherit;
     transition: all var(--transition-fast);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
 }
 .accordion-header:hover {
     opacity: 0.9;
@@ -1028,6 +1032,8 @@ body.dark .subtitle {
     margin: calc(var(--space-unit) * -5) calc(var(--space-unit) * -5) calc(var(--space-unit) * 3);
     padding: calc(var(--space-unit) * 3) calc(var(--space-unit) * 5);
     border-bottom: 1px solid var(--border);
+    max-width: 100%;
+    box-sizing: border-box;
 }
 body.dark .card-header {
     border-bottom-color: var(--border);
@@ -1068,6 +1074,9 @@ body.dark .card-header p { color: var(--text-secondary); }
     display: flex;
     flex-direction: column;
     transition: all var(--transition-fast);
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 body.dark .chart-container {
@@ -1092,6 +1101,8 @@ body.dark .chart-container {
     max-height: 320px !important;
     width: 100% !important;
     height: auto !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
 }
 
 /* Analytics Hero Section */
@@ -1461,14 +1472,21 @@ body.dark .insight-card:hover {
     .charts-grid {
         grid-template-columns: 1fr;
         gap: calc(var(--space-unit) * 2);
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .chart-container {
-        height: 350px;
+        height: auto;
+        min-height: 350px;
+        max-width: 100%;
+        overflow: hidden;
+        padding: calc(var(--space-unit) * 2);
     }
 
     .chart-container canvas {
-        max-height: 270px !important;
+        max-height: 240px !important;
+        max-width: 100% !important;
     }
 
     .chart-full-width {
@@ -2111,6 +2129,48 @@ body.dark .proxies-table tbody tr:hover td {
     transform: scale(1.15) rotate(-5deg);
 }
 
+/* Status Badge Styles */
+.status-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--space-unit) * 0.75);
+    padding: calc(var(--space-unit) * 0.75) calc(var(--space-unit) * 1.5);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.status-badge.status-online {
+    background: color-mix(in srgb, var(--success-color) 15%, transparent);
+    color: var(--success-color);
+    border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);
+}
+
+.status-badge.status-offline {
+    background: color-mix(in srgb, var(--danger-color) 15%, transparent);
+    color: var(--danger-color);
+    border: 1px solid color-mix(in srgb, var(--danger-color) 30%, transparent);
+}
+
+.status-icon {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+body.dark .status-badge.status-online {
+    background: color-mix(in srgb, var(--success-color) 20%, transparent);
+}
+
+body.dark .status-badge.status-offline {
+    background: color-mix(in srgb, var(--danger-color) 20%, transparent);
+}
 
 /* Empty State Styles */
 .empty-state {
@@ -2727,31 +2787,31 @@ body.dark #preloader {
 }
 
 @media (max-width: 768px) {
-    /* Reduce filter controls padding in portrait mode */
+    /* Reduce filter controls padding in portrait mode - make more compact */
     .filter-controls-redesigned {
-        padding: calc(var(--space-unit) * 2);
-        gap: calc(var(--space-unit) * 1.5);
+        padding: calc(var(--space-unit) * 1.5);
+        gap: calc(var(--space-unit) * 1);
         margin-bottom: calc(var(--space-unit) * 2);
     }
 
     .filter-bar, .actions-bar {
         flex-direction: column;
         align-items: stretch;
-        gap: calc(var(--space-unit) * 1.5);
+        gap: calc(var(--space-unit) * 1);
     }
     .filter-group, .action-group {
         flex-direction: column;
         width: 100%;
-        gap: calc(var(--space-unit) * 1);
+        gap: calc(var(--space-unit) * 0.75);
     }
     .filter-input-wrapper {
         min-width: 100%;
     }
 
-    /* Reduce filter input height on mobile */
+    /* Reduce filter input height on mobile - more compact */
     .filter-controls-redesigned select,
     .filter-controls-redesigned input {
-        padding: calc(var(--space-unit) * 0.75) calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 0.75) calc(var(--space-unit) * 4.5);
+        padding: calc(var(--space-unit) * 0.625) calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 0.625) calc(var(--space-unit) * 4.5);
         font-size: 0.85rem;
     }
 
@@ -2765,14 +2825,14 @@ body.dark #preloader {
 
     .actions-bar {
         flex-direction: column-reverse; /* Put pagination info on top */
-        padding-top: calc(var(--space-unit) * 1.5);
+        padding-top: calc(var(--space-unit) * 1);
     }
     .pagination-info {
         width: 100%;
         justify-content: space-between;
-        margin-bottom: var(--space-unit);
+        margin-bottom: calc(var(--space-unit) * 0.5);
         flex-wrap: wrap;
-        gap: calc(var(--space-unit) * 1);
+        gap: calc(var(--space-unit) * 0.75);
     }
 
     #filterSummary, #filterCount {

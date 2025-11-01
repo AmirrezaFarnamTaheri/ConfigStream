@@ -73,9 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSort.key === 'location') {
                 valA = a.country_code || '';
                 valB = b.country_code || '';
-            } else if (currentSort.key === 'health') {
-                valA = a.uptime || 0;
-                valB = b.uptime || 0;
+            } else if (currentSort.key === 'status') {
+                valA = a.is_working !== false ? 1 : 0;
+                valB = b.is_working !== false ? 1 : 0;
             } else {
                 valA = a[currentSort.key];
                 valB = b[currentSort.key];
@@ -104,11 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const protocol = p.protocol || 'N/A';
             const config = p.config || '';
             const remarks = p.remarks || 'N/A';
-            const uptime = p.uptime !== undefined ? (p.uptime * 100).toFixed(2) : 'N/A';
-            let healthStatus = 'na';
-            if (uptime > 95) healthStatus = 'high';
-            else if (uptime > 80) healthStatus = 'medium';
-            else if (uptime !== 'N/A') healthStatus = 'low';
+            // Status based on is_working field (uptime data not available in backend)
+            const isOnline = p.is_working !== false;
+            const statusClass = isOnline ? 'status-online' : 'status-offline';
+            const statusText = isOnline ? 'Online' : 'Offline';
+            const statusIcon = isOnline ? '✓' : '✗';
 
             const rowClasses = ['proxy-row'];
             if (p.source === 'fallback') {
@@ -125,9 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>${location}</span>
                     </td>
                     <td>${latency}</td>
-                    <td class="health-cell">
-                        <span class="health-indicator health-indicator--${healthStatus}"></span>
-                        <span>${uptime}%</span>
+                    <td class="status-cell">
+                        <span class="status-badge ${statusClass}">
+                            <span class="status-icon">${statusIcon}</span>
+                            <span class="status-text">${statusText}</span>
+                        </span>
                     </td>
                     <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
                 </tr>

@@ -200,7 +200,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const countryCode = countryNameToCode[countryName];
             // Only use flag if we have a valid 2-letter country code
             const flag = countryCode ? getCountryFlag(countryCode) : '🌍';
-            updateElement('#topRegion', `${flag} ${countryName}`);
+            // Separate flag from gradient text to prevent overlay
+            updateElement('#topRegion', `<span style="filter: none; -webkit-text-fill-color: initial;">${flag}</span> ${countryName}`, { method: 'innerHTML', trustedHTML: true });
             updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
         }
 
