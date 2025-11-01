@@ -2747,6 +2747,22 @@ body.dark #preloader {
     .filter-input-wrapper {
         min-width: 100%;
     }
+
+    /* Reduce filter input height on mobile */
+    .filter-controls-redesigned select,
+    .filter-controls-redesigned input {
+        padding: calc(var(--space-unit) * 0.75) calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 0.75) calc(var(--space-unit) * 4.5);
+        font-size: 0.85rem;
+    }
+
+    .filter-controls-redesigned select {
+        padding-right: calc(var(--space-unit) * 4);
+    }
+
+    .latency-wrapper input {
+        padding-left: calc(var(--space-unit) * 1.5);
+    }
+
     .actions-bar {
         flex-direction: column-reverse; /* Put pagination info on top */
         padding-top: calc(var(--space-unit) * 1.5);
