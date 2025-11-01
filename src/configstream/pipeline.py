@@ -615,7 +615,7 @@ async def run_full_pipeline(
                         "duplicates_skipped": stats["duplicates_skipped"],
                         "success_rate": round(success_rate, 2),
                         "average_latency_ms": round(average_latency, 2),
-                        "protocol_distribution": protocol_counts,
+                        "protocols": protocol_counts,
                         "countries": dict(sorted(country_counts.items())),
                         "asns": dict(sorted(asn_counts.items())),
                         "phase_summaries": phase_summaries,
