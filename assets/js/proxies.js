@@ -110,6 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (uptime > 80) healthStatus = 'medium';
             else if (uptime !== 'N/A') healthStatus = 'low';
 
+            // Only add % symbol if uptime is not N/A
+            const uptimeDisplay = uptime !== 'N/A' ? `${uptime}%` : uptime;
+
             const rowClasses = ['proxy-row'];
             if (p.source === 'fallback') {
                 rowClasses.push('proxy-row--fallback');
@@ -127,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${latency}</td>
                     <td class="health-cell">
                         <span class="health-indicator health-indicator--${healthStatus}"></span>
-                        <span>${uptime}%</span>
+                        <span>${uptimeDisplay}</span>
                     </td>
                     <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
                 </tr>
