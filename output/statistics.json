@@ -1,19 +1,19 @@
 {
-  "generated_at": "2025-11-02T20:23:59.825178+00:00",
-  "generated_now": "2025-11-02T21:24:56.832411+00:00",
-  "total_fetched": 6500,
-  "total_tested": 6500,
-  "total_working": 6404,
-  "total_filtered": 6404,
+  "generated_at": "2025-11-02T22:21:09.596194+00:00",
+  "generated_now": "2025-11-02T23:14:14.883172+00:00",
+  "total_fetched": 6404,
+  "total_tested": 6404,
+  "total_working": 6399,
+  "total_filtered": 6399,
   "duplicates_skipped": 0,
-  "success_rate": 98.52,
-  "average_latency_ms": 1016.27,
+  "success_rate": 99.92,
+  "average_latency_ms": 826.77,
   "protocols": {
-    "shadowsocks": 2402,
-    "vless": 3508,
-    "trojan": 19,
+    "shadowsocks": 2398,
+    "vless": 3507,
     "vmess": 358,
-    "hysteria2": 117
+    "hysteria2": 117,
+    "trojan": 19
   },
   "countries": {
     "Algeria": 7,
@@ -21,7 +21,7 @@
     "Armenia": 29,
     "Australia": 9,
     "Austria": 74,
-    "Belarus": 826,
+    "Belarus": 825,
     "Belgium": 9,
     "Belize": 4,
     "Brazil": 32,
@@ -35,11 +35,11 @@
     "Cyprus": 13,
     "Czechia": 11,
     "Denmark": 12,
-    "Ecuador": 13,
+    "Ecuador": 12,
     "Egypt": 8,
     "Estonia": 2,
     "Finland": 87,
-    "France": 764,
+    "France": 763,
     "Germany": 311,
     "Greece": 34,
     "Hong Kong": 84,
@@ -47,7 +47,7 @@
     "Iceland": 29,
     "India": 31,
     "Indonesia": 2,
-    "Iran": 432,
+    "Iran": 431,
     "Ireland": 7,
     "Israel": 4,
     "Italy": 4,
@@ -85,7 +85,7 @@
     "Ukraine": 6,
     "United Arab Emirates": 14,
     "United Kingdom": 365,
-    "United States": 752,
+    "United States": 751,
     "United States Minor Outlying Islands": 61,
     "Unknown": 57,
     "Venezuela": 2,
@@ -96,13 +96,13 @@
     {
       "phase": 1,
       "source": "supplied",
-      "fetched": 6500,
-      "parsed": 6500,
-      "tested": 6500,
-      "working": 6404,
-      "new_working": 6404,
-      "cumulative_working": 6404
+      "fetched": 6404,
+      "parsed": 6404,
+      "tested": 6404,
+      "working": 6399,
+      "new_working": 6399,
+      "cumulative_working": 6399
     }
   ],
-  "cache_bust": 1762118696832
+  "cache_bust": 1762125254883
 }
