@@ -1,12 +1,12 @@
 {
-  "generated_at": "2025-11-04T10:29:31.604329+00:00",
-  "generated_now": "2025-11-04T11:42:06.927537+00:00",
-  "total_fetched": 6966,
-  "total_tested": 6966,
+  "generated_at": "2025-11-04T13:37:32.370822+00:00",
+  "generated_now": "2025-11-04T13:37:47.863095+00:00",
+  "total_fetched": 6888,
+  "total_tested": 6888,
   "total_working": 6888,
   "total_filtered": 6888,
   "duplicates_skipped": 0,
-  "success_rate": 98.88,
+  "success_rate": 100.0,
   "average_latency_ms": 951.43,
   "protocols": {
     "vmess": 348,
@@ -91,13 +91,13 @@
     {
       "phase": 1,
       "source": "supplied",
-      "fetched": 6966,
-      "parsed": 6966,
-      "tested": 6966,
+      "fetched": 6888,
+      "parsed": 6888,
+      "tested": 6888,
       "working": 6888,
       "new_working": 6888,
       "cumulative_working": 6888
     }
   ],
-  "cache_bust": 1762256526927
+  "cache_bust": 1762263467863
 }

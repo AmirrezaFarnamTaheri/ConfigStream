@@ -4,7 +4,8 @@
   "rejected": {
     "total_security_issues": 6888,
     "security_by_category": {
-      "tls": 6888
+      "tls": 6888,
+      "error": 6888
     },
     "no_response": 0
   },
