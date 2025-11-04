@@ -1,40 +1,40 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-11-03T22:24:05.939056+00:00",
-  "last_updated_utc": "2025-11-03T23:36:50.742788+00:00",
-  "proxy_count": 7142,
-  "working_count": 7142,
+  "generated_at": "2025-11-04T01:55:54.692932+00:00",
+  "last_updated_utc": "2025-11-04T03:06:40.132167+00:00",
+  "proxy_count": 7128,
+  "working_count": 7128,
   "source_count": 0,
-  "tested_count": 7164,
+  "tested_count": 7142,
   "fallback_available": false,
   "phase_summaries": [
     {
       "phase": 1,
       "source": "supplied",
-      "fetched": 7164,
-      "parsed": 7164,
-      "tested": 7164,
-      "working": 7142,
-      "new_working": 7142,
-      "cumulative_working": 7142
+      "fetched": 7142,
+      "parsed": 7142,
+      "tested": 7142,
+      "working": 7128,
+      "new_working": 7128,
+      "cumulative_working": 7128
     }
   ],
-  "cache_bust": 1762213010742,
+  "cache_bust": 1762225600132,
   "stats": {
-    "generated_at": "2025-11-03T22:24:05.939056+00:00",
-    "generated_now": "2025-11-03T23:36:50.742396+00:00",
-    "total_fetched": 7164,
-    "total_tested": 7164,
-    "total_working": 7142,
-    "total_filtered": 7142,
+    "generated_at": "2025-11-04T01:55:54.692932+00:00",
+    "generated_now": "2025-11-04T03:06:40.131840+00:00",
+    "total_fetched": 7142,
+    "total_tested": 7142,
+    "total_working": 7128,
+    "total_filtered": 7128,
     "duplicates_skipped": 0,
-    "success_rate": 99.69,
-    "average_latency_ms": 828.25,
+    "success_rate": 99.8,
+    "average_latency_ms": 813.83,
     "protocols": {
-      "shadowsocks": 2577,
+      "vmess": 363,
+      "vless": 4057,
       "hysteria2": 121,
-      "vmess": 364,
-      "vless": 4059,
+      "shadowsocks": 2566,
       "trojan": 21
     },
     "countries": {
@@ -43,7 +43,7 @@
       "Armenia": 35,
       "Australia": 19,
       "Austria": 11,
-      "Belarus": 1055,
+      "Belarus": 1051,
       "Belgium": 17,
       "Belize": 4,
       "Brazil": 7,
@@ -60,13 +60,13 @@
       "Ecuador": 13,
       "Finland": 121,
       "France": 948,
-      "Germany": 341,
+      "Germany": 340,
       "Greece": 35,
-      "Hong Kong": 75,
+      "Hong Kong": 74,
       "Hungary": 14,
       "Iceland": 21,
       "India": 97,
-      "Iran": 465,
+      "Iran": 461,
       "Ireland": 7,
       "Israel": 2,
       "Italy": 4,
@@ -88,7 +88,7 @@
       "Russia": 36,
       "Serbia": 2,
       "Seychelles": 2,
-      "Singapore": 75,
+      "Singapore": 73,
       "Slovakia": 6,
       "South Korea": 112,
       "Spain": 95,
@@ -102,25 +102,25 @@
       "Ukraine": 11,
       "United Arab Emirates": 13,
       "United Kingdom": 590,
-      "United States": 831,
+      "United States": 830,
       "United States Minor Outlying Islands": 55,
       "Unknown": 101,
       "Venezuela": 2,
-      "Vietnam": 324
+      "Vietnam": 323
     },
     "asns": {},
     "phase_summaries": [
       {
         "phase": 1,
         "source": "supplied",
-        "fetched": 7164,
-        "parsed": 7164,
-        "tested": 7164,
-        "working": 7142,
-        "new_working": 7142,
-        "cumulative_working": 7142
+        "fetched": 7142,
+        "parsed": 7142,
+        "tested": 7142,
+        "working": 7128,
+        "new_working": 7128,
+        "cumulative_working": 7128
       }
     ],
-    "cache_bust": 1762213010742
+    "cache_bust": 1762225600131
   }
 }
