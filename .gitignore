@@ -16,6 +16,11 @@ __pycache__/
 # Log files
 *.log
 
+# Database files
+*.db
+*.db-journal
+data/
+
 # Build artifacts
 dist/
 build/

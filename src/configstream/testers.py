@@ -155,7 +155,7 @@ class SingBoxTester(ProxyTester):
             if not proxy.is_working:
                 proxy.security_issues.setdefault("connectivity", []).append("Direct test failed")
         except Exception as e:
-            logger.debug(f"Direct test failed for {proxy.address}:{proxy.port}: {e}")
+            logger.debug("Direct test failed for %s:%s: %s", proxy.address, proxy.port, e)
             return None
         finally:
             proxy.tested_at = datetime.now(timezone.utc).isoformat()

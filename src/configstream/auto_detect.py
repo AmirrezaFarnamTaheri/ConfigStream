@@ -144,7 +144,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         try:
             result = parser(config)
             if result:
-                logger.info(f"Auto-detected protocol: {result.protocol}")
+                logger.info("Auto-detected protocol: %s", result.protocol)
                 return result
         except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
             logger.debug(

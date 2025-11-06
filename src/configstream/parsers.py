@@ -23,7 +23,7 @@ VALID_B64_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234
 def _validate_b64_input(data: str) -> Optional[str]:
     """Validate base64 string before attempting decode."""
     if not isinstance(data, str):
-        logger.warning(f"Expected string, got {type(data).__name__}")
+        logger.warning("Expected string, got %s", type(data).__name__)
         return None
 
     trimmed = data.strip()
@@ -32,12 +32,12 @@ def _validate_b64_input(data: str) -> Optional[str]:
         return None
 
     if len(trimmed) > MAX_B64_INPUT_SIZE:
-        logger.error(f"Base64 input too large: {len(trimmed)} bytes (max: {MAX_B64_INPUT_SIZE})")
+        logger.error("Base64 input too large: %s bytes (max: %s)", len(trimmed), MAX_B64_INPUT_SIZE)
         return None
 
     invalid_chars = set(trimmed) - VALID_B64_CHARS
     if invalid_chars:
-        logger.warning(f"Invalid base64 characters: {invalid_chars}")
+        logger.warning("Invalid base64 characters: %s", invalid_chars)
         return None
 
     cleaned = "".join(c for c in trimmed if c not in " \n\r\t")
@@ -69,13 +69,13 @@ def _safe_b64_decode(data: str) -> str:
             logger.debug("Decoded data is not valid UTF-8, trying latin-1")
             return decoded_bytes.decode("latin-1")
     except (binascii.Error, ValueError) as exc:
-        logger.warning(f"Base64 decode failed: {exc}")
+        logger.warning("Base64 decode failed: %s", exc)
         return data
     except MemoryError:
         logger.error("Out of memory decoding base64")
         return data
     except Exception as exc:
-        logger.error(f"Unexpected error decoding base64: {exc}")
+        logger.error("Unexpected error decoding base64: %s", exc)
         return data
 
 
@@ -99,7 +99,7 @@ def _extract_config_lines(payload: str, max_lines: int = MAX_LINES_PER_SOURCE) -
 
     lines = payload.splitlines()
     if len(lines) > max_lines:
-        logger.warning(f"Payload has {len(lines)} lines, truncating to {max_lines}")
+        logger.warning("Payload has %s lines, truncating to %s", len(lines), max_lines)
         lines = lines[:max_lines]
 
     valid_prefixes = {p for p in VALID_PROTOCOLS if not p.endswith("://")}
@@ -123,7 +123,7 @@ def _parse_vmess(config: str) -> Optional[Proxy]:
             return None
         data = config[len("vmess://") :]
         if len(data) > 10000:
-            logger.warning(f"VMess config too long: {len(data)} bytes")
+            logger.warning("VMess config too long: %s bytes", len(data))
             return None
         vmess_data = json.loads(base64.b64decode(data).decode("utf-8"))
 
@@ -149,7 +149,7 @@ def _parse_vmess(config: str) -> Optional[Proxy]:
             details=vmess_data,
         )
     except (json.JSONDecodeError, binascii.Error, KeyError, ValueError) as e:
-        logger.debug(f"Failed to parse VMess: {str(e)[:100]}")
+        logger.debug("Failed to parse VMess: %s", str(e)[:100])
         return None
 
 
@@ -175,7 +175,7 @@ def _parse_vless(config: str) -> Optional[Proxy]:
             details={k: v[0] for k, v in parse_qs(parsed.query).items()},
         )
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse VLESS: {e}")
+        logger.debug("Failed to parse VLESS: %s", e)
         return None
 
 
@@ -230,7 +230,7 @@ def _parse_ss(config: str) -> Optional[Proxy]:
             details={"method": method, "password": password},
         )
     except (ValueError, IndexError, binascii.Error) as e:
-        logger.debug(f"Failed to parse Shadowsocks: {e}")
+        logger.debug("Failed to parse Shadowsocks: %s", e)
         return None
 
 
@@ -251,7 +251,7 @@ def _parse_ss2022(config: str) -> Optional[Proxy]:
 
         return proxy
     except Exception as e:
-        logger.debug(f"Failed to parse Shadowsocks 2022: {e}")
+        logger.debug("Failed to parse Shadowsocks 2022: %s", e)
         return None
 
 
@@ -276,7 +276,7 @@ def _parse_trojan(config: str) -> Optional[Proxy]:
             details=parse_qs(parsed.query),
         )
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Trojan: {e}")
+        logger.debug("Failed to parse Trojan: %s", e)
         return None
 
 
@@ -334,9 +334,9 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
             v_norm = _b64_normalize(val)
             decoded_val = _safe_b64_decode(v_norm)
 
-            # If it wasn’t valid base64, don’t fail hard—keep original.
+            # If it wasn't valid base64, don't fail hard—keep original.
             if decoded_val == v_norm and _validate_b64_input(v_norm) is None:
-                logger.debug(f"SSR param '{k}' not valid base64: {val!r}; leaving as-is.")
+                logger.debug("SSR param '%s' not valid base64: %s; leaving as-is.", k, repr(val))
                 decoded_val = val
 
             params_decoded[k] = decoded_val
@@ -359,7 +359,7 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
             },
         )
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse SSR: {e}")
+        logger.debug("Failed to parse SSR: %s", e)
         return None
 
 
@@ -392,7 +392,7 @@ def _parse_generic_url_scheme(config: str) -> Optional[Proxy]:
             remarks=unquote(parsed.fragment or ""),
         )
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Generic config: {str(e)[:50]}")
+        logger.debug("Failed to parse Generic config: %s", str(e)[:50])
         return None
 
 
@@ -413,7 +413,7 @@ def _parse_naive(config: str) -> Optional[Proxy]:
             remarks=unquote(parsed.fragment or ""),
         )
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse Naive config: {str(e)[:50]}")
+        logger.debug("Failed to parse Naive config: %s", str(e)[:50])
         return None
 
 
@@ -492,7 +492,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
             details=parse_qs(parsed.query),
         )
     except (ValueError, IndexError) as e:
-        logger.debug(f"Failed to parse {protocol.upper()}: {e}")
+        logger.debug("Failed to parse %s: %s", protocol.upper(), e)
         return None
 
 

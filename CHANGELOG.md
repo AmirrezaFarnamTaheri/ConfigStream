@@ -5,6 +5,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Pipeline output verification before health checks run
+- Metrics validation with type and range checking in health checks
+- Baseline timeout validation (5-second minimum) in fetcher module
+- GitHub Actions token permission hardening with explicit scopes
+- SQLite backup API for atomic and consistent database backups
+- Latency value validation in health checks (numeric, non-negative, non-NaN)
+- Timeout sanitization with type validation and upper bound (120s)
+- Normalized proxy merge keys with case-insensitive protocol matching
+- Comprehensive test suite for package initialization and lazy loading
+- Enhanced backup module tests covering error handling and edge cases
+- Extended adaptive workers tests with psutil mocking and exception scenarios
+- 25 new test cases for error paths and fallback behavior
+
+### Changed
+- Health check exit code now properly propagates to trigger workflow failures
+- Concurrency grouping uses stable identifiers (workflow + event_name) instead of git ref
+- Discord webhook payloads constructed with `jq` for injection-proof JSON building
+- Database backups now use sqlite3.backup() API instead of file copy for consistency
+- Backup system cleans up partial files on failure
+- Timeout values validated and clamped between 5s-120s with type conversion
+- Proxy merge operations handle None protocols and explicit port casting
+- Test coverage increased from 88% to 89% (553 tests passing, 1 skipped)
+- Package initialization module coverage improved from 52% to 92%
+- Backup module coverage improved from 82% to 96%
+
+### Fixed
+- MyPy type error in healthcheck script for latency validation (added None check before float conversion)
+- Replaced regex-based f-string conversion with robust AST-based transformation in fix_lazy_logging.py
+- Backup list now sorts by actual creation time instead of filename
+- Adaptive timeout cache now gracefully handles database read failures
+- Path traversal vulnerability in backup routine (added sanitization and validation)
+
+### Improved
+- Healthcheck workflow trigger condition now more explicit and readable
+- Timeout budget allocation increased from 80% to 70% to better enforce total timeout across retries
+- Byte length logging now accurate (encodes string before measuring)
+- Test execution speed improved (reduced artificial delay from 10s to 6s)
+
 ### Planned
 - Performance improvements for large proxy sets
 - Additional output formats
