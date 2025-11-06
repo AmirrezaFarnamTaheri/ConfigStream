@@ -116,11 +116,21 @@ class SmartRetestScheduler:
         Returns:
             Retest interval timedelta
         """
-        if health_score >= 0.9:
+        try:
+            score = float(health_score)
+        except (TypeError, ValueError):
+            score = 0.0
+        # Normalize out-of-range and NaN
+        if score != score or score < 0.0:
+            score = 0.0
+        elif score > 1.0:
+            score = 1.0
+
+        if score >= 0.9:
             return RetestInterval.EXCELLENT
-        elif health_score >= 0.7:
+        elif score >= 0.7:
             return RetestInterval.GOOD
-        elif health_score >= 0.5:
+        elif score >= 0.5:
             return RetestInterval.FAIR
         else:
             return RetestInterval.POOR
