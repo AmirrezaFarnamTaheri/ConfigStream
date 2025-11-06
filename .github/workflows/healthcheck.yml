@@ -13,12 +13,14 @@ on:
       - completed
 
 concurrency:
-  group: healthcheck-${{ github.ref }}
+  group: healthcheck-${{ github.workflow }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
-  contents: read
-  issues: write  # For creating issues on failure
+  contents: read     # Only read code
+  issues: write      # Create/update failure alerts
+  actions: read      # Read workflow status
+  metadata: read     # Read repo metadata
 
 jobs:
   healthcheck:
@@ -38,8 +40,20 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Verify pipeline outputs exist
+        id: verify
+        run: |
+          if [ ! -f output/proxies.json ] || [ ! -f output/metadata.json ]; then
+            echo "⚠️  Pipeline outputs not found. Skipping health check."
+            echo "outputs_exist=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "✓ Pipeline outputs found."
+          echo "outputs_exist=true" >> "$GITHUB_OUTPUT"
+
       - name: Run health checks
         id: health
+        if: steps.verify.outputs.outputs_exist == 'true'
         shell: bash
         run: |
           set +e
@@ -52,7 +66,7 @@ jobs:
             --max-avg-latency 5000
           STATUS=$?
           echo "exit_code=$STATUS" >> "$GITHUB_OUTPUT"
-          exit 0
+          exit $STATUS
 
       - name: Create issue on failure
         if: steps.health.outputs.exit_code != '0'
@@ -155,24 +169,24 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           if [ -n "${DISCORD_WEBHOOK_URL}" ]; then
-            payload=$(cat <<'JSON'
-            {
-              "embeds": [{
-                "title": "⚠️ ConfigStream Health Check Failed",
-                "description": "The pipeline health check detected issues. Please investigate.",
-                "color": 15158332,
-                "fields": [
-                  { "name": "Repository", "value": "${{ github.repository }}", "inline": true },
-                  { "name": "Time", "value": "__TIME__", "inline": true },
-                  { "name": "Workflow", "value": "[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" }
-                ],
-                "timestamp": "__TIME__"
-              }]
-            }
-            JSON
-            )
             now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            payload="${payload/__TIME__/$now}"
+            payload=$(jq -nc \
+              --arg repo "${{ github.repository }}" \
+              --arg time "$now" \
+              --arg url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              '{
+                embeds: [{
+                  title: "⚠️ ConfigStream Health Check Failed",
+                  description: "The pipeline health check detected issues. Please investigate.",
+                  color: 15158332,
+                  fields: [
+                    { name: "Repository", value: $repo, inline: true },
+                    { name: "Time", value: $time, inline: true },
+                    { name: "Workflow", value: ("[View Run](" + $url + ")") }
+                  ],
+                  timestamp: $time
+                }]
+              }')
             curl --fail --silent --show-error -X POST "$DISCORD_WEBHOOK_URL" \
               -H "Content-Type: application/json" \
               --data-binary "$payload"
