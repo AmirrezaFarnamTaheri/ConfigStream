@@ -136,16 +136,27 @@ async def fetch_from_source(
     if base_timeout < 5:
         logger.warning("Timeout %ds is too low for %s, using minimum of 5s", base_timeout, source)
         base_timeout = 5
-    timeout = base_timeout
+
+    # Start with caller's normalized baseline
+    effective_timeout = base_timeout
 
     host = parsed_url.netloc
 
-    # Use adaptive timeout if available, but keep a safe minimum and clamp to sane upper bound
+    # Use adaptive timeout if available, but never exceed the caller's baseline budget
     if timeout_tracker:
         adaptive = int(timeout_tracker.get_timeout(source))
         min_allowed = max(5, int(0.5 * base_timeout))  # at least 5s, or half of normalized timeout
-        # clamp adaptive to [min_allowed, 120]
-        timeout = max(min_allowed, min(adaptive, 120))
+        # clamp adaptive to [min_allowed, base_timeout]
+        effective_timeout = max(min_allowed, min(adaptive, base_timeout))
+    else:
+        effective_timeout = base_timeout
+
+    # Derive a per-attempt timeout considering retries/backoff so total wall time is bounded
+    attempts = max(1, int(max_retries))
+    # Allocate up to 80% of total budget to request timeouts; leave headroom for overhead/backoff
+    per_attempt_timeout = max(5, min(effective_timeout, int((0.8 * effective_timeout) / attempts)))
+
+    timeout = per_attempt_timeout
 
     # Apply per-host rate limiting
     if rate_limiter:
@@ -163,13 +174,7 @@ async def fetch_from_source(
         breaker = breaker_manager.get_breaker(host)
         if breaker.is_open:
             logger.warning("Circuit breaker is open for %s. Skipping request.", host)
-            # Inform adaptive timeout that this source is currently problematic
-            if timeout_tracker:
-                # Record a conservative large duration to slow future requests temporarily
-                try:
-                    timeout_tracker.record(source, 60.0)
-                except Exception:
-                    pass
+            # Do not record synthetic durations for skipped requests to avoid biasing timeouts
             return FetchResult(source, [], False, error="Circuit breaker open")
 
     # Build headers with optional ETag validators

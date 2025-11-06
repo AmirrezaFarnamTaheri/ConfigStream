@@ -13,8 +13,8 @@ on:
       - completed
 
 concurrency:
-  # Isolate by repo and ref to avoid cross-branch/fork collisions
-  group: healthcheck-${{ github.repository }}-${{ github.ref || 'no-ref' }}-${{ github.workflow }}-${{ github.event_name }}
+  # Isolate by repo and workflow reference to avoid cross-branch/fork collisions
+  group: healthcheck-${{ github.repository }}-${{ github.workflow_ref || github.run_workflow_ref || github.workflow }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
@@ -44,13 +44,22 @@ jobs:
       - name: Verify pipeline outputs exist
         id: verify
         run: |
+          outputs_exist=true
           if [ ! -f output/proxies.json ] || [ ! -f output/metadata.json ]; then
-            echo "⚠️  Pipeline outputs not found. Skipping health check."
-            echo "outputs_exist=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "⚠️ Pipeline outputs not found."
+            outputs_exist=false
           fi
-          echo "✓ Pipeline outputs found."
-          echo "outputs_exist=true" >> "$GITHUB_OUTPUT"
+          echo "outputs_exist=${outputs_exist}" >> "$GITHUB_OUTPUT"
+          # If this was triggered by a successful pipeline run, missing outputs is a hard failure
+          if [ "${{ github.event_name }}" = "workflow_run" ] && [ "${{ github.event.workflow_run.conclusion }}" = "success" ] && [ "$outputs_exist" = "false" ]; then
+            echo "❌ Outputs missing after successful triggering workflow. Failing." >&2
+            exit 1
+          fi
+          if [ "$outputs_exist" = "true" ]; then
+            echo "✓ Pipeline outputs found."
+          else
+            echo "⏭️ Skipping health check for non-workflow_run or non-success contexts."
+          fi
 
       - name: Run health checks
         id: health
@@ -169,6 +178,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
+          set -euo pipefail
           if [ -n "${DISCORD_WEBHOOK_URL}" ]; then
             now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             payload=$(jq -nc \
@@ -188,14 +198,23 @@ jobs:
                   timestamp: $time
                 }]
               }')
-            curl --fail --silent --show-error -X POST "$DISCORD_WEBHOOK_URL" \
-              -H "Content-Type: application/json" \
-              --data-binary "$payload"
+            # Retry up to 3 times with exponential backoff; cap request time to 10s
+            attempt=1
+            until curl --fail --silent --show-error --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
+                -H "Content-Type: application/json" \
+                --data-binary "$payload"; do
+              if [ $attempt -ge 3 ]; then
+                echo "Discord alert failed after ${attempt} attempts" >&2
+                exit 1
+              fi
+              sleep $((2 ** attempt))
+              attempt=$((attempt + 1))
+            done
             echo "Discord alert sent."
           else
             echo "DISCORD_WEBHOOK_URL not set; skipping alert."
           fi
-        continue-on-error: true
+        timeout-minutes: 2
 
       - name: Summary
         if: always()
