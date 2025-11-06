@@ -127,6 +127,11 @@ async def fetch_from_source(
         logger.error("URL validation failed for %s: %s", source, e)
         return FetchResult(source, [], False, error=str(e))
 
+    # Validate baseline timeout is reasonable
+    if timeout < 5:
+        logger.warning("Timeout %ds is too low for %s, using minimum of 5s", timeout, source)
+        timeout = 5
+
     host = parsed_url.netloc
 
     # Use adaptive timeout if available, but keep a safe minimum

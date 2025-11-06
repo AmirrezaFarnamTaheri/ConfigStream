@@ -43,8 +43,18 @@ def check_success_rate(metadata: Dict[str, Any], min_rate: float) -> None:
     tested = metadata.get("total_proxies_tested", 0)
     working = metadata.get("total_working_proxies", 0)
 
+    # Validate metrics before division
+    if not isinstance(tested, (int, float)) or tested < 0:
+        raise HealthCheckError(f"❌ Invalid tested count: {tested}")
+
+    if not isinstance(working, (int, float)) or working < 0:
+        raise HealthCheckError(f"❌ Invalid working count: {working}")
+
     if tested == 0:
         raise HealthCheckError("❌ No proxies tested")
+
+    if working > tested:
+        raise HealthCheckError(f"❌ Working proxies ({working}) exceeds tested ({tested})")
 
     success_rate = working / tested
 

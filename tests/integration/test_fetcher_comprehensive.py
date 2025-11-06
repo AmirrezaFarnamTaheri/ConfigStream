@@ -148,8 +148,8 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
         """
 
         async def slow_handler(request):
-            # Sleep longer than our timeout
-            await asyncio.sleep(5)
+            # Sleep longer than our minimum timeout
+            await asyncio.sleep(10)
             return web.Response(text="This should never be returned")
 
         app = web.Application()
@@ -165,7 +165,7 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
             result = await fetch_from_source(
                 session,
                 source_url,
-                timeout=1,  # 1 second timeout
+                timeout=5,  # 5 second timeout (minimum enforced)
                 max_retries=1,  # Don't retry timeouts multiple times
             )
 
@@ -175,8 +175,8 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
         assert result.success is False
         assert "Timeout" in result.error
 
-        # Should have timed out quickly (within 2 seconds to account for overhead)
-        assert elapsed < 2
+        # Should have timed out within 7 seconds (5s timeout + 2s overhead)
+        assert elapsed < 7
 
         # Should not have any configs
         assert len(result.configs) == 0
