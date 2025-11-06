@@ -148,8 +148,21 @@ jobs:
         run: python -m configstream.cli update-databases
 
       - name: Backup databases
-        run: python -c "from configstream.backup import backup_databases; backup_databases()"
-        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys
+          from configstream.backup import backup_databases
+          try:
+              created = backup_databases()  # return list of created paths
+          except Exception as e:
+              print(f"[backup] failed: {e}", file=sys.stderr)
+              sys.exit(1)
+          if not created:
+              print("[backup] no backups created", file=sys.stderr)
+              sys.exit(1)
+          print(f"[backup] created {len(created)} backup(s)")
+          PY
 
       - name: Run pipeline for Batch ${{ env.BATCH_NUMBER }}
         run: |

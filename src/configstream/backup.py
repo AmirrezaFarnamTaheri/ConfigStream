@@ -62,14 +62,22 @@ def backup_databases(
         backup_path = backup_dir / backup_filename
 
         try:
-            # Use SQLite backup API for consistent snapshot even under WAL/concurrent writes
-            with (
-                sqlite3.connect(f"file:{db_file}?mode=ro", uri=True) as src,
-                sqlite3.connect(backup_path) as dst,
-            ):
-                src.backup(dst)
+            # Prefer immutable read to avoid writer interference (requires SQLite >= 3.22)
+            src_uri = f"file:{db_file}?mode=ro&immutable=1"
+            try:
+                src_conn = sqlite3.connect(src_uri, uri=True, timeout=5.0)
+            except sqlite3.OperationalError:
+                # Fallback to read-only without immutable if unsupported
+                src_conn = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True, timeout=5.0)
 
-            # Preserve metadata similar to copy2 only after successful backup
+            with src_conn as src, sqlite3.connect(backup_path, timeout=5.0) as dst:
+                # Try incremental backup with small pages to reduce lock time
+                try:
+                    src.backup(dst, pages=1000, progress=None)
+                except TypeError:
+                    # Older Python/SQLite without 'pages' kwarg
+                    src.backup(dst)
+
             shutil.copystat(db_file, backup_path)
 
             backups_created.append(backup_path)
@@ -171,6 +179,18 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
         return False
 
 
+def _parse_timestamp_from_name(name: str) -> datetime | None:
+    """Parse timestamp from backup filename."""
+    # expect pattern: <stem>_YYYYMMDD_HHMMSS.db
+    m = re.search(r"_(\d{8})_(\d{6})\.db$", name)
+    if not m:
+        return None
+    try:
+        return datetime.strptime(m.group(1) + m.group(2), "%Y%m%d%H%M%S")
+    except ValueError:
+        return None
+
+
 def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
     """
     List all available backups with metadata.
@@ -187,18 +207,19 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
 
     backups = []
 
-    for backup_file in sorted(
-        backup_dir.glob("*.db"), key=lambda p: p.stat().st_mtime, reverse=True
-    ):
+    for backup_file in sorted(backup_dir.glob("*.db"), key=lambda p: p.name, reverse=True):
         try:
             stat = backup_file.stat()
+            created = _parse_timestamp_from_name(backup_file.name) or datetime.fromtimestamp(
+                stat.st_mtime
+            )
             backups.append(
                 {
                     "filename": backup_file.name,
                     "path": str(backup_file),
                     "size_mb": stat.st_size / 1024 / 1024,
-                    "created": datetime.fromtimestamp(stat.st_mtime),
-                    "age_days": (datetime.now() - datetime.fromtimestamp(stat.st_mtime)).days,
+                    "created": created,
+                    "age_days": (datetime.now() - created).days,
                 }
             )
         except Exception as e:
