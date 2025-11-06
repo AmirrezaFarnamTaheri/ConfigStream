@@ -134,6 +134,8 @@ def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
     latencies = []
     for p in working_proxies:
         val = p.get("latency")
+        if val is None:
+            continue
         try:
             num = float(val)
         except (TypeError, ValueError):
