@@ -1,251 +1,129 @@
-\# 🚀 ConfigStream Quick Start
-
-
+# 🚀 ConfigStream Quick Start
 
 Fast track guide to get ConfigStream running in 10 minutes.
 
-
-
 ---
 
-
-
-\## ⚡ 3-Minute Setup
+## ⚡ 3-Minute Setup
 
 ```bash
-
-\# 1. Clone repository
-
-git clone https://github.com/YOUR\_USERNAME/ConfigStream.git
-
+# 1. Clone repository
+git clone https://github.com/YOUR_USERNAME/ConfigStream.git
 cd ConfigStream
 
-
-
-\# 2. Install dependencies
-
+# 2. Install dependencies
 pip install -e .
 
-
-
-\# 3. Test locally
-
+# 3. Test locally
 configstream merge --sources sources.mini.txt --output output/
 
-
-
-\# 4. Commit and push
-
+# 4. Commit and push
 git add .
-
 git commit -m "Initial setup"
-
 git push origin main
-
 ```
 
+---
 
+## 🌐 Enable GitHub Pages
+
+1. Go to **Settings** → **Pages**
+2. Source: **Deploy from a branch**
+3. Branch: **main** / **/ (root)**
+4. Click **Save**
+
+Your site: `https://YOUR_USERNAME.github.io/ConfigStream/`
 
 ---
 
+## ⚙️ Enable Automation
 
+1. Go to **Settings** → **Actions** → **General**
+2. Enable: **Read and write permissions**
+3. Enable: **Allow GitHub Actions to create PRs**
+4. Go to **Actions** → **Merge VPN Subscriptions**
+5. Click **Run workflow**
 
-\## 🌐 Enable GitHub Pages
-
-
-
-1\. Go to \*\*Settings\*\* → \*\*Pages\*\*
-
-2\. Source: \*\*Deploy from a branch\*\*
-
-3\. Branch: \*\*main\*\* / \*\*/ (root)\*\*
-
-4\. Click \*\*Save\*\*
-
-
-
-Your site: `https://YOUR\_USERNAME.github.io/ConfigStream/`
-
-
+Workflow runs every 6 hours automatically.
 
 ---
 
-
-
-\## ⚙️ Enable Automation
-
-
-
-1\. Go to \*\*Settings\*\* → \*\*Actions\*\* → \*\*General\*\*
-
-2\. Enable: \*\*Read and write permissions\*\*
-
-3\. Enable: \*\*Allow GitHub Actions to create PRs\*\*
-
-4\. Go to \*\*Actions\*\* → \*\*Merge VPN Subscriptions\*\*
-
-5\. Click \*\*Run workflow\*\*
-
-
-
-Workflow runs every 4 hours automatically.
-
-
-
----
-
-
-
-\## ✅ Verification
+## ✅ Verification
 
 ```bash
+# Run verification script
+./verify.sh YOUR_USERNAME
 
-\# Run verification script
-
-./verify.sh YOUR\_USERNAME
-
-
-
-\# Or manually check
-
-curl https://YOUR\_USERNAME.github.io/ConfigStream/output/metadata.json
-
+# Or manually check
+curl https://YOUR_USERNAME.github.io/ConfigStream/output/metadata.json
 ```
 
-
-
 ---
 
-
-
-\## 🎯 Common Commands
+## 🎯 Common Commands
 
 ```bash
-
-\# Update configs manually
-
+# Update configs manually
 configstream merge --sources sources.txt --output output/
 
+# With filters
+configstream merge \
+  --sources sources.txt \
+  --output output/ \
+  --country US \
+  --max-latency 500
 
-
-\# With filters
-
-configstream merge \\
-
-&nbsp; --sources sources.txt \\
-
-&nbsp; --output output/ \\
-
-&nbsp; --country US \\
-
-&nbsp; --max-latency 500
-
-
-
-\# Update GeoIP databases
-
+# Update GeoIP databases
 configstream update-databases
 
-
-
-\# Get help
-
+# Get help
 configstream --help
-
 ```
-
-
 
 ---
 
-
-
-\## 📂 Directory Structure
+## 📂 Directory Structure
 
 ```
-
 ConfigStream/
-
 ├── index.html              # Home page
-
 ├── proxies.html            # Proxy browser
-
 ├── statistics.html         # Analytics
-
-
 ├── assets/
-
 │   ├── css/framework.css   # Design system
-
 │   └── js/utils.js         # Utilities
-
 ├── output/                 # Generated configs
-
 ├── sources.txt             # Proxy sources
-
 └── src/configstream/       # Python package
-
 ```
-
-
 
 ---
 
+## 🐛 Quick Troubleshooting
 
-
-\## 🐛 Quick Troubleshooting
-
-
-
-\*\*Workflow fails?\*\*
-
+**Workflow fails?**
 → Check Settings → Actions → Permissions
 
-
-
-\*\*Pages not updating?\*\*
-
+**Pages not updating?**
 → Clear cache (Ctrl+Shift+R)
 
-
-
-\*\*No proxies?\*\*
-
+**No proxies?**
 → Check sources.txt has valid URLs
 
-
-
-\*\*Import errors?\*\*
-
+**Import errors?**
 → Run `pip install -e .` again
 
+---
 
+## 📚 Full Documentation
+
+- **DEPLOYMENT.md** - Complete deployment guide
+- **ARCHITECTURE.md** - System architecture
+- **CONTRIBUTING.md** - Contribution guidelines
+- **README.md** - Full project documentation
 
 ---
 
+**You're ready to go! 🎉**
 
-
-\## 📚 Full Documentation
-
-
-
-\- \*\*DEPLOYMENT.md\*\* - Complete deployment guide
-
-\- \*\*TESTING\_CHECKLIST.md\*\* - Quality assurance
-
-\- \*\*PERFORMANCE.md\*\* - Optimization tips
-
-\- \*\*README.md\*\* - Full project documentation
-
-
-
----
-
-
-
-\*\*You're ready to go! 🎉\*\*
-
-
-
-Your ConfigStream will now automatically update every 4 hours with fresh VPN configurations!
-
+Your ConfigStream will now automatically update every 6 hours with fresh VPN configurations!
