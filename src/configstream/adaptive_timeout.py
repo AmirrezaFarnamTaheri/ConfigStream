@@ -76,27 +76,35 @@ class AdaptiveTimeout:
         """Load recent history into memory cache."""
         cutoff = datetime.now() - timedelta(days=7)
         cutoff_ts = int(cutoff.timestamp())
+        loaded_sources = 0
 
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute(
-                """
-                SELECT source, duration
-                FROM timeout_history
-                WHERE timestamp > ?
-                ORDER BY source, timestamp DESC
-            """,
-                (cutoff_ts,),
-            )
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.execute(
+                    """
+                    SELECT source, duration
+                    FROM timeout_history
+                    WHERE timestamp > ?
+                    ORDER BY source, timestamp DESC
+                """,
+                    (cutoff_ts,),
+                )
 
-            for source, duration in cursor:
-                if source not in self._cache:
-                    self._cache[source] = []
-                self._cache[source].append(duration)
-                # Enforce in-memory cap to avoid unbounded growth
-                if len(self._cache[source]) > 50:
-                    self._cache[source] = self._cache[source][:50]
+                for source, duration in cursor:
+                    if source not in self._cache:
+                        self._cache[source] = []
+                        loaded_sources += 1
+                    self._cache[source].append(duration)
+                    # Enforce in-memory cap to avoid unbounded growth
+                    if len(self._cache[source]) > 50:
+                        self._cache[source] = self._cache[source][:50]
+        except sqlite3.Error as e:
+            # Corrupt/locked DB; continue with empty cache
+            logger.warning("Failed to load timeout history from %s: %s", self.db_path, e)
+            self._cache.clear()
+            loaded_sources = 0
 
-        logger.info("Loaded timeout history for %d sources", len(self._cache))
+        logger.info("Loaded timeout history for %d sources", loaded_sources)
 
     def get_timeout(self, source_url: str) -> int:
         """

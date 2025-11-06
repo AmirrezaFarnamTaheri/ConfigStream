@@ -95,7 +95,7 @@ async def read_file_async(file_path: str | Path, encoding: str = "utf-8") -> str
         # The event loop will continue doing other work while this runs
         content = await loop.run_in_executor(FILE_IO_POOL, read_sync)
 
-        logger.debug("Successfully read %s bytes from %s", len(content), path)
+        logger.debug("Successfully read %s bytes from %s", len(content.encode(encoding)), path)
         return content
 
     except FileNotFoundError:

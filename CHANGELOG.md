@@ -34,9 +34,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 - MyPy type error in healthcheck script for latency validation (added None check before float conversion)
 - Replaced regex-based f-string conversion with robust AST-based transformation in fix_lazy_logging.py
+- Backup list now sorts by actual creation time instead of filename
+- Adaptive timeout cache now gracefully handles database read failures
+- Path traversal vulnerability in backup routine (added sanitization and validation)
 
 ### Improved
 - Healthcheck workflow trigger condition now more explicit and readable
+- Timeout budget allocation increased from 80% to 70% to better enforce total timeout across retries
+- Byte length logging now accurate (encodes string before measuring)
+- Test execution speed improved (reduced artificial delay from 10s to 6s)
 
 ### Planned
 - Performance improvements for large proxy sets

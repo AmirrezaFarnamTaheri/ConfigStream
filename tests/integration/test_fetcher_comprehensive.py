@@ -148,8 +148,8 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
         """
 
         async def slow_handler(request):
-            # Sleep longer than our minimum timeout
-            await asyncio.sleep(10)
+            # Sleep longer than our minimum timeout but keep tests fast
+            await asyncio.sleep(6)
             return web.Response(text="This should never be returned")
 
         app = web.Application()
