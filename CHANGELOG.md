@@ -10,12 +10,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 - Metrics validation with type and range checking in health checks
 - Baseline timeout validation (5-second minimum) in fetcher module
 - GitHub Actions token permission hardening with explicit scopes
+- SQLite backup API for atomic and consistent database backups
+- Latency value validation in health checks (numeric, non-negative, non-NaN)
+- Timeout sanitization with type validation and upper bound (120s)
+- Normalized proxy merge keys with case-insensitive protocol matching
 
 ### Changed
 - Health check exit code now properly propagates to trigger workflow failures
 - Concurrency grouping uses stable identifiers (workflow + event_name) instead of git ref
 - Discord webhook payloads constructed with `jq` for injection-proof JSON building
-- Updated test suite to accommodate 5-second minimum timeout (528 tests passing, 89% coverage)
+- Database backups now use sqlite3.backup() API instead of file copy for consistency
+- Backup system cleans up partial files on failure
+- Timeout values validated and clamped between 5s-120s with type conversion
+- Proxy merge operations handle None protocols and explicit port casting
+- Updated test suite to accommodate 5-second minimum timeout (528 tests passing, 88% coverage)
 
 ### Planned
 - Performance improvements for large proxy sets
