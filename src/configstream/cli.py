@@ -367,21 +367,47 @@ def list_db_backups(backup_dir: str) -> None:
 @cli.command()
 @click.argument("backup_file", type=click.Path(exists=True, dir_okay=False))
 @click.argument("target_file", type=click.Path(dir_okay=False))
+@click.option("--data-dir", default="data", type=click.Path(file_okay=False), help="Base data directory for databases")
 @click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
 @handle_cli_errors(context="Database restore")
-def restore_db(backup_file: str, target_file: str, yes: bool) -> None:
+def restore_db(backup_file: str, target_file: str, data_dir: str, yes: bool) -> None:
     """Restore a database from a backup file."""
+    backup_path = Path(backup_file)
+    target_path = Path(target_file)
+    base_dir = Path(data_dir).resolve()
+
+    # Ensure target is within allowed base dir to avoid accidental overwrites
+    resolved_target = target_path.resolve()
+    try:
+        resolved_target.relative_to(base_dir)
+    except ValueError:
+        console.print(f"[red]✗ Refusing to restore outside base data dir: {resolved_target}[/red]")
+        sys.exit(1)
+
+    # Confirm destructive action
     if not yes:
         click.confirm(
-            f"Restore {target_file} from {backup_file}?\n"
+            f"Restore {resolved_target} from {backup_path}?\n"
             "This will overwrite the current database.",
             abort=True,
         )
 
-    success = restore_database(Path(backup_file), Path(target_file))
+    # Safety backup if target exists
+    if resolved_target.exists():
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safety_backup = resolved_target.with_suffix(f".pre_restore_{ts}{resolved_target.suffix}")
+        try:
+            safety_backup.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(resolved_target, safety_backup)
+            console.print(f"[yellow]Created safety backup: {safety_backup.name}[/yellow]")
+        except Exception as e:
+            console.print(f"[red]✗ Failed to create safety backup: {e}[/red]")
+            sys.exit(1)
+
+    success = restore_database(backup_path, resolved_target)
 
     if success:
-        console.print(f"[green]✓ Successfully restored {target_file}[/green]")
+        console.print(f"[green]✓ Successfully restored {resolved_target}[/green]")
     else:
         console.print("[red]✗ Failed to restore database[/red]")
         sys.exit(1)
