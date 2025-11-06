@@ -33,6 +33,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - MyPy type error in healthcheck script for latency validation (added None check before float conversion)
+- Replaced regex-based f-string conversion with robust AST-based transformation in fix_lazy_logging.py
+
+### Improved
+- Healthcheck workflow trigger condition now more explicit and readable
 
 ### Planned
 - Performance improvements for large proxy sets

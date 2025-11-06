@@ -25,9 +25,12 @@ permissions:
 
 jobs:
   healthcheck:
-    if: |
-      github.event_name != 'workflow_run' ||
-      (github.event.workflow_run.conclusion == 'success')
+    # Run if:
+    # - scheduled/manual: always
+    # - workflow_run: only when the triggering workflow concluded successfully
+    if: >
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      || (github.event_name != 'workflow_run')
     name: Check Pipeline Health
     runs-on: ubuntu-latest
 
