@@ -31,3 +31,29 @@
 ## 📊 **Overall Impact: ~25-35% faster pipeline, $0 cost**
 
 All Tier 1 roadmap items successfully implemented and committed!
+
+---
+
+## 🔧 **Latest Improvements (7 Critical Fixes)**
+
+**Date:** 2025-11-06
+**Commit:** `c008e94` - Critical workflow and validation improvements
+
+### Importance 9 (Critical)
+✅ **Exit Code Propagation** - Health checks now properly fail workflows and trigger alerts
+
+### Importance 8 (High)
+✅ **Concurrency Control** - Stable workflow-scoped grouping prevents unintended cancellations
+
+### Importance 7 (High Priority)
+✅ **Safe JSON Construction** - Discord webhooks use `jq` for injection-proof payloads
+✅ **Output Verification** - Health checks skip gracefully when pipeline outputs are missing
+
+### Importance 6 (Medium)
+✅ **Metrics Validation** - Success rate calculations validate types and ranges before division
+✅ **Token Permissions** - GitHub Actions tokens follow principle of least privilege
+
+### Importance 5 (Low)
+✅ **Baseline Timeout** - Enforced 5-second minimum prevents overly aggressive timeouts
+
+**Test Results:** 528 tests passing | 89% coverage | All linting passed

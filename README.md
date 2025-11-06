@@ -265,6 +265,15 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 - **Memory Bounds** - Capped cache sizes (50 entries per source) prevent unbounded growth
 - **Efficient Merging** - Order-preserving proxy list operations maintain data integrity
 
+### 🔧 Workflow & Validation Improvements
+- **Exit Code Propagation** - Health checks properly trigger workflow failures and alerts
+- **Stable Concurrency Control** - Workflow-scoped concurrency groups prevent unintended cancellations
+- **Safe JSON Construction** - Discord webhooks use `jq` for injection-proof payload building
+- **Pipeline Output Verification** - Health checks skip gracefully when outputs are missing
+- **Metrics Validation** - Success rate calculations include type and range validation
+- **Token Permission Hardening** - GitHub Actions tokens follow principle of least privilege
+- **Baseline Timeout Protection** - Enforced 5-second minimum prevents overly aggressive timeouts
+
 **Test Coverage:** 89% with 528+ passing tests | **Code Quality:** Black + Flake8 + MyPy compliant
 
 ## 📁 Project Structure
