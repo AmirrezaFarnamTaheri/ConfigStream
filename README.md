@@ -242,16 +242,21 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 
 ### 📊 Observability & Monitoring
 - **Structured Logging** - Context-aware logging with trace IDs for request tracking across async operations
+  - ⚠️ **Security Note**: Never include secrets (tokens, API keys, proxy credentials) in logs; always redact sensitive fields
 - **Health Check Automation** - Automated pipeline monitoring with issue creation and Discord alerts
+  - ⚠️ **Security Note**: Alerts contain only summary information; no sensitive data in webhook payloads
 - **Performance Metrics** - Detailed statistics tracking and reporting
 
 ### 💾 Reliability & Data Integrity
 - **Automated Database Backups** - Timestamped SQLite backups with 7-day retention policy
+  - ⚠️ **Important**: Backup directory (`data/backups/`) is in `.gitignore` to prevent committing sensitive data and bloating repository history
 - **WAL Mode** - Write-Ahead Logging for better concurrency and crash recovery
 - **Error Resilience** - Comprehensive error handling and graceful degradation
 
 ### 🔒 Security Hardening
-- **Input Sanitization** - Trace ID validation to prevent log injection attacks
+- **Input Sanitization** - Trace IDs are validated (alphanumeric + dash/underscore, max 32 chars) to prevent log injection attacks
+  - Auto-generated IDs: 8-char hex format (e.g., `a1b2c3d4`)
+  - External IDs: Sanitized to `[a-zA-Z0-9_-]{1,32}` with unsafe characters stripped
 - **Secure Defaults** - Safe file operations and permission handling
 - **Defensive Programming** - Explicit validation and bounded resource usage
 
