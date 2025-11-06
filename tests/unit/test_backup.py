@@ -1,5 +1,6 @@
 """Tests for database backup functionality."""
 
+import sqlite3
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -21,9 +22,14 @@ def temp_data_dir(tmp_path):
     data_dir = tmp_path / "data"
     data_dir.mkdir()
 
-    # Create test database files
-    (data_dir / "test_cache.db").write_text("test cache data")
-    (data_dir / "proxy_history.db").write_text("test history data")
+    # Create actual SQLite database files
+    for db_name in ["test_cache.db", "proxy_history.db"]:
+        db_path = data_dir / db_name
+        conn = sqlite3.connect(db_path)
+        conn.execute("CREATE TABLE test (id INTEGER PRIMARY KEY, data TEXT)")
+        conn.execute("INSERT INTO test (data) VALUES (?)", ("test data",))
+        conn.commit()
+        conn.close()
 
     return data_dir
 
@@ -232,12 +238,15 @@ def test_backup_databases_handles_permission_error(temp_data_dir, tmp_path):
     # This test verifies graceful error handling
     # Create a read-only database file (simulating permission error scenario)
     readonly_db = temp_data_dir / "readonly.db"
-    readonly_db.write_text("data")
+    conn = sqlite3.connect(readonly_db)
+    conn.execute("CREATE TABLE test (id INTEGER PRIMARY KEY, data TEXT)")
+    conn.commit()
+    conn.close()
 
     # Backup should succeed for other files even if one fails
     backups = backup_databases(data_dir=temp_data_dir, retention_days=7)
 
-    # At least some backups should succeed
+    # At least some backups should succeed (2 from fixture + 1 readonly = 3 total)
     assert len(backups) >= 2
 
 
