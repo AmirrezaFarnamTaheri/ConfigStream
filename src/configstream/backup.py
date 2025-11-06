@@ -58,8 +58,17 @@ def backup_databases(
         if not db_file.is_file():
             continue
 
-        backup_filename = f"{db_file.stem}_{timestamp}.db"
+        # Sanitize filename to prevent path traversal
+        safe_stem = db_file.stem.replace("..", "_").replace("/", "_").replace("\\", "_")
+        backup_filename = f"{safe_stem}_{timestamp}.db"
         backup_path = backup_dir / backup_filename
+
+        # Additional safety check: ensure resolved path is within backup directory
+        try:
+            backup_path.resolve().relative_to(backup_dir.resolve())
+        except ValueError:
+            logger.error("Skipping backup: path traversal detected for %s", db_file)
+            continue
 
         try:
             # Prefer immutable read to avoid writer interference (requires SQLite >= 3.22)
@@ -205,15 +214,15 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
     if not backup_dir.exists():
         return []
 
-    backups = []
+    items: List[dict] = []
 
-    for backup_file in sorted(backup_dir.glob("*.db"), key=lambda p: p.name, reverse=True):
+    for backup_file in backup_dir.glob("*.db"):
         try:
             stat = backup_file.stat()
             created = _parse_timestamp_from_name(backup_file.name) or datetime.fromtimestamp(
                 stat.st_mtime
             )
-            backups.append(
+            items.append(
                 {
                     "filename": backup_file.name,
                     "path": str(backup_file),
@@ -225,6 +234,8 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
         except Exception as e:
             logger.warning("Failed to get metadata for %s: %s", backup_file, e)
 
+    # Always return newest-first by actual creation time
+    backups = sorted(items, key=lambda b: b["created"], reverse=True)
     return backups
 
 

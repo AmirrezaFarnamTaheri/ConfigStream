@@ -151,10 +151,11 @@ async def fetch_from_source(
     else:
         effective_timeout = base_timeout
 
-    # Derive a per-attempt timeout considering retries/backoff so total wall time is bounded
+    # Compute a strict per-attempt timeout so cumulative time (including simple backoff) stays within budget
     attempts = max(1, int(max_retries))
-    # Allocate up to 80% of total budget to request timeouts; leave headroom for overhead/backoff
-    per_attempt_timeout = max(5, min(effective_timeout, int((0.8 * effective_timeout) / attempts)))
+    # Reserve 30% of the budget for backoff/overhead to avoid exceeding total wall-clock time
+    budget_for_requests = max(5, int(effective_timeout * 0.7))
+    per_attempt_timeout = max(5, int(budget_for_requests / attempts))
 
     timeout = per_attempt_timeout
 
