@@ -3,97 +3,94 @@
 Script to fix lazy logging throughout the codebase.
 Converts f-string logging to % formatting for better performance.
 
+Uses AST-based transformation for safe and robust code transformation.
+
 Usage:
     python scripts/fix_lazy_logging.py --dry-run  # Preview changes
     python scripts/fix_lazy_logging.py            # Apply changes
 """
 
-import re
+import argparse
+import ast
 import sys
 from pathlib import Path
-from typing import List, Tuple
-import argparse
+from typing import List
 
 
-def find_python_files(directory: Path) -> List[Path]:
-    """Find all Python files in directory."""
-    return list(directory.rglob("*.py"))
+class LoggingFStringTransformer(ast.NodeTransformer):
+    """Transform logger calls with f-strings to use % formatting."""
 
+    LOG_METHODS = {"debug", "info", "warning", "error", "critical", "exception"}
 
-def extract_fstring_variables(fstring: str) -> List[str]:
-    """Extract variable names from f-string."""
-    # Match {variable} or {expression}
-    pattern = r"\{([^}]+)\}"
-    matches = re.findall(pattern, fstring)
-    return matches
+    def __init__(self):
+        self.changes = 0
 
+    def visit_Call(self, node: ast.Call) -> ast.AST:
+        """Visit call nodes and transform logger f-string calls."""
+        self.generic_visit(node)
 
-def convert_fstring_to_percent(fstring: str) -> Tuple[str, List[str]]:
-    """
-    Convert f-string to % formatting.
+        # Match logger.<level>(f"...", *args, **kwargs)
+        if not isinstance(node.func, ast.Attribute):
+            return node
+        if not isinstance(node.func.value, ast.Name):
+            return node
+        if node.func.value.id != "logger":
+            return node
+        if node.func.attr not in self.LOG_METHODS:
+            return node
+        if not node.args:
+            return node
+        if not isinstance(node.args[0], ast.JoinedStr):
+            return node
 
-    Returns:
-        Tuple of (format_string, [variables])
-    """
-    variables = []
+        # Convert f-string to % format
+        try:
+            fmt_str, var_nodes = self._convert_joinedstr(node.args[0])
 
-    def replacer(match):
-        var = match.group(1)
-        # Check if this is a simple variable or complex expression
-        # Skip complex expressions with brackets/slicing
-        if "[" in var or "(" in var:
-            # For complex expressions, just keep them as-is
-            variables.append(var)
-            return "%s"
+            # Build new args: format string literal + variables
+            new_args: list[ast.expr] = [ast.Constant(value=fmt_str, kind=None)]
+            new_args.extend(var_nodes)
 
-        variables.append(var)
-        # Handle format specs like {x:.2f}
-        if ":" in var:
-            var_name, format_spec = var.split(":", 1)
-            variables[-1] = var_name  # Store just the variable name
-            return f"%{format_spec}"
-        return "%s"
+            # Preserve remaining args and kwargs
+            new_args.extend(node.args[1:])
 
-    # Replace {var} with %s
-    pattern = r"\{([^}]+)\}"
-    format_string = re.sub(pattern, replacer, fstring)
+            node.args = new_args
+            self.changes += 1
+        except Exception:
+            # If conversion fails, leave node unchanged
+            pass
 
-    return format_string, variables
+        return node
 
+    def _convert_joinedstr(self, joined: ast.JoinedStr) -> tuple[str, list[ast.expr]]:
+        """
+        Convert JoinedStr (f-string) to format string and variables.
 
-def fix_logging_line(line: str) -> str | None:
-    """
-    Fix a logging line if it uses f-strings.
+        Returns:
+            Tuple of (format_string, [variable_nodes])
+        """
+        fmt_parts: list[str] = []
+        var_nodes: list[ast.expr] = []
 
-    Returns:
-        Fixed line or None if no changes needed
-    """
-    # Match logger.{level}(f"...") or logger.{level}(f'...')
-    pattern = r'(logger\.(debug|info|warning|error|critical|exception))\(f(["\'])(.+?)\3\)'
+        for value in joined.values:
+            if isinstance(value, ast.FormattedValue):
+                # Handle format spec if present
+                if value.format_spec and isinstance(value.format_spec, ast.JoinedStr):
+                    # Extract format spec from the JoinedStr
+                    spec_parts = []
+                    for spec_value in value.format_spec.values:
+                        if isinstance(spec_value, ast.Constant):
+                            spec_parts.append(str(spec_value.value))
+                    format_spec = "".join(spec_parts)
+                    fmt_parts.append(f"%{format_spec}")
+                else:
+                    fmt_parts.append("%s")
+                var_nodes.append(value.value)
+            elif isinstance(value, ast.Constant) and isinstance(value.value, str):
+                # Literal string part
+                fmt_parts.append(value.value)
 
-    match = re.search(pattern, line)
-    if not match:
-        return None
-
-    logger_call = match.group(1)
-    quote_char = match.group(3)
-    fstring_content = match.group(4)
-
-    # Convert f-string to % format
-    format_string, variables = convert_fstring_to_percent(fstring_content)
-
-    # Build new logging call
-    if variables:
-        vars_str = ", ".join(variables)
-        new_call = f"{logger_call}({quote_char}{format_string}{quote_char}, {vars_str})"
-    else:
-        # No variables, just remove f prefix
-        new_call = f"{logger_call}({quote_char}{format_string}{quote_char})"
-
-    # Replace in original line
-    new_line = line[: match.start()] + new_call + line[match.end() :]
-
-    return new_line
+        return "".join(fmt_parts), var_nodes
 
 
 def process_file(file_path: Path, dry_run: bool = True) -> int:
@@ -101,42 +98,49 @@ def process_file(file_path: Path, dry_run: bool = True) -> int:
     Process a single file and fix lazy logging.
 
     Returns:
-        Number of lines changed
+        Number of changes made
     """
     try:
-        content = file_path.read_text()
-        lines = content.splitlines(keepends=True)
+        source = file_path.read_text()
+        tree = ast.parse(source)
 
-        changes = 0
-        new_lines = []
+        # Transform the AST
+        transformer = LoggingFStringTransformer()
+        new_tree = transformer.visit(tree)
 
-        for line_num, line in enumerate(lines, start=1):
-            fixed_line = fix_logging_line(line)
+        if transformer.changes == 0:
+            return 0
 
-            if fixed_line and fixed_line != line:
-                changes += 1
-                if dry_run:
-                    print(f"\n{file_path}:{line_num}")
-                    print(f"  - {line.strip()}")
-                    print(f"  + {fixed_line.strip()}")
-                new_lines.append(fixed_line)
-            else:
-                new_lines.append(line)
+        # Generate new source code
+        ast.fix_missing_locations(new_tree)
+        new_source = ast.unparse(new_tree)
 
-        # Write back if not dry run and changes were made
-        if not dry_run and changes > 0:
-            file_path.write_text("".join(new_lines))
-            print(f"✓ Fixed {changes} lines in {file_path}")
+        if dry_run:
+            print(f"\n{file_path}: {transformer.changes} change(s) detected")
+            return int(transformer.changes)
 
-        return changes
+        # Write back the modified source
+        file_path.write_text(new_source)
+        print(f"✓ Fixed {transformer.changes} logging call(s) in {file_path}")
+        return int(transformer.changes)
 
+    except SyntaxError as e:
+        print(f"Syntax error in {file_path}:{e.lineno}: {e.msg}", file=sys.stderr)
+        return 0
     except Exception as e:
         print(f"Error processing {file_path}: {e}", file=sys.stderr)
         return 0
 
 
+def find_python_files(directory: Path) -> List[Path]:
+    """Find all Python files in directory."""
+    return list(directory.rglob("*.py"))
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Fix lazy logging in Python files")
+    parser = argparse.ArgumentParser(
+        description="Fix lazy logging in Python files using AST transformation"
+    )
     parser.add_argument(
         "--dry-run", action="store_true", help="Preview changes without applying them"
     )
@@ -169,7 +173,7 @@ def main():
             files_changed += 1
 
     print(
-        f"\n{'Would fix' if args.dry_run else 'Fixed'} {total_changes} lines in {files_changed} files"
+        f"\n{'Would fix' if args.dry_run else 'Fixed'} {total_changes} logging call(s) in {files_changed} file(s)"
     )
 
     if args.dry_run and total_changes > 0:
