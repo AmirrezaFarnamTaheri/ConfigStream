@@ -14,6 +14,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 - Latency value validation in health checks (numeric, non-negative, non-NaN)
 - Timeout sanitization with type validation and upper bound (120s)
 - Normalized proxy merge keys with case-insensitive protocol matching
+- Comprehensive test suite for package initialization and lazy loading
+- Enhanced backup module tests covering error handling and edge cases
+- Extended adaptive workers tests with psutil mocking and exception scenarios
+- 25 new test cases for error paths and fallback behavior
 
 ### Changed
 - Health check exit code now properly propagates to trigger workflow failures
@@ -23,7 +27,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 - Backup system cleans up partial files on failure
 - Timeout values validated and clamped between 5s-120s with type conversion
 - Proxy merge operations handle None protocols and explicit port casting
-- Updated test suite to accommodate 5-second minimum timeout (528 tests passing, 88% coverage)
+- Test coverage increased from 88% to 89% (553 tests passing, 1 skipped)
+- Package initialization module coverage improved from 52% to 92%
+- Backup module coverage improved from 82% to 96%
+
+### Fixed
+- MyPy type error in healthcheck script for latency validation (added None check before float conversion)
 
 ### Planned
 - Performance improvements for large proxy sets
