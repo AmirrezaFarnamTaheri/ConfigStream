@@ -19,6 +19,7 @@ from typing import Dict, List, Any
 
 class HealthCheckError(Exception):
     """Health check failure."""
+
     pass
 
 
@@ -33,9 +34,7 @@ def check_minimum_proxies(proxies: List[Dict], min_count: int) -> None:
     """Check minimum proxy count."""
     count = len(proxies)
     if count < min_count:
-        raise HealthCheckError(
-            f"❌ Only {count} proxies found (minimum: {min_count})"
-        )
+        raise HealthCheckError(f"❌ Only {count} proxies found (minimum: {min_count})")
     print(f"✓ Proxy count: {count} (minimum: {min_count})")
 
 
@@ -65,7 +64,7 @@ def check_data_freshness(metadata: Dict[str, Any], max_age_hours: int) -> None:
         raise HealthCheckError("❌ No timestamp in metadata")
 
     try:
-        last_run = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+        last_run = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
         age = datetime.now(last_run.tzinfo) - last_run
 
         if age > timedelta(hours=max_age_hours):
@@ -74,8 +73,10 @@ def check_data_freshness(metadata: Dict[str, Any], max_age_hours: int) -> None:
                 f"(maximum: {max_age_hours}h)"
             )
 
-        print(f"✓ Data freshness: {age.total_seconds() / 3600:.1f}h old "
-              f"(maximum: {max_age_hours}h)")
+        print(
+            f"✓ Data freshness: {age.total_seconds() / 3600:.1f}h old "
+            f"(maximum: {max_age_hours}h)"
+        )
 
     except Exception as e:
         raise HealthCheckError(f"❌ Failed to parse timestamp: {e}")
@@ -87,20 +88,17 @@ def check_protocol_diversity(proxies: List[Dict], min_protocols: int) -> None:
 
     if len(protocols) < min_protocols:
         raise HealthCheckError(
-            f"❌ Low protocol diversity: {len(protocols)} protocols "
-            f"(minimum: {min_protocols})"
+            f"❌ Low protocol diversity: {len(protocols)} protocols " f"(minimum: {min_protocols})"
         )
 
-    print(f"✓ Protocol diversity: {len(protocols)} protocols "
-          f"(minimum: {min_protocols})")
+    print(f"✓ Protocol diversity: {len(protocols)} protocols " f"(minimum: {min_protocols})")
     print(f"  Protocols: {', '.join(sorted(protocols))}")
 
 
 def check_geographic_diversity(proxies: List[Dict], min_countries: int) -> None:
     """Check geographic diversity."""
     countries = set(
-        p.get("country_code") for p in proxies
-        if p.get("country_code") and p.get("is_working")
+        p.get("country_code") for p in proxies if p.get("country_code") and p.get("is_working")
     )
 
     if len(countries) < min_countries:
@@ -109,16 +107,12 @@ def check_geographic_diversity(proxies: List[Dict], min_countries: int) -> None:
             f"(minimum: {min_countries})"
         )
 
-    print(f"✓ Geographic diversity: {len(countries)} countries "
-          f"(minimum: {min_countries})")
+    print(f"✓ Geographic diversity: {len(countries)} countries " f"(minimum: {min_countries})")
 
 
 def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
     """Check average latency of working proxies."""
-    working_proxies = [
-        p for p in proxies
-        if p.get("is_working") and p.get("latency") is not None
-    ]
+    working_proxies = [p for p in proxies if p.get("is_working") and p.get("latency") is not None]
 
     if not working_proxies:
         raise HealthCheckError("❌ No working proxies with latency data")
@@ -128,12 +122,10 @@ def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
 
     if avg_latency > max_avg_latency:
         raise HealthCheckError(
-            f"❌ Average latency too high: {avg_latency:.0f}ms "
-            f"(maximum: {max_avg_latency}ms)"
+            f"❌ Average latency too high: {avg_latency:.0f}ms " f"(maximum: {max_avg_latency}ms)"
         )
 
-    print(f"✓ Average latency: {avg_latency:.0f}ms "
-          f"(maximum: {max_avg_latency}ms)")
+    print(f"✓ Average latency: {avg_latency:.0f}ms " f"(maximum: {max_avg_latency}ms)")
 
 
 def run_health_checks(
@@ -206,57 +198,43 @@ def run_health_checks(
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Check ConfigStream pipeline health"
-    )
+    parser = argparse.ArgumentParser(description="Check ConfigStream pipeline health")
 
     parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path("output"),
-        help="Output directory to check (default: output/)"
+        help="Output directory to check (default: output/)",
     )
 
     parser.add_argument(
-        "--min-proxies",
-        type=int,
-        default=100,
-        help="Minimum number of proxies (default: 100)"
+        "--min-proxies", type=int, default=100, help="Minimum number of proxies (default: 100)"
     )
 
     parser.add_argument(
         "--min-success-rate",
         type=float,
         default=0.3,
-        help="Minimum success rate 0-1 (default: 0.3)"
+        help="Minimum success rate 0-1 (default: 0.3)",
     )
 
     parser.add_argument(
-        "--max-age-hours",
-        type=int,
-        default=12,
-        help="Maximum data age in hours (default: 12)"
+        "--max-age-hours", type=int, default=12, help="Maximum data age in hours (default: 12)"
     )
 
     parser.add_argument(
-        "--min-protocols",
-        type=int,
-        default=3,
-        help="Minimum number of protocols (default: 3)"
+        "--min-protocols", type=int, default=3, help="Minimum number of protocols (default: 3)"
     )
 
     parser.add_argument(
-        "--min-countries",
-        type=int,
-        default=5,
-        help="Minimum number of countries (default: 5)"
+        "--min-countries", type=int, default=5, help="Minimum number of countries (default: 5)"
     )
 
     parser.add_argument(
         "--max-avg-latency",
         type=int,
         default=5000,
-        help="Maximum average latency in ms (default: 5000)"
+        help="Maximum average latency in ms (default: 5000)",
     )
 
     args = parser.parse_args()

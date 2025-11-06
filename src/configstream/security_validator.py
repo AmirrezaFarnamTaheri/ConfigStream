@@ -368,7 +368,7 @@ def validate_batch_configs(
                 all_issues.extend(issues_list)
 
             logger.warning("Insecure proxy filtered: %s:%s", proxy.address, proxy.port)
-            logger.debug("Security issues: %s", ', '.join(all_issues))
+            logger.debug("Security issues: %s", ", ".join(all_issues))
             proxy.is_secure = False
             proxy.security_issues = categorized_issues
         else:

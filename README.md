@@ -214,6 +214,23 @@ configstream --help
 --timeout          Timeout per test in seconds (default: 10)
 ```
 
+### Database Management
+
+ConfigStream now includes automatic database backup and management:
+
+```bash
+# Backup databases
+configstream backup --retention-days 7
+
+# List available backups
+configstream list-db-backups
+
+# Restore from backup
+configstream restore-db backup_file.db target_file.db
+```
+
+Backups are automatically created before each pipeline run and retained for 7 days.
+
 ## 📁 Project Structure
 
 ```

@@ -306,22 +306,18 @@ def retest(
 
 @cli.command()
 @click.option(
-    "--data-dir", default="data", type=click.Path(file_okay=False),
-    help="Directory containing database files"
+    "--data-dir",
+    default="data",
+    type=click.Path(file_okay=False),
+    help="Directory containing database files",
 )
-@click.option(
-    "--retention-days", default=7, type=int,
-    help="Number of days to keep old backups"
-)
+@click.option("--retention-days", default=7, type=int, help="Number of days to keep old backups")
 @handle_cli_errors(context="Database backup")
 def backup(data_dir: str, retention_days: int) -> None:
     """Backup SQLite databases with automatic cleanup of old backups."""
     console.print(f"[cyan]Backing up databases from {data_dir}...[/cyan]")
 
-    backups = backup_databases(
-        data_dir=Path(data_dir),
-        retention_days=retention_days
-    )
+    backups = backup_databases(data_dir=Path(data_dir), retention_days=retention_days)
 
     if backups:
         console.print(f"[green]✓ Successfully created {len(backups)} backup(s)[/green]")
@@ -334,8 +330,10 @@ def backup(data_dir: str, retention_days: int) -> None:
 
 @cli.command()
 @click.option(
-    "--backup-dir", default="data/backups", type=click.Path(file_okay=False),
-    help="Directory containing backup files"
+    "--backup-dir",
+    default="data/backups",
+    type=click.Path(file_okay=False),
+    help="Directory containing backup files",
 )
 @handle_cli_errors(context="List backups")
 def list_db_backups(backup_dir: str) -> None:
@@ -348,13 +346,13 @@ def list_db_backups(backup_dir: str) -> None:
 
     stats = get_backup_statistics(Path(backup_dir))
 
-    console.print(f"\n[cyan]Backup Statistics:[/cyan]")
+    console.print("\n[cyan]Backup Statistics:[/cyan]")
     console.print(f"  Total backups: {stats['total_backups']}")
     console.print(f"  Total size: {stats['total_size_mb']:.2f} MB")
     console.print(f"  Oldest: {stats['oldest_backup']}")
     console.print(f"  Newest: {stats['newest_backup']}")
 
-    console.print(f"\n[cyan]Available Backups:[/cyan]")
+    console.print("\n[cyan]Available Backups:[/cyan]")
     for backup in backups[:20]:  # Show latest 20
         console.print(
             f"  {backup['filename']} - "
@@ -377,7 +375,7 @@ def restore_db(backup_file: str, target_file: str, yes: bool) -> None:
         click.confirm(
             f"Restore {target_file} from {backup_file}?\n"
             "This will overwrite the current database.",
-            abort=True
+            abort=True,
         )
 
     success = restore_database(Path(backup_file), Path(target_file))

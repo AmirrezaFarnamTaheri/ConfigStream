@@ -334,9 +334,9 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
             v_norm = _b64_normalize(val)
             decoded_val = _safe_b64_decode(v_norm)
 
-            # If it wasn’t valid base64, don’t fail hard—keep original.
+            # If it wasn't valid base64, don't fail hard—keep original.
             if decoded_val == v_norm and _validate_b64_input(v_norm) is None:
-                logger.debug("SSR param '%s' not valid base64: %s; leaving as-is.", k, val!r)
+                logger.debug("SSR param '%s' not valid base64: %s; leaving as-is.", k, repr(val))
                 decoded_val = val
 
             params_decoded[k] = decoded_val

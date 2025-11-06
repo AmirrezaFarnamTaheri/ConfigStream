@@ -9,7 +9,7 @@ import shutil
 import logging
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import List
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +64,12 @@ def backup_databases(
             # Copy database file
             shutil.copy2(db_file, backup_path)
             backups_created.append(backup_path)
-            logger.info("Backed up %s -> %s (%.2f MB)",
-                       db_file.name, backup_filename,
-                       backup_path.stat().st_size / 1024 / 1024)
+            logger.info(
+                "Backed up %s -> %s (%.2f MB)",
+                db_file.name,
+                backup_filename,
+                backup_path.stat().st_size / 1024 / 1024,
+            )
 
         except Exception as e:
             logger.error("Failed to backup %s: %s", db_file, e)
@@ -107,9 +110,12 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
                 file_size = backup_file.stat().st_size / 1024 / 1024
                 backup_file.unlink()
                 deleted += 1
-                logger.debug("Deleted old backup: %s (%.2f MB, age: %d days)",
-                           backup_file.name, file_size,
-                           (datetime.now() - mtime).days)
+                logger.debug(
+                    "Deleted old backup: %s (%.2f MB, age: %d days)",
+                    backup_file.name,
+                    file_size,
+                    (datetime.now() - mtime).days,
+                )
 
         except Exception as e:
             logger.warning("Failed to delete old backup %s: %s", backup_file, e)
@@ -166,16 +172,20 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
 
     backups = []
 
-    for backup_file in sorted(backup_dir.glob("*.db"), key=lambda p: p.stat().st_mtime, reverse=True):
+    for backup_file in sorted(
+        backup_dir.glob("*.db"), key=lambda p: p.stat().st_mtime, reverse=True
+    ):
         try:
             stat = backup_file.stat()
-            backups.append({
-                "filename": backup_file.name,
-                "path": backup_file,
-                "size_mb": stat.st_size / 1024 / 1024,
-                "created": datetime.fromtimestamp(stat.st_mtime),
-                "age_days": (datetime.now() - datetime.fromtimestamp(stat.st_mtime)).days,
-            })
+            backups.append(
+                {
+                    "filename": backup_file.name,
+                    "path": backup_file,
+                    "size_mb": stat.st_size / 1024 / 1024,
+                    "created": datetime.fromtimestamp(stat.st_mtime),
+                    "age_days": (datetime.now() - datetime.fromtimestamp(stat.st_mtime)).days,
+                }
+            )
         except Exception as e:
             logger.warning("Failed to get metadata for %s: %s", backup_file, e)
 
@@ -211,9 +221,9 @@ def get_backup_statistics(backup_dir: Path | str = Path("data/backups")) -> dict
     }
 
 
-def _group_backups_by_database(backups: List[dict]) -> dict:
+def _group_backups_by_database(backups: List[dict]) -> Dict[str, List[dict]]:
     """Group backups by database name."""
-    grouped = {}
+    grouped: Dict[str, List[dict]] = {}
     for backup in backups:
         # Extract database name from filename (remove timestamp)
         db_name = backup["filename"].rsplit("_", 2)[0]

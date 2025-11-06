@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Optional
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from .models import Proxy
 from .test_cache import TestResultCache
@@ -21,9 +20,9 @@ class RetestInterval:
     """Retest interval tiers based on proxy reliability."""
 
     EXCELLENT = timedelta(hours=12)  # >90% uptime
-    GOOD = timedelta(hours=6)        # 70-90% uptime
-    FAIR = timedelta(hours=4)        # 50-70% uptime
-    POOR = timedelta(hours=2)        # <50% uptime
+    GOOD = timedelta(hours=6)  # 70-90% uptime
+    FAIR = timedelta(hours=4)  # 50-70% uptime
+    POOR = timedelta(hours=2)  # <50% uptime
 
 
 class SmartRetestScheduler:
@@ -66,8 +65,9 @@ class SmartRetestScheduler:
 
         if cached_proxy is None:
             # No cache entry or expired - always retest
-            logger.debug("Retest needed for %s:%s (no valid cache entry)",
-                        proxy.address, proxy.port)
+            logger.debug(
+                "Retest needed for %s:%s (no valid cache entry)", proxy.address, proxy.port
+            )
             return True
 
         # Get health score from historical data
@@ -80,8 +80,7 @@ class SmartRetestScheduler:
         last_test_time = self._get_last_test_time(cached_proxy)
 
         if last_test_time is None:
-            logger.debug("Retest needed for %s:%s (no timestamp)",
-                        proxy.address, proxy.port)
+            logger.debug("Retest needed for %s:%s (no timestamp)", proxy.address, proxy.port)
             return True
 
         time_since_test = datetime.now(timezone.utc) - last_test_time
@@ -90,17 +89,19 @@ class SmartRetestScheduler:
         if should_retest:
             logger.debug(
                 "Retest needed for %s:%s (health: %.2f, last: %.1fh ago, interval: %.1fh)",
-                proxy.address, proxy.port,
+                proxy.address,
+                proxy.port,
                 health_score,
                 time_since_test.total_seconds() / 3600,
-                interval.total_seconds() / 3600
+                interval.total_seconds() / 3600,
             )
         else:
             logger.debug(
                 "Retest skipped for %s:%s (health: %.2f, tested %.1fh ago)",
-                proxy.address, proxy.port,
+                proxy.address,
+                proxy.port,
                 health_score,
-                time_since_test.total_seconds() / 3600
+                time_since_test.total_seconds() / 3600,
             )
 
         return should_retest
@@ -139,10 +140,9 @@ class SmartRetestScheduler:
 
         try:
             # Parse ISO format timestamp
-            return datetime.fromisoformat(proxy.tested_at.replace('Z', '+00:00'))
+            return datetime.fromisoformat(proxy.tested_at.replace("Z", "+00:00"))
         except (ValueError, AttributeError) as e:
-            logger.warning("Failed to parse timestamp for %s:%s: %s",
-                          proxy.address, proxy.port, e)
+            logger.warning("Failed to parse timestamp for %s:%s: %s", proxy.address, proxy.port, e)
             return None
 
     def filter_proxies_for_retest(self, proxies: List[Proxy]) -> List[Proxy]:
@@ -168,12 +168,14 @@ class SmartRetestScheduler:
 
         logger.info(
             "Smart scheduling: %d proxies need retest, %d skipped (%.1f%% reduction)",
-            len(retest_needed), skipped, reduction_pct
+            len(retest_needed),
+            skipped,
+            reduction_pct,
         )
 
         return retest_needed
 
-    def get_scheduling_statistics(self) -> Dict[str, any]:
+    def get_scheduling_statistics(self) -> Dict[str, Any]:
         """
         Get statistics about scheduling decisions.
 
@@ -181,14 +183,6 @@ class SmartRetestScheduler:
             Dictionary with scheduling stats
         """
         cache_stats = self.cache.get_stats()
-
-        # Calculate distribution across health tiers
-        health_distribution = {
-            "excellent": 0,  # >0.9
-            "good": 0,       # 0.7-0.9
-            "fair": 0,       # 0.5-0.7
-            "poor": 0,       # <0.5
-        }
 
         # This would require iterating through all proxies
         # For now, return cache stats
@@ -202,7 +196,7 @@ class SmartRetestScheduler:
                 "good": RetestInterval.GOOD.total_seconds() / 3600,
                 "fair": RetestInterval.FAIR.total_seconds() / 3600,
                 "poor": RetestInterval.POOR.total_seconds() / 3600,
-            }
+            },
         }
 
     def force_retest_failed(self, proxies: List[Proxy]) -> List[Proxy]:
@@ -229,9 +223,7 @@ class SmartRetestScheduler:
         result = failed + working
 
         if failed:
-            logger.info(
-                "Prioritizing %d failed proxies for immediate retest", len(failed)
-            )
+            logger.info("Prioritizing %d failed proxies for immediate retest", len(failed))
 
         return result
 
