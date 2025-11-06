@@ -129,9 +129,11 @@ async def fetch_from_source(
 
     host = parsed_url.netloc
 
-    # Use adaptive timeout if available
+    # Use adaptive timeout if available, but keep a safe minimum
     if timeout_tracker:
-        timeout = timeout_tracker.get_timeout(source)
+        adaptive = timeout_tracker.get_timeout(source)
+        min_allowed = max(5, int(0.5 * timeout))  # at least 5s, or half of provided timeout
+        timeout = max(adaptive, min_allowed)
 
     # Apply per-host rate limiting
     if rate_limiter:

@@ -12,12 +12,19 @@ on:
     types:
       - completed
 
+concurrency:
+  group: healthcheck-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   issues: write  # For creating issues on failure
 
 jobs:
   healthcheck:
+    if: |
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success')
     name: Check Pipeline Health
     runs-on: ubuntu-latest
 
@@ -33,7 +40,9 @@ jobs:
 
       - name: Run health checks
         id: health
+        shell: bash
         run: |
+          set +e
           python scripts/healthcheck.py \
             --min-proxies 100 \
             --min-success-rate 0.3 \
@@ -41,10 +50,12 @@ jobs:
             --min-protocols 3 \
             --min-countries 5 \
             --max-avg-latency 5000
-        continue-on-error: true
+          STATUS=$?
+          echo "exit_code=$STATUS" >> "$GITHUB_OUTPUT"
+          exit 0
 
       - name: Create issue on failure
-        if: steps.health.outcome == 'failure'
+        if: steps.health.outputs.exit_code != '0'
         uses: actions/github-script@v7
         with:
           script: |
@@ -139,7 +150,7 @@ jobs:
             }
 
       - name: Send Discord alert (optional)
-        if: steps.health.outcome == 'failure'
+        if: steps.health.outputs.exit_code != '0'
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |

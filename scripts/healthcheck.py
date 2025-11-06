@@ -111,7 +111,7 @@ def check_geographic_diversity(proxies: List[Dict], min_countries: int) -> None:
             f"(minimum: {min_countries})"
         )
 
-    print(f"✓ Geographic diversity: {len(countries)} countries " f"(minimum: {min_countries})")
+    print(f"✓ Geographic diversity: {len(countries)} countries (minimum: {min_countries})")
 
 
 def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
