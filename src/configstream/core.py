@@ -166,11 +166,11 @@ def parse_config(config_string: str) -> Proxy | None:
             if protocol in _generic_protocols:
                 return _parse_generic_url_scheme(config_string)
 
-        logger.debug(f"Unknown protocol in config: {config_string[:50]}...")
+        logger.debug("Unknown protocol in config: %s...", config_string[:50])
         return None
 
     except Exception as e:
-        logger.debug(f"Error parsing config '{config_string[:50]}...': {e}")
+        logger.debug("Error parsing config '%s...': %s", config_string[:50], e)
         return None
 
 
@@ -212,7 +212,7 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
                 proxy.asn = f"AS{response.autonomous_system.autonomous_system_number}"
             return proxy
         except Exception:  # pragma: no cover
-            logger.debug(f"GeoIP DB lookup failed for {proxy.address}")
+            logger.debug("GeoIP DB lookup failed for %s", proxy.address)
 
     # 4. Fallback to an external HTTP-based lookup.
     http_result = await _lookup_geoip_http(proxy.address)

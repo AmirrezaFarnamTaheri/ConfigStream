@@ -48,12 +48,12 @@ class GeoIPManager:
                 url = url_template.format(key=self.license_key)
 
                 try:
-                    self.logger.info(f"Downloading GeoLite2-{db_type.title()}...")
+                    self.logger.info("Downloading GeoLite2-%s...", db_type.title())
                     await self._download_and_extract(session, url, db_type)
-                    self.logger.info(f"GeoLite2-{db_type.title()} downloaded successfully")
+                    self.logger.info("GeoLite2-%s downloaded successfully", db_type.title())
 
                 except Exception as e:
-                    self.logger.error(f"Failed to download GeoLite2-{db_type.title()}: {str(e)}")
+                    self.logger.error("Failed to download GeoLite2-%s: %s", db_type.title(), str(e))
                     success = False
 
         return success

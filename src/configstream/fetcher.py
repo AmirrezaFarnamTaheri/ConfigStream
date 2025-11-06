@@ -31,6 +31,7 @@ from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
 from .dns_prewarm import prewarm_dns_cache
 from .metrics_emitter import MetricsEmitter
+from .adaptive_timeout import AdaptiveTimeout
 from pathlib import Path
 
 # Configure structured logging for better debugging
@@ -96,6 +97,7 @@ async def fetch_from_source(
     rate_limiter: RateLimiter | None = None,
     controller: AIMDController | None = None,
     breaker_manager: CircuitBreakerManager | None = None,
+    timeout_tracker: AdaptiveTimeout | None = None,
 ) -> FetchResult:
     """
     Fetch proxy configurations from a source with enhanced error handling, HTTP/2, and ETag caching.
@@ -103,12 +105,14 @@ async def fetch_from_source(
     Args:
         client: Async HTTP client (httpx.AsyncClient or aiohttp.ClientSession)
         source: URL to fetch configurations from
-        timeout: Maximum time to wait for response
+        timeout: Maximum time to wait for response (overridden by adaptive timeout if provided)
         max_retries: Number of retry attempts
         retry_delay: Initial delay between retries (exponential backoff)
         etag_cache: Optional ETag cache dict for conditional GETs
         rate_limiter: Optional per-host rate limiter
-        controller: Optional adaptive concurrency controller.
+        controller: Optional adaptive concurrency controller
+        breaker_manager: Optional circuit breaker manager
+        timeout_tracker: Optional adaptive timeout tracker
 
     Returns:
         FetchResult object containing configs and metadata
@@ -120,16 +124,46 @@ async def fetch_from_source(
         if not parsed_url.scheme or not parsed_url.netloc:
             raise ValueError(f"Invalid URL format: {source}")
     except Exception as e:
-        logger.error(f"URL validation failed for {source}: {e}")
+        logger.error("URL validation failed for %s: %s", source, e)
         return FetchResult(source, [], False, error=str(e))
 
+    # Normalize baseline timeout
+    try:
+        base_timeout = int(timeout)
+    except Exception:
+        logger.warning("Invalid timeout %r for %s, defaulting to 30s", timeout, source)
+        base_timeout = 30
+    if base_timeout < 5:
+        logger.warning("Timeout %ds is too low for %s, using minimum of 5s", base_timeout, source)
+        base_timeout = 5
+
+    # Start with caller's normalized baseline
+    effective_timeout = base_timeout
+
     host = parsed_url.netloc
+
+    # Use adaptive timeout if available, but never exceed the caller's baseline budget
+    if timeout_tracker:
+        adaptive = int(timeout_tracker.get_timeout(source))
+        min_allowed = max(5, int(0.5 * base_timeout))  # at least 5s, or half of normalized timeout
+        # clamp adaptive to [min_allowed, base_timeout]
+        effective_timeout = max(min_allowed, min(adaptive, base_timeout))
+    else:
+        effective_timeout = base_timeout
+
+    # Compute a strict per-attempt timeout so cumulative time (including simple backoff) stays within budget
+    attempts = max(1, int(max_retries))
+    # Reserve 30% of the budget for backoff/overhead to avoid exceeding total wall-clock time
+    budget_for_requests = max(5, int(effective_timeout * 0.7))
+    per_attempt_timeout = max(5, int(budget_for_requests / attempts))
+
+    timeout = per_attempt_timeout
 
     # Apply per-host rate limiting
     if rate_limiter:
         while not rate_limiter.is_allowed(host):
             wait_time = rate_limiter.get_wait_time(host)
-            logger.debug(f"Rate limit: waiting {wait_time:.2f}s for {host}")
+            logger.debug("Rate limit: waiting %.2fs for %s", wait_time, host)
             await asyncio.sleep(wait_time)
 
     # Apply per-host concurrency limit
@@ -140,7 +174,8 @@ async def fetch_from_source(
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
         breaker = breaker_manager.get_breaker(host)
         if breaker.is_open:
-            logger.warning(f"Circuit breaker is open for {host}. Skipping request.")
+            logger.warning("Circuit breaker is open for %s. Skipping request.", host)
+            # Do not record synthetic durations for skipped requests to avoid biasing timeouts
             return FetchResult(source, [], False, error="Circuit breaker open")
 
     # Build headers with optional ETag validators
@@ -186,7 +221,9 @@ async def fetch_from_source(
                 timeout
             )  # Default to timeout if exception occurs before assignment
             try:
-                logger.debug(f"Attempt {attempt + 1}/{max_retries} for {source} (host: {host})")
+                logger.debug(
+                    "Attempt %s/%s for %s (host: %s)", attempt + 1, max_retries, source, host
+                )
 
                 app_settings = AppSettings()
                 if app_settings.HEDGING_ENABLED and not is_aiohttp_client:
@@ -256,7 +293,7 @@ async def fetch_from_source(
 
                 content_type = (_get_header(response_headers, "Content-Type") or "").lower()
                 if "html" in content_type and "text/plain" not in content_type:
-                    logger.warning(f"Unexpected content type for {source}: {content_type}")
+                    logger.warning("Unexpected content type for %s: %s", source, content_type)
 
                 configs = []
                 for line in text.splitlines():
@@ -266,12 +303,17 @@ async def fetch_from_source(
                     if any(line.startswith(f"{proto}://") for proto in VALID_PROTOCOLS):
                         configs.append(line)
                     else:
-                        logger.debug(f"Skipping invalid config line: {line[:50]}...")
+                        logger.debug("Skipping invalid config line: %s...", line[:50])
                 logger.info(
                     f"Successfully fetched {len(configs)} configs from {source} "
                     f"(HTTP/{http_version}, Status: {status_code}, Time: {response_time:.2f}s)"
                 )
                 success = True
+
+                # Record successful fetch time for adaptive timeout learning (only on 2xx)
+                if timeout_tracker and 200 <= status_code < 300:
+                    timeout_tracker.record(source, response_time)
+
                 return FetchResult(
                     source=source,
                     configs=configs,
@@ -301,14 +343,14 @@ async def fetch_from_source(
                 )
             except FetcherError as e:
                 last_error = str(e)
-                logger.warning(f"HTTP error fetching {source}: {e}")
+                logger.warning("HTTP error fetching %s: %s", source, e)
             except httpx.HTTPError as e:
                 last_error = f"HTTP error: {e}"
-                logger.warning(f"HTTP error fetching {source}: {e}")
+                logger.warning("HTTP error fetching %s: %s", source, e)
             except Exception as e:
                 if aiohttp is not None and isinstance(e, aiohttp.ClientError):
                     last_error = f"HTTP error: {e}"
-                    logger.warning(f"HTTP error fetching {source}: {e}")
+                    logger.warning("HTTP error fetching %s: %s", source, e)
                 else:
                     last_error = f"Unexpected error: {e}"
                     logger.error(f"Unexpected error fetching {source}: {e}", exc_info=True)
@@ -404,6 +446,7 @@ async def fetch_multiple_sources(
     timeout: int = 30,
     per_host_limit: int = 4,
     client: httpx.AsyncClient | None = None,
+    use_adaptive_timeout: bool = True,
 ) -> dict[str, FetchResult]:
     """
     Fetch from multiple sources concurrently with HTTP/2, ETag caching, and rate limiting.
@@ -411,14 +454,25 @@ async def fetch_multiple_sources(
     Args:
         sources: List of source URLs
         max_concurrent: Maximum concurrent requests
-        timeout: Timeout per request
+        timeout: Timeout per request (default, overridden by adaptive if enabled)
         per_host_limit: Maximum concurrent requests per host
-        client: Optional httpx.AsyncClient to use for requests.
+        client: Optional httpx.AsyncClient to use for requests
+        use_adaptive_timeout: Enable adaptive timeout learning (default: True)
 
     Returns:
         Dictionary mapping source URL to FetchResult
     """
     results: Dict[str, FetchResult] = {}
+
+    # Initialize adaptive timeout tracker
+    timeout_tracker = AdaptiveTimeout() if use_adaptive_timeout else None
+    if timeout_tracker:
+        stats = timeout_tracker.get_statistics()
+        logger.info(
+            "Adaptive timeout enabled: %d sources tracked, avg timeout: %.1fs",
+            stats["total_sources"],
+            stats["avg_timeout"],
+        )
 
     # Pre-warm DNS cache for top hosts
     await prewarm_dns_cache(sources)
@@ -455,6 +509,7 @@ async def fetch_multiple_sources(
                 rate_limiter=rate_limiter,
                 controller=controller,
                 breaker_manager=breaker_manager,
+                timeout_tracker=timeout_tracker,
             )
 
     async def _run_tasks(http_client: Any) -> None:
@@ -464,7 +519,7 @@ async def fetch_multiple_sources(
         )
         for source, result in zip(sources, fetch_results):
             if isinstance(result, BaseException):
-                logger.error(f"Unhandled exception for {source}: {result}")
+                logger.error("Unhandled exception for %s: %s", source, result)
                 results[source] = FetchResult(
                     source=source, configs=[], success=False, error=str(result)
                 )

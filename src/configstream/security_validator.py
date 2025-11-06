@@ -125,7 +125,7 @@ class SecurityValidator:
         if port < 1 or port > MAX_PORT:
             return f"Port out of valid range (1-{MAX_PORT}): {port}"
         if port in DANGEROUS_PORTS:
-            logger.warning(f"Dangerous port detected: {port}")
+            logger.warning("Dangerous port detected: %s", port)
             return f"Dangerous port: {port}"
         return None
 
@@ -148,7 +148,7 @@ class SecurityValidator:
         # Check for suspicious patterns (exact or subdomain match)
         for suspicious in SUSPICIOUS_DOMAINS:
             if address_lower == suspicious or address_lower.endswith("." + suspicious):
-                logger.warning(f"Suspicious address pattern found: {address}")
+                logger.warning("Suspicious address pattern found: %s", address)
                 issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                     f"Suspicious address pattern: {address}"
                 )
@@ -156,7 +156,7 @@ class SecurityValidator:
 
         # DNS rebinding protection - check for hex notation or octal notation
         if address_lower.startswith("0x") or re.match(r"^0[0-7]{1,11}\.", address_lower):
-            logger.warning(f"Non-standard IP notation: {address}")
+            logger.warning("Non-standard IP notation: %s", address)
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = f"Non-standard notation: {address}"
             return issues
 
@@ -186,7 +186,7 @@ class SecurityValidator:
 
         for pattern in special_address_patterns:
             if re.match(pattern, address_lower):
-                logger.warning(f"Special or private address detected: {address}")
+                logger.warning("Special or private address detected: %s", address)
                 issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Special address: {address}"
                 return issues
 
@@ -235,7 +235,7 @@ class SecurityValidator:
 
         for pattern in suspicious_patterns:
             if re.search(pattern, config, re.IGNORECASE):
-                logger.error(f"Suspicious pattern detected: {pattern}")
+                logger.error("Suspicious pattern detected: %s", pattern)
                 issues[SECURITY_CATEGORIES["INJECTION_RISK"]] = (
                     "Suspicious: Potential injection pattern detected"
                 )
@@ -243,7 +243,7 @@ class SecurityValidator:
 
         # Check length
         if len(config) > MAX_CONFIG_LINE_LENGTH:
-            logger.warning(f"Config too long: {len(config)} chars")
+            logger.warning("Config too long: %s chars", len(config))
             issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = (
                 f"Config exceeds max length: {len(config)} chars"
             )
@@ -367,13 +367,13 @@ def validate_batch_configs(
             for category, issues_list in categorized_issues.items():
                 all_issues.extend(issues_list)
 
-            logger.warning(f"Insecure proxy filtered: {proxy.address}:{proxy.port}")
-            logger.debug(f"Security issues: {', '.join(all_issues)}")
+            logger.warning("Insecure proxy filtered: %s:%s", proxy.address, proxy.port)
+            logger.debug("Security issues: %s", ", ".join(all_issues))
             proxy.is_secure = False
             proxy.security_issues = categorized_issues
         else:
             proxy.is_secure = True
             secure_proxies.append(proxy)
 
-    logger.info(f"Security validation: {len(secure_proxies)}/{len(proxies)} proxies passed")
+    logger.info("Security validation: %s/%s proxies passed", len(secure_proxies), len(proxies))
     return secure_proxies
