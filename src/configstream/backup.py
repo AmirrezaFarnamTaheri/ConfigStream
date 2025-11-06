@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import sqlite3
 import logging
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -57,13 +58,20 @@ def backup_databases(
         if not db_file.is_file():
             continue
 
-        # Create backup filename
         backup_filename = f"{db_file.stem}_{timestamp}.db"
         backup_path = backup_dir / backup_filename
 
         try:
-            # Copy database file
-            shutil.copy2(db_file, backup_path)
+            # Use SQLite backup API for consistent snapshot even under WAL/concurrent writes
+            with (
+                sqlite3.connect(f"file:{db_file}?mode=ro", uri=True) as src,
+                sqlite3.connect(backup_path) as dst,
+            ):
+                src.backup(dst)
+
+            # Preserve metadata similar to copy2 only after successful backup
+            shutil.copystat(db_file, backup_path)
+
             backups_created.append(backup_path)
             logger.info(
                 "Backed up %s -> %s (%.2f MB)",
@@ -73,6 +81,12 @@ def backup_databases(
             )
 
         except Exception as e:
+            # Clean up any partial file
+            try:
+                if backup_path.exists():
+                    backup_path.unlink()
+            except Exception:
+                pass
             logger.error("Failed to backup %s: %s", db_file, e)
 
     # Cleanup old backups

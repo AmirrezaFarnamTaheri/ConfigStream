@@ -481,14 +481,20 @@ async def run_full_pipeline(
             if len(tested) < original_count:
                 from collections import defaultdict, deque
 
+                def _key(p: Proxy) -> tuple[str, int, str]:
+                    proto = (p.protocol or "").lower()
+                    return (p.address, int(p.port), proto)
+
                 buckets: dict[tuple[str, int, str], deque[Proxy]] = defaultdict(deque)
                 for p in tested:
-                    buckets[(p.address, p.port, p.protocol)].append(p)
+                    buckets[_key(p)].append(p)
+
                 final_list: List[Proxy] = []
                 for proxy in batch:
-                    key = (proxy.address, proxy.port, proxy.protocol)
-                    if buckets.get(key):
-                        final_list.append(buckets[key].popleft())
+                    k = _key(proxy)
+                    dq = buckets.get(k)
+                    if dq and len(dq) > 0:
+                        final_list.append(dq.popleft())
                     else:
                         cached = test_cache.get(proxy)
                         final_list.append(cached if cached else proxy)

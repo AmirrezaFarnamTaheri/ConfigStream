@@ -127,18 +127,25 @@ async def fetch_from_source(
         logger.error("URL validation failed for %s: %s", source, e)
         return FetchResult(source, [], False, error=str(e))
 
-    # Validate baseline timeout is reasonable
-    if timeout < 5:
-        logger.warning("Timeout %ds is too low for %s, using minimum of 5s", timeout, source)
-        timeout = 5
+    # Normalize baseline timeout
+    try:
+        base_timeout = int(timeout)
+    except Exception:
+        logger.warning("Invalid timeout %r for %s, defaulting to 30s", timeout, source)
+        base_timeout = 30
+    if base_timeout < 5:
+        logger.warning("Timeout %ds is too low for %s, using minimum of 5s", base_timeout, source)
+        base_timeout = 5
+    timeout = base_timeout
 
     host = parsed_url.netloc
 
-    # Use adaptive timeout if available, but keep a safe minimum
+    # Use adaptive timeout if available, but keep a safe minimum and clamp to sane upper bound
     if timeout_tracker:
-        adaptive = timeout_tracker.get_timeout(source)
-        min_allowed = max(5, int(0.5 * timeout))  # at least 5s, or half of provided timeout
-        timeout = max(adaptive, min_allowed)
+        adaptive = int(timeout_tracker.get_timeout(source))
+        min_allowed = max(5, int(0.5 * base_timeout))  # at least 5s, or half of normalized timeout
+        # clamp adaptive to [min_allowed, 120]
+        timeout = max(min_allowed, min(adaptive, 120))
 
     # Apply per-host rate limiting
     if rate_limiter:

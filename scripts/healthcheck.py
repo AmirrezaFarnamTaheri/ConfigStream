@@ -131,7 +131,20 @@ def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
     if not working_proxies:
         raise HealthCheckError("❌ No working proxies with latency data")
 
-    latencies = [p["latency"] for p in working_proxies]
+    latencies = []
+    for p in working_proxies:
+        val = p.get("latency")
+        try:
+            num = float(val)
+        except (TypeError, ValueError):
+            continue
+        if num < 0 or not (num == num):  # exclude negatives and NaN
+            continue
+        latencies.append(num)
+
+    if not latencies:
+        raise HealthCheckError("❌ No valid latency samples for working proxies")
+
     avg_latency = sum(latencies) / len(latencies)
 
     if avg_latency > max_avg_latency:
