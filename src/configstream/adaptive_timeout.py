@@ -46,24 +46,31 @@ class AdaptiveTimeout:
 
     def _init_db(self) -> None:
         """Create database tables if they don't exist."""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.execute(
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS timeout_history (
+                        source TEXT NOT NULL,
+                        duration REAL NOT NULL,
+                        timestamp INTEGER NOT NULL,
+                        PRIMARY KEY (source, timestamp)
+                    )
                 """
-                CREATE TABLE IF NOT EXISTS timeout_history (
-                    source TEXT NOT NULL,
-                    duration REAL NOT NULL,
-                    timestamp INTEGER NOT NULL,
-                    PRIMARY KEY (source, timestamp)
                 )
-            """
-            )
-            conn.execute(
+                conn.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_source_timestamp
+                    ON timeout_history(source, timestamp DESC)
                 """
-                CREATE INDEX IF NOT EXISTS idx_source_timestamp
-                ON timeout_history(source, timestamp DESC)
-            """
+                )
+                conn.commit()
+        except sqlite3.Error as e:
+            logger.error(
+                "Failed to initialize adaptive timeout database at %s: %s",
+                self.db_path,
+                e,
             )
-            conn.commit()
 
     def _load_cache(self) -> None:
         """Load recent history into memory cache."""
