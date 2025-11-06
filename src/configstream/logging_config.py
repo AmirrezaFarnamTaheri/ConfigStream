@@ -156,6 +156,10 @@ def set_trace_id(trace_id: Optional[str] = None) -> str:
     """
     if trace_id is None:
         trace_id = str(uuid.uuid4())[:8]
+    else:
+        # Sanitize: allow only alphanumerics and dash/underscore, cap length
+        safe = "".join(c for c in str(trace_id) if c.isalnum() or c in "-_")[:32]
+        trace_id = safe if safe else "-"
     trace_id_var.set(trace_id)
     return trace_id
 

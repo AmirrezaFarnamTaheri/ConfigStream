@@ -283,8 +283,8 @@ async def fetch_from_source(
                 )
                 success = True
 
-                # Record successful fetch time for adaptive timeout learning
-                if timeout_tracker:
+                # Record successful fetch time for adaptive timeout learning (only on 2xx)
+                if timeout_tracker and 200 <= status_code < 300:
                     timeout_tracker.record(source, response_time)
 
                 return FetchResult(

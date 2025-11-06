@@ -5,6 +5,7 @@ Automatically backs up SQLite databases with timestamp-based naming and retentio
 
 from __future__ import annotations
 
+import re
 import shutil
 import logging
 from pathlib import Path
@@ -180,7 +181,7 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
             backups.append(
                 {
                     "filename": backup_file.name,
-                    "path": backup_file,
+                    "path": str(backup_file),
                     "size_mb": stat.st_size / 1024 / 1024,
                     "created": datetime.fromtimestamp(stat.st_mtime),
                     "age_days": (datetime.now() - datetime.fromtimestamp(stat.st_mtime)).days,
@@ -224,9 +225,14 @@ def get_backup_statistics(backup_dir: Path | str = Path("data/backups")) -> dict
 def _group_backups_by_database(backups: List[dict]) -> Dict[str, List[dict]]:
     """Group backups by database name."""
     grouped: Dict[str, List[dict]] = {}
+    # Regex to remove timestamp suffix like _YYYYMMDD_HHMMSS
+    timestamp_pattern = re.compile(r"_\d{8}_\d{6}$")
+
     for backup in backups:
-        # Extract database name from filename (remove timestamp)
-        db_name = backup["filename"].rsplit("_", 2)[0]
+        # Extract database name from filename (remove timestamp and .db extension)
+        base_name = backup["filename"].removesuffix(".db")
+        db_name = timestamp_pattern.sub("", base_name)
+
         if db_name not in grouped:
             grouped[db_name] = []
         grouped[db_name].append(backup)

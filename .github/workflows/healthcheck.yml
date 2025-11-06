@@ -45,7 +45,7 @@ jobs:
         continue-on-error: true
 
       - name: Create issue on failure
-        if: failure() && steps.health.outcome == 'failure'
+        if: steps.health.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |
@@ -133,34 +133,29 @@ jobs:
             }
 
       - name: Send Discord alert (optional)
-        if: failure() && steps.health.outcome == 'failure' && secrets.DISCORD_WEBHOOK_URL != ''
+        if: steps.health.outcome == 'failure'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          curl -X POST "${{ secrets.DISCORD_WEBHOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "embeds": [{
-                "title": "⚠️ ConfigStream Health Check Failed",
-                "description": "The pipeline health check detected issues. Please investigate.",
-                "color": 15158332,
-                "fields": [
-                  {
-                    "name": "Repository",
-                    "value": "${{ github.repository }}",
-                    "inline": true
-                  },
-                  {
-                    "name": "Time",
-                    "value": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'",
-                    "inline": true
-                  },
-                  {
-                    "name": "Workflow",
-                    "value": "[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-                  }
-                ],
-                "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"
-              }]
-            }'
+          if [ -n "${DISCORD_WEBHOOK_URL}" ]; then
+            curl -X POST "${DISCORD_WEBHOOK_URL}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "embeds": [{
+                  "title": "⚠️ ConfigStream Health Check Failed",
+                  "description": "The pipeline health check detected issues. Please investigate.",
+                  "color": 15158332,
+                  "fields": [
+                    { "name": "Repository", "value": "${{ github.repository }}", "inline": true },
+                    { "name": "Time", "value": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'", "inline": true },
+                    { "name": "Workflow", "value": "[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" }
+                  ],
+                  "timestamp": "'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"
+                }]
+              }'
+          else
+            echo "DISCORD_WEBHOOK_URL not set; skipping alert."
+          fi
         continue-on-error: true
 
       - name: Summary

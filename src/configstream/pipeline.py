@@ -427,7 +427,8 @@ async def run_full_pipeline(
                     original_count,
                     label,
                 )
-                return batch
+                # Return fresh proxy objects from the cache instead of the original batch
+                return [p for p in (test_cache.get(proxy) for proxy in batch) if p]
 
             # Log smart scheduling efficiency
             if len(batch_to_test) < original_count:
