@@ -145,13 +145,19 @@ class AdaptiveTimeout:
             source_url: The source URL
             duration: Fetch duration in seconds
         """
+        # Sanitize duration
+        try:
+            d = float(duration)
+        except (TypeError, ValueError):
+            return
+        if d != d or d <= 0 or d > 600:  # reject NaN/negative/zero and unreasonably large >10m
+            return
+
         # Update in-memory cache
         if source_url not in self._cache:
             self._cache[source_url] = []
 
-        self._cache[source_url].insert(0, duration)
-
-        # Keep only last 50 entries
+        self._cache[source_url].insert(0, d)
         self._cache[source_url] = self._cache[source_url][:50]
 
         # Persist to database
@@ -164,7 +170,7 @@ class AdaptiveTimeout:
                     INSERT OR REPLACE INTO timeout_history (source, duration, timestamp)
                     VALUES (?, ?, ?)
                 """,
-                    (source_url, duration, timestamp),
+                    (source_url, d, timestamp),
                 )
                 conn.commit()
         except sqlite3.Error as e:

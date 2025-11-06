@@ -163,6 +163,13 @@ async def fetch_from_source(
         breaker = breaker_manager.get_breaker(host)
         if breaker.is_open:
             logger.warning("Circuit breaker is open for %s. Skipping request.", host)
+            # Inform adaptive timeout that this source is currently problematic
+            if timeout_tracker:
+                # Record a conservative large duration to slow future requests temporarily
+                try:
+                    timeout_tracker.record(source, 60.0)
+                except Exception:
+                    pass
             return FetchResult(source, [], False, error="Circuit breaker open")
 
     # Build headers with optional ETag validators

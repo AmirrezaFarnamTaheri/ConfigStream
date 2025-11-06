@@ -13,7 +13,8 @@ on:
       - completed
 
 concurrency:
-  group: healthcheck-${{ github.workflow }}-${{ github.event_name }}
+  # Isolate by repo and ref to avoid cross-branch/fork collisions
+  group: healthcheck-${{ github.repository }}-${{ github.ref || 'no-ref' }}-${{ github.workflow }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
