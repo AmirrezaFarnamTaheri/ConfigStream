@@ -9,7 +9,7 @@ import statistics
 import sqlite3
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
@@ -47,18 +47,22 @@ class AdaptiveTimeout:
     def _init_db(self) -> None:
         """Create database tables if they don't exist."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS timeout_history (
                     source TEXT NOT NULL,
                     duration REAL NOT NULL,
                     timestamp INTEGER NOT NULL,
                     PRIMARY KEY (source, timestamp)
                 )
-            """)
-            conn.execute("""
+            """
+            )
+            conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_source_timestamp
                 ON timeout_history(source, timestamp DESC)
-            """)
+            """
+            )
             conn.commit()
 
     def _load_cache(self) -> None:
@@ -67,12 +71,15 @@ class AdaptiveTimeout:
         cutoff_ts = int(cutoff.timestamp())
 
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT source, duration
                 FROM timeout_history
                 WHERE timestamp > ?
                 ORDER BY source, timestamp DESC
-            """, (cutoff_ts,))
+            """,
+                (cutoff_ts,),
+            )
 
             for source, duration in cursor:
                 if source not in self._cache:
@@ -108,7 +115,10 @@ class AdaptiveTimeout:
 
             logger.debug(
                 "Adaptive timeout for %s: %ds (avg: %.1fs, samples: %d)",
-                source_url[:50], adaptive_timeout, avg_duration, len(recent)
+                source_url[:50],
+                adaptive_timeout,
+                avg_duration,
+                len(recent),
             )
 
             return adaptive_timeout
@@ -139,10 +149,13 @@ class AdaptiveTimeout:
 
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT OR REPLACE INTO timeout_history (source, duration, timestamp)
                     VALUES (?, ?, ?)
-                """, (source_url, duration, timestamp))
+                """,
+                    (source_url, duration, timestamp),
+                )
                 conn.commit()
         except sqlite3.Error as e:
             logger.warning("Failed to persist timeout history: %s", e)
@@ -162,10 +175,13 @@ class AdaptiveTimeout:
 
         try:
             with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     DELETE FROM timeout_history
                     WHERE timestamp < ?
-                """, (cutoff_ts,))
+                """,
+                    (cutoff_ts,),
+                )
                 deleted = cursor.rowcount
                 conn.commit()
 
@@ -176,7 +192,7 @@ class AdaptiveTimeout:
             logger.error("Failed to cleanup timeout history: %s", e)
             return 0
 
-    def get_statistics(self) -> Dict[str, any]:
+    def get_statistics(self) -> Dict[str, Any]:
         """
         Get statistics about tracked sources.
 

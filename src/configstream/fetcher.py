@@ -194,7 +194,9 @@ async def fetch_from_source(
                 timeout
             )  # Default to timeout if exception occurs before assignment
             try:
-                logger.debug("Attempt %s/%s for %s (host: %s)", attempt + 1, max_retries, source, host)
+                logger.debug(
+                    "Attempt %s/%s for %s (host: %s)", attempt + 1, max_retries, source, host
+                )
 
                 app_settings = AppSettings()
                 if app_settings.HEDGING_ENABLED and not is_aiohttp_client:
@@ -441,7 +443,8 @@ async def fetch_multiple_sources(
         stats = timeout_tracker.get_statistics()
         logger.info(
             "Adaptive timeout enabled: %d sources tracked, avg timeout: %.1fs",
-            stats["total_sources"], stats["avg_timeout"]
+            stats["total_sources"],
+            stats["avg_timeout"],
         )
 
     # Pre-warm DNS cache for top hosts

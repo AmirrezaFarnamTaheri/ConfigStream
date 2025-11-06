@@ -23,7 +23,7 @@ def find_python_files(directory: Path) -> List[Path]:
 def extract_fstring_variables(fstring: str) -> List[str]:
     """Extract variable names from f-string."""
     # Match {variable} or {expression}
-    pattern = r'\{([^}]+)\}'
+    pattern = r"\{([^}]+)\}"
     matches = re.findall(pattern, fstring)
     return matches
 
@@ -41,21 +41,21 @@ def convert_fstring_to_percent(fstring: str) -> Tuple[str, List[str]]:
         var = match.group(1)
         # Check if this is a simple variable or complex expression
         # Skip complex expressions with brackets/slicing
-        if '[' in var or '(' in var:
+        if "[" in var or "(" in var:
             # For complex expressions, just keep them as-is
             variables.append(var)
-            return '%s'
+            return "%s"
 
         variables.append(var)
         # Handle format specs like {x:.2f}
-        if ':' in var:
-            var_name, format_spec = var.split(':', 1)
+        if ":" in var:
+            var_name, format_spec = var.split(":", 1)
             variables[-1] = var_name  # Store just the variable name
-            return f'%{format_spec}'
-        return '%s'
+            return f"%{format_spec}"
+        return "%s"
 
     # Replace {var} with %s
-    pattern = r'\{([^}]+)\}'
+    pattern = r"\{([^}]+)\}"
     format_string = re.sub(pattern, replacer, fstring)
 
     return format_string, variables
@@ -84,14 +84,14 @@ def fix_logging_line(line: str) -> str | None:
 
     # Build new logging call
     if variables:
-        vars_str = ', '.join(variables)
-        new_call = f'{logger_call}({quote_char}{format_string}{quote_char}, {vars_str})'
+        vars_str = ", ".join(variables)
+        new_call = f"{logger_call}({quote_char}{format_string}{quote_char}, {vars_str})"
     else:
         # No variables, just remove f prefix
-        new_call = f'{logger_call}({quote_char}{format_string}{quote_char})'
+        new_call = f"{logger_call}({quote_char}{format_string}{quote_char})"
 
     # Replace in original line
-    new_line = line[:match.start()] + new_call + line[match.end():]
+    new_line = line[: match.start()] + new_call + line[match.end() :]
 
     return new_line
 
@@ -125,7 +125,7 @@ def process_file(file_path: Path, dry_run: bool = True) -> int:
 
         # Write back if not dry run and changes were made
         if not dry_run and changes > 0:
-            file_path.write_text(''.join(new_lines))
+            file_path.write_text("".join(new_lines))
             print(f"✓ Fixed {changes} lines in {file_path}")
 
         return changes
@@ -136,11 +136,16 @@ def process_file(file_path: Path, dry_run: bool = True) -> int:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Fix lazy logging in Python files')
-    parser.add_argument('--dry-run', action='store_true',
-                       help='Preview changes without applying them')
-    parser.add_argument('--path', type=Path, default=Path('src/configstream'),
-                       help='Path to search for Python files')
+    parser = argparse.ArgumentParser(description="Fix lazy logging in Python files")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Preview changes without applying them"
+    )
+    parser.add_argument(
+        "--path",
+        type=Path,
+        default=Path("src/configstream"),
+        help="Path to search for Python files",
+    )
 
     args = parser.parse_args()
 
@@ -163,11 +168,13 @@ def main():
             total_changes += changes
             files_changed += 1
 
-    print(f"\n{'Would fix' if args.dry_run else 'Fixed'} {total_changes} lines in {files_changed} files")
+    print(
+        f"\n{'Would fix' if args.dry_run else 'Fixed'} {total_changes} lines in {files_changed} files"
+    )
 
     if args.dry_run and total_changes > 0:
         print("\nRun without --dry-run to apply changes")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

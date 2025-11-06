@@ -400,12 +400,13 @@ async def run_full_pipeline(
 
         # Initialize smart retest scheduler for intelligent test scheduling
         from .smart_scheduler import SmartRetestScheduler
+
         smart_scheduler = SmartRetestScheduler(cache=test_cache)
         scheduling_stats = smart_scheduler.get_scheduling_statistics()
         logger.info(
             "Smart scheduler initialized - avg health: %.2f, intervals: %s",
             scheduling_stats["average_health_score"],
-            scheduling_stats["intervals"]
+            scheduling_stats["intervals"],
         )
 
         tester = SingBoxTester(timeout=effective_timeout_sec, cache=test_cache)
@@ -421,7 +422,11 @@ async def run_full_pipeline(
 
             # If smart scheduling filtered out all proxies, return cached results
             if not batch_to_test:
-                logger.info("All %d proxies in %s have valid cache entries, skipping tests", original_count, label)
+                logger.info(
+                    "All %d proxies in %s have valid cache entries, skipping tests",
+                    original_count,
+                    label,
+                )
                 return batch
 
             # Log smart scheduling efficiency
@@ -431,10 +436,14 @@ async def run_full_pipeline(
                     len(batch_to_test),
                     original_count,
                     label,
-                    (1 - len(batch_to_test) / original_count) * 100
+                    (1 - len(batch_to_test) / original_count) * 100,
                 )
 
-            task = progress.add_task(f"Testing {label}", total=len(batch_to_test)) if progress else None
+            task = (
+                progress.add_task(f"Testing {label}", total=len(batch_to_test))
+                if progress
+                else None
+            )
 
             async def test_single(proxy: Proxy) -> Proxy:
                 async with semaphore:

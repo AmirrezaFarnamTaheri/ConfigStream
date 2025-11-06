@@ -3,8 +3,23 @@ from __future__ import annotations
 import logging
 import re
 import sys
+import uuid
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Optional
+
+# Context variable for storing trace IDs across async contexts
+trace_id_var: ContextVar[str] = ContextVar("trace_id", default="")
+
+
+class TraceIdFilter(logging.Filter):
+    """Filter to add trace ID to log records."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        # Add trace_id to the log record
+        trace_id = trace_id_var.get()
+        record.trace_id = trace_id if trace_id else "-"
+        return True
 
 
 class SensitiveDataFilter(logging.Filter):
@@ -63,6 +78,7 @@ def setup_logging(
     log_file: Optional[str | Path] = "configstream.log",
     format_style: str = "detailed",
     use_color: Optional[bool] = None,
+    enable_trace_ids: bool = True,
 ) -> None:
     """
     Configure application-wide logging.
@@ -74,14 +90,21 @@ def setup_logging(
         log_level: Legacy name for ``level`` (takes precedence when provided).
         format_style: "detailed" includes module/line, "simple" prints message.
         use_color: Force colour output. Defaults to auto-detect (TTY only).
+        enable_trace_ids: Add trace IDs to log messages for request tracing.
     """
     effective_level = log_level or level
     log_level_value = _resolve_level(effective_level)
 
     if format_style == "detailed":
-        fmt = "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+        if enable_trace_ids:
+            fmt = "%(asctime)s - %(name)s - %(levelname)s - [%(trace_id)s] - [%(filename)s:%(lineno)d] - %(message)s"
+        else:
+            fmt = "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
     else:
-        fmt = "%(levelname)s - %(message)s"
+        if enable_trace_ids:
+            fmt = "%(levelname)s - [%(trace_id)s] - %(message)s"
+        else:
+            fmt = "%(levelname)s - %(message)s"
 
     colour_output = use_color if use_color is not None else sys.stdout.isatty()
 
@@ -105,6 +128,12 @@ def setup_logging(
         file_handler.setFormatter(logging.Formatter(fmt))
         root_logger.addHandler(file_handler)
 
+    # Add trace ID filter (should be first for all handlers)
+    if enable_trace_ids and not any(
+        isinstance(existing, TraceIdFilter) for existing in root_logger.filters
+    ):
+        root_logger.addFilter(TraceIdFilter())
+
     if mask_sensitive and not any(
         isinstance(existing, SensitiveDataFilter) for existing in root_logger.filters
     ):
@@ -113,3 +142,29 @@ def setup_logging(
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("asyncio").setLevel(logging.WARNING)
+
+
+def set_trace_id(trace_id: Optional[str] = None) -> str:
+    """
+    Set a trace ID for the current context.
+
+    Args:
+        trace_id: Optional trace ID. If None, generates a new one.
+
+    Returns:
+        The trace ID that was set.
+    """
+    if trace_id is None:
+        trace_id = str(uuid.uuid4())[:8]
+    trace_id_var.set(trace_id)
+    return trace_id
+
+
+def get_trace_id() -> str:
+    """Get the current trace ID, or empty string if not set."""
+    return trace_id_var.get()
+
+
+def clear_trace_id() -> None:
+    """Clear the trace ID for the current context."""
+    trace_id_var.set("")
