@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- Pipeline output verification before health checks run
+- Metrics validation with type and range checking in health checks
+- Baseline timeout validation (5-second minimum) in fetcher module
+- GitHub Actions token permission hardening with explicit scopes
+
+### Changed
+- Health check exit code now properly propagates to trigger workflow failures
+- Concurrency grouping uses stable identifiers (workflow + event_name) instead of git ref
+- Discord webhook payloads constructed with `jq` for injection-proof JSON building
+- Updated test suite to accommodate 5-second minimum timeout (528 tests passing, 89% coverage)
+
 ### Planned
 - Performance improvements for large proxy sets
 - Additional output formats
