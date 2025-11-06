@@ -427,8 +427,12 @@ async def run_full_pipeline(
                     original_count,
                     label,
                 )
-                # Return fresh proxy objects from the cache instead of the original batch
-                return [p for p in (test_cache.get(proxy) for proxy in batch) if p]
+                # Return original proxies, replacing with cached versions when available
+                merged = []
+                for proxy in batch:
+                    cached = test_cache.get(proxy)
+                    merged.append(cached if cached else proxy)
+                return merged
 
             # Log smart scheduling efficiency
             if len(batch_to_test) < original_count:
@@ -473,14 +477,18 @@ async def run_full_pipeline(
             if progress and task is not None:
                 progress.update(task, completed=len(batch_to_test))
 
-            # Merge tested proxies with skipped proxies (using cache)
+            # Merge tested proxies with skipped proxies (preserve order and length)
             if len(tested) < original_count:
-                # Add cached results for proxies that were skipped
-                skipped_proxies = [p for p in batch if p not in batch_to_test]
-                for proxy in skipped_proxies:
-                    cached = test_cache.get(proxy)
-                    if cached:
-                        tested.append(cached)
+                tested_map = {(p.address, p.port, p.protocol): p for p in tested}
+                final_list: List[Proxy] = []
+                for proxy in batch:
+                    key = (proxy.address, proxy.port, proxy.protocol)
+                    if key in tested_map:
+                        final_list.append(tested_map.pop(key))
+                    else:
+                        cached = test_cache.get(proxy)
+                        final_list.append(cached if cached else proxy)
+                tested = final_list
 
             return tested
 

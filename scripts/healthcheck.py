@@ -84,14 +84,18 @@ def check_data_freshness(metadata: Dict[str, Any], max_age_hours: int) -> None:
 
 def check_protocol_diversity(proxies: List[Dict], min_protocols: int) -> None:
     """Check protocol diversity."""
-    protocols = set(p.get("protocol") for p in proxies if p.get("protocol"))
+    protocols = set()
+    for p in proxies:
+        proto = p.get("protocol")
+        if isinstance(proto, str) and proto.strip():
+            protocols.add(proto.strip().lower())
 
     if len(protocols) < min_protocols:
         raise HealthCheckError(
-            f"❌ Low protocol diversity: {len(protocols)} protocols " f"(minimum: {min_protocols})"
+            f"❌ Low protocol diversity: {len(protocols)} protocols (minimum: {min_protocols})"
         )
 
-    print(f"✓ Protocol diversity: {len(protocols)} protocols " f"(minimum: {min_protocols})")
+    print(f"✓ Protocol diversity: {len(protocols)} protocols (minimum: {min_protocols})")
     print(f"  Protocols: {', '.join(sorted(protocols))}")
 
 
