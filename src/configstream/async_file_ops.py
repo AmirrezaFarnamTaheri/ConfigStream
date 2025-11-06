@@ -84,7 +84,7 @@ async def read_file_async(file_path: str | Path, encoding: str = "utf-8") -> str
     # Define the synchronous function we'll run in the executor
     # This is just a simple wrapper around Path.read_text()
     def read_sync() -> str:
-        logger.debug(f"Reading file: {path}")
+        logger.debug("Reading file: %s", path)
         return path.read_text(encoding=encoding)
 
     # Get the current event loop
@@ -95,17 +95,17 @@ async def read_file_async(file_path: str | Path, encoding: str = "utf-8") -> str
         # The event loop will continue doing other work while this runs
         content = await loop.run_in_executor(FILE_IO_POOL, read_sync)
 
-        logger.debug(f"Successfully read {len(content)} bytes from {path}")
+        logger.debug("Successfully read %s bytes from %s", len(content), path)
         return content
 
     except FileNotFoundError:
         # This is a common expected error, so we log it and re-raise
-        logger.error(f"File not found: {path}")
+        logger.error("File not found: %s", path)
         raise
 
     except Exception as exc:
         # Any other error gets wrapped in IOError for consistency
-        logger.error(f"Failed to read {path}: {exc}")
+        logger.error("Failed to read %s: %s", path, exc)
         raise IOError(f"Failed to read {path}") from exc
 
 
@@ -141,17 +141,17 @@ async def write_file_async(
         if create_dirs:
             path.parent.mkdir(parents=True, exist_ok=True)
 
-        logger.debug(f"Writing {len(content)} bytes to {path}")
+        logger.debug("Writing %s bytes to %s", len(content), path)
         path.write_text(content, encoding=encoding)
 
     loop = asyncio.get_running_loop()
 
     try:
         await loop.run_in_executor(FILE_IO_POOL, write_sync)
-        logger.debug(f"Successfully wrote file: {path}")
+        logger.debug("Successfully wrote file: %s", path)
 
     except Exception as exc:
-        logger.error(f"Failed to write {path}: {exc}")
+        logger.error("Failed to write %s: %s", path, exc)
         raise IOError(f"Failed to write {path}") from exc
 
 
@@ -224,7 +224,7 @@ async def read_multiple_files_async(
             except Exception as exc:
                 # Instead of crashing the entire operation, we return an error
                 # marker. This allows other files to continue reading.
-                logger.warning(f"Failed to read {path}: {exc}")
+                logger.warning("Failed to read %s: %s", path, exc)
                 return (str(path), f"ERROR: {exc}")
 
     # Create a list of read tasks for all files
@@ -236,7 +236,7 @@ async def read_multiple_files_async(
 
     # Count successes for logging
     successful = sum(1 for _, content in results if not content.startswith("ERROR:"))
-    logger.info(f"Read {successful}/{len(normalized_paths)} files successfully")
+    logger.info("Read %s/%s files successfully", successful, len(normalized_paths))
 
     return results
 
