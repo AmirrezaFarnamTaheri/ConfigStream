@@ -147,6 +147,10 @@ jobs:
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: python -m configstream.cli update-databases
 
+      - name: Backup databases
+        run: python -c "from configstream.backup import backup_databases; backup_databases()"
+        continue-on-error: true
+
       - name: Run pipeline for Batch ${{ env.BATCH_NUMBER }}
         run: |
           set -euxo pipefail

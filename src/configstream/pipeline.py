@@ -242,7 +242,7 @@ async def _process_sources(
             file_results = await read_multiple_files_async(local_sources, max_concurrent=5)
             for file_path, content in file_results:
                 if content.startswith("ERROR:"):
-                    logger.warning(f"Failed to read {file_path}: {content}")
+                    logger.warning("Failed to read %s: %s", file_path, content)
                     continue
                 configs = _extract_config_lines(content)
                 if configs:
@@ -265,7 +265,7 @@ async def _process_sources(
                 )
             for source, result in zip(remote_sources, results):
                 if isinstance(result, BaseException):
-                    logger.warning(f"Failed to fetch {source}: {result}")
+                    logger.warning("Failed to fetch %s: %s", source, result)
                     continue
                 configs, count = result
                 if configs:
@@ -303,7 +303,7 @@ async def run_full_pipeline(
     try:
         output_path.mkdir(parents=True, exist_ok=True)
     except (PermissionError, OSError) as e:
-        logger.error(f"Cannot create output directory {output_path}: {e}")
+        logger.error("Cannot create output directory %s: %s", output_path, e)
         raise
     tracker = PerformanceTracker()
 
@@ -398,6 +398,16 @@ async def run_full_pipeline(
         test_cache = TestResultCache(ttl_seconds=86400)  # 24 hours for 60-70% hit rate
         logger.info("Test cache initialized: %s", test_cache.get_stats())
 
+        # Initialize smart retest scheduler for intelligent test scheduling
+        from .smart_scheduler import SmartRetestScheduler
+        smart_scheduler = SmartRetestScheduler(cache=test_cache)
+        scheduling_stats = smart_scheduler.get_scheduling_statistics()
+        logger.info(
+            "Smart scheduler initialized - avg health: %.2f, intervals: %s",
+            scheduling_stats["average_health_score"],
+            scheduling_stats["intervals"]
+        )
+
         tester = SingBoxTester(timeout=effective_timeout_sec, cache=test_cache)
         semaphore = asyncio.Semaphore(max(1, max_workers))
 
@@ -405,7 +415,26 @@ async def run_full_pipeline(
             if not batch:
                 return []
 
-            task = progress.add_task(f"Testing {label}", total=len(batch)) if progress else None
+            # Apply smart scheduling to filter proxies needing retest
+            original_count = len(batch)
+            batch_to_test = smart_scheduler.filter_proxies_for_retest(batch)
+
+            # If smart scheduling filtered out all proxies, return cached results
+            if not batch_to_test:
+                logger.info("All %d proxies in %s have valid cache entries, skipping tests", original_count, label)
+                return batch
+
+            # Log smart scheduling efficiency
+            if len(batch_to_test) < original_count:
+                logger.info(
+                    "Smart scheduling: testing %d/%d proxies for %s (%.1f%% reduction)",
+                    len(batch_to_test),
+                    original_count,
+                    label,
+                    (1 - len(batch_to_test) / original_count) * 100
+                )
+
+            task = progress.add_task(f"Testing {label}", total=len(batch_to_test)) if progress else None
 
             async def test_single(proxy: Proxy) -> Proxy:
                 async with semaphore:
@@ -415,10 +444,10 @@ async def run_full_pipeline(
                 return tested_proxy
 
             tested: List[Proxy] = []
-            total_batches = (len(batch) + batch_size - 1) // batch_size
+            total_batches = (len(batch_to_test) + batch_size - 1) // batch_size
             with tracker.phase("test"):
-                for index, start in enumerate(range(0, len(batch), batch_size)):
-                    subset = batch[start : start + batch_size]
+                for index, start in enumerate(range(0, len(batch_to_test), batch_size)):
+                    subset = batch_to_test[start : start + batch_size]
                     batch_number = index + 1
                     if total_batches > 1:
                         logger.info(
@@ -432,7 +461,16 @@ async def run_full_pipeline(
                     tested.extend(results)
 
             if progress and task is not None:
-                progress.update(task, completed=len(batch))
+                progress.update(task, completed=len(batch_to_test))
+
+            # Merge tested proxies with skipped proxies (using cache)
+            if len(tested) < original_count:
+                # Add cached results for proxies that were skipped
+                skipped_proxies = [p for p in batch if p not in batch_to_test]
+                for proxy in skipped_proxies:
+                    cached = test_cache.get(proxy)
+                    if cached:
+                        tested.append(cached)
 
             return tested
 
