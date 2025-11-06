@@ -479,12 +479,16 @@ async def run_full_pipeline(
 
             # Merge tested proxies with skipped proxies (preserve order and length)
             if len(tested) < original_count:
-                tested_map = {(p.address, p.port, p.protocol): p for p in tested}
+                from collections import defaultdict, deque
+
+                buckets: dict[tuple[str, int, str], deque[Proxy]] = defaultdict(deque)
+                for p in tested:
+                    buckets[(p.address, p.port, p.protocol)].append(p)
                 final_list: List[Proxy] = []
                 for proxy in batch:
                     key = (proxy.address, proxy.port, proxy.protocol)
-                    if key in tested_map:
-                        final_list.append(tested_map.pop(key))
+                    if buckets.get(key):
+                        final_list.append(buckets[key].popleft())
                     else:
                         cached = test_cache.get(proxy)
                         final_list.append(cached if cached else proxy)
