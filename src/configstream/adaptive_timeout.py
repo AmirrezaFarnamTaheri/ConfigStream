@@ -92,6 +92,9 @@ class AdaptiveTimeout:
                 if source not in self._cache:
                     self._cache[source] = []
                 self._cache[source].append(duration)
+                # Enforce in-memory cap to avoid unbounded growth
+                if len(self._cache[source]) > 50:
+                    self._cache[source] = self._cache[source][:50]
 
         logger.info("Loaded timeout history for %d sources", len(self._cache))
 
