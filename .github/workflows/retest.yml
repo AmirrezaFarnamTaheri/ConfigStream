@@ -39,9 +39,13 @@ jobs:
         run: |
           pip install jsonschema || true
           jsonschema -i output/proxies.json schema/proxy.schema.json || echo "::warning ::schema validation failed"
+      - name: Pull latest changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git pull --rebase --autostash origin main || true
       - name: Commit updated outputs
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore: hourly retest refresh [skip ci]"
           file_pattern: output/**
-          pull: '--rebase --autostash'
