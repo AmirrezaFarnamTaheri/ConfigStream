@@ -233,6 +233,14 @@ jobs:
           git status --short
           git diff --stat || true
 
+      - name: Pull latest changes
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout main
+          git pull --rebase --autostash origin main
+
       - name: Commit updated output
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -240,7 +248,6 @@ jobs:
           commit_message: "chore(data): update outputs from all batches"
           file_pattern: "output/"
           add_options: '-f'
-          pull: '--rebase --autostash'
 
       - name: Upload final pipeline artifact
         if: always()

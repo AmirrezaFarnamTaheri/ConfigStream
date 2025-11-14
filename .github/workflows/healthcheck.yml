@@ -21,7 +21,6 @@ permissions:
   contents: read     # Only read code
   issues: write      # Create/update failure alerts
   actions: read      # Read workflow status
-  metadata: read     # Read repo metadata
 
 jobs:
   healthcheck:
