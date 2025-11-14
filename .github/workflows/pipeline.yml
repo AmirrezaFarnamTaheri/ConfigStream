@@ -238,7 +238,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git pull --rebase --autostash origin main || true
+          git pull --rebase --autostash origin main
 
       - name: Commit updated output
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
