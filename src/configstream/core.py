@@ -32,7 +32,26 @@ logger = logging.getLogger(__name__)
 
 
 _FLAG_PATTERN = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
-_CODE_PATTERN = re.compile(r"(?<![A-Z0-9])([A-Z]{2})(?![A-Z0-9])")
+# Stricter pattern: match country codes only when they appear in clear isolation contexts
+# Matches: [US], (DE), -FR-, _JP_, #CN, ::KR, or at the very end like "...US" or "...::US"
+# This avoids matching "By" in "[By EbraSha]" because it's followed by more text
+_CODE_PATTERN = re.compile(
+    r"(?:"
+    r"\[([A-Z]{2})\]|"  # [US]
+    r"\(([A-Z]{2})\)|"  # (US)
+    r"[\-_#:]([A-Z]{2})[\-_#:]|"  # -US-, _US_, #US#, ::US::
+    r"[\-_#:]([A-Z]{2})$|"  # -US, _US, #US, ::US at end
+    r"^([A-Z]{2})[\-_#:]|"  # US-, US_, US#, US:: at start
+    r"::([A-Z]{2})\s"  # ::US (common in subscription tags)
+    r")"
+)
+
+# Common English two-letter words that should not be interpreted as country codes
+# These will be checked even if they match the pattern above
+_EXCLUDED_CODES = {
+    "BY", "IN", "ON", "OR", "AS", "IS", "IT", "AM", "NO", "AT", "TO", "OF",
+    "IF", "SO", "AN", "BE", "DO", "GO", "HE", "ME", "MY", "UP", "WE"
+}
 
 
 def _flag_to_country_code(flag: str) -> Optional[str]:
@@ -52,9 +71,15 @@ def _country_payload_from_code(code: str) -> Optional[Dict[str, str]]:
 
 
 def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
+    """
+    Infer country from remarks using flag emojis or country codes.
+
+    Uses strict pattern matching to avoid false positives from common English words.
+    """
     if not remarks:
         return None
 
+    # First, try flag emoji detection (most reliable)
     flag_match = _FLAG_PATTERN.search(remarks)
     if flag_match:
         code = _flag_to_country_code(flag_match.group())
@@ -63,9 +88,33 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
             if payload:
                 return payload
 
+    # Then try 2-letter code detection with strict context requirements
     code_match = _CODE_PATTERN.search(remarks.upper())
     if code_match:
-        payload = _country_payload_from_code(code_match.group(1))
+        # Extract the matched code from whichever capture group matched
+        # (the regex has multiple alternatives with different capture groups)
+        candidate_code = None
+        for group in code_match.groups():
+            if group is not None:
+                candidate_code = group
+                break
+
+        if not candidate_code:
+            return None
+
+        # Exclude common English words that happen to be valid country codes
+        # Our stricter pattern should already prevent most false positives,
+        # but we double-check here for extra safety
+        if candidate_code in _EXCLUDED_CODES:
+            # Even with strict pattern, skip codes that are common English words
+            # unless they're in very clear country-code contexts
+            full_match = code_match.group(0)
+            # Only allow if it's in brackets or has multiple delimiters
+            if not (full_match.startswith('[') or full_match.startswith('(') or
+                    full_match.count('-') >= 2 or full_match.count('_') >= 2):
+                return None
+
+        payload = _country_payload_from_code(candidate_code)
         if payload:
             return payload
 
@@ -184,47 +233,90 @@ def parse_config_batch(config_strings: list[str]) -> list[Proxy]:
 
 
 async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Proxy:
-    """Geolocate a proxy using remarks, a local DB, or a fallback HTTP lookup."""
+    """
+    Geolocate a proxy using IP-based lookup (preferred) or remarks as fallback.
 
-    # 1. If country code is valid, ensure country name is consistent.
-    if proxy.country_code and proxy.country_code != "XX":
-        if not proxy.country or proxy.country == "Unknown":
-            payload = _country_payload_from_code(proxy.country_code)
-            if payload:
-                proxy.country = payload["country"]
+    Priority order (from most to least reliable):
+    1. IP-based GeoIP database lookup
+    2. IP-based HTTP API fallback
+    3. Remark-based inference (flags, country codes)
+    4. Pre-filled country_code (if already set)
+
+    Ensures country, country_code, city, and asn always come from the same source.
+    """
+
+    # Try IP-based geolocation first (most reliable)
+    geo_data = None
+
+    # 1. Try local GeoIP database
+    if geoip_reader:
+        try:
+            response = geoip_reader.city(proxy.address)
+            country_code = response.country.iso_code or "XX"
+            country = COUNTRY_NAMES.get(country_code, response.country.name or "Unknown")
+            city = response.city.name or "Unknown"
+            asn = "AS0"
+            if response.autonomous_system.autonomous_system_number:
+                asn = f"AS{response.autonomous_system.autonomous_system_number}"
+
+            geo_data = {
+                "country_code": country_code,
+                "country": country,
+                "city": city,
+                "asn": asn,
+                "source": "geoip_db"
+            }
+        except Exception:  # pragma: no cover
+            logger.debug("GeoIP DB lookup failed for %s", proxy.address)
+
+    # 2. If DB lookup failed, try HTTP-based lookup
+    if not geo_data:
+        http_result = await _lookup_geoip_http(proxy.address)
+        if http_result:
+            country_code = http_result.get("country_code", "XX")
+            # Normalize country name using our mapping
+            country = COUNTRY_NAMES.get(country_code, http_result.get("country", "Unknown"))
+            geo_data = {
+                "country_code": country_code,
+                "country": country,
+                "city": http_result.get("city", "Unknown"),
+                "asn": http_result.get("asn", "AS0"),
+                "source": "http_api"
+            }
+
+    # If IP-based lookup succeeded, use it
+    if geo_data:
+        proxy.country_code = geo_data["country_code"]
+        proxy.country = geo_data["country"]
+        proxy.city = geo_data["city"]
+        proxy.asn = geo_data["asn"]
         return proxy
 
-    # 2. Try to infer from remarks (e.g., flags, country codes).
+    # 3. Fallback: try to infer from remarks (less reliable)
     inferred = _infer_country_from_remarks(proxy.remarks)
     if inferred:
         proxy.country = inferred["country"]
         proxy.country_code = inferred["country_code"]
+        # Leave city/asn as-is or set to unknown since we can't infer them from remarks
+        if not proxy.city or proxy.city == "":
+            proxy.city = "Unknown"
+        if not proxy.asn or proxy.asn == "":
+            proxy.asn = "AS0"
         return proxy
 
-    # 3. Use the local GeoIP database if available.
-    if geoip_reader:
-        try:
-            response = geoip_reader.city(proxy.address)
-            proxy.country = response.country.name or "Unknown"
-            proxy.country_code = response.country.iso_code or "XX"
-            proxy.city = response.city.name or "Unknown"
-            if response.autonomous_system.autonomous_system_number:
-                proxy.asn = f"AS{response.autonomous_system.autonomous_system_number}"
-            return proxy
-        except Exception:  # pragma: no cover
-            logger.debug("GeoIP DB lookup failed for %s", proxy.address)
+    # 4. Fallback: if country_code was pre-filled, ensure country name is consistent
+    if proxy.country_code and proxy.country_code != "XX":
+        proxy.country = COUNTRY_NAMES.get(proxy.country_code, proxy.country or "Unknown")
+        if not proxy.city or proxy.city == "":
+            proxy.city = "Unknown"
+        if not proxy.asn or proxy.asn == "":
+            proxy.asn = "AS0"
+        return proxy
 
-    # 4. Fallback to an external HTTP-based lookup.
-    http_result = await _lookup_geoip_http(proxy.address)
-    if http_result:
-        proxy.country = http_result.get("country", "Unknown")
-        proxy.country_code = http_result.get("country_code", "XX")
-        proxy.city = http_result.get("city", "Unknown")
-        proxy.asn = http_result.get("asn", "AS0")
-    else:
-        proxy.country = "Unknown"
-        proxy.country_code = "XX"
-        proxy.city = "Unknown"
-        proxy.asn = "AS0"
+    # 5. Last resort: mark as unknown
+    proxy.country = "Unknown"
+    proxy.country_code = "XX"
+    proxy.city = "Unknown"
+    proxy.asn = "AS0"
 
     return proxy

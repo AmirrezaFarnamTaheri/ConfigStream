@@ -195,11 +195,10 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 
 
 async def _fetch_source(client: httpx.AsyncClient, source_url: str) -> Tuple[List[str], int]:
-    """Fetch a proxy list from a single source."""
+    """Fetch a proxy list from a single source using the provided client."""
     try:
-        async with get_client(retries=3) as client:
-            response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
-            response.raise_for_status()
+        response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
+        response.raise_for_status()
     except httpx.HTTPError as exc:
         logger.error("Failed to fetch %s: %s", source_url, exc)
         return [], 0
@@ -337,8 +336,8 @@ async def run_full_pipeline(
             "metrics": snapshot.to_dict(),
         }
 
-    # Ensure GeoIP databases are available before starting
-    await download_geoip_dbs()
+    # Note: GeoIP databases should be downloaded by the CLI before calling the pipeline.
+    # We skip re-downloading here to avoid redundant network/IO operations.
 
     try:
         logger.info(
