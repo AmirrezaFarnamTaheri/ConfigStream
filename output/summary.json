@@ -4,7 +4,8 @@
   "rejected": {
     "total_security_issues": 8349,
     "security_by_category": {
-      "tls": 8349
+      "tls": 8349,
+      "error": 8349
     },
     "no_response": 0
   },
