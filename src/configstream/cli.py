@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import shutil
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -367,7 +369,12 @@ def list_db_backups(backup_dir: str) -> None:
 @cli.command()
 @click.argument("backup_file", type=click.Path(exists=True, dir_okay=False))
 @click.argument("target_file", type=click.Path(dir_okay=False))
-@click.option("--data-dir", default="data", type=click.Path(file_okay=False), help="Base data directory for databases")
+@click.option(
+    "--data-dir",
+    default="data",
+    type=click.Path(file_okay=False),
+    help="Base data directory for databases",
+)
 @click.option("--yes", "-y", is_flag=True, help="Skip confirmation prompt")
 @handle_cli_errors(context="Database restore")
 def restore_db(backup_file: str, target_file: str, data_dir: str, yes: bool) -> None:
