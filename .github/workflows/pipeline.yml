@@ -245,6 +245,12 @@ jobs:
           set -euxo pipefail
           git checkout main
 
+          # Ensure we have the latest refs (handles shallow/deatched scenarios)
+          git fetch --all --prune
+
+          # Ensure on local main tracking origin/main
+          git checkout -B main origin/main
+
           # Try to pull with rebase first
           if ! git pull --rebase --autostash origin main; then
             echo "Rebase failed. Attempting merge strategy..."
@@ -269,8 +275,21 @@ jobs:
           echo "Successfully merged/rebased latest changes from main"
           git status
 
-      - name: Commit updated output
+      - name: Prepare repository for auto-commit
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          set -euxo pipefail
+          # Ensure we are on main and tracking origin/main
+          git rev-parse --abbrev-ref HEAD
+          git checkout -B main
+          git branch --set-upstream-to=origin/main main || true
+          # Only proceed if there are changes in output/
+          if git diff --quiet -- output/; then
+            echo "No changes in output/, skipping auto-commit."
+            echo "SKIP_COMMIT=true" >> $GITHUB_ENV
+          fi
+      - name: Commit updated output
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.SKIP_COMMIT != 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(data): update outputs from all batches"
