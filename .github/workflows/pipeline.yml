@@ -279,10 +279,8 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           set -euxo pipefail
-          # Ensure we are on main and tracking origin/main
-          git rev-parse --abbrev-ref HEAD
-          git checkout -B main
-          git branch --set-upstream-to=origin/main main || true
+          # Ensure we are on the main branch
+          git checkout main
           # Only proceed if there are changes in output/
           if git diff --quiet -- output/; then
             echo "No changes in output/, skipping auto-commit."

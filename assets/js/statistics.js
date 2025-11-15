@@ -585,25 +585,30 @@ document.addEventListener('DOMContentLoaded', () => {
     let top = rect.bottom + window.scrollY;
     let left = rect.right + window.scrollX - 200;
 
-    // Clamp to viewport with minimal margin
+    // Initial clamp based on assumed min width
     const margin = 8;
-    const maxLeft = window.scrollX + window.innerWidth - margin - 200; // min-width
+    const assumedMinWidth = 200;
+    const maxLeft = window.scrollX + window.innerWidth - margin - assumedMinWidth; // min-width
     const maxTop = window.scrollY + window.innerHeight - margin - 10; // approx item height
     left = Math.max(window.scrollX + margin, Math.min(left, maxLeft));
     top = Math.max(window.scrollY + margin, Math.min(top, maxTop));
 
+            // Apply base styles including minWidth so measurement reflects layout
             menu.style.cssText = `
                 position: absolute;
                 top: ${top}px;
                 left: ${left}px;
-                background: var(--bg-primary);
-                border: 1px solid var(--border);
-                border-radius: 4px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                z-index: 1000;
-                min-width: 200px;
-                max-width: 280px;
+                min-width: ${assumedMinWidth}px;
             `;
+
+            // Insert into DOM to measure actual width, then re-clamp accurately
+            document.body.appendChild(menu);
+            const menuWidth = Math.max(assumedMinWidth, menu.getBoundingClientRect().width || assumedMinWidth);
+            const correctedMaxLeft = window.scrollX + window.innerWidth - margin - menuWidth;
+            const correctedLeft = Math.max(window.scrollX + margin, Math.min(left, correctedMaxLeft));
+            if (correctedLeft !== left) {
+                menu.style.left = `${correctedLeft}px`;
+            }
 
             // Helper to create menu button
             const createMenuButton = (text, onClick, isLast = false) => {
@@ -718,10 +723,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const chartInstance = ctx.canvas.__chart__;
-            const safeLabels = Array.isArray(chartInstance.data.labels) ? chartInstance.data.labels.slice() : [];
-            const safeDatasets = Array.isArray(chartInstance.data.datasets)
-                ? chartInstance.data.datasets.map(ds => ({
+            const chartInstance = ctx.canvas.chart;
+            const data = chartInstance && chartInstance.data ? chartInstance.data : { labels: [], datasets: [] };
+            const safeLabels = Array.isArray(data.labels) ? data.labels.slice() : [];
+            const safeDatasets = Array.isArray(data.datasets)
+                ? data.datasets.map(ds => ({
                       label: typeof ds.label === 'string' ? ds.label : '',
                       data: Array.isArray(ds.data) ? ds.data.slice() : [],
                       backgroundColor: ds.backgroundColor ?? null,
