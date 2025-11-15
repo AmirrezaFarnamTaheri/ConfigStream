@@ -1,6 +1,7 @@
+import ipaddress
+import json
 import logging
 import re
-import json
 from typing import Any, Callable, Dict, Optional
 
 import httpx
@@ -293,13 +294,40 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     IMPORTANT: Less robust methods (regex on remarks) are NEVER mixed with city data.
     """
 
-    # Validate address is available before attempting IP-based lookups
-    if not proxy.address or not isinstance(proxy.address, str) or not proxy.address.strip():
-        logger.debug("No usable address for geolocation: %r", proxy.address)
-        # Fall through to remarks/country_code fallbacks
-        proxy_address = None
-    else:
-        proxy_address = proxy.address
+    # Validate and normalize address for IP-based lookups
+    proxy_address = None
+    if isinstance(proxy.address, str):
+        addr = proxy.address.strip()
+
+        host_part = addr
+        # Handle bracketed IPv6: [addr]:port
+        if addr.startswith("[") and "]" in addr:
+            host_part = addr[1 : addr.find("]")]
+        else:
+            # For non-bracketed: if it's IPv6, it will contain multiple colons and should not be split;
+            # if it's IPv4 or hostname, split once on ':' to drop port.
+            if addr.count(":") <= 1:
+                host_part = addr.split(":", 1)[0]
+
+        # Strip IPv6 zone index if present (e.g., %eth0 or %25eth0)
+        if "%" in host_part:
+            host_part = host_part.split("%", 1)[0]
+
+        # Basic IP validation (IPv4/IPv6)
+        def _is_ip(s: str) -> bool:
+            try:
+                ipaddress.ip_address(s)
+                return True
+            except ValueError:
+                return False
+
+        if host_part and _is_ip(host_part):
+            proxy_address = host_part
+        else:
+            logger.debug(
+                "Non-IP address provided for geolocation, skipping IP-based lookup: %r",
+                proxy.address,
+            )
 
     # Store original values for conflict detection and logging
     original_country_code = proxy.country_code
