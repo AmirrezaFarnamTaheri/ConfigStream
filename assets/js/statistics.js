@@ -574,13 +574,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!canvas) return;
 
             // Create export menu with viewport-aware positioning
+    // Remove any existing action menus before creating a new one
+    document.querySelectorAll('.chart-action-menu').forEach(el => el.remove());
+
             const menu = document.createElement('div');
             menu.className = 'chart-action-menu';
 
             // Use getBoundingClientRect for proper viewport positioning
             const rect = button.getBoundingClientRect();
-            const top = rect.bottom + window.scrollY;
-            const left = Math.max(8, rect.right + window.scrollX - 200);
+    let top = rect.bottom + window.scrollY;
+    let left = rect.right + window.scrollX - 200;
+
+    // Clamp to viewport with minimal margin
+    const margin = 8;
+    const maxLeft = window.scrollX + window.innerWidth - margin - 200; // min-width
+    const maxTop = window.scrollY + window.innerHeight - margin - 10; // approx item height
+    left = Math.max(window.scrollX + margin, Math.min(left, maxLeft));
+    top = Math.max(window.scrollY + margin, Math.min(top, maxTop));
 
             menu.style.cssText = `
                 position: absolute;
@@ -702,21 +712,37 @@ document.addEventListener('DOMContentLoaded', () => {
     function exportChartData(canvas, title) {
         try {
             const ctx = canvas.getContext('2d');
-            if (!ctx || !ctx.canvas.__chart__) {
+            if (!ctx || !ctx.canvas.chart) {
                 console.error('Chart instance not found');
                 alert('Unable to export chart data. Chart instance not found.');
                 return;
             }
 
             const chartInstance = ctx.canvas.__chart__;
+            const safeLabels = Array.isArray(chartInstance.data.labels) ? chartInstance.data.labels.slice() : [];
+            const safeDatasets = Array.isArray(chartInstance.data.datasets)
+                ? chartInstance.data.datasets.map(ds => ({
+                      label: typeof ds.label === 'string' ? ds.label : '',
+                      data: Array.isArray(ds.data) ? ds.data.slice() : [],
+                      backgroundColor: ds.backgroundColor ?? null,
+                      borderColor: ds.borderColor ?? null,
+                      borderWidth: typeof ds.borderWidth === 'number' ? ds.borderWidth : undefined
+                  }))
+                : [];
             const exportData = {
                 title: title,
                 exported_at: new Date().toISOString(),
-                labels: chartInstance.data.labels,
-                datasets: chartInstance.data.datasets
+                labels: safeLabels,
+                datasets: safeDatasets
             };
-
-            const jsonString = JSON.stringify(exportData, null, 2);
+            let jsonString = '';
+            try {
+                jsonString = JSON.stringify(exportData, null, 2);
+            } catch (serr) {
+                console.error('Serialization failed:', serr);
+                alert('Failed to serialize chart data for export.');
+                return;
+            }
             const blob = new Blob([jsonString], { type: 'application/json' });
             const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-data-${Date.now()}.json`;
             const url = URL.createObjectURL(blob);
