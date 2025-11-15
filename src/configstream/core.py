@@ -1,5 +1,6 @@
 import logging
 import re
+import json
 from typing import Any, Callable, Dict, Optional
 
 import httpx
@@ -37,12 +38,12 @@ _FLAG_PATTERN = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
 # This avoids matching "By" in "[By EbraSha]" because it's followed by more text
 _CODE_PATTERN = re.compile(
     r"(?:"
-    r"\[(?P<cc>[A-Z]{2})\]|"                 # [US]
-    r"\((?P<cc>[A-Z]{2})\)|"                 # (US)
-    r"[\-_#:](?P<cc>[A-Z]{2})[\-_#:]|"       # -US-, _US_, #US#, ::US::
-    r"[\-_#:](?P<cc>[A-Z]{2})(?=$)|"         # -US, _US, #US, ::US at end (true end)
-    r"(?:(?<=^)|(?<=\s))(?P<cc>[A-Z]{2})(?=[\-_#:\s])|"  # boundary before code
-    r"::(?P<cc>[A-Z]{2})(?:\s|$)"            # ::US (common in subscription tags)
+    r"\[(?P<cc1>[A-Z]{2})\]|"  # [US]
+    r"\((?P<cc2>[A-Z]{2})\)|"  # (US)
+    r"[\-_#:](?P<cc3>[A-Z]{2})[\-_#:]|"  # -US-, _US_, #US#, ::US::
+    r"[\-_#:](?P<cc4>[A-Z]{2})(?=$)|"  # -US, _US, #US, ::US at end (true end)
+    r"(?:(?<=^)|(?<=\s))(?P<cc5>[A-Z]{2})(?=[\-_#:\s])|"  # boundary before code
+    r"::(?P<cc6>[A-Z]{2})(?:\s|$)"  # ::US (common in subscription tags)
     r")",
     flags=re.IGNORECASE,
 )
@@ -115,11 +116,14 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
     if code_match:
         # Extract the matched code from whichever capture group matched
         # (the regex has multiple alternatives with different capture groups)
-        candidate_code = None
-        for group in code_match.groups():
-            if group is not None:
-                candidate_code = group
-                break
+        candidate_code = (
+            code_match.group("cc1")
+            or code_match.group("cc2")
+            or code_match.group("cc3")
+            or code_match.group("cc4")
+            or code_match.group("cc5")
+            or code_match.group("cc6")
+        )
 
         if not candidate_code:
             return None
@@ -155,28 +159,41 @@ async def _lookup_geoip_http(
 
     try:
         async with get_client() as client:
-            url = f"http://ip-api.com/json/{address}?fields=status,country,countryCode,city,as"
+            # Use HTTPS to prevent MITM/tampering
+            url = f"https://ip-api.com/json/{address}?fields=status,country,countryCode,city,as"
             response = await client.get(url, timeout=timeout_seconds)
             response.raise_for_status()
-            payload = response.json()
-    except (httpx.HTTPError, ValueError):
+            # Cap body size before JSON parse
+            MAX_BYTES = 64 * 1024  # 64KB should suffice for small JSON
+            buf = bytearray()
+            async for chunk in response.aiter_bytes():
+                buf.extend(chunk)
+                if len(buf) > MAX_BYTES:
+                    return None
+            payload = json.loads(buf)
+    except (httpx.HTTPError, ValueError, json.JSONDecodeError):
         return None
 
-    if not isinstance(payload, dict) or payload.get("status") != "success":
+    if payload.get("status") != "success":
         return None
 
     asn_value = payload.get("as") or ""
-    asn = None
-    if isinstance(asn_value, str):
-        parts = asn_value.split()
-        if parts and parts[0].startswith("AS"):
-            asn = parts[0]
+    asn = "AS0"  # Default value
+    if isinstance(asn_value, str) and asn_value:
+        # Get the first part of the string, which should be the ASN
+        first_part = asn_value.split()[0]
+        # Ensure it starts with "AS"
+        if first_part.startswith("AS"):
+            asn = first_part
+        else:
+            # Prepend "AS" if it's missing (assuming it's just the number)
+            asn = f"AS{first_part}"
 
     return {
-        "country": payload.get("country") or "Unknown",
-        "country_code": payload.get("countryCode") or "XX",
-        "city": payload.get("city") or "Unknown",
-        "asn": asn or "AS0",
+        "country": payload.get("country", "Unknown"),
+        "country_code": payload.get("countryCode", "XX"),
+        "city": payload.get("city", "Unknown"),
+        "asn": asn,
     }
 
 
