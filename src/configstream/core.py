@@ -128,6 +128,7 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
         if not candidate_code:
             return None
 
+        candidate_code = candidate_code.upper()
         # Exclude common English words that happen to be valid country codes
         # Our stricter pattern should already prevent most false positives,
         # but we double-check here for extra safety
@@ -178,16 +179,16 @@ async def _lookup_geoip_http(
         return None
 
     asn_value = payload.get("as") or ""
-    asn = "AS0"  # Default value
+    asn = "AS0"
     if isinstance(asn_value, str) and asn_value:
-        # Get the first part of the string, which should be the ASN
-        first_part = asn_value.split()[0]
-        # Ensure it starts with "AS"
-        if first_part.startswith("AS"):
-            asn = first_part
+        token = asn_value.split()[0]
+        # Accept formats like "AS12345" or "12345" only
+        if token.upper().startswith("AS"):
+            num_part = token[2:]
         else:
-            # Prepend "AS" if it's missing (assuming it's just the number)
-            asn = f"AS{first_part}"
+            num_part = token
+        if num_part.isdigit():
+            asn = f"AS{num_part}"
 
     return {
         "country": payload.get("country", "Unknown"),
