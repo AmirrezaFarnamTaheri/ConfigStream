@@ -286,31 +286,34 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
             traits_obj = getattr(response, "traits", None)
             asn_obj = getattr(response, "autonomous_system", None)
 
-            iso = getattr(country_obj, "iso_code", None)
-            country_code = iso.upper() if isinstance(iso, str) else "XX"
-            country_name_raw = getattr(country_obj, "name", None)
-            country_name = COUNTRY_NAMES.get(country_code, country_name_raw or "Unknown")
+            iso = getattr(country_obj, "iso_code", None) if country_obj else None
+            if isinstance(iso, str) and iso:
+                country_code = iso.upper()
+                country_name_raw = getattr(country_obj, "name", None)
+                country_name = COUNTRY_NAMES.get(country_code, country_name_raw or "Unknown")
 
-            city_name_raw = getattr(city_obj, "name", None)
-            city_name = city_name_raw or "Unknown"
+                city_name_raw = getattr(city_obj, "name", None) if city_obj else None
+                city_name = city_name_raw or "Unknown"
 
-            asn_number = None
-            num = getattr(traits_obj, "autonomous_system_number", None) if traits_obj else None
-            if isinstance(num, int):
-                asn_number = num
+                asn_number = None
+                num = getattr(traits_obj, "autonomous_system_number", None) if traits_obj else None
+                if isinstance(num, int):
+                    asn_number = num
+                else:
+                    num2 = getattr(asn_obj, "autonomous_system_number", None) if asn_obj else None
+                    if isinstance(num2, int):
+                        asn_number = num2
+                asn = f"AS{asn_number}" if isinstance(asn_number, int) else "AS0"
+
+                geo_data = {
+                    "country_code": country_code,
+                    "country": country_name,
+                    "city": city_name,
+                    "asn": asn,
+                    "source": "geoip_db",
+                }
             else:
-                num2 = getattr(asn_obj, "autonomous_system_number", None) if asn_obj else None
-                if isinstance(num2, int):
-                    asn_number = num2
-            asn = f"AS{asn_number}" if isinstance(asn_number, int) else "AS0"
-
-            geo_data = {
-                "country_code": country_code,
-                "country": country_name,
-                "city": city_name,
-                "asn": asn,
-                "source": "geoip_db",
-            }
+                geo_data = None
         except Exception:  # pragma: no cover
             logger.debug("GeoIP DB lookup failed for %s", proxy.address)
 
