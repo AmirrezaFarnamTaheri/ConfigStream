@@ -379,21 +379,22 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
             )
 
         # Apply IP-based geolocation (all data from same source, no mixing allowed)
-        proxy.country_code = geo_data["country_code"]
-        proxy.country = geo_data["country"]
-        proxy.city = geo_data["city"]
-        proxy.asn = geo_data["asn"]
+        proxy.country_code = geo_data["country_code"] or "XX"
+        proxy.country = geo_data["country"] or "Unknown"
+        proxy.city = geo_data.get("city") or "Unknown"
+        proxy.asn = geo_data.get("asn") or "AS0"
         logger.debug(
             "Applied IP-based geolocation for %s: %s, %s",
             proxy_address,
-            geo_data["country"],
-            geo_data["city"],
+            proxy.country,
+            proxy.city,
         )
         return proxy
 
     # 3. Fallback: try to infer from remarks (less reliable - regex-based)
     # CRITICAL: Only use country from remarks, NEVER mix with city from other sources
-    inferred = _infer_country_from_remarks(proxy.remarks)
+    remarks_text = proxy.remarks if isinstance(proxy.remarks, str) else ""
+    inferred = _infer_country_from_remarks(remarks_text)
     if inferred:
         proxy.country = inferred["country"]
         proxy.country_code = inferred["country_code"]
@@ -402,7 +403,7 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
         # - "Los Angeles" comes from GeoIP (IP-based, may be leftover)
         # - "BY" (Belarus) comes from remarks (regex-based)
         # These don't belong together and confuse users
-        old_city = proxy.city
+        old_city = proxy.city if isinstance(proxy.city, str) else ""
         proxy.city = "Unknown"
         proxy.asn = "AS0"
         logger.debug(
@@ -416,8 +417,10 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     # 4. Fallback: if country_code was pre-filled and valid, ensure country name is consistent
     # This is a last-ditch effort before marking as unknown
     # VALIDATE: Only use pre-filled country_code if it's actually in our mapping
-    if proxy.country_code and proxy.country_code != "XX" and proxy.country_code in COUNTRY_NAMES:
-        proxy.country = COUNTRY_NAMES.get(proxy.country_code, proxy.country or "Unknown")
+    code = proxy.country_code.upper() if isinstance(proxy.country_code, str) else None
+    if code and code != "XX" and len(code) == 2 and code in COUNTRY_NAMES:
+        proxy.country_code = code
+        proxy.country = COUNTRY_NAMES.get(code, proxy.country or "Unknown")
         # Reset city since country came from a pre-filled value without authoritative source
         proxy.city = "Unknown"
         proxy.asn = "AS0"
