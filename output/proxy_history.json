@@ -1,0 +1,22 @@
+[
+  {
+    "timestamp": "2025-11-15T12:00:00Z",
+    "working": 7850
+  },
+  {
+    "timestamp": "2025-11-15T13:00:00Z",
+    "working": 8100
+  },
+  {
+    "timestamp": "2025-11-15T14:00:00Z",
+    "working": 8350
+  },
+  {
+    "timestamp": "2025-11-15T15:00:00Z",
+    "working": 8550
+  },
+  {
+    "timestamp": "2025-11-15T16:00:00Z",
+    "working": 8594
+  }
+]
