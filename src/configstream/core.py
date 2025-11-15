@@ -280,22 +280,26 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     """
     Geolocate a proxy using IP-based lookup (preferred) or remarks as fallback.
 
-    Priority order (from most to least reliable):
-    1. IP-based GeoIP database lookup
-    2. IP-based HTTP API fallback
-    3. Remark-based inference (flags, country codes)
-    4. Pre-filled country_code (if already set)
+    CRITICAL: Ensures country, country_code, city, and asn ALWAYS come from the same authoritative source.
+    This prevents geographic mismatches like "Los Angeles, BY" where city and country don't align.
 
-    Ensures country, country_code, city, and asn always come from the same source.
+    Priority order (from most to least reliable):
+    1. IP-based GeoIP database lookup (most robust - returns city+country from same source)
+    2. IP-based HTTP API fallback (robust - returns city+country from same source)
+    3. Remark-based inference (less reliable - country only, city reset to prevent mismatch)
+    4. Pre-filled country_code (if already set - city reset to prevent mismatch)
+    5. Last resort - mark everything as Unknown
+
+    IMPORTANT: Less robust methods (regex on remarks) are NEVER mixed with city data.
     """
 
-    # Store original values for conflict detection
+    # Store original values for conflict detection and logging
     original_country_code = proxy.country_code
 
-    # Try IP-based geolocation first (most reliable)
+    # Try IP-based geolocation first (most reliable - single authoritative source)
     geo_data = None
 
-    # 1. Try local GeoIP database
+    # 1. Try local GeoIP database (most reliable - IP-based)
     if geoip_reader:
         try:
             response = geoip_reader.city(proxy.address)
@@ -335,7 +339,7 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
         except Exception:  # pragma: no cover
             logger.debug("GeoIP DB lookup failed for %s", proxy.address)
 
-    # 2. If DB lookup failed, try HTTP-based lookup
+    # 2. If DB lookup failed, try HTTP-based lookup (robust fallback - IP-based)
     if not geo_data:
         http_result = await _lookup_geoip_http(proxy.address)
         if http_result:
@@ -350,7 +354,7 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
                 "source": "http_api",
             }
 
-    # If IP-based lookup succeeded, use it
+    # If IP-based lookup succeeded, use it (highest priority, single authoritative source)
     if geo_data:
         # Log conflicts for debugging/tuning
         if (
@@ -366,37 +370,60 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
                 proxy.remarks[:50] if proxy.remarks else "",
             )
 
+        # Apply IP-based geolocation (all data from same source, no mixing allowed)
         proxy.country_code = geo_data["country_code"]
         proxy.country = geo_data["country"]
         proxy.city = geo_data["city"]
         proxy.asn = geo_data["asn"]
+        logger.debug(
+            "Applied IP-based geolocation for %s: %s, %s",
+            proxy.address,
+            geo_data["country"],
+            geo_data["city"],
+        )
         return proxy
 
-    # 3. Fallback: try to infer from remarks (less reliable)
+    # 3. Fallback: try to infer from remarks (less reliable - regex-based)
+    # CRITICAL: Only use country from remarks, NEVER mix with city from other sources
     inferred = _infer_country_from_remarks(proxy.remarks)
     if inferred:
         proxy.country = inferred["country"]
         proxy.country_code = inferred["country_code"]
-        # Leave city/asn as-is or set to unknown since we can't infer them from remarks
-        if not proxy.city or proxy.city == "":
-            proxy.city = "Unknown"
-        if not proxy.asn or proxy.asn == "":
-            proxy.asn = "AS0"
+        # IMPORTANT: Reset city and asn when using remarks-based country
+        # This PREVENTS geographic mismatches like "Los Angeles, BY" where:
+        # - "Los Angeles" comes from GeoIP (IP-based, may be leftover)
+        # - "BY" (Belarus) comes from remarks (regex-based)
+        # These don't belong together and confuse users
+        old_city = proxy.city
+        proxy.city = "Unknown"
+        proxy.asn = "AS0"
+        logger.debug(
+            "Applied remarks-based country inference for %s: %s (reset city from '%s' to 'Unknown')",
+            proxy.address,
+            inferred["country_code"],
+            old_city,
+        )
         return proxy
 
     # 4. Fallback: if country_code was pre-filled, ensure country name is consistent
+    # This is a last-ditch effort before marking as unknown
     if proxy.country_code and proxy.country_code != "XX":
         proxy.country = COUNTRY_NAMES.get(proxy.country_code, proxy.country or "Unknown")
-        if not proxy.city or proxy.city == "":
-            proxy.city = "Unknown"
-        if not proxy.asn or proxy.asn == "":
-            proxy.asn = "AS0"
+        # Reset city since country came from a pre-filled value without authoritative source
+        proxy.city = "Unknown"
+        proxy.asn = "AS0"
+        logger.debug(
+            "Applied pre-filled country code for %s: %s (reset city to 'Unknown')",
+            proxy.address,
+            proxy.country_code,
+        )
         return proxy
 
-    # 5. Last resort: mark as unknown
+    # 5. Last resort: mark as unknown (no geolocation source available)
     proxy.country = "Unknown"
     proxy.country_code = "XX"
     proxy.city = "Unknown"
     proxy.asn = "AS0"
+    logger.debug("No geolocation data available for %s, marked as Unknown", proxy.address)
 
     return proxy
