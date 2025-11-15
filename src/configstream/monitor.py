@@ -1,3 +1,13 @@
+"""
+Health Monitoring System
+
+EXPERIMENTAL: Not currently integrated into the main pipeline.
+Provides continuous health monitoring and periodic retesting of proxies.
+
+To integrate: Share TestResultCache with the main pipeline to avoid
+redundant test traffic and leverage cached results.
+"""
+
 from __future__ import annotations
 from collections import defaultdict, deque
 from dataclasses import dataclass

@@ -1,3 +1,14 @@
+"""
+AIMD Adaptive Concurrency Control
+
+EXPERIMENTAL: Not currently integrated into the main pipeline.
+This module implements Additive Increase Multiplicative Decrease (AIMD)
+concurrency control for per-host request limiting.
+
+To integrate: Use AIMDController in fetcher.py or _fetch_source to prevent
+host-level overloads and improve fetch reliability.
+"""
+
 from __future__ import annotations
 
 import asyncio

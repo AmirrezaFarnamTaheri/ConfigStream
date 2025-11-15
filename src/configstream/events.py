@@ -1,3 +1,14 @@
+"""
+Event Bus for Pipeline Observability
+
+EXPERIMENTAL: Not currently integrated into the main pipeline.
+Provides async pub/sub EventBus with in-memory history for real-time
+monitoring and external hooks.
+
+To integrate: Emit events from pipeline stages and subscribe for
+monitoring, logging, or external system integration.
+"""
+
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass

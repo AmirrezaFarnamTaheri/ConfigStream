@@ -39,11 +39,14 @@ VALID_PROTOCOLS = [
     "wireguard",
     "wg",
     "naive",
+    "naive+https",  # Naive proxy with HTTPS
+    "naive+http",  # Naive proxy with HTTP
     "snell",
     "brook",
     "juicity",
     "xray",
     "xtls",
+    "v2ray",  # V2Ray JSON configs
     "ssh",
     "http",
     "https",

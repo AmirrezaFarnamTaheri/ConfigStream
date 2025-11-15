@@ -1,8 +1,12 @@
 """
-Proxy Source Quality Scoring System.
+Proxy Source Quality Scoring System
 
+EXPERIMENTAL: Not currently integrated into the main pipeline.
 Tracks and scores proxy sources based on their performance
 to focus crawling on high-quality sources.
+
+To integrate: Use SourceQualityTracker in _process_sources to prioritize
+or down-weight sources based on historical quality metrics.
 """
 
 import json

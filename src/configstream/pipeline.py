@@ -41,7 +41,6 @@ from .async_file_ops import (
     read_multiple_files_async,
     shutdown_file_pool,
 )
-from .geoip import download_geoip_dbs
 
 from .constants import (
     FETCH_TIMEOUT as FETCH_TIMEOUT_SECONDS,
@@ -195,12 +194,11 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 
 
 async def _fetch_source(client: httpx.AsyncClient, source_url: str) -> Tuple[List[str], int]:
-    """Fetch a proxy list from a single source."""
+    """Fetch a proxy list from a single source using the provided client."""
     try:
-        async with get_client(retries=3) as client:
-            response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
-            response.raise_for_status()
-    except httpx.HTTPError as exc:
+        response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
+        response.raise_for_status()
+    except (httpx.RequestError, httpx.HTTPStatusError) as exc:
         logger.error("Failed to fetch %s: %s", source_url, exc)
         return [], 0
 
@@ -258,7 +256,7 @@ async def _process_sources(
             else None
         )
         with tracker.phase("fetch"):
-            async with get_client() as client:
+            async with get_client(retries=3) as client:
                 results = await asyncio.gather(
                     *(_fetch_source(client, source) for source in remote_sources),
                     return_exceptions=True,
@@ -337,8 +335,8 @@ async def run_full_pipeline(
             "metrics": snapshot.to_dict(),
         }
 
-    # Ensure GeoIP databases are available before starting
-    await download_geoip_dbs()
+    # Note: GeoIP databases should be downloaded by the CLI before calling the pipeline.
+    # We skip re-downloading here to avoid redundant network/IO operations.
 
     try:
         logger.info(
@@ -359,9 +357,6 @@ async def run_full_pipeline(
         queue: deque[str] = deque()
         seen_raw_configs: set[str] = set()
         for raw_config in gathered_configs:
-            if raw_config.strip().startswith("ssr://"):
-                logger.debug("Skipping unsupported ssr:// proxy")
-                continue
             if raw_config in seen_raw_configs:
                 stats["duplicates_skipped"] += 1
                 continue
