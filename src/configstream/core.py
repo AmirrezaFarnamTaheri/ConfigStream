@@ -245,6 +245,9 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     Ensures country, country_code, city, and asn always come from the same source.
     """
 
+    # Store original values for conflict detection
+    original_country_code = proxy.country_code
+
     # Try IP-based geolocation first (most reliable)
     geo_data = None
 
@@ -286,6 +289,13 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
 
     # If IP-based lookup succeeded, use it
     if geo_data:
+        # Log conflicts for debugging/tuning
+        if original_country_code and original_country_code != "XX" and original_country_code != geo_data["country_code"]:
+            logger.debug(
+                "Geolocation conflict for %s: pre-filled=%s, IP-based=%s (using IP-based), remarks=%s",
+                proxy.address, original_country_code, geo_data["country_code"], proxy.remarks[:50] if proxy.remarks else ""
+            )
+
         proxy.country_code = geo_data["country_code"]
         proxy.country = geo_data["country"]
         proxy.city = geo_data["city"]

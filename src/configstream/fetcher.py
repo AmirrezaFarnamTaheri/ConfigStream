@@ -1,6 +1,18 @@
 """
 Enhanced Fetcher Module with Robust Error Handling
-This module provides improved network fetching with retry logic and detailed error reporting
+
+EXPERIMENTAL: This module is not currently used by the main pipeline.
+The main pipeline uses simpler fetching in pipeline.py (_fetch_source).
+
+This module provides advanced network fetching capabilities including:
+- Adaptive timeouts and concurrency control (AIMD)
+- Rate limiting and circuit breaker patterns
+- ETag/Last-Modified caching
+- Hedged requests for improved latency
+- Detailed metrics and error reporting
+
+To integrate: Replace _fetch_source in pipeline.py with fetch_from_source
+from this module for production-grade robustness.
 """
 
 from __future__ import annotations
@@ -36,7 +48,8 @@ from pathlib import Path
 
 # Configure structured logging for better debugging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+# Note: Logging level should be controlled globally via configuration,
+# not at module import time. Remove the setLevel call to respect global settings.
 
 
 class FetcherError(Exception):
