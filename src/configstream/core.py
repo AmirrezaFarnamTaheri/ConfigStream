@@ -298,23 +298,29 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     if isinstance(proxy.address, str):
         addr = proxy.address.strip()
         # Strip port for IPv4/hostname ("host:port") and IPv6 ("[addr]:port")
-        if addr.startswith('[') and ']' in addr:
+        if addr.startswith("[") and "]" in addr:
             # IPv6 in brackets
-            host_part = addr[1:addr.find(']')]
+            host_part = addr[1 : addr.find("]")]
         else:
-            host_part = addr.split(':', 1)[0]
+            host_part = addr.split(":", 1)[0]
+
         # Basic IP validation (IPv4/IPv6)
         def _is_ip(s: str) -> bool:
             try:
                 import ipaddress
+
                 ipaddress.ip_address(s)
                 return True
             except Exception:
                 return False
+
         if _is_ip(host_part):
             proxy_address = host_part
         else:
-            logger.debug("Non-IP address provided for geolocation, skipping IP-based lookup: %r", proxy.address)
+            logger.debug(
+                "Non-IP address provided for geolocation, skipping IP-based lookup: %r",
+                proxy.address,
+            )
 
     # Store original values for conflict detection and logging
     original_country_code = proxy.country_code
