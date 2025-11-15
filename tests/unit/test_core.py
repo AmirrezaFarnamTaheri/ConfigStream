@@ -85,6 +85,7 @@ async def test_geolocate_proxy_success():
     mock_city_response.country.name = "United States"
     mock_city_response.city.name = "Mountain View"
     mock_city_response.autonomous_system.autonomous_system_number = 15169
+    mock_city_response.traits = None
 
     mock_reader = MagicMock()
     mock_reader.city.return_value = mock_city_response
@@ -210,4 +211,5 @@ def test_geolocate_proxy_infers_country_from_remarks():
     asyncio.run(test())
 
     # Should infer US from remarks
-    assert proxy.country_code == "US" or proxy.country == "United States"
+    assert proxy.country_code == "US"
+    assert proxy.country == "United States"

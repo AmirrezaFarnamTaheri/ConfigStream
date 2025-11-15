@@ -40,7 +40,7 @@ VALID_PROTOCOLS = [
     "wg",
     "naive",
     "naive+https",  # Naive proxy with HTTPS
-    "naive+http",   # Naive proxy with HTTP
+    "naive+http",  # Naive proxy with HTTP
     "snell",
     "brook",
     "juicity",
