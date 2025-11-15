@@ -11,6 +11,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 - Experimental module documentation with integration paths for advanced features
 - Support for naive+https and naive+http proxy protocols
 - Support for v2ray JSON configuration format
+- **Support for SSR (ShadowsocksR) protocol** - Removed intentional skip logic in pipeline
 - DOCS.md master navigation document for easy documentation discovery
 - Pipeline output verification before health checks run
 - Metrics validation with type and range checking in health checks
@@ -81,6 +82,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 - src/configstream/dedup.py - Not used by main pipeline (uses dedupe_and_shuffle instead)
   - Kept as reference implementation for quality-based deduplication
 
+### Enabled
+- **SSR (ShadowsocksR) protocol** - Previously disabled by policy, now fully supported
+  - Parser was already implemented and well-tested
+  - Removed intentional skip logic from pipeline (lines 361-363 in pipeline.py)
+  - SSR configs now parsed, tested, and included in outputs
+
 ### Performance Impact
 | Metric | Before | After | Improvement |
 |--------|--------|-------|-------------|
@@ -89,6 +96,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
 | HTTP Connections/Run | N × sources | 1 pooled client | ~90% reduction |
 | GeoIP Downloads/Run | 2× | 1× | 50% reduction |
 | Naive Protocol Support | Not extracted | Fully supported | New capability |
+| SSR Protocol Support | Intentionally disabled | Fully supported | New capability |
 | V2Ray Recognition | "Unknown" | Properly recognized | Fixed |
 | Country Name Variants | Multiple/country | Single normalized | 100% uniform |
 
