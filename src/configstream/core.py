@@ -1,6 +1,7 @@
+import ipaddress
+import json
 import logging
 import re
-import json
 from typing import Any, Callable, Dict, Optional
 
 import httpx
@@ -297,24 +298,30 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     proxy_address = None
     if isinstance(proxy.address, str):
         addr = proxy.address.strip()
-        # Strip port for IPv4/hostname ("host:port") and IPv6 ("[addr]:port")
+
+        host_part = addr
+        # Handle bracketed IPv6: [addr]:port
         if addr.startswith("[") and "]" in addr:
-            # IPv6 in brackets
             host_part = addr[1 : addr.find("]")]
         else:
-            host_part = addr.split(":", 1)[0]
+            # For non-bracketed: if it's IPv6, it will contain multiple colons and should not be split;
+            # if it's IPv4 or hostname, split once on ':' to drop port.
+            if addr.count(":") <= 1:
+                host_part = addr.split(":", 1)[0]
+
+        # Strip IPv6 zone index if present (e.g., %eth0 or %25eth0)
+        if "%" in host_part:
+            host_part = host_part.split("%", 1)[0]
 
         # Basic IP validation (IPv4/IPv6)
         def _is_ip(s: str) -> bool:
             try:
-                import ipaddress
-
                 ipaddress.ip_address(s)
                 return True
-            except Exception:
+            except ValueError:
                 return False
 
-        if _is_ip(host_part):
+        if host_part and _is_ip(host_part):
             proxy_address = host_part
         else:
             logger.debug(

@@ -608,21 +608,38 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(menu);
             computePosition();
 
-            const onScrollOrResize = () => computePosition();
-            window.addEventListener('scroll', onScrollOrResize, { passive: true });
-            window.addEventListener('resize', onScrollOrResize);
+            const onResize = () => computePosition();
+            // Only recompute on resize; fixed positioning keeps alignment on normal scroll
+            window.addEventListener('resize', onResize);
+
+            let rafId = null;
+            const requestReposition = () => {
+              if (rafId !== null) return;
+              rafId = requestAnimationFrame(() => {
+                rafId = null;
+                computePosition();
+              });
+            };
 
             const closeMenu = () => {
               if (menu.parentNode) document.body.removeChild(menu);
               document.removeEventListener('click', handleOutsideClick, true);
-              window.removeEventListener('scroll', onScrollOrResize);
-              window.removeEventListener('resize', onScrollOrResize);
+              window.removeEventListener('resize', onResize);
+              if (rafId !== null) cancelAnimationFrame(rafId);
               document.removeEventListener('keydown', onKeyDown);
-              button.focus();
+              button?.focus?.();
+            };
+
+            const isClickOutside = (event) => {
+              const target = event.target instanceof Node ? event.target : null;
+              const path = typeof event.composedPath === 'function' ? event.composedPath() : null;
+              const withinMenu = path ? path.includes(menu) : (target ? menu.contains(target) : false);
+              const withinButton = button ? (path ? path.includes(button) : (target ? button.contains(target) || target === button : false)) : false;
+              return !(withinMenu || withinButton);
             };
 
             const handleOutsideClick = (event) => {
-              if (!menu.contains(event.target) && event.target !== button) {
+              if (isClickOutside(event)) {
                 closeMenu();
               }
             };
