@@ -573,109 +573,131 @@ document.addEventListener('DOMContentLoaded', () => {
             const canvas = chartContainer.querySelector('canvas');
             if (!canvas) return;
 
-            // Create export menu with viewport-aware positioning
-    // Remove any existing action menus before creating a new one
-    document.querySelectorAll('.chart-action-menu').forEach(el => el.remove());
+            // Remove only an existing menu if one is already open (single instance policy)
+            const existingMenu = document.querySelector('.chart-action-menu');
+            if (existingMenu) existingMenu.remove();
 
             const menu = document.createElement('div');
             menu.className = 'chart-action-menu';
+            menu.setAttribute('role', 'menu');
+            menu.tabIndex = -1;
 
-            // Use getBoundingClientRect for proper viewport positioning
             const rect = button.getBoundingClientRect();
-    let top = rect.bottom + window.scrollY;
-    let left = rect.right + window.scrollX - 200;
+            const margin = 8;
+            const assumedMinWidth = 200;
 
-    // Initial clamp based on assumed min width
-    const margin = 8;
-    const assumedMinWidth = 200;
-    const maxLeft = window.scrollX + window.innerWidth - margin - assumedMinWidth; // min-width
-    const maxTop = window.scrollY + window.innerHeight - margin - 10; // approx item height
-    left = Math.max(window.scrollX + margin, Math.min(left, maxLeft));
-    top = Math.max(window.scrollY + margin, Math.min(top, maxTop));
+            const computePosition = () => {
+              let top = rect.bottom + margin;
+              let left = rect.right - assumedMinWidth;
 
-            // Apply base styles including minWidth so measurement reflects layout
+              const maxLeft = window.innerWidth - margin - assumedMinWidth;
+              const maxTop = window.innerHeight - margin - 10;
+
+              left = Math.max(margin, Math.min(left, maxLeft));
+              top = Math.max(margin, Math.min(top, maxTop));
+              menu.style.top = `${top}px`;
+              menu.style.left = `${left}px`;
+            };
+
             menu.style.cssText = `
-                position: absolute;
-                top: ${top}px;
-                left: ${left}px;
-                min-width: ${assumedMinWidth}px;
+              position: fixed;
+              min-width: ${assumedMinWidth}px;
+              z-index: 9999;
             `;
 
-            // Insert into DOM to measure actual width, then re-clamp accurately
             document.body.appendChild(menu);
-            const menuWidth = Math.max(assumedMinWidth, menu.getBoundingClientRect().width || assumedMinWidth);
-            const correctedMaxLeft = window.scrollX + window.innerWidth - margin - menuWidth;
-            const correctedLeft = Math.max(window.scrollX + margin, Math.min(left, correctedMaxLeft));
-            if (correctedLeft !== left) {
-                menu.style.left = `${correctedLeft}px`;
-            }
+            computePosition();
 
-            // Helper to create menu button
-            const createMenuButton = (text, onClick, isLast = false) => {
-                const btn = document.createElement('button');
-                btn.textContent = text;
-                btn.style.cssText = `
-                    display: block;
-                    width: 100%;
-                    padding: 10px 12px;
-                    border: none;
-                    background: none;
-                    text-align: left;
-                    cursor: pointer;
-                    font-size: 14px;
-                    color: var(--text-primary);
-                    ${!isLast ? 'border-bottom: 1px solid var(--border);' : ''}
-                `;
-                btn.addEventListener('mouseover', () => {
-                    btn.style.backgroundColor = 'var(--bg-secondary)';
-                });
-                btn.addEventListener('mouseout', () => {
-                    btn.style.backgroundColor = '';
-                });
-                btn.addEventListener('click', (evt) => {
-                    evt.stopPropagation();
-                    try {
-                        onClick();
-                    } catch (err) {
-                        console.error('Chart action failed:', err);
-                        alert('Action failed. Please try again.');
-                    } finally {
-                        closeMenu();
-                    }
-                });
-                return btn;
+            const onResize = () => computePosition();
+            // Only recompute on resize; fixed positioning keeps alignment on normal scroll
+            window.addEventListener('resize', onResize);
+
+            let rafId = null;
+            const requestReposition = () => {
+              if (rafId !== null) return;
+              rafId = requestAnimationFrame(() => {
+                rafId = null;
+                computePosition();
+              });
             };
 
-            // Helper function to safely close menu
             const closeMenu = () => {
-                if (menu.parentNode) {
-                    document.body.removeChild(menu);
-                }
-                document.removeEventListener('click', handleOutsideClick);
+              if (menu.parentNode) document.body.removeChild(menu);
+              document.removeEventListener('click', handleOutsideClick, true);
+              window.removeEventListener('resize', onResize);
+              if (rafId !== null) cancelAnimationFrame(rafId);
+              document.removeEventListener('keydown', onKeyDown);
+              button?.focus?.();
             };
 
-            // Handle outside clicks
+            const isClickOutside = (event) => {
+              const target = event.target instanceof Node ? event.target : null;
+              const path = typeof event.composedPath === 'function' ? event.composedPath() : null;
+              const withinMenu = path ? path.includes(menu) : (target ? menu.contains(target) : false);
+              const withinButton = button ? (path ? path.includes(button) : (target ? button.contains(target) || target === button : false)) : false;
+              return !(withinMenu || withinButton);
+            };
+
             const handleOutsideClick = (event) => {
-                if (!menu.contains(event.target) && event.target !== button) {
-                    closeMenu();
-                }
+              if (isClickOutside(event)) {
+                closeMenu();
+              }
             };
 
-            // Export as PNG option
-            menu.appendChild(createMenuButton('📊 Export as PNG', () => {
-                exportChartAsImage(canvas, chartTitle, 'png');
-            }));
+            const onKeyDown = (evt) => {
+              if (evt.key === 'Escape') {
+                evt.stopPropagation();
+                closeMenu();
+              }
+            };
 
-            // Export data as JSON option (marked as last)
+            const createMenuButton = (text, onClick, isLast = false) => {
+              const btn = document.createElement('button');
+              btn.type = 'button';
+              btn.textContent = text;
+              btn.setAttribute('role', 'menuitem');
+              btn.style.cssText = `
+                display: block;
+                width: 100%;
+                padding: 10px 12px;
+                border: none;
+                background: none;
+                text-align: left;
+                cursor: pointer;
+                font-size: 14px;
+                color: var(--text-primary);
+                ${!isLast ? 'border-bottom: 1px solid var(--border);' : ''}
+              `;
+              btn.addEventListener('mouseover', () => {
+                btn.style.backgroundColor = 'var(--bg-secondary)';
+              });
+              btn.addEventListener('mouseout', () => {
+                btn.style.backgroundColor = '';
+              });
+              btn.addEventListener('click', (evt) => {
+                evt.stopPropagation();
+                try { onClick(); } catch (err) {
+                  console.error('Chart action failed:', err);
+                  alert('Action failed. Please try again.');
+                } finally {
+                  closeMenu();
+                }
+              });
+              return btn;
+            };
+
+            menu.appendChild(createMenuButton('📊 Export as PNG', () => {
+              exportChartAsImage(canvas, chartTitle, 'png');
+            }));
             menu.appendChild(createMenuButton('💾 Export Data as JSON', () => {
-                exportChartData(canvas, chartTitle);
+              exportChartData(canvas, chartTitle);
             }, true));
 
-            document.body.appendChild(menu);
-
-            // Add outside-click listener after menu is added
+            // Focus management and global listeners
             setTimeout(() => {
-                document.addEventListener('click', handleOutsideClick);
+              menu.focus();
+              document.addEventListener('click', handleOutsideClick, true);
+              document.addEventListener('keydown', onKeyDown);
             }, 0);
         });
     });
