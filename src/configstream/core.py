@@ -293,6 +293,14 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     IMPORTANT: Less robust methods (regex on remarks) are NEVER mixed with city data.
     """
 
+    # Validate address is available before attempting IP-based lookups
+    if not proxy.address or not isinstance(proxy.address, str) or not proxy.address.strip():
+        logger.debug("No usable address for geolocation: %r", proxy.address)
+        # Fall through to remarks/country_code fallbacks
+        proxy_address = None
+    else:
+        proxy_address = proxy.address
+
     # Store original values for conflict detection and logging
     original_country_code = proxy.country_code
 
@@ -300,9 +308,9 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     geo_data = None
 
     # 1. Try local GeoIP database (most reliable - IP-based)
-    if geoip_reader:
+    if proxy_address and geoip_reader:
         try:
-            response = geoip_reader.city(proxy.address)
+            response = geoip_reader.city(proxy_address)
             country_obj = getattr(response, "country", None)
             city_obj = getattr(response, "city", None)
             traits_obj = getattr(response, "traits", None)
@@ -337,11 +345,11 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
             else:
                 geo_data = None
         except Exception:  # pragma: no cover
-            logger.debug("GeoIP DB lookup failed for %s", proxy.address)
+            logger.debug("GeoIP DB lookup failed for %s", proxy_address)
 
     # 2. If DB lookup failed, try HTTP-based lookup (robust fallback - IP-based)
-    if not geo_data:
-        http_result = await _lookup_geoip_http(proxy.address)
+    if not geo_data and proxy_address:
+        http_result = await _lookup_geoip_http(proxy_address)
         if http_result:
             country_code = http_result.get("country_code", "XX")
             # Normalize country name using our mapping
@@ -377,7 +385,7 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
         proxy.asn = geo_data["asn"]
         logger.debug(
             "Applied IP-based geolocation for %s: %s, %s",
-            proxy.address,
+            proxy_address,
             geo_data["country"],
             geo_data["city"],
         )
@@ -399,22 +407,23 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
         proxy.asn = "AS0"
         logger.debug(
             "Applied remarks-based country inference for %s: %s (reset city from '%s' to 'Unknown')",
-            proxy.address,
+            proxy_address or "unknown",
             inferred["country_code"],
             old_city,
         )
         return proxy
 
-    # 4. Fallback: if country_code was pre-filled, ensure country name is consistent
+    # 4. Fallback: if country_code was pre-filled and valid, ensure country name is consistent
     # This is a last-ditch effort before marking as unknown
-    if proxy.country_code and proxy.country_code != "XX":
+    # VALIDATE: Only use pre-filled country_code if it's actually in our mapping
+    if proxy.country_code and proxy.country_code != "XX" and proxy.country_code in COUNTRY_NAMES:
         proxy.country = COUNTRY_NAMES.get(proxy.country_code, proxy.country or "Unknown")
         # Reset city since country came from a pre-filled value without authoritative source
         proxy.city = "Unknown"
         proxy.asn = "AS0"
         logger.debug(
             "Applied pre-filled country code for %s: %s (reset city to 'Unknown')",
-            proxy.address,
+            proxy_address or "unknown",
             proxy.country_code,
         )
         return proxy
@@ -424,6 +433,8 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     proxy.country_code = "XX"
     proxy.city = "Unknown"
     proxy.asn = "AS0"
-    logger.debug("No geolocation data available for %s, marked as Unknown", proxy.address)
+    logger.debug(
+        "No geolocation data available for %s, marked as Unknown", proxy_address or "unknown"
+    )
 
     return proxy
