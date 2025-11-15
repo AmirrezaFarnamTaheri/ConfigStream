@@ -573,113 +573,88 @@ document.addEventListener('DOMContentLoaded', () => {
             const canvas = chartContainer.querySelector('canvas');
             if (!canvas) return;
 
-            // Create export menu
+            // Create export menu with viewport-aware positioning
             const menu = document.createElement('div');
             menu.className = 'chart-action-menu';
+
+            // Use getBoundingClientRect for proper viewport positioning
+            const rect = button.getBoundingClientRect();
+            const top = rect.bottom + window.scrollY;
+            const left = Math.max(8, rect.right + window.scrollX - 200);
+
             menu.style.cssText = `
                 position: absolute;
-                top: ${button.offsetTop + button.offsetHeight}px;
-                right: 10px;
+                top: ${top}px;
+                left: ${left}px;
                 background: var(--bg-primary);
                 border: 1px solid var(--border);
                 border-radius: 4px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.15);
                 z-index: 1000;
                 min-width: 200px;
+                max-width: 280px;
             `;
+
+            // Helper to create menu button
+            const createMenuButton = (text, onClick, isLast = false) => {
+                const btn = document.createElement('button');
+                btn.textContent = text;
+                btn.style.cssText = `
+                    display: block;
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: none;
+                    background: none;
+                    text-align: left;
+                    cursor: pointer;
+                    font-size: 14px;
+                    color: var(--text-primary);
+                    ${!isLast ? 'border-bottom: 1px solid var(--border);' : ''}
+                `;
+                btn.addEventListener('mouseover', () => {
+                    btn.style.backgroundColor = 'var(--bg-secondary)';
+                });
+                btn.addEventListener('mouseout', () => {
+                    btn.style.backgroundColor = 'transparent';
+                });
+                btn.addEventListener('click', (evt) => {
+                    evt.stopPropagation();
+                    onClick();
+                    closeMenu(); // Properly close menu after action
+                });
+                return btn;
+            };
+
+            // Helper function to safely close menu
+            const closeMenu = () => {
+                if (menu.parentNode) {
+                    document.body.removeChild(menu);
+                }
+                document.removeEventListener('click', handleOutsideClick);
+            };
+
+            // Handle outside clicks
+            const handleOutsideClick = (event) => {
+                if (!menu.contains(event.target) && event.target !== button) {
+                    closeMenu();
+                }
+            };
 
             // Export as PNG option
-            const exportPngOption = document.createElement('button');
-            exportPngOption.textContent = '📊 Export as PNG';
-            exportPngOption.style.cssText = `
-                display: block;
-                width: 100%;
-                padding: 10px 12px;
-                border: none;
-                background: none;
-                text-align: left;
-                cursor: pointer;
-                font-size: 14px;
-                color: var(--text-primary);
-                border-bottom: 1px solid var(--border);
-            `;
-            exportPngOption.addEventListener('mouseover', () => {
-                exportPngOption.style.backgroundColor = 'var(--bg-secondary)';
-            });
-            exportPngOption.addEventListener('mouseout', () => {
-                exportPngOption.style.backgroundColor = 'transparent';
-            });
-            exportPngOption.addEventListener('click', () => {
+            menu.appendChild(createMenuButton('📊 Export as PNG', () => {
                 exportChartAsImage(canvas, chartTitle, 'png');
-                document.body.removeChild(menu);
-            });
+            }));
 
-            // Export as SVG option
-            const exportSvgOption = document.createElement('button');
-            exportSvgOption.textContent = '📈 Export as SVG';
-            exportSvgOption.style.cssText = `
-                display: block;
-                width: 100%;
-                padding: 10px 12px;
-                border: none;
-                background: none;
-                text-align: left;
-                cursor: pointer;
-                font-size: 14px;
-                color: var(--text-primary);
-                border-bottom: 1px solid var(--border);
-            `;
-            exportSvgOption.addEventListener('mouseover', () => {
-                exportSvgOption.style.backgroundColor = 'var(--bg-secondary)';
-            });
-            exportSvgOption.addEventListener('mouseout', () => {
-                exportSvgOption.style.backgroundColor = 'transparent';
-            });
-            exportSvgOption.addEventListener('click', () => {
-                exportChartAsImage(canvas, chartTitle, 'svg');
-                document.body.removeChild(menu);
-            });
-
-            // Export data as JSON option
-            const exportJsonOption = document.createElement('button');
-            exportJsonOption.textContent = '💾 Export Data as JSON';
-            exportJsonOption.style.cssText = `
-                display: block;
-                width: 100%;
-                padding: 10px 12px;
-                border: none;
-                background: none;
-                text-align: left;
-                cursor: pointer;
-                font-size: 14px;
-                color: var(--text-primary);
-            `;
-            exportJsonOption.addEventListener('mouseover', () => {
-                exportJsonOption.style.backgroundColor = 'var(--bg-secondary)';
-            });
-            exportJsonOption.addEventListener('mouseout', () => {
-                exportJsonOption.style.backgroundColor = 'transparent';
-            });
-            exportJsonOption.addEventListener('click', () => {
+            // Export data as JSON option (marked as last)
+            menu.appendChild(createMenuButton('💾 Export Data as JSON', () => {
                 exportChartData(canvas, chartTitle);
-                document.body.removeChild(menu);
-            });
+            }, true));
 
-            menu.appendChild(exportPngOption);
-            menu.appendChild(exportSvgOption);
-            menu.appendChild(exportJsonOption);
             document.body.appendChild(menu);
 
-            // Close menu when clicking elsewhere
+            // Add outside-click listener after menu is added
             setTimeout(() => {
-                document.addEventListener('click', function closeMenu(event) {
-                    if (!menu.contains(event.target) && event.target !== button) {
-                        if (menu.parentNode) {
-                            document.body.removeChild(menu);
-                        }
-                        document.removeEventListener('click', closeMenu);
-                    }
-                });
+                document.addEventListener('click', handleOutsideClick);
             }, 0);
         });
     });
@@ -687,22 +662,35 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper function to export chart as image
     function exportChartAsImage(canvas, title, format) {
         try {
+            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+
             if (format === 'png') {
                 canvas.toBlob(blob => {
+                    if (!blob) {
+                        console.error('Canvas export failed: blob is null (possibly tainted canvas or insufficient permissions).');
+                        alert('Failed to export chart image due to browser security restrictions. The chart may contain external resources that prevent export.');
+                        return;
+                    }
+
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
-                    link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
-                    link.click();
-                    URL.revokeObjectURL(url);
+                    link.download = filename;
+
+                    try {
+                        document.body.appendChild(link);
+                        link.click();
+                    } catch (clickError) {
+                        console.error('Failed to trigger download:', clickError);
+                        alert('Failed to download chart. Please try again.');
+                    } finally {
+                        // Clean up in next tick to ensure download is registered
+                        setTimeout(() => {
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        }, 100);
+                    }
                 });
-            } else if (format === 'svg') {
-                // SVG export would require additional library
-                const img = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.href = img;
-                link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
-                link.click();
             }
         } catch (error) {
             console.error('Error exporting chart:', error);
@@ -716,6 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ctx = canvas.getContext('2d');
             if (!ctx || !ctx.canvas.__chart__) {
                 console.error('Chart instance not found');
+                alert('Unable to export chart data. Chart instance not found.');
                 return;
             }
 
@@ -729,12 +718,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const jsonString = JSON.stringify(exportData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
+            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-data-${Date.now()}.json`;
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-data-${Date.now()}.json`;
-            link.click();
-            URL.revokeObjectURL(url);
+            link.download = filename;
+
+            try {
+                document.body.appendChild(link);
+                link.click();
+            } catch (clickError) {
+                console.error('Failed to trigger download:', clickError);
+                alert('Failed to download data. Please try again.');
+            } finally {
+                // Clean up in next tick to ensure download is registered
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
         } catch (error) {
             console.error('Error exporting data:', error);
             alert('Failed to export data. Please try again.');

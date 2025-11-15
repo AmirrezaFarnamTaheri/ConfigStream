@@ -239,19 +239,35 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-      - name: Pull latest changes (with fallback strategy)
+      - name: Pull latest changes (with conflict detection)
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           set -euxo pipefail
           git checkout main
+
           # Try to pull with rebase first
           if ! git pull --rebase --autostash origin main; then
-            # If rebase fails, abort and use merge strategy instead
+            echo "Rebase failed. Attempting merge strategy..."
             git rebase --abort || true
-            git pull --no-rebase origin main || true
+
+            # If merge also fails, report error and exit
+            if ! git pull --no-rebase origin main; then
+              echo "::error::Automatic merge failed. Manual intervention required."
+              git status
+              exit 1
+            fi
+
+            # Check if there are any unresolved conflicts
+            if git diff --name-only --diff-filter=U | grep -q .; then
+              echo "::error::Unresolved merge conflicts detected:"
+              git diff --name-only --diff-filter=U
+              exit 1
+            fi
           fi
-          # Clean up any remaining conflicts
-          git status | grep "both modified:" | awk '{print $3}' | xargs -r git add || true
+
+          # If we got here, merge succeeded with no conflicts
+          echo "Successfully merged/rebased latest changes from main"
+          git status
 
       - name: Commit updated output
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
