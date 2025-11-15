@@ -711,14 +711,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error exporting chart:', error);
             alert('Failed to export chart. Please try again.');
         }
+    const ctx = canvas.getContext('2d');
+    const chartInstance = ctx && (canvas.__chart__ || canvas.chart);
+    if (!chartInstance) {
+        console.error('Chart instance not found');
+        alert('Unable to export chart data. Chart instance not found.');
+        return;
     }
-
-    // Helper function to export chart data
-    function exportChartData(canvas, title) {
-        try {
-            const ctx = canvas.getContext('2d');
-            if (!ctx || !ctx.canvas.chart) {
-                console.error('Chart instance not found');
                 alert('Unable to export chart data. Chart instance not found.');
                 return;
             }
