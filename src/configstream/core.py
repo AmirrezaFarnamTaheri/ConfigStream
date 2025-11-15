@@ -40,8 +40,8 @@ _CODE_PATTERN = re.compile(
     r"\[([A-Z]{2})\]|"  # [US]
     r"\(([A-Z]{2})\)|"  # (US)
     r"[\-_#:]([A-Z]{2})[\-_#:]|"  # -US-, _US_, #US#, ::US::
-    r"[\-_#:]([A-Z]{2})$|"  # -US, _US, #US, ::US at end
-    r"^([A-Z]{2})[\-_#:\s]|"  # US-, US_, US#, US:: at start
+    r"[\-_#:]([A-Z]{2})(?=$)|"  # -US, _US, #US, ::US at end (true end)
+    r"(?:(?<=^)|(?<=\s))([A-Z]{2})(?=[\-_#:\s])|"  # start or whitespace boundary before code
     r"::([A-Z]{2})(?:\s|$)"  # ::US (common in subscription tags)
     r")",
     flags=re.IGNORECASE,
@@ -286,16 +286,23 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
             traits_obj = getattr(response, "traits", None)
             asn_obj = getattr(response, "autonomous_system", None)
 
-            country_code = (getattr(country_obj, "iso_code", None) or "XX").upper()
-            country_name = COUNTRY_NAMES.get(
-                country_code, getattr(country_obj, "name", None) or "Unknown"
-            )
-            city_name = getattr(city_obj, "name", None) or "Unknown"
+            iso = getattr(country_obj, "iso_code", None)
+            country_code = iso.upper() if isinstance(iso, str) else "XX"
+            country_name_raw = getattr(country_obj, "name", None)
+            country_name = COUNTRY_NAMES.get(country_code, country_name_raw or "Unknown")
 
-            asn_number = getattr(traits_obj, "autonomous_system_number", None)
-            if asn_number is None:
-                asn_number = getattr(asn_obj, "autonomous_system_number", None)
-            asn = f"AS{asn_number}" if asn_number else "AS0"
+            city_name_raw = getattr(city_obj, "name", None)
+            city_name = city_name_raw or "Unknown"
+
+            asn_number = None
+            num = getattr(traits_obj, "autonomous_system_number", None) if traits_obj else None
+            if isinstance(num, int):
+                asn_number = num
+            else:
+                num2 = getattr(asn_obj, "autonomous_system_number", None) if asn_obj else None
+                if isinstance(num2, int):
+                    asn_number = num2
+            asn = f"AS{asn_number}" if isinstance(asn_number, int) else "AS0"
 
             geo_data = {
                 "country_code": country_code,

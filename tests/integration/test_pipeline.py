@@ -251,8 +251,22 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
     mocker.patch(
         "configstream.pipeline._process_sources", new_callable=AsyncMock, return_value=([], 0)
     )  # no sources
+
+    # Mock the tester to return the proxy as-is, preserving its attributes
+    async def mock_tester_side_effect(proxy, *args, **kwargs):
+        return proxy
+
     mocker.patch(
-        "configstream.pipeline.SingBoxTester.test", new_callable=AsyncMock, side_effect=proxies
+        "configstream.pipeline.SingBoxTester.test",
+        new_callable=AsyncMock,
+        side_effect=mock_tester_side_effect,
+    )
+
+    # Mock the underlying geoip lookup to prevent overwriting test data
+    mocker.patch(
+        "configstream.core._lookup_geoip_http",
+        new_callable=AsyncMock,
+        return_value=None,  # Simulate no result from the HTTP lookup
     )
 
     result = await run_full_pipeline(
