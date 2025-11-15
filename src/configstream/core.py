@@ -293,13 +293,28 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     IMPORTANT: Less robust methods (regex on remarks) are NEVER mixed with city data.
     """
 
-    # Validate address is available before attempting IP-based lookups
-    if not proxy.address or not isinstance(proxy.address, str) or not proxy.address.strip():
-        logger.debug("No usable address for geolocation: %r", proxy.address)
-        # Fall through to remarks/country_code fallbacks
-        proxy_address = None
-    else:
-        proxy_address = proxy.address
+    # Validate and normalize address for IP-based lookups
+    proxy_address = None
+    if isinstance(proxy.address, str):
+        addr = proxy.address.strip()
+        # Strip port for IPv4/hostname ("host:port") and IPv6 ("[addr]:port")
+        if addr.startswith('[') and ']' in addr:
+            # IPv6 in brackets
+            host_part = addr[1:addr.find(']')]
+        else:
+            host_part = addr.split(':', 1)[0]
+        # Basic IP validation (IPv4/IPv6)
+        def _is_ip(s: str) -> bool:
+            try:
+                import ipaddress
+                ipaddress.ip_address(s)
+                return True
+            except Exception:
+                return False
+        if _is_ip(host_part):
+            proxy_address = host_part
+        else:
+            logger.debug("Non-IP address provided for geolocation, skipping IP-based lookup: %r", proxy.address)
 
     # Store original values for conflict detection and logging
     original_country_code = proxy.country_code
