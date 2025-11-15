@@ -198,7 +198,7 @@ async def _fetch_source(client: httpx.AsyncClient, source_url: str) -> Tuple[Lis
     try:
         response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
         response.raise_for_status()
-    except httpx.RequestError as exc:
+    except (httpx.RequestError, httpx.HTTPStatusError) as exc:
         logger.error("Failed to fetch %s: %s", source_url, exc)
         return [], 0
 
