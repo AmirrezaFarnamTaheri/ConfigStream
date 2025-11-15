@@ -1,5 +1,6 @@
 import logging
 import re
+import json
 from typing import Any, Callable, Dict, Optional
 
 import httpx
@@ -169,22 +170,30 @@ async def _lookup_geoip_http(
                 buf.extend(chunk)
                 if len(buf) > MAX_BYTES:
                     return None
-            payload = httpx.Response(200, content=bytes(buf)).json()
-    except (httpx.HTTPError, ValueError):
+            payload = json.loads(buf)
+    except (httpx.HTTPError, ValueError, json.JSONDecodeError):
         return None
 
     if payload.get("status") != "success":
         return None
 
-    asn = payload.get("as") or ""
-    if isinstance(asn, str) and asn and not asn.startswith("AS"):
-        asn = f"AS{asn.split()[0]}" if asn.split() else "AS0"
+    asn_value = payload.get("as") or ""
+    asn = "AS0"  # Default value
+    if isinstance(asn_value, str) and asn_value:
+        # Get the first part of the string, which should be the ASN
+        first_part = asn_value.split()[0]
+        # Ensure it starts with "AS"
+        if first_part.startswith("AS"):
+            asn = first_part
+        else:
+            # Prepend "AS" if it's missing (assuming it's just the number)
+            asn = f"AS{first_part}"
 
     return {
         "country": payload.get("country", "Unknown"),
         "country_code": payload.get("countryCode", "XX"),
         "city": payload.get("city", "Unknown"),
-        "asn": asn or "AS0",
+        "asn": asn,
     }
 
 
