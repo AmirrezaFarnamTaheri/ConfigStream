@@ -41,16 +41,38 @@ _CODE_PATTERN = re.compile(
     r"\(([A-Z]{2})\)|"  # (US)
     r"[\-_#:]([A-Z]{2})[\-_#:]|"  # -US-, _US_, #US#, ::US::
     r"[\-_#:]([A-Z]{2})$|"  # -US, _US, #US, ::US at end
-    r"^([A-Z]{2})[\-_#:]|"  # US-, US_, US#, US:: at start
-    r"::([A-Z]{2})\s"  # ::US (common in subscription tags)
-    r")"
+    r"^([A-Z]{2})[\-_#:\s]|"  # US-, US_, US#, US:: at start
+    r"::([A-Z]{2})(?:\s|$)"  # ::US (common in subscription tags)
+    r")",
+    flags=re.IGNORECASE,
 )
 
 # Common English two-letter words that should not be interpreted as country codes
 # These will be checked even if they match the pattern above
 _EXCLUDED_CODES = {
-    "BY", "IN", "ON", "OR", "AS", "IS", "IT", "AM", "NO", "AT", "TO", "OF",
-    "IF", "SO", "AN", "BE", "DO", "GO", "HE", "ME", "MY", "UP", "WE"
+    "BY",
+    "IN",
+    "ON",
+    "OR",
+    "AS",
+    "IS",
+    "IT",
+    "AM",
+    "NO",
+    "AT",
+    "TO",
+    "OF",
+    "IF",
+    "SO",
+    "AN",
+    "BE",
+    "DO",
+    "GO",
+    "HE",
+    "ME",
+    "MY",
+    "UP",
+    "WE",
 }
 
 
@@ -110,8 +132,12 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
             # unless they're in very clear country-code contexts
             full_match = code_match.group(0)
             # Only allow if it's in brackets or has multiple delimiters
-            if not (full_match.startswith('[') or full_match.startswith('(') or
-                    full_match.count('-') >= 2 or full_match.count('_') >= 2):
+            if not (
+                full_match.startswith("[")
+                or full_match.startswith("(")
+                or full_match.count("-") >= 2
+                or full_match.count("_") >= 2
+            ):
                 return None
 
         payload = _country_payload_from_code(candidate_code)
@@ -255,19 +281,28 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
     if geoip_reader:
         try:
             response = geoip_reader.city(proxy.address)
-            country_code = response.country.iso_code or "XX"
-            country = COUNTRY_NAMES.get(country_code, response.country.name or "Unknown")
-            city = response.city.name or "Unknown"
-            asn = "AS0"
-            if response.autonomous_system.autonomous_system_number:
-                asn = f"AS{response.autonomous_system.autonomous_system_number}"
+            country_obj = getattr(response, "country", None)
+            city_obj = getattr(response, "city", None)
+            traits_obj = getattr(response, "traits", None)
+            asn_obj = getattr(response, "autonomous_system", None)
+
+            country_code = (getattr(country_obj, "iso_code", None) or "XX").upper()
+            country_name = COUNTRY_NAMES.get(
+                country_code, getattr(country_obj, "name", None) or "Unknown"
+            )
+            city_name = getattr(city_obj, "name", None) or "Unknown"
+
+            asn_number = getattr(traits_obj, "autonomous_system_number", None)
+            if asn_number is None:
+                asn_number = getattr(asn_obj, "autonomous_system_number", None)
+            asn = f"AS{asn_number}" if asn_number else "AS0"
 
             geo_data = {
                 "country_code": country_code,
-                "country": country,
-                "city": city,
+                "country": country_name,
+                "city": city_name,
                 "asn": asn,
-                "source": "geoip_db"
+                "source": "geoip_db",
             }
         except Exception:  # pragma: no cover
             logger.debug("GeoIP DB lookup failed for %s", proxy.address)
@@ -284,16 +319,23 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
                 "country": country,
                 "city": http_result.get("city", "Unknown"),
                 "asn": http_result.get("asn", "AS0"),
-                "source": "http_api"
+                "source": "http_api",
             }
 
     # If IP-based lookup succeeded, use it
     if geo_data:
         # Log conflicts for debugging/tuning
-        if original_country_code and original_country_code != "XX" and original_country_code != geo_data["country_code"]:
+        if (
+            original_country_code
+            and original_country_code != "XX"
+            and original_country_code != geo_data["country_code"]
+        ):
             logger.debug(
                 "Geolocation conflict for %s: pre-filled=%s, IP-based=%s (using IP-based), remarks=%s",
-                proxy.address, original_country_code, geo_data["country_code"], proxy.remarks[:50] if proxy.remarks else ""
+                proxy.address,
+                original_country_code,
+                geo_data["country_code"],
+                proxy.remarks[:50] if proxy.remarks else "",
             )
 
         proxy.country_code = geo_data["country_code"]

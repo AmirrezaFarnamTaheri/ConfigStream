@@ -41,7 +41,6 @@ from .async_file_ops import (
     read_multiple_files_async,
     shutdown_file_pool,
 )
-from .geoip import download_geoip_dbs
 
 from .constants import (
     FETCH_TIMEOUT as FETCH_TIMEOUT_SECONDS,
@@ -199,7 +198,7 @@ async def _fetch_source(client: httpx.AsyncClient, source_url: str) -> Tuple[Lis
     try:
         response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
         response.raise_for_status()
-    except httpx.HTTPError as exc:
+    except httpx.RequestError as exc:
         logger.error("Failed to fetch %s: %s", source_url, exc)
         return [], 0
 
@@ -257,7 +256,7 @@ async def _process_sources(
             else None
         )
         with tracker.phase("fetch"):
-            async with get_client() as client:
+            async with get_client(retries=3) as client:
                 results = await asyncio.gather(
                     *(_fetch_source(client, source) for source in remote_sources),
                     return_exceptions=True,
