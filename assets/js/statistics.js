@@ -628,10 +628,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 btn.addEventListener('mouseover', () => {
                     btn.style.backgroundColor = 'var(--bg-secondary)';
-                });
-                btn.addEventListener('mouseout', () => {
-                    btn.style.backgroundColor = 'transparent';
-                });
+                        evt.stopPropagation();
+                        try {
+                            onClick();
+                        } catch (err) {
+                            console.error('Chart action failed:', err);
+                            alert('Action failed. Please try again.');
+                        } finally {
+                            closeMenu(); // Always close menu after action, even on error
+                        }
+                    });
                 btn.addEventListener('click', (evt) => {
                     evt.stopPropagation();
                     onClick();
