@@ -37,12 +37,12 @@ _FLAG_PATTERN = re.compile(r"[\U0001F1E6-\U0001F1FF]{2}")
 # This avoids matching "By" in "[By EbraSha]" because it's followed by more text
 _CODE_PATTERN = re.compile(
     r"(?:"
-    r"\[([A-Z]{2})\]|"  # [US]
-    r"\(([A-Z]{2})\)|"  # (US)
-    r"[\-_#:]([A-Z]{2})[\-_#:]|"  # -US-, _US_, #US#, ::US::
-    r"[\-_#:]([A-Z]{2})(?=$)|"  # -US, _US, #US, ::US at end (true end)
-    r"(?:(?<=^)|(?<=\s))([A-Z]{2})(?=[\-_#:\s])|"  # start or whitespace boundary before code
-    r"::([A-Z]{2})(?:\s|$)"  # ::US (common in subscription tags)
+    r"\[(?P<cc>[A-Z]{2})\]|"                 # [US]
+    r"\((?P<cc>[A-Z]{2})\)|"                 # (US)
+    r"[\-_#:](?P<cc>[A-Z]{2})[\-_#:]|"       # -US-, _US_, #US#, ::US::
+    r"[\-_#:](?P<cc>[A-Z]{2})(?=$)|"         # -US, _US, #US, ::US at end (true end)
+    r"(?:(?<=^)|(?<=\s))(?P<cc>[A-Z]{2})(?=[\-_#:\s])|"  # boundary before code
+    r"::(?P<cc>[A-Z]{2})(?:\s|$)"            # ::US (common in subscription tags)
     r")",
     flags=re.IGNORECASE,
 )
