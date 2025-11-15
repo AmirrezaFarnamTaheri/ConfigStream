@@ -425,19 +425,19 @@ async def geolocate_proxy(proxy: Proxy, geoip_reader: Any | None = None) -> Prox
         proxy.city = "Unknown"
         proxy.asn = "AS0"
         logger.debug(
-            "Applied pre-filled country code for %s: %s (reset city to 'Unknown')",
+            "Using pre-filled valid country_code for %s: %s",
             proxy_address or "unknown",
-            proxy.country_code,
+            code,
         )
         return proxy
-
-    # 5. Last resort: mark as unknown (no geolocation source available)
-    proxy.country = "Unknown"
-    proxy.country_code = "XX"
-    proxy.city = "Unknown"
-    proxy.asn = "AS0"
-    logger.debug(
-        "No geolocation data available for %s, marked as Unknown", proxy_address or "unknown"
-    )
-
-    return proxy
+    else:
+        # Invalid or unknown country_code: normalize to unknowns and prevent stale data leakage
+        proxy.country_code = "XX"
+        proxy.country = "Unknown"
+        proxy.city = "Unknown"
+        proxy.asn = "AS0"
+        logger.debug(
+            "Invalid pre-filled country_code for %s, resetting to Unknown",
+            proxy_address or "unknown",
+        )
+        return proxy
