@@ -1,4 +1,12 @@
-"""Proxy deduplication helpers."""
+"""
+Proxy deduplication helpers.
+
+DEPRECATED: This module is not currently used by the main pipeline.
+The pipeline uses `dedupe_and_shuffle` in pipeline.py instead.
+
+This module is kept as a reference implementation for quality-based deduplication,
+but is not integrated into the production pipeline.
+"""
 
 from __future__ import annotations
 
