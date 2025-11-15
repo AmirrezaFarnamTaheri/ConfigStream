@@ -681,10 +681,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Helper function to export chart as image
+    // Helper function to export chart as image
     function exportChartAsImage(canvas, title, format) {
         try {
             const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
-
             if (format === 'png') {
                 canvas.toBlob(blob => {
                     if (!blob) {
@@ -692,12 +692,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         alert('Failed to export chart image due to browser security restrictions. The chart may contain external resources that prevent export.');
                         return;
                     }
-
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     link.href = url;
                     link.download = filename;
-
                     try {
                         document.body.appendChild(link);
                         link.click();
@@ -705,7 +703,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Failed to trigger download:', clickError);
                         alert('Failed to download chart. Please try again.');
                     } finally {
-                        // Clean up in next tick to ensure download is registered
                         setTimeout(() => {
                             document.body.removeChild(link);
                             URL.revokeObjectURL(url);
@@ -717,31 +714,31 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error exporting chart:', error);
             alert('Failed to export chart. Please try again.');
         }
-    const ctx = canvas.getContext('2d');
-    const chartInstance = ctx && (canvas.__chart__ || canvas.chart);
-    if (!chartInstance) {
-        console.error('Chart instance not found');
-        alert('Unable to export chart data. Chart instance not found.');
-        return;
     }
+
+    // Separate helper function to export chart data as JSON
+    function exportChartData(canvas, title) {
+        try {
+            const ctx = canvas.getContext('2d');
+            const chartInstance = ctx && (canvas.__chart__ || canvas.chart || ctx.canvas.chart);
+            if (!chartInstance || !chartInstance.data) {
+                console.error('Chart instance not found');
                 alert('Unable to export chart data. Chart instance not found.');
                 return;
             }
-
-            const chartInstance = ctx.canvas.chart;
-            const data = chartInstance && chartInstance.data ? chartInstance.data : { labels: [], datasets: [] };
+            const data = chartInstance.data;
             const safeLabels = Array.isArray(data.labels) ? data.labels.slice() : [];
             const safeDatasets = Array.isArray(data.datasets)
                 ? data.datasets.map(ds => ({
-                      label: typeof ds.label === 'string' ? ds.label : '',
-                      data: Array.isArray(ds.data) ? ds.data.slice() : [],
-                      backgroundColor: ds.backgroundColor ?? null,
-                      borderColor: ds.borderColor ?? null,
-                      borderWidth: typeof ds.borderWidth === 'number' ? ds.borderWidth : undefined
-                  }))
+                    label: typeof ds.label === 'string' ? ds.label : '',
+                    data: Array.isArray(ds.data) ? ds.data.slice() : [],
+                    backgroundColor: ds.backgroundColor ?? null,
+                    borderColor: ds.borderColor ?? null,
+                    borderWidth: typeof ds.borderWidth === 'number' ? ds.borderWidth : undefined
+                }))
                 : [];
             const exportData = {
-                title: title,
+                title,
                 exported_at: new Date().toISOString(),
                 labels: safeLabels,
                 datasets: safeDatasets
@@ -760,7 +757,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const link = document.createElement('a');
             link.href = url;
             link.download = filename;
-
             try {
                 document.body.appendChild(link);
                 link.click();
@@ -768,7 +764,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Failed to trigger download:', clickError);
                 alert('Failed to download data. Please try again.');
             } finally {
-                // Clean up in next tick to ensure download is registered
                 setTimeout(() => {
                     document.body.removeChild(link);
                     URL.revokeObjectURL(url);
