@@ -131,16 +131,16 @@ async with aiohttp.ClientSession() as session:
 ### 4. Security Considerations
 
 #### Input Validation
-- **Base64 Decoding**: Maximum size limits (5MB input, 10MB output)
+- **Base64 Decoding**: Maximum size limits (50MB input, 100MB output)
 - **Config Validation**: Plausibility checks before parsing
 - **URL Validation**: Protocol and domain validation
 
 #### Size Limits
 ```python
-MAX_B64_INPUT_SIZE = 5 * 1024 * 1024      # 5MB
-MAX_B64_OUTPUT_SIZE = 10 * 1024 * 1024    # 10MB
-MAX_CONFIG_LINES = 50_000                  # 50k lines
-MAX_LINE_LENGTH = 8192                     # 8KB per line
+MAX_B64_INPUT_SIZE = 50 * 1024 * 1024     # 50MB
+MAX_B64_OUTPUT_SIZE = 100 * 1024 * 1024   # 100MB
+MAX_CONFIG_LINE_LENGTH = 10000            # 10KB per line
+MAX_LINES_PER_SOURCE = 10000              # 10k lines per source
 ```
 
 #### Sensitive Data Handling

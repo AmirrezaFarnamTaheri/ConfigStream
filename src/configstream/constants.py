@@ -46,6 +46,7 @@ VALID_PROTOCOLS = [
     "juicity",
     "xray",
     "xtls",
+    "v2ray",  # V2Ray JSON configs
     "ssh",
     "http",
     "https",
