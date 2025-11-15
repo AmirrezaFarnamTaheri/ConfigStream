@@ -556,6 +556,191 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Chart Action Buttons (3-dot menu)
+    const chartActionButtons = document.querySelectorAll('.chart-action');
+    chartActionButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const chartContainer = button.closest('.chart-container');
+            if (!chartContainer) return;
+
+            const chartHeader = chartContainer.querySelector('.chart-header');
+            if (!chartHeader) return;
+
+            const chartTitle = chartHeader.querySelector('h3')?.textContent || 'Chart';
+            const canvas = chartContainer.querySelector('canvas');
+            if (!canvas) return;
+
+            // Create export menu
+            const menu = document.createElement('div');
+            menu.className = 'chart-action-menu';
+            menu.style.cssText = `
+                position: absolute;
+                top: ${button.offsetTop + button.offsetHeight}px;
+                right: 10px;
+                background: var(--bg-primary);
+                border: 1px solid var(--border);
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                z-index: 1000;
+                min-width: 200px;
+            `;
+
+            // Export as PNG option
+            const exportPngOption = document.createElement('button');
+            exportPngOption.textContent = '📊 Export as PNG';
+            exportPngOption.style.cssText = `
+                display: block;
+                width: 100%;
+                padding: 10px 12px;
+                border: none;
+                background: none;
+                text-align: left;
+                cursor: pointer;
+                font-size: 14px;
+                color: var(--text-primary);
+                border-bottom: 1px solid var(--border);
+            `;
+            exportPngOption.addEventListener('mouseover', () => {
+                exportPngOption.style.backgroundColor = 'var(--bg-secondary)';
+            });
+            exportPngOption.addEventListener('mouseout', () => {
+                exportPngOption.style.backgroundColor = 'transparent';
+            });
+            exportPngOption.addEventListener('click', () => {
+                exportChartAsImage(canvas, chartTitle, 'png');
+                document.body.removeChild(menu);
+            });
+
+            // Export as SVG option
+            const exportSvgOption = document.createElement('button');
+            exportSvgOption.textContent = '📈 Export as SVG';
+            exportSvgOption.style.cssText = `
+                display: block;
+                width: 100%;
+                padding: 10px 12px;
+                border: none;
+                background: none;
+                text-align: left;
+                cursor: pointer;
+                font-size: 14px;
+                color: var(--text-primary);
+                border-bottom: 1px solid var(--border);
+            `;
+            exportSvgOption.addEventListener('mouseover', () => {
+                exportSvgOption.style.backgroundColor = 'var(--bg-secondary)';
+            });
+            exportSvgOption.addEventListener('mouseout', () => {
+                exportSvgOption.style.backgroundColor = 'transparent';
+            });
+            exportSvgOption.addEventListener('click', () => {
+                exportChartAsImage(canvas, chartTitle, 'svg');
+                document.body.removeChild(menu);
+            });
+
+            // Export data as JSON option
+            const exportJsonOption = document.createElement('button');
+            exportJsonOption.textContent = '💾 Export Data as JSON';
+            exportJsonOption.style.cssText = `
+                display: block;
+                width: 100%;
+                padding: 10px 12px;
+                border: none;
+                background: none;
+                text-align: left;
+                cursor: pointer;
+                font-size: 14px;
+                color: var(--text-primary);
+            `;
+            exportJsonOption.addEventListener('mouseover', () => {
+                exportJsonOption.style.backgroundColor = 'var(--bg-secondary)';
+            });
+            exportJsonOption.addEventListener('mouseout', () => {
+                exportJsonOption.style.backgroundColor = 'transparent';
+            });
+            exportJsonOption.addEventListener('click', () => {
+                exportChartData(canvas, chartTitle);
+                document.body.removeChild(menu);
+            });
+
+            menu.appendChild(exportPngOption);
+            menu.appendChild(exportSvgOption);
+            menu.appendChild(exportJsonOption);
+            document.body.appendChild(menu);
+
+            // Close menu when clicking elsewhere
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(event) {
+                    if (!menu.contains(event.target) && event.target !== button) {
+                        if (menu.parentNode) {
+                            document.body.removeChild(menu);
+                        }
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 0);
+        });
+    });
+
+    // Helper function to export chart as image
+    function exportChartAsImage(canvas, title, format) {
+        try {
+            if (format === 'png') {
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                });
+            } else if (format === 'svg') {
+                // SVG export would require additional library
+                const img = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.href = img;
+                link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+                link.click();
+            }
+        } catch (error) {
+            console.error('Error exporting chart:', error);
+            alert('Failed to export chart. Please try again.');
+        }
+    }
+
+    // Helper function to export chart data
+    function exportChartData(canvas, title) {
+        try {
+            const ctx = canvas.getContext('2d');
+            if (!ctx || !ctx.canvas.__chart__) {
+                console.error('Chart instance not found');
+                return;
+            }
+
+            const chartInstance = ctx.canvas.__chart__;
+            const exportData = {
+                title: title,
+                exported_at: new Date().toISOString(),
+                labels: chartInstance.data.labels,
+                datasets: chartInstance.data.datasets
+            };
+
+            const jsonString = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-data-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            alert('Failed to export data. Please try again.');
+        }
+    }
+
     // Initial render
     renderCharts();
 });

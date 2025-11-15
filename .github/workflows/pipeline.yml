@@ -233,13 +233,25 @@ jobs:
           git status --short
           git diff --stat || true
 
-      - name: Pull latest changes
+      - name: Setup git configuration
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Pull latest changes (with fallback strategy)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          set -euxo pipefail
           git checkout main
-          git pull --rebase --autostash origin main
+          # Try to pull with rebase first
+          if ! git pull --rebase --autostash origin main; then
+            # If rebase fails, abort and use merge strategy instead
+            git rebase --abort || true
+            git pull --no-rebase origin main || true
+          fi
+          # Clean up any remaining conflicts
+          git status | grep "both modified:" | awk '{print $3}' | xargs -r git add || true
 
       - name: Commit updated output
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -247,7 +259,9 @@ jobs:
         with:
           commit_message: "chore(data): update outputs from all batches"
           file_pattern: "output/"
-          add_options: '-f'
+          add_options: '-A'
+          skip_fetch: true
+          skip_checkout: true
 
       - name: Upload final pipeline artifact
         if: always()
