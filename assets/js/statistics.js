@@ -556,6 +556,225 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Chart Action Buttons (3-dot menu)
+    const chartActionButtons = document.querySelectorAll('.chart-action');
+    chartActionButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const chartContainer = button.closest('.chart-container');
+            if (!chartContainer) return;
+
+            const chartHeader = chartContainer.querySelector('.chart-header');
+            if (!chartHeader) return;
+
+            const chartTitle = chartHeader.querySelector('h3')?.textContent || 'Chart';
+            const canvas = chartContainer.querySelector('canvas');
+            if (!canvas) return;
+
+            // Create export menu with viewport-aware positioning
+    // Remove any existing action menus before creating a new one
+    document.querySelectorAll('.chart-action-menu').forEach(el => el.remove());
+
+            const menu = document.createElement('div');
+            menu.className = 'chart-action-menu';
+
+            // Use getBoundingClientRect for proper viewport positioning
+            const rect = button.getBoundingClientRect();
+    let top = rect.bottom + window.scrollY;
+    let left = rect.right + window.scrollX - 200;
+
+    // Initial clamp based on assumed min width
+    const margin = 8;
+    const assumedMinWidth = 200;
+    const maxLeft = window.scrollX + window.innerWidth - margin - assumedMinWidth; // min-width
+    const maxTop = window.scrollY + window.innerHeight - margin - 10; // approx item height
+    left = Math.max(window.scrollX + margin, Math.min(left, maxLeft));
+    top = Math.max(window.scrollY + margin, Math.min(top, maxTop));
+
+            // Apply base styles including minWidth so measurement reflects layout
+            menu.style.cssText = `
+                position: absolute;
+                top: ${top}px;
+                left: ${left}px;
+                min-width: ${assumedMinWidth}px;
+            `;
+
+            // Insert into DOM to measure actual width, then re-clamp accurately
+            document.body.appendChild(menu);
+            const menuWidth = Math.max(assumedMinWidth, menu.getBoundingClientRect().width || assumedMinWidth);
+            const correctedMaxLeft = window.scrollX + window.innerWidth - margin - menuWidth;
+            const correctedLeft = Math.max(window.scrollX + margin, Math.min(left, correctedMaxLeft));
+            if (correctedLeft !== left) {
+                menu.style.left = `${correctedLeft}px`;
+            }
+
+            // Helper to create menu button
+            const createMenuButton = (text, onClick, isLast = false) => {
+                const btn = document.createElement('button');
+                btn.textContent = text;
+                btn.style.cssText = `
+                    display: block;
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: none;
+                    background: none;
+                    text-align: left;
+                    cursor: pointer;
+                    font-size: 14px;
+                    color: var(--text-primary);
+                    ${!isLast ? 'border-bottom: 1px solid var(--border);' : ''}
+                `;
+                btn.addEventListener('mouseover', () => {
+                    btn.style.backgroundColor = 'var(--bg-secondary)';
+                });
+                btn.addEventListener('mouseout', () => {
+                    btn.style.backgroundColor = '';
+                });
+                btn.addEventListener('click', (evt) => {
+                    evt.stopPropagation();
+                    try {
+                        onClick();
+                    } catch (err) {
+                        console.error('Chart action failed:', err);
+                        alert('Action failed. Please try again.');
+                    } finally {
+                        closeMenu();
+                    }
+                });
+                return btn;
+            };
+
+            // Helper function to safely close menu
+            const closeMenu = () => {
+                if (menu.parentNode) {
+                    document.body.removeChild(menu);
+                }
+                document.removeEventListener('click', handleOutsideClick);
+            };
+
+            // Handle outside clicks
+            const handleOutsideClick = (event) => {
+                if (!menu.contains(event.target) && event.target !== button) {
+                    closeMenu();
+                }
+            };
+
+            // Export as PNG option
+            menu.appendChild(createMenuButton('📊 Export as PNG', () => {
+                exportChartAsImage(canvas, chartTitle, 'png');
+            }));
+
+            // Export data as JSON option (marked as last)
+            menu.appendChild(createMenuButton('💾 Export Data as JSON', () => {
+                exportChartData(canvas, chartTitle);
+            }, true));
+
+            document.body.appendChild(menu);
+
+            // Add outside-click listener after menu is added
+            setTimeout(() => {
+                document.addEventListener('click', handleOutsideClick);
+            }, 0);
+        });
+    });
+
+    // Helper function to export chart as image
+    // Helper function to export chart as image
+    function exportChartAsImage(canvas, title, format) {
+        try {
+            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+            if (format === 'png') {
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        console.error('Canvas export failed: blob is null (possibly tainted canvas or insufficient permissions).');
+                        alert('Failed to export chart image due to browser security restrictions. The chart may contain external resources that prevent export.');
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    try {
+                        document.body.appendChild(link);
+                        link.click();
+                    } catch (clickError) {
+                        console.error('Failed to trigger download:', clickError);
+                        alert('Failed to download chart. Please try again.');
+                    } finally {
+                        setTimeout(() => {
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        }, 100);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error exporting chart:', error);
+            alert('Failed to export chart. Please try again.');
+        }
+    }
+
+    // Separate helper function to export chart data as JSON
+    function exportChartData(canvas, title) {
+        try {
+            const ctx = canvas.getContext('2d');
+            const chartInstance = ctx && (canvas.__chart__ || canvas.chart || ctx.canvas.chart);
+            if (!chartInstance || !chartInstance.data) {
+                console.error('Chart instance not found');
+                alert('Unable to export chart data. Chart instance not found.');
+                return;
+            }
+            const data = chartInstance.data;
+            const safeLabels = Array.isArray(data.labels) ? data.labels.slice() : [];
+            const safeDatasets = Array.isArray(data.datasets)
+                ? data.datasets.map(ds => ({
+                    label: typeof ds.label === 'string' ? ds.label : '',
+                    data: Array.isArray(ds.data) ? ds.data.slice() : [],
+                    backgroundColor: ds.backgroundColor ?? null,
+                    borderColor: ds.borderColor ?? null,
+                    borderWidth: typeof ds.borderWidth === 'number' ? ds.borderWidth : undefined
+                }))
+                : [];
+            const exportData = {
+                title,
+                exported_at: new Date().toISOString(),
+                labels: safeLabels,
+                datasets: safeDatasets
+            };
+            let jsonString = '';
+            try {
+                jsonString = JSON.stringify(exportData, null, 2);
+            } catch (serr) {
+                console.error('Serialization failed:', serr);
+                alert('Failed to serialize chart data for export.');
+                return;
+            }
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-data-${Date.now()}.json`;
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            try {
+                document.body.appendChild(link);
+                link.click();
+            } catch (clickError) {
+                console.error('Failed to trigger download:', clickError);
+                alert('Failed to download data. Please try again.');
+            } finally {
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+        } catch (error) {
+            console.error('Error exporting data:', error);
+            alert('Failed to export data. Please try again.');
+        }
+    }
+
     // Initial render
     renderCharts();
 });

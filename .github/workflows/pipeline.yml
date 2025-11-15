@@ -233,21 +233,76 @@ jobs:
           git status --short
           git diff --stat || true
 
-      - name: Pull latest changes
+      - name: Setup git configuration
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout main
-          git pull --rebase --autostash origin main
 
-      - name: Commit updated output
+      - name: Pull latest changes (with conflict detection)
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          set -euxo pipefail
+          git checkout main
+
+          # Ensure we have the latest refs (handles shallow/deatched scenarios)
+          git fetch --all --prune
+
+          # Ensure on local main tracking origin/main
+          git checkout -B main origin/main
+
+          # Try to pull with rebase first
+          if ! git pull --rebase --autostash origin main; then
+            echo "Rebase failed. Attempting merge strategy..."
+            git rebase --abort || true
+
+            # If merge also fails, report error and exit
+            if ! git pull --no-rebase origin main; then
+              echo "::error::Automatic merge failed. Manual intervention required."
+              git status
+              exit 1
+            fi
+
+            # Check if there are any unresolved conflicts
+            if git diff --name-only --diff-filter=U | grep -q .; then
+              echo "::error::Unresolved merge conflicts detected:"
+              git diff --name-only --diff-filter=U
+              exit 1
+            fi
+          fi
+
+          # If we got here, merge succeeded with no conflicts
+          echo "Successfully merged/rebased latest changes from main"
+          git status
+
+      - name: Prepare repository for auto-commit
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          set -euxo pipefail
+          # Ensure we are on the main branch
+          git checkout main
+          # Default to not skipping unless proven otherwise
+          echo "SKIP_COMMIT=false" >> $GITHUB_ENV
+          # Only proceed if there are changes in output/
+          if [ -d "output" ]; then
+            # Detect any changes (modified, added, deleted, untracked) under output/
+            if [ -z "$(git status --porcelain -- output/ || true)" ]; then
+              echo "No changes in output/, skipping auto-commit."
+              echo "SKIP_COMMIT=true" >> $GITHUB_ENV
+            fi
+          else
+            echo "No output/ directory, skipping auto-commit."
+            echo "SKIP_COMMIT=true" >> $GITHUB_ENV
+          fi
+      - name: Commit updated output
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.SKIP_COMMIT != 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(data): update outputs from all batches"
           file_pattern: "output/"
-          add_options: '-f'
+          add_options: '-A'
+          skip_fetch: true
+          skip_checkout: true
 
       - name: Upload final pipeline artifact
         if: always()
