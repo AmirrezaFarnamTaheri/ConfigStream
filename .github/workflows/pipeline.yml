@@ -281,9 +281,17 @@ jobs:
           set -euxo pipefail
           # Ensure we are on the main branch
           git checkout main
+          # Default to not skipping unless proven otherwise
+          echo "SKIP_COMMIT=false" >> $GITHUB_ENV
           # Only proceed if there are changes in output/
-          if git diff --quiet -- output/; then
-            echo "No changes in output/, skipping auto-commit."
+          if [ -d "output" ]; then
+            if git diff --quiet -- output/; then
+              echo "No changes in output/, skipping auto-commit."
+              # override to skip
+              echo "SKIP_COMMIT=true" >> $GITHUB_ENV
+            fi
+          else
+            echo "No output/ directory, skipping auto-commit."
             echo "SKIP_COMMIT=true" >> $GITHUB_ENV
           fi
       - name: Commit updated output
