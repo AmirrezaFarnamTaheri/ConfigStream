@@ -123,19 +123,56 @@ def select_top_configs(
 def merge_batches():
     """
     Merges the outputs from the individual batch runs into a single, unified output.
-    This script reads the index.json from each batch, deduplicates the proxies,
-    and then regenerates all output files from the merged data.
+
+    This implements a STATEFUL, LATEST-WINS merge strategy:
+    - Loads metadata.json from each batch to get run_timestamp
+    - Processes batches in chronological order (oldest to newest)
+    - For duplicate proxies (same config), keeps the LATEST version
+    - This ensures no stale data and accurate proxy information
     """
     output_dir = root_dir / "output"
     batch_output_dirs = sorted(list(root_dir.glob("output_batch_*")))
 
+    # Map to store: config -> (proxy, timestamp)
+    # This ensures we keep the latest version of each proxy
     all_proxies_map = {}
+
+    # First, collect all batches with their timestamps
+    batches_with_timestamps = []
 
     for batch_dir in batch_output_dirs:
         if not batch_dir.exists():
             print(f"Info: Batch directory {batch_dir} not found. Skipping.")
             continue
 
+        # Load metadata to get run timestamp
+        metadata_file = batch_dir / "metadata.json"
+        if not metadata_file.exists():
+            print(f"Warning: No metadata.json in {batch_dir}. Using directory mtime for ordering.")
+            # Fallback: use directory modification time
+            timestamp = batch_dir.stat().st_mtime
+        else:
+            try:
+                with open(metadata_file, "r") as f:
+                    metadata = json.load(f)
+                    timestamp_str = metadata.get("last_updated_utc") or metadata.get("generated_at")
+                    if timestamp_str:
+                        timestamp = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")).timestamp()
+                    else:
+                        timestamp = batch_dir.stat().st_mtime
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                print(f"Warning: Could not parse metadata in {batch_dir}: {e}. Using fallback.")
+                timestamp = batch_dir.stat().st_mtime
+
+        batches_with_timestamps.append((batch_dir, timestamp))
+
+    # Sort batches by timestamp (oldest first, so newest overwrites)
+    batches_with_timestamps.sort(key=lambda x: x[1])
+
+    print(f"Processing {len(batches_with_timestamps)} batches in chronological order...")
+
+    total_processed = 0
+    for batch_dir, batch_timestamp in batches_with_timestamps:
         # Try proxies.json first (new format), then fallback to index.json (old format)
         proxies_file = batch_dir / "proxies.json"
         if not proxies_file.exists():
@@ -148,15 +185,25 @@ def merge_batches():
         with open(proxies_file, "r") as f:
             try:
                 proxies_data = json.load(f)
+                total_processed += len(proxies_data)
                 for proxy_data in proxies_data:
                     proxy = Proxy(**proxy_data)
-                    # Use the raw config as the key to handle duplicates across batches
-                    if proxy.config not in all_proxies_map:
-                        all_proxies_map[proxy.config] = proxy
+
+                    # LATEST-WINS logic: Always overwrite with newer data
+                    # Since we process in chronological order, later batches overwrite earlier ones
+                    all_proxies_map[proxy.config] = (proxy, batch_timestamp)
+
+                print(f"Processed {batch_dir.name}: {len(proxies_data)} proxies at {datetime.fromtimestamp(batch_timestamp).isoformat()}")
             except (json.JSONDecodeError, TypeError) as e:
                 print(f"Warning: Could not process {proxies_file}. Error: {e}. Skipping.")
 
-    merged_proxies = list(all_proxies_map.values())
+    # Extract proxies from the map (discard timestamps)
+    merged_proxies = [proxy for proxy, _ in all_proxies_map.values()]
+
+    duplicates_removed = total_processed - len(merged_proxies)
+    print(f"\n✅ Merged {len(merged_proxies)} unique proxies (latest version of each)")
+    print(f"Total proxies processed across all batches: {total_processed}")
+    print(f"Duplicates removed (keeping latest): {duplicates_removed}")
 
     # Sort proxies by latency for consistent output
     merged_proxies.sort(key=lambda p: (p.latency is None, p.latency if p.latency else float("inf")))
