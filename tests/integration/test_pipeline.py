@@ -345,6 +345,9 @@ async def test_run_full_pipeline_no_proxies_to_test_no_sources(mocker, tmp_path,
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_geoip_db_not_found(mocker, tmp_path, caplog, no_pool_shutdown):
+    import importlib
+    from configstream import geoip_offline
+
     config = create_valid_vmess_config("p1")
     mocker.patch(
         "configstream.pipeline._process_sources",
@@ -355,14 +358,25 @@ async def test_run_full_pipeline_geoip_db_not_found(mocker, tmp_path, caplog, no
         "configstream.pipeline.SingBoxTester.test",
         new_callable=AsyncMock,
         return_value=Proxy(
-            config=config, protocol="vmess", address="test.com", port=443, is_working=True
+            config=config,
+            protocol="vmess",
+            address="test.com",
+            port=443,
+            is_working=True,
+            resolved_ip="1.1.1.1",
         ),
     )
     mocker.patch("pathlib.Path.exists", return_value=False)
 
-    await run_full_pipeline(sources=["source.txt"], output_dir=str(tmp_path), leniency=True)
+    # We need to reload the module because DEFAULT_RESOLVER is instantiated at the module level.
+    # The mock needs to be in place before the resolver is created.
+    importlib.reload(geoip_offline)
 
-    assert "GeoIP database not found" in caplog.text
+    with caplog.at_level(logging.WARNING):
+        await run_full_pipeline(sources=["source.txt"], output_dir=str(tmp_path), leniency=True)
+
+    assert "Offline GeoIP database not found" in caplog.text
+    assert "ASN database not found" in caplog.text
 
 
 @pytest.mark.asyncio
