@@ -32,6 +32,9 @@ class Proxy:
     age_seconds: int = 0
     stale: bool = False
     scores: Dict[str, float] = field(default_factory=dict)
+    # The actual IP address used during testing (after DNS resolution)
+    # Used for accurate geolocation when address is a hostname
+    resolved_ip: Optional[str] = None
 
     @property
     def latency_ms(self) -> Optional[float]:
