@@ -93,3 +93,8 @@ class AppSettings:
         os.getenv("TLS_TESTS_ALLOW_INSECURE", "False").lower() == "true"
     )
     TLS_TESTS_ENABLED: bool = os.getenv("TLS_TESTS_ENABLED", "True").lower() == "true"
+
+    # Proxy renaming/tagging template
+    # Available variables: {remarks}, {protocol}, {country}, {country_code}, {city}, {latency}, {asn}, {address}, {port}
+    # Example: "[{country}] {protocol} - {latency}ms"
+    RENAME_TEMPLATE: Optional[str] = os.getenv("RENAME_TEMPLATE")
