@@ -290,7 +290,9 @@ class ProxyHistoryTracker:
 
                 if entry.get("is_working"):
                     # Round down to the nearest bucket
-                    bucket_start_ts = ts - (ts - datetime.min.replace(tzinfo=timezone.utc)) % bucket_delta
+                    bucket_start_ts = (
+                        ts - (ts - datetime.min.replace(tzinfo=timezone.utc)) % bucket_delta
+                    )
                     bucket_key = bucket_start_ts.isoformat()
 
                     buckets[bucket_key].add(config)
@@ -304,12 +306,13 @@ class ProxyHistoryTracker:
 
         # Convert the defaultdict(set) to a sorted list
         trend_data = [
-            {"timestamp": key, "active_count": len(proxies)}
-            for key, proxies in buckets.items()
+            {"timestamp": key, "active_count": len(proxies)} for key, proxies in buckets.items()
         ]
 
+        from typing import cast
+
         # Sort by timestamp
-        trend_data.sort(key=lambda x: x["timestamp"])
+        trend_data.sort(key=lambda x: cast(str, x["timestamp"]))
 
         # Save to file
         output_path.parent.mkdir(parents=True, exist_ok=True)
