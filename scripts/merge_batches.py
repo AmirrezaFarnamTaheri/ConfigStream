@@ -157,7 +157,9 @@ def merge_batches():
                     metadata = json.load(f)
                     timestamp_str = metadata.get("last_updated_utc") or metadata.get("generated_at")
                     if timestamp_str:
-                        timestamp = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")).timestamp()
+                        timestamp = datetime.fromisoformat(
+                            timestamp_str.replace("Z", "+00:00")
+                        ).timestamp()
                     else:
                         timestamp = batch_dir.stat().st_mtime
             except (json.JSONDecodeError, KeyError, ValueError) as e:
@@ -193,7 +195,9 @@ def merge_batches():
                     # Since we process in chronological order, later batches overwrite earlier ones
                     all_proxies_map[proxy.config] = (proxy, batch_timestamp)
 
-                print(f"Processed {batch_dir.name}: {len(proxies_data)} proxies at {datetime.fromtimestamp(batch_timestamp).isoformat()}")
+                print(
+                    f"Processed {batch_dir.name}: {len(proxies_data)} proxies at {datetime.fromtimestamp(batch_timestamp).isoformat()}"
+                )
             except (json.JSONDecodeError, TypeError) as e:
                 print(f"Warning: Could not process {proxies_file}. Error: {e}. Skipping.")
 

@@ -17,6 +17,7 @@ class FmtWrapper(dict):
     A dictionary wrapper that returns an empty string "" for missing keys
     or keys whose value is None. This prevents errors during string formatting.
     """
+
     def __missing__(self, key: str) -> str:
         return ""
 
@@ -67,27 +68,26 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
         # 4. Robust cleanup of artifacts from missing data
 
         # Remove empty brackets/parentheses: "[]", "()", "{}"
-        new_name = re.sub(r'\[\s*\]', '', new_name)
-        new_name = re.sub(r'\(\s*\)', '', new_name)
-        new_name = re.sub(r'\{\s*\}', '', new_name)
+        new_name = re.sub(r"\[\s*\]", "", new_name)
+        new_name = re.sub(r"\(\s*\)", "", new_name)
+        new_name = re.sub(r"\{\s*\}", "", new_name)
 
         # Remove duplicate separators: " - - " -> " - "
         # This handles space, tab, hyphen, underscore, and pipe.
-        new_name = re.sub(r'([ \t\-_|])\1+', r'\1', new_name)
+        new_name = re.sub(r"([ \t\-_|])\1+", r"\1", new_name)
 
         # Remove separators dangling at the start/end
-        new_name = new_name.strip(' \t\n\r\-_|')
+        new_name = new_name.strip(" \t\n\r_-|")
 
         # Consolidate all whitespace to a single space
-        new_name = re.sub(r'\s+', ' ', new_name).strip()
+        new_name = re.sub(r"\s+", " ", new_name).strip()
 
         # If the name is empty after cleanup, return original name
         return new_name if new_name else original_name
 
     except (ValueError, KeyError) as e:
         logger.warning(
-            "Could not format name template '%s' for proxy %s: %s",
-            template, original_name, e
+            "Could not format name template '%s' for proxy %s: %s", template, original_name, e
         )
         return original_name  # Return original name on any failure
 
@@ -96,6 +96,7 @@ class ProxyTagger:
     """
     Applies a naming template to a list of Proxy objects in-place.
     """
+
     def __init__(self, name_template: Optional[str] = None):
         """
         Initializes the tagger with a name template.
@@ -117,10 +118,7 @@ class ProxyTagger:
             logger.debug("No name_template provided, skipping renaming.")
             return proxies  # Do nothing if no template is set
 
-        logger.info(
-            "Applying name template '%s' to %d proxies...",
-            self.template, len(proxies)
-        )
+        logger.info("Applying name template '%s' to %d proxies...", self.template, len(proxies))
 
         for proxy in proxies:
             # This is the key: we modify the 'remarks' field IN-PLACE
