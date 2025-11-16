@@ -1,6 +1,7 @@
 import asyncio
 import importlib
 import logging
+import socket
 import ssl
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, Tuple, cast
@@ -128,9 +129,28 @@ class SingBoxTester(ProxyTester):
                         # A different error occurred
                         proxy.security_issues.setdefault("tls", []).append(f"PROBE_FAILED_{result}")
 
+    async def _resolve_proxy_ip(self, proxy: Proxy) -> None:
+        """Resolve proxy address to IP for accurate geolocation."""
+        if not proxy.resolved_ip:
+            try:
+                # Try to resolve the hostname to an IP address
+                loop = asyncio.get_running_loop()
+                addr_info = await loop.getaddrinfo(
+                    proxy.address, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
+                )
+                if addr_info:
+                    # Get the first IP address (addr_info[0][4][0])
+                    proxy.resolved_ip = addr_info[0][4][0]
+            except Exception:
+                # If resolution fails, use the address as-is (might already be an IP)
+                proxy.resolved_ip = proxy.address
+
     async def _test_direct_http_socks(self, proxy: Proxy) -> Optional[Proxy]:
         """Test HTTP/SOCKS5 proxies directly for performance."""
         try:
+            # Resolve proxy IP for geolocation
+            await self._resolve_proxy_ip(proxy)
+
             protocol = proxy.protocol.lower()
             proxy_url = ""
             if protocol in ("http", "https"):
@@ -173,6 +193,9 @@ class SingBoxTester(ProxyTester):
         if proxy.protocol.lower() in ("http", "https", "socks", "socks5", "socks4"):
             if direct_result := await self._test_direct_http_socks(proxy):
                 return direct_result
+
+        # Resolve proxy IP for geolocation (for non-direct protocols)
+        await self._resolve_proxy_ip(proxy)
 
         singbox_factory = self._get_singbox_factory()
         sb_proxy: Any = None
