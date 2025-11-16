@@ -25,3 +25,4 @@ data/
 dist/
 build/
 *.egg-info/
+scripts/validate_asn_lookup_performance.py

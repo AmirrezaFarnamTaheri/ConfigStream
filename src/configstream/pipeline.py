@@ -21,7 +21,7 @@ from .http_client import get_client
 from rich.progress import Progress
 
 from .models import Proxy
-from .core import geolocate_proxy, parse_config
+from .core import parse_config
 from .parsers import _extract_config_lines
 from .output import (
     generate_base64_subscription,
@@ -320,7 +320,6 @@ async def run_full_pipeline(
     parse_cache: Dict[str, Proxy] = {}
     geo_cache: Dict[str, Dict[str, Optional[str]]] = {}
     geoip_reader: geoip2.database.Reader | None = None
-    geoip_lock = asyncio.Lock()  # Prevent race condition in reader initialization
     failure_reason: str | None = None
 
     if not sources_to_fetch and not supplied_proxies:
@@ -538,10 +537,14 @@ async def run_full_pipeline(
                                         proxy.city = cached_geo.get("city") or proxy.city
                                         proxy.asn = cached_geo.get("asn") or proxy.asn
                                     else:
-                                        geo_info = geoip_offline.DEFAULT_RESOLVER.lookup(proxy.resolved_ip)
+                                        geo_info = geoip_offline.DEFAULT_RESOLVER.lookup(
+                                            proxy.resolved_ip
+                                        )
                                         if geo_info.country_code:
                                             proxy.country_code = geo_info.country_code
-                                            proxy.country = geo_info.country_code  # Use code as country for compatibility
+                                            proxy.country = (
+                                                geo_info.country_code
+                                            )  # Use code as country for compatibility
                                             proxy.asn = geo_info.asn or proxy.asn
                                             geo_ip_count += 1
 
@@ -569,7 +572,9 @@ async def run_full_pipeline(
 
                 logger.info(
                     "Geolocation complete for %s: %d by IP, %d by remark.",
-                    label, geo_ip_count, geo_remark_count
+                    label,
+                    geo_ip_count,
+                    geo_remark_count,
                 )
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("GeoIP lookup failed during %s: %s", label, exc)
@@ -586,7 +591,9 @@ async def run_full_pipeline(
 
                     app_config = AppSettings()
                     if app_config.RENAME_TEMPLATE:
-                        logger.info("Applying custom rename template: %s", app_config.RENAME_TEMPLATE)
+                        logger.info(
+                            "Applying custom rename template: %s", app_config.RENAME_TEMPLATE
+                        )
                         tagger = tagging.ProxyTagger(name_template=app_config.RENAME_TEMPLATE)
                         tagger.apply(all_working_proxies)
                     else:

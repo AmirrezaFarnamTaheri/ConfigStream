@@ -74,17 +74,17 @@ class RemarkGeoParser:
         # 2. Regex to find standalone 2-letter uppercase codes.
         # \b ensures it's a "whole word" (e.g., finds 'US' but not 'USELESS')
         # Looks for codes bounded by common separators or brackets.
-        self.re_iso_code = re.compile(r'[\s\[\](|_.-]([A-Z]{2})[\s\[\])|_.-]')
+        self.re_iso_code = re.compile(r"[\s\[\](|_.-]([A-Z]{2})[\s\[\])|_.-]")
 
         # 3. Regex to clean up remark for full name search.
         # Removes common noise like protocols, latencies, numbers.
         self.re_noise = re.compile(
-            r'(\b(vless|vmess|trojan|ss|ssr|hysteria2?)\b|'  # Protocols
-            r'\d{1,5}\s*ms\b|'  # Latency
-            r'\[.*?\]|\(.*?\)|\{.*?\}|'  # Anything in brackets
-            r'[_\-|]|'  # Separators
-            r'\b\d+\b)',  # Standalone numbers
-            flags=re.IGNORECASE
+            r"(\b(vless|vmess|trojan|ss|ssr|hysteria2?)\b|"  # Protocols
+            r"\d{1,5}\s*ms\b|"  # Latency
+            r"\[.*?\]|\(.*?\)|\{.*?\}|"  # Anything in brackets
+            r"[_\-|]|"  # Separators
+            r"\b\d+\b)",  # Standalone numbers
+            flags=re.IGNORECASE,
         )
 
     @functools.lru_cache(maxsize=2048)  # Cache 2k lookups
@@ -103,7 +103,7 @@ class RemarkGeoParser:
 
         # --- Stage 1: Emoji Check (Highest Priority) ---
         if self.re_emoji:
-            match = self.re_emoji.search(remark)
+            match: Optional[re.Match[str]] = self.re_emoji.search(remark)
             if match:
                 emoji = match.group(0)
                 code = self.emoji_to_code.get(emoji)
@@ -113,7 +113,7 @@ class RemarkGeoParser:
         # --- Stage 2: Standalone ISO Code Check ---
         # Add spaces to help regex find codes at start/end
         padded_remark = f" {remark} "
-        matches = self.re_iso_code.findall(padded_remark)
+        matches: list[str] = self.re_iso_code.findall(padded_remark)
         for code in matches:
             if code in self.iso_codes_set:
                 return code
@@ -123,7 +123,7 @@ class RemarkGeoParser:
             return None  # No name map to check against
 
         # Clean the remark to make name matching easier
-        cleaned_remark = self.re_noise.sub(' ', remark).lower().strip()
+        cleaned_remark = self.re_noise.sub(" ", remark).lower().strip()
         if not cleaned_remark:
             return None  # Cleaning removed everything
 
@@ -131,7 +131,7 @@ class RemarkGeoParser:
         # (e.g., match "United States" before "United")
         for name in sorted(self.name_to_code.keys(), key=len, reverse=True):
             # Use word boundaries for accuracy
-            if re.search(r'\b' + re.escape(name) + r'\b', cleaned_remark):
+            if re.search(r"\b" + re.escape(name) + r"\b", cleaned_remark):
                 return self.name_to_code[name]
 
         return None
