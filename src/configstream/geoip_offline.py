@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class GeoResult:
     """Dataclass to hold geolocation results."""
+
     country_code: str | None = None
     city_name: str | None = None  # Field exists for API compatibility
     asn: str | None = None
@@ -51,8 +52,7 @@ class ComprehensiveGeoIPResolver:
     ) -> None:
         if geoip2 is None:
             logger.warning(
-                "geoip2 library not installed. "
-                "Run 'pip install geoip2' to enable geolocation."
+                "geoip2 library not installed. " "Run 'pip install geoip2' to enable geolocation."
             )
 
         self._offline_country_reader: Any = self._load_reader(offline_country_db)
@@ -66,8 +66,7 @@ class ComprehensiveGeoIPResolver:
             # Create a sorted list of just the start IPs for bisect
             self._asn_starts = [record[0] for record in self._asn_records]
             logger.info(
-                "Loaded %d ASN records for high-speed binary search.",
-                len(self._asn_records)
+                "Loaded %d ASN records for high-speed binary search.", len(self._asn_records)
             )
 
         if not self._offline_country_reader and not self._asn_records:
