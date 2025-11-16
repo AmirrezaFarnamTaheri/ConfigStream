@@ -9,7 +9,8 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from collections import defaultdict
 
 from .models import Proxy
 
@@ -221,8 +222,6 @@ class ProxyHistoryTracker:
         Returns:
             Number of proxies removed
         """
-        from datetime import timedelta
-
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         removed = 0
 
@@ -248,3 +247,74 @@ class ProxyHistoryTracker:
             logger.info("Cleaned up history for %d proxies", removed)
 
         return removed
+
+    def export_active_proxy_trend(
+        self,
+        output_path: Path = Path("data/active_proxy_trend.json"),
+        hours_to_track: int = 168,  # 7 days
+        bucket_minutes: int = 60,  # 1-hour buckets
+    ) -> None:
+        """
+        Aggregates historical data to show the number of unique active
+        proxies over time.
+
+        Args:
+            output_path: Path to save the aggregated trend data.
+            hours_to_track: How many hours back to process.
+            bucket_minutes: The size of each time bucket in minutes.
+        """
+        logger.info("Generating active proxy trend data...")
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_to_track)
+
+        # Use a defaultdict of sets to store unique proxy configs per time bucket
+        # The key will be the rounded-down timestamp string
+        buckets = defaultdict(set)
+        bucket_delta = timedelta(minutes=bucket_minutes)
+
+        for config, data in self.history_data.items():
+            if not data.get("entries"):
+                continue
+
+            for entry in data["entries"]:
+                try:
+                    ts = datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
+                except (ValueError, TypeError):
+                    continue  # Skip invalid timestamps
+
+                # Ensure timestamp is timezone-aware for comparison
+                if ts.tzinfo is None:
+                    ts = ts.replace(tzinfo=timezone.utc)
+
+                if ts < cutoff:
+                    continue  # Entry is too old
+
+                if entry.get("is_working"):
+                    # Round down to the nearest bucket
+                    bucket_start_ts = (
+                        ts - (ts - datetime.min.replace(tzinfo=timezone.utc)) % bucket_delta
+                    )
+                    bucket_key = bucket_start_ts.isoformat()
+
+                    buckets[bucket_key].add(config)
+
+        if not buckets:
+            logger.warning("No working proxy data found for trend analysis.")
+            # Write an empty list so the frontend doesn't 404
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(json.dumps([], indent=2))
+            return
+
+        # Convert the defaultdict(set) to a sorted list
+        trend_data = [
+            {"timestamp": key, "active_count": len(proxies)} for key, proxies in buckets.items()
+        ]
+
+        from typing import cast
+
+        # Sort by timestamp
+        trend_data.sort(key=lambda x: cast(str, x["timestamp"]))
+
+        # Save to file
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(json.dumps(trend_data, indent=2))
+        logger.info("Exported active proxy trend data to %s", output_path)

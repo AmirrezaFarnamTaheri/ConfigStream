@@ -21,7 +21,7 @@ from .http_client import get_client
 from rich.progress import Progress
 
 from .models import Proxy
-from .core import geolocate_proxy, parse_config
+from .core import parse_config
 from .parsers import _extract_config_lines
 from .output import (
     generate_base64_subscription,
@@ -320,7 +320,6 @@ async def run_full_pipeline(
     parse_cache: Dict[str, Proxy] = {}
     geo_cache: Dict[str, Dict[str, Optional[str]]] = {}
     geoip_reader: geoip2.database.Reader | None = None
-    geoip_lock = asyncio.Lock()  # Prevent race condition in reader initialization
     failure_reason: str | None = None
 
     if not sources_to_fetch and not supplied_proxies:
@@ -498,55 +497,85 @@ async def run_full_pipeline(
             return tested
 
         async def _geolocate_batch(batch: List[Proxy], label: str) -> None:
-            nonlocal geoip_reader
+            """
+            Geolocate proxies using a robust 2-layer approach:
+            Layer 1 (Primary): IP-based lookup using geoip_offline.DEFAULT_RESOLVER
+            Layer 2 (Fallback): Remark-based parsing using remark_parser
+            """
             if not batch:
                 return
 
             geo_task = (
                 progress.add_task(f"Geolocating {label}", total=len(batch)) if progress else None
             )
-            try:
-                geoip_db_path = Path("data/GeoLite2-City.mmdb")
-                # Use lock to prevent race condition when initializing reader
-                async with geoip_lock:
-                    if geoip_reader is None and geoip_db_path.exists():
-                        geoip_reader = geoip2.database.Reader(str(geoip_db_path))
-                        logger.info("Loaded GeoIP database from %s", geoip_db_path)
-                    elif geoip_reader is None:
-                        logger.warning("GeoIP database not found at %s", geoip_db_path)
 
+            # Import the new geolocation modules
+            from . import geoip_offline
+            from . import remark_parser
+
+            # Initialize the remark parser (it pre-compiles regexes/maps)
+            remark_geo_parser = remark_parser.RemarkGeoParser()
+
+            geo_ip_count = 0
+            geo_remark_count = 0
+
+            try:
                 working_items = [proxy for proxy in batch if proxy.is_working]
                 if working_items:
                     with tracker.phase("geo"):
                         for proxy in batch:
                             if proxy.is_working:
-                                cached_geo = geo_cache.get(proxy.address)
-                                if cached_geo:
-                                    proxy.country = cached_geo.get("country") or proxy.country
-                                    proxy.country_code = (
-                                        cached_geo.get("country_code") or proxy.country_code
-                                    )
-                                    proxy.city = cached_geo.get("city") or proxy.city
-                                    proxy.asn = cached_geo.get("asn") or proxy.asn
-                                else:
-                                    await geolocate_proxy(
-                                        proxy,
-                                        geoip_reader,
-                                    )
-                                    if (
-                                        proxy.country_code not in {"", "XX"}
-                                        or proxy.country != "Unknown"
-                                    ):
-                                        geo_cache[proxy.address] = {
-                                            "country": proxy.country,
-                                            "country_code": proxy.country_code,
-                                            "city": proxy.city,
-                                            "asn": proxy.asn,
-                                        }
+                                # Layer 1: Primary Method (IP-based)
+                                # Use the *resolved_ip* from the tester, not proxy.address
+                                if proxy.resolved_ip:
+                                    cached_geo = geo_cache.get(proxy.resolved_ip)
+                                    if cached_geo:
+                                        proxy.country = cached_geo.get("country") or proxy.country
+                                        proxy.country_code = (
+                                            cached_geo.get("country_code") or proxy.country_code
+                                        )
+                                        proxy.city = cached_geo.get("city") or proxy.city
+                                        proxy.asn = cached_geo.get("asn") or proxy.asn
+                                    else:
+                                        geo_info = geoip_offline.DEFAULT_RESOLVER.lookup(
+                                            proxy.resolved_ip
+                                        )
+                                        if geo_info.country_code:
+                                            proxy.country_code = geo_info.country_code
+                                            proxy.country = (
+                                                geo_info.country_code
+                                            )  # Use code as country for compatibility
+                                            proxy.asn = geo_info.asn or proxy.asn
+                                            geo_ip_count += 1
+
+                                            # Cache the result
+                                            geo_cache[proxy.resolved_ip] = {
+                                                "country": proxy.country,
+                                                "country_code": proxy.country_code,
+                                                "city": proxy.city,
+                                                "asn": proxy.asn,
+                                            }
+
+                                # Layer 2: Fallback Method (Remark-based)
+                                # Only run if Layer 1 failed AND we have remarks to parse
+                                if not proxy.country_code and proxy.remarks:
+                                    country_from_remark = remark_geo_parser.parse(proxy.remarks)
+                                    if country_from_remark:
+                                        proxy.country_code = country_from_remark
+                                        proxy.country = country_from_remark
+                                        geo_remark_count += 1
+
                             if progress and geo_task is not None:
                                 progress.update(geo_task, advance=1)
                 elif progress and geo_task is not None:
                     progress.update(geo_task, completed=len(batch))
+
+                logger.info(
+                    "Geolocation complete for %s: %d by IP, %d by remark.",
+                    label,
+                    geo_ip_count,
+                    geo_remark_count,
+                )
             except Exception as exc:  # pragma: no cover - defensive
                 logger.warning("GeoIP lookup failed during %s: %s", label, exc)
             finally:
@@ -556,8 +585,20 @@ async def run_full_pipeline(
         def _write_outputs() -> None:
             try:
                 with tracker.phase("output"):
-                    # Format proxy names with protocol rank, country flag, and original name
-                    format_proxy_names_with_rank(all_working_proxies)
+                    # Apply custom tagging if RENAME_TEMPLATE is set in config
+                    from .config import AppSettings
+                    from . import tagging
+
+                    app_config = AppSettings()
+                    if app_config.RENAME_TEMPLATE:
+                        logger.info(
+                            "Applying custom rename template: %s", app_config.RENAME_TEMPLATE
+                        )
+                        tagger = tagging.ProxyTagger(name_template=app_config.RENAME_TEMPLATE)
+                        tagger.apply(all_working_proxies)
+                    else:
+                        # Format proxy names with protocol rank, country flag, and original name (default)
+                        format_proxy_names_with_rank(all_working_proxies)
 
                     sub_content = generate_base64_subscription(all_working_proxies)
                     sub_path = output_path / "vpn_subscription_base64.txt"
