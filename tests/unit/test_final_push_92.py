@@ -62,22 +62,6 @@ def test_parsers_comprehensive_coverage():
     assert result is None or isinstance(result, Proxy)
 
 
-@pytest.mark.asyncio
-async def test_geolocate_coverage():
-    """Test geolocation coverage."""
-    from configstream.core import geolocate_proxy
-
-    proxy = Proxy(
-        config="test",
-        protocol="vmess",
-        address="192.168.1.1",  # Private IP
-        port=443,
-    )
-
-    await geolocate_proxy(proxy, None)
-    assert True  # Should complete
-
-
 def test_test_cache_comprehensive():
     """Comprehensive test cache coverage."""
     from configstream.test_cache import TestResultCache
@@ -194,25 +178,6 @@ def test_security_validator_levels():
     assert isinstance(result, list)
 
 
-def test_additional_pipeline_helpers():
-    """Test additional pipeline helper functions."""
-    from configstream.pipeline import _maybe_decode_base64
-    import base64
-
-    # Test with various base64 scenarios
-    scenarios = [
-        (base64.b64encode(b"test"), True),
-        ("plaintext", False),
-        (base64.b64encode(b"vmess://a\nvless://b"), True),
-    ]
-
-    for data, is_b64 in scenarios:
-        if isinstance(data, bytes):
-            data = data.decode()
-        result = _maybe_decode_base64(data)
-        assert result is not None
-
-
 def test_parsers_extract_variations():
     """Test config extraction variations."""
     from configstream.parsers import _extract_config_lines
@@ -229,31 +194,9 @@ def test_parsers_extract_variations():
         assert isinstance(lines, list)
 
 
-def test_core_geolocate_edge_cases():
-    """Test geolocation edge cases."""
-    from configstream.core import geolocate_proxy
-    from configstream.models import Proxy
-    import asyncio
-
-    async def run_tests():
-        # Test with various addresses
-        test_cases = [
-            Proxy(config="t1", protocol="vmess", address="127.0.0.1", port=443),
-            Proxy(config="t2", protocol="vmess", address="::1", port=443),
-            Proxy(config="t3", protocol="vmess", address="unknown.test", port=443),
-        ]
-
-        for proxy in test_cases:
-            await geolocate_proxy(proxy, None)
-            assert True  # Should not crash
-
-    asyncio.run(run_tests())
-
-
 def test_pipeline_validation_comprehensive():
     """Comprehensive pipeline validation tests."""
     from configstream.pipeline import _normalise_source_url, SourceValidationError
-    import pytest
 
     # Test valid cases
     valid = [

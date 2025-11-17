@@ -14,10 +14,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from collections import deque
 from urllib.parse import urlparse
 
-import httpx
 import geoip2.database
 
-from .http_client import get_client
+from . import fetcher
 from rich.progress import Progress
 
 from .models import Proxy
@@ -35,7 +34,10 @@ from .output import (
 )
 from .testers import SingBoxTester
 from .performance import PerformanceTracker
+from .proxy_history import ProxyHistoryTracker
 from .statistics import StatisticsEngine
+from .intelligent_fallback import FallbackManager
+from .adaptive_workers import calculate_optimal_workers
 from .test_cache import TestResultCache
 from .async_file_ops import (
     read_multiple_files_async,
@@ -43,7 +45,6 @@ from .async_file_ops import (
 )
 
 from .constants import (
-    FETCH_TIMEOUT as FETCH_TIMEOUT_SECONDS,
     MAX_SOURCE_URL_LENGTH,
 )
 
@@ -113,27 +114,6 @@ def _prepare_sources(raw_sources: Sequence[str]) -> List[str]:
     return validated
 
 
-def _maybe_decode_base64(payload: str) -> str:
-    """Attempt to decode base64-encoded payloads."""
-    stripped = payload.strip()
-    if not stripped:
-        return ""
-    if len(stripped) % 4 != 0:
-        return payload
-
-    try:
-        decoded_bytes = base64.b64decode(stripped, validate=True)
-        decoded_text = decoded_bytes.decode("utf-8")
-    except (binascii.Error, UnicodeDecodeError):
-        return payload
-
-    if decoded_text.count("\n") < 1 and payload.count("\n") > 1:
-        # Heuristic: treat single-line decodes as false positives.
-        return payload
-
-    return decoded_text
-
-
 # ==== BEGIN: de-dup + seeded shuffle helpers ====
 def _proxy_key(p: Any) -> Tuple[str, str, int, str, str]:
     """
@@ -163,23 +143,8 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
         unique.append(p)
 
     seed_env = os.getenv("CONFIGSTREAM_SHUFFLE_SEED")
-    event_name = os.getenv("GITHUB_EVENT_NAME", "").lower()
-    run_identifier = os.getenv("GITHUB_RUN_ID")
-
     rng_seed: int | str | None = None
-
-    if event_name in {"push", "pull_request"} and seed_env:
-        # Respect a configured seed to keep reproducibility in CI
-        try:
-            rng_seed = int(seed_env)
-        except ValueError:
-            rng_seed = seed_env
-    elif event_name in {"schedule", "workflow_dispatch"}:
-        # Ensure manual or scheduled runs still differ between executions.
-        # Prefer the run identifier from GitHub; fall back to entropy.
-        rng_seed = run_identifier or None
-    elif seed_env:
-        # Local overrides (e.g. developer runs) can still provide a seed.
+    if seed_env:
         try:
             rng_seed = int(seed_env)
         except ValueError:
@@ -191,31 +156,6 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 
 
 # ==== END: de-dup + seeded shuffle helpers ====
-
-
-async def _fetch_source(client: httpx.AsyncClient, source_url: str) -> Tuple[List[str], int]:
-    """Fetch a proxy list from a single source using the provided client."""
-    try:
-        response = await client.get(source_url, timeout=FETCH_TIMEOUT_SECONDS)
-        response.raise_for_status()
-    except (httpx.RequestError, httpx.HTTPStatusError) as exc:
-        logger.error("Failed to fetch %s: %s", source_url, exc)
-        return [], 0
-
-    text = response.text
-    if not text or not text.strip():
-        logger.warning("Empty response from %s", source_url)
-        return [], 0
-
-    payload = _maybe_decode_base64(text)
-    configs = _extract_config_lines(payload)
-
-    if configs:
-        logger.debug("Fetched %d configs from %s", len(configs), source_url)
-    else:
-        logger.info("No usable configurations found in %s", source_url)
-
-    return configs, len(configs)
 
 
 async def _process_sources(
@@ -256,19 +196,27 @@ async def _process_sources(
             else None
         )
         with tracker.phase("fetch"):
-            async with get_client(retries=3) as client:
-                results = await asyncio.gather(
-                    *(_fetch_source(client, source) for source in remote_sources),
-                    return_exceptions=True,
-                )
-            for source, result in zip(remote_sources, results):
-                if isinstance(result, BaseException):
-                    logger.warning("Failed to fetch %s: %s", source, result)
+            results = await fetcher.fetch_multiple_sources(
+                remote_sources, max_concurrent=FETCH_CONCURRENCY
+            )
+            for source, result in results.items():
+                if not result.success:
+                    logger.warning("Failed to fetch %s: %s", source, result.error)
                     continue
-                configs, count = result
+                if result.error == "not-modified":
+                    continue
+
+                try:
+                    decoded_content = base64.b64decode(result.content, validate=True).decode(
+                        "utf-8"
+                    )
+                except (binascii.Error, UnicodeDecodeError):
+                    decoded_content = result.content
+
+                configs = _extract_config_lines(decoded_content)
                 if configs:
                     gathered_configs.extend(configs)
-                raw_fetch_total += count
+                raw_fetch_total += len(configs)
                 if progress and fetch_task is not None:
                     progress.update(fetch_task, advance=1)
 
@@ -287,6 +235,7 @@ async def run_full_pipeline(
     timeout: int = 10,
     proxies: Optional[Sequence[Proxy]] = None,
     leniency: bool = False,
+    strict_security: bool = False,
 ) -> PipelineResult:
     """
     Execute the full ConfigStream pipeline.
@@ -303,6 +252,11 @@ async def run_full_pipeline(
     except (PermissionError, OSError) as e:
         logger.error("Cannot create output directory %s: %s", output_path, e)
         raise
+
+    if max_workers <= 0:
+        max_workers = calculate_optimal_workers()
+        logger.info("Using adaptive worker count: %d", max_workers)
+
     tracker = PerformanceTracker()
 
     stats: Dict[str, Any] = {
@@ -321,6 +275,8 @@ async def run_full_pipeline(
     geo_cache: Dict[str, Dict[str, Optional[str]]] = {}
     geoip_reader: geoip2.database.Reader | None = None
     failure_reason: str | None = None
+    history_tracker = ProxyHistoryTracker()
+    fallback_manager = FallbackManager()
 
     if not sources_to_fetch and not supplied_proxies:
         message = "No sources provided and no proxies supplied for retest"
@@ -403,7 +359,11 @@ async def run_full_pipeline(
             scheduling_stats["intervals"],
         )
 
-        tester = SingBoxTester(timeout=effective_timeout_sec, cache=test_cache)
+        tester = SingBoxTester(
+            timeout=effective_timeout_sec,
+            cache=test_cache,
+            strict_security=strict_security,
+        )
         semaphore = asyncio.Semaphore(max(1, max_workers))
 
         async def _run_tests(batch: List[Proxy], label: str) -> List[Proxy]:
@@ -447,6 +407,7 @@ async def run_full_pipeline(
             async def test_single(proxy: Proxy) -> Proxy:
                 async with semaphore:
                     tested_proxy = await tester.test(proxy)
+                history_tracker.record_test_result(tested_proxy)
                 if progress and task is not None:
                     progress.update(task, advance=1)
                 return tested_proxy
@@ -520,55 +481,48 @@ async def run_full_pipeline(
             geo_remark_count = 0
 
             try:
-                working_items = [proxy for proxy in batch if proxy.is_working]
-                if working_items:
-                    with tracker.phase("geo"):
-                        for proxy in batch:
-                            if proxy.is_working:
-                                # Layer 1: Primary Method (IP-based)
-                                # Use the *resolved_ip* from the tester, not proxy.address
-                                if proxy.resolved_ip:
-                                    cached_geo = geo_cache.get(proxy.resolved_ip)
-                                    if cached_geo:
-                                        proxy.country = cached_geo.get("country") or proxy.country
-                                        proxy.country_code = (
-                                            cached_geo.get("country_code") or proxy.country_code
-                                        )
-                                        proxy.city = cached_geo.get("city") or proxy.city
-                                        proxy.asn = cached_geo.get("asn") or proxy.asn
-                                    else:
-                                        geo_info = geoip_offline.DEFAULT_RESOLVER.lookup(
-                                            proxy.resolved_ip
-                                        )
-                                        if geo_info.country_code:
-                                            proxy.country_code = geo_info.country_code
-                                            proxy.country = (
-                                                geo_info.country_code
-                                            )  # Use code as country for compatibility
-                                            proxy.asn = geo_info.asn or proxy.asn
-                                            geo_ip_count += 1
+                with tracker.phase("geo"):
+                    for proxy in batch:
+                        # Layer 1: Primary Method (IP-based)
+                        # Use the *resolved_ip* from the tester, not proxy.address
+                        if proxy.resolved_ip:
+                            cached_geo = geo_cache.get(proxy.resolved_ip)
+                            if cached_geo:
+                                proxy.country = cached_geo.get("country") or proxy.country
+                                proxy.country_code = (
+                                    cached_geo.get("country_code") or proxy.country_code
+                                )
+                                proxy.city = cached_geo.get("city") or proxy.city
+                                proxy.asn = cached_geo.get("asn") or proxy.asn
+                            else:
+                                geo_info = geoip_offline.DEFAULT_RESOLVER.lookup(proxy.resolved_ip)
+                                if geo_info.country_code:
+                                    proxy.country_code = geo_info.country_code
+                                    proxy.country = (
+                                        geo_info.country_code
+                                    )  # Use code as country for compatibility
+                                    proxy.asn = geo_info.asn or proxy.asn
+                                    geo_ip_count += 1
 
-                                            # Cache the result
-                                            geo_cache[proxy.resolved_ip] = {
-                                                "country": proxy.country,
-                                                "country_code": proxy.country_code,
-                                                "city": proxy.city,
-                                                "asn": proxy.asn,
-                                            }
+                                    # Cache the result
+                                    geo_cache[proxy.resolved_ip] = {
+                                        "country": proxy.country,
+                                        "country_code": proxy.country_code,
+                                        "city": proxy.city,
+                                        "asn": proxy.asn,
+                                    }
 
-                                # Layer 2: Fallback Method (Remark-based)
-                                # Only run if Layer 1 failed AND we have remarks to parse
-                                if not proxy.country_code and proxy.remarks:
-                                    country_from_remark = remark_geo_parser.parse(proxy.remarks)
-                                    if country_from_remark:
-                                        proxy.country_code = country_from_remark
-                                        proxy.country = country_from_remark
-                                        geo_remark_count += 1
+                        # Layer 2: Fallback Method (Remark-based)
+                        # Only run if Layer 1 failed AND we have remarks to parse
+                        if not proxy.country_code and proxy.remarks:
+                            country_from_remark = remark_geo_parser.parse(proxy.remarks)
+                            if country_from_remark:
+                                proxy.country_code = country_from_remark
+                                proxy.country = country_from_remark
+                                geo_remark_count += 1
 
-                            if progress and geo_task is not None:
-                                progress.update(geo_task, advance=1)
-                elif progress and geo_task is not None:
-                    progress.update(geo_task, completed=len(batch))
+                        if progress and geo_task is not None:
+                            progress.update(geo_task, advance=1)
 
                 logger.info(
                     "Geolocation complete for %s: %d by IP, %d by remark.",
@@ -898,8 +852,6 @@ async def run_full_pipeline(
                     unique_batch = unique_batch[:remaining_slots]
 
             tested_batch = await _run_tests(unique_batch, phase_label)
-            await _geolocate_batch(tested_batch, phase_label)
-
             all_tested_proxies.extend(tested_batch)
             stats["tested"] += len(tested_batch)
 
@@ -910,19 +862,6 @@ async def run_full_pipeline(
 
             with tracker.phase("filter"):
                 working_batch = [p for p in tested_batch if p.is_working]
-
-                if country_filter:
-                    working_batch = [
-                        p
-                        for p in working_batch
-                        if p.country_code and p.country_code.upper() == country_filter.upper()
-                    ]
-                    logger.info(
-                        "Filtered %s to %d proxies in %s",
-                        phase_label,
-                        len(working_batch),
-                        country_filter,
-                    )
 
                 if min_latency is not None:
                     working_batch = [
@@ -952,6 +891,21 @@ async def run_full_pipeline(
                     )
 
             working_batch.sort(key=lambda p: p.latency or float("inf"))
+
+            await _geolocate_batch(working_batch, phase_label)
+
+            if country_filter:
+                working_batch = [
+                    p
+                    for p in working_batch
+                    if p.country_code and p.country_code.upper() == country_filter.upper()
+                ]
+                logger.info(
+                    "Filtered %s to %d proxies in %s",
+                    phase_label,
+                    len(working_batch),
+                    country_filter,
+                )
 
             newly_added: List[Proxy] = []
             for proxy in working_batch:
@@ -989,10 +943,14 @@ async def run_full_pipeline(
             phase_summaries.append(phase_summary)
             stats["phases"] = phase_summaries
 
-            _write_outputs()
+            if newly_added:
+                _write_outputs()
 
             if not queue and not preparsed_batches:
                 break
+
+            # Clear the parse cache at the end of each phase to save memory
+            parse_cache.clear()
 
         if queue and phase_index >= MAX_PIPELINE_PHASES:
             logger.warning(
@@ -1019,9 +977,20 @@ async def run_full_pipeline(
 
         if not all_working_proxies:
             logger.warning("No proxies passed all filters across all phases")
+            if fallback_manager.should_use_fallback(len(all_working_proxies)):
+                logger.info("Attempting to use fallback proxies...")
+                fallback_proxies = fallback_manager.load_fallback()
+                if fallback_proxies:
+                    all_working_proxies = fallback_proxies
+                    stats["working"] = len(all_working_proxies)
+                    stats["filtered"] = len(all_working_proxies)
+                    _write_outputs()
 
         if not output_files:
             _write_outputs()
+
+        if all_working_proxies:
+            fallback_manager.save_successful_run(all_working_proxies)
 
         elapsed = (datetime.now(timezone.utc) - start_time).total_seconds()
         logger.info("Pipeline completed successfully in %.1f seconds", elapsed)
@@ -1031,6 +1000,9 @@ async def run_full_pipeline(
             proxies_working=stats["working"],
             sources_processed=len(sources_to_fetch),
         )
+
+        history_tracker.save()
+        logger.info("Proxy history saved.")
 
         return {
             "success": True,

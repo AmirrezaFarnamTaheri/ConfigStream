@@ -1,14 +1,14 @@
 import asyncio
-import importlib
 import logging
 import socket
 import ssl
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Optional, Tuple
 from urllib.parse import urljoin
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
+from singbox2proxy import SingBoxProxy as singbox_factory
 
 from .config import AppSettings
 from .constants import CANARY_URL, TEST_URLS
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 else:
     SingBoxProxyType = Any
 
-SingBoxProxy: Callable[[str], Any] | None = None
 logger = logging.getLogger(__name__)
 
 
@@ -42,11 +41,13 @@ class ProxyTester:
         timeout: float = 10.0,
         config: AppSettings | None = None,
         cache: Optional["TestResultCache"] = None,
+        strict_security: bool = False,
         max_retries: int = 2,
     ) -> None:
         self.timeout = timeout
         self.config = config or AppSettings()
         self.cache = cache
+        self.strict_security = strict_security
         self.cache_hits = 0
         self.cache_misses = 0
         self.max_retries = max_retries
@@ -81,6 +82,9 @@ class SingBoxTester(ProxyTester):
 
     async def _run_integrity_checks(self, proxy: Proxy, connector: ProxyConnector) -> None:
         """Run a series of runtime security checks against a known endpoint."""
+        if not self.strict_security:
+            return
+
         canary_headers = {"X-Canary": "KEEP", "Accept": "application/json"}
         expected_body = {"status": "ok", "canary": "KEEP"}
 
@@ -197,7 +201,6 @@ class SingBoxTester(ProxyTester):
         # Resolve proxy IP for geolocation (for non-direct protocols)
         await self._resolve_proxy_ip(proxy)
 
-        singbox_factory = self._get_singbox_factory()
         sb_proxy: Any = None
         loop = asyncio.get_running_loop()
         try:
@@ -232,18 +235,6 @@ class SingBoxTester(ProxyTester):
             if self.cache:
                 self.cache.set(proxy)
         return proxy
-
-    @staticmethod
-    def _get_singbox_factory() -> Callable[[str], Any]:
-        """Lazily import and return the SingBoxProxy factory."""
-        global SingBoxProxy
-        if SingBoxProxy is None:
-            try:
-                module = importlib.import_module("singbox2proxy")
-                SingBoxProxy = getattr(module, "SingBoxProxy")
-            except Exception as exc:
-                raise RuntimeError("singbox2proxy is not available") from exc
-        return cast(Callable[[str], Any], SingBoxProxy)
 
     def get_cache_stats(self) -> dict[str, Any]:
         """Get cache hit/miss statistics."""

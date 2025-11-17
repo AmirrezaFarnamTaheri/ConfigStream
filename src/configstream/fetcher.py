@@ -37,7 +37,6 @@ from .http_client import get_client
 from .etag_cache import load_etags, save_etags
 from .security.rate_limiter import RateLimiter
 from .adaptive_concurrency import AIMDController
-from .constants import VALID_PROTOCOLS
 from .hedged_requests import hedged_get
 from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
@@ -75,14 +74,14 @@ class FetchResult:
     def __init__(
         self,
         source: str,
-        configs: list[str],
+        content: str,
         success: bool,
         error: str | None = None,
         response_time: float | None = None,
         status_code: int | None = None,
     ):
         self.source = source
-        self.configs = configs
+        self.content = content
         self.success = success
         self.error = error
         self.response_time = response_time
@@ -92,7 +91,7 @@ class FetchResult:
         """Convert to dictionary for JSON serialization"""
         return {
             "source": self.source,
-            "config_count": len(self.configs),
+            "content_length": len(self.content),
             "success": self.success,
             "error": self.error,
             "response_time": self.response_time,
@@ -138,7 +137,7 @@ async def fetch_from_source(
             raise ValueError(f"Invalid URL format: {source}")
     except Exception as e:
         logger.error("URL validation failed for %s: %s", source, e)
-        return FetchResult(source, [], False, error=str(e))
+        return FetchResult(source, "", False, error=str(e))
 
     # Normalize baseline timeout
     try:
@@ -189,7 +188,7 @@ async def fetch_from_source(
         if breaker.is_open:
             logger.warning("Circuit breaker is open for %s. Skipping request.", host)
             # Do not record synthetic durations for skipped requests to avoid biasing timeouts
-            return FetchResult(source, [], False, error="Circuit breaker open")
+            return FetchResult(source, "", False, error="Circuit breaker open")
 
     # Build headers with optional ETag validators
     headers = {
@@ -278,7 +277,7 @@ async def fetch_from_source(
                     success = True
                     return FetchResult(
                         source=source,
-                        configs=[],
+                        content="",
                         success=True,
                         response_time=response_time,
                         status_code=304,
@@ -308,17 +307,8 @@ async def fetch_from_source(
                 if "html" in content_type and "text/plain" not in content_type:
                     logger.warning("Unexpected content type for %s: %s", source, content_type)
 
-                configs = []
-                for line in text.splitlines():
-                    line = line.strip()
-                    if not line or line.startswith("#"):
-                        continue
-                    if any(line.startswith(f"{proto}://") for proto in VALID_PROTOCOLS):
-                        configs.append(line)
-                    else:
-                        logger.debug("Skipping invalid config line: %s...", line[:50])
                 logger.info(
-                    f"Successfully fetched {len(configs)} configs from {source} "
+                    f"Successfully fetched {len(text)} bytes from {source} "
                     f"(HTTP/{http_version}, Status: {status_code}, Time: {response_time:.2f}s)"
                 )
                 success = True
@@ -329,7 +319,7 @@ async def fetch_from_source(
 
                 return FetchResult(
                     source=source,
-                    configs=configs,
+                    content=text,
                     success=True,
                     response_time=response_time,
                     status_code=status_code,
@@ -389,7 +379,7 @@ async def fetch_from_source(
         logger.error(
             f"Failed to fetch {source} after {max_retries} attempts. Last error: {last_error}"
         )
-        return FetchResult(source=source, configs=[], success=False, error=last_error)
+        return FetchResult(source=source, content="", success=False, error=last_error)
 
     # Run fetch with optional per-host semaphore
     # Use try/finally to ensure semaphore is released even on error
@@ -444,10 +434,12 @@ class SourceFetcher:
             A list of proxy configurations.
         """
         results = await fetch_multiple_sources(sources)
-        all_configs = []
+        all_content = []
         for result in results.values():
             if result.success and result.error != "not-modified":
-                all_configs.extend(result.configs)
+                all_content.append(result.content)
+
+        all_configs = "".join(all_content).splitlines()
         if max_proxies is not None:
             return all_configs[:max_proxies]
         return all_configs
@@ -534,7 +526,7 @@ async def fetch_multiple_sources(
             if isinstance(result, BaseException):
                 logger.error("Unhandled exception for %s: %s", source, result)
                 results[source] = FetchResult(
-                    source=source, configs=[], success=False, error=str(result)
+                    source=source, content="", success=False, error=str(result)
                 )
             else:
                 results[source] = result
@@ -557,10 +549,10 @@ async def fetch_multiple_sources(
     # Log summary
     successful = sum(1 for r in results.values() if r.success)
     not_modified = sum(1 for r in results.values() if r.error == "not-modified")
-    total_configs = sum(len(r.configs) for r in results.values())
+    total_content_size = sum(len(r.content) for r in results.values())
     logger.info(
         f"Fetch complete: {successful}/{len(sources)} sources successful "
-        f"({not_modified} not modified), {total_configs} total configs collected"
+        f"({not_modified} not modified), {total_content_size} total bytes collected"
     )
 
     return results
