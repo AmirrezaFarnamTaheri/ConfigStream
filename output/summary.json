@@ -1,10 +1,10 @@
 {
-  "total_tested": 7774,
+  "total_tested": 7767,
   "passed": 0,
   "rejected": {
-    "total_security_issues": 7774,
+    "total_security_issues": 7767,
     "security_by_category": {
-      "tls": 7774
+      "tls": 7767
     },
     "no_response": 0
   },
