@@ -13,6 +13,8 @@ from aiohttp_socks import ProxyConnector
 from .config import AppSettings
 from .constants import CANARY_URL, TEST_URLS
 from .models import Proxy
+# NEW IMPORT: Shared DNS Cache
+from .dns_cache import DEFAULT_CACHE
 
 if TYPE_CHECKING:
     from singbox2proxy import SingBoxProxy as _SingBoxProxy
@@ -25,14 +27,12 @@ else:
 SingBoxProxy: Callable[[str], Any] | None = None
 logger = logging.getLogger(__name__)
 
-
 def _strict_ssl_context() -> ssl.SSLContext:
     """Create a strict SSL context for TLS validation."""
     ctx = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
     ctx.check_hostname = True
     ctx.verify_mode = ssl.CERT_REQUIRED
     return ctx
-
 
 class ProxyTester:
     _singbox_path: ClassVar[str | None] = None
@@ -81,6 +81,10 @@ class SingBoxTester(ProxyTester):
 
     async def _run_integrity_checks(self, proxy: Proxy, connector: ProxyConnector) -> None:
         """Run a series of runtime security checks against a known endpoint."""
+        # OPTIMIZATION: Skip if strict security is disabled
+        if not self.config.STRICT_SECURITY:
+            return
+
         canary_headers = {"X-Canary": "KEEP", "Accept": "application/json"}
         expected_body = {"status": "ok", "canary": "KEEP"}
 
@@ -130,19 +134,24 @@ class SingBoxTester(ProxyTester):
                         proxy.security_issues.setdefault("tls", []).append(f"PROBE_FAILED_{result}")
 
     async def _resolve_proxy_ip(self, proxy: Proxy) -> None:
-        """Resolve proxy address to IP for accurate geolocation."""
+        """Resolve proxy address to IP using shared cache or DNS."""
         if not proxy.resolved_ip:
+            # OPTIMIZATION: Use shared DNS Cache first
+            if self.config.DNS_CACHE_ENABLED:
+                cached = await DEFAULT_CACHE.resolve(proxy.address)
+                if cached:
+                    proxy.resolved_ip = cached
+                    return
+
             try:
-                # Try to resolve the hostname to an IP address
+                # Fallback to system DNS
                 loop = asyncio.get_running_loop()
                 addr_info = await loop.getaddrinfo(
                     proxy.address, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
                 )
                 if addr_info:
-                    # Get the first IP address (addr_info[0][4][0])
                     proxy.resolved_ip = addr_info[0][4][0]
             except Exception:
-                # If resolution fails, use the address as-is (might already be an IP)
                 proxy.resolved_ip = proxy.address
 
     async def _test_direct_http_socks(self, proxy: Proxy) -> Optional[Proxy]:

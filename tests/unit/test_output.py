@@ -42,9 +42,11 @@ def sample_proxies():
 
 def test_generate_base64_subscription(sample_proxies):
     """Test the base64 subscription generation."""
+    import base64
     result = generate_base64_subscription(sample_proxies)
     expected_configs = [p.config for p in sample_proxies if p.is_working]
-    assert result == "\n".join(expected_configs)
+    expected_result = base64.b64encode("\n".join(expected_configs).encode()).decode()
+    assert result == expected_result
 
 
 def test_generate_clash_config(sample_proxies):

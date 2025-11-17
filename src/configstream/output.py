@@ -1,5 +1,7 @@
 import base64
 import json
+import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -10,6 +12,38 @@ except ImportError:
 
 from .models import Proxy
 from .selection import select_chosen_proxies, get_selection_stats
+
+
+logger = logging.getLogger(__name__)
+
+
+def atomic_write(path: Path | str, content: str | bytes) -> None:
+    """
+    Write data to a file atomically to prevent corruption.
+    Writes to a temporary file first, then renames it.
+    """
+    target = Path(path)
+    tmp_target = target.with_suffix(target.suffix + ".tmp")
+
+    try:
+        mode = "wb" if isinstance(content, bytes) else "w"
+        encoding = None if isinstance(content, bytes) else "utf-8"
+
+        with open(tmp_target, mode, encoding=encoding) as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())  # Ensure data is on disk
+
+        # Atomic replacement
+        os.replace(tmp_target, target)
+    except Exception as e:
+        logger.error(f"Failed atomic write to {target}: {e}")
+        if tmp_target.exists():
+            try:
+                os.unlink(tmp_target)
+            except Exception:
+                pass
+        raise
 
 
 def get_country_flag(country_code: str) -> str:
@@ -72,7 +106,7 @@ def generate_base64_subscription(proxies: List[Proxy]) -> str:
     if not working_proxies:
         return ""
     configs = [p.config for p in working_proxies]
-    return "\n".join(configs)
+    return base64.b64encode("\n".join(configs).encode()).decode()
 
 
 def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> Dict[str, str]:
@@ -123,7 +157,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
 
     for protocol, proxies in protocols.items():
         protocol_path = protocol_dir / f"{protocol}.json"
-        protocol_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
+        atomic_write(protocol_path, json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
         output_files[f"protocol_{protocol}"] = str(protocol_path)
 
     # Generate country-based breakdown (ONLY passed proxies)
@@ -132,14 +166,14 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
 
     countries: Dict[str, List[Proxy]] = {}
     for proxy in passed:
-        country_code = proxy.country_code or "unknown"
+        country_.py
         if country_code not in countries:
             countries[country_code] = []
         countries[country_code].append(proxy)
 
     for country_code, proxies in countries.items():
         country_path = country_dir / f"{country_code.lower()}.json"
-        country_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
+        atomic_write(country_path, json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
         output_files[f"country_{country_code}"] = str(country_path)
 
     # Save rejected proxies in rejected/ directory by failure reason
@@ -158,18 +192,19 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
     # Save each security category to its own file
     for category, proxies_list in security_by_category.items():
         category_path = rejected_dir / f"{category}.json"
-        category_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies_list], indent=2))
+        atomic_write(category_path, json.dumps([proxy_to_dict(p) for p in proxies_list], indent=2))
         output_files[f"rejected_{category}"] = str(category_path)
 
     # Save general security issues file (all security failures)
     if security_failed:
         security_path = rejected_dir / "all_security_issues.json"
-        security_path.write_text(json.dumps([proxy_to_dict(p) for p in security_failed], indent=2))
+        atomic_write(security_path, json.dumps([proxy_to_dict(p) for p in security_failed], indent=2))
         output_files["rejected_security_all"] = str(security_path)
 
     if connectivity_failed:
         connectivity_path = rejected_dir / "no_response.json"
-        connectivity_path.write_text(
+        atomic_write(
+            connectivity_path,
             json.dumps([proxy_to_dict(p) for p in connectivity_failed], indent=2)
         )
         output_files["rejected_connectivity"] = str(connectivity_path)
@@ -195,7 +230,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
     chosen_proxies = select_chosen_proxies(all_proxies)
     if chosen_proxies:
         chosen_path = output_dir / "chosen.json"
-        chosen_path.write_text(json.dumps([proxy_to_dict(p) for p in chosen_proxies], indent=2))
+        atomic_write(chosen_path, json.dumps([proxy_to_dict(p) for p in chosen_proxies], indent=2))
         output_files["chosen"] = str(chosen_path)
 
         # Add selection stats to summary
@@ -203,7 +238,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
         summary["chosen_selection"] = selection_stats
 
     summary_path = output_dir / "summary.json"
-    summary_path.write_text(json.dumps(summary, indent=2))
+    atomic_write(summary_path, json.dumps(summary, indent=2))
     output_files["summary"] = str(summary_path)
 
     return output_files
