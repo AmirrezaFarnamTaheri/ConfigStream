@@ -543,7 +543,7 @@ class TestFetcherPerformance:
             # Small random delay to simulate network variance
             await asyncio.sleep(random.uniform(0.01, 0.05))
             # Return a config that includes the endpoint ID
-            endpoint_id = request.match_info.get("id", "default")
+            endpoint_id = request.path.split("_")[-1]
             return web.Response(text=f"vmess://test-{endpoint_id}")
 
         app = web.Application()
@@ -576,7 +576,9 @@ class TestFetcherPerformance:
         )
 
         # Verify we got different configs from each source
-        all_configs = "".join([result.content for result in results.values() if result.success]).splitlines()
+        all_configs = "\n".join(
+            [result.content for result in results.values() if result.success]
+        ).splitlines()
         assert len(all_configs) == 20
 
 

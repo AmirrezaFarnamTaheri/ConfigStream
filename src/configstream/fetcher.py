@@ -37,7 +37,6 @@ from .http_client import get_client
 from .etag_cache import load_etags, save_etags
 from .security.rate_limiter import RateLimiter
 from .adaptive_concurrency import AIMDController
-from .constants import VALID_PROTOCOLS
 from .hedged_requests import hedged_get
 from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
