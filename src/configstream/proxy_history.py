@@ -85,6 +85,8 @@ class ProxyHistoryTracker:
                 -self.max_entries :
             ]
 
+    def save(self) -> None:
+        """Save the history data to disk."""
         self._save_history()
 
     def get_proxy_history(self, config: str) -> Optional[Dict[str, Any]]:

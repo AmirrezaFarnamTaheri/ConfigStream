@@ -82,16 +82,15 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
 
         # Verify the result
         assert result.success is True
-        assert len(result.configs) == 4  # Four valid configs (comments ignored)
         assert result.status_code == 200
         assert result.response_time is not None
         assert result.response_time > 0
 
         # Verify each config is present
-        assert any("vmess://" in cfg for cfg in result.configs)
-        assert any("vless://" in cfg for cfg in result.configs)
-        assert any("ss://" in cfg for cfg in result.configs)
-        assert any("trojan://" in cfg for cfg in result.configs)
+        assert "vmess://" in result.content
+        assert "vless://" in result.content
+        assert "ss://" in result.content
+        assert "trojan://" in result.content
 
     @pytest.mark.asyncio
     async def test_fetch_with_retry_on_transient_error(self, aiohttp_client):
@@ -130,8 +129,7 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
 
         # Should succeed after retries
         assert result.success is True
-        assert len(result.configs) == 1
-        assert result.configs[0] == "vmess://success"
+        assert result.content == "vmess://success"
 
         # Should have made 3 attempts (2 failures + 1 success)
         assert call_count == 3
@@ -178,8 +176,8 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
         # Should have timed out within 7 seconds (5s timeout + 2s overhead)
         assert elapsed < 7
 
-        # Should not have any configs
-        assert len(result.configs) == 0
+        # Should not have any content
+        assert result.content == ""
 
     @pytest.mark.asyncio
     async def test_rate_limiting_detection(self, aiohttp_client):
@@ -229,9 +227,9 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
         async with client.session as session:
             result = await fetch_from_source(session, source_url)
 
-        # Should succeed but with no configs
+        # Should succeed but with no content
         assert result.success is True
-        assert len(result.configs) == 0
+        assert result.content == ""
         assert result.status_code == 200
 
     @pytest.mark.asyncio
@@ -259,7 +257,7 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
 
         # Should succeed (200 status) but find no valid configs
         assert result.success is True
-        assert len(result.configs) == 0  # No valid proxy configs in HTML
+        assert result.content == "<html><body>Error Page</body></html>"
 
     @pytest.mark.asyncio
     async def test_redirect_following(self, aiohttp_client):
@@ -289,8 +287,7 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
 
         # Should successfully follow redirect and fetch content
         assert result.success is True
-        assert len(result.configs) == 1
-        assert result.configs[0] == "vmess://afterredirect"
+        assert result.content == "vmess://afterredirect"
 
     @pytest.mark.asyncio
     async def test_fetch_multiple_sources_concurrent(self, aiohttp_client):
@@ -336,14 +333,14 @@ trojan://password@example.com:443?sni=example.com#TrojanProxy
 
         # First two should succeed
         assert results[sources[0]].success is True
-        assert len(results[sources[0]].configs) == 1
+        assert results[sources[0]].content == "vmess://source1"
 
         assert results[sources[1]].success is True
-        assert len(results[sources[1]].configs) == 1
+        assert results[sources[1]].content == "vless://source2"
 
         # Third should fail but not crash the others
         assert results[sources[2]].success is False
-        assert len(results[sources[2]].configs) == 0
+        assert results[sources[2]].content == ""
 
 
 # ==============================================================================
@@ -389,7 +386,7 @@ class TestFetcherWithMockedResponses:
                 # Should fail gracefully with clear error
                 assert result.success is False
                 assert result.error is not None
-                assert len(result.configs) == 0
+                assert result.content == ""
 
     @pytest.mark.asyncio
     async def test_network_error_handling(self):
@@ -438,14 +435,14 @@ class TestFetchResultClass:
         """Test creating a FetchResult object"""
         result = FetchResult(
             source="http://example.com",
-            configs=["vmess://test1", "vless://test2"],
+            content="vmess://test1\nvless://test2",
             success=True,
             response_time=1.5,
             status_code=200,
         )
 
         assert result.source == "http://example.com"
-        assert len(result.configs) == 2
+        assert result.content == "vmess://test1\nvless://test2"
         assert result.success is True
         assert result.response_time == 1.5
         assert result.status_code == 200
@@ -454,26 +451,26 @@ class TestFetchResultClass:
     def test_fetch_result_to_dict(self):
         """Test serialization to dictionary"""
         result = FetchResult(
-            source="http://example.com", configs=["vmess://test"], success=True, status_code=200
+            source="http://example.com", content="vmess://test", success=True, status_code=200
         )
 
         result_dict = result.to_dict()
 
         assert isinstance(result_dict, dict)
         assert result_dict["source"] == "http://example.com"
-        assert result_dict["config_count"] == 1
+        assert result_dict["content_length"] == 12
         assert result_dict["success"] is True
         assert result_dict["status_code"] == 200
 
     def test_fetch_result_failure_state(self):
         """Test FetchResult for failed requests"""
         result = FetchResult(
-            source="http://example.com", configs=[], success=False, error="Connection timeout"
+            source="http://example.com", content="", success=False, error="Connection timeout"
         )
 
         assert result.success is False
         assert result.error == "Connection timeout"
-        assert len(result.configs) == 0
+        assert result.content == ""
 
 
 # ==============================================================================
@@ -546,7 +543,7 @@ class TestFetcherPerformance:
             # Small random delay to simulate network variance
             await asyncio.sleep(random.uniform(0.01, 0.05))
             # Return a config that includes the endpoint ID
-            endpoint_id = request.match_info.get("id", "default")
+            endpoint_id = request.path.split("_")[-1]
             return web.Response(text=f"vmess://test-{endpoint_id}")
 
         app = web.Application()
@@ -579,8 +576,10 @@ class TestFetcherPerformance:
         )
 
         # Verify we got different configs from each source
-        all_configs = [config for result in results.values() for config in result.configs]
-        assert len(all_configs) == 20, "Should have 20 total configs (one per source)"
+        all_configs = "\n".join(
+            [result.content for result in results.values() if result.success]
+        ).splitlines()
+        assert len(all_configs) == 20
 
 
 # ==============================================================================
@@ -624,13 +623,13 @@ class TestSourceFetcherIntegration:
 
         # Use SourceFetcher to fetch all
         fetcher = SourceFetcher()
-        all_configs = await fetcher.fetch_all(sources)
+        all_content = await fetcher.fetch_all(sources)
 
-        # Should get all configs from both sources
-        assert len(all_configs) == 3
-        assert "vmess://source1a" in all_configs
-        assert "vless://source1b" in all_configs
-        assert "ss://source2a" in all_configs
+        # Should get all content from both sources
+        all_content_str = "".join(all_content)
+        assert "vmess://source1a" in all_content_str
+        assert "vless://source1b" in all_content_str
+        assert "ss://source2a" in all_content_str
 
     @pytest.mark.asyncio
     async def test_source_fetcher_with_max_proxies(self, aiohttp_client):

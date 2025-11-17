@@ -31,22 +31,3 @@ def test_parse_config_none():
     """Test parsing None."""
     result = parse_config(None)
     assert result is None
-
-
-@pytest.mark.asyncio
-async def test_geolocate_simple():
-    """Test simple geolocation without reader."""
-    from configstream.core import geolocate_proxy
-
-    proxy = Proxy(
-        config="test",
-        protocol="vmess",
-        address="8.8.8.8",
-        port=443,
-        remarks="US-Server",
-    )
-
-    await geolocate_proxy(proxy, None)
-
-    # Should at least attempt geolocation
-    assert True  # Test passes if no exception

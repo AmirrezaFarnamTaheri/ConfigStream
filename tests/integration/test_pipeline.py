@@ -10,11 +10,11 @@ from configstream.pipeline import (
     run_full_pipeline,
     _normalise_source_url,
     _prepare_sources,
-    _maybe_decode_base64,
     SourceValidationError,
 )
 from configstream.models import Proxy
 from configstream.fetcher import FetchResult
+from configstream.geoip_offline import GeoResult
 
 
 # Helper to create valid vmess configs for tests
@@ -36,21 +36,6 @@ def create_valid_vmess_config(ps: str, add: str = "server.test", country_code: s
     json_config = json.dumps(config_dict)
     base64_config = base64.b64encode(json_config.encode()).decode()
     return f"vmess://{base64_config}"
-
-
-@pytest.fixture(autouse=True)
-def mock_geo_lookup():
-    with patch(
-        "configstream.core._lookup_geoip_http",
-        new_callable=AsyncMock,
-        return_value={
-            "country": "United States",
-            "country_code": "US",
-            "city": "New York",
-            "asn": "AS15169",
-        },
-    ) as mocked:
-        yield mocked
 
 
 @pytest.fixture
@@ -93,31 +78,6 @@ class TestPrepareSources:
             assert len(prepared) == 1
             assert "ftp://invalid.com" not in prepared
             assert "Skipping invalid source" in caplog.text
-
-
-class TestMaybeDecodeBase64:
-    def test_valid_base64_string(self):
-        original = "hello\nworld"
-        encoded = base64.b64encode(original.encode()).decode()
-        assert _maybe_decode_base64(encoded) == original
-
-    def test_plain_text_is_returned_as_is(self):
-        assert _maybe_decode_base64("this is not base64") == "this is not base64"
-
-    def test_multiline_payload_decoding_to_single_line_is_rejected(self):
-        payload = "Zm9v\nZm9v\n"
-        assert _maybe_decode_base64(payload) == payload
-
-    def test_invalid_base64_characters(self):
-        payload = "this is not valid base64!!"
-        with pytest.raises(binascii.Error):
-            base64.b64decode(payload, validate=True)  # Ensure it's actually invalid
-        assert _maybe_decode_base64(payload) == payload
-
-    def test_base64_decoding_to_invalid_utf8(self):
-        invalid_utf8_bytes = b"\xff\xfe"
-        encoded = base64.b64encode(invalid_utf8_bytes).decode()
-        assert _maybe_decode_base64(encoded) == encoded
 
 
 @pytest.mark.asyncio
@@ -167,9 +127,10 @@ async def test_run_full_pipeline_no_working_proxies(mocker, tmp_path, no_pool_sh
         ),
     )
 
-    result = await run_full_pipeline(
-        sources=["source.txt"], output_dir=str(tmp_path), leniency=True
-    )
+    with patch("configstream.pipeline.FallbackManager.load_fallback", return_value=None):
+        result = await run_full_pipeline(
+            sources=["source.txt"], output_dir=str(tmp_path), leniency=True
+        )
 
     assert result["success"] is True
     assert result["stats"]["working"] == 0
@@ -226,7 +187,6 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
             port=443,
             is_working=True,
             latency=100,
-            country_code="US",
         ),
         Proxy(
             config=create_valid_vmess_config("p2"),
@@ -235,7 +195,6 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
             port=443,
             is_working=True,
             latency=800,
-            country_code="CA",
         ),
         Proxy(
             config=create_valid_vmess_config("p3"),
@@ -244,7 +203,6 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
             port=443,
             is_working=True,
             latency=1200,
-            country_code="US",
         ),
     ]
     mocker.patch(
@@ -253,6 +211,12 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
 
     # Mock the tester to return the proxy as-is, preserving its attributes
     async def mock_tester_side_effect(proxy, *args, **kwargs):
+        if proxy.address == "a.com":
+            proxy.resolved_ip = "1.1.1.1"
+        elif proxy.address == "b.com":
+            proxy.resolved_ip = "2.2.2.2"
+        else:
+            proxy.resolved_ip = "3.3.3.3"
         return proxy
 
     mocker.patch(
@@ -261,12 +225,15 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
         side_effect=mock_tester_side_effect,
     )
 
-    # Mock the underlying geoip lookup to prevent overwriting test data
-    mocker.patch(
-        "configstream.core._lookup_geoip_http",
-        new_callable=AsyncMock,
-        return_value=None,  # Simulate no result from the HTTP lookup
-    )
+    def mock_lookup(ip):
+        if ip == "1.1.1.1":
+            return GeoResult(country_code="US")
+        elif ip == "2.2.2.2":
+            return GeoResult(country_code="CA")
+        else:
+            return GeoResult(country_code="US")
+
+    mocker.patch("configstream.geoip_offline.DEFAULT_RESOLVER.lookup", side_effect=mock_lookup)
 
     result = await run_full_pipeline(
         sources=[],
