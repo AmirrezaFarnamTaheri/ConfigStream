@@ -31,5 +31,3 @@ def test_parse_config_none():
     """Test parsing None."""
     result = parse_config(None)
     assert result is None
-
-

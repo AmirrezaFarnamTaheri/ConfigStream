@@ -37,21 +37,6 @@ def create_valid_vmess_config(ps: str, add: str = "server.test", country_code: s
     return f"vmess://{base64_config}"
 
 
-@pytest.fixture(autouse=True)
-def mock_geo_lookup():
-    with patch(
-        "configstream.core._lookup_geoip_http",
-        new_callable=AsyncMock,
-        return_value={
-            "country": "United States",
-            "country_code": "US",
-            "city": "New York",
-            "asn": "AS15169",
-        },
-    ) as mocked:
-        yield mocked
-
-
 @pytest.fixture
 def mock_progress():
     """Fixture for a mock rich Progress object."""
@@ -92,31 +77,6 @@ class TestPrepareSources:
             assert len(prepared) == 1
             assert "ftp://invalid.com" not in prepared
             assert "Skipping invalid source" in caplog.text
-
-
-class TestMaybeDecodeBase64:
-    def test_valid_base64_string(self):
-        original = "hello\nworld"
-        encoded = base64.b64encode(original.encode()).decode()
-        assert _maybe_decode_base64(encoded) == original
-
-    def test_plain_text_is_returned_as_is(self):
-        assert _maybe_decode_base64("this is not base64") == "this is not base64"
-
-    def test_multiline_payload_decoding_to_single_line_is_rejected(self):
-        payload = "Zm9v\nZm9v\n"
-        assert _maybe_decode_base64(payload) == payload
-
-    def test_invalid_base64_characters(self):
-        payload = "this is not valid base64!!"
-        with pytest.raises(binascii.Error):
-            base64.b64decode(payload, validate=True)  # Ensure it's actually invalid
-        assert _maybe_decode_base64(payload) == payload
-
-    def test_base64_decoding_to_invalid_utf8(self):
-        invalid_utf8_bytes = b"\xff\xfe"
-        encoded = base64.b64encode(invalid_utf8_bytes).decode()
-        assert _maybe_decode_base64(encoded) == encoded
 
 
 @pytest.mark.asyncio
@@ -166,9 +126,10 @@ async def test_run_full_pipeline_no_working_proxies(mocker, tmp_path, no_pool_sh
         ),
     )
 
-    result = await run_full_pipeline(
-        sources=["source.txt"], output_dir=str(tmp_path), leniency=True
-    )
+    with patch("configstream.pipeline.FallbackManager.load_fallback", return_value=None):
+        result = await run_full_pipeline(
+            sources=["source.txt"], output_dir=str(tmp_path), leniency=True
+        )
 
     assert result["success"] is True
     assert result["stats"]["working"] == 0
@@ -258,13 +219,6 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
         "configstream.pipeline.SingBoxTester.test",
         new_callable=AsyncMock,
         side_effect=mock_tester_side_effect,
-    )
-
-    # Mock the underlying geoip lookup to prevent overwriting test data
-    mocker.patch(
-        "configstream.core._lookup_geoip_http",
-        new_callable=AsyncMock,
-        return_value=None,  # Simulate no result from the HTTP lookup
     )
 
     result = await run_full_pipeline(

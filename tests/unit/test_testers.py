@@ -94,8 +94,14 @@ async def test_singbox_tester_stop_exception(
         successful_response_mock,  # This makes the sing-box proxied test succeed
     ]
 
-    with patch("configstream.testers.SingBoxTester._test_direct_http_socks", new_callable=AsyncMock, return_value=None), \
-         patch("configstream.testers.singbox_factory", mock_sb_proxy_factory):
+    with (
+        patch(
+            "configstream.testers.SingBoxTester._test_direct_http_socks",
+            new_callable=AsyncMock,
+            return_value=None,
+        ),
+        patch("configstream.testers.singbox_factory", mock_sb_proxy_factory),
+    ):
         result = await tester.test(proxy)
 
     assert result.is_working is True

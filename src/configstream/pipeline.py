@@ -14,11 +14,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from collections import deque
 from urllib.parse import urlparse
 
-import httpx
 import geoip2.database
 
 from . import fetcher
-from .http_client import get_client
 from rich.progress import Progress
 
 from .models import Proxy
@@ -47,7 +45,6 @@ from .async_file_ops import (
 )
 
 from .constants import (
-    FETCH_TIMEOUT as FETCH_TIMEOUT_SECONDS,
     MAX_SOURCE_URL_LENGTH,
 )
 
@@ -199,7 +196,9 @@ async def _process_sources(
             else None
         )
         with tracker.phase("fetch"):
-            results = await fetcher.fetch_multiple_sources(remote_sources, max_concurrent=FETCH_CONCURRENCY)
+            results = await fetcher.fetch_multiple_sources(
+                remote_sources, max_concurrent=FETCH_CONCURRENCY
+            )
             for source, result in results.items():
                 if not result.success:
                     logger.warning("Failed to fetch %s: %s", source, result.error)
@@ -208,7 +207,9 @@ async def _process_sources(
                     continue
 
                 try:
-                    decoded_content = base64.b64decode(result.content, validate=True).decode("utf-8")
+                    decoded_content = base64.b64decode(result.content, validate=True).decode(
+                        "utf-8"
+                    )
                 except (binascii.Error, UnicodeDecodeError):
                     decoded_content = result.content
 
@@ -494,9 +495,7 @@ async def run_full_pipeline(
                                 proxy.city = cached_geo.get("city") or proxy.city
                                 proxy.asn = cached_geo.get("asn") or proxy.asn
                             else:
-                                geo_info = geoip_offline.DEFAULT_RESOLVER.lookup(
-                                    proxy.resolved_ip
-                                )
+                                geo_info = geoip_offline.DEFAULT_RESOLVER.lookup(proxy.resolved_ip)
                                 if geo_info.country_code:
                                     proxy.country_code = geo_info.country_code
                                     proxy.country = (

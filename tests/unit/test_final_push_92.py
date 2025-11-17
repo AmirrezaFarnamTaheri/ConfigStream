@@ -197,7 +197,6 @@ def test_parsers_extract_variations():
 def test_pipeline_validation_comprehensive():
     """Comprehensive pipeline validation tests."""
     from configstream.pipeline import _normalise_source_url, SourceValidationError
-    import pytest
 
     # Test valid cases
     valid = [

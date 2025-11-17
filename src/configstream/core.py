@@ -1,11 +1,6 @@
-import ipaddress
-import json
 import logging
 import re
-from typing import Any, Callable, Dict, Optional
-
-import httpx
-from .http_client import get_client
+from typing import Callable, Dict, Optional
 
 from .parsers import (
     _parse_brook,
