@@ -14,6 +14,7 @@ from configstream.pipeline import (
 )
 from configstream.models import Proxy
 from configstream.fetcher import FetchResult
+from configstream.geoip_offline import GeoResult
 
 
 # Helper to create valid vmess configs for tests
@@ -186,7 +187,6 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
             port=443,
             is_working=True,
             latency=100,
-            country_code="US",
         ),
         Proxy(
             config=create_valid_vmess_config("p2"),
@@ -195,7 +195,6 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
             port=443,
             is_working=True,
             latency=800,
-            country_code="CA",
         ),
         Proxy(
             config=create_valid_vmess_config("p3"),
@@ -204,7 +203,6 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
             port=443,
             is_working=True,
             latency=1200,
-            country_code="US",
         ),
     ]
     mocker.patch(
@@ -213,6 +211,12 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
 
     # Mock the tester to return the proxy as-is, preserving its attributes
     async def mock_tester_side_effect(proxy, *args, **kwargs):
+        if proxy.address == "a.com":
+            proxy.resolved_ip = "1.1.1.1"
+        elif proxy.address == "b.com":
+            proxy.resolved_ip = "2.2.2.2"
+        else:
+            proxy.resolved_ip = "3.3.3.3"
         return proxy
 
     mocker.patch(
@@ -220,6 +224,16 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
         new_callable=AsyncMock,
         side_effect=mock_tester_side_effect,
     )
+
+    def mock_lookup(ip):
+        if ip == "1.1.1.1":
+            return GeoResult(country_code="US")
+        elif ip == "2.2.2.2":
+            return GeoResult(country_code="CA")
+        else:
+            return GeoResult(country_code="US")
+
+    mocker.patch("configstream.geoip_offline.DEFAULT_RESOLVER.lookup", side_effect=mock_lookup)
 
     result = await run_full_pipeline(
         sources=[],

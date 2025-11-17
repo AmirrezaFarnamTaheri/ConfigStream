@@ -863,19 +863,6 @@ async def run_full_pipeline(
             with tracker.phase("filter"):
                 working_batch = [p for p in tested_batch if p.is_working]
 
-                if country_filter:
-                    working_batch = [
-                        p
-                        for p in working_batch
-                        if p.country_code and p.country_code.upper() == country_filter.upper()
-                    ]
-                    logger.info(
-                        "Filtered %s to %d proxies in %s",
-                        phase_label,
-                        len(working_batch),
-                        country_filter,
-                    )
-
                 if min_latency is not None:
                     working_batch = [
                         p
@@ -906,6 +893,19 @@ async def run_full_pipeline(
             working_batch.sort(key=lambda p: p.latency or float("inf"))
 
             await _geolocate_batch(working_batch, phase_label)
+
+            if country_filter:
+                working_batch = [
+                    p
+                    for p in working_batch
+                    if p.country_code and p.country_code.upper() == country_filter.upper()
+                ]
+                logger.info(
+                    "Filtered %s to %d proxies in %s",
+                    phase_label,
+                    len(working_batch),
+                    country_filter,
+                )
 
             newly_added: List[Proxy] = []
             for proxy in working_batch:
