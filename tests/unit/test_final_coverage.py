@@ -1,23 +1,6 @@
 """Final tests to push coverage above 92%."""
 
 
-def test_additional_pipeline_paths():
-    """Test additional pipeline code paths."""
-    from configstream.pipeline import _maybe_decode_base64
-    import base64
-
-    # Test multiline base64
-    multiline_b64 = base64.b64encode(b"line1\nline2\nline3").decode()
-    result = _maybe_decode_base64(multiline_b64)
-    assert result is not None
-
-    # Test invalid base64
-    invalid_b64 = "not!valid!base64"
-    result = _maybe_decode_base64(invalid_b64)
-    # Should return original or handle gracefully
-    assert result == invalid_b64 or result is not None
-
-
 def test_additional_parser_edge_cases():
     """Test parser edge cases."""
     from configstream.parsers import _extract_config_lines

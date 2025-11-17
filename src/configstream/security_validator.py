@@ -7,6 +7,7 @@ from typing import Optional, List, Tuple, Dict, FrozenSet
 from urllib.parse import urlparse
 
 from .models import Proxy
+from .config import AppSettings
 from .constants import (
     DANGEROUS_PORTS,
     SUSPICIOUS_DOMAINS,
@@ -162,33 +163,35 @@ class SecurityValidator:
 
         # Combined check for private, reserved, and special-use addresses
         # This is more robust and covers more edge cases.
-        special_address_patterns = [
-            # Loopback
-            r"^127\.",
-            r"^::1$",
-            r"^localhost$",
-            # Private ranges
-            r"^10\.",
-            r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
-            r"^192\.168\.",
-            # Link-local
-            r"^169\.254\.",
-            r"^fe80:",
-            # Unique local
-            r"^fc00:",
-            r"^fd00:",
-            # Unspecified
-            r"^0\.0\.0\.0$",
-            r"^0\.",  # "This network"
-            # Broadcast
-            r"^255\.255\.255\.255$",
-        ]
+        app_settings = AppSettings()
+        if not app_settings.ALLOW_PRIVATE_IPS:
+            special_address_patterns = [
+                # Loopback
+                r"^127\.",
+                r"^::1$",
+                r"^localhost$",
+                # Private ranges
+                r"^10\.",
+                r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
+                r"^192\.168\.",
+                # Link-local
+                r"^169\.254\.",
+                r"^fe80:",
+                # Unique local
+                r"^fc00:",
+                r"^fd00:",
+                # Unspecified
+                r"^0\.0\.0\.0$",
+                r"^0\.",  # "This network"
+                # Broadcast
+                r"^255\.255\.255\.255$",
+            ]
 
-        for pattern in special_address_patterns:
-            if re.match(pattern, address_lower):
-                logger.warning("Special or private address detected: %s", address)
-                issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Special address: {address}"
-                return issues
+            for pattern in special_address_patterns:
+                if re.match(pattern, address_lower):
+                    logger.warning("Special or private address detected: %s", address)
+                    issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Special address: {address}"
+                    return issues
 
         return issues
 

@@ -54,7 +54,7 @@ async def test_fetch_from_source_rate_limit_with_retry_after_header(mock_async_c
         mock_async_client, "http://example.com", max_retries=2, retry_delay=0.01
     )
     assert result.success
-    assert len(result.configs) == 1
+    assert result.content == "ss://config"
     assert mock_async_client.get.call_count == 2
 
 
@@ -96,7 +96,7 @@ async def test_fetch_multiple_sources_unhandled_exception():
     async def side_effect(client, source, *args, **kwargs):
         if "source1" in source:
             raise ValueError("Unhandled test exception")
-        return FetchResult(source, ["ss://config"], True)
+        return FetchResult(source, "ss://config", True)
 
     with patch("configstream.fetcher.fetch_from_source", side_effect=side_effect):
         results = await fetch_multiple_sources(sources)
@@ -105,4 +105,4 @@ async def test_fetch_multiple_sources_unhandled_exception():
     assert not results["http://example.com/source1"].success
     assert "Unhandled test exception" in results["http://example.com/source1"].error
     assert results["http://example.com/source2"].success
-    assert len(results["http://example.com/source2"].configs) == 1
+    assert results["http://example.com/source2"].content == "ss://config"
