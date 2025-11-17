@@ -10,7 +10,6 @@ from configstream.pipeline import (
     run_full_pipeline,
     _normalise_source_url,
     _prepare_sources,
-    _maybe_decode_base64,
     SourceValidationError,
 )
 from configstream.models import Proxy

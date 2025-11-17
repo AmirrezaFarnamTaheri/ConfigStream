@@ -25,7 +25,7 @@ async def test_etag_304_path():
         result1 = await fetch_from_source(client, url, etag_cache=etag_cache)
 
     assert result1.status_code == 200
-    assert len(result1.configs) == 1
+    assert result1.content == "vmess://config"
     assert etag_cache.get(url, {}).get("etag") == etag_value
 
     async with httpx.AsyncClient() as client:

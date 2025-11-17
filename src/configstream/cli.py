@@ -73,6 +73,7 @@ async def _merge_logic_async(
     timeout: int,
     show_metrics: bool,
     leniency: bool,
+    strict_security: bool,
 ) -> None:
     # Download GeoIP databases
     console.print("Checking for GeoIP databases...")
@@ -108,6 +109,7 @@ async def _merge_logic_async(
             timeout=timeout,
             country_filter=country_filter,
             leniency=leniency,
+            strict_security=strict_security,
         )
 
     if not result["success"]:
@@ -136,10 +138,12 @@ async def _merge_logic_async(
 @click.option("--country", "country_filter", type=str)
 @click.option("--min-latency", type=int)
 @click.option("--max-latency", type=int, default=5000)
-@click.option("--max-workers", type=int, default=25)
+@click.option("--max-workers", type=int, default=0, help="Default: 0 (adaptive)")
 @click.option("--timeout", type=int, default=10)
 @click.option("--show-metrics", is_flag=True)
 @click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")
+@click.option("--strict-security", is_flag=True, help="Enable expensive integrity checks.")
+@click.option("--seed", type=str, help="Seed for reproducible shuffling.")
 @handle_cli_errors(context="Merge operation")
 def merge(
     sources_file: str,
@@ -152,8 +156,12 @@ def merge(
     timeout: int,
     show_metrics: bool,
     leniency: bool,
+    strict_security: bool,
+    seed: str | None,
 ) -> None:
     """Run the full pipeline: fetch, test, and generate outputs."""
+    if seed:
+        os.environ["CONFIGSTREAM_SHUFFLE_SEED"] = seed
     asyncio.run(
         _merge_logic_async(
             sources_file=sources_file,
@@ -166,6 +174,7 @@ def merge(
             timeout=timeout,
             show_metrics=show_metrics,
             leniency=leniency,
+            strict_security=strict_security,
         )
     )
 

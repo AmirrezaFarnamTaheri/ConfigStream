@@ -98,3 +98,6 @@ class AppSettings:
     # Available variables: {remarks}, {protocol}, {country}, {country_code}, {city}, {latency}, {asn}, {address}, {port}
     # Example: "[{country}] {protocol} - {latency}ms"
     RENAME_TEMPLATE: Optional[str] = os.getenv("RENAME_TEMPLATE")
+
+    # Security Validator Settings
+    ALLOW_PRIVATE_IPS: bool = os.getenv("ALLOW_PRIVATE_IPS", "False").lower() == "true"

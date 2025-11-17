@@ -40,6 +40,7 @@ def test_record_test_result(temp_history_path, sample_proxy):
     tracker = ProxyHistoryTracker(history_path=temp_history_path)
 
     tracker.record_test_result(sample_proxy)
+    tracker.save()
 
     # Verify data was saved
     assert temp_history_path.exists()
@@ -61,6 +62,7 @@ def test_multiple_test_results(temp_history_path, sample_proxy):
         sample_proxy.latency = 100 + i * 10
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     data = json.loads(temp_history_path.read_text())
     assert len(data[sample_proxy.config]["entries"]) == 5
 
@@ -74,6 +76,7 @@ def test_max_entries_limit(temp_history_path, sample_proxy):
         sample_proxy.latency = 100 + i * 10
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     data = json.loads(temp_history_path.read_text())
     # Should only keep last 3 entries
     assert len(data[sample_proxy.config]["entries"]) == 3
@@ -87,6 +90,7 @@ def test_get_proxy_history(temp_history_path, sample_proxy):
     tracker = ProxyHistoryTracker(history_path=temp_history_path)
 
     tracker.record_test_result(sample_proxy)
+    tracker.save()
 
     history = tracker.get_proxy_history(sample_proxy.config)
     assert history is not None
@@ -110,6 +114,7 @@ def test_get_reliability_score_all_working(temp_history_path, sample_proxy):
     for _ in range(5):
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     score = tracker.get_reliability_score(sample_proxy.config)
     assert score == 1.0
 
@@ -123,6 +128,7 @@ def test_get_reliability_score_mixed(temp_history_path, sample_proxy):
         sample_proxy.is_working = i < 3
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     score = tracker.get_reliability_score(sample_proxy.config)
     assert score == 0.6  # 3/5 = 0.6
 
@@ -145,6 +151,7 @@ def test_get_trend_data(temp_history_path, sample_proxy):
         sample_proxy.is_working = i % 2 == 0
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     trend = tracker.get_trend_data(sample_proxy.config, points=10)
 
     assert len(trend["timestamps"]) == 10
@@ -164,6 +171,7 @@ def test_get_trend_data_limits_points(temp_history_path, sample_proxy):
     for i in range(20):
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     trend = tracker.get_trend_data(sample_proxy.config, points=5)
 
     # Should only return last 5
@@ -180,6 +188,7 @@ def test_get_summary_stats(temp_history_path, sample_proxy):
         sample_proxy.latency = 100 + i * 10 if i < 7 else None
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     stats = tracker.get_summary_stats(sample_proxy.config)
 
     assert stats["total_tests"] == 10
@@ -209,6 +218,7 @@ def test_export_for_visualization(temp_history_path, sample_proxy):
     for i in range(5):
         tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     output_path = temp_history_path.parent / "viz.json"
     tracker.export_for_visualization(output_path)
 
@@ -285,6 +295,7 @@ def test_data_persistence(temp_history_path, sample_proxy):
     # First instance
     tracker1 = ProxyHistoryTracker(history_path=temp_history_path)
     tracker1.record_test_result(sample_proxy)
+    tracker1.save()
 
     # Second instance (should load existing data)
     tracker2 = ProxyHistoryTracker(history_path=temp_history_path)
@@ -301,6 +312,7 @@ def test_handles_null_latency(temp_history_path, sample_proxy):
     sample_proxy.latency = None
     tracker.record_test_result(sample_proxy)
 
+    tracker.save()
     trend = tracker.get_trend_data(sample_proxy.config)
     assert trend["latencies"][0] == 0  # Should convert None to 0
 
@@ -324,6 +336,7 @@ def test_multiple_proxies(temp_history_path):
     for proxy in proxies:
         tracker.record_test_result(proxy)
 
+    tracker.save()
     assert len(tracker.history_data) == 5
 
     # Verify each proxy has its own entry
