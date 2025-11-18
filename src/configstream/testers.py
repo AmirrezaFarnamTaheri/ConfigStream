@@ -171,12 +171,10 @@ class SingBoxTester(ProxyTester):
             connector = ProxyConnector.from_url(proxy_url)
             async with aiohttp.ClientSession(connector=connector) as session:
                 for url in [TEST_URLS["google"], TEST_URLS["cloudflare"]]:
-                    start_time = asyncio.get_running_loop().time()
-                    resp = await self._perform_request(session, "GET", url, timeout=self.timeout)
-                    if resp and 200 <= resp.status < 300:
-                        proxy.latency = round(
-                            (asyncio.get_running_loop().time() - start_time) * 1000, 2
-                        )
+                    # REPLACED SINGLE REQUEST WITH ROBUST MEASUREMENT
+                    latency = await self._measure_latency_robust(session, url)
+                    if latency is not None:
+                        proxy.latency = round(latency, 2)
                         proxy.is_working = True
                         await self._run_integrity_checks(proxy, connector)
                         break
@@ -190,6 +188,34 @@ class SingBoxTester(ProxyTester):
             if self.cache:
                 self.cache.set(proxy)
         return proxy
+
+    # NEW HELPER METHOD
+    async def _measure_latency_robust(self, session: Any, url: str) -> Optional[float]:
+        """Performs 3 pings and returns average, penalized by jitter."""
+        latencies = []
+        for _ in range(3):
+            start = asyncio.get_running_loop().time()
+            try:
+                resp = await self._perform_request(session, "GET", url, timeout=self.timeout)
+                if resp and 200 <= resp.status < 300:
+                    duration = (asyncio.get_running_loop().time() - start) * 1000
+                    latencies.append(duration)
+            except Exception:
+                pass
+            # Tiny sleep to allow socket buffer to clear/reset slightly
+            await asyncio.sleep(0.05)
+
+        if not latencies:
+            return None
+
+        avg = sum(latencies) / len(latencies)
+
+        # Jitter Penalty: If variance > 50ms, add it to latency score to penalize instability
+        jitter = max(latencies) - min(latencies)
+        if jitter > 50:
+            return avg + (jitter * 0.5)
+
+        return avg
 
     async def test(self, proxy: Proxy) -> Proxy:
         """Tests a proxy with optional caching, direct testing, and integrity checks."""
