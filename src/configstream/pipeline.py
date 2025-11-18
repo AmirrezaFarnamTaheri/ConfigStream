@@ -256,7 +256,7 @@ async def _process_sources(
 
 
 async def run_full_pipeline(
-    sources: Sequence[str],
+    sources: List[str],
     output_dir: str,
     progress: Optional[Progress] = None,
     max_workers: int = 10,
@@ -335,7 +335,7 @@ async def run_full_pipeline(
         )
 
         source_to_configs, raw_fetch_total = await _process_sources(
-            sources_to_fetch, progress, tracker, quality_tracker
+            sources_to_fetch, progress, tracker, quality_tracker=quality_tracker
         )
 
         logger.info("PIPELINE: Fetched %d raw proxy configs.", raw_fetch_total)
@@ -343,8 +343,9 @@ async def run_full_pipeline(
         phase_summaries: List[Dict[str, Any]] = []
         stats["phases"] = phase_summaries
 
-        queue: deque[Tuple[str, str]] = deque()  # (source, raw_config)
+        queue: deque[Tuple[str, str]] = deque()
         seen_raw_configs: set[str] = set()
+
         for source, configs in source_to_configs.items():
             for raw_config in configs:
                 if raw_config in seen_raw_configs:
@@ -353,10 +354,12 @@ async def run_full_pipeline(
                 seen_raw_configs.add(raw_config)
                 queue.append((source, raw_config))
 
+        source_to_configs.clear()
+
         logger.info("PIPELINE: Prepared %d unique configs for sequential processing.", len(queue))
 
-        processed_proxy_keys: set[Tuple[str, str, int, str, str]] = set()
-        written_proxy_keys: set[Tuple[str, str, int, str, str]] = set()
+        processed_proxy_keys: set[Tuple[str, str, int, str, str, str]] = set()
+        written_proxy_keys: set[Tuple[str, str, int, str, str, str]] = set()
         all_tested_proxies: List[Proxy] = []
         all_working_proxies: List[Proxy] = []
 
@@ -397,7 +400,13 @@ async def run_full_pipeline(
             cache=test_cache,
             strict_security=strict_security,
         )
-        semaphore = asyncio.Semaphore(max(1, max_workers))
+        from .concurrency_manager import ConcurrencyManager
+
+        concurrency_manager = ConcurrencyManager(
+            loop=asyncio.get_running_loop(),
+            initial_limit=max_workers,
+            max_limit=max_workers * 2,
+        )
 
         async def _run_tests(batch: List[Proxy], label: str) -> List[Proxy]:
             if not batch:
@@ -438,8 +447,12 @@ async def run_full_pipeline(
             )
 
             async def test_single(proxy: Proxy) -> Proxy:
+                start_time = asyncio.get_running_loop().time()
+                semaphore = concurrency_manager.get_semaphore()
                 async with semaphore:
                     tested_proxy = await tester.test(proxy)
+                latency = asyncio.get_running_loop().time() - start_time
+                concurrency_manager.record("default", latency, tested_proxy.is_working)
                 history_tracker.record_test_result(tested_proxy)
                 if progress and task is not None:
                     progress.update(task, advance=1)
@@ -447,20 +460,24 @@ async def run_full_pipeline(
 
             tested: List[Proxy] = []
             total_batches = (len(batch_to_test) + batch_size - 1) // batch_size
-            with tracker.phase("test"):
-                for index, start in enumerate(range(0, len(batch_to_test), batch_size)):
-                    subset = batch_to_test[start : start + batch_size]
-                    batch_number = index + 1
-                    if total_batches > 1:
-                        logger.info(
-                            "Testing batch %d/%d (%d proxies) for %s",
-                            batch_number,
-                            total_batches,
-                            len(subset),
-                            label,
-                        )
-                    results = await asyncio.gather(*(test_single(p) for p in subset))
-                    tested.extend(results)
+            concurrency_manager.start_tuner()
+            try:
+                with tracker.phase("test"):
+                    for index, start in enumerate(range(0, len(batch_to_test), batch_size)):
+                        subset = batch_to_test[start : start + batch_size]
+                        batch_number = index + 1
+                        if total_batches > 1:
+                            logger.info(
+                                "Testing batch %d/%d (%d proxies) for %s",
+                                batch_number,
+                                total_batches,
+                                len(subset),
+                                label,
+                            )
+                        results = await asyncio.gather(*(test_single(p) for p in subset))
+                        tested.extend(results)
+            finally:
+                await concurrency_manager.stop_tuner()
 
             if progress and task is not None:
                 progress.update(task, completed=len(batch_to_test))
@@ -716,6 +733,10 @@ async def run_full_pipeline(
                     stats_path.write_text(json.dumps(stats_json, indent=2))
                     output_files["statistics"] = str(stats_path)
 
+                    from .config import AppSettings
+
+                    app_settings = AppSettings()
+
                     metadata = {
                         "version": "1.0.0",
                         "generated_at": start_time.isoformat(),
@@ -728,6 +749,7 @@ async def run_full_pipeline(
                         "phase_summaries": phase_summaries,
                         "cache_bust": int(datetime.now().timestamp() * 1000),
                         "stats": stats_json,
+                        "protocol_colors": app_settings.PROTOCOL_COLORS,
                     }
 
                     metadata_path = output_path / "metadata.json"
