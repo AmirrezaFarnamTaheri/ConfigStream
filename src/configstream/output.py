@@ -65,14 +65,21 @@ def format_proxy_names_with_rank(proxies: List[Proxy]) -> None:
 
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
-    # This function is misnamed; it should return a plain text,
-    # newline-separated list of configs, not a base64 encoded string.
-    # The frontend expects plain text.
+    """
+    Generates a Base64 encoded subscription string from a list of proxies.
+    This is the standard format for many VPN clients.
+    """
     working_proxies = [p for p in proxies if p.is_working]
     if not working_proxies:
         return ""
-    configs = [p.config for p in working_proxies]
-    return "\n".join(configs)
+
+    # Join all proxy config strings with a newline character.
+    proxy_list_str = "\n".join(p.config for p in working_proxies)
+
+    # Base64 encode the entire string.
+    encoded_bytes = base64.b64encode(proxy_list_str.encode("utf-8"))
+
+    return encoded_bytes.decode("utf-8")
 
 
 def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> Dict[str, str]:
