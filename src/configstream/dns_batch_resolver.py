@@ -1,9 +1,10 @@
 """
 Batch DNS resolver for concurrently resolving multiple hostnames.
 """
+
 import asyncio
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, cast
 
 import aiodns
 
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 class BatchDNSResolver:
     """A resolver for concurrently resolving a batch of hostnames."""
+
+    resolver: Optional[aiodns.DNSResolver]
 
     def __init__(self, timeout: float = 5.0):
         """
@@ -36,7 +39,7 @@ class BatchDNSResolver:
                 self.resolver.query(hostname, "A"), timeout=self.timeout
             )
             if result:
-                return result[0].host
+                return cast(Optional[str], result[0].host)
         except (aiodns.error.DNSError, asyncio.TimeoutError, Exception) as e:
             logger.debug("DNS resolution failed for %s: %s", hostname, e)
             return None

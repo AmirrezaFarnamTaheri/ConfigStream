@@ -147,8 +147,12 @@ class TestDeduplication:
     def test_identifies_duplicates_with_normalized_fields(self):
         # These two proxies are functionally identical, just with different remarks
         # in their config strings, leading to different configs.
-        p1 = self.create_proxy(True, 100, "vless://uuid@test.com?sni=cdn.com#remark1", sni="cdn.com")
-        p2 = self.create_proxy(True, 200, "vless://uuid@test.com?sni=cdn.com#remark2", sni="cdn.com")
+        p1 = self.create_proxy(
+            True, 100, "vless://uuid@test.com?sni=cdn.com#remark1", sni="cdn.com"
+        )
+        p2 = self.create_proxy(
+            True, 200, "vless://uuid@test.com?sni=cdn.com#remark2", sni="cdn.com"
+        )
 
         result = dedupe_and_shuffle([p2, p1])  # Put higher latency one first
         assert len(result) == 1
