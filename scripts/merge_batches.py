@@ -12,6 +12,7 @@ sys.path.insert(0, str(root_dir / "src"))
 
 from configstream.models import Proxy  # noqa: E402
 from configstream.output import generate_base64_subscription  # noqa: E402
+from configstream.test_cache import TestResultCache  # noqa: E402
 
 
 def get_country_flag(country_code: str) -> str:
@@ -132,6 +133,27 @@ def merge_batches():
     """
     output_dir = root_dir / "output"
     batch_output_dirs = sorted(list(root_dir.glob("output_batch_*")))
+
+    # --- Merge Test Caches ---
+    print("\n=== Step 0: Merging Test Caches ===")
+    main_cache = TestResultCache(db_path=str(output_dir / "test_cache.json"))
+    total_caches_merged = 0
+    for batch_dir in batch_output_dirs:
+        cache_file = batch_dir / "data" / "test_cache.json"
+        if cache_file.exists():
+            print(f"Merging cache from {batch_dir.name}...")
+            shard_cache = TestResultCache(db_path=str(cache_file))
+            main_cache.merge(shard_cache)
+            total_caches_merged += 1
+
+    if total_caches_merged > 0:
+        main_cache.cleanup_expired()
+        main_cache.save()
+        print(
+            f"✅ Merged {total_caches_merged} test caches. Final cache has {len(main_cache._cache)} entries."
+        )
+    else:
+        print("No test caches found to merge.")
 
     # Map to store: config -> (proxy, timestamp)
     # This ensures we keep the latest version of each proxy

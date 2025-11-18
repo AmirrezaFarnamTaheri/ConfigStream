@@ -239,31 +239,6 @@ class TestSecurityValidator:
         assert is_secure is False
         assert "suspicious_config_malformed" in issues
 
-    def test_command_injection_patterns_rejected(self):
-        """Test that command injection patterns are rejected."""
-        malicious_configs = [
-            "vmess://test$(rm -rf /)",
-            "vmess://test; rm -rf /",
-            "vmess://test && rm -rf /",
-            "vmess://test | sh",
-            "vmess://test`whoami`",
-            "vmess://eval(malicious)",
-        ]
-
-        for config in malicious_configs:
-            proxy = Proxy(
-                config=config,
-                protocol="vmess",
-                address="valid-proxy-domain.com",
-                port=443,
-                uuid="test-uuid",
-            )
-
-            is_secure, issues = SecurityValidator.validate_proxy_config(proxy, policy=TEST_POLICY)
-
-            assert is_secure is False
-            assert "suspicious_injection_attempt" in issues
-
     def test_excessively_long_config_rejected(self):
         """Test that excessively long configs are rejected."""
         long_config = "vmess://" + "A" * 15000

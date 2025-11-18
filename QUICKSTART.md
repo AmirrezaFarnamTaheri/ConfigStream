@@ -29,7 +29,7 @@ git push origin main
 
 1. Go to **Settings** → **Pages**
 2. Source: **Deploy from a branch**
-3. Branch: **main** / **/ (root)**
+3. Branch: **gh-pages** / **(root)**
 4. Click **Save**
 
 Your site: `https://YOUR_USERNAME.github.io/ConfigStream/`
@@ -39,23 +39,22 @@ Your site: `https://YOUR_USERNAME.github.io/ConfigStream/`
 ## ⚙️ Enable Automation
 
 1. Go to **Settings** → **Actions** → **General**
-2. Enable: **Read and write permissions**
-3. Enable: **Allow GitHub Actions to create PRs**
-4. Go to **Actions** → **Merge VPN Subscriptions**
-5. Click **Run workflow**
+2. Enable: **Read and write permissions** for workflows.
+3. Go to the **Actions** tab in your repository.
+4. Find the **ConfigStream Pipeline** workflow and enable it if it's disabled.
+5. Manually run the workflow by clicking **Run workflow**.
 
-Workflow runs every 6 hours automatically.
+The workflow will now run automatically every 6 hours.
 
 ---
 
 ## ✅ Verification
 
-```bash
-# Run verification script
-./verify.sh YOUR_USERNAME
+After the workflow has completed, you can verify that the site is live:
 
-# Or manually check
-curl https://YOUR_USERNAME.github.io/ConfigStream/output/metadata.json
+```bash
+# Manually check the metadata URL
+curl https://YOUR_USERNAME.github.io/ConfigStream/metadata.json
 ```
 
 ---
