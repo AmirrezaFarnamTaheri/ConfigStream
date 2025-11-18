@@ -1,263 +1,97 @@
 # ConfigStream Architecture Documentation
 
-## Overview
+## 1. Overview
 
-ConfigStream is a VPN configuration aggregator that fetches, tests, and publishes working proxy configurations from public sources.
+ConfigStream is a high-performance VPN configuration aggregator designed for reliability and scalability. It fetches proxy configurations from diverse sources, validates them through a rigorous testing pipeline, and publishes them in multiple formats for end-user consumption. The architecture is built on modern asynchronous patterns in Python, ensuring non-blocking I/O for both network and file operations.
 
-## Design Principles
+## 2. Core Design Principles
 
-### 1. Module Organization
+### Modularity and Separation of Concerns
 
-#### Core Modules (Production)
-- **models.py**: Data models (Proxy class)
-- **parsers.py**: Configuration parsing and validation
-- **core.py**: Core parsing logic and geolocation
-- **pipeline.py**: Main orchestration and workflow
-- **testers.py**: Proxy connectivity testing
-- **output.py**: Multiple output format generation
-- **geoip.py**: Geolocation database management
-- **cli.py**: Command-line interface
-- **cli_errors.py**: Error handling and CLI exceptions
-- **config.py**: Application settings and configuration
-- **logging_config.py**: Logging setup and filters
-- **performance.py**: Performance tracking and metrics
-- **statistics.py**: Statistics computation
-- **async_file_ops.py**: Non-blocking file I/O operations
+The codebase is organized into distinct modules, each with a clear responsibility. This separation simplifies maintenance, testing, and future development.
 
-#### Utility Modules (For Testing/Examples)
-These modules are fully tested but not currently used in production pipeline:
-- **fetcher.py**: Advanced HTTP fetching with retry logic (310 lines)
-- **filtering.py**: Fluent API for proxy filtering (73 lines)
-- **events.py**: Event bus for pub/sub patterns (74 lines)
-- **scheduler.py**: Scheduled proxy retesting (85 lines)
-- **monitor.py**: Health monitoring (50 lines)
-- **security/rate_limiter.py**: Token bucket rate limiting (36 lines)
+-   **`pipeline.py` (Orchestrator)**: The heart of the application, responsible for orchestrating the entire workflow, from fetching and parsing to testing and output generation.
+-   **`parsers.py` & `core.py` (Parsing & Validation)**: Handle the initial parsing and validation of raw proxy configurations.
+-   **`testers.py` (Proxy Testing)**: Contains the logic for testing proxy connectivity and performance.
+-   **`output.py` (Output Generation)**: Generates the final output files in various formats (Base64, Clash, Sing-box, etc.).
+-   **`concurrency_manager.py` (Concurrency Control)**: Implements a unified AIMD (Additive Increase, Multiplicative Decrease) concurrency controller to dynamically adjust system load for both fetching and testing.
+-   **`http_client.py` (Networking)**: Manages a shared `httpx.AsyncClient` for all network requests, enabling connection pooling and HTTP/2 support.
+-   **`logging_config.py` (Logging)**: Centralizes logging configuration, including support for structured JSON logging for machine-readable output.
 
-**Why keep these?**
-- Fully tested (100% coverage for most)
-- Provide examples for extending functionality
-- May be activated in future versions
-- Show design patterns for contributors
+### Asynchronous-First Approach
 
-### 2. Code Patterns
+All I/O-bound operations (network requests, file access) are implemented using `asyncio` to maximize performance and prevent the event loop from blocking.
 
-#### When to Use Classes vs Functions
+-   **Network Operations**: All network calls are made using an asynchronous HTTP client (`httpx`).
+-   **File I/O**: File operations are offloaded to a thread pool via `async_file_ops.py` to avoid blocking the main thread.
 
-**Use Functions for:**
-- Stateless operations (parsing, validation, conversion)
-- Pure transformations with no side effects
-- Examples: `parse_config()`, `_safe_b64_decode()`
+### Dynamic Concurrency Management
 
-**Use Classes for:**
-- Stateful operations requiring initialization
-- Resource management (connections, pools)
-- Examples: `SingBoxTester`, `PerformanceTracker`
+To prevent system overload and adapt to varying network conditions, ConfigStream uses a unified concurrency model.
 
-#### Import Conventions
+-   **AIMD Controller**: The `ConcurrencyManager` in `concurrency_manager.py` uses an AIMD algorithm to dynamically adjust the number of concurrent operations for both fetching and testing. This allows the system to automatically scale up during optimal conditions and back off when errors or high latency are detected.
 
-**Standard Import Paths:**
-```python
-# Data models
-from .models import Proxy  # ALWAYS use .models
+### Intelligence Modules
 
-# Core functions
-from .core import parse_config, geolocate_proxy
+The pipeline integrates several "intelligence" modules to improve efficiency and output quality:
 
-# Configuration
-from .config import AppSettings
-```
+-   **`source_quality.py`**: Tracks the performance of different sources and prioritizes fetching from those that consistently provide working proxies.
+-   **`auto_detect.py`**: Provides fallback parsing mechanisms for unknown or malformed proxy configurations.
+-   **`freshness.py`**: Filters out stale proxies based on their last-seen timestamp.
+-   **`intelligent_fallback.py`**: Caches the last known-good set of proxies to ensure high availability, even if a pipeline run fails.
 
-**Anti-pattern:**
-```python
-from .core import Proxy  # WRONG - Proxy is defined in .models
-```
+## 3. Data Flow
 
-#### Error Handling Standards
+The data processing pipeline consists of the following stages:
 
-**Pattern 1: Silent Failure with Logging**
-Use for parsing operations where failure is expected:
-```python
-def _parse_vmess(config: str) -> Proxy | None:
-    try:
-        # Parsing logic
-        return Proxy(...)
-    except Exception as e:
-        logger.debug(f"Failed to parse VMess: {e}")
-        return None
-```
+1.  **Source Fetching**: The pipeline fetches raw proxy configurations from a list of sources (URLs or local files) using the `fetcher.py` module.
+2.  **Parsing and Validation**: Raw configurations are parsed and validated by `parsers.py` and `core.py`. Invalid or insecure configurations are discarded.
+3.  **Deduplication and Shuffling**: Proxies are deduplicated to ensure only unique configurations are tested. The list is then shuffled to randomize the testing order.
+4.  **Proxy Testing**: Proxies are tested for connectivity and performance using the `testers.py` module. The `ConcurrencyManager` dynamically adjusts the number of concurrent tests.
+5.  **Geolocation**: The geographic location of each working proxy is determined using an offline GeoIP database.
+6.  **Output Generation**: The final list of working proxies is formatted into multiple output files by `output.py`.
+7.  **Statistics and Metadata**: The pipeline generates `statistics.json` and `metadata.json` files, which provide data for the frontend UI.
 
-**Pattern 2: Error Propagation**
-Use for critical operations that should fail the entire workflow:
-```python
-async def download_geoip_dbs():
-    try:
-        # Download logic
-    except Exception as e:
-        logger.error(f"Failed to download GeoIP: {e}")
-        raise  # Propagate to caller
-```
+## 4. Key Architectural Components
 
-**Pattern 3: Custom Exceptions**
-Use for CLI operations that need specific exit codes:
-```python
-class CLIError(Exception):
-    exit_code = 1
+### Unified Concurrency Controller
 
-raise SourcesFileNotFoundError("sources.txt not found")
-```
+The `ConcurrencyManager` is a key component for ensuring system stability and performance. It provides a centralized mechanism for controlling concurrency across the application.
 
-### 3. Async Patterns
+-   **Generic Design**: The manager is designed to be generic and can be used to control concurrency for any resource-limited operation.
+-   **Dynamic Adjustment**: It dynamically adjusts concurrency limits based on real-time performance metrics (latency, error rate), allowing the system to adapt to changing conditions.
 
-#### File I/O
-**Always use async file operations** to avoid blocking the event loop:
+### Structured JSON Logging
 
-```python
-# Good
-from .async_file_ops import read_file_async, write_file_async
-content = await read_file_async("file.txt")
+The `logging_config.py` module supports structured JSON logging, which is essential for modern observability.
 
-# Bad
-content = Path("file.txt").read_text()  # Blocks event loop!
-```
+-   **Machine-Readable Logs**: JSON logs are easy to parse and ingest into monitoring platforms like the ELK stack or Datadog.
+-   **Rich Context**: Each log entry includes rich contextual information, such as a timestamp, log level, trace ID, and code location.
 
-#### Network Operations
-All network calls should be async:
-```python
-async with aiohttp.ClientSession() as session:
-    async with session.get(url) as response:
-        return await response.text()
-```
+### Decoupled Frontend Configuration
 
-### 4. Security Considerations
+The frontend UI is designed to be adaptable to backend configuration changes.
 
-#### Input Validation
-- **Base64 Decoding**: Maximum size limits (50MB input, 100MB output)
-- **Config Validation**: Plausibility checks before parsing
-- **URL Validation**: Protocol and domain validation
+-   **`metadata.json`**: The pipeline writes key configuration values (e.g., `PROTOCOL_COLORS`) to `output/metadata.json`.
+-   **Dynamic UI**: The frontend JavaScript fetches `metadata.json` and uses the values to dynamically render UI elements, such as charts. This removes hardcoded values from the frontend and allows the UI to be updated by changing the backend configuration.
 
-#### Size Limits
-```python
-MAX_B64_INPUT_SIZE = 50 * 1024 * 1024     # 50MB
-MAX_B64_OUTPUT_SIZE = 100 * 1024 * 1024   # 100MB
-MAX_CONFIG_LINE_LENGTH = 10000            # 10KB per line
-MAX_LINES_PER_SOURCE = 10000              # 10k lines per source
-```
+## 5. Security Considerations
 
-#### Sensitive Data Handling
-- Logs can mask credentials when `MASK_SENSITIVE_DATA=true`
-- Proxy configs may contain UUIDs - handle with care
+-   **Input Validation**: All inputs, from source URLs to raw proxy configurations, are rigorously validated to prevent injection attacks and other vulnerabilities.
+-   **Resource Limiting**: The concurrency manager and rate limiters prevent the application from overwhelming external services or consuming excessive system resources.
+-   **Sensitive Data Masking**: The logging system includes filters to mask sensitive data (e.g., UUIDs, email addresses) in log output.
 
-### 5. Testing Strategy
+## 6. Testing Strategy
 
-#### Coverage Goals
-- Core modules: 95%+ coverage
-- Utility modules: 90%+ coverage
-- CLI: 90%+ coverage (excluding OS-specific paths)
+The project maintains a comprehensive test suite to ensure code quality and prevent regressions.
 
-#### Test Organization
-```
-tests/
-├── test_core.py           # Core parsing and geolocation
-├── test_parsers.py        # Parser functions
-├── test_parser_validation.py  # Security validations
-├── test_pipeline.py       # End-to-end pipeline tests
-├── test_testers.py        # Proxy testing
-├── test_output.py         # Output generation
-├── test_cli.py            # CLI commands
-└── test_*.py              # One test file per module
-```
+-   **Unit Tests**: Each module has a corresponding set of unit tests to verify its functionality in isolation.
+-   **Integration Tests**: The test suite includes integration tests that verify the interaction between different modules.
+-   **High Coverage**: The project aims for high test coverage across the entire codebase.
 
-#### Testing Patterns
-- Use `pytest-asyncio` for async tests
-- Use `pyfakefs` for file system mocking
-- Use `pytest-aiohttp` for HTTP server mocking
+## 7. Deployment
 
-### 6. Performance Considerations
+The application is deployed as a static website on GitHub Pages, with the backend pipeline running on a schedule using GitHub Actions.
 
-#### Concurrency
-- **Default workers**: 10 concurrent proxy tests
-- **File I/O pool**: 10 threads for async file operations
-- **HTTP timeout**: 10 seconds default
-
-#### Optimization Strategies
-1. **Async file operations**: Saves ~190ms per 20 files
-2. **Concurrent testing**: Tests 10 proxies simultaneously
-3. **Early filtering**: Remove invalid configs before testing
-
-### 7. Output Formats
-
-Supported formats:
-- **Base64 Subscription**: Universal V2Ray clients
-- **Clash YAML**: Clash clients
-- **Sing-box JSON**: Sing-box clients
-- **Shadowrocket**: iOS Shadowrocket
-- **Quantumult**: iOS Quantumult
-- **Surge**: iOS/macOS Surge
-
-### 8. Extension Points
-
-#### Adding New Protocols
-1. Add parser function to `parsers.py`:
-   ```python
-   def _parse_newprotocol(config: str) -> Proxy | None:
-       # Parsing logic
-       return Proxy(...)
-   ```
-
-2. Register in `core.py`:
-   ```python
-   PROTOCOL_PARSERS = {
-       "newprotocol://": _parse_newprotocol,
-       # ...
-   }
-   ```
-
-#### Adding New Output Formats
-1. Add generator function to `output.py`:
-   ```python
-   def generate_newformat_config(proxies: List[Proxy]) -> str:
-       # Generation logic
-       return formatted_output
-   ```
-
-2. Call in `pipeline.py`:
-   ```python
-   newformat_content = generate_newformat_config(proxies)
-   await write_file_async(output_dir / "config.newformat", newformat_content)
-   ```
-
-### 9. Deployment
-
-#### GitHub Actions Pipeline
-1. **Validation**: Linting, type checking
-2. **Testing**: Full test suite with coverage
-3. **Pipeline**: Fetch, test, publish configs
-4. **Deployment**: Auto-deploy to GitHub Pages
-
-#### Scheduling
-- **Every 4 hours**: Fetch sources, test proxies, and run full pipeline
-- **On push**: Validation and testing only
-
-### 10. Known Limitations
-
-1. **GeoIP Accuracy**: Based on MaxMind databases (95% accurate)
-2. **Public Proxies**: No guarantee of privacy or security
-3. **Rate Limiting**: Sources may rate-limit requests
-4. **Windows Support**: Uses SelectorEventLoop (not ProactorEventLoop)
-
-### 11. Future Enhancements
-
-Potential areas for improvement:
-1. **Activate utility modules** (filtering, events, scheduler)
-2. **Advanced filtering UI** on GitHub Pages
-3. **Historical statistics** tracking
-4. **Source reliability scoring**
-5. **Proxy health trends** over time
-
----
-
-## Questions?
-
-- Check the code comments for inline documentation
-- Review test files for usage examples
-- See CONTRIBUTING.md for development guidelines
+-   **GitHub Actions**: The `.github/workflows/pipeline.yml` workflow automates the entire process of fetching, testing, and publishing proxy configurations.
+-   **GitHub Pages**: The `output/` directory, which contains the generated output files and frontend assets, is deployed to the `gh-pages` branch, making the site publicly accessible.

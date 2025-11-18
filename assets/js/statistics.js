@@ -291,20 +291,18 @@ document.addEventListener('DOMContentLoaded', () => {
             // Protocol Chart (Doughnut - no scales needed)
             const protocolChartCanvas = document.getElementById('protocolChart');
             if (stats.protocols && Object.keys(stats.protocols).length > 0) {
+                const protocolColors = metadata.protocol_colors || {};
+                const chartColors = Object.keys(stats.protocols).map(
+                    protocol => protocolColors[protocol.toLowerCase()] || '#cccccc'
+                );
+
                 new Chart(protocolChartCanvas, {
                     type: 'doughnut',
                     data: {
                         labels: Object.keys(stats.protocols),
                         datasets: [{
                             data: Object.values(stats.protocols),
-                            backgroundColor: [
-                                'rgba(76, 154, 255, 0.8)',
-                                'rgba(255, 86, 48, 0.8)',
-                                'rgba(54, 210, 153, 0.8)',
-                                'rgba(255, 206, 86, 0.8)',
-                                'rgba(153, 102, 255, 0.8)',
-                                'rgba(255, 159, 64, 0.8)',
-                            ],
+                            backgroundColor: chartColors,
                             borderColor: bgColor,
                             borderWidth: 2
                         }]
