@@ -61,7 +61,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 graph LR
     A[GitHub Actions<br/>Every 6 Hours] -->|Trigger| B[Fetch Sources]
     B --> C[Parse & Normalise]
-    C --> D[Disk Queue]
+    C --> D[In-Memory Queue]
     D --> E[Async Testing]
     E --> F[Geo & Scoring]
     F --> G[Rank Views]
@@ -74,7 +74,7 @@ graph LR
 
 1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source
 2. **Parse & Deduplicate** - Canonicalise endpoints, remove duplicates, and compute stable proxy identifiers
-3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps)
+3. **Queue** - An efficient in-memory deque organizes proxies for processing.
 4. **Security Filtering** - Pre-test validation to remove insecure or malformed configurations.
 5. **Test** - Sing-box verification with latency budgets and retry heuristics
 6. **Secure** - Post-test security analysis with detailed issue tracking and categorization

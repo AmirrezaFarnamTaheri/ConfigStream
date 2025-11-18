@@ -1,5 +1,6 @@
 from __future__ import annotations
 import base64
+import json
 import pytest
 from configstream.models import Proxy
 from configstream.parsers import (
@@ -214,8 +215,8 @@ def test_parse_hysteria():
     assert proxy.address == "1.2.3.4"
     assert proxy.port == 443
     assert proxy.remarks == "Test"
-    assert proxy.details["protocol"] == ["udp"]
-    assert proxy.details["auth"] == ["someauth"]
+    assert proxy.details["protocol"] == "udp"
+    assert proxy.details["auth"] == "someauth"
 
 
 def test_parse_hysteria2_missing_password():
@@ -239,7 +240,7 @@ def test_parse_tuic():
     assert proxy.address == "1.2.3.4"
     assert proxy.port == 443
     assert proxy.uuid == "uuid"
-    assert proxy.details["congestion_control"] == ["bbr"]
+    assert proxy.details["congestion_control"] == "bbr"
 
 
 def test_parse_wireguard_missing_private_key():
@@ -252,7 +253,7 @@ def test_parse_wireguard_valid():
     proxy = _parse_wireguard(config)
     assert proxy is not None
     assert proxy.protocol == "wireguard"
-    assert proxy.details["private_key"] == ["key"]
+    assert proxy.details["private_key"] == "key"
 
 
 def test_parse_xray_missing_uuid():
@@ -365,3 +366,64 @@ def test_parse_generic_url_scheme_socks5():
 def test_parse_ss_invalid_port():
     config = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ=@1.2.3.4:99999#test"
     assert _parse_ss(config) is None
+
+
+class TestNormalizationLayer:
+    def test_normalize_sni_from_vless(self):
+        # VLESS uses 'sni' query parameter
+        config = "vless://uuid@example.com:443?sni=cdn.com#test"
+        proxy = _parse_vless(config)
+        assert proxy is not None
+        assert proxy.sni == "cdn.com"
+
+    def test_normalize_sni_from_vmess_headers(self):
+        # VMess uses 'Host' in headers
+        vmess_data = {
+            "ps": "test",
+            "add": "1.2.3.4",
+            "port": 443,
+            "id": "uuid",
+            "aid": 0,
+            "net": "ws",
+            "type": "none",
+            "host": "example.com",
+            "path": "/",
+            "tls": "tls",
+            "sni": "",
+            "headers": {"Host": "cdn.com"},
+        }
+        encoded = base64.b64encode(json.dumps(vmess_data).encode()).decode()
+        config = f"vmess://{encoded}"
+        proxy = _parse_vmess(config)
+        assert proxy is not None
+        assert proxy.sni == "cdn.com"
+
+    def test_normalize_sni_from_trojan_peer(self):
+        # Trojan can use 'peer' as an alternative to 'sni'
+        config = "trojan://pass@example.com:443?peer=cdn.com#test"
+        proxy = _parse_trojan(config)
+        assert proxy is not None
+        assert proxy.sni == "cdn.com"
+
+    def test_normalize_path_from_vmess(self):
+        # VMess uses 'path'
+        vmess_data = {"add": "1.2.3.4", "port": 443, "id": "uuid", "path": "/websocket"}
+        encoded = base64.b64encode(json.dumps(vmess_data).encode()).decode()
+        config = f"vmess://{encoded}"
+        proxy = _parse_vmess(config)
+        assert proxy is not None
+        assert proxy.path == "/websocket"
+
+    def test_normalize_path_from_vless_servicename(self):
+        # VLESS can use 'serviceName' for gRPC
+        config = "vless://uuid@example.com:443?type=grpc&serviceName=/my/path#test"
+        proxy = _parse_vless(config)
+        assert proxy is not None
+        assert proxy.path == "/my/path"
+
+    def test_normalize_alpn_from_string(self):
+        # ALPN can be a comma-separated string
+        config = "vless://uuid@example.com:443?alpn=h2,http/1.1#test"
+        proxy = _parse_vless(config)
+        assert proxy is not None
+        assert proxy.alpn == ["h2", "http/1.1"]
