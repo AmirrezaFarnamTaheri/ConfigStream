@@ -1,6 +1,6 @@
 {
-  "generated_at": "2025-11-18T12:43:20.214125+00:00",
-  "generated_now": "2025-11-18T12:43:58.621541+00:00",
+  "generated_at": "2025-11-18T14:21:12.069645+00:00",
+  "generated_now": "2025-11-18T14:21:39.514759+00:00",
   "total_fetched": 1561,
   "total_duplicates": 0,
   "total_insecure": 0,
@@ -102,5 +102,5 @@
       "cumulative_working": 1561
     }
   ],
-  "cache_bust": 1763469838621
+  "cache_bust": 1763475699514
 }
