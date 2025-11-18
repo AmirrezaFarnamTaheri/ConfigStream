@@ -106,7 +106,12 @@ async def test_singbox_tester_stop_exception(
 
     assert result.is_working is True
     # Verify that the factory was called and stop was called on the instance
-    mock_sb_proxy_factory.assert_called_once_with(proxy.config)
+    mock_sb_proxy_factory.assert_called_once()
+    # Get the path of the temporary file that was created
+    temp_file_path = mock_sb_proxy_factory.call_args[0][0]
+    with open(temp_file_path, "r") as f:
+        content = f.read()
+        assert content == proxy.config  # The content should be the path from the fixture
     mock_sb_instance.stop.assert_called_once()
 
 

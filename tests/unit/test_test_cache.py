@@ -13,7 +13,7 @@ from configstream.test_cache import TestResultCache
 def temp_cache():
     """Create a temporary test cache."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        cache = TestResultCache(db_path=str(Path(tmpdir) / "test.db"), ttl_seconds=60)
+        cache = TestResultCache(db_path=str(Path(tmpdir) / "test.json"), ttl_seconds=60)
         yield cache
 
 
@@ -37,7 +37,8 @@ def sample_proxy():
 def test_cache_init(temp_cache):
     """Test cache initialization."""
     assert temp_cache.ttl_seconds == 60
-    assert temp_cache.db_path.exists()
+    # The file should not exist on init, only after a save.
+    assert not temp_cache.db_path.exists()
 
 
 def test_cache_set_and_get(temp_cache, sample_proxy):
@@ -60,6 +61,7 @@ def test_cache_persists_across_instances(temp_cache, sample_proxy):
     """Ensure cached results are retrievable with a new cache instance."""
 
     temp_cache.set(sample_proxy)
+    temp_cache.save()  # Explicitly save to disk
 
     new_cache = TestResultCache(db_path=temp_cache.db_path, ttl_seconds=60)
     fresh_proxy = Proxy(
@@ -82,6 +84,7 @@ def test_cache_ttl_expiration(temp_cache, sample_proxy):
     cache_no_ttl = TestResultCache(db_path=temp_cache.db_path, ttl_seconds=0)
 
     cache_no_ttl.set(sample_proxy)
+    cache_no_ttl.save()
 
     # Should be expired immediately
     assert cache_no_ttl.get(sample_proxy) is None
@@ -129,6 +132,7 @@ def test_cleanup_expired(temp_cache, sample_proxy):
     cache = TestResultCache(db_path=temp_cache.db_path, ttl_seconds=0)
 
     cache.set(sample_proxy)
+    cache.save()
 
     # Should remove expired entry
     removed = cache.cleanup_expired()
