@@ -135,19 +135,21 @@ class SingBoxTester(ProxyTester):
 
     async def _resolve_proxy_ip(self, proxy: Proxy) -> None:
         """Resolve proxy address to IP for accurate geolocation."""
-        if not proxy.resolved_ip:
-            try:
-                # Try to resolve the hostname to an IP address
-                loop = asyncio.get_running_loop()
-                addr_info = await loop.getaddrinfo(
-                    proxy.address, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
-                )
-                if addr_info:
-                    # Get the first IP address (addr_info[0][4][0])
-                    proxy.resolved_ip = addr_info[0][4][0]
-            except Exception:
-                # If resolution fails, use the address as-is (might already be an IP)
-                proxy.resolved_ip = proxy.address
+        if proxy.resolved_ip:
+            return  # Already resolved by the batch resolver
+
+        try:
+            # Try to resolve the hostname to an IP address
+            loop = asyncio.get_running_loop()
+            addr_info = await loop.getaddrinfo(
+                proxy.address, None, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM
+            )
+            if addr_info:
+                # Get the first IP address (addr_info[0][4][0])
+                proxy.resolved_ip = addr_info[0][4][0]
+        except Exception:
+            # If resolution fails, use the address as-is (might already be an IP)
+            proxy.resolved_ip = proxy.address
 
     async def _test_direct_http_socks(self, proxy: Proxy) -> Optional[Proxy]:
         """Test HTTP/SOCKS5 proxies directly for performance."""

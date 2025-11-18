@@ -45,38 +45,44 @@ def calculate_health_score(
         settings = AppSettings()
 
     score = 0.0
+    weights = settings.SCORE_WEIGHTS
 
-    # Historical success rate (40 points)
+    # Historical success rate
+    w_hist = weights.get("historical_success", 40.0)
     if cache:
         historical_score = cache.get_health_score(proxy)
-        score += historical_score * 40.0
+        score += historical_score * w_hist
     else:
-        # Default neutral score if no history
-        score += 20.0
+        # Default neutral score (50%) if no history
+        score += 0.5 * w_hist
 
-    # Latency score (30 points)
+    # Latency score
+    w_lat = weights.get("latency", 30.0)
     if proxy.latency is not None:
-        score += _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, 30.0)
+        score += _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, w_lat)
     else:
-        # No latency data - assume average
-        score += 15.0
+        # No latency data - assume average (50%)
+        score += 0.5 * w_lat
 
-    # Security features (20 points)
+    # Security features
+    w_sec = weights.get("security", 20.0)
     security_score = 0.0
     if proxy.details:
+        # Each feature contributes a fraction of the total security points
         if proxy.details.get("tls"):
-            security_score += 10.0
+            security_score += 0.5 * w_sec  # 50% of weight
         if proxy.details.get("aead"):
-            security_score += 5.0
+            security_score += 0.25 * w_sec  # 25% of weight
         if proxy.details.get("encryption"):
-            security_score += 3.0
+            security_score += 0.15 * w_sec  # 15% of weight
     if proxy.dns_over_https_ok:
-        security_score += 2.0
-    score += min(security_score, 20.0)
+        security_score += 0.1 * w_sec  # 10% of weight
+    score += min(security_score, w_sec)
 
-    # Current working status (10 points)
+    # Current working status
+    w_stat = weights.get("current_status", 10.0)
     if proxy.is_working:
-        score += 10.0
+        score += w_stat
 
     # Ensure score is between 0 and 100
     return round(min(max(score, 0.0), 100.0), 2)
