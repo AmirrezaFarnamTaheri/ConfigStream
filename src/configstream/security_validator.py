@@ -380,3 +380,35 @@ def validate_batch_configs(
 
     logger.info("Security validation: %s/%s proxies passed", len(secure_proxies), len(proxies))
     return secure_proxies
+
+
+def filter_by_asn(proxies: List[Proxy]) -> Tuple[List[Proxy], int]:
+    """
+    Filter proxies based on a malicious ASN list from AppSettings.
+
+    Args:
+        proxies: A list of Proxy objects that have been geolocated.
+
+    Returns:
+        A tuple containing the list of proxies that passed the filter and the
+        count of proxies that were filtered out.
+    """
+    app_settings = AppSettings()
+    malicious_asns = set(app_settings.SECURITY.get("malicious_asn_list", []))
+
+    if not malicious_asns:
+        return proxies, 0
+
+    safe_proxies = []
+    filtered_count = 0
+    for proxy in proxies:
+        if proxy.asn and proxy.asn in malicious_asns:
+            logger.warning("Filtering proxy %s from malicious ASN: %s", proxy.address, proxy.asn)
+            filtered_count += 1
+        else:
+            safe_proxies.append(proxy)
+
+    if filtered_count > 0:
+        logger.info("Filtered out %d proxies from malicious ASNs.", filtered_count)
+
+    return safe_proxies, filtered_count

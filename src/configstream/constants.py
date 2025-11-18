@@ -32,6 +32,7 @@ VALID_PROTOCOLS = [
     "ss2022",
     "ssr",
     "trojan",
+    "trojan-go",
     "hysteria",
     "hysteria2",
     "hy2",

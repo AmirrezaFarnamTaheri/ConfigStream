@@ -294,6 +294,35 @@ def _parse_trojan(config: str) -> Optional[Proxy]:
         return None
 
 
+def _parse_trojan_go(config: str) -> Optional[Proxy]:
+    """Parse a Trojan-Go (trojan-go://) URL, which is a superset of Trojan."""
+    try:
+        # Trojan-Go can use the trojan:// scheme, so we check for its specific params.
+        # This parser can be called as a fallback.
+        if "trojan-go://" in config:
+            config = config.replace("trojan-go://", "trojan://")
+
+        proxy = _parse_url_scheme(config, "trojan-go", 443)
+        if not proxy:
+            return None
+
+        # Trojan-Go specific features (e.g., websocket) are in query params
+        # The _normalize_proxy_details function already handles 'sni' and 'path'
+        # which are the most common extensions used by Trojan-Go.
+        # We can add more specific checks here if needed.
+
+        # A key differentiator for Trojan-Go is the `type` or `transport` parameter.
+        transport = proxy.details.get("type", proxy.details.get("transport"))
+        if transport and transport not in ["tcp", "ws", "wss"]:
+             logger.debug("Unsupported Trojan-Go transport: %s", transport)
+             return None
+
+        return proxy
+    except Exception as e:
+        logger.debug("Failed to parse Trojan-Go: %s", e)
+        return None
+
+
 def _b64_normalize(s: str) -> str:
     # Convert urlsafe to standard and pad
     s = s.replace("-", "+").replace("_", "/")

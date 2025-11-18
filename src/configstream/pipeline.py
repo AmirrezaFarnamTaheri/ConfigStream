@@ -586,9 +586,58 @@ async def run_full_pipeline(
                 if progress and geo_task is not None:
                     progress.update(geo_task, completed=len(batch))
 
+        def _write_ranked_outputs() -> None:
+            """Score and write ranked JSON output files."""
+            from .score import score_speed, score_balanced, score_privacy, score_stability
+            from .config import AppSettings
+
+            settings = AppSettings()
+            # The history object is not available in this scope, so we pass an empty dict.
+            # This means the scoring will be based on the current run's data only.
+            history = {}
+
+            ranking_functions = {
+                "speed": score_speed,
+                "balanced": score_balanced,
+                "privacy": score_privacy,
+                "stability": score_stability,
+            }
+
+            for name, func in ranking_functions.items():
+                # Score each proxy
+                for proxy in all_working_proxies:
+                    proxy.score = func(proxy, history, settings)
+
+                # Sort proxies by score, descending
+                ranked_proxies = sorted(all_working_proxies, key=lambda p: p.score, reverse=True)
+
+                proxies_json = [
+                    {
+                        "config": p.config,
+                        "protocol": p.protocol,
+                        "address": p.address,
+                        "port": p.port,
+                        "latency": p.latency,
+                        "country": p.country,
+                        "country_code": p.country_code,
+                        "city": p.city,
+                        "remarks": p.remarks,
+                        "is_working": p.is_working,
+                        "security_issues": p.security_issues,
+                        "tested_at": p.tested_at,
+                        "score": p.score,
+                    }
+                    for p in ranked_proxies
+                ]
+
+                json_path = output_path / f"proxies_{name}.json"
+                json_path.write_text(json.dumps(proxies_json, indent=2))
+                output_files[f"ranked_{name}"] = str(json_path)
+
         def _write_outputs() -> None:
             try:
                 with tracker.phase("output"):
+                    _write_ranked_outputs()
                     # Apply custom tagging if RENAME_TEMPLATE is set in config
                     from .config import AppSettings
                     from . import tagging
@@ -986,6 +1035,12 @@ async def run_full_pipeline(
 
             await _geolocate_batch(working_batch, phase_label)
 
+            # Post-geolocation security filter for malicious ASNs
+            from .security_validator import filter_by_asn
+            working_batch, asn_filtered_count = filter_by_asn(working_batch)
+            if asn_filtered_count > 0:
+                stats["insecure"] += asn_filtered_count
+
             if country_filter:
                 working_batch = [
                     p
@@ -1121,13 +1176,6 @@ async def run_full_pipeline(
             "metrics": snapshot.to_dict(),
         }
     finally:
-        # Ensure GeoIP reader is closed before leaving the pipeline
-        if geoip_reader:
-            try:
-                geoip_reader.close()
-            except Exception as e:  # pragma: no cover
-                logger.debug("Error closing GeoIP reader: %s", e)
-
         # Only shut down the pool if we're not in a test environment
         # Tests manage their own pool lifecycle via fixtures
         import sys
