@@ -115,32 +115,56 @@ def _prepare_sources(raw_sources: Sequence[str]) -> List[str]:
 
 
 # ==== BEGIN: de-dup + seeded shuffle helpers ====
-def _proxy_key(p: Any) -> Tuple[str, str, int, str, str]:
+def _proxy_key(p: Proxy) -> Tuple[str, str, int, str, str, str]:
     """
-    Build a stable identity for a proxy. Adjust fields if your Proxy model differs.
+    Build a stable identity for a proxy. Now includes normalized SNI and path
+    to correctly identify proxies that are functionally identical but have
+    different remarks or query params in their config strings.
     """
-    proto = (getattr(p, "protocol", "") or "").lower()
-    addr = getattr(p, "address", "") or ""
-    port = int(getattr(p, "port", 0) or 0)
-    uuid = getattr(p, "uuid", "") or ""
-    config = (getattr(p, "config", "") or "").strip()
-    return (proto, addr, port, uuid, config)
+    proto = p.protocol.lower()
+    addr = p.address
+    port = p.port
+    uuid = p.uuid
+    sni = p.sni
+    path = p.path
+    return (proto, addr, port, uuid, sni, path)
 
 
 def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
     """
-    Remove duplicates, then shuffle.
-    Shuffling is deterministic on push/PR events (if CONFIGSTREAM_SHUFFLE_SEED is set)
-    for reproducibility, and random on scheduled or manual runs to ensure variety.
+    Deduplicate proxies using a "quality-first" strategy, keeping the version
+    with the best measured performance (lowest latency, working status).
+    Then, shuffle the unique proxies. Shuffling is deterministic on push/PR
+    events (if CONFIGSTREAM_SHUFFLE_SEED is set) for reproducibility, and random
+    on scheduled or manual runs to ensure variety.
     """
-    seen = set()
-    unique: List[Proxy] = []
-    for p in proxies:
-        k = _proxy_key(p)
-        if k in seen:
+    best: dict[Tuple[Any, ...], Proxy] = {}
+    for proxy in proxies:
+        key = _proxy_key(proxy)
+        current = best.get(key)
+
+        # If we haven't seen this proxy before, it's the best one so far.
+        if current is None:
+            best[key] = proxy
             continue
-        seen.add(k)
-        unique.append(p)
+
+        # Prefer working proxies over non-working ones.
+        if not current.is_working and proxy.is_working:
+            best[key] = proxy
+            continue
+        # If both are non-working, or both are working, check latency.
+        elif current.is_working == proxy.is_working:
+            # A proxy with a measured latency is always better than one without.
+            if current.latency is None and proxy.latency is not None:
+                best[key] = proxy
+                continue
+            # If both have latency, the lower one wins.
+            elif current.latency is not None and proxy.latency is not None:
+                if proxy.latency < current.latency:
+                    best[key] = proxy
+                    continue
+
+    unique = list(best.values())
 
     seed_env = os.getenv("CONFIGSTREAM_SHUFFLE_SEED")
     rng_seed: int | str | None = None
