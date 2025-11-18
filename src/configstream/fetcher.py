@@ -36,14 +36,12 @@ except ModuleNotFoundError:  # pragma: no cover
 from .http_client import get_client
 from .etag_cache import load_etags, save_etags
 from .security.rate_limiter import RateLimiter
-from .adaptive_concurrency import AIMDController
+from .concurrency_manager import ConcurrencyManager
 from .hedged_requests import hedged_get
 from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
 from .dns_prewarm import prewarm_dns_cache
-from .metrics_emitter import MetricsEmitter
 from .adaptive_timeout import AdaptiveTimeout
-from pathlib import Path
 
 # Configure structured logging for better debugging
 logger = logging.getLogger(__name__)
@@ -107,7 +105,7 @@ async def fetch_from_source(
     retry_delay: float = 1.0,
     etag_cache: Dict[str, Dict[str, str]] | None = None,
     rate_limiter: RateLimiter | None = None,
-    controller: AIMDController | None = None,
+    controller: ConcurrencyManager | None = None,
     breaker_manager: CircuitBreakerManager | None = None,
     timeout_tracker: AdaptiveTimeout | None = None,
 ) -> FetchResult:
@@ -490,8 +488,7 @@ async def fetch_multiple_sources(
 
     # Initialize AIMD controller for adaptive concurrency
     loop = asyncio.get_running_loop()
-    metrics_emitter = MetricsEmitter(Path("metrics.jsonl"))
-    controller = AIMDController(loop, initial_limit=per_host_limit, metrics_emitter=metrics_emitter)
+    controller = ConcurrencyManager(loop, initial_limit=per_host_limit)
     controller.start_tuner()
 
     # Initialize Circuit Breaker Manager
@@ -542,9 +539,6 @@ async def fetch_multiple_sources(
 
     # Save updated ETag cache
     save_etags(etag_cache)
-
-    # Write metrics to file
-    metrics_emitter.write_metrics()
 
     # Log summary
     successful = sum(1 for r in results.values() if r.success)

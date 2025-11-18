@@ -4,6 +4,7 @@ import logging
 import re
 import sys
 import uuid
+import json
 from contextvars import ContextVar
 from pathlib import Path
 from typing import Optional
@@ -38,6 +39,23 @@ class SensitiveDataFilter(logging.Filter):
 
         record.msg = message
         return True
+
+
+class JsonFormatter(logging.Formatter):
+    """Formats log records as JSON objects."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        log_object = {
+            "timestamp": self.formatTime(record, self.datefmt),
+            "level": record.levelname,
+            "name": record.name,
+            "message": record.getMessage(),
+            "trace_id": getattr(record, "trace_id", "-"),
+            "location": f"{record.filename}:{record.lineno}",
+        }
+        if record.exc_info:
+            log_object["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_object)
 
 
 class ColoredFormatter(logging.Formatter):
@@ -76,6 +94,7 @@ def setup_logging(
     log_level: Optional[str] = None,
     *,
     log_file: Optional[str | Path] = "configstream.log",
+    json_log_file: Optional[str | Path] = None,
     format_style: str = "detailed",
     use_color: Optional[bool] = None,
     enable_trace_ids: bool = True,
@@ -127,6 +146,15 @@ def setup_logging(
         file_handler.setLevel(log_level_value)
         file_handler.setFormatter(logging.Formatter(fmt))
         root_logger.addHandler(file_handler)
+
+    if json_log_file:
+        json_log_path = Path(json_log_file)
+        json_log_path.parent.mkdir(parents=True, exist_ok=True)
+
+        json_file_handler = logging.FileHandler(json_log_path, encoding="utf-8")
+        json_file_handler.setLevel(log_level_value)
+        json_file_handler.setFormatter(JsonFormatter())
+        root_logger.addHandler(json_file_handler)
 
     # Add trace ID filter (should be first for all handlers)
     if enable_trace_ids and not any(

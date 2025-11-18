@@ -193,7 +193,7 @@ async def _process_sources(
     Fetch and parse proxy configurations from sources, prioritizing by quality.
     Returns a dictionary mapping each source to its list of raw configs.
     """
-    source_to_configs: Dict[str, List[str]] = {}
+    gathered_configs: Dict[str, List[str]] = {}
     raw_fetch_total = 0
 
     local_sources = [s for s in sources_to_fetch if not s.startswith(("http://", "https://"))]
@@ -216,7 +216,7 @@ async def _process_sources(
                     continue
                 configs = _extract_config_lines(content)
                 if configs:
-                    source_to_configs[file_path] = configs
+                    gathered_configs[file_path] = configs
                     raw_fetch_total += len(configs)
                 if progress and file_task is not None:
                     progress.update(file_task, advance=1)
@@ -247,16 +247,16 @@ async def _process_sources(
 
                 configs = _extract_config_lines(decoded_content)
                 if configs:
-                    source_to_configs[source] = configs
+                    gathered_configs[source] = configs
                 raw_fetch_total += len(configs)
                 if progress and fetch_task is not None:
                     progress.update(fetch_task, advance=1)
 
-    return source_to_configs, raw_fetch_total
+    return gathered_configs, raw_fetch_total
 
 
 async def run_full_pipeline(
-    sources: Sequence[str],
+    sources: List[str],
     output_dir: str,
     progress: Optional[Progress] = None,
     max_workers: int = 10,
@@ -335,7 +335,7 @@ async def run_full_pipeline(
         )
 
         source_to_configs, raw_fetch_total = await _process_sources(
-            sources_to_fetch, progress, tracker, quality_tracker
+            sources_to_fetch, progress, tracker, quality_tracker=quality_tracker
         )
 
         logger.info("PIPELINE: Fetched %d raw proxy configs.", raw_fetch_total)
@@ -343,8 +343,9 @@ async def run_full_pipeline(
         phase_summaries: List[Dict[str, Any]] = []
         stats["phases"] = phase_summaries
 
-        queue: deque[Tuple[str, str]] = deque()  # (source, raw_config)
+        queue: deque[Tuple[str, str]] = deque()
         seen_raw_configs: set[str] = set()
+
         for source, configs in source_to_configs.items():
             for raw_config in configs:
                 if raw_config in seen_raw_configs:
@@ -353,10 +354,12 @@ async def run_full_pipeline(
                 seen_raw_configs.add(raw_config)
                 queue.append((source, raw_config))
 
+        source_to_configs.clear()
+
         logger.info("PIPELINE: Prepared %d unique configs for sequential processing.", len(queue))
 
-        processed_proxy_keys: set[Tuple[str, str, int, str, str]] = set()
-        written_proxy_keys: set[Tuple[str, str, int, str, str]] = set()
+        processed_proxy_keys: set[Tuple[str, str, int, str, str, str]] = set()
+        written_proxy_keys: set[Tuple[str, str, int, str, str, str]] = set()
         all_tested_proxies: List[Proxy] = []
         all_working_proxies: List[Proxy] = []
 
