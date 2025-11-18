@@ -20,7 +20,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **Automated Updates Every 6 Hours** via GitHub Actions
 - **Zero manual intervention** required
 - **Cache-busting** ensures clients always get fresh data
-- **668+ curated sources** from public repositories and Telegram channels
+- **Hundreds of curated sources** from public repositories and Telegram channels
 - **Multi-protocol collection** from diverse geographic regions
 
 ### 🔒 Comprehensive Security Testing
@@ -73,14 +73,15 @@ graph LR
 ### Pipeline Steps:
 
 1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source
-2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers
+2. **Parse & Deduplicate** - Canonicalise endpoints, remove duplicates, and compute stable proxy identifiers
 3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps)
-4. **Test** - Sing-box verification with latency budgets and retry heuristics
-5. **Secure** - Security testing with detailed issue tracking and categorization
-6. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token)
-7. **Score** - Compute balanced, speed, privacy, and stability rankings
-8. **Generate** - Emit canonical + ranked JSON outputs with metadata
-9. **Publish** - Commit and deploy to GitHub Pages without failing when output exists
+4. **Security Filtering** - Pre-test validation to remove insecure or malformed configurations.
+5. **Test** - Sing-box verification with latency budgets and retry heuristics
+6. **Secure** - Post-test security analysis with detailed issue tracking and categorization
+7. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token)
+8. **Score** - Compute balanced, speed, privacy, and stability rankings
+9. **Generate** - Emit canonical + ranked JSON outputs with metadata
+10. **Publish** - Commit and deploy to GitHub Pages without failing when output exists
 
 ## 📥 Available Formats
 
