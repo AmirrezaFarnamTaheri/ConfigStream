@@ -1,4 +1,5 @@
 import pytest
+import base64
 from configstream.models import Proxy
 from configstream.output import (
     generate_base64_subscription,
@@ -43,8 +44,9 @@ def sample_proxies():
 def test_generate_base64_subscription(sample_proxies):
     """Test the base64 subscription generation."""
     result = generate_base64_subscription(sample_proxies)
-    expected_configs = [p.config for p in sample_proxies if p.is_working]
-    assert result == "\n".join(expected_configs)
+    expected_configs = "\n".join([p.config for p in sample_proxies if p.is_working])
+    expected_base64 = base64.b64encode(expected_configs.encode()).decode()
+    assert result == expected_base64
 
 
 def test_generate_clash_config(sample_proxies):

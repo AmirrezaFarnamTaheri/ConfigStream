@@ -18,7 +18,7 @@ def test_save_and_load_fallback(fallback_manager: FallbackManager):
     """Test saving and loading fallback proxies."""
     proxies = [
         Proxy(
-            config="vmess://config1",
+            config=f"vmess://config{i}",
             protocol="vmess",
             address="test.com",
             port=443,
@@ -27,12 +27,13 @@ def test_save_and_load_fallback(fallback_manager: FallbackManager):
             country_code="US",
             city="New York",
         )
+        for i in range(150)  # Use 150 proxies to exceed the default threshold
     ]
     fallback_manager.save_successful_run(proxies)
 
     loaded_proxies = fallback_manager.load_fallback()
     assert loaded_proxies
-    assert len(loaded_proxies) == 1
+    assert len(loaded_proxies) == 150
     assert loaded_proxies[0].config == proxies[0].config
 
 

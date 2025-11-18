@@ -40,7 +40,15 @@ class AppSettings:
     BATCH_SIZE = int(os.getenv("BATCH_SIZE", "50"))
     CACHE_TTL = int(os.getenv("CACHE_TTL", "1800"))  # 30 minutes
 
-    # Protocol colors (moved from hardcoded JavaScript)
+    # Scoring weights for health calculation
+    SCORE_WEIGHTS = {
+        "historical_success": 40.0,
+        "latency": 30.0,
+        "security": 20.0,
+        "current_status": 10.0,
+    }
+
+    # Protocol colors for UI
     PROTOCOL_COLORS = {
         "vmess": "#FF6B6B",
         "vless": "#4ECDC4",

@@ -209,8 +209,10 @@ def parse_config(config_string: str) -> Proxy | None:
             if protocol in _generic_protocols:
                 return _parse_generic_url_scheme(config_string)
 
-        logger.debug("Unknown protocol in config: %s...", config_string[:50])
-        return None
+        # If no prefix matched, try the auto-detection engine as a last resort
+        from .auto_detect import auto_detect_and_parse
+
+        return auto_detect_and_parse(config_string)
 
     except Exception as e:
         logger.debug("Error parsing config '%s...': %s", config_string[:50], e)

@@ -139,7 +139,7 @@ def _parse_vmess(config: str) -> Optional[Proxy]:
         if not uuid or len(uuid) > 100:
             return None
 
-        return Proxy(
+        proxy = Proxy(
             config=config,
             protocol="vmess",
             address=address,
@@ -148,6 +148,8 @@ def _parse_vmess(config: str) -> Optional[Proxy]:
             remarks=vmess_data.get("ps", "")[:200],
             details=vmess_data,
         )
+        _normalize_proxy_details(proxy)
+        return proxy
     except (json.JSONDecodeError, binascii.Error, KeyError, ValueError) as e:
         logger.debug("Failed to parse VMess: %s", str(e)[:100])
         return None
@@ -165,7 +167,7 @@ def _parse_vless(config: str) -> Optional[Proxy]:
         if not uuid or len(uuid) > 100:
             return None
 
-        return Proxy(
+        proxy = Proxy(
             config=config,
             protocol="vless",
             address=parsed.hostname,
@@ -174,6 +176,8 @@ def _parse_vless(config: str) -> Optional[Proxy]:
             remarks=unquote(parsed.fragment or "")[:200],
             details={k: v[0] for k, v in parse_qs(parsed.query).items()},
         )
+        _normalize_proxy_details(proxy)
+        return proxy
     except (ValueError, IndexError) as e:
         logger.debug("Failed to parse VLESS: %s", e)
         return None
@@ -185,10 +189,13 @@ def _parse_ss(config: str) -> Optional[Proxy]:
         if not config.startswith("ss://"):
             return None
 
-        # Separate remark from the main part
+        # Separate remark and query from the main part
         parts = config[5:].split("#", 1)
         main_part = parts[0]
-        remark = unquote(parts[1]) if len(parts) > 1 else ""
+        remark_part = parts[1] if len(parts) > 1 else ""
+        remark_str, _, query_str = remark_part.partition("?")
+        remark = unquote(remark_str)
+        details = {k: v[0] for k, v in parse_qs(query_str).items()}
 
         # The part before the @ is either plain text or base64 encoded
         if "@" in main_part:
@@ -221,14 +228,18 @@ def _parse_ss(config: str) -> Optional[Proxy]:
         if not (1 <= port <= 65535) or not host:
             return None
 
-        return Proxy(
+        details.update({"method": method, "password": password})
+
+        proxy = Proxy(
             config=config,
             protocol="shadowsocks",
             address=host.strip("[]"),  # Handle IPv6
             port=port,
             remarks=remark,
-            details={"method": method, "password": password},
+            details=details,
         )
+        _normalize_proxy_details(proxy)
+        return proxy
     except (ValueError, IndexError, binascii.Error) as e:
         logger.debug("Failed to parse Shadowsocks: %s", e)
         return None
@@ -266,15 +277,18 @@ def _parse_trojan(config: str) -> Optional[Proxy]:
         uuid = parsed.username or ""
         # Trojan passwords can be empty
 
-        return Proxy(
+        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+        proxy = Proxy(
             config=config,
             protocol="trojan",
             address=parsed.hostname,
             port=port,
             uuid=uuid,
             remarks=unquote(parsed.fragment or "")[:200],
-            details=parse_qs(parsed.query),
+            details=details,
         )
+        _normalize_proxy_details(proxy)
+        return proxy
     except (ValueError, IndexError) as e:
         logger.debug("Failed to parse Trojan: %s", e)
         return None
@@ -482,15 +496,18 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
         if not (1 <= port <= 65535):
             return None
 
-        return Proxy(
+        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+        proxy = Proxy(
             config=config,
             protocol=protocol,
             address=parsed.hostname,
             port=port,
             uuid=parsed.username or "",
             remarks=unquote(parsed.fragment or "")[:200],
-            details=parse_qs(parsed.query),
+            details=details,
         )
+        _normalize_proxy_details(proxy)
+        return proxy
     except (ValueError, IndexError) as e:
         logger.debug("Failed to parse %s: %s", protocol.upper(), e)
         return None
@@ -551,3 +568,52 @@ def _parse_juicity(c: str) -> Optional[Proxy]:
         logger.debug("Juicity config missing UUID.")
         return None
     return proxy
+
+
+def _normalize_proxy_details(proxy: Proxy) -> None:
+    """
+    Standardizes common proxy attributes (sni, path, etc.) from the
+    protocol-specific `details` dictionary into top-level keys for easier access
+    and deduplication. This mutates the proxy object.
+    """
+    if not proxy.details:
+        return
+
+    # 1. Standardize SNI (Server Name Indication) / Host
+    # Order of precedence: 'sni' > 'peer' > 'host' (from details)
+    sni = proxy.details.get("sni") or proxy.details.get("peer") or proxy.details.get("host")
+    if sni:
+        proxy.details["sni"] = str(sni)
+
+    # For VMess, SNI might be in headers which is a dict. This should take
+    # precedence over the 'host' field.
+    if proxy.protocol == "vmess":
+        headers = proxy.details.get("headers")
+        if isinstance(headers, dict) and "Host" in headers:
+            proxy.details["sni"] = headers["Host"]
+
+    # For Shadowsocks, SNI can be in plugin opts
+    if proxy.protocol == "shadowsocks" and "plugin" in proxy.details:
+        plugin_str = proxy.details.get("plugin", "")
+        if isinstance(plugin_str, str):
+            plugin_opts = dict(item.split("=") for item in plugin_str.split(";") if "=" in item)
+            if "obfs-host" in plugin_opts:
+                proxy.details.setdefault("sni", plugin_opts["obfs-host"])
+            if "obfs-uri" in plugin_opts:
+                proxy.details.setdefault("path", plugin_opts["obfs-uri"])
+
+    # 2. Standardize Path
+    # Order of precedence: 'path' > 'serviceName'
+    path = proxy.details.get("path") or proxy.details.get("serviceName")
+    if path:
+        proxy.details["path"] = str(path)
+
+    # 3. Standardize ALPN (Application-Layer Protocol Negotiation)
+    alpn = proxy.details.get("alpn")
+    if alpn:
+        if isinstance(alpn, str):
+            # Can be comma-separated
+            alpn_list = [s.strip() for s in alpn.split(",")]
+            proxy.details["alpn"] = alpn_list
+        elif isinstance(alpn, (list, tuple)):
+            proxy.details["alpn"] = [str(item) for item in alpn]

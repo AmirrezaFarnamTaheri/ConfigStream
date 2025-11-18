@@ -43,10 +43,13 @@ def test_parse_config_calls_correct_parser(config_string, parser_name):
         mock_parser.assert_called_once_with(config_string)
 
 
-def test_parse_config_unsupported():
-    """Test that parse_config returns None for an unsupported protocol."""
-    proxy = parse_config("unsupported://some-config")
-    assert proxy is None
+def test_parse_config_unsupported_falls_back_to_auto_detect():
+    """Test that an unsupported protocol falls back to auto-detection."""
+    # This looks like a trojan link, and the auto-detector should pick it up
+    # even though the scheme is "unsupported".
+    proxy = parse_config("unsupported://some-config@example.com:443")
+    assert proxy is not None
+    assert proxy.protocol == "trojan"
 
 
 def test_parse_config_empty():
