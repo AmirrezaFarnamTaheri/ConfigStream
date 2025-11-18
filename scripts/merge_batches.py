@@ -11,6 +11,18 @@ root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir / "src"))
 
 from configstream.models import Proxy  # noqa: E402
+
+def calculate_compound_score(proxy: Proxy) -> float:
+    """Score = Latency * ReliabilityPenalty."""
+    latency = proxy.latency if proxy.latency is not None else 5000
+    # Infer reliability from available metadata or default
+    # If health_score isn't available, usage of 'stale' flag can imply lower reliability
+    reliability_penalty = 1.0
+    if hasattr(proxy, 'stale') and proxy.stale:
+        reliability_penalty = 1.5
+
+    return latency * reliability_penalty
+
 from configstream.output import generate_base64_subscription  # noqa: E402
 from configstream.test_cache import TestResultCache  # noqa: E402
 
@@ -232,7 +244,7 @@ def merge_batches():
     print(f"Duplicates removed (keeping latest): {duplicates_removed}")
 
     # Sort proxies by latency for consistent output
-    merged_proxies.sort(key=lambda p: (p.latency is None, p.latency if p.latency else float("inf")))
+    merged_proxies.sort(key=lambda p: (p.latency is None, calculate_compound_score(p)))
 
     print("\n=== Step 1: Ranking and Renaming ===")
     # Rank and rename all proxies by protocol

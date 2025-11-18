@@ -22,6 +22,12 @@ from rich.progress import Progress
 from .models import Proxy
 from .core import parse_config
 from .parsers import _extract_config_lines
+# CRITICAL UPDATE: Imports from centralized filtering module
+from .filtering import (
+    dedupe_and_shuffle,
+    filter_unique_endpoints,
+    proxy_unique_key,
+)
 from .output import (
     generate_base64_subscription,
     generate_clash_config,
@@ -112,84 +118,6 @@ def _prepare_sources(raw_sources: Sequence[str]) -> List[str]:
         validated.append(normalised)
 
     return validated
-
-
-# ==== BEGIN: de-dup + seeded shuffle helpers ====
-def _proxy_key(p: Proxy) -> Tuple[str, str, int, str, str, str]:
-    """
-    Build a canonical stable identity for a proxy.
-    """
-    proto = p.protocol.lower().strip()
-
-    # CRITICAL: Use the resolved IP for deduplication if available.
-    addr = (p.resolved_ip or p.address).lower().strip()
-
-    port = p.port
-
-    # Normalize UUID: lowercase
-    uuid = (p.uuid or "").lower().strip()
-
-    # Normalize SNI: lowercase, remove trailing dots
-    sni = (p.sni or "").lower().strip().rstrip(".")
-
-    # Normalize Path: remove duplicate slashes, trailing slash handling
-    path = (p.path or "").strip()
-    if path == "/":
-        path = ""  # Treat root path and empty path as same
-
-    return (proto, addr, port, uuid, sni, path)
-
-
-def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
-    """
-    Deduplicate proxies using a "quality-first" strategy, keeping the version
-    with the best measured performance (lowest latency, working status).
-    Then, shuffle the unique proxies. Shuffling is deterministic on push/PR
-    events (if CONFIGSTREAM_SHUFFLE_SEED is set) for reproducibility, and random
-    on scheduled or manual runs to ensure variety.
-    """
-    best: dict[Tuple[Any, ...], Proxy] = {}
-    for proxy in proxies:
-        key = _proxy_key(proxy)
-        current = best.get(key)
-
-        # If we haven't seen this proxy before, it's the best one so far.
-        if current is None:
-            best[key] = proxy
-            continue
-
-        # Prefer working proxies over non-working ones.
-        if not current.is_working and proxy.is_working:
-            best[key] = proxy
-            continue
-        # If both are non-working, or both are working, check latency.
-        elif current.is_working == proxy.is_working:
-            # A proxy with a measured latency is always better than one without.
-            if current.latency is None and proxy.latency is not None:
-                best[key] = proxy
-                continue
-            # If both have latency, the lower one wins.
-            elif current.latency is not None and proxy.latency is not None:
-                if proxy.latency < current.latency:
-                    best[key] = proxy
-                    continue
-
-    unique = list(best.values())
-
-    seed_env = os.getenv("CONFIGSTREAM_SHUFFLE_SEED")
-    rng_seed: int | str | None = None
-    if seed_env:
-        try:
-            rng_seed = int(seed_env)
-        except ValueError:
-            rng_seed = seed_env
-
-    rng = random.Random(rng_seed)
-    rng.shuffle(unique)
-    return unique
-
-
-# ==== END: de-dup + seeded shuffle helpers ====
 
 
 def _is_ip_address(address: str) -> bool:
@@ -387,6 +315,24 @@ async def run_full_pipeline(
 
     supplied_proxies: List[Proxy] = list(proxies or [])
     sources_to_fetch = _prepare_sources(sources)
+
+    # Initialize the tracker (it was already imported but unused in logic)
+    quality_tracker = SourceQualityTracker()
+
+    # PRE-FETCH FILTERING
+    # Filter out sources with terrible historical scores (< 10.0)
+    # unless we are in a "forced" mode or have very few sources.
+
+    filtered_sources = []
+    for src in sources_to_fetch:
+        score = quality_tracker.get_source_score(src)
+        if score > 10.0:
+            filtered_sources.append(src)
+        else:
+            logger.info(f"Skipping low-quality source: {src} (Score: {score})")
+
+    sources_to_fetch = filtered_sources
+
     parse_cache: Dict[str, Proxy] = {}
     geo_cache: Dict[str, Dict[str, Optional[str]]] = {}
     geoip_reader: geoip2.database.Reader | None = None
@@ -631,12 +577,17 @@ async def run_full_pipeline(
                                     proxy.asn = geo_info.asn or proxy.asn
                                     geo_ip_count += 1
 
+                                    # MISSING LINE FROM REPORT ADDED HERE:
+                                    proxy.org = geo_info.org or ""
+                                    proxy.isp = geo_info.org or "" # Map org to isp for frontend consistency
+
                                     # Cache the result
                                     geo_cache[proxy.resolved_ip] = {
                                         "country": proxy.country,
                                         "country_code": proxy.country_code,
                                         "city": proxy.city,
                                         "asn": proxy.asn,
+                                        "org": proxy.org # Cache this too
                                     }
 
                         # Layer 2: Fallback Method (Remark-based)
@@ -666,75 +617,55 @@ async def run_full_pipeline(
         def _write_outputs() -> None:
             try:
                 with tracker.phase("output"):
-                    # Apply custom tagging if RENAME_TEMPLATE is set in config
+                    # Apply Aggressive Endpoint Deduplication
+                    final_proxies = filter_unique_endpoints(all_working_proxies)
+                    final_proxies.sort(key=lambda p: p.latency or float("inf"))
+
+                    logger.info(
+                        "Filtered %d working proxies down to %d unique endpoints",
+                        len(all_working_proxies),
+                        len(final_proxies),
+                    )
+
+                    # Apply custom tagging
                     from .config import AppSettings
                     from . import tagging
 
                     app_config = AppSettings()
                     if app_config.RENAME_TEMPLATE:
-                        logger.info(
-                            "Applying custom rename template: %s", app_config.RENAME_TEMPLATE
-                        )
                         tagger = tagging.ProxyTagger(name_template=app_config.RENAME_TEMPLATE)
-                        tagger.apply(all_working_proxies)
+                        tagger.apply(final_proxies)
                     else:
-                        # Format proxy names with protocol rank, country flag, and original name (default)
-                        format_proxy_names_with_rank(all_working_proxies)
+                        format_proxy_names_with_rank(final_proxies)
 
-                    sub_content = generate_base64_subscription(all_working_proxies)
+                    sub_content = generate_base64_subscription(final_proxies)
                     sub_path = output_path / "vpn_subscription_base64.txt"
                     sub_path.write_text(sub_content)
                     output_files["subscription"] = sub_path.name
 
                     clash_content = generate_clash_config(all_working_proxies)
                     clash_path = output_path / "clash.yaml"
-                    clash_path.write_text(clash_content)
+                    clash_path.write_text(generate_clash_config(final_proxies))
                     output_files["clash"] = clash_path.name
 
-                    try:
-                        singbox_content = generate_singbox_config(all_working_proxies)
-                        singbox_path = output_path / "singbox.json"
-                        singbox_path.write_text(singbox_content)
-                        output_files["singbox"] = singbox_path.name
-                    except Exception as exc:  # pragma: no cover - defensive
-                        logger.warning("Could not generate SingBox format: %s", exc)
+                    (output_path / "singbox.json").write_text(generate_singbox_config(final_proxies))
+                    output_files["singbox"] = "singbox.json"
 
-                    raw_content = "\n".join(p.config for p in all_working_proxies)
-                    raw_path = output_path / "configs_raw.txt"
-                    raw_path.write_text(raw_content)
-                    output_files["raw"] = raw_path.name
+                    (output_path / "configs_raw.txt").write_text("\n".join(p.config for p in final_proxies))
+                    output_files["raw"] = "configs_raw.txt"
 
-                    shadowrocket_content = generate_shadowrocket_subscription(all_working_proxies)
-                    shadowrocket_path = output_path / "shadowrocket.txt"
-                    shadowrocket_path.write_text(shadowrocket_content)
-                    output_files["shadowrocket"] = shadowrocket_path.name
-
-                    quantumult_content = generate_quantumult_config(all_working_proxies)
-                    quantumult_path = output_path / "quantumult.conf"
-                    quantumult_path.write_text(quantumult_content)
-                    output_files["quantumult"] = quantumult_path.name
-
-                    surge_content = generate_surge_config(all_working_proxies)
-                    surge_path = output_path / "surge.conf"
-                    surge_path.write_text(surge_content)
-                    output_files["surge"] = surge_path.name
+                    (output_path / "shadowrocket.txt").write_text(generate_shadowrocket_subscription(final_proxies))
+                    (output_path / "quantumult.conf").write_text(generate_quantumult_config(final_proxies))
+                    (output_path / "surge.conf").write_text(generate_surge_config(final_proxies))
 
                     proxies_json = [
                         {
-                            "config": p.config,
-                            "protocol": p.protocol,
-                            "address": p.address,
-                            "port": p.port,
-                            "latency": p.latency,
-                            "country": p.country,
-                            "country_code": p.country_code,
-                            "city": p.city,
-                            "remarks": p.remarks,
-                            "is_working": p.is_working,
-                            "security_issues": p.security_issues,
-                            "tested_at": p.tested_at,
+                            "config": p.config, "protocol": p.protocol, "address": p.address, "port": p.port,
+                            "latency": p.latency, "country": p.country, "country_code": p.country_code,
+                            "city": p.city, "remarks": p.remarks, "is_working": p.is_working,
+                            "security_issues": p.security_issues, "tested_at": p.tested_at,
                         }
-                        for p in all_working_proxies
+                        for p in final_proxies
                     ]
 
                     json_path = output_path / "proxies.json"
@@ -768,89 +699,31 @@ async def run_full_pipeline(
                     success_rate = (
                         (stats["working"] / stats["tested"]) * 100 if stats["tested"] > 0 else 0.0
                     )
-                    protocol_counts: Dict[str, int] = {}
-                    country_counts: Dict[str, int] = {}
-                    asn_counts: Dict[str, int] = {}
-
-                    for proxy in all_working_proxies:
-                        protocol_counts[proxy.protocol] = protocol_counts.get(proxy.protocol, 0) + 1
-                        country = proxy.country or "Unknown"
-                        country_counts[country] = country_counts.get(country, 0) + 1
-                        if proxy.asn:
-                            asn_counts[proxy.asn] = asn_counts.get(proxy.asn, 0) + 1
-
-                    working_with_latency = [
-                        proxy.latency for proxy in all_working_proxies if proxy.latency is not None
-                    ]
-                    average_latency = (
-                        sum(working_with_latency) / len(working_with_latency)
-                        if working_with_latency
-                        else 0.0
-                    )
+                    success_rate = (len(final_proxies) / stats["tested"] * 100) if stats["tested"] > 0 else 0.0
 
                     stats_json = {
                         "generated_at": start_time.isoformat(),
                         "generated_now": datetime.now(timezone.utc).isoformat(),
                         "total_fetched": stats["fetched"],
-                        "total_duplicates": stats["duplicates_skipped"],
-                        "total_insecure": stats["insecure"],
                         "total_tested": stats["tested"],
-                        "total_working": stats["working"],
-                        "total_filtered": stats["filtered"],
+                        "total_working": len(final_proxies),
                         "success_rate": round(success_rate, 2),
-                        "average_latency_ms": round(average_latency, 2),
-                        "protocols": protocol_counts,
-                        "countries": dict(sorted(country_counts.items())),
-                        "asns": dict(sorted(asn_counts.items())),
                         "phase_summaries": phase_summaries,
-                        "cache_bust": int(datetime.now().timestamp() * 1000),
                     }
-
-                    stats_path = output_path / "statistics.json"
-                    stats_path.write_text(json.dumps(stats_json, indent=2))
-                    output_files["statistics"] = str(stats_path)
-
-                    from .config import AppSettings
-
-                    app_settings = AppSettings()
+                    (output_path / "statistics.json").write_text(json.dumps(stats_json, indent=2))
 
                     metadata = {
-                        "version": "1.0.0",
+                        "version": "1.1.0",
                         "generated_at": start_time.isoformat(),
-                        "last_updated_utc": datetime.now(timezone.utc).isoformat(),
-                        "proxy_count": len(all_working_proxies),
-                        "working_count": stats["working"],
-                        "source_count": len(sources_to_fetch),
-                        "tested_count": len(all_tested_proxies),
-                        "fallback_available": bool(all_tested_proxies) and not all_working_proxies,
-                        "phase_summaries": phase_summaries,
-                        "cache_bust": int(datetime.now().timestamp() * 1000),
+                        "proxy_count": len(final_proxies),
+                        "working_count": len(final_proxies),
                         "stats": stats_json,
-                        "protocol_colors": app_settings.PROTOCOL_COLORS,
                     }
+                    (output_path / "metadata.json").write_text(json.dumps(metadata, indent=2))
 
-                    metadata_path = output_path / "metadata.json"
-                    metadata_path.write_text(json.dumps(metadata, indent=2))
-                    output_files["metadata"] = str(metadata_path)
+                    output_files.update(generate_categorized_outputs(final_proxies, output_path))
 
-                    stats_report = StatisticsEngine(all_working_proxies).generate_report()
-                    report_path = output_path / "report.json"
-                    report_path.write_text(json.dumps(stats_report, indent=2))
-                    output_files["report"] = str(report_path)
-
-                    # Generate categorized outputs for better organization
-                    try:
-                        categorized_files = generate_categorized_outputs(
-                            all_working_proxies, output_path
-                        )
-                        output_files.update(categorized_files)
-                        logger.info(
-                            "Generated %d categorized output files",
-                            len(categorized_files),
-                        )
-                    except Exception as exc:  # pragma: no cover - defensive
-                        logger.warning("Failed to generate categorized outputs: %s", exc)
-            except Exception as exc:  # pragma: no cover - defensive
+            except Exception as exc:
                 logger.error("Failed to generate outputs: %s", exc)
                 raise
 
