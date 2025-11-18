@@ -26,42 +26,26 @@ def format_proxy_names_with_rank(proxies: List[Proxy]) -> None:
     Format: "PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME" (truncated at 80 chars)
 
     Modifies proxies in-place by updating their remarks field.
+    Assumes the input list is already sorted by latency.
     """
-    # Group proxies by protocol and sort by latency within each group
-    protocol_groups: Dict[str, List[Proxy]] = {}
+    protocol_ranks: Dict[str, int] = {}
     for proxy in proxies:
         protocol = proxy.protocol.upper()
-        if protocol not in protocol_groups:
-            protocol_groups[protocol] = []
-        protocol_groups[protocol].append(proxy)
+        rank = protocol_ranks.get(protocol, 0) + 1
+        protocol_ranks[protocol] = rank
 
-    # Sort each protocol group by latency and assign ranks
-    for protocol, group in protocol_groups.items():
-        # Sort by latency (lower is better)
-        sorted_group = sorted(
-            group, key=lambda p: p.latency if p.latency is not None else float("inf")
-        )
+        flag = get_country_flag(proxy.country_code) if proxy.country_code else ""
+        original_name = proxy.remarks if proxy.remarks else f"{proxy.address}:{proxy.port}"
 
-        # Assign formatted names with ranks
-        for rank, proxy in enumerate(sorted_group, start=1):
-            # Get country flag emoji
-            flag = get_country_flag(proxy.country_code) if proxy.country_code else ""
+        if flag:
+            formatted_name = f"{protocol}-{rank} [{flag}] ||| {original_name}"
+        else:
+            formatted_name = f"{protocol}-{rank} ||| {original_name}"
 
-            # Get original name or use a default
-            original_name = proxy.remarks if proxy.remarks else f"{proxy.address}:{proxy.port}"
+        if len(formatted_name) > 80:
+            formatted_name = formatted_name[:77] + "..."
 
-            # Format: "PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME"
-            if flag:
-                formatted_name = f"{protocol}-{rank} [{flag}] ||| {original_name}"
-            else:
-                formatted_name = f"{protocol}-{rank} ||| {original_name}"
-
-            # Truncate to 80 characters
-            if len(formatted_name) > 80:
-                formatted_name = formatted_name[:77] + "..."
-
-            # Update the proxy's remarks field
-            proxy.remarks = formatted_name
+        proxy.remarks = formatted_name
 
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
