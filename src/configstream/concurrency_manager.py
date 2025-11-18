@@ -1,12 +1,10 @@
 """
-AIMD Adaptive Concurrency Control
+Unified AIMD Concurrency Controller
 
-EXPERIMENTAL: Not currently integrated into the main pipeline.
-This module implements Additive Increase Multiplicative Decrease (AIMD)
-concurrency control for per-host request limiting.
-
-To integrate: Use AIMDController in fetcher.py or _fetch_source to prevent
-host-level overloads and improve fetch reliability.
+This module provides a generic AIMD (Additive Increase, Multiplicative Decrease)
+concurrency controller that can be used to dynamically adjust concurrency for
+any resource-limited operation, such as network requests or subprocess-based
+proxy testing.
 """
 
 from __future__ import annotations
@@ -14,12 +12,13 @@ from __future__ import annotations
 import asyncio
 from collections import defaultdict, deque
 from typing import Deque, Dict, Optional
+import logging
 
-from .metrics_emitter import MetricsEmitter, HostMetrics
+logger = logging.getLogger(__name__)
 
 
-class HostWindow:
-    """Tracks performance metrics for a single host over a rolling window."""
+class ResourceWindow:
+    """Tracks performance metrics for a single resource over a rolling window."""
 
     __slots__ = ("latencies", "successes", "errors", "limit")
 
@@ -30,7 +29,7 @@ class HostWindow:
         self.limit: int = initial_limit
 
     def record(self, latency: float, success: bool) -> None:
-        """Record a single request's outcome."""
+        """Record a single operation's outcome."""
         self.latencies.append(latency)
         if success:
             self.successes += 1
@@ -74,8 +73,8 @@ class HostWindow:
         return metrics
 
 
-class AIMDController:
-    """Manages adaptive concurrency for multiple hosts."""
+class ConcurrencyManager:
+    """Manages adaptive concurrency for multiple resources."""
 
     def __init__(
         self,
@@ -84,11 +83,11 @@ class AIMDController:
         min_limit: int = 1,
         max_limit: int = 32,
         adjust_interval: float = 2.0,
-        metrics_emitter: Optional[MetricsEmitter] = None,
     ):
-        self._host_windows: Dict[str, HostWindow] = defaultdict(lambda: HostWindow(initial_limit))
-        self._metrics_emitter = metrics_emitter
-        self._host_semaphores: Dict[str, asyncio.Semaphore] = defaultdict(
+        self._resource_windows: Dict[str, ResourceWindow] = defaultdict(
+            lambda: ResourceWindow(initial_limit)
+        )
+        self._semaphores: Dict[str, asyncio.Semaphore] = defaultdict(
             lambda: asyncio.Semaphore(initial_limit)
         )
         self._loop = loop
@@ -113,37 +112,32 @@ class AIMDController:
                 pass
             self._tuner_task = None
 
-    def get_semaphore(self, host: str) -> asyncio.Semaphore:
-        """Get the semaphore for a given host."""
-        return self._host_semaphores[host]
+    def get_semaphore(self, key: str = "default") -> asyncio.Semaphore:
+        """Get the semaphore for a given resource key."""
+        return self._semaphores[key]
 
-    def record(self, host: str, latency: float, success: bool) -> None:
-        """Record the outcome of a request for a specific host."""
-        self._host_windows[host].record(latency, success)
+    def record(self, key: str, latency: float, success: bool) -> None:
+        """Record the outcome of an operation for a specific resource."""
+        self._resource_windows[key].record(latency, success)
 
     async def _tuner(self) -> None:
-        """Periodically adjusts semaphore limits for all hosts."""
+        """Periodically adjusts semaphore limits for all resources."""
         while True:
             await asyncio.sleep(self._adjust_interval)
-            for host, window in self._host_windows.items():
+            for key, window in self._resource_windows.items():
                 old_limit = window.limit
                 metrics = window.adjust(self._min_limit, self._max_limit)
 
-                if self._metrics_emitter and metrics:
-                    self._metrics_emitter.record(
-                        HostMetrics(
-                            host=host,
-                            p50_latency=float(metrics["p50_latency"]),
-                            p95_latency=float(metrics["p95_latency"]),
-                            error_rate=float(metrics["error_rate"]),
-                            concurrency_limit=int(metrics["concurrency_limit"]),
-                        )
-                    )
+                if metrics:
+                    logger.debug(f"Concurrency metrics for '{key}': {metrics}")
 
                 if old_limit != window.limit:
+                    logger.info(
+                        f"Adjusting concurrency for '{key}' from {old_limit} to {window.limit}"
+                    )
                     # To prevent deadlocks, we must drain the old semaphore
                     # before replacing it.
-                    old_semaphore = self._host_semaphores[host]
+                    old_semaphore = self._semaphores[key]
                     new_semaphore = asyncio.Semaphore(window.limit)
 
                     # Release all waiters on the old semaphore so they can
@@ -154,4 +148,4 @@ class AIMDController:
                         except ValueError:
                             pass  # Already at max value
 
-                    self._host_semaphores[host] = new_semaphore
+                    self._semaphores[key] = new_semaphore

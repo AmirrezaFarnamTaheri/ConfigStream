@@ -86,7 +86,7 @@ async def test_run_full_pipeline_success(mocker, tmp_path, no_pool_shutdown):
     mocker.patch(
         "configstream.pipeline._process_sources",
         new_callable=AsyncMock,
-        return_value=([config], 1),
+        return_value=({"source.txt": [config]}, 1),
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -117,7 +117,7 @@ async def test_run_full_pipeline_no_working_proxies(mocker, tmp_path, no_pool_sh
     mocker.patch(
         "configstream.pipeline._process_sources",
         new_callable=AsyncMock,
-        return_value=([config], 1),
+        return_value=({"source.txt": [config]}, 1),
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -152,15 +152,30 @@ async def test_run_full_pipeline_no_working_proxies(mocker, tmp_path, no_pool_sh
 @pytest.mark.asyncio
 async def test_run_full_pipeline_max_proxies_limit(mocker, tmp_path, no_pool_shutdown):
     proxies = [
-        Proxy(config=create_valid_vmess_config("p1"), protocol="vmess", address="a.com", port=443),
-        Proxy(config=create_valid_vmess_config("p2"), protocol="vmess", address="b.com", port=443),
-        Proxy(config=create_valid_vmess_config("p3"), protocol="vmess", address="c.com", port=443),
+        Proxy(
+            config=create_valid_vmess_config("p1", add="a.com"),
+            protocol="vmess",
+            address="a.com",
+            port=443,
+        ),
+        Proxy(
+            config=create_valid_vmess_config("p2", add="b.com"),
+            protocol="vmess",
+            address="b.com",
+            port=443,
+        ),
+        Proxy(
+            config=create_valid_vmess_config("p3", add="c.com"),
+            protocol="vmess",
+            address="c.com",
+            port=443,
+        ),
     ]
     proxy_configs = [p.config for p in proxies]
     mocker.patch(
         "configstream.pipeline._process_sources",
         new_callable=AsyncMock,
-        return_value=(proxy_configs, 3),
+        return_value=({"source.txt": proxy_configs}, 3),
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -206,7 +221,7 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
         ),
     ]
     mocker.patch(
-        "configstream.pipeline._process_sources", new_callable=AsyncMock, return_value=([], 0)
+        "configstream.pipeline._process_sources", new_callable=AsyncMock, return_value=({}, 0)
     )  # no sources
 
     # Mock the tester to return the proxy as-is, preserving its attributes
@@ -253,7 +268,7 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
 async def test_run_full_pipeline_remote_source(mocker, tmp_path, no_pool_shutdown):
     config = create_valid_vmess_config("remote-1")
     with patch("configstream.pipeline._process_sources", new_callable=AsyncMock) as mock_process:
-        mock_process.return_value = ([config], 1)
+        mock_process.return_value = ({"http://remote.com/source": [config]}, 1)
         mocker.patch(
             "configstream.pipeline.SingBoxTester.test",
             new_callable=AsyncMock,
@@ -276,7 +291,7 @@ async def test_run_full_pipeline_remote_source_failure(mocker, tmp_path, caplog,
     """Test the pipeline completes but with 0 fetched when a remote source fails."""
     with patch("configstream.pipeline._process_sources", new_callable=AsyncMock) as mock_process:
         # Simulate a fetch failure (e.g., timeout, HTTP 500)
-        mock_process.return_value = ([], 0)
+        mock_process.return_value = ({}, 0)
 
         with caplog.at_level(logging.WARNING):
             result = await run_full_pipeline(
@@ -295,7 +310,7 @@ async def test_run_full_pipeline_no_proxies_to_test_after_parsing(
     mocker.patch(
         "configstream.pipeline._process_sources",
         new_callable=AsyncMock,
-        return_value=([], 0),
+        return_value=({}, 0),
     )
     result = await run_full_pipeline(sources=["source.txt"], output_dir=str(tmp_path), proxies=[])
     assert not result["success"]
@@ -318,7 +333,7 @@ async def test_run_full_pipeline_geoip_db_not_found(mocker, tmp_path, caplog, no
     mocker.patch(
         "configstream.pipeline._process_sources",
         new_callable=AsyncMock,
-        return_value=([config], 1),
+        return_value=({"source.txt": [config]}, 1),
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -354,7 +369,7 @@ async def test_run_full_pipeline_all_proxies_filtered_by_security(
     mocker.patch(
         "configstream.pipeline._process_sources",
         new_callable=AsyncMock,
-        return_value=([bad_config], 1),
+        return_value=({"source.txt": [bad_config]}, 1),
     )
 
     with caplog.at_level(logging.INFO):
@@ -370,9 +385,9 @@ async def test_run_full_pipeline_multiple_batches(mocker, tmp_path, caplog, no_p
     num_proxies = 1010
     proxies = [
         Proxy(
-            config=create_valid_vmess_config(f"p{i}"),
+            config=create_valid_vmess_config(f"p{i}", add=f"server-{i}.test"),
             protocol="vmess",
-            address=f"{i}.com",
+            address=f"server-{i}.test",
             port=443,
         )
         for i in range(num_proxies)
@@ -381,7 +396,7 @@ async def test_run_full_pipeline_multiple_batches(mocker, tmp_path, caplog, no_p
     mocker.patch(
         "configstream.pipeline._process_sources",
         new_callable=AsyncMock,
-        return_value=(proxy_configs, num_proxies),
+        return_value=({"source.txt": proxy_configs}, num_proxies),
     )
 
     # Mock tester to return all as working
