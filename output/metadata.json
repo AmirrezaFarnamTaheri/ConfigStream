@@ -1,41 +1,41 @@
 {
   "version": "1.0.0",
-  "generated_at": "2025-11-18T03:13:31.848564+00:00",
-  "last_updated_utc": "2025-11-18T03:44:28.324381+00:00",
-  "proxy_count": 7387,
-  "working_count": 7387,
+  "generated_at": "2025-11-18T04:25:56.837892+00:00",
+  "last_updated_utc": "2025-11-18T04:57:08.141819+00:00",
+  "proxy_count": 7368,
+  "working_count": 7368,
   "source_count": 0,
-  "tested_count": 7400,
+  "tested_count": 7387,
   "fallback_available": false,
   "phase_summaries": [
     {
       "phase": 1,
       "source": "supplied",
-      "fetched": 7400,
-      "parsed": 7400,
-      "tested": 7400,
-      "working": 7387,
-      "new_working": 7387,
-      "cumulative_working": 7387
+      "fetched": 7387,
+      "parsed": 7387,
+      "tested": 7387,
+      "working": 7368,
+      "new_working": 7368,
+      "cumulative_working": 7368
     }
   ],
-  "cache_bust": 1763437468324,
+  "cache_bust": 1763441828141,
   "stats": {
-    "generated_at": "2025-11-18T03:13:31.848564+00:00",
-    "generated_now": "2025-11-18T03:44:28.324065+00:00",
-    "total_fetched": 7400,
-    "total_tested": 7400,
-    "total_working": 7387,
-    "total_filtered": 7387,
+    "generated_at": "2025-11-18T04:25:56.837892+00:00",
+    "generated_now": "2025-11-18T04:57:08.141440+00:00",
+    "total_fetched": 7387,
+    "total_tested": 7387,
+    "total_working": 7368,
+    "total_filtered": 7368,
     "duplicates_skipped": 0,
-    "success_rate": 99.82,
-    "average_latency_ms": 815.48,
+    "success_rate": 99.74,
+    "average_latency_ms": 867.3,
     "protocols": {
-      "shadowsocks": 2564,
+      "shadowsocks": 2546,
+      "vmess": 499,
       "vless": 4180,
-      "vmess": 500,
-      "trojan": 26,
-      "hysteria2": 117
+      "hysteria2": 117,
+      "trojan": 26
     },
     "countries": {
       "Algeria": 1,
@@ -44,13 +44,13 @@
       "Australia": 2,
       "Austria": 85,
       "Azerbaijan": 5,
-      "Belarus": 946,
+      "Belarus": 940,
       "Belgium": 17,
       "Belize": 4,
       "Bolivia": 4,
       "Brazil": 7,
       "Bulgaria": 27,
-      "Canada": 304,
+      "Canada": 303,
       "Central African Republic": 44,
       "China": 3,
       "Colombia": 17,
@@ -70,14 +70,14 @@
       "Iceland": 39,
       "India": 51,
       "Indonesia": 5,
-      "Iran": 499,
+      "Iran": 496,
       "Ireland": 7,
       "Israel": 2,
       "Italy": 4,
       "Japan": 69,
       "Kazakhstan": 5,
       "Latvia": 49,
-      "Lithuania": 401,
+      "Lithuania": 399,
       "Luxembourg": 5,
       "Malaysia": 7,
       "Mexico": 1,
@@ -106,24 +106,24 @@
       "Ukraine": 2,
       "United Arab Emirates": 46,
       "United Kingdom": 594,
-      "United States": 778,
+      "United States": 775,
       "United States Minor Outlying Islands": 49,
       "Unknown": 176,
-      "Vietnam": 359
+      "Vietnam": 355
     },
     "asns": {},
     "phase_summaries": [
       {
         "phase": 1,
         "source": "supplied",
-        "fetched": 7400,
-        "parsed": 7400,
-        "tested": 7400,
-        "working": 7387,
-        "new_working": 7387,
-        "cumulative_working": 7387
+        "fetched": 7387,
+        "parsed": 7387,
+        "tested": 7387,
+        "working": 7368,
+        "new_working": 7368,
+        "cumulative_working": 7368
       }
     ],
-    "cache_bust": 1763437468324
+    "cache_bust": 1763441828141
   }
 }
