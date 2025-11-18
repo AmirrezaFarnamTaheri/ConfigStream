@@ -20,6 +20,7 @@ class AppSettings:
     }
 
     TEST_TIMEOUT = int(os.getenv("TEST_TIMEOUT", "6"))  # Reduced from 10 to 6 for faster testing
+    FETCH_TIMEOUT = int(os.getenv("FETCH_TIMEOUT", "15"))  # Timeout for fetching remote sources
     SECURITY_CHECK_TIMEOUT = int(os.getenv("SECURITY_CHECK_TIMEOUT", "8"))
     RETEST_TIMEOUT = int(os.getenv("RETEST_TIMEOUT", "6"))  # Reduced from 8 to 6
     GEOIP_TIMEOUT = int(os.getenv("GEOIP_TIMEOUT", "5"))

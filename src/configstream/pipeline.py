@@ -2,18 +2,18 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import binascii
 import json
 import os
 import random
 import logging
+import ipaddress
 from datetime import datetime, timezone
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
-from collections import deque
 from urllib.parse import urlparse
 
+import aiodns
 import geoip2.database
 
 from . import fetcher
@@ -56,7 +56,6 @@ PipelineResult = Dict[str, Any]
 
 CHUNK_SIZE = 15_000  # Increased from 10k for better throughput
 MAX_PIPELINE_PHASES = 40  # Increased from 30 for larger source lists
-FETCH_CONCURRENCY = 20  # Optimized concurrent fetching
 
 
 class SourceValidationError(ValueError):
@@ -118,16 +117,26 @@ def _prepare_sources(raw_sources: Sequence[str]) -> List[str]:
 # ==== BEGIN: de-dup + seeded shuffle helpers ====
 def _proxy_key(p: Proxy) -> Tuple[str, str, int, str, str, str]:
     """
-    Build a stable identity for a proxy. Now includes normalized SNI and path
-    to correctly identify proxies that are functionally identical but have
-    different remarks or query params in their config strings.
+    Build a canonical stable identity for a proxy.
     """
-    proto = p.protocol.lower()
-    addr = p.address
+    proto = p.protocol.lower().strip()
+
+    # CRITICAL: Use the resolved IP for deduplication if available.
+    addr = (p.resolved_ip or p.address).lower().strip()
+
     port = p.port
-    uuid = p.uuid
-    sni = p.sni
-    path = p.path
+
+    # Normalize UUID: lowercase
+    uuid = (p.uuid or "").lower().strip()
+
+    # Normalize SNI: lowercase, remove trailing dots
+    sni = (p.sni or "").lower().strip().rstrip(".")
+
+    # Normalize Path: remove duplicate slashes, trailing slash handling
+    path = (p.path or "").strip()
+    if path == "/":
+        path = ""  # Treat root path and empty path as same
+
     return (proto, addr, port, uuid, sni, path)
 
 
@@ -183,25 +192,104 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 # ==== END: de-dup + seeded shuffle helpers ====
 
 
-async def _process_sources(
+def _is_ip_address(address: str) -> bool:
+    """Check if a string is a valid IP address."""
+    try:
+        ipaddress.ip_address(address)
+        return True
+    except ValueError:
+        return False
+
+
+async def _resolve_proxy_addresses(proxies: List[Proxy], progress: Optional[Progress]) -> None:
+    """
+    Perform bulk DNS resolution for proxy addresses that are not IPs.
+    Updates the `resolved_ip` attribute on the Proxy objects in-place.
+    """
+    hosts_to_resolve = list(
+        set(p.address for p in proxies if not p.resolved_ip and not _is_ip_address(p.address))
+    )
+
+    if not hosts_to_resolve:
+        return
+
+    task = progress.add_task("Resolving DNS...", total=len(hosts_to_resolve)) if progress else None
+    resolver = aiodns.DNSResolver()
+    ip_map: Dict[str, str] = {}
+
+    async def _resolve_host(host: str) -> None:
+        try:
+            # Use A records for IPv4
+            result = await resolver.query(host, "A")
+            if result:
+                ip_map[host] = result[0].host
+        except aiodns.error.DNSError:
+            # If A record fails, try AAAA for IPv6
+            try:
+                result_aaaa = await resolver.query(host, "AAAA")
+                if result_aaaa:
+                    ip_map[host] = result_aaaa[0].host
+            except aiodns.error.DNSError:
+                logger.debug(f"DNS resolution failed for {host}")
+        finally:
+            if progress and task is not None:
+                progress.update(task, advance=1)
+
+    await asyncio.gather(*(_resolve_host(host) for host in hosts_to_resolve))
+
+    for p in proxies:
+        if p.address in ip_map:
+            p.resolved_ip = ip_map[p.address]
+
+
+async def _produce_raw_configs(
     sources_to_fetch: List[str],
+    queue: asyncio.Queue[Optional[Tuple[str, str]]],
+    seen_raw_configs: set[str],
+    stats: Dict[str, Any],
     progress: Optional[Progress],
     tracker: PerformanceTracker,
     quality_tracker: "SourceQualityTracker",
-) -> Tuple[Dict[str, List[str]], int]:
+) -> int:
     """
-    Fetch and parse proxy configurations from sources, prioritizing by quality.
-    Returns a dictionary mapping each source to its list of raw configs.
+    Fetches from sources, deduplicates raw configs, and puts them onto a queue.
+    Puts a sentinel value (None) on the queue when done.
     """
-    source_to_configs: Dict[str, List[str]] = {}
     raw_fetch_total = 0
+    # Import here to avoid circular dependency issues at module level
+    from .config import AppSettings
 
+    app_settings = AppSettings()
+
+    # Separate local files from remote URLs
     local_sources = [s for s in sources_to_fetch if not s.startswith(("http://", "https://"))]
     remote_sources = [s for s in sources_to_fetch if s.startswith(("http://", "https://"))]
 
-    # Sort remote sources by their quality score in descending order.
-    remote_sources.sort(key=quality_tracker.get_source_score, reverse=True)
+    async def process_and_queue(source: str, content: str):
+        nonlocal raw_fetch_total
+        try:
+            # The fetcher already handles encoding, but we double-check base64 wrappers
+            decoded_content = content
+            # Heuristic check for base64
+            if "://" not in decoded_content[:100]:
+                try:
+                    decoded_content = base64.b64decode(content, validate=True).decode("utf-8")
+                except Exception:
+                    pass
 
+            configs = _extract_config_lines(decoded_content)
+            if configs:
+                raw_fetch_total += len(configs)
+                for raw_config in configs:
+                    if raw_config in seen_raw_configs:
+                        stats["duplicates_skipped"] += 1
+                        continue
+                    seen_raw_configs.add(raw_config)
+                    await queue.put((source, raw_config))
+        except Exception as e:
+            logger.error(f"Parse error for {source}: {e}")
+
+    # 1. Process Local Sources
     if local_sources:
         file_task = (
             progress.add_task("Reading local sources...", total=len(local_sources))
@@ -211,48 +299,43 @@ async def _process_sources(
         with tracker.phase("read_files"):
             file_results = await read_multiple_files_async(local_sources, max_concurrent=5)
             for file_path, content in file_results:
+                if progress and file_task is not None:
+                    progress.update(file_task, advance=1)
                 if content.startswith("ERROR:"):
                     logger.warning("Failed to read %s: %s", file_path, content)
                     continue
-                configs = _extract_config_lines(content)
-                if configs:
-                    source_to_configs[file_path] = configs
-                    raw_fetch_total += len(configs)
-                if progress and file_task is not None:
-                    progress.update(file_task, advance=1)
+                await process_and_queue(file_path, content)
 
+    # 2. Process Remote Sources
     if remote_sources:
         fetch_task = (
-            progress.add_task("Fetching remote sources...", total=len(remote_sources))
+            progress.add_task("Fetching remote sources (Adaptive)...", total=len(remote_sources))
             if progress
             else None
         )
         with tracker.phase("fetch"):
             results = await fetcher.fetch_multiple_sources(
-                remote_sources, max_concurrent=FETCH_CONCURRENCY
+                remote_sources,
+                max_concurrent=app_settings.PER_HOST_MAX_CONCURRENCY,
+                timeout=app_settings.FETCH_TIMEOUT,
+                use_adaptive_timeout=True,
             )
             for source, result in results.items():
-                if not result.success:
-                    logger.warning("Failed to fetch %s: %s", source, result.error)
-                    continue
-                if result.error == "not-modified":
-                    continue
-
-                try:
-                    decoded_content = base64.b64decode(result.content, validate=True).decode(
-                        "utf-8"
-                    )
-                except (binascii.Error, UnicodeDecodeError):
-                    decoded_content = result.content
-
-                configs = _extract_config_lines(decoded_content)
-                if configs:
-                    source_to_configs[source] = configs
-                raw_fetch_total += len(configs)
                 if progress and fetch_task is not None:
                     progress.update(fetch_task, advance=1)
+                if not result.success:
+                    logger.warning(f"Source failed: {source} - {result.error}")
+                    continue
+                if result.status_code == 304:
+                    logger.info(f"Source not modified: {source}")
+                    continue
 
-    return source_to_configs, raw_fetch_total
+                await process_and_queue(source, result.content)
+                if result.response_time:
+                    quality_tracker.update_source_quality(source, [])
+
+    await queue.put(None)  # Sentinel to signal completion
+    return raw_fetch_total
 
 
 async def run_full_pipeline(
@@ -334,29 +417,23 @@ async def run_full_pipeline(
             len(supplied_proxies),
         )
 
-        source_to_configs, raw_fetch_total = await _process_sources(
-            sources_to_fetch, progress, tracker, quality_tracker=quality_tracker
-        )
+        queue: asyncio.Queue[Optional[Tuple[str, str]]] = asyncio.Queue(maxsize=CHUNK_SIZE * 2)
+        seen_raw_configs: set[str] = set()
 
-        logger.info("PIPELINE: Fetched %d raw proxy configs.", raw_fetch_total)
+        producer_task = asyncio.create_task(
+            _produce_raw_configs(
+                sources_to_fetch,
+                queue,
+                seen_raw_configs,
+                stats,
+                progress,
+                tracker,
+                quality_tracker=quality_tracker,
+            )
+        )
 
         phase_summaries: List[Dict[str, Any]] = []
         stats["phases"] = phase_summaries
-
-        queue: deque[Tuple[str, str]] = deque()
-        seen_raw_configs: set[str] = set()
-
-        for source, configs in source_to_configs.items():
-            for raw_config in configs:
-                if raw_config in seen_raw_configs:
-                    stats["duplicates_skipped"] += 1
-                    continue
-                seen_raw_configs.add(raw_config)
-                queue.append((source, raw_config))
-
-        source_to_configs.clear()
-
-        logger.info("PIPELINE: Prepared %d unique configs for sequential processing.", len(queue))
 
         processed_proxy_keys: set[Tuple[str, str, int, str, str, str]] = set()
         written_proxy_keys: set[Tuple[str, str, int, str, str, str]] = set()
@@ -778,183 +855,183 @@ async def run_full_pipeline(
                 raise
 
         phase_index = 0
-        while phase_index < MAX_PIPELINE_PHASES:
-            if not queue and not preparsed_batches:
-                if failure_reason is None:
-                    failure_reason = "No configurations could be parsed"
-                break
 
-            phase_index += 1
-            phase_label = f"phase-{phase_index}"
-            chunk_source = "fetched"
-            security_filtered = False
-            proxies_by_source: Dict[str, List[Proxy]] = {}
-
-            if preparsed_batches:
-                proxies_to_test = preparsed_batches.pop(0)
-                chunk_fetched = len(proxies_to_test)
-                parsed_count = len(proxies_to_test)
-                chunk_source = "supplied"
-            else:
-                raw_batch: List[Tuple[str, str]] = []
-                while queue and len(raw_batch) < CHUNK_SIZE:
-                    raw_batch.append(queue.popleft())
-
-                chunk_fetched = len(raw_batch)
-                if chunk_fetched == 0:
+        async def consume_and_process():
+            nonlocal phase_index, failure_reason
+            while phase_index < MAX_PIPELINE_PHASES:
+                if not preparsed_batches and queue.empty() and producer_task.done():
                     break
 
+                phase_index += 1
+                phase_label = f"phase-{phase_index}"
                 chunk_source = "fetched"
-                if progress:
-                    parse_task = progress.add_task(f"Parsing {phase_label}", total=chunk_fetched)
+                security_filtered = False
+                proxies_by_source: Dict[str, List[Proxy]] = {}
+
+                if preparsed_batches:
+                    proxies_to_test = preparsed_batches.pop(0)
+                    chunk_fetched = len(proxies_to_test)
+                    parsed_count = len(proxies_to_test)
+                    chunk_source = "supplied"
                 else:
-                    parse_task = None
+                    raw_batch: List[Tuple[str, str]] = []
+                    # Greedily pull from queue to form a batch
+                    while len(raw_batch) < CHUNK_SIZE:
+                        try:
+                            item = await asyncio.wait_for(queue.get(), timeout=0.1)
+                            if item is None:  # Sentinel
+                                await queue.put(None)
+                                break
+                            raw_batch.append(item)
+                            queue.task_done()
+                        except asyncio.TimeoutError:
+                            if producer_task.done():
+                                break
 
-                parsed_from_sources: List[Proxy] = []
-                with tracker.phase("parse"):
-                    for source, raw_config in raw_batch:
-                        parsed: Optional[Proxy] = None
-                        cached_proxy = parse_cache.get(raw_config)
-                        if cached_proxy is not None:
-                            parsed = replace(cached_proxy)
-                        else:
-                            candidate = parse_config(raw_config)
-                            if candidate is not None:
-                                parse_cache[raw_config] = replace(candidate)
-                                parsed = candidate
-                        if parsed is not None:
-                            if source not in proxies_by_source:
-                                proxies_by_source[source] = []
-                            proxies_by_source[source].append(parsed)
-                            parsed_from_sources.append(parsed)
-                        if progress and parse_task is not None:
-                            progress.update(parse_task, advance=1)
+                    if not raw_batch and producer_task.done() and queue.empty():
+                        break
 
-                proxies_to_test = parsed_from_sources
-                parsed_count = len(parsed_from_sources)
+                    chunk_fetched = len(raw_batch)
+                    if chunk_fetched == 0:
+                        continue
 
-                if proxies_to_test:
-                    from .security_validator import (
-                        validate_batch_configs,
-                        TEST_POLICY,
-                        STRICT_POLICY,
+                    if progress:
+                        parse_task = progress.add_task(
+                            f"Parsing {phase_label}", total=chunk_fetched
+                        )
+                    else:
+                        parse_task = None
+
+                    parsed_from_sources: List[Proxy] = []
+                    with tracker.phase("parse"):
+                        for source, raw_config in raw_batch:
+                            parsed: Optional[Proxy] = None
+                            cached_proxy = parse_cache.get(raw_config)
+                            if cached_proxy is not None:
+                                parsed = replace(cached_proxy)
+                            else:
+                                candidate = parse_config(raw_config)
+                                if candidate is not None:
+                                    parse_cache[raw_config] = replace(candidate)
+                                    parsed = candidate
+                            if parsed is not None:
+                                if source not in proxies_by_source:
+                                    proxies_by_source[source] = []
+                                proxies_by_source[source].append(parsed)
+                                parsed_from_sources.append(parsed)
+                            if progress and parse_task is not None:
+                                progress.update(parse_task, advance=1)
+
+                    proxies_to_test = parsed_from_sources
+                    parsed_count = len(parsed_from_sources)
+
+                    if proxies_to_test:
+                        from .security_validator import (
+                            validate_batch_configs,
+                            TEST_POLICY,
+                            STRICT_POLICY,
+                        )
+
+                        policy = TEST_POLICY if leniency else STRICT_POLICY
+                        insecure_before = len(proxies_to_test)
+                        proxies_to_test = validate_batch_configs(proxies_to_test, policy=policy)
+                        insecure_removed = insecure_before - len(proxies_to_test)
+                        if insecure_removed > 0:
+                            logger.info("%d insecure proxies were filtered out", insecure_removed)
+                            stats["insecure"] += insecure_removed
+                            if not proxies_to_test:
+                                security_filtered = True
+
+                    from .freshness import apply_ttl
+
+                    now = datetime.now(timezone.utc)
+                    pre_filter_count = len(proxies_to_test)
+                    proxies_to_test = [p for p in proxies_to_test if apply_ttl(p, now=now)]
+                    dropped_count = pre_filter_count - len(proxies_to_test)
+                    if dropped_count > 0:
+                        logger.info("%d stale proxies were dropped due to TTL", dropped_count)
+
+                    await _resolve_proxy_addresses(proxies_to_test, progress)
+                    proxies_to_test = dedupe_and_shuffle(proxies_to_test)
+
+                stats["fetched"] += chunk_fetched
+
+                if not proxies_to_test:
+                    if security_filtered:
+                        failure_reason = (
+                            "No configurations could be parsed or all were deemed insecure"
+                        )
+                    elif chunk_source == "fetched" and failure_reason is None:
+                        failure_reason = "No configurations could be parsed"
+                    phase_summaries.append(
+                        {
+                            "phase": phase_index,
+                            "source": chunk_source,
+                            "fetched": chunk_fetched,
+                            "parsed": parsed_count,
+                            "tested": 0,
+                            "working": 0,
+                            "new_working": 0,
+                            "cumulative_working": len(all_working_proxies),
+                        }
                     )
-
-                    policy = TEST_POLICY if leniency else STRICT_POLICY
-                    insecure_before = len(proxies_to_test)
-                    proxies_to_test = validate_batch_configs(proxies_to_test, policy=policy)
-                    insecure_removed = insecure_before - len(proxies_to_test)
-                    if insecure_removed > 0:
-                        logger.info("%d insecure proxies were filtered out", insecure_removed)
-                        stats["insecure"] += insecure_removed
-                        if not proxies_to_test:
-                            security_filtered = True
-
-                # Apply TTL filter to drop very old proxies before testing
-                from .freshness import apply_ttl
-
-                now = datetime.now(timezone.utc)
-                pre_filter_count = len(proxies_to_test)
-                proxies_to_test = [p for p in proxies_to_test if apply_ttl(p, now=now)]
-                dropped_count = pre_filter_count - len(proxies_to_test)
-                if dropped_count > 0:
-                    logger.info("%d stale proxies were dropped due to TTL", dropped_count)
-
-                proxies_to_test = dedupe_and_shuffle(proxies_to_test)
-
-            stats["fetched"] += chunk_fetched
-
-            if not proxies_to_test:
-                if security_filtered:
-                    failure_reason = "No configurations could be parsed or all were deemed insecure"
-                elif chunk_source == "fetched" and failure_reason is None:
-                    failure_reason = "No configurations could be parsed"
-                phase_summary = {
-                    "phase": phase_index,
-                    "source": chunk_source,
-                    "fetched": chunk_fetched,
-                    "parsed": parsed_count,
-                    "tested": 0,
-                    "working": 0,
-                    "new_working": 0,
-                    "cumulative_working": len(all_working_proxies),
-                }
-                phase_summaries.append(phase_summary)
-                stats["phases"] = phase_summaries
-                continue
-
-            unique_batch: List[Proxy] = []
-            for proxy in proxies_to_test:
-                key = _proxy_key(proxy)
-                if key in processed_proxy_keys:
                     continue
-                processed_proxy_keys.add(key)
-                unique_batch.append(proxy)
 
-            if not unique_batch:
-                phase_summary = {
-                    "phase": phase_index,
-                    "source": chunk_source,
-                    "fetched": chunk_fetched,
-                    "parsed": parsed_count,
-                    "tested": 0,
-                    "working": 0,
-                    "new_working": 0,
-                    "cumulative_working": len(all_working_proxies),
-                }
-                phase_summaries.append(phase_summary)
-                stats["phases"] = phase_summaries
-                continue
+                unique_batch: List[Proxy] = []
+                for proxy in proxies_to_test:
+                    key = _proxy_key(proxy)
+                    if key in processed_proxy_keys:
+                        continue
+                    processed_proxy_keys.add(key)
+                    unique_batch.append(proxy)
 
-            if max_proxies is not None:
-                remaining_slots = max(0, max_proxies - stats["tested"])
-                if remaining_slots == 0:
-                    logger.info(
-                        "Reached max_proxies limit (%d); skipping remaining phases.",
-                        max_proxies,
+                if not unique_batch:
+                    phase_summaries.append(
+                        {
+                            "phase": phase_index,
+                            "source": chunk_source,
+                            "fetched": chunk_fetched,
+                            "parsed": parsed_count,
+                            "tested": 0,
+                            "working": 0,
+                            "new_working": 0,
+                            "cumulative_working": len(all_working_proxies),
+                        }
                     )
-                    break
-                if len(unique_batch) > remaining_slots:
-                    logger.info(
-                        "Limiting %s to %d proxies to respect max_proxies",
-                        phase_label,
-                        remaining_slots,
-                    )
-                    unique_batch = unique_batch[:remaining_slots]
+                    continue
 
-            # Batch resolve DNS before testing to reduce latency
-            from .dns_batch_resolver import BatchDNSResolver
+                if max_proxies is not None:
+                    remaining_slots = max(0, max_proxies - stats["tested"])
+                    if remaining_slots == 0:
+                        logger.info(
+                            "Reached max_proxies limit (%d); skipping remaining phases.",
+                            max_proxies,
+                        )
+                        break
+                    if len(unique_batch) > remaining_slots:
+                        logger.info(
+                            "Limiting %s to %d proxies to respect max_proxies",
+                            phase_label,
+                            remaining_slots,
+                        )
+                        unique_batch = unique_batch[:remaining_slots]
 
-            resolver = BatchDNSResolver()
-            hostnames_to_resolve = list(set(p.address for p in unique_batch if not p.resolved_ip))
-            if hostnames_to_resolve:
-                ip_map = await resolver.resolve(hostnames_to_resolve)
-                for p in unique_batch:
-                    if not p.resolved_ip and p.address in ip_map:
-                        p.resolved_ip = ip_map[p.address]
+                tested_batch = await _run_tests(unique_batch, phase_label)
+                all_tested_proxies.extend(tested_batch)
+                stats["tested"] += len(tested_batch)
 
-            tested_batch = await _run_tests(unique_batch, phase_label)
-            all_tested_proxies.extend(tested_batch)
-            stats["tested"] += len(tested_batch)
+                if chunk_source == "fetched":
+                    for source, proxies_from_source in proxies_by_source.items():
+                        tested_proxies_for_source = [
+                            p
+                            for p in tested_batch
+                            if any(
+                                _proxy_key(p) == _proxy_key(orig) for orig in proxies_from_source
+                            )
+                        ]
+                        if tested_proxies_for_source:
+                            quality_tracker.update_source_quality(source, tested_proxies_for_source)
 
-            # After testing, update the quality tracker for the sources in this batch
-            if chunk_source == "fetched":
-                for source, proxies_from_source in proxies_by_source.items():
-                    # Find the tested versions of the proxies from this source
-                    tested_proxies_for_source = [
-                        p
-                        for p in tested_batch
-                        if any(_proxy_key(p) == _proxy_key(orig) for orig in proxies_from_source)
-                    ]
-                    if tested_proxies_for_source:
-                        quality_tracker.update_source_quality(source, tested_proxies_for_source)
-
-            if progress:
-                filter_task = progress.add_task(f"Filtering {phase_label}", total=len(tested_batch))
-            else:
-                filter_task = None
-
-            with tracker.phase("filter"):
                 working_batch = [p for p in tested_batch if p.is_working]
 
                 if min_latency is not None:
@@ -963,12 +1040,6 @@ async def run_full_pipeline(
                         for p in working_batch
                         if p.latency is not None and p.latency >= min_latency
                     ]
-                    logger.info(
-                        "Filtered %s to %d proxies with latency >= %dms",
-                        phase_label,
-                        len(working_batch),
-                        min_latency,
-                    )
 
                 max_latency_limit = max_latency if max_latency is not None else 5000
                 if max_latency_limit and max_latency_limit > 0:
@@ -977,81 +1048,88 @@ async def run_full_pipeline(
                         for p in working_batch
                         if p.latency is None or p.latency <= max_latency_limit
                     ]
-                    logger.info(
-                        "Filtered %s to %d proxies with latency <= %dms",
-                        phase_label,
-                        len(working_batch),
-                        max_latency_limit,
-                    )
 
-            await _geolocate_batch(working_batch, phase_label)
+                await _geolocate_batch(working_batch, phase_label)
 
-            if country_filter:
-                working_batch = [
-                    p
-                    for p in working_batch
-                    if p.country_code and p.country_code.upper() == country_filter.upper()
-                ]
-                logger.info(
-                    "Filtered %s to %d proxies in %s",
-                    phase_label,
-                    len(working_batch),
-                    country_filter,
+                if country_filter:
+                    working_batch = [
+                        p
+                        for p in working_batch
+                        if p.country_code and p.country_code.upper() == country_filter.upper()
+                    ]
+
+                newly_added: List[Proxy] = []
+                for proxy in working_batch:
+                    key = _proxy_key(proxy)
+                    if key in written_proxy_keys:
+                        continue
+                    written_proxy_keys.add(key)
+                    newly_added.append(proxy)
+
+                if newly_added:
+                    all_working_proxies.extend(newly_added)
+                    all_working_proxies.sort(key=lambda p: p.latency or float("inf"))
+                    _write_outputs()
+
+                stats["working"] = len(all_working_proxies)
+                stats["filtered"] = stats["working"]
+
+                phase_summaries.append(
+                    {
+                        "phase": phase_index,
+                        "source": chunk_source,
+                        "fetched": chunk_fetched,
+                        "parsed": parsed_count,
+                        "tested": len(tested_batch),
+                        "working": len(working_batch),
+                        "new_working": len(newly_added),
+                        "cumulative_working": len(all_working_proxies),
+                    }
                 )
+                parse_cache.clear()
 
-            newly_added: List[Proxy] = []
-            for proxy in working_batch:
-                key = _proxy_key(proxy)
-                if key in written_proxy_keys:
-                    continue
-                written_proxy_keys.add(key)
-                newly_added.append(proxy)
+        await consume_and_process()
+        raw_fetch_total = await producer_task
+        logger.info("PIPELINE: Producer fetched %d raw proxy configs.", raw_fetch_total)
 
-            if newly_added:
-                all_working_proxies.extend(newly_added)
+        if not all_tested_proxies:
+            logger.warning(
+                "No proxies were tested. The queue may have been empty or parsing failed."
+            )
+            if failure_reason is None:
+                failure_reason = "No configurations could be parsed or fetched."
 
-            stats["working"] = len(all_working_proxies)
-            stats["filtered"] = len(all_working_proxies)
+        if len(seen_raw_configs) == 0 and not supplied_proxies:
+            logger.error("PIPELINE: No unique configs were found.")
 
-            if progress and filter_task is not None:
-                progress.update(filter_task, completed=len(tested_batch))
+        # Final check if loop exited prematurely
+        if not all_working_proxies and not failure_reason:
+            if stats["tested"] == 0:
+                failure_reason = "No proxies were tested"
 
-            if not working_batch and tested_batch:
-                logger.warning(
-                    "No working proxies detected in %s; keeping tested proxies as fallback",
-                    phase_label,
-                )
-
-            phase_summary = {
-                "phase": phase_index,
-                "source": chunk_source,
-                "fetched": chunk_fetched,
-                "parsed": parsed_count,
-                "tested": len(tested_batch),
-                "working": len(working_batch),
-                "new_working": len(newly_added),
-                "cumulative_working": len(all_working_proxies),
-            }
-            phase_summaries.append(phase_summary)
-            stats["phases"] = phase_summaries
-
-            if newly_added:
-                # Sort the final list once before writing outputs
-                all_working_proxies.sort(key=lambda p: p.latency or float("inf"))
-                _write_outputs()
-
-            if not queue and not preparsed_batches:
-                break
+        if queue and phase_index >= MAX_PIPELINE_PHASES:
+            logger.warning(
+                "Reached maximum of %d phases with items still in queue.",
+                MAX_PIPELINE_PHASES,
+            )
 
             # Clear the parse cache at the end of each phase to save memory
             parse_cache.clear()
 
-        if queue and phase_index >= MAX_PIPELINE_PHASES:
+        if not all_tested_proxies:
             logger.warning(
-                "Reached maximum of %d phases with %d configs still queued.",
-                MAX_PIPELINE_PHASES,
-                len(queue),
+                "No proxies were tested. The queue may have been empty or parsing failed."
             )
+            if failure_reason is None:
+                failure_reason = "No configurations could be parsed or fetched."
+
+        if len(seen_raw_configs) == 0 and not supplied_proxies:
+            logger.error("PIPELINE: No unique configs were found.")
+
+        # Final check if loop exited prematurely
+        if not all_working_proxies and not failure_reason:
+            if stats["tested"] == 0:
+                failure_reason = "No proxies were tested"
 
         if stats["tested"] == 0:
             message = failure_reason or "No proxies were tested"
@@ -1136,3 +1214,7 @@ async def run_full_pipeline(
             shutdown_file_pool()
         else:
             logger.debug("Skipping pool shutdown (test environment detected)")
+
+        # Save the cache to disk at the very end.
+        if "test_cache" in locals():
+            test_cache.save()

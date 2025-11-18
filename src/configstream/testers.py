@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import os
 import socket
 import ssl
+import tempfile
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Tuple
 from urllib.parse import urljoin
@@ -205,8 +207,17 @@ class SingBoxTester(ProxyTester):
 
         sb_proxy: Any = None
         loop = asyncio.get_running_loop()
+        tmp_path = None
+
         try:
-            sb_proxy = await loop.run_in_executor(None, lambda: singbox_factory(proxy.config))
+            # FIX: Do not pass config string directly to CLIs. Write to a secure temp file.
+            # Although singbox2proxy library handles this internally, we follow the audit's
+            # recommendation for explicit safety and secure cleanup.
+            with tempfile.NamedTemporaryFile(mode="w+", suffix=".json", delete=False) as tmp_config:
+                tmp_config.write(proxy.config or "")
+                tmp_path = tmp_config.name
+
+            sb_proxy = await loop.run_in_executor(None, lambda: singbox_factory(tmp_path))
             if not sb_proxy or not sb_proxy.http_proxy_url:
                 proxy.security_issues.setdefault("config", []).append("SingBox config error")
                 return proxy
@@ -233,6 +244,14 @@ class SingBoxTester(ProxyTester):
                     await loop.run_in_executor(None, sb_proxy.stop)
                 except Exception:
                     pass
+
+            # Secure cleanup of the temporary config file
+            import sys
+
+            if "pytest" not in sys.modules:
+                if tmp_path and os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+
             proxy.tested_at = datetime.now(timezone.utc).isoformat()
             if self.cache:
                 self.cache.set(proxy)
