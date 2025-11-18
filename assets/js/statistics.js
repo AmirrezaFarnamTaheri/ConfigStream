@@ -112,6 +112,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSummaryStats(stats, proxies, metadata) {
+        // New mappings
+        if (stats.total_fetched !== undefined) {
+            updateElement('#statTotalFetched', stats.total_fetched.toLocaleString());
+        }
+        // Handle potential key name variation (total_duplicates vs duplicates_skipped)
+        const duplicates = stats.total_duplicates || stats.duplicates_skipped || 0;
+        updateElement('#statDuplicates', duplicates.toLocaleString());
+
+        if (stats.total_insecure !== undefined) {
+            updateElement('#statInsecure', stats.total_insecure.toLocaleString());
+        }
+
         // Update summary statistics
         if (stats.total_proxies !== undefined) {
             updateElement('#totalProxies', stats.total_proxies.toLocaleString());

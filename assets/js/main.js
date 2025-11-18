@@ -55,9 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update stats card
             if (stats) {
+                updateElement('#totalSourced', stats.total_fetched || 0);
                 updateElement('#totalConfigs', stats.total_tested || 0);
                 updateElement('#workingConfigs', stats.total_working || 0);
-                updateElement('#updateFrequency', '4 hrs');
+                updateElement('#updateFrequency', '6 hrs');
             }
 
         } catch (error) {

@@ -1,5 +1,0 @@
-https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/yebekhe/vpn-fail.txt
-https://raw.githubusercontent.com/2dust/ProxySU/master/sub/sub.txt
-https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml
-https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_All.yml
-https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_Iranian.yml
