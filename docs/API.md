@@ -195,6 +195,46 @@ print(report["success_rate"])
 The engine produces the `report.json` artifact written by the pipeline and helps
 drive dashboards or post-processing scripts.
 
+### `statistics.json` Output
+
+The pipeline generates a `statistics.json` file with the following structure,
+providing a high-level overview of the pipeline run:
+
+```json
+{
+  "generated_at": "2025-10-26T18:00:00.000Z",
+  "total_fetched": 150000,
+  "total_duplicates": 120000,
+  "total_insecure": 5000,
+  "total_tested": 25000,
+  "total_working": 8500,
+  "success_rate": 34.00,
+  "average_latency_ms": 450.50,
+  "protocols": {
+    "VLESS": 3000,
+    "VMess": 2500,
+    "Trojan": 2000,
+    "Shadowsocks": 1000
+  },
+  "countries": {
+    "United States": 1500,
+    "Germany": 1200,
+    "Japan": 1000
+  }
+}
+```
+
+- **`total_fetched`**: Total number of raw proxy configurations sourced before any processing.
+- **`total_duplicates`**: Number of duplicate configurations removed.
+- **`total_insecure`**: Number of configurations blocked by the security validator.
+- **`total_tested`**: Number of unique, secure proxies that were tested for connectivity.
+- **`total_working`**: Number of proxies that passed all tests.
+- **`success_rate`**: Percentage of tested proxies that were working.
+- **`average_latency_ms`**: Average latency of all working proxies.
+- **`protocols`**: A dictionary mapping protocol names to the count of working proxies for each.
+- **`countries`**: A dictionary mapping country names to the count of working proxies for each.
+
+
 ## Scheduling & Monitoring
 
 > Locations:
