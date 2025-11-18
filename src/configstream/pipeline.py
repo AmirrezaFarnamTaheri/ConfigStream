@@ -265,6 +265,7 @@ async def run_full_pipeline(
         "working": 0,
         "filtered": 0,
         "duplicates_skipped": 0,
+        "insecure": 0,
         "phases": [],
     }
     output_files: Dict[str, str] = {}
@@ -557,40 +558,40 @@ async def run_full_pipeline(
                     sub_content = generate_base64_subscription(all_working_proxies)
                     sub_path = output_path / "vpn_subscription_base64.txt"
                     sub_path.write_text(sub_content)
-                    output_files["subscription"] = str(sub_path)
+                    output_files["subscription"] = sub_path.name
 
                     clash_content = generate_clash_config(all_working_proxies)
                     clash_path = output_path / "clash.yaml"
                     clash_path.write_text(clash_content)
-                    output_files["clash"] = str(clash_path)
+                    output_files["clash"] = clash_path.name
 
                     try:
                         singbox_content = generate_singbox_config(all_working_proxies)
                         singbox_path = output_path / "singbox.json"
                         singbox_path.write_text(singbox_content)
-                        output_files["singbox"] = str(singbox_path)
+                        output_files["singbox"] = singbox_path.name
                     except Exception as exc:  # pragma: no cover - defensive
                         logger.warning("Could not generate SingBox format: %s", exc)
 
                     raw_content = "\n".join(p.config for p in all_working_proxies)
                     raw_path = output_path / "configs_raw.txt"
                     raw_path.write_text(raw_content)
-                    output_files["raw"] = str(raw_path)
+                    output_files["raw"] = raw_path.name
 
                     shadowrocket_content = generate_shadowrocket_subscription(all_working_proxies)
                     shadowrocket_path = output_path / "shadowrocket.txt"
                     shadowrocket_path.write_text(shadowrocket_content)
-                    output_files["shadowrocket"] = str(shadowrocket_path)
+                    output_files["shadowrocket"] = shadowrocket_path.name
 
                     quantumult_content = generate_quantumult_config(all_working_proxies)
                     quantumult_path = output_path / "quantumult.conf"
                     quantumult_path.write_text(quantumult_content)
-                    output_files["quantumult"] = str(quantumult_path)
+                    output_files["quantumult"] = quantumult_path.name
 
                     surge_content = generate_surge_config(all_working_proxies)
                     surge_path = output_path / "surge.conf"
                     surge_path.write_text(surge_content)
-                    output_files["surge"] = str(surge_path)
+                    output_files["surge"] = surge_path.name
 
                     proxies_json = [
                         {
@@ -665,10 +666,11 @@ async def run_full_pipeline(
                         "generated_at": start_time.isoformat(),
                         "generated_now": datetime.now(timezone.utc).isoformat(),
                         "total_fetched": stats["fetched"],
+                        "total_duplicates": stats["duplicates_skipped"],
+                        "total_insecure": stats["insecure"],
                         "total_tested": stats["tested"],
                         "total_working": stats["working"],
                         "total_filtered": stats["filtered"],
-                        "duplicates_skipped": stats["duplicates_skipped"],
                         "success_rate": round(success_rate, 2),
                         "average_latency_ms": round(average_latency, 2),
                         "protocols": protocol_counts,
@@ -786,6 +788,7 @@ async def run_full_pipeline(
                     insecure_removed = insecure_before - len(proxies_to_test)
                     if insecure_removed > 0:
                         logger.info("%d insecure proxies were filtered out", insecure_removed)
+                        stats["insecure"] += insecure_removed
                         if not proxies_to_test:
                             security_filtered = True
 
