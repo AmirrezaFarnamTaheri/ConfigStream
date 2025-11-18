@@ -1,8 +1,99 @@
 from __future__ import annotations
 
-from typing import Callable, Iterable, List, Sequence
+import os
+import random
+from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 
 from .models import Proxy
+
+
+def proxy_unique_key(p: Proxy) -> Tuple[str, str, int, str, str, str]:
+    """
+    Build a canonical stable identity for a proxy configuration.
+    Used for "Soft Deduplication" (removing identical configs).
+    """
+    proto = p.protocol.lower().strip()
+    # Use resolved IP for strict dedupe, fallback to address
+    addr = (p.resolved_ip or p.address).lower().strip()
+    port = int(p.port)
+    uuid = (p.uuid or "").lower().strip()
+    sni = (p.sni or "").lower().strip().rstrip(".")
+    path = (p.path or "").strip()
+    if path == "/":
+        path = ""
+    return (proto, addr, port, uuid, sni, path)
+
+
+def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
+    """
+    Deduplicate proxies keeping the highest quality version.
+    Then shuffle them (deterministically if seed is set).
+    """
+    best: dict[Tuple[Any, ...], Proxy] = {}
+    for proxy in proxies:
+        key = proxy_unique_key(proxy)
+        current = best.get(key)
+
+        if current is None:
+            best[key] = proxy
+            continue
+
+        if not current.is_working and proxy.is_working:
+            best[key] = proxy
+            continue
+        elif current.is_working == proxy.is_working:
+            # Prefer lower latency
+            if current.latency is None and proxy.latency is not None:
+                best[key] = proxy
+                continue
+            elif current.latency is not None and proxy.latency is not None:
+                if proxy.latency < current.latency:
+                    best[key] = proxy
+                    continue
+
+    unique = list(best.values())
+
+    seed_env = os.getenv("CONFIGSTREAM_SHUFFLE_SEED")
+    rng_seed: int | str | None = None
+    if seed_env:
+        try:
+            rng_seed = int(seed_env)
+        except ValueError:
+            rng_seed = seed_env
+
+    rng = random.Random(rng_seed)
+    rng.shuffle(unique)
+    return unique
+
+
+def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
+    """
+    Aggressive post-processing filter.
+    Groups working proxies by (Resolved IP, Port, Protocol, SNI, Path).
+    """
+    # Key: (Protocol, IP, Port, SNI, Path)
+    endpoint_map: Dict[Tuple[str, str, int, str, str], Proxy] = {}
+
+    for p in proxies:
+        addr = p.resolved_ip if p.resolved_ip else p.address
+        sni = (p.sni or "").lower().strip()
+        # INCLUDE PATH to save multiplexed services
+        path = (p.path or "").strip()
+
+        key = (p.protocol.lower(), addr.lower(), int(p.port), sni, path)
+
+        existing = endpoint_map.get(key)
+        if not existing:
+            endpoint_map[key] = p
+        else:
+            # Collision: keep the faster one
+            existing_latency = existing.latency if existing.latency is not None else float('inf')
+            new_latency = p.latency if p.latency is not None else float('inf')
+
+            if new_latency < existing_latency:
+                endpoint_map[key] = p
+
+    return list(endpoint_map.values())
 
 
 class ProxyFilter:

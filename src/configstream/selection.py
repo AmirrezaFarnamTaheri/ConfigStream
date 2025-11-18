@@ -1,118 +1,65 @@
-"""
-Proxy selection logic for generating the "chosen" subset.
+from __future__ import annotations
 
-Implements the selection algorithm:
-- Top 40 proxies per protocol (sorted by latency)
-- Fill remaining slots to reach 1000 total from all tested proxies
-- Ensures diversity across protocols while prioritizing quality
-"""
-
-from typing import Any, Dict, List
+import logging
 from collections import defaultdict
+from typing import Dict, List, Any
 
 from .models import Proxy
-from .constants import CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
+# Imports from new location
+from .filtering import dedupe_and_shuffle
+
+logger = logging.getLogger(__name__)
 
 
-def select_chosen_proxies(all_proxies: List[Proxy]) -> List[Proxy]:
+def select_chosen_proxies(
+    proxies: List[Proxy], top_per_protocol: int = 40, total_limit: int = 1000
+) -> List[Proxy]:
     """
-    Select the "chosen" subset of proxies based on quality and diversity.
-
-    Algorithm:
-    1. Group proxies by protocol
-    2. Take top N (default: 40) per protocol, sorted by latency
-    3. If total < 1000, fill from remaining proxies (best latency overall)
-    4. Ensure only working proxies with no security issues are selected
-
-    Args:
-        all_proxies: List of all tested proxies
-
-    Returns:
-        List of chosen proxies (up to CHOSEN_TOTAL_TARGET)
+    Selects a high-quality subset of proxies for the 'chosen' output.
+    Prioritizes diversity (top N per protocol) then latency.
     """
-    # Filter to only working proxies without security issues
-    working = [
-        p for p in all_proxies if p.is_working and not p.security_issues and p.latency is not None
-    ]
-
-    if not working:
-        return []
-
-    # Sort all proxies by latency (best first)
-    working_sorted = sorted(working, key=lambda p: p.latency or float("inf"))
+    # First, deduplicate to be safe
+    unique_proxies = dedupe_and_shuffle(proxies)
 
     # Group by protocol
-    by_protocol: Dict[str, List[Proxy]] = defaultdict(list)
-    for proxy in working_sorted:
-        protocol = proxy.protocol.lower()
-        by_protocol[protocol].append(proxy)
+    by_proto: Dict[str, List[Proxy]] = defaultdict(list)
+    for p in unique_proxies:
+        by_proto[p.protocol].append(p)
 
-    chosen = []
-    chosen_ids = set()
+    # Sort each group by latency
+    for proto in by_proto:
+        by_proto[proto].sort(key=lambda p: p.latency or float('inf'))
 
-    per_protocol_cap = CHOSEN_TOP_PER_PROTOCOL if len(by_protocol) > 1 else CHOSEN_TOTAL_TARGET
+    chosen: List[Proxy] = []
+    seen_configs = set()
 
-    # Step 1: Take top N per protocol
-    protocol_counts: Dict[str, int] = defaultdict(int)
-    for protocol, proxies in sorted(by_protocol.items()):
-        # Already sorted by latency globally, so just take first N for this protocol
-        protocol_top = proxies[:per_protocol_cap]
-        for p in protocol_top:
-            if p.id not in chosen_ids:
+    # 1. Take top N from each protocol
+    for proto, p_list in by_proto.items():
+        for p in p_list[:top_per_protocol]:
+            if p.config not in seen_configs:
                 chosen.append(p)
-                chosen_ids.add(p.id)
-                protocol_counts[protocol] += 1
+                seen_configs.add(p.config)
 
-    # Step 2: Fill remaining slots from all remaining proxies
-    if len(chosen) < CHOSEN_TOTAL_TARGET:
-        for proxy in working_sorted:
-            if len(chosen) >= CHOSEN_TOTAL_TARGET:
+    # 2. Fill remainder with global best
+    if len(chosen) < total_limit:
+        remaining_slots = total_limit - len(chosen)
+        global_sorted = sorted(unique_proxies, key=lambda p: p.latency or float('inf'))
+
+        for p in global_sorted:
+            if remaining_slots <= 0:
                 break
-            if proxy.id not in chosen_ids:
-                protocol = proxy.protocol.lower()
-                if protocol_counts[protocol] >= per_protocol_cap:
-                    continue
-                chosen.append(proxy)
-                chosen_ids.add(proxy.id)
-                protocol_counts[protocol] += 1
+            if p.config not in seen_configs:
+                chosen.append(p)
+                seen_configs.add(p.config)
+                remaining_slots -= 1
 
-    # Re-sort final list by latency for clean output
-    chosen.sort(key=lambda p: p.latency or float("inf"))
-
-    return chosen[:CHOSEN_TOTAL_TARGET]
+    return chosen
 
 
-def get_selection_stats(all_proxies: List[Proxy], chosen: List[Proxy]) -> Dict[str, Any]:
-    """
-    Generate statistics about the selection process.
-
-    Returns dict with:
-    - total_tested: Total proxies tested
-    - working: Total working proxies
-    - chosen_count: Number selected
-    - by_protocol: Breakdown of chosen by protocol
-    - coverage: Percentage of protocols represented
-    """
-    by_protocol_chosen: Dict[str, int] = defaultdict(int)
-    for proxy in chosen:
-        protocol = proxy.protocol.lower()
-        by_protocol_chosen[protocol] += 1
-
-    by_protocol_total: Dict[str, int] = defaultdict(int)
-    working_count = 0
-    for proxy in all_proxies:
-        if proxy.is_working and not proxy.security_issues:
-            working_count += 1
-        protocol = proxy.protocol.lower()
-        by_protocol_total[protocol] += 1
-
+def get_selection_stats(all_proxies: List[Proxy], chosen_proxies: List[Proxy]) -> Dict[str, Any]:
+    """Generate statistics about the selection process."""
     return {
-        "total_tested": len(all_proxies),
-        "working": working_count,
-        "chosen_count": len(chosen),
-        "by_protocol_chosen": dict(by_protocol_chosen),
-        "by_protocol_total": dict(by_protocol_total),
-        "protocols_represented": len(by_protocol_chosen),
-        "avg_latency_ms": sum(p.latency or 0 for p in chosen) / len(chosen) if chosen else 0,
-        "max_latency_ms": max((p.latency or 0 for p in chosen), default=0),
+        "total_pool": len(all_proxies),
+        "selected_count": len(chosen_proxies),
+        "selection_ratio": len(chosen_proxies) / len(all_proxies) if all_proxies else 0,
     }
