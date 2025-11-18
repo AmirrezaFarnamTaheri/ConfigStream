@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import binascii
 import json
 import os
 import random
@@ -56,7 +55,6 @@ PipelineResult = Dict[str, Any]
 
 CHUNK_SIZE = 15_000  # Increased from 10k for better throughput
 MAX_PIPELINE_PHASES = 40  # Increased from 30 for larger source lists
-FETCH_CONCURRENCY = 20  # Optimized concurrent fetching
 
 
 class SourceValidationError(ValueError):
@@ -118,16 +116,26 @@ def _prepare_sources(raw_sources: Sequence[str]) -> List[str]:
 # ==== BEGIN: de-dup + seeded shuffle helpers ====
 def _proxy_key(p: Proxy) -> Tuple[str, str, int, str, str, str]:
     """
-    Build a stable identity for a proxy. Now includes normalized SNI and path
-    to correctly identify proxies that are functionally identical but have
-    different remarks or query params in their config strings.
+    Build a canonical stable identity for a proxy.
     """
-    proto = p.protocol.lower()
-    addr = p.address
+    proto = p.protocol.lower().strip()
+
+    # Normalize address: lowercase
+    addr = p.address.lower().strip()
+
     port = p.port
-    uuid = p.uuid
-    sni = p.sni
-    path = p.path
+
+    # Normalize UUID: lowercase
+    uuid = (p.uuid or "").lower().strip()
+
+    # Normalize SNI: lowercase, remove trailing dots
+    sni = (p.sni or "").lower().strip().rstrip(".")
+
+    # Normalize Path: remove duplicate slashes, trailing slash handling
+    path = (p.path or "").strip()
+    if path == "/":
+        path = ""  # Treat root path and empty path as same
+
     return (proto, addr, port, uuid, sni, path)
 
 
@@ -190,18 +198,20 @@ async def _process_sources(
     quality_tracker: "SourceQualityTracker",
 ) -> Tuple[Dict[str, List[str]], int]:
     """
-    Fetch and parse proxy configurations from sources, prioritizing by quality.
-    Returns a dictionary mapping each source to its list of raw configs.
+    Refactored to use the robust fetcher module with adaptive logic.
     """
     source_to_configs: Dict[str, List[str]] = {}
     raw_fetch_total = 0
+    # Import here to avoid circular dependency issues at module level
+    from .config import AppSettings
 
+    app_settings = AppSettings()
+
+    # Separate local files from remote URLs
     local_sources = [s for s in sources_to_fetch if not s.startswith(("http://", "https://"))]
     remote_sources = [s for s in sources_to_fetch if s.startswith(("http://", "https://"))]
 
-    # Sort remote sources by their quality score in descending order.
-    remote_sources.sort(key=quality_tracker.get_source_score, reverse=True)
-
+    # 1. Process Local Sources (Fast I/O)
     if local_sources:
         file_task = (
             progress.add_task("Reading local sources...", total=len(local_sources))
@@ -211,6 +221,8 @@ async def _process_sources(
         with tracker.phase("read_files"):
             file_results = await read_multiple_files_async(local_sources, max_concurrent=5)
             for file_path, content in file_results:
+                if progress and file_task is not None:
+                    progress.update(file_task, advance=1)
                 if content.startswith("ERROR:"):
                     logger.warning("Failed to read %s: %s", file_path, content)
                     continue
@@ -218,39 +230,65 @@ async def _process_sources(
                 if configs:
                     source_to_configs[file_path] = configs
                     raw_fetch_total += len(configs)
-                if progress and file_task is not None:
-                    progress.update(file_task, advance=1)
 
+    # 2. Process Remote Sources (Network I/O) using the Advanced Fetcher
     if remote_sources:
         fetch_task = (
-            progress.add_task("Fetching remote sources...", total=len(remote_sources))
+            progress.add_task("Fetching remote sources (Adaptive)...", total=len(remote_sources))
             if progress
             else None
         )
+
         with tracker.phase("fetch"):
+            # Use the robust fetcher which handles retries, circuit breaking, and adaptive timeouts internally
             results = await fetcher.fetch_multiple_sources(
-                remote_sources, max_concurrent=FETCH_CONCURRENCY
+                remote_sources,
+                max_concurrent=app_settings.PER_HOST_MAX_CONCURRENCY,
+                timeout=app_settings.FETCH_TIMEOUT,  # Uses adaptive logic internally if enabled
+                use_adaptive_timeout=True,
             )
+
             for source, result in results.items():
-                if not result.success:
-                    logger.warning("Failed to fetch %s: %s", source, result.error)
-                    continue
-                if result.error == "not-modified":
-                    continue
-
-                try:
-                    decoded_content = base64.b64decode(result.content, validate=True).decode(
-                        "utf-8"
-                    )
-                except (binascii.Error, UnicodeDecodeError):
-                    decoded_content = result.content
-
-                configs = _extract_config_lines(decoded_content)
-                if configs:
-                    source_to_configs[source] = configs
-                raw_fetch_total += len(configs)
                 if progress and fetch_task is not None:
                     progress.update(fetch_task, advance=1)
+
+                if not result.success:
+                    # Log but don't fail; CircuitBreaker handles persistence
+                    logger.warning(f"Source failed: {source} - {result.error}")
+                    continue
+
+                if result.status_code == 304:
+                    logger.info(f"Source not modified: {source}")
+                    continue
+
+                # Decode and Extract
+                try:
+                    # The fetcher already handles encoding, but we double-check base64 wrappers
+                    decoded_content = result.content
+                    # Heuristic check: if the first 100 chars don't contain a protocol scheme,
+                    # it's likely base64 encoded.
+                    if "://" not in decoded_content[:100]:
+                        try:
+                            decoded_content = base64.b64decode(
+                                result.content, validate=True
+                            ).decode("utf-8")
+                        except Exception:
+                            pass  # It might be a plain text list of non-standard proxies
+
+                    configs = _extract_config_lines(decoded_content)
+
+                    if configs:
+                        source_to_configs[source] = configs
+                        raw_fetch_total += len(configs)
+
+                    # FEEDBACK LOOP: Update quality tracker with fetch metrics immediately
+                    # This closes the loop that was missing in the original logic
+                    if result.response_time:
+                        # We record the fetch success, proxy quality is updated later after testing
+                        quality_tracker.update_source_quality(source, [])
+
+                except Exception as e:
+                    logger.error(f"Parse error for {source}: {e}")
 
     return source_to_configs, raw_fetch_total
 

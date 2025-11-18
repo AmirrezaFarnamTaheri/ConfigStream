@@ -36,12 +36,14 @@ class TestResultCache:
         self._init_db()
 
     def _init_db(self) -> None:
-        """Initialize the SQLite database with required schema and optimizations."""
+        """Initialize SQLite with high-concurrency settings."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with sqlite3.connect(self.db_path) as conn:
-            # Enable WAL mode for better concurrency and performance
+        # TIMEOUT INCREASE: Critical for concurrent writers
+        with sqlite3.connect(self.db_path, timeout=30.0) as conn:
+            # FORCE WAL MODE: Essential for concurrency
             conn.execute("PRAGMA journal_mode=WAL")
+            # SYNCHRONOUS NORMAL: Faster writes, safe enough for cache data
             conn.execute("PRAGMA synchronous=NORMAL")
             conn.execute("PRAGMA temp_store=MEMORY")
             conn.execute("PRAGMA mmap_size=268435456")  # 256 MB

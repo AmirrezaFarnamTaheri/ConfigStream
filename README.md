@@ -66,22 +66,22 @@ graph LR
     E --> F[Geo & Scoring]
     F --> G[Rank Views]
     G --> H[Generate Outputs]
-    H --> I[Commit to Repo]
+    H --> I[Upload Artifact]
     I --> J[GitHub Pages<br/>Auto-Deploy]
 ```
 
 ### Pipeline Steps:
 
-1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source
-2. **Parse & Deduplicate** - Canonicalise endpoints, remove duplicates, and compute stable proxy identifiers
-3. **Queue** - An efficient in-memory deque organizes proxies for processing.
-4. **Security Filtering** - Pre-test validation to remove insecure or malformed configurations.
-5. **Test** - Sing-box verification with latency budgets and retry heuristics
-6. **Secure** - Post-test security analysis with detailed issue tracking and categorization
-7. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token)
-8. **Score** - Compute balanced, speed, privacy, and stability rankings
-9. **Generate** - Emit canonical + ranked JSON outputs with metadata
-10. **Publish** - Commit and deploy to GitHub Pages without failing when output exists
+1.  **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source
+2.  **Parse & Deduplicate** - Canonicalise endpoints, remove duplicates, and compute stable proxy identifiers
+3.  **Queue** - An efficient in-memory deque organizes proxies for processing.
+4.  **Security Filtering** - Pre-test validation to remove insecure or malformed configurations.
+5.  **Test** - Sing-box verification with latency budgets and retry heuristics
+6.  **Secure** - Post-test security analysis with detailed issue tracking and categorization
+7.  **Geolocate** - Offline GeoIP lookup with DNS caching (no external token)
+8.  **Score** - Compute balanced, speed, privacy, and stability rankings
+9.  **Generate** - Emit canonical + ranked JSON outputs with metadata
+10. **Publish** - Upload artifacts and deploy to GitHub Pages
 
 ## 📥 Available Formats
 
@@ -93,14 +93,9 @@ Universal format compatible with:
 
 **Usage:** Paste the subscription link into your client
 
-**⭐ Chosen Top 1000** (Recommended for most users):
-```
-https://amirrezafarnamtaheri.github.io/ConfigStream/output/chosen/base64.txt
-```
-
 **All Configs** (Full collection):
 ```
-https://amirrezafarnamtaheri.github.io/ConfigStream/output/base64.txt
+https://amirrezafarnamtaheri.github.io/ConfigStream/vpn_subscription_base64.txt
 ```
 
 ### 2. Clash Configuration
@@ -112,7 +107,7 @@ Ready-to-use YAML for:
 
 **Usage:** Download and import the YAML file
 ```
-https://amirrezafarnamtaheri.github.io/ConfigStream/output/full/clash.yaml
+https://amirrezafarnamtaheri.github.io/ConfigStream/clash.yaml
 ```
 
 ### 3. Raw Configs
@@ -123,7 +118,7 @@ Unencoded configuration links for:
 
 **Usage:** One proxy configuration per line
 ```
-https://amirrezafarnamtaheri.github.io/ConfigStream/output/all.txt
+https://amirrezafarnamtaheri.github.io/ConfigStream/configs_raw.txt
 ```
 
 ### 4. JSON Data
@@ -290,20 +285,17 @@ ConfigStream/
 │       ├── core.py                # Core proxy testing logic
 │       ├── pipeline.py            # Main processing pipeline
 │       ├── config.py              # Configuration management
-│       └── logo.svg               # Project logo
+│       └── ...
+├── scripts/
+│   └── merge_batches.py           # Script to merge batch outputs
 ├── output/                        # Generated configs (auto-updated)
-│   ├── base64.txt                 # All configs in base64 format
-│   ├── all.txt                    # Raw proxy links
-│   ├── chosen/                    # Top 1000 curated proxies
-│   │   └── base64.txt             # Best selection, ranked by latency
-│   ├── full/                      # Additional formats
-│   │   └── clash.yaml             # Clash configuration
 │   ├── proxies.json               # Detailed proxy data
 │   ├── statistics.json            # Aggregate statistics
-│   └── metadata.json              # Update metadata
+│   └── ...                        # Other output formats
 ├── data/                          # GeoIP databases
 ├── tests/                         # Test suite
-├── sources.txt                    # Source URLs
+├── sources/                       # Directory for source URLs
+│   └── batch_1.txt
 ├── index.html                     # Main landing page
 ├── proxies.html                   # Proxy viewer
 ├── statistics.html                # Statistics page
@@ -376,8 +368,8 @@ The automation workflow (`pipeline.yml`) runs:
 5. Run merge pipeline
 6. Generate all output formats
 7. Create metadata with cache-busting
-8. Commit changes to repository
-9. GitHub Pages auto-deploys
+8. Upload artifacts
+9. GitHub Pages auto-deploys from the `gh-pages` branch
 
 ### Performance:
 - Tests 1000+ configurations in ~30 minutes
