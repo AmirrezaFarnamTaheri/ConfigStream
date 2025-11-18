@@ -1,13 +1,13 @@
 {
-  "generated_at": "2025-11-18T10:24:38.923367+00:00",
-  "generated_now": "2025-11-18T10:30:45.760457+00:00",
-  "total_fetched": 1569,
+  "generated_at": "2025-11-18T12:43:20.214125+00:00",
+  "generated_now": "2025-11-18T12:43:58.621541+00:00",
+  "total_fetched": 1561,
   "total_duplicates": 0,
   "total_insecure": 0,
-  "total_tested": 1569,
+  "total_tested": 1561,
   "total_working": 1561,
   "total_filtered": 1561,
-  "success_rate": 99.49,
+  "success_rate": 100.0,
   "average_latency_ms": 817.52,
   "protocols": {
     "shadowsocks": 644,
@@ -94,13 +94,13 @@
     {
       "phase": 1,
       "source": "supplied",
-      "fetched": 1569,
-      "parsed": 1569,
-      "tested": 1569,
+      "fetched": 1561,
+      "parsed": 1561,
+      "tested": 1561,
       "working": 1561,
       "new_working": 1561,
       "cumulative_working": 1561
     }
   ],
-  "cache_bust": 1763461845760
+  "cache_bust": 1763469838621
 }
