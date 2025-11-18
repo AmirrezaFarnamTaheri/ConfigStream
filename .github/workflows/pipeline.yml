@@ -109,16 +109,18 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
 
-      - name: Restore test cache and GeoIP database
+      - name: Restore adaptive logic state and caches
         uses: actions/cache@v3
         with:
           path: |
-            data/test_cache.db
+            data/adaptive_timeout.db
+            data/source_quality.json
+            data/test_cache.json
             data/GeoLite2-City.mmdb
             output/.etag-cache.json
-          key: configstream-cache-${{ github.run_number }}
+          key: configstream-persistent-cache-${{ github.ref }}
           restore-keys: |
-            configstream-cache-
+            configstream-persistent-cache-
 
       - name: Install dependencies
         run: pip install -e .[dev]
@@ -184,13 +186,12 @@ jobs:
           path: |
             output_batch_${{ env.BATCH_NUMBER }}/
             pipeline_batch_${{ env.BATCH_NUMBER }}.log
+            data/test_cache.json
 
   merge_results:
-    name: Merge and Commit Shard Results
+    name: Merge Shard Results
     runs-on: ubuntu-latest
     needs: pipeline
-    # Skip on pull requests (pipeline job already skipped)
-    # Always run on other events to capture logs and partial results
     if: always() && github.event_name != 'pull_request'
 
     steps:
@@ -214,87 +215,41 @@ jobs:
       - name: Restore previous outputs for merge
         run: |
           set -euxo pipefail
-          # Check if any artifacts were downloaded
           if [ -z "$(ls -A artifacts)" ]; then
             echo "No artifacts found to restore."
             exit 0
           fi
-          # The structure will be artifacts/output_batch_N/...
-          # We need to move them to the correct locations.
           find artifacts -mindepth 1 -maxdepth 1 -type d -name 'output_batch_*' -exec mv {} . \;
           find artifacts -type f -name '*.log' -exec mv {} . \;
-
 
       - name: Run merge script
         run: python -m scripts.merge_batches
 
-      - name: Show diff
-        run: |
-          git status --short
-          git diff --stat || true
-
-      - name: Setup git configuration
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-
-      - name: Pull latest changes (with conflict detection)
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: |
-          set -euxo pipefail
-
-          # Ensure we are on a local main branch
-          git checkout main || git checkout -B main
-
-          # Ensure full history and up-to-date refs
-          if git rev-parse --is-shallow-repository >/dev/null 2>&1 && git rev-parse --is-shallow-repository | grep -q true; then
-            git fetch --unshallow || true
-          fi
-          git fetch origin +refs/heads/main:refs/remotes/origin/main --prune
-
-          # Hard reset local main to origin/main to have a clean, deterministic base
-          git reset --hard origin/main
-
-          # Verify no conflicts remain and repo state is consistent
-          git status
-          echo "Local main is aligned with origin/main"
-
-      - name: Prepare repository for auto-commit
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: |
-          set -euxo pipefail
-          # Ensure we are on the main branch
-          git checkout main
-          # Default to not skipping unless proven otherwise
-          echo "SKIP_COMMIT=false" >> $GITHUB_ENV
-          # Determine if there are any artifact directories to consider
-          if compgen -G "output" > /dev/null || compgen -G "output_batch_*" > /dev/null; then
-            # Detect any changes (modified, added, deleted, untracked) under output/ and output_batch_*/
-            if [ -z "$(git status --porcelain -- output/ output_batch_*/ || true)" ]; then
-              echo "No changes in output/ or output_batch_*/, skipping auto-commit."
-              echo "SKIP_COMMIT=true" >> $GITHUB_ENV
-            fi
-          else
-            echo "No output-related directories, skipping auto-commit."
-            echo "SKIP_COMMIT=true" >> $GITHUB_ENV
-          fi
-      - name: Commit updated output
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && env.SKIP_COMMIT != 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(data): update outputs from all batches"
-          file_pattern: "output/"
-          add_options: '-A'
-          skip_fetch: true
-          skip_checkout: true
-
-      - name: Upload final pipeline artifact
-        if: always()
+      - name: Upload Pipeline Results
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline-run-${{ github.sha }}
-          path: |
-            output/
-            output_batch_*/
-            *.log
+          name: configstream-data
+          path: output/
+          retention-days: 1
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: merge_results
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download pipeline artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: configstream-data
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'

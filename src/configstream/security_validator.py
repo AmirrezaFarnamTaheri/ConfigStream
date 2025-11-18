@@ -56,7 +56,6 @@ SECURITY_CATEGORIES = {
     "ADDRESS_PRIVATE": "address_private_ip",
     "ADDRESS_SUSPICIOUS": "address_suspicious",
     "PROTOCOL_UNKNOWN": "protocol_invalid",
-    "INJECTION_RISK": "suspicious_injection_attempt",
     "CONFIG_TOO_LONG": "suspicious_config_format",
     "CONFIG_NULL_BYTE": "suspicious_config_malformed",
 }
@@ -216,33 +215,6 @@ class SecurityValidator:
             logger.error("Null byte detected in config")
             issues[SECURITY_CATEGORIES["CONFIG_NULL_BYTE"]] = "Suspicious: Contains null byte"
             return issues
-
-        # Check for suspicious shell patterns and injection attempts
-        suspicious_patterns = [
-            r"\$\(",  # Command substitution
-            r"`",  # Backtick command execution
-            r";\s*rm\s",  # Dangerous commands
-            r"&&\s*rm\s",
-            r"\|\s*sh",
-            r"eval\s*\(",
-            r"exec\s*\(",
-            r"<script",  # XSS attempts
-            r"javascript:",  # JavaScript protocol
-            r"data:text/html",  # Data URI XSS
-            r"\bDROP\s+TABLE\b",  # SQL injection
-            r"\bDELETE\s+FROM\b",
-            r"\.\.\/",  # Path traversal
-            r"file:\/\/",  # File protocol
-            r"%00",  # Null byte in URL encoding
-        ]
-
-        for pattern in suspicious_patterns:
-            if re.search(pattern, config, re.IGNORECASE):
-                logger.error("Suspicious pattern detected: %s", pattern)
-                issues[SECURITY_CATEGORIES["INJECTION_RISK"]] = (
-                    "Suspicious: Potential injection pattern detected"
-                )
-                return issues
 
         # Check length
         if len(config) > MAX_CONFIG_LINE_LENGTH:
