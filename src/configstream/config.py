@@ -73,9 +73,9 @@ class AppSettings:
         "suspicious_port_range": [(0, 1024), (5000, 5999), (8000, 8999)],
         "blocked_countries": os.getenv("BLOCKED_COUNTRIES", "").split(","),
         "malicious_asn_list": [
-            # Known malicious ASNs - expand as needed
-            "AS13335",  # Cloudflare - some malicious uses
-            "AS16509",  # Amazon - honeypot detection
+            # REMOVED Cloudflare (AS13335) and Amazon (AS16509)
+            # Blocking them kills valid CDN/Cloud proxies.
+            # Only block ASNs known exclusively for abuse/spam.
         ],
     }
 

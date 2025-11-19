@@ -19,6 +19,9 @@ class Proxy:
     country_code: str = ""
     city: str = ""
     asn: str = ""
+    # NEW FIELDS
+    isp: str = ""
+    org: str = ""
     latency: Optional[float] = None
     is_working: bool = False
     is_secure: bool = True
