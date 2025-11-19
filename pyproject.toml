@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=78.1.1", "wheel"]
+requires = ["setuptools>=80.9.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -31,12 +31,12 @@ dependencies = [
     # "telethon",  # Removed - unused dependency
     "PyYAML",
     "geoip2",
-    "pydantic>=2",
+    "pydantic>=2.12.4",
     "pydantic-settings",
     "rich",
     "click",
     "aiohttp-proxy",
-    "singbox2proxy~=0.2.0",
+    "singbox2proxy~=0.2.4",
     "requests",
     "httpx[http2]",
     "h2",
@@ -59,7 +59,7 @@ dev = [
     "pre-commit",
     "pip-audit",
     "pytest-mock",
-    "setuptools>=78.1.1",
+    "setuptools>=80.9.0",
     "h2",
     "httpx[http2]",
     "respx",

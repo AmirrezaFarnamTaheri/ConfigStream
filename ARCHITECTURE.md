@@ -11,7 +11,7 @@ ConfigStream is a high-performance VPN configuration aggregator designed for rel
 The codebase is organized into distinct modules, each with a clear responsibility. This separation simplifies maintenance, testing, and future development.
 
 -   **`pipeline.py` (Orchestrator)**: The heart of the application, responsible for orchestrating the entire workflow, from fetching and parsing to testing and output generation.
--   **`parsers.py` & `core.py` (Parsing & Validation)**: Handle the initial parsing and validation of raw proxy configurations.
+-   **`parsers.py` & `core.py` (Parsing & Validation)**: Handle the initial parsing and validation of raw proxy configurations. `core.py` is responsible for dispatching to the correct parser, while `parsers.py` contains the parsing logic for each protocol.
 -   **`testers.py` (Proxy Testing)**: Contains the logic for testing proxy connectivity and performance.
 -   **`output.py` (Output Generation)**: Generates the final output files in various formats (Base64, Clash, Sing-box, etc.).
 -   **`concurrency_manager.py` (Concurrency Control)**: Implements a unified AIMD (Additive Increase, Multiplicative Decrease) concurrency controller to dynamically adjust system load for both fetching and testing.
@@ -72,7 +72,7 @@ The `logging_config.py` module supports structured JSON logging, which is essent
 
 The frontend UI is designed to be adaptable to backend configuration changes.
 
--   **`metadata.json`**: The pipeline writes key configuration values (e.g., `PROTOCOL_COLORS`) to `output/metadata.json`.
+-   **`metadata.json`**: The pipeline writes key configuration values to `output/metadata.json`.
 -   **Dynamic UI**: The frontend JavaScript fetches `metadata.json` and uses the values to dynamically render UI elements, such as charts. This removes hardcoded values from the frontend and allows the UI to be updated by changing the backend configuration.
 
 ## 5. Security Considerations

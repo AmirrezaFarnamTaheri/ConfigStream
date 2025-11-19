@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import json
-import os
 import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Sequence
+from importlib.metadata import version
 
 import click
 from rich.console import Console
@@ -40,7 +40,7 @@ def validate_proxy_data(proxies_data: Sequence[object] | None, *, for_retest: bo
 
 
 @click.group()
-@click.version_option(version="1.0.0")
+@click.version_option(version=version("configstream"))
 def cli() -> None:
     """
     ConfigStream: Automated VPN Configuration Aggregator.
@@ -144,7 +144,6 @@ async def _merge_logic_async(
 @click.option("--show-metrics", is_flag=True)
 @click.option("--leniency", is_flag=True, help="Disable security filtering for debugging.")
 @click.option("--strict-security", is_flag=True, help="Enable expensive integrity checks.")
-@click.option("--seed", type=str, help="Seed for reproducible shuffling.")
 @handle_cli_errors(context="Merge operation")
 def merge(
     sources_file: str,
@@ -158,11 +157,8 @@ def merge(
     show_metrics: bool,
     leniency: bool,
     strict_security: bool,
-    seed: str | None,
 ) -> None:
     """Run the full pipeline: fetch, test, and generate outputs."""
-    if seed:
-        os.environ["CONFIGSTREAM_SHUFFLE_SEED"] = seed
     asyncio.run(
         _merge_logic_async(
             sources_file=sources_file,
@@ -211,14 +207,11 @@ async def _retest_logic_async(
     input_path = Path(input_file).resolve()  # Resolve to absolute path
     output_path = Path(output_dir).resolve()
 
-    # Security: Ensure input file is within the output directory to prevent path traversal
-    if output_path not in input_path.parents:
-        click.echo(
-            f"Error: Input file {input_path} must be inside the output "
-            f"directory {output_path} for security reasons.",
-            err=True,
-        )
-        raise SystemExit(1)
+    # Security: Ensure input file is within the project to prevent path traversal
+    try:
+        input_path.relative_to(Path.cwd())
+    except ValueError:
+        raise CLIError(f"Input file {input_path} is outside the current working directory.")
 
     # Check if input file exists and is not empty
     if not input_path.exists():
