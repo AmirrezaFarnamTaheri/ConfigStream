@@ -208,12 +208,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (stats.countries && Object.keys(stats.countries).length > 0) {
             const topCountry = Object.entries(stats.countries)
                 .sort((a, b) => b[1] - a[1])[0];
-            const countryName = topCountry[0];
-            const countryCode = countryNameToCode[countryName];
-            // Only use flag if we have a valid 2-letter country code
+
+            const countryKey = topCountry[0]; // This is likely "US", "DE", etc.
+            let countryCode = null;
+            let countryName = countryKey;
+
+            // FIX: Detect if key is ISO Code (len 2) or Name
+            if (countryKey.length === 2) {
+                countryCode = countryKey.toUpperCase();
+                // Try to find full name from the map values, or just use Code
+                const foundName = Object.keys(countryNameToCode).find(key => countryNameToCode[key] === countryCode);
+                countryName = foundName || countryCode;
+            } else {
+                countryCode = countryNameToCode[countryKey];
+            }
+
             const flag = countryCode ? getCountryFlag(countryCode) : '🌍';
-            // Separate flag from gradient text to prevent overlay
-            updateElement('#topRegion', `<span style="filter: none; -webkit-text-fill-color: initial;">${flag}</span> ${countryName}`, { method: 'innerHTML', trustedHTML: true });
+            updateElement('#topRegion', `${flag} ${countryName}`, { method: 'innerHTML', trustedHTML: true });
             updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
         }
 
