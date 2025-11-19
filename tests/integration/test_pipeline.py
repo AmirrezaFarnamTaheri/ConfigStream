@@ -282,7 +282,7 @@ async def test_run_full_pipeline_remote_source(mocker, tmp_path, no_pool_shutdow
     mocker.patch(
         "configstream.fetcher.fetch_multiple_sources",
         new_callable=AsyncMock,
-        return_value={"http://remote.com/source": FetchResult(success=True, content=config)},
+            return_value={"http://remote.com/source": FetchResult(source="http://remote.com/source", success=True, content=config)},
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -307,7 +307,9 @@ async def test_run_full_pipeline_remote_source_failure(mocker, tmp_path, caplog,
     mocker.patch(
         "configstream.fetcher.fetch_multiple_sources",
         new_callable=AsyncMock,
-        return_value={"http://failing-remote.com/source": FetchResult(success=False, error="timeout")},
+        return_value={
+                "http://failing-remote.com/source": FetchResult(source="http://failing-remote.com/source", success=False, error="timeout", content="")
+        },
     )
 
     with caplog.at_level(logging.WARNING):

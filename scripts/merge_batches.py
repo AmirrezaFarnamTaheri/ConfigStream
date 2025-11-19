@@ -135,7 +135,7 @@ def select_top_configs(
     return selected
 
 
-def merge_batches():
+def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = "output"):
     """
     Merges the outputs from the individual batch runs into a single, unified output.
 
@@ -145,8 +145,8 @@ def merge_batches():
     - For duplicate proxies (same config), keeps the LATEST version
     - This ensures no stale data and accurate proxy information
     """
-    output_dir = root_dir / "output"
-    batch_output_dirs = sorted(list(root_dir.glob("output_batch_*")))
+    output_dir = root_dir / output_dir_str
+    batch_output_dirs = sorted(list(root_dir.glob(batch_dir_glob)))
 
     # --- Merge Test Caches ---
     print("\n=== Step 0: Merging Test Caches ===")
@@ -266,22 +266,10 @@ def merge_batches():
     # --- Regenerate output files ---
     print("\n=== Step 3: Generating Output Files ===")
 
-    # 1. index.json (legacy format - all ranked proxies)
-    with open(output_dir / "index.json", "w") as f:
-        json.dump([asdict(p) for p in ranked_proxies], f, indent=2)
-    print("✓ Generated index.json ({len(ranked_proxies)} proxies)")
-
-    # 2. proxies.json (frontend expects this - all ranked proxies!)
+    # 1. proxies.json (main output file)
     with open(output_dir / "proxies.json", "w") as f:
         json.dump([asdict(p) for p in ranked_proxies], f, indent=2)
-    print("✓ Generated proxies.json ({len(ranked_proxies)} proxies)")
-
-    # 3. full/all.json (fallback data for frontend - all ranked)
-    full_dir = output_dir / "full"
-    full_dir.mkdir(exist_ok=True)
-    with open(full_dir / "all.json", "w") as f:
-        json.dump([asdict(p) for p in ranked_proxies], f, indent=2)
-    print("✓ Generated full/all.json ({len(ranked_proxies)} proxies)")
+    print(f"✓ Generated proxies.json ({len(ranked_proxies)} proxies)")
 
     # 4. Individual protocol files (*.txt) - from ranked proxies
     proxies_by_protocol = defaultdict(list)
@@ -400,4 +388,15 @@ def merge_batches():
 
 
 if __name__ == "__main__":
-    merge_batches()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Merge batch outputs.")
+    parser.add_argument(
+        "--batch-glob",
+        default="output_batch_*",
+        help="Glob pattern for batch output directories",
+    )
+    parser.add_argument("--output-dir", default="output", help="Output directory")
+    args = parser.parse_args()
+
+    merge_batches(args.batch_glob, args.output_dir)

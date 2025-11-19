@@ -3,8 +3,6 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-import os
-import random
 import logging
 import ipaddress
 from datetime import datetime, timezone
@@ -22,6 +20,7 @@ from rich.progress import Progress
 from .models import Proxy
 from .core import parse_config
 from .parsers import _extract_config_lines
+
 # CRITICAL UPDATE: Imports from centralized filtering module
 from .filtering import (
     dedupe_and_shuffle,
@@ -41,7 +40,6 @@ from .output import (
 from .testers import SingBoxTester
 from .performance import PerformanceTracker
 from .proxy_history import ProxyHistoryTracker
-from .statistics import StatisticsEngine
 from .intelligent_fallback import FallbackManager
 from .source_quality import SourceQualityTracker
 from .adaptive_workers import calculate_optimal_workers
@@ -527,7 +525,6 @@ async def run_full_pipeline(
                         cached = test_cache.get(proxy)
                         final_list.append(cached if cached else proxy)
                 tested = final_list
-
             return tested
 
         async def _geolocate_batch(batch: List[Proxy], label: str) -> None:
@@ -545,10 +542,7 @@ async def run_full_pipeline(
 
             # Import the new geolocation modules
             from . import geoip_offline
-            from . import remark_parser
-
-            # Initialize the remark parser (it pre-compiles regexes/maps)
-            remark_geo_parser = remark_parser.RemarkGeoParser()
+            from .country_inferrer import infer_country_from_remarks
 
             geo_ip_count = 0
             geo_remark_count = 0
@@ -579,7 +573,9 @@ async def run_full_pipeline(
 
                                     # MISSING LINE FROM REPORT ADDED HERE:
                                     proxy.org = geo_info.org or ""
-                                    proxy.isp = geo_info.org or "" # Map org to isp for frontend consistency
+                                    proxy.isp = (
+                                        geo_info.org or ""
+                                    )  # Map org to isp for frontend consistency
 
                                     # Cache the result
                                     geo_cache[proxy.resolved_ip] = {
@@ -587,16 +583,16 @@ async def run_full_pipeline(
                                         "country_code": proxy.country_code,
                                         "city": proxy.city,
                                         "asn": proxy.asn,
-                                        "org": proxy.org # Cache this too
+                                        "org": proxy.org,  # Cache this too
                                     }
 
                         # Layer 2: Fallback Method (Remark-based)
                         # Only run if Layer 1 failed AND we have remarks to parse
                         if not proxy.country_code and proxy.remarks:
-                            country_from_remark = remark_geo_parser.parse(proxy.remarks)
-                            if country_from_remark:
-                                proxy.country_code = country_from_remark
-                                proxy.country = country_from_remark
+                            geo_info = infer_country_from_remarks(proxy.remarks)
+                            if geo_info:
+                                proxy.country_code = geo_info["country_code"]
+                                proxy.country = geo_info["country"]
                                 geo_remark_count += 1
 
                         if progress and geo_task is not None:
@@ -643,63 +639,45 @@ async def run_full_pipeline(
                     sub_path.write_text(sub_content)
                     output_files["subscription"] = sub_path.name
 
-                    clash_content = generate_clash_config(all_working_proxies)
                     clash_path = output_path / "clash.yaml"
                     clash_path.write_text(generate_clash_config(final_proxies))
                     output_files["clash"] = clash_path.name
 
-                    (output_path / "singbox.json").write_text(generate_singbox_config(final_proxies))
+                    (output_path / "singbox.json").write_text(
+                        generate_singbox_config(final_proxies)
+                    )
                     output_files["singbox"] = "singbox.json"
 
-                    (output_path / "configs_raw.txt").write_text("\n".join(p.config for p in final_proxies))
+                    (output_path / "configs_raw.txt").write_text(
+                        "\n".join(p.config for p in final_proxies)
+                    )
                     output_files["raw"] = "configs_raw.txt"
 
-                    (output_path / "shadowrocket.txt").write_text(generate_shadowrocket_subscription(final_proxies))
-                    (output_path / "quantumult.conf").write_text(generate_quantumult_config(final_proxies))
+                    (output_path / "shadowrocket.txt").write_text(
+                        generate_shadowrocket_subscription(final_proxies)
+                    )
+                    (output_path / "quantumult.conf").write_text(
+                        generate_quantumult_config(final_proxies)
+                    )
                     (output_path / "surge.conf").write_text(generate_surge_config(final_proxies))
 
-                    proxies_json = [
-                        {
-                            "config": p.config, "protocol": p.protocol, "address": p.address, "port": p.port,
-                            "latency": p.latency, "country": p.country, "country_code": p.country_code,
-                            "city": p.city, "remarks": p.remarks, "is_working": p.is_working,
-                            "security_issues": p.security_issues, "tested_at": p.tested_at,
-                        }
-                        for p in final_proxies
-                    ]
+                    from .output_helpers import _proxies_to_json
 
+                    proxies_json = _proxies_to_json(final_proxies)
                     json_path = output_path / "proxies.json"
                     json_path.write_text(json.dumps(proxies_json, indent=2))
                     output_files["json"] = str(json_path)
 
                     full_dir = output_path / "full"
                     full_dir.mkdir(parents=True, exist_ok=True)
-                    full_payload = [
-                        {
-                            "config": p.config,
-                            "protocol": p.protocol,
-                            "address": p.address,
-                            "port": p.port,
-                            "latency": p.latency,
-                            "country": p.country,
-                            "country_code": p.country_code,
-                            "city": p.city,
-                            "remarks": p.remarks,
-                            "is_working": p.is_working,
-                            "security_issues": p.security_issues,
-                            "tested_at": p.tested_at,
-                        }
-                        for p in all_tested_proxies
-                    ]
-
+                    full_payload = _proxies_to_json(all_tested_proxies)
                     full_json_path = full_dir / "all.json"
                     full_json_path.write_text(json.dumps(full_payload, indent=2))
                     output_files["full"] = str(full_json_path)
 
                     success_rate = (
-                        (stats["working"] / stats["tested"]) * 100 if stats["tested"] > 0 else 0.0
+                        (len(final_proxies) / stats["tested"] * 100) if stats["tested"] > 0 else 0.0
                     )
-                    success_rate = (len(final_proxies) / stats["tested"] * 100) if stats["tested"] > 0 else 0.0
 
                     stats_json = {
                         "generated_at": start_time.isoformat(),
@@ -852,7 +830,7 @@ async def run_full_pipeline(
 
                 unique_batch: List[Proxy] = []
                 for proxy in proxies_to_test:
-                    key = _proxy_key(proxy)
+                    key = proxy_unique_key(proxy)
                     if key in processed_proxy_keys:
                         continue
                     processed_proxy_keys.add(key)
@@ -899,7 +877,7 @@ async def run_full_pipeline(
                             p
                             for p in tested_batch
                             if any(
-                                _proxy_key(p) == _proxy_key(orig) for orig in proxies_from_source
+                                proxy_unique_key(p) == proxy_unique_key(orig) for orig in proxies_from_source
                             )
                         ]
                         if tested_proxies_for_source:
@@ -933,7 +911,7 @@ async def run_full_pipeline(
 
                 newly_added: List[Proxy] = []
                 for proxy in working_batch:
-                    key = _proxy_key(proxy)
+                    key = proxy_unique_key(proxy)
                     if key in written_proxy_keys:
                         continue
                     written_proxy_keys.add(key)
