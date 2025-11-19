@@ -1,54 +1,52 @@
-"""Adaptive worker scaling based on system resources."""
+"""
+Adaptive Worker Scaling.
+Calculates safe thread/worker counts based on container resource limits.
+"""
 
 import os
+import logging
+from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import psutil
 except ImportError:
-    psutil = None  # type: ignore[assignment]
+    psutil = None
 
-
-def calculate_optimal_workers(max_workers: int = 32, min_workers: int = 8) -> int:
+def calculate_optimal_workers(max_workers: int = 50, min_workers: int = 4) -> int:
     """
-    Calculate optimal number of workers based on CPU and memory.
-
-    Args:
-        max_workers: Maximum number of workers
-        min_workers: Minimum number of workers
-
-    Returns:
-        Optimal worker count
+    Determine optimal concurrency based on available CPU/RAM.
     """
     try:
-        # Get CPU count
-        cpu_count = os.cpu_count() or 4
+        # 1. CPU Check
+        cpu_count = os.cpu_count() or 2
 
-        # If psutil is not available, return a reasonable default
-        if psutil is None:
-            return min(max_workers, cpu_count * 4)
+        # 2. Memory Check (if psutil available)
+        mem_factor = 1.0
+        if psutil:
+            try:
+                vm = psutil.virtual_memory()
+                if vm.percent > 85:
+                    mem_factor = 0.5
+                elif vm.percent > 70:
+                    mem_factor = 0.75
+            except Exception:
+                pass
 
-        # Get CPU usage (lower usage = more workers available)
-        cpu_usage = psutil.cpu_percent(interval=0.1)
+        # Baseline: 5 workers per CPU core is usually safe for IO-bound work
+        # But we cap it based on memory pressure
+        optimal = int((cpu_count * 5) * mem_factor)
 
-        # Get memory usage
-        memory = psutil.virtual_memory()
-        memory_available_pct = 1 - memory.percent / 100
+        # Clamp results
+        result = max(min_workers, min(optimal, max_workers))
 
-        # Calculate optimal workers
-        # Base on CPU count, adjusted by current usage
-        base_workers = cpu_count * 4  # 4x CPU count as baseline
+        logger.info(
+            "Adaptive Scaling: CPUs=%d, MemFactor=%.2f -> Workers=%d",
+            cpu_count, mem_factor, result
+        )
+        return result
 
-        # Scale down if CPU is busy
-        cpu_factor = max(0.5, 1.0 - (cpu_usage / 200))  # 50% at 100% CPU
-
-        # Scale down if memory is low
-        memory_factor = max(0.5, memory_available_pct)
-
-        optimal = int(base_workers * cpu_factor * memory_factor)
-
-        # Clamp to min/max
-        return max(min_workers, min(optimal, max_workers))
-
-    except Exception:
-        # Fallback to safe default
-        return 16
+    except Exception as e:
+        logger.warning("Error calculating workers: %s. Using default.", e)
+        return 10

@@ -1,288 +1,188 @@
+"""
+Output Generation Module.
+Produces client-compatible configuration files and statistical reports.
+"""
+
 import base64
-import json
 from pathlib import Path
 from typing import Any, Dict, List
+from dataclasses import asdict
 
 try:
     import yaml
 except ImportError:
-    yaml = None  # type: ignore[assignment]
+    yaml = None
 
 from .models import Proxy
-from .selection import select_chosen_proxies, get_selection_stats
-
+from .selection import select_chosen_proxies
+from .serialize import dumps, dump_to_path
+from .adapters import to_clash_proxy, to_singbox_outbound
 
 def get_country_flag(country_code: str) -> str:
     """Convert country code to flag emoji."""
     if not country_code or len(country_code) != 2:
-        return ""
-    # Convert country code to flag emoji using Unicode regional indicator symbols
+        return "🏁"
     return "".join(chr(0x1F1E6 + ord(c) - ord("A")) for c in country_code.upper())
 
-
-def format_proxy_names_with_rank(proxies: List[Proxy]) -> None:
-    """
-    Format proxy names with protocol rank, country flag, and original name.
-    Format: "PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME" (truncated at 80 chars)
-
-    Modifies proxies in-place by updating their remarks field.
-    Assumes the input list is already sorted by latency.
-    """
-    protocol_ranks: Dict[str, int] = {}
-    for proxy in proxies:
-        protocol = proxy.protocol.upper()
-        rank = protocol_ranks.get(protocol, 0) + 1
-        protocol_ranks[protocol] = rank
-
-        flag = get_country_flag(proxy.country_code) if proxy.country_code else ""
-        original_name = proxy.remarks if proxy.remarks else f"{proxy.address}:{proxy.port}"
-
-        if flag:
-            formatted_name = f"{protocol}-{rank} [{flag}] ||| {original_name}"
-        else:
-            formatted_name = f"{protocol}-{rank} ||| {original_name}"
-
-        if len(formatted_name) > 80:
-            formatted_name = formatted_name[:77] + "..."
-
-        proxy.remarks = formatted_name
-
-
-def generate_base64_subscription(proxies: List[Proxy]) -> str:
-    """
-    Generates a Base64 encoded subscription string from a list of proxies.
-    This is the standard format for many VPN clients.
-    """
-    working_proxies = [p for p in proxies if p.is_working]
-    if not working_proxies:
-        return ""
-
-    # Join all proxy config strings with a newline character.
-    proxy_list_str = "\n".join(p.config for p in working_proxies)
-
-    # Base64 encode the entire string.
-    encoded_bytes = base64.b64encode(proxy_list_str.encode("utf-8"))
-
-    return encoded_bytes.decode("utf-8")
-
+def _generate_formatted_name(proxy: Proxy, rank: int) -> str:
+    """Generate a standardized display name for clients."""
+    flag = get_country_flag(proxy.country_code)
+    clean_proto = proxy.protocol.upper()
+    # Format: "🇺🇸 US 01 | VMESS | 120ms"
+    latency = f"{int(proxy.latency)}ms" if proxy.latency else "TIMEOUT"
+    return f"{flag} {proxy.country_code} {rank:02d} | {clean_proto} | {latency}"
 
 def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> Dict[str, str]:
     """
-    Generate categorized output files with smart organization:
-    - Main outputs (by_protocol/, by_country/) contain ONLY passed proxies
-    - Rejected proxies are saved separately in rejected/ directory by failure reason
-    - No duplication - each proxy appears in only one place
-    - No need to gitignore anything - all files are reasonably sized
-
-    Returns:
-        Dictionary mapping category names to file paths
+    Generate categorized output files using optimized serialization.
     """
-    output_files: Dict[str, str] = {}
+    output_files = {}
 
-    # Categorize proxies: passed vs rejected with reasons
-    passed = [p for p in all_proxies if p.is_working and not p.security_issues]
-    security_failed = [p for p in all_proxies if p.security_issues]
-    connectivity_failed = [p for p in all_proxies if not p.is_working and not p.security_issues]
+    # Sort globally by latency for consistent ranking
+    all_proxies.sort(key=lambda p: p.latency if p.latency else 999999)
 
-    # Helper function to serialize proxy to dict
-    def proxy_to_dict(proxy: Proxy) -> Dict[str, Any]:
-        return {
-            "config": proxy.config,
-            "protocol": proxy.protocol,
-            "address": proxy.address,
-            "port": proxy.port,
-            "latency": proxy.latency,
-            "country": proxy.country,
-            "country_code": proxy.country_code,
-            "city": proxy.city,
-            "remarks": proxy.remarks,
-            "is_working": proxy.is_working,
-            "security_issues": proxy.security_issues,
-            "tested_at": proxy.tested_at,
-        }
+    passed = [p for p in all_proxies if p.is_working]
+    failed = [p for p in all_proxies if not p.is_working]
 
-    # Generate protocol-based breakdown (ONLY passed proxies)
+    # --- Helper: Serialization with Adapter Injection ---
+    def _serialize_list(proxies: List[Proxy]) -> List[Dict]:
+        # We convert to a raw dict for JSON output, not client config
+        return [asdict(p) for p in proxies]
+
+    # 1. Protocol Categorization
     protocol_dir = output_dir / "by_protocol"
     protocol_dir.mkdir(parents=True, exist_ok=True)
 
-    protocols: Dict[str, List[Proxy]] = {}
-    for proxy in passed:
-        protocol = proxy.protocol.lower()
-        if protocol not in protocols:
-            protocols[protocol] = []
-        protocols[protocol].append(proxy)
+    by_proto: Dict[str, List[Proxy]] = {}
+    for p in passed:
+        by_proto.setdefault(p.protocol, []).append(p)
 
-    for protocol, proxies in protocols.items():
-        protocol_path = protocol_dir / f"{protocol}.json"
-        protocol_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
-        output_files[f"protocol_{protocol}"] = str(protocol_path)
+    for proto, plist in by_proto.items():
+        fpath = protocol_dir / f"{proto}.json"
+        dump_to_path(fpath, _serialize_list(plist))
+        output_files[f"protocol_{proto}"] = str(fpath)
 
-    # Generate country-based breakdown (ONLY passed proxies)
+    # 2. Country Categorization
     country_dir = output_dir / "by_country"
     country_dir.mkdir(parents=True, exist_ok=True)
 
-    countries: Dict[str, List[Proxy]] = {}
-    for proxy in passed:
-        country_code = proxy.country_code or "unknown"
-        if country_code not in countries:
-            countries[country_code] = []
-        countries[country_code].append(proxy)
+    by_country: Dict[str, List[Proxy]] = {}
+    for p in passed:
+        code = p.country_code.lower() if p.country_code else "unknown"
+        by_country.setdefault(code, []).append(p)
 
-    for country_code, proxies in countries.items():
-        country_path = country_dir / f"{country_code.lower()}.json"
-        country_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies], indent=2))
-        output_files[f"country_{country_code}"] = str(country_path)
+    for code, plist in by_country.items():
+        fpath = country_dir / f"{code}.json"
+        dump_to_path(fpath, _serialize_list(plist))
+        output_files[f"country_{code}"] = str(fpath)
 
-    # Save rejected proxies in rejected/ directory by failure reason
+    # 3. Rejected / Debug
     rejected_dir = output_dir / "rejected"
     rejected_dir.mkdir(parents=True, exist_ok=True)
 
-    # Categorize security failures by specific issue type
-    security_by_category: Dict[str, List[Proxy]] = {}
-    for proxy in security_failed:
-        if isinstance(proxy.security_issues, dict):
-            for category in proxy.security_issues.keys():
-                if category not in security_by_category:
-                    security_by_category[category] = []
-                security_by_category[category].append(proxy)
+    dump_to_path(rejected_dir / "failed.json", _serialize_list(failed))
+    output_files["rejected_failed"] = str(rejected_dir / "failed.json")
 
-    # Save each security category to its own file
-    for category, proxies_list in security_by_category.items():
-        category_path = rejected_dir / f"{category}.json"
-        category_path.write_text(json.dumps([proxy_to_dict(p) for p in proxies_list], indent=2))
-        output_files[f"rejected_{category}"] = str(category_path)
-
-    # Save general security issues file (all security failures)
-    if security_failed:
-        security_path = rejected_dir / "all_security_issues.json"
-        security_path.write_text(json.dumps([proxy_to_dict(p) for p in security_failed], indent=2))
-        output_files["rejected_security_all"] = str(security_path)
-
-    if connectivity_failed:
-        connectivity_path = rejected_dir / "no_response.json"
-        connectivity_path.write_text(
-            json.dumps([proxy_to_dict(p) for p in connectivity_failed], indent=2)
-        )
-        output_files["rejected_connectivity"] = str(connectivity_path)
-
-    # Generate summary stats with detailed security categorization
-    security_summary = {
-        category: len(proxies) for category, proxies in security_by_category.items()
-    }
-
+    # 4. Summary
     summary = {
-        "total_tested": len(all_proxies),
-        "passed": len(passed),
-        "rejected": {
-            "total_security_issues": len(security_failed),
-            "security_by_category": security_summary,
-            "no_response": len(connectivity_failed),
-        },
-        "by_protocol": {k: len(v) for k, v in protocols.items()},
-        "by_country": {k: len(v) for k, v in countries.items()},
+        "total": len(all_proxies),
+        "working": len(passed),
+        "protocols": {k: len(v) for k, v in by_proto.items()},
+        "countries": {k: len(v) for k, v in by_country.items()}
     }
-
-    # Generate "chosen" subset (top 40 per protocol, fill to 1000)
-    chosen_proxies = select_chosen_proxies(all_proxies)
-    if chosen_proxies:
-        chosen_path = output_dir / "chosen.json"
-        chosen_path.write_text(json.dumps([proxy_to_dict(p) for p in chosen_proxies], indent=2))
-        output_files["chosen"] = str(chosen_path)
-
-        # Add selection stats to summary
-        selection_stats = get_selection_stats(all_proxies, chosen_proxies)
-        summary["chosen_selection"] = selection_stats
-
-    summary_path = output_dir / "summary.json"
-    summary_path.write_text(json.dumps(summary, indent=2))
-    output_files["summary"] = str(summary_path)
+    dump_to_path(output_dir / "summary.json", summary)
+    output_files["summary"] = str(output_dir / "summary.json")
 
     return output_files
 
-
 def generate_clash_config(proxies: List[Proxy]) -> str:
-    # If yaml is not available, return empty config
+    """Generate valid Clash Meta YAML."""
     if yaml is None:
-        return ""
+        return "# PyYAML not installed"
 
-    working_proxies = [p for p in proxies if p.is_working]
     clash_proxies = []
-    for proxy in working_proxies:
-        proxy_data = {
-            "name": proxy.remarks or f"{proxy.protocol}-{proxy.address}",
-            "type": proxy.protocol,
-            "server": proxy.address,
-            "port": proxy.port,
-            "uuid": proxy.uuid,
-        }
-        if proxy.details:
-            proxy_data.update(proxy.details)
-        clash_proxies.append(proxy_data)
+    names = []
 
-    clash_yaml = yaml.dump(
-        {
-            "proxies": clash_proxies,
-            "proxy-groups": [
-                {
-                    "name": "🚀 ConfigStream",
-                    "type": "select",
-                    "proxies": [p["name"] for p in clash_proxies],
-                }
-            ],
-        }
-    )
-    result: str = clash_yaml
-    return result
+    for i, p in enumerate(proxies, 1):
+        # Generate name *here* to avoid mutating the proxy object
+        display_name = _generate_formatted_name(p, i)
 
+        config = to_clash_proxy(p)
+        if config:
+            config["name"] = display_name
+            clash_proxies.append(config)
+            names.append(display_name)
+
+    payload = {
+        "port": 7890,
+        "socks-port": 7891,
+        "allow-lan": True,
+        "mode": "Rule",
+        "log-level": "info",
+        "external-controller": "127.0.0.1:9090",
+        "proxies": clash_proxies,
+        "proxy-groups": [
+            {
+                "name": "🚀 ConfigStream Auto",
+                "type": "url-test",
+                "url": "http://www.gstatic.com/generate_204",
+                "interval": 300,
+                "tolerance": 50,
+                "proxies": names
+            },
+            {
+                "name": "🌍 Proxy Select",
+                "type": "select",
+                "proxies": names + ["🚀 ConfigStream Auto"]
+            }
+        ],
+        "rules": ["MATCH,🚀 ConfigStream Auto"]
+    }
+
+    # Allow unicode output for flags
+    return yaml.dump(payload, allow_unicode=True, sort_keys=False)
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
-    working_proxies = [p for p in proxies if p.is_working]
+    """Generate Sing-box JSON config."""
     outbounds = []
-    for index, proxy in enumerate(working_proxies, start=1):
-        outbound = {
-            "type": proxy.protocol.lower(),
-            "tag": proxy.remarks or f"{proxy.protocol}-{index}",
-            "server": proxy.address,
-            "server_port": proxy.port,
-        }
-        if proxy.uuid:
-            outbound["uuid"] = proxy.uuid
-        if proxy.details:
-            outbound.update(proxy.details)
-        outbounds.append(outbound)
-    return json.dumps({"outbounds": outbounds}, indent=2)
+    selector_tags = []
 
+    for i, p in enumerate(proxies, 1):
+        config = to_singbox_outbound(p)
+        if config:
+            tag = _generate_formatted_name(p, i)
+            config["tag"] = tag
+            outbounds.append(config)
+            selector_tags.append(tag)
 
-def generate_shadowrocket_subscription(proxies: List[Proxy]) -> str:
-    working = [p for p in proxies if p.is_working]
-    lines = []
-    for proxy in working:
-        name = proxy.remarks or f"{proxy.protocol}-{proxy.address}"
-        lines.append(f"{name} = {proxy.config}")  # use the raw config
-    return base64.b64encode("\n".join(lines).encode("utf-8")).decode("utf-8")
+    # Add selector and auto groups
+    outbounds.insert(0, {
+        "type": "selector",
+        "tag": "🌍 Proxy Select",
+        "outbounds": ["🚀 Auto"] + selector_tags
+    })
+    outbounds.insert(1, {
+        "type": "urltest",
+        "tag": "🚀 Auto",
+        "outbounds": selector_tags,
+        "url": "http://www.gstatic.com/generate_204",
+        "interval": "5m"
+    })
 
+    # Basic structure
+    full_config = {
+        "log": {"level": "info"},
+        "inbounds": [
+            {"type": "mixed", "tag": "mixed-in", "listen": "127.0.0.1", "listen_port": 2080}
+        ],
+        "outbounds": outbounds
+    }
 
-def generate_quantumult_config(proxies: List[Proxy]) -> str:
-    working_proxies = [p for p in proxies if p.is_working]
-    lines = ["[SERVER]"]
-    for proxy in working_proxies:
-        name = proxy.remarks or f"{proxy.protocol}-{proxy.address}"
-        lines.append(
-            f"{name} = {proxy.protocol.lower()}, {proxy.address}, {proxy.port}, "
-            f"password={proxy.details.get('password', '') if proxy.details else ''}"
-        )
-    return "\n".join(lines)
+    return dumps(full_config)
 
-
-def generate_surge_config(proxies: List[Proxy]) -> str:
-    working_proxies = [p for p in proxies if p.is_working]
-    lines = ["[Proxy]"]
-    for proxy in working_proxies:
-        name = proxy.remarks or f"{proxy.protocol}-{proxy.address}"
-        password = proxy.details.get("password", "") if proxy.details else ""
-        surge_line = (
-            f"{name} = {proxy.protocol.upper()}, {proxy.address}, "
-            f"{proxy.port}, username={proxy.uuid}, password={password}"
-        )
-        lines.append(surge_line)
-    return "\n".join(lines)
+def generate_base64_subscription(proxies: List[Proxy]) -> str:
+    """Generate simple Base64 subscription."""
+    # Just raw configs joined by newline
+    valid_lines = [p.config for p in proxies if p.config]
+    raw_str = "\n".join(valid_lines)
+    return base64.b64encode(raw_str.encode("utf-8")).decode("utf-8")

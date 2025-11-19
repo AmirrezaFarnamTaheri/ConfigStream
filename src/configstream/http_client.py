@@ -1,4 +1,7 @@
-"""Shared HTTP client utilities for ConfigStream."""
+"""
+Shared HTTP client utilities for ConfigStream.
+Provides a centralized, optimized AsyncClient with connection pooling and HTTP/2 support.
+"""
 
 from __future__ import annotations
 
@@ -10,55 +13,78 @@ import httpx
 from .dns_cache import DEFAULT_CACHE
 from .config import AppSettings
 
-try:  # pragma: no cover - optional dependency used only when available
+# Check for HTTP/2 support
+try:
     import h2  # noqa: F401
-except ModuleNotFoundError:  # pragma: no cover
-    HTTP2_AVAILABLE = False
-else:  # pragma: no cover
     HTTP2_AVAILABLE = True
-
-DEFAULT_TIMEOUT = httpx.Timeout(20.0, connect=10.0, read=15.0)
-POOL_LIMITS = httpx.Limits(max_keepalive_connections=100, max_connections=200)
+except ModuleNotFoundError:
+    HTTP2_AVAILABLE = False
 
 
 class CachedDNS_AsyncHTTPTransport(httpx.AsyncHTTPTransport):
+    """
+    Custom Transport that utilizes a centralized DNS cache.
+
+    NOTE: DNS caching is currently only applied to HTTP requests.
+    For HTTPS, we rely on the standard resolver to avoid SSL Hostname Mismatch errors.
+    Forcing an IP connection with HTTPS requires manual Host header manipulation
+    and a custom SSLContext that trusts the injected Host header, which adds
+    significant complexity and security risk (MITM).
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._settings = AppSettings()
+
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
-        app_settings = AppSettings()
-        if app_settings.DNS_CACHE_ENABLED:
+        if self._settings.DNS_CACHE_ENABLED and request.url.scheme == "http":
             host = request.url.host
             cached_ip = await DEFAULT_CACHE.resolve(host)
-            # Only use cached DNS for HTTP, not HTTPS
-            # HTTPS requires proper hostname for SSL certificate validation
-            if cached_ip and request.url.scheme == "http":
-                # Rebuild the URL with the cached IP, preserving other components
-                url = request.url
-                request.url = url.copy_with(host=cached_ip)
-                request.headers["Host"] = host
+
+            if cached_ip:
+                # Rewrite the URL to use the IP address
+                # This works for HTTP because the Host header is preserved/set separately
+                request.url = request.url.copy_with(host=cached_ip)
+                if "Host" not in request.headers:
+                    request.headers["Host"] = host
 
         return await super().handle_async_request(request)
 
 
 @asynccontextmanager
 async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
-    """Yield a configured AsyncClient with sane defaults.
+    """
+    Yield a configured AsyncClient with production-grade defaults.
 
-    The client enables HTTP/2, follows redirects, and sets a deterministic
-    user agent so providers can more easily identify ConfigStream traffic.
+    Features:
+    - HTTP/2 Support (if available)
+    - Connection Pooling (configurable limits)
+    - Automatic Redirect Following
+    - Custom Transport (DNS Caching)
     """
     app_settings = AppSettings()
-    transport: httpx.AsyncHTTPTransport
-    if app_settings.DNS_CACHE_ENABLED:
-        transport = CachedDNS_AsyncHTTPTransport(retries=retries)
-    else:
-        transport = httpx.AsyncHTTPTransport(retries=retries)
 
+    # Configure Connection Pool Limits
+    limits = httpx.Limits(
+        max_keepalive_connections=100,
+        max_connections=app_settings.PER_HOST_MAX_CONCURRENCY * 10,  # Allow broad concurrency
+        keepalive_expiry=30.0
+    )
+
+    # Configure Transport
+    transport_cls = CachedDNS_AsyncHTTPTransport if app_settings.DNS_CACHE_ENABLED else httpx.AsyncHTTPTransport
+    transport = transport_cls(
+        retries=retries,
+        limits=limits,
+        http2=HTTP2_AVAILABLE
+    )
+
+    # Configure Client
     async with httpx.AsyncClient(
-        http2=HTTP2_AVAILABLE,
-        timeout=DEFAULT_TIMEOUT,
-        limits=POOL_LIMITS,
+        timeout=httpx.Timeout(20.0, connect=10.0, read=15.0),
         headers={
-            "accept": "*/*",
-            "user-agent": "ConfigStream/1 (+https://github.com/AmirrezaFarnamTaheri/ConfigStream)",
+            "User-Agent": "ConfigStream/1.1 (+https://github.com/AmirrezaFarnamTaheri/ConfigStream)",
+            "Accept": "text/plain, application/json, */*",
         },
         follow_redirects=True,
         transport=transport,
