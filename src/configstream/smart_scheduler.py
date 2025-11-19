@@ -6,6 +6,7 @@ Dynamically adjusts proxy retest frequency based on reliability history.
 from __future__ import annotations
 
 import logging
+import random
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
@@ -85,6 +86,13 @@ class SmartRetestScheduler:
 
         time_since_test = datetime.now(timezone.utc) - last_test_time
         should_retest = time_since_test >= interval
+
+        # Add probabilistic jitter
+        if not should_retest and random.random() < 0.05:
+            logger.debug(
+                "Probabilistic jitter: forcing retest for %s:%s", proxy.address, proxy.port
+            )
+            return True
 
         if should_retest:
             logger.debug(

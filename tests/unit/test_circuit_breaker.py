@@ -48,6 +48,7 @@ class TestCircuitBreaker:
 
         # Mock time to be in the future
         with patch("time.monotonic", return_value=time.monotonic() + 2):
+            breaker.check_state()
             assert breaker.is_open is False  # Should now be half-open
             assert breaker.state == CircuitBreakerState.HALF_OPEN
 

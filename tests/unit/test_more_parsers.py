@@ -23,7 +23,7 @@ def test_parse_ssr_with_invalid_base64_in_params():
     )
     proxy = _parse_ssr(config)
     assert proxy is not None
-    assert proxy.details["params"]["remarks"] == "\x8a{Ú\x96'~m«\x1eë"
+    assert proxy.details["params"]["remarks"] == ""
 
 
 def test_parse_v2ray_json_with_invalid_json():

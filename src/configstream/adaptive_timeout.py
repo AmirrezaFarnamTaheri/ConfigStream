@@ -6,7 +6,7 @@ Dynamically adjusts request timeouts based on historical performance per source.
 from __future__ import annotations
 
 import statistics
-import sqlite3
+import aiosqlite
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -40,15 +40,16 @@ class AdaptiveTimeout:
         # In-memory cache for fast lookups
         self._cache: Dict[str, List[float]] = {}
 
-        # Initialize database
-        self._init_db()
-        self._load_cache()
+    async def initialize(self) -> None:
+        """Initialize the database and load the cache."""
+        await self._init_db()
+        await self._load_cache()
 
-    def _init_db(self) -> None:
+    async def _init_db(self) -> None:
         """Create database tables if they don't exist."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(
+            async with aiosqlite.connect(self.db_path) as conn:
+                await conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS timeout_history (
                         source TEXT NOT NULL,
@@ -58,29 +59,29 @@ class AdaptiveTimeout:
                     )
                 """
                 )
-                conn.execute(
+                await conn.execute(
                     """
                     CREATE INDEX IF NOT EXISTS idx_source_timestamp
                     ON timeout_history(source, timestamp DESC)
                 """
                 )
-                conn.commit()
-        except sqlite3.Error as e:
+                await conn.commit()
+        except aiosqlite.Error as e:
             logger.error(
                 "Failed to initialize adaptive timeout database at %s: %s",
                 self.db_path,
                 e,
             )
 
-    def _load_cache(self) -> None:
+    async def _load_cache(self) -> None:
         """Load recent history into memory cache."""
         cutoff = datetime.now() - timedelta(days=7)
         cutoff_ts = int(cutoff.timestamp())
         loaded_sources = 0
 
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute(
+            async with aiosqlite.connect(self.db_path) as conn:
+                async with conn.execute(
                     """
                     SELECT source, duration
                     FROM timeout_history
@@ -88,17 +89,16 @@ class AdaptiveTimeout:
                     ORDER BY source, timestamp DESC
                 """,
                     (cutoff_ts,),
-                )
-
-                for source, duration in cursor:
-                    if source not in self._cache:
-                        self._cache[source] = []
-                        loaded_sources += 1
-                    self._cache[source].append(duration)
-                    # Enforce in-memory cap to avoid unbounded growth
-                    if len(self._cache[source]) > 50:
-                        self._cache[source] = self._cache[source][:50]
-        except sqlite3.Error as e:
+                ) as cursor:
+                    async for source, duration in cursor:
+                        if source not in self._cache:
+                            self._cache[source] = []
+                            loaded_sources += 1
+                        self._cache[source].append(duration)
+                        # Enforce in-memory cap to avoid unbounded growth
+                        if len(self._cache[source]) > 50:
+                            self._cache[source] = self._cache[source][:50]
+        except aiosqlite.Error as e:
             # Corrupt/locked DB; continue with empty cache
             logger.warning("Failed to load timeout history from %s: %s", self.db_path, e)
             self._cache.clear()
@@ -145,7 +145,7 @@ class AdaptiveTimeout:
             logger.warning("Failed to calculate stats for %s, using default", source_url)
             return self.default_timeout
 
-    def record(self, source_url: str, duration: float) -> None:
+    async def record(self, source_url: str, duration: float) -> None:
         """
         Record a successful fetch duration.
 
@@ -172,19 +172,19 @@ class AdaptiveTimeout:
         timestamp = int(datetime.now().timestamp())
 
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                conn.execute(
+            async with aiosqlite.connect(self.db_path) as conn:
+                await conn.execute(
                     """
                     INSERT OR REPLACE INTO timeout_history (source, duration, timestamp)
                     VALUES (?, ?, ?)
                 """,
                     (source_url, d, timestamp),
                 )
-                conn.commit()
-        except sqlite3.Error as e:
+                await conn.commit()
+        except aiosqlite.Error as e:
             logger.warning("Failed to persist timeout history: %s", e)
 
-    def cleanup_old_entries(self, days: int = 30) -> int:
+    async def cleanup_old_entries(self, days: int = 30) -> int:
         """
         Remove entries older than specified days.
 
@@ -198,8 +198,8 @@ class AdaptiveTimeout:
         cutoff_ts = int(cutoff.timestamp())
 
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.execute(
+            async with aiosqlite.connect(self.db_path) as conn:
+                cursor = await conn.execute(
                     """
                     DELETE FROM timeout_history
                     WHERE timestamp < ?
@@ -207,12 +207,12 @@ class AdaptiveTimeout:
                     (cutoff_ts,),
                 )
                 deleted = cursor.rowcount
-                conn.commit()
+                await conn.commit()
 
             logger.info("Cleaned up %d old timeout entries", deleted)
             return deleted
 
-        except sqlite3.Error as e:
+        except aiosqlite.Error as e:
             logger.error("Failed to cleanup timeout history: %s", e)
             return 0
 

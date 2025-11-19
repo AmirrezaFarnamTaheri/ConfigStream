@@ -2,6 +2,7 @@
 
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -70,7 +71,8 @@ def test_should_retest_returns_false_for_recent_excellent_proxy(scheduler, cache
         cache.set(sample_proxy)
 
     # Should not retest (within 12-hour interval)
-    result = scheduler.should_retest(sample_proxy)
+    with patch("random.random", return_value=0.1):
+        result = scheduler.should_retest(sample_proxy)
 
     assert result is False
 

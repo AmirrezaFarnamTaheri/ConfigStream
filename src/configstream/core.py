@@ -93,7 +93,7 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
     """
     Infer country from remarks using flag emojis or country codes.
 
-    Uses strict pattern matching to avoid false positives from common English words.
+    Uses a combination of tokenization and regex for a balance of performance and accuracy.
     """
     if not remarks:
         return None
@@ -107,11 +107,16 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
             if payload:
                 return payload
 
-    # Then try 2-letter code detection with strict context requirements
+    # Optimization: Tokenize and check against a hash set of country codes
+    tokens = set(remarks.upper().split())
+    for token in tokens:
+        if len(token) == 2 and token in COUNTRY_NAMES and token not in _EXCLUDED_CODES:
+            return _country_payload_from_code(token)
+
+    # Fallback to regex for more complex cases
     code_match = _CODE_PATTERN.search(remarks.upper())
     if code_match:
         # Extract the matched code from whichever capture group matched
-        # (the regex has multiple alternatives with different capture groups)
         candidate_code = (
             code_match.group("cc1")
             or code_match.group("cc2")
@@ -125,14 +130,8 @@ def _infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
             return None
 
         candidate_code = candidate_code.upper()
-        # Exclude common English words that happen to be valid country codes
-        # Our stricter pattern should already prevent most false positives,
-        # but we double-check here for extra safety
         if candidate_code in _EXCLUDED_CODES:
-            # Even with strict pattern, skip codes that are common English words
-            # unless they're in very clear country-code contexts
             full_match = code_match.group(0)
-            # Only allow if it's in brackets or has multiple delimiters
             if not (
                 full_match.startswith("[")
                 or full_match.startswith("(")

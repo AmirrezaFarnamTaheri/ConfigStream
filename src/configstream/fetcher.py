@@ -1,18 +1,12 @@
 """
 Enhanced Fetcher Module with Robust Error Handling
 
-EXPERIMENTAL: This module is not currently used by the main pipeline.
-The main pipeline uses simpler fetching in pipeline.py (_fetch_source).
-
 This module provides advanced network fetching capabilities including:
 - Adaptive timeouts and concurrency control (AIMD)
 - Rate limiting and circuit breaker patterns
 - ETag/Last-Modified caching
 - Hedged requests for improved latency
 - Detailed metrics and error reporting
-
-To integrate: Replace _fetch_source in pipeline.py with fetch_from_source
-from this module for production-grade robustness.
 """
 
 from __future__ import annotations
@@ -161,13 +155,8 @@ async def fetch_from_source(
     else:
         effective_timeout = base_timeout
 
-    # Compute a strict per-attempt timeout so cumulative time (including simple backoff) stays within budget
-    attempts = max(1, int(max_retries))
-    # Reserve 30% of the budget for backoff/overhead to avoid exceeding total wall-clock time
-    budget_for_requests = max(5, int(effective_timeout * 0.7))
-    per_attempt_timeout = max(5, int(budget_for_requests / attempts))
-
-    timeout = per_attempt_timeout
+    # Use a deadline pattern for timeouts
+    deadline = asyncio.get_running_loop().time() + effective_timeout
 
     # Apply per-host rate limiting
     if rate_limiter:
@@ -183,6 +172,7 @@ async def fetch_from_source(
     app_settings = AppSettings()
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
         breaker = breaker_manager.get_breaker(host)
+        breaker.check_state()
         if breaker.is_open:
             logger.warning("Circuit breaker is open for %s. Skipping request.", host)
             # Do not record synthetic durations for skipped requests to avoid biasing timeouts
@@ -225,10 +215,16 @@ async def fetch_from_source(
 
         for attempt in range(max_retries):
             loop = asyncio.get_running_loop()
+            time_remaining = deadline - loop.time()
+            if time_remaining <= 0:
+                last_error = "Timeout deadline exceeded"
+                logger.warning("Timeout deadline exceeded for %s", source)
+                break
+
             start_time = loop.time()
             success = False
             response_time: float = float(
-                timeout
+                time_remaining
             )  # Default to timeout if exception occurs before assignment
             try:
                 logger.debug(
@@ -241,18 +237,18 @@ async def fetch_from_source(
                     _, response = await hedged_get(
                         client,
                         source,
-                        timeout=timeout,
+                        timeout=time_remaining,
                         hedge_after=float(hedge_ms) / 1000.0,
                         headers=headers,
                     )
                     if not response:
                         raise httpx.RequestError("Hedged request failed")
                 elif is_aiohttp_client:
-                    aio_response = await client.get(source, headers=headers, timeout=timeout)
+                    aio_response = await client.get(source, headers=headers, timeout=time_remaining)
                     response = aio_response
                 else:
                     response = await client.get(
-                        source, headers=headers, timeout=timeout, follow_redirects=True
+                        source, headers=headers, timeout=time_remaining, follow_redirects=True
                     )
 
                 response_time = loop.time() - start_time
@@ -313,7 +309,7 @@ async def fetch_from_source(
 
                 # Record successful fetch time for adaptive timeout learning (only on 2xx)
                 if timeout_tracker and 200 <= status_code < 300:
-                    timeout_tracker.record(source, response_time)
+                    await timeout_tracker.record(source, response_time)
 
                 return FetchResult(
                     source=source,
@@ -470,6 +466,7 @@ async def fetch_multiple_sources(
     # Initialize adaptive timeout tracker
     timeout_tracker = AdaptiveTimeout() if use_adaptive_timeout else None
     if timeout_tracker:
+        await timeout_tracker.initialize()
         stats = timeout_tracker.get_statistics()
         logger.info(
             "Adaptive timeout enabled: %d sources tracked, avg timeout: %.1fs",

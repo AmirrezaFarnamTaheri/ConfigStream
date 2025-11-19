@@ -41,6 +41,7 @@ dependencies = [
     "httpx[http2]",
     "h2",
     "orjson",
+    "aiosqlite",
 ]
 
 [project.optional-dependencies]

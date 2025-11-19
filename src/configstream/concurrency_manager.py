@@ -135,17 +135,7 @@ class ConcurrencyManager:
                     logger.info(
                         f"Adjusting concurrency for '{key}' from {old_limit} to {window.limit}"
                     )
-                    # To prevent deadlocks, we must drain the old semaphore
-                    # before replacing it.
-                    old_semaphore = self._semaphores[key]
-                    new_semaphore = asyncio.Semaphore(window.limit)
-
-                    # Release all waiters on the old semaphore so they can
-                    # re-acquire on the new one.
-                    for _ in range(old_semaphore._value):
-                        try:
-                            old_semaphore.release()
-                        except ValueError:
-                            pass  # Already at max value
-
-                    self._semaphores[key] = new_semaphore
+                    # Atomically replace the semaphore.
+                    # The old semaphore will be garbage-collected once all
+                    # waiters have been released.
+                    self._semaphores[key] = asyncio.Semaphore(window.limit)

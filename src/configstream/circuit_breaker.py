@@ -27,14 +27,14 @@ class CircuitBreaker:
         self.failure_count = 0
         self.state = CircuitBreakerState.CLOSED
 
-    @property
-    def is_open(self) -> bool:
+    def check_state(self) -> None:
         if self.state == CircuitBreakerState.OPEN:
             if time.monotonic() - self.last_failure_time > self.recovery_timeout:
                 self.state = CircuitBreakerState.HALF_OPEN
-                return False
-            return True
-        return False
+
+    @property
+    def is_open(self) -> bool:
+        return self.state == CircuitBreakerState.OPEN
 
 
 class CircuitBreakerManager:

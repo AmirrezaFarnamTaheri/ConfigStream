@@ -63,11 +63,7 @@ def _safe_b64_decode(data: str) -> str:
             )
             return data
 
-        try:
-            return decoded_bytes.decode("utf-8")
-        except UnicodeDecodeError:
-            logger.debug("Decoded data is not valid UTF-8, trying latin-1")
-            return decoded_bytes.decode("latin-1")
+        return decoded_bytes.decode("utf-8", errors="replace")
     except (binascii.Error, ValueError) as exc:
         logger.warning("Base64 decode failed: %s", exc)
         return data
