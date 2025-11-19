@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2025-11-19
+
+### Changed
+- Refactored `cli.py` to improve version handling, security, and error handling.
+- Refactored `core.py` to improve modularity and remove circular dependencies.
+- Refactored `pipeline.py` to simplify logic and improve maintainability.
+- Refactored `scripts/merge_batches.py` to improve flexibility and maintainability.
+
+### Removed
+- Removed the `remark_parser.py` module.
+
 ## [1.1.0] - 2025-11-19
 
 ### Added

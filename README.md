@@ -169,10 +169,7 @@ Detailed information including:
 git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
 cd ConfigStream
 
-# Install in development mode
-pip install -e .
-
-# Install development dependencies
+# Install in development mode with dev dependencies
 pip install -e ".[dev]"
 ```
 
@@ -188,7 +185,9 @@ configstream merge \
   --output output/ \
   --country US \
   --max-latency 500 \
-  --max-workers 20
+  --max-workers 20 \
+  --leniency \
+  --strict-security
 
 # Update GeoIP databases
 configstream update-databases
@@ -208,6 +207,8 @@ configstream --help
 --max-latency      Maximum latency in milliseconds
 --max-workers      Number of concurrent workers (default: 10)
 --timeout          Timeout per test in seconds (default: 10)
+--leniency         Disable security filtering for debugging
+--strict-security  Enable expensive integrity checks
 ```
 
 ### Database Management
