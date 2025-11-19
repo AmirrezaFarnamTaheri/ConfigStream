@@ -3,8 +3,9 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-import os
-import random
+import asyncio
+import base64
+import json
 import logging
 import ipaddress
 from datetime import datetime, timezone
@@ -41,7 +42,6 @@ from .output import (
 from .testers import SingBoxTester
 from .performance import PerformanceTracker
 from .proxy_history import ProxyHistoryTracker
-from .statistics import StatisticsEngine
 from .intelligent_fallback import FallbackManager
 from .source_quality import SourceQualityTracker
 from .adaptive_workers import calculate_optimal_workers
@@ -718,8 +718,6 @@ async def run_full_pipeline(
                         "proxy_count": len(final_proxies),
                         "working_count": len(final_proxies),
                         "stats": stats_json,
-                        "fallback_available": fallback_manager.is_fallback_available(),
-                        "tested_count": stats["tested"],
                     }
                     (output_path / "metadata.json").write_text(json.dumps(metadata, indent=2))
 
