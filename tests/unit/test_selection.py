@@ -4,6 +4,7 @@ import pytest
 from configstream.models import Proxy
 from configstream.selection import select_chosen_proxies, get_selection_stats
 
+
 # Helper to create a test proxy
 def create_test_proxy(protocol: str, latency: float, working: bool = True) -> Proxy:
     return Proxy(
@@ -16,9 +17,11 @@ def create_test_proxy(protocol: str, latency: float, working: bool = True) -> Pr
         is_working=working,
     )
 
+
 def test_select_chosen_proxies_empty_input():
     """Ensure it handles an empty list without errors."""
     assert select_chosen_proxies([]) == []
+
 
 def test_select_chosen_proxies_basic_selection():
     """Test it selects top proxies per protocol and fills globally."""
@@ -26,7 +29,7 @@ def test_select_chosen_proxies_basic_selection():
         create_test_proxy("vmess", 100),
         create_test_proxy("vmess", 50),  # Best vmess
         create_test_proxy("vless", 200),
-        create_test_proxy("vless", 150), # Best vless
+        create_test_proxy("vless", 150),  # Best vless
         create_test_proxy("trojan", 80),  # Best overall
     ]
     # top_per_protocol is 40 by default, so it should take all of them
@@ -48,6 +51,7 @@ def test_select_chosen_proxies_total_limit():
     chosen = select_chosen_proxies(proxies, total_limit=500)
     assert len(chosen) == 500
 
+
 def test_select_chosen_proxies_deduplication():
     """Ensure duplicates are handled correctly."""
     proxies = [
@@ -58,12 +62,13 @@ def test_select_chosen_proxies_deduplication():
     chosen = select_chosen_proxies(proxies)
     assert len(chosen) == 2  # Should remove the duplicate
 
+
 def test_get_selection_stats():
     """Test the statistics generation for the selection."""
     all_proxies = [
         create_test_proxy("vmess", 100),
         create_test_proxy("vless", 200),
-        create_test_proxy("trojan", 300, working=False), # one not working
+        create_test_proxy("trojan", 300, working=False),  # one not working
     ]
     chosen_proxies = all_proxies[:2]  # Assume first two were chosen
 
@@ -72,4 +77,3 @@ def test_get_selection_stats():
     assert stats["total_pool"] == 3
     assert stats["selected_count"] == 2
     assert "selection_ratio" in stats
-

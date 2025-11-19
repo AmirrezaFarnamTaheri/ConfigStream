@@ -12,16 +12,18 @@ sys.path.insert(0, str(root_dir / "src"))
 
 from configstream.models import Proxy  # noqa: E402
 
+
 def calculate_compound_score(proxy: Proxy) -> float:
     """Score = Latency * ReliabilityPenalty."""
     latency = proxy.latency if proxy.latency is not None else 5000
     # Infer reliability from available metadata or default
     # If health_score isn't available, usage of 'stale' flag can imply lower reliability
     reliability_penalty = 1.0
-    if hasattr(proxy, 'stale') and proxy.stale:
+    if hasattr(proxy, "stale") and proxy.stale:
         reliability_penalty = 1.5
 
     return latency * reliability_penalty
+
 
 from configstream.output import generate_base64_subscription  # noqa: E402
 from configstream.test_cache import TestResultCache  # noqa: E402
