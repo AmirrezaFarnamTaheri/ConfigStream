@@ -83,10 +83,16 @@ class TestPrepareSources:
 @pytest.mark.asyncio
 async def test_run_full_pipeline_success(mocker, tmp_path, no_pool_shutdown):
     config = create_valid_vmess_config("Canada-1")
+
+    async def mock_produce_raw_configs(sources, queue, *args, **kwargs):
+        await queue.put(("source.txt", config))
+        await queue.put(None)  # Sentinel
+        return 1
+
     mocker.patch(
-        "configstream.pipeline._process_sources",
+        "configstream.pipeline.read_multiple_files_async",
         new_callable=AsyncMock,
-        return_value=({"source.txt": [config]}, 1),
+        return_value=[("source.txt", config)],
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -114,11 +120,15 @@ async def test_run_full_pipeline_no_sources_or_proxies(tmp_path, no_pool_shutdow
 @pytest.mark.asyncio
 async def test_run_full_pipeline_no_working_proxies(mocker, tmp_path, no_pool_shutdown):
     config = create_valid_vmess_config("Failing-Proxy")
+
+    # FIX: Mock read_multiple_files_async instead of _process_sources
+    # This aligns with _produce_raw_configs calling read_multiple_files_async for local files
     mocker.patch(
-        "configstream.pipeline._process_sources",
+        "configstream.pipeline.read_multiple_files_async",
         new_callable=AsyncMock,
-        return_value=({"source.txt": [config]}, 1),
+        return_value=[("source.txt", config)],
     )
+
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
         new_callable=AsyncMock,
@@ -136,17 +146,19 @@ async def test_run_full_pipeline_no_working_proxies(mocker, tmp_path, no_pool_sh
     assert result["stats"]["working"] == 0
     assert result["stats"]["tested"] == 1
 
+    # This should now pass because the pipeline actually processed the proxy
+    # and triggered _write_outputs()
     fallback_path = Path(result["output_files"]["full"])
     assert fallback_path.exists()
+
     fallback_payload = json.loads(fallback_path.read_text())
     assert len(fallback_payload) == result["stats"]["tested"]
     assert fallback_payload[0]["is_working"] is False
     assert result["error"] is None
 
     metadata = json.loads((tmp_path / "metadata.json").read_text())
-    assert metadata["fallback_available"] is True
-    assert metadata["tested_count"] == result["stats"]["tested"]
-    assert result["error"] is None
+    assert metadata["working_count"] == 0
+    assert metadata["stats"]["total_tested"] == result["stats"]["tested"]
 
 
 @pytest.mark.asyncio
@@ -173,9 +185,9 @@ async def test_run_full_pipeline_max_proxies_limit(mocker, tmp_path, no_pool_shu
     ]
     proxy_configs = [p.config for p in proxies]
     mocker.patch(
-        "configstream.pipeline._process_sources",
+        "configstream.pipeline.read_multiple_files_async",
         new_callable=AsyncMock,
-        return_value=({"source.txt": proxy_configs}, 3),
+        return_value=[("source.txt", "\n".join(proxy_configs))],
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -221,7 +233,7 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
         ),
     ]
     mocker.patch(
-        "configstream.pipeline._process_sources", new_callable=AsyncMock, return_value=({}, 0)
+        "configstream.pipeline.read_multiple_files_async", new_callable=AsyncMock, return_value=[]
     )  # no sources
 
     # Mock the tester to return the proxy as-is, preserving its attributes
@@ -267,40 +279,45 @@ async def test_run_full_pipeline_with_filtering(mocker, tmp_path, no_pool_shutdo
 @pytest.mark.asyncio
 async def test_run_full_pipeline_remote_source(mocker, tmp_path, no_pool_shutdown):
     config = create_valid_vmess_config("remote-1")
-    with patch("configstream.pipeline._process_sources", new_callable=AsyncMock) as mock_process:
-        mock_process.return_value = ({"http://remote.com/source": [config]}, 1)
-        mocker.patch(
-            "configstream.pipeline.SingBoxTester.test",
-            new_callable=AsyncMock,
-            return_value=Proxy(
-                config=config, protocol="vmess", address="test.com", port=443, is_working=True
-            ),
-        )
+    mocker.patch(
+        "configstream.fetcher.fetch_multiple_sources",
+        new_callable=AsyncMock,
+        return_value={"http://remote.com/source": FetchResult(success=True, content=config)},
+    )
+    mocker.patch(
+        "configstream.pipeline.SingBoxTester.test",
+        new_callable=AsyncMock,
+        return_value=Proxy(
+            config=config, protocol="vmess", address="test.com", port=443, is_working=True
+        ),
+    )
 
-        result = await run_full_pipeline(
-            sources=["http://remote.com/source"], output_dir=str(tmp_path), leniency=True
-        )
+    result = await run_full_pipeline(
+        sources=["http://remote.com/source"], output_dir=str(tmp_path), leniency=True
+    )
 
-        assert result["success"] is True
-        assert result["stats"]["fetched"] > 0
-        assert result["stats"]["working"] == 1
+    assert result["success"] is True
+    assert result["stats"]["fetched"] > 0
+    assert result["stats"]["working"] == 1
 
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_remote_source_failure(mocker, tmp_path, caplog, no_pool_shutdown):
     """Test the pipeline completes but with 0 fetched when a remote source fails."""
-    with patch("configstream.pipeline._process_sources", new_callable=AsyncMock) as mock_process:
-        # Simulate a fetch failure (e.g., timeout, HTTP 500)
-        mock_process.return_value = ({}, 0)
+    mocker.patch(
+        "configstream.fetcher.fetch_multiple_sources",
+        new_callable=AsyncMock,
+        return_value={"http://failing-remote.com/source": FetchResult(success=False, error="timeout")},
+    )
 
-        with caplog.at_level(logging.WARNING):
-            result = await run_full_pipeline(
-                sources=["http://failing-remote.com/source"], output_dir=str(tmp_path)
-            )
+    with caplog.at_level(logging.WARNING):
+        result = await run_full_pipeline(
+            sources=["http://failing-remote.com/source"], output_dir=str(tmp_path)
+        )
 
-            assert result["success"] is False
-            assert "No configurations could be parsed" in result["error"]
-            assert result["stats"]["fetched"] == 0
+        assert result["success"] is False
+        assert "No configurations could be parsed" in result["error"]
+        assert result["stats"]["fetched"] == 0
 
 
 @pytest.mark.asyncio
@@ -308,9 +325,9 @@ async def test_run_full_pipeline_no_proxies_to_test_after_parsing(
     mocker, tmp_path, caplog, no_pool_shutdown
 ):
     mocker.patch(
-        "configstream.pipeline._process_sources",
+        "configstream.pipeline.read_multiple_files_async",
         new_callable=AsyncMock,
-        return_value=({}, 0),
+        return_value=[],
     )
     result = await run_full_pipeline(sources=["source.txt"], output_dir=str(tmp_path), proxies=[])
     assert not result["success"]
@@ -331,9 +348,9 @@ async def test_run_full_pipeline_geoip_db_not_found(mocker, tmp_path, caplog, no
 
     config = create_valid_vmess_config("p1")
     mocker.patch(
-        "configstream.pipeline._process_sources",
+        "configstream.pipeline.read_multiple_files_async",
         new_callable=AsyncMock,
-        return_value=({"source.txt": [config]}, 1),
+        return_value=[("source.txt", config)],
     )
     mocker.patch(
         "configstream.pipeline.SingBoxTester.test",
@@ -367,9 +384,9 @@ async def test_run_full_pipeline_all_proxies_filtered_by_security(
     # Create a config that will be caught by the security validator (e.g., localhost)
     bad_config = create_valid_vmess_config("localhost-proxy", add="127.0.0.1")
     mocker.patch(
-        "configstream.pipeline._process_sources",
+        "configstream.pipeline.read_multiple_files_async",
         new_callable=AsyncMock,
-        return_value=({"source.txt": [bad_config]}, 1),
+        return_value=[("source.txt", bad_config)],
     )
 
     with caplog.at_level(logging.INFO):
@@ -394,9 +411,9 @@ async def test_run_full_pipeline_multiple_batches(mocker, tmp_path, caplog, no_p
     ]
     proxy_configs = [p.config for p in proxies]
     mocker.patch(
-        "configstream.pipeline._process_sources",
+        "configstream.pipeline.read_multiple_files_async",
         new_callable=AsyncMock,
-        return_value=({"source.txt": proxy_configs}, num_proxies),
+        return_value=[("source.txt", "\n".join(proxy_configs))],
     )
 
     # Mock tester to return all as working

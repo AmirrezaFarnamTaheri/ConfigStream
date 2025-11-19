@@ -5,6 +5,7 @@ from collections import defaultdict
 from typing import Dict, List, Any
 
 from .models import Proxy
+
 # Imports from new location
 from .filtering import dedupe_and_shuffle
 
@@ -28,7 +29,7 @@ def select_chosen_proxies(
 
     # Sort each group by latency
     for proto in by_proto:
-        by_proto[proto].sort(key=lambda p: p.latency or float('inf'))
+        by_proto[proto].sort(key=lambda p: p.latency or float("inf"))
 
     chosen: List[Proxy] = []
     seen_configs = set()
@@ -43,7 +44,7 @@ def select_chosen_proxies(
     # 2. Fill remainder with global best
     if len(chosen) < total_limit:
         remaining_slots = total_limit - len(chosen)
-        global_sorted = sorted(unique_proxies, key=lambda p: p.latency or float('inf'))
+        global_sorted = sorted(unique_proxies, key=lambda p: p.latency or float("inf"))
 
         for p in global_sorted:
             if remaining_slots <= 0:

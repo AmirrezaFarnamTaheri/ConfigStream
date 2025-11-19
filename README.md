@@ -17,7 +17,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 ## ✨ Features
 
 ### 🤖 Fully Automated
-- **Automated Updates Every 6 Hours** via GitHub Actions
+- **Automated Updates Every 8 Hours** via GitHub Actions
 - **Zero manual intervention** required
 - **Cache-busting** ensures clients always get fresh data
 - **Hundreds of curated sources** from public repositories and Telegram channels
@@ -59,7 +59,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 
 ```mermaid
 graph LR
-    A[GitHub Actions<br/>Every 6 Hours] -->|Trigger| B[Fetch Sources]
+    A[GitHub Actions<br/>Every 8 Hours] -->|Trigger| B[Fetch Sources]
     B --> C[Parse & Normalise]
     C --> D[In-Memory Queue]
     D --> E[Async Testing]
@@ -270,7 +270,7 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 - **Token Permission Hardening** - GitHub Actions tokens follow principle of least privilege
 - **Baseline Timeout Protection** - Enforced 5-second minimum prevents overly aggressive timeouts
 
-**Test Coverage:** 89% with 528+ passing tests | **Code Quality:** Black + Flake8 + MyPy compliant
+**Test Coverage:** 89% with 553+ passing tests | **Code Quality:** Black + Flake8 + MyPy compliant
 
 ## 📁 Project Structure
 
@@ -356,7 +356,7 @@ pytest -v
 ### GitHub Actions Workflow
 
 The automation workflow (`pipeline.yml`) runs:
-- **Every 6 hours** (at 00:00, 06:00, 12:00, 18:00 UTC) to fetch, test, and merge proxies from all sources.
+- **Every 8 hours** to fetch, test, and merge proxies from all sources.
 - **On manual trigger** via workflow_dispatch.
 - **On source file changes** (e.g., updates to `sources.txt`).
 
