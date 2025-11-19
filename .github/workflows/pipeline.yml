@@ -244,6 +244,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: configstream-data
+          path: output
+      - name: Copy frontend files to output
+        run: cp -r frontend/* output/
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:

@@ -11,9 +11,7 @@ ConfigStream is a high-performance VPN configuration aggregator designed for rel
 The codebase is organized into distinct modules, each with a clear responsibility. This separation simplifies maintenance, testing, and future development.
 
 -   **`pipeline.py` (Orchestrator)**: The heart of the application, responsible for orchestrating the entire workflow, from fetching and parsing to testing and output generation.
--   **`parsers.py` & `core.py` (Parsing & Validation)**: Handle the initial parsing and validation of raw proxy configurations. `core.py` is responsible for dispatching to the correct parser, while `parsers.py` contains the parsing logic for each protocol.
 -   **`testers.py` (Proxy Testing)**: Contains the logic for testing proxy connectivity and performance.
--   **`output.py` (Output Generation)**: Generates the final output files in various formats (Base64, Clash, Sing-box, etc.).
 -   **`concurrency_manager.py` (Concurrency Control)**: Implements a unified AIMD (Additive Increase, Multiplicative Decrease) concurrency controller to dynamically adjust system load for both fetching and testing.
 -   **`http_client.py` (Networking)**: Manages a shared `httpx.AsyncClient` for all network requests, enabling connection pooling and HTTP/2 support.
 -   **`logging_config.py` (Logging)**: Centralizes logging configuration, including support for structured JSON logging for machine-readable output.
@@ -31,22 +29,13 @@ To prevent system overload and adapt to varying network conditions, ConfigStream
 
 -   **AIMD Controller**: The `ConcurrencyManager` in `concurrency_manager.py` uses an AIMD algorithm to dynamically adjust the number of concurrent operations for both fetching and testing. This allows the system to automatically scale up during optimal conditions and back off when errors or high latency are detected.
 
-### Intelligence Modules
-
-The pipeline integrates several "intelligence" modules to improve efficiency and output quality:
-
--   **`source_quality.py`**: Tracks the performance of different sources and prioritizes fetching from those that consistently provide working proxies.
--   **`auto_detect.py`**: Provides fallback parsing mechanisms for unknown or malformed proxy configurations.
--   **`freshness.py`**: Filters out stale proxies based on their last-seen timestamp.
--   **`intelligent_fallback.py`**: Caches the last known-good set of proxies to ensure high availability, even if a pipeline run fails.
-
 ## 3. Data Flow
 
 The data processing pipeline consists of the following stages:
 
 1.  **Source Fetching**: The pipeline fetches raw proxy configurations from a list of sources (URLs or local files) using the `fetcher.py` module.
-2.  **Parsing and Validation**: Raw configurations are parsed and validated by `parsers.py` and `core.py`. Invalid or insecure configurations are discarded.
-3.  **Deduplication and Shuffling**: Proxies are deduplicated to ensure only unique configurations are tested. The list is then shuffled to randomize the testing order.
+2.  **Parsing and Validation**: Raw configurations are parsed and validated. Invalid or insecure configurations are discarded.
+3.  **Deduplication**: Proxies are deduplicated to ensure only unique configurations are tested.
 4.  **Proxy Testing**: Proxies are tested for connectivity and performance using the `testers.py` module. The `ConcurrencyManager` dynamically adjusts the number of concurrent tests.
 5.  **Geolocation**: The geographic location of each working proxy is determined using an offline GeoIP database.
 6.  **Output Generation**: The final list of working proxies is formatted into multiple output files by `output.py`.
@@ -74,6 +63,13 @@ The frontend UI is designed to be adaptable to backend configuration changes.
 
 -   **`metadata.json`**: The pipeline writes key configuration values to `output/metadata.json`.
 -   **Dynamic UI**: The frontend JavaScript fetches `metadata.json` and uses the values to dynamically render UI elements, such as charts. This removes hardcoded values from the frontend and allows the UI to be updated by changing the backend configuration.
+
+### Frontend Asset Management
+
+The `frontend/` directory contains all the static assets required for the user-facing website, including HTML, CSS, JavaScript, and images.
+
+-   **Separation of Concerns**: This directory is kept separate from the Python source code to maintain a clean project structure.
+-   **Deployment**: During the CI/CD pipeline's deployment stage, the contents of the `frontend/` directory are copied into the `output/` directory, which is then deployed to GitHub Pages.
 
 ## 5. Security Considerations
 

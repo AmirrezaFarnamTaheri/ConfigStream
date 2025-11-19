@@ -28,7 +28,6 @@ dependencies = [
     "aiohttp-socks",
     "aiodns",
     "nest-asyncio",
-    # "telethon",  # Removed - unused dependency
     "PyYAML",
     "geoip2",
     "pydantic>=2.12.4",
