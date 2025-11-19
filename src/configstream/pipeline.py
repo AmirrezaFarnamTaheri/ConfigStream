@@ -38,6 +38,8 @@ from .smart_scheduler import SmartRetestScheduler
 from .concurrency_manager import ConcurrencyManager
 from .adaptive_workers import calculate_optimal_workers
 from .adaptive_timeout import AdaptiveTimeout
+from .source_quality import SourceQualityTracker
+from .anomaly import AnomalyDetector
 from .geoip_offline import GeoIPResolver
 
 # --- Output ---
@@ -88,6 +90,10 @@ async def run_full_pipeline(
     test_cache = TestResultCache()
     scheduler = SmartRetestScheduler(cache=test_cache)
     history = ProxyHistoryTracker()
+
+    # NEW: Initialize Advanced Intelligence
+    quality_tracker = SourceQualityTracker()
+    anomaly_detector = AnomalyDetector()
 
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
@@ -141,30 +147,48 @@ async def run_full_pipeline(
 
             # C. Handle Remote Sources
             remote_urls = [s for s in sources if s.startswith("http")]
-            if remote_urls:
-                # Use the new robust fetcher
-                # We fetch in batches to avoid opening 6000 TCP connections at once
+
+            # NEW: Filter sources based on Quality/Cooldown
+            active_urls = []
+            for url in remote_urls:
+                if quality_tracker.should_fetch(url):
+                    active_urls.append(url)
+                else:
+                    # Log skipped source for stats
+                    pass
+
+            if active_urls:
                 batch_size = 50
-                for i in range(0, len(remote_urls), batch_size):
-                    batch = remote_urls[i : i + batch_size]
+                for i in range(0, len(active_urls), batch_size):
+                    batch = active_urls[i : i + batch_size]
 
                     results = await fetch_multiple_sources(
                         batch,
                         max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
-                        timeout=settings.FETCH_TIMEOUT, # Use config timeout
+                        timeout=settings.FETCH_TIMEOUT,
                         use_adaptive_timeout=True
                     )
 
                     for source, res in results.items():
                         if res.success and res.content:
                             lines = _extract_config_lines(res.content)
-                            if lines:
-                                await work_queue.put((source, lines))
-                        if progress and task_fetch:
-                            progress.advance(task_fetch)
+                            count = len(lines)
 
-                    # Slight breather to let the loop handle IO
-                    await asyncio.sleep(0.1)
+                            # NEW: Anomaly Check
+                            is_safe, reason = anomaly_detector.is_safe(source, count)
+
+                            if is_safe:
+                                if lines:
+                                    # Record the "Fetch" event. We update "Working" later.
+                                    anomaly_detector.record(source, count)
+                                    # Note: We pass the source URL along with the lines now
+                                    # so the consumer knows where they came from
+                                    await work_queue.put((source, lines))
+                            else:
+                                logger.warning(f"⚠️ BLOCKING {source}: {reason}")
+
+                        # Note: If fetch failed, fetcher logs it.
+                        # Quality tracker will penalize implicitly if we don't report success later.
 
         except Exception as e:
             logger.error("Producer failed: %s", e)
@@ -201,6 +225,8 @@ async def run_full_pipeline(
                 for line in raw_lines:
                     p = parse_config(line)
                     if p:
+                        # Temporarily store source in details for tracking
+                        p.details["_source"] = source
                         parsed_batch.append(p)
 
             if not parsed_batch:
@@ -308,6 +334,12 @@ async def run_full_pipeline(
 
                 final_proxies.append(p)
                 stats["working"] += 1
+
+            working_count = sum(1 for p in final_batch_for_this_source if p.is_working)
+            fetched_count = len(parsed_batch) # Total parsable
+
+            # Update Quality Tracker
+            quality_tracker.update(source, fetched_count, working_count)
 
             work_queue.task_done()
 
