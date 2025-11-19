@@ -718,6 +718,8 @@ async def run_full_pipeline(
                         "proxy_count": len(final_proxies),
                         "working_count": len(final_proxies),
                         "stats": stats_json,
+                        "fallback_available": fallback_manager.is_fallback_available(),
+                        "tested_count": stats["tested"],
                     }
                     (output_path / "metadata.json").write_text(json.dumps(metadata, indent=2))
 

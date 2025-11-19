@@ -87,8 +87,8 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
             endpoint_map[key] = p
         else:
             # Collision: keep the faster one
-            existing_latency = existing.latency if existing.latency is not None else float('inf')
-            new_latency = p.latency if p.latency is not None else float('inf')
+            existing_latency = existing.latency if existing.latency is not None else float("inf")
+            new_latency = p.latency if p.latency is not None else float("inf")
 
             if new_latency < existing_latency:
                 endpoint_map[key] = p
