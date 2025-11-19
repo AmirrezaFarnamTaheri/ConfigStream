@@ -73,6 +73,25 @@ async def test_fetch_from_source_invalid_url():
     assert "Invalid URL" in result.error
 
 
+@pytest.mark.asyncio
+async def test_fetch_multiple_sources_unhandled_exception():
+    sources = ["http://example.com/source1", "http://example.com/source2"]
+
+    async def side_effect(client, source, *args, **kwargs):
+        if "source1" in source:
+            raise ValueError("Unhandled test exception")
+        return FetchResult(success=True, source=source, content="ss://config")
+
+    with patch("configstream.fetcher.fetch_from_source", side_effect=side_effect):
+        results = await fetch_multiple_sources(sources)
+
+    assert len(results) == 2
+    assert not results["http://example.com/source1"].success
+    assert "Unhandled test exception" in results["http://example.com/source1"].error
+    assert results["http://example.com/source2"].success
+    assert results["http://example.com/source2"].content == "ss://config"
+
+
 def test_parse_retry_after_header():
     assert _parse_retry_after_header(None) is None
     assert _parse_retry_after_header("  ") is None
@@ -87,22 +106,3 @@ def test_parse_retry_after_header():
     assert 59 < parsed_delta <= 60
 
     assert _parse_retry_after_header("invalid-date") is None
-
-
-@pytest.mark.asyncio
-async def test_fetch_multiple_sources_unhandled_exception():
-    sources = ["http://example.com/source1", "http://example.com/source2"]
-
-    async def side_effect(client, source, *args, **kwargs):
-        if "source1" in source:
-            raise ValueError("Unhandled test exception")
-        return FetchResult(source, "ss://config", True)
-
-    with patch("configstream.fetcher.fetch_from_source", side_effect=side_effect):
-        results = await fetch_multiple_sources(sources)
-
-    assert len(results) == 2
-    assert not results["http://example.com/source1"].success
-    assert "Unhandled test exception" in results["http://example.com/source1"].error
-    assert results["http://example.com/source2"].success
-    assert results["http://example.com/source2"].content == "ss://config"

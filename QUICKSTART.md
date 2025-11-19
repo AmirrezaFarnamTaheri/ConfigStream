@@ -12,7 +12,7 @@ git clone https://github.com/YOUR_USERNAME/ConfigStream.git
 cd ConfigStream
 
 # 2. Install dependencies
-pip install -e .
+pip install -e ".[dev]"
 
 # 3. Test locally
 configstream merge --sources sources.mini.txt --output output/
@@ -70,7 +70,9 @@ configstream merge \
   --sources sources.txt \
   --output output/ \
   --country US \
-  --max-latency 500
+  --max-latency 500 \
+  --leniency \
+  --strict-security
 
 # Update GeoIP databases
 configstream update-databases

@@ -434,9 +434,9 @@ class TestFetchResultClass:
     def test_fetch_result_creation(self):
         """Test creating a FetchResult object"""
         result = FetchResult(
+            success=True,
             source="http://example.com",
             content="vmess://test1\nvless://test2",
-            success=True,
             response_time=1.5,
             status_code=200,
         )
@@ -451,7 +451,10 @@ class TestFetchResultClass:
     def test_fetch_result_to_dict(self):
         """Test serialization to dictionary"""
         result = FetchResult(
-            source="http://example.com", content="vmess://test", success=True, status_code=200
+            success=True,
+            source="http://example.com",
+            content="vmess://test",
+            status_code=200,
         )
 
         result_dict = result.to_dict()
@@ -465,7 +468,10 @@ class TestFetchResultClass:
     def test_fetch_result_failure_state(self):
         """Test FetchResult for failed requests"""
         result = FetchResult(
-            source="http://example.com", content="", success=False, error="Connection timeout"
+            success=False,
+            source="http://example.com",
+            content="",
+            error="Connection timeout",
         )
 
         assert result.success is False
