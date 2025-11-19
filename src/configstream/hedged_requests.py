@@ -1,59 +1,108 @@
-import asyncio
-from typing import Any, Tuple
+"""
+Hedged Requests Module with Failover Support.
 
+Implements a strategy that races two requests against each other,
+providing both latency reduction and immediate failover if the primary
+request fails prematurely.
+"""
+
+import asyncio
+from typing import Any, Tuple, TypeVar
+
+T = TypeVar("T")
 
 async def hedged_get(
-    client: Any, url: str, timeout: float, hedge_after: float, headers: dict[str, str]
-) -> Tuple[bool, Any | None]:
+    client: Any,
+    url: str,
+    timeout: float,
+    hedge_after: float,
+    headers: dict[str, str]
+) -> Tuple[bool, Any]:
     """
-    Performs a GET request, hedging with a second request if the first takes too long.
-    Uses a queue to get the first result reliably.
-    """
-    q: asyncio.Queue[Tuple[int, bool, Any]] = asyncio.Queue()
+    Perform a GET request with hedging.
 
-    async def _once(task_id: int) -> None:
-        """Wraps the client call and puts the result on the queue."""
+    Behavior:
+    1. Start Primary Request.
+    2. If Primary fails immediately -> Start Secondary immediately (Failover).
+    3. If Primary runs longer than `hedge_after` -> Start Secondary (Latency Hedge).
+    4. Return the result of whichever succeeds first.
+
+    Returns:
+        (is_success, response_or_error)
+    """
+    # Queue to hold results: (task_id, success, result)
+    queue: asyncio.Queue[Tuple[int, bool, Any]] = asyncio.Queue()
+    active_tasks = set()
+
+    async def _do_request(task_id: int):
         try:
-            r = await client.get(url, timeout=timeout, headers=headers)
-            await q.put((task_id, True, r))
+            resp = await client.get(url, timeout=timeout, headers=headers)
+            await queue.put((task_id, True, resp))
         except Exception as e:
-            await q.put((task_id, False, e))
+            await queue.put((task_id, False, e))
 
-    # Start the first task
-    task1 = asyncio.create_task(_once(1))
+    # Start Primary
+    t1 = asyncio.create_task(_do_request(1))
+    active_tasks.add(t1)
 
-    # Wait for either the first task to finish or the hedge timer to expire
+    # Wait for Primary, Timeout (Hedge Delay), or Failure
     try:
-        done, _ = await asyncio.wait(
-            [task1], timeout=hedge_after, return_when=asyncio.FIRST_COMPLETED
+        # Wait for T1 to complete OR hedge timer to expire
+        done, pending = await asyncio.wait(
+            [t1], timeout=hedge_after, return_when=asyncio.ALL_COMPLETED
         )
-    except asyncio.TimeoutError:
-        done, _ = set(), {task1}
 
-    if task1 in done:
-        _, ok, result = await q.get()
-        if not ok:
-            raise result
-        return ok, result
+        if t1 in done:
+            # T1 finished. Check if it was successful.
+            # We peek at the queue or wait for it (should be instant)
+            _, success, result = await queue.get()
 
-    # If we are here, the first task didn't finish in time. Start a second one.
-    task2 = asyncio.create_task(_once(2))
-    tasks = {task1, task2}
+            if success:
+                return True, result
 
+            # T1 Failed immediately. FAILOVER: Start T2 now.
+            t2 = asyncio.create_task(_do_request(2))
+            active_tasks.add(t2)
+        else:
+            # T1 is still running (Latency Hedge needed). Start T2.
+            t2 = asyncio.create_task(_do_request(2))
+            active_tasks.add(t2)
+
+    except Exception:
+        # Defensive catch
+        if not active_tasks:
+            return False, Exception("Hedging system error")
+
+    # Now wait for whichever finishes first (T1 or T2)
     try:
-        # Wait for the first result from the queue
-        task_id, ok, result = await asyncio.wait_for(q.get(), timeout=timeout)
+        # We wait on the QUEUE, not the tasks, because the queue tells us the result
+        # But we need to handle the case where BOTH fail.
 
-        if not ok:
-            raise result
+        # We loop until we get a success or run out of active tasks
+        while active_tasks:
+            # Wait for next result
+            task_id, success, result = await asyncio.wait_for(queue.get(), timeout=timeout + 1)
 
-        return ok, result
-    except (asyncio.TimeoutError, Exception):
-        return False, None
+            if success:
+                return True, result
+
+            # If failure, we just continue waiting for the other task (if active)
+            # Identify which task failed and remove it from conceptual tracking
+            # (Realistically we just wait for the next queue item)
+
+            # If we've received failures for ALL launched tasks, we are done.
+            # Since we launch at most 2 tasks:
+            if queue.empty() and all(t.done() for t in active_tasks):
+                return False, result # Return the last error
+
+    except asyncio.TimeoutError:
+        return False, asyncio.TimeoutError("Hedged requests timed out")
     finally:
-        # Cancel all tasks and wait for them to finish to prevent resource leaks
-        for t in tasks:
+        # Cleanup: Cancel pending tasks
+        for t in active_tasks:
             if not t.done():
                 t.cancel()
-        # Wait for all tasks to complete their cancellation
-        await asyncio.gather(*tasks, return_exceptions=True)
+        # Drain remaining logic
+        await asyncio.gather(*active_tasks, return_exceptions=True)
+
+    return False, Exception("Hedged request failed unexpectedly")
