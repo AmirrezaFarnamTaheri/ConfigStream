@@ -5,6 +5,7 @@ import respx
 from httpx import Response
 
 from configstream.pipeline import run_full_pipeline
+from configstream.models import Proxy
 
 @pytest.mark.asyncio
 async def test_pipeline_full_run(tmp_path: Path, respx_mock: respx.MockRouter):
@@ -34,6 +35,8 @@ async def test_pipeline_full_run(tmp_path: Path, respx_mock: respx.MockRouter):
         sources=[str(source_file)],
         output_dir=str(output_dir),
         timeout=5,
+        # Force retest to bypass smart scheduler in this test
+        proxies=[Proxy(config=proxy_config, protocol="http", address="1.2.3.4", port=8080)],
     )
 
     # 4. Assert the results

@@ -46,14 +46,7 @@ def generate_categorized_outputs(all_proxies: List[Proxy], output_dir: Path) -> 
     # --- Helper: Serialization with Adapter Injection ---
     def _serialize_list(proxies: List[Proxy]) -> List[Dict]:
         # We convert to a raw dict for JSON output, not client config
-        return [
-            {
-                **p.__dict__,
-                "security_issues": p.security_issues,  # Ensure this isn't hidden
-                "id": p.id  # Useful for debugging
-            }
-            for p in proxies
-        ]
+    return [p.model_dump() for p in proxies]
 
     # 1. Protocol Categorization
     protocol_dir = output_dir / "by_protocol"
