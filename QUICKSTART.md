@@ -87,14 +87,12 @@ configstream --help
 
 ```
 ConfigStream/
-├── index.html              # Home page
-├── proxies.html            # Proxy browser
-├── statistics.html         # Analytics
-├── assets/
-│   ├── css/framework.css   # Design system
-│   └── js/utils.js         # Utilities
+├── frontend/               # All frontend assets
+│   ├── index.html          # Home page
+│   ├── proxies.html        # Proxy browser
+│   └── assets/             # CSS, JS, images
 ├── output/                 # Generated configs
-├── sources.txt             # Proxy sources
+├── sources/                # Proxy sources
 └── src/configstream/       # Python package
 ```
 
