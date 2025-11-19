@@ -71,9 +71,9 @@ class FetchResult:
 
     def __init__(
         self,
-        source: str,
-        content: str,
         success: bool,
+        source: str,
+        content: str = "",
         error: str | None = None,
         response_time: float | None = None,
         status_code: int | None = None,
@@ -135,7 +135,7 @@ async def fetch_from_source(
             raise ValueError(f"Invalid URL format: {source}")
     except Exception as e:
         logger.error("URL validation failed for %s: %s", source, e)
-        return FetchResult(source, "", False, error=str(e))
+        return FetchResult(success=False, source=source, error=str(e))
 
     # Normalize baseline timeout
     try:
@@ -186,7 +186,7 @@ async def fetch_from_source(
         if breaker.is_open:
             logger.warning("Circuit breaker is open for %s. Skipping request.", host)
             # Do not record synthetic durations for skipped requests to avoid biasing timeouts
-            return FetchResult(source, "", False, error="Circuit breaker open")
+            return FetchResult(success=False, source=source, error="Circuit breaker open")
 
     # Build headers with optional ETag validators
     headers = {
