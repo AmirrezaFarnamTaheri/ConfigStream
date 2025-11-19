@@ -38,3 +38,9 @@ reports/
 
 # Logs
 *.log
+
+# Docker volumes
+output/
+data/
+!data/.gitkeep
+!output/.gitkeep
