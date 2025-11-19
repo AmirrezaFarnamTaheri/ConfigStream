@@ -4,6 +4,7 @@ import os
 import socket
 import ssl
 import tempfile
+from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, ClassVar, Optional, Tuple
 from urllib.parse import urljoin
@@ -35,7 +36,7 @@ def _strict_ssl_context() -> ssl.SSLContext:
     return ctx
 
 
-class ProxyTester:
+class ProxyTester(ABC):
     _singbox_path: ClassVar[str | None] = None
 
     def __init__(
@@ -54,8 +55,8 @@ class ProxyTester:
         self.cache_misses = 0
         self.max_retries = max_retries
 
-    async def test(self, proxy: Proxy) -> Proxy:
-        raise NotImplementedError
+    @abstractmethod
+    async def test(self, proxy: Proxy) -> Proxy: ...
 
 
 class SingBoxTester(ProxyTester):
