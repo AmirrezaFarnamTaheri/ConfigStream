@@ -17,6 +17,7 @@ from .parsers import (
     _parse_vmess,
     _parse_vless,
     _parse_wireguard,
+    _parse_openvpn,
 )
 
 
@@ -44,6 +45,15 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
     if not config:
         return None
 
+    # Try OpenVPN first (content based)
+    if "client" in config and ("dev tun" in config or "dev tap" in config):
+         try:
+             result = _parse_openvpn(config)
+             if result:
+                 return result
+         except Exception:
+             pass
+
     # Try URL-based detection first
     if "://" in config:
         scheme = config.split("://")[0].lower()
@@ -68,6 +78,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 "socks": _parse_generic_url_scheme,
                 "socks4": _parse_generic_url_scheme,
                 "socks5": _parse_generic_url_scheme,
+                "ssh": lambda x: _parse_generic_url_scheme(x), # SSH often works with generic
             },
         )
 

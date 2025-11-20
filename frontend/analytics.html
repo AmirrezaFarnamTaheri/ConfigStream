@@ -7,16 +7,26 @@
     <title>Analytics - ConfigStream</title>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="stylesheet" href="assets/css/style.css">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Globe.gl / Three.js -->
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #globe-viz {
+            width: 100%;
+            height: 600px;
+            background: #000011;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
     <div class="nav-overlay"></div>
     <header class="header">
         <div class="container">
             <div class="header-logo-wrapper">
-                 <!-- Logo SVG (Simplified) -->
                  <svg width="40" height="40" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-logo" aria-label="ConfigStream Logo">
                     <defs>
                         <linearGradient id="logo-gradient-analytics" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -48,7 +58,7 @@
                 <p class="subtitle">Real-time insights into global proxy distribution and performance.</p>
             </section>
 
-            <!-- Summary Stats Cards (Consolidated from Index) -->
+            <!-- Summary Stats Cards -->
              <section class="stats-card" style="margin-bottom: 2rem;">
                 <div class="stats-card-inner">
                     <div class="stat-item">
@@ -82,8 +92,8 @@
                 </div>
             </section>
 
-            <!-- World Map -->
-            <div id="map-container"></div>
+            <!-- 3D Globe -->
+            <div id="globe-viz"></div>
 
             <div class="analytics-grid">
                 <!-- Protocol Distribution -->
@@ -123,14 +133,13 @@
         </div>
     </footer>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- Scripts -->
+    <script src="assets/js/cache-config.js"></script>
     <script src="assets/js/utils.js"></script>
-    <script src="assets/js/analytics.js"></script>
+    <script src="assets/js/inline-icons.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <script>
         feather.replace();
-
-        // Initialize shared UI components
         document.addEventListener('DOMContentLoaded', () => {
             if (window.api) {
                 if (window.api.initMobileNav) window.api.initMobileNav();
@@ -138,5 +147,6 @@
             }
         });
     </script>
+    <script src="assets/js/analytics.js"></script>
 </body>
 </html>

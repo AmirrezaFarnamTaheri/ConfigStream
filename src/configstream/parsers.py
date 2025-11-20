@@ -2,6 +2,7 @@ import base64
 import binascii
 import json
 import logging
+import re
 from typing import Optional, List
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -87,6 +88,11 @@ def _safe_b64_decode(data: str) -> str:
 
 def _is_plausible_proxy_config(config: str) -> bool:
     """Basic plausibility check for proxy configuration."""
+    # OpenVPN support
+    if config.startswith("-----BEGIN CERTIFICATE") or "client" in config and "dev tun" in config:
+        # It's likely an OVPN file content, which is handled separately
+        return True
+
     if "://" not in config:
         return False
     protocol, rest = config.split("://", 1)
@@ -106,6 +112,12 @@ def _extract_config_lines(
     """Extract configuration lines with validation and limits."""
     if not isinstance(payload, str) or not payload.strip():
         return []
+
+    # Check if it's an OpenVPN file
+    if "client" in payload and ("dev tun" in payload or "dev tap" in payload):
+        # Treat the whole payload as one config
+         if len(payload) < MAX_B64_OUTPUT_SIZE: # Size limit check
+             return [payload]
 
     lines = payload.splitlines()
     if len(lines) > max_lines:
@@ -181,6 +193,17 @@ def _parse_vless(config: str) -> Optional[Proxy]:
         if not uuid or len(uuid) > 100:
             return None
 
+        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+
+        # REALITY Verification
+        if details.get("security") == "reality":
+            if not details.get("pbk"):
+                logger.debug("VLESS Reality missing 'pbk'")
+                return None
+            if not details.get("sid") and not details.get("sni"):
+                # sid is optional in some impls if sni is present, but often required
+                pass
+
         proxy = Proxy(
             config=config,
             protocol="vless",
@@ -188,7 +211,7 @@ def _parse_vless(config: str) -> Optional[Proxy]:
             port=port,
             uuid=uuid,
             remarks=unquote(parsed.fragment or "")[:200],
-            details={k: v[0] for k, v in parse_qs(parsed.query).items()},
+            details=details,
         )
         _normalize_proxy_details(proxy)
         return proxy
@@ -594,6 +617,15 @@ def _parse_wireguard(c: str) -> Optional[Proxy]:
     ):
         logger.debug("WireGuard config missing private_key.")
         return None
+
+    # Reserved bytes check (for WARP/WireGuard)
+    reserved = proxy.details.get("reserved")
+    if reserved and isinstance(reserved, str):
+         # Validate format [x, y, z]
+         if not re.match(r'^\[(\d{1,3}(,\s*)?){3}\]$', reserved) and not re.match(r'^[a-zA-Z0-9+/=]+$', reserved):
+             logger.warning(f"Invalid reserved bytes format for WireGuard: {reserved}")
+             # We can strip it or keep it, but flagging it helps
+
     return proxy
 
 
@@ -630,17 +662,51 @@ def _parse_ssh(config: str) -> Optional[Proxy]:
     proxy = _parse_url_scheme(config, "ssh", 22)
     if proxy:
         # SSH Tunnels: Parse credentials
-        if not proxy.uuid:  # Username
-            # Sometimes user is in details if encoded differently, but urlparse handles user:pass@host
-            pass
-        # Password is in details['password'] from _parse_generic_url_scheme logic, but here we use _parse_url_scheme which doesn't automatically extract password from urlparse result like _parse_generic_url_scheme does.
-
-        # Let's fix _parse_url_scheme to extract password too or handle it here.
         parsed = urlparse(config)
         if parsed.password:
-            proxy.details["password"] = parsed.password
+             proxy.details["password"] = parsed.password
 
     return proxy
+
+def _parse_openvpn(config: str) -> Optional[Proxy]:
+    """Parse OpenVPN configuration content."""
+    try:
+        # Check for basic OVPN markers
+        if "client" not in config:
+            return None
+
+        # Extract remote
+        remotes = re.findall(r'^remote\s+(\S+)\s+(\d+)', config, re.MULTILINE)
+        if not remotes:
+             # Maybe in <connection> block?
+             remotes = re.findall(r'remote\s+(\S+)\s+(\d+)', config)
+
+        if not remotes:
+             return None
+
+        # Pick the first remote for now (simplification)
+        host, port_str = remotes[0]
+        port = int(port_str)
+
+        # Extract Proto
+        proto_match = re.search(r'^proto\s+(\w+)', config, re.MULTILINE)
+        transport = proto_match.group(1) if proto_match else "udp"
+
+        return Proxy(
+            config=config, # Store the full file content as config
+            protocol="openvpn",
+            address=host,
+            port=port,
+            details={
+                "transport": transport,
+                # We don't parse keys out; the config is the payload
+            },
+            remarks="OpenVPN Config"
+        )
+
+    except Exception as e:
+        logger.debug("Failed to parse OpenVPN: %s", e)
+        return None
 
 
 def _normalize_proxy_details(proxy: Proxy) -> None:

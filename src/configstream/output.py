@@ -5,6 +5,7 @@ Produces client-compatible configuration files and statistical reports.
 
 import json
 import base64
+import gzip
 import logging
 from pathlib import Path
 from typing import List, Dict, Union, Optional, Any
@@ -72,6 +73,16 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": proxy.details.get("password", None),
             "tls": proxy.details.get("tls") == "tls",
         }
+    elif proxy.protocol == "wireguard":
+        return {
+            "type": "wireguard",
+            "server": proxy.address,
+            "port": proxy.port,
+            "ip": proxy.details.get("local_address", "10.10.0.2"), # Placeholder if missing
+            "private-key": proxy.details.get("private_key"),
+            "public-key": proxy.details.get("peer_public_key"), # If available
+            "udp": True
+        }
 
     # Add other protocols as needed
     return None
@@ -117,6 +128,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "username": proxy.uuid if proxy.uuid else "",
             "password": proxy.details.get("password", ""),
         }
+    elif proxy.protocol == "wireguard":
+         return {
+            "type": "wireguard",
+            **base,
+            "local_address": [proxy.details.get("local_address", "10.10.0.2/32")],
+            "private_key": proxy.details.get("private_key"),
+            "peer_public_key": proxy.details.get("peer_public_key", "")
+         }
 
     return None
 
@@ -131,7 +150,7 @@ def generate_categorized_outputs(
 
     # 1. Master List
     master_file = output_dir / "proxies.json"
-    save_json(proxies, master_file)
+    save_json(proxies, master_file, compress=True) # Compress by default for large files
     files["master"] = master_file
 
     # 2. By Protocol
@@ -169,10 +188,21 @@ def generate_categorized_outputs(
     return files
 
 
-def save_json(proxies: List[Proxy], path: Path) -> None:
-    """Save list of proxies to JSON file."""
+def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
+    """
+    Save list of proxies to JSON file.
+    If compress=True, also saves a .gz version.
+    """
     data = [serialize_proxy(p) for p in proxies]
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    json_content = json.dumps(data, indent=2, ensure_ascii=False)
+
+    # Save plain JSON
+    path.write_text(json_content, encoding="utf-8")
+
+    # Save Gzipped version
+    if compress:
+        with gzip.open(str(path) + ".gz", 'wt', encoding='utf-8') as f:
+            f.write(json_content)
 
 
 def save_metadata(
@@ -242,6 +272,7 @@ def save_metadata(
             "wireguard": "#74B9FF",
             "socks5": "#FFA502",
             "http": "#7EFFF5",
+            "openvpn": "#FD79A8",
         },
     }
 
@@ -353,8 +384,16 @@ def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generate standard Base64 subscription string."""
     lines = []
     for p in proxies:
-        if p.config and "://" in p.config:
-            lines.append(p.config)
+        if p.config:
+             # Handle OpenVPN full content which isn't a one-liner usually
+             if p.protocol == "openvpn":
+                  # For OVPN, we can't really put it in a base64 sub easily mixed with others
+                  # unless we encode it specifically.
+                  # Typically subs are list of URLs.
+                  # We skip OpenVPN content for the general sub list to avoid breaking clients
+                  continue
+             if "://" in p.config:
+                lines.append(p.config)
 
     text = "\n".join(lines)
     return base64.b64encode(text.encode("utf-8")).decode("utf-8")

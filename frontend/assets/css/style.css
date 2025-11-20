@@ -39,7 +39,7 @@
     --z-index-content-low: 1;
     --z-index-content-high: 2;
 
-    /* Light Theme Colors */
+    /* Light Theme Colors (Default) */
     --bg-primary: #f0f4f8;
     --bg-secondary: #ffffff;
     --bg-glass: rgba(255, 255, 255, 0.4);
@@ -54,10 +54,11 @@
     --brand-gradient: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-tertiary) 45%, var(--brand-secondary) 100%);
     --success-color: #00bfa5;
     --danger-color: #f50057;
+    --border-color: rgba(0,0,0,0.1);
 }
 
+/* Dark Theme Colors */
 body.dark {
-    /* Dark Theme Colors */
     --bg-primary: #0a101f;
     --bg-secondary: #101a32;
     --bg-glass: rgba(16, 26, 50, 0.5);
@@ -71,7 +72,50 @@ body.dark {
     --brand-tertiary: #d8b4fe; /* Lighter Purple for dark mode */
     --success-color: #64ffda;
     --danger-color: #ff5277;
+    --border-color: rgba(255,255,255,0.1);
 }
+
+/* Cyberpunk Theme */
+body.cyberpunk {
+    --bg-primary: #050505;
+    --bg-secondary: #111111;
+    --bg-glass: rgba(10, 10, 10, 0.7);
+    --border: #333333;
+    --text-primary: #00ff00; /* Green terminal look */
+    --text-secondary: #00cc00;
+    --shadow-1: rgba(0, 255, 0, 0.1);
+    --shadow-2: rgba(0, 0, 0, 0.8);
+    --brand-primary: #00ff00;
+    --brand-secondary: #ff00ff;
+    --brand-tertiary: #00ffff;
+    --brand-gradient: linear-gradient(135deg, #00ff00 0%, #00ffff 100%);
+    --success-color: #00ff00;
+    --danger-color: #ff0000;
+    --font-display: 'Courier New', monospace;
+    --font-sans: 'Courier New', monospace;
+    --radius-lg: 0px;
+    --radius-md: 0px;
+    --radius-sm: 0px;
+}
+
+/* Solarized Theme */
+body.solarized {
+    --bg-primary: #fdf6e3;
+    --bg-secondary: #eee8d5;
+    --bg-glass: rgba(253, 246, 227, 0.6);
+    --border: #d3cbb7;
+    --text-primary: #657b83;
+    --text-secondary: #586e75;
+    --brand-primary: #b58900;
+    --brand-secondary: #cb4b16;
+    --brand-tertiary: #2aa198;
+    --brand-gradient: linear-gradient(135deg, #b58900, #cb4b16);
+    --shadow-1: rgba(0,0,0,0.05);
+    --shadow-2: rgba(255,255,255,0.5);
+    --success-color: #859900;
+    --danger-color: #dc322f;
+}
+
 
 /* 2. Base Styles */
 *, *::before, *::after {
@@ -657,7 +701,7 @@ body.dark .github-btn:hover {
     }
 
     .stat-value {
-        font-size: clamp(1.5rem, 8vw, 2rem) !important;
+        font-size: clamp(1.5rem, 8vw, 2.5rem) !important;
     }
 
     /* Fix card padding on mobile */

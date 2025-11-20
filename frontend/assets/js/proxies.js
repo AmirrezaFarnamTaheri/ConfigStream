@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const protocolFilter = document.getElementById('filterProtocol');
     const countryFilter = document.getElementById('filterCountry');
     const cityFilter = document.getElementById('filterCity');
+    const searchInput = document.getElementById('searchInput');
     const tableBody = document.getElementById('proxiesTableBody');
     const emptyState = document.getElementById('emptyState');
     const proxiesTable = document.getElementById('proxiesTable');
@@ -32,12 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const cityFilterValue = cityFilter.value.toLowerCase();
         const latencyMin = latencyMinInput && latencyMinInput.value ? parseInt(latencyMinInput.value) : null;
         const latencyMax = latencyMaxInput && latencyMaxInput.value ? parseInt(latencyMaxInput.value) : null;
+        const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
         return allProxies.filter(p => {
             const protocol = p.protocol.toLowerCase();
             const country = p.country_code ? p.country_code.toLowerCase() : '';
             const city = p.city ? p.city.toLowerCase() : '';
             const latency = p.latency || 0;
+            const countryName = getCountryName(p.country_code).toLowerCase();
 
             const matchesProtocol = protoFilter === '' || protocol.includes(protoFilter);
             const matchesCountry = countryFilterValue === '' || country.includes(countryFilterValue);
@@ -45,12 +48,50 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchesLatencyMin = latencyMin === null || latency >= latencyMin;
             const matchesLatencyMax = latencyMax === null || latency <= latencyMax;
 
-            return matchesProtocol && matchesCountry && matchesCity && matchesLatencyMin && matchesLatencyMax;
+            // Natural Language / Keyword Search
+            let matchesSearch = true;
+            if (searchQuery) {
+                 // Check if query has "fast" or "fastest" -> sort by latency logic handled outside but filtering implies low latency
+                 if (searchQuery.includes('fast')) {
+                      // Implicitly filter for < 1000ms if asking for fast
+                      if (latency > 1000) return false;
+                 }
+
+                 // Simple Keyword Matching
+                 const searchTerms = searchQuery.split(/\s+/);
+                 matchesSearch = searchTerms.every(term => {
+                     // Skip "fast", "fastest" for filtering (handled loosely above)
+                     if (term === 'fast' || term === 'fastest') return true;
+
+                     // Check numeric conditions like "<100ms"
+                     if (term.match(/^<(\d+)(ms)?$/)) {
+                         const limit = parseInt(term.match(/^<(\d+)(ms)?$/)[1]);
+                         return latency < limit;
+                     }
+                     if (term.match(/^>(\d+)(ms)?$/)) {
+                         const limit = parseInt(term.match(/^>(\d+)(ms)?$/)[1]);
+                         return latency > limit;
+                     }
+
+                     return protocol.includes(term) ||
+                            country.includes(term) ||
+                            countryName.includes(term) ||
+                            city.includes(term);
+                 });
+            }
+
+            return matchesProtocol && matchesCountry && matchesCity && matchesLatencyMin && matchesLatencyMax && matchesSearch;
         });
     };
 
     const renderTable = () => {
-        const filteredProxies = getFilteredProxies();
+        let filteredProxies = getFilteredProxies();
+
+        // Natural Language Sorting: "Fastest"
+        const searchQuery = searchInput ? searchInput.value.toLowerCase() : '';
+        if (searchQuery.includes('fastest')) {
+             currentSort = { key: 'latency', asc: true };
+        }
 
         // Update filter count
         if (filterCount) {
@@ -240,6 +281,18 @@ document.addEventListener('DOMContentLoaded', () => {
         renderTable();
     });
 
+    if (searchInput) {
+        // Debounce search input
+        let timeout = null;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                currentPage = 1;
+                renderTable();
+            }, 300);
+        });
+    }
+
     if (latencyMinInput) {
         latencyMinInput.addEventListener('input', renderTable);
     }
@@ -294,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cityFilter.value = '';
             if (latencyMinInput) latencyMinInput.value = '';
             if (latencyMaxInput) latencyMaxInput.value = '';
+            if (searchInput) searchInput.value = '';
             updateFlagDisplay('', 'country');
             updateFlagDisplay('', 'city');
             updateBackgroundGradient('');
