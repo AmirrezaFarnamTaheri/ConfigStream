@@ -64,23 +64,29 @@ def test_widgets_presence(page: Page):
 
     # Inject a mock fetch function that returns our data for metadata.json
     # We do this before navigation so it's available when the page loads
+    # We mock /api/stats AND /files/metadata.json to cover both paths in utils.js
     page.add_init_script(f"""
         const originalFetch = window.fetch;
         window.fetch = async (url, options) => {{
-            if (url.includes('metadata.json')) {{
+            if (url.includes('api/stats') || url.includes('metadata.json')) {{
                 return {{
                     ok: true,
+                    status: 200,
                     json: async () => ({mock_json})
                 }};
             }}
             return originalFetch(url, options);
         }};
+
+        // Mock window.api.fetchStatistics directly if needed
+        window.api = window.api || {{}};
+        window.api.fetchStatistics = async () => ({mock_json});
     """)
 
     page.goto(url)
 
-    # Map Container (Leaflet map)
-    expect(page.locator("#map-container")).to_be_visible()
+    # Globe Viz (Replaces Map Container in V4)
+    expect(page.locator("#globe-viz")).to_be_visible()
 
     # Stats cards should be updated
     # Wait for the loading class to be removed to ensure JS processed it

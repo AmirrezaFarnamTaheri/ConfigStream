@@ -114,7 +114,7 @@ jobs:
         with:
           path: |
             data/adaptive_timeout.db
-            data/source_quality.json
+            data/source_quality.db
             data/test_cache.json
             data/GeoLite2-City.mmdb
             output/.etag-cache.json
@@ -148,23 +148,6 @@ jobs:
         env:
           MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
         run: python -m configstream.cli update-databases
-
-      - name: Backup databases
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import sys
-          from configstream.backup import backup_databases
-          try:
-              created = backup_databases()  # return list of created paths
-          except Exception as e:
-              print(f"[backup] failed: {e}", file=sys.stderr)
-              sys.exit(1)
-          if not created:
-              print("[backup] no backups created", file=sys.stderr)
-              sys.exit(1)
-          print(f"[backup] created {len(created)} backup(s)")
-          PY
 
       - name: Run pipeline for Batch ${{ env.BATCH_NUMBER }}
         run: |
@@ -232,6 +215,15 @@ jobs:
           path: output/
           retention-days: 1
 
+      - name: Publish to IPFS
+        # IPFS Publishing Step using ipfs-car or similar
+        # For now, we'll assume a placeholder echo as full IPFS node setup in Actions is heavy
+        # Real implementation would involve installing ipfs-car and uploading CAR file to web3.storage or similar
+        run: |
+          echo "Simulating IPFS publish..."
+          # npm install -g ipfs-car
+          # ipfs-car --pack output --output output.car
+
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
@@ -245,6 +237,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: configstream-data
+          path: output/
+
+      # Add Frontend Assets to Output
+      - name: Copy Frontend Assets
+        run: |
+          cp -r frontend/* output/
+          # Ensure clean structure in output
+          # output/ now contains proxies.json, etc AND index.html, assets/
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

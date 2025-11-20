@@ -35,10 +35,17 @@ CREATE TABLE IF NOT EXISTS source_stats (
     last_checked INTEGER DEFAULT 0,
     reliability_score REAL DEFAULT 100.0,
     diversity_score REAL DEFAULT 0.0,
+    trust_score REAL DEFAULT 50.0,
     status TEXT DEFAULT 'active'
 )
 """
                 )
+                # Check if column exists (migration for existing DB)
+                cursor = conn.execute("PRAGMA table_info(source_stats)")
+                columns = [info[1] for info in cursor.fetchall()]
+                if "trust_score" not in columns:
+                    conn.execute("ALTER TABLE source_stats ADD COLUMN trust_score REAL DEFAULT 50.0")
+
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to init source quality DB: {e}")
@@ -103,7 +110,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
             url: The source URL
             fetched_count: How many valid config lines were parsed
             working_count: How many proxies actually passed the tests
-            diversity_score: A score (0-1) indicating geo-diversity (Gini index or unique countries)
+            diversity_score: A score (0-1) indicating geo-diversity
         """
         now = int(datetime.now().timestamp())
         # We consider it a failure if we fetched content but NOTHING worked
@@ -113,30 +120,39 @@ CREATE TABLE IF NOT EXISTS source_stats (
         try:
             with sqlite3.connect(self.db_path) as conn:
                 row = conn.execute(
-                    "SELECT total_fetched, total_working, consecutive_failures FROM source_stats WHERE url = ?",
+                    "SELECT total_fetched, total_working, consecutive_failures, reliability_score FROM source_stats WHERE url = ?",
                     (url,),
                 ).fetchone()
 
                 if row:
-                    tf, tw, cf = row
+                    tf, tw, cf, old_reliability = row
                     new_tf = tf + fetched_count
                     new_tw = tw + working_count
                     # Reset consecutive failures if we got at least one working proxy
                     new_cf = cf + 1 if is_failure else 0
 
-                    # Calculate Score: Simple percentage
-                    yield_score = (new_tw / new_tf * 100) if new_tf > 0 else 0.0
+                    # Calculate Score: Simple percentage (Immediate)
+                    yield_rate = (working_count / fetched_count) if fetched_count > 0 else 0.0
 
-                    # Weighted final score (70% yield, 30% diversity)
-                    final_reliability = (yield_score * 0.7) + (
-                        diversity_score * 100 * 0.3
-                    )
+                    # Long-term reliability (Weighted Moving Average)
+                    # Alpha = 0.1 -> slow moving average
+                    new_reliability = (old_reliability * 0.9) + (yield_rate * 100 * 0.1)
+
+                    # Trust Score Calculation
+                    # Factors:
+                    # 1. Reliability (Yield Rate) - 50%
+                    # 2. Diversity (Country Spread) - 30%
+                    # 3. Consistency (Low Failure Streaks) - 20%
+
+                    consistency_score = max(0, 100 - (new_cf * 10)) # -10 points per consecutive failure
+
+                    trust_score = (new_reliability * 0.5) + (diversity_score * 100 * 0.3) + (consistency_score * 0.2)
 
                     conn.execute(
                         """
                         UPDATE source_stats
                         SET total_fetched=?, total_working=?, consecutive_failures=?,
-                        last_checked=?, reliability_score=?, diversity_score=?
+                        last_checked=?, reliability_score=?, diversity_score=?, trust_score=?
                         WHERE url=?
                         """,
                         (
@@ -144,27 +160,29 @@ CREATE TABLE IF NOT EXISTS source_stats (
                             new_tw,
                             new_cf,
                             now,
-                            final_reliability,
+                            new_reliability,
                             diversity_score,
+                            trust_score,
                             url,
                         ),
                     )
                 else:
                     # First time seeing this source
-                    yield_score = (
-                        (working_count / fetched_count * 100)
+                    yield_rate = (
+                        (working_count / fetched_count)
                         if fetched_count > 0
                         else 0.0
                     )
-                    final_reliability = (yield_score * 0.7) + (
-                        diversity_score * 100 * 0.3
-                    )
+                    initial_reliability = yield_rate * 100
+
+                    consistency_score = 100 if not is_failure else 90
+                    trust_score = (initial_reliability * 0.5) + (diversity_score * 100 * 0.3) + (consistency_score * 0.2)
 
                     conn.execute(
                         """
                         INSERT INTO source_stats
-                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score, diversity_score)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score, diversity_score, trust_score)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             url,
@@ -172,8 +190,9 @@ CREATE TABLE IF NOT EXISTS source_stats (
                             working_count,
                             1 if is_failure else 0,
                             now,
-                            final_reliability,
+                            initial_reliability,
                             diversity_score,
+                            trust_score,
                         ),
                     )
 
@@ -182,11 +201,11 @@ CREATE TABLE IF NOT EXISTS source_stats (
             logger.error(f"Failed to update source stats for {url}: {e}")
 
     def get_source_score(self, url: str) -> float:
-        """Get the current reliability score for a source."""
+        """Get the current trust score for a source."""
         try:
             with sqlite3.connect(self.db_path) as conn:
                 row = conn.execute(
-                    "SELECT reliability_score FROM source_stats WHERE url = ?", (url,)
+                    "SELECT trust_score FROM source_stats WHERE url = ?", (url,)
                 ).fetchone()
                 return row[0] if row else 50.0  # Default to neutral
         except Exception:
@@ -195,7 +214,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
 
 def calculate_diversity_score(proxies: List[Proxy]) -> float:
     """
-    Calculates a Gini-based diversity score for a list of proxies based on country.
+    Calculates a Gini-Simpson based diversity score for a list of proxies based on country.
     Score ranges from 0.0 (all same country) to 1.0 (perfectly distributed).
     """
     if not proxies:
@@ -207,32 +226,7 @@ def calculate_diversity_score(proxies: List[Proxy]) -> float:
         cc = p.country_code or "XX"
         counts[cc] = counts.get(cc, 0) + 1
 
-    # Calculate Gini Coefficient for country distribution
-    # Sort counts
-    sorted_counts = sorted(counts.values())
-    n = len(sorted_counts)
-    if n == 0:
-        return 0.0
-
-    # Gini coefficient formula: G = (2 * sum(i * x_i) - (n + 1) * sum(x_i)) / (n * sum(x_i))
-    # where x_i are sorted values
-
-    # However, for diversity, we often use Gini-Simpson Index (1 - sum(p^2)) which is what was here.
-    # The prompt asks for "Gini index". If it means Gini Coefficient of inequality:
-    # Low Gini (0) = Equal distribution (High Diversity). High Gini (1) = Unequal (Low Diversity).
-    # So "Diversity Score" should be 1 - Gini Coefficient.
-
-    # Let's calculate the actual Gini Coefficient of the counts.
-    # If we have [10, 10, 10], Gini is 0. Diversity is 1.
-    # If we have [30], Gini is 0 (technically undefined for n=1 but practically 0 inequality within the set, but low diversity compared to potential).
-    # Wait, Gini coefficient measures inequality among the *existing* groups.
-    # If I have 1 country with 100 proxies, Gini is 0 (perfect equality among the 1 group).
-    # But that's NOT diverse.
-
-    # Therefore, the Gini-Simpson index (1 - sum(p^2)) is the correct metric for DIVERSITY.
-    # I will stick with Gini-Simpson but clarify the naming.
-    # It is also known as the Gibbs-Martin index or Blau index.
-
+    # Gini-Simpson Index: 1 - sum(p^2)
     sum_sq_probs = sum((c / total) ** 2 for c in counts.values())
     diversity_index = 1.0 - sum_sq_probs
 

@@ -1,94 +1,144 @@
-/**
- * Analytics Logic for ConfigStream
- * Handles Charts and Maps
- */
+// ConfigStream Analytics - Globe & Charts
+// Uses globe.gl and Chart.js
 
 document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Fetch metadata
-        const response = await fetch('files/metadata.json');
-        if (!response.ok) throw new Error('Failed to load metadata');
-        const data = await response.json();
-
-        // Populate Summary Cards
-        updateSummaryCards(data);
-
-        // Initialize Charts
-        initProtocolChart(data.protocols, data.protocol_colors);
-        initLatencyChart(data);
-        initCountryChart(data.countries);
-
-        // Initialize Map
-        initMap(data.countries);
-
-    } catch (e) {
-        console.error('Analytics Error:', e);
-        const container = document.querySelector('.analytics-grid');
-        if (container) {
-             container.innerHTML = `<p class="error text-center" style="grid-column: 1/-1; color: var(--danger-color);">Failed to load analytics data. Please try again later.</p>`;
+    // Initialize Stats
+    if (window.api && window.api.fetchStatistics) {
+        try {
+            const stats = await window.api.fetchStatistics();
+            updateStats(stats);
+            initCharts(stats);
+            initGlobe(stats);
+        } catch (e) {
+            console.error("Failed to load analytics data:", e);
         }
-        // Reset cards
-        document.querySelectorAll('.stat-value').forEach(el => el.innerText = '-');
-        document.querySelectorAll('.stat-value').forEach(el => el.classList.remove('loading'));
     }
 });
 
-function updateSummaryCards(data) {
-    // Update DOM elements
-    const totalSourced = document.getElementById('totalSourced');
-    const totalConfigs = document.getElementById('totalConfigs');
-    const workingConfigs = document.getElementById('workingConfigs');
-    const lastUpdated = document.getElementById('lastUpdated');
-
-    if (totalSourced) {
-        totalSourced.innerText = data.total_fetched || 0;
-        totalSourced.classList.remove('loading');
-    }
-    if (totalConfigs) {
-        totalConfigs.innerText = data.total_proxies || 0; // Using total unique tested as proxies
-        totalConfigs.classList.remove('loading');
-    }
-    if (workingConfigs) {
-        workingConfigs.innerText = data.total_working || 0;
-        workingConfigs.classList.remove('loading');
-    }
-    if (lastUpdated) {
-        if (data.last_updated_utc) {
-             const date = new Date(data.last_updated_utc);
-             // Format: "2 hours ago" or local time
-             lastUpdated.innerText = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        } else {
-             lastUpdated.innerText = "Just now";
+function updateStats(data) {
+    const update = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.textContent = val;
+            el.classList.remove('loading');
         }
-        lastUpdated.classList.remove('loading');
-    }
-}
-
-function initProtocolChart(protocols, colors) {
-    const ctx = document.getElementById('protocolChart');
-    if (!ctx) return;
-
-    // Default colors if not provided
-    const defaultColors = {
-        "vmess": "#FF6B6B",
-        "vless": "#4ECDC4",
-        "trojan": "#96CEB4",
-        "shadowsocks": "#45B7D1",
-        "hysteria2": "#DFE6E9",
-        "wireguard": "#74B9FF",
-        "socks5": "#FFA502",
-        "http": "#7EFFF5"
     };
 
-    const bgColors = Object.keys(protocols).map(p => (colors && colors[p]) || defaultColors[p] || '#cccccc');
+    update('totalSourced', data.total_fetched || 0);
+    update('totalConfigs', data.total_proxies || 0);
+    update('workingConfigs', data.total_working || 0);
 
-    new Chart(ctx.getContext('2d'), {
+    const date = new Date(data.last_updated_utc);
+    update('lastUpdated', date.toLocaleString());
+}
+
+function initGlobe(data) {
+    const container = document.getElementById('globe-viz');
+    if (!container) return;
+
+    // Prepare data for globe
+    // We need lat/lng for countries. We can use a static mapping or fetch a geojson.
+    // For this demo, we'll use random points within countries or centroids if available.
+    // Since we only have country codes, we'll map country codes to approximate lat/lng.
+
+    const countryCentroids = {
+        "US": { lat: 37.0902, lng: -95.7129, name: "United States" },
+        "CN": { lat: 35.8617, lng: 104.1954, name: "China" },
+        "RU": { lat: 61.5240, lng: 105.3188, name: "Russia" },
+        "DE": { lat: 51.1657, lng: 10.4515, name: "Germany" },
+        "FR": { lat: 46.2276, lng: 2.2137, name: "France" },
+        "GB": { lat: 55.3781, lng: -3.4360, name: "United Kingdom" },
+        "CA": { lat: 56.1304, lng: -106.3468, name: "Canada" },
+        "JP": { lat: 36.2048, lng: 138.2529, name: "Japan" },
+        "KR": { lat: 35.9078, lng: 127.7669, name: "South Korea" },
+        "SG": { lat: 1.3521, lng: 103.8198, name: "Singapore" },
+        "NL": { lat: 52.1326, lng: 5.2913, name: "Netherlands" },
+        "IN": { lat: 20.5937, lng: 78.9629, name: "India" },
+        "BR": { lat: -14.2350, lng: -51.9253, name: "Brazil" },
+        "IR": { lat: 32.4279, lng: 53.6880, name: "Iran" },
+        // Add more as needed
+    };
+
+    const arcsData = [];
+    const pointsData = [];
+
+    // Create arcs from "Internet" (Abstract center) to Countries
+    // Or simply visualize active nodes.
+
+    const countryStats = data.country_stats || {};
+    const maxCount = Math.max(...Object.values(countryStats));
+
+    Object.entries(countryStats).forEach(([cc, count]) => {
+        const info = countryCentroids[cc] || { lat: (Math.random()*160)-80, lng: (Math.random()*360)-180 };
+
+        // Points (Active Nodes)
+        pointsData.push({
+            lat: info.lat,
+            lng: info.lng,
+            size: Math.sqrt(count) / 5,
+            color: getScoreColor(count / maxCount),
+            name: `${cc}: ${count} proxies`
+        });
+
+        // Arcs (Traffic Flow Simulation)
+        // Source: Random point, Target: Country
+        // Just visual candy
+        if (count > 5) {
+            arcsData.push({
+                startLat: info.lat + (Math.random() * 10 - 5),
+                startLng: info.lng + (Math.random() * 10 - 5),
+                endLat: info.lat,
+                endLng: info.lng,
+                color: [['#5E55F1', '#A855F7'][Math.round(Math.random())]],
+            });
+        }
+    });
+
+    const Globe = window.Globe()
+      (container)
+      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+      .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+      .pointsData(pointsData)
+      .pointAltitude(0.01)
+      .pointRadius('size')
+      .pointColor('color')
+      .pointLabel('name')
+      .arcsData(arcsData)
+      .arcColor('color')
+      .arcDashLength(0.4)
+      .arcDashGap(0.2)
+      .arcDashAnimateTime(1500)
+      .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
+
+    // Auto-rotate
+    Globe.controls().autoRotate = true;
+    Globe.controls().autoRotateSpeed = 0.5;
+
+    // Responsiveness
+    window.addEventListener('resize', () => {
+        Globe.width(container.clientWidth);
+        Globe.height(container.clientHeight);
+    });
+}
+
+function initCharts(data) {
+    // Common Chart Options
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = '#1e293b';
+
+    // 1. Protocol Distribution (Doughnut)
+    const protoCtx = document.getElementById('protocolChart').getContext('2d');
+    new Chart(protoCtx, {
         type: 'doughnut',
         data: {
-            labels: Object.keys(protocols).map(k => k.toUpperCase()),
+            labels: Object.keys(data.protocols || {}),
             datasets: [{
-                data: Object.values(protocols),
-                backgroundColor: bgColors,
+                data: Object.values(data.protocols || {}),
+                backgroundColor: [
+                    '#FF6B6B', '#4ECDC4', '#96CEB4', '#45B7D1',
+                    '#FFEAA7', '#DFE6E9', '#A29BFE', '#74B9FF'
+                ],
                 borderWidth: 0
             }]
         },
@@ -96,197 +146,61 @@ function initProtocolChart(protocols, colors) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        color: getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()
-                    }
-                }
+                legend: { position: 'right' }
             }
         }
     });
-}
 
-function initCountryChart(countries) {
-    const ctx = document.getElementById('countryChart');
-    if (!ctx) return;
-
-    // Sort and take top 10
-    const sorted = Object.entries(countries).sort((a, b) => b[1] - a[1]).slice(0, 10);
-
-    new Chart(ctx.getContext('2d'), {
+    // 2. Latency Distribution (Bar)
+    const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+    const latData = data.latency_distribution || {};
+    new Chart(latencyCtx, {
         type: 'bar',
         data: {
-            labels: sorted.map(i => i[0]),
+            labels: ['Fast (<100ms)', 'Medium (100-500ms)', 'Slow (500-1000ms)', 'Laggy (>1s)'],
+            datasets: [{
+                label: 'Proxies',
+                data: [latData.fast, latData.medium, latData.slow, latData.very_slow],
+                backgroundColor: ['#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'],
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+
+    // 3. Top Countries (Horizontal Bar)
+    const countryCtx = document.getElementById('countryChart').getContext('2d');
+    const sortedCountries = Object.entries(data.country_stats || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    new Chart(countryCtx, {
+        type: 'bar',
+        indexAxis: 'y',
+        data: {
+            labels: sortedCountries.map(x => x[0]),
             datasets: [{
                 label: 'Active Proxies',
-                data: sorted.map(i => i[1]),
-                backgroundColor: '#3b82f6',
+                data: sortedCountries.map(x => x[1]),
+                backgroundColor: '#5E55F1',
                 borderRadius: 4
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: getComputedStyle(document.body).getPropertyValue('--border').trim()
-                    },
-                    ticks: {
-                        color: getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        color: getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()
-                    }
-                }
-            }
+            maintainAspectRatio: false
         }
     });
 }
 
-function initLatencyChart(data) {
-    const ctx = document.getElementById('latencyChart');
-    if (!ctx) return;
-
-    let chartData, labels;
-
-    if (data.latency_distribution) {
-        labels = ['<100ms', '100-500ms', '500-1000ms', '>1s'];
-        chartData = [
-            data.latency_distribution.fast || 0,
-            data.latency_distribution.medium || 0,
-            data.latency_distribution.slow || 0,
-            data.latency_distribution.very_slow || 0
-        ];
-    } else {
-        // No data state
-        labels = ['No Data'];
-        chartData = [0];
-    }
-
-    new Chart(ctx.getContext('2d'), {
-        type: 'bar', // Changed to bar for histogram-like view
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Proxies Count',
-                data: chartData,
-                backgroundColor: [
-                    '#10b981', // Green
-                    '#3b82f6', // Blue
-                    '#f59e0b', // Yellow
-                    '#ef4444'  // Red
-                ],
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.parsed.y} Proxies`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: getComputedStyle(document.body).getPropertyValue('--border').trim()
-                    },
-                     ticks: {
-                        color: getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()
-                    }
-                },
-                x: {
-                    grid: { display: false },
-                     ticks: {
-                        color: getComputedStyle(document.body).getPropertyValue('--text-secondary').trim()
-                    }
-                }
-            }
-        }
-    });
-}
-
-function initMap(countries) {
-    if (!window.L) return; // Leaflet not loaded
-
-    const container = document.getElementById('map-container');
-    if (!container) return;
-
-    // Fix Leaflet icon paths
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    });
-
-    const map = L.map('map-container', {
-        scrollWheelZoom: false,
-        zoomControl: false
-    }).setView([20, 0], 2);
-
-    L.control.zoom({
-        position: 'bottomright'
-    }).addTo(map);
-
-    // Dark/Light mode tile switching could be implemented here, but for now consistent dark-ish map fits themes
-    const isDark = document.body.classList.contains('dark');
-    const tileUrl = isDark
-        ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-        : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-
-    L.tileLayer(tileUrl, {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-    }).addTo(map);
-
-    // Approximate coordinates for common countries
-    const countryCoords = {
-        'US': [37.09, -95.71], 'CN': [35.86, 104.19], 'JP': [36.20, 138.25],
-        'DE': [51.16, 10.45], 'RU': [61.52, 105.31], 'FR': [46.22, 2.21],
-        'GB': [55.37, -3.43], 'BR': [-14.23, -51.92], 'IN': [20.59, 78.96],
-        'CA': [56.13, -106.34], 'AU': [-25.27, 133.77], 'SG': [1.35, 103.81],
-        'NL': [52.13, 5.29], 'KR': [35.90, 127.76], 'TR': [38.96, 35.24],
-        'IR': [32.42, 53.68], 'AE': [23.42, 53.84], 'SA': [23.88, 45.07],
-        'IT': [41.87, 12.56], 'ES': [40.46, -3.74], 'PL': [51.91, 19.14],
-        'UA': [48.37, 31.16], 'ID': [-0.78, 113.92], 'VN': [14.05, 108.27],
-        'TH': [15.87, 100.99], 'MY': [4.21, 101.97], 'HK': [22.31, 114.16],
-        'TW': [23.69, 120.96]
-    };
-
-    for (const [code, count] of Object.entries(countries)) {
-        if (countryCoords[code]) {
-            // Scale radius
-            const radius = Math.min(Math.log(count) * 4 + 4, 25);
-
-            L.circleMarker(countryCoords[code], {
-                radius: radius,
-                color: '#3b82f6',
-                fillColor: '#3b82f6',
-                fillOpacity: 0.6,
-                weight: 1
-            })
-            .bindPopup(`<b>${code}</b>: ${count} Proxies`)
-            .addTo(map);
-        }
-    }
+function getScoreColor(score) {
+    if (score > 0.8) return '#00ff00';
+    if (score > 0.5) return '#ffff00';
+    return '#ff0000';
 }
