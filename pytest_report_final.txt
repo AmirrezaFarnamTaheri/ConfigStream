@@ -1,0 +1,51 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.4.2, pluggy-1.6.0 -- /home/jules/.pyenv/versions/3.12.12/bin/python3.12
+cachedir: .pytest_cache
+hypothesis profile 'default'
+rootdir: /app
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.11.0, pyfakefs-5.10.2, respx-0.22.0, cov-7.0.0, base-url-2.1.0, asyncio-1.3.0, aiohttp-1.1.0, hypothesis-6.148.2, playwright-0.7.1
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 38 items
+
+tests/e2e/test_frontend.py::test_homepage_loads[chromium] PASSED         [  2%]
+tests/e2e/test_frontend.py::test_pwa_manifest_link[chromium] PASSED      [  5%]
+tests/e2e/test_frontend.py::test_widgets_presence[chromium] PASSED       [  7%]
+tests/fuzz/test_parsers.py::test_parser_does_not_crash PASSED            [ 10%]
+tests/fuzz/test_parsers.py::test_extractor_resilience PASSED             [ 13%]
+tests/integration/test_pipeline.py::test_pipeline_full_run SKIPPED (...) [ 15%]
+tests/test_anomaly.py::test_anomaly_detector_init PASSED                 [ 18%]
+tests/test_anomaly.py::test_is_safe_new_source PASSED                    [ 21%]
+tests/test_anomaly.py::test_is_safe_small_batch PASSED                   [ 23%]
+tests/test_anomaly.py::test_record_and_history PASSED                    [ 26%]
+tests/test_source_quality.py::test_diversity_score_empty PASSED          [ 28%]
+tests/test_source_quality.py::test_diversity_score_single_country PASSED [ 31%]
+tests/test_source_quality.py::test_diversity_score_high PASSED           [ 34%]
+tests/unit/test_adapters.py::test_get_adapter PASSED                     [ 36%]
+tests/unit/test_adapters.py::test_surge_export PASSED                    [ 39%]
+tests/unit/test_adapters.py::test_loon_export PASSED                     [ 42%]
+tests/unit/test_adapters.py::test_qx_export PASSED                       [ 44%]
+tests/unit/test_adapters.py::test_sip008_export PASSED                   [ 47%]
+tests/unit/test_auto_detect.py::TestAutoDetect::test_detect_hysteria2 PASSED [ 50%]
+tests/unit/test_auto_detect.py::TestAutoDetect::test_detect_ss PASSED    [ 52%]
+tests/unit/test_auto_detect.py::TestAutoDetect::test_detect_vless PASSED [ 55%]
+tests/unit/test_auto_detect.py::TestAutoDetect::test_detect_vmess PASSED [ 57%]
+tests/unit/test_auto_detect.py::TestAutoDetect::test_fallback_detection PASSED [ 60%]
+tests/unit/test_auto_detect.py::TestAutoDetect::test_invalid_config PASSED [ 63%]
+tests/unit/test_consolidation.py::test_calculate_compound_score PASSED   [ 65%]
+tests/unit/test_consolidation.py::test_get_country_flag PASSED           [ 68%]
+tests/unit/test_consolidation.py::test_rank_and_rename_proxies PASSED    [ 71%]
+tests/unit/test_consolidation.py::test_select_top_configs PASSED         [ 73%]
+tests/unit/test_fetcher.py::TestFetcherSync::test_adaptive_timeout_logic_sync PASSED [ 76%]
+tests/unit/test_fetcher.py::TestFetcherSync::test_fetch_multiple_batch_sync PASSED [ 78%]
+tests/unit/test_output.py::test_generate_base64 PASSED                   [ 81%]
+tests/unit/test_output.py::test_generate_clash PASSED                    [ 84%]
+tests/unit/test_output.py::test_generate_singbox PASSED                  [ 86%]
+tests/unit/test_output.py::test_serialize_proxy PASSED                   [ 89%]
+tests/unit/test_scheduler.py::TestSmartScheduler::test_filter_proxies PASSED [ 92%]
+tests/unit/test_scheduler.py::TestSmartScheduler::test_should_not_retest_healthy_recent PASSED [ 94%]
+tests/unit/test_scheduler.py::TestSmartScheduler::test_should_retest_failed_previously PASSED [ 97%]
+tests/unit/test_scheduler.py::TestSmartScheduler::test_should_retest_not_in_cache PASSED [100%]
+
+======================== 37 passed, 1 skipped in 7.30s =========================

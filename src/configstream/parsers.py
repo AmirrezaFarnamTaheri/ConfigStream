@@ -416,9 +416,9 @@ def _parse_generic_url_scheme(config: str) -> Optional[Proxy]:
 
         # Ensure hostname has at least one dot or is localhost (basic validity)
         if "." not in parsed.hostname and parsed.hostname != "localhost":
-             # Only allow if it looks like an IP (though rare without dots except IPv6)
-             # This prevents "garbage" being accepted if check above fails
-             return None
+            # Only allow if it looks like an IP (though rare without dots except IPv6)
+            # This prevents "garbage" being accepted if check above fails
+            return None
 
         default_ports = {
             "http": 80,
