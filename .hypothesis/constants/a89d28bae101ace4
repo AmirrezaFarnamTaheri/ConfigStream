@@ -1,4 +1,0 @@
-# file: /app/src/configstream/models.py
-# hypothesis_version: 6.148.2
-
-['alpn', 'path', 'sni']

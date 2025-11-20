@@ -222,7 +222,8 @@ async function fetchStatistics() {
     } catch (apiError) {
         console.warn('API fetch failed, trying static fallback for stats:', apiError);
         // Fallback to static file
-        url = `output/metadata.json${getCacheBust()}`;
+        // We use 'files/' path convention which works for both Server (mounted) and Static (if structured correctly)
+        url = `files/metadata.json${getCacheBust()}`;
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
         console.log('Fetched statistics data from static:', data);

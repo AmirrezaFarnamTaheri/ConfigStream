@@ -1,4 +1,0 @@
-# file: /app/src/configstream/auto_detect.py
-# hypothesis_version: 6.148.2
-
-[443, 1080, 8443, 10808, '://', 'Parser %s failed: %s', 'http', 'https', 'hy2', 'hysteria', 'hysteria2', 'shadowsocks', 'socks', 'socks4', 'socks5', 'ss', 'trojan', 'tuic', 'vless', 'vmess', 'wg', 'wireguard', '{']
