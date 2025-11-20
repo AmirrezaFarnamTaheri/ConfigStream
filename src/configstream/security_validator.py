@@ -98,7 +98,9 @@ class SecurityValidator:
                 category = SECURITY_CATEGORIES["HONEYPOT_SUSPECTED"]
                 if category not in categorized_issues:
                     categorized_issues[category] = []
-                categorized_issues[category].append("Potentially malicious honeypot port/ASN")
+                categorized_issues[category].append(
+                    "Potentially malicious honeypot port/ASN"
+                )
 
         # Address validation
         if policy.check_suspicious_domains:
@@ -113,11 +115,12 @@ class SecurityValidator:
         # Blocklist Validation
         if policy.check_blocklist:
             if DEFAULT_BLOCKLIST.is_blocked(proxy.address):
-                 category = SECURITY_CATEGORIES["ADDRESS_BLOCKED"]
-                 if category not in categorized_issues:
-                     categorized_issues[category] = []
-                 categorized_issues[category].append(f"Address {proxy.address} is in FireHol Level 1 blocklist")
-
+                category = SECURITY_CATEGORIES["ADDRESS_BLOCKED"]
+                if category not in categorized_issues:
+                    categorized_issues[category] = []
+                categorized_issues[category].append(
+                    f"Address {proxy.address} is in FireHol Level 1 blocklist"
+                )
 
         # Protocol validation
         if policy.check_protocols:

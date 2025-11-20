@@ -1,6 +1,7 @@
-import json
+import json  # noqa: F401
 from typing import List, Dict, Any, Optional
 from .models import Proxy
+
 
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """
@@ -23,27 +24,24 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         conf["skip-cert-verify"] = True
 
         if is_tls:
-             conf["servername"] = proxy.details.get("sni", "") or proxy.details.get("host", "")
+            conf["servername"] = proxy.details.get("sni", "") or proxy.details.get(
+                "host", ""
+            )
 
         net = proxy.details.get("net") or proxy.details.get("network")
         if net == "ws":
-             conf["network"] = "ws"
-             conf["ws-opts"] = {
-                 "path": proxy.details.get("path", "/"),
-                 "headers": {}
-             }
-             if proxy.details.get("host"):
-                 conf["ws-opts"]["headers"]["Host"] = proxy.details.get("host")
+            conf["network"] = "ws"
+            conf["ws-opts"] = {"path": proxy.details.get("path", "/"), "headers": {}}
+            if proxy.details.get("host"):
+                conf["ws-opts"]["headers"]["Host"] = proxy.details.get("host")
         elif net == "grpc":
-             conf["network"] = "grpc"
-             conf["grpc-opts"] = {
-                 "grpc-service-name": proxy.details.get("serviceName", "")
-             }
+            conf["network"] = "grpc"
+            conf["grpc-opts"] = {
+                "grpc-service-name": proxy.details.get("serviceName", "")
+            }
         elif net == "h2":
-             conf["network"] = "h2"
-             conf["h2-opts"] = {
-                 "path": proxy.details.get("path", "/")
-             }
+            conf["network"] = "h2"
+            conf["h2-opts"] = {"path": proxy.details.get("path", "/")}
 
     elif proxy.protocol == "trojan":
         conf["password"] = proxy.uuid
@@ -59,22 +57,24 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         conf["servername"] = proxy.details.get("sni", "")
 
         if proxy.details.get("flow"):
-             conf["flow"] = proxy.details.get("flow")
+            conf["flow"] = proxy.details.get("flow")
 
         if proxy.details.get("security") == "reality":
-             conf["client-fingerprint"] = proxy.details.get("fp", "chrome")
-             conf["reality-opts"] = {
-                 "public-key": proxy.details.get("pbk", ""),
-                 "short-id": proxy.details.get("sid", "")
-             }
+            conf["client-fingerprint"] = proxy.details.get("fp", "chrome")
+            conf["reality-opts"] = {
+                "public-key": proxy.details.get("pbk", ""),
+                "short-id": proxy.details.get("sid", ""),
+            }
 
         net = proxy.details.get("type") or proxy.details.get("net")
         if net == "ws":
-             conf["network"] = "ws"
-             conf["ws-opts"] = {"path": proxy.details.get("path", "/")}
+            conf["network"] = "ws"
+            conf["ws-opts"] = {"path": proxy.details.get("path", "/")}
         elif net == "grpc":
-             conf["network"] = "grpc"
-             conf["grpc-opts"] = {"grpc-service-name": proxy.details.get("serviceName", "")}
+            conf["network"] = "grpc"
+            conf["grpc-opts"] = {
+                "grpc-service-name": proxy.details.get("serviceName", "")
+            }
 
     elif proxy.protocol == "shadowsocks":
         conf["type"] = "ss"
@@ -83,8 +83,8 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         plugin = proxy.details.get("plugin")
         if plugin:
-             conf["plugin"] = plugin
-             conf["plugin-opts"] = proxy.details.get("plugin_opts", {})
+            conf["plugin"] = plugin
+            conf["plugin-opts"] = proxy.details.get("plugin_opts", {})
 
     elif proxy.protocol == "hysteria2":
         conf["type"] = "hysteria2"
@@ -110,12 +110,13 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         conf["public-key"] = proxy.details.get("public_key", "")
         conf["udp"] = True
         if proxy.details.get("reserved"):
-             conf["reserved"] = proxy.details.get("reserved")
+            conf["reserved"] = proxy.details.get("reserved")
 
     else:
         return None
 
     return conf
+
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """
@@ -137,17 +138,19 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if is_tls:
             conf["tls"]["enabled"] = True
             conf["tls"]["insecure"] = True
-            conf["tls"]["server_name"] = proxy.details.get("sni", "") or proxy.details.get("host", "")
+            conf["tls"]["server_name"] = proxy.details.get(
+                "sni", ""
+            ) or proxy.details.get("host", "")
 
         net = proxy.details.get("net") or proxy.details.get("network")
         if net == "ws":
-             conf["transport"] = {
-                 "type": "ws",
-                 "path": proxy.details.get("path", "/"),
-                 "headers": {}
-             }
-             if proxy.details.get("host"):
-                 conf["transport"]["headers"]["Host"] = proxy.details.get("host")
+            conf["transport"] = {
+                "type": "ws",
+                "path": proxy.details.get("path", "/"),
+                "headers": {},
+            }
+            if proxy.details.get("host"):
+                conf["transport"]["headers"]["Host"] = proxy.details.get("host")
 
     elif proxy.protocol == "trojan":
         conf["type"] = "trojan"
@@ -155,7 +158,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         conf["tls"] = {
             "enabled": True,
             "insecure": True,
-            "server_name": proxy.details.get("sni", "")
+            "server_name": proxy.details.get("sni", ""),
         }
 
     elif proxy.protocol == "vless":
@@ -165,28 +168,28 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         conf["tls"] = {
             "enabled": True,
             "insecure": True,
-            "server_name": proxy.details.get("sni", "")
+            "server_name": proxy.details.get("sni", ""),
         }
         if proxy.details.get("security") == "reality":
-             conf["tls"]["reality"] = {
-                 "enabled": True,
-                 "public_key": proxy.details.get("pbk", ""),
-                 "short_id": proxy.details.get("sid", "")
-             }
-             if proxy.details.get("fp"):
-                  conf["tls"]["utls"] = {"enabled": True, "fingerprint": proxy.details.get("fp")}
+            conf["tls"]["reality"] = {
+                "enabled": True,
+                "public_key": proxy.details.get("pbk", ""),
+                "short_id": proxy.details.get("sid", ""),
+            }
+            if proxy.details.get("fp"):
+                conf["tls"]["utls"] = {
+                    "enabled": True,
+                    "fingerprint": proxy.details.get("fp"),
+                }
 
         net = proxy.details.get("type") or proxy.details.get("net")
         if net == "ws":
-             conf["transport"] = {
-                 "type": "ws",
-                 "path": proxy.details.get("path", "/")
-             }
+            conf["transport"] = {"type": "ws", "path": proxy.details.get("path", "/")}
         elif net == "grpc":
-             conf["transport"] = {
-                 "type": "grpc",
-                 "service_name": proxy.details.get("serviceName", "")
-             }
+            conf["transport"] = {
+                "type": "grpc",
+                "service_name": proxy.details.get("serviceName", ""),
+            }
 
     elif proxy.protocol == "shadowsocks":
         conf["type"] = "shadowsocks"
@@ -200,13 +203,13 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         conf["tls"] = {
             "enabled": True,
             "insecure": True,
-            "server_name": proxy.details.get("sni", "")
+            "server_name": proxy.details.get("sni", ""),
         }
         if proxy.details.get("obfs"):
-             conf["obfs"] = {
-                 "type": "salamander", # Common H2 obfs
-                 "password": proxy.details.get("obfs-password", "")
-             }
+            conf["obfs"] = {
+                "type": "salamander",  # Common H2 obfs
+                "password": proxy.details.get("obfs-password", ""),
+            }
 
     elif proxy.protocol == "tuic":
         conf["type"] = "tuic"
@@ -215,7 +218,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         conf["tls"] = {
             "enabled": True,
             "insecure": True,
-            "server_name": proxy.details.get("sni", "")
+            "server_name": proxy.details.get("sni", ""),
         }
 
     elif proxy.protocol == "ssh":
@@ -239,7 +242,7 @@ class SurgeAdapter:
             "dns-server = system, 8.8.8.8",
             "skip-proxy = 127.0.0.1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 100.64.0.0/10, localhost, *.local",
             "",
-            "[Proxy]"
+            "[Proxy]",
         ]
         names = []
         for i, p in enumerate(proxies):
@@ -253,7 +256,7 @@ class SurgeAdapter:
                 if p.details.get("tls"):
                     line += ", tls=true"
                 if p.details.get("net") == "ws":
-                     line += f", ws=true, ws-path={p.details.get('path', '/')}"
+                    line += f", ws=true, ws-path={p.details.get('path', '/')}"
 
             elif p.protocol == "trojan":
                 line += f", password={p.uuid}"
@@ -273,12 +276,11 @@ class SurgeAdapter:
         lines.append(f"Proxy = select, {', '.join(names)}")
         return "\n".join(lines)
 
+
 class LoonAdapter:
     @staticmethod
     def generate_conf(proxies: List[Proxy]) -> str:
-        lines = [
-            "[Proxy]"
-        ]
+        lines = ["[Proxy]"]
         for i, p in enumerate(proxies):
             name = f"{p.country_code}_{p.protocol}_{i+1}"
 
@@ -288,23 +290,24 @@ class LoonAdapter:
                 if p.details.get("net") == "ws":
                     line += f", transport=ws, path={p.details.get('path', '/')}"
                     if p.details.get("host"):
-                         line += f", host={p.details['host']}"
+                        line += f", host={p.details['host']}"
                 if p.details.get("tls"):
                     line += ", over-tls=true"
 
             elif p.protocol == "trojan":
                 line = f"{name} = trojan, {p.address}, {p.port}, password={p.uuid}"
                 if p.details.get("sni"):
-                     line += f", sni={p.details['sni']}"
+                    line += f", sni={p.details['sni']}"
 
             elif p.protocol == "shadowsocks":
-                 line = f"{name} = shadowsocks, {p.address}, {p.port}, method={p.details.get('method')}, password={p.details.get('password')}"
+                line = f"{name} = shadowsocks, {p.address}, {p.port}, method={p.details.get('method')}, password={p.details.get('password')}"
 
             else:
-                continue # Skip unsupported types for Loon for now
+                continue  # Skip unsupported types for Loon for now
 
             lines.append(line)
         return "\n".join(lines)
+
 
 class QuantumultXAdapter:
     @staticmethod
@@ -312,6 +315,6 @@ class QuantumultXAdapter:
         # Quantumult X uses URIs mostly
         lines = []
         for p in proxies:
-             if p.config and "://" in p.config:
-                  lines.append(p.config)
+            if p.config and "://" in p.config:
+                lines.append(p.config)
         return "\n".join(lines)
