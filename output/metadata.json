@@ -1,5 +1,1 @@
-{
-    "protocol_colors": {
-        "vmess": "#FF6B6B"
-    }
-}
+{"last_updated_utc": "2023-01-01T00:00:00Z", "total_proxies": 100, "total_working": 50, "total_fetched": 200, "duration_seconds": 10, "protocols": {"vmess": 50}, "countries": {"US": 50}, "country_stats": {"US": 50}, "latency_distribution": {"fast": 10, "medium": 20, "slow": 10, "very_slow": 10}, "protocol_colors": {}}

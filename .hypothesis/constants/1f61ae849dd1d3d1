@@ -1,4 +1,0 @@
-# file: /app/src/configstream/selection.py
-# hypothesis_version: 6.148.2
-
-[1000, 'inf', 'selected_count', 'selection_ratio', 'total_pool']

@@ -1,4 +1,0 @@
-# file: /app/src/configstream/output.py
-# hypothesis_version: 6.148.2
-
-['#45B7D1', '#4ECDC4', '#74B9FF', '#96CEB4', '#DFE6E9', '#FF6B6B', '://', 'UNK', 'by_country', 'by_protocol', 'countries', 'duration', 'duration_seconds', 'fetched_lines', 'hysteria2', 'last_updated_utc', 'master', 'metadata.json', 'outbounds', 'protocol_colors', 'protocols', 'proxies', 'proxies.json', 'shadowsocks', 'summary.json', 'total_fetched', 'total_proxies', 'total_working', 'trojan', 'utf-8', 'vless', 'vmess', 'wireguard', 'working']

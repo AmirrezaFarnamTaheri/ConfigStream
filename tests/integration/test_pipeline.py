@@ -7,10 +7,7 @@ from httpx import Response
 from configstream.pipeline import run_full_pipeline
 from configstream.models import Proxy
 
-
-import nest_asyncio
-
-nest_asyncio.apply()
+# Removed nest_asyncio import and apply call
 
 
 @pytest.mark.asyncio

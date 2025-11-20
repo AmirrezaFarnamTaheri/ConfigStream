@@ -1,4 +1,0 @@
-# file: /app/src/configstream/testers.py
-# hypothesis_version: 6.148.2
-
-[0.1, 0.5, 10.0, 123.45, 100, 200, 300, 1000, '.json', 'ConfigStream-Check', 'IP_IN_BLOCKLIST', 'X-Canary', 'google', 'headers', 'http', 'https', 'reputation', 'socks', 'socks5', 'w']
