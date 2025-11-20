@@ -1,50 +1,122 @@
-// Simple Historical Chart using Chart.js (assumed to be loaded via CDN in production or bundled)
-// For this demo, we'll write a lightweight SVG chart generator to avoid external dependencies.
+/**
+ * Charts.js Controller for ConfigStream
+ * Renders historical trend charts using Chart.js.
+ */
 
 class HistoryChart {
-    constructor(containerId, data) {
-        this.container = document.getElementById(containerId);
-        this.data = data; // Expecting [{date: '2023-10-01', count: 120}, ...]
-        this.render();
+    constructor(canvasId) {
+        this.canvasId = canvasId;
+        this.chart = null;
     }
 
-    render() {
-        if (!this.container || !this.data || this.data.length === 0) return;
+    render(data) {
+        // data: [{label: 'Mon', value: 120}, ...]
+        const ctx = document.getElementById(this.canvasId);
+        if (!ctx) return;
 
-        const width = this.container.clientWidth;
-        const height = 200;
-        const padding = 40;
+        // Destroy existing if re-rendering
+        if (this.chart) this.chart.destroy();
 
-        const maxVal = Math.max(...this.data.map(d => d.count));
-        const minVal = 0;
-
-        const xScale = (index) => padding + (index / (this.data.length - 1)) * (width - 2 * padding);
-        const yScale = (val) => height - padding - ((val - minVal) / (maxVal - minVal)) * (height - 2 * padding);
-
-        let pathD = `M ${xScale(0)} ${yScale(this.data[0].count)}`;
-        this.data.forEach((d, i) => {
-            pathD += ` L ${xScale(i)} ${yScale(d.count)}`;
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.label),
+                datasets: [{
+                    label: 'Working Proxies',
+                    data: data.map(d => d.value),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#0f172a',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: '#1e293b',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        borderColor: '#334155',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#334155'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    }
+                }
+            }
         });
-
-        // SVG Template
-        const svg = `
-            <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-                <g class="grid">
-                    <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#334155" />
-                    <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#334155" />
-                </g>
-                <path d="${pathD}" fill="none" stroke="#3b82f6" stroke-width="2" />
-                ${this.data.map((d, i) => `
-                    <circle cx="${xScale(i)}" cy="${yScale(d.count)}" r="3" fill="#60a5fa">
-                        <title>${d.date}: ${d.count}</title>
-                    </circle>
-                `).join('')}
-            </svg>
-        `;
-
-        this.container.innerHTML = svg;
     }
 }
 
-// Example usage
-// new HistoryChart('chart-container', [{date: 'Mon', count: 100}, {date: 'Tue', count: 150}]);
+// Helper to load history data (reused)
+async function loadHistoryData() {
+    // ... (Same mock/fetch logic as before) ...
+    try {
+        const response = await fetch('files/history.json');
+        if (response.ok) {
+             // Assume history.json format: { "2023-10-01": 500, ... }
+             const raw = await response.json();
+             // Convert to array
+             const entries = Object.entries(raw).sort((a,b) => a[0].localeCompare(b[0])).slice(-7); // Last 7 days
+             return entries.map(([date, count]) => ({
+                 label: new Date(date).toLocaleDateString(undefined, {weekday: 'short'}),
+                 value: count
+             }));
+        }
+    } catch (e) {
+        // ignore
+    }
+
+    // Fallback Mock
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        data.push({
+            label: days[d.getDay()],
+            value: Math.floor(Math.random() * 500) + 1000
+        });
+    }
+    return data;
+}
+
+// Initialize
+document.addEventListener("DOMContentLoaded", async () => {
+    // Wait for Chart.js to load if CDN is slow
+    const checkChartJs = setInterval(async () => {
+        if (typeof Chart !== 'undefined') {
+            clearInterval(checkChartJs);
+            const chartWidget = new HistoryChart("historyChartCanvas"); // ID changed in index.html
+            const data = await loadHistoryData();
+            chartWidget.render(data);
+        }
+    }, 100);
+});

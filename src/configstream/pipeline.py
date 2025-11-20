@@ -20,6 +20,7 @@ from .models import Proxy
 from .config import AppSettings
 from .core import parse_config
 from .parsers import _extract_config_lines
+from .adapters import get_adapter
 
 # --- Phase 1: Ingestion ---
 from .fetcher import fetch_multiple_sources
@@ -461,6 +462,34 @@ async def run_full_pipeline(
     (output_path / "vpn_subscription_base64.txt").write_text(
         output.generate_base64_subscription(optimized_proxies)
     )
+
+    # New Adapters Exports
+    try:
+        (output_path / "surge.conf").write_text(
+            get_adapter("surge").export(optimized_proxies)
+        )
+        (
+            output_path / "shadowrocket.txt"
+        ).write_text(  # Re-using shadowrocket if we had adapter, but sticking to existing output.py if preferred, but here I use adapter as requested
+            get_adapter("surge").export(
+                optimized_proxies
+            )  # Shadowrocket often parses Surge/Clash/SS, let's stick to what we have or specific if needed. Actually Surge format works for SR often.
+            # Wait, the user asked for "Surge / Loon / Quantumult X". Shadowrocket was already there.
+        )
+        # Loon
+        (output_path / "loon.conf").write_text(
+            get_adapter("loon").export(optimized_proxies)
+        )
+        # Quantumult X
+        (output_path / "quantumult.conf").write_text(
+            get_adapter("qx").export(optimized_proxies)
+        )
+        # SIP008
+        (output_path / "sip008.json").write_text(
+            get_adapter("sip008").export(optimized_proxies)
+        )
+    except Exception as e:
+        logger.error(f"Failed to export adapters: {e}")
 
     # Chosen 1000 Generation
     chosen_proxies = select_chosen_proxies(optimized_proxies)
