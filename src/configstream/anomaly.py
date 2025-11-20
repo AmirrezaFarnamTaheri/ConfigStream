@@ -13,6 +13,7 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
+
 class AnomalyDetector:
     def __init__(self, db_path: Path = Path("data/anomaly.db")):
         self.db_path = db_path
@@ -22,13 +23,15 @@ class AnomalyDetector:
     def _init_db(self):
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
 CREATE TABLE IF NOT EXISTS history (
     url TEXT,
     count INTEGER,
     timestamp INTEGER
 )
-""")
+"""
+                )
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_url ON history(url)")
                 conn.commit()
         except Exception as e:
@@ -50,7 +53,7 @@ CREATE TABLE IF NOT EXISTS history (
                 # Get last 20 fetches
                 rows = conn.execute(
                     "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 20",
-                    (url,)
+                    (url,),
                 ).fetchall()
 
                 if not rows:
@@ -65,7 +68,9 @@ CREATE TABLE IF NOT EXISTS history (
                 if avg > 10:
                     # If count is > 5x the average, it's suspicious
                     if current_count > (avg * 5):
-                        msg = f"Spike Detected (Current: {current_count}, Avg: {avg:.1f})"
+                        msg = (
+                            f"Spike Detected (Current: {current_count}, Avg: {avg:.1f})"
+                        )
                         return False, msg
 
                 return True, "OK"
@@ -82,7 +87,7 @@ CREATE TABLE IF NOT EXISTS history (
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute(
                     "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
-                    (url, count, int(time.time()))
+                    (url, count, int(time.time())),
                 )
                 conn.commit()
         except Exception as e:

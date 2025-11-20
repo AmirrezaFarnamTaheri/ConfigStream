@@ -2,6 +2,7 @@ import pytest
 from configstream.models import Proxy
 from configstream.adapters import to_clash_proxy, to_singbox_outbound
 
+
 @pytest.fixture
 def vmess_ws_proxy():
     """A sample VMess proxy with WebSocket transport."""
@@ -19,9 +20,10 @@ def vmess_ws_proxy():
             "aid": "0",
             "scy": "auto",
             "sni": "test.com",
-            "path": "/ws-path"
-        }
+            "path": "/ws-path",
+        },
     )
+
 
 @pytest.fixture
 def vless_reality_proxy():
@@ -39,11 +41,13 @@ def vless_reality_proxy():
             "sid": "short-id",
             "fp": "chrome",
             "flow": "xtls-rprx-vision",
-            "sni": "cdn.com"
-        }
+            "sni": "cdn.com",
+        },
     )
 
+
 # --- Clash Adapter Tests ---
+
 
 def test_clash_adapter_vmess(vmess_ws_proxy):
     clash_config = to_clash_proxy(vmess_ws_proxy)
@@ -60,6 +64,7 @@ def test_clash_adapter_vmess(vmess_ws_proxy):
     assert clash_config["ws-opts"]["path"] == "/ws-path"
     assert clash_config["ws-opts"]["headers"]["Host"] == "test.com"
 
+
 def test_clash_adapter_vless_reality(vless_reality_proxy):
     clash_config = to_clash_proxy(vless_reality_proxy)
 
@@ -70,7 +75,9 @@ def test_clash_adapter_vless_reality(vless_reality_proxy):
     assert clash_config["reality-opts"]["public-key"] == "pub-key"
     assert clash_config["reality-opts"]["short-id"] == "short-id"
 
+
 # --- Sing-box Adapter Tests ---
+
 
 def test_singbox_adapter_vmess(vmess_ws_proxy):
     singbox_config = to_singbox_outbound(vmess_ws_proxy)
@@ -86,6 +93,7 @@ def test_singbox_adapter_vmess(vmess_ws_proxy):
     assert singbox_config["transport"]["type"] == "ws"
     assert singbox_config["transport"]["path"] == "/ws-path"
     assert singbox_config["transport"]["headers"]["Host"] == "test.com"
+
 
 def test_singbox_adapter_vless_reality(vless_reality_proxy):
     singbox_config = to_singbox_outbound(vless_reality_proxy)

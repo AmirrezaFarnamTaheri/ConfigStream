@@ -10,8 +10,15 @@ from typing import Deque, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class ConcurrencyManager:
-    def __init__(self, loop: asyncio.AbstractEventLoop, initial_limit: int = 50, min_limit: int = 10, max_limit: int = 500):
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        initial_limit: int = 50,
+        min_limit: int = 10,
+        max_limit: int = 500,
+    ):
         self.loop = loop
         self.current_limit = initial_limit
         self.min_limit = min_limit
@@ -50,7 +57,9 @@ class ConcurrencyManager:
             # High errors -> Multiplicative Decrease
             new_limit = max(self.min_limit, int(self.current_limit * 0.7))
             if new_limit != self.current_limit:
-                logger.debug(f"High error rate ({error_rate:.2f}). Decreasing concurrency to {new_limit}")
+                logger.debug(
+                    f"High error rate ({error_rate:.2f}). Decreasing concurrency to {new_limit}"
+                )
                 self._resize_semaphore(new_limit)
         elif error_rate < 0.01:
             # Low errors -> Additive Increase

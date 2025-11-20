@@ -164,7 +164,9 @@ def safe_operation(
     ) as e:
         handle_cli_error(e, context=context, verbose=verbose)
     except Exception as e:
-        handle_cli_error(e, context=context or "Unexpected error", exit_code=1, verbose=verbose)
+        handle_cli_error(
+            e, context=context or "Unexpected error", exit_code=1, verbose=verbose
+        )
 
 
 def handle_cli_errors(

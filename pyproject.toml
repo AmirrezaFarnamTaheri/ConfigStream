@@ -51,8 +51,6 @@ dependencies = [
     # Geo & Sys
     "geoip2",
     "psutil>=5.9.0; sys_platform != 'win32'", # Optional for adaptive workers
-    "fastapi>=0.109.0", # NEW: Web Server Framework
-    "uvicorn[standard]>=0.27.0" # NEW: ASGI Server
 
     # Web Server
     "fastapi>=0.109.0",

@@ -34,4 +34,6 @@ def save_etags(values: Mapping[str, Mapping[str, str]]) -> None:
         for url, headers in values.items()
         if (valid_headers := {k: v for k, v in headers.items() if v})
     }
-    ETAG_CACHE_PATH.write_text(json.dumps(serialisable, indent=2, sort_keys=True), encoding="utf-8")
+    ETAG_CACHE_PATH.write_text(
+        json.dumps(serialisable, indent=2, sort_keys=True), encoding="utf-8"
+    )

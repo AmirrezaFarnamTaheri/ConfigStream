@@ -11,12 +11,9 @@ from typing import Any, Tuple, TypeVar
 
 T = TypeVar("T")
 
+
 async def hedged_get(
-    client: Any,
-    url: str,
-    timeout: float,
-    hedge_after: float,
-    headers: dict[str, str]
+    client: Any, url: str, timeout: float, hedge_after: float, headers: dict[str, str]
 ) -> Tuple[bool, Any]:
     """
     Perform a GET request with hedging.
@@ -81,7 +78,9 @@ async def hedged_get(
         # We loop until we get a success or run out of active tasks
         while active_tasks:
             # Wait for next result
-            task_id, success, result = await asyncio.wait_for(queue.get(), timeout=timeout + 1)
+            task_id, success, result = await asyncio.wait_for(
+                queue.get(), timeout=timeout + 1
+            )
 
             if success:
                 return True, result
@@ -93,7 +92,7 @@ async def hedged_get(
             # If we've received failures for ALL launched tasks, we are done.
             # Since we launch at most 2 tasks:
             if queue.empty() and all(t.done() for t in active_tasks):
-                return False, result # Return the last error
+                return False, result  # Return the last error
 
     except asyncio.TimeoutError:
         return False, asyncio.TimeoutError("Hedged requests timed out")

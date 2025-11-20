@@ -11,7 +11,9 @@ async def prewarm_dns_cache(sources: list[str], top_n: int = 10) -> None:
     and populates the DNS cache.
     """
     host_counts = Counter(
-        urlparse(source).hostname for source in sources if urlparse(source).hostname is not None
+        urlparse(source).hostname
+        for source in sources
+        if urlparse(source).hostname is not None
     )
 
     top_hosts = [host for host, _ in host_counts.most_common(top_n) if host is not None]

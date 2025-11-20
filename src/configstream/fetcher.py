@@ -42,15 +42,28 @@ class FetcherError(Exception):
 
 class RateLimitError(FetcherError):
     """Raised when an HTTP 429 Rate Limit is detected."""
+
     def __init__(self, retry_after: float | None = None):
         self.retry_after = retry_after
-        msg = f"Rate limited. Retry after {retry_after:.1f}s" if retry_after else "Rate limited."
+        msg = (
+            f"Rate limited. Retry after {retry_after:.1f}s"
+            if retry_after
+            else "Rate limited."
+        )
         super().__init__(msg)
 
 
 class FetchResult:
     """Container for fetch results with performance metadata."""
-    __slots__ = ('success', 'source', 'content', 'error', 'response_time', 'status_code')
+
+    __slots__ = (
+        "success",
+        "source",
+        "content",
+        "error",
+        "response_time",
+        "status_code",
+    )
 
     def __init__(
         self,
@@ -154,19 +167,25 @@ async def fetch_from_source(
             if app_settings.HEDGING_ENABLED:
                 hedge_sec = (app_settings.HEDGE_AFTER_MS or 500) / 1000.0
                 is_ok, response = await hedged_get(
-                    client, source,
+                    client,
+                    source,
                     timeout=per_attempt_timeout,
                     hedge_after=hedge_sec,
-                    headers=headers
+                    headers=headers,
                 )
                 if not is_ok or response is None:
                     # response is the exception in this case
-                    raise response if isinstance(response, Exception) else httpx.RequestError("Hedged request failed")
+                    raise (
+                        response
+                        if isinstance(response, Exception)
+                        else httpx.RequestError("Hedged request failed")
+                    )
             else:
                 response = await client.get(
-                    source, headers=headers,
+                    source,
+                    headers=headers,
                     timeout=per_attempt_timeout,
-                    follow_redirects=True
+                    follow_redirects=True,
                 )
 
             response_time = loop.time() - start_ts
@@ -193,8 +212,11 @@ async def fetch_from_source(
                 breaker_manager.get_breaker(host).record_success()
 
             return FetchResult(
-                True, source, content=content,
-                response_time=response_time, status_code=status
+                True,
+                source,
+                content=content,
+                response_time=response_time,
+                status_code=status,
             )
 
         except RateLimitError as e:
@@ -270,12 +292,14 @@ async def fetch_multiple_sources(
     async def _worker(http_client: httpx.AsyncClient, source: str):
         async with global_sem:
             res = await fetch_from_source(
-                http_client, source, timeout,
+                http_client,
+                source,
+                timeout,
                 rate_limiter=rate_limiter,
                 controller=controller,
                 breaker_manager=breaker_manager,
                 timeout_tracker=timeout_tracker,
-                app_settings=app_settings
+                app_settings=app_settings,
             )
             results[source] = res
 
