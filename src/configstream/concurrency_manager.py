@@ -96,6 +96,9 @@ class ConcurrencyManager:
 
     def start_tuner(self):
         if not self._running:
+            # Check if loop is still running before creating task
+            if self.loop.is_closed():
+                return
             self._running = True
             self.tuning_task = self.loop.create_task(self._tuner_loop())
 

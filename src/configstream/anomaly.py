@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS history (
     def is_safe(self, url: str, current_count: int) -> Tuple[bool, str]:
         """
         Check if the current item count is statistically safe compared to history.
+        Uses Z-score for detecting outliers when sufficient history exists.
 
         Returns:
             (is_safe: bool, reason: str)
@@ -50,28 +51,40 @@ CREATE TABLE IF NOT EXISTS history (
 
         try:
             with sqlite3.connect(self.db_path) as conn:
-                # Get last 20 fetches
+                # Get last 30 fetches
                 rows = conn.execute(
-                    "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 20",
+                    "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 30",
                     (url,),
                 ).fetchall()
 
                 if not rows:
-                    # No history -> Trust but Verify (allow it, but maybe log)
                     return True, "New Source"
 
                 counts = [r[0] for r in rows]
+                n = len(counts)
                 avg = statistics.mean(counts)
 
                 # Logic: Detect Massive Spikes
                 # Only apply logic if the source is somewhat established (avg > 10)
-                if avg > 10:
-                    # If count is > 5x the average, it's suspicious
-                    if current_count > (avg * 5):
-                        msg = (
-                            f"Spike Detected (Current: {current_count}, Avg: {avg:.1f})"
-                        )
-                        return False, msg
+                if avg > 10 and n > 5:
+                    stdev = statistics.stdev(counts) if n > 1 else 0
+
+                    # Z-Score Check (if variance is zero, avoid div/0)
+                    if stdev > 0:
+                        z_score = (current_count - avg) / stdev
+                        if z_score > 3.0: # > 3 SDs away is suspicious
+                            # Double check: sometimes absolute count isn't insane
+                            # If it's < 2x average, maybe ignore Z-score (natural variance)
+                            if current_count > (avg * 2.5):
+                                return False, f"Z-Score Spike ({z_score:.2f})"
+                    else:
+                        # Zero variance history (always returns X, now returns Y)
+                        if current_count > (avg * 3):
+                            return False, f"Sudden Spike (Prev exact: {avg}, Now: {current_count})"
+
+                elif avg <= 10 and current_count > 200:
+                     # Small source suddenly returns huge amount
+                     return False, "Massive Spike for Small Source"
 
                 return True, "OK"
 
@@ -88,6 +101,11 @@ CREATE TABLE IF NOT EXISTS history (
                 conn.execute(
                     "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
                     (url, count, int(time.time())),
+                )
+                # Prune old history (keep last 100)
+                conn.execute(
+                    "DELETE FROM history WHERE url = ? AND timestamp NOT IN (SELECT timestamp FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 100)",
+                    (url, url)
                 )
                 conn.commit()
         except Exception as e:
