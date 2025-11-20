@@ -17,8 +17,14 @@
         <div class="container">
             <div class="header-logo-wrapper">
                  <!-- Logo SVG (Simplified) -->
-                 <svg width="40" height="40" viewBox="0 0 50 50" fill="none" stroke="currentColor" stroke-width="4">
-                    <path d="M25 5 L25 45 M5 25 L45 25" />
+                 <svg width="40" height="40" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-logo" aria-label="ConfigStream Logo">
+                    <defs>
+                        <linearGradient id="logo-gradient-analytics" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="var(--brand-primary)"></stop>
+                            <stop offset="100%" stop-color="var(--brand-secondary)"></stop>
+                        </linearGradient>
+                    </defs>
+                    <path d="M25 5 L25 45 M5 25 L45 25" stroke="url(#logo-gradient-analytics)" stroke-width="4" stroke-linecap="round"/>
                  </svg>
                  <span class="header-logo-text">ConfigStream</span>
             </div>
@@ -42,6 +48,40 @@
                 <p class="subtitle">Real-time insights into global proxy distribution and performance.</p>
             </section>
 
+            <!-- Summary Stats Cards (Consolidated from Index) -->
+             <section class="stats-card" style="margin-bottom: 2rem;">
+                <div class="stats-card-inner">
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="download-cloud"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="totalSourced" class="stat-value loading">0</div>
+                            <div class="stat-label">Total Sourced</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="totalConfigs" class="stat-value loading">0</div>
+                            <div class="stat-label">Unique & Tested</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="zap"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="workingConfigs" class="stat-value loading">0</div>
+                            <div class="stat-label">Currently Online</div>
+                        </div>
+                    </div>
+                     <div class="stat-item">
+                        <div class="stat-icon"><i data-feather="clock"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="lastUpdated" class="stat-value loading" style="font-size: 1.5rem;">N/A</div>
+                            <div class="stat-label">Last Updated</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- World Map -->
             <div id="map-container"></div>
 
@@ -49,23 +89,39 @@
                 <!-- Protocol Distribution -->
                 <div class="chart-container">
                     <h3>Protocol Distribution</h3>
-                    <canvas id="protocolChart"></canvas>
+                    <div style="flex: 1; position: relative;">
+                        <canvas id="protocolChart"></canvas>
+                    </div>
                 </div>
 
                 <!-- Latency Trends -->
                 <div class="chart-container">
                     <h3>Latency Distribution</h3>
-                    <canvas id="latencyChart"></canvas>
+                    <div style="flex: 1; position: relative;">
+                         <canvas id="latencyChart"></canvas>
+                    </div>
                 </div>
 
                 <!-- Country Top 10 -->
                 <div class="chart-container" style="grid-column: 1/-1;">
                     <h3>Top Countries</h3>
-                    <canvas id="countryChart"></canvas>
+                    <div style="flex: 1; position: relative;">
+                        <canvas id="countryChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
+            </div>
+            <p>A passion project for a free and open internet. ✨</p>
+        </div>
+    </footer>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
