@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ConfigStream Analytics: Real-time data on proxy performance, distribution, and reliability.">
+    <title>Analytics - ConfigStream</title>
+    <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="nav-overlay"></div>
+    <header class="header">
+        <div class="container">
+            <div class="header-logo-wrapper">
+                 <!-- Logo SVG (Simplified) -->
+                 <svg width="40" height="40" viewBox="0 0 50 50" fill="none" stroke="currentColor" stroke-width="4">
+                    <path d="M25 5 L25 45 M5 25 L45 25" />
+                 </svg>
+                 <span class="header-logo-text">ConfigStream</span>
+            </div>
+            <nav class="nav" id="main-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="proxies.html" class="nav-link">Proxy List</a>
+                <a href="analytics.html" class="nav-link active">Analytics</a>
+                <a href="about.html" class="nav-link">About</a>
+            </nav>
+            <div class="header-actions">
+                <button id="theme-switcher" class="theme-btn"><i data-feather="moon"></i></button>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle"><i data-feather="menu"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="hero text-center">
+                <h1 class="analytics-hero-title">Network Intelligence</h1>
+                <p class="subtitle">Real-time insights into global proxy distribution and performance.</p>
+            </section>
+
+            <!-- World Map -->
+            <div id="map-container"></div>
+
+            <div class="analytics-grid">
+                <!-- Protocol Distribution -->
+                <div class="chart-container">
+                    <h3>Protocol Distribution</h3>
+                    <canvas id="protocolChart"></canvas>
+                </div>
+
+                <!-- Latency Trends -->
+                <div class="chart-container">
+                    <h3>Latency Distribution</h3>
+                    <canvas id="latencyChart"></canvas>
+                </div>
+
+                <!-- Country Top 10 -->
+                <div class="chart-container" style="grid-column: 1/-1;">
+                    <h3>Top Countries</h3>
+                    <canvas id="countryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/analytics.js"></script>
+    <script>
+        feather.replace();
+
+        // Initialize shared UI components
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.api) {
+                if (window.api.initMobileNav) window.api.initMobileNav();
+                if (window.api.initTheme) window.api.initTheme();
+            }
+        });
+    </script>
+</body>
+</html>

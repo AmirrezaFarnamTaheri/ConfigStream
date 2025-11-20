@@ -1,322 +1,138 @@
-# ConfigStream API Documentation
+# API Reference
 
-## Table of Contents
-- [Overview](#overview)
-- [Core Data Model](#core-data-model)
-- [Pipeline Module](#pipeline-module)
-- [Fetcher Module](#fetcher-module)
-- [Testing Module](#testing-module)
-- [CLI Entry Points](#cli-entry-points)
-- [Logging Utilities](#logging-utilities)
-- [Filtering Helpers](#filtering-helpers)
-- [Statistics & Reporting](#statistics--reporting)
-- [Scheduling & Monitoring](#scheduling--monitoring)
-- [Examples](#examples)
+ConfigStream provides a modular Python API for proxy aggregation, testing, and management. While primarily used via the CLI, its internal components are designed for reusability in custom applications.
 
-## Overview
+## Core Modules
 
-ConfigStream aggregates VPN proxy configurations, validates them, and produces
-multiple output formats suitable for Clash, SingBox, and subscription feeds.
-The Python API mirrors the command line workflow: fetch sources, parse
-configurations, run connectivity tests, enrich with GeoIP data, and render
-artifacts.
+### `configstream.pipeline`
 
-The package is fully type annotated (PEP 484) and lint-friendly. Key entry
-points live under the `configstream` package.
+The central orchestrator that manages the entire lifecycle of proxy aggregation.
 
-## Core Data Model
-
+#### `run_full_pipeline`
 ```python
-from configstream.models import Proxy
-
-@dataclass
-class Proxy:
-    config: str
-    protocol: str
-    address: str
-    port: int
-    uuid: str = ""
-    remarks: str = ""
-    country: str = ""
-    country_code: str = ""
-    city: str = ""
-    asn: str = ""
-    latency: float | None = None
-    is_working: bool = False
-    is_secure: bool = True
-    security_issues: list[str] = field(default_factory=list)
-    tested_at: str = ""
-    details: dict[str, Any] | None = field(default_factory=dict)
-```
-
-`Proxy` objects are produced by parser helpers and enriched by the pipeline
-when connectivity tests finish.
-
-## Pipeline Module
-
-> Location: `src/configstream/pipeline.py`
-
-### `run_full_pipeline`
-
-```python
-from configstream import pipeline
-from rich.progress import Progress
-
-result = await pipeline.run_full_pipeline(
-    sources: Sequence[str],
+async def run_full_pipeline(
+    sources: List[str],
     output_dir: str,
-    progress: Progress | None = None,
-    max_workers: int = 10,
-    max_proxies: int | None = None,
-    country_filter: str | None = None,
-    min_latency: int | None = None,
-    max_latency: int | None = None,
+    max_workers: int = 0,
+    max_proxies: Optional[int] = None,
     timeout: int = 10,
-    proxies: Sequence[Proxy] | None = None,
-) -> dict[str, Any]
+    country_filter: Optional[str] = None,
+    min_latency: Optional[int] = None,
+    leniency: bool = False,
+    strict_security: bool = False,
+    progress: Optional[Progress] = None,
+    proxies: Optional[List[Proxy]] = None,
+    dry_run: bool = False,
+) -> PipelineResult
 ```
+**Parameters:**
+- `sources`: A list of URLs (http/https) or local file paths containing proxy configurations.
+- `output_dir`: Directory to save generated files.
+- `max_workers`: Concurrency limit for testing. Set to 0 for auto-detection based on CPU/Memory.
+- `timeout`: Base timeout in seconds for network operations.
+- `strict_security`: If True, enables rigorous checks like MITM detection and IP blocklisting.
 
-Runs the end-to-end workflow. When `proxies` are supplied the fetch/parse steps
-are skipped, enabling retest flows. The result dictionary contains:
+**Returns:**
+- `PipelineResult`: An object containing `success` status, `stats` dictionary, and `output_files` paths.
 
-- `success`: `bool` indicating pipeline outcome
-- `stats`: counters for fetched, tested, working, and filtered proxies
-- `output_files`: mapping of artifact names to paths
-- `error`: message when `success` is `False`
+### `configstream.fetcher`
 
-Helper functions exported in the module:
+Handles the retrieval of proxy configurations from remote sources.
 
-- `_prepare_sources(raw_sources: Sequence[str]) -> list[str]`
-- `_fetch_source(session: aiohttp.ClientSession, source_url: str) -> tuple[list[str], int]`
-- `_extract_config_lines(payload: str) -> list[str]`
+#### `fetch_multiple_sources`
+```python
+async def fetch_multiple_sources(
+    sources: list[str],
+    max_concurrent: int = 10,
+    timeout: int = 30,
+    per_host_limit: int = 4,
+    client: Optional[httpx.AsyncClient] = None,
+    use_adaptive_timeout: bool = True,
+) -> dict[str, FetchResult]
+```
+Fetches multiple sources concurrently with adaptive timeouts and rate limiting.
 
-These helpers are useful for fine-grained testing or custom ingestion flows.
+### `configstream.testers`
 
-The pipeline writes a suite of artifacts including `clash.yaml`, `singbox.json`, `shadowrocket.txt`, `quantumult.conf`, `surge.conf`, `proxies.json`, `statistics.json`, and `report.json`.
-
-## Fetcher Module
-
-> Location: `src/configstream/fetcher.py`
-
-- `fetch_from_source(session, source, timeout=30, max_retries=3, retry_delay=1.0) -> FetchResult`
-- `fetch_multiple_sources(sources, max_concurrent=10, timeout=30) -> dict[str, FetchResult]`
-- `SourceFetcher.fetch_all(sources, max_proxies=None) -> list[str]`
-
-`FetchResult` exposes:
+#### `SingBoxTester`
+The primary testing engine wrapping the `sing-box` binary.
 
 ```python
-@dataclass
-class FetchResult:
-    source: str
-    configs: list[str]
-    success: bool
-    error: str | None = None
-    response_time: float | None = None
-    status_code: int | None = None
+class SingBoxTester:
+    def __init__(self, timeout: float = 10.0, strict_security: bool = False): ...
+
+    async def test(self, proxy: Proxy) -> Proxy: ...
+```
+- **test**: Connects to the proxy, measures latency, performs security checks (MITM, Injection), and returns the updated `Proxy` object.
+
+### `configstream.models`
+
+#### `Proxy`
+Data class representing a single proxy configuration. Optimized with `__slots__` for memory efficiency.
+
+**Attributes:**
+- `protocol` (str): vmess, vless, trojan, etc.
+- `address` (str): Server IP or hostname.
+- `port` (int): Server port.
+- `latency` (float | None): Round-trip time in ms.
+- `is_working` (bool): Result of the connectivity test.
+- `security_issues` (dict): List of detected security problems (e.g., `{"mitm": ["Suspicious Issuer"]}`).
+- `country_code` (str): ISO 3166-1 alpha-2 country code.
+- `config` (str): The raw configuration string/URL.
+
+## CLI Reference
+
+The `configstream` command-line interface exposes the pipeline functionality.
+
+### `merge`
+Runs the full aggregation and testing pipeline.
+
+```bash
+configstream merge [OPTIONS]
 ```
 
-## Testing Module
+**Options:**
+- `--sources FILE`: Path to the text file containing source URLs (Required).
+- `--output DIR`: Output directory (Default: `output/`).
+- `--max-workers INT`: Number of concurrent testing threads.
+- `--timeout INT`: Timeout for socket connections in seconds.
+- `--country CODE`: Filter results by country (e.g., `US`, `DE`).
+- `--strict`: Enable strict security validation.
 
-> Location: `src/configstream/testers.py`
+### `fetch`
+Debug command to test fetching from a source without running the full pipeline.
 
-- `class SingBoxTester:` wraps the SingBox sandbox to test proxies.
-  - `test(self, proxy: Proxy) -> Proxy`: mutates latency, status, and security
-    fields based on the test outcome.
-
-The tester honours timeouts from `AppSettings` and masks sensitive data when
-logging.
-
-## CLI Entry Points
-
-> Location: `src/configstream/cli.py`
-
-The CLI is Click-based and mirrors API calls:
-
-- `configstream merge` → `pipeline.run_full_pipeline` with parsed CLI options
-- `configstream retest` → reuses pipeline with cached proxies
-- `configstream geoip-download` (if enabled) → downloads GeoIP databases
-
-Both `merge` and `retest` accept `--show-metrics`, surfacing the performance
-snapshot gathered by the pipeline after each run.
-
-All commands are wrapped by `@handle_cli_errors` for consistent error messaging.
-
-## Logging Utilities
-
-> Location: `src/configstream/logging_config.py`
-
-```python
-from configstream.logging_config import setup_logging
-
-setup_logging(
-    level: "INFO",
-    mask_sensitive: True,
-    log_file: "configstream.log",
-    format_style: "detailed",
-    use_color: None,
-)
+```bash
+configstream fetch [URL]
 ```
 
-Features:
-- Optional ANSI colour output when stdout is a TTY
-- Sensitive data masking for UUID/password/email patterns
-- Consolidated configuration of console and file handlers
+### `generate-warp`
+Generates a Cloudflare WARP WireGuard configuration.
 
-## Filtering Helpers
-
-> Location: `src/configstream/filtering.py`
-
-```python
-from configstream.filtering import ProxyFilter
-
-filtered = (
-    ProxyFilter(proxies)
-    .by_country(["US", "GB"])
-    .by_latency(max_ms=200)
-    .sort_by_latency()
-    .to_list()
-)
+```bash
+configstream generate-warp
 ```
 
-`ProxyFilter` instances are immutable; each call returns a new filtered view that
-can be combined with `chain()` or materialised via `to_list()`.
+## Web API
 
-## Statistics & Reporting
+When running the optional FastAPI server (`configstream serve` or `server.py`), the following endpoints are available:
 
-> Location: `src/configstream/statistics.py`
+### `GET /api/proxies`
+Returns a JSON list of currently active, working proxies.
+- **Query Params:**
+  - `country`: Filter by country code.
+  - `protocol`: Filter by protocol.
+  - `sort`: Sort by `latency` or `score`.
 
-```python
-from configstream.statistics import StatisticsEngine
+### `GET /api/stats`
+Returns current pipeline statistics (total count, working count, country distribution).
 
-report = StatisticsEngine(proxies).generate_report()
-print(report["success_rate"])
-```
+### `POST /api/convert`
+Converts a proxy configuration string or subscription to a different format.
+- **Body:** `{"config": "vmess://...", "target": "clash"}`
 
-The engine produces the `report.json` artifact written by the pipeline and helps
-drive dashboards or post-processing scripts.
+## Extension Points
 
-### `statistics.json` Output
-
-The pipeline generates a `statistics.json` file with the following structure,
-providing a high-level overview of the pipeline run:
-
-```json
-{
-  "generated_at": "2025-10-26T18:00:00.000Z",
-  "total_fetched": 150000,
-  "total_duplicates": 120000,
-  "total_insecure": 5000,
-  "total_tested": 25000,
-  "total_working": 8500,
-  "success_rate": 34.00,
-  "average_latency_ms": 450.50,
-  "protocols": {
-    "VLESS": 3000,
-    "VMess": 2500,
-    "Trojan": 2000,
-    "Shadowsocks": 1000
-  },
-  "countries": {
-    "United States": 1500,
-    "Germany": 1200,
-    "Japan": 1000
-  }
-}
-```
-
-- **`total_fetched`**: Total number of raw proxy configurations sourced before any processing.
-- **`total_duplicates`**: Number of duplicate configurations removed.
-- **`total_insecure`**: Number of configurations blocked by the security validator.
-- **`total_tested`**: Number of unique, secure proxies that were tested for connectivity.
-- **`total_working`**: Number of proxies that passed all tests.
-- **`success_rate`**: Percentage of tested proxies that were working.
-- **`average_latency_ms`**: Average latency of all working proxies.
-- **`protocols`**: A dictionary mapping protocol names to the count of working proxies for each.
-- **`countries`**: A dictionary mapping country names to the count of working proxies for each.
-
-
-## Scheduling & Monitoring
-
-> Locations:
-- `src/configstream/scheduler.py` — periodic retesting helper
-- `src/configstream/monitor.py` — lightweight uptime tracker
-
-```python
-from datetime import timedelta
-from configstream.scheduler import RetestScheduler
-
-scheduler = RetestScheduler("output/proxies.json", interval=timedelta(hours=6))
-scheduler.start()
-```
-
-The `HealthMonitor` class records historic test results and can report per-proxy
-uptime ratios to feed alerting systems.
-
-## Examples
-
-### Run Pipeline from Python
-
-```python
-import asyncio
-from configstream import pipeline
-
-async def main() -> None:
-    result = await pipeline.run_full_pipeline(
-        sources=["https://example.com/proxies.txt"],
-        output_dir="output",
-        max_proxies=100,
-        timeout=15,
-    )
-    if result["success"]:
-        print(f"Generated {len(result['output_files'])} artifacts")
-    else:
-        print(f"Pipeline failed: {result['error']}")
-
-asyncio.run(main())
-```
-
-### Retest Existing Results
-
-```python
-import asyncio
-import json
-from pathlib import Path
-
-from configstream import pipeline
-from configstream.models import Proxy
-
-async def retest() -> None:
-    data = json.loads(Path("output/proxies.json").read_text())
-    proxies = [Proxy(**item) for item in data]
-
-    result = await pipeline.run_full_pipeline(
-        sources=[],
-        output_dir="output",
-        proxies=proxies,
-        timeout=5,
-    )
-    print(result["stats"])
-
-asyncio.run(retest())
-```
-
-### Custom Fetch Loop
-
-```python
-import asyncio
-from configstream.fetcher import fetch_multiple_sources
-
-async def fetch_only() -> None:
-    results = await fetch_multiple_sources([
-        "https://example.com/subscription.txt",
-        "https://example.org/proxies.txt",
-    ])
-    for source, result in results.items():
-        print(source, result.success, len(result.configs))
-
-asyncio.run(fetch_only())
-```
-
----
-
-_Last updated: October 2025_
+- **Parsers**: Add new protocol support in `src/configstream/parsers.py`.
+- **Adapters**: Add new client export formats in `src/configstream/adapters.py`.
+- **Scoring**: Modify ranking algorithms in `src/configstream/source_quality.py`.

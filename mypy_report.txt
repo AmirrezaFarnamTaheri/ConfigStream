@@ -1,0 +1,6 @@
+src/configstream/geoip.py:39: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/configstream/geoip.py:40: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/configstream/security/blocklist.py:38: note: By default the bodies of untyped functions are not checked, consider using --check-untyped-defs  [annotation-unchecked]
+src/configstream/fetcher.py:294: error: Name "Tuple" is not defined  [name-defined]
+src/configstream/fetcher.py:294: note: Did you forget to import it from "typing"? (Suggestion: "from typing import Tuple")
+Found 1 error in 1 file (checked 77 source files)

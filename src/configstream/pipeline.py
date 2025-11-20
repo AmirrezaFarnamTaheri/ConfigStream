@@ -18,7 +18,7 @@ from rich.progress import Progress, TaskID
 # --- Core Modules ---
 from .models import Proxy
 from .config import AppSettings
-from .core import parse_config
+from .auto_detect import auto_detect_and_parse as parse_config
 from .parsers import _extract_config_lines
 from .adapters import get_adapter
 
@@ -35,16 +35,16 @@ from .testers import SingBoxTester
 from .test_cache import TestResultCache
 
 # --- Phase 4: Intelligence ---
-from .smart_scheduler import SmartRetestScheduler
+from .scheduler import SmartRetestScheduler
 from .concurrency_manager import ConcurrencyManager
 from .adaptive_workers import calculate_optimal_workers
 from .adaptive_timeout import AdaptiveTimeout
-from .geoip_offline import GeoIPResolver
+from .geoip import GeoIPResolver
 from .source_quality import SourceQualityTracker, calculate_diversity_score
 from .anomaly import AnomalyDetector
 from .security.blocklist import DEFAULT_BLOCKLIST
 from .event_stream import EventStream
-from .selection import select_chosen_proxies
+from .consolidation import select_top_configs
 
 # --- Output ---
 from . import output
@@ -492,7 +492,10 @@ async def run_full_pipeline(
         logger.error(f"Failed to export adapters: {e}")
 
     # Chosen 1000 Generation
-    chosen_proxies = select_chosen_proxies(optimized_proxies)
+    # Use consolidated logic
+    chosen_proxies = select_top_configs(
+        optimized_proxies, top_per_protocol=50, total_limit=1000
+    )
     chosen_dir = output_path / "chosen"
     chosen_dir.mkdir(exist_ok=True)
 

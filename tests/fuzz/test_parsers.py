@@ -4,7 +4,7 @@ Uses Hypothesis to generate random, malformed inputs to ensure robustness.
 """
 
 from hypothesis import given, strategies as st, settings, HealthCheck
-from configstream.core import parse_config
+from configstream.auto_detect import auto_detect_and_parse as parse_config
 from configstream.parsers import _extract_config_lines
 
 # Strategy: Generate text that contains potential URI characters but is random

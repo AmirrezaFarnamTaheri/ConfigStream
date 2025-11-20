@@ -325,7 +325,11 @@ class SingBoxTester:
                         proxy.is_secure = False
 
                     # Check title
-                    if "Example Domain" not in soup.title.string:
+                    if (
+                        not soup.title
+                        or not soup.title.string
+                        or "Example Domain" not in soup.title.string
+                    ):
                         proxy.security_issues.setdefault("integrity", []).append(
                             "WRONG_CONTENT_RETURNED"
                         )
