@@ -1,6 +1,0 @@
-./src/configstream/fetcher.py:294:71: F821 undefined name 'Tuple'
-./tests/e2e/test_frontend.py:41:51: E261 at least two spaces before inline comment
-./tests/unit/test_auto_detect.py:51:60: E261 at least two spaces before inline comment
-./tests/unit/test_fetcher.py:37:14: E111 indentation is not a multiple of 4
-./tests/unit/test_fetcher.py:37:14: E117 over-indented
-./tests/unit/test_scheduler.py:42:56: E261 at least two spaces before inline comment
