@@ -1,11 +1,13 @@
 import pytest
 from playwright.sync_api import Page, expect
 
+
 # Remove all asyncio markers, let pytest-playwright handle loop injection
 @pytest.mark.e2e
 def test_homepage_loads(page: Page):
     """Test that the homepage loads and critical elements are visible."""
     import os
+
     cwd = os.getcwd()
     url = f"file://{cwd}/frontend/index.html"
 
@@ -20,9 +22,11 @@ def test_homepage_loads(page: Page):
     btn = page.locator("text=Browse Proxies")
     expect(btn).to_be_visible()
 
+
 @pytest.mark.e2e
 def test_pwa_manifest_link(page: Page):
     import os
+
     cwd = os.getcwd()
     url = f"file://{cwd}/frontend/index.html"
     page.goto(url)
@@ -33,12 +37,13 @@ def test_pwa_manifest_link(page: Page):
     href = manifest.get_attribute("href")
     assert href == "manifest.json"
 
+
 @pytest.mark.e2e
 def test_widgets_presence(page: Page):
     import os
 
     cwd = os.getcwd()
-    url = f"file://{cwd}/frontend/statistics.html" # Changed to statistics.html where widgets are
+    url = f"file://{cwd}/frontend/statistics.html"  # Changed to statistics.html where widgets are
     page.goto(url)
 
     # World Map Widget

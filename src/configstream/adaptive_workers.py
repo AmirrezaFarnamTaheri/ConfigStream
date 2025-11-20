@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # We define a module-level variable to hold the module or None
 psutil_module: Optional[Any]
 try:
-    import psutil as psutil_module # type: ignore
+    import psutil as psutil_module  # type: ignore
 except ImportError:
     psutil_module = None
 

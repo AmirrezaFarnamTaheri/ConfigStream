@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="About ConfigStream: Our mission, architecture, and security practices for free internet access.">
+    <title>About - ConfigStream</title>
+    <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/header-animation.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        .about-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        .mission-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 3rem;
+            margin-top: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .mission-title {
+            font-family: 'Playfair Display', serif; /* Or system serif */
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+        }
+        .text-content {
+            color: #94a3b8;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        .feature-list li {
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #cbd5e1;
+        }
+        .feature-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #6366f1;
+            font-weight: bold;
+        }
+        .source-btn {
+            display: inline-block;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+            border: none;
+        }
+        .source-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+        [data-theme="light"] .mission-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(0,0,0,0.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        }
+        [data-theme="light"] .text-content { color: #475569; }
+        [data-theme="light"] .feature-list li { color: #334155; }
+        [data-theme="light"] .section-title { color: #1e293b; }
+    </style>
+</head>
+<body>
+    <div class="nav-overlay"></div>
+    <header class="header">
+        <div class="container">
+            <div class="header-logo-wrapper">
+                <!-- Reusing SVG Logo from index -->
+                <svg width="40" height="40" viewBox="0 0 50 50" fill="none" stroke="currentColor" stroke-width="4">
+                   <path d="M25 5 L25 45 M5 25 L45 25" />
+                </svg>
+                <a href="index.html" class="header-logo-text" style="text-decoration: none; color: inherit;">ConfigStream</a>
+            </div>
+            <nav class="nav" id="main-nav">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="proxies.html" class="nav-link">Proxy List</a>
+                <a href="analytics.html" class="nav-link">Analytics</a>
+                <a href="about.html" class="nav-link active">About</a>
+            </nav>
+            <div class="header-actions">
+                <button id="theme-switcher" class="theme-btn"><i data-feather="moon"></i></button>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle"><i data-feather="menu"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container text-center">
+            <h1 style="font-size: 3.5rem; margin-top: 2rem; font-family: serif;">About ConfigStream</h1>
+            <p style="color: #94a3b8; font-size: 1.2rem; max-width: 600px; margin: 1rem auto;">Automated, resilient, and free access to the open internet.</p>
+        </div>
+
+        <div class="about-container">
+            <div class="mission-card">
+                <h2 class="mission-title">Mission</h2>
+                <p class="text-content">
+                    ConfigStream was built to provide reliable, free access to the global internet for users in restricted network environments. By aggregating proxies from hundreds of public sources and rigorously testing them, we ensure high availability without manual effort.
+                </p>
+
+                <h2 class="section-title">Architecture</h2>
+                <p class="text-content">The system operates as a fully automated pipeline:</p>
+                <ul class="feature-list">
+                    <li><strong>Aggregator:</strong> Fetches from over 600 sources.</li>
+                    <li><strong>Validator:</strong> Tests connectivity, latency, and security (SSL/Injection).</li>
+                    <li><strong>Intelligence:</strong> Uses historical data and smart scheduling to optimize re-testing.</li>
+                    <li><strong>Publisher:</strong> Generates ready-to-use configs for V2Ray, Clash, and Sing-box.</li>
+                </ul>
+
+                <h2 class="section-title">Security</h2>
+                <p class="text-content">
+                    While we perform automated security checks (blocking ads, malware sites, and verification of TLS), these are public proxies. We recommend using them for browsing and avoiding sensitive transactions (banking, passwords).
+                </p>
+
+                <div class="text-center">
+                    <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="source-btn">View Source on GitHub</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+             <p>&copy; 2023 ConfigStream. Open Source under GPLv3.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/state-manager.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

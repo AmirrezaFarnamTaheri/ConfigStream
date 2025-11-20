@@ -1,6 +1,6 @@
-from playwright.sync_api import sync_playwright, expect
-import time
-import re
+import os
+from playwright.sync_api import sync_playwright
+
 
 def verify_frontend():
     with sync_playwright() as p:
@@ -8,33 +8,25 @@ def verify_frontend():
         page = browser.new_page()
 
         # Navigate to the local server
-        page.goto("http://localhost:8080/frontend/index.html")
-        expect(page).to_have_title("ConfigStream - Your Gateway to the Open Internet")
+        page.goto("http://localhost:8000/frontend/analytics.html")
 
-        # Verify Live Feed on Index
-        feed = page.locator("#pipeline-feed")
-        expect(feed).to_be_visible()
+        # Wait for analytics elements to load
+        page.wait_for_selector("#map-container")
+        page.wait_for_selector("canvas")
 
-        # Verify Widgets are NOT on Index
-        map_widget = page.locator("#world-map-widget")
-        expect(map_widget).not_to_be_visible()
+        # Take screenshot of Analytics page
+        os.makedirs("verification", exist_ok=True)
+        page.screenshot(path="verification/analytics.png", full_page=True)
 
-        # Navigate to Statistics
-        page.goto("http://localhost:8080/frontend/statistics.html")
+        # Navigate to About page
+        page.goto("http://localhost:8000/frontend/about.html")
+        page.wait_for_selector("article.card")
 
-        # Verify Widgets are on Statistics
-        map_widget = page.locator("#world-map-widget")
-        expect(map_widget).to_be_visible()
+        # Take screenshot of About page
+        page.screenshot(path="verification/about.png", full_page=True)
 
-        chart_widget = page.locator("#historical-chart-widget")
-        expect(chart_widget).to_be_visible()
-
-        # Verify Leaflet Map Loaded
-        expect(map_widget).to_have_class(re.compile(r"leaflet-container"))
-
-        time.sleep(1)
-        page.screenshot(path="verification/dashboard_stats.png", full_page=True)
         browser.close()
+
 
 if __name__ == "__main__":
     verify_frontend()
