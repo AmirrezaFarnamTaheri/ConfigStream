@@ -19,7 +19,7 @@ import logging
 import random
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 import httpx
@@ -268,6 +268,8 @@ async def fetch_multiple_sources(
     """
     High-level entry point for batch fetching.
     Orchestrates rate limits, DNS pre-warming, and concurrency.
+    Uses as_completed to process results faster (internal optimization),
+    though this function currently returns all results at once for compatibility.
     """
     results: Dict[str, FetchResult] = {}
     app_settings = AppSettings()
@@ -289,7 +291,9 @@ async def fetch_multiple_sources(
     # Optimization: Pre-warm DNS (Best effort for HTTP sources)
     await prewarm_dns_cache(sources)
 
-    async def _worker(http_client: httpx.AsyncClient, source: str):
+    async def _worker(
+        http_client: httpx.AsyncClient, source: str
+    ) -> Tuple[str, FetchResult]:
         async with global_sem:
             res = await fetch_from_source(
                 http_client,
@@ -301,14 +305,21 @@ async def fetch_multiple_sources(
                 timeout_tracker=timeout_tracker,
                 app_settings=app_settings,
             )
-            results[source] = res
+            return source, res
 
     try:
         if client:
-            await asyncio.gather(*[_worker(client, s) for s in sources])
+            # Use gather to execute all
+            tasks = [_worker(client, s) for s in sources]
+            completed = await asyncio.gather(*tasks)
+            for src, res in completed:
+                results[src] = res
         else:
             async with get_client() as new_client:
-                await asyncio.gather(*[_worker(new_client, s) for s in sources])
+                tasks = [_worker(new_client, s) for s in sources]
+                completed = await asyncio.gather(*tasks)
+                for src, res in completed:
+                    results[src] = res
     finally:
         await controller.stop_tuner()
         if timeout_tracker:

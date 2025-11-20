@@ -1,102 +1,79 @@
-# Architecture Overview 🏗️
+# Architecture Guide
 
-ConfigStream is designed as a modern, asynchronous data pipeline. It prioritizes speed, modularity, and resilience, utilizing a CLI-driven architecture that automates the entire lifecycle of proxy aggregation via GitHub Actions.
+ConfigStream is a high-performance, automated pipeline for aggregating, validating, and distributing proxy configurations.
 
-## High-Level Diagram
+## System Overview
+
+The system follows a linear pipeline architecture with event-driven observability.
 
 ```mermaid
 graph TD
-    subgraph Pipeline [Pipeline / CLI]
-        A[Sources] -->|Fetcher| B(Raw Configs)
-        B -->|Parsers| C(Proxy Objects)
-        C -->|Anomaly Detection| D(Safe Proxies)
-        D -->|Deduplication| E(Unique Proxies)
-        E -->|Security Validator| F{Safe?}
-        F -- No --> G[Discard / Log]
-        F -- Yes --> H[Tester Queue]
-        H -->|Sing-box Core| I{Working?}
-        I -- Yes --> J[Result Store]
-        I -- No --> K[History Tracker]
-        J -->|Adapters| L[Output Artifacts]
-        L -->|Write| M[Output Directory]
-        M -->|Deploy| N[GitHub Pages]
-    end
-
-    subgraph Intelligence [Data Analysis]
-        O[SourceQualityTracker] <--> P[SQLite DB]
-        Q[AnomalyDetector] <--> P
-        R[AdaptiveTimeout] <--> P
-    end
-
-    subgraph Viewer [Frontend / Dashboard]
-        M -.->|Read| S[FastAPI Server]
-        S -->|WebSocket| T[Live Feed]
-        M -.->|Read| U[Static PWA]
-        U --> V[Interactive Map]
-        U --> W[Charts]
-    end
+    Sources[Sources] -->|Fetch| Ingestion
+    Ingestion -->|Parse| Core[Core Pipeline]
+    Core -->|Validate| Validator
+    Validator -->|Test| Tester[Sing-box Tester]
+    Tester -->|Results| Intelligence
+    Intelligence -->|Analyze| Scheduler
+    Tester -->|Success| Output
+    Output -->|Generate| Artifacts[Files]
 ```
 
 ## Core Components
 
-### 1. Pipeline-First Design
-The core of ConfigStream is the `configstream merge` CLI command.
--   **Stateless Execution**: Designed to run in ephemeral environments (GitHub Actions).
--   **State Persistence**: Uses SQLite and JSON artifacts to persist intelligence (reliability scores, caches, anomaly history) between runs.
+### 1. Ingestion Layer (`fetcher.py`)
+- **Async Fetching**: Uses `httpx` for concurrent fetching with HTTP/2 support.
+- **Smart Headers**: Rotates User-Agents and handles ETags.
+- **Deduplication**: Fingerprints configs to avoid duplicate processing.
 
-### 2. Ingestion Layer (`fetcher.py`, `parsers.py`)
--   **Concurrency**: Uses `asyncio` and `aiohttp` to fetch from hundreds of sources simultaneously.
--   **Protocol Support**:
-    -   **Standard**: VMess, VLESS, Trojan, Shadowsocks (SIP002).
-    -   **Advanced**: Hysteria 2, Tuic v5, Juicity, SSH Tunnels, WireGuard.
-    -   **Obfuscation**: Handles various transport layers (ws, grpc, httpupgrade).
--   **Anomaly Detection**: `AnomalyDetector` uses Isolation Forests (ML) to identify and reject traffic spikes or poisoning attempts.
+### 2. Processing Core (`pipeline.py`)
+- **Streaming**: Uses `asyncio.Queue` for backpressure management.
+- **Parsing**: `auto_detect.py` identifies protocols (VMess, VLESS, Trojan, etc.).
+- **Normalization**: Standardizes config formats into a common `Proxy` model.
 
-### 3. Intelligence Layer
--   **SourceQualityTracker**: Monitors source reliability over time.
-    -   **Smart Scoring**: Ranks sources by yield and "geo-diversity" (Gini Index).
-    -   **Adaptive Scheduling**: Adjusts testing frequency based on source health.
--   **Adaptive Timeouts**: Learns optimal timeout values per source to minimize latency penalties.
+### 3. Validation & Testing (`testers.py`)
+- **Sing-box Core**: Wraps the high-performance Sing-box binary for real connectivity tests.
+- **Latency Measurement**: Calculates RTT with jitter penalties.
+- **Security Checks**:
+    - **MITM**: Checks SSL issuer against known interception tools.
+    - **Injection**: Validates HTML content integrity (Honey Pot).
+    - **Headers**: Ensures proxy doesn't strip security headers.
 
-### 4. Validation Layer (`testers.py`, `security/`)
--   **Engine**: Uses `sing-box` (via `singbox2proxy`) as the testing core for accurate results.
--   **Security Checks**:
-    -   **Active MITM**: Verifies SSL certificate issuers against known interception tools.
-    -   **Honey Pot**: Detects proxies that redirect traffic to phishing sites or inject HTML.
-    -   **Blocklist**: Filters IPs against FireHol Level 1.
--   **GeoIP**: Offline resolution of IP to Country/ASN using local MMDB.
+### 4. Intelligence Layer (`scheduler.py`, `source_quality.py`)
+- **Smart Retest**: Skips recently tested "Good" proxies based on health score.
+- **Source Scoring**: Tracks success rates of sources to prioritize fetch order.
+- **Geo-Diversity**: Calculates Gini index to ensure global coverage.
 
-### 5. Output & Adapters (`output.py`, `adapters.py`)
--   **Universal Conversion**: Handles serialization to various client formats.
-    -   **Open**: Clash, Sing-box, Base64.
-    -   **Proprietary**: Surge, Loon, Quantumult X.
-    -   **Standard**: SIP008.
--   **Ranked Outputs**: Generates "Chosen Top 1000" subsets based on latency and reliability.
+### 5. Output Generation (`output.py`)
+- **Categorization**: Splits proxies by protocol and country.
+- **Formats**:
+    - **Base64**: Universal subscription.
+    - **Clash/Meta**: YAML configs.
+    - **Sing-box**: JSON configs.
+    - **Adapters**: Surge, Loon, etc.
 
-## Frontend (PWA)
+## Data Flow
 
-The frontend is a Progressive Web App (PWA) built with vanilla JavaScript, Chart.js, and Leaflet.
--   **Live Feed**: Real-time WebSocket connection to the pipeline (when running server-side).
--   **Analytics**:
-    -   **Charts**: 7-Day trend analysis and protocol distribution.
-    -   **Map**: Interactive Leaflet map visualizing global proxy density.
--   **Offline Capable**: Uses Service Workers to cache assets and recent data.
+1. **Trigger**: GitHub Actions schedule (Cron) or manual dispatch.
+2. **Fetch**: Sources are downloaded in parallel batches.
+3. **Parse**: Content is parsed into `Proxy` objects.
+4. **Filter**: Blocklist (IP) and Dedup checks.
+5. **Test**:
+    - Check Cache -> Return if fresh.
+    - Else -> Run Sing-box test.
+6. **Enrich**: Add GeoIP data (Country, ASN).
+7. **Store**: Update History and Cache.
+8. **Publish**: Generate artifacts in `output/`.
 
-## Data Persistence
+## Directory Structure
 
--   **SQLite**: Used for intelligence stats (`data/*.db`).
--   **File System**: Used for transient state and final artifacts.
--   **Event Stream**: File-based IPC for communicating pipeline status to the WebSocket server.
+- `src/configstream/`: Application source code.
+- `data/`: GeoIP databases and cache files.
+- `output/`: Generated artifacts (publicly served).
+- `frontend/`: Static web assets.
+- `.github/workflows/`: CI/CD definitions.
 
-## Security Model
+## Deployment
 
-1.  **Input Sanitization**: All external data is treated as untrusted.
-2.  **Secret Scanning**: Pre-commit hooks (`gitleaks`) prevent leaking keys.
-3.  **Dependency Hardening**: Dependencies are pinned in `pyproject.toml`.
-4.  **Isolation**: Testing occurs in ephemeral subprocesses.
-
-## Future Roadmap
-
--   [ ] Reinforcement Learning for scheduler tuning.
--   [ ] Rust rewrites for hot-path parsers.
--   [ ] Distributed workers (Celery/Redis) for massive scale.
+- **Platform**: GitHub Actions (Runners).
+- **Hosting**: GitHub Pages (Static).
+- **Database**: SQLite (Ephemeral/Artifact-passed) + JSON Caches.

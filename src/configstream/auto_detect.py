@@ -145,17 +145,31 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             result = parser(config)
             if result:
                 # Hysteria2 parser is too aggressive, if it returns a result but the scheme is clearly invalid, reject
-                 # If scheme is present and doesn't match protocol (and isn't generic), assume false positive
-                 if "://" in config:
-                     scheme = config.split("://")[0].lower()
-                     # Allow known aliases
-                     valid_schemes = ["hysteria2", "hy2", "tuic", "wg", "wireguard", "vmess", "vless", "ss", "trojan"]
-                     if result.protocol in ["hysteria2", "tuic", "wireguard", "hysteria"] and scheme not in valid_schemes:
-                          # This handles "invalid://garbage" being parsed as Hysteria2 because Hysteria2 parser just takes URL
-                          continue
+                # If scheme is present and doesn't match protocol (and isn't generic), assume false positive
+                if "://" in config:
+                    scheme = config.split("://")[0].lower()
+                    # Allow known aliases
+                    valid_schemes = [
+                        "hysteria2",
+                        "hy2",
+                        "tuic",
+                        "wg",
+                        "wireguard",
+                        "vmess",
+                        "vless",
+                        "ss",
+                        "trojan",
+                    ]
+                    if (
+                        result.protocol
+                        in ["hysteria2", "tuic", "wireguard", "hysteria"]
+                        and scheme not in valid_schemes
+                    ):
+                        # This handles "invalid://garbage" being parsed as Hysteria2 because Hysteria2 parser just takes URL
+                        continue
 
-                 logger.info("Auto-detected protocol: %s", result.protocol)
-                 return result
+                logger.info("Auto-detected protocol: %s", result.protocol)
+                return result
         except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
             logger.debug(
                 "Fallback parser %s skipped: %s",

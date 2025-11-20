@@ -1,178 +1,98 @@
-"""GeoIP database management"""
+"""
+Offline GeoIP Resolver (MaxMind GeoLite2).
+Uses local MMDB files instead of API calls for zero-latency, private lookups.
+"""
 
 import logging
-import os
-import tarfile
 from pathlib import Path
-from typing import Any
+from typing import Optional
 
-import aiohttp
+import geoip2.database
+from pydantic import BaseModel
+
+from .config import AppSettings
+
+logger = logging.getLogger(__name__)
 
 
-class GeoIPManager:
-    """Download and manage GeoIP databases"""
+class GeoData(BaseModel):
+    country_code: Optional[str] = None
+    city: Optional[str] = None
+    asn: Optional[str] = None
+    org: Optional[str] = None
 
-    GEOIP_URLS = {
-        "country": (
-            "https://download.maxmind.com/app/geoip_download?"
-            "edition_id=GeoLite2-Country&license_key={key}&suffix=tar.gz"
-        ),
-        "city": (
-            "https://download.maxmind.com/app/geoip_download?"
-            "edition_id=GeoLite2-City&license_key={key}&suffix=tar.gz"
-        ),
-    }
 
-    def __init__(self, license_key: str | None = None):
-        key = license_key or os.getenv("MAXMIND_LICENSE_KEY")
-        self.license_key = key if key else None
-        self.data_dir = Path("data")
-        self.data_dir.mkdir(exist_ok=True)
-        self.logger = logging.getLogger(__name__)
+class GeoIPResolver:
+    _instance: Optional["GeoIPResolver"] = None
 
-    async def download_databases(self) -> bool:
-        """
-        Download GeoIP databases.
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(GeoIPResolver, cls).__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
 
-        Returns:
-            True if successful, False otherwise
-        """
-        if not self.license_key:
-            self.logger.info(
-                "GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping."
-            )
-            return False
+    def __init__(self):
+        if getattr(self, "_initialized", False):
+            return
 
-        success = True
+        self.settings = AppSettings()
+        self.reader_city: Optional[geoip2.database.Reader] = None
+        self.reader_asn: Optional[geoip2.database.Reader] = None
+        self._load_databases()
+        self._initialized = True
 
-        async with aiohttp.ClientSession() as session:
-            for db_type, url_template in self.GEOIP_URLS.items():
-                url = url_template.format(key=self.license_key)
+    def _load_databases(self):
+        """Load MMDB files if available."""
+        try:
+            # Look in data/ directory
+            data_dir = Path("data")
+            city_path = data_dir / "GeoLite2-City.mmdb"
+            asn_path = data_dir / "GeoLite2-ASN.mmdb"
 
-                try:
-                    self.logger.info("Downloading GeoLite2-%s...", db_type.title())
-                    await self._download_and_extract(session, url, db_type)
-                    self.logger.info(
-                        "GeoLite2-%s downloaded successfully", db_type.title()
-                    )
-
-                except Exception as e:
-                    self.logger.error(
-                        "Failed to download GeoLite2-%s: %s", db_type.title(), str(e)
-                    )
-                    success = False
-
-        return success
-
-    async def _download_and_extract(
-        self,
-        session: aiohttp.ClientSession,
-        url: str,
-        db_type: str,
-    ) -> None:
-        """Download and extract GeoIP database"""
-
-        # Download with timeout
-        async with session.get(
-            url,
-            timeout=aiohttp.ClientTimeout(total=300),
-            ssl=True,  # 5 minutes
-        ) as response:
-            if response.status != 200:
-                raise Exception(f"HTTP {response.status}")
-
-            # Save tar.gz file temporarily
-            tar_path = self.data_dir / f"geoip-{db_type}.tar.gz"
-            content = await response.read()
-            tar_path.write_bytes(content)
-
-            # Extract
-            with tarfile.open(tar_path) as tar:
-                # Find .mmdb file in archive
-                for member in tar.getmembers():
-                    if member.name.endswith(".mmdb"):
-                        extracted = tar.extractfile(member)
-                        if extracted is None:
-                            continue
-                        data = extracted.read()
-
-                        # Name based on type
-                        if db_type == "country":
-                            db_file = self.data_dir / "GeoLite2-Country.mmdb"
-                        else:
-                            db_file = self.data_dir / "GeoLite2-City.mmdb"
-
-                        db_file.write_bytes(data)
-                        break
-
-            # Cleanup tar.gz
-            tar_path.unlink()
-
-    def verify_databases(self) -> bool:
-        """Verify databases exist and are readable"""
-        required_dbs = [
-            self.data_dir / "GeoLite2-Country.mmdb",
-            self.data_dir / "GeoLite2-City.mmdb",
-        ]
-
-        all_exist = True
-        for db_path in required_dbs:
-            if db_path.exists() and db_path.stat().st_size > 0:
-                self.logger.info(
-                    "GeoIP %s exists (%d bytes)", db_path.name, db_path.stat().st_size
-                )
+            if city_path.exists():
+                self.reader_city = geoip2.database.Reader(city_path)
+                logger.info("Loaded GeoLite2 City database.")
             else:
-                self.logger.error("GeoIP %s missing or empty", db_path.name)
-                all_exist = False
+                logger.warning("GeoLite2 City DB not found. Geolocation disabled.")
 
-        return all_exist
+            if asn_path.exists():
+                self.reader_asn = geoip2.database.Reader(asn_path)
+                logger.info("Loaded GeoLite2 ASN database.")
 
+        except Exception as e:
+            logger.error(f"Failed to load GeoIP databases: {e}")
 
-async def download_geoip_dbs() -> bool:
-    """Main entry point for GeoIP download"""
-    manager = GeoIPManager()
-    success = await manager.download_databases()
-
-    if success:
-        manager.verify_databases()
-
-    return success
-
-
-class GeoIPService:
-    """Service for geolocating proxies"""
-
-    def __init__(self, db_path: str = "data/GeoLite2-City.mmdb"):
-        self.db_path = Path(db_path)
-        self.reader = None
-        if self.db_path.exists():
-            import geoip2.database
-
-            self.reader = geoip2.database.Reader(str(self.db_path))
-
-    async def geolocate(self, proxy_config: Any) -> dict[str, Any] | None:
-        """
-        Geolocate a proxy configuration.
-
-        Args:
-            proxy_config: The proxy configuration to geolocate.
-
-        Returns:
-            A dictionary with geolocation data, or None.
-        """
-        if not self.reader:
-            return None
+    def lookup(self, ip: str) -> GeoData:
+        """Resolve IP to Country, City, ASN."""
+        result = GeoData()
+        if not ip:
+            return result
 
         try:
-            response = self.reader.city(proxy_config.host)
-            autonomous = getattr(response, "autonomous_system", None)
-            asn_number = getattr(autonomous, "autonomous_system_number", None)
-            asn_value = f"AS{asn_number}" if asn_number is not None else None
-            return {
-                "country_code": response.country.iso_code,
-                "country_name": response.country.name,
-                "city_name": response.city.name,
-                "asn": asn_value,
-            }
-        except Exception:
-            return None
+            if self.reader_city:
+                response = self.reader_city.city(ip)
+                result.country_code = response.country.iso_code
+                result.city = response.city.name
+
+            if self.reader_asn:
+                response_asn = self.reader_asn.asn(ip)
+                result.asn = str(response_asn.autonomous_system_number)
+                result.org = response_asn.autonomous_system_organization
+
+        except geoip2.errors.AddressNotFoundError:
+            pass
+        except Exception as e:
+            # Log verbosely only if it's not a common expected error
+            logger.debug(f"GeoIP lookup error for {ip}: {e}")
+
+        return result
+
+    def close(self):
+        if self.reader_city:
+            self.reader_city.close()
+        if self.reader_asn:
+            self.reader_asn.close()
+
+
+# Global Singleton
+DEFAULT_RESOLVER = GeoIPResolver()

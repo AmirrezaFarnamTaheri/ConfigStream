@@ -2989,3 +2989,148 @@ body.dark #preloader {
         font-size: 1.1rem;
     }
 }
+
+/*
+   =========================================
+   Mobile Improvements for About & Analytics
+   =========================================
+*/
+
+/* About Page Styles */
+.about-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.mission-card {
+    background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 3rem;
+    margin-top: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.mission-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.about-section-title {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.about-text-content {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+}
+
+.feature-list li {
+    margin-bottom: 0.8rem;
+    padding-left: 1.5rem;
+    position: relative;
+    color: var(--text-secondary);
+}
+
+.feature-list li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--brand-primary);
+    font-weight: bold;
+}
+
+.source-btn {
+    display: inline-block;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.2s;
+    border: none;
+}
+
+.source-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Light mode overrides for About page */
+body:not(.dark) .mission-card {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0,0,0,0.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+}
+
+/* Analytics Page Styles */
+.analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+#map-container {
+    grid-column: 1 / -1;
+    height: 500px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    z-index: 1; /* Ensure map stays below nav */
+}
+
+/* Mobile Responsive Overrides */
+@media (max-width: 768px) {
+    /* About Page Mobile */
+    .about-container {
+        padding: 1rem;
+    }
+
+    .mission-card {
+        padding: 1.5rem;
+    }
+
+    .mission-title {
+        font-size: 2rem;
+    }
+
+    .about-hero-title {
+        font-size: 2.5rem !important;
+    }
+
+    /* Analytics Page Mobile */
+    .analytics-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    #map-container {
+        height: 300px;
+    }
+
+    .chart-container {
+        height: 350px; /* Slightly taller for mobile charts */
+        padding: 1rem;
+    }
+}

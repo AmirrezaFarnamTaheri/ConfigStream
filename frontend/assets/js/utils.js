@@ -741,12 +741,126 @@ async function copyToClipboard(text, button) {
   }
 }
 
+/**
+ * Initialize mobile navigation (hamburger menu)
+ * Shared across pages
+ */
+function initMobileNav() {
+    const toggleBtn = document.getElementById('mobile-nav-toggle');
+    const mainNav = document.getElementById('main-nav');
+
+    // Create overlay if it doesn't exist
+    let navOverlay = document.querySelector('.nav-overlay');
+    if (!navOverlay) {
+        navOverlay = document.createElement('div');
+        navOverlay.className = 'nav-overlay';
+        document.body.appendChild(navOverlay);
+    }
+
+    if (!toggleBtn || !mainNav) return;
+
+    const toggleNav = () => {
+        const isNavOpen = document.body.classList.toggle('nav-open');
+        toggleBtn.setAttribute('aria-expanded', isNavOpen);
+
+        // Prevent body scroll when nav is open
+        if (isNavOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    };
+
+    // Remove existing listeners to avoid duplicates (if called multiple times)
+    const newBtn = toggleBtn.cloneNode(true);
+    toggleBtn.parentNode.replaceChild(newBtn, toggleBtn);
+
+    newBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleNav();
+    });
+
+    navOverlay.addEventListener('click', toggleNav);
+
+    // Close nav when a link is clicked
+    mainNav.addEventListener('click', (e) => {
+        if (e.target.classList.contains('nav-link')) {
+            if (document.body.classList.contains('nav-open')) {
+                toggleNav();
+            }
+        }
+    });
+
+    // Close nav on 'Escape' key press
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('nav-open')) {
+            toggleNav();
+        }
+    });
+}
+
+/**
+ * Initialize theme switcher
+ * Shared across pages
+ */
+function initTheme() {
+    const themeSwitcher = document.getElementById('theme-switcher');
+    if (!themeSwitcher) return; // Early return if theme switcher doesn't exist
+
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    let currentTheme = localStorage.getItem('theme');
+
+    const setTheme = (theme, animate = false) => {
+        if (animate) {
+            document.body.style.transition = 'background-color var(--transition-base), color var(--transition-base)';
+        } else {
+            document.body.style.transition = 'none';
+        }
+        document.body.classList.toggle('dark', theme === 'dark');
+        localStorage.setItem('theme', theme);
+
+        // Dispatch a custom event to notify other components (like charts)
+        window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme } }));
+
+        if (!animate) {
+            // Force a reflow to apply the initial state without transition
+            void document.body.offsetWidth;
+            document.body.style.transition = '';
+        }
+    };
+
+    if (!currentTheme) {
+        currentTheme = prefersDark.matches ? 'dark' : 'light';
+    }
+
+    setTheme(currentTheme);
+
+    // Remove existing listeners
+    const newSwitcher = themeSwitcher.cloneNode(true);
+    themeSwitcher.parentNode.replaceChild(newSwitcher, themeSwitcher);
+
+    newSwitcher.addEventListener('click', () => {
+        const newTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
+        setTheme(newTheme, true);
+    });
+
+    // Only add the listener once
+    if (!window._themeListenerAdded) {
+        prefersDark.addEventListener('change', (e) => {
+            setTheme(e.matches ? 'dark' : 'light', true);
+        });
+        window._themeListenerAdded = true;
+    }
+}
+
 // Expose global API
 window.api = {
   fetchProxies,
   fetchMetadata,
   fetchStatistics,
-  clearCache
+  clearCache,
+  initMobileNav,
+  initTheme
 };
 
 // Export for testing if in Node.js environment
