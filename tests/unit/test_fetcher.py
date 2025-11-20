@@ -1,4 +1,3 @@
-
 from unittest.mock import MagicMock, patch, AsyncMock
 import asyncio
 from datetime import datetime, timezone
@@ -64,10 +63,8 @@ async def test_fetch_multiple_batch_sync():
         mock_fetch.side_effect = side_effect
 
         sources = ["s1", "s2"]
-        results = await fetch_multiple_sources(
-            sources, max_concurrent=2, timeout=5
-        )
+        results = await fetch_multiple_sources(sources, max_concurrent=2, timeout=5)
 
         assert len(results) == 2
         assert results["s1"].success
-        assert not results["s1"].success == False
+        assert results["s1"].success is not False

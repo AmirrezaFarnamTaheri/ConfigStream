@@ -4,65 +4,58 @@ This document explains how ConfigStream handles the parsing, validation, and tes
 
 ## Supported Protocols
 
-| Protocol | Parsing Logic | Validation | Test Client |
-| :--- | :--- | :--- | :--- |
-| **VLESS** | `src/configstream/parsers.py:_parse_vless` | Check UUID, Address, Port. If `security=reality`, check `pbk`. | Sing-box |
-| **VMess** | `src/configstream/parsers.py:_parse_vmess` | Decode Base64 -> JSON. Validate `id`, `add`, `port`, `aid`. | Sing-box |
-| **Trojan** | `src/configstream/parsers.py:_parse_trojan` | `trojan://password@host:port`. Ensure password exists. | Sing-box |
-| **Shadowsocks** | `src/configstream/parsers.py:_parse_ss` | Decode Base64 (SIP002). Validate cipher & password. | Sing-box |
-| **Hysteria 2** | `src/configstream/parsers.py:_parse_hysteria2` | `hy2://password@host:port`. Check obfuscation keys. | Sing-box |
-| **WireGuard** | `src/configstream/parsers.py:_parse_wireguard` | Check `private_key`, `peer_public_key`. Parse `reserved` bytes for WARP. | Sing-box |
-| **OpenVPN** | `src/configstream/parsers.py:_parse_openvpn` | Regex scan for `remote host port` and `BEGIN CERTIFICATE`. | N/A (Parsing only) |
+| Protocol | Parsing Logic | Validation | Test Client | Security |
+| :--- | :--- | :--- | :--- | :--- |
+| **VLESS** | `parsers.py:_parse_vless` | Check UUID, Address, Port. If `security=reality`, check `pbk`. | Sing-box | uTLS |
+| **VMess** | `parsers.py:_parse_vmess` | Decode Base64 -> JSON. Validate `id`, `add`, `port`, `aid`. | Sing-box | uTLS |
+| **Trojan** | `parsers.py:_parse_trojan` | `trojan://password@host:port`. Ensure password exists. | Sing-box | uTLS |
+| **Shadowsocks** | `parsers.py:_parse_ss` | Decode Base64 (SIP002). Validate cipher & password. | Sing-box | **Rust FFI** |
+| **Hysteria 2** | `parsers.py:_parse_hysteria2` | `hy2://`. Check `ports` (hopping), `obfs` (salamander). | Sing-box | N/A |
+| **WireGuard** | `parsers.py:_parse_wireguard` | Check keys. Parse `reserved` bytes (Base64/CSV) for WARP. | Sing-box | N/A |
+| **OpenVPN** | `parsers.py:_parse_openvpn` | Regex scan for `remote host port` and `BEGIN CERTIFICATE`. | N/A | N/A |
 
-## VLESS & REALITY: The New Standard
+## Advanced Protocol Features
 
-**VLESS** is a stateless lightweight transport protocol. **REALITY** replaces traditional TLS by forwarding traffic to a legitimate foreign website (the SNI) during the handshake, making the proxy server look exactly like that website (e.g., `microsoft.com` or `yahoo.com`) to censors.
+### 1. Hysteria 2 Port Hopping
+Hysteria 2 supports hopping between a range of ports to evade blocking.
+-   **Parsing**: We look for the `ports` query parameter (e.g., `ports=80,443,10000-20000`).
+-   **Validation**: We regex match the range format `^[\d,\-]+$`.
+-   **Testing**: Sing-box handles the hopping logic internally during the connection test.
 
-### Critical Fields
--   **UUID**: User ID.
--   **Flow**: `xtls-rprx-vision` (optional, for XTLS Vision).
--   **Reality Fields**:
-    -   `pbk`: Public Key (Curve25519). **Mandatory**.
-    -   `sid`: Short ID. **Mandatory**.
-    -   `fp`: Fingerprint (e.g., `chrome`, `firefox`).
-    -   `sni`: The domain being mimicked.
+### 2. WireGuard & Cloudflare WARP
+Cloudflare WARP uses a modified WireGuard protocol distinguished by reserved bytes.
+-   **Reserved Bytes**: ConfigStream parses the `reserved` field from URL parameters. It supports:
+    -   **Base64**: `reserved=eyJ...`
+    -   **CSV**: `reserved=12,34,56`
+    -   **Bracketed**: `reserved=[12, 34, 56]`
+-   **Output**: Converted to the correct integer array format for Sing-box JSON.
 
-### Parsing Logic
-Our parser enforces strict checking for REALITY configs to avoid generating broken links.
+### 3. Shadowsocks Verification (Rust FFI)
+Pure Python implementations of Shadowsocks crypto (e.g., `chacha20-poly1305`) are slow and CPU-intensive.
+-   **Architecture**: We compile a Rust dynamic library (`libss_checker.so` / `.dll`) that links against the official `shadowsocks-rust` crate (simulated in PoC).
+-   **FFI**: Python uses `ctypes` to pass the configuration JSON to the Rust function `verify_shadowsocks`.
+-   **Benefit**: 10x-100x faster validation of cryptographic parameters.
 
-```python
-# src/configstream/parsers.py
-if details.get("security") == "reality":
-    if not details.get("pbk"):
-        logger.debug("VLESS Reality missing 'pbk'")
-        return None
-```
-
-## VMess: Legacy but Popular
-
-VMess relies on a complex handshake and is stateful (VMessAEAD). It is often distributed as a Base64-encoded JSON blob (`vmess://ey...`).
-
-### The "Type" Confusion
-VMess links do not follow a standard URI scheme. They are just `vmess://` followed by base64.
-We decode this blob and map the often-inconsistent JSON keys (e.g., `add` vs `host` vs `ip`) to a normalized `Proxy` object.
-
-## WireGuard & Cloudflare WARP
-
-WireGuard is a Layer 3 protocol. It is not designed for censorship circumvention but is fast. Cloudflare WARP uses a modified WireGuard protocol.
-
-### Reserved Bytes
-To distinguish WARP traffic, the client sends 3 reserved bytes in the handshake.
--   **Parsing**: We extract `reserved` from the URL query parameters (often CSV or base64 encoded).
--   **Output**: When generating Sing-box config, we pass `reserved` as an array of integers.
-
-## Obfuscation & Security
+## Security & Obfuscation
 
 ### TLS Fingerprint Randomization (uTLS)
-To avoid identification by the "Client Hello" packet size/structure, modern clients use **uTLS**.
-ConfigStream simulates this during testing by randomizing HTTP headers (order and casing) when fetching sources, and the underlying `sing-box` tester uses uTLS "chrome" or "randomized" fingerprints when probing proxies.
+Standard Python `ssl` or `requests` libraries have a fixed, easily identifiable TLS Client Hello fingerprint (JA3). Advanced firewalls block this.
+-   **Solution**: We use a **Go Sidecar** (`src/go/utls_client`).
+-   **Mechanism**:
+    1.  Python spawns the Go binary.
+    2.  Go binary uses `uTLS` to generate a randomized Hello (Chrome, Firefox, iOS).
+    3.  Go performs the handshake and reports success/failure to Python.
+-   **Integration**: Used primarily for direct checks or verifying if a proxy supports specific fingerprints.
 
-### Deep Packet Inspection (DPI) Evasion
-We prioritize protocols that support:
--   **Padding**: Adding random noise to packet sizes.
--   **Mux**: Multiplexing streams (though this can degrade performance on poor networks).
--   **Fragment**: Splitting "Client Hello" packets.
+### Honeypot Detection
+Malicious proxies (honeypots) often expose themselves by running standard services on the same IP.
+-   **Active Scanning**: Before listing a proxy, we asynchronously scan:
+    -   **Port 22 (SSH)**: Indicates a hacked server or administration interface.
+    -   **Port 23 (Telnet)**: Highly suspicious, indicates insecure IoT device or trap.
+    -   **Port 3389 (RDP)**: Windows Server, potential compromise.
+-   **Logic**: If any "management" port is open to the public, the proxy is flagged as `UNSAFE`.
+
+## VLESS REALITY
+**REALITY** eliminates the need for a signed certificate by mimicking a target website (SNI).
+-   **Validation**: We strictly check for `pbk` (Public Key) and `sid` (Short ID).
+-   **Flow**: We support `xtls-rprx-vision` flow control parsing.

@@ -39,13 +39,16 @@ async def get_stats():
     metadata_path = OUTPUT_DIR / "metadata.json"
     if not metadata_path.exists():
         # Return placeholder if first run hasn't finished
-        return JSONResponse(content={
-            "status": "initializing",
-            "message": "Pipeline is running. Please wait for data generation.",
-        })
+        return JSONResponse(
+            content={
+                "status": "initializing",
+                "message": "Pipeline is running. Please wait for data generation.",
+            }
+        )
 
     # Read and return JSON content directly to ensure proper content-type and parsing
     import json
+
     try:
         content = json.loads(metadata_path.read_text())
         return JSONResponse(content=content)

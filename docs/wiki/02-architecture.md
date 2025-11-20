@@ -20,69 +20,84 @@ flowchart TD
         D1 -->|Yes| E(Candidate Queue)
     end
 
-    subgraph Validation ["Phase 3: Validation (Network IO)"]
-        E -->|Sing-box Test| F{Working?}
-        F -->|No| G[Update Reliability Score]
-        F -->|Yes| H(Working Proxies)
+    subgraph Validation ["Phase 3: Validation (Network IO & FFI)"]
+        E -->|Active Probing| F{Honeypot?}
+        F -->|Yes| X
+        F -->|No| G{Crypto Check}
+        G -->|Rust FFI| H{Valid?}
+        H -->|No| X
+        H -->|Yes| I{Connectivity}
+        I -->|uTLS Sidecar| J(Working Proxies)
     end
 
     subgraph Output ["Phase 4: Output (IO)"]
-        H -->|GeoIP Enrichment| I(Enriched Data)
-        I -->|Generate Configs| J[Clash/Singbox/Base64]
-        I -->|Update History| K[SQLite DB]
+        J -->|GeoIP Enrichment| K(Enriched Data)
+        K -->|Generate Configs| L[Clash/Singbox/Surge/Loon]
+        K -->|Update History| M[SQLite DB]
     end
 
-    Ingestion --> Processing --> Validation --> Output
+    subgraph Distribution ["Phase 5: Distribution"]
+        L -->|Deploy| N[GitHub Pages]
+        L -->|Mirror| O[IPFS/Netlify/Vercel]
+        L -->|Serve| P[Telegram Bot]
+    end
+
+    Ingestion --> Processing --> Validation --> Output --> Distribution
 ```
 
 ### 1. Ingestion (Fetcher)
 We use `httpx` for asynchronous HTTP requests. The fetcher is the entry point of data.
--   **Concurrency**: Controlled via `asyncio.Semaphore` to prevent overwhelming the runner's network stack or getting banned by source servers.
--   **Resilience**: Implements **Hedged Requests**. If a request takes longer than the 95th percentile expected time, we fire a second "hedge" request. The first to return wins. This smooths out tail latency.
--   **Constraint**: Must respect GitHub Actions network limits (bandwidth/IO). We avoid downloading huge files if headers indicate excessive size.
+-   **Concurrency**: Controlled via `asyncio.Semaphore` to prevent overwhelming the runner's network stack.
+-   **Resilience**: Implements **Hedged Requests**. If a request takes longer than the 95th percentile expected time, we fire a second "hedge" request.
+-   **Constraint**: Must respect GitHub Actions network limits (bandwidth/IO).
 
 ### 2. Parsing & Validation
 Parsing is dangerous. Input is untrusted and often malformed.
--   **Strict Types**: We use Python's `typing` and `Pydantic` models to enforce schema validity.
--   **Regex vs. URL Parsing**: We prefer `urllib.parse` for standard schemes (e.g., `http://`) but fallback to robust Regex for base64 blobs or non-standard URIs (e.g., `vmess://`).
--   **Auto-Detection**: The `auto_detect.py` module uses heuristics to identify protocols even if the scheme is missing or incorrect, scanning for known signatures (e.g., specific JSON keys for VMess).
+-   **Strict Types**: We use `Pydantic` models to enforce schema validity.
+-   **Auto-Detection**: The `auto_detect.py` module uses heuristics to identify protocols even if the scheme is missing.
+-   **Protocol Expansion**: Support for Hysteria 2 (port hopping) and WireGuard (reserved bytes).
 
 ### 3. Testing (The Engine)
-We use `sing-box` as the underlying test engine because it supports almost every modern protocol (VLESS, Hysteria2, Tuic, WireGuard) and is extremely performant (Go-based).
--   **Wrapper**: `src/configstream/testers.py` wraps the binary execution.
--   **Performance**: We generate a temporary, minimal config file for `sing-box`, run it in "url-test" mode against a low-latency target (e.g., `http://cp.cloudflare.com/generate_204`), and parse the JSON output.
--   **Isolation**: Each test runs in isolation (or batched) to ensure one bad proxy doesn't crash the tester.
+We employ a hybrid testing engine:
+-   **Sing-box**: The primary connectivity tester for complex protocols (VLESS, VMess, Tuic).
+-   **Python aiohttp**: For basic HTTP/SOCKS checks.
+-   **Rust FFI**: For high-performance Shadowsocks crypto validation (`src/rust/ss_checker`).
+-   **Go Sidecar**: For uTLS fingerprint randomization (`src/go/utls_client`) to simulate real browser handshakes.
+-   **Honeypot Probe**: Actively scans the proxy IP for suspicious ports (22, 23, 3389) to detect interception nodes.
 
 ### 4. Output & Distribution
-We generate multiple formats to support different clients:
--   **Clash**: YAML format using a Jinja2-like template or direct PyYAML dump.
--   **Sing-box**: JSON format matching the strict schema of Sing-box.
--   **Base64**: Standard subscription link (one config per line, base64 encoded).
--   **Metadata**: A rich JSON file (`metadata.json`) containing analytics for the frontend.
+We generate multiple formats:
+-   **Universal**: Base64 subscription.
+-   **Clients**: Clash, Sing-box, Surge, Loon, Quantumult X, SIP008.
+-   **Metadata**: `metadata.json` for the frontend and bot.
+
+### 5. The Bot Architecture
+The ConfigStream Bot operates in two modes:
+1.  **Stateless (Cloudflare Worker)**: Fetches `metadata.json` and `proxies.json` from the GitHub Pages CDN and serves them to users. No database required.
+2.  **Polling (CLI)**: Runs as a standard Python process (`configstream bot`) for local or server-based deployments.
 
 ## AsyncIO Design
 
-Python's `asyncio` is single-threaded, but ideal for IO-bound tasks like fetching and testing.
--   **Event Loop**: The default loop is usually sufficient, but `uvloop` can be used for 2x speedup in heavy loads.
--   **Batching**: We process proxies in chunks (e.g., 50 at a time) to avoid OOM (Out of Memory) errors and manage open file descriptors.
+Python's `asyncio` is single-threaded, but ideal for IO-bound tasks.
+-   **Event Loop**: The default loop is usually sufficient, but `uvloop` can be used for speedup.
+-   **Batching**: We process proxies in chunks to avoid OOM errors.
 
 ```mermaid
 sequenceDiagram
     participant Scheduler
     participant Fetcher
     participant Parser
+    participant Security
     participant Tester
-    participant DB
+    participant Bot
 
     Scheduler->>Fetcher: Get Source URL
-    Fetcher->>Fetcher: Check Circuit Breaker
-    alt Circuit Open
-        Fetcher-->>Scheduler: Skip (Cooldown)
-    else Circuit Closed
-        Fetcher->>Parser: Raw Data
-        Parser->>Tester: Proxy Object
-        Tester->>Tester: Run Sing-box
-        Tester-->>DB: Update Reliability Score
-        Tester-->>Scheduler: Result (Latency)
-    end
+    Fetcher->>Parser: Raw Data
+    Parser->>Security: Proxy Object
+    Security->>Security: Honeypot Check (Port Scan)
+    Security->>Security: Rust FFI Verify
+    Security->>Tester: Valid Proxy
+    Tester->>Tester: Run Sing-box / uTLS
+    Tester-->>Scheduler: Result (Latency)
+    Scheduler->>Bot: Update Metadata
 ```

@@ -47,6 +47,7 @@ dependencies = [
     # CLI & UI
     "click",
     "rich",
+    "python-telegram-bot>=20.0",
 
     # Geo & Sys
     "geoip2",

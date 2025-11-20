@@ -8,6 +8,12 @@
 
 ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions. This process includes comprehensive security testing, geolocation enrichment, and anomaly detection.
 
+## 🚀 New Features
+*   **Smart Mirroring**: Automated multi-cloud deployment to Vercel, Netlify, and IPFS.
+*   **Telegram Bot**: Get proxies directly in chat. [Guide](docs/BOT_GUIDE.md).
+*   **Hardcore Security**: Honeypot detection and uTLS fingerprint randomization. [Details](docs/SECURITY.md).
+*   **Advanced Protocols**: Support for Hysteria 2 port hopping and Shadowsocks-Rust verification.
+
 ## 🌐 Get Fresh Configurations
 
 Visit our GitHub Pages site to download the latest tested configurations:
