@@ -38,7 +38,9 @@ class GeoIPManager:
             True if successful, False otherwise
         """
         if not self.license_key:
-            self.logger.info("GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping.")
+            self.logger.info(
+                "GeoIP not configured (MAXMIND_LICENSE_KEY not set); skipping."
+            )
             return False
 
         success = True
@@ -50,10 +52,14 @@ class GeoIPManager:
                 try:
                     self.logger.info("Downloading GeoLite2-%s...", db_type.title())
                     await self._download_and_extract(session, url, db_type)
-                    self.logger.info("GeoLite2-%s downloaded successfully", db_type.title())
+                    self.logger.info(
+                        "GeoLite2-%s downloaded successfully", db_type.title()
+                    )
 
                 except Exception as e:
-                    self.logger.error("Failed to download GeoLite2-%s: %s", db_type.title(), str(e))
+                    self.logger.error(
+                        "Failed to download GeoLite2-%s: %s", db_type.title(), str(e)
+                    )
                     success = False
 
         return success
@@ -112,7 +118,9 @@ class GeoIPManager:
         all_exist = True
         for db_path in required_dbs:
             if db_path.exists() and db_path.stat().st_size > 0:
-                self.logger.info("GeoIP %s exists (%d bytes)", db_path.name, db_path.stat().st_size)
+                self.logger.info(
+                    "GeoIP %s exists (%d bytes)", db_path.name, db_path.stat().st_size
+                )
             else:
                 self.logger.error("GeoIP %s missing or empty", db_path.name)
                 all_exist = False

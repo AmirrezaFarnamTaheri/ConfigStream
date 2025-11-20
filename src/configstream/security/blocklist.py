@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 BLOCKLIST_URL = "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset"
 CACHE_FILE = Path("data/firehol_level1.netset")
 
+
 class BlocklistManager:
     _instance = None
 
@@ -29,7 +30,9 @@ class BlocklistManager:
     def __init__(self):
         if getattr(self, "_initialized", False):
             return
-        self.blocked_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = set()
+        self.blocked_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = (
+            set()
+        )
         self._initialized = True
 
     async def update(self):
@@ -48,7 +51,9 @@ class BlocklistManager:
             await self.load()
 
         except Exception as e:
-            logger.warning(f"Failed to update blocklist: {e}. Using cached version if available.")
+            logger.warning(
+                f"Failed to update blocklist: {e}. Using cached version if available."
+            )
             await self.load()
 
     async def load(self):
@@ -89,9 +94,10 @@ class BlocklistManager:
                 if addr in net:
                     return True
         except ValueError:
-            pass # Invalid IP or Domain
+            pass  # Invalid IP or Domain
 
         return False
+
 
 # Global Instance
 DEFAULT_BLOCKLIST = BlocklistManager()

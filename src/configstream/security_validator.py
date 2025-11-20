@@ -143,7 +143,9 @@ class SecurityValidator:
         address_lower = address.lower()
 
         # Allow bypass for reserved or test-specific domains
-        if address_lower in suspicious_domain_allowlist or address_lower.endswith(".test"):
+        if address_lower in suspicious_domain_allowlist or address_lower.endswith(
+            ".test"
+        ):
             pass
         # Check for suspicious patterns (exact or subdomain match)
         for suspicious in SUSPICIOUS_DOMAINS:
@@ -155,9 +157,13 @@ class SecurityValidator:
                 return issues
 
         # DNS rebinding protection - check for hex notation or octal notation
-        if address_lower.startswith("0x") or re.match(r"^0[0-7]{1,11}\.", address_lower):
+        if address_lower.startswith("0x") or re.match(
+            r"^0[0-7]{1,11}\.", address_lower
+        ):
             logger.warning("Non-standard IP notation: %s", address)
-            issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = f"Non-standard notation: {address}"
+            issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
+                f"Non-standard notation: {address}"
+            )
             return issues
 
         # Combined check for private, reserved, and special-use addresses
@@ -189,7 +195,9 @@ class SecurityValidator:
             for pattern in special_address_patterns:
                 if re.match(pattern, address_lower):
                     logger.warning("Special or private address detected: %s", address)
-                    issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Special address: {address}"
+                    issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
+                        f"Special address: {address}"
+                    )
                     return issues
 
         return issues
@@ -213,7 +221,9 @@ class SecurityValidator:
         # Check for null bytes
         if "\x00" in config:
             logger.error("Null byte detected in config")
-            issues[SECURITY_CATEGORIES["CONFIG_NULL_BYTE"]] = "Suspicious: Contains null byte"
+            issues[SECURITY_CATEGORIES["CONFIG_NULL_BYTE"]] = (
+                "Suspicious: Contains null byte"
+            )
             return issues
 
         # Check length
@@ -304,7 +314,9 @@ class SecurityValidator:
         sanitized = message
 
         # Mask UUIDs
-        uuid_pattern = r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"
+        uuid_pattern = (
+            r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b"
+        )
         sanitized = re.sub(uuid_pattern, "[UUID]", sanitized, flags=re.IGNORECASE)
 
         # Mask passwords in URLs
@@ -335,7 +347,9 @@ def validate_batch_configs(
     secure_proxies = []
 
     for proxy in proxies:
-        is_secure, categorized_issues = validator.validate_proxy_config(proxy, policy=policy)
+        is_secure, categorized_issues = validator.validate_proxy_config(
+            proxy, policy=policy
+        )
 
         if not is_secure:
             all_issues = []
@@ -350,5 +364,7 @@ def validate_batch_configs(
             proxy.is_secure = True
             secure_proxies.append(proxy)
 
-    logger.info("Security validation: %s/%s proxies passed", len(secure_proxies), len(proxies))
+    logger.info(
+        "Security validation: %s/%s proxies passed", len(secure_proxies), len(proxies)
+    )
     return secure_proxies

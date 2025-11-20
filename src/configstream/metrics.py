@@ -64,7 +64,11 @@ class PipelineMetrics:
                 "cache_hit_rate_pct": round(self.cache_hit_rate * 100, 2),
                 "average_latency_ms": round(self.avg_latency, 2),
                 "throughput_proxies_per_min": round(
-                    self.total_tested / (self.test_duration / 60) if self.test_duration > 0 else 0,
+                    (
+                        self.total_tested / (self.test_duration / 60)
+                        if self.test_duration > 0
+                        else 0
+                    ),
                     2,
                 ),
             },

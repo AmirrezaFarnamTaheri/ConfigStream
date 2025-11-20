@@ -87,7 +87,9 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
             endpoint_map[key] = p
         else:
             # Collision: keep the faster one
-            existing_latency = existing.latency if existing.latency is not None else float("inf")
+            existing_latency = (
+                existing.latency if existing.latency is not None else float("inf")
+            )
             new_latency = p.latency if p.latency is not None else float("inf")
 
             if new_latency < existing_latency:
@@ -114,16 +116,22 @@ class ProxyFilter:
     def by_city(self, cities: Sequence[str]) -> "ProxyFilter":
         normalized = {city.lower() for city in cities}
         filtered = [
-            proxy for proxy in self._proxies if proxy.city and proxy.city.lower() in normalized
+            proxy
+            for proxy in self._proxies
+            if proxy.city and proxy.city.lower() in normalized
         ]
         return ProxyFilter(filtered)
 
     def by_protocol(self, protocols: Sequence[str]) -> "ProxyFilter":
         normalized = {protocol.lower() for protocol in protocols}
-        filtered = [proxy for proxy in self._proxies if proxy.protocol.lower() in normalized]
+        filtered = [
+            proxy for proxy in self._proxies if proxy.protocol.lower() in normalized
+        ]
         return ProxyFilter(filtered)
 
-    def by_latency(self, *, min_ms: float = 0, max_ms: float | None = None) -> "ProxyFilter":
+    def by_latency(
+        self, *, min_ms: float = 0, max_ms: float | None = None
+    ) -> "ProxyFilter":
         filtered: List[Proxy] = []
         for proxy in self._proxies:
             if proxy.latency is None:
@@ -138,7 +146,9 @@ class ProxyFilter:
     def by_asn(self, asns: Sequence[str]) -> "ProxyFilter":
         normalized = {asn.upper() for asn in asns}
         filtered = [
-            proxy for proxy in self._proxies if proxy.asn and proxy.asn.upper() in normalized
+            proxy
+            for proxy in self._proxies
+            if proxy.asn and proxy.asn.upper() in normalized
         ]
         return ProxyFilter(filtered)
 
@@ -152,9 +162,13 @@ class ProxyFilter:
         )
 
     def sort_by_country(self) -> "ProxyFilter":
-        return ProxyFilter(sorted(self._proxies, key=lambda proxy: (proxy.country_code or "")))
+        return ProxyFilter(
+            sorted(self._proxies, key=lambda proxy: (proxy.country_code or ""))
+        )
 
-    def chain(self, *filters: Callable[[Sequence[Proxy]], Iterable[Proxy]]) -> "ProxyFilter":
+    def chain(
+        self, *filters: Callable[[Sequence[Proxy]], Iterable[Proxy]]
+    ) -> "ProxyFilter":
         result: List[Proxy] = self._proxies
         for filter_callable in filters:
             result = list(filter_callable(result))

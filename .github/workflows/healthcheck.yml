@@ -18,9 +18,9 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read     # Only read code
-  issues: write      # Create/update failure alerts
-  actions: read      # Read workflow status
+  contents: read      # Only read code
+  issues: write       # Create/update failure alerts
+  actions: read       # Read workflow status
 
 jobs:
   healthcheck:
@@ -87,7 +87,6 @@ jobs:
           script: |
             const title = '⚠️ Pipeline Health Check Failed';
             const body = `## Pipeline Health Check Failure
-
             The automated health check detected issues with the latest pipeline run.
 
             **Time:** ${new Date().toISOString()}
@@ -200,11 +199,12 @@ jobs:
                   timestamp: $time
                 }]
               }')
+
             # Retry up to 3 times with exponential backoff; cap request time to 10s
             attempt=1
             until curl --fail --silent --show-error --max-time 10 -X POST "$DISCORD_WEBHOOK_URL" \
-                -H "Content-Type: application/json" \
-                --data-binary "$payload"; do
+              -H "Content-Type: application/json" \
+              --data-binary "$payload"; do
               if [ $attempt -ge 3 ]; then
                 echo "Discord alert failed after ${attempt} attempts" >&2
                 exit 1

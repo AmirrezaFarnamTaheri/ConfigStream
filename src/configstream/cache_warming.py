@@ -35,7 +35,9 @@ def warm_cache(cache: TestResultCache, proxies: List[Proxy]) -> List[Proxy]:
     cached.sort(key=lambda x: x[1], reverse=True)
 
     # Return high-quality proxies first, then uncached
-    return [p for p, _ in cached if _ > 70] + uncached + [p for p, s in cached if s <= 70]
+    return (
+        [p for p, _ in cached if _ > 70] + uncached + [p for p, s in cached if s <= 70]
+    )
 
 
 def get_cache_warming_strategy(total_proxies: int) -> dict[str, Any]:

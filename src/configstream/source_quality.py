@@ -9,9 +9,9 @@ import logging
 import math
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
+
 
 class SourceQualityTracker:
     def __init__(self, db_path: Path = Path("data/source_quality.db")):
@@ -23,7 +23,8 @@ class SourceQualityTracker:
         """Initialize the SQLite schema for tracking source reliability."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
 CREATE TABLE IF NOT EXISTS source_stats (
     url TEXT PRIMARY KEY,
     total_fetched INTEGER DEFAULT 0,
@@ -33,7 +34,8 @@ CREATE TABLE IF NOT EXISTS source_stats (
     reliability_score REAL DEFAULT 100.0,
     status TEXT DEFAULT 'active'
 )
-""")
+"""
+                )
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to init source quality DB: {e}")
@@ -46,15 +48,15 @@ CREATE TABLE IF NOT EXISTS source_stats (
             with sqlite3.connect(self.db_path) as conn:
                 row = conn.execute(
                     "SELECT status, last_checked, consecutive_failures FROM source_stats WHERE url = ?",
-                    (url,)
+                    (url,),
                 ).fetchone()
 
                 if not row:
-                    return True # New source, always fetch
+                    return True  # New source, always fetch
 
                 status, last_ts, failures = row
 
-                if status == 'disabled':
+                if status == "disabled":
                     return False
 
                 # Exponential Backoff Logic
@@ -66,18 +68,22 @@ CREATE TABLE IF NOT EXISTS source_stats (
                 cooldown_hours = min(48, math.pow(2, failures)) if failures > 0 else 0
 
                 # Calculate when the next allowed fetch is
-                next_allowed = datetime.fromtimestamp(last_ts) + timedelta(hours=cooldown_hours)
+                next_allowed = datetime.fromtimestamp(last_ts) + timedelta(
+                    hours=cooldown_hours
+                )
 
                 if datetime.now() < next_allowed:
                     # Log only periodically to reduce noise
-                    logger.debug(f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})")
+                    logger.debug(
+                        f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})"
+                    )
                     return False
 
                 return True
 
         except Exception as e:
             logger.warning(f"Error checking source quality for {url}: {e}")
-            return True # Fail open
+            return True  # Fail open
 
     def update(self, url: str, fetched_count: int, working_count: int):
         """
@@ -91,13 +97,13 @@ CREATE TABLE IF NOT EXISTS source_stats (
         now = int(datetime.now().timestamp())
         # We consider it a failure if we fetched content but NOTHING worked
         # If fetched_count is 0, it might just be empty/network error, also a failure
-        is_failure = (working_count == 0)
+        is_failure = working_count == 0
 
         try:
             with sqlite3.connect(self.db_path) as conn:
                 row = conn.execute(
                     "SELECT total_fetched, total_working, consecutive_failures FROM source_stats WHERE url = ?",
-                    (url,)
+                    (url,),
                 ).fetchone()
 
                 if row:
@@ -110,20 +116,37 @@ CREATE TABLE IF NOT EXISTS source_stats (
                     # Calculate Score: Simple percentage
                     score = (new_tw / new_tf * 100) if new_tf > 0 else 0.0
 
-                    conn.execute("""
+                    conn.execute(
+                        """
                         UPDATE source_stats
                         SET total_fetched=?, total_working=?, consecutive_failures=?,
                         last_checked=?, reliability_score=?
                         WHERE url=?
-                        """, (new_tf, new_tw, new_cf, now, score, url))
+                        """,
+                        (new_tf, new_tw, new_cf, now, score, url),
+                    )
                 else:
                     # First time seeing this source
-                    score = (working_count / fetched_count * 100) if fetched_count > 0 else 0.0
-                    conn.execute("""
+                    score = (
+                        (working_count / fetched_count * 100)
+                        if fetched_count > 0
+                        else 0.0
+                    )
+                    conn.execute(
+                        """
                         INSERT INTO source_stats
                         (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score)
                         VALUES (?, ?, ?, ?, ?, ?)
-                        """, (url, fetched_count, working_count, 1 if is_failure else 0, now, score))
+                        """,
+                        (
+                            url,
+                            fetched_count,
+                            working_count,
+                            1 if is_failure else 0,
+                            now,
+                            score,
+                        ),
+                    )
 
                 conn.commit()
         except Exception as e:
@@ -133,7 +156,9 @@ CREATE TABLE IF NOT EXISTS source_stats (
         """Get the current reliability score for a source."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                row = conn.execute("SELECT reliability_score FROM source_stats WHERE url = ?", (url,)).fetchone()
-                return row[0] if row else 50.0 # Default to neutral
+                row = conn.execute(
+                    "SELECT reliability_score FROM source_stats WHERE url = ?", (url,)
+                ).fetchone()
+                return row[0] if row else 50.0  # Default to neutral
         except Exception:
             return 50.0

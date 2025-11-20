@@ -40,14 +40,21 @@ class TestResultCache:
     def load(self) -> None:
         """Load cache from the JSON file if it exists."""
         if not self.db_path.exists():
-            logger.info("Cache file not found at %s. Starting with an empty cache.", self.db_path)
+            logger.info(
+                "Cache file not found at %s. Starting with an empty cache.",
+                self.db_path,
+            )
             return
         try:
             with self.db_path.open("r", encoding="utf-8") as f:
                 self._cache = json.load(f)
-            logger.info("Loaded %d entries from cache file: %s", len(self._cache), self.db_path)
+            logger.info(
+                "Loaded %d entries from cache file: %s", len(self._cache), self.db_path
+            )
         except (json.JSONDecodeError, IOError) as e:
-            logger.error("Failed to load cache file %s: %s. Starting fresh.", self.db_path, e)
+            logger.error(
+                "Failed to load cache file %s: %s. Starting fresh.", self.db_path, e
+            )
             self._cache = {}
 
     def save(self) -> None:
@@ -56,7 +63,9 @@ class TestResultCache:
         try:
             with self.db_path.open("w", encoding="utf-8") as f:
                 json.dump(self._cache, f, indent=2)
-            logger.info("Saved %d entries to cache file: %s", len(self._cache), self.db_path)
+            logger.info(
+                "Saved %d entries to cache file: %s", len(self._cache), self.db_path
+            )
         except IOError as e:
             logger.error("Failed to save cache file %s: %s", self.db_path, e)
 
@@ -119,7 +128,9 @@ class TestResultCache:
 
         existing_entry = self._cache.get(config_hash, {})
         test_count = existing_entry.get("test_count", 0) + 1
-        success_count = existing_entry.get("success_count", 0) + (1 if proxy.is_working else 0)
+        success_count = existing_entry.get("success_count", 0) + (
+            1 if proxy.is_working else 0
+        )
 
         self._cache[config_hash] = {
             "config": proxy.config,
@@ -201,10 +212,14 @@ class TestResultCache:
             if entry.get("tested_at", 0.0) >= cutoff_time:
                 valid_entries += 1
                 if entry.get("test_count", 0) > 0:
-                    total_health += float(entry["success_count"]) / float(entry["test_count"])
+                    total_health += float(entry["success_count"]) / float(
+                        entry["test_count"]
+                    )
                     valid_health_count += 1
 
-        avg_health = total_health / valid_health_count if valid_health_count > 0 else 0.0
+        avg_health = (
+            total_health / valid_health_count if valid_health_count > 0 else 0.0
+        )
 
         return {
             "total_entries": len(self._cache),
@@ -220,7 +235,7 @@ class TestResultCache:
         """
         for config_hash, other_entry in other_cache._cache.items():
             existing_entry = self._cache.get(config_hash)
-            if not existing_entry or other_entry.get("tested_at", 0) > existing_entry.get(
+            if not existing_entry or other_entry.get(
                 "tested_at", 0
-            ):
+            ) > existing_entry.get("tested_at", 0):
                 self._cache[config_hash] = other_entry

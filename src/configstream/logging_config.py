@@ -34,7 +34,9 @@ class SensitiveDataFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         message = record.getMessage()
 
-        message = re.sub(self.PATTERNS["uuid"], "[MASKED_CREDENTIAL]", message, flags=re.IGNORECASE)
+        message = re.sub(
+            self.PATTERNS["uuid"], "[MASKED_CREDENTIAL]", message, flags=re.IGNORECASE
+        )
         message = re.sub(self.PATTERNS["email"], "[MASKED_EMAIL]", message)
 
         record.msg = message

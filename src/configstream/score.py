@@ -22,7 +22,9 @@ def _latency_points(lat_ms: float | None, soft_cap: int, max_points: float) -> f
 
 
 def calculate_health_score(
-    proxy: Proxy, cache: Optional["TestResultCache"] = None, settings: Optional[AppSettings] = None
+    proxy: Proxy,
+    cache: Optional["TestResultCache"] = None,
+    settings: Optional[AppSettings] = None,
 ) -> float:
     """
     Calculate comprehensive health score for a proxy.

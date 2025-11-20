@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 from .models import Proxy
 
+
 def _clean_dict(d: Dict[str, Any]) -> Dict[str, Any]:
     """Recursively remove None/Empty values."""
     clean = {}
@@ -19,7 +20,9 @@ def _clean_dict(d: Dict[str, Any]) -> Dict[str, Any]:
             clean[k] = v
     return clean
 
+
 # --- CLASH META (MIHOMO) ADAPTERS ---
+
 
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """Convert Proxy to Clash Meta (Mihomo) dictionary format."""
@@ -52,7 +55,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
     if network == "ws":
         base["ws-opts"] = {
             "path": proxy.path,
-            "headers": {"Host": details.get("host") or base.get("servername")}
+            "headers": {"Host": details.get("host") or base.get("servername")},
         }
     elif network == "grpc":
         base["grpc-opts"] = {
@@ -76,7 +79,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             base["client-fingerprint"] = details.get("fp", "chrome")
             base["reality-opts"] = {
                 "public-key": details.get("pbk"),
-                "short-id": details.get("sid")
+                "short-id": details.get("sid"),
             }
 
     elif proxy.protocol == "trojan":
@@ -107,7 +110,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     return _clean_dict(base)
 
+
 # --- SING-BOX ADAPTERS ---
+
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """Convert Proxy to Sing-box outbound object."""
@@ -139,7 +144,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if details.get("obfs"):
             out["obfs"] = {
                 "type": "salamander",
-                "password": details.get("obfs-password")
+                "password": details.get("obfs-password"),
             }
 
     # TLS Configuration
@@ -149,7 +154,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "enabled": True,
             "server_name": proxy.sni or details.get("host") or proxy.address,
             "insecure": details.get("allowInsecure") == "1",
-            "utls": {"enabled": True, "fingerprint": details.get("fp", "chrome")}
+            "utls": {"enabled": True, "fingerprint": details.get("fp", "chrome")},
         }
         if details.get("alpn"):
             tls_conf["alpn"] = details.get("alpn")
@@ -158,7 +163,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             tls_conf["reality"] = {
                 "enabled": True,
                 "public_key": details.get("pbk"),
-                "short_id": details.get("sid")
+                "short_id": details.get("sid"),
             }
 
         out["tls"] = tls_conf

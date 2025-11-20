@@ -11,6 +11,7 @@ try:
 except ImportError:
     import json as json_lib  # type: ignore
 
+
 def serialize_proxy(proxy: Proxy) -> Dict[str, Any]:
     """
     Convert Proxy object to dict.
@@ -29,6 +30,7 @@ def serialize_proxy(proxy: Proxy) -> Dict[str, Any]:
         # "config": proxy.config
     }
 
+
 def to_json(data: Any) -> str:
     """
     Dump to JSON string.
@@ -42,4 +44,5 @@ def to_json(data: Any) -> str:
     else:
         # Fallback
         import json
+
         return json.dumps(data, indent=2, default=str)
