@@ -35,6 +35,22 @@
         .feed-entry.warning { color: #eab308; }
         .feed-entry.error { color: #ef4444; }
         .feed-entry.success { color: #22c55e; }
+
+        /* Language Selector */
+        .lang-selector {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .lang-selector option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -96,12 +112,19 @@
               <span class="header-logo-text">ConfigStream</span>
             </div>
             <nav class="nav" id="main-nav" aria-label="Main navigation">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="proxies.html" class="nav-link">Proxy List</a>
-                <a href="analytics.html" class="nav-link">Analytics</a>
-                <a href="about.html" class="nav-link">About</a>
+                <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+                <a href="proxies.html" class="nav-link" data-i18n="nav.proxies">Proxy List</a>
+                <a href="analytics.html" class="nav-link" data-i18n="nav.analytics">Analytics</a>
+                <a href="about.html" class="nav-link" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
+                 <select id="lang-selector" class="lang-selector" aria-label="Select Language">
+                    <option value="en">English</option>
+                    <option value="zh">中文</option>
+                    <option value="ru">Русский</option>
+                    <option value="fa">فارسی</option>
+                    <option value="ar">العربية</option>
+                </select>
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
                         <i data-feather="moon" class="moon-icon"></i>
@@ -122,25 +145,25 @@
     <main>
         <div class="container">
             <section class="hero text-center">
-                <h1 style="--delay: 0.1s;">Unlock the Internet</h1>
-                <p class="subtitle" style="--delay: 0.2s;">
+                <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
+                <p class="subtitle" style="--delay: 0.2s;" data-i18n="hero.subtitle">
                     Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from over 668 curated sources stream in every 6 hours, ensuring you always have a reliable path to the open internet.
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
                         <i data-feather="zap"></i>
-                        <span>Browse Proxies</span>
+                        <span data-i18n="hero.browse">Browse Proxies</span>
                     </a>
                     <a href="#downloads" class="btn btn-secondary">
                         <i data-feather="download"></i>
-                        <span>Get Configs</span>
+                        <span data-i18n="hero.get">Get Configs</span>
                     </a>
                 </div>
             </section>
 
             <!-- Live Pipeline Feed -->
             <section style="--delay: 0.35s;">
-                <h3 class="text-center" style="margin-bottom: 0.5rem; font-size: 1rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Live Pipeline Activity</h3>
+                <h3 class="text-center" style="margin-bottom: 0.5rem; font-size: 1rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;" data-i18n="pipeline.title">Live Pipeline Activity</h3>
                 <div id="pipeline-feed">
                     <div class="feed-entry info">[System] Connecting to WebSocket feed...</div>
                 </div>
@@ -152,28 +175,28 @@
                         <div class="stat-icon"><i data-feather="download-cloud"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="totalSourced" class="stat-value loading">0</div>
-                            <div class="stat-label">Total Sourced</div>
+                            <div class="stat-label" data-i18n="stats.sourced">Total Sourced</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="totalConfigs" class="stat-value loading">0</div>
-                            <div class="stat-label">Unique & Tested</div>
+                            <div class="stat-label" data-i18n="stats.unique">Unique & Tested</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="zap"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="workingConfigs" class="stat-value loading">0</div>
-                            <div class="stat-label">Currently Online</div>
+                            <div class="stat-label" data-i18n="stats.online">Currently Online</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="clock"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="updateFrequency" class="stat-value loading">N/A</div>
-                            <div class="stat-label">Update Frequency</div>
+                            <div class="stat-label" data-i18n="stats.update">Update Frequency</div>
                         </div>
                     </div>
                 </div>
@@ -184,8 +207,8 @@
                     <section id="downloads" class="card accordion-item accordion-open" style="--delay: 0.5s;" aria-labelledby="downloads-heading">
                         <button class="accordion-header" aria-expanded="true">
                             <div class="card-header text-center">
-                                <h2 id="downloads-heading">Get Your Configs</h2>
-                                <p class="subtitle">Choose your preferred format. All downloads contain our latest tested proxies.</p>
+                                <h2 id="downloads-heading" data-i18n="downloads.title">Get Your Configs</h2>
+                                <p class="subtitle" data-i18n="downloads.subtitle">Choose your preferred format. All downloads contain our latest tested proxies.</p>
                             </div>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
@@ -195,8 +218,8 @@
                                     <div class="download-card" style="--delay: 0.6s;">
                                         <div class="download-icon"><i data-feather="award"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">Universal Subscription</h3>
-                                            <p class="download-desc">Base64 format compatible with V2Ray, Xray, and most clients. Auto-updating.</p>
+                                            <h3 class="download-title" data-i18n="downloads.universal">Universal Subscription</h3>
+                                            <p class="download-desc" data-i18n="downloads.universal.desc">Base64 format compatible with V2Ray, Xray, and most clients. Auto-updating.</p>
                                         </div>
                                         <button class="btn btn-primary copy-btn" data-file="subscribe/base64">
                                             <i data-feather="copy"></i>
@@ -206,8 +229,8 @@
                                     <div class="download-card" style="--delay: 0.7s;">
                                         <div class="download-icon"><i data-feather="copy"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">Sing-box Config</h3>
-                                            <p class="download-desc">Optimized JSON configuration for Sing-box/NekoBox clients.</p>
+                                            <h3 class="download-title" data-i18n="downloads.singbox">Sing-box Config</h3>
+                                            <p class="download-desc" data-i18n="downloads.singbox.desc">Optimized JSON configuration for Sing-box/NekoBox clients.</p>
                                         </div>
                                         <button class="btn btn-primary copy-btn" data-file="subscribe/singbox">
                                             <i data-feather="copy"></i>
@@ -217,8 +240,8 @@
                                     <div class="download-card" style="--delay: 0.8s;">
                                         <div class="download-icon"><i data-feather="download-cloud"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">Clash Config</h3>
-                                            <p class="download-desc">A ready-to-use YAML file, perfect for Clash users.</p>
+                                            <h3 class="download-title" data-i18n="downloads.clash">Clash Config</h3>
+                                            <p class="download-desc" data-i18n="downloads.clash.desc">A ready-to-use YAML file, perfect for Clash users.</p>
                                         </div>
                                         <a href="subscribe/clash" class="btn btn-primary" download="clash.yaml">
                                             <i data-feather="download-cloud"></i>
@@ -228,8 +251,8 @@
                                     <div class="download-card" style="--delay: 0.9s;">
                                         <div class="download-icon"><i data-feather="file-text"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">Shadowrocket</h3>
-                                            <p class="download-desc">Configuration format optimized for Shadowrocket on iOS.</p>
+                                            <h3 class="download-title" data-i18n="downloads.shadowrocket">Shadowrocket</h3>
+                                            <p class="download-desc" data-i18n="downloads.shadowrocket.desc">Configuration format optimized for Shadowrocket on iOS.</p>
                                         </div>
                                         <button class="btn btn-primary copy-btn" data-file="subscribe/shadowrocket">
                                             <i data-feather="copy"></i>
@@ -241,13 +264,13 @@
                                 <!-- Chosen 1000 Section -->
                                 <div class="chosen-section text-center mt-4">
                                     <div class="divider"></div>
-                                    <h3 class="mt-4">🏆 Chosen Top 1000</h3>
-                                    <p class="subtitle-sm">Our best selection: top 50 from each protocol, ranked by latency. Perfect for most users!</p>
+                                    <h3 class="mt-4" data-i18n="downloads.chosen.title">🏆 Chosen Top 1000</h3>
+                                    <p class="subtitle-sm" data-i18n="downloads.chosen.desc">Our best selection: top 50 from each protocol, ranked by latency. Perfect for most users!</p>
                                     <div class="downloads-grid centered-grid">
                                         <div class="download-card highlight-card">
                                             <div class="download-icon"><i data-feather="star"></i></div>
                                             <div class="download-info">
-                                                <h3 class="download-title">Chosen Subscription</h3>
+                                                <h3 class="download-title" data-i18n="downloads.chosen.btn">Chosen Subscription</h3>
                                                 <p class="download-desc">Curated list of the top 1000 fastest, most reliable proxies.</p>
                                             </div>
                                             <button class="btn btn-primary copy-btn" data-file="files/chosen/base64.txt">
@@ -295,12 +318,12 @@
                 <div class="info-column accordion-container">
                     <section class="card info-card accordion-item accordion-open" style="--delay: 0.9s;">
                         <button class="accordion-header" aria-expanded="true">
-                            <h3><i data-feather="play-circle"></i> Getting Started</h3>
+                            <h3><i data-feather="play-circle"></i> <span data-i18n="info.start.title">Getting Started</span></h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>Using ConfigStream is easy. Just grab a configuration and import it into your favorite VPN client. Here’s how:</p>
+                                <p data-i18n="info.start.text">Using ConfigStream is easy. Just grab a configuration and import it into your favorite VPN client. Here’s how:</p>
                                 <ol class="info-list">
                                     <li><strong>Choose a Format:</strong> Pick from Base64, Clash, or Raw links in the "Get Your Configs" section.</li>
                                     <li><strong>Copy or Download:</strong> Copy the subscription link or download the configuration file.</li>
@@ -312,7 +335,7 @@
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.0s;">
                         <button class="accordion-header" aria-expanded="false">
-                            <h3><i data-feather="activity"></i> How It Works</h3>
+                            <h3><i data-feather="activity"></i> <span data-i18n="info.how.title">How It Works</span></h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
                         <div class="accordion-content">
@@ -323,7 +346,7 @@
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.1s;">
                         <button class="accordion-header" aria-expanded="false">
-                            <h3><i data-feather="shield"></i> Our Security Promise</h3>
+                            <h3><i data-feather="shield"></i> <span data-i18n="info.security.title">Our Security Promise</span></h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
                         <div class="accordion-content">
@@ -354,7 +377,7 @@
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.3s;">
                         <button class="accordion-header" aria-expanded="false">
-                            <h3><i data-feather="users"></i> Community-Powered</h3>
+                            <h3><i data-feather="users"></i> <span data-i18n="info.community.title">Community-Powered</span></h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
                         <div class="accordion-content">
@@ -384,7 +407,7 @@
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
             </div>
-            <p>A passion project for a free and open internet. ✨</p>
+            <p data-i18n="footer.love">A passion project for a free and open internet. ✨</p>
             <p class="last-updated">Last updated: <span id="footerUpdate" class="loading">checking...</span></p>
         </div>
     </footer>
@@ -393,6 +416,7 @@
     <script src="assets/js/cache-config.js" defer></script>
 
     <!-- Then load other scripts -->
+    <script src="assets/js/i18n.js" defer></script>
     <script src="assets/js/error-handler.js" defer></script>
     <script src="assets/js/state-manager.js" defer></script>
     <script src="assets/js/utils.js" defer></script>
@@ -410,6 +434,17 @@
                     .catch(err => console.log('SW registration failed: ', err));
             });
         }
+
+        // Bind language selector
+        document.addEventListener('DOMContentLoaded', () => {
+            const selector = document.getElementById('lang-selector');
+            if(selector && window.i18n) {
+                selector.value = window.i18n.currentLang;
+                selector.addEventListener('change', (e) => {
+                    window.i18n.setLanguage(e.target.value);
+                });
+            }
+        });
     </script>
 </body>
 </html>

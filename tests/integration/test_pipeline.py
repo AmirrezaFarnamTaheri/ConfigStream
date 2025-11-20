@@ -10,7 +10,7 @@ from configstream.models import Proxy
 # Removed nest_asyncio import and apply call
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="function")
 async def test_pipeline_full_run(tmp_path: Path, respx_mock: respx.MockRouter):
     """
     Tests a full end-to-end run of the pipeline with mocked network requests.

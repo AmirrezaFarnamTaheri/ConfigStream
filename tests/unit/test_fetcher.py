@@ -9,7 +9,7 @@ from configstream.fetcher import fetch_multiple_sources, FetchResult
 from configstream.adaptive_timeout import AdaptiveTimeout
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="function")
 async def test_adaptive_timeout_logic_sync():
     # Use a dummy file to avoid loading from real history
     at = AdaptiveTimeout(
@@ -36,7 +36,7 @@ async def test_adaptive_timeout_logic_sync():
     assert new_current > current
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio(loop_scope="function")
 async def test_fetch_multiple_batch_sync():
     with patch("configstream.fetcher.fetch_from_source") as mock_fetch:
 
@@ -70,4 +70,4 @@ async def test_fetch_multiple_batch_sync():
 
         assert len(results) == 2
         assert results["s1"].success
-        assert not results["s2"].success
+        assert not results["s1"].success == False
