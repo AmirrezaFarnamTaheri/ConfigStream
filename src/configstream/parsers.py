@@ -17,7 +17,9 @@ from .constants import (
 
 logger = logging.getLogger(__name__)
 
-VALID_B64_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r \t")
+VALID_B64_CHARS = set(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r \t"
+)
 
 
 def _validate_b64_input(data: str) -> Optional[str]:
@@ -32,7 +34,11 @@ def _validate_b64_input(data: str) -> Optional[str]:
         return None
 
     if len(trimmed) > MAX_B64_INPUT_SIZE:
-        logger.error("Base64 input too large: %s bytes (max: %s)", len(trimmed), MAX_B64_INPUT_SIZE)
+        logger.error(
+            "Base64 input too large: %s bytes (max: %s)",
+            len(trimmed),
+            MAX_B64_INPUT_SIZE,
+        )
         return None
 
     invalid_chars = set(trimmed) - VALID_B64_CHARS
@@ -86,13 +92,17 @@ def _is_plausible_proxy_config(config: str) -> bool:
     protocol, rest = config.split("://", 1)
     if len(protocol) > 20 or len(rest) < 4:
         return False
-    special_char_count = sum(1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=")
+    special_char_count = sum(
+        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&="
+    )
     if special_char_count > len(rest) * 0.5:
         return False
     return True
 
 
-def _extract_config_lines(payload: str, max_lines: int = MAX_LINES_PER_SOURCE) -> List[str]:
+def _extract_config_lines(
+    payload: str, max_lines: int = MAX_LINES_PER_SOURCE
+) -> List[str]:
     """Extract configuration lines with validation and limits."""
     if not isinstance(payload, str) or not payload.strip():
         return []
@@ -108,7 +118,11 @@ def _extract_config_lines(payload: str, max_lines: int = MAX_LINES_PER_SOURCE) -
     configs = []
     for line in lines:
         candidate = line.strip()
-        if not candidate or candidate.startswith("#") or len(candidate) > MAX_CONFIG_LINE_LENGTH:
+        if (
+            not candidate
+            or candidate.startswith("#")
+            or len(candidate) > MAX_CONFIG_LINE_LENGTH
+        ):
             continue
 
         protocol = candidate.split("://", 1)[0]
@@ -350,7 +364,9 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
 
             # If it wasn't valid base64, don't fail hard—keep original.
             if decoded_val == v_norm and _validate_b64_input(v_norm) is None:
-                logger.debug("SSR param '%s' not valid base64: %s; leaving as-is.", k, repr(val))
+                logger.debug(
+                    "SSR param '%s' not valid base64: %s; leaving as-is.", k, repr(val)
+                )
                 decoded_val = val
 
             params_decoded[k] = decoded_val
@@ -459,7 +475,9 @@ def _parse_v2ray_json(config: str) -> Optional[Proxy]:
     if not server_info:
         return None
 
-    address = server_info.get("address") or server_info.get("server") or server_info.get("ip")
+    address = (
+        server_info.get("address") or server_info.get("server") or server_info.get("ip")
+    )
     port = server_info.get("port")
     if not address or port is None:
         return None
@@ -581,7 +599,11 @@ def _normalize_proxy_details(proxy: Proxy) -> None:
 
     # 1. Standardize SNI (Server Name Indication) / Host
     # Order of precedence: 'sni' > 'peer' > 'host' (from details)
-    sni = proxy.details.get("sni") or proxy.details.get("peer") or proxy.details.get("host")
+    sni = (
+        proxy.details.get("sni")
+        or proxy.details.get("peer")
+        or proxy.details.get("host")
+    )
     if sni:
         proxy.details["sni"] = str(sni)
 
@@ -596,7 +618,9 @@ def _normalize_proxy_details(proxy: Proxy) -> None:
     if proxy.protocol == "shadowsocks" and "plugin" in proxy.details:
         plugin_str = proxy.details.get("plugin", "")
         if isinstance(plugin_str, str):
-            plugin_opts = dict(item.split("=") for item in plugin_str.split(";") if "=" in item)
+            plugin_opts = dict(
+                item.split("=") for item in plugin_str.split(";") if "=" in item
+            )
             if "obfs-host" in plugin_opts:
                 proxy.details.setdefault("sni", plugin_opts["obfs-host"])
             if "obfs-uri" in plugin_opts:

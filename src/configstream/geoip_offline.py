@@ -14,11 +14,13 @@ from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
+
 class GeoData(BaseModel):
     country_code: Optional[str] = None
     city: Optional[str] = None
     asn: Optional[str] = None
     org: Optional[str] = None
+
 
 class GeoIPResolver:
     _instance: Optional["GeoIPResolver"] = None
@@ -90,6 +92,7 @@ class GeoIPResolver:
             self.reader_city.close()
         if self.reader_asn:
             self.reader_asn.close()
+
 
 # Global Singleton
 DEFAULT_RESOLVER = GeoIPResolver()

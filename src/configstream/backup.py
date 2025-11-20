@@ -77,7 +77,9 @@ def backup_databases(
                 src_conn = sqlite3.connect(src_uri, uri=True, timeout=5.0)
             except sqlite3.OperationalError:
                 # Fallback to read-only without immutable if unsupported
-                src_conn = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True, timeout=5.0)
+                src_conn = sqlite3.connect(
+                    f"file:{db_file}?mode=ro", uri=True, timeout=5.0
+                )
 
             with src_conn as src, sqlite3.connect(backup_path, timeout=5.0) as dst:
                 # Try incremental backup with small pages to reduce lock time
@@ -219,9 +221,9 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
     for backup_file in backup_dir.glob("*.db"):
         try:
             stat = backup_file.stat()
-            created = _parse_timestamp_from_name(backup_file.name) or datetime.fromtimestamp(
-                stat.st_mtime
-            )
+            created = _parse_timestamp_from_name(
+                backup_file.name
+            ) or datetime.fromtimestamp(stat.st_mtime)
             items.append(
                 {
                     "filename": backup_file.name,

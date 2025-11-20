@@ -19,8 +19,12 @@ class AppSettings:
         "apple": "https://www.apple.com/robots.txt",
     }
 
-    TEST_TIMEOUT = int(os.getenv("TEST_TIMEOUT", "6"))  # Reduced from 10 to 6 for faster testing
-    FETCH_TIMEOUT = int(os.getenv("FETCH_TIMEOUT", "15"))  # Timeout for fetching remote sources
+    TEST_TIMEOUT = int(
+        os.getenv("TEST_TIMEOUT", "6")
+    )  # Reduced from 10 to 6 for faster testing
+    FETCH_TIMEOUT = int(
+        os.getenv("FETCH_TIMEOUT", "15")
+    )  # Timeout for fetching remote sources
     SECURITY_CHECK_TIMEOUT = int(os.getenv("SECURITY_CHECK_TIMEOUT", "8"))
     RETEST_TIMEOUT = int(os.getenv("RETEST_TIMEOUT", "6"))  # Reduced from 8 to 6
     GEOIP_TIMEOUT = int(os.getenv("GEOIP_TIMEOUT", "5"))
@@ -86,7 +90,9 @@ class AppSettings:
 
     # Feature flags and knobs for performance and stability
     DNS_CACHE_ENABLED: bool = os.getenv("DNS_CACHE_ENABLED", "True").lower() == "true"
-    CIRCUIT_BREAKER_ENABLED: bool = os.getenv("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
+    CIRCUIT_BREAKER_ENABLED: bool = (
+        os.getenv("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
+    )
     HEDGING_ENABLED: bool = os.getenv("HEDGING_ENABLED", "True").lower() == "true"
     AIMD_ENABLED: bool = os.getenv("AIMD_ENABLED", "True").lower() == "true"
     AIMD_P50_MS: int = int(os.getenv("AIMD_P50_MS", "400"))

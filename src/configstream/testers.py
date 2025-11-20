@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # Track temp files for failsafe cleanup at exit
 _TEMP_FILES: Set[str] = set()
 
+
 def _cleanup_temp_files():
     """Failsafe cleanup for any remaining config files."""
     for path in _TEMP_FILES:
@@ -39,7 +40,9 @@ def _cleanup_temp_files():
         except Exception:
             pass
 
+
 atexit.register(_cleanup_temp_files)
+
 
 @contextmanager
 def SecureConfigContext(content: str):
@@ -52,7 +55,7 @@ def SecureConfigContext(content: str):
     try:
         # Secure: Only owner can read/write
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
-        with os.fdopen(fd, 'w') as f:
+        with os.fdopen(fd, "w") as f:
             f.write(content)
         yield path
     finally:
@@ -62,6 +65,7 @@ def SecureConfigContext(content: str):
             _TEMP_FILES.discard(path)
         except OSError as e:
             logger.warning("Failed to unlink temp file %s: %s", path, e)
+
 
 class SingBoxTester:
     """
@@ -141,7 +145,9 @@ class SingBoxTester:
             try:
                 # Start Sing-box in a thread to avoid blocking the event loop
                 # singbox_factory is synchronous
-                sb_instance = await loop.run_in_executor(None, lambda: singbox_factory(config_path))
+                sb_instance = await loop.run_in_executor(
+                    None, lambda: singbox_factory(config_path)
+                )
 
                 if not sb_instance or not sb_instance.http_proxy_url:
                     proxy.is_working = False
@@ -175,7 +181,9 @@ class SingBoxTester:
         self._finalize_result(proxy)
         return proxy
 
-    async def _measure_latency_robust(self, session: aiohttp.ClientSession) -> Optional[float]:
+    async def _measure_latency_robust(
+        self, session: aiohttp.ClientSession
+    ) -> Optional[float]:
         """
         Measure latency with Jitter Penalty.
         Returns None if connection fails.
@@ -187,7 +195,9 @@ class SingBoxTester:
         for _ in range(3):
             try:
                 start = time.monotonic()
-                async with session.get(target, timeout=self.timeout, allow_redirects=False) as resp:
+                async with session.get(
+                    target, timeout=self.timeout, allow_redirects=False
+                ) as resp:
                     if 200 <= resp.status < 300:
                         latencies.append((time.monotonic() - start) * 1000)
             except Exception:
@@ -206,7 +216,7 @@ class SingBoxTester:
             jitter = max(latencies) - min(latencies)
             # Penalize unstable connections
             if jitter > 100:
-                avg_latency += (jitter * 0.5)
+                avg_latency += jitter * 0.5
 
         return round(avg_latency, 2)
 
@@ -217,23 +227,33 @@ class SingBoxTester:
         try:
             # 1. Blocklist/Reputation Check
             if self.strict_security:
-                if proxy.resolved_ip and DEFAULT_BLOCKLIST.is_blocked(proxy.resolved_ip):
-                    proxy.security_issues.setdefault("reputation", []).append("IP_IN_BLOCKLIST")
+                if proxy.resolved_ip and DEFAULT_BLOCKLIST.is_blocked(
+                    proxy.resolved_ip
+                ):
+                    proxy.security_issues.setdefault("reputation", []).append(
+                        "IP_IN_BLOCKLIST"
+                    )
                     proxy.is_secure = False
-                    return # Fail fast
+                    return  # Fail fast
 
             # 2. Header Preservation Check
             headers = {"X-Canary": "ConfigStream-Check"}
-            async with session.get(f"{CANARY_URL}/headers", headers=headers, timeout=5) as resp:
+            async with session.get(
+                f"{CANARY_URL}/headers", headers=headers, timeout=5
+            ) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     if data.get("headers", {}).get("X-Canary") != "ConfigStream-Check":
-                        proxy.security_issues.setdefault("headers", []).append("Header Stripping Detected")
+                        proxy.security_issues.setdefault("headers", []).append(
+                            "Header Stripping Detected"
+                        )
 
             # 3. SSL Interception Check (Basic)
             # Try to access a known bad SSL site. If it succeeds, the proxy is MITMing/ignoring certs.
             try:
-                async with session.get("https://self-signed.badssl.com/", timeout=5) as bad_resp: # noqa: F841
+                async with session.get(
+                    "https://self-signed.badssl.com/", timeout=5
+                ) as bad_resp:  # noqa: F841
                     # If we got here without an SSLError, the proxy might be suppressing errors
                     # However, aiohttp might be trusting the system store.
                     # This is a heuristic: if the proxy is truly transparent, this should fail.
@@ -255,6 +275,8 @@ class SingBoxTester:
         if self.cache:
             self.cache.set(proxy)
 
+
 def datetime_now_iso() -> str:
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).isoformat()

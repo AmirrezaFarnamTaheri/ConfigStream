@@ -5,13 +5,13 @@ Non-blocking file I/O using aiofiles.
 
 import asyncio
 import logging
-import os
 from pathlib import Path
-from typing import List, Tuple, Any, Union
+from typing import List, Tuple
 
 import aiofiles
 
 logger = logging.getLogger(__name__)
+
 
 async def read_file_async(path: str | Path) -> str:
     """
@@ -21,9 +21,10 @@ async def read_file_async(path: str | Path) -> str:
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
 
-    async with aiofiles.open(path, mode='r', encoding='utf-8', errors='ignore') as f:
+    async with aiofiles.open(path, mode="r", encoding="utf-8", errors="ignore") as f:
         content = await f.read()
-    return content # type: ignore
+    return content  # type: ignore
+
 
 async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
     """
@@ -46,6 +47,7 @@ async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
                 output.append((path, res))
 
     return output
+
 
 def ensure_directory(path: str | Path):
     """Ensure directory exists (Sync wrapper for convenience)."""

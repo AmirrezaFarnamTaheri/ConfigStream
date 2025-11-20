@@ -10,15 +10,14 @@ from configstream.parsers import _extract_config_lines
 # Strategy: Generate text that contains potential URI characters but is random
 # We mix printable characters, control characters, and unicode to stress the parser
 fuzz_strategy = st.text(
-    alphabet=st.characters(blacklist_categories=["Cs"]), # Avoid surrogates
+    alphabet=st.characters(blacklist_categories=["Cs"]),  # Avoid surrogates
     min_size=0,
-    max_size=1000
+    max_size=1000,
 )
 
+
 @settings(
-    max_examples=1000,
-    suppress_health_check=[HealthCheck.too_slow],
-    deadline=None
+    max_examples=1000, suppress_health_check=[HealthCheck.too_slow], deadline=None
 )
 @given(fuzz_strategy)
 def test_parser_does_not_crash(config_str):
@@ -34,6 +33,7 @@ def test_parser_does_not_crash(config_str):
         # If this block is reached, we found a bug.
         raise AssertionError(f"Parser crashed on input: {config_str!r} with error: {e}")
 
+
 @settings(max_examples=500)
 @given(st.text())
 def test_extractor_resilience(raw_content):
@@ -44,4 +44,6 @@ def test_extractor_resilience(raw_content):
         lines = _extract_config_lines(raw_content)
         assert isinstance(lines, list)
     except Exception as e:
-        raise AssertionError(f"Extractor crashed on input: {raw_content!r} with error: {e}")
+        raise AssertionError(
+            f"Extractor crashed on input: {raw_content!r} with error: {e}"
+        )

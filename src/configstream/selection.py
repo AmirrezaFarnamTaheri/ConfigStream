@@ -57,7 +57,9 @@ def select_chosen_proxies(
     return chosen
 
 
-def get_selection_stats(all_proxies: List[Proxy], chosen_proxies: List[Proxy]) -> Dict[str, Any]:
+def get_selection_stats(
+    all_proxies: List[Proxy], chosen_proxies: List[Proxy]
+) -> Dict[str, Any]:
     """Generate statistics about the selection process."""
     return {
         "total_pool": len(all_proxies),

@@ -54,7 +54,9 @@ def check_success_rate(metadata: Dict[str, Any], min_rate: float) -> None:
         raise HealthCheckError("❌ No proxies tested")
 
     if working > tested:
-        raise HealthCheckError(f"❌ Working proxies ({working}) exceeds tested ({tested})")
+        raise HealthCheckError(
+            f"❌ Working proxies ({working}) exceeds tested ({tested})"
+        )
 
     success_rate = working / tested
 
@@ -105,14 +107,18 @@ def check_protocol_diversity(proxies: List[Dict], min_protocols: int) -> None:
             f"❌ Low protocol diversity: {len(protocols)} protocols (minimum: {min_protocols})"
         )
 
-    print(f"✓ Protocol diversity: {len(protocols)} protocols (minimum: {min_protocols})")
+    print(
+        f"✓ Protocol diversity: {len(protocols)} protocols (minimum: {min_protocols})"
+    )
     print(f"  Protocols: {', '.join(sorted(protocols))}")
 
 
 def check_geographic_diversity(proxies: List[Dict], min_countries: int) -> None:
     """Check geographic diversity."""
     countries = set(
-        p.get("country_code") for p in proxies if p.get("country_code") and p.get("is_working")
+        p.get("country_code")
+        for p in proxies
+        if p.get("country_code") and p.get("is_working")
     )
 
     if len(countries) < min_countries:
@@ -121,12 +127,16 @@ def check_geographic_diversity(proxies: List[Dict], min_countries: int) -> None:
             f"(minimum: {min_countries})"
         )
 
-    print(f"✓ Geographic diversity: {len(countries)} countries (minimum: {min_countries})")
+    print(
+        f"✓ Geographic diversity: {len(countries)} countries (minimum: {min_countries})"
+    )
 
 
 def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
     """Check average latency of working proxies."""
-    working_proxies = [p for p in proxies if p.get("is_working") and p.get("latency") is not None]
+    working_proxies = [
+        p for p in proxies if p.get("is_working") and p.get("latency") is not None
+    ]
 
     if not working_proxies:
         raise HealthCheckError("❌ No working proxies with latency data")
@@ -151,7 +161,8 @@ def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
 
     if avg_latency > max_avg_latency:
         raise HealthCheckError(
-            f"❌ Average latency too high: {avg_latency:.0f}ms " f"(maximum: {max_avg_latency}ms)"
+            f"❌ Average latency too high: {avg_latency:.0f}ms "
+            f"(maximum: {max_avg_latency}ms)"
         )
 
     print(f"✓ Average latency: {avg_latency:.0f}ms " f"(maximum: {max_avg_latency}ms)")
@@ -237,7 +248,10 @@ def main():
     )
 
     parser.add_argument(
-        "--min-proxies", type=int, default=100, help="Minimum number of proxies (default: 100)"
+        "--min-proxies",
+        type=int,
+        default=100,
+        help="Minimum number of proxies (default: 100)",
     )
 
     parser.add_argument(
@@ -248,15 +262,24 @@ def main():
     )
 
     parser.add_argument(
-        "--max-age-hours", type=int, default=12, help="Maximum data age in hours (default: 12)"
+        "--max-age-hours",
+        type=int,
+        default=12,
+        help="Maximum data age in hours (default: 12)",
     )
 
     parser.add_argument(
-        "--min-protocols", type=int, default=3, help="Minimum number of protocols (default: 3)"
+        "--min-protocols",
+        type=int,
+        default=3,
+        help="Minimum number of protocols (default: 3)",
     )
 
     parser.add_argument(
-        "--min-countries", type=int, default=5, help="Minimum number of countries (default: 5)"
+        "--min-countries",
+        type=int,
+        default=5,
+        help="Minimum number of countries (default: 5)",
     )
 
     parser.add_argument(

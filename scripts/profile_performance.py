@@ -21,7 +21,9 @@ def _run_coroutine(coro_factory: Callable[[], Coroutine[Any, Any, Any]]) -> Any:
     return asyncio.run(coro_factory())
 
 
-def profile_pipeline(sources_file: str = "sources.txt", max_proxies: int = 100) -> pstats.Stats:
+def profile_pipeline(
+    sources_file: str = "sources.txt", max_proxies: int = 100
+) -> pstats.Stats:
     """Profile the main pipeline execution."""
 
     async def _runner() -> Any:

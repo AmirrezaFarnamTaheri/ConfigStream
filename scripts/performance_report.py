@@ -36,7 +36,11 @@ async def main():
 
     # Run pipeline
     result = await run_full_pipeline(
-        sources=sources, output_dir="benchmark_output", max_proxies=100, max_workers=20, timeout=10
+        sources=sources,
+        output_dir="benchmark_output",
+        max_proxies=100,
+        max_workers=20,
+        timeout=10,
     )
 
     # Extract metrics
@@ -78,7 +82,9 @@ async def main():
     print(f"   Parse time: {report['performance']['parse_time_seconds']:.2f}s")
     print(f"   Test time: {report['performance']['test_time_seconds']:.2f}s")
     print()
-    print(f"🚀 Throughput: {report['performance']['proxies_per_second']:.1f} proxies/sec")
+    print(
+        f"🚀 Throughput: {report['performance']['proxies_per_second']:.1f} proxies/sec"
+    )
     print("=" * 60)
     print(f"\\n📄 Full report saved to: {report_file}")
 
