@@ -1,140 +1,102 @@
-# ConfigStream
+# ConfigStream 🌊
 
-🚀 **Automated Free VPN Configuration Aggregator**
+**ConfigStream** is a high-performance, intelligent, and self-hostable platform for aggregating, testing, and distributing free VPN/Proxy configurations. It transforms public proxy sources into a clean, secure, and auto-updating subscription stream for your favorite clients.
 
-[![Pipeline Status](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+![Dashboard Preview](frontend/assets/images/favicon.ico) <!-- Replace with actual screenshot if available -->
 
-ConfigStream is a high-performance, fully automated system that collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions, with a focus on security, performance, and data integrity.
+## 🚀 Features
 
-## 🌐 Get Fresh Configurations
+-   **Massive Aggregation**: Fetches proxies from hundreds of public sources (text, JSON, Base64).
+-   **Intelligent Testing**:
+    -   Validates connectivity and latency against global targets (e.g., Google, Cloudflare).
+    -   **Deep Inspection**: Detects header stripping, DNS hijacking, and MITM attempts.
+    -   **Smart Scheduling**: Uses exponential backoff for dead sources and adaptive re-testing for reliable proxies.
+-   **Security First**:
+    -   **Blocklist Integration**: Automatically filters IPs against FireHol Level 1 (botnets, malware).
+    -   **Fuzz Testing**: Parsers are hardened against malformed and malicious inputs.
+    -   **Secret Scanning**: Prevents accidental leaks of API keys or private data.
+-   **Multi-Protocol Support**:
+    -   V2Ray (VMess, VLESS)
+    -   Trojan
+    -   Shadowsocks
+    -   Hysteria 2
+    -   Tuic
+    -   WireGuard (including WARP generation)
+-   **Universal Converter**: Built-in API to convert any subscription link to **Clash**, **Sing-box**, or **Base64** formats.
+-   **Modern Dashboard**: A responsive, dark-mode web interface to browse, filter, and analyze proxy metrics in real-time.
+-   **Dockerized**: One-click deployment with Docker Compose or Render/Railway.
 
-Visit our GitHub Pages site to download the latest tested configurations:
+---
 
-### **👉 [https://amirrezafarnamtaheri.github.io/ConfigStream/](https://amirrezafarnamtaheri.github.io/ConfigStream/)**
+## 🛠️ Quick Start
 
-## ✨ Features
+### Option 1: Docker (Recommended)
 
-- **🤖 Fully Automated:** Runs every 6 hours via GitHub Actions, requiring zero manual intervention.
-- **🛡️ Secure by Default:**
-    - **Strict Validation:** Rejects proxies with insecure configurations, private IP addresses, or dangerous ports.
-    - **Secure Testing:** Uses isolated environments to test proxies, with robust cleanup to prevent resource leaks.
-- **⚡ High-Performance:**
-    - **Streaming Architecture:** Processes large source lists with a constant, low memory footprint.
-    - **Smart Networking:** Uses hedged requests, adaptive timeouts, and AIMD concurrency control to maximize throughput.
-- **🧠 Intelligent Scheduling:**
-    - **Smart Retesting:** Prioritizes retesting of failed or unreliable proxies, while reducing unnecessary checks on healthy ones.
-    - **Adaptive Timeouts:** Learns the optimal timeout for each source based on historical performance.
-- **🌍 Rich Geolocation Data:** Enriches proxies with country, city, and ASN information using an offline GeoIP database.
-- **📦 Multiple Output Formats:** Generates configurations for Clash, Sing-box, and a universal Base64 subscription link.
+The easiest way to run ConfigStream. This starts the web server and the background aggregation worker.
 
-## 🔧 How It Works
+1.  **Clone the repo:**
+    ```bash
+    git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
+    cd ConfigStream
+    ```
 
-The new architecture is a streaming producer-consumer system designed for high concurrency and low memory usage.
+2.  **Start the stack:**
+    ```bash
+    docker compose up -d
+    ```
 
-```mermaid
-graph LR
-    A[GitHub Actions<br/>Every 6 Hours] -->|Trigger| B[Producer: Fetch Sources]
-    B --> C[Work Queue]
-    C --> D[Consumers: Parse, Validate, Test]
-    D --> E[GeoIP & Deduplication]
-    E --> F[Generate Outputs]
-    F --> G[Upload Artifact]
-    G --> H[GitHub Pages<br/>Auto-Deploy]
-```
+3.  **Open Dashboard:**
+    Visit [http://localhost:8000](http://localhost:8000)
 
-1.  **Producer:** Asynchronously fetches sources (both remote URLs and local files) and places them into a bounded work queue.
-2.  **Consumers:** A pool of workers pulls from the queue and performs the following steps in a stream:
-    *   **Parse & Validate:** Parses raw configs and runs them through a strict security validator.
-    *   **Smart Scheduling:** The `SmartRetestScheduler` decides if a proxy needs to be retested based on its health history.
-    *   **Test:** The `SingBoxTester` securely tests the proxy, measuring latency with a jitter-penalized algorithm.
-3.  **Post-Processing:** Working proxies are enriched with GeoIP data and deduplicated to keep only the best-performing endpoint for each IP.
-4.  **Output Generation:** The final list of proxies is serialized into multiple client-compatible formats using a fast, atomic writing process.
+### Option 2: Manual Installation
 
-## 📥 Available Formats
+See [QUICKSTART.md](QUICKSTART.md) for detailed instructions on running without Docker.
 
-### 1. Base64 Subscription
-Universal format compatible with most clients (V2RayNG, Shadowrocket, etc.).
+---
 
-**All Configs:**
-```
-https://amirrezafarnamtaheri.github.io/ConfigStream/vpn_subscription_base64.txt
-```
+## 📖 API Reference
 
-### 2. Clash (Meta) Configuration
-Ready-to-use YAML for Clash Meta, Clash Verge, and other compatible clients.
-```
-https://amirrezafarnamtaheri.github.io/ConfigStream/clash.yaml
-```
+The built-in FastAPI server provides endpoints for automation and integration.
 
-### 3. Sing-box Configuration
-A JSON configuration file for Sing-box and its derivatives.
-```
-https://amirrezafarnamtaheri.github.io/ConfigStream/singbox.json
-```
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/api/proxies` | `GET` | Get the full list of working proxies (supports filtering). |
+| `/api/stats` | `GET` | Get pipeline statistics and metadata. |
+| `/api/convert` | `GET` | Convert an external subscription URL to Clash/Sing-box. |
+| `/subscribe/{format}` | `GET` | Download the local subscription in `clash`, `singbox`, or `base64`. |
+| `/health` | `GET` | Server health check. |
 
-## 🛡️ Security Notice
-
-**IMPORTANT:** These are free public VPN nodes from unknown operators. Use them for casual browsing and bypassing geo-restrictions. **DO NOT** use them for sensitive activities like banking or handling personal data. Use at your own risk.
-
-## 💻 Local Development
-
-### Prerequisites
-
-- Python 3.10 or higher
-- pip and Git
-
-### Installation
-
+**Example: Convert a Link**
 ```bash
-# Clone the repository
-git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
-cd ConfigStream
-
-# Install in development mode with dev dependencies
-pip install -e ".[dev]"
+curl "http://localhost:8000/api/convert?url=https://example.com/subs&target=clash" -o config.yaml
 ```
 
-### Usage
+---
 
-The primary command is `merge`, which runs the entire pipeline.
+## 🧱 Architecture
 
-```bash
-# Basic usage: fetch, test, and generate outputs
-configstream merge --sources sources/batch_1.txt --output output/
+ConfigStream is built with a modular "Split Brain" architecture:
+1.  **Worker**: A background process (`configstream merge`) that fetches, tests, and saves proxies to the `output/` directory.
+2.  **Server**: A lightweight FastAPI web server that serves the `output/` files and provides utility APIs.
 
-# Advanced usage with filters and options
-configstream merge \
-  --sources sources/batch_1.txt \
-  --output output/ \
-  --country US \
-  --timeout 8 \
-  --max-workers 50 \
-  --leniency
+For a deep dive, read [ARCHITECTURE.md](ARCHITECTURE.md).
 
-# Show help
-configstream --help
-```
+---
 
-### Available `merge` Options
+## 🛡️ Security
 
-| Option          | Description                                           | Default      |
-| --------------- | ----------------------------------------------------- | ------------ |
-| `--sources`     | Path to a file containing a list of source URLs.      | **Required** |
-| `--output`      | The directory to save output files.                   | `output/`    |
-| `--max-workers` | Number of concurrent workers (0 for auto-scaling).    | `0`          |
-| `--timeout`     | Test timeout in seconds.                              | `10`         |
-| `--country`     | Filter results by a specific country code (e.g., US). | `None`       |
-| `--min-latency` | Filter out proxies with latency below this value (ms).| `None`       |
-| `--max-proxies` | Limit the total number of proxies to test.            | `None`       |
-| `--leniency`    | Allow proxies that fail strict security validation.   | `False`      |
-| `--verbose`     | Enable debug logging.                                 | `False`      |
+We take security seriously.
+-   **No Logs**: The platform does not log user traffic (it aggregates *servers*, it doesn't act as a VPN server itself).
+-   **IP Sanitization**: Malicious IPs are blocked before they reach your client.
+-   **Verification**: All code is linted (flake8, mypy) and tested (pytest) before release.
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see `CONTRIBUTING.md` for guidelines on adding new sources, reporting issues, and submitting code changes.
+Contributions are welcome! Whether it's adding new sources, fixing bugs, or improving the dashboard.
+Please check [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## 📝 License
+## 📄 License
 
-This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GPL-3.0 License**.

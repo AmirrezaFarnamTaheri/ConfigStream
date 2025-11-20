@@ -21,6 +21,7 @@ venv/
 .ruff_cache/
 htmlcov/
 .coverage
+.hypothesis/
 
 # Python generated files
 *.py[cod]
@@ -38,3 +39,7 @@ reports/
 
 # Logs
 *.log
+
+# Exceptions
+!data/.gitkeep
+!output/.gitkeep
