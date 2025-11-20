@@ -57,15 +57,26 @@ dependencies = [
     "uvicorn[standard]>=0.27.0",
 
     # Crypto (for WARP)
-    "cryptography"
+    "cryptography",
+
+    # Data Science (Anomaly Detection)
+    "scikit-learn",
+    "numpy",
+    "scipy",
+
+    # HTML Parsing (Security)
+    "beautifulsoup4"
 ]
 
 [project.optional-dependencies]
 dev = [
+    "playwright",
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=4.1.0",
     "pytest-aiohttp",
+    "pytest-playwright",
+    "pytest-base-url",
     "pyfakefs",
     "types-PyYAML",
     "types-requests",
@@ -88,7 +99,8 @@ addopts = "-v --strict-markers -p no:warnings"
 asyncio_mode = "auto"
 markers = [
     "e2e: End to End tests",
-    "slow: Slow tests"
+    "slow: Slow tests",
+    "asyncio: AsyncIO tests"
 ]
 
 [tool.mypy]

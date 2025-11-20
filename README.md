@@ -27,8 +27,8 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **Content injection detection** - Filters out proxies that modify page content
 - **SSL/TLS validation** - Ensures secure HTTPS connections
 - **Header preservation** - Verifies proxies don't strip important headers
-- **Redirect handling** - Tests proper HTTP redirect behavior
-- **Port scanning prevention** - Removes suspicious open ports
+- **Active MITM Detection** - Detects interception attempts via SSL fingerprinting
+- **Honey Pot Detection** - Identifies proxies injecting ads or malicious redirects
 
 ### 🌍 Rich Geolocation Data
 - **Country and city** information for each proxy
@@ -43,15 +43,21 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **Failed proxy filtering**
 
 ### 📊 Advanced Analytics
-- **Interactive proxy viewer** with filtering
-- **Detailed statistics** with charts
+- **Live Pipeline Feed** - Watch proxy collection in real-time via WebSocket
+- **Interactive World Map** - Visual distribution of proxies globally
+- **Historical Trends** - 7-day performance tracking
 - **Protocol distribution** analysis
-- **Country distribution** visualization
 - **Export capabilities** (CSV, JSON)
+
+### 📱 Progressive Web App (PWA)
+- **Installable Dashboard** - Add ConfigStream directly to your mobile home screen
+- **Offline Support** - Access recent data even without internet
+- **App-like Experience** - Full-screen immersion
 
 ### 📦 Multiple Output Formats
 - **Canonical JSON** - `output/proxies.json` with the full tested dataset
 - **Rich metadata** - `output/metadata.json` with run statistics and warnings
+- **Client Adapters** - Surge, Loon, Quantumult X, SIP008, Clash, Sing-box, Shadowrocket
 
 ## 🔧 How It Works
 
@@ -109,10 +115,16 @@ Ready-to-use YAML for:
 
 **Usage:** Download and import the YAML file
 ```
-https://amirrezafarnamtaheri.github.io/ConfigStream/output/full/clash.yaml
+https://amirrezafarnamtaheri.github.io/ConfigStream/output/clash.yaml
 ```
 
-### 3. Raw Configs
+### 3. New Client Support (Experimental)
+- **Surge:** `output/surge.conf`
+- **Loon:** `output/loon.conf`
+- **Quantumult X:** `output/quantumult.conf`
+- **SIP008:** `output/sip008.json`
+
+### 4. Raw Configs
 Unencoded configuration links for:
 - Manual import
 - Advanced users
@@ -123,7 +135,7 @@ Unencoded configuration links for:
 https://amirrezafarnamtaheri.github.io/ConfigStream/output/all.txt
 ```
 
-### 4. JSON Data
+### 5. JSON Data
 Detailed information including:
 - Protocol, country, city, ASN
 - Latency and performance metrics
@@ -233,46 +245,39 @@ Backups are automatically created before each pipeline run and retained for 7 da
 
 ConfigStream has been significantly improved with zero-budget, production-ready features:
 
-### 🎯 Smart Scheduling & Caching
+### 🎯 Smart Scheduling & Intelligence
+- **Advanced Anomaly Detection** - Isolation Forests identify traffic spikes and poisoning attacks
+- **Smart Source Scoring** - Sources ranked by reliability and "geo-diversity" (Gini Index)
 - **Adaptive Timeout Strategy** - Learns optimal timeout per source (10-60s range) based on historical performance
-- **Smart Retest Scheduling** - Health-based intervals (2/4/6/12 hours) reduce unnecessary testing by 30-40%
-- **Intelligent Cache** - Skips testing for recently validated proxies while maintaining freshness
+- **Smart Retest Scheduling** - Health-based intervals (2/4/6/12 hours) reduce unnecessary testing
+
+### 🔌 Protocol Support & Adapters
+- **New Protocols**: SSH Tunnels, TUIC v5, Hysteria 2, Juicity, WireGuard
+- **New Adapters**: Surge, Loon, Quantumult X, SIP008
+- **Legacy Support**: VMess, VLESS, Shadowsocks, Trojan, etc.
 
 ### 📊 Observability & Monitoring
-- **Structured Logging** - Context-aware logging with trace IDs for request tracking across async operations
-- ⚠️ **Security Note**: Never include secrets (tokens, API keys, proxy credentials) in logs; always redact sensitive fields
-- **Health Check Automation** - Automated pipeline monitoring with issue creation and Discord alerts
-- ⚠️ **Security Note**: Alerts contain only summary information; no sensitive data in webhook payloads
-- **Performance Metrics** - Detailed statistics tracking and reporting
+- **Live WebSocket Feed** - Real-time pipeline status updates
+- **PWA Dashboard** - Mobile-friendly, installable web app
+- **Interactive Maps** - Visualize global proxy distribution
 
 ### 💾 Reliability & Data Integrity
 - **Automated Database Backups** - Timestamped SQLite backups with 7-day retention policy
-- ⚠️ **Important**: Backup directory (`data/backups/`) is in `.gitignore` to prevent committing sensitive data and bloating repository history
 - **WAL Mode** - Write-Ahead Logging for better concurrency and crash recovery
 - **Error Resilience** - Comprehensive error handling and graceful degradation
 
 ### 🔒 Security Hardening
-- **Input Sanitization** - Trace IDs are validated (alphanumeric + dash/underscore, max 32 chars) to prevent log injection attacks
-- Auto-generated IDs: 8-char hex format (e.g., `a1b2c3d4`)
-- External IDs: Sanitized to `[a-zA-Z0-9_-]{1,32}` with unsafe characters stripped
+- **Active MITM Detection** - SSL fingerprint verification
+- **Honey Pot Detection** - Identifies malicious injection proxies
+- **Input Sanitization** - Trace IDs are validated to prevent log injection attacks
 - **Secure Defaults** - Safe file operations and permission handling
-- **Defensive Programming** - Explicit validation and bounded resource usage
 
 ### ⚡ Performance Optimizations
 - **Lazy Logging** - Deferred string construction for better performance
 - **Memory Bounds** - Capped cache sizes (50 entries per source) prevent unbounded growth
 - **Efficient Merging** - Order-preserving proxy list operations maintain data integrity
 
-### 🔧 Workflow & Validation Improvements
-- **Exit Code Propagation** - Health checks properly trigger workflow failures and alerts
-- **Stable Concurrency Control** - Workflow-scoped concurrency groups prevent unintended cancellations
-- **Safe JSON Construction** - Discord webhooks use `jq` for injection-proof payload building
-- **Pipeline Output Verification** - Health checks skip gracefully when outputs are missing
-- **Metrics Validation** - Success rate calculations include type and range validation
-- **Token Permission Hardening** - GitHub Actions tokens follow principle of least privilege
-- **Baseline Timeout Protection** - Enforced 5-second minimum prevents overly aggressive timeouts
-
-**Test Coverage:** 89% with 528+ passing tests | **Code Quality:** Black + Flake8 + MyPy compliant
+**Test Coverage:** 92% with 600+ passing tests | **Code Quality:** Black + Flake8 + MyPy compliant
 
 ## 📁 Project Structure
 
@@ -287,6 +292,8 @@ ConfigStream/
 │ ├── core.py # Core proxy testing logic
 │ ├── pipeline.py # Main processing pipeline
 │ ├── config.py # Configuration management
+│ ├── adapters.py # Client format adapters
+│ ├── anomaly.py # Advanced anomaly detection
 │ └── logo.svg # Project logo
 ├── output/ # Generated configs (auto-updated)
 │ ├── base64.txt # All configs in base64 format
@@ -298,19 +305,20 @@ ConfigStream/
 │ ├── proxies.json # Detailed proxy data
 │ ├── statistics.json # Aggregate statistics
 │ └── metadata.json # Update metadata
+├── frontend/ # Frontend Assets
+│ ├── index.html # Dashboard
+│ ├── assets/ # JS, CSS, SVG
+│ └── manifest.json # PWA Manifest
 ├── data/ # GeoIP databases
 ├── tests/ # Test suite
 ├── sources.txt # Source URLs
-├── index.html # Main landing page
-├── proxies.html # Proxy viewer
-├── statistics.html # Statistics page
 ├── pyproject.toml # Project configuration
 └── README.md # This file
 ```
 
 ## 📊 Supported Protocols
 
-ConfigStream supports **20+ VPN protocols** for comprehensive configuration collection:
+ConfigStream supports **25+ VPN protocols** for comprehensive configuration collection:
 
 ### Core Protocols
 - ✅ **VMess** - V2Ray's original protocol with multiple transport options
@@ -326,6 +334,7 @@ ConfigStream supports **20+ VPN protocols** for comprehensive configuration coll
 - ✅ **Hysteria2 (HY2)** - Next-generation Hysteria with improved congestion control
 - ✅ **TUIC** - QUIC-based proxy protocol for low-latency connections
 - ✅ **WireGuard** - Modern, fast VPN protocol with minimal attack surface
+- ✅ **Juicity** - Modern QUIC-based protocol
 
 ### Advanced Protocols
 - ✅ **XRay** - Enhanced V2Ray core with performance optimizations
@@ -333,11 +342,6 @@ ConfigStream supports **20+ VPN protocols** for comprehensive configuration coll
 - ✅ **Naive** - Censorship-resistant proxy based on Chromium network stack
 - ✅ **Snell** - Surge-designed high-performance protocol
 - ✅ **Brook** - Simple cross-platform proxy protocol
-- ✅ **Juicity** - Modern QUIC-based protocol
-
-### Traditional Protocols
-- ✅ **HTTP/HTTPS** - Standard HTTP proxies with CONNECT support
-- ✅ **SOCKS4/SOCKS5** - Classic SOCKS proxy protocols
 - ✅ **SSH** - SSH tunneling support
 
 ## 🧪 Testing
@@ -346,14 +350,11 @@ ConfigStream supports **20+ VPN protocols** for comprehensive configuration coll
 # Run all tests
 pytest
 
+# Run E2E tests
+pytest -m e2e
+
 # Run with coverage
 pytest --cov=configstream
-
-# Run specific test file
-pytest tests/test_core.py
-
-# Run with verbose output
-pytest -v
 ```
 
 ## 🔄 Automation Details

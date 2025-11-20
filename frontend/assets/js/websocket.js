@@ -1,83 +1,112 @@
-class WebSocketManager {
-    constructor(url) {
-        this.url = url;
+/**
+ * WebSocket Client for ConfigStream Live Feed
+ * Connects to the backend to receive real-time pipeline updates.
+ */
+
+class LiveFeed {
+    constructor(feedElementId) {
+        this.feedElement = document.getElementById(feedElementId);
         this.socket = null;
-        this.reconnectInterval = 3000;
-        this.maxRetries = 5;
-        this.retries = 0;
-        this.listeners = [];
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
     }
 
     connect() {
-        this.socket = new WebSocket(this.url);
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        // Use relative path /ws/feed assuming served by same origin or configured proxy
+        const wsUrl = `${protocol}//${window.location.host}/ws/feed`;
 
-        this.socket.onopen = () => {
-            console.log('WebSocket connected');
-            this.retries = 0;
-            this.notifyListeners({ type: 'status', status: 'connected' });
-        };
+        // Fallback for static hosting (Github Pages):
+        // If we are on github pages, we can't connect to WS easily unless we have a backend running.
+        // We will try, but gracefully fail if connection is refused.
+        // This feature is primarily for the Docker/Self-hosted version.
 
-        this.socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                this.notifyListeners(data);
-            } catch (e) {
-                console.error('Error parsing WebSocket message:', e);
-            }
-        };
+        try {
+            this.socket = new WebSocket(wsUrl);
 
-        this.socket.onclose = () => {
-            console.log('WebSocket closed');
-            this.notifyListeners({ type: 'status', status: 'disconnected' });
-            this.retryConnection();
-        };
+            this.socket.onopen = () => {
+                this.log("Connected to live feed.", "success");
+                this.reconnectAttempts = 0;
+            };
 
-        this.socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            this.socket.close();
-        };
-    }
+            this.socket.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    this.handleEvent(data);
+                } catch (e) {
+                    console.error("Failed to parse WS message", e);
+                }
+            };
 
-    retryConnection() {
-        if (this.retries < this.maxRetries) {
-            setTimeout(() => {
-                console.log(`Retrying WebSocket connection (${this.retries + 1}/${this.maxRetries})...`);
-                this.retries++;
-                this.connect();
-            }, this.reconnectInterval);
+            this.socket.onclose = () => {
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    setTimeout(() => this.connect(), 2000 * this.reconnectAttempts);
+                } else {
+                    this.log("Live feed disconnected (Backend unavailable).", "warning");
+                }
+            };
+
+            this.socket.onerror = (error) => {
+                // console.error("WebSocket Error", error);
+            };
+
+        } catch (e) {
+            console.log("WebSocket init failed", e);
         }
     }
 
-    addListener(callback) {
-        this.listeners.push(callback);
-    }
+    handleEvent(event) {
+        // Event types: pipeline_start, fetch_success, fetch_blocked, test_success, pipeline_finish
+        let msg = "";
+        let type = "info";
 
-    notifyListeners(data) {
-        this.listeners.forEach(callback => callback(data));
-    }
-}
-
-// Initialize if on the dashboard
-if (document.getElementById('pipeline-feed')) {
-    // Determine WebSocket URL based on current protocol
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/feed`;
-
-    const wsManager = new WebSocketManager(wsUrl);
-    wsManager.connect();
-
-    wsManager.addListener((data) => {
-        if (data.type === 'log') {
-            const feed = document.getElementById('pipeline-feed');
-            const entry = document.createElement('div');
-            entry.className = 'feed-entry';
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${data.message}`;
-            feed.prepend(entry);
-
-            // Keep only last 50 items
-            if (feed.children.length > 50) {
-                feed.lastChild.remove();
-            }
+        switch (event.type) {
+            case "pipeline_start":
+                msg = `🚀 ${event.message}`;
+                type = "info";
+                break;
+            case "fetch_success":
+                msg = `📥 ${event.message}`;
+                type = "success";
+                break;
+            case "fetch_blocked":
+                msg = `🛡️ ${event.message}`;
+                type = "warning";
+                break;
+            case "test_success":
+                msg = `✅ ${event.message}`;
+                type = "success";
+                break;
+            case "pipeline_finish":
+                msg = `🏁 ${event.message}`;
+                type = "info";
+                break;
+            default:
+                msg = event.message || JSON.stringify(event);
         }
-    });
+
+        this.log(msg, type);
+    }
+
+    log(message, type = "info") {
+        if (!this.feedElement) return;
+
+        const entry = document.createElement("div");
+        entry.className = `feed-entry ${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+        this.feedElement.insertBefore(entry, this.feedElement.firstChild);
+
+        // Limit history
+        if (this.feedElement.children.length > 50) {
+            this.feedElement.removeChild(this.feedElement.lastChild);
+        }
+    }
 }
+
+// Initialize
+document.addEventListener("DOMContentLoaded", () => {
+    const feed = new LiveFeed("pipeline-feed");
+    feed.connect();
+});

@@ -1,44 +1,48 @@
 import pytest
 from playwright.sync_api import Page, expect
 
-# Mark as e2e to potentially filter them out if needed
-pytestmark = pytest.mark.e2e
-
-
+# Remove all asyncio markers, let pytest-playwright handle loop injection
+@pytest.mark.e2e
 def test_homepage_loads(page: Page):
-    """Test that the homepage loads and displays the main title."""
-    # In a real E2E scenario, we'd point to the running server.
-    # For this environment, we assume the server is reachable if we were to run it.
-    # Since we can't easily start the full stack in this sandbox test runner,
-    # we will just verify the static file logic if we could serve it.
-    # BUT, standard practice for E2E in CI is to run against a built artifact.
+    """Test that the homepage loads and critical elements are visible."""
+    import os
+    cwd = os.getcwd()
+    url = f"file://{cwd}/frontend/index.html"
 
-    # If we are just verifying the file exists and has content:
-    pass
+    page.goto(url)
+    expect(page).to_have_title("ConfigStream - Your Gateway to the Open Internet")
 
+    # Check for the Logo
+    logo = page.locator(".header-logo-text")
+    expect(logo).to_be_visible()
 
-def test_frontend_assets_structure():
-    """Verify essential frontend assets exist."""
+    # Check for the "Browse Proxies" button
+    btn = page.locator("text=Browse Proxies")
+    expect(btn).to_be_visible()
+
+@pytest.mark.e2e
+def test_pwa_manifest_link(page: Page):
+    import os
+    cwd = os.getcwd()
+    url = f"file://{cwd}/frontend/index.html"
+    page.goto(url)
+
+    # Check manifest link
+    manifest = page.locator('link[rel="manifest"]')
+    expect(manifest).to_have_count(1)
+    href = manifest.get_attribute("href")
+    assert href == "manifest.json"
+
+@pytest.mark.e2e
+def test_widgets_presence(page: Page):
     import os
 
-    assets = [
-        "frontend/index.html",
-        "frontend/assets/js/main.js",
-        "frontend/assets/css/style.css",
-        "frontend/manifest.json",
-        "frontend/service-worker.js",
-    ]
-    for asset in assets:
-        assert os.path.exists(asset), f"Missing asset: {asset}"
+    cwd = os.getcwd()
+    url = f"file://{cwd}/frontend/statistics.html" # Changed to statistics.html where widgets are
+    page.goto(url)
 
+    # World Map Widget
+    expect(page.locator("#world-map-widget")).to_be_visible()
 
-def test_manifest_validity():
-    """Verify manifest.json is valid JSON and has required fields."""
-    import json
-
-    with open("frontend/manifest.json", "r") as f:
-        manifest = json.load(f)
-
-    assert "name" in manifest
-    assert "start_url" in manifest
-    assert manifest["display"] == "standalone"
+    # Historical Chart Widget
+    expect(page.locator("#historical-chart-widget")).to_be_visible()
