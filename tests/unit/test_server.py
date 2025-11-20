@@ -1,4 +1,3 @@
-
 import pytest
 from fastapi.testclient import TestClient
 from pathlib import Path
@@ -7,6 +6,7 @@ from unittest.mock import patch, MagicMock
 from configstream.server import app
 
 client = TestClient(app)
+
 
 @pytest.fixture
 def mock_output_dir(tmp_path):
@@ -20,7 +20,7 @@ def mock_output_dir(tmp_path):
         "total_proxies": 100,
         "total_working": 80,
         "countries": {"US": 50, "DE": 30},
-        "protocols": {"vmess": 60, "vless": 40}
+        "protocols": {"vmess": 60, "vless": 40},
     }
     (output_dir / "metadata.json").write_text(json.dumps(metadata))
 
@@ -43,6 +43,7 @@ def mock_output_dir(tmp_path):
 
     return output_dir
 
+
 @pytest.fixture
 def mock_frontend_dir(tmp_path):
     """Mock the frontend directory."""
@@ -56,6 +57,7 @@ def mock_frontend_dir(tmp_path):
 
     return frontend_dir
 
+
 def test_health_check(mock_output_dir):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = client.get("/health")
@@ -67,6 +69,7 @@ def test_health_check(mock_output_dir):
         # files_present might be 5 or 6 depending on hidden files/impl
         assert json_resp["files_present"] >= 0
 
+
 def test_get_stats(mock_output_dir):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = client.get("/api/stats")
@@ -74,11 +77,13 @@ def test_get_stats(mock_output_dir):
         data = response.json()
         assert data["total_proxies"] == 100
 
+
 def test_get_proxies_all(mock_output_dir):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = client.get("/api/proxies")
         assert response.status_code == 200
         assert len(response.json()) == 1
+
 
 def test_get_proxies_by_country(mock_output_dir):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
@@ -89,6 +94,7 @@ def test_get_proxies_by_country(mock_output_dir):
         response = client.get("/api/proxies?country=XX")
         assert response.status_code == 404
 
+
 def test_get_proxies_by_protocol(mock_output_dir):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = client.get("/api/proxies?protocol=vmess")
@@ -98,6 +104,7 @@ def test_get_proxies_by_protocol(mock_output_dir):
         response = client.get("/api/proxies?protocol=invalid")
         assert response.status_code == 404
 
+
 def test_download_subscription(mock_output_dir):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
         response = client.get("/subscribe/clash")
@@ -106,6 +113,7 @@ def test_download_subscription(mock_output_dir):
 
         response = client.get("/subscribe/invalid")
         assert response.status_code == 400
+
 
 def test_frontend_serving(mock_frontend_dir):
     with patch("configstream.server.FRONTEND_DIR", mock_frontend_dir):

@@ -78,10 +78,12 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "wireguard",
             "server": proxy.address,
             "port": proxy.port,
-            "ip": proxy.details.get("local_address", "10.10.0.2"), # Placeholder if missing
+            "ip": proxy.details.get(
+                "local_address", "10.10.0.2"
+            ),  # Placeholder if missing
             "private-key": proxy.details.get("private_key"),
-            "public-key": proxy.details.get("peer_public_key"), # If available
-            "udp": True
+            "public-key": proxy.details.get("peer_public_key"),  # If available
+            "udp": True,
         }
 
     # Add other protocols as needed
@@ -129,13 +131,13 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": proxy.details.get("password", ""),
         }
     elif proxy.protocol == "wireguard":
-         return {
+        return {
             "type": "wireguard",
             **base,
             "local_address": [proxy.details.get("local_address", "10.10.0.2/32")],
             "private_key": proxy.details.get("private_key"),
-            "peer_public_key": proxy.details.get("peer_public_key", "")
-         }
+            "peer_public_key": proxy.details.get("peer_public_key", ""),
+        }
 
     return None
 
@@ -150,7 +152,9 @@ def generate_categorized_outputs(
 
     # 1. Master List
     master_file = output_dir / "proxies.json"
-    save_json(proxies, master_file, compress=True) # Compress by default for large files
+    save_json(
+        proxies, master_file, compress=True
+    )  # Compress by default for large files
     files["master"] = master_file
 
     # 2. By Protocol
@@ -201,7 +205,7 @@ def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
 
     # Save Gzipped version
     if compress:
-        with gzip.open(str(path) + ".gz", 'wt', encoding='utf-8') as f:
+        with gzip.open(str(path) + ".gz", "wt", encoding="utf-8") as f:
             f.write(json_content)
 
 
@@ -385,14 +389,14 @@ def generate_base64_subscription(proxies: List[Proxy]) -> str:
     lines = []
     for p in proxies:
         if p.config:
-             # Handle OpenVPN full content which isn't a one-liner usually
-             if p.protocol == "openvpn":
-                  # For OVPN, we can't really put it in a base64 sub easily mixed with others
-                  # unless we encode it specifically.
-                  # Typically subs are list of URLs.
-                  # We skip OpenVPN content for the general sub list to avoid breaking clients
-                  continue
-             if "://" in p.config:
+            # Handle OpenVPN full content which isn't a one-liner usually
+            if p.protocol == "openvpn":
+                # For OVPN, we can't really put it in a base64 sub easily mixed with others
+                # unless we encode it specifically.
+                # Typically subs are list of URLs.
+                # We skip OpenVPN content for the general sub list to avoid breaking clients
+                continue
+            if "://" in p.config:
                 lines.append(p.config)
 
     text = "\n".join(lines)

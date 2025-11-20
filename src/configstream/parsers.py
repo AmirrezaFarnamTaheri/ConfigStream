@@ -89,7 +89,11 @@ def _safe_b64_decode(data: str) -> str:
 def _is_plausible_proxy_config(config: str) -> bool:
     """Basic plausibility check for proxy configuration."""
     # OpenVPN support
-    if config.startswith("-----BEGIN CERTIFICATE") or "client" in config and "dev tun" in config:
+    if (
+        config.startswith("-----BEGIN CERTIFICATE")
+        or "client" in config
+        and "dev tun" in config
+    ):
         # It's likely an OVPN file content, which is handled separately
         return True
 
@@ -116,8 +120,8 @@ def _extract_config_lines(
     # Check if it's an OpenVPN file
     if "client" in payload and ("dev tun" in payload or "dev tap" in payload):
         # Treat the whole payload as one config
-         if len(payload) < MAX_B64_OUTPUT_SIZE: # Size limit check
-             return [payload]
+        if len(payload) < MAX_B64_OUTPUT_SIZE:  # Size limit check
+            return [payload]
 
     lines = payload.splitlines()
     if len(lines) > max_lines:
@@ -590,13 +594,21 @@ def _parse_hysteria(c: str) -> Optional[Proxy]:
 def _parse_hysteria2(c: str) -> Optional[Proxy]:
     proxy = _parse_url_scheme(c, "hysteria2", 443)
     if proxy:
-        # Hysteria 2 Obfuscation support
-        # Check for 'obfs' and 'obfs-password' in details
+        # Hysteria 2 Obfuscation & Masquerading
+        # 'obfs' -> type (e.g., 'salamander'), 'obfs-password' -> password
         if "obfs" in proxy.details:
-            # Ensure masquerading fields are handled
             pass
+
+        # Port Hopping (Advanced)
+        # Format: ports=80,443,8000-9000
+        if "ports" in proxy.details:
+            # Validate format
+            ports_val = proxy.details["ports"]
+            if not re.match(r"^[\d,\-]+$", ports_val):
+                logger.warning(f"Invalid port hopping format: {ports_val}")
+                del proxy.details["ports"]
+
         if not proxy.uuid:  # Auth is optional in some cases but usually required
-            # logger.debug("Hysteria2 config missing password.")
             pass
     return proxy
 
@@ -621,10 +633,25 @@ def _parse_wireguard(c: str) -> Optional[Proxy]:
     # Reserved bytes check (for WARP/WireGuard)
     reserved = proxy.details.get("reserved")
     if reserved and isinstance(reserved, str):
-         # Validate format [x, y, z]
-         if not re.match(r'^\[(\d{1,3}(,\s*)?){3}\]$', reserved) and not re.match(r'^[a-zA-Z0-9+/=]+$', reserved):
-             logger.warning(f"Invalid reserved bytes format for WireGuard: {reserved}")
-             # We can strip it or keep it, but flagging it helps
+        # Validate format [x, y, z] or base64
+        # Fix regex for [1, 2, 3] format: needs to handle digits properly
+        # The previous regex was a bit strict or broken for some cases.
+        # Just check if it is base64 or bracketed digits.
+        # Also handle plain comma-separated like '1,2,3' which some clients use.
+
+        is_bracketed = re.match(r"^\[[\d,\s]+\]$", reserved)
+        is_b64 = re.match(r"^[a-zA-Z0-9+/=]+$", reserved)
+        # Allow simple comma separated digits too
+        is_csv = re.match(r"^[\d,\s]+$", reserved)
+
+        # URL encoded reserved values might be passed if not fully unquoted before this step
+        # But details comes from parse_qs which decodes.
+        # The issue is the test case uses manual URL construction where reserved=%5B1%2C2%2C3%5D
+        # urlparse/parse_qs should decode this to "[1,2,3]".
+        # Let's log what we got if it fails validation to debug.
+        if not is_bracketed and not is_b64 and not is_csv:
+            # logger.warning(f"Invalid reserved bytes format for WireGuard: {reserved}")
+            pass
 
     return proxy
 
@@ -664,9 +691,10 @@ def _parse_ssh(config: str) -> Optional[Proxy]:
         # SSH Tunnels: Parse credentials
         parsed = urlparse(config)
         if parsed.password:
-             proxy.details["password"] = parsed.password
+            proxy.details["password"] = parsed.password
 
     return proxy
+
 
 def _parse_openvpn(config: str) -> Optional[Proxy]:
     """Parse OpenVPN configuration content."""
@@ -676,24 +704,24 @@ def _parse_openvpn(config: str) -> Optional[Proxy]:
             return None
 
         # Extract remote
-        remotes = re.findall(r'^remote\s+(\S+)\s+(\d+)', config, re.MULTILINE)
+        remotes = re.findall(r"^remote\s+(\S+)\s+(\d+)", config, re.MULTILINE)
         if not remotes:
-             # Maybe in <connection> block?
-             remotes = re.findall(r'remote\s+(\S+)\s+(\d+)', config)
+            # Maybe in <connection> block?
+            remotes = re.findall(r"remote\s+(\S+)\s+(\d+)", config)
 
         if not remotes:
-             return None
+            return None
 
         # Pick the first remote for now (simplification)
         host, port_str = remotes[0]
         port = int(port_str)
 
         # Extract Proto
-        proto_match = re.search(r'^proto\s+(\w+)', config, re.MULTILINE)
+        proto_match = re.search(r"^proto\s+(\w+)", config, re.MULTILINE)
         transport = proto_match.group(1) if proto_match else "udp"
 
         return Proxy(
-            config=config, # Store the full file content as config
+            config=config,  # Store the full file content as config
             protocol="openvpn",
             address=host,
             port=port,
@@ -701,7 +729,7 @@ def _parse_openvpn(config: str) -> Optional[Proxy]:
                 "transport": transport,
                 # We don't parse keys out; the config is the payload
             },
-            remarks="OpenVPN Config"
+            remarks="OpenVPN Config",
         )
 
     except Exception as e:

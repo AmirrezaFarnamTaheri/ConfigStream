@@ -1,0 +1,11 @@
+[package]
+name = "ss_checker"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+libc = "0.2"
+# shadowsocks-rust = "1.15" # Using a simplified logic for PoC as full ss-rust dep is heavy
