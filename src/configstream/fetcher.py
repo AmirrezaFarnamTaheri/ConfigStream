@@ -105,6 +105,7 @@ async def fetch_from_source(
     app_settings: Optional[AppSettings] = None,
     # Legacy arg kept for compatibility, but unused effectively
     etag_cache: Optional[Dict[str, Dict[str, str]]] = None,
+    randomize_tls: bool = False,
 ) -> FetchResult:
     """
     Fetch configurations from a source with full resilience logic.
@@ -156,6 +157,18 @@ async def fetch_from_source(
         "Accept": "text/plain, application/json, */*",
         "Accept-Encoding": "gzip, deflate, br",
     }
+
+    if randomize_tls:
+        # Simulate browser-like behavior or fragmentation via headers/order
+        # Note: httpx doesn't support true uTLS randomization without custom transport/extensions.
+        # We simulate variance by randomizing the accept headers and order
+        headers["User-Agent"] = random.choice(
+            [
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+                "Mozilla/5.0 (X11; Linux x86_64) Gecko/20100101 Firefox/122.0",
+            ]
+        )
 
     for attempt in range(max_retries):
         loop = asyncio.get_running_loop()

@@ -47,6 +47,7 @@ dependencies = [
     # CLI & UI
     "click",
     "rich",
+    "python-telegram-bot>=20.0",
 
     # Geo & Sys
     "geoip2",
@@ -63,6 +64,9 @@ dependencies = [
     "scikit-learn",
     "numpy",
     "scipy",
+
+    # Observability
+    "prometheus-client>=0.19.0",
 
     # HTML Parsing (Security)
     "beautifulsoup4"

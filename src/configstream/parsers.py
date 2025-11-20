@@ -181,6 +181,19 @@ def _parse_vless(config: str) -> Optional[Proxy]:
         if not uuid or len(uuid) > 100:
             return None
 
+        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+
+        # REALITY Verification
+        if details.get("security") == "reality":
+            if not details.get("pbk"):
+                logger.debug("VLESS Reality missing pbk")
+                return None
+            if not details.get("sid"):
+                logger.debug("VLESS Reality missing sid")
+                return None
+            # Flow is often xtls-rprx-vision but not strictly required for all reality implementations
+            # but common enough to check or at least extract.
+
         proxy = Proxy(
             config=config,
             protocol="vless",
@@ -188,7 +201,7 @@ def _parse_vless(config: str) -> Optional[Proxy]:
             port=port,
             uuid=uuid,
             remarks=unquote(parsed.fragment or "")[:200],
-            details={k: v[0] for k, v in parse_qs(parsed.query).items()},
+            details=details,
         )
         _normalize_proxy_details(proxy)
         return proxy
@@ -622,6 +635,62 @@ def _parse_juicity(c: str) -> Optional[Proxy]:
         logger.debug("Juicity config missing UUID.")
         return None
     return proxy
+
+
+def _parse_openvpn(config: str) -> Optional[Proxy]:
+    """
+    Parse OpenVPN configuration content.
+    Extracts remote server and port.
+    """
+    try:
+        lines = config.splitlines()
+        remote_found = False
+        address = ""
+        port = 1194
+        proto = "udp"
+
+        # Basic heuristic: check for 'client' or 'remote' or certs
+        # If it's a single line URL, it's not OpenVPN content
+        if len(lines) < 2 and "BEGIN" not in config:
+            return None
+
+        for line in lines:
+            parts = line.strip().split()
+            if not parts:
+                continue
+
+            if parts[0] == "remote":
+                # remote <host> [port] [proto]
+                if len(parts) >= 2:
+                    address = parts[1]
+                    remote_found = True
+                if len(parts) >= 3:
+                    try:
+                        port = int(parts[2])
+                    except ValueError:
+                        pass
+                if len(parts) >= 4:
+                    proto = parts[3]
+
+            elif parts[0] == "proto":
+                if len(parts) >= 2:
+                    proto = parts[1]
+
+        if remote_found and address:
+            return Proxy(
+                config="openvpn://" + address,  # Identifier
+                protocol="openvpn",
+                address=address,
+                port=port,
+                uuid="",
+                details={"proto": proto, "full_config": config},
+                remarks="OpenVPN",
+            )
+
+        return None
+    except Exception as e:
+        logger.debug(f"Failed to parse OpenVPN: {e}")
+        return None
 
 
 def _parse_ssh(config: str) -> Optional[Proxy]:

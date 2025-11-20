@@ -268,7 +268,8 @@ function getProtocolColor(protocol) {
     'naive': '#FD79A8',
     'http': '#FDCB6E',
     'https': '#6C5CE7',
-    'socks': '#00B894'
+    'socks': '#00B894',
+    'openvpn': '#E17055'
   };
   return colors[protocol?.toLowerCase()] || '#95A5A6';
 }

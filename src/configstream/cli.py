@@ -182,5 +182,44 @@ def generate_warp(count):
     )
 
 
+@main.command()
+@click.option("--token", envvar="TELEGRAM_BOT_TOKEN", help="Telegram Bot Token")
+@click.option(
+    "--allowed-ids",
+    help="Comma-separated list of allowed Telegram User IDs",
+    default=None,
+)
+@click.option(
+    "--output",
+    "-o",
+    default="output",
+    help="Path to output directory",
+)
+def bot(token, allowed_ids, output):
+    """Run the Telegram Bot."""
+    if not token:
+        console.print(
+            "[red]Error: Token required. Set TELEGRAM_BOT_TOKEN env var.[/red]"
+        )
+        sys.exit(1)
+
+    allowed_list = None
+    if allowed_ids:
+        try:
+            allowed_list = [int(x.strip()) for x in allowed_ids.split(",") if x.strip()]
+        except ValueError:
+            console.print("[red]Error: Allowed IDs must be integers.[/red]")
+            sys.exit(1)
+
+    from .tools.telegram_bot import ConfigStreamBot
+
+    try:
+        bot = ConfigStreamBot(token, output_dir=Path(output), allowed_ids=allowed_list)
+        bot.run()
+    except Exception as e:
+        console.print(f"[red]Bot Error: {e}[/red]")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     main()

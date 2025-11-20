@@ -5,8 +5,9 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from .event_stream import EventStream
+from .metrics_prometheus import get_metrics
 
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -31,6 +32,13 @@ app.add_middleware(
 )
 
 # --- API Endpoints ---
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus metrics endpoint."""
+    data, content_type = get_metrics()
+    return Response(content=data, media_type=content_type)
 
 
 @app.get("/api/stats")
