@@ -73,7 +73,7 @@ class UIStateManager {
     const path = window.location.pathname;
     
     if (path.includes('proxies.html')) return 'proxies';
-    if (path.includes('statistics.html')) return 'statistics';
+    if (path.includes('analytics.html')) return 'analytics';
     return 'home';
   }
   

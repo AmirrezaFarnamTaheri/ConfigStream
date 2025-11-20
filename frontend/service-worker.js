@@ -3,7 +3,7 @@ const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './proxies.html',
-  './statistics.html',
+  './analytics.html',
   './assets/css/style.css',
   './assets/css/loading.css',
   './assets/js/main.js',
