@@ -48,9 +48,10 @@ class BlocklistManager:
             async with httpx.AsyncClient() as client:
                 resp = await client.get(BLOCKLIST_URL, timeout=30)
                 resp.raise_for_status()
+                content = resp.content
 
             async with aiofiles.open(CACHE_FILE, "wb") as f:
-                await f.write(resp.content)
+                await f.write(content)
 
             logger.info("Updated FireHol blocklist successfully.")
             await self.load()
