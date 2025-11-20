@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from .event_stream import EventStream
 
 # Define paths relative to the container structure
@@ -39,11 +39,18 @@ async def get_stats():
     metadata_path = OUTPUT_DIR / "metadata.json"
     if not metadata_path.exists():
         # Return placeholder if first run hasn't finished
-        return {
+        return JSONResponse(content={
             "status": "initializing",
             "message": "Pipeline is running. Please wait for data generation.",
-        }
-    return FileResponse(metadata_path)
+        })
+
+    # Read and return JSON content directly to ensure proper content-type and parsing
+    import json
+    try:
+        content = json.loads(metadata_path.read_text())
+        return JSONResponse(content=content)
+    except Exception:
+        return FileResponse(metadata_path)
 
 
 @app.get("/api/proxies")
@@ -149,8 +156,14 @@ async def read_page(page: str):
 
 @app.get("/health")
 async def health_check():
+    # Ensure directory exists to avoid glob errors if not created yet
+    if not OUTPUT_DIR.exists():
+        files_count = 0
+    else:
+        files_count = len(list(OUTPUT_DIR.glob("*")))
+
     return {
         "status": "ok",
         "output_dir": str(OUTPUT_DIR),
-        "files_present": len(list(OUTPUT_DIR.glob("*"))),
+        "files_present": files_count,
     }
