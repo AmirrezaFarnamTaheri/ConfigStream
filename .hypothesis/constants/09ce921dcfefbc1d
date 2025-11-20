@@ -1,0 +1,4 @@
+# file: /app/src/configstream/security/blocklist.py
+# hypothesis_version: 6.148.2
+
+['#', '_initialized', 'r', 'utf-8', 'wb']

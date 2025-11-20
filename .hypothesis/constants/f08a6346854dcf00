@@ -1,0 +1,4 @@
+# file: /app/src/configstream/filtering.py
+# hypothesis_version: 6.148.2
+
+['.', '/', 'ProxyFilter', 'inf']

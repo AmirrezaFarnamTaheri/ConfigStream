@@ -1,0 +1,4 @@
+# file: /app/src/configstream/serialize.py
+# hypothesis_version: 6.148.2
+
+['_source', 'address', 'country', 'dumps', 'is_working', 'last_checked', 'latency', 'port', 'protocol', 'security', 'source', 'utf-8']

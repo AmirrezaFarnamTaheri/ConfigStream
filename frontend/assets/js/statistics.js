@@ -73,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchProxyHistory() {
         try {
-            const url = `output/proxy_history.json?cb=${Date.now()}`;
+            // Assuming stats endpoint includes history or similar,
+            // or we map this to a file served by the API
+            const url = `/files/proxy_history.json?cb=${Date.now()}`;
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

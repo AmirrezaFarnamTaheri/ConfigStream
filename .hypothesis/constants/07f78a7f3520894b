@@ -1,0 +1,4 @@
+# file: /app/src/configstream/pipeline.py
+# hypothesis_version: 6.148.2
+
+[0.1, 9999, 'Producer failed: %s', '_source', 'clash.yaml', 'default', 'duration', 'fetched_lines', 'fetched_sources', 'final_count', 'geo', 'geo_resolved', 'http', 'parse', 'parsed', 'singbox.json', 'sources/', 'supplied-proxies', 'tested', 'working']

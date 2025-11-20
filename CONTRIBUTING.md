@@ -1,65 +1,53 @@
 # Contributing to ConfigStream
 
-First off, thank you for considering contributing to ConfigStream! It's people like you that make ConfigStream such a great tool.
+First off, thanks for taking the time to contribute! 🎉
 
-## Where do I go from here?
+ConfigStream is a community-driven project, and we value your input. Whether you're fixing a bug, improving documentation, or adding a new feature, your help is appreciated.
 
-If you've noticed a bug or have a feature request, make sure to check out the [issues section](https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues) and see if someone else has already created a ticket. If not, feel free to create a new one!
+## How to Contribute
 
-## Fork & create a branch
+### 1. Reporting Bugs
+If you find a bug, please open an issue on GitHub. Include:
+-   Steps to reproduce.
+-   Expected behavior vs. actual behavior.
+-   Logs or screenshots if applicable.
 
-If you're ready to contribute, you can fork the repository and create a new branch.
+### 2. Suggesting Features
+Have an idea? Open a "Feature Request" issue. Describe the problem you're solving and your proposed solution.
 
-```bash
-git clone https://github.com/YOUR_USERNAME/ConfigStream.git
-cd ConfigStream
-git checkout -b feature/my-new-feature
-```
+### 3. Submitting Code
 
-## Get the code running
+1.  **Fork the repository** and create your branch from `main`.
+2.  **Install dependencies**:
+    ```bash
+    pip install -e ".[dev]"
+    ```
+3.  **Make your changes**. Ensure you follow the coding style (we use `black` and `flake8`).
+4.  **Run tests**:
+    ```bash
+    pytest
+    ```
+5.  **Verify types**:
+    ```bash
+    mypy .
+    ```
+6.  **Commit your changes**. Please use descriptive commit messages.
+7.  **Push to your fork** and submit a Pull Request.
 
-To get the code running, you'll need to install the dependencies.
+## Development Guidelines
 
-```bash
-pip install -e .[dev]
-```
+-   **No Placeholders**: Avoid `TODO` or incomplete code in the `main` branch.
+-   **Testing**: Add unit tests for new logic. If you touch the parsers, run the fuzz tests.
+-   **Security**: Do not commit API keys or secrets. Use environment variables.
+-   **Documentation**: Update `README.md` or `ARCHITECTURE.md` if you change core functionality.
 
-## Make your changes
+## Project Structure
 
-Make your changes to the code, and make sure to add tests for your changes.
+-   `src/configstream/`: Core Python source code.
+-   `frontend/`: Web dashboard assets (HTML/CSS/JS).
+-   `tests/`: Unit and integration tests.
+-   `sources/`: Text files containing proxy source URLs.
 
-## Run the tests
+## License
 
-To run the tests, you can use the following command:
-
-```bash
-pytest
-```
-
-## Commit your changes
-
-Once you're happy with your changes, you can commit them.
-
-```bash
-git commit -m "feat: my new feature"
-```
-
-## Push your changes
-
-Push your changes to your fork.
-
-```bash
-git push origin feature/my-new-feature
-```
-
-## Create a pull request
-
-Once you've pushed your changes, you can create a pull request to the `main` branch of the `AmirrezaFarnamTaheri/ConfigStream` repository.
-
-## Get your pull request reviewed
-
-Once you've created a pull request, it will be reviewed by one of the maintainers. If there are any changes requested, you can make them and push them to your branch.
-
-## Get your pull request merged
-
-Once your pull request has been approved, it will be merged into the `main` branch. Congratulations, you've successfully contributed to ConfigStream!
+By contributing, you agree that your contributions will be licensed under its GPL-3.0 License.

@@ -1,0 +1,4 @@
+# file: /app/src/configstream/http_client.py
+# hypothesis_version: 6.148.2
+
+[10.0, 15.0, 20.0, 30.0, 100, 'Accept', 'Host', 'User-Agent', 'http']

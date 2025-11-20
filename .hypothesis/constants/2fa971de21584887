@@ -1,0 +1,4 @@
+# file: /app/src/configstream/constants.py
+# hypothesis_version: 6.148.2
+
+[100, 110, 143, 445, 1000, 1024, 2048, 3389, 10000, 65535, '0.0.0.0', '10.', '127.0.0.1', '169.254.', '192.168.', 'amazon', 'bing', 'brook', 'cloudflare', 'configuration_error', 'dangerous_port', 'deprecated_protocol', 'firefox', 'github', 'google', 'gstatic', 'http', 'httpbin', 'https', 'https://httpbin.org/', 'hy2', 'hysteria', 'hysteria2', 'insecure_transport', 'invalid_certificate', 'juicity', 'localhost', 'missing_auth', 'naive', 'naive+http', 'naive+https', 'shadowsocks', 'snell', 'socks', 'socks4', 'socks5', 'ss', 'ss2022', 'ssh', 'ssr', 'suspicious_domain', 'trojan', 'tuic', 'v2ray', 'vless', 'vmess', 'weak_encryption', 'wg', 'wireguard', 'xray', 'xtls']

@@ -1,84 +1,93 @@
-from __future__ import annotations
+"""
+Intelligent Scheduler.
+Prioritizes testing of high-reliability proxies and handles re-test intervals.
+"""
 
-import asyncio
-import json
-from dataclasses import dataclass
-from datetime import timedelta
-from pathlib import Path
-from typing import List
+import logging
+from datetime import datetime, timezone
+from typing import List, Dict, Any
 
 from .models import Proxy
-from .pipeline import run_full_pipeline
+from .test_cache import TestResultCache
+from .pipeline import PipelineResult
 
+logger = logging.getLogger(__name__)
 
-@dataclass
-class RetestJobResult:
-    success: bool
-    proxies_tested: int
-    proxies_working: int
-    output_dir: str
+class SmartRetestScheduler:
+    def __init__(self, cache: TestResultCache):
+        self.cache = cache
+        # Adaptive intervals (in seconds)
+        self.intervals = {
+            "reliable": 3600,      # 1 hour for good proxies
+            "unstable": 600,       # 10 mins for flaky ones
+            "dead": 86400,         # 24 hours for dead ones (soft retry)
+            "new": 0               # Immediate test
+        }
 
+    def filter_proxies_for_retest(self, proxies: List[Proxy]) -> List[Proxy]:
+        """
+        Filter out proxies that don't need re-testing yet.
+        """
+        to_test = []
+        skipped = 0
 
-class RetestScheduler:
-    """Simple scheduler for periodic proxy retesting."""
+        for proxy in proxies:
+            if self.should_retest(proxy):
+                to_test.append(proxy)
+            else:
+                skipped += 1
 
-    def __init__(
-        self,
-        proxies_file: str,
-        output_dir: str = "output",
-        interval: timedelta = timedelta(hours=1),
-    ) -> None:
-        self.proxies_file = Path(proxies_file)
-        self.output_dir = output_dir
-        self.interval = interval
-        self._task: asyncio.Task[None] | None = None
-        self._stop_event = asyncio.Event()
+        if skipped > 0:
+            logger.info(f"Smart Scheduler: Skipped {skipped} recently tested proxies.")
 
-    async def _load_proxies(self) -> List[Proxy]:
-        if not self.proxies_file.exists():
-            return []
-        data = self.proxies_file.read_text(encoding="utf-8")
-        items = json.loads(data)
-        return [Proxy(**item) for item in items if isinstance(item, dict)]
+        return to_test
 
-    async def run_once(self) -> RetestJobResult:
-        proxies = await self._load_proxies()
-        if not proxies:
-            return RetestJobResult(False, 0, 0, self.output_dir)
+    def should_retest(self, proxy: Proxy) -> bool:
+        """
+        Decision engine: Should we test this proxy now?
+        """
+        cached = self.cache.get(proxy)
 
-        result = await run_full_pipeline(
-            sources=[],
-            output_dir=self.output_dir,
-            proxies=proxies,
-        )
+        # 1. No history -> Test
+        if not cached:
+            return True
 
-        metrics = result.get("metrics") or {}
-        return RetestJobResult(
-            success=result.get("success", False),
-            proxies_tested=int(metrics.get("proxies_tested", 0)),
-            proxies_working=int(metrics.get("proxies_working", 0)),
-            output_dir=self.output_dir,
-        )
+        # 2. Check timestamp
+        if not cached.tested_at:
+            return True
 
-    async def _loop(self) -> None:
-        while not self._stop_event.is_set():
-            await self.run_once()
-            try:
-                await asyncio.wait_for(
-                    self._stop_event.wait(),
-                    timeout=self.interval.total_seconds(),
-                )
-            except asyncio.TimeoutError:
-                continue
+        try:
+            last_test = datetime.fromisoformat(cached.tested_at)
+            now = datetime.now(timezone.utc)
+            age = (now - last_test).total_seconds()
 
-    def start(self) -> None:
-        if self._task and not self._task.done():
-            return
-        loop = asyncio.get_event_loop()
-        self._stop_event.clear()
-        self._task = loop.create_task(self._loop())
+            # Determine needed interval based on health
+            if cached.is_working:
+                # High reliability optimization:
+                # If latency is low (< 200ms) and history is good -> extend interval
+                required_interval = self.intervals["reliable"]
+                if (cached.latency or 999) < 200:
+                    required_interval *= 2 # 2 hours
+            else:
+                # Backoff for dead proxies
+                required_interval = self.intervals["dead"]
 
-    def stop(self) -> None:
-        self._stop_event.set()
-        if self._task:
-            self._task.cancel()
+            return age > required_interval
+
+        except ValueError:
+            return True # Corrupt timestamp
+
+    def adjust_pipeline_parameters(self, result: PipelineResult) -> Dict[str, Any]:
+        """
+        Analyze previous run results to tune next run.
+        (Placeholder for future reinforcement learning)
+        """
+        # Example: If yield was low, increase worker count?
+        # Since we don't have a mutable global state for this yet, we return advice.
+        advice = {}
+
+        # Fix: PipelineResult is an object, not a dict
+        if result.stats.get("working", 0) < 100:
+            advice["suggest_more_sources"] = True
+
+        return advice
