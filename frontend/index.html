@@ -19,8 +19,8 @@
     <style>
         /* Basic styling for new widgets */
         #pipeline-feed {
-            background: #0f172a;
-            border: 1px solid #1e293b;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
             padding: 10px;
             height: 150px;
             overflow-y: auto;
@@ -28,10 +28,10 @@
             font-size: 0.85rem;
             margin-top: 20px;
             border-radius: 8px;
-            color: #e2e8f0;
+            color: var(--text-primary);
         }
-        .feed-entry { margin-bottom: 4px; color: #94a3b8; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
-        .feed-entry.info { color: #3b82f6; }
+        .feed-entry { margin-bottom: 4px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 2px; }
+        .feed-entry.info { color: var(--brand-secondary); }
         .feed-entry.warning { color: #eab308; }
         .feed-entry.error { color: #ef4444; }
         .feed-entry.success { color: #22c55e; }
@@ -127,11 +127,11 @@
                     Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from over 668 curated sources stream in every 6 hours, ensuring you always have a reliable path to the open internet.
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
-                    <a href="proxies.html" class="btn btn-primary">
+                    <a href="proxies.html" class="btn btn-primary" aria-label="Browse available proxies">
                         <i data-feather="zap"></i>
                         <span>Browse Proxies</span>
                     </a>
-                    <a href="#downloads" class="btn btn-secondary">
+                    <a href="#downloads" class="btn btn-secondary" aria-label="Jump to downloads section">
                         <i data-feather="download"></i>
                         <span>Get Configs</span>
                     </a>
@@ -139,40 +139,40 @@
             </section>
 
             <!-- Live Pipeline Feed -->
-            <section style="--delay: 0.35s;">
-                <h3 class="text-center" style="margin-bottom: 0.5rem; font-size: 1rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Live Pipeline Activity</h3>
-                <div id="pipeline-feed">
+            <section style="--delay: 0.35s;" aria-label="Live Pipeline Status">
+                <h3 class="text-center" style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Live Pipeline Activity</h3>
+                <div id="pipeline-feed" role="log" aria-live="polite">
                     <div class="feed-entry info">[System] Connecting to WebSocket feed...</div>
                 </div>
             </section>
 
-            <section class="stats-card" style="--delay: 0.4s;">
+            <section class="stats-card" style="--delay: 0.4s;" aria-label="Statistics">
                 <div class="stats-card-inner">
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="download-cloud"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="totalSourced" class="stat-value loading">0</div>
+                            <div id="totalSourced" class="stat-value loading" aria-label="Total Proxies Sourced">0</div>
                             <div class="stat-label">Total Sourced</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="totalConfigs" class="stat-value loading">0</div>
+                            <div id="totalConfigs" class="stat-value loading" aria-label="Total Unique Configs">0</div>
                             <div class="stat-label">Unique & Tested</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="zap"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="workingConfigs" class="stat-value loading">0</div>
+                            <div id="workingConfigs" class="stat-value loading" aria-label="Working Configs">0</div>
                             <div class="stat-label">Currently Online</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="clock"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="updateFrequency" class="stat-value loading">N/A</div>
+                            <div id="updateFrequency" class="stat-value loading" aria-label="Update Frequency">N/A</div>
                             <div class="stat-label">Update Frequency</div>
                         </div>
                     </div>
@@ -182,14 +182,14 @@
             <div class="main-grid">
                 <div class="accordion-container">
                     <section id="downloads" class="card accordion-item accordion-open" style="--delay: 0.5s;" aria-labelledby="downloads-heading">
-                        <button class="accordion-header" aria-expanded="true">
+                        <button class="accordion-header" aria-expanded="true" aria-controls="downloads-content">
                             <div class="card-header text-center">
                                 <h2 id="downloads-heading">Get Your Configs</h2>
                                 <p class="subtitle">Choose your preferred format. All downloads contain our latest tested proxies.</p>
                             </div>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
-                        <div class="accordion-content">
+                        <div id="downloads-content" class="accordion-content">
                             <div>
                                 <div class="downloads-grid">
                                     <div class="download-card" style="--delay: 0.6s;">
@@ -198,7 +198,7 @@
                                             <h3 class="download-title">Universal Subscription</h3>
                                             <p class="download-desc">Base64 format compatible with V2Ray, Xray, and most clients. Auto-updating.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="subscribe/base64">
+                                        <button class="btn btn-primary copy-btn" data-file="subscribe/base64" aria-label="Copy Universal Subscription Link">
                                             <i data-feather="copy"></i>
                                             <span>Copy Link</span>
                                         </button>
@@ -209,7 +209,7 @@
                                             <h3 class="download-title">Sing-box Config</h3>
                                             <p class="download-desc">Optimized JSON configuration for Sing-box/NekoBox clients.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="subscribe/singbox">
+                                        <button class="btn btn-primary copy-btn" data-file="subscribe/singbox" aria-label="Copy Sing-box Config Link">
                                             <i data-feather="copy"></i>
                                             <span>Copy Link</span>
                                         </button>
@@ -220,7 +220,7 @@
                                             <h3 class="download-title">Clash Config</h3>
                                             <p class="download-desc">A ready-to-use YAML file, perfect for Clash users.</p>
                                         </div>
-                                        <a href="subscribe/clash" class="btn btn-primary" download="clash.yaml">
+                                        <a href="subscribe/clash" class="btn btn-primary" download="clash.yaml" aria-label="Download Clash Config">
                                             <i data-feather="download-cloud"></i>
                                             <span>Download</span>
                                         </a>
@@ -231,7 +231,7 @@
                                             <h3 class="download-title">Shadowrocket</h3>
                                             <p class="download-desc">Configuration format optimized for Shadowrocket on iOS.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="subscribe/shadowrocket">
+                                        <button class="btn btn-primary copy-btn" data-file="subscribe/shadowrocket" aria-label="Copy Shadowrocket Config Link">
                                             <i data-feather="copy"></i>
                                             <span>Copy Link</span>
                                         </button>
@@ -250,7 +250,7 @@
                                                 <h3 class="download-title">Chosen Subscription</h3>
                                                 <p class="download-desc">Curated list of the top 1000 fastest, most reliable proxies.</p>
                                             </div>
-                                            <button class="btn btn-primary copy-btn" data-file="files/chosen/base64.txt">
+                                            <button class="btn btn-primary copy-btn" data-file="files/chosen/base64.txt" aria-label="Copy Chosen Subscription Link">
                                                 <i data-feather="copy"></i>
                                                 <span>Copy Link</span>
                                             </button>
@@ -267,22 +267,22 @@
                                          <div class="download-card">
                                              <div class="download-icon"><i data-feather="layers"></i></div>
                                              <div class="download-info"><h3 class="download-title">Surge</h3></div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/surge"><i data-feather="copy"></i> Copy</button>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/surge" aria-label="Copy Surge Config Link"><i data-feather="copy"></i> Copy</button>
                                          </div>
                                          <div class="download-card">
                                              <div class="download-icon"><i data-feather="layers"></i></div>
                                              <div class="download-info"><h3 class="download-title">Loon</h3></div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/loon"><i data-feather="copy"></i> Copy</button>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/loon" aria-label="Copy Loon Config Link"><i data-feather="copy"></i> Copy</button>
                                          </div>
                                          <div class="download-card">
                                              <div class="download-icon"><i data-feather="layers"></i></div>
                                              <div class="download-info"><h3 class="download-title">Quantumult X</h3></div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/quantumultx"><i data-feather="copy"></i> Copy</button>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/quantumultx" aria-label="Copy Quantumult X Config Link"><i data-feather="copy"></i> Copy</button>
                                          </div>
                                          <div class="download-card">
                                              <div class="download-icon"><i data-feather="layers"></i></div>
                                              <div class="download-info"><h3 class="download-title">SIP008</h3></div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/sip008"><i data-feather="copy"></i> Copy</button>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/sip008" aria-label="Copy SIP008 Config Link"><i data-feather="copy"></i> Copy</button>
                                          </div>
                                      </div>
                                 </div>
@@ -294,11 +294,11 @@
 
                 <div class="info-column accordion-container">
                     <section class="card info-card accordion-item accordion-open" style="--delay: 0.9s;">
-                        <button class="accordion-header" aria-expanded="true">
+                        <button class="accordion-header" aria-expanded="true" aria-controls="getting-started-content">
                             <h3><i data-feather="play-circle"></i> Getting Started</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
-                        <div class="accordion-content">
+                        <div id="getting-started-content" class="accordion-content">
                             <div>
                                 <p>Using ConfigStream is easy. Just grab a configuration and import it into your favorite VPN client. Here’s how:</p>
                                 <ol class="info-list">
@@ -311,22 +311,22 @@
                         </div>
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.0s;">
-                        <button class="accordion-header" aria-expanded="false">
+                        <button class="accordion-header" aria-expanded="false" aria-controls="how-it-works-content">
                             <h3><i data-feather="activity"></i> How It Works</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
-                        <div class="accordion-content">
+                        <div id="how-it-works-content" class="accordion-content">
                             <div>
                                 <p>Our system is fully automated using GitHub Actions. Every 8 hours, we fetch fresh proxies from public sources, deduplicate them, and test each one for security and performance. We then add geolocation data and generate updated configuration files, ensuring you always get working, tested configurations.
                             </div>
                         </div>
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.1s;">
-                        <button class="accordion-header" aria-expanded="false">
+                        <button class="accordion-header" aria-expanded="false" aria-controls="security-content">
                             <h3><i data-feather="shield"></i> Our Security Promise</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
-                        <div class="accordion-content">
+                        <div id="security-content" class="accordion-content">
                             <div>
                                 <p>We take your security seriously. Before any proxy is listed, it undergoes a rigorous, automated validation process:</p>
                                 <ul class="info-list">
@@ -338,11 +338,11 @@
                         </div>
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.2s;">
-                        <button class="accordion-header" aria-expanded="false">
+                        <button class="accordion-header" aria-expanded="false" aria-controls="formats-content">
                             <h3><i data-feather="file-text"></i> Formats Explained</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
-                        <div class="accordion-content">
+                        <div id="formats-content" class="accordion-content">
                             <div>
                                 <ul class="info-list">
                                     <li><strong>Base64 Subscription:</strong> A single, shareable link that’s easy to import into clients like V2Ray, Xray, and NekoBox. This is the most convenient option for most users.</li>
@@ -353,11 +353,11 @@
                         </div>
                     </section>
                     <section class="card info-card accordion-item" style="--delay: 1.3s;">
-                        <button class="accordion-header" aria-expanded="false">
+                        <button class="accordion-header" aria-expanded="false" aria-controls="community-content">
                             <h3><i data-feather="users"></i> Community-Powered</h3>
                             <i data-feather="chevron-down" class="accordion-icon"></i>
                         </button>
-                        <div class="accordion-content">
+                        <div id="community-content" class="accordion-content">
                             <div>
                                 <p>This project is powered by the community, with over 668 curated proxy sources from trusted repositories. Our automated pipeline runs every 6 hours, continuously updating configurations with the latest proxies. We welcome contributions to help us improve our testing, add new sources, and expand our reach.</p>
                             </div>

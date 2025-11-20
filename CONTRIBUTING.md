@@ -29,7 +29,7 @@ Have an idea? Open a "Feature Request" issue. Describe the problem you're solvin
     ```
 5.  **Verify types**:
     ```bash
-    mypy .
+    mypy src tests
     ```
 6.  **Commit your changes**. Please use descriptive commit messages.
 7.  **Push to your fork** and submit a Pull Request.
@@ -46,43 +46,50 @@ If you make changes to the frontend, you must verify them visually.
 
 ## Roadmap & Next Steps 🗺️
 
-We have an ambitious vision for ConfigStream. Below is a detailed breakdown of features, methods, and improvements we are actively working on or looking for help with.
+We have an ambitious vision for ConfigStream to become the definitive open-source platform for internet freedom. Below is a comprehensive breakdown of our future goals, divided by domain. We invite you to pick a task and contribute!
 
-### 🤖 AI & Automation
-* **Reinforcement Learning Scheduler**: Implement an RL agent (e.g., Q-Learning) to optimize retest intervals per proxy.
-* **Predictive Anomaly Detection**: Use time-series analysis (Prophet/ARIMA) to predict source failures.
-* **Automated Protocol Fingerprinting**: Use ML to identify the true protocol of an obfuscated stream.
+### 🎨 Frontend & UI/UX
+*   **Visualizations**: Implement a 3D Globe view (using `three.js` or `globe.gl`) to visualize active proxy nodes in real-time.
+*   **PWA Enhancements**: Add offline support for viewing previously fetched proxies and background sync.
+*   **Accessibility (a11y)**: Achieve WCAG 2.1 AA compliance. Add keyboard shortcuts for power users.
+*   **Customization**: Allow users to save their preferred filters and theme settings to local storage.
+*   **I18n**: Implement a robust internationalization framework to support Chinese, Russian, Farsi, and Arabic.
 
-### 🌍 Localization & Access
-* **Multi-Language Dashboard**: Add i18n support to the frontend.
-* **Mirror & CDN Integration**: Automate deployment to IPFS, Cloudflare Pages, or Vercel.
-* **Telegram Bot Integration**: Build a bot for direct queries.
+### 🤖 AI & Intelligence
+*   **Smart Scheduler**: Implement a Reinforcement Learning (RL) agent (e.g., Q-Learning) to dynamically adjust retest intervals based on proxy stability history.
+*   **Anomaly Detection**: Use time-series analysis (Prophet/ARIMA) to predict source failures or censorship events before they happen.
+*   **Protocol Fingerprinting**: Use ML models to identify the true protocol of obfuscated streams or detect "fake" working proxies (honeypots).
+*   **Natural Language Query**: Allow users to search for proxies using natural language (e.g., "fastest US servers for streaming").
+
+### 🛡️ Security & Privacy
+*   **Advanced Honeypot Detection**: Analyze traffic patterns and server headers to identify state-sponsored honeypots.
+*   **TLS Fingerprint Randomization**: Randomize uTLS fingerprints during testing to avoid detection by active probes.
+*   **Malware Scanning**: Integrate deeper with VirusTotal or similar APIs to scan destination IPs for known malware hosts.
+*   **DPI Evasion**: Implement advanced fragmentation and padding strategies in the testing client.
+
+### 🔌 Protocol Support
+*   **V2Ray REALITY**: Add specific verification steps for REALITY (checking `pbk`, `sid`, and fingerprint).
+*   **OpenVPN**: Add robust parsing and testing for `.ovpn` files.
+*   **WireGuard**: Improve WireGuard testing with custom MTU and reserved bytes handling.
+*   **Shadowsocks-Rust**: Integrate the official Rust core via FFI for higher performance testing.
 
 ### 🛠️ Infrastructure & DevOps
-* **Distributed Workers**: Scale the pipeline across multiple nodes.
-* **Database Migration**: Migrate from SQLite to PostgreSQL for larger datasets.
-* **Observability Stack**: Integrate Prometheus/Grafana.
+*   **Distributed Workers**: Scale the pipeline across multiple nodes/containers using Celery or a custom distributor.
+*   **Database Migration**: Migrate from SQLite to PostgreSQL/TimescaleDB for handling millions of historical records.
+*   **Observability**: Integrate a full Prometheus/Grafana stack for real-time pipeline monitoring.
+*   **IPFS/Arweave**: Automate publishing of configurations to decentralized storage networks to prevent censorship.
 
-### 🛡️ Advanced Security
-* **TLS Fingerprint Randomization**: Randomize uTLS fingerprints during testing.
-* **DPI Evasion**: Implement fragmentation strategies.
-* **Malware Scanning**: Integrate with VirusTotal.
-
-### 🔌 Protocol Expansion
-* **V2Ray REALITY Verification**: Add specific checks for REALITY.
-* **OpenVPN Support**: Add parsing for .ovpn files.
-* **Shadowsocks-Rust Integration**: Use the official Rust core via FFI.
-
-### 📊 Data Science & Analytics
-* **Churn Prediction**: Analyze proxy survival rates.
-* **Network Topology Mapping**: Visual latency triangulation.
+### 📊 Data Science
+*   **Churn Prediction**: Analyze survival rates of proxies to predict when a node will go offline.
+*   **Network Topology**: Map the latency between nodes to triangulate network bottlenecks or censorship firewalls.
+*   **Source Scoring**: Develop a "Trust Score" for every public source based on long-term reliability and safety.
 
 ## Development Guidelines
 
 -   **No Placeholders**: Avoid `TODO` or incomplete code in the `main` branch.
 -   **Testing**: Add unit tests for new logic. Use `hypothesis` for fuzz testing parsers.
 -   **Security**: Do not commit API keys or secrets. Use environment variables.
--   **Documentation**: Update `README.md` or `ARCHITECTURE.md` if you change core functionality.
+-   **Documentation**: Update `README.md`, `ARCHITECTURE.md`, or `docs/WIKI.md` if you change core functionality.
 
 ## License
 

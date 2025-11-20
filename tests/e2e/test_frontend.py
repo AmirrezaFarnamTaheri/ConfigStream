@@ -3,6 +3,7 @@ from playwright.sync_api import Page, expect
 import re
 import json
 
+
 # Remove all asyncio markers, let pytest-playwright handle loop injection
 @pytest.mark.e2e
 def test_homepage_loads(page: Page):
@@ -57,14 +58,15 @@ def test_widgets_presence(page: Page):
         "countries": {"US": 50, "DE": 50},
         "country_stats": {"US": 50, "DE": 50},
         "latency_distribution": {"fast": 10, "medium": 20, "slow": 10, "very_slow": 10},
-        "protocol_colors": {"vmess": "#ff0000", "vless": "#00ff00"}
+        "protocol_colors": {"vmess": "#ff0000", "vless": "#00ff00"},
     }
 
     mock_json = json.dumps(mock_data)
 
     # Inject a mock fetch function that returns our data for metadata.json
     # We do this before navigation so it's available when the page loads
-    page.add_init_script(f"""
+    page.add_init_script(
+        f"""
         const originalFetch = window.fetch;
         window.fetch = async (url, options) => {{
             if (url.includes('metadata.json')) {{
@@ -75,7 +77,8 @@ def test_widgets_presence(page: Page):
             }}
             return originalFetch(url, options);
         }};
-    """)
+    """
+    )
 
     page.goto(url)
 

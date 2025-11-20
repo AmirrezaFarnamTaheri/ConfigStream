@@ -1,6 +1,6 @@
 import os
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List
 
 
 @dataclass
@@ -82,6 +82,17 @@ class AppSettings:
             # Only block ASNs known exclusively for abuse/spam.
         ],
     }
+
+    # Advanced Filters
+    # JSON string or comma-separated list of regex patterns to exclude.
+    # Example: ".*bad_isp.*,.*spam_host.*"
+    REGEX_EXCLUSION_PATTERNS: List[str] = field(
+        default_factory=lambda: [
+            p.strip()
+            for p in os.getenv("REGEX_EXCLUSION_PATTERNS", "").split(",")
+            if p.strip()
+        ]
+    )
 
     # Logging
     MASK_SENSITIVE_DATA = True

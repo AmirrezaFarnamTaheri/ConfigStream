@@ -1,4 +1,3 @@
-
 from unittest.mock import MagicMock, patch, AsyncMock
 import asyncio
 from datetime import datetime, timezone
@@ -9,8 +8,7 @@ from configstream.fetcher import fetch_multiple_sources, FetchResult
 from configstream.adaptive_timeout import AdaptiveTimeout
 
 
-@pytest.mark.asyncio
-async def test_adaptive_timeout_logic_sync():
+def test_adaptive_timeout_logic_sync():
     # Use a dummy file to avoid loading from real history
     at = AdaptiveTimeout(
         initial=10.0, min_t=3.0, max_t=30.0, history_file=Path("dummy")
@@ -64,9 +62,7 @@ async def test_fetch_multiple_batch_sync():
         mock_fetch.side_effect = side_effect
 
         sources = ["s1", "s2"]
-        results = await fetch_multiple_sources(
-            sources, max_concurrent=2, timeout=5
-        )
+        results = await fetch_multiple_sources(sources, max_concurrent=2, timeout=5)
 
         assert len(results) == 2
         assert results["s1"].success

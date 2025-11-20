@@ -1,10 +1,10 @@
-
 import json
 import pytest
 from pathlib import Path
 from unittest.mock import MagicMock
 from configstream.models import Proxy
 from configstream.output import save_metadata
+
 
 def test_save_metadata_analytics_structure(tmp_path: Path):
     """
@@ -43,11 +43,7 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     p5.country_code = "CN"
     proxies.append(p5)
 
-    stats = {
-        "working": 5,
-        "fetched_lines": 100,
-        "duration": 10.5
-    }
+    stats = {"working": 5, "fetched_lines": 100, "duration": 10.5}
 
     output_dir = tmp_path / "output"
     output_dir.mkdir()

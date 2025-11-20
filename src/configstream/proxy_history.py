@@ -257,6 +257,29 @@ class ProxyHistoryTracker:
 
         return removed
 
+    def get_daily_counts(self) -> Dict[str, int]:
+        """
+        Get daily working proxy counts.
+
+        Returns:
+            Dictionary mapping date strings (YYYY-MM-DD) to count of working proxies.
+        """
+        daily_counts: Dict[str, set] = defaultdict(set)
+
+        for config, data in self.history_data.items():
+            for entry in data.get("entries", []):
+                if entry.get("is_working"):
+                    try:
+                        ts = datetime.fromisoformat(
+                            entry["timestamp"].replace("Z", "+00:00")
+                        )
+                        day_key = ts.strftime("%Y-%m-%d")
+                        daily_counts[day_key].add(config)
+                    except (ValueError, TypeError):
+                        continue
+
+        return {day: len(configs) for day, configs in daily_counts.items()}
+
     def export_active_proxy_trend(
         self,
         output_path: Path = Path("data/active_proxy_trend.json"),

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import random
+import re
 from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 
 from .models import Proxy
@@ -150,6 +151,33 @@ class ProxyFilter:
             for proxy in self._proxies
             if proxy.asn and proxy.asn.upper() in normalized
         ]
+        return ProxyFilter(filtered)
+
+    def exclude_by_regex(
+        self, pattern: str, fields: List[str] | None = None
+    ) -> "ProxyFilter":
+        """
+        Filter out proxies that match the regex pattern in specified fields.
+        If fields is None, check all relevant string fields.
+        """
+        try:
+            regex = re.compile(pattern, re.IGNORECASE)
+        except re.error:
+            return self  # Invalid regex, return as is or log warning
+
+        if fields is None:
+            fields = ["address", "sni", "host", "country_code", "city", "org", "asn"]
+
+        filtered = []
+        for proxy in self._proxies:
+            match = False
+            for field in fields:
+                val = getattr(proxy, field, None)
+                if isinstance(val, str) and regex.search(val):
+                    match = True
+                    break
+            if not match:
+                filtered.append(proxy)
         return ProxyFilter(filtered)
 
     def sort_by_latency(self, *, ascending: bool = True) -> "ProxyFilter":

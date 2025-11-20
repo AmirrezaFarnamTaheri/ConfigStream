@@ -28,7 +28,7 @@ from .async_file_ops import read_multiple_files_async
 
 # --- Phase 2: Validation ---
 from .security_validator import validate_batch_configs, STRICT_POLICY, TEST_POLICY
-from .filtering import filter_unique_endpoints, proxy_unique_key
+from .filtering import filter_unique_endpoints, proxy_unique_key, ProxyFilter
 
 # --- Phase 3: Testing ---
 from .testers import SingBoxTester
@@ -98,6 +98,10 @@ async def run_full_pipeline(
         asyncio.get_running_loop(), initial_limit=max_workers
     )
     test_cache = TestResultCache()
+
+    # Compile Regex Filters
+    regex_patterns = settings.REGEX_EXCLUSION_PATTERNS
+
     scheduler = SmartRetestScheduler(cache=test_cache)
     history = ProxyHistoryTracker()
 
@@ -281,6 +285,13 @@ async def run_full_pipeline(
             # --- Security Validation ---
             safe_batch = validate_batch_configs(unique_batch, policy)
 
+            # --- Regex Filtering ---
+            if regex_patterns:
+                pf = ProxyFilter(safe_batch)
+                for pattern in regex_patterns:
+                    pf = pf.exclude_by_regex(pattern)
+                safe_batch = pf.to_list()
+
             # --- Smart Scheduling ---
             # Only test if necessary
             # to_test = scheduler.filter_proxies_for_retest(safe_batch)
@@ -451,6 +462,7 @@ async def run_full_pipeline(
 
     # NEW: Generate Metadata for Frontend
     output.save_metadata(stats, optimized_proxies, output_path)
+    output.save_history(history.get_daily_counts(), output_path)
 
     # Generate specific client configs
     (output_path / "clash.yaml").write_text(

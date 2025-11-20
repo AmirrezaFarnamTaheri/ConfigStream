@@ -487,6 +487,11 @@ function updateElement(selector, content, options = {}) {
         const sanitized = sanitizeHTML(String(content));
         element.innerHTML = sanitized;
       }
+
+      // Re-initialize feather icons if needed
+      if (window.feather) {
+        window.feather.replace();
+      }
     } else if (method === 'textContent') {
       // Safe: textContent automatically escapes HTML
       element.textContent = String(content);
@@ -721,23 +726,23 @@ async function copyToClipboard(text, button) {
     // Visual feedback
     const originalHTML = button.innerHTML;
     button.innerHTML = '<i data-feather="check"></i>';
-    if (window.inlineIcons) {
-      window.inlineIcons.replace();
+    if (window.feather) {
+      window.feather.replace();
     }
     button.classList.add('copied');
 
     setTimeout(() => {
       button.innerHTML = originalHTML;
-      if (window.inlineIcons) {
-        window.inlineIcons.replace();
+      if (window.feather) {
+        window.feather.replace();
       }
       button.classList.remove('copied');
     }, 2000);
   } catch (error) {
     console.error('Failed to copy:', error);
     button.innerHTML = '<i data-feather="x"></i>';
-    if (window.inlineIcons) {
-      window.inlineIcons.replace();
+    if (window.feather) {
+      window.feather.replace();
     }
   }
 }
@@ -806,10 +811,13 @@ function initMobileNav() {
  */
 function initTheme() {
     const themeSwitcher = document.getElementById('theme-switcher');
-    if (!themeSwitcher) return; // Early return if theme switcher doesn't exist
+    if (!themeSwitcher) return;
 
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    let currentTheme = localStorage.getItem('theme');
+    let currentTheme = localStorage.getItem('theme') || (prefersDark.matches ? 'dark' : 'light');
+
+    // Array of available themes
+    const themes = ['light', 'dark', 'ocean', 'forest', 'midnight'];
 
     const setTheme = (theme, animate = false) => {
         if (animate) {
@@ -817,41 +825,38 @@ function initTheme() {
         } else {
             document.body.style.transition = 'none';
         }
-        document.body.classList.toggle('dark', theme === 'dark');
+
+        // Remove all theme classes
+        document.body.classList.remove(...themes);
+
+        // Add new theme class (unless it's 'light' which is default)
+        if (theme !== 'light') {
+            document.body.classList.add(theme);
+        }
+
         localStorage.setItem('theme', theme);
 
-        // Dispatch a custom event to notify other components (like charts)
+        // Dispatch a custom event
         window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme } }));
 
         if (!animate) {
-            // Force a reflow to apply the initial state without transition
             void document.body.offsetWidth;
             document.body.style.transition = '';
         }
     };
 
-    if (!currentTheme) {
-        currentTheme = prefersDark.matches ? 'dark' : 'light';
-    }
-
     setTheme(currentTheme);
 
-    // Remove existing listeners
+    // Cycle through themes on click
     const newSwitcher = themeSwitcher.cloneNode(true);
     themeSwitcher.parentNode.replaceChild(newSwitcher, themeSwitcher);
 
     newSwitcher.addEventListener('click', () => {
-        const newTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
-        setTheme(newTheme, true);
+        const currentIndex = themes.indexOf(currentTheme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        currentTheme = themes[nextIndex];
+        setTheme(currentTheme, true);
     });
-
-    // Only add the listener once
-    if (!window._themeListenerAdded) {
-        prefersDark.addEventListener('change', (e) => {
-            setTheme(e.matches ? 'dark' : 'light', true);
-        });
-        window._themeListenerAdded = true;
-    }
 }
 
 // Expose global API

@@ -249,6 +249,13 @@ def save_metadata(
     (output_dir / "summary.json").write_text(json.dumps(metadata, indent=2))
 
 
+def save_history(history_counts: Dict[str, int], output_dir: Path) -> None:
+    """
+    Save history.json with daily working proxy counts for the frontend.
+    """
+    (output_dir / "history.json").write_text(json.dumps(history_counts, indent=2))
+
+
 def generate_clash_config(proxies: List[Proxy]) -> str:
     """Generate Clash YAML configuration."""
     if yaml_lib is None:

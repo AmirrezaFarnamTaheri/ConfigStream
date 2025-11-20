@@ -28,6 +28,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **Header preservation** - Verifies proxies don't strip important headers.
 - **Active MITM Detection** - Detects interception attempts via SSL fingerprinting.
 - **Honey Pot Detection** - Identifies proxies injecting ads or malicious redirects.
+- **Malware Scanning**: Basic integration to check for known malicious hosts.
 
 ### 🌍 Rich Geolocation Data
 - **Country and city** information for each proxy.
@@ -51,7 +52,8 @@ Visit our GitHub Pages site to download the latest tested configurations:
 ### 📱 Progressive Web App (PWA)
 - **Installable Dashboard**: Add ConfigStream directly to your mobile home screen.
 - **Offline Support**: Access recent data even without internet.
-- **App-like Experience**: Full-screen immersion.
+- **App-like Experience**: Full-screen immersion, custom icons.
+- **Themes**: Choose between Light, Dark, Midnight, Ocean, and Forest themes.
 
 ### 📦 Multiple Output Formats
 - **Canonical JSON** - `output/proxies.json` with the full tested dataset.
@@ -270,6 +272,7 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 - **Honey Pot Detection** - Identifies malicious injection proxies.
 - **Input Sanitization** - Trace IDs are validated to prevent log injection attacks.
 - **Secure Defaults** - Safe file operations and permission handling.
+- **Regex Filtering** - Ability to exclude proxies based on custom regex patterns.
 
 ### ⚡ Performance Optimizations
 - **Lazy Logging** - Deferred string construction for better performance.

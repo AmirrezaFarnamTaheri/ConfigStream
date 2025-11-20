@@ -95,3 +95,13 @@ configstream update-databases
 configstream backup
 configstream list-db-backups
 ```
+
+**Restore Database Backup:**
+```bash
+configstream restore-db backup_timestamp.db target_db.db
+```
+
+**List Proxies (Head):**
+```bash
+head -n 5 output/all.txt
+```
