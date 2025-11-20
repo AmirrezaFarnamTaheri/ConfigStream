@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme
-    initTheme();
+    if (window.api && window.api.initTheme) {
+        window.api.initTheme();
+    }
 
     // Initialize header scroll effect
     initHeaderScroll();
@@ -14,7 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initialize mobile navigation
-    initMobileNav();
+    if (window.api && window.api.initMobileNav) {
+        window.api.initMobileNav();
+    }
 
     // Initialize accordion
     initAccordion();
@@ -83,47 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
 });
 
-function initTheme() {
-    const themeSwitcher = document.getElementById('theme-switcher');
-    if (!themeSwitcher) return; // Early return if theme switcher doesn't exist
-
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    let currentTheme = localStorage.getItem('theme');
-
-    const setTheme = (theme, animate = false) => {
-        if (animate) {
-            document.body.style.transition = 'background-color var(--transition-base), color var(--transition-base)';
-        } else {
-            document.body.style.transition = 'none';
-        }
-        document.body.classList.toggle('dark', theme === 'dark');
-        localStorage.setItem('theme', theme);
-
-        // Dispatch a custom event to notify other components (like charts)
-        window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme } }));
-
-        if (!animate) {
-            // Force a reflow to apply the initial state without transition
-            void document.body.offsetWidth;
-            document.body.style.transition = '';
-        }
-    };
-
-    if (!currentTheme) {
-        currentTheme = prefersDark.matches ? 'dark' : 'light';
-    }
-
-    setTheme(currentTheme);
-
-    themeSwitcher.addEventListener('click', () => {
-        const newTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
-        setTheme(newTheme, true);
-    });
-
-    prefersDark.addEventListener('change', (e) => {
-        setTheme(e.matches ? 'dark' : 'light', true);
-    });
-}
 
 function initHeaderScroll() {
     const header = document.querySelector('.header');
@@ -217,41 +180,5 @@ function initCopyButtons() {
         }
 
         await copyToClipboard(textToCopy, button);
-    });
-}
-
-function initMobileNav() {
-    const toggleBtn = document.getElementById('mobile-nav-toggle');
-    const mainNav = document.getElementById('main-nav');
-    const navOverlay = document.querySelector('.nav-overlay');
-
-    if (!toggleBtn || !mainNav || !navOverlay) return;
-
-    const toggleNav = () => {
-        const isNavOpen = document.body.classList.toggle('nav-open');
-        toggleBtn.setAttribute('aria-expanded', isNavOpen);
-    };
-
-    toggleBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleNav();
-    });
-
-    navOverlay.addEventListener('click', toggleNav);
-
-    // Close nav when a link is clicked
-    mainNav.addEventListener('click', (e) => {
-        if (e.target.classList.contains('nav-link')) {
-            if (document.body.classList.contains('nav-open')) {
-                toggleNav();
-            }
-        }
-    });
-
-    // Close nav on 'Escape' key press
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && document.body.classList.contains('nav-open')) {
-            toggleNav();
-        }
     });
 }
