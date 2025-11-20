@@ -1,52 +1,52 @@
 """
-Adaptive Worker Scaling.
-Calculates safe thread/worker counts based on container resource limits.
+Adaptive Worker Calculation.
+Determines optimal worker count based on CPU cores and memory.
 """
 
 import os
 import logging
-from typing import Optional
+import multiprocessing
+from typing import Optional, Any
 
 logger = logging.getLogger(__name__)
 
+# Try to import psutil, handle failure gracefully
+psutil: Any
 try:
     import psutil
 except ImportError:
     psutil = None
 
-def calculate_optimal_workers(max_workers: int = 50, min_workers: int = 4) -> int:
+def calculate_optimal_workers(requested: int = 0) -> int:
     """
-    Determine optimal concurrency based on available CPU/RAM.
+    Calculate safe worker count.
+    0 = Auto-detect.
     """
+    if requested > 0:
+        return requested
+
     try:
-        # 1. CPU Check
-        cpu_count = os.cpu_count() or 2
+        cpu_count = multiprocessing.cpu_count()
 
-        # 2. Memory Check (if psutil available)
-        mem_factor = 1.0
+        # Basic heuristic: 10-20 workers per core for IO-bound tasks
+        # ConfigStream is IO-bound (network) but CPU-bound (parsing)
+        optimal = cpu_count * 15
+
+        # Memory check (if psutil available)
         if psutil:
-            try:
-                vm = psutil.virtual_memory()
-                if vm.percent > 85:
-                    mem_factor = 0.5
-                elif vm.percent > 70:
-                    mem_factor = 0.75
-            except Exception:
-                pass
+            mem = psutil.virtual_memory()
+            # Reserve 500MB system overhead, assume 20MB per worker
+            available_mb = (mem.available / 1024 / 1024) - 500
+            max_by_mem = int(max(10, available_mb / 20))
 
-        # Baseline: 5 workers per CPU core is usually safe for IO-bound work
-        # But we cap it based on memory pressure
-        optimal = int((cpu_count * 5) * mem_factor)
+            optimal = min(optimal, max_by_mem)
 
-        # Clamp results
-        result = max(min_workers, min(optimal, max_workers))
+        # Hard limits
+        optimal = max(10, min(200, optimal))
 
-        logger.info(
-            "Adaptive Scaling: CPUs=%d, MemFactor=%.2f -> Workers=%d",
-            cpu_count, mem_factor, result
-        )
-        return result
+        logger.info(f"Auto-calculated optimal workers: {optimal}")
+        return optimal
 
     except Exception as e:
-        logger.warning("Error calculating workers: %s. Using default.", e)
-        return 10
+        logger.warning(f"Failed to calculate optimal workers: {e}")
+        return 20  # Safe fallback

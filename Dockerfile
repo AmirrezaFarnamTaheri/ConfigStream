@@ -10,6 +10,9 @@ ENV PYTHONUNBUFFERED=1 \
 PYTHONDONTWRITEBYTECODE=1 \
 PIP_NO_CACHE_DIR=1 \
 PIP_DISABLE_PIP_VERSION_CHECK=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
@@ -18,6 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 gcc \
 libc-dev \
 && rm -rf /var/lib/apt/lists/*
+    gcc \
+    libc-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy only dependency files first to leverage Docker cache
 COPY pyproject.toml README.md ./
@@ -39,6 +45,8 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
 curl \
 && rm -rf /var/lib/apt/lists/*
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy installed python packages from builder stage
 COPY --from=builder /install /usr/local
@@ -53,6 +61,8 @@ RUN mkdir -p data output sources
 ENV OUTPUT_DIR=/app/output \
 DATA_DIR=/app/data \
 FRONTEND_DIR=/app/frontend
+    DATA_DIR=/app/data \
+    FRONTEND_DIR=/app/frontend
 
 # Expose the Web Port
 EXPOSE 8000
@@ -60,6 +70,7 @@ EXPOSE 8000
 # Healthcheck to ensure web server is up
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Default Command: Start Web Server AND Worker (managed via script or compose)
 # By default, we run the web server. Users can override command to run 'configstream merge ...'

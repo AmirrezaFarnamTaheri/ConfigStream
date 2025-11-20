@@ -164,10 +164,10 @@
                                     <div class="download-card" style="--delay: 0.6s;">
                                         <div class="download-icon"><i data-feather="award"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">Chosen Top 1000</h3>
-                                            <p class="download-desc">Our best selection: top 50 from each protocol, ranked by latency. Perfect for most users!</p>
+                                            <h3 class="download-title">Universal Subscription</h3>
+                                            <p class="download-desc">Base64 format compatible with V2Ray, Xray, and most clients. Auto-updating.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt">
+                                        <button class="btn btn-primary copy-btn" data-file="subscribe/base64">
                                             <i data-feather="copy"></i>
                                             <span>Copy Link</span>
                                         </button>
@@ -175,10 +175,10 @@
                                     <div class="download-card" style="--delay: 0.7s;">
                                         <div class="download-icon"><i data-feather="copy"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">All Configs Subscription</h3>
-                                            <p class="download-desc">Full collection (8500+) ranked by protocol. For advanced users who want all options.</p>
+                                            <h3 class="download-title">Sing-box Config</h3>
+                                            <p class="download-desc">Optimized JSON configuration for Sing-box/NekoBox clients.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="base64.txt">
+                                        <button class="btn btn-primary copy-btn" data-file="subscribe/singbox">
                                             <i data-feather="copy"></i>
                                             <span>Copy Link</span>
                                         </button>
@@ -189,7 +189,7 @@
                                             <h3 class="download-title">Clash Config</h3>
                                             <p class="download-desc">A ready-to-use YAML file, perfect for Clash users.</p>
                                         </div>
-                                        <a href="full/clash.yaml" class="btn btn-primary" download>
+                                        <a href="subscribe/clash" class="btn btn-primary" download="clash.yaml">
                                             <i data-feather="download-cloud"></i>
                                             <span>Download</span>
                                         </a>
@@ -197,10 +197,10 @@
                                     <div class="download-card" style="--delay: 0.9s;">
                                         <div class="download-icon"><i data-feather="file-text"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">Raw Proxy Links</h3>
-                                            <p class="download-desc">A simple text file with one proxy per line for custom scripts.</p>
+                                            <h3 class="download-title">Shadowrocket</h3>
+                                            <p class="download-desc">Configuration format optimized for Shadowrocket on iOS.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="all.txt">
+                                        <button class="btn btn-primary copy-btn" data-file="subscribe/shadowrocket">
                                             <i data-feather="copy"></i>
                                             <span>Copy Link</span>
                                         </button>
@@ -319,26 +319,6 @@
     <script src="assets/js/loading-controller.js" defer></script>
     <script src="assets/js/logo-controller.js" defer></script>
     <script src="assets/js/main.js" defer></script>
-    <script defer>
-      document.addEventListener('DOMContentLoaded', () => {
-        const buildId = (window.ConfigStreamCache && window.ConfigStreamCache.VERSION) || Date.now().toString();
-        const base = document.baseURI;
-        document.querySelectorAll('a[href^="output/"]').forEach((anchor) => {
-          const href = anchor.getAttribute('href');
-          if (!href) {
-            return;
-          }
-
-          try {
-            const url = new URL(href, base);
-            url.searchParams.set('v', buildId);
-            anchor.setAttribute('href', url.toString());
-          } catch (error) {
-            console.warn('[CacheBuster] Skipping invalid href', href, error);
-          }
-        });
-      });
-    </script>
     <script src="assets/js/inline-icons.js"></script>
 </body>
 </html>

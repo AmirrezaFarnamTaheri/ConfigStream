@@ -6,7 +6,6 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -14,8 +13,8 @@ from rich.logging import RichHandler
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
 from .pipeline import run_full_pipeline
-from .config import AppSettings
 from .geoip_offline import DEFAULT_RESOLVER
+from .tools.warp import generate_warp_proxy
 
 # Initialize Rich Console
 console = Console()
@@ -63,7 +62,7 @@ def merge(
     raw_sources = source_path.read_text(encoding="utf-8").splitlines()
     valid_sources = [s.strip() for s in raw_sources if s.strip() and not s.strip().startswith("#")]
 
-    console.print(f"[bold green]🚀 Starting ConfigStream Pipeline[/bold green]")
+    console.print("[bold green]🚀 Starting ConfigStream Pipeline[/bold green]")
     console.print(f"Sources: {len(valid_sources)} | Output: {output}")
 
     async def _run():
@@ -125,6 +124,26 @@ def update_databases():
     """Download latest GeoIP databases."""
     console.print("[yellow]This feature is handled by the CI/CD workflow or manual download.[/yellow]")
     console.print("Please place GeoLite2-City.mmdb and GeoLite2-ASN.mmdb in the 'data/' directory.")
+
+@main.command()
+@click.option("--count", default=1, help="Number of configs to generate")
+def generate_warp(count):
+    """Generate Cloudflare WARP configuration templates."""
+    console.print(f"[yellow]Generating {count} WARP config template(s)...[/yellow]")
+
+    import asyncio
+
+    async def _gen():
+        for i in range(count):
+            p = await generate_warp_proxy()
+            console.print(f"\n[bold green]Config #{i+1}:[/bold green]")
+            console.print(f"Protocol: {p.protocol}")
+            console.print(f"Details: {p.details}")
+            console.print(f"[dim]{p.config}[/dim]")
+
+    asyncio.run(_gen())
+
+    console.print("\n[dim]Note: Real key generation requires the 'cryptography' library.[/dim]")
 
 if __name__ == "__main__":
     main()
