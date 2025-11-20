@@ -6,7 +6,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 
-ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions. This process includes comprehensive security testing and geolocation data.
+ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions. This process includes comprehensive security testing, geolocation enrichment, and anomaly detection.
 
 ## 🌐 Get Fresh Configurations
 
@@ -16,48 +16,47 @@ Visit our GitHub Pages site to download the latest tested configurations:
 
 ## ✨ Features
 
-### 🤖 Fully Automated
-- **Automated Updates Every 6 Hours** via GitHub Actions
-- **Zero manual intervention** required
-- **Cache-busting** ensures clients always get fresh data
-- **668+ curated sources** from public repositories and Telegram channels
-- **Multi-protocol collection** from diverse geographic regions
+### 🤖 Fully Automated Intelligence
+- **Automated Updates Every 6 Hours** via GitHub Actions.
+- **Anomaly Detection**: Prevents "poisoning" attacks by detecting and blocking sources with unusual proxy counts.
+- **Source Quality Tracking**: Ranks sources by reliability and geo-diversity, prioritizing high-quality feeds.
+- **Adaptive Scheduling**: Retests healthy proxies less often to save resources.
 
 ### 🔒 Comprehensive Security Testing
-- **Content injection detection** - Filters out proxies that modify page content
-- **SSL/TLS validation** - Ensures secure HTTPS connections
-- **Header preservation** - Verifies proxies don't strip important headers
-- **Active MITM Detection** - Detects interception attempts via SSL fingerprinting
-- **Honey Pot Detection** - Identifies proxies injecting ads or malicious redirects
+- **Content injection detection** - Filters out proxies that modify page content.
+- **SSL/TLS validation** - Ensures secure HTTPS connections.
+- **Header preservation** - Verifies proxies don't strip important headers.
+- **Active MITM Detection** - Detects interception attempts via SSL fingerprinting.
+- **Honey Pot Detection** - Identifies proxies injecting ads or malicious redirects.
 
 ### 🌍 Rich Geolocation Data
-- **Country and city** information for each proxy
-- **ASN (Autonomous System Number)** details
-- **Network provider** identification
-- **Geographic sorting** and filtering capabilities
+- **Country and city** information for each proxy.
+- **ASN (Autonomous System Number)** details.
+- **Network provider** identification.
+- **Geographic sorting** and filtering capabilities.
 
 ### ⚡ Performance Optimized
-- **Latency testing** for all proxies
-- **Automatic sorting** by ping time
-- **Concurrent testing** with configurable workers
-- **Failed proxy filtering**
+- **Latency testing** for all proxies.
+- **Automatic sorting** by ping time.
+- **Concurrent testing** with configurable workers.
+- **Failed proxy filtering**.
 
-### 📊 Advanced Analytics
-- **Live Pipeline Feed** - Watch proxy collection in real-time via WebSocket
-- **Interactive World Map** - Visual distribution of proxies globally
-- **Historical Trends** - 7-day performance tracking
-- **Protocol distribution** analysis
-- **Export capabilities** (CSV, JSON)
+### 📊 Network Intelligence (Analytics)
+- **Unified Dashboard**: Consolidated Statistics and Analytics page.
+- **Interactive World Map**: Visualize global proxy distribution.
+- **Protocol Distribution**: Charts showing breakdown of VMess, VLESS, Trojan, etc.
+- **Latency Trends**: Histogram of proxy performance (Fast, Medium, Slow).
+- **Top Countries**: Ranking of best proxy locations.
 
 ### 📱 Progressive Web App (PWA)
-- **Installable Dashboard** - Add ConfigStream directly to your mobile home screen
-- **Offline Support** - Access recent data even without internet
-- **App-like Experience** - Full-screen immersion
+- **Installable Dashboard**: Add ConfigStream directly to your mobile home screen.
+- **Offline Support**: Access recent data even without internet.
+- **App-like Experience**: Full-screen immersion.
 
 ### 📦 Multiple Output Formats
-- **Canonical JSON** - `output/proxies.json` with the full tested dataset
-- **Rich metadata** - `output/metadata.json` with run statistics and warnings
-- **Client Adapters** - Surge, Loon, Quantumult X, SIP008, Clash, Sing-box, Shadowrocket
+- **Canonical JSON** - `output/proxies.json` with the full tested dataset.
+- **Rich Metadata** - `output/metadata.json` with run statistics and warnings.
+- **Client Adapters** - Surge, Loon, Quantumult X, SIP008, Clash, Sing-box, Shadowrocket.
 
 ## 🔧 How It Works
 
@@ -76,15 +75,15 @@ I --> J[GitHub PagesAuto-Deploy]
 
 ### Pipeline Steps:
 
-1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source
-2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers
-3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps)
-4. **Test** - Sing-box verification with latency budgets and retry heuristics
-5. **Secure** - Security testing with detailed issue tracking and categorization
-6. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token)
-7. **Score** - Compute balanced, speed, privacy, and stability rankings
-8. **Generate** - Emit canonical + ranked JSON outputs with metadata
-9. **Publish** - Commit and deploy to GitHub Pages without failing when output exists
+1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source.
+2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers.
+3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps).
+4. **Test** - Sing-box verification with latency budgets and retry heuristics.
+5. **Secure** - Security testing with detailed issue tracking and categorization.
+6. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token).
+7. **Score** - Compute balanced, speed, privacy, and stability rankings.
+8. **Generate** - Emit canonical + ranked JSON outputs with metadata.
+9. **Publish** - Commit and deploy to GitHub Pages without failing when output exists.
 
 ## 📥 Available Formats
 
@@ -94,7 +93,7 @@ Universal format compatible with:
 - V2Box / Shadowrocket (iOS)
 - V2Ray Desktop clients
 
-**Usage:** Paste the subscription link into your client
+**Usage:** Paste the subscription link into your client.
 
 **⭐ Chosen Top 1000** (Recommended for most users):
 ```
@@ -113,7 +112,7 @@ Ready-to-use YAML for:
 - Clash Meta / Clash Verge
 - Clash Android
 
-**Usage:** Download and import the YAML file
+**Usage:** Download and import the YAML file.
 ```
 https://amirrezafarnamtaheri.github.io/ConfigStream/output/clash.yaml
 ```
@@ -130,7 +129,7 @@ Unencoded configuration links for:
 - Advanced users
 - Custom scripts
 
-**Usage:** One proxy configuration per line
+**Usage:** One proxy configuration per line.
 ```
 https://amirrezafarnamtaheri.github.io/ConfigStream/output/all.txt
 ```
@@ -246,36 +245,36 @@ Backups are automatically created before each pipeline run and retained for 7 da
 ConfigStream has been significantly improved with zero-budget, production-ready features:
 
 ### 🎯 Smart Scheduling & Intelligence
-- **Advanced Anomaly Detection** - Isolation Forests identify traffic spikes and poisoning attacks
-- **Smart Source Scoring** - Sources ranked by reliability and "geo-diversity" (Gini Index)
-- **Adaptive Timeout Strategy** - Learns optimal timeout per source (10-60s range) based on historical performance
-- **Smart Retest Scheduling** - Health-based intervals (2/4/6/12 hours) reduce unnecessary testing
+- **Advanced Anomaly Detection** - Isolation Forests identify traffic spikes and poisoning attacks.
+- **Smart Source Scoring** - Sources ranked by reliability and "geo-diversity" (Gini Index).
+- **Adaptive Timeout Strategy** - Learns optimal timeout per source (10-60s range) based on historical performance.
+- **Smart Retest Scheduling** - Health-based intervals (2/4/6/12 hours) reduce unnecessary testing.
 
 ### 🔌 Protocol Support & Adapters
-- **New Protocols**: SSH Tunnels, TUIC v5, Hysteria 2, Juicity, WireGuard
-- **New Adapters**: Surge, Loon, Quantumult X, SIP008
+- **New Protocols**: SSH Tunnels, TUIC v5, Hysteria 2, Juicity, WireGuard.
+- **New Adapters**: Surge, Loon, Quantumult X, SIP008.
 - **Legacy Support**: VMess, VLESS, Shadowsocks, Trojan, etc.
 
 ### 📊 Observability & Monitoring
-- **Live WebSocket Feed** - Real-time pipeline status updates
-- **PWA Dashboard** - Mobile-friendly, installable web app
-- **Interactive Maps** - Visualize global proxy distribution
+- **Live WebSocket Feed** - Real-time pipeline status updates.
+- **PWA Dashboard** - Mobile-friendly, installable web app.
+- **Interactive Maps** - Visualize global proxy distribution.
 
 ### 💾 Reliability & Data Integrity
-- **Automated Database Backups** - Timestamped SQLite backups with 7-day retention policy
-- **WAL Mode** - Write-Ahead Logging for better concurrency and crash recovery
-- **Error Resilience** - Comprehensive error handling and graceful degradation
+- **Automated Database Backups** - Timestamped SQLite backups with 7-day retention policy.
+- **WAL Mode** - Write-Ahead Logging for better concurrency and crash recovery.
+- **Error Resilience** - Comprehensive error handling and graceful degradation.
 
 ### 🔒 Security Hardening
-- **Active MITM Detection** - SSL fingerprint verification
-- **Honey Pot Detection** - Identifies malicious injection proxies
-- **Input Sanitization** - Trace IDs are validated to prevent log injection attacks
-- **Secure Defaults** - Safe file operations and permission handling
+- **Active MITM Detection** - SSL fingerprint verification.
+- **Honey Pot Detection** - Identifies malicious injection proxies.
+- **Input Sanitization** - Trace IDs are validated to prevent log injection attacks.
+- **Secure Defaults** - Safe file operations and permission handling.
 
 ### ⚡ Performance Optimizations
-- **Lazy Logging** - Deferred string construction for better performance
-- **Memory Bounds** - Capped cache sizes (50 entries per source) prevent unbounded growth
-- **Efficient Merging** - Order-preserving proxy list operations maintain data integrity
+- **Lazy Logging** - Deferred string construction for better performance.
+- **Memory Bounds** - Capped cache sizes (50 entries per source) prevent unbounded growth.
+- **Efficient Merging** - Order-preserving proxy list operations maintain data integrity.
 
 **Test Coverage:** 92% with 600+ passing tests | **Code Quality:** Black + Flake8 + MyPy compliant
 
@@ -303,10 +302,10 @@ ConfigStream/
 │ ├── full/ # Additional formats
 │ │ └── clash.yaml # Clash configuration
 │ ├── proxies.json # Detailed proxy data
-│ ├── statistics.json # Aggregate statistics
-│ └── metadata.json # Update metadata
+│ ├── metadata.json # Update metadata
 ├── frontend/ # Frontend Assets
 │ ├── index.html # Dashboard
+│ ├── analytics.html # Network Intelligence
 │ ├── assets/ # JS, CSS, SVG
 │ └── manifest.json # PWA Manifest
 ├── data/ # GeoIP databases
@@ -351,7 +350,7 @@ ConfigStream supports **25+ VPN protocols** for comprehensive configuration coll
 pytest
 
 # Run E2E tests
-pytest -m e2e
+pytest tests/e2e/
 
 # Run with coverage
 pytest --cov=configstream

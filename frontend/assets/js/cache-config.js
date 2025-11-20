@@ -57,7 +57,7 @@
         // HTML pages should always be fresh to ensure navigation works
         'index.html',
         'proxies.html',
-        'statistics.html'
+        'analytics.html'
       ],
 
       // Use cache first, update in background
@@ -82,7 +82,7 @@
     PRECACHE_URLS: [
       'index.html',
       'proxies.html',
-      'statistics.html',
+      'analytics.html',
       'assets/css/style.css',
       'assets/css/state-manager.css',
       'assets/js/utils.js',
