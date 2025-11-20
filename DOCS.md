@@ -118,13 +118,13 @@ Perfect for: Tracking project evolution and staying updated.
 
 | Document | Lines | Purpose | Last Updated |
 |----------|-------|---------|--------------|
-| README.md | 488 | Main documentation | 2025-11-19 |
-| QUICKSTART.md | 130 | Quick setup guide | 2025-11-19 |
-| ARCHITECTURE.md | 264 | System architecture | 2025-11-19 |
-| CONTRIBUTING.md | 65 | Contribution guide | 2025-11-19 |
-| CHANGELOG.md | 126 | Version history | 2025-11-19 |
-| docs/DEPLOYMENT.md | 131 | Deployment guide | 2025-11-19 |
-| docs/API.md | 283 | API documentation | 2025-11-19 |
+| README.md | 488 | Main documentation | 2025-01 |
+| QUICKSTART.md | 130 | Quick setup guide | 2025-01 |
+| ARCHITECTURE.md | 264 | System architecture | 2025-01 |
+| CONTRIBUTING.md | 65 | Contribution guide | 2025-01 |
+| CHANGELOG.md | 126 | Version history | 2025-01 |
+| docs/DEPLOYMENT.md | 131 | Deployment guide | 2025-10 |
+| docs/API.md | 283 | API documentation | 2025-10 |
 
 **Total:** 1,487 lines of documentation
 
@@ -203,7 +203,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ---
 
-**Last Updated:** 2025-11-19
+**Last Updated:** 2025-01-06
 **Maintained by:** ConfigStream Contributors
 
 ---
