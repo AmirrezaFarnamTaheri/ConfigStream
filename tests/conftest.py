@@ -1,4 +1,10 @@
 import pytest
+import nest_asyncio
+
+
+@pytest.fixture(autouse=True)
+def apply_nest_asyncio():
+    nest_asyncio.apply()
 
 
 @pytest.fixture(autouse=True)

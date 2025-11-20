@@ -588,6 +588,12 @@ def _parse_juicity(c: str) -> Optional[Proxy]:
     return proxy
 
 
+def _parse_ssh(config: str) -> Optional[Proxy]:
+    """Parse SSH proxy configuration."""
+    # format: ssh://user:pass@host:port#remark
+    return _parse_url_scheme(config, "ssh", 22)
+
+
 def _normalize_proxy_details(proxy: Proxy) -> None:
     """
     Standardizes common proxy attributes (sni, path, etc.) from the

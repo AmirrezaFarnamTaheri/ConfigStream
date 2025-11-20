@@ -14,6 +14,28 @@
     <link rel="stylesheet" href="assets/css/loading.css">
     <link rel="stylesheet" href="assets/css/header-animation.css">
     <link rel="stylesheet" href="assets/css/logo-animations.css">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        /* Basic styling for new widgets */
+        #pipeline-feed {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+        .feed-entry { margin-bottom: 4px; color: #94a3b8; }
+        .map-list { display: flex; flex-direction: column; gap: 8px; }
+        .map-item { display: flex; align-items: center; gap: 10px; }
+        .map-country { width: 30px; font-weight: bold; }
+        .map-bar-container { flex-grow: 1; background: #1e293b; height: 8px; border-radius: 4px; }
+        .map-bar { background: #3b82f6; height: 100%; border-radius: 4px; }
+        .map-count { font-size: 0.85rem; color: #94a3b8; width: 40px; text-align: right; }
+    </style>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -206,6 +228,27 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                <!-- Chosen 1000 Section -->
+                                <div class="chosen-section text-center mt-4">
+                                    <div class="divider"></div>
+                                    <h3 class="mt-4">🏆 Chosen Top 1000</h3>
+                                    <p class="subtitle-sm">Our best selection: top 50 from each protocol, ranked by latency. Perfect for most users!</p>
+                                    <div class="downloads-grid centered-grid">
+                                        <div class="download-card highlight-card">
+                                            <div class="download-icon"><i data-feather="star"></i></div>
+                                            <div class="download-info">
+                                                <h3 class="download-title">Chosen Subscription</h3>
+                                                <p class="download-desc">Curated list of the top 1000 fastest, most reliable proxies.</p>
+                                            </div>
+                                            <button class="btn btn-primary copy-btn" data-file="files/chosen/base64.txt">
+                                                <i data-feather="copy"></i>
+                                                <span>Copy Link</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </section>
@@ -319,6 +362,19 @@
     <script src="assets/js/loading-controller.js" defer></script>
     <script src="assets/js/logo-controller.js" defer></script>
     <script src="assets/js/main.js" defer></script>
+    <script src="assets/js/websocket.js" defer></script>
+    <script src="assets/js/charts.js" defer></script>
+    <script src="assets/js/world_map_paths.js" defer></script>
+    <script src="assets/js/map.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('SW registered: ', reg))
+                    .catch(err => console.log('SW registration failed: ', err));
+            });
+        }
+    </script>
 </body>
 </html>

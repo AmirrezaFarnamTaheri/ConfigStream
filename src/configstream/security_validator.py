@@ -15,6 +15,7 @@ from .constants import (
     VALID_PROTOCOLS,
     MAX_CONFIG_LINE_LENGTH,
 )
+from .security.blocklist import DEFAULT_BLOCKLIST
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class ValidationPolicy:
     check_ports: bool = True
     check_protocols: bool = True
     check_config_string: bool = True
+    check_blocklist: bool = True
     # allowlist domains that should never be flagged as “suspicious”
     suspicious_domain_allowlist: FrozenSet[str] = RESERVED_DOMAINS
 
@@ -55,9 +57,11 @@ SECURITY_CATEGORIES = {
     "PORT_UNSAFE": "port_security",
     "ADDRESS_PRIVATE": "address_private_ip",
     "ADDRESS_SUSPICIOUS": "address_suspicious",
+    "ADDRESS_BLOCKED": "address_blocked",
     "PROTOCOL_UNKNOWN": "protocol_invalid",
     "CONFIG_TOO_LONG": "suspicious_config_format",
     "CONFIG_NULL_BYTE": "suspicious_config_malformed",
+    "HONEYPOT_SUSPECTED": "honeypot_suspected",
 }
 
 
@@ -89,6 +93,13 @@ class SecurityValidator:
                     categorized_issues[category] = []
                 categorized_issues[category].append(port_issue)
 
+            # Honeypot Check
+            if DEFAULT_BLOCKLIST.is_honeypot(proxy.address, proxy.port):
+                category = SECURITY_CATEGORIES["HONEYPOT_SUSPECTED"]
+                if category not in categorized_issues:
+                    categorized_issues[category] = []
+                categorized_issues[category].append("Potentially malicious honeypot port/ASN")
+
         # Address validation
         if policy.check_suspicious_domains:
             address_issues = SecurityValidator._validate_address(
@@ -98,6 +109,15 @@ class SecurityValidator:
                 if category not in categorized_issues:
                     categorized_issues[category] = []
                 categorized_issues[category].append(issue)
+
+        # Blocklist Validation
+        if policy.check_blocklist:
+            if DEFAULT_BLOCKLIST.is_blocked(proxy.address):
+                 category = SECURITY_CATEGORIES["ADDRESS_BLOCKED"]
+                 if category not in categorized_issues:
+                     categorized_issues[category] = []
+                 categorized_issues[category].append(f"Address {proxy.address} is in FireHol Level 1 blocklist")
+
 
         # Protocol validation
         if policy.check_protocols:

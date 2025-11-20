@@ -17,7 +17,10 @@ from contextlib import contextmanager
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
-from singbox2proxy import SingBoxProxy as singbox_factory
+try:
+    from singbox2proxy import SingBoxProxy as singbox_factory
+except ImportError:
+    singbox_factory = None
 
 from .config import AppSettings
 from .constants import TEST_URLS, CANARY_URL

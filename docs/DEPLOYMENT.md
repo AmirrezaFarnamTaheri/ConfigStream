@@ -31,9 +31,6 @@ configstream retest --input output/proxies.json --output output/
 # Display inline metrics after a run
 configstream merge --sources sources.txt --output output/ --show-metrics
 
-# Produce a JSON performance report
-python scripts/performance_report.py --sources sources.txt --max-proxies 50
-
 # Run unit tests and type checks
 pytest tests/ -q
 mypy src/configstream
@@ -41,90 +38,80 @@ mypy src/configstream
 
 ## Docker Deployment
 
-### Sample Dockerfile
+### Docker Compose (Recommended)
 
-```dockerfile
-FROM python:3.11-slim
-
-WORKDIR /app
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-
-COPY . .
-RUN pip install --no-cache-dir -e "."
-
-ENTRYPOINT ["configstream"]
-CMD ["--help"]
-```
-
-### Build and Run
+The `docker-compose.yml` defines two services:
+1.  **web**: The FastAPI server (port 8000).
+2.  **worker**: The background pipeline process.
 
 ```bash
-docker build -t configstream:latest .
-docker run --rm -v $PWD/output:/app/output configstream merge \
-  --sources sources.txt --output output/
+# Start in background
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Scale workers (if supported by future arch)
+docker compose up -d --scale worker=2
 ```
 
-Set `LOG_LEVEL=DEBUG` or `TEST_TIMEOUT=20` via `-e` flags to override defaults.
+### PWA & HTTPS
+
+To fully enable PWA features (Service Workers), the dashboard **must** be served over HTTPS.
+-   **Development**: `localhost` is treated as a secure context.
+-   **Production**: Use a reverse proxy (Nginx, Caddy, Traefik) with SSL termination in front of the Docker container.
+
+Example Nginx config:
+```nginx
+server {
+    listen 443 ssl;
+    server_name configstream.example.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    location / {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+```
+*Note: The `Upgrade` headers are required for the WebSocket feed.*
 
 ## GitHub Actions CI/CD
 
 Workflows live under `.github/workflows/`:
 
-- `pipeline.yml`: scheduled and manual runs of the merge pipeline
-- `deploy-pages.yml`: publishes static dashboards to GitHub Pages
-- `release.yml`: builds tagged releases
+-   `pipeline.yml`: Scheduled runs (every 6 hours).
+-   `deploy-pages.yml`: Publishes the `output/` directory to GitHub Pages.
+-   `healthcheck.yml`: Validates pipeline results.
 
-Recommended steps when forking:
+### Secrets
 
-1. Enable GitHub Pages (Settings → Pages → GitHub Actions).
-2. Configure repository secrets if you use GeoIP (`MAXMIND_LICENSE_KEY`).
-3. Review workflow schedules to align with your quota limits.
+Configure these in your repository settings:
+-   `MAXMIND_LICENSE_KEY`: Required for GeoIP updates.
+-   `GH_TOKEN` (Optional): For pushing to other branches/repos.
 
-## Scheduled Retesting
+## Scaling & Performance
 
-Use `configstream.scheduler.RetestScheduler` to keep proxy results fresh.
-The helper wraps `run_full_pipeline` and stores performance metrics for
-each cycle.
+### Resource Requirements
+-   **Minimum**: 1 vCPU, 512MB RAM (for ~1000 proxies).
+-   **Recommended**: 2 vCPU, 2GB RAM (for ~100k proxies).
 
-```python
-from datetime import timedelta
-from configstream.scheduler import RetestScheduler
-
-scheduler = RetestScheduler("output/proxies.json", interval=timedelta(hours=6))
-scheduler.start()
-```
-
-Run the scheduler inside a long-lived process (systemd service, Docker
-container, etc.) to continually refresh generated artifacts.
+### Optimization Tips
+1.  **Database**: Ensure the SQLite database resides on a fast disk (NVMe).
+2.  **Network**: The worker is network-bound. Use a server with high bandwidth and low latency.
+3.  **Concurrency**: Tune `MAX_WORKERS` in `configstream/config.py` or via environment variable `MAX_WORKERS`. Default is conservative (50).
 
 ## Production Checklist
 
-- [ ] `pytest tests/ -v`
-- [ ] `mypy src/configstream`
-- [ ] `flake8 src/configstream`
-- [ ] `bash scripts/security_audit.sh`
-- [ ] `python scripts/profile_performance.py`
-- [ ] GeoIP databases downloaded (`data/GeoLite2-*.mmdb` present)
-- [ ] Output directory write permissions verified
-- [ ] Monitoring/alerting configured for workflow failures
-
-## Troubleshooting
-
-### Slow Pipeline Runs
-- Reduce concurrency: `--max-workers 5`
-- Limit proxies: `--max-proxies 100`
-- Increase timeout cautiously: `--timeout 20`
-
-### GeoIP Failures
-- Ensure `MAXMIND_LICENSE_KEY` is exported
-- Run `configstream geoip-download` (if command enabled)
-- Verify network access from runner
-
-### Empty Outputs
-- Check `configstream.log` for fetch errors
-- Validate sources manually via curl
-- Confirm subscription files are not base64-encoded or empty
+- [ ] **Security**: Change default API keys (if any).
+- [ ] **SSL**: Enable HTTPS for PWA support.
+- [ ] **Persistence**: Mount a volume for `data/` to persist intelligence databases (`source_quality.db`).
+- [ ] **Monitoring**: Set up uptime monitoring for `/health` endpoint.
+- [ ] **Updates**: Regularly pull the latest Docker image.
 
 ---
 
-_Last updated: October 2025_
+_Last updated: November 2025_
