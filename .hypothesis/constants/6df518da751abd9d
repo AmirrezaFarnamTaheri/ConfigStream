@@ -1,0 +1,4 @@
+# file: /app/src/configstream/output.py
+# hypothesis_version: 6.148.2
+
+['://', 'UNK', 'by_country', 'by_protocol', 'master', 'outbounds', 'proxies', 'proxies.json', 'utf-8']
