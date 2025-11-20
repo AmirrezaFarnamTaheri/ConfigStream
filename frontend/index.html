@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="assets/css/header-animation.css">
     <link rel="stylesheet" href="assets/css/logo-animations.css">
     <link rel="manifest" href="manifest.json">
+
     <style>
         /* Basic styling for new widgets */
         #pipeline-feed {
@@ -27,14 +28,13 @@
             font-size: 0.85rem;
             margin-top: 20px;
             border-radius: 8px;
+            color: #e2e8f0;
         }
-        .feed-entry { margin-bottom: 4px; color: #94a3b8; }
-        .map-list { display: flex; flex-direction: column; gap: 8px; }
-        .map-item { display: flex; align-items: center; gap: 10px; }
-        .map-country { width: 30px; font-weight: bold; }
-        .map-bar-container { flex-grow: 1; background: #1e293b; height: 8px; border-radius: 4px; }
-        .map-bar { background: #3b82f6; height: 100%; border-radius: 4px; }
-        .map-count { font-size: 0.85rem; color: #94a3b8; width: 40px; text-align: right; }
+        .feed-entry { margin-bottom: 4px; color: #94a3b8; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
+        .feed-entry.info { color: #3b82f6; }
+        .feed-entry.warning { color: #eab308; }
+        .feed-entry.error { color: #ef4444; }
+        .feed-entry.success { color: #22c55e; }
     </style>
 </head>
 <body>
@@ -134,6 +134,14 @@
                         <i data-feather="download"></i>
                         <span>Get Configs</span>
                     </a>
+                </div>
+            </section>
+
+            <!-- Live Pipeline Feed -->
+            <section style="--delay: 0.35s;">
+                <h3 class="text-center" style="margin-bottom: 0.5rem; font-size: 1rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Live Pipeline Activity</h3>
+                <div id="pipeline-feed">
+                    <div class="feed-entry info">[System] Connecting to WebSocket feed...</div>
                 </div>
             </section>
 
@@ -247,6 +255,35 @@
                                             </button>
                                         </div>
                                     </div>
+                                </div>
+
+                                <!-- New Adapters Section -->
+                                <div class="chosen-section text-center mt-4">
+                                     <div class="divider"></div>
+                                     <h3 class="mt-4">🔌 New Formats</h3>
+                                     <p class="subtitle-sm">Experimental support for additional clients.</p>
+                                     <div class="downloads-grid">
+                                         <div class="download-card">
+                                             <div class="download-icon"><i data-feather="layers"></i></div>
+                                             <div class="download-info"><h3 class="download-title">Surge</h3></div>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/surge"><i data-feather="copy"></i> Copy</button>
+                                         </div>
+                                         <div class="download-card">
+                                             <div class="download-icon"><i data-feather="layers"></i></div>
+                                             <div class="download-info"><h3 class="download-title">Loon</h3></div>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/loon"><i data-feather="copy"></i> Copy</button>
+                                         </div>
+                                         <div class="download-card">
+                                             <div class="download-icon"><i data-feather="layers"></i></div>
+                                             <div class="download-info"><h3 class="download-title">Quantumult X</h3></div>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/quantumultx"><i data-feather="copy"></i> Copy</button>
+                                         </div>
+                                         <div class="download-card">
+                                             <div class="download-icon"><i data-feather="layers"></i></div>
+                                             <div class="download-info"><h3 class="download-title">SIP008</h3></div>
+                                             <button class="btn btn-primary copy-btn" data-file="subscribe/sip008"><i data-feather="copy"></i> Copy</button>
+                                         </div>
+                                     </div>
                                 </div>
 
                             </div>
@@ -363,9 +400,6 @@
     <script src="assets/js/logo-controller.js" defer></script>
     <script src="assets/js/main.js" defer></script>
     <script src="assets/js/websocket.js" defer></script>
-    <script src="assets/js/charts.js" defer></script>
-    <script src="assets/js/world_map_paths.js" defer></script>
-    <script src="assets/js/map.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

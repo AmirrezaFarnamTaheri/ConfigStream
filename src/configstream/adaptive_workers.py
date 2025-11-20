@@ -10,11 +10,12 @@ from typing import Any, Optional
 logger = logging.getLogger(__name__)
 
 # Try to import psutil, handle failure gracefully
-psutil: Optional[Any]
+# We define a module-level variable to hold the module or None
+psutil_module: Optional[Any]
 try:
-    import psutil
+    import psutil as psutil_module # type: ignore
 except ImportError:
-    psutil = None
+    psutil_module = None
 
 
 def calculate_optimal_workers(requested: int = 0) -> int:
@@ -33,8 +34,8 @@ def calculate_optimal_workers(requested: int = 0) -> int:
         optimal = cpu_count * 15
 
         # Memory check (if psutil available)
-        if psutil:
-            mem = psutil.virtual_memory()
+        if psutil_module:
+            mem = psutil_module.virtual_memory()
             # Reserve 500MB system overhead, assume 20MB per worker
             available_mb = (mem.available / 1024 / 1024) - 500
             max_by_mem = int(max(10, available_mb / 20))

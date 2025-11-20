@@ -5,17 +5,12 @@ const ASSETS_TO_CACHE = [
   './proxies.html',
   './statistics.html',
   './assets/css/style.css',
-  './assets/css/state-manager.css',
-  './assets/css/error-handler.css',
   './assets/css/loading.css',
   './assets/js/main.js',
   './assets/js/utils.js',
-  './assets/js/cache-manager.js',
-  './assets/js/state-manager.js',
-  './assets/svg/logo-loading.svg'
+  './assets/svg/favicon.svg'
 ];
 
-// Install Event
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -24,31 +19,31 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activate Event
+self.addEventListener('fetch', (event) => {
+  // Network first for JSON/API data, Cache first for static assets
+  if (event.request.url.includes('.json')) {
+      event.respondWith(
+        fetch(event.request)
+          .catch(() => caches.match(event.request))
+      );
+  } else {
+      event.respondWith(
+        caches.match(event.request)
+          .then((response) => response || fetch(event.request))
+      );
+  }
+});
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keyList) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
           }
         })
       );
-    })
-  );
-});
-
-// Fetch Event
-self.addEventListener('fetch', (event) => {
-  // Bypass cache for API requests or if we are offline
-  if (event.request.url.includes('/api/') || event.request.url.includes('/ws/')) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
     })
   );
 });
