@@ -23,12 +23,12 @@ class AnomalyDetector:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute("""
-                    CREATE TABLE IF NOT EXISTS history (
-                        url TEXT,
-                        count INTEGER,
-                        timestamp INTEGER
-                    )
-                """)
+CREATE TABLE IF NOT EXISTS history (
+    url TEXT,
+    count INTEGER,
+    timestamp INTEGER
+)
+""")
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_url ON history(url)")
                 conn.commit()
         except Exception as e:

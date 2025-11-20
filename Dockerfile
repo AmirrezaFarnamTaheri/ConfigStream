@@ -7,6 +7,9 @@ FROM python:3.11-slim AS builder
 
 # Prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1 \
+PYTHONDONTWRITEBYTECODE=1 \
+PIP_NO_CACHE_DIR=1 \
+PIP_DISABLE_PIP_VERSION_CHECK=1
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -15,6 +18,9 @@ WORKDIR /app
 
 # Install system build tools (needed for some python C-extensions)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+gcc \
+libc-dev \
+&& rm -rf /var/lib/apt/lists/*
     gcc \
     libc-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -37,6 +43,8 @@ WORKDIR /app
 
 # Install minimal runtime deps (curl for healthchecks)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+curl \
+&& rm -rf /var/lib/apt/lists/*
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -51,6 +59,8 @@ RUN mkdir -p data output sources
 
 # Set environment variables
 ENV OUTPUT_DIR=/app/output \
+DATA_DIR=/app/data \
+FRONTEND_DIR=/app/frontend
     DATA_DIR=/app/data \
     FRONTEND_DIR=/app/frontend
 
@@ -59,6 +69,7 @@ EXPOSE 8000
 
 # Healthcheck to ensure web server is up
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+CMD curl -f http://localhost:8000/health || exit 1
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Default Command: Start Web Server AND Worker (managed via script or compose)

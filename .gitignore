@@ -40,6 +40,9 @@ reports/
 # Logs
 *.log
 
+# Docker volumes
+output/
+data/
 # Exceptions
 !data/.gitkeep
 !output/.gitkeep
