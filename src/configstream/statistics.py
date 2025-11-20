@@ -34,7 +34,9 @@ class StatisticsEngine:
         return Counter(proxy.country or "Unknown" for proxy in self.proxies)
 
     def latency_stats(self) -> Dict[str, float]:
-        latencies = [proxy.latency for proxy in self.proxies if proxy.latency is not None]
+        latencies = [
+            proxy.latency for proxy in self.proxies if proxy.latency is not None
+        ]
         if not latencies:
             return {}
         stats: Dict[str, float] = {

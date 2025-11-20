@@ -17,7 +17,14 @@ GEOIP_TIMEOUT = 5
 # These are commonly used for tunneling.
 # Kept truly dangerous admin/cleartext ports (FTP, SSH, Telnet, SMB).
 DANGEROUS_PORTS = [21, 22, 23, 25, 110, 143, 445, 3389]
-SUSPICIOUS_DOMAINS = ["localhost", "127.0.0.1", "0.0.0.0", "169.254.", "192.168.", "10."]
+SUSPICIOUS_DOMAINS = [
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "169.254.",
+    "192.168.",
+    "10.",
+]
 MIN_SAFE_PORT = 1024
 MAX_PORT = 65535
 

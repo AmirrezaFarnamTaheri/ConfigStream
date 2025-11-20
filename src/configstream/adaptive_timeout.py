@@ -10,6 +10,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 class AdaptiveTimeout:
     def __init__(self, initial: float = 10.0, min_t: float = 3.0, max_t: float = 30.0):
         self.current_timeout = initial
@@ -36,7 +37,7 @@ class AdaptiveTimeout:
         """Record a successful connection latency."""
         # Handle latency in seconds or ms
         val = latency_ms
-        if val > 100: # Assume ms
+        if val > 100:  # Assume ms
             val = val / 1000.0
 
         self.latencies.append(val)
@@ -61,9 +62,13 @@ class AdaptiveTimeout:
             self.current_timeout = (self.current_timeout * 0.8) + (new_target * 0.2)
 
             # Clamp
-            self.current_timeout = max(self.min_timeout, min(self.max_timeout, self.current_timeout))
+            self.current_timeout = max(
+                self.min_timeout, min(self.max_timeout, self.current_timeout)
+            )
 
-            logger.debug(f"Adaptive Timeout adjusted to: {self.current_timeout:.2f}s (p95: {p95:.2f}s)")
+            logger.debug(
+                f"Adaptive Timeout adjusted to: {self.current_timeout:.2f}s (p95: {p95:.2f}s)"
+            )
 
         except statistics.StatisticsError:
             pass
@@ -72,6 +77,8 @@ class AdaptiveTimeout:
         """Persist state."""
         try:
             self.history_file.parent.mkdir(parents=True, exist_ok=True)
-            self.history_file.write_text(json.dumps({"last_timeout": self.current_timeout}))
+            self.history_file.write_text(
+                json.dumps({"last_timeout": self.current_timeout})
+            )
         except Exception as e:
             logger.warning(f"Failed to save timeout history: {e}")

@@ -16,6 +16,7 @@ from .config import AppSettings
 # Check for HTTP/2 support
 try:
     import h2  # noqa: F401
+
     HTTP2_AVAILABLE = True
 except ModuleNotFoundError:
     HTTP2_AVAILABLE = False
@@ -67,17 +68,18 @@ async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
     # Configure Connection Pool Limits
     limits = httpx.Limits(
         max_keepalive_connections=100,
-        max_connections=app_settings.PER_HOST_MAX_CONCURRENCY * 10,  # Allow broad concurrency
-        keepalive_expiry=30.0
+        max_connections=app_settings.PER_HOST_MAX_CONCURRENCY
+        * 10,  # Allow broad concurrency
+        keepalive_expiry=30.0,
     )
 
     # Configure Transport
-    transport_cls = CachedDNS_AsyncHTTPTransport if app_settings.DNS_CACHE_ENABLED else httpx.AsyncHTTPTransport
-    transport = transport_cls(
-        retries=retries,
-        limits=limits,
-        http2=HTTP2_AVAILABLE
+    transport_cls = (
+        CachedDNS_AsyncHTTPTransport
+        if app_settings.DNS_CACHE_ENABLED
+        else httpx.AsyncHTTPTransport
     )
+    transport = transport_cls(retries=retries, limits=limits, http2=HTTP2_AVAILABLE)
 
     # Configure Client
     async with httpx.AsyncClient(

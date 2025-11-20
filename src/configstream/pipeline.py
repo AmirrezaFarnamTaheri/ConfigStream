@@ -37,8 +37,6 @@ from .smart_scheduler import SmartRetestScheduler
 from .concurrency_manager import ConcurrencyManager
 from .adaptive_workers import calculate_optimal_workers
 from .adaptive_timeout import AdaptiveTimeout
-from .source_quality import SourceQualityTracker
-from .anomaly import AnomalyDetector
 from .geoip_offline import GeoIPResolver
 from .source_quality import SourceQualityTracker
 from .anomaly import AnomalyDetector
@@ -53,7 +51,9 @@ logger = logging.getLogger(__name__)
 
 
 class PipelineResult:
-    def __init__(self, success: bool, stats: dict, output_files: dict, error: str | None = None):
+    def __init__(
+        self, success: bool, stats: dict, output_files: dict, error: str | None = None
+    ):
         self.success = success
         self.stats = stats
         self.output_files = output_files
@@ -90,14 +90,12 @@ async def run_full_pipeline(
 
     # Initialize Intelligence Stack
     timeout_tracker = AdaptiveTimeout()
-    concurrency = ConcurrencyManager(asyncio.get_running_loop(), initial_limit=max_workers)
+    concurrency = ConcurrencyManager(
+        asyncio.get_running_loop(), initial_limit=max_workers
+    )
     test_cache = TestResultCache()
     scheduler = SmartRetestScheduler(cache=test_cache)
     history = ProxyHistoryTracker()
-
-    # NEW: Initialize Advanced Intelligence
-    quality_tracker = SourceQualityTracker()
-    anomaly_detector = AnomalyDetector()
 
     # Initialize Advanced Intelligence
     quality_tracker = SourceQualityTracker()
@@ -117,7 +115,7 @@ async def run_full_pipeline(
         "working": 0,
         "geo_resolved": 0,
         "duration": 0.0,
-        "final_count": 0  # Ensure final_count is initialized
+        "final_count": 0,  # Ensure final_count is initialized
     }
 
     # Work Queue: Stores (source_url, raw_content_chunk)
@@ -133,7 +131,9 @@ async def run_full_pipeline(
     task_fetch: Optional[TaskID] = None
     task_process: Optional[TaskID] = None
     if progress:
-        task_fetch = progress.add_task("[cyan]Fetching sources...", total=len(sources) if sources else 1)
+        task_fetch = progress.add_task(
+            "[cyan]Fetching sources...", total=len(sources) if sources else 1
+        )
         task_process = progress.add_task("[green]Processing pipeline...", total=None)
 
     # 2. The Producer: Source Fetcher
@@ -179,7 +179,7 @@ async def run_full_pipeline(
                         batch,
                         max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
                         timeout=settings.FETCH_TIMEOUT,
-                        use_adaptive_timeout=True
+                        use_adaptive_timeout=True,
                     )
 
                     for source, res in results.items():
@@ -229,8 +229,8 @@ async def run_full_pipeline(
 
             source, raw_lines = item
             # Ignore type checking for stats increment as we defined it as Union[int, float]
-            stats["fetched_sources"] = int(stats["fetched_sources"]) + 1 # type: ignore
-            stats["fetched_lines"] = int(stats["fetched_lines"]) + len(raw_lines) # type: ignore
+            stats["fetched_sources"] = int(stats["fetched_sources"]) + 1  # type: ignore
+            stats["fetched_lines"] = int(stats["fetched_lines"]) + len(raw_lines)  # type: ignore
 
             # --- Parsing ---
             # Batch parse is faster
@@ -256,7 +256,7 @@ async def run_full_pipeline(
                     seen_keys.add(k)
                     unique_batch.append(p)
 
-            stats["parsed"] = int(stats["parsed"]) + len(unique_batch) # type: ignore
+            stats["parsed"] = int(stats["parsed"]) + len(unique_batch)  # type: ignore
 
             # --- Security Validation ---
             safe_batch = validate_batch_configs(unique_batch, policy)
@@ -290,7 +290,7 @@ async def run_full_pipeline(
             # --- Testing ---
             if proxies_to_actually_test:
                 # Respect max_proxies if set (global check approx)
-                if max_proxies and int(stats["tested"]) >= max_proxies: # type: ignore
+                if max_proxies and int(stats["tested"]) >= max_proxies:  # type: ignore
                     logger.info("Max proxies limit reached.")
                     # Stop testing, but process what we have
                     pass
@@ -306,20 +306,22 @@ async def run_full_pipeline(
                     # Chunk the tests to allow progress updates
                     chunk_size = 20
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
-                        chunk = proxies_to_actually_test[i:i + chunk_size]
+                        chunk = proxies_to_actually_test[i : i + chunk_size]
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
 
                         for res in results:
-                            concurrency.record("default", res.latency or 9999, res.is_working)
+                            concurrency.record(
+                                "default", res.latency or 9999, res.is_working
+                            )
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
 
-                        stats["tested"] = int(stats["tested"]) + len(chunk) # type: ignore
+                        stats["tested"] = int(stats["tested"]) + len(chunk)  # type: ignore
                         if progress and task_process:
                             progress.update(
                                 task_process,
-                                completed=int(stats["tested"]), # type: ignore
-                                description=f"[green]Testing... ({stats['working']} working)"
+                                completed=int(stats["tested"]),  # type: ignore
+                                description=f"[green]Testing... ({stats['working']} working)",
                             )
 
                     await concurrency.stop_tuner()
@@ -327,15 +329,23 @@ async def run_full_pipeline(
             # --- Post-Processing Working Proxies ---
 
             # NEW: Calculate working count for this source
-            working_count_for_source = sum(1 for p in final_batch_for_this_source if p.is_working)
-            fetched_count_for_source = len(parsed_batch)  # Total parsable from this batch
+            working_count_for_source = sum(
+                1 for p in final_batch_for_this_source if p.is_working
+            )
+            fetched_count_for_source = len(
+                parsed_batch
+            )  # Total parsable from this batch
 
             # Update Quality Tracker
-            if not source.startswith("supplied-proxies") and not source.startswith("sources/"):
+            if not source.startswith("supplied-proxies") and not source.startswith(
+                "sources/"
+            ):
                 # We can only track remote URLs effectively, or specific files if they are treated as sources
                 # The source variable here is what was passed in queue.
                 # For file sources it is the path.
-                quality_tracker.update(source, fetched_count_for_source, working_count_for_source)
+                quality_tracker.update(
+                    source, fetched_count_for_source, working_count_for_source
+                )
 
             for p in final_batch_for_this_source:
                 if not p.is_working:
@@ -356,7 +366,7 @@ async def run_full_pipeline(
                             p.city = geo_data.city
                             p.asn = geo_data.asn
                             p.org = geo_data.org
-                        stats["geo_resolved"] = int(stats["geo_resolved"]) + 1 # type: ignore
+                        stats["geo_resolved"] = int(stats["geo_resolved"]) + 1  # type: ignore
 
                 # Country Filter
                 if country_filter:
@@ -364,10 +374,10 @@ async def run_full_pipeline(
                         continue
 
                 final_proxies.append(p)
-                stats["working"] = int(stats["working"]) + 1 # type: ignore
+                stats["working"] = int(stats["working"]) + 1  # type: ignore
 
             working_count = sum(1 for p in final_batch_for_this_source if p.is_working)
-            fetched_count = len(parsed_batch) # Total parsable
+            fetched_count = len(parsed_batch)  # Total parsable
 
             # Update Quality Tracker
             quality_tracker.update(source, fetched_count, working_count)
@@ -398,17 +408,25 @@ async def run_full_pipeline(
     # Ensure stats duration is set before metadata generation
     duration = (datetime.now(timezone.utc) - start_time).total_seconds()
     stats["duration"] = float(duration)
-    stats["final_count"] = len(optimized_proxies) # Explicitly set final_count
+    stats["final_count"] = len(optimized_proxies)  # Explicitly set final_count
 
-    generated_files = output.generate_categorized_outputs(optimized_proxies, output_path)
+    generated_files = output.generate_categorized_outputs(
+        optimized_proxies, output_path
+    )
 
     # NEW: Generate Metadata for Frontend
     output.save_metadata(stats, optimized_proxies, output_path)
 
     # Generate specific client configs
-    (output_path / "clash.yaml").write_text(output.generate_clash_config(optimized_proxies))
-    (output_path / "singbox.json").write_text(output.generate_singbox_config(optimized_proxies))
-    (output_path / "vpn_subscription_base64.txt").write_text(output.generate_base64_subscription(optimized_proxies))
+    (output_path / "clash.yaml").write_text(
+        output.generate_clash_config(optimized_proxies)
+    )
+    (output_path / "singbox.json").write_text(
+        output.generate_singbox_config(optimized_proxies)
+    )
+    (output_path / "vpn_subscription_base64.txt").write_text(
+        output.generate_base64_subscription(optimized_proxies)
+    )
 
     # Save History & Cache
     history.save()
@@ -416,8 +434,4 @@ async def run_full_pipeline(
     if timeout_tracker:
         timeout_tracker.save()
 
-    return PipelineResult(
-        success=True,
-        stats=stats,
-        output_files=generated_files
-    )
+    return PipelineResult(success=True, stats=stats, output_files=generated_files)

@@ -14,12 +14,15 @@ from .test_cache import TestResultCache
 
 logger = logging.getLogger(__name__)
 
+
 class RetestInterval:
     """Tiers for retesting frequency."""
+
     EXCELLENT = timedelta(hours=12)  # High reliability
-    GOOD = timedelta(hours=6)      # Moderate reliability
-    FAIR = timedelta(hours=2)      # Flaky
-    POOR = timedelta(minutes=30)   # Recently failed (Quick retry)
+    GOOD = timedelta(hours=6)  # Moderate reliability
+    FAIR = timedelta(hours=2)  # Flaky
+    POOR = timedelta(minutes=30)  # Recently failed (Quick retry)
+
 
 class SmartRetestScheduler:
     def __init__(self, cache: Optional[TestResultCache] = None):
@@ -58,7 +61,7 @@ class SmartRetestScheduler:
 
         try:
             # Handle ISO format with potential Z or offsets
-            last_test = datetime.fromisoformat(proxy.tested_at.replace('Z', '+00:00'))
+            last_test = datetime.fromisoformat(proxy.tested_at.replace("Z", "+00:00"))
             if last_test.tzinfo is None:
                 last_test = last_test.replace(tzinfo=timezone.utc)
 
@@ -81,7 +84,11 @@ class SmartRetestScheduler:
                 skipped += 1
 
         if skipped > 0:
-            logger.info("Smart Scheduler: Skipped %d/%d proxies (Healthy)", skipped, len(proxies))
+            logger.info(
+                "Smart Scheduler: Skipped %d/%d proxies (Healthy)",
+                skipped,
+                len(proxies),
+            )
 
         return to_test
 

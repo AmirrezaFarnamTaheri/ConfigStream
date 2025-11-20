@@ -7,6 +7,7 @@ from httpx import Response
 from configstream.pipeline import run_full_pipeline
 from configstream.models import Proxy
 
+
 @pytest.mark.asyncio
 async def test_pipeline_full_run(tmp_path: Path, respx_mock: respx.MockRouter):
     """

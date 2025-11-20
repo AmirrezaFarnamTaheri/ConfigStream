@@ -66,7 +66,9 @@ class FallbackManager:
                     )
                     return
             except (json.JSONDecodeError, KeyError):
-                logger.warning("Could not read previous fallback count. Saving new data anyway.")
+                logger.warning(
+                    "Could not read previous fallback count. Saving new data anyway."
+                )
 
         fallback_data = {
             "saved_at": datetime.now(timezone.utc).isoformat(),
@@ -134,7 +136,9 @@ class FallbackManager:
             logger.error("Failed to load fallback data: %s", e)
             return None
 
-    def should_use_fallback(self, current_working_count: int, threshold: int = 10) -> bool:
+    def should_use_fallback(
+        self, current_working_count: int, threshold: int = 10
+    ) -> bool:
         """
         Determine if fallback should be used.
 

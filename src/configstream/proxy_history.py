@@ -21,7 +21,9 @@ class ProxyHistoryTracker:
     """Tracks historical performance data for proxies."""
 
     def __init__(
-        self, history_path: Path = Path("data/proxy_history.json"), max_entries: int = 100
+        self,
+        history_path: Path = Path("data/proxy_history.json"),
+        max_entries: int = 100,
     ):
         """
         Initialize history tracker.
@@ -81,9 +83,9 @@ class ProxyHistoryTracker:
         # Add entry and trim if needed
         self.history_data[proxy_id]["entries"].append(entry)
         if len(self.history_data[proxy_id]["entries"]) > self.max_entries:
-            self.history_data[proxy_id]["entries"] = self.history_data[proxy_id]["entries"][
-                -self.max_entries :
-            ]
+            self.history_data[proxy_id]["entries"] = self.history_data[proxy_id][
+                "entries"
+            ][-self.max_entries :]
 
     def save(self) -> None:
         """Save the history data to disk."""
@@ -177,7 +179,9 @@ class ProxyHistoryTracker:
             "avg_latency": sum(latencies) / len(latencies) if latencies else 0,
             "min_latency": min(latencies) if latencies else 0,
             "max_latency": max(latencies) if latencies else 0,
-            "uptime_percentage": (len(working) / len(entries) * 100) if entries else 0.0,
+            "uptime_percentage": (
+                (len(working) / len(entries) * 100) if entries else 0.0
+            ),
         }
 
     def export_for_visualization(
@@ -206,7 +210,9 @@ class ProxyHistoryTracker:
                 "port": data["port"],
                 "trend": trend,
                 "stats": stats,
-                "last_test": data["entries"][-1]["timestamp"] if data["entries"] else None,
+                "last_test": (
+                    data["entries"][-1]["timestamp"] if data["entries"] else None
+                ),
             }
 
         # Save
@@ -234,7 +240,8 @@ class ProxyHistoryTracker:
             recent = [
                 e
                 for e in entries
-                if datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00")) > cutoff
+                if datetime.fromisoformat(e["timestamp"].replace("Z", "+00:00"))
+                > cutoff
             ]
 
             if not recent:
@@ -279,7 +286,9 @@ class ProxyHistoryTracker:
 
             for entry in data["entries"]:
                 try:
-                    ts = datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
+                    ts = datetime.fromisoformat(
+                        entry["timestamp"].replace("Z", "+00:00")
+                    )
                 except (ValueError, TypeError):
                     continue  # Skip invalid timestamps
 
@@ -293,7 +302,9 @@ class ProxyHistoryTracker:
                 if entry.get("is_working"):
                     # Round down to the nearest bucket
                     bucket_start_ts = (
-                        ts - (ts - datetime.min.replace(tzinfo=timezone.utc)) % bucket_delta
+                        ts
+                        - (ts - datetime.min.replace(tzinfo=timezone.utc))
+                        % bucket_delta
                     )
                     bucket_key = bucket_start_ts.isoformat()
 
@@ -308,7 +319,8 @@ class ProxyHistoryTracker:
 
         # Convert the defaultdict(set) to a sorted list
         trend_data = [
-            {"timestamp": key, "active_count": len(proxies)} for key, proxies in buckets.items()
+            {"timestamp": key, "active_count": len(proxies)}
+            for key, proxies in buckets.items()
         ]
 
         from typing import cast

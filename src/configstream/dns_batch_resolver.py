@@ -26,7 +26,9 @@ class BatchDNSResolver:
         try:
             self.resolver = aiodns.DNSResolver()
         except aiodns.error.DNSError:
-            logger.warning("Could not initialize aiodns resolver. Batch DNS will be disabled.")
+            logger.warning(
+                "Could not initialize aiodns resolver. Batch DNS will be disabled."
+            )
             self.resolver = None
 
     async def _resolve_one(self, hostname: str) -> Optional[str]:
@@ -64,5 +66,7 @@ class BatchDNSResolver:
             if ip_address:
                 resolved[hostname] = ip_address
 
-        logger.info("Batch DNS: Resolved %d of %d hostnames.", len(resolved), len(hostnames))
+        logger.info(
+            "Batch DNS: Resolved %d of %d hostnames.", len(resolved), len(hostnames)
+        )
         return resolved

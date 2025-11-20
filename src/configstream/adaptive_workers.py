@@ -3,10 +3,9 @@ Adaptive Worker Calculation.
 Determines optimal worker count based on CPU cores and memory.
 """
 
-import os
 import logging
 import multiprocessing
-from typing import Optional, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +15,7 @@ try:
     import psutil
 except ImportError:
     psutil = None
+
 
 def calculate_optimal_workers(requested: int = 0) -> int:
     """

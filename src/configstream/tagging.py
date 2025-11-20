@@ -87,7 +87,10 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
 
     except (ValueError, KeyError) as e:
         logger.warning(
-            "Could not format name template '%s' for proxy %s: %s", template, original_name, e
+            "Could not format name template '%s' for proxy %s: %s",
+            template,
+            original_name,
+            e,
         )
         return original_name  # Return original name on any failure
 
@@ -118,7 +121,9 @@ class ProxyTagger:
             logger.debug("No name_template provided, skipping renaming.")
             return proxies  # Do nothing if no template is set
 
-        logger.info("Applying name template '%s' to %d proxies...", self.template, len(proxies))
+        logger.info(
+            "Applying name template '%s' to %d proxies...", self.template, len(proxies)
+        )
 
         for proxy in proxies:
             # This is the key: we modify the 'remarks' field IN-PLACE

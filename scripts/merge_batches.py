@@ -65,7 +65,9 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
             original_name = proxy.remarks or "Unnamed"
 
             # New remarks format: PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME
-            new_remarks = f"{protocol_upper}-{rank} [{country_flag}] ||| {original_name}"
+            new_remarks = (
+                f"{protocol_upper}-{rank} [{country_flag}] ||| {original_name}"
+            )
 
             # Truncate at 80 characters to avoid overly long names
             if len(new_remarks) > 80:
@@ -109,7 +111,10 @@ def select_top_configs(
                 selected.append(proxy)
                 selected_configs.add(proxy.config)
         available_count = len(protocol_proxies)
-        print(f"  Selected {len(top_n)} from {protocol} " f"(available: {available_count})")
+        print(
+            f"  Selected {len(top_n)} from {protocol} "
+            f"(available: {available_count})"
+        )
 
     print(f"Total selected from per-protocol top {top_per_protocol}: {len(selected)}")
 
@@ -135,7 +140,9 @@ def select_top_configs(
     return selected
 
 
-def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = "output"):
+def merge_batches(
+    batch_dir_glob: str = "output_batch_*", output_dir_str: str = "output"
+):
     """
     Merges the outputs from the individual batch runs into a single, unified output.
 
@@ -184,14 +191,18 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
         # Load metadata to get run timestamp
         metadata_file = batch_dir / "metadata.json"
         if not metadata_file.exists():
-            print(f"Warning: No metadata.json in {batch_dir}. Using directory mtime for ordering.")
+            print(
+                f"Warning: No metadata.json in {batch_dir}. Using directory mtime for ordering."
+            )
             # Fallback: use directory modification time
             timestamp = batch_dir.stat().st_mtime
         else:
             try:
                 with open(metadata_file, "r") as f:
                     metadata = json.load(f)
-                    timestamp_str = metadata.get("last_updated_utc") or metadata.get("generated_at")
+                    timestamp_str = metadata.get("last_updated_utc") or metadata.get(
+                        "generated_at"
+                    )
                     if timestamp_str:
                         timestamp = datetime.fromisoformat(
                             timestamp_str.replace("Z", "+00:00")
@@ -199,7 +210,9 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
                     else:
                         timestamp = batch_dir.stat().st_mtime
             except (json.JSONDecodeError, KeyError, ValueError) as e:
-                print(f"Warning: Could not parse metadata in {batch_dir}: {e}. Using fallback.")
+                print(
+                    f"Warning: Could not parse metadata in {batch_dir}: {e}. Using fallback."
+                )
                 timestamp = batch_dir.stat().st_mtime
 
         batches_with_timestamps.append((batch_dir, timestamp))
@@ -207,7 +220,9 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
     # Sort batches by timestamp (oldest first, so newest overwrites)
     batches_with_timestamps.sort(key=lambda x: x[1])
 
-    print(f"Processing {len(batches_with_timestamps)} batches in chronological order...")
+    print(
+        f"Processing {len(batches_with_timestamps)} batches in chronological order..."
+    )
 
     total_processed = 0
     for batch_dir, batch_timestamp in batches_with_timestamps:
@@ -217,7 +232,9 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
             proxies_file = batch_dir / "index.json"
 
         if not proxies_file.exists():
-            print(f"Info: Neither proxies.json nor index.json found in {batch_dir}. Skipping.")
+            print(
+                f"Info: Neither proxies.json nor index.json found in {batch_dir}. Skipping."
+            )
             continue
 
         with open(proxies_file, "r") as f:
@@ -235,7 +252,9 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
                     f"Processed {batch_dir.name}: {len(proxies_data)} proxies at {datetime.fromtimestamp(batch_timestamp).isoformat()}"
                 )
             except (json.JSONDecodeError, TypeError) as e:
-                print(f"Warning: Could not process {proxies_file}. Error: {e}. Skipping.")
+                print(
+                    f"Warning: Could not process {proxies_file}. Error: {e}. Skipping."
+                )
 
     # Extract proxies from the map (discard timestamps)
     merged_proxies = [proxy for proxy, _ in all_proxies_map.values()]
@@ -255,7 +274,9 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
 
     print("\n=== Step 2: Selecting Top Configs ===")
     # Select top 1000 configs (top 50 per protocol + fill from overall)
-    chosen_proxies = select_top_configs(ranked_proxies, top_per_protocol=50, total_limit=1000)
+    chosen_proxies = select_top_configs(
+        ranked_proxies, top_per_protocol=50, total_limit=1000
+    )
 
     # Clear the existing output directory
     output_dir.mkdir(exist_ok=True)
@@ -368,9 +389,9 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
         "total_proxies": len(ranked_proxies),
         "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
         "proxies_by_country": dict(sorted(country_counts.items())),
-        "top_10_countries": sorted(country_counts.items(), key=lambda item: item[1], reverse=True)[
-            :10
-        ],
+        "top_10_countries": sorted(
+            country_counts.items(), key=lambda item: item[1], reverse=True
+        )[:10],
     }
 
     with open(output_dir / "statistics.json", "w") as f:
@@ -391,7 +412,9 @@ def merge_batches(batch_dir_glob: str = "output_batch_*", output_dir_str: str = 
     print(f"\n{'=' * 60}")
     print(f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies")
     print("✅ Ranked all proxies by protocol and latency")
-    print(f"✅ Selected top {len(chosen_proxies)} configs (available at output/chosen/)")
+    print(
+        f"✅ Selected top {len(chosen_proxies)} configs (available at output/chosen/)"
+    )
     print(f"{'=' * 60}\n")
 
 

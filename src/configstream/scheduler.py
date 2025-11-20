@@ -13,15 +13,16 @@ from .pipeline import PipelineResult
 
 logger = logging.getLogger(__name__)
 
+
 class SmartRetestScheduler:
     def __init__(self, cache: TestResultCache):
         self.cache = cache
         # Adaptive intervals (in seconds)
         self.intervals = {
-            "reliable": 3600,      # 1 hour for good proxies
-            "unstable": 600,       # 10 mins for flaky ones
-            "dead": 86400,         # 24 hours for dead ones (soft retry)
-            "new": 0               # Immediate test
+            "reliable": 3600,  # 1 hour for good proxies
+            "unstable": 600,  # 10 mins for flaky ones
+            "dead": 86400,  # 24 hours for dead ones (soft retry)
+            "new": 0,  # Immediate test
         }
 
     def filter_proxies_for_retest(self, proxies: List[Proxy]) -> List[Proxy]:
@@ -67,7 +68,7 @@ class SmartRetestScheduler:
                 # If latency is low (< 200ms) and history is good -> extend interval
                 required_interval = self.intervals["reliable"]
                 if (cached.latency or 999) < 200:
-                    required_interval *= 2 # 2 hours
+                    required_interval *= 2  # 2 hours
             else:
                 # Backoff for dead proxies
                 required_interval = self.intervals["dead"]
@@ -75,7 +76,7 @@ class SmartRetestScheduler:
             return age > required_interval
 
         except ValueError:
-            return True # Corrupt timestamp
+            return True  # Corrupt timestamp
 
     def adjust_pipeline_parameters(self, result: PipelineResult) -> Dict[str, Any]:
         """

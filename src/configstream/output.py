@@ -7,9 +7,8 @@ import json
 import base64
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from datetime import datetime, timezone
-from dataclasses import asdict
 
 # Fix imports
 try:
@@ -23,7 +22,10 @@ from .adapters import to_clash_proxy, to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 
-def generate_categorized_outputs(proxies: List[Proxy], output_dir: Path) -> Dict[str, Path]:
+
+def generate_categorized_outputs(
+    proxies: List[Proxy], output_dir: Path
+) -> Dict[str, Path]:
     """
     Generate files organized by protocol and country.
     """
@@ -68,10 +70,12 @@ def generate_categorized_outputs(proxies: List[Proxy], output_dir: Path) -> Dict
 
     return files
 
+
 def save_json(proxies: List[Proxy], path: Path):
     """Save list of proxies to JSON file."""
     data = [serialize_proxy(p) for p in proxies]
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+
 
 def save_metadata(stats: Dict[str, Any], proxies: List[Proxy], output_dir: Path):
     """
@@ -103,13 +107,14 @@ def save_metadata(stats: Dict[str, Any], proxies: List[Proxy], output_dir: Path)
             "trojan": "#96CEB4",
             "shadowsocks": "#45B7D1",
             "hysteria2": "#DFE6E9",
-            "wireguard": "#74B9FF"
-        }
+            "wireguard": "#74B9FF",
+        },
     }
 
     (output_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
     # Also save as summary.json for backward compatibility if needed, or just rely on metadata.json
     (output_dir / "summary.json").write_text(json.dumps(metadata, indent=2))
+
 
 def generate_clash_config(proxies: List[Proxy]) -> str:
     """Generate Clash YAML configuration."""
@@ -144,18 +149,19 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
                 "url": "http://www.gstatic.com/generate_204",
                 "interval": 300,
                 "tolerance": 50,
-                "proxies": names
+                "proxies": names,
             },
             {
                 "name": "🌍 Proxy Select",
                 "type": "select",
-                "proxies": names + ["🚀 ConfigStream Auto"]
-            }
+                "proxies": names + ["🚀 ConfigStream Auto"],
+            },
         ],
-        "rules": ["MATCH,🚀 ConfigStream Auto"]
+        "rules": ["MATCH,🚀 ConfigStream Auto"],
     }
 
     return yaml_lib.dump(payload, allow_unicode=True, sort_keys=False)
+
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
     """Generate Sing-box JSON configuration."""
@@ -172,29 +178,41 @@ def generate_singbox_config(proxies: List[Proxy]) -> str:
 
     # Add selector and auto groups
     if selector_tags:
-        outbounds.insert(0, {
-            "type": "selector",
-            "tag": "🌍 Proxy Select",
-            "outbounds": ["🚀 Auto"] + selector_tags
-        })
-        outbounds.insert(1, {
-            "type": "urltest",
-            "tag": "🚀 Auto",
-            "outbounds": selector_tags,
-            "url": "http://www.gstatic.com/generate_204",
-            "interval": "5m"
-        })
+        outbounds.insert(
+            0,
+            {
+                "type": "selector",
+                "tag": "🌍 Proxy Select",
+                "outbounds": ["🚀 Auto"] + selector_tags,
+            },
+        )
+        outbounds.insert(
+            1,
+            {
+                "type": "urltest",
+                "tag": "🚀 Auto",
+                "outbounds": selector_tags,
+                "url": "http://www.gstatic.com/generate_204",
+                "interval": "5m",
+            },
+        )
 
     # Basic structure
     full_config = {
         "log": {"level": "info"},
         "inbounds": [
-            {"type": "mixed", "tag": "mixed-in", "listen": "127.0.0.1", "listen_port": 2080}
+            {
+                "type": "mixed",
+                "tag": "mixed-in",
+                "listen": "127.0.0.1",
+                "listen_port": 2080,
+            }
         ],
-        "outbounds": outbounds
+        "outbounds": outbounds,
     }
 
     return json.dumps(full_config, indent=2)
+
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generate standard Base64 subscription string."""

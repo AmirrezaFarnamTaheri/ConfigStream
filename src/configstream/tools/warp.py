@@ -16,6 +16,7 @@ from ..models import Proxy
 try:
     from cryptography.hazmat.primitives.asymmetric import x25519
     from cryptography.hazmat.primitives import serialization
+
     HAS_CRYPTO = True
 except ImportError:
     HAS_CRYPTO = False
@@ -27,6 +28,7 @@ HEADERS = {
     "User-Agent": "okhttp/3.12.1",
     "Content-Type": "application/json; charset=UTF-8",
 }
+
 
 def _generate_keys() -> tuple[str, str]:
     """
@@ -42,17 +44,17 @@ def _generate_keys() -> tuple[str, str]:
     priv_bytes = private_key.private_bytes(
         encoding=serialization.Encoding.Raw,
         format=serialization.PrivateFormat.Raw,
-        encryption_algorithm=serialization.NoEncryption()
+        encryption_algorithm=serialization.NoEncryption(),
     )
     pub_bytes = public_key.public_bytes(
-        encoding=serialization.Encoding.Raw,
-        format=serialization.PublicFormat.Raw
+        encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
     )
 
     return (
-        base64.b64encode(priv_bytes).decode('utf-8'),
-        base64.b64encode(pub_bytes).decode('utf-8')
+        base64.b64encode(priv_bytes).decode("utf-8"),
+        base64.b64encode(pub_bytes).decode("utf-8"),
     )
+
 
 async def register_warp_account() -> Optional[Dict[str, Any]]:
     """
@@ -91,9 +93,18 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
         return {
             "id": data.get("id"),
             "private_key": private_key,
-            "peer_public_key": data.get("config", {}).get("peers", [{}])[0].get("public_key"),
-            "reserved": data.get("config", {}).get("peers", [{}])[0].get("endpoint", {}).get("v4", {}).get("reserved"),
-            "address": data.get("config", {}).get("interface", {}).get("addresses", {}).get("v4")
+            "peer_public_key": data.get("config", {})
+            .get("peers", [{}])[0]
+            .get("public_key"),
+            "reserved": data.get("config", {})
+            .get("peers", [{}])[0]
+            .get("endpoint", {})
+            .get("v4", {})
+            .get("reserved"),
+            "address": data.get("config", {})
+            .get("interface", {})
+            .get("addresses", {})
+            .get("v4"),
         }
 
     except Exception as e:
@@ -101,6 +112,7 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
         return None
     finally:
         await client.aclose()
+
 
 async def generate_warp_proxy() -> Proxy:
     """
@@ -118,7 +130,7 @@ async def generate_warp_proxy() -> Proxy:
             uuid="WARP-Error",
             remarks="⚠️ Cloudflare WARP (Registration Failed)",
             country_code="US",
-            is_working=False
+            is_working=False,
         )
 
     return Proxy(
@@ -131,10 +143,11 @@ async def generate_warp_proxy() -> Proxy:
         country_code="US",
         details={
             "private_key": account["private_key"],
-            "peer_public_key": account["peer_public_key"] or "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
+            "peer_public_key": account["peer_public_key"]
+            or "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",
             "reserved": account["reserved"] or [0, 0, 0],
             "mtu": 1280,
-            "local_address": account.get("address")
+            "local_address": account.get("address"),
         },
-        is_working=True
+        is_working=True,
     )
