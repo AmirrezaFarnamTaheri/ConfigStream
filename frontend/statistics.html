@@ -14,7 +14,40 @@
     <link rel="stylesheet" href="assets/css/loading.css">
     <link rel="stylesheet" href="assets/css/header-animation.css">
     <link rel="stylesheet" href="assets/css/logo-animations.css">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <style>
+        .map-container {
+            margin-top: 20px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            height: 400px; /* Taller for analytics page */
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            height: 350px;
+            position: relative;
+        }
+    </style>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -231,11 +264,27 @@
                 </div>
             </section>
 
+            <!-- Advanced Analytics Widgets -->
+            <div class="main-grid">
+                <div class="card" style="--delay: 0.45s;">
+                     <h3><i data-feather="map"></i> Global Distribution</h3>
+                     <div id="world-map-widget" class="map-container">
+                         <!-- Leaflet map container -->
+                     </div>
+                </div>
+                <div class="card" style="--delay: 0.45s;">
+                     <h3><i data-feather="trending-up"></i> 7-Day Performance Trend</h3>
+                     <div id="historical-chart-widget" class="chart-container">
+                         <canvas id="historyChartCanvas"></canvas>
+                     </div>
+                </div>
+            </div>
+
             <!-- Charts Section -->
             <section id="charts-card" class="card" style="--delay: 0.2s;">
                 <div class="card-header">
                     <div>
-                        <h2>Data Visualizations</h2>
+                        <h2>Distribution Metrics</h2>
                         <p>Interactive charts showing distribution patterns and trends across your proxy network</p>
                     </div>
                     <button id="toggleCharts" class="btn btn-secondary" aria-label="Toggle charts view">
@@ -247,7 +296,7 @@
                 <div id="chartsContainer" class="charts-grid">
                     <!-- Protocol Distribution -->
                     <div class="chart-wrapper">
-                        <div class="chart-container">
+                        <div class="chart-container-inner">
                             <div class="chart-header">
                                 <div>
                                     <h3>Protocol Distribution</h3>
@@ -263,7 +312,7 @@
 
                     <!-- Geographic Distribution -->
                     <div class="chart-wrapper">
-                        <div class="chart-container">
+                        <div class="chart-container-inner">
                             <div class="chart-header">
                                 <div>
                                     <h3>Geographic Distribution</h3>
@@ -279,7 +328,7 @@
 
                     <!-- ASN Distribution -->
                     <div class="chart-wrapper">
-                        <div class="chart-container">
+                        <div class="chart-container-inner">
                             <div class="chart-header">
                                 <div>
                                     <h3>Network Providers</h3>
@@ -293,25 +342,9 @@
                         </div>
                     </div>
 
-                    <!-- Time-series Analysis -->
-                    <div class="chart-wrapper chart-full-width">
-                        <div class="chart-container">
-                            <div class="chart-header">
-                                <div>
-                                    <h3>Historical Performance</h3>
-                                    <p class="chart-desc">Active proxy count trends over time</p>
-                                </div>
-                                <button class="chart-action" aria-label="Export chart data">
-                                    <i data-feather="more-vertical"></i>
-                                </button>
-                            </div>
-                            <canvas id="timeChart" role="img" aria-label="Line chart showing the number of working proxies over time"></canvas>
-                        </div>
-                    </div>
-
                     <!-- Latency Distribution -->
                     <div class="chart-wrapper">
-                        <div class="chart-container">
+                        <div class="chart-container-inner">
                             <div class="chart-header">
                                 <div>
                                     <h3>Latency Distribution</h3>
@@ -324,34 +357,6 @@
                             <canvas id="latencyChart" role="img" aria-label="Histogram showing latency distribution"></canvas>
                         </div>
                     </div>
-
-                    <!-- Protocol Performance Comparison -->
-                    <div class="chart-wrapper">
-                        <div class="chart-container">
-                            <div class="chart-header">
-                                <div>
-                                    <h3>Protocol Performance</h3>
-                                    <p class="chart-desc">Average latency by protocol type</p>
-                                </div>
-                                <button class="chart-action" aria-label="Export chart data">
-                                    <i data-feather="more-vertical"></i>
-                                </button>
-                            </div>
-                            <canvas id="protocolPerformanceChart" role="img" aria-label="Bar chart comparing protocol performance"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="chartsEmptyState" class="empty-state hidden">
-                    <div class="empty-state-icon">
-                        <i data-feather="bar-chart-2"></i>
-                    </div>
-                    <h3>No Analytics Data Available</h3>
-                    <p>We're currently collecting data to generate comprehensive analytics. Check back soon for detailed insights into your proxy network.</p>
-                    <a href="index.html" class="btn btn-primary">
-                        <i data-feather="home"></i>
-                        <span>Return Home</span>
-                    </a>
                 </div>
             </section>
 
@@ -425,6 +430,15 @@
     <script src="assets/js/logo-controller.js" defer></script>
     <script src="assets/js/main.js" defer></script>
     <script src="assets/js/statistics.js" defer></script>
+    <script src="assets/js/charts.js" defer></script>
+    <script src="assets/js/map.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js');
+            });
+        }
+    </script>
 </body>
 </html>

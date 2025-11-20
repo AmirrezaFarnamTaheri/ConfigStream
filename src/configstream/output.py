@@ -7,7 +7,7 @@ import json
 import base64
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Union, Optional, Any
 from datetime import datetime, timezone
 
 # Fix imports
@@ -18,9 +18,89 @@ except ImportError:
 
 from .models import Proxy
 from .serialize import serialize_proxy
-from .adapters import to_clash_proxy, to_singbox_outbound
+
+# Import from local adapters.py for clash/singbox logic reuse if possible,
+# or better yet, keep the existing internal adapters logic in this file or adjacent
+# but type-safe. To avoid circular imports or messing with `adapters.py` which is new,
+# we will implement light versions or reuse what was previously working.
+# However, `adapters.py` (the new one) has `Adapter` classes for Surge/Loon etc.
+# The clash/singbox logic was historically in `output.py` or `serialize.py`.
+
+# For now, to solve the import error "ImportError: cannot import name 'to_clash_proxy' from 'configstream.adapters'",
+# we should restore those functions or move them.
+# Looking at `src/configstream/adapters.py` I created earlier, it DOES NOT have `to_clash_proxy`.
+# It has `SurgeAdapter`, `LoonAdapter`, etc.
+# `to_clash_proxy` and `to_singbox_outbound` must be defined somewhere.
+# If they were in `adapters.py` previously, I might have overwritten them.
+# Let's reimplement them here or in a legacy_adapters module.
 
 logger = logging.getLogger(__name__)
+
+
+# --- Helper Functions for Clash/Singbox (Restored) ---
+
+
+def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
+    """Convert internal Proxy model to Clash dictionary."""
+    # Basic implementation
+    if proxy.protocol == "vmess":
+        return {
+            "type": "vmess",
+            "server": proxy.address,
+            "port": proxy.port,
+            "uuid": proxy.uuid,
+            "alterId": int(proxy.details.get("aid", 0)),
+            "cipher": proxy.details.get("scy", "auto"),
+            "network": proxy.details.get("net", "tcp"),
+            "tls": proxy.details.get("tls") == "tls",
+        }
+    elif proxy.protocol == "shadowsocks":
+        return {
+            "type": "ss",
+            "server": proxy.address,
+            "port": proxy.port,
+            "cipher": proxy.details.get("method", "chacha20-ietf-poly1305"),
+            "password": proxy.details.get("password", ""),
+        }
+    elif proxy.protocol == "trojan":
+        return {
+            "type": "trojan",
+            "server": proxy.address,
+            "port": proxy.port,
+            "password": proxy.uuid,
+            "udp": True,
+        }
+    # Add other protocols as needed
+    return None
+
+
+def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
+    """Convert internal Proxy model to Sing-box outbound."""
+    # Basic implementation
+    base = {
+        "server": proxy.address,
+        "server_port": proxy.port,
+    }
+
+    if proxy.protocol == "vmess":
+        return {
+            "type": "vmess",
+            **base,
+            "uuid": proxy.uuid,
+            "security": "auto",
+            "alter_id": 0,
+        }
+    elif proxy.protocol == "shadowsocks":
+        return {
+            "type": "shadowsocks",
+            **base,
+            "method": proxy.details.get("method", "chacha20-ietf-poly1305"),
+            "password": proxy.details.get("password", ""),
+        }
+    elif proxy.protocol == "trojan":
+        return {"type": "trojan", **base, "password": proxy.uuid}
+
+    return None
 
 
 def generate_categorized_outputs(
@@ -86,6 +166,7 @@ def save_metadata(
     # Calculate breakdowns
     protocols: Dict[str, int] = {}
     countries: Dict[str, int] = {}
+    country_stats: Dict[str, int] = {}  # Redundant but explicit for frontend
 
     for p in proxies:
         proto = p.protocol.lower()
@@ -93,6 +174,7 @@ def save_metadata(
 
         cc = (p.country_code or "UNK").upper()
         countries[cc] = countries.get(cc, 0) + 1
+        country_stats[cc] = country_stats.get(cc, 0) + 1
 
     # Type-safe conversion
     total_working = int(stats.get("working", 0))
@@ -107,6 +189,7 @@ def save_metadata(
         "duration_seconds": duration,
         "protocols": protocols,
         "countries": countries,
+        "country_stats": country_stats,  # Added for map widget compat
         # Protocol colors for frontend
         "protocol_colors": {
             "vmess": "#FF6B6B",

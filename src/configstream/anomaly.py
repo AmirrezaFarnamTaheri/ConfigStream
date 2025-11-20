@@ -2,14 +2,17 @@
 Anomaly Detector.
 Identifies suspicious spikes or drops in source content volume to prevent
 cache poisoning and spam attacks.
+Uses Isolation Forest for robust outlier detection when sufficient data exists.
 """
 
 import sqlite3
 import logging
 import statistics
 import time
+import numpy as np
 from pathlib import Path
 from typing import Tuple
+from sklearn.ensemble import IsolationForest
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +43,8 @@ CREATE TABLE IF NOT EXISTS history (
     def is_safe(self, url: str, current_count: int) -> Tuple[bool, str]:
         """
         Check if the current item count is statistically safe compared to history.
-        Uses Z-score for detecting outliers when sufficient history exists.
+        Uses Isolation Forest for detecting outliers when sufficient history exists (n > 15).
+        Falls back to Z-score for smaller datasets.
 
         Returns:
             (is_safe: bool, reason: str)
@@ -51,9 +55,9 @@ CREATE TABLE IF NOT EXISTS history (
 
         try:
             with sqlite3.connect(self.db_path) as conn:
-                # Get last 30 fetches
+                # Get last 50 fetches (increased history depth for ML)
                 rows = conn.execute(
-                    "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 30",
+                    "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
                     (url,),
                 ).fetchall()
 
@@ -64,7 +68,44 @@ CREATE TABLE IF NOT EXISTS history (
                 n = len(counts)
                 avg = statistics.mean(counts)
 
-                # Logic: Detect Massive Spikes
+                # Strategy: Use Isolation Forest if we have enough data points
+                if n >= 15:
+                    try:
+                        # Prepare data for Isolation Forest (needs 2D array)
+                        X = np.array(counts).reshape(-1, 1)
+
+                        # Fit Isolation Forest
+                        # contamination='auto' lets it decide outlier proportion
+                        clf = IsolationForest(random_state=42, contamination=0.05)
+                        clf.fit(X)
+
+                        # Predict on current value
+                        prediction = clf.predict([[current_count]])
+
+                        # -1 is outlier, 1 is inlier
+                        if prediction[0] == -1:
+                            # Double check: If it's just a higher yield but within reason (< 2x max historic), let it slide
+                            max_historic = max(counts)
+                            if current_count > (max_historic * 2.0):
+                                return (
+                                    False,
+                                    f"Isolation Forest Outlier (Count: {current_count})",
+                                )
+                            elif (
+                                current_count < (min(counts) * 0.5)
+                                and current_count > 20
+                            ):
+                                # Significant drop is usually safe but might indicate issue
+                                # We generally care about poisoning (spikes)
+                                pass
+
+                    except Exception as ml_err:
+                        logger.warning(
+                            f"ML Anomaly check failed, falling back to Z-Score: {ml_err}"
+                        )
+                        # Fall through to Z-Score logic
+
+                # Logic: Detect Massive Spikes (Fallback Z-Score / Simple Heuristics)
                 # Only apply logic if the source is somewhat established (avg > 10)
                 if avg > 10 and n > 5:
                     stdev = statistics.stdev(counts) if n > 1 else 0

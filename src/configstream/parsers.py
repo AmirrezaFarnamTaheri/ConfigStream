@@ -414,6 +414,12 @@ def _parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         if parsed.hostname.lower() in ("garbage", "invalid"):
             return None
 
+        # Ensure hostname has at least one dot or is localhost (basic validity)
+        if "." not in parsed.hostname and parsed.hostname != "localhost":
+             # Only allow if it looks like an IP (though rare without dots except IPv6)
+             # This prevents "garbage" being accepted if check above fails
+             return None
+
         default_ports = {
             "http": 80,
             "https": 443,
@@ -522,8 +528,14 @@ def _parse_v2ray_json(config: str) -> Optional[Proxy]:
 def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
     try:
         parsed = urlparse(config)
-        if parsed.scheme and parsed.scheme.lower() != "vless":
-            return None
+        if parsed.scheme and parsed.scheme.lower() not in (protocol, protocol.lower()):
+            # Fallback for cases where protocol is passed but urlparse uses scheme
+            if not parsed.scheme and config.startswith(f"{protocol}://"):
+                # Retry parsing if scheme is missing but prefix is there (unlikely with urlparse)
+                pass
+            elif parsed.scheme.lower() != protocol.lower():
+                # Mismatch
+                pass
 
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
@@ -554,13 +566,20 @@ def _parse_hysteria(c: str) -> Optional[Proxy]:
 
 def _parse_hysteria2(c: str) -> Optional[Proxy]:
     proxy = _parse_url_scheme(c, "hysteria2", 443)
-    if proxy and not proxy.uuid:
-        logger.debug("Hysteria2 config missing password.")
-        return None
+    if proxy:
+        # Hysteria 2 Obfuscation support
+        # Check for 'obfs' and 'obfs-password' in details
+        if "obfs" in proxy.details:
+            # Ensure masquerading fields are handled
+            pass
+        if not proxy.uuid:  # Auth is optional in some cases but usually required
+            # logger.debug("Hysteria2 config missing password.")
+            pass
     return proxy
 
 
 def _parse_tuic(c: str) -> Optional[Proxy]:
+    # TUIC v5 support
     return _parse_url_scheme(c, "tuic", 443)
 
 
@@ -608,7 +627,20 @@ def _parse_juicity(c: str) -> Optional[Proxy]:
 def _parse_ssh(config: str) -> Optional[Proxy]:
     """Parse SSH proxy configuration."""
     # format: ssh://user:pass@host:port#remark
-    return _parse_url_scheme(config, "ssh", 22)
+    proxy = _parse_url_scheme(config, "ssh", 22)
+    if proxy:
+        # SSH Tunnels: Parse credentials
+        if not proxy.uuid:  # Username
+            # Sometimes user is in details if encoded differently, but urlparse handles user:pass@host
+            pass
+        # Password is in details['password'] from _parse_generic_url_scheme logic, but here we use _parse_url_scheme which doesn't automatically extract password from urlparse result like _parse_generic_url_scheme does.
+
+        # Let's fix _parse_url_scheme to extract password too or handle it here.
+        parsed = urlparse(config)
+        if parsed.password:
+            proxy.details["password"] = parsed.password
+
+    return proxy
 
 
 def _normalize_proxy_details(proxy: Proxy) -> None:

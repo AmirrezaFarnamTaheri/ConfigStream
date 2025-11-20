@@ -10,13 +10,13 @@ import os
 import stat
 import tempfile
 import atexit
-import ssl
 import time
 from typing import Optional, Set
 from contextlib import contextmanager
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
+from bs4 import BeautifulSoup
 
 try:
     from singbox2proxy import SingBoxProxy as singbox_factory
@@ -33,6 +33,20 @@ logger = logging.getLogger(__name__)
 
 # Track temp files for failsafe cleanup at exit
 _TEMP_FILES: Set[str] = set()
+
+# Known SHA256 fingerprints for MITM detection (approximate list, in production this needs to be dynamic)
+# Google's root CAs are generally stable, but leaf certs change. Pinning leaf is brittle.
+# We should pin Intermediate or Root CA, or use a known endpoint that we control (Canary).
+# For this implementation, we will fetch the certificate and check the Issuer against a whitelist of trusted CAs
+# that are NOT typically used for MITM (like 'mitmproxy', 'Fiddler', 'GoProxy').
+SUSPICIOUS_ISSUERS = [
+    "mitmproxy",
+    "Fiddler",
+    "GoProxy",
+    "Charles",
+    "BurpSuite",
+    "ConfigStream-Interceptor",
+]
 
 
 def _cleanup_temp_files():
@@ -252,21 +266,73 @@ class SingBoxTester:
                             "Header Stripping Detected"
                         )
 
-            # 3. SSL Interception Check (Basic)
-            # Try to access a known bad SSL site. If it succeeds, the proxy is MITMing/ignoring certs.
+            # 3. Active MITM Detection (Certificate Inspection)
+            # We attempt to fetch the cert info from the underlying connection.
+            # In aiohttp, accessing the transport's extra info 'ssl_object' gives the SSLSocket.
+            # NOTE: This only works if the session verified SSL. If proxy terminates TLS, we see proxy's cert
+            # IF it's a MITM proxy (CONNECT). If it's transparent, we see target's cert (or forged one).
             try:
-                async with session.get(
-                    "https://self-signed.badssl.com/", timeout=5
-                ) as bad_resp:  # noqa: F841
-                    # If we got here without an SSLError, the proxy might be suppressing errors
-                    # However, aiohttp might be trusting the system store.
-                    # This is a heuristic: if the proxy is truly transparent, this should fail.
-                    # If the proxy is terminating TLS, it might return 200 with its own cert.
-                    pass
-            except ssl.SSLError:
-                # This is GOOD. We want verification to fail.
-                pass
+                target_url = "https://www.google.com"
+                async with session.get(target_url, timeout=5) as resp:
+                    # Access the underlying transport to get SSL object
+                    # This is hacky in aiohttp but necessary for deep inspection without a lower-level lib.
+                    # However, aiohttp default SSLContext verifies chains. If we are here, the chain is trusted
+                    # by the system trust store.
+
+                    # To detect active MITM with a valid (but suspicious) cert:
+                    # We check the Peer Certificate's Issuer.
+                    if resp.connection and resp.connection.transport:
+                        ssl_obj = resp.connection.transport.get_extra_info("ssl_object")
+                        if ssl_obj:
+                            cert = ssl_obj.getpeercert()
+                            if cert:
+                                issuer = dict(x[0] for x in cert["issuer"])
+                                common_name = issuer.get("commonName", "")
+                                organization = issuer.get("organizationName", "")
+
+                                for suspicious in SUSPICIOUS_ISSUERS:
+                                    if (
+                                        suspicious.lower() in common_name.lower()
+                                        or suspicious.lower() in organization.lower()
+                                    ):
+                                        proxy.security_issues.setdefault(
+                                            "mitm", []
+                                        ).append(f"Suspicious Issuer: {common_name}")
+                                        proxy.is_secure = False
             except Exception:
+                # Connection failed or couldn't get cert - implicit failure handled elsewhere
+                pass
+
+            # 4. Honey Pot / Injection Detection
+            # Visit a known static page and check if unexpected elements are injected (ads, redirects)
+            try:
+                # Use a lightweight target that shouldn't change often, e.g. example.com
+                target_url = "http://example.com"
+                async with session.get(target_url, timeout=5) as resp:
+                    content = await resp.text()
+                    soup = BeautifulSoup(content, "html.parser")
+
+                    # Check for unexpected scripts or iframes
+                    if (
+                        len(soup.find_all("script")) > 0
+                        or len(soup.find_all("iframe")) > 0
+                    ):
+                        # Example.com has 0 scripts and 0 iframes usually.
+                        # If we see them, it's likely ad injection.
+                        proxy.security_issues.setdefault("integrity", []).append(
+                            "HTML_INJECTION_DETECTED"
+                        )
+                        proxy.is_secure = False
+
+                    # Check title
+                    if "Example Domain" not in soup.title.string:
+                        proxy.security_issues.setdefault("integrity", []).append(
+                            "WRONG_CONTENT_RETURNED"
+                        )
+                        proxy.is_secure = False
+
+            except Exception:
+                # Timeout or other error during honeypot check
                 pass
 
         except Exception:

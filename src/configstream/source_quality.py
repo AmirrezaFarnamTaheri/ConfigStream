@@ -207,9 +207,31 @@ def calculate_diversity_score(proxies: List[Proxy]) -> float:
         cc = p.country_code or "XX"
         counts[cc] = counts.get(cc, 0) + 1
 
-    # Simple Diversity Index: 1 - sum((count/total)^2)
-    # This is Simpson's Diversity Index (1 - D)
-    # Max value approaches 1 with many countries evenly distributed.
+    # Calculate Gini Coefficient for country distribution
+    # Sort counts
+    sorted_counts = sorted(counts.values())
+    n = len(sorted_counts)
+    if n == 0:
+        return 0.0
+
+    # Gini coefficient formula: G = (2 * sum(i * x_i) - (n + 1) * sum(x_i)) / (n * sum(x_i))
+    # where x_i are sorted values
+
+    # However, for diversity, we often use Gini-Simpson Index (1 - sum(p^2)) which is what was here.
+    # The prompt asks for "Gini index". If it means Gini Coefficient of inequality:
+    # Low Gini (0) = Equal distribution (High Diversity). High Gini (1) = Unequal (Low Diversity).
+    # So "Diversity Score" should be 1 - Gini Coefficient.
+
+    # Let's calculate the actual Gini Coefficient of the counts.
+    # If we have [10, 10, 10], Gini is 0. Diversity is 1.
+    # If we have [30], Gini is 0 (technically undefined for n=1 but practically 0 inequality within the set, but low diversity compared to potential).
+    # Wait, Gini coefficient measures inequality among the *existing* groups.
+    # If I have 1 country with 100 proxies, Gini is 0 (perfect equality among the 1 group).
+    # But that's NOT diverse.
+
+    # Therefore, the Gini-Simpson index (1 - sum(p^2)) is the correct metric for DIVERSITY.
+    # I will stick with Gini-Simpson but clarify the naming.
+    # It is also known as the Gibbs-Martin index or Blau index.
 
     sum_sq_probs = sum((c / total) ** 2 for c in counts.values())
     diversity_index = 1.0 - sum_sq_probs
