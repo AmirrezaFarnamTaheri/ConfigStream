@@ -19,7 +19,7 @@ import logging
 import random
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 from urllib.parse import urlparse
 
 import httpx
@@ -147,7 +147,7 @@ async def fetch_from_source(
     for attempt in range(max_retries):
         loop = asyncio.get_running_loop()
         start_ts = loop.time()
-        success = False
+        # Removed unused 'success = False'
 
         try:
             # Execute Request (Standard or Hedged)

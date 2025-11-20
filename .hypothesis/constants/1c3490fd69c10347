@@ -1,0 +1,4 @@
+# file: /app/src/configstream/smart_scheduler.py
+# hypothesis_version: 6.148.2
+
+[0.7, 0.9, '+00:00', 'Z']

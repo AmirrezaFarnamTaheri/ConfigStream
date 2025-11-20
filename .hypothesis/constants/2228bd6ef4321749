@@ -1,0 +1,4 @@
+# file: /app/src/configstream/hedged_requests.py
+# hypothesis_version: 6.148.2
+
+['Hedging system error', 'T']

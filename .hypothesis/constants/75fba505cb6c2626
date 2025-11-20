@@ -1,0 +1,4 @@
+# file: /app/src/configstream/geoip_offline.py
+# hypothesis_version: 6.148.2
+
+['GeoIPResolver', 'GeoLite2-ASN.mmdb', 'GeoLite2-City.mmdb', '_initialized', 'data']

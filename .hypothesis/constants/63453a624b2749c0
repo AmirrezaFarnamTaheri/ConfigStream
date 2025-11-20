@@ -1,0 +1,4 @@
+# file: /app/src/configstream/output.py
+# hypothesis_version: 6.148.2
+
+[300, 2080, 7890, 7891, '#45B7D1', '#4ECDC4', '#74B9FF', '#96CEB4', '#DFE6E9', '#FF6B6B', '127.0.0.1', '127.0.0.1:9090', '5m', '://', 'Rule', 'UNK', 'allow-lan', 'by_country', 'by_protocol', 'countries', 'duration', 'duration_seconds', 'external-controller', 'fetched_lines', 'hysteria2', 'inbounds', 'info', 'interval', 'last_updated_utc', 'level', 'listen', 'listen_port', 'log', 'log-level', 'master', 'metadata.json', 'mixed', 'mixed-in', 'mode', 'name', 'outbounds', 'port', 'protocol_colors', 'protocols', 'proxies', 'proxies.json', 'proxy-groups', 'rules', 'select', 'selector', 'shadowsocks', 'socks-port', 'summary.json', 'tag', 'tolerance', 'total_fetched', 'total_proxies', 'total_working', 'trojan', 'type', 'url', 'url-test', 'urltest', 'utf-8', 'vless', 'vmess', 'wireguard', 'working', '🌍 Proxy Select', '🚀 Auto', '🚀 ConfigStream Auto']

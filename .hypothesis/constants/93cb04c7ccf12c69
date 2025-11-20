@@ -1,0 +1,4 @@
+# file: /app/src/configstream/dns_cache.py
+# hypothesis_version: 6.148.2
+
+[900.0]

@@ -1,39 +1,52 @@
 """
 Async File Operations.
-Offloads blocking I/O to threads to keep the event loop smooth.
+Non-blocking file I/O using aiofiles.
 """
 
 import asyncio
-import aiofiles
+import logging
 import os
-from typing import List, Tuple
+from pathlib import Path
+from typing import List, Tuple, Any, Union
 
-async def read_file_async(path: str) -> str:
-    """Read a single file asynchronously."""
-    if not os.path.exists(path):
-        return ""
-    try:
-        async with aiofiles.open(path, mode='r', encoding='utf-8', errors='ignore') as f:
-            return await f.read()
-    except Exception as e:
-        return f"ERROR: {e}"
+import aiofiles
 
-async def read_multiple_files_async(paths: List[str], max_concurrent: int = 5) -> List[Tuple[str, str]]:
+logger = logging.getLogger(__name__)
+
+async def read_file_async(path: str | Path) -> str:
     """
-    Read multiple files concurrently.
-    Returns list of (path, content) tuples.
+    Read a file asynchronously.
     """
-    sem = asyncio.Semaphore(max_concurrent)
-    results = []
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
 
-    async def _read(p: str):
-        async with sem:
-            content = await read_file_async(p)
-            results.append((p, content))
+    async with aiofiles.open(path, mode='r', encoding='utf-8', errors='ignore') as f:
+        content = await f.read()
+    return content # type: ignore
 
-    await asyncio.gather(*[_read(p) for p in paths])
-    return results
+async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
+    """
+    Read multiple files in parallel.
+    Returns list of (filepath, content).
+    """
+    tasks = []
+    for p in paths:
+        tasks.append(read_file_async(p))
 
-def shutdown_file_pool():
-    """Placeholder for any cleanup if we used a specialized executor."""
-    pass
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    output = []
+    for path, res in zip(paths, results):
+        if isinstance(res, Exception):
+            logger.warning(f"Failed to read {path}: {res}")
+        else:
+            # Check if res is str (it should be, if not Exception)
+            if isinstance(res, str):
+                output.append((path, res))
+
+    return output
+
+def ensure_directory(path: str | Path):
+    """Ensure directory exists (Sync wrapper for convenience)."""
+    Path(path).mkdir(parents=True, exist_ok=True)

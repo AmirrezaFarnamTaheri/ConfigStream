@@ -9,7 +9,7 @@ import logging
 import statistics
 import time
 from pathlib import Path
-from typing import Tuple, List
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 

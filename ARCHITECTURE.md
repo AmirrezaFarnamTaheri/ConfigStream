@@ -1,93 +1,64 @@
-# ConfigStream Architecture Documentation
+# Architecture Overview 🏗️
 
-## 1. Overview
+ConfigStream is designed as a modern, asynchronous data pipeline. It prioritizes speed, modularity, and resilience.
 
-ConfigStream is a high-performance VPN configuration aggregator designed for reliability and scalability. It fetches proxy configurations from diverse sources, validates them through a rigorous testing pipeline, and publishes them in multiple formats for end-user consumption. The architecture is built on modern asynchronous patterns in Python, ensuring non-blocking I/O for both network and file operations.
+## High-Level Diagram
 
-## 2. Core Design Principles
+```mermaid
+graph TD
+    A[Sources (TXT/URL)] -->|Fetcher| B(Raw Configs)
+    B -->|Parser| C(Proxy Objects)
+    C -->|Deduplication| D(Unique Proxies)
+    D -->|Security Check| E{Safe?}
+    E -- No --> F[Discard / Log]
+    E -- Yes --> G[Tester Queue]
+    G -->|Sing-box Core| H{Working?}
+    H -- Yes --> I[Result Store]
+    H -- No --> J[History Tracker]
+    I -->|Output Gen| K[JSON/YAML Files]
+    K -->|FastAPI| L[Web Dashboard / API]
+```
 
-### Modularity and Separation of Concerns
+## Core Components
 
-The codebase is organized into distinct modules, each with a clear responsibility. This separation simplifies maintenance, testing, and future development.
+### 1. Ingestion Layer (`fetcher.py`)
+-   **Concurrency**: Uses `asyncio` and `aiohttp` to fetch from hundreds of sources simultaneously.
+-   **Adaptive Control**: Implements AIMD (Additive Increase, Multiplicative Decrease) to adjust concurrency based on network health.
+-   **Intelligence**: `SourceQualityTracker` monitors source reliability over time. Sources that consistently fail are penalized with exponential backoff to save bandwidth.
+-   **Anomaly Detection**: `AnomalyDetector` flags sources that suddenly return too much or too little data (potential poisoning attacks).
 
--   **`pipeline.py` (Orchestrator)**: The heart of the application, responsible for orchestrating the entire workflow, from fetching and parsing to testing and output generation.
--   **`testers.py` (Proxy Testing)**: Contains the logic for testing proxy connectivity and performance.
--   **`concurrency_manager.py` (Concurrency Control)**: Implements a unified AIMD (Additive Increase, Multiplicative Decrease) concurrency controller to dynamically adjust system load for both fetching and testing.
--   **`http_client.py` (Networking)**: Manages a shared `httpx.AsyncClient` for all network requests, enabling connection pooling and HTTP/2 support.
--   **`logging_config.py` (Logging)**: Centralizes logging configuration, including support for structured JSON logging for machine-readable output.
+### 2. Processing Layer (`pipeline.py`)
+-   **Streaming**: Data is processed in chunks (batches) rather than loading everything into memory, allowing operation on low-RAM VPS instances.
+-   **Parsing**: Robust parsers convert messy base64/text blobs into structured `Proxy` objects (Pydantic models).
+-   **Fuzzing**: Parsers are fuzz-tested (`hypothesis`) to prevent crashes on malformed input.
 
-### Asynchronous-First Approach
+### 3. Validation Layer (`testers.py`)
+-   **Engine**: Uses `sing-box` (via `singbox2proxy`) as the testing core for accurate results across all protocols (VMess, VLESS, etc.).
+-   **Checks**:
+    -   **Latency**: Measures TCP handshake and HTTP response time.
+    -   **Integrity**: Checks for header stripping and malicious modifications.
+    -   **GeoIP**: Resolves IP to Country/ASN using a local MMDB database (zero latency).
+-   **Blocklist**: `BlocklistManager` checks IPs against FireHol Level 1 to filter out known botnets and abusers.
 
-All I/O-bound operations (network requests, file access) are implemented using `asyncio` to maximize performance and prevent the event loop from blocking.
+### 4. Presentation Layer (`server.py` & `frontend/`)
+-   **Backend**: FastAPI serves static assets and dynamic API endpoints.
+-   **Frontend**: A vanilla JS dashboard (no build step required) that consumes JSON data. It features virtual scrolling (via pagination/filtering logic) for performance.
+-   **Tools**: Includes a subscription converter and WARP generator.
 
--   **Network Operations**: All network calls are made using an asynchronous HTTP client (`httpx`).
--   **File I/O**: File operations are offloaded to a thread pool via `async_file_ops.py` to avoid blocking the main thread.
+## Data Persistence
 
-### Dynamic Concurrency Management
+-   **SQLite**: Used for `source_quality.db` and `anomaly.db` to track long-term stats.
+-   **JSON/YAML**: Final output is static files in `output/`, making it easy to host on GitHub Pages or CDN.
 
-To prevent system overload and adapt to varying network conditions, ConfigStream uses a unified concurrency model.
+## Security Model
 
--   **AIMD Controller**: The `ConcurrencyManager` in `concurrency_manager.py` uses an AIMD algorithm to dynamically adjust the number of concurrent operations for both fetching and testing. This allows the system to automatically scale up during optimal conditions and back off when errors or high latency are detected.
+1.  **Input Sanitization**: All external data is treated as untrusted.
+2.  **Secret Scanning**: Pre-commit hooks prevent leaking keys.
+3.  **Dependency Management**: Locked dependencies ensure reproducible builds.
+4.  **Least Privilege**: Docker containers run as non-root (configured in `Dockerfile`).
 
-## 3. Data Flow
+## Future Roadmap
 
-The data processing pipeline consists of the following stages:
-
-1.  **Source Fetching**: The pipeline fetches raw proxy configurations from a list of sources (URLs or local files) using the `fetcher.py` module.
-2.  **Parsing and Validation**: Raw configurations are parsed and validated. Invalid or insecure configurations are discarded.
-3.  **Deduplication**: Proxies are deduplicated to ensure only unique configurations are tested.
-4.  **Proxy Testing**: Proxies are tested for connectivity and performance using the `testers.py` module. The `ConcurrencyManager` dynamically adjusts the number of concurrent tests.
-5.  **Geolocation**: The geographic location of each working proxy is determined using an offline GeoIP database.
-6.  **Output Generation**: The final list of working proxies is formatted into multiple output files by `output.py`.
-7.  **Statistics and Metadata**: The pipeline generates `statistics.json` and `metadata.json` files, which provide data for the frontend UI.
-
-## 4. Key Architectural Components
-
-### Unified Concurrency Controller
-
-The `ConcurrencyManager` is a key component for ensuring system stability and performance. It provides a centralized mechanism for controlling concurrency across the application.
-
--   **Generic Design**: The manager is designed to be generic and can be used to control concurrency for any resource-limited operation.
--   **Dynamic Adjustment**: It dynamically adjusts concurrency limits based on real-time performance metrics (latency, error rate), allowing the system to adapt to changing conditions.
-
-### Structured JSON Logging
-
-The `logging_config.py` module supports structured JSON logging, which is essential for modern observability.
-
--   **Machine-Readable Logs**: JSON logs are easy to parse and ingest into monitoring platforms like the ELK stack or Datadog.
--   **Rich Context**: Each log entry includes rich contextual information, such as a timestamp, log level, trace ID, and code location.
-
-### Decoupled Frontend Configuration
-
-The frontend UI is designed to be adaptable to backend configuration changes.
-
--   **`metadata.json`**: The pipeline writes key configuration values to `output/metadata.json`.
--   **Dynamic UI**: The frontend JavaScript fetches `metadata.json` and uses the values to dynamically render UI elements, such as charts. This removes hardcoded values from the frontend and allows the UI to be updated by changing the backend configuration.
-
-### Frontend Asset Management
-
-The `frontend/` directory contains all the static assets required for the user-facing website, including HTML, CSS, JavaScript, and images.
-
--   **Separation of Concerns**: This directory is kept separate from the Python source code to maintain a clean project structure.
--   **Deployment**: During the CI/CD pipeline's deployment stage, the contents of the `frontend/` directory are copied into the `output/` directory, which is then deployed to GitHub Pages.
-
-## 5. Security Considerations
-
--   **Input Validation**: All inputs, from source URLs to raw proxy configurations, are rigorously validated to prevent injection attacks and other vulnerabilities.
--   **Resource Limiting**: The concurrency manager and rate limiters prevent the application from overwhelming external services or consuming excessive system resources.
--   **Sensitive Data Masking**: The logging system includes filters to mask sensitive data (e.g., UUIDs, email addresses) in log output.
-
-## 6. Testing Strategy
-
-The project maintains a comprehensive test suite to ensure code quality and prevent regressions.
-
--   **Unit Tests**: Each module has a corresponding set of unit tests to verify its functionality in isolation.
--   **Integration Tests**: The test suite includes integration tests that verify the interaction between different modules.
--   **High Coverage**: The project aims for high test coverage across the entire codebase.
-
-## 7. Deployment
-
-The application is deployed as a static website on GitHub Pages, with the backend pipeline running on a schedule using GitHub Actions.
-
--   **GitHub Actions**: The `.github/workflows/pipeline.yml` workflow automates the entire process of fetching, testing, and publishing proxy configurations.
--   **GitHub Pages**: The `output/` directory, which contains the generated output files and frontend assets, is deployed to the `gh-pages` branch, making the site publicly accessible.
+-   [ ] integration of Reinforcement Learning for scheduler tuning.
+-   [ ] Real-time websocket updates for the dashboard.
+-   [ ] Support for SSH tunnels and more exotic protocols.

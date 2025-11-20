@@ -1,0 +1,4 @@
+# file: /app/src/configstream/source_quality.py
+# hypothesis_version: 6.148.2
+
+[0.0, 50.0, 100, 'disabled']

@@ -1,0 +1,4 @@
+# file: /app/src/configstream/parsers.py
+# hypothesis_version: 6.148.2
+
+[0.5, 100, 200, 255, 443, 1080, 4096, 9999, 10000, 51820, 65535, '#', '+', ',', '-', '/', '/?', ':', ':-_./@#%?&=', '://', ';', '=', '?', '@', 'Empty base64 input', 'Host', '[]', '_', 'add', 'address', 'alpn', 'brook', 'cipher', 'headers', 'host', 'http', 'https', 'hysteria', 'hysteria2', 'id', 'ip', 'juicity', 'latin-1', 'method', 'naive', 'naive+', 'obfs', 'obfs-host', 'obfs-uri', 'outbound', 'outbounds', 'params', 'password', 'path', 'peer', 'plugin', 'port', 'private_key', 'protocol', 'ps', 'remark', 'remarks', 'server', 'servers', 'serviceName', 'settings', 'shadowsocks', 'snell', 'sni', 'socks', 'socks4', 'socks5', 'ss2022', 'ss2022://', 'ss://', 'ssh', 'ssr', 'ssr://', 'tag', 'trojan', 'tuic', 'users', 'utf-8', 'v2ray', 'vless', 'vmess', 'vmess://', 'vnext', 'wireguard', 'xray', '{']

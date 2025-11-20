@@ -1,0 +1,4 @@
+# file: /app/src/configstream/async_file_ops.py
+# hypothesis_version: 6.148.2
+
+['ignore', 'r', 'utf-8']

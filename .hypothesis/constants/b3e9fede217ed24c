@@ -1,0 +1,4 @@
+# file: /app/src/configstream/adaptive_workers.py
+# hypothesis_version: 6.148.2
+
+[0.5, 0.75, 1.0]
