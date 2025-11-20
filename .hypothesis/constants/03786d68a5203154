@@ -1,4 +1,0 @@
-# file: /app/src/configstream/proxy_history.py
-# hypothesis_version: 6.148.2
-
-[0.0, 0.5, 100, 168, '+00:00', 'Z', 'active_count', 'address', 'avg_latency', 'country', 'entries', 'is_working', 'last_test', 'latencies', 'latency', 'max_latency', 'min_latency', 'port', 'protocol', 'stats', 'status', 'success_rate', 'timestamp', 'timestamps', 'total_tests', 'trend', 'uptime_percentage']

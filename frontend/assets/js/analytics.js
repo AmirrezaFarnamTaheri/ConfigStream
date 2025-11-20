@@ -158,7 +158,6 @@ function initLatencyChart(data) {
     const ctx = document.getElementById('latencyChart');
     if (!ctx) return;
 
-    // Use real latency distribution from metadata if available, else fallback
     let chartData, labels;
 
     if (data.latency_distribution) {
@@ -170,9 +169,9 @@ function initLatencyChart(data) {
             data.latency_distribution.very_slow || 0
         ];
     } else {
-         // Fallback placeholder
-        labels = ['<100ms', '100-500ms', '500-1000ms', '>1s'];
-        chartData = [data.total_working * 0.2, data.total_working * 0.5, data.total_working * 0.2, data.total_working * 0.1];
+        // No data state
+        labels = ['No Data'];
+        chartData = [0];
     }
 
     new Chart(ctx.getContext('2d'), {
@@ -195,7 +194,14 @@ function initLatencyChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.parsed.y} Proxies`;
+                        }
+                    }
+                }
             },
             scales: {
                 y: {

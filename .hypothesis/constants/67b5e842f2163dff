@@ -1,4 +1,0 @@
-# file: /app/src/configstream/anomaly.py
-# hypothesis_version: 6.148.2
-
-['Error (Fail Open)', 'New Source', 'OK', 'Small Batch', 'data/anomaly.db']

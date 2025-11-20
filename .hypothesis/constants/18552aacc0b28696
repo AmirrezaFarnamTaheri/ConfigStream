@@ -1,4 +1,0 @@
-# file: /app/src/configstream/output.py
-# hypothesis_version: 6.148.2
-
-[300, 2080, 7890, 7891, 127462, 999999, '127.0.0.1', '127.0.0.1:9090', '5m', 'A', 'Rule', 'TIMEOUT', 'allow-lan', 'by_country', 'by_protocol', 'countries', 'external-controller', 'failed.json', 'inbounds', 'info', 'interval', 'level', 'listen', 'listen_port', 'log', 'log-level', 'mixed', 'mixed-in', 'mode', 'name', 'outbounds', 'port', 'protocols', 'proxies', 'proxy-groups', 'rejected', 'rejected_failed', 'rules', 'select', 'selector', 'socks-port', 'summary', 'summary.json', 'tag', 'tolerance', 'total', 'type', 'unknown', 'url', 'url-test', 'urltest', 'utf-8', 'working', '🌍 Proxy Select', '🏁', '🚀 Auto', '🚀 ConfigStream Auto']

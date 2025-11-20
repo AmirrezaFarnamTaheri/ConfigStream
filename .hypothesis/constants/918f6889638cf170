@@ -1,4 +1,0 @@
-# file: /app/src/configstream/concurrency_manager.py
-# hypothesis_version: 6.148.2
-
-[0.01, 0.1, 0.7, 1.0, 100, 500]

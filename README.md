@@ -310,7 +310,7 @@ ConfigStream/
 │ └── manifest.json # PWA Manifest
 ├── data/ # GeoIP databases
 ├── tests/ # Test suite
-├── sources.txt # Source URLs
+├── sources/ # Source URLs (batch files)
 ├── pyproject.toml # Project configuration
 └── README.md # This file
 ```
