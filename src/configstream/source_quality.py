@@ -9,6 +9,7 @@ import logging
 import math
 from pathlib import Path
 from datetime import datetime, timedelta
+from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -23,16 +24,16 @@ class SourceQualityTracker:
         try:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute("""
-                    CREATE TABLE IF NOT EXISTS source_stats (
-                        url TEXT PRIMARY KEY,
-                        total_fetched INTEGER DEFAULT 0,
-                        total_working INTEGER DEFAULT 0,
-                        consecutive_failures INTEGER DEFAULT 0,
-                        last_checked INTEGER DEFAULT 0,
-                        reliability_score REAL DEFAULT 100.0,
-                        status TEXT DEFAULT 'active'
-                    )
-                """)
+CREATE TABLE IF NOT EXISTS source_stats (
+    url TEXT PRIMARY KEY,
+    total_fetched INTEGER DEFAULT 0,
+    total_working INTEGER DEFAULT 0,
+    consecutive_failures INTEGER DEFAULT 0,
+    last_checked INTEGER DEFAULT 0,
+    reliability_score REAL DEFAULT 100.0,
+    status TEXT DEFAULT 'active'
+)
+""")
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to init source quality DB: {e}")
@@ -48,31 +49,31 @@ class SourceQualityTracker:
                     (url,)
                 ).fetchone()
 
-            if not row:
-                return True # New source, always fetch
+                if not row:
+                    return True # New source, always fetch
 
-            status, last_ts, failures = row
+                status, last_ts, failures = row
 
-            if status == 'disabled':
-                return False
+                if status == 'disabled':
+                    return False
 
-            # Exponential Backoff Logic
-            # 0 failures -> 0 wait
-            # 1 failure -> 1 hour wait
-            # 2 failures -> 4 hour wait
-            # 3 failures -> 8 hour wait
-            # ... capped at 48 hours
-            cooldown_hours = min(48, math.pow(2, failures)) if failures > 0 else 0
+                # Exponential Backoff Logic
+                # 0 failures -> 0 wait
+                # 1 failure -> 1 hour wait
+                # 2 failures -> 4 hour wait
+                # 3 failures -> 8 hour wait
+                # ... capped at 48 hours
+                cooldown_hours = min(48, math.pow(2, failures)) if failures > 0 else 0
 
-            # Calculate when the next allowed fetch is
-            next_allowed = datetime.fromtimestamp(last_ts) + timedelta(hours=cooldown_hours)
+                # Calculate when the next allowed fetch is
+                next_allowed = datetime.fromtimestamp(last_ts) + timedelta(hours=cooldown_hours)
 
-            if datetime.now() < next_allowed:
-                # Log only periodically to reduce noise
-                logger.debug(f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})")
-                return False
+                if datetime.now() < next_allowed:
+                    # Log only periodically to reduce noise
+                    logger.debug(f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})")
+                    return False
 
-            return True
+                return True
 
         except Exception as e:
             logger.warning(f"Error checking source quality for {url}: {e}")
@@ -112,9 +113,9 @@ class SourceQualityTracker:
                     conn.execute("""
                         UPDATE source_stats
                         SET total_fetched=?, total_working=?, consecutive_failures=?,
-                            last_checked=?, reliability_score=?
+                        last_checked=?, reliability_score=?
                         WHERE url=?
-                    """, (new_tf, new_tw, new_cf, now, score, url))
+                        """, (new_tf, new_tw, new_cf, now, score, url))
                 else:
                     # First time seeing this source
                     score = (working_count / fetched_count * 100) if fetched_count > 0 else 0.0
@@ -122,7 +123,7 @@ class SourceQualityTracker:
                         INSERT INTO source_stats
                         (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score)
                         VALUES (?, ?, ?, ?, ?, ?)
-                    """, (url, fetched_count, working_count, 1 if is_failure else 0, now, score))
+                        """, (url, fetched_count, working_count, 1 if is_failure else 0, now, score))
 
                 conn.commit()
         except Exception as e:
