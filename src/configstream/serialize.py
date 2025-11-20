@@ -40,7 +40,7 @@ def to_json(data: Any) -> str:
         val = json_lib.dumps(data)
         if isinstance(val, bytes):
             return val.decode("utf-8")
-        return val
+        return str(val)  # Ensure string return
     else:
         # Fallback
         import json

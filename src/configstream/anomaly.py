@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS history (
                     # Z-Score Check (if variance is zero, avoid div/0)
                     if stdev > 0:
                         z_score = (current_count - avg) / stdev
-                        if z_score > 3.0: # > 3 SDs away is suspicious
+                        if z_score > 3.0:  # > 3 SDs away is suspicious
                             # Double check: sometimes absolute count isn't insane
                             # If it's < 2x average, maybe ignore Z-score (natural variance)
                             if current_count > (avg * 2.5):
@@ -80,11 +80,14 @@ CREATE TABLE IF NOT EXISTS history (
                     else:
                         # Zero variance history (always returns X, now returns Y)
                         if current_count > (avg * 3):
-                            return False, f"Sudden Spike (Prev exact: {avg}, Now: {current_count})"
+                            return (
+                                False,
+                                f"Sudden Spike (Prev exact: {avg}, Now: {current_count})",
+                            )
 
                 elif avg <= 10 and current_count > 200:
-                     # Small source suddenly returns huge amount
-                     return False, "Massive Spike for Small Source"
+                    # Small source suddenly returns huge amount
+                    return False, "Massive Spike for Small Source"
 
                 return True, "OK"
 
@@ -104,8 +107,9 @@ CREATE TABLE IF NOT EXISTS history (
                 )
                 # Prune old history (keep last 100)
                 conn.execute(
-                    "DELETE FROM history WHERE url = ? AND timestamp NOT IN (SELECT timestamp FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 100)",
-                    (url, url)
+                    """DELETE FROM history WHERE url = ? AND timestamp NOT IN
+                    (SELECT timestamp FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 100)""",
+                    (url, url),
                 )
                 conn.commit()
         except Exception as e:

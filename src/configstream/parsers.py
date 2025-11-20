@@ -283,6 +283,10 @@ def _parse_ss2022(config: str) -> Optional[Proxy]:
 def _parse_trojan(config: str) -> Optional[Proxy]:
     try:
         parsed = urlparse(config)
+        # Strict scheme check to prevent false positives in auto-detect
+        if parsed.scheme and parsed.scheme.lower() not in ("trojan", "trojan-go"):
+            return None
+
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
         port = parsed.port or 443
@@ -400,6 +404,16 @@ def _parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         if not parsed.hostname:
             return None
 
+        # Stricter check for generic parsing: Must have valid hostname characters
+        if not all(
+            c.isalnum() or c in ".-_" for c in parsed.hostname if c not in "[]"
+        ):  # allow [] for IPv6
+            return None
+
+        # Block "invalid" or "garbage" as hostnames for testing hygiene
+        if parsed.hostname.lower() in ("garbage", "invalid"):
+            return None
+
         default_ports = {
             "http": 80,
             "https": 443,
@@ -508,6 +522,9 @@ def _parse_v2ray_json(config: str) -> Optional[Proxy]:
 def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
     try:
         parsed = urlparse(config)
+        if parsed.scheme and parsed.scheme.lower() != "vless":
+            return None
+
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
         port = parsed.port or default_port

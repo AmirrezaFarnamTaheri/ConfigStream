@@ -89,7 +89,13 @@ CREATE TABLE IF NOT EXISTS source_stats (
             logger.warning(f"Error checking source quality for {url}: {e}")
             return True  # Fail open
 
-    def update(self, url: str, fetched_count: int, working_count: int, diversity_score: float = 0.0):
+    def update(
+        self,
+        url: str,
+        fetched_count: int,
+        working_count: int,
+        diversity_score: float = 0.0,
+    ):
         """
         Update the stats for a source after a pipeline run.
 
@@ -122,7 +128,9 @@ CREATE TABLE IF NOT EXISTS source_stats (
                     yield_score = (new_tw / new_tf * 100) if new_tf > 0 else 0.0
 
                     # Weighted final score (70% yield, 30% diversity)
-                    final_reliability = (yield_score * 0.7) + (diversity_score * 100 * 0.3)
+                    final_reliability = (yield_score * 0.7) + (
+                        diversity_score * 100 * 0.3
+                    )
 
                     conn.execute(
                         """
@@ -131,7 +139,15 @@ CREATE TABLE IF NOT EXISTS source_stats (
                         last_checked=?, reliability_score=?, diversity_score=?
                         WHERE url=?
                         """,
-                        (new_tf, new_tw, new_cf, now, final_reliability, diversity_score, url),
+                        (
+                            new_tf,
+                            new_tw,
+                            new_cf,
+                            now,
+                            final_reliability,
+                            diversity_score,
+                            url,
+                        ),
                     )
                 else:
                     # First time seeing this source
@@ -140,7 +156,9 @@ CREATE TABLE IF NOT EXISTS source_stats (
                         if fetched_count > 0
                         else 0.0
                     )
-                    final_reliability = (yield_score * 0.7) + (diversity_score * 100 * 0.3)
+                    final_reliability = (yield_score * 0.7) + (
+                        diversity_score * 100 * 0.3
+                    )
 
                     conn.execute(
                         """
@@ -155,7 +173,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
                             1 if is_failure else 0,
                             now,
                             final_reliability,
-                            diversity_score
+                            diversity_score,
                         ),
                     )
 
@@ -173,6 +191,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
                 return row[0] if row else 50.0  # Default to neutral
         except Exception:
             return 50.0
+
 
 def calculate_diversity_score(proxies: List[Proxy]) -> float:
     """

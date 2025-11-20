@@ -6,7 +6,6 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-import asyncio
 from .event_stream import EventStream
 
 # Define paths relative to the container structure
@@ -97,6 +96,7 @@ async def download_subscription(format: str):
 
 # --- WebSocket Feed ---
 
+
 @app.websocket("/ws/feed")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -116,7 +116,7 @@ async def websocket_endpoint(websocket: WebSocket):
         # Try to close if possible, though typically handled by disconnect
         try:
             await websocket.close()
-        except:
+        except Exception:  # noqa: E722
             pass
 
 

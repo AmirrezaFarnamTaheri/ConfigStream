@@ -1,12 +1,12 @@
 # Architecture Overview 🏗️
 
-ConfigStream is designed as a modern, asynchronous data pipeline. It prioritizes speed, modularity, and resilience, adhering to a "Split Brain" architecture that separates data processing from data serving.
+ConfigStream is designed as a modern, asynchronous data pipeline. It prioritizes speed, modularity, and resilience, utilizing a CLI-driven architecture that automates the entire lifecycle of proxy aggregation via GitHub Actions.
 
 ## High-Level Diagram
 
 ```mermaid
 graph TD
-    subgraph Worker [Aggregation Worker]
+    subgraph Pipeline [Pipeline / CLI]
         A[Sources] -->|Fetcher| B(Raw Configs)
         B -->|Parsers| C(Proxy Objects)
         C -->|Deduplication| D(Unique Proxies)
@@ -18,23 +18,21 @@ graph TD
         H -- No --> J[History Tracker]
         I -->|Adapters| K[Output Artifacts]
         K -->|Write| L[Output Directory]
-        L -->|Log| M[Event Stream]
+        L -->|Deploy| M[GitHub Pages]
     end
 
-    subgraph Server [Web Server]
+    subgraph Viewer [Optional Server]
         L -.->|Read| N[FastAPI Static]
-        M -.->|Tail| O[WebSocket Manager]
-        O -->|Push| P[Frontend PWA]
-        N -->|Serve| P
+        N -->|Serve| P[Frontend PWA]
     end
 ```
 
 ## Core Components
 
-### 1. "Split Brain" Design
-The system is divided into two independent runtimes:
--   **Worker**: A heavy-lifting process that runs the pipeline. It requires significant CPU/Network resources. It outputs static files (JSON/YAML) and logs events.
--   **Server**: A lightweight FastAPI process. It reads the static files to serve subscriptions and "tails" the worker's event stream to provide real-time updates via WebSockets. This allows the server to remain responsive even when the worker is under 100% load.
+### 1. Pipeline-First Design
+The core of ConfigStream is the `configstream merge` CLI command.
+-   **Stateless Execution**: Designed to run in ephemeral environments (GitHub Actions).
+-   **State Persistence**: Uses SQLite and JSON artifacts to persist intelligence (reliability scores, caches) between runs via `actions/cache`.
 
 ### 2. Ingestion Layer (`fetcher.py` & `parsers.py`)
 -   **Concurrency**: Uses `asyncio` and `aiohttp` to fetch from hundreds of sources simultaneously.
@@ -44,11 +42,11 @@ The system is divided into two independent runtimes:
     -   **Obfuscation**: Handles various transport layers (ws, grpc, httpupgrade).
 -   **Fuzzing**: Parsers are hardened using `hypothesis` to prevent crashes on malformed input.
 
-### 3. Intelligence Layer (`intelligence.py` & `source_quality.py`)
--   **SourceQualityTracker**: Monitors source reliability.
-    -   **Smart Scoring**: Ranks sources by "yield", "uniqueness", and "geo-diversity".
-    -   **Adaptive Scheduling**: Penalizes failing sources with exponential backoff.
--   **AnomalyDetector**: Uses statistical models (e.g., Z-score) to flag suspicious data spikes (potential poisoning) or drops.
+### 3. Intelligence Layer (`source_quality.py` & `adaptive_timeout.py`)
+-   **SourceQualityTracker**: Monitors source reliability over time.
+    -   **Smart Scoring**: Ranks sources by yield and quality.
+    -   **Adaptive Scheduling**: Adjusts testing frequency based on source health.
+-   **Adaptive Timeouts**: Learns optimal timeout values per source to minimize latency penalties.
 
 ### 4. Validation Layer (`testers.py` & `security/`)
 -   **Engine**: Uses `sing-box` (via `singbox2proxy`) as the testing core for accurate results.
@@ -56,37 +54,38 @@ The system is divided into two independent runtimes:
     -   **Blocklist**: Filters IPs against FireHol Level 1.
     -   **Honey Pot**: Detects proxies that redirect traffic to phishing sites.
     -   **MITM**: Verifies SSL certificate fingerprints.
--   **GeoIP**: Resolves IP to Country/ASN using local MMDB.
+    -   **Content Injection**: Detects modification of page content.
+-   **GeoIP**: Offline resolution of IP to Country/ASN using local MMDB (MaxMind).
 
-### 5. Output & Adapters (`adapters.py`)
--   **Universal Conversion**: The `adapters` module handles serialization to various client formats.
-    -   **Open**: Clash, Sing-box, SIP008.
-    -   **Proprietary**: Surge, Loon, Quantumult X.
--   **Artifacts**: All outputs are saved to `output/` for easy hosting via GitHub Pages or Nginx.
+### 5. Output & Adapters (`output.py` & `adapters.py`)
+-   **Universal Conversion**: Handles serialization to various client formats.
+    -   **Open**: Clash, Sing-box, Base64.
+-   **Ranked Outputs**: Generates "Chosen Top 1000" subsets based on latency and reliability.
+-   **Artifacts**: All outputs are saved to `output/` for static hosting.
 
 ## Frontend (PWA)
 
-The frontend is a Progressive Web App (PWA) built with vanilla JavaScript (ES6+).
--   **No Build Step**: Uses native modules for simplicity.
+The frontend is a static Progressive Web App (PWA) built with vanilla JavaScript.
+-   **Static Hosting**: Designed to be served from GitHub Pages (via `output/` artifacts).
 -   **Visualization**:
     -   **Charts**: Historical availability trends.
     -   **Map**: Interactive world map of proxy locations.
--   **Real-Time**: Connects to `/ws/feed` to show the pipeline progress live.
+-   **Data Source**: Consumes `proxies.json` and `metadata.json` directly from the static host.
 
 ## Data Persistence
 
--   **SQLite**: Used for long-term stats (`data/source_quality.db`, `data/anomaly.db`).
--   **File System**: Used for transient state and final artifacts. This simplifies deployment (no external DB required).
+-   **SQLite**: Used for intelligence stats (`data/source_quality.json`, `data/test_cache.json`).
+-   **File System**: Used for transient state and final artifacts.
 
 ## Security Model
 
 1.  **Input Sanitization**: All external data is treated as untrusted.
 2.  **Secret Scanning**: Pre-commit hooks (`gitleaks`) prevent leaking keys.
-3.  **Dependency Hardening**: Dependencies are pinned with hashes to prevent supply-chain attacks.
-4.  **Least Privilege**: Docker containers run as non-root.
+3.  **Dependency Hardening**: Dependencies are pinned in `pyproject.toml` and `requirements.txt`.
+4.  **Least Privilege**: GitHub Actions tokens have restricted scopes.
 
 ## Future Roadmap
 
 -   [ ] Reinforcement Learning for scheduler tuning.
--   [ ] Rust rewrites for hot-path parsers (`PyO3`).
+-   [ ] Rust rewrites for hot-path parsers.
 -   [ ] Distributed workers for massive scale.
