@@ -96,7 +96,7 @@ configstream = "configstream.cli:main"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-v --strict-markers -p no:warnings"
-asyncio_mode = "auto"
+# Removed asyncio_mode = "auto" to prevent implicit loop creation conflicts
 markers = [
     "e2e: End to End tests",
     "slow: Slow tests",
