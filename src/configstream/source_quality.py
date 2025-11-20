@@ -1,6 +1,6 @@
 """
 Source Quality Tracker.
-Grades sources based on historical yield and validity rates.
+Grades sources based on historical yield, validity rates, and diversity.
 Automatically manages cooldowns for failing sources.
 """
 
@@ -9,6 +9,8 @@ import logging
 import math
 from pathlib import Path
 from datetime import datetime, timedelta
+from typing import List, Dict
+from .models import Proxy
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
     consecutive_failures INTEGER DEFAULT 0,
     last_checked INTEGER DEFAULT 0,
     reliability_score REAL DEFAULT 100.0,
+    diversity_score REAL DEFAULT 0.0,
     status TEXT DEFAULT 'active'
 )
 """
@@ -74,9 +77,10 @@ CREATE TABLE IF NOT EXISTS source_stats (
 
                 if datetime.now() < next_allowed:
                     # Log only periodically to reduce noise
-                    logger.debug(
-                        f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})"
-                    )
+                    if failures > 2:
+                        logger.debug(
+                            f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})"
+                        )
                     return False
 
                 return True
@@ -85,7 +89,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
             logger.warning(f"Error checking source quality for {url}: {e}")
             return True  # Fail open
 
-    def update(self, url: str, fetched_count: int, working_count: int):
+    def update(self, url: str, fetched_count: int, working_count: int, diversity_score: float = 0.0):
         """
         Update the stats for a source after a pipeline run.
 
@@ -93,6 +97,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
             url: The source URL
             fetched_count: How many valid config lines were parsed
             working_count: How many proxies actually passed the tests
+            diversity_score: A score (0-1) indicating geo-diversity (Gini index or unique countries)
         """
         now = int(datetime.now().timestamp())
         # We consider it a failure if we fetched content but NOTHING worked
@@ -114,29 +119,34 @@ CREATE TABLE IF NOT EXISTS source_stats (
                     new_cf = cf + 1 if is_failure else 0
 
                     # Calculate Score: Simple percentage
-                    score = (new_tw / new_tf * 100) if new_tf > 0 else 0.0
+                    yield_score = (new_tw / new_tf * 100) if new_tf > 0 else 0.0
+
+                    # Weighted final score (70% yield, 30% diversity)
+                    final_reliability = (yield_score * 0.7) + (diversity_score * 100 * 0.3)
 
                     conn.execute(
                         """
                         UPDATE source_stats
                         SET total_fetched=?, total_working=?, consecutive_failures=?,
-                        last_checked=?, reliability_score=?
+                        last_checked=?, reliability_score=?, diversity_score=?
                         WHERE url=?
                         """,
-                        (new_tf, new_tw, new_cf, now, score, url),
+                        (new_tf, new_tw, new_cf, now, final_reliability, diversity_score, url),
                     )
                 else:
                     # First time seeing this source
-                    score = (
+                    yield_score = (
                         (working_count / fetched_count * 100)
                         if fetched_count > 0
                         else 0.0
                     )
+                    final_reliability = (yield_score * 0.7) + (diversity_score * 100 * 0.3)
+
                     conn.execute(
                         """
                         INSERT INTO source_stats
-                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score, diversity_score)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             url,
@@ -144,7 +154,8 @@ CREATE TABLE IF NOT EXISTS source_stats (
                             working_count,
                             1 if is_failure else 0,
                             now,
-                            score,
+                            final_reliability,
+                            diversity_score
                         ),
                     )
 
@@ -162,3 +173,26 @@ CREATE TABLE IF NOT EXISTS source_stats (
                 return row[0] if row else 50.0  # Default to neutral
         except Exception:
             return 50.0
+
+def calculate_diversity_score(proxies: List[Proxy]) -> float:
+    """
+    Calculates a Gini-based diversity score for a list of proxies based on country.
+    Score ranges from 0.0 (all same country) to 1.0 (perfectly distributed).
+    """
+    if not proxies:
+        return 0.0
+
+    counts: Dict[str, int] = {}
+    total = len(proxies)
+    for p in proxies:
+        cc = p.country_code or "XX"
+        counts[cc] = counts.get(cc, 0) + 1
+
+    # Simple Diversity Index: 1 - sum((count/total)^2)
+    # This is Simpson's Diversity Index (1 - D)
+    # Max value approaches 1 with many countries evenly distributed.
+
+    sum_sq_probs = sum((c / total) ** 2 for c in counts.values())
+    diversity_index = 1.0 - sum_sq_probs
+
+    return diversity_index

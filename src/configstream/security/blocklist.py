@@ -1,12 +1,13 @@
 """
-IP Blocklist Manager.
+IP Blocklist Manager and Honey Pot Detection.
 Downloads and enforces IP reputation checks using FireHol Level 1.
+Also detects potential honey pots based on traffic patterns.
 """
 
 import logging
 import ipaddress
 from pathlib import Path
-from typing import Set
+from typing import Set, List, Dict
 
 import httpx
 import aiofiles
@@ -17,6 +18,9 @@ logger = logging.getLogger(__name__)
 BLOCKLIST_URL = "https://raw.githubusercontent.com/firehol/blocklist-ipsets/master/firehol_level1.netset"
 CACHE_FILE = Path("data/firehol_level1.netset")
 
+# Known Honey Pot Indicators (Simplified)
+HONEYPOT_PORTS = {2222, 23, 2323}  # Telnet/SSH traps usually
+HONEYPOT_ASNS = {"AS12345"} # Placeholder for known research scanner ASNs if needed
 
 class BlocklistManager:
     _instance = None
@@ -88,13 +92,23 @@ class BlocklistManager:
         try:
             addr = ipaddress.ip_address(ip)
             # Linear search is slow for massive lists, but FireHol Level 1 is usually < 5000 aggregated CIDRs.
-            # For zero-budget/python-only, this is acceptable.
-            # Optimization: Interval Tree or Trie could be used for Phase 5.
             for net in self.blocked_networks:
                 if addr in net:
                     return True
         except ValueError:
             pass  # Invalid IP or Domain
+
+        return False
+
+    def is_honeypot(self, ip: str, port: int, asn: str = "") -> bool:
+        """
+        Detects potential honey pots using heuristics.
+        """
+        if port in HONEYPOT_PORTS:
+            return True
+
+        if asn in HONEYPOT_ASNS:
+            return True
 
         return False
 
