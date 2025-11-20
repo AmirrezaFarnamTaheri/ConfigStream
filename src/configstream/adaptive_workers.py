@@ -5,12 +5,12 @@ Determines optimal worker count based on CPU cores and memory.
 
 import logging
 import multiprocessing
-from typing import Any
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 
 # Try to import psutil, handle failure gracefully
-psutil: Any
+psutil: Optional[Any]
 try:
     import psutil
 except ImportError:

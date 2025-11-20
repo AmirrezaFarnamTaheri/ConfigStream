@@ -17,6 +17,7 @@ from contextlib import contextmanager
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
+
 try:
     from singbox2proxy import SingBoxProxy as singbox_factory
 except ImportError:
