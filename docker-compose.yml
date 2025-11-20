@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  # 1. Web Dashboard (Always Running)
+  web:
+    build: .
+    container_name: configstream_web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./output:/app/output # Read results
+      - ./frontend:/app/frontend # Dev mode: hot reload frontend changes
+    environment:
+      - OUTPUT_DIR=/app/output
+    networks:
+      - confignet
+
+  # 2. Aggregator Worker (Runs Interval Loop)
+  worker:
+    image: configstream_web:latest # Reuses the image built above
+    container_name: configstream_worker
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data # Persist GeoIP/Cache DBs
+      - ./output:/app/output # Write results
+      - ./sources:/app/sources # Read sources
+    # Simple shell loop to run pipeline every 6 hours
+    command: >
+      sh -c "
+      echo 'Downloading GeoIP databases (Zero Budget Mirror)...';
+      curl -L -o data/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-City.mmdb;
+      curl -L -o data/GeoLite2-ASN.mmdb https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-ASN.mmdb;
+
+      while true; do
+        echo '🚀 Starting ConfigStream Pipeline...';
+        configstream merge --sources sources/batch_1.txt --output output/ --max-workers 30 --timeout 12 --strict;
+        echo '✅ Run Complete. Sleeping for 6 hours...';
+        sleep 21600;
+      done"
+    networks:
+      - confignet
+
+networks:
+  confignet:
+    driver: bridge

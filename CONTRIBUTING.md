@@ -1,65 +1,83 @@
 # Contributing to ConfigStream
 
-First off, thank you for considering contributing to ConfigStream! It's people like you that make ConfigStream such a great tool.
+First off, thanks for taking the time to contribute! 🎉
 
-## Where do I go from here?
+ConfigStream is a community-driven project, and we value your input. Whether you're fixing a bug, improving documentation, or adding a new feature, your help is appreciated.
 
-If you've noticed a bug or have a feature request, make sure to check out the [issues section](https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues) and see if someone else has already created a ticket. If not, feel free to create a new one!
+## How to Contribute
 
-## Fork & create a branch
+### 1. Reporting Bugs
+If you find a bug, please open an issue on GitHub. Include:
+-   Steps to reproduce.
+-   Expected behavior vs. actual behavior.
+-   Logs or screenshots if applicable.
 
-If you're ready to contribute, you can fork the repository and create a new branch.
+### 2. Suggesting Features
+Have an idea? Open a "Feature Request" issue. Describe the problem you're solving and your proposed solution.
 
-```bash
-git clone https://github.com/YOUR_USERNAME/ConfigStream.git
-cd ConfigStream
-git checkout -b feature/my-new-feature
-```
+### 3. Submitting Code
 
-## Get the code running
+1.  **Fork the repository** and create your branch from `main`.
+2.  **Install dependencies**:
+    ```bash
+    pip install -e ".[dev]"
+    ```
+3.  **Make your changes**. Ensure you follow the coding style (we use `black` and `flake8`).
+4.  **Run tests**:
+    ```bash
+    pytest
+    ```
+5.  **Verify types**:
+    ```bash
+    mypy .
+    ```
+6.  **Commit your changes**. Please use descriptive commit messages.
+7.  **Push to your fork** and submit a Pull Request.
 
-To get the code running, you'll need to install the dependencies.
+## Roadmap & Needed Contributions
 
-```bash
-pip install -e .[dev]
-```
+Looking for a place to start? Here are some areas where we could use your help:
 
-## Make your changes
+### 🧠 Intelligence & Logic
+-   **Reinforcement Learning**: Implement RL for the `SmartRetestScheduler` to dynamically optimize testing intervals based on network conditions.
+-   **Advanced Anomaly Detection**: Improve the `AnomalyDetector` with more sophisticated statistical models (e.g., Isolation Forests) to catch subtle poisoning attacks.
+-   **Source Scoring**: Refine the `SourceQualityTracker` algorithm to weigh sources by geo-diversity and protocol variety, not just uptime.
 
-Make your changes to the code, and make sure to add tests for your changes.
+### 🔌 Protocols & Ecosystem
+-   **New Protocols**: Add support for **SSH Tunnels**, **TUIC v5**, **Juicity**, or **Hysteria 1**.
+-   **Client Adapters**: Create adapters for **Surge**, **Quantumult X**, and **Loon** configuration formats.
+-   **Direct Integrations**: Build plugins or webhooks to push configs directly to Telegram, Discord, or Ntfy.
 
-## Run the tests
+### 💻 Frontend & Dashboard
+-   **Real-Time Updates**: Implement WebSockets (using FastAPI) to push live testing results to the dashboard without refreshing.
+-   **Advanced Visualizations**: Add historical uptime charts, latency heatmaps (latency vs time of day), and world map visualizations.
+-   **Localization (i18n)**: Translate the dashboard into Chinese, Russian, Farsi, and other languages.
+-   **PWA Support**: Turn the dashboard into a Progressive Web App for mobile installability.
 
-To run the tests, you can use the following command:
+### 🛡️ Security & Hardening
+-   **Active Probing**: Implement active MITM detection techniques (e.g., comparing certificate fingerprints against a trusted DoH source).
+-   **Fingerprint Evasion**: Improve `singbox2proxy` configs to better mimic realistic browser traffic (uTLS randomization).
+-   **Container Hardening**: Further lock down the Docker image (e.g., running as non-root, read-only filesystem).
 
-```bash
-pytest
-```
+### ⚙️ DevOps & Performance
+-   **Kubernetes Support**: Create a Helm chart for scalable deployment on K8s clusters.
+-   **Performance Tuning**: Optimize the Python `asyncio` loop or rewrite hot paths (like parsing) in Rust (via PyO3) for extreme speed.
+-   **Multi-Arch Builds**: Ensure Docker images build and test correctly on ARM64 (Raspberry Pi, Apple Silicon).
 
-## Commit your changes
+## Development Guidelines
 
-Once you're happy with your changes, you can commit them.
+-   **No Placeholders**: Avoid `TODO` or incomplete code in the `main` branch.
+-   **Testing**: Add unit tests for new logic. If you touch the parsers, run the fuzz tests.
+-   **Security**: Do not commit API keys or secrets. Use environment variables.
+-   **Documentation**: Update `README.md` or `ARCHITECTURE.md` if you change core functionality.
 
-```bash
-git commit -m "feat: my new feature"
-```
+## Project Structure
 
-## Push your changes
+-   `src/configstream/`: Core Python source code.
+-   `frontend/`: Web dashboard assets (HTML/CSS/JS).
+-   `tests/`: Unit and integration tests.
+-   `sources/`: Text files containing proxy source URLs.
 
-Push your changes to your fork.
+## License
 
-```bash
-git push origin feature/my-new-feature
-```
-
-## Create a pull request
-
-Once you've pushed your changes, you can create a pull request to the `main` branch of the `AmirrezaFarnamTaheri/ConfigStream` repository.
-
-## Get your pull request reviewed
-
-Once you've created a pull request, it will be reviewed by one of the maintainers. If there are any changes requested, you can make them and push them to your branch.
-
-## Get your pull request merged
-
-Once your pull request has been approved, it will be merged into the `main` branch. Congratulations, you've successfully contributed to ConfigStream!
+By contributing, you agree that your contributions will be licensed under its GPL-3.0 License.
