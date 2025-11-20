@@ -1,48 +1,45 @@
 """
-Serialization helpers for deterministic and atomic JSON outputs.
+Serialization Helpers.
+Converts Proxy objects to dictionary/JSON-safe formats.
 """
 
-from __future__ import annotations
-
-import json
-import logging
-import tempfile
-import os
-from pathlib import Path
-from typing import Any
-
-logger = logging.getLogger(__name__)
+from typing import Dict, Any
+from .models import Proxy
 
 try:
-    import orjson
+    import orjson as json_lib
 except ImportError:
-    orjson = None
+    import json as json_lib  # type: ignore
 
-def dumps(data: Any) -> str:
-    """Fast JSON serialization."""
-    if orjson:
-        return orjson.dumps(
-            data,
-            option=orjson.OPT_INDENT_2 | orjson.OPT_SORT_KEYS | orjson.OPT_NON_STR_KEYS
-        ).decode("utf-8")
+def serialize_proxy(proxy: Proxy) -> Dict[str, Any]:
+    """
+    Convert Proxy object to dict.
+    """
+    return {
+        "protocol": proxy.protocol,
+        "address": proxy.address,
+        "port": proxy.port,
+        "country": proxy.country_code,
+        "latency": proxy.latency,
+        "is_working": proxy.is_working,
+        "last_checked": proxy.tested_at,
+        "source": proxy.details.get("_source"),
+        "security": proxy.security_issues,
+        # Exclude huge raw config to save space in summary, include only if needed
+        # "config": proxy.config
+    }
 
-    return json.dumps(data, indent=2, sort_keys=True, default=str)
-
-def dump_to_path(path: Path, data: Any) -> None:
-    """Atomic write to file."""
-    try:
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Write to temp file in same directory to ensure atomic move works
-        # (os.rename across filesystems fails)
-        tmp_path = path.with_suffix(path.suffix + ".tmp")
-
-        content = dumps(data)
-        tmp_path.write_text(content, encoding="utf-8")
-
-        # Atomic replacement
-        tmp_path.replace(path)
-
-    except Exception as e:
-        logger.error(f"Failed to write {path}: {e}")
+def to_json(data: Any) -> str:
+    """
+    Dump to JSON string.
+    """
+    if hasattr(json_lib, "dumps"):
+        # Standard json or compatible
+        val = json_lib.dumps(data)
+        if isinstance(val, bytes):
+            return val.decode("utf-8")
+        return val
+    else:
+        # Fallback
+        import json
+        return json.dumps(data, indent=2, default=str)

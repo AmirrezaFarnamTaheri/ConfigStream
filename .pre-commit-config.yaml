@@ -17,3 +17,11 @@ repos:
         language: system
         pass_filenames: false
 
+# NEW: Secret Scanning
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.1
+    hooks:
+      - id: gitleaks
+        name: Detect Secrets
+        description: "Detect hardcoded secrets like passwords, API keys, and tokens."
+        entry: gitleaks detect --source . --verbose --redact
