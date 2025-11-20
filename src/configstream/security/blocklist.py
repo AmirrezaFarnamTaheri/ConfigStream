@@ -7,7 +7,7 @@ Also detects potential honey pots based on traffic patterns.
 import logging
 import ipaddress
 from pathlib import Path
-from typing import Set, List, Dict
+from typing import Set
 
 import httpx
 import aiofiles
@@ -20,7 +20,8 @@ CACHE_FILE = Path("data/firehol_level1.netset")
 
 # Known Honey Pot Indicators (Simplified)
 HONEYPOT_PORTS = {2222, 23, 2323}  # Telnet/SSH traps usually
-HONEYPOT_ASNS = {"AS12345"} # Placeholder for known research scanner ASNs if needed
+HONEYPOT_ASNS = {"AS12345"}  # Placeholder for known research scanner ASNs if needed
+
 
 class BlocklistManager:
     _instance = None

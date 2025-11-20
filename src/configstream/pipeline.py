@@ -106,7 +106,9 @@ async def run_full_pipeline(
 
     # Initialize Event Stream
     event_stream = EventStream(output_path)
-    event_stream.emit("pipeline_start", f"Pipeline started with {len(sources)} sources.")
+    event_stream.emit(
+        "pipeline_start", f"Pipeline started with {len(sources)} sources."
+    )
 
     # Initialize Blocklist
     asyncio.create_task(DEFAULT_BLOCKLIST.update())
@@ -201,13 +203,19 @@ async def run_full_pipeline(
                                 if lines:
                                     # Record the "Fetch" event. We update "Working" later.
                                     anomaly_detector.record(source, count)
-                                    event_stream.emit("fetch_success", f"Fetched {count} proxies from {source}")
+                                    event_stream.emit(
+                                        "fetch_success",
+                                        f"Fetched {count} proxies from {source}",
+                                    )
                                     # Note: We pass the source URL along with the lines now
                                     # so the consumer knows where they came from
                                     await work_queue.put((source, lines))
                             else:
                                 logger.warning(f"⚠️ BLOCKING {source}: {reason}")
-                                event_stream.emit("fetch_blocked", f"Blocked source {source}: {reason}")
+                                event_stream.emit(
+                                    "fetch_blocked",
+                                    f"Blocked source {source}: {reason}",
+                                )
 
                         # Note: If fetch failed, fetcher logs it.
                         # Quality tracker will penalize implicitly if we don't report success later.
@@ -239,7 +247,9 @@ async def run_full_pipeline(
             source, raw_lines = item
             # Ignore type checking for stats increment as we defined it as Union[int, float]
             stats["fetched_sources"] = int(stats["fetched_sources"]) + 1  # type: ignore
-            stats["fetched_lines"] = int(stats["fetched_lines"]) + len(raw_lines)  # type: ignore
+            stats["fetched_lines"] = int(stats["fetched_lines"]) + len(
+                raw_lines
+            )  # type: ignore
 
             # --- Parsing ---
             # Batch parse is faster
@@ -312,7 +322,10 @@ async def run_full_pipeline(
                         async with sem:
                             res = await tester.test(p)
                             if res.is_working:
-                                event_stream.emit("test_success", f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)")
+                                event_stream.emit(
+                                    "test_success",
+                                    f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
+                                )
                             return res
 
                     # Chunk the tests to allow progress updates
@@ -395,7 +408,9 @@ async def run_full_pipeline(
             diversity_score = calculate_diversity_score(final_batch_for_this_source)
 
             # Update Quality Tracker
-            quality_tracker.update(source, fetched_count, working_count, diversity_score)
+            quality_tracker.update(
+                source, fetched_count, working_count, diversity_score
+            )
 
             work_queue.task_done()
 
@@ -419,7 +434,10 @@ async def run_full_pipeline(
 
     # Generate Outputs
     logger.info(f"Generating outputs for {len(optimized_proxies)} proxies...")
-    event_stream.emit("pipeline_finish", f"Pipeline finished. Generated {len(optimized_proxies)} proxies.")
+    event_stream.emit(
+        "pipeline_finish",
+        f"Pipeline finished. Generated {len(optimized_proxies)} proxies.",
+    )
 
     # Ensure stats duration is set before metadata generation
     duration = (datetime.now(timezone.utc) - start_time).total_seconds()

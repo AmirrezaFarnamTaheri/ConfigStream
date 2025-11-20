@@ -9,7 +9,9 @@ from configstream.models import Proxy
 
 
 import nest_asyncio
+
 nest_asyncio.apply()
+
 
 @pytest.mark.skip(reason="Complex interaction with pytest-asyncio event loop")
 @pytest.mark.asyncio

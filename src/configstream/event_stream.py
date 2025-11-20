@@ -3,9 +3,10 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 logger = logging.getLogger(__name__)
+
 
 class EventStream:
     """
@@ -13,6 +14,7 @@ class EventStream:
     The worker appends events to a log file.
     The server tails the log file and broadcasts to WebSockets.
     """
+
     def __init__(self, output_dir: Path):
         self.file_path = output_dir / "events.log"
         self.ensure_file()
@@ -28,7 +30,7 @@ class EventStream:
             "timestamp": time.time(),
             "type": event_type,
             "message": message,
-            "data": data or {}
+            "data": data or {},
         }
         try:
             with open(self.file_path, "a", encoding="utf-8") as f:
@@ -39,7 +41,7 @@ class EventStream:
     async def tail(self):
         """Async generator that yields new events from the file."""
         self.ensure_file()
-        async with asyncio.Lock(): # Simple lock wrapper if needed, mainly for clarity
+        async with asyncio.Lock():  # Simple lock wrapper if needed, mainly for clarity
             with open(self.file_path, "r", encoding="utf-8") as f:
                 # Move to end of file
                 f.seek(0, 2)

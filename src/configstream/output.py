@@ -7,7 +7,7 @@ import json
 import base64
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from datetime import datetime, timezone
 
 # Fix imports
@@ -71,13 +71,15 @@ def generate_categorized_outputs(
     return files
 
 
-def save_json(proxies: List[Proxy], path: Path):
+def save_json(proxies: List[Proxy], path: Path) -> None:
     """Save list of proxies to JSON file."""
     data = [serialize_proxy(p) for p in proxies]
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def save_metadata(stats: Dict[str, Any], proxies: List[Proxy], output_dir: Path):
+def save_metadata(
+    stats: Dict[str, Union[int, float]], proxies: List[Proxy], output_dir: Path
+) -> None:
     """
     Save metadata.json with statistics for the frontend.
     """
@@ -92,12 +94,17 @@ def save_metadata(stats: Dict[str, Any], proxies: List[Proxy], output_dir: Path)
         cc = (p.country_code or "UNK").upper()
         countries[cc] = countries.get(cc, 0) + 1
 
+    # Type-safe conversion
+    total_working = int(stats.get("working", 0))
+    fetched_lines = int(stats.get("fetched_lines", 0))
+    duration = float(stats.get("duration", 0.0))
+
     metadata = {
         "last_updated_utc": datetime.now(timezone.utc).isoformat(),
         "total_proxies": len(proxies),
-        "total_working": stats.get("working", 0),
-        "total_fetched": stats.get("fetched_lines", 0),
-        "duration_seconds": stats.get("duration", 0),
+        "total_working": total_working,
+        "total_fetched": fetched_lines,
+        "duration_seconds": duration,
         "protocols": protocols,
         "countries": countries,
         # Protocol colors for frontend
@@ -160,7 +167,9 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
         "rules": ["MATCH,🚀 ConfigStream Auto"],
     }
 
-    return yaml_lib.dump(payload, allow_unicode=True, sort_keys=False)
+    # Ensure return is always a string
+    result = yaml_lib.dump(payload, allow_unicode=True, sort_keys=False)
+    return str(result) if result else ""
 
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
