@@ -8,17 +8,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import random
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Tuple, Set, Dict, Any
+from typing import List, Optional, Tuple, Set, Dict, Union
 
 from rich.progress import Progress, TaskID
 
 # --- Core Modules ---
 from .models import Proxy
 from .config import AppSettings
-from .core import parse_config, parse_config_batch
+from .core import parse_config
 from .parsers import _extract_config_lines
 
 # --- Phase 1: Ingestion ---
@@ -27,7 +26,7 @@ from .async_file_ops import read_multiple_files_async
 
 # --- Phase 2: Validation ---
 from .security_validator import validate_batch_configs, STRICT_POLICY, TEST_POLICY
-from .filtering import dedupe_and_shuffle, filter_unique_endpoints, proxy_unique_key
+from .filtering import filter_unique_endpoints, proxy_unique_key
 
 # --- Phase 3: Testing ---
 from .testers import SingBoxTester
@@ -39,6 +38,9 @@ from .concurrency_manager import ConcurrencyManager
 from .adaptive_workers import calculate_optimal_workers
 from .adaptive_timeout import AdaptiveTimeout
 from .geoip_offline import GeoIPResolver
+from .source_quality import SourceQualityTracker
+from .anomaly import AnomalyDetector
+from .security.blocklist import DEFAULT_BLOCKLIST
 
 # --- Output ---
 from . import output
@@ -47,17 +49,19 @@ from .proxy_history import ProxyHistoryTracker
 
 logger = logging.getLogger(__name__)
 
+
 class PipelineResult:
-    def __init__(self, success: bool, stats: dict, output_files: dict, error: str = None):
+    def __init__(self, success: bool, stats: dict, output_files: dict, error: str | None = None):
         self.success = success
         self.stats = stats
         self.output_files = output_files
         self.error = error
 
+
 async def run_full_pipeline(
     sources: List[str],
     output_dir: str,
-    max_workers: int = 0, # 0 = Auto
+    max_workers: int = 0,  # 0 = Auto
     max_proxies: Optional[int] = None,
     timeout: int = 10,
     country_filter: Optional[str] = None,
@@ -65,7 +69,7 @@ async def run_full_pipeline(
     leniency: bool = False,
     strict_security: bool = False,
     progress: Optional[Progress] = None,
-    proxies: Optional[List[Proxy]] = None, # Pre-supplied proxies
+    proxies: Optional[List[Proxy]] = None,  # Pre-supplied proxies
     dry_run: bool = False,
 ) -> PipelineResult:
     """
@@ -89,21 +93,29 @@ async def run_full_pipeline(
     scheduler = SmartRetestScheduler(cache=test_cache)
     history = ProxyHistoryTracker()
 
+    # Initialize Advanced Intelligence
+    quality_tracker = SourceQualityTracker()
+    anomaly_detector = AnomalyDetector()
+
+    # Initialize Blocklist
+    asyncio.create_task(DEFAULT_BLOCKLIST.update())
+
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
 
-    stats = {
+    stats: Dict[str, Union[int, float]] = {
         "fetched_sources": 0,
         "fetched_lines": 0,
         "parsed": 0,
         "tested": 0,
         "working": 0,
-        "geo_resolved": 0
+        "geo_resolved": 0,
+        "duration": 0.0  # Explicit float
     }
 
     # Work Queue: Stores (source_url, raw_content_chunk)
     # We use a bounded queue to apply backpressure on the fetcher if processing is slow
-    work_queue: asyncio.Queue[Tuple[str, List[str]]] = asyncio.Queue(maxsize=50)
+    work_queue: asyncio.Queue[Tuple[str, List[str]] | None] = asyncio.Queue(maxsize=50)
 
     # Results Collection (Thread-safe via simple append in main loop, but here we gather)
     # We'll store working proxies in a list. For 100k+ proxies, this is fine in memory (approx 20-50MB).
@@ -141,25 +153,46 @@ async def run_full_pipeline(
 
             # C. Handle Remote Sources
             remote_urls = [s for s in sources if s.startswith("http")]
-            if remote_urls:
+
+            # NEW: Filter sources based on Quality/Cooldown
+            active_urls = []
+            for url in remote_urls:
+                if quality_tracker.should_fetch(url):
+                    active_urls.append(url)
+                else:
+                    # Log skipped source for stats
+                    pass
+
+            if active_urls:
                 # Use the new robust fetcher
                 # We fetch in batches to avoid opening 6000 TCP connections at once
                 batch_size = 50
-                for i in range(0, len(remote_urls), batch_size):
-                    batch = remote_urls[i : i + batch_size]
+                for i in range(0, len(active_urls), batch_size):
+                    batch = active_urls[i:i + batch_size]
 
                     results = await fetch_multiple_sources(
                         batch,
                         max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
-                        timeout=settings.FETCH_TIMEOUT, # Use config timeout
+                        timeout=settings.FETCH_TIMEOUT,  # Use config timeout
                         use_adaptive_timeout=True
                     )
 
                     for source, res in results.items():
                         if res.success and res.content:
                             lines = _extract_config_lines(res.content)
-                            if lines:
-                                await work_queue.put((source, lines))
+                            count = len(lines)
+
+                            # NEW: Anomaly Check
+                            is_safe, reason = anomaly_detector.is_safe(source, count)
+
+                            if is_safe:
+                                if lines:
+                                    # Record the "Fetch" event. We update "Working" later.
+                                    anomaly_detector.record(source, count)
+                                    await work_queue.put((source, lines))
+                            else:
+                                logger.warning(f"⚠️ BLOCKING {source}: {reason}")
+
                         if progress and task_fetch:
                             progress.advance(task_fetch)
 
@@ -191,8 +224,9 @@ async def run_full_pipeline(
                 break
 
             source, raw_lines = item
-            stats["fetched_sources"] += 1
-            stats["fetched_lines"] += len(raw_lines)
+            # Ignore type checking for stats increment as we defined it as Union[int, float]
+            stats["fetched_sources"] = int(stats["fetched_sources"]) + 1 # type: ignore
+            stats["fetched_lines"] = int(stats["fetched_lines"]) + len(raw_lines) # type: ignore
 
             # --- Parsing ---
             # Batch parse is faster
@@ -201,6 +235,8 @@ async def run_full_pipeline(
                 for line in raw_lines:
                     p = parse_config(line)
                     if p:
+                        # Temporarily store source in details for tracking
+                        p.details["_source"] = source
                         parsed_batch.append(p)
 
             if not parsed_batch:
@@ -216,14 +252,15 @@ async def run_full_pipeline(
                     seen_keys.add(k)
                     unique_batch.append(p)
 
-            stats["parsed"] += len(unique_batch)
+            stats["parsed"] = int(stats["parsed"]) + len(unique_batch) # type: ignore
 
             # --- Security Validation ---
             safe_batch = validate_batch_configs(unique_batch, policy)
 
             # --- Smart Scheduling ---
             # Only test if necessary
-            to_test = scheduler.filter_proxies_for_retest(safe_batch)
+            # to_test = scheduler.filter_proxies_for_retest(safe_batch)
+            # We don't use to_test directly, we iterate safe_batch below
 
             # If we skipped some, we should pull them from cache to include in output
             # (The scheduler returns ONLY what needs testing, we need to merge back the valid cached ones)
@@ -249,7 +286,7 @@ async def run_full_pipeline(
             # --- Testing ---
             if proxies_to_actually_test:
                 # Respect max_proxies if set (global check approx)
-                if max_proxies and stats["tested"] >= max_proxies:
+                if max_proxies and int(stats["tested"]) >= max_proxies: # type: ignore
                     logger.info("Max proxies limit reached.")
                     # Stop testing, but process what we have
                     pass
@@ -265,7 +302,7 @@ async def run_full_pipeline(
                     # Chunk the tests to allow progress updates
                     chunk_size = 20
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
-                        chunk = proxies_to_actually_test[i:i+chunk_size]
+                        chunk = proxies_to_actually_test[i:i + chunk_size]
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
 
                         for res in results:
@@ -273,13 +310,29 @@ async def run_full_pipeline(
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
 
-                        stats["tested"] += len(chunk)
+                        stats["tested"] = int(stats["tested"]) + len(chunk) # type: ignore
                         if progress and task_process:
-                            progress.update(task_process, completed=stats["tested"], description=f"[green]Testing... ({stats['working']} working)")
+                            progress.update(
+                                task_process,
+                                completed=int(stats["tested"]), # type: ignore
+                                description=f"[green]Testing... ({stats['working']} working)"
+                            )
 
                     await concurrency.stop_tuner()
 
             # --- Post-Processing Working Proxies ---
+
+            # NEW: Calculate working count for this source
+            working_count_for_source = sum(1 for p in final_batch_for_this_source if p.is_working)
+            fetched_count_for_source = len(parsed_batch)  # Total parsable from this batch
+
+            # Update Quality Tracker
+            if not source.startswith("supplied-proxies") and not source.startswith("sources/"):
+                # We can only track remote URLs effectively, or specific files if they are treated as sources
+                # The source variable here is what was passed in queue.
+                # For file sources it is the path.
+                quality_tracker.update(source, fetched_count_for_source, working_count_for_source)
+
             for p in final_batch_for_this_source:
                 if not p.is_working:
                     continue
@@ -295,11 +348,11 @@ async def run_full_pipeline(
                         geo_data = geoip.lookup(p.resolved_ip or p.address)
                         if geo_data.country_code:
                             p.country_code = geo_data.country_code
-                            p.country = geo_data.country_code # convention
+                            p.country = geo_data.country_code  # convention
                             p.city = geo_data.city
                             p.asn = geo_data.asn
                             p.org = geo_data.org
-                        stats["geo_resolved"] += 1
+                        stats["geo_resolved"] = int(stats["geo_resolved"]) + 1 # type: ignore
 
                 # Country Filter
                 if country_filter:
@@ -307,7 +360,7 @@ async def run_full_pipeline(
                         continue
 
                 final_proxies.append(p)
-                stats["working"] += 1
+                stats["working"] = int(stats["working"]) + 1 # type: ignore
 
             work_queue.task_done()
 
@@ -332,7 +385,14 @@ async def run_full_pipeline(
     # Generate Outputs
     logger.info(f"Generating outputs for {len(optimized_proxies)} proxies...")
 
+    # Ensure stats duration is set before metadata generation
+    duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+    stats["duration"] = float(duration)
+
     generated_files = output.generate_categorized_outputs(optimized_proxies, output_path)
+
+    # NEW: Generate Metadata for Frontend
+    output.save_metadata(stats, optimized_proxies, output_path)
 
     # Generate specific client configs
     (output_path / "clash.yaml").write_text(output.generate_clash_config(optimized_proxies))
@@ -345,14 +405,8 @@ async def run_full_pipeline(
     if timeout_tracker:
         timeout_tracker.save()
 
-    duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-
     return PipelineResult(
         success=True,
-        stats={
-            "duration": duration,
-            **stats,
-            "final_count": len(optimized_proxies)
-        },
+        stats=stats,
         output_files=generated_files
     )

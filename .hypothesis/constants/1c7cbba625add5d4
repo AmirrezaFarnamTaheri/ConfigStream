@@ -1,0 +1,4 @@
+# file: /app/src/configstream/security_validator.py
+# hypothesis_version: 6.148.2
+
+['\x00', ', ', '.', '.test', '0x', ':([^@\\s]+)@', ':[MASKED]@', 'ADDRESS_PRIVATE', 'ADDRESS_SUSPICIOUS', 'CONFIG_NULL_BYTE', 'CONFIG_TOO_LONG', 'Empty URL', 'Empty address', 'Missing URL scheme', 'Missing domain', 'PORT_UNSAFE', 'PROTOCOL_UNKNOWN', 'Security issues: %s', '[BASE64]', '[UUID]', '^0[0-7]{1,11}\\.', '^0\\.', '^0\\.0\\.0\\.0$', '^10\\.', '^127\\.', '^169\\.254\\.', '^192\\.168\\.', '^255\\.255\\.255\\.255$', '^::1$', '^fc00:', '^fd00:', '^fe80:', '^localhost$', 'address_private_ip', 'address_suspicious', 'example.com', 'example.net', 'example.org', 'http', 'https', 'invalid', 'localhost', 'port_security', 'protocol_invalid']

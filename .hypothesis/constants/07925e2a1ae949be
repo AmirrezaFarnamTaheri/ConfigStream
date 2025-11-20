@@ -1,0 +1,4 @@
+# file: /app/src/configstream/adapters.py
+# hypothesis_version: 6.148.2
+
+['1', 'Host', 'aid', 'allowInsecure', 'alpn', 'alterId', 'alter_id', 'auto', 'bbr', 'chrome', 'cipher', 'client-fingerprint', 'down', 'down_mbps', 'enabled', 'fingerprint', 'flow', 'fp', 'grpc', 'grpc-opts', 'grpc-service-name', 'headers', 'host', 'httpupgrade', 'hysteria2', 'insecure', 'method', 'multiplex', 'name', 'net', 'network', 'obfs', 'obfs-password', 'padding', 'password', 'path', 'pbk', 'port', 'public-key', 'public_key', 'reality', 'reality-opts', 'salamander', 'scy', 'security', 'server', 'server_name', 'server_port', 'servername', 'serviceName', 'service_name', 'shadowsocks', 'short-id', 'short_id', 'sid', 'skip-cert-verify', 'sni', 'tag', 'tcp', 'tls', 'transport', 'trojan', 'true', 'tuic', 'type', 'udp', 'up', 'up_mbps', 'utls', 'uuid', 'vless', 'vmess', 'ws', 'ws-opts', 'xtls']

@@ -1,128 +1,107 @@
-# 🚀 ConfigStream Quick Start
+# Quick Start Guide ⚡
 
-Fast track guide to get ConfigStream running in 10 minutes.
+This guide will help you get ConfigStream up and running in minutes.
+
+## Prerequisites
+
+-   **Docker** & **Docker Compose** (Recommended for most users)
+-   **Python 3.11+** (Only if running manually)
+-   **Git**
 
 ---
 
-## ⚡ 3-Minute Setup
+## 🐳 Method 1: Docker (Production Ready)
 
+This is the standard deployment method. It isolates dependencies and ensures consistency.
+
+### 1. Clone the Repository
 ```bash
-# 1. Clone repository
-git clone https://github.com/YOUR_USERNAME/ConfigStream.git
+git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
 cd ConfigStream
+```
 
-# 2. Install dependencies
+### 2. Build and Run
+```bash
+docker compose up --build -d
+```
+*This command builds the image and starts two containers: `configstream_web` (dashboard) and `configstream_worker` (aggregator).*
+
+### 3. Access the Dashboard
+Open your browser and navigate to:
+**[http://localhost:8000](http://localhost:8000)**
+
+### 4. Monitor Logs
+To see the aggregation process in action:
+```bash
+docker compose logs -f worker
+```
+
+---
+
+## 🐍 Method 2: Manual Setup (Development)
+
+Use this if you are developing features or debugging.
+
+### 1. Setup Virtual Environment
+```bash
+python3 -11 -m venv venv
+source venv/bin/activate  # Linux/macOS
+# or 'venv\Scripts\activate' on Windows
+```
+
+### 2. Install Dependencies
+```bash
 pip install -e ".[dev]"
-
-# 3. Test locally
-configstream merge --sources sources.mini.txt --output output/
-
-# 4. Commit and push
-git add .
-git commit -m "Initial setup"
-git push origin main
 ```
+*This installs the project in editable mode with development tools.*
 
----
-
-## 🌐 Enable GitHub Pages
-
-1. Go to **Settings** → **Pages**
-2. Source: **Deploy from a branch**
-3. Branch: **gh-pages** / **(root)**
-4. Click **Save**
-
-Your site: `https://YOUR_USERNAME.github.io/ConfigStream/`
-
----
-
-## ⚙️ Enable Automation
-
-1. Go to **Settings** → **Actions** → **General**
-2. Enable: **Read and write permissions** for workflows.
-3. Go to the **Actions** tab in your repository.
-4. Find the **ConfigStream Pipeline** workflow and enable it if it's disabled.
-5. Manually run the workflow by clicking **Run workflow**.
-
-The workflow will now run automatically every 6 hours.
-
----
-
-## ✅ Verification
-
-After the workflow has completed, you can verify that the site is live:
-
+### 3. Initialize Data
+Download the required GeoIP databases (optional but recommended for flags):
 ```bash
-# Manually check the metadata URL
-curl https://YOUR_USERNAME.github.io/ConfigStream/metadata.json
+mkdir -p data
+# Manually place GeoLite2-City.mmdb and GeoLite2-ASN.mmdb in ./data/
+# Or rely on the pipeline to attempt a public mirror download.
 ```
 
----
-
-## 🎯 Common Commands
-
+### 4. Run the Aggregator (Worker)
+This command fetches proxies, tests them, and writes results to `output/`.
 ```bash
-# Update configs manually
-configstream merge --sources sources.txt --output output/
+configstream merge --sources sources/batch_1.txt --output output/ --max-workers 50 --timeout 10
+```
 
-# With filters
-configstream merge \
-  --sources sources.txt \
-  --output output/ \
-  --country US \
-  --max-latency 500 \
-  --leniency \
-  --strict-security
-
-# Update GeoIP databases
-configstream update-databases
-
-# Get help
-configstream --help
+### 5. Run the Web Server
+Start the API and serve the frontend:
+```bash
+uvicorn configstream.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ---
 
-## 📂 Directory Structure
+## ☁️ Cloud Deployment
 
+### Render.com
+1.  Fork this repository.
+2.  Create a new **Web Service** on Render.
+3.  Connect your repo.
+4.  Render will automatically detect `render.yaml` (Blueprints) or `Dockerfile`.
+5.  Set environment variable `OUTPUT_DIR` to `/var/data/output` and mount a persistent disk to `/var/data` if you want persistence.
+
+### Railway
+1.  Deploy from GitHub repo.
+2.  Railway will build using the `Dockerfile`.
+3.  Add a Volume for `/app/data` to persist intelligence databases.
+
+---
+
+## 🛠 CLI Tools
+
+ConfigStream comes with a CLI for utility tasks.
+
+**Generate Cloudflare WARP Configs:**
+```bash
+configstream generate-warp --count 3
 ```
-ConfigStream/
-├── frontend/               # All frontend assets
-│   ├── index.html          # Home page
-│   ├── proxies.html        # Proxy browser
-│   └── assets/             # CSS, JS, images
-├── output/                 # Generated configs
-├── sources/                # Proxy sources
-└── src/configstream/       # Python package
-```
+*Generates 3 WireGuard configurations compatible with WARP.*
 
----
-
-## 🐛 Quick Troubleshooting
-
-**Workflow fails?**
-→ Check Settings → Actions → Permissions
-
-**Pages not updating?**
-→ Clear cache (Ctrl+Shift+R)
-
-**No proxies?**
-→ Check sources.txt has valid URLs
-
-**Import errors?**
-→ Run `pip install -e .` again
-
----
-
-## 📚 Full Documentation
-
-- **DEPLOYMENT.md** - Complete deployment guide
-- **ARCHITECTURE.md** - System architecture
-- **CONTRIBUTING.md** - Contribution guidelines
-- **README.md** - Full project documentation
-
----
-
-**You're ready to go! 🎉**
-
-Your ConfigStream will now automatically update every 6 hours with fresh VPN configurations!
+**Update Blocklists:**
+(Happens automatically during pipeline run, but logic is in `src/configstream/security/blocklist.py`)

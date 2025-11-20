@@ -82,7 +82,7 @@ async function fetchMetadata() {
   }
 
   try {
-    const url = `output/metadata.json${getCacheBust()}`;
+    const url = `/api/stats${getCacheBust()}`;
     const response = await fetchWithRetry(url, 3, 1000);
     const data = await response.json();
 
@@ -128,7 +128,8 @@ function enrichProxyList(data, { fallback = false } = {}) {
 }
 
 async function fetchFallbackSnapshot() {
-  const fallbackUrl = `output/full/all.json${getCacheBust()}`;
+  // Fallback to static file if API fails
+  const fallbackUrl = `/files/proxies.json${getCacheBust()}`;
   console.warn('⚠️ Falling back to tested proxy snapshot');
   const response = await fetchWithRetry(fallbackUrl, 2, 1500);
   const payload = await response.json();
@@ -149,8 +150,8 @@ async function fetchProxies() {
   let enrichedProxies;
 
   try {
-    // First, try to fetch the primary, smaller file
-    const url = `output/proxies.json${getCacheBust()}`;
+    // First, try to fetch from API
+    const url = `/api/proxies${getCacheBust()}`;
     const response = await fetchWithRetry(url, 2, 500); // Shorter timeout for the primary
     const data = await response.json();
 
@@ -206,11 +207,32 @@ async function fetchStatistics() {
   }
 
   try {
-    const url = `output/statistics.json${getCacheBust()}`;
-    const response = await fetchWithRetry(url, 3, 1000);
-    const data = await response.json();
+    // Try API first
+    let url = `/api/stats${getCacheBust()}`;
+    try {
+        const response = await fetchWithRetry(url, 3, 1000);
+        const data = await response.json();
+        console.log('Fetched statistics data from API:', data);
 
-    console.log('Fetched statistics data:', data);
+        cache.statistics = {
+          data,
+          expiry: Date.now() + CACHE_CONFIG.statsExpiry
+        };
+        return data;
+    } catch (apiError) {
+        console.warn('API fetch failed, trying static fallback for stats:', apiError);
+        // Fallback to static file
+        url = `output/metadata.json${getCacheBust()}`;
+        const response = await fetchWithRetry(url, 3, 1000);
+        const data = await response.json();
+        console.log('Fetched statistics data from static:', data);
+
+        cache.statistics = {
+          data,
+          expiry: Date.now() + CACHE_CONFIG.statsExpiry
+        };
+        return data;
+    }
 
     cache.statistics = {
       data,
@@ -675,8 +697,15 @@ function exportJSON(data, filename = 'export.json') {
  * @returns {string} Full URL
  */
 function getFullUrl(file) {
-  const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
-  return base + file;
+  const base = window.location.origin;
+  // Ensure file starts with / or is relative to root
+  if (file.startsWith('http')) return file;
+  if (file.startsWith('/')) return base + file;
+  // If it points to 'output/', remap to 'files/' or 'subscribe/'
+  if (file.startsWith('output/')) {
+      return base + '/files/' + file.replace('output/', '');
+  }
+  return base + '/' + file;
 }
 
 /**
