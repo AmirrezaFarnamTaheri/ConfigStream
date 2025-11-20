@@ -1,30 +1,38 @@
 # ConfigStream 🌊
 
+[![CI Pipeline](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
+[![License](https://img.shields.io/github/license/AmirrezaFarnamTaheri/ConfigStream)](LICENSE)
+[![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+
 **ConfigStream** is a high-performance, intelligent, and self-hostable platform for aggregating, testing, and distributing free VPN/Proxy configurations. It transforms public proxy sources into a clean, secure, and auto-updating subscription stream for your favorite clients.
 
-![Dashboard Preview](frontend/assets/images/favicon.ico) <!-- Replace with actual screenshot if available -->
+![Dashboard Preview](frontend/assets/images/favicon.ico)
 
 ## 🚀 Features
 
--   **Massive Aggregation**: Fetches proxies from hundreds of public sources (text, JSON, Base64).
--   **Intelligent Testing**:
-    -   Validates connectivity and latency against global targets (e.g., Google, Cloudflare).
-    -   **Deep Inspection**: Detects header stripping, DNS hijacking, and MITM attempts.
-    -   **Smart Scheduling**: Uses exponential backoff for dead sources and adaptive re-testing for reliable proxies.
--   **Security First**:
-    -   **Blocklist Integration**: Automatically filters IPs against FireHol Level 1 (botnets, malware).
-    -   **Fuzz Testing**: Parsers are hardened against malformed and malicious inputs.
-    -   **Secret Scanning**: Prevents accidental leaks of API keys or private data.
--   **Multi-Protocol Support**:
-    -   V2Ray (VMess, VLESS)
-    -   Trojan
-    -   Shadowsocks
-    -   Hysteria 2
-    -   Tuic
-    -   WireGuard (including WARP generation)
--   **Universal Converter**: Built-in API to convert any subscription link to **Clash**, **Sing-box**, or **Base64** formats.
--   **Modern Dashboard**: A responsive, dark-mode web interface to browse, filter, and analyze proxy metrics in real-time.
--   **Dockerized**: One-click deployment with Docker Compose or Render/Railway.
+### 📡 Aggregation & Intelligence
+-   **Massive Aggregation**: Fetches proxies from hundreds of public sources (text, JSON, Base64) concurrently.
+-   **Smart Scoring**: Ranks sources by reliability, uniqueness, and geo-diversity using `SourceQualityTracker`.
+-   **Anomaly Detection**: `AnomalyDetector` flags suspicious data spikes and potential poisoning attacks.
+-   **Adaptive Scheduling**: Uses exponential backoff for dead sources and prioritized re-testing for reliable ones.
+
+### 🛡️ Security First
+-   **Deep Inspection**: Detects header stripping, DNS hijacking, and MITM attempts.
+-   **Honey Pot Detection**: Identifies and blocks proxies that redirect traffic to malicious sites.
+-   **Blocklist Integration**: Automatically filters IPs against FireHol Level 1 (botnets, malware).
+-   **Fuzz Testing**: Parsers are hardened against malformed inputs using `hypothesis`.
+
+### ⚡ Performance & Protocols
+-   **Multi-Protocol Support**: V2Ray (VMess, VLESS), Trojan, Shadowsocks, Hysteria 2, Tuic, and SSH.
+-   **Universal Converter**: Built-in API to convert subscriptions to **Clash**, **Sing-box**, **Surge**, **Loon**, and **Quantumult X**.
+-   **WARP Generation**: Built-in tool to generate optimized Cloudflare WARP configurations.
+
+### 🖥️ Modern Dashboard & PWA
+-   **Real-Time Feed**: Watch the aggregation pipeline in real-time via WebSocket.
+-   **Interactive Map**: Visualize proxy locations on a global map.
+-   **Historical Charts**: Track proxy availability trends over 24h/7d.
+-   **PWA Support**: Install the dashboard as a native-like app on mobile and desktop.
 
 ---
 
@@ -62,39 +70,28 @@ The built-in FastAPI server provides endpoints for automation and integration.
 | :--- | :--- | :--- |
 | `/api/proxies` | `GET` | Get the full list of working proxies (supports filtering). |
 | `/api/stats` | `GET` | Get pipeline statistics and metadata. |
-| `/api/convert` | `GET` | Convert an external subscription URL to Clash/Sing-box. |
-| `/subscribe/{format}` | `GET` | Download the local subscription in `clash`, `singbox`, or `base64`. |
+| `/ws/feed` | `WS` | Real-time WebSocket feed of pipeline events. |
+| `/api/convert` | `GET` | Convert an external subscription URL to various formats. |
+| `/subscribe/{format}` | `GET` | Download the local subscription in `clash`, `singbox`, `surge`, etc. |
 | `/health` | `GET` | Server health check. |
 
-**Example: Convert a Link**
-```bash
-curl "http://localhost:8000/api/convert?url=https://example.com/subs&target=clash" -o config.yaml
-```
+See [docs/API.md](docs/API.md) for full documentation.
 
 ---
 
-## 🧱 Architecture
+## 砖 Architecture
 
 ConfigStream is built with a modular "Split Brain" architecture:
-1.  **Worker**: A background process (`configstream merge`) that fetches, tests, and saves proxies to the `output/` directory.
-2.  **Server**: A lightweight FastAPI web server that serves the `output/` files and provides utility APIs.
+1.  **Worker**: A background process (`configstream merge`) that fetches, tests, and saves proxies to the `output/` directory. It uses `asyncio` for high concurrency.
+2.  **Server**: A lightweight FastAPI web server that serves the `output/` files, provides the API, and hosts the PWA frontend.
 
 For a deep dive, read [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## 🛡️ Security
-
-We take security seriously.
--   **No Logs**: The platform does not log user traffic (it aggregates *servers*, it doesn't act as a VPN server itself).
--   **IP Sanitization**: Malicious IPs are blocked before they reach your client.
--   **Verification**: All code is linted (flake8, mypy) and tested (pytest) before release.
-
----
-
 ## 🤝 Contributing
 
-Contributions are welcome! Whether it's adding new sources, fixing bugs, or improving the dashboard.
+Contributions are welcome! We have a roadmap including machine learning scheduling and Rust acceleration.
 Please check [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📄 License

@@ -1,188 +1,317 @@
-"""
-Protocol Adapters for Client Configurations.
-Converts normalized Proxy objects into client-specific schemas (Clash, Sing-box).
-"""
-
-from __future__ import annotations
-from typing import Any, Dict, Optional
+import json
+from typing import List, Dict, Any, Optional
 from .models import Proxy
 
-
-def _clean_dict(d: Dict[str, Any]) -> Dict[str, Any]:
-    """Recursively remove None/Empty values."""
-    clean = {}
-    for k, v in d.items():
-        if isinstance(v, dict):
-            nested = _clean_dict(v)
-            if nested:
-                clean[k] = nested
-        elif v is not None and v != "":
-            clean[k] = v
-    return clean
-
-
-# --- CLASH META (MIHOMO) ADAPTERS ---
-
-
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
-    """Convert Proxy to Clash Meta (Mihomo) dictionary format."""
-    base = {
-        "name": proxy.remarks or f"{proxy.protocol}:{proxy.port}",
-        "server": proxy.address,
-        "port": int(proxy.port),
+    """
+    Converts a Proxy object to a Clash dictionary.
+    """
+    conf: Dict[str, Any] = {
+        "name": proxy.remarks or f"{proxy.protocol.upper()} {proxy.address}",
         "type": proxy.protocol,
+        "server": proxy.address,
+        "port": proxy.port,
     }
 
-    details = proxy.details or {}
-
-    # Common Transport Options
-    network = details.get("net") or details.get("network", "tcp")
-    base["network"] = network
-
-    # TLS / SNI
-    if details.get("tls") in ["tls", "xtls", "1", "true"] or proxy.sni:
-        base["tls"] = True
-        base["servername"] = proxy.sni or details.get("host") or proxy.address
-        base["skip-cert-verify"] = details.get("allowInsecure") == "1"
-        if details.get("alpn"):
-            base["alpn"] = details.get("alpn")
-
-    # Fingerprint (uTLS)
-    if details.get("fp"):
-        base["client-fingerprint"] = details.get("fp")
-
-    # Transport Specifics
-    if network == "ws":
-        base["ws-opts"] = {
-            "path": proxy.path,
-            "headers": {"Host": details.get("host") or base.get("servername")},
-        }
-    elif network == "grpc":
-        base["grpc-opts"] = {
-            "grpc-service-name": details.get("serviceName") or proxy.path
-        }
-
-    # Protocol Specifics
     if proxy.protocol == "vmess":
-        base["uuid"] = proxy.uuid
-        base["alterId"] = int(details.get("aid", 0))
-        base["cipher"] = details.get("scy", "auto")
-        # UDP is usually supported
-        base["udp"] = True
+        conf["uuid"] = proxy.uuid
+        conf["alterId"] = int(proxy.details.get("alterId", 0))
+        conf["cipher"] = proxy.details.get("scy", "auto")
 
-    elif proxy.protocol == "vless":
-        base["uuid"] = proxy.uuid
-        base["flow"] = details.get("flow", "")
-        base["udp"] = True
-        # Reality Support (Clash Meta)
-        if details.get("security") == "reality":
-            base["client-fingerprint"] = details.get("fp", "chrome")
-            base["reality-opts"] = {
-                "public-key": details.get("pbk"),
-                "short-id": details.get("sid"),
-            }
+        is_tls = proxy.details.get("tls") or proxy.details.get("security") == "tls"
+        conf["tls"] = bool(is_tls)
+        conf["skip-cert-verify"] = True
+
+        if is_tls:
+             conf["servername"] = proxy.details.get("sni", "") or proxy.details.get("host", "")
+
+        net = proxy.details.get("net") or proxy.details.get("network")
+        if net == "ws":
+             conf["network"] = "ws"
+             conf["ws-opts"] = {
+                 "path": proxy.details.get("path", "/"),
+                 "headers": {}
+             }
+             if proxy.details.get("host"):
+                 conf["ws-opts"]["headers"]["Host"] = proxy.details.get("host")
+        elif net == "grpc":
+             conf["network"] = "grpc"
+             conf["grpc-opts"] = {
+                 "grpc-service-name": proxy.details.get("serviceName", "")
+             }
+        elif net == "h2":
+             conf["network"] = "h2"
+             conf["h2-opts"] = {
+                 "path": proxy.details.get("path", "/")
+             }
 
     elif proxy.protocol == "trojan":
-        base["password"] = proxy.uuid
-        base["udp"] = True
+        conf["password"] = proxy.uuid
+        conf["udp"] = True
+        conf["skip-cert-verify"] = True
+        conf["sni"] = proxy.details.get("sni", "") or proxy.details.get("peer", "")
+
+    elif proxy.protocol == "vless":
+        conf["uuid"] = proxy.uuid
+        conf["tls"] = True
+        conf["udp"] = True
+        conf["skip-cert-verify"] = True
+        conf["servername"] = proxy.details.get("sni", "")
+
+        if proxy.details.get("flow"):
+             conf["flow"] = proxy.details.get("flow")
+
+        if proxy.details.get("security") == "reality":
+             conf["client-fingerprint"] = proxy.details.get("fp", "chrome")
+             conf["reality-opts"] = {
+                 "public-key": proxy.details.get("pbk", ""),
+                 "short-id": proxy.details.get("sid", "")
+             }
+
+        net = proxy.details.get("type") or proxy.details.get("net")
+        if net == "ws":
+             conf["network"] = "ws"
+             conf["ws-opts"] = {"path": proxy.details.get("path", "/")}
+        elif net == "grpc":
+             conf["network"] = "grpc"
+             conf["grpc-opts"] = {"grpc-service-name": proxy.details.get("serviceName", "")}
 
     elif proxy.protocol == "shadowsocks":
-        base["cipher"] = details.get("method", "chacha20-ietf-poly1305")
-        base["password"] = proxy.uuid
-        base["udp"] = True
+        conf["type"] = "ss"
+        conf["cipher"] = proxy.details.get("method", "chacha20-ietf-poly1305")
+        conf["password"] = proxy.details.get("password", "")
+
+        plugin = proxy.details.get("plugin")
+        if plugin:
+             conf["plugin"] = plugin
+             conf["plugin-opts"] = proxy.details.get("plugin_opts", {})
 
     elif proxy.protocol == "hysteria2":
-        base["password"] = proxy.uuid
-        base["sni"] = base.get("servername")  # Hy2 uses sni key
-        base["obfs"] = details.get("obfs", "")
-        base["obfs-password"] = details.get("obfs-password", "")
-        base["up"] = details.get("up_mbps", "")
-        base["down"] = details.get("down_mbps", "")
+        conf["type"] = "hysteria2"
+        conf["password"] = proxy.uuid
+        conf["sni"] = proxy.details.get("sni", "")
+        conf["skip-cert-verify"] = True
+        if proxy.details.get("obfs"):
+            conf["obfs"] = proxy.details.get("obfs")
+            conf["obfs-password"] = proxy.details.get("obfs-password", "")
 
     elif proxy.protocol == "tuic":
-        base["uuid"] = proxy.uuid
-        base["password"] = proxy.uuid
-        base["congestion-controller"] = details.get("congestion_controller", "bbr")
+        conf["type"] = "tuic"
+        conf["uuid"] = proxy.uuid
+        conf["password"] = proxy.details.get("password", "")
+        conf["sni"] = proxy.details.get("sni", "")
+        conf["skip-cert-verify"] = True
+
+    elif proxy.protocol == "wireguard":
+        conf["type"] = "wireguard"
+        conf["ip"] = proxy.details.get("ip", "172.16.0.2")
+        conf["ipv6"] = proxy.details.get("ipv6", "")
+        conf["private-key"] = proxy.details.get("private_key", "")
+        conf["public-key"] = proxy.details.get("public_key", "")
+        conf["udp"] = True
+        if proxy.details.get("reserved"):
+             conf["reserved"] = proxy.details.get("reserved")
 
     else:
-        # Unsupported in Clash
         return None
 
-    return _clean_dict(base)
-
-
-# --- SING-BOX ADAPTERS ---
-
+    return conf
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
-    """Convert Proxy to Sing-box outbound object."""
-    out = {
-        "type": proxy.protocol,
-        "tag": proxy.remarks or f"{proxy.protocol}-{proxy.address}",
+    """
+    Converts a Proxy object to a Sing-box outbound dictionary.
+    """
+    conf: Dict[str, Any] = {
+        "tag": proxy.remarks or f"{proxy.protocol.upper()} {proxy.address}",
         "server": proxy.address,
-        "server_port": int(proxy.port),
+        "server_port": proxy.port,
     }
 
-    details = proxy.details or {}
-
-    # Credentials
-    if proxy.protocol in ["vmess", "vless"]:
-        out["uuid"] = proxy.uuid
-    elif proxy.protocol in ["trojan", "hysteria2", "tuic"]:
-        out["password"] = proxy.uuid
-    elif proxy.protocol == "shadowsocks":
-        out["method"] = details.get("method", "chacha20-ietf-poly1305")
-        out["password"] = proxy.uuid
-
-    # Protocol Specifics
     if proxy.protocol == "vmess":
-        out["alter_id"] = int(details.get("aid", 0))
-        out["security"] = details.get("scy", "auto")
-    elif proxy.protocol == "vless":
-        out["flow"] = details.get("flow", "")
-    elif proxy.protocol == "hysteria2":
-        if details.get("obfs"):
-            out["obfs"] = {
-                "type": "salamander",
-                "password": details.get("obfs-password"),
-            }
+        conf["type"] = "vmess"
+        conf["uuid"] = proxy.uuid
+        conf["security"] = "auto"
 
-    # TLS Configuration
-    tls_type = details.get("security", "")
-    if tls_type in ["tls", "reality"] or proxy.protocol in ["hysteria2", "tuic"]:
-        tls_conf = {
-            "enabled": True,
-            "server_name": proxy.sni or details.get("host") or proxy.address,
-            "insecure": details.get("allowInsecure") == "1",
-            "utls": {"enabled": True, "fingerprint": details.get("fp", "chrome")},
-        }
-        if details.get("alpn"):
-            tls_conf["alpn"] = details.get("alpn")
+        conf["tls"] = {}
+        is_tls = proxy.details.get("tls") or proxy.details.get("security") == "tls"
+        if is_tls:
+            conf["tls"]["enabled"] = True
+            conf["tls"]["insecure"] = True
+            conf["tls"]["server_name"] = proxy.details.get("sni", "") or proxy.details.get("host", "")
 
-        if tls_type == "reality":
-            tls_conf["reality"] = {
-                "enabled": True,
-                "public_key": details.get("pbk"),
-                "short_id": details.get("sid"),
-            }
-
-        out["tls"] = tls_conf
-
-    # Transport Configuration
-    net = details.get("net") or details.get("network")
-    if net in ["ws", "grpc", "httpupgrade"]:
-        transport = {"type": net}
+        net = proxy.details.get("net") or proxy.details.get("network")
         if net == "ws":
-            transport["path"] = proxy.path
-            if details.get("host"):
-                transport["headers"] = {"Host": details.get("host")}
+             conf["transport"] = {
+                 "type": "ws",
+                 "path": proxy.details.get("path", "/"),
+                 "headers": {}
+             }
+             if proxy.details.get("host"):
+                 conf["transport"]["headers"]["Host"] = proxy.details.get("host")
+
+    elif proxy.protocol == "trojan":
+        conf["type"] = "trojan"
+        conf["password"] = proxy.uuid
+        conf["tls"] = {
+            "enabled": True,
+            "insecure": True,
+            "server_name": proxy.details.get("sni", "")
+        }
+
+    elif proxy.protocol == "vless":
+        conf["type"] = "vless"
+        conf["uuid"] = proxy.uuid
+        conf["flow"] = proxy.details.get("flow", "")
+        conf["tls"] = {
+            "enabled": True,
+            "insecure": True,
+            "server_name": proxy.details.get("sni", "")
+        }
+        if proxy.details.get("security") == "reality":
+             conf["tls"]["reality"] = {
+                 "enabled": True,
+                 "public_key": proxy.details.get("pbk", ""),
+                 "short_id": proxy.details.get("sid", "")
+             }
+             if proxy.details.get("fp"):
+                  conf["tls"]["utls"] = {"enabled": True, "fingerprint": proxy.details.get("fp")}
+
+        net = proxy.details.get("type") or proxy.details.get("net")
+        if net == "ws":
+             conf["transport"] = {
+                 "type": "ws",
+                 "path": proxy.details.get("path", "/")
+             }
         elif net == "grpc":
-            transport["service_name"] = details.get("serviceName") or proxy.path
+             conf["transport"] = {
+                 "type": "grpc",
+                 "service_name": proxy.details.get("serviceName", "")
+             }
 
-        out["transport"] = transport
+    elif proxy.protocol == "shadowsocks":
+        conf["type"] = "shadowsocks"
+        conf["method"] = proxy.details.get("method", "chacha20-ietf-poly1305")
+        conf["password"] = proxy.details.get("password", "")
+        # Sing-box SS plugins support is limited/different, typically standard SS is preferred
 
-    # Multiplexing (Default to enabled for VMess/VLESS/Trojan)
-    if proxy.protocol in ["vmess", "vless", "trojan"]:
-        out["multiplex"] = {"enabled": True, "padding": True}
+    elif proxy.protocol == "hysteria2":
+        conf["type"] = "hysteria2"
+        conf["password"] = proxy.uuid
+        conf["tls"] = {
+            "enabled": True,
+            "insecure": True,
+            "server_name": proxy.details.get("sni", "")
+        }
+        if proxy.details.get("obfs"):
+             conf["obfs"] = {
+                 "type": "salamander", # Common H2 obfs
+                 "password": proxy.details.get("obfs-password", "")
+             }
 
-    return _clean_dict(out)
+    elif proxy.protocol == "tuic":
+        conf["type"] = "tuic"
+        conf["uuid"] = proxy.uuid
+        conf["password"] = proxy.details.get("password", "")
+        conf["tls"] = {
+            "enabled": True,
+            "insecure": True,
+            "server_name": proxy.details.get("sni", "")
+        }
+
+    elif proxy.protocol == "ssh":
+        conf["type"] = "ssh"
+        conf["user"] = proxy.uuid
+        conf["password"] = proxy.details.get("password", "")
+        # host_key, etc.
+
+    else:
+        return None
+
+    return conf
+
+
+class SurgeAdapter:
+    @staticmethod
+    def generate_conf(proxies: List[Proxy]) -> str:
+        lines = [
+            "[General]",
+            "loglevel = notify",
+            "dns-server = system, 8.8.8.8",
+            "skip-proxy = 127.0.0.1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12, 100.64.0.0/10, localhost, *.local",
+            "",
+            "[Proxy]"
+        ]
+        names = []
+        for i, p in enumerate(proxies):
+            name = f"{p.country_code}_{p.protocol.upper()}_{i+1}"
+            names.append(name)
+
+            line = f"{name} = {p.protocol}, {p.address}, {p.port}"
+
+            if p.protocol == "vmess":
+                line += f", username={p.uuid}"
+                if p.details.get("tls"):
+                    line += ", tls=true"
+                if p.details.get("net") == "ws":
+                     line += f", ws=true, ws-path={p.details.get('path', '/')}"
+
+            elif p.protocol == "trojan":
+                line += f", password={p.uuid}"
+                if p.details.get("sni"):
+                    line += f", sni={p.details['sni']}"
+
+            elif p.protocol == "ss":
+                line = f"{name} = ss, {p.address}, {p.port}, encrypt-method={p.details.get('method')}, password={p.details.get('password')}"
+
+            elif p.protocol == "snell":
+                line = f"{name} = snell, {p.address}, {p.port}, psk={p.details.get('psk')}, version={p.details.get('version', 2)}"
+
+            lines.append(line)
+
+        lines.append("")
+        lines.append("[Proxy Group]")
+        lines.append(f"Proxy = select, {', '.join(names)}")
+        return "\n".join(lines)
+
+class LoonAdapter:
+    @staticmethod
+    def generate_conf(proxies: List[Proxy]) -> str:
+        lines = [
+            "[Proxy]"
+        ]
+        for i, p in enumerate(proxies):
+            name = f"{p.country_code}_{p.protocol}_{i+1}"
+
+            # Base format: Name = Type, Host, Port, ...
+            if p.protocol == "vmess":
+                line = f"{name} = vmess, {p.address}, {p.port}, username={p.uuid}"
+                if p.details.get("net") == "ws":
+                    line += f", transport=ws, path={p.details.get('path', '/')}"
+                    if p.details.get("host"):
+                         line += f", host={p.details['host']}"
+                if p.details.get("tls"):
+                    line += ", over-tls=true"
+
+            elif p.protocol == "trojan":
+                line = f"{name} = trojan, {p.address}, {p.port}, password={p.uuid}"
+                if p.details.get("sni"):
+                     line += f", sni={p.details['sni']}"
+
+            elif p.protocol == "shadowsocks":
+                 line = f"{name} = shadowsocks, {p.address}, {p.port}, method={p.details.get('method')}, password={p.details.get('password')}"
+
+            else:
+                continue # Skip unsupported types for Loon for now
+
+            lines.append(line)
+        return "\n".join(lines)
+
+class QuantumultXAdapter:
+    @staticmethod
+    def generate_conf(proxies: List[Proxy]) -> str:
+        # Quantumult X uses URIs mostly
+        lines = []
+        for p in proxies:
+             if p.config and "://" in p.config:
+                  lines.append(p.config)
+        return "\n".join(lines)
