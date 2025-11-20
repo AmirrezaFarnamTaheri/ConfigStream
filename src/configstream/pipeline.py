@@ -110,7 +110,8 @@ async def run_full_pipeline(
         "tested": 0,
         "working": 0,
         "geo_resolved": 0,
-        "duration": 0.0  # Explicit float
+        "duration": 0.0,
+        "final_count": 0  # Ensure final_count is initialized
     }
 
     # Work Queue: Stores (source_url, raw_content_chunk)
@@ -388,6 +389,7 @@ async def run_full_pipeline(
     # Ensure stats duration is set before metadata generation
     duration = (datetime.now(timezone.utc) - start_time).total_seconds()
     stats["duration"] = float(duration)
+    stats["final_count"] = len(optimized_proxies) # Explicitly set final_count
 
     generated_files = output.generate_categorized_outputs(optimized_proxies, output_path)
 
