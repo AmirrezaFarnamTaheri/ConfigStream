@@ -1,12 +1,8 @@
 import pytest
-import nest_asyncio
 import asyncio
 from unittest.mock import MagicMock, AsyncMock
 
-
-@pytest.fixture(autouse=True)
-def apply_nest_asyncio():
-    nest_asyncio.apply()
+# Removed nest_asyncio and manual event_loop fixture to rely on pytest-asyncio default behavior.
 
 
 @pytest.fixture

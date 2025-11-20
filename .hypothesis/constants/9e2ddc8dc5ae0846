@@ -1,4 +1,0 @@
-# file: /app/src/configstream/adaptive_timeout.py
-# hypothesis_version: 6.148.2
-
-[0.2, 0.8, 2.0, 3.0, 10.0, 30.0, 1000.0, 100, 'last_timeout']

@@ -1,4 +1,0 @@
-# file: /app/src/configstream/security/rate_limiter.py
-# hypothesis_version: 6.148.2
-
-[0.0, 'last_update', 'tokens']

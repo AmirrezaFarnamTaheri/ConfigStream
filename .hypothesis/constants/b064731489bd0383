@@ -1,4 +1,0 @@
-# file: /app/src/configstream/fetcher.py
-# hypothesis_version: 6.148.2
-
-[0.0, 0.3, 0.5, 0.7, 1.0, 50.0, 1000.0, 400, 429, 500, 'Accept', 'Accept-Encoding', 'Circuit Breaker Open', 'ConfigStream/1.1', 'Rate limited.', 'Retry-After', 'User-Agent', 'content', 'content_length', 'error', 'gzip, deflate, br', 'response_time', 'source', 'status_code', 'success']
