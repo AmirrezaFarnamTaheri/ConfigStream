@@ -12,7 +12,7 @@ import tempfile
 import atexit
 import ssl
 import time
-from typing import Any, Optional, Tuple, List
+from typing import Optional, Set
 from contextlib import contextmanager
 
 import aiohttp
@@ -23,11 +23,12 @@ from .config import AppSettings
 from .constants import TEST_URLS, CANARY_URL
 from .models import Proxy
 from .test_cache import TestResultCache
+from .security.blocklist import DEFAULT_BLOCKLIST
 
 logger = logging.getLogger(__name__)
 
 # Track temp files for failsafe cleanup at exit
-_TEMP_FILES = set()
+_TEMP_FILES: Set[str] = set()
 
 def _cleanup_temp_files():
     """Failsafe cleanup for any remaining config files."""
@@ -118,7 +119,7 @@ class SingBoxTester:
                 else:
                     proxy.is_working = False
 
-        except Exception as e:
+        except Exception:
             proxy.is_working = False
             # Don't log every failure, it's noisy. Just mark as failed.
 
@@ -160,7 +161,7 @@ class SingBoxTester:
                     else:
                         proxy.is_working = False
 
-            except Exception as e:
+            except Exception:
                 proxy.is_working = False
                 # logger.debug("Singbox test error: %s", e)
             finally:
@@ -211,10 +212,17 @@ class SingBoxTester:
 
     async def _run_security_checks(self, session: aiohttp.ClientSession, proxy: Proxy):
         """
-        Run integrity checks (Header Stripping, MITM, Injection).
+        Run integrity checks (Header Stripping, MITM, Injection, Reputation).
         """
         try:
-            # 1. Header Preservation Check
+            # 1. Blocklist/Reputation Check
+            if self.strict_security:
+                if proxy.resolved_ip and DEFAULT_BLOCKLIST.is_blocked(proxy.resolved_ip):
+                    proxy.security_issues.setdefault("reputation", []).append("IP_IN_BLOCKLIST")
+                    proxy.is_secure = False
+                    return # Fail fast
+
+            # 2. Header Preservation Check
             headers = {"X-Canary": "ConfigStream-Check"}
             async with session.get(f"{CANARY_URL}/headers", headers=headers, timeout=5) as resp:
                 if resp.status == 200:
@@ -222,10 +230,10 @@ class SingBoxTester:
                     if data.get("headers", {}).get("X-Canary") != "ConfigStream-Check":
                         proxy.security_issues.setdefault("headers", []).append("Header Stripping Detected")
 
-            # 2. SSL Interception Check (Basic)
+            # 3. SSL Interception Check (Basic)
             # Try to access a known bad SSL site. If it succeeds, the proxy is MITMing/ignoring certs.
             try:
-                async with session.get("https://self-signed.badssl.com/", timeout=5) as bad_resp:
+                async with session.get("https://self-signed.badssl.com/", timeout=5) as bad_resp: # noqa: F841
                     # If we got here without an SSLError, the proxy might be suppressing errors
                     # However, aiohttp might be trusting the system store.
                     # This is a heuristic: if the proxy is truly transparent, this should fail.

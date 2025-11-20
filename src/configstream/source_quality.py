@@ -1,163 +1,138 @@
 """
-Proxy Source Quality Scoring System
-
-EXPERIMENTAL: Not currently integrated into the main pipeline.
-Tracks and scores proxy sources based on their performance
-to focus crawling on high-quality sources.
-
-To integrate: Use SourceQualityTracker in _process_sources to prioritize
-or down-weight sources based on historical quality metrics.
+Source Quality Tracker.
+Grades sources based on historical yield and validity rates.
+Automatically manages cooldowns for failing sources.
 """
 
-import json
+import sqlite3
 import logging
+import math
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
-from datetime import datetime, timezone
-
-from .models import Proxy
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-
 class SourceQualityTracker:
-    """Tracks quality metrics for proxy sources."""
-
-    def __init__(self, db_path: Path = Path("data/source_quality.json")):
-        """
-        Initialize source quality tracker.
-
-        Args:
-            db_path: Path to store quality metrics
-        """
-        self.db_path = Path(db_path)  # Ensure Path object
+    def __init__(self, db_path: Path = Path("data/source_quality.db")):
+        self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self.quality_data = self.load_quality_data()
+        self._init_db()
 
-    def load_quality_data(self) -> Dict[str, Any]:
-        """Load quality data from disk."""
-        if self.db_path.exists():
-            try:
-                data: Dict[str, Any] = json.loads(self.db_path.read_text())
-                return data
-            except Exception as e:
-                logger.warning("Failed to load source quality data: %s", e)
-        return {}
+    def _init_db(self):
+        """Initialize the SQLite schema for tracking source reliability."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS source_stats (
+                        url TEXT PRIMARY KEY,
+                        total_fetched INTEGER DEFAULT 0,
+                        total_working INTEGER DEFAULT 0,
+                        consecutive_failures INTEGER DEFAULT 0,
+                        last_checked INTEGER DEFAULT 0,
+                        reliability_score REAL DEFAULT 100.0,
+                        status TEXT DEFAULT 'active'
+                    )
+                """)
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to init source quality DB: {e}")
 
-    def save_quality_data(self) -> None:
-        """Save quality data to disk."""
-        self.db_path.write_text(json.dumps(self.quality_data, indent=2))
-
-    def update_source_quality(self, source: str, proxies: List[Proxy]) -> None:
+    def should_fetch(self, url: str) -> bool:
         """
-        Update quality metrics for a source.
+        Decide if a source should be fetched based on its cooldown status.
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                row = conn.execute(
+                    "SELECT status, last_checked, consecutive_failures FROM source_stats WHERE url = ?",
+                    (url,)
+                ).fetchone()
+
+            if not row:
+                return True # New source, always fetch
+
+            status, last_ts, failures = row
+
+            if status == 'disabled':
+                return False
+
+            # Exponential Backoff Logic
+            # 0 failures -> 0 wait
+            # 1 failure -> 1 hour wait
+            # 2 failures -> 4 hour wait
+            # 3 failures -> 8 hour wait
+            # ... capped at 48 hours
+            cooldown_hours = min(48, math.pow(2, failures)) if failures > 0 else 0
+
+            # Calculate when the next allowed fetch is
+            next_allowed = datetime.fromtimestamp(last_ts) + timedelta(hours=cooldown_hours)
+
+            if datetime.now() < next_allowed:
+                # Log only periodically to reduce noise
+                logger.debug(f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})")
+                return False
+
+            return True
+
+        except Exception as e:
+            logger.warning(f"Error checking source quality for {url}: {e}")
+            return True # Fail open
+
+    def update(self, url: str, fetched_count: int, working_count: int):
+        """
+        Update the stats for a source after a pipeline run.
 
         Args:
-            source: Source URL or identifier
-            proxies: List of proxies from this source
+            url: The source URL
+            fetched_count: How many valid config lines were parsed
+            working_count: How many proxies actually passed the tests
         """
-        if source not in self.quality_data:
-            self.quality_data[source] = {
-                "total_fetches": 0,
-                "total_proxies": 0,
-                "working_proxies": 0,
-                "avg_latency": 0,
-                "last_updated": None,
-                "success_rate": 0.0,
-            }
+        now = int(datetime.now().timestamp())
+        # We consider it a failure if we fetched content but NOTHING worked
+        # If fetched_count is 0, it might just be empty/network error, also a failure
+        is_failure = (working_count == 0)
 
-        stats = self.quality_data[source]
-        stats["total_fetches"] += 1
-        stats["total_proxies"] += len(proxies)
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                row = conn.execute(
+                    "SELECT total_fetched, total_working, consecutive_failures FROM source_stats WHERE url = ?",
+                    (url,)
+                ).fetchone()
 
-        working = [p for p in proxies if p.is_working]
-        stats["working_proxies"] += len(working)
+                if row:
+                    tf, tw, cf = row
+                    new_tf = tf + fetched_count
+                    new_tw = tw + working_count
+                    # Reset consecutive failures if we got at least one working proxy
+                    new_cf = cf + 1 if is_failure else 0
 
-        if working:
-            latencies = [p.latency for p in working if p.latency]
-            if latencies:
-                avg_latency = sum(latencies) / len(latencies)
-                # Running average
-                if stats["avg_latency"] == 0:
-                    stats["avg_latency"] = avg_latency
+                    # Calculate Score: Simple percentage
+                    score = (new_tw / new_tf * 100) if new_tf > 0 else 0.0
+
+                    conn.execute("""
+                        UPDATE source_stats
+                        SET total_fetched=?, total_working=?, consecutive_failures=?,
+                            last_checked=?, reliability_score=?
+                        WHERE url=?
+                    """, (new_tf, new_tw, new_cf, now, score, url))
                 else:
-                    stats["avg_latency"] = stats["avg_latency"] * 0.7 + avg_latency * 0.3
+                    # First time seeing this source
+                    score = (working_count / fetched_count * 100) if fetched_count > 0 else 0.0
+                    conn.execute("""
+                        INSERT INTO source_stats
+                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (url, fetched_count, working_count, 1 if is_failure else 0, now, score))
 
-        stats["success_rate"] = (
-            stats["working_proxies"] / stats["total_proxies"] if stats["total_proxies"] > 0 else 0.0
-        )
-        stats["last_updated"] = datetime.now(timezone.utc).isoformat()
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to update source stats for {url}: {e}")
 
-        self.save_quality_data()
-
-    def get_source_score(self, source: str) -> float:
-        """
-        Calculate quality score for a source (0-100).
-
-        Args:
-            source: Source URL or identifier
-
-        Returns:
-            Quality score between 0 and 100
-        """
-        if source not in self.quality_data:
-            return 50.0  # Neutral score for new sources
-
-        stats = self.quality_data[source]
-
-        # Success rate (60 points)
-        score = stats["success_rate"] * 60.0
-
-        # Latency (30 points) - lower is better
-        if stats["avg_latency"] > 0:
-            # Invert latency: 0-500ms = 30pts, >5000ms = 0pts
-            latency_score = max(0, 30.0 * (1 - min(stats["avg_latency"] / 5000, 1)))
-            score += latency_score
-        else:
-            score += 15.0  # Neutral
-
-        # Consistency (10 points) - based on fetch count
-        if stats["total_fetches"] >= 10:
-            score += 10.0
-        elif stats["total_fetches"] >= 5:
-            score += 5.0
-
-        result: float = round(min(score, 100.0), 2)
-        return result
-
-    def get_top_sources(self, limit: int = 10) -> List[Tuple[str, float]]:
-        """
-        Get top quality sources.
-
-        Args:
-            limit: Number of sources to return
-
-        Returns:
-            List of (source, score) tuples
-        """
-        scored_sources = [
-            (source, self.get_source_score(source)) for source in self.quality_data.keys()
-        ]
-        scored_sources.sort(key=lambda x: x[1], reverse=True)
-        return scored_sources[:limit]
-
-    def get_quality_report(self) -> Dict[str, Any]:
-        """
-        Generate quality report for all sources.
-
-        Returns:
-            Dictionary with quality statistics
-        """
-        return {
-            "total_sources": len(self.quality_data),
-            "top_sources": self.get_top_sources(5),
-            "source_details": {
-                source: {
-                    "score": self.get_source_score(source),
-                    "success_rate": f"{stats['success_rate']*100:.1f}%",
-                    "avg_latency": f"{stats['avg_latency']:.0f}ms",
-                    "total_proxies": stats["total_proxies"],
-                }
-                for source, stats in self.quality_data.items()
-            },
-        }
+    def get_source_score(self, url: str) -> float:
+        """Get the current reliability score for a source."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                row = conn.execute("SELECT reliability_score FROM source_stats WHERE url = ?", (url,)).fetchone()
+                return row[0] if row else 50.0 # Default to neutral
+        except Exception:
+            return 50.0
