@@ -41,6 +41,16 @@ class ProxyHistoryTracker:
         """Load history data from disk."""
         if self.history_path.exists():
             try:
+                # Security: Check file size before loading to prevent OOM
+                file_size = self.history_path.stat().st_size
+                MAX_HISTORY_FILE_SIZE = 100 * 1024 * 1024  # 100MB limit
+                if file_size > MAX_HISTORY_FILE_SIZE:
+                    logger.error(
+                        "History file too large: %s bytes (max: %s)",
+                        file_size,
+                        MAX_HISTORY_FILE_SIZE,
+                    )
+                    return {}
                 data: Dict[str, Any] = json.loads(self.history_path.read_text())
                 return data
             except Exception as e:
@@ -116,7 +126,7 @@ class ProxyHistoryTracker:
             Reliability score 0.0-1.0
         """
         history = self.get_proxy_history(config)
-        if not history or not history["entries"]:
+        if not history or "entries" not in history or not history["entries"]:
             return 0.5  # Neutral for unknown
 
         # Calculate success rate from recent entries
@@ -137,7 +147,7 @@ class ProxyHistoryTracker:
             Dictionary with timestamps, latencies, and status
         """
         history = self.get_proxy_history(config)
-        if not history or not history["entries"]:
+        if not history or "entries" not in history or not history["entries"]:
             return {"timestamps": [], "latencies": [], "status": []}
 
         entries = history["entries"][-points:]
@@ -159,7 +169,7 @@ class ProxyHistoryTracker:
             Dictionary with summary statistics
         """
         history = self.get_proxy_history(config)
-        if not history or not history["entries"]:
+        if not history or "entries" not in history or not history["entries"]:
             return {
                 "total_tests": 0,
                 "success_rate": 0.0,
