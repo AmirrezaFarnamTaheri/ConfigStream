@@ -47,12 +47,12 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
 
     # Try OpenVPN first (content based)
     if "client" in config and ("dev tun" in config or "dev tap" in config):
-         try:
-             result = _parse_openvpn(config)
-             if result:
-                 return result
-         except Exception:
-             pass
+        try:
+            result = _parse_openvpn(config)
+            if result:
+                return result
+        except Exception:
+            pass
 
     # Try URL-based detection first
     if "://" in config:
@@ -78,7 +78,9 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 "socks": _parse_generic_url_scheme,
                 "socks4": _parse_generic_url_scheme,
                 "socks5": _parse_generic_url_scheme,
-                "ssh": lambda x: _parse_generic_url_scheme(x), # SSH often works with generic
+                "ssh": lambda x: _parse_generic_url_scheme(
+                    x
+                ),  # SSH often works with generic
             },
         )
 
