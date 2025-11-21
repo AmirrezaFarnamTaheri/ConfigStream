@@ -2,6 +2,7 @@ import pytest
 from configstream.parsers import _parse_vless
 from configstream.models import Proxy
 
+
 def test_vless_sid_enforcement():
     # Config with sid - should pass
     valid_config = "vless://uuid@1.2.3.4:443?security=reality&sni=example.com&pbk=publickey&sid=sessionid&type=tcp&flow=xtls-rprx-vision#Valid"
@@ -13,6 +14,7 @@ def test_vless_sid_enforcement():
     invalid_config = "vless://uuid@1.2.3.4:443?security=reality&sni=example.com&pbk=publickey&type=tcp&flow=xtls-rprx-vision#Invalid"
     proxy = _parse_vless(invalid_config)
     assert proxy is None
+
 
 def test_vless_unquote_remarks():
     # Config with URL-encoded remarks

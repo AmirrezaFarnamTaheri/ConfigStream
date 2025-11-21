@@ -126,6 +126,7 @@ async def run_full_pipeline(
         "geo_resolved": 0,
         "duration": 0.0,
         "final_count": 0,  # Ensure final_count is initialized
+        "cache_misses": 0,  # Track cache miss rate for observability
     }
 
     # Work Queue: Stores (source_url, raw_content_chunk)
@@ -319,6 +320,7 @@ async def run_full_pipeline(
                     else:
                         # Cache miss - retest instead of dropping proxy
                         logger.debug(f"Cache miss for {p.id}, will retest")
+                        stats["cache_misses"] = int(stats.get("cache_misses", 0)) + 1  # type: ignore
                         proxies_to_actually_test.append(p)
 
             # --- Testing ---

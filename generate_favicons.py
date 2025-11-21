@@ -16,14 +16,10 @@ def generate_favicon_png(svg_path: str, output_path: str, size: int):
     print(f"Generating {size}x{size} PNG: {output_path}")
 
     # Convert SVG to PNG using cairosvg
-    png_data = cairosvg.svg2png(
-        url=svg_path,
-        output_width=size,
-        output_height=size
-    )
+    png_data = cairosvg.svg2png(url=svg_path, output_width=size, output_height=size)
 
     # Save the PNG
-    with open(output_path, 'wb') as f:
+    with open(output_path, "wb") as f:
         f.write(png_data)
 
 
@@ -36,20 +32,16 @@ def generate_ico(svg_path: str, output_path: str):
     images = []
 
     for size in sizes:
-        png_data = cairosvg.svg2png(
-            url=svg_path,
-            output_width=size,
-            output_height=size
-        )
+        png_data = cairosvg.svg2png(url=svg_path, output_width=size, output_height=size)
         img = Image.open(io.BytesIO(png_data))
         images.append(img)
 
     # Save as ICO with multiple resolutions
     images[0].save(
         output_path,
-        format='ICO',
+        format="ICO",
         sizes=[(img.width, img.height) for img in images],
-        append_images=images[1:]
+        append_images=images[1:],
     )
 
 
@@ -74,7 +66,9 @@ def main():
 
     # Generate Apple Touch Icons
     generate_favicon_png(str(svg_logo), str(output_dir / "apple-touch-icon.png"), 180)
-    generate_favicon_png(str(svg_logo), str(output_dir / "apple-touch-icon-180x180.png"), 180)
+    generate_favicon_png(
+        str(svg_logo), str(output_dir / "apple-touch-icon-180x180.png"), 180
+    )
 
     # Generate PWA icons
     generate_favicon_png(str(svg_logo), str(output_dir / "icon-192x192.png"), 192)

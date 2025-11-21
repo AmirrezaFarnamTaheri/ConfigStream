@@ -322,8 +322,8 @@ def merge_batches(
 
     meta_stats = {
         "working": working_proxies,
-        "fetched_lines": total_processed, # Approximation
-        "duration": 0.0 # Merging is fast, duration not tracked per se
+        "fetched_lines": total_processed,  # Approximation
+        "duration": 0.0,  # Merging is fast, duration not tracked per se
     }
 
     # save_metadata writes both metadata.json and summary.json
