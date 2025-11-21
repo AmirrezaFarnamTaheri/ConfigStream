@@ -1,6 +1,11 @@
 import pytest
+import asyncio
 import nest_asyncio
 
-# Apply nest_asyncio to allow nested event loops (e.g. internal run calls)
-# This is critical for tests that call code using asyncio.run() or loop.run_until_complete()
-nest_asyncio.apply()
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for the session."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    nest_asyncio.apply(loop)
+    yield loop
+    loop.close()

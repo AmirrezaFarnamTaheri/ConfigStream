@@ -200,6 +200,16 @@ async def fetch_from_source(
             if status >= 400:
                 response.raise_for_status()
 
+            # Content Length Check (Memory Protection)
+            # Limit to 50MB to prevent OOM on GitHub Actions
+            content_len = response.headers.get("Content-Length")
+            if content_len and int(content_len) > 50 * 1024 * 1024:
+                raise ValueError(f"Response too large: {content_len} bytes")
+
+            # Double check actual content size (if chunked)
+            if len(response.content) > 50 * 1024 * 1024:
+                raise ValueError("Response content exceeded 50MB limit")
+
             # Success
             content = response.text
 

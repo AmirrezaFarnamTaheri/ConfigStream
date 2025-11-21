@@ -277,15 +277,22 @@ class SingBoxTester:
 
                 # Simplification: We only test uTLS if we are in Direct mode or have easy access.
                 # Given constraints, we log the check.
-                if await test_tls_fingerprint(
-                    "https://www.google.com", f"{proxy.address}:{proxy.port}", "random"
-                ):
-                    # Success means the proxy accepted the randomized hello
-                    pass
-                else:
-                    # If uTLS fails but standard fails, it might be fingerprint blocking.
-                    # But we don't penalize yet as uTLS binary might be missing.
-                    pass
+                try:
+                    fp_result = await test_tls_fingerprint(
+                        "https://www.google.com",
+                        f"{proxy.address}:{proxy.port}",
+                        "random",
+                    )
+                    if not fp_result:
+                        # If uTLS fails but standard worked, it MIGHT be fingerprint blocking.
+                        # We record it as a warning but don't strictly fail the proxy unless
+                        # policy demands it, to avoid false positives from uTLS sidecar issues.
+                        proxy.security_issues.setdefault("fingerprint", []).append(
+                            "TLS_RANDOMIZATION_FAILED"
+                        )
+                        logger.debug(f"Proxy {proxy.address} failed randomized TLS handshake")
+                except Exception as e:
+                    logger.debug(f"uTLS check error: {e}")
 
             # 1. Blocklist/Reputation Check
             if self.strict_security:

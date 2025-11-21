@@ -13,13 +13,25 @@ from typing import Optional
 trace_id_var: ContextVar[str] = ContextVar("trace_id", default="")
 
 
+# Use LogRecordFactory to ensure trace_id is ALWAYS present
+_original_record_factory = logging.getLogRecordFactory()
+
+
+def _record_factory(*args, **kwargs):
+    record = _original_record_factory(*args, **kwargs)
+    # Ensure trace_id is always present
+    trace_id = trace_id_var.get()
+    record.trace_id = trace_id if trace_id else "-"
+    return record
+
+
+logging.setLogRecordFactory(_record_factory)
+
+
 class TraceIdFilter(logging.Filter):
-    """Filter to add trace ID to log records."""
+    """Deprecated: Logic moved to LogRecordFactory for robustness."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        # Add trace_id to the log record
-        trace_id = trace_id_var.get()
-        record.trace_id = trace_id if trace_id else "-"
         return True
 
 

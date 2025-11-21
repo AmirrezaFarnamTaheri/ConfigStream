@@ -11,7 +11,12 @@ root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir / "src"))
 
 from configstream.models import Proxy  # noqa: E402
-from configstream.output import generate_base64_subscription  # noqa: E402
+from configstream.output import (  # noqa: E402
+    generate_base64_subscription,
+    generate_singbox_config,
+    generate_clash_config,
+)
+from configstream.adapters import get_adapter  # noqa: E402
 from configstream.test_cache import TestResultCache  # noqa: E402
 from configstream.consolidation import (  # noqa: E402
     calculate_compound_score,
@@ -216,13 +221,40 @@ def merge_batches(
         f.write(chosen_base64)
     print("✓ Generated chosen/base64.txt")
 
-    # 9. clash.yaml
-    from configstream.output import generate_clash_config
+    # 9. Client Configs (Clash, SingBox, Adapters)
 
+    # Clash
     clash_content = generate_clash_config(ranked_proxies)
     with open(output_dir / "clash.yaml", "w") as f:
         f.write(clash_content)
     print("✓ Generated clash.yaml")
+
+    # Sing-box
+    singbox_content = generate_singbox_config(ranked_proxies)
+    with open(output_dir / "singbox.json", "w") as f:
+        f.write(singbox_content)
+    print("✓ Generated singbox.json")
+
+    # Adapters
+    try:
+        (output_dir / "surge.conf").write_text(
+            get_adapter("surge").export(ranked_proxies)
+        )
+        (output_dir / "shadowrocket.txt").write_text(
+            get_adapter("shadowrocket").export(ranked_proxies)
+        )
+        (output_dir / "loon.conf").write_text(
+            get_adapter("loon").export(ranked_proxies)
+        )
+        (output_dir / "quantumult.conf").write_text(
+            get_adapter("qx").export(ranked_proxies)
+        )
+        (output_dir / "sip008.json").write_text(
+            get_adapter("sip008").export(ranked_proxies)
+        )
+        print("✓ Generated adapter configs (Surge, Shadowrocket, Loon, QX, SIP008)")
+    except Exception as e:
+        print(f"⚠️ Failed to generate adapter configs: {e}")
 
     # chosen/protocols (individual protocol files for chosen)
     chosen_by_protocol = defaultdict(list)
