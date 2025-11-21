@@ -70,6 +70,7 @@ class GeoIPResolver:
     def _download_db(self, data_dir: Path):
         """Attempt to download missing GeoIP databases."""
         import subprocess
+
         try:
             logger.info("Attempting to download GeoIP databases...")
             data_dir.mkdir(parents=True, exist_ok=True)
@@ -77,7 +78,7 @@ class GeoIPResolver:
             # URLs for P3TERX mirror
             urls = {
                 "GeoLite2-City.mmdb": "https://git.io/GeoLite2-City.mmdb",
-                "GeoLite2-ASN.mmdb": "https://git.io/GeoLite2-ASN.mmdb"
+                "GeoLite2-ASN.mmdb": "https://git.io/GeoLite2-ASN.mmdb",
             }
 
             for name, url in urls.items():
@@ -89,7 +90,7 @@ class GeoIPResolver:
                         check=True,
                         timeout=120,
                         stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
+                        stderr=subprocess.DEVNULL,
                     )
         except Exception as e:
             logger.warning(f"Failed to auto-download GeoIP databases: {e}")
