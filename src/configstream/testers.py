@@ -294,7 +294,9 @@ class SingBoxTester:
                         proxy.security_issues.setdefault("fingerprint", []).append(
                             "TLS_RANDOMIZATION_FAILED"
                         )
-                        logger.debug(f"Proxy {proxy.address} failed randomized TLS handshake")
+                        logger.debug(
+                            f"Proxy {proxy.address} failed randomized TLS handshake"
+                        )
                 except Exception as e:
                     logger.debug(f"uTLS check error: {e}")
 

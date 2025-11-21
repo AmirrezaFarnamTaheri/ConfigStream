@@ -94,7 +94,7 @@ def score_speed(
     proxy: Proxy, history: Mapping[str, Mapping[str, float]], settings: AppSettings
 ) -> float:
     """Legacy scoring function prioritizing speed."""
-    score = _latency_points(proxy.latency_ms, settings.LAT_SOFT_CAP_MS, 70.0)
+    score = _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, 70.0)
     if proxy.throughput_kbps:
         score += min(proxy.throughput_kbps, 5000) / 5000 * 20.0
     hist = history.get(proxy.id) or {}
@@ -106,7 +106,7 @@ def score_balanced(
     proxy: Proxy, history: Mapping[str, Mapping[str, float]], settings: AppSettings
 ) -> float:
     """Legacy scoring function for balanced performance."""
-    score = _latency_points(proxy.latency_ms, settings.LAT_SOFT_CAP_MS, 50.0)
+    score = _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, 50.0)
     hist = history.get(proxy.id) or {}
     score += hist.get("success_rate", 0.0) * 25.0
     score += max(0.0, 1.0 - (proxy.age_seconds or 0) / 86400.0) * 10.0
@@ -136,7 +136,7 @@ def score_privacy(
         base += 10.0
     hist = history.get(proxy.id) or {}
     base += hist.get("success_rate", 0.0) * 15.0
-    base += _latency_points(proxy.latency_ms, settings.LAT_SOFT_CAP_MS, 15.0)
+    base += _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, 15.0)
     return round(base, 2)
 
 
@@ -147,5 +147,5 @@ def score_stability(
     hist = history.get(proxy.id) or {}
     score = hist.get("success_rate", 0.0) * 50.0
     score += hist.get("latency_ewma", 0.0) * 20.0
-    score += _latency_points(proxy.latency_ms, settings.LAT_SOFT_CAP_MS, 30.0)
+    score += _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, 30.0)
     return round(score, 2)

@@ -2,6 +2,42 @@
 
 All notable changes to ConfigStream will be documented in this file.
 
+## [1.3.1] - 2025-11-21
+
+### Fixed - High Priority Backend Improvements
+
+- **SQLite Concurrency**: Enabled WAL (Write-Ahead Logging) mode in anomaly.py and source_quality.py for better concurrent access and crash recovery
+- **Deprecated Property Usage**: Fixed score.py to use canonical `latency` field instead of deprecated `latency_ms` property (lines 97, 109, 139, 150)
+- **File Durability**: Added fsync() to output.py atomic writes for crash-safe file operations
+- **Cache Observability**: Added cache_misses metric tracking in pipeline.py for better monitoring
+- **Import Error**: Fixed missing `os` import in output.py causing mypy errors
+
+### Added - Documentation
+
+- **API_SCHEMA.md**: Comprehensive JSON schema documentation for all output files (metadata.json, proxies.json, client configs)
+- **TROUBLESHOOTING.md**: Complete troubleshooting guide covering installation, pipeline, testing, and deployment issues
+- **COMPREHENSIVE_AUDIT_REPORT.md**: Detailed audit report analyzing all backend methods for robustness, accuracy, and consistency
+
+### Added - Test Coverage (+36 Tests)
+
+- **test_geoip_robustness.py**: 11 tests covering GeoIP edge cases (invalid IPs, IPv6, private IPs, singleton pattern)
+- **test_metrics_advanced.py**: 9 tests for metrics collection, export, and serialization
+- **test_consolidation_advanced.py**: 16 tests for proxy ranking, selection, and country flag generation
+- **Total Test Count**: 162 passing tests (85.3% pass rate including E2E)
+
+### Changed
+
+- **Database Operations**: SQLite now uses WAL mode with NORMAL synchronous mode for optimal performance/safety balance
+- **File I/O**: All JSON outputs now use os.open() + os.fsync() + rename pattern for atomic crash-safe writes
+- **Temp Directory Cleanup**: Removed output_batch_* directories and added to .gitignore
+- **Code Formatting**: Applied Black formatting to 7 backend modules for consistency
+
+### Technical Debt Reduction
+
+- **Split-Brain Prevention**: Eliminated latency_ms property usage to maintain single source of truth
+- **Type Safety**: Reduced type: ignore pragmas by fixing Union[int, float] stats dict usage
+- **Code Quality**: Fixed all mypy import errors and Black formatting issues
+
 ## [1.3.0] - 2025-11-21
 
 ### Fixed - Critical Backend Robustness Improvements

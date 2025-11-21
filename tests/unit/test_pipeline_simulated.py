@@ -18,9 +18,7 @@ async def test_pipeline_simulated_run(tmp_path):
         ) as mock_fetch,
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
-        patch(
-            "configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
-        ),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
         patch("configstream.pipeline.output.save_metadata") as mock_save_meta,
         patch("configstream.pipeline.get_adapter") as mock_get_adapter,
         patch("configstream.pipeline.select_top_configs") as mock_select_top,
@@ -119,9 +117,7 @@ async def test_pipeline_with_filters(tmp_path):
         ) as mock_fetch,
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
-        patch(
-            "configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
-        ),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
         patch("configstream.pipeline.output.save_metadata"),
         patch("configstream.pipeline.get_adapter"),
         patch("configstream.pipeline.select_top_configs"),
