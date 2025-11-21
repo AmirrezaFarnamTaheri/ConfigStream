@@ -19,6 +19,9 @@ from .security.blocklist import DEFAULT_BLOCKLIST
 
 logger = logging.getLogger(__name__)
 
+# Cache AppSettings instance to avoid repeated instantiation in hot paths
+_APP_SETTINGS_CACHE = AppSettings()
+
 
 # RFC 2606 reserved names + localhost: safe for tests and docs
 RESERVED_DOMAINS: FrozenSet[str] = frozenset(
@@ -191,8 +194,8 @@ class SecurityValidator:
 
         # Combined check for private, reserved, and special-use addresses
         # This is more robust and covers more edge cases.
-        app_settings = AppSettings()
-        if not app_settings.ALLOW_PRIVATE_IPS:
+        # Use cached settings to avoid repeated instantiation
+        if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
             special_address_patterns = [
                 # Loopback
                 r"^127\.",
@@ -311,8 +314,10 @@ class SecurityValidator:
                 return False, "Missing domain"
 
             # Check for suspicious domains
-            if not SecurityValidator._is_address_safe(parsed.netloc):
-                return False, f"Suspicious domain: {parsed.netloc}"
+            # Use hostname to exclude port number from validation
+            hostname = parsed.hostname or parsed.netloc
+            if not SecurityValidator._is_address_safe(hostname):
+                return False, f"Suspicious domain: {hostname}"
 
             return True, None
 

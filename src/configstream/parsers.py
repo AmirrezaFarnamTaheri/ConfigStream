@@ -270,7 +270,11 @@ def _parse_ss(config: str) -> Optional[Proxy]:
             return None
         host, port_str = host_info.rsplit(":", 1)
 
-        port = int(port_str)
+        try:
+            port = int(port_str)
+        except (ValueError, TypeError):
+            logger.debug("Invalid port in shadowsocks config: %s", port_str)
+            return None
         if not (1 <= port <= 65535) or not host:
             return None
 
@@ -376,7 +380,11 @@ def _parse_ssr(config: str) -> Optional[Proxy]:
         if len(server) > 255:
             return None
 
-        port = int(port_str)
+        try:
+            port = int(port_str)
+        except (ValueError, TypeError):
+            logger.debug("Invalid port in shadowsocksr config: %s", port_str)
+            return None
         if not (1 <= port <= 65535):
             return None
 
@@ -545,11 +553,17 @@ def _parse_v2ray_json(config: str) -> Optional[Proxy]:
     }
     remarks = outbound.get("tag", data.get("remark", ""))
 
+    try:
+        port_int = int(port)
+    except (ValueError, TypeError):
+        logger.debug("Invalid port in v2ray config: %s", port)
+        return None
+
     return Proxy(
         config=config,
         protocol="v2ray",
         address=address,
-        port=int(port),
+        port=port_int,
         uuid=uuid,
         remarks=remarks or "",
         details=metadata,
@@ -719,7 +733,11 @@ def _parse_openvpn(config: str) -> Optional[Proxy]:
 
         # Pick the first remote for now (simplification)
         host, port_str = remotes[0]
-        port = int(port_str)
+        try:
+            port = int(port_str)
+        except (ValueError, TypeError):
+            logger.debug("Invalid port in openvpn config: %s", port_str)
+            return None
 
         # Extract Proto
         proto_match = re.search(r"^proto\s+(\w+)", config, re.MULTILINE)
