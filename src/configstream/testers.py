@@ -166,8 +166,10 @@ class SingBoxTester:
             try:
                 # Start Sing-box in a thread to avoid blocking the event loop
                 # singbox_factory is synchronous
-                sb_instance = await loop.run_in_executor(
-                    None, lambda: singbox_factory(config_path)
+                # Security: Wrap in timeout to prevent hung subprocess from blocking event loop
+                sb_instance = await asyncio.wait_for(
+                    loop.run_in_executor(None, lambda: singbox_factory(config_path)),
+                    timeout=self.timeout,
                 )
 
                 if not sb_instance or not sb_instance.http_proxy_url:
@@ -195,7 +197,11 @@ class SingBoxTester:
                 # Guarantee process cleanup
                 if sb_instance:
                     try:
-                        await loop.run_in_executor(None, sb_instance.stop)
+                        await asyncio.wait_for(
+                            loop.run_in_executor(None, sb_instance.stop), timeout=5.0
+                        )
+                    except asyncio.TimeoutError:
+                        logger.warning("Singbox stop timeout, process may be hung")
                     except Exception:
                         pass
 
