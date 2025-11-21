@@ -107,13 +107,13 @@ class SingBoxTester:
         self.dry_run = dry_run
 
     async def test(self, proxy: Proxy) -> Proxy:
+        """
+        Main entry point for testing a proxy.
+        """
         if self.dry_run:
             proxy.is_working = True
             proxy.latency = 123.45
             return proxy
-        """
-        Main entry point for testing a proxy.
-        """
         # 1. Check Cache
         if self.cache and (cached := self.cache.get(proxy)):
             return cached
@@ -229,9 +229,6 @@ class SingBoxTester:
                         latencies.append((time.monotonic() - start) * 1000)
             except Exception:
                 pass
-
-            # Tiny sleep to let socket settle
-            await asyncio.sleep(0.1)
 
         if not latencies:
             return None

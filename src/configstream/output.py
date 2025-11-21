@@ -194,19 +194,36 @@ def generate_categorized_outputs(
 
 def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
     """
-    Save list of proxies to JSON file.
+    Save list of proxies to JSON file atomically.
     If compress=True, also saves a .gz version.
     """
     data = [serialize_proxy(p) for p in proxies]
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
-    # Save plain JSON
-    path.write_text(json_content, encoding="utf-8")
+    # Save plain JSON atomically using temp file + rename
+    temp_path = path.with_suffix(path.suffix + ".tmp")
+    try:
+        temp_path.write_text(json_content, encoding="utf-8")
+        # On POSIX systems, rename is atomic. On Windows it's atomic in Python 3.3+
+        temp_path.replace(path)
+    except Exception:
+        # Clean up temp file if something went wrong
+        if temp_path.exists():
+            temp_path.unlink()
+        raise
 
-    # Save Gzipped version
+    # Save Gzipped version atomically
     if compress:
-        with gzip.open(str(path) + ".gz", "wt", encoding="utf-8") as f:
-            f.write(json_content)
+        gz_path = Path(str(path) + ".gz")
+        temp_gz_path = gz_path.with_suffix(gz_path.suffix + ".tmp")
+        try:
+            with gzip.open(temp_gz_path, "wt", encoding="utf-8") as f:
+                f.write(json_content)
+            temp_gz_path.replace(gz_path)
+        except Exception:
+            if temp_gz_path.exists():
+                temp_gz_path.unlink()
+            raise
 
 
 def save_metadata(
@@ -278,8 +295,18 @@ def save_metadata(
         },
     }
 
-    (output_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
-    (output_dir / "summary.json").write_text(json.dumps(metadata, indent=2))
+    # Write metadata atomically
+    metadata_content = json.dumps(metadata, indent=2)
+    for filename in ["metadata.json", "summary.json"]:
+        target_path = output_dir / filename
+        temp_path = target_path.with_suffix(target_path.suffix + ".tmp")
+        try:
+            temp_path.write_text(metadata_content, encoding="utf-8")
+            temp_path.replace(target_path)
+        except Exception:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
 
 
 def generate_clash_config(proxies: List[Proxy]) -> str:

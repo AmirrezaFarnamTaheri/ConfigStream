@@ -306,6 +306,10 @@ async def run_full_pipeline(
                     cached = test_cache.get(p)
                     if cached:
                         final_batch_for_this_source.append(cached)
+                    else:
+                        # Cache miss - retest instead of dropping proxy
+                        logger.debug(f"Cache miss for {p.id}, will retest")
+                        proxies_to_actually_test.append(p)
 
             # --- Testing ---
             if proxies_to_actually_test:
@@ -336,7 +340,7 @@ async def run_full_pipeline(
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
 
                         for res in results:
-                            concurrency.record(
+                            await concurrency.record(
                                 "default", res.latency or 9999, res.is_working
                             )
                             if res.is_working:
@@ -354,25 +358,7 @@ async def run_full_pipeline(
 
             # --- Post-Processing Working Proxies ---
 
-            # NEW: Calculate working count for this source
-            working_count_for_source = sum(
-                1 for p in final_batch_for_this_source if p.is_working
-            )
-            fetched_count_for_source = len(
-                parsed_batch
-            )  # Total parsable from this batch
-
-            # Update Quality Tracker
-            if not source.startswith("supplied-proxies") and not source.startswith(
-                "sources/"
-            ):
-                # We can only track remote URLs effectively, or specific files if they are treated as sources
-                # The source variable here is what was passed in queue.
-                # For file sources it is the path.
-                quality_tracker.update(
-                    source, fetched_count_for_source, working_count_for_source
-                )
-
+            # Process proxies for geolocation and filtering
             for p in final_batch_for_this_source:
                 if not p.is_working:
                     continue
@@ -408,10 +394,13 @@ async def run_full_pipeline(
             # Calculate Diversity Score for this batch
             diversity_score = calculate_diversity_score(final_batch_for_this_source)
 
-            # Update Quality Tracker
-            quality_tracker.update(
-                source, fetched_count, working_count, diversity_score
-            )
+            # Update Quality Tracker (only for remote URLs, not local files)
+            if not source.startswith("supplied-proxies") and not source.startswith(
+                "sources/"
+            ):
+                quality_tracker.update(
+                    source, fetched_count, working_count, diversity_score
+                )
 
             work_queue.task_done()
 
