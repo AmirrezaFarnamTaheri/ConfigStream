@@ -100,7 +100,7 @@ def infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
                 or full_match.count("-") >= 2
                 or full_match.count("_") >= 2
             ):
-                continue # Skip this match, look for next
+                continue  # Skip this match, look for next
 
         payload = _country_payload_from_code(candidate_code)
         if payload:

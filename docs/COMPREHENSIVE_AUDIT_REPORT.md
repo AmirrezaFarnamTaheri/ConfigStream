@@ -21,113 +21,86 @@ This comprehensive audit analyzed all backend methods, logic flows, and system a
 
 ---
 
-## 1. Critical Findings & Fixes Required
+## 1. Critical Findings & Fixes ✅ COMPLETED
 
-### 1.1 **Deprecated Property Usage in Scoring Logic** ⚠️ HIGH PRIORITY
+### 1.1 **Deprecated Property Usage in Scoring Logic** ✅ FIXED
 
 **Location:** `src/configstream/score.py` lines 97, 109, 139, 150
 
-**Issue:** Legacy scoring functions use `proxy.latency_ms` property instead of the canonical `proxy.latency` attribute. While the property is aliased in models.py (lines 38-44), this creates potential for confusion and inconsistency.
+**Issue:** Legacy scoring functions used `proxy.latency_ms` property instead of the canonical `proxy.latency` attribute.
 
-**Impact:**
-- Could cause scoring inaccuracies if property behavior changes
-- Split-brain: Two names for same data violates single source of truth
-
-**Fix Required:**
+**Fix Applied:**
 ```python
-# BEFORE (lines 97, 109, 139, 150):
-_latency_points(proxy.latency_ms, ...)
-
-# AFTER:
-_latency_points(proxy.latency, ...)
+# Updated all references to use proxy.latency directly
+_latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, ...)
 ```
 
-**Severity:** MEDIUM (currently mitigated by property aliasing, but technical debt)
+**Status:** ✅ COMPLETED in commit c3cb280
+**Impact:** Eliminates split-brain, maintains single source of truth
 
 ---
 
-### 1.2 **SQLite Concurrency - Missing WAL Mode** ⚠️ HIGH PRIORITY
+### 1.2 **SQLite Concurrency - WAL Mode** ✅ FIXED
 
 **Locations:**
-- `src/configstream/anomaly.py:28-39`
-- `src/configstream/source_quality.py:24-53`
+- `src/configstream/anomaly.py:26-44`
+- `src/configstream/source_quality.py:24-57`
 
-**Issue:** SQLite databases do not enable Write-Ahead Logging (WAL) mode. In high-concurrency scenarios (which ConfigStream handles via async workers), this can cause:
-- Database locks during concurrent reads/writes
-- "database is locked" errors
-- Potential corruption during crashes
+**Issue:** SQLite databases needed Write-Ahead Logging (WAL) mode for better concurrency and crash recovery.
 
-**Current State:**
-```python
-# anomaly.py line 28
-with sqlite3.connect(self.db_path) as conn:
-    conn.execute("CREATE TABLE IF NOT EXISTS...")
-```
-
-**Fix Required:**
+**Fix Applied:**
 ```python
 with sqlite3.connect(self.db_path) as conn:
-    # Enable WAL mode for better concurrency
+    # Enable WAL mode for better concurrency and crash recovery
     conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")  # Balance durability/performance
+    conn.execute("PRAGMA synchronous=NORMAL")
     conn.execute("CREATE TABLE IF NOT EXISTS...")
 ```
 
-**Severity:** HIGH (concurrency correctness)
+**Status:** ✅ COMPLETED in commit c3cb280
+**Impact:** Better concurrency, prevents corruption, enables crash recovery
 
 ---
 
-### 1.3 **Output File Durability - Missing fsync** ⚠️ MEDIUM PRIORITY
+### 1.3 **Output File Durability - fsync** ✅ FIXED
 
-**Location:** `src/configstream/output.py:307-338`
+**Location:** `src/configstream/output.py:307-440`
 
-**Issue:** Atomic file writes use temp file + rename pattern (good!), but don't call `fsync()` before rename. On system crash, recent writes may be lost even though rename succeeded.
+**Issue:** Atomic file writes needed `fsync()` before rename for crash safety.
 
-**Current State:**
+**Fix Applied:**
 ```python
-# Line 316-320
-temp_path.write_text(json_content, encoding="utf-8")
-temp_path.replace(path)  # Atomic, but unflushed to disk
-```
-
-**Fix Required:**
-```python
-temp_fd = os.open(str(temp_path), os.O_WRONLY | os.O_CREAT)
-os.write(temp_fd, json_content.encode('utf-8'))
-os.fsync(temp_fd)  # Ensure data hits disk
-os.close(temp_fd)
+temp_fd = os.open(str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+try:
+    os.write(temp_fd, json_content.encode('utf-8'))
+    os.fsync(temp_fd)  # Ensure data hits disk
+finally:
+    os.close(temp_fd)
 temp_path.replace(path)
 ```
 
-**Severity:** MEDIUM (affects crash recovery, but crashes are rare)
+**Status:** ✅ COMPLETED in commit c3cb280
+**Impact:** Guarantees data hits disk, prevents silent data loss
 
 ---
 
-### 1.4 **Pipeline Cache Miss - Silent Metric Loss** ⚠️ LOW PRIORITY
+### 1.4 **Pipeline Cache Miss - Metric Tracking** ✅ FIXED
 
-**Location:** `src/configstream/pipeline.py:316-322`
+**Location:** `src/configstream/pipeline.py:320-324`
 
-**Issue:** When cache miss occurs for a proxy marked as "healthy" by scheduler, the code logs but doesn't increment any failure metric. This could hide issues where cache is not working properly.
+**Issue:** Cache misses weren't tracked as metrics, hiding potential cache effectiveness issues.
 
-**Current State:**
-```python
-# Line 319-322
-else:
-    # Cache miss - retest instead of dropping proxy
-    logger.debug(f"Cache miss for {p.id}, will retest")
-    proxies_to_actually_test.append(p)
-```
-
-**Fix Required:**
+**Fix Applied:**
 ```python
 else:
     # Cache miss - retest instead of dropping proxy
     logger.debug(f"Cache miss for {p.id}, will retest")
-    stats["cache_misses"] = stats.get("cache_misses", 0) + 1  # Track metric
+    stats["cache_misses"] = int(stats.get("cache_misses", 0)) + 1  # type: ignore
     proxies_to_actually_test.append(p)
 ```
 
-**Severity:** LOW (observability improvement)
+**Status:** ✅ COMPLETED in commit c3cb280
+**Impact:** Better observability of cache effectiveness
 
 ---
 

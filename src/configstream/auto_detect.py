@@ -179,10 +179,10 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                     allowed = valid_schemes_for_parser.get(result.protocol)
                     if allowed:
                         if scheme not in allowed:
-                             # Allow generic schemes ONLY if the parser logic explicitly supports it
-                             # But Hysteria/Tuic/WireGuard parsers in this codebase are thin wrappers around urlparse
-                             # so they will accept "http://google.com" as a valid config. This is WRONG.
-                             continue
+                            # Allow generic schemes ONLY if the parser logic explicitly supports it
+                            # But Hysteria/Tuic/WireGuard parsers in this codebase are thin wrappers around urlparse
+                            # so they will accept "http://google.com" as a valid config. This is WRONG.
+                            continue
 
                 logger.info("Auto-detected protocol: %s", result.protocol)
                 return result

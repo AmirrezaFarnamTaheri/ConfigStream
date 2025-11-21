@@ -7,6 +7,7 @@ import json
 import base64
 import gzip
 import logging
+import os
 from pathlib import Path
 from typing import List, Dict, Union, Optional, Any
 from datetime import datetime, timezone
@@ -29,7 +30,9 @@ logger = logging.getLogger(__name__)
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """Convert internal Proxy model to Clash dictionary."""
 
-    def _add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
+    def _add_transport_opts(
+        base: Dict[str, Any], details: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Helper to add ws/grpc/http options to Clash config."""
         net = details.get("net") or details.get("type") or "tcp"
         base["network"] = net
@@ -39,7 +42,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if "path" in details:
                 ws_opts["path"] = str(details["path"])
             if "host" in details or "sni" in details:
-                ws_opts["headers"] = {"Host": str(details.get("host") or details.get("sni"))}
+                ws_opts["headers"] = {
+                    "Host": str(details.get("host") or details.get("sni"))
+                }
             if ws_opts:
                 base["ws-opts"] = ws_opts
 
@@ -67,10 +72,12 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if "fp" in details:
                 base["client-fingerprint"] = str(details["fp"])
             if details.get("security") == "reality":
-                base["client-fingerprint"] = str(details.get("fp", "chrome"))  # Reality needs explicit FP often
+                base["client-fingerprint"] = str(
+                    details.get("fp", "chrome")
+                )  # Reality needs explicit FP often
                 base["reality-opts"] = {
                     "public-key": str(details.get("pbk")),
-                    "short-id": str(details.get("sid", ""))
+                    "short-id": str(details.get("sid", "")),
                 }
 
         return base
@@ -120,7 +127,11 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server": proxy.address,
             "port": proxy.port,
             "username": proxy.uuid if proxy.uuid else None,
-            "password": str(proxy.details.get("password", "")) if proxy.details.get("password") else None,
+            "password": (
+                str(proxy.details.get("password", ""))
+                if proxy.details.get("password")
+                else None
+            ),
             "tls": proxy.details.get("tls") == "tls",
         }
     elif proxy.protocol == "socks5":
@@ -129,7 +140,11 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server": proxy.address,
             "port": proxy.port,
             "username": proxy.uuid if proxy.uuid else None,
-            "password": str(proxy.details.get("password", "")) if proxy.details.get("password") else None,
+            "password": (
+                str(proxy.details.get("password", ""))
+                if proxy.details.get("password")
+                else None
+            ),
             "tls": proxy.details.get("tls") == "tls",
         }
     elif proxy.protocol == "wireguard":
@@ -154,7 +169,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         "server_port": proxy.port,
     }
 
-    def _add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
+    def _add_transport_sb(
+        out: Dict[str, Any], details: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Helper to add transport options for Sing-box."""
         net = details.get("net") or details.get("type") or "tcp"
 
@@ -164,7 +181,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if "path" in details:
                 transport["path"] = str(details["path"])
             if "host" in details or "sni" in details:
-                transport["headers"] = {"Host": str(details.get("host") or details.get("sni"))}
+                transport["headers"] = {
+                    "Host": str(details.get("host") or details.get("sni"))
+                }
         elif net == "grpc":
             transport["type"] = "grpc"
             if "serviceName" in details:
@@ -191,7 +210,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 tls["reality"] = {
                     "enabled": True,
                     "public_key": str(details.get("pbk")),
-                    "short_id": str(details.get("sid", ""))
+                    "short_id": str(details.get("sid", "")),
                 }
 
             out["tls"] = tls
@@ -318,7 +337,7 @@ def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
         # Write with fsync for crash safety
         temp_fd = os.open(str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
         try:
-            os.write(temp_fd, json_content.encode('utf-8'))
+            os.write(temp_fd, json_content.encode("utf-8"))
             os.fsync(temp_fd)  # Ensure data hits disk before rename
         finally:
             os.close(temp_fd)
@@ -426,9 +445,11 @@ def save_metadata(
         temp_path = target_path.with_suffix(target_path.suffix + ".tmp")
         try:
             # Write with fsync for crash safety
-            temp_fd = os.open(str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+            temp_fd = os.open(
+                str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644
+            )
             try:
-                os.write(temp_fd, metadata_content.encode('utf-8'))
+                os.write(temp_fd, metadata_content.encode("utf-8"))
                 os.fsync(temp_fd)
             finally:
                 os.close(temp_fd)
