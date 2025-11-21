@@ -150,36 +150,39 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         _parse_hysteria,
         _parse_tuic,
         _parse_wireguard,
-        # _parse_generic_url_scheme,  <-- Removed to prevent "invalid://" from matching Hysteria/Generic blindly
     )
 
     for parser in fallback_parsers:
         try:
             result = parser(config)
             if result:
-                # Hysteria2 parser is too aggressive, if it returns a result but the scheme is clearly invalid, reject
-                # If scheme is present and doesn't match protocol (and isn't generic), assume false positive
+                # STRICT CHECK: Reduce false positives from aggressive URL parsers
                 if "://" in config:
                     scheme = config.split("://")[0].lower()
-                    # Allow known aliases
-                    valid_schemes = [
-                        "hysteria2",
-                        "hy2",
-                        "tuic",
-                        "wg",
-                        "wireguard",
-                        "vmess",
-                        "vless",
-                        "ss",
-                        "trojan",
-                    ]
-                    if (
-                        result.protocol
-                        in ["hysteria2", "tuic", "wireguard", "hysteria"]
-                        and scheme not in valid_schemes
-                    ):
-                        # This handles "invalid://garbage" being parsed as Hysteria2 because Hysteria2 parser just takes URL
-                        continue
+
+                    # If scheme looks like a protocol but parser says something else, be suspicious
+                    # e.g. "http://..." parsed as hysteria2 -> suspicious
+
+                    # Known valid schemes for fallback parsers
+                    valid_schemes_for_parser = {
+                        "hysteria2": ["hysteria2", "hy2"],
+                        "hysteria": ["hysteria", "hy1"],
+                        "tuic": ["tuic"],
+                        "wireguard": ["wireguard", "wg"],
+                        "vmess": ["vmess"],
+                        "vless": ["vless"],
+                        "ss": ["ss", "ss2022"],
+                        "trojan": ["trojan", "trojan-go"],
+                    }
+
+                    # If the result protocol has specific schemes, enforce them
+                    allowed = valid_schemes_for_parser.get(result.protocol)
+                    if allowed:
+                        if scheme not in allowed:
+                             # Allow generic schemes ONLY if the parser logic explicitly supports it
+                             # But Hysteria/Tuic/WireGuard parsers in this codebase are thin wrappers around urlparse
+                             # so they will accept "http://google.com" as a valid config. This is WRONG.
+                             continue
 
                 logger.info("Auto-detected protocol: %s", result.protocol)
                 return result

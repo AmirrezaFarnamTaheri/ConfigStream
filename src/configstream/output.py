@@ -35,27 +35,27 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         base["network"] = net
 
         if net == "ws":
-            ws_opts = {}
+            ws_opts: Dict[str, Any] = {}
             if "path" in details:
-                ws_opts["path"] = details["path"]
+                ws_opts["path"] = str(details["path"])
             if "host" in details or "sni" in details:
-                ws_opts["headers"] = {"Host": details.get("host") or details.get("sni")}
+                ws_opts["headers"] = {"Host": str(details.get("host") or details.get("sni"))}
             if ws_opts:
                 base["ws-opts"] = ws_opts
 
         elif net == "grpc":
-            grpc_opts = {}
+            grpc_opts: Dict[str, Any] = {}
             if "serviceName" in details:
-                grpc_opts["grpc-service-name"] = details["serviceName"]
+                grpc_opts["grpc-service-name"] = str(details["serviceName"])
             if grpc_opts:
                 base["grpc-opts"] = grpc_opts
 
         elif net == "h2" or net == "http":
-            h2_opts = {}
+            h2_opts: Dict[str, Any] = {}
             if "path" in details:
-                h2_opts["path"] = [details["path"]]
+                h2_opts["path"] = [str(details["path"])]
             if "host" in details:
-                h2_opts["host"] = [details["host"]]
+                h2_opts["host"] = [str(details["host"])]
             if h2_opts:
                 base["h2-opts"] = h2_opts
 
@@ -63,17 +63,19 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if details.get("tls") == "tls" or details.get("security") in ["tls", "reality"]:
             base["tls"] = True
             if "sni" in details:
-                base["servername"] = details["sni"]
+                base["servername"] = str(details["sni"])
             if "fp" in details:
-                base["client-fingerprint"] = details["fp"]
+                base["client-fingerprint"] = str(details["fp"])
             if details.get("security") == "reality":
-                base["client-fingerprint"] = details.get("fp", "chrome") # Reality needs explicit FP often
+                base["client-fingerprint"] = str(details.get("fp", "chrome"))  # Reality needs explicit FP often
                 base["reality-opts"] = {
-                    "public-key": details.get("pbk"),
-                    "short-id": details.get("sid", "")
+                    "public-key": str(details.get("pbk")),
+                    "short-id": str(details.get("sid", ""))
                 }
 
         return base
+
+    base: Dict[str, Any] = {}
 
     if proxy.protocol == "vmess":
         base = {
@@ -82,7 +84,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "port": proxy.port,
             "uuid": proxy.uuid,
             "alterId": int(proxy.details.get("aid", 0)),
-            "cipher": proxy.details.get("scy", "auto"),
+            "cipher": str(proxy.details.get("scy", "auto")),
         }
         return _add_transport_opts(base, proxy.details)
 
@@ -92,7 +94,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server": proxy.address,
             "port": proxy.port,
             "uuid": proxy.uuid,
-            "flow": proxy.details.get("flow", ""),
+            "flow": str(proxy.details.get("flow", "")),
         }
         return _add_transport_opts(base, proxy.details)
 
@@ -101,8 +103,8 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "ss",
             "server": proxy.address,
             "port": proxy.port,
-            "cipher": proxy.details.get("method", "chacha20-ietf-poly1305"),
-            "password": proxy.details.get("password", ""),
+            "cipher": str(proxy.details.get("method", "chacha20-ietf-poly1305")),
+            "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "trojan":
         return {
@@ -118,7 +120,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server": proxy.address,
             "port": proxy.port,
             "username": proxy.uuid if proxy.uuid else None,
-            "password": proxy.details.get("password", None),
+            "password": str(proxy.details.get("password", "")) if proxy.details.get("password") else None,
             "tls": proxy.details.get("tls") == "tls",
         }
     elif proxy.protocol == "socks5":
@@ -127,7 +129,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server": proxy.address,
             "port": proxy.port,
             "username": proxy.uuid if proxy.uuid else None,
-            "password": proxy.details.get("password", None),
+            "password": str(proxy.details.get("password", "")) if proxy.details.get("password") else None,
             "tls": proxy.details.get("tls") == "tls",
         }
     elif proxy.protocol == "wireguard":
@@ -135,11 +137,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "wireguard",
             "server": proxy.address,
             "port": proxy.port,
-            "ip": proxy.details.get(
-                "local_address", "10.10.0.2"
-            ),  # Placeholder if missing
-            "private-key": proxy.details.get("private_key"),
-            "public-key": proxy.details.get("peer_public_key"),  # If available
+            "ip": str(proxy.details.get("local_address", "10.10.0.2")),
+            "private-key": str(proxy.details.get("private_key")),
+            "public-key": str(proxy.details.get("peer_public_key")),
             "udp": True,
         }
 
@@ -149,7 +149,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """Convert internal Proxy model to Sing-box outbound."""
-    base = {
+    base: Dict[str, Any] = {
         "server": proxy.address,
         "server_port": proxy.port,
     }
@@ -158,40 +158,40 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         """Helper to add transport options for Sing-box."""
         net = details.get("net") or details.get("type") or "tcp"
 
-        transport = {}
+        transport: Dict[str, Any] = {}
         if net == "ws":
             transport["type"] = "ws"
             if "path" in details:
-                transport["path"] = details["path"]
+                transport["path"] = str(details["path"])
             if "host" in details or "sni" in details:
-                transport["headers"] = {"Host": details.get("host") or details.get("sni")}
+                transport["headers"] = {"Host": str(details.get("host") or details.get("sni"))}
         elif net == "grpc":
             transport["type"] = "grpc"
             if "serviceName" in details:
-                transport["service_name"] = details["serviceName"]
+                transport["service_name"] = str(details["serviceName"])
         elif net == "http" or net == "h2":
             transport["type"] = "http"
             if "path" in details:
-                transport["path"] = details["path"]
+                transport["path"] = str(details["path"])
             if "host" in details:
-                transport["host"] = [details["host"]]
+                transport["host"] = [str(details["host"])]
 
         if transport:
             out["transport"] = transport
 
         # TLS
         if details.get("tls") == "tls" or details.get("security") in ["tls", "reality"]:
-            tls = {"enabled": True}
+            tls: Dict[str, Any] = {"enabled": True}
             if "sni" in details:
-                tls["server_name"] = details["sni"]
+                tls["server_name"] = str(details["sni"])
             if "fp" in details:
-                tls["utls"] = {"enabled": True, "fingerprint": details["fp"]}
+                tls["utls"] = {"enabled": True, "fingerprint": str(details["fp"])}
 
             if details.get("security") == "reality":
                 tls["reality"] = {
                     "enabled": True,
-                    "public_key": details.get("pbk"),
-                    "short_id": details.get("sid", "")
+                    "public_key": str(details.get("pbk")),
+                    "short_id": str(details.get("sid", ""))
                 }
 
             out["tls"] = tls
@@ -213,7 +213,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "vless",
             **base,
             "uuid": proxy.uuid,
-            "flow": proxy.details.get("flow", ""),
+            "flow": str(proxy.details.get("flow", "")),
         }
         return _add_transport_sb(out, proxy.details)
 
@@ -221,8 +221,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         return {
             "type": "shadowsocks",
             **base,
-            "method": proxy.details.get("method", "chacha20-ietf-poly1305"),
-            "password": proxy.details.get("password", ""),
+            "method": str(proxy.details.get("method", "chacha20-ietf-poly1305")),
+            "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "trojan":
         return {"type": "trojan", **base, "password": proxy.uuid}
@@ -232,7 +232,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "http",
             **base,
             "username": proxy.uuid if proxy.uuid else "",
-            "password": proxy.details.get("password", ""),
+            "password": str(proxy.details.get("password", "")),
             "tls": {"enabled": proxy.details.get("tls") == "tls"},
         }
     elif proxy.protocol == "socks5":
@@ -240,15 +240,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "socks",
             **base,
             "username": proxy.uuid if proxy.uuid else "",
-            "password": proxy.details.get("password", ""),
+            "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "wireguard":
         return {
             "type": "wireguard",
             **base,
-            "local_address": [proxy.details.get("local_address", "10.10.0.2/32")],
-            "private_key": proxy.details.get("private_key"),
-            "peer_public_key": proxy.details.get("peer_public_key", ""),
+            "local_address": [str(proxy.details.get("local_address", "10.10.0.2/32"))],
+            "private_key": str(proxy.details.get("private_key")),
+            "peer_public_key": str(proxy.details.get("peer_public_key", "")),
         }
 
     return None
@@ -260,7 +260,7 @@ def generate_categorized_outputs(
     """
     Generate files organized by protocol and country.
     """
-    files = {}
+    files: Dict[str, Path] = {}
 
     # 1. Master List
     master_file = output_dir / "proxies.json"
@@ -477,8 +477,8 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
     """Generate Sing-box JSON configuration."""
-    outbounds = []
-    selector_tags = []
+    outbounds: List[Dict[str, Any]] = []
+    selector_tags: List[str] = []
 
     for i, p in enumerate(proxies, 1):
         config = to_singbox_outbound(p)
