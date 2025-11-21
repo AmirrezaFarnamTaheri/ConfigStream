@@ -170,7 +170,17 @@ async def run_full_pipeline(
                         progress.advance(task_fetch)
 
             # C. Handle Remote Sources
-            remote_urls = [s for s in sources if s.startswith("http")]
+            remote_urls = []
+            for s in sources:
+                if s.startswith("http"):
+                    remote_urls.append(s)
+                # Handle individual proxy configs or non-standard schemes
+                elif s.startswith(("ss://", "vmess://", "vless://", "trojan://", "hysteria://", "hy2://", "tuic://", "ssh://", "wg://", "wireguard://")):
+                    # Treat as a single-line config supplied directly
+                    await work_queue.put(("supplied-config", [s]))
+                elif s.startswith("ssconf://"):
+                    # Convert ssconf to https for fetching
+                    remote_urls.append(s.replace("ssconf://", "https://"))
 
             # NEW: Filter sources based on Quality/Cooldown
             active_urls = []
