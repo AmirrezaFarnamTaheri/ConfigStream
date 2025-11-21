@@ -15,6 +15,7 @@ from configstream.output import (  # noqa: E402
     generate_base64_subscription,
     generate_singbox_config,
     generate_clash_config,
+    save_metadata,
 )
 from configstream.adapters import get_adapter  # noqa: E402
 from configstream.test_cache import TestResultCache  # noqa: E402
@@ -311,15 +312,23 @@ def merge_batches(
     print("✓ Generated statistics.json")
 
     # 8. metadata.json
-    metadata = {
-        "last_updated_utc": datetime.now(timezone.utc).isoformat(),
-        "total_proxies": len(ranked_proxies),
-        "chosen_proxies": len(chosen_proxies),
+    # Use output.py's save_metadata for consistency (includes latency distribution)
+
+    # We need to reconstruct 'stats' dict for save_metadata
+    # It expects keys: working, fetched_lines, duration
+    # We don't have exact fetched_lines or duration for the merged set easily,
+    # but we can approximate or aggregate if we stored them.
+    # For now, we'll pass what we have.
+
+    meta_stats = {
+        "working": working_proxies,
+        "fetched_lines": total_processed, # Approximation
+        "duration": 0.0 # Merging is fast, duration not tracked per se
     }
 
-    with open(output_dir / "metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2)
-    print("✓ Generated metadata.json")
+    # save_metadata writes both metadata.json and summary.json
+    save_metadata(meta_stats, ranked_proxies, output_dir)
+    print("✓ Generated metadata.json and summary.json via shared logic")
 
     print(f"\n{'=' * 60}")
     print(f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies")

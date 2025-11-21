@@ -16,7 +16,7 @@ def sample_proxies():
             protocol="vmess",
             address="1.1.1.1",
             port=443,
-            latency=100,
+            latency=100.0,
             country_code="US",
             is_working=True,
         ),
@@ -25,7 +25,7 @@ def sample_proxies():
             protocol="vmess",
             address="1.1.1.2",
             port=443,
-            latency=50,  # Better latency
+            latency=50.0,  # Better latency
             country_code="US",
             is_working=True,
         ),
@@ -34,7 +34,7 @@ def sample_proxies():
             protocol="shadowsocks",
             address="2.2.2.1",
             port=8388,
-            latency=200,
+            latency=200.0,
             country_code="DE",
             is_working=True,
         ),
@@ -51,7 +51,7 @@ def sample_proxies():
 
 
 def test_calculate_compound_score():
-    p = Proxy(config="test", protocol="vmess", address="1.1.1.1", port=443, latency=100)
+    p = Proxy(config="test", protocol="vmess", address="1.1.1.1", port=443, latency=100.0)
     assert calculate_compound_score(p) == 100.0
 
     p_stale = Proxy(
@@ -59,7 +59,7 @@ def test_calculate_compound_score():
         protocol="vmess",
         address="1.1.1.1",
         port=443,
-        latency=100,
+        latency=100.0,
         stale=True,
     )
     assert calculate_compound_score(p_stale) == 150.0  # 100 * 1.5
@@ -83,9 +83,9 @@ def test_rank_and_rename_proxies(sample_proxies):
 
     # Check sorting order for vmess (latency 50 -> 100 -> None)
     vmess_proxies = [p for p in ranked if p.protocol == "vmess"]
-    assert vmess_proxies[0].latency == 50
+    assert vmess_proxies[0].latency == 50.0
     assert "VMESS-1" in vmess_proxies[0].remarks
-    assert vmess_proxies[1].latency == 100
+    assert vmess_proxies[1].latency == 100.0
     assert "VMESS-2" in vmess_proxies[1].remarks
     assert vmess_proxies[2].latency is None
     assert "VMESS-3" in vmess_proxies[2].remarks
@@ -107,7 +107,7 @@ def test_select_top_configs(sample_proxies):
 
     assert len(selected) == 2
     assert selected[0].protocol == "vmess"
-    assert selected[0].latency == 50
+    assert selected[0].latency == 50.0
     assert selected[1].protocol == "shadowsocks"
 
     # Test filling from overall

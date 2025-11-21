@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from src.configstream.score import (
+from configstream.score import (
     _latency_points,
     calculate_health_score,
     score_speed,
@@ -8,8 +8,8 @@ from src.configstream.score import (
     score_privacy,
     score_stability,
 )
-from src.configstream.models import Proxy
-from src.configstream.config import AppSettings
+from configstream.models import Proxy
+from configstream.config import AppSettings
 
 
 class TestScore:
