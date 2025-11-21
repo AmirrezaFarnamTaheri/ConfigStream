@@ -89,11 +89,9 @@ def _safe_b64_decode(data: str) -> str:
 def _is_plausible_proxy_config(config: str) -> bool:
     """Basic plausibility check for proxy configuration."""
     # OpenVPN support
-    if (
-        config.startswith("-----BEGIN CERTIFICATE")
-        or "client" in config
-        and "dev tun" in config
-    ):
+    if config.startswith("-----BEGIN CERTIFICATE"):
+        return True
+    if "client" in config and ("dev tun" in config or "dev tap" in config):
         # It's likely an OVPN file content, which is handled separately
         return True
 
@@ -141,9 +139,11 @@ def _extract_config_lines(
         ):
             continue
 
-        protocol = candidate.split("://", 1)[0]
-        if protocol in valid_prefixes and _is_plausible_proxy_config(candidate):
-            configs.append(candidate)
+        parts = candidate.split("://", 1)
+        if len(parts) == 2:
+            protocol = parts[0]
+            if protocol in valid_prefixes and _is_plausible_proxy_config(candidate):
+                configs.append(candidate)
     return configs
 
 
@@ -155,7 +155,12 @@ def _parse_vmess(config: str) -> Optional[Proxy]:
         if len(data) > 10000:
             logger.warning("VMess config too long: %s bytes", len(data))
             return None
-        vmess_data = json.loads(base64.b64decode(data).decode("utf-8"))
+        # Decode and check size before JSON parsing (security: prevent memory bomb)
+        decoded = base64.b64decode(data).decode("utf-8")
+        if len(decoded) > MAX_CONFIG_LINE_LENGTH:
+            logger.warning("VMess decoded data too large: %s bytes", len(decoded))
+            return None
+        vmess_data = json.loads(decoded)
 
         if not all(k in vmess_data for k in ["add", "port", "id"]):
             return None

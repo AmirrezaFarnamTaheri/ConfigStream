@@ -41,6 +41,16 @@ class ProxyHistoryTracker:
         """Load history data from disk."""
         if self.history_path.exists():
             try:
+                # Security: Check file size before loading to prevent OOM
+                file_size = self.history_path.stat().st_size
+                MAX_HISTORY_FILE_SIZE = 100 * 1024 * 1024  # 100MB limit
+                if file_size > MAX_HISTORY_FILE_SIZE:
+                    logger.error(
+                        "History file too large: %s bytes (max: %s)",
+                        file_size,
+                        MAX_HISTORY_FILE_SIZE,
+                    )
+                    return {}
                 data: Dict[str, Any] = json.loads(self.history_path.read_text())
                 return data
             except Exception as e:
