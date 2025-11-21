@@ -26,7 +26,8 @@ def ensure_binary():
 
     src_dir = Path(__file__).parent.parent.parent.parent / "src" / "go" / "utls_client"
     if not src_dir.exists():
-        logger.error("Go source not found.")
+        # In some CI environments or packages, source might not be there.
+        # We can't build, so return False.
         return False
 
     output_dir = BINARY_PATH.parent

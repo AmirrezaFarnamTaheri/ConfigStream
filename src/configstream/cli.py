@@ -19,7 +19,7 @@ from rich.progress import (
 )
 
 from .pipeline import run_full_pipeline
-from .geoip_offline import DEFAULT_RESOLVER
+from .geoip import DEFAULT_RESOLVER
 from .tools.warp import generate_warp_proxy
 
 # Initialize Rich Console
@@ -40,6 +40,7 @@ def setup_logging(verbose: bool):
 
 
 @click.group()
+@click.version_option()
 def main():
     """ConfigStream: Automated Proxy Aggregator & Tester"""
     pass
@@ -53,7 +54,7 @@ def main():
 @click.option("--max-workers", "-w", default=0, help="Concurrency limit (0=Auto-scale)")
 @click.option("--timeout", "-t", default=10, help="Test timeout in seconds")
 @click.option("--country", "-c", help="Filter by country code (e.g., US, DE)")
-@click.option("--min-latency", default=None, type=int, help="Minimum latency in ms")
+@click.option("--max-latency", default=None, type=int, help="Maximum acceptable latency in ms")
 @click.option(
     "--max-proxies", default=None, type=int, help="Limit number of tested proxies"
 )
@@ -62,6 +63,7 @@ def main():
     default=False,
     help="Allow potentially insecure proxies (default: Strict)",
 )
+@click.option("--dry-run", is_flag=True, help="Run without actual network calls (Simulation)")
 @click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
 def merge(
     sources,
@@ -69,9 +71,10 @@ def merge(
     max_workers,
     timeout,
     country,
-    min_latency,
+    max_latency,
     max_proxies,
     leniency,
+    dry_run,
     verbose,
 ):
     """Fetch, test, and merge proxies from sources."""
@@ -107,9 +110,10 @@ def merge(
                 max_proxies=max_proxies,
                 timeout=timeout,
                 country_filter=country,
-                min_latency=min_latency,
+                max_latency=max_latency,
                 leniency=leniency,
                 progress=progress,
+                dry_run=dry_run,
             )
 
             return result
