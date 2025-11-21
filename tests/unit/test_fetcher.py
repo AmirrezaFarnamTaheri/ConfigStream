@@ -5,8 +5,11 @@ from configstream.adaptive_timeout import AdaptiveTimeout
 from pathlib import Path
 
 
-@pytest.mark.asyncio
-async def test_adaptive_timeout_logic_sync():
+def test_adaptive_timeout_logic_sync():
+    """
+    Test adaptive timeout logic synchronously.
+    This test does NOT use asyncio features, so it shouldn't be marked as asyncio.
+    """
     at = AdaptiveTimeout(
         initial=10.0, min_t=3.0, max_t=30.0, history_file=Path("dummy")
     )
@@ -23,6 +26,9 @@ async def test_adaptive_timeout_logic_sync():
 
 @pytest.mark.asyncio
 async def test_fetch_multiple_batch_sync():
+    """
+    Test batch fetching. This IS an async test.
+    """
     with patch("configstream.fetcher.fetch_from_source") as mock_fetch:
 
         async def side_effect(*args, **kwargs):

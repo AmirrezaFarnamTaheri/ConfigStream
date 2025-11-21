@@ -3,6 +3,7 @@ Client Adapters for exporting proxies to various formats.
 Supports Surge, Loon, Quantumult X, and SIP008.
 """
 
+import abc
 import json
 import logging
 from typing import List
@@ -11,10 +12,12 @@ from .models import Proxy
 logger = logging.getLogger(__name__)
 
 
-class Adapter:
+class Adapter(abc.ABC):
     """Base class for proxy adapters."""
 
+    @abc.abstractmethod
     def export(self, proxies: List[Proxy]) -> str:
+        """Export a list of proxies to the adapter's format."""
         raise NotImplementedError
 
 
@@ -37,7 +40,7 @@ class SurgeAdapter(Adapter):
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
         name = name.replace(",", "_").strip()
 
-        if p.protocol == "ss" or p.protocol == "shadowsocks":
+        if p.protocol in ("ss", "shadowsocks"):
             method = p.details.get("method", "chacha20-ietf-poly1305")
             password = p.details.get("password", "")
             return f"{name} = ss, {p.address}, {p.port}, encrypt-method={method}, password={password}"
@@ -79,8 +82,8 @@ class LoonAdapter(Adapter):
                 line = self._format_proxy(p)
                 if line:
                     lines.append(line)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to export {p.protocol} to Loon: {e}")
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
@@ -117,8 +120,8 @@ class QuantumultXAdapter(Adapter):
                 line = self._format_proxy(p)
                 if line:
                     lines.append(line)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to export {p.protocol} to QuantumultX: {e}")
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
