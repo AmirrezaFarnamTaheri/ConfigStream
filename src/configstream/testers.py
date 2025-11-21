@@ -233,11 +233,15 @@ class SingBoxTester:
         avg_latency = sum(latencies) / len(latencies)
 
         # Jitter Calculation
+        # We do NOT modify avg_latency to ensure "100% Accuracy" of raw latency.
+        # Jitter penalty is stored separately in scores if needed.
+        # But the caller (singbox/clash) expects raw latency for load balancing.
         if len(latencies) > 1:
             jitter = max(latencies) - min(latencies)
-            # Penalize unstable connections
-            if jitter > 100:
-                avg_latency += jitter * 0.5
+            # Only valid if we have a proxy object to attach to, but this function returns float.
+            # We handle jitter scoring in consolidation logic or upper layer if we want to penalize.
+            # For now, we return pure average.
+            pass
 
         return round(avg_latency, 2)
 

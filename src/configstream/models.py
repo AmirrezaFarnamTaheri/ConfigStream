@@ -1,48 +1,42 @@
-from dataclasses import dataclass, field
+import re
 from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
-@dataclass(slots=True)
-class Proxy:
-    """Represents a proxy with its configuration and test results.
-
-    Uses __slots__ for 40% memory reduction compared to standard instances.
+class Proxy(BaseModel):
     """
+    Represents a proxy with its configuration and test results.
+    Migrated to Pydantic for robust validation.
+    """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     config: str
     protocol: str
     address: str
-    port: int
+    port: int = Field(ge=1, le=65535)
     uuid: str = ""
     remarks: str = ""
     country: str = ""
     country_code: str = ""
     city: str = ""
     asn: str = ""
-    # NEW FIELDS
     isp: str = ""
     org: str = ""
     latency: Optional[float] = None
     is_working: bool = False
     is_secure: bool = True
-    # Standardized to Dict[str, List[str]] format for categorized security issues
-    # Keys are category names (e.g., "weak_encryption"), values are issue details
-    security_issues: Dict[str, List[str]] = field(default_factory=dict)
+    security_issues: Dict[str, List[str]] = Field(default_factory=dict)
     tested_at: str = ""
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: Dict[str, Any] = Field(default_factory=dict)
     throughput_kbps: Optional[int] = None
     dns_over_https_ok: Optional[bool] = None
     age_seconds: int = 0
     stale: bool = False
-    scores: Dict[str, float] = field(default_factory=dict)
-    # The actual IP address used during testing (after DNS resolution)
-    # Used for accurate geolocation when address is a hostname
+    scores: Dict[str, float] = Field(default_factory=dict)
     resolved_ip: Optional[str] = None
 
     @property
     def latency_ms(self) -> Optional[float]:
-        """Expose latency in milliseconds for compatibility with new modules."""
-
         return self.latency
 
     @latency_ms.setter
@@ -51,14 +45,10 @@ class Proxy:
 
     @property
     def id(self) -> str:
-        """Stable identifier used for scoring history lookups."""
-
         return (self.uuid or self.config or "").strip()
 
     @property
     def scheme(self) -> str:
-        """Alias used by dedup helpers."""
-
         return self.protocol
 
     @property

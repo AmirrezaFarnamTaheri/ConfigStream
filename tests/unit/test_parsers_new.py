@@ -1,5 +1,5 @@
 import pytest
-from src.configstream.parsers import (
+from configstream.parsers import (
     _parse_ss,
     _parse_vless,
     _parse_vmess,
@@ -9,7 +9,7 @@ from src.configstream.parsers import (
     _parse_openvpn,
     _extract_config_lines,
 )
-from src.configstream.models import Proxy
+from configstream.models import Proxy
 
 
 class TestParsers:

@@ -7,21 +7,34 @@ from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 from .models import Proxy
 
 
-def proxy_unique_key(p: Proxy) -> Tuple[str, str, int, str, str, str]:
+def proxy_unique_key(p: Proxy) -> Tuple[str, str, int, str, str, str, str, str, str, str, str]:
     """
     Build a canonical stable identity for a proxy configuration.
     Used for "Soft Deduplication" (removing identical configs).
+    Included fields: protocol, address, port, uuid, sni, path, serviceName (grpc),
+    mode (grpc), host (ws/http), transport (vmess), security (tls/reality/etc)
     """
     proto = p.protocol.lower().strip()
     # Use resolved IP for strict dedupe, fallback to address
     addr = (p.resolved_ip or p.address).lower().strip()
     port = int(p.port)
     uuid = (p.uuid or "").lower().strip()
+
+    # Transport details
     sni = (p.sni or "").lower().strip().rstrip(".")
     path = (p.path or "").strip()
     if path == "/":
         path = ""
-    return (proto, addr, port, uuid, sni, path)
+
+    # Additional details for specificity
+    details = p.details or {}
+    service_name = str(details.get("serviceName", "")).strip()
+    mode = str(details.get("mode", "")).strip() # gRPC mode
+    host = str(details.get("host", "")).lower().strip() # WS host
+    transport = str(details.get("net") or details.get("type") or "tcp").lower().strip()
+    security = str(details.get("security") or details.get("tls") or "none").lower().strip()
+
+    return (proto, addr, port, uuid, sni, path, service_name, mode, host, transport, security)
 
 
 def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:

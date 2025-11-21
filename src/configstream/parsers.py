@@ -652,25 +652,24 @@ def _parse_wireguard(c: str) -> Optional[Proxy]:
 
     # Reserved bytes check (for WARP/WireGuard)
     reserved = proxy.details.get("reserved")
-    if reserved and isinstance(reserved, str):
-        # Validate format [x, y, z] or base64
-        # Fix regex for [1, 2, 3] format: needs to handle digits properly
-        # The previous regex was a bit strict or broken for some cases.
-        # Just check if it is base64 or bracketed digits.
-        # Also handle plain comma-separated like '1,2,3' which some clients use.
+    if reserved:
+        if isinstance(reserved, str):
+            # Validate format [x, y, z] or base64
+            # Support [1,2,3], 1,2,3 and base64
+            is_bracketed = re.match(r"^\[[\d\s,]+\]$", reserved)
+            is_csv = re.match(r"^[\d\s,]+$", reserved)
+            is_b64 = re.match(r"^[a-zA-Z0-9+/=]+$", reserved)
 
-        is_bracketed = re.match(r"^\[[\d,\s]+\]$", reserved)
-        is_b64 = re.match(r"^[a-zA-Z0-9+/=]+$", reserved)
-        # Allow simple comma separated digits too
-        is_csv = re.match(r"^[\d,\s]+$", reserved)
-
-        # URL encoded reserved values might be passed if not fully unquoted before this step
-        # But details comes from parse_qs which decodes.
-        # The issue is the test case uses manual URL construction where reserved=%5B1%2C2%2C3%5D
-        # urlparse/parse_qs should decode this to "[1,2,3]".
-        # Let's log what we got if it fails validation to debug.
-        if not is_bracketed and not is_b64 and not is_csv:
-            logger.debug(f"Invalid reserved bytes format for WireGuard: {reserved}")
+            if not (is_bracketed or is_csv or is_b64):
+                 logger.debug(f"Invalid reserved bytes format for WireGuard: {reserved}")
+                 # If invalid format, we might choose to drop it or clear it.
+                 # For safety, let's clear it to avoid breaking clients
+                 del proxy.details["reserved"]
+        else:
+            # If it's not a string (e.g. list from some internal process), assume valid if it's a list of ints
+            if not (isinstance(reserved, list) and all(isinstance(x, int) for x in reserved)):
+                 logger.debug(f"Invalid reserved bytes type for WireGuard: {type(reserved)}")
+                 del proxy.details["reserved"]
 
     return proxy
 

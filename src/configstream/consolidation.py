@@ -68,7 +68,8 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
                 new_remarks = new_remarks[:77] + "..."
 
             # Create updated proxy with new remarks
-            updated_proxy = replace(proxy, remarks=new_remarks)
+            # Using model_copy(update=...) for Pydantic model
+            updated_proxy = proxy.model_copy(update={"remarks": new_remarks})
             ranked_proxies.append(updated_proxy)
 
     return ranked_proxies
