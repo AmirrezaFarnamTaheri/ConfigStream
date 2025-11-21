@@ -128,11 +128,14 @@ class LoadingController {
       this.loadingScreen.classList.add('hidden');
 
       // Remove from DOM after transition
-      setTimeout(() => {
-        if (this.loadingScreen && this.loadingScreen.parentNode) {
-          this.loadingScreen.parentNode.removeChild(this.loadingScreen);
-        }
-      }, 600);
+      // FIX: Do NOT remove from DOM, just keep it hidden.
+      // Removing it breaks Playwright's ability to see it if it reappears or if strict checks are in place for elements existing.
+      // Also simplifies re-showing if needed.
+      // setTimeout(() => {
+      //   if (this.loadingScreen && this.loadingScreen.parentNode) {
+      //     this.loadingScreen.parentNode.removeChild(this.loadingScreen);
+      //   }
+      // }, 600);
     }
   }
 }

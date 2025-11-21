@@ -44,7 +44,9 @@ CREATE TABLE IF NOT EXISTS source_stats (
                 cursor = conn.execute("PRAGMA table_info(source_stats)")
                 columns = [info[1] for info in cursor.fetchall()]
                 if "trust_score" not in columns:
-                    conn.execute("ALTER TABLE source_stats ADD COLUMN trust_score REAL DEFAULT 50.0")
+                    conn.execute(
+                        "ALTER TABLE source_stats ADD COLUMN trust_score REAL DEFAULT 50.0"
+                    )
 
                 conn.commit()
         except Exception as e:
@@ -132,7 +134,9 @@ CREATE TABLE IF NOT EXISTS source_stats (
                     new_cf = cf + 1 if is_failure else 0
 
                     # Calculate Score: Simple percentage (Immediate)
-                    yield_rate = (working_count / fetched_count) if fetched_count > 0 else 0.0
+                    yield_rate = (
+                        (working_count / fetched_count) if fetched_count > 0 else 0.0
+                    )
 
                     # Long-term reliability (Weighted Moving Average)
                     # Alpha = 0.1 -> slow moving average
@@ -144,9 +148,15 @@ CREATE TABLE IF NOT EXISTS source_stats (
                     # 2. Diversity (Country Spread) - 30%
                     # 3. Consistency (Low Failure Streaks) - 20%
 
-                    consistency_score = max(0, 100 - (new_cf * 10)) # -10 points per consecutive failure
+                    consistency_score = max(
+                        0, 100 - (new_cf * 10)
+                    )  # -10 points per consecutive failure
 
-                    trust_score = (new_reliability * 0.5) + (diversity_score * 100 * 0.3) + (consistency_score * 0.2)
+                    trust_score = (
+                        (new_reliability * 0.5)
+                        + (diversity_score * 100 * 0.3)
+                        + (consistency_score * 0.2)
+                    )
 
                     conn.execute(
                         """
@@ -169,14 +179,16 @@ CREATE TABLE IF NOT EXISTS source_stats (
                 else:
                     # First time seeing this source
                     yield_rate = (
-                        (working_count / fetched_count)
-                        if fetched_count > 0
-                        else 0.0
+                        (working_count / fetched_count) if fetched_count > 0 else 0.0
                     )
                     initial_reliability = yield_rate * 100
 
                     consistency_score = 100 if not is_failure else 90
-                    trust_score = (initial_reliability * 0.5) + (diversity_score * 100 * 0.3) + (consistency_score * 0.2)
+                    trust_score = (
+                        (initial_reliability * 0.5)
+                        + (diversity_score * 100 * 0.3)
+                        + (consistency_score * 0.2)
+                    )
 
                     conn.execute(
                         """

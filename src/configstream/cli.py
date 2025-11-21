@@ -182,5 +182,17 @@ def generate_warp(count):
     )
 
 
+@main.command()
+@click.option(
+    "--token", required=True, envvar="TELEGRAM_BOT_TOKEN", help="Telegram Bot Token"
+)
+def bot(token):
+    """Start the Telegram Bot (Polling Mode)."""
+    from .bot_cli import run_bot
+
+    console.print("[bold green]🤖 Starting Telegram Bot...[/bold green]")
+    run_bot(token)
+
+
 if __name__ == "__main__":
     main()
