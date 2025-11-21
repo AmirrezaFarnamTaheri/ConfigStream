@@ -4,7 +4,6 @@ Centralizes the logic previously scattered between merge_batches.py and output.p
 """
 
 from collections import defaultdict
-from dataclasses import replace
 from typing import List, Set
 from .models import Proxy
 

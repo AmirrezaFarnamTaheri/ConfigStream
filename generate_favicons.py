@@ -4,7 +4,6 @@ Generate favicons from the project logo SVG.
 Creates multiple sizes for different use cases.
 """
 
-import os
 from pathlib import Path
 import cairosvg
 from PIL import Image
