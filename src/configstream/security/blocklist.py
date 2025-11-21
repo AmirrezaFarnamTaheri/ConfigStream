@@ -19,7 +19,8 @@ BLOCKLIST_URL = "https://raw.githubusercontent.com/firehol/blocklist-ipsets/mast
 CACHE_FILE = Path("data/firehol_level1.netset")
 
 # Known Honey Pot Indicators (Simplified)
-HONEYPOT_PORTS = {2222, 23, 2323}  # Telnet/SSH traps usually
+# Removed 2222 as it is often used for legitimate non-standard SSH/Proxy ports
+HONEYPOT_PORTS = {23, 2323}  # Telnet traps usually
 HONEYPOT_ASNS = {"AS12345"}  # Placeholder for known research scanner ASNs if needed
 
 

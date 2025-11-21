@@ -51,6 +51,9 @@ class GeoIPResolver:
             city_path = data_dir / "GeoLite2-City.mmdb"
             asn_path = data_dir / "GeoLite2-ASN.mmdb"
 
+            if not city_path.exists() or not asn_path.exists():
+                self._download_db(data_dir)
+
             if city_path.exists():
                 self.reader_city = geoip2.database.Reader(city_path)
                 logger.info("Loaded GeoLite2 City database.")
@@ -63,6 +66,33 @@ class GeoIPResolver:
 
         except Exception as e:
             logger.error(f"Failed to load GeoIP databases: {e}")
+
+    def _download_db(self, data_dir: Path):
+        """Attempt to download missing GeoIP databases."""
+        import subprocess
+        try:
+            logger.info("Attempting to download GeoIP databases...")
+            data_dir.mkdir(parents=True, exist_ok=True)
+
+            # URLs for P3TERX mirror
+            urls = {
+                "GeoLite2-City.mmdb": "https://git.io/GeoLite2-City.mmdb",
+                "GeoLite2-ASN.mmdb": "https://git.io/GeoLite2-ASN.mmdb"
+            }
+
+            for name, url in urls.items():
+                target = data_dir / name
+                if not target.exists():
+                    logger.info(f"Downloading {name}...")
+                    subprocess.run(
+                        ["curl", "-L", "-o", str(target), url],
+                        check=True,
+                        timeout=120,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+        except Exception as e:
+            logger.warning(f"Failed to auto-download GeoIP databases: {e}")
 
     def lookup(self, ip: str) -> GeoData:
         """Resolve IP to Country, City, ASN."""
