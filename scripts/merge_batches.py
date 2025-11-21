@@ -1,7 +1,7 @@
 import json
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from dataclasses import asdict
 from typing import Dict
