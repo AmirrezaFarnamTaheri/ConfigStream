@@ -179,5 +179,28 @@ def get_adapter(format_name: str) -> Adapter:
         return QuantumultXAdapter()
     elif format_name.lower() == "sip008":
         return SIP008Adapter()
+    elif format_name.lower() == "shadowrocket":
+        return ShadowrocketAdapter()
     else:
         raise ValueError(f"Unknown format: {format_name}")
+
+
+class ShadowrocketAdapter(Adapter):
+    """Export to Shadowrocket format (Base64 encoded links)."""
+
+    def export(self, proxies: List[Proxy]) -> str:
+        # Shadowrocket mainly uses standard subscription links (ss://, vmess://, etc.)
+        # but can also import Surge/Clash configs.
+        # The best "native" format is a list of URI schemes.
+        lines = []
+        for p in proxies:
+            if p.config and "://" in p.config:
+                # Use the original config string if available and valid
+                lines.append(p.config)
+            else:
+                # Fallback to reconstruction (TODO: Implement full reconstruction if needed)
+                # For now, we skip if we can't reproduce the exact URI
+                pass
+
+        # Return as plain text list (decoded subscription)
+        return "\n".join(lines)

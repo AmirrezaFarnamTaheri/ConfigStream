@@ -209,12 +209,10 @@ def _parse_vless(config: str) -> Optional[Proxy]:
             if not details.get("pbk"):
                 logger.debug("VLESS Reality missing 'pbk'")
                 return None
-            # sid is often required, but optional in some impls.
-            # If we strictly require it we might miss valid ones.
-            # But memory says "verify by checking for required fields pbk and sid".
-            # So let's enforce sid as well if strict compliance to memory is needed.
-            if not details.get("sid") and not details.get("sni"):
-                 pass
+            # Memory Requirement: verify by checking for required fields pbk and sid
+            if not details.get("sid"):
+                logger.debug("VLESS Reality missing 'sid'")
+                return None
 
         proxy = Proxy(
             config=config,
