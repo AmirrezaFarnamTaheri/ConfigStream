@@ -11,6 +11,7 @@ from src.configstream.parsers import (
 )
 from src.configstream.models import Proxy
 
+
 class TestParsers:
     def test_parse_ss_simple(self):
         config = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ@127.0.0.1:8388#Example"

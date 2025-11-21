@@ -5,6 +5,7 @@ from configstream.fetcher import fetch_from_source, FetchResult
 from configstream.config import AppSettings
 from configstream.circuit_breaker import CircuitBreakerManager
 
+
 @pytest.mark.asyncio
 async def test_fetch_success():
     with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
@@ -17,6 +18,7 @@ async def test_fetch_success():
         res = await fetch_from_source(client, "http://ok.com")
         assert res.success
         assert res.content == "ok"
+
 
 @pytest.mark.asyncio
 async def test_fetch_rate_limit_retry():
@@ -39,6 +41,7 @@ async def test_fetch_rate_limit_retry():
         assert res.content == "ok"
         assert mock_get.call_count == 2
 
+
 @pytest.mark.asyncio
 async def test_fetch_circuit_breaker_open():
     breaker_manager = CircuitBreakerManager()
@@ -55,11 +58,12 @@ async def test_fetch_circuit_breaker_open():
         client,
         f"http://{host}",
         app_settings=AppSettings(CIRCUIT_BREAKER_ENABLED=True),
-        breaker_manager=breaker_manager
+        breaker_manager=breaker_manager,
     )
 
     assert not res.success
     assert "Circuit Breaker Open" in res.error
+
 
 @pytest.mark.asyncio
 async def test_hedged_request_success():
@@ -73,13 +77,12 @@ async def test_hedged_request_success():
         settings = AppSettings(HEDGING_ENABLED=True, HEDGE_AFTER_MS=100)
         client = httpx.AsyncClient()
 
-        res = await fetch_from_source(
-            client, "http://hedge.com", app_settings=settings
-        )
+        res = await fetch_from_source(client, "http://hedge.com", app_settings=settings)
 
         assert res.success
         assert res.content == "hedged"
         mock_hedge.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_fetch_invalid_url():

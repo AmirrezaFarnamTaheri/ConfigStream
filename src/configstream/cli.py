@@ -54,7 +54,9 @@ def main():
 @click.option("--max-workers", "-w", default=0, help="Concurrency limit (0=Auto-scale)")
 @click.option("--timeout", "-t", default=10, help="Test timeout in seconds")
 @click.option("--country", "-c", help="Filter by country code (e.g., US, DE)")
-@click.option("--max-latency", default=None, type=int, help="Maximum acceptable latency in ms")
+@click.option(
+    "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
+)
 @click.option(
     "--max-proxies", default=None, type=int, help="Limit number of tested proxies"
 )
@@ -63,7 +65,9 @@ def main():
     default=False,
     help="Allow potentially insecure proxies (default: Strict)",
 )
-@click.option("--dry-run", is_flag=True, help="Run without actual network calls (Simulation)")
+@click.option(
+    "--dry-run", is_flag=True, help="Run without actual network calls (Simulation)"
+)
 @click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
 def merge(
     sources,
