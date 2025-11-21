@@ -97,7 +97,9 @@ CREATE TABLE IF NOT EXISTS history (
                             ):
                                 # Significant drop is usually safe but might indicate issue
                                 # We generally care about poisoning (spikes)
-                                pass
+                                logger.debug(
+                                    f"Significant drop detected for {url}: {current_count} vs avg {avg}. Ignoring as not a spike."
+                                )
 
                     except Exception as ml_err:
                         logger.warning(

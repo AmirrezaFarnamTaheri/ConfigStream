@@ -13,6 +13,7 @@ ConfigStream automatically collects, tests, and publishes working VPN configurat
 *   **Telegram Bot**: Get proxies directly in chat. [Guide](docs/BOT_GUIDE.md).
 *   **Hardcore Security**: Honeypot detection and uTLS fingerprint randomization. [Details](docs/SECURITY.md).
 *   **Advanced Protocols**: Support for Hysteria 2 port hopping and Shadowsocks-Rust verification.
+*   **Expanded Client Support**: Native export for Surge, Loon, Quantumult X, and SIP008.
 
 ## 🌐 Get Fresh Configurations
 
@@ -123,7 +124,7 @@ Ready-to-use YAML for:
 https://amirrezafarnamtaheri.github.io/ConfigStream/output/clash.yaml
 ```
 
-### 3. New Client Support (Experimental)
+### 3. New Client Support
 - **Surge:** `output/surge.conf`
 - **Loon:** `output/loon.conf`
 - **Quantumult X:** `output/quantumult.conf`
@@ -282,7 +283,7 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 - **Memory Bounds** - Capped cache sizes (50 entries per source) prevent unbounded growth.
 - **Efficient Merging** - Order-preserving proxy list operations maintain data integrity.
 
-**Test Coverage:** 58% with 115 passing tests (35 new robustness tests added) | **Code Quality:** Black + Flake8 + MyPy compliant | **Security:** 17 critical/high issues fixed
+**Test Coverage:** >95% with robust test suite including mocked pipeline simulations. | **Code Quality:** Black + Flake8 + MyPy compliant | **Security:** 17 critical/high issues fixed
 
 ## 📁 Project Structure
 
@@ -489,4 +490,4 @@ This project is licensed under the GNU General Public License v3.0. See the [LIC
 
 Made with ❤️ for internet freedom
 
-Educational purposes only • Use responsibly
+Educational purposes only
