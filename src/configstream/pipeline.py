@@ -71,7 +71,7 @@ async def run_full_pipeline(
     max_proxies: Optional[int] = None,
     timeout: int = 10,
     country_filter: Optional[str] = None,
-    min_latency: Optional[int] = None,
+    max_latency: Optional[int] = None,
     leniency: bool = False,
     strict_security: bool = False,
     progress: Optional[Progress] = None,
@@ -378,7 +378,7 @@ async def run_full_pipeline(
                     continue
 
                 # Latency Filter
-                if min_latency and (p.latency or 0) < min_latency:
+                if max_latency and (p.latency or 9999) > max_latency:
                     continue
 
                 # Geolocation (if missing)
