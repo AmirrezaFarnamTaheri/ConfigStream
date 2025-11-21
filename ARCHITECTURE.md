@@ -22,12 +22,14 @@ graph TD
 
 ### 1. Ingestion Layer (`fetcher.py`)
 - **Async Fetching**: Uses `httpx` for concurrent fetching with HTTP/2 support.
-- **Smart Headers**: Rotates User-Agents and handles ETags.
+- **Resilience**: Implements Hedged Requests, Circuit Breakers, and Rate Limiting.
+- **Memory Protection**: Enforces strict content length limits (50MB) to prevent OOM on CI runners.
 - **Deduplication**: Fingerprints configs to avoid duplicate processing.
 
 ### 2. Processing Core (`pipeline.py`)
 - **Streaming**: Uses `asyncio.Queue` for backpressure management.
-- **Parsing**: `auto_detect.py` identifies protocols (VMess, VLESS, Trojan, etc.).
+- **Parallel Parsing**: Offloads CPU-intensive regex/decoding to a process executor to keep the event loop responsive.
+- **Parsing**: `auto_detect.py` identifies protocols (VMess, VLESS, Trojan, Hysteria 2, etc.).
 - **Normalization**: Standardizes config formats into a common `Proxy` model.
 
 ### 3. Validation & Testing (`testers.py`)
@@ -37,6 +39,7 @@ graph TD
     - **MITM**: Checks SSL issuer against known interception tools.
     - **Injection**: Validates HTML content integrity (Honey Pot).
     - **Headers**: Ensures proxy doesn't strip security headers.
+    - **TLS Fingerprint**: Verifies resistance to active probing using a Go-based uTLS sidecar.
 
 ### 4. Intelligence Layer
 Located in `src/configstream/`, this layer optimizes resource usage and reliability.
@@ -65,11 +68,12 @@ The frontend is a single-page application (SPA) served statically via GitHub Pag
 
 ### 6. Output Generation (`output.py`)
 - **Categorization**: Splits proxies by protocol and country.
+- **Transport Support**: Fully supports WebSocket, gRPC, and HTTP/2 transports in generated configs.
 - **Formats**:
     - **Base64**: Universal subscription.
-    - **Clash/Meta**: YAML configs.
-    - **Sing-box**: JSON configs.
-    - **Adapters**: Surge, Loon, Quantumult X, SIP008.
+    - **Clash/Meta**: YAML configs with transport options.
+    - **Sing-box**: JSON configs with transport options.
+    - **Adapters**: Surge, Loon, Quantumult X, SIP008, and Shadowrocket.
 
 ## Data Flow
 

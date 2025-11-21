@@ -73,8 +73,9 @@ def infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
             if payload:
                 return payload
 
-    code_match = _CODE_PATTERN.search(remarks.upper())
-    if code_match:
+    # Iterate through all matches to find a valid one
+    # This prevents false positives (like "MY" excluded code) from blocking valid codes later in string
+    for code_match in _CODE_PATTERN.finditer(remarks.upper()):
         candidate_code = (
             code_match.group("cc1")
             or code_match.group("cc2")
@@ -85,18 +86,21 @@ def infer_country_from_remarks(remarks: str) -> Optional[Dict[str, str]]:
         )
 
         if not candidate_code:
-            return None
+            continue
 
         candidate_code = candidate_code.upper()
+
+        # If it's an excluded code (common words like IS, TO, MY)
         if candidate_code in _EXCLUDED_CODES:
             full_match = code_match.group(0)
+            # Only allow excluded codes if they are strongly delimited (brackets, etc.)
             if not (
                 full_match.startswith("[")
                 or full_match.startswith("(")
                 or full_match.count("-") >= 2
                 or full_match.count("_") >= 2
             ):
-                return None
+                continue # Skip this match, look for next
 
         payload = _country_payload_from_code(candidate_code)
         if payload:
