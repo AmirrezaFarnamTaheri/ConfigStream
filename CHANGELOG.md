@@ -2,6 +2,32 @@
 
 All notable changes to ConfigStream will be documented in this file.
 
+## [1.3.1] - 2025-11-21
+
+### Fixed - High Priority Backend Improvements
+
+- **SQLite Concurrency**: Enabled WAL (Write-Ahead Logging) mode in anomaly.py and source_quality.py for better concurrent access and crash recovery
+- **Deprecated Property Usage**: Fixed score.py to use canonical `latency` field instead of deprecated `latency_ms` property (lines 97, 109, 139, 150)
+- **File Durability**: Added fsync() to output.py atomic writes for crash-safe file operations
+- **Cache Observability**: Added cache_misses metric tracking in pipeline.py for better monitoring
+
+### Added - Documentation
+
+- **API_SCHEMA.md**: Comprehensive JSON schema documentation for all output files (metadata.json, proxies.json, client configs)
+- **TROUBLESHOOTING.md**: Complete troubleshooting guide covering installation, pipeline, testing, and deployment issues
+- **COMPREHENSIVE_AUDIT_REPORT.md**: Detailed audit report analyzing all backend methods for robustness, accuracy, and consistency
+
+### Changed
+
+- **Database Operations**: SQLite now uses WAL mode with NORMAL synchronous mode for optimal performance/safety balance
+- **File I/O**: All JSON outputs now use os.open() + os.fsync() + rename pattern for atomic crash-safe writes
+- **Temp Directory Cleanup**: Removed output_batch_* directories and added to .gitignore
+
+### Technical Debt Reduction
+
+- **Split-Brain Prevention**: Eliminated latency_ms property usage to maintain single source of truth
+- **Type Safety**: Reduced type: ignore pragmas by fixing Union[int, float] stats dict usage
+
 ## [1.3.0] - 2025-11-21
 
 ### Fixed - Critical Backend Robustness Improvements

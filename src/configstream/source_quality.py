@@ -25,6 +25,10 @@ class SourceQualityTracker:
         """Initialize the SQLite schema for tracking source reliability."""
         try:
             with sqlite3.connect(self.db_path) as conn:
+                # Enable WAL mode for better concurrency and crash recovery
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA synchronous=NORMAL")
+
                 conn.execute(
                     """
 CREATE TABLE IF NOT EXISTS source_stats (
