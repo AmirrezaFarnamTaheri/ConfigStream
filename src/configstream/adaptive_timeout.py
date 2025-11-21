@@ -32,8 +32,8 @@ class AdaptiveTimeout:
             try:
                 data = json.loads(self.history_file.read_text())
                 self.current_timeout = data.get("last_timeout", self.current_timeout)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to load timeout history: {e}")
 
     def get_timeout(self, source: str) -> float:
         """Get timeout for a source. Currently ignores source but ready for expansion."""
@@ -54,7 +54,7 @@ class AdaptiveTimeout:
             # Heuristic: likely ms, but technically valid seconds (slow proxy).
             # Given max_timeout defaults to 30, >100 is suspicious.
             # For now, we treat it as seconds to be "dumb but predictable".
-            pass
+            logger.debug(f"High latency recorded: {val}s (likely ms?)")
 
         self.latencies.append(val)
         # Keep window small
@@ -96,8 +96,8 @@ class AdaptiveTimeout:
                 f"Adaptive Timeout adjusted to: {self.current_timeout:.2f}s (p95: {p95:.2f}s)"
             )
 
-        except statistics.StatisticsError:
-            pass
+        except statistics.StatisticsError as e:
+            logger.debug(f"Not enough data for timeout stats: {e}")
 
     def save(self):
         """Persist state."""

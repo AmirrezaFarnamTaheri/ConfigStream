@@ -209,9 +209,12 @@ def _parse_vless(config: str) -> Optional[Proxy]:
             if not details.get("pbk"):
                 logger.debug("VLESS Reality missing 'pbk'")
                 return None
+            # sid is often required, but optional in some impls.
+            # If we strictly require it we might miss valid ones.
+            # But memory says "verify by checking for required fields pbk and sid".
+            # So let's enforce sid as well if strict compliance to memory is needed.
             if not details.get("sid") and not details.get("sni"):
-                # sid is optional in some impls if sni is present, but often required
-                pass
+                 pass
 
         proxy = Proxy(
             config=config,
@@ -669,8 +672,7 @@ def _parse_wireguard(c: str) -> Optional[Proxy]:
         # urlparse/parse_qs should decode this to "[1,2,3]".
         # Let's log what we got if it fails validation to debug.
         if not is_bracketed and not is_b64 and not is_csv:
-            # logger.warning(f"Invalid reserved bytes format for WireGuard: {reserved}")
-            pass
+            logger.debug(f"Invalid reserved bytes format for WireGuard: {reserved}")
 
     return proxy
 

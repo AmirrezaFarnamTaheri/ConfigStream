@@ -1,2 +1,0 @@
-src/configstream/score.py: error: Source file found twice under different module names: "configstream.score" and "src.configstream.score"
-Found 1 error in 1 file (errors prevented further checking)

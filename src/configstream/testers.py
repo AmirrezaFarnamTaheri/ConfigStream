@@ -24,7 +24,6 @@ except ImportError:
     singbox_factory = None
 
 from .config import AppSettings
-from .constants import TEST_URLS, CANARY_URL
 from .models import Proxy
 from .test_cache import TestResultCache
 from .security.blocklist import DEFAULT_BLOCKLIST
@@ -38,10 +37,6 @@ logger = logging.getLogger(__name__)
 _TEMP_FILES: Set[str] = set()
 
 # Known SHA256 fingerprints for MITM detection (approximate list, in production this needs to be dynamic)
-# Google's root CAs are generally stable, but leaf certs change. Pinning leaf is brittle.
-# We should pin Intermediate or Root CA, or use a known endpoint that we control (Canary).
-# For this implementation, we will fetch the certificate and check the Issuer against a whitelist of trusted CAs
-# that are NOT typically used for MITM (like 'mitmproxy', 'Fiddler', 'GoProxy').
 SUSPICIOUS_ISSUERS = [
     "mitmproxy",
     "Fiddler",
@@ -217,7 +212,9 @@ class SingBoxTester:
         """
         latencies = []
         # We test against Google (generate_204) for speed
-        target = TEST_URLS.get("google", "https://www.google.com/generate_204")
+        target = self.settings.TEST_URLS.get(
+            "google", "https://www.google.com/generate_204"
+        )
 
         for _ in range(3):
             try:
@@ -304,7 +301,7 @@ class SingBoxTester:
             # 2. Header Preservation Check
             headers = {"X-Canary": "ConfigStream-Check"}
             async with session.get(
-                f"{CANARY_URL}/headers", headers=headers, timeout=5
+                f"{self.settings.CANARY_URL}/headers", headers=headers, timeout=5
             ) as resp:
                 if resp.status == 200:
                     data = await resp.json()
