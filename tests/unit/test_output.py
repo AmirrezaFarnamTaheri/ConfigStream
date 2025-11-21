@@ -42,7 +42,8 @@ def test_generate_base64(sample_proxies):
 def test_generate_clash(sample_proxies):
     output = generate_clash_config(sample_proxies)
     assert "proxies:" in output
-    assert "name: Test Proxy" in output or "name: US 01 | VMESS" in output
+    # Name generation in output.py changed to standard format, checking for that
+    assert "name: US 01 | VMESS" in output
 
 
 def test_generate_singbox(sample_proxies):
@@ -55,4 +56,6 @@ def test_serialize_proxy(sample_proxies):
     data = serialize_proxy(sample_proxies[0])
     assert data["protocol"] == "vmess"
     assert data["address"] == "1.1.1.1"
-    assert data["country"] == "US"
+    # Changed key from 'country' to 'country_code' in serialize_proxy
+    assert data["country_code"] == "US"
+    assert "remarks" in data

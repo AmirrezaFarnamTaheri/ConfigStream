@@ -18,10 +18,8 @@ async def test_pipeline_simulated_run(tmp_path):
         ) as mock_fetch,
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
-        patch(
-            "configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
-        ),
-        patch("configstream.pipeline.output.save_metadata") as mock_save_meta,
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch("configstream.pipeline.output.save_metadata") as _,
         patch("configstream.pipeline.get_adapter") as mock_get_adapter,
         patch("configstream.pipeline.select_top_configs") as mock_select_top,
         patch("configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
@@ -75,13 +73,14 @@ async def test_pipeline_simulated_run(tmp_path):
 
         # Setup Mock GeoIP
         mock_geoip_instance = mock_geoip_cls.return_value
-        mock_geo_data = MagicMock()
-        mock_geo_data.country_code = "US"
-        mock_geo_data.country = "United States"
-        mock_geo_data.city = "New York"
-        mock_geo_data.asn = "AS12345"
-        mock_geo_data.org = "ISP Inc"
-        mock_geoip_instance.lookup.return_value = mock_geo_data
+        mock_geo_ = MagicMock()
+        # Ensure attributes are strings, not Mocks, to be serializable
+        mock_geo_.country_code = "US"
+        mock_geo_.country = "United States"
+        mock_geo_.city = "New York"
+        mock_geo_.asn = "AS12345"
+        mock_geo_.org = "ISP Inc"
+        mock_geoip_instance.lookup.return_value = mock_geo_
 
         # Setup Output
         output_dir = tmp_path / "output"
@@ -119,9 +118,7 @@ async def test_pipeline_with_filters(tmp_path):
         ) as mock_fetch,
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
-        patch(
-            "configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
-        ),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
         patch("configstream.pipeline.output.save_metadata"),
         patch("configstream.pipeline.get_adapter"),
         patch("configstream.pipeline.select_top_configs"),
@@ -169,10 +166,19 @@ async def test_pipeline_with_filters(tmp_path):
 
         def mock_lookup(ip):
             res = MagicMock()
+            # Explicitly set string values
             if ip == "1.2.3.4":
                 res.country_code = "US"
+                res.country = "USA"
+                res.city = "NY"
+                res.asn = "AS1"
+                res.org = "ISP1"
             else:
                 res.country_code = "DE"
+                res.country = "Germany"
+                res.city = "Berlin"
+                res.asn = "AS2"
+                res.org = "ISP2"
             return res
 
         mock_geoip_instance.lookup.side_effect = mock_lookup

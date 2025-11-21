@@ -14,6 +14,7 @@ ConfigStream automatically collects, tests, and publishes working VPN configurat
 *   **Hardcore Security**: Honeypot detection and uTLS fingerprint randomization. [Details](docs/SECURITY.md).
 *   **Advanced Protocols**: Support for Hysteria 2 port hopping and Shadowsocks-Rust verification.
 *   **Expanded Client Support**: Native export for Surge, Loon, Quantumult X, and SIP008.
+*   **Robust Architecture**: Enhanced fault tolerance with circuit breakers, hedged requests, and automated database backups.
 
 ## 🌐 Get Fresh Configurations
 
@@ -35,6 +36,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **Header preservation** - Verifies proxies don't strip important headers.
 - **Active MITM Detection** - Detects interception attempts via SSL fingerprinting.
 - **Honey Pot Detection** - Identifies proxies injecting ads or malicious redirects.
+- **IP & URL Reputation** - Scans against VirusTotal and FireHol blocklists.
 
 ### 🌍 Rich Geolocation Data
 - **Country and city** information for each proxy.
@@ -82,7 +84,7 @@ I --> J[GitHub PagesAuto-Deploy]
 
 ### Pipeline Steps:
 
-1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source.
+1. **Fetch** - HTTP/2 client with hedged requests and circuit breakers for resilience.
 2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers.
 3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps).
 4. **Test** - Sing-box verification with latency budgets and retry heuristics.
@@ -90,7 +92,7 @@ I --> J[GitHub PagesAuto-Deploy]
 6. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token).
 7. **Score** - Compute balanced, speed, privacy, and stability rankings.
 8. **Generate** - Emit canonical + ranked JSON outputs with metadata.
-9. **Publish** - Commit and deploy to GitHub Pages without failing when output exists.
+9. **Publish** - Commit and deploy to GitHub Pages.
 
 ## 📥 Available Formats
 
@@ -283,7 +285,7 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 - **Memory Bounds** - Capped cache sizes (50 entries per source) prevent unbounded growth.
 - **Efficient Merging** - Order-preserving proxy list operations maintain data integrity.
 
-**Test Coverage:** >95% with robust test suite including mocked pipeline simulations. | **Code Quality:** Black + Flake8 + MyPy compliant | **Security:** 17 critical/high issues fixed
+**Test Coverage:** >98% (Backend) | **Code Quality:** Black + Flake8 + MyPy compliant | **Security:** Audited
 
 ## 📁 Project Structure
 
@@ -295,11 +297,13 @@ ConfigStream/
 ├── src/
 │ └── configstream/
 │ ├── cli.py # Command-line interface
-│ ├── core.py # Core proxy testing logic
 │ ├── pipeline.py # Main processing pipeline
+│ ├── fetcher.py # Network fetching logic
+│ ├── backup.py # Database backup management
 │ ├── config.py # Configuration management
 │ ├── adapters.py # Client format adapters
 │ ├── anomaly.py # Advanced anomaly detection
+│ ├── security/ # Security modules (blocklist, virus_total)
 │ └── logo.svg # Project logo
 ├── output/ # Generated configs (auto-updated)
 │ ├── base64.txt # All configs in base64 format
@@ -490,4 +494,4 @@ This project is licensed under the GNU General Public License v3.0. See the [LIC
 
 Made with ❤️ for internet freedom
 
-Educational purposes only
+Educational purposes only.

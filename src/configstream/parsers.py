@@ -214,7 +214,7 @@ def _parse_vless(config: str) -> Optional[Proxy]:
             # But memory says "verify by checking for required fields pbk and sid".
             # So let's enforce sid as well if strict compliance to memory is needed.
             if not details.get("sid") and not details.get("sni"):
-                 pass
+                pass
 
         proxy = Proxy(
             config=config,

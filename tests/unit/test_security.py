@@ -79,16 +79,15 @@ def test_is_honeypot():
 async def test_scan_url_clean():
     with (
         patch("configstream.security.virus_total.VT_API_KEY", "fake_key"),
-        patch("aiohttp.ClientSession.get") as mock_get,
+        patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get,
     ):
         mock_resp = MagicMock()
-        mock_resp.status = 200
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "data": {"attributes": {"last_analysis_stats": {"malicious": 0}}}
+        }
 
-        async def async_json():
-            return {"data": {"attributes": {"last_analysis_stats": {"malicious": 0}}}}
-
-        mock_resp.json = async_json
-        mock_get.return_value.__aenter__.return_value = mock_resp
+        mock_get.return_value = mock_resp
 
         result = await scan_url("http://example.com")
         assert result["malicious"] == 0
@@ -98,16 +97,15 @@ async def test_scan_url_clean():
 async def test_check_ip_reputation_malicious():
     with (
         patch("configstream.security.virus_total.VT_API_KEY", "fake_key"),
-        patch("aiohttp.ClientSession.get") as mock_get,
+        patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get,
     ):
         mock_resp = MagicMock()
-        mock_resp.status = 200
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "data": {"attributes": {"last_analysis_stats": {"malicious": 5}}}
+        }
 
-        async def async_json():
-            return {"data": {"attributes": {"last_analysis_stats": {"malicious": 5}}}}
-
-        mock_resp.json = async_json
-        mock_get.return_value.__aenter__.return_value = mock_resp
+        mock_get.return_value = mock_resp
 
         result = await check_ip_reputation("1.2.3.4")
         assert result["malicious"] == 5

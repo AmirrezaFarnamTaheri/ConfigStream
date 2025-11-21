@@ -45,6 +45,7 @@ from .anomaly import AnomalyDetector
 from .security.blocklist import DEFAULT_BLOCKLIST
 from .event_stream import EventStream
 from .consolidation import select_top_configs
+from .circuit_breaker import CircuitBreakerManager
 
 # --- Output ---
 from . import output
@@ -101,6 +102,12 @@ async def run_full_pipeline(
     scheduler = SmartRetestScheduler(cache=test_cache)
     history = ProxyHistoryTracker()
 
+    # Shared Circuit Breaker Manager (Persists across batches)
+    breaker_manager = CircuitBreakerManager(
+        failure_threshold=settings.CIRCUIT_TRIP_CONN_ERRORS,
+        recovery_timeout=settings.CIRCUIT_OPEN_SEC,
+    )
+
     # Initialize Advanced Intelligence
     quality_tracker = SourceQualityTracker()
     anomaly_detector = AnomalyDetector()
@@ -146,6 +153,12 @@ async def run_full_pipeline(
         )
         task_process = progress.add_task("[green]Processing pipeline...", total=None)
 
+    # Producer Status Tracker
+    producer_status: Dict[str, bool | str | None] = {
+        "success": True,
+        "error": None,
+    }
+
     # 2. The Producer: Source Fetcher
     async def _source_producer():
         try:
@@ -190,6 +203,7 @@ async def run_full_pipeline(
                         max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
                         timeout=settings.FETCH_TIMEOUT,
                         use_adaptive_timeout=True,
+                        breaker_manager=breaker_manager,  # Pass shared manager
                     )
 
                     for source, res in results.items():
@@ -223,6 +237,8 @@ async def run_full_pipeline(
 
         except Exception as e:
             logger.error("Producer failed: %s", e)
+            producer_status["success"] = False
+            producer_status["error"] = str(e)
         finally:
             # Sentinel: Signal consumer to stop
             await work_queue.put(None)
@@ -457,13 +473,8 @@ async def run_full_pipeline(
         (output_path / "surge.conf").write_text(
             get_adapter("surge").export(optimized_proxies)
         )
-        (
-            output_path / "shadowrocket.txt"
-        ).write_text(  # Re-using shadowrocket if we had adapter, but sticking to existing output.py if preferred, but here I use adapter as requested
-            get_adapter("surge").export(
-                optimized_proxies
-            )  # Shadowrocket often parses Surge/Clash/SS, let's stick to what we have or specific if needed. Actually Surge format works for SR often.
-            # Wait, the user asked for "Surge / Loon / Quantumult X". Shadowrocket was already there.
+        (output_path / "shadowrocket.txt").write_text(
+            get_adapter("surge").export(optimized_proxies)
         )
         # Loon
         (output_path / "loon.conf").write_text(
@@ -477,8 +488,9 @@ async def run_full_pipeline(
         (output_path / "sip008.json").write_text(
             get_adapter("sip008").export(optimized_proxies)
         )
-    except Exception as e:
-        logger.error(f"Failed to export adapters: {e}")
+    except Exception:
+        # Improved error handling: Log full traceback
+        logger.exception("Failed to export adapters")
 
     # Chosen 1000 Generation
     # Use consolidated logic
@@ -501,4 +513,17 @@ async def run_full_pipeline(
     if timeout_tracker:
         timeout_tracker.save()
 
-    return PipelineResult(success=True, stats=stats, output_files=generated_files)
+    # Check producer status for robust pipeline result
+    final_success = True
+    final_error = None
+    if not producer_status["success"]:
+        final_success = False
+        final_error = str(producer_status["error"])
+        logger.error(f"Pipeline finished with producer errors: {final_error}")
+
+    return PipelineResult(
+        success=final_success,
+        stats=stats,
+        output_files=generated_files,
+        error=final_error,
+    )

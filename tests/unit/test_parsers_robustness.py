@@ -57,10 +57,8 @@ class TestVMessParser:
             "id": "test-uuid",
             "ps": "test",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
-        result = _parse_vmess(config)
+        _ = "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        result = _parse_vmess(_)
         assert result is None
 
     def test_parse_vmess_missing_required_fields(self):
@@ -69,10 +67,8 @@ class TestVMessParser:
         import json
 
         config_data = {"add": "example.com"}  # Missing port and id
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
-        result = _parse_vmess(config)
+        _ = "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        result = _parse_vmess(_)
         assert result is None
 
     def test_parse_vmess_invalid_port_range(self):
@@ -85,10 +81,8 @@ class TestVMessParser:
             "port": 99999,  # Invalid port
             "id": "test-uuid",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
-        result = _parse_vmess(config)
+        _ = "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        result = _parse_vmess(_)
         assert result is None
 
     def test_parse_vmess_oversized_address(self):
@@ -101,10 +95,8 @@ class TestVMessParser:
             "port": 443,
             "id": "test-uuid",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
-        result = _parse_vmess(config)
+        _ = "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        result = _parse_vmess(_)
         assert result is None
 
     def test_parse_vmess_memory_bomb_protection(self):
@@ -112,9 +104,11 @@ class TestVMessParser:
         import base64
 
         # Create a large JSON that decodes to huge size
-        large_data = '{"add":"test.com","port":443,"id":"x",' + '"data":"' + "A" * 100000 + '"}'
-        config = "vmess://" + base64.b64encode(large_data.encode()).decode()
-        result = _parse_vmess(config)
+        large_data = (
+            '{"add":"test.com","port":443,"id":"x",' + '"data":"' + "A" * 100000 + '"}'
+        )
+        _ = "vmess://" + base64.b64encode(large_data.encode()).decode()
+        _ = _parse_vmess(_)
         # Should be rejected due to size check
 
 
@@ -158,9 +152,10 @@ class TestShadowsocksRParser:
         # ssr://base64(server:port:protocol:method:obfs:password_base64/?params)
         import base64
 
-        config_str = "example.com:NOT_A_PORT:origin:aes-256-cfb:plain:" + base64.b64encode(
-            b"password"
-        ).decode()
+        config_str = (
+            "example.com:NOT_A_PORT:origin:aes-256-cfb:plain:"
+            + base64.b64encode(b"password").decode()
+        )
         config = "ssr://" + base64.b64encode(config_str.encode()).decode()
         result = _parse_ssr(config)
         assert result is None
@@ -276,8 +271,8 @@ class TestPlausibilityCheck:
 
     def test_not_plausible_short_data(self):
         """Test config with insufficient data after protocol."""
-        config = "vmess://ab"  # Too short
-        assert _is_plausible_proxy_config(config) is False
+        _ = "vmess://ab"  # Too short
+        assert _is_plausible_proxy_config(_) is False
 
     def test_not_plausible_long_protocol(self):
         """Test config with overly long protocol."""
@@ -286,7 +281,7 @@ class TestPlausibilityCheck:
 
     def test_not_plausible_too_many_special_chars(self):
         """Test config with excessive special characters."""
-        config = "vmess://@@@@@@@@@@@@@@@@@@@@"
+        _ = "vmess://@@@@@@@@@@@@@@@@@@@@"
         # Should be rejected due to special char ratio
 
 
@@ -314,7 +309,7 @@ class TestErrorRecovery:
     def test_unicode_handling(self):
         """Test Unicode character handling."""
         config = "vmess://测试配置"
-        result = _parse_vmess(config)
+        _ = _parse_vmess(config)
         # Should handle Unicode without crashing
 
 
@@ -327,7 +322,7 @@ class TestSecurityValidations:
 
         config_str = "aes-256-gcm:password@[2001:db8::1]:443"
         config = "ss://" + base64.b64encode(config_str.encode()).decode()
-        result = _parse_ss(config)
+        _ = _parse_ss(config)
         # Should handle IPv6 addresses in brackets
 
     def test_sql_injection_attempt(self):
@@ -340,10 +335,10 @@ class TestSecurityValidations:
             "port": 443,
             "id": "test-uuid",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
-        result = _parse_vmess(config)
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
+        _ = _parse_vmess(config)
         # Should parse but address should be sanitized/validated
 
     def test_xss_attempt(self):
@@ -357,9 +352,9 @@ class TestSecurityValidations:
             "id": "test-uuid",
             "ps": "<script>alert('xss')</script>",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
         result = _parse_vmess(config)
         if result:
             # Remarks should be truncated but not cause execution

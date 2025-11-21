@@ -273,6 +273,8 @@ async def fetch_multiple_sources(
     per_host_limit: int = 4,
     client: Optional[httpx.AsyncClient] = None,
     use_adaptive_timeout: bool = True,
+    # Added argument for shared breaker manager
+    breaker_manager: Optional[CircuitBreakerManager] = None,
 ) -> dict[str, FetchResult]:
     """
     High-level entry point for batch fetching.
@@ -286,10 +288,13 @@ async def fetch_multiple_sources(
     # Initialize Components
     timeout_tracker = AdaptiveTimeout() if use_adaptive_timeout else None
     rate_limiter = RateLimiter(requests_per_second=50.0)
-    breaker_manager = CircuitBreakerManager(
-        failure_threshold=app_settings.CIRCUIT_TRIP_CONN_ERRORS,
-        recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,
-    )
+
+    # Use provided breaker manager or create local one (fallback)
+    if breaker_manager is None:
+        breaker_manager = CircuitBreakerManager(
+            failure_threshold=app_settings.CIRCUIT_TRIP_CONN_ERRORS,
+            recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,
+        )
 
     # Setup Concurrency Control
     loop = asyncio.get_running_loop()
