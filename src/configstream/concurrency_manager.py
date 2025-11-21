@@ -27,6 +27,7 @@ class ConcurrencyManager:
         self.semaphore = asyncio.Semaphore(initial_limit)
         self.latencies: Deque[float] = deque(maxlen=100)
         self.errors: Deque[bool] = deque(maxlen=100)
+        self._stats_lock = asyncio.Lock()  # Protect deque access
 
         self.tuning_task: Optional[asyncio.Task] = None
         self._running = False
@@ -34,24 +35,28 @@ class ConcurrencyManager:
     def get_semaphore(self) -> asyncio.Semaphore:
         return self.semaphore
 
-    def record(self, host: str, latency: float, success: bool):
+    async def record(self, host: str, latency: float, success: bool):
         """Record request outcome."""
-        self.latencies.append(latency)
-        self.errors.append(not success)
+        async with self._stats_lock:
+            self.latencies.append(latency)
+            self.errors.append(not success)
 
     async def _tuner_loop(self):
         """Periodically adjust concurrency limit."""
         while self._running:
             await asyncio.sleep(1.0)
-            self._adjust()
+            await self._adjust()
 
-    def _adjust(self):
-        if not self.errors:
-            return
+    async def _adjust(self):
+        async with self._stats_lock:
+            if not self.errors:
+                return
 
-        # Count True in errors (which means failure)
-        error_count = sum(1 for e in self.errors if e)
-        error_rate = error_count / len(self.errors)
+            # Count True in errors (which means failure)
+            error_count = sum(1 for e in self.errors if e)
+            error_rate = error_count / len(self.errors)
+
+        # Perform adjustment outside lock (doesn't need lock)
 
         if error_rate > 0.1:
             # High errors -> Multiplicative Decrease

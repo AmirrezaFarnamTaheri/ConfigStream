@@ -31,6 +31,7 @@ async def test_pipeline_simulated_run(tmp_path):
         mock_cm_instance = mock_cm.return_value
         mock_cm_instance.start_tuner = AsyncMock()
         mock_cm_instance.stop_tuner = AsyncMock()
+        mock_cm_instance.record = AsyncMock()  # record() is now async
         mock_sem = MagicMock()
         mock_sem.__aenter__.return_value = None
         mock_sem.__aexit__.return_value = None
@@ -130,6 +131,7 @@ async def test_pipeline_with_filters(tmp_path):
         mock_cm_instance = mock_cm.return_value
         mock_cm_instance.start_tuner = AsyncMock()
         mock_cm_instance.stop_tuner = AsyncMock()
+        mock_cm_instance.record = AsyncMock()  # record() is now async
         mock_sem = MagicMock()
         mock_sem.__aenter__.return_value = None
         mock_sem.__aexit__.return_value = None
