@@ -2,6 +2,7 @@ import pytest
 from configstream.output import to_clash_proxy, to_singbox_outbound
 from configstream.models import Proxy
 
+
 def test_output_transport_clash():
     # WS
     p_ws = Proxy(
@@ -10,7 +11,7 @@ def test_output_transport_clash():
         address="1.2.3.4",
         port=443,
         uuid="uuid",
-        details={"net": "ws", "path": "/ws", "host": "host.com", "tls": "tls"}
+        details={"net": "ws", "path": "/ws", "host": "host.com", "tls": "tls"},
     )
     clash = to_clash_proxy(p_ws)
     assert clash["network"] == "ws"
@@ -25,12 +26,13 @@ def test_output_transport_clash():
         address="1.2.3.4",
         port=443,
         uuid="uuid",
-        details={"net": "grpc", "serviceName": "grpc-service", "security": "tls"}
+        details={"net": "grpc", "serviceName": "grpc-service", "security": "tls"},
     )
     clash = to_clash_proxy(p_grpc)
     assert clash["network"] == "grpc"
     assert clash["grpc-opts"]["grpc-service-name"] == "grpc-service"
     assert clash["tls"] is True
+
 
 def test_output_transport_singbox():
     # WS
@@ -40,7 +42,15 @@ def test_output_transport_singbox():
         address="1.2.3.4",
         port=443,
         uuid="uuid",
-        details={"net": "ws", "path": "/ws", "host": "host.com", "security": "reality", "pbk": "pbk", "sid": "sid", "fp": "chrome"}
+        details={
+            "net": "ws",
+            "path": "/ws",
+            "host": "host.com",
+            "security": "reality",
+            "pbk": "pbk",
+            "sid": "sid",
+            "fp": "chrome",
+        },
     )
     sb = to_singbox_outbound(p_ws)
     assert sb["transport"]["type"] == "ws"

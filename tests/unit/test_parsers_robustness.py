@@ -57,9 +57,9 @@ class TestVMessParser:
             "id": "test-uuid",
             "ps": "test",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
         result = _parse_vmess(config)
         assert result is None
 
@@ -69,9 +69,9 @@ class TestVMessParser:
         import json
 
         config_data = {"add": "example.com"}  # Missing port and id
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
         result = _parse_vmess(config)
         assert result is None
 
@@ -85,9 +85,9 @@ class TestVMessParser:
             "port": 99999,  # Invalid port
             "id": "test-uuid",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
         result = _parse_vmess(config)
         assert result is None
 
@@ -101,9 +101,9 @@ class TestVMessParser:
             "port": 443,
             "id": "test-uuid",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
         result = _parse_vmess(config)
         assert result is None
 
@@ -112,7 +112,9 @@ class TestVMessParser:
         import base64
 
         # Create a large JSON that decodes to huge size
-        large_data = '{"add":"test.com","port":443,"id":"x",' + '"data":"' + "A" * 100000 + '"}'
+        large_data = (
+            '{"add":"test.com","port":443,"id":"x",' + '"data":"' + "A" * 100000 + '"}'
+        )
         config = "vmess://" + base64.b64encode(large_data.encode()).decode()
         result = _parse_vmess(config)
         # Should be rejected due to size check
@@ -158,9 +160,10 @@ class TestShadowsocksRParser:
         # ssr://base64(server:port:protocol:method:obfs:password_base64/?params)
         import base64
 
-        config_str = "example.com:NOT_A_PORT:origin:aes-256-cfb:plain:" + base64.b64encode(
-            b"password"
-        ).decode()
+        config_str = (
+            "example.com:NOT_A_PORT:origin:aes-256-cfb:plain:"
+            + base64.b64encode(b"password").decode()
+        )
         config = "ssr://" + base64.b64encode(config_str.encode()).decode()
         result = _parse_ssr(config)
         assert result is None
@@ -340,9 +343,9 @@ class TestSecurityValidations:
             "port": 443,
             "id": "test-uuid",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
         result = _parse_vmess(config)
         # Should parse but address should be sanitized/validated
 
@@ -357,9 +360,9 @@ class TestSecurityValidations:
             "id": "test-uuid",
             "ps": "<script>alert('xss')</script>",
         }
-        config = "vmess://" + base64.b64encode(
-            json.dumps(config_data).encode()
-        ).decode()
+        config = (
+            "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
+        )
         result = _parse_vmess(config)
         if result:
             # Remarks should be truncated but not cause execution

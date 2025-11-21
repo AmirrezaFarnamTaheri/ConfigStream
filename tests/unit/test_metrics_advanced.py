@@ -79,10 +79,7 @@ class TestPipelineMetrics:
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir)
 
-            metrics = PipelineMetrics(
-                total_sources=5,
-                total_working=100
-            )
+            metrics = PipelineMetrics(total_sources=5, total_working=100)
 
             metrics.save_to_file(output_path)
 
@@ -109,10 +106,7 @@ class TestPipelineMetrics:
 
     def test_throughput_calculation(self):
         """Test throughput calculation in rates."""
-        metrics = PipelineMetrics(
-            total_tested=600,
-            test_duration=60.0  # 1 minute
-        )
+        metrics = PipelineMetrics(total_tested=600, test_duration=60.0)  # 1 minute
 
         result = metrics.to_dict()
 
@@ -121,10 +115,7 @@ class TestPipelineMetrics:
 
     def test_throughput_zero_duration(self):
         """Test throughput when duration is zero."""
-        metrics = PipelineMetrics(
-            total_tested=100,
-            test_duration=0.0
-        )
+        metrics = PipelineMetrics(total_tested=100, test_duration=0.0)
 
         result = metrics.to_dict()
 
@@ -151,9 +142,7 @@ class TestPipelineMetrics:
     def test_metrics_rounding(self):
         """Test that floating point values are properly rounded."""
         metrics = PipelineMetrics(
-            fetch_duration=10.123456789,
-            success_rate=0.876543,
-            avg_latency=123.456789
+            fetch_duration=10.123456789, success_rate=0.876543, avg_latency=123.456789
         )
 
         result = metrics.to_dict()
@@ -165,10 +154,7 @@ class TestPipelineMetrics:
 
     def test_metrics_json_serializable(self):
         """Test that metrics dict is JSON serializable."""
-        metrics = PipelineMetrics(
-            total_sources=10,
-            total_working=100
-        )
+        metrics = PipelineMetrics(total_sources=10, total_working=100)
         metrics.protocol_counts = {"vmess": 50}
 
         result = metrics.to_dict()

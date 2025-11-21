@@ -21,7 +21,7 @@ class TestCompoundScoring:
             protocol="vmess",
             address="example.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
 
         score = calculate_compound_score(proxy)
@@ -36,7 +36,7 @@ class TestCompoundScoring:
             protocol="vmess",
             address="example.com",
             port=443,
-            latency=None
+            latency=None,
         )
 
         score = calculate_compound_score(proxy)
@@ -52,7 +52,7 @@ class TestCompoundScoring:
             address="example.com",
             port=443,
             latency=100.0,
-            stale=True
+            stale=True,
         )
 
         score = calculate_compound_score(proxy)
@@ -113,7 +113,7 @@ class TestRankingAndRenaming:
                 port=443,
                 latency=200.0,
                 country_code="US",
-                remarks="Original1"
+                remarks="Original1",
             ),
             Proxy(
                 config="vmess://2",
@@ -122,7 +122,7 @@ class TestRankingAndRenaming:
                 port=443,
                 latency=100.0,
                 country_code="DE",
-                remarks="Original2"
+                remarks="Original2",
             ),
             Proxy(
                 config="vmess://3",
@@ -131,7 +131,7 @@ class TestRankingAndRenaming:
                 port=443,
                 latency=300.0,
                 country_code="JP",
-                remarks="Original3"
+                remarks="Original3",
             ),
         ]
 
@@ -164,7 +164,7 @@ class TestRankingAndRenaming:
                 address="1.1.1.1",
                 port=443,
                 latency=200.0,
-                country_code="US"
+                country_code="US",
             ),
             Proxy(
                 config="vless://1",
@@ -172,7 +172,7 @@ class TestRankingAndRenaming:
                 address="2.2.2.2",
                 port=443,
                 latency=150.0,
-                country_code="DE"
+                country_code="DE",
             ),
             Proxy(
                 config="vmess://2",
@@ -180,7 +180,7 @@ class TestRankingAndRenaming:
                 address="3.3.3.3",
                 port=443,
                 latency=100.0,
-                country_code="JP"
+                country_code="JP",
             ),
         ]
 
@@ -204,7 +204,7 @@ class TestRankingAndRenaming:
                 address="1.1.1.1",
                 port=443,
                 latency=200.0,
-                country_code="US"
+                country_code="US",
             ),
             Proxy(
                 config="vmess://2",
@@ -212,7 +212,7 @@ class TestRankingAndRenaming:
                 address="2.2.2.2",
                 port=443,
                 latency=None,  # No latency
-                country_code="DE"
+                country_code="DE",
             ),
             Proxy(
                 config="vmess://3",
@@ -220,7 +220,7 @@ class TestRankingAndRenaming:
                 address="3.3.3.3",
                 port=443,
                 latency=100.0,
-                country_code="JP"
+                country_code="JP",
             ),
         ]
 
@@ -241,7 +241,7 @@ class TestRankingAndRenaming:
                 port=443,
                 latency=100.0,
                 country_code="US",
-                remarks="A" * 100  # Very long name
+                remarks="A" * 100,  # Very long name
             ),
         ]
 
@@ -262,7 +262,7 @@ class TestTopConfigSelection:
                 protocol="vmess",
                 address=f"{i}.{i}.{i}.{i}",
                 port=443,
-                latency=float(i * 10)
+                latency=float(i * 10),
             )
             for i in range(1, 101)  # 100 proxies
         ]
@@ -284,23 +284,27 @@ class TestTopConfigSelection:
 
         # 100 vmess
         for i in range(1, 101):
-            proxies.append(Proxy(
-                config=f"vmess://{i}",
-                protocol="vmess",
-                address=f"{i}.1.1.1",
-                port=443,
-                latency=float(i * 10)
-            ))
+            proxies.append(
+                Proxy(
+                    config=f"vmess://{i}",
+                    protocol="vmess",
+                    address=f"{i}.1.1.1",
+                    port=443,
+                    latency=float(i * 10),
+                )
+            )
 
         # 100 vless
         for i in range(1, 101):
-            proxies.append(Proxy(
-                config=f"vless://{i}",
-                protocol="vless",
-                address=f"{i}.2.2.2",
-                port=443,
-                latency=float(i * 10)
-            ))
+            proxies.append(
+                Proxy(
+                    config=f"vless://{i}",
+                    protocol="vless",
+                    address=f"{i}.2.2.2",
+                    port=443,
+                    latency=float(i * 10),
+                )
+            )
 
         # Select top 30 per protocol
         selected = select_top_configs(proxies, top_per_protocol=30, total_limit=1000)
@@ -323,7 +327,7 @@ class TestTopConfigSelection:
                 protocol="vmess",
                 address=f"{i}.{i}.{i}.{i}",
                 port=443,
-                latency=float(i * 10)
+                latency=float(i * 10),
             )
             for i in range(1, 201)  # 200 proxies
         ]
@@ -345,21 +349,21 @@ class TestTopConfigSelection:
                 protocol="vmess",
                 address="1.1.1.1",
                 port=443,
-                latency=100.0
+                latency=100.0,
             ),
             Proxy(
                 config="vmess://same",  # Duplicate
                 protocol="vmess",
                 address="1.1.1.1",
                 port=443,
-                latency=200.0
+                latency=200.0,
             ),
             Proxy(
                 config="vmess://different",
                 protocol="vmess",
                 address="2.2.2.2",
                 port=443,
-                latency=150.0
+                latency=150.0,
             ),
         ]
 
