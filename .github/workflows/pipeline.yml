@@ -57,6 +57,9 @@ jobs:
       - name: Install dependencies
         run: pip install -e .[dev]
 
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps
+
       - name: Cache sing-box binary
         id: cache-sing-box
         uses: actions/cache@v3

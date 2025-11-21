@@ -23,6 +23,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e .[dev]
+      - name: Install Playwright browsers
+        run: python -m playwright install --with-deps
       - name: Run tests
         run: pytest -q
       - name: Run flake8
