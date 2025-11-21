@@ -158,7 +158,6 @@ jobs:
             --output "output_batch_${BATCH_NUMBER}" \
             --max-workers 32 \
             --timeout 24 \
-            --show-metrics \
             --max-latency 6000 | tee "pipeline_batch_${BATCH_NUMBER}.log"
 
       - name: Upload shard artifact

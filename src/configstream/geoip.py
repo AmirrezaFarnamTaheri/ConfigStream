@@ -3,11 +3,13 @@ Offline GeoIP Resolver (MaxMind GeoLite2).
 Uses local MMDB files instead of API calls for zero-latency, private lookups.
 """
 
+import ipaddress
 import logging
 from pathlib import Path
 from typing import Optional
 
 import geoip2.database
+import geoip2.errors
 from pydantic import BaseModel
 
 from .config import AppSettings
@@ -66,6 +68,13 @@ class GeoIPResolver:
         """Resolve IP to Country, City, ASN."""
         result = GeoData()
         if not ip:
+            return result
+
+        # Validate IP format before lookup
+        try:
+            ipaddress.ip_address(ip)
+        except ValueError:
+            logger.debug(f"Invalid IP address format: {ip}")
             return result
 
         try:

@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 # Path to the built binary
 BINARY_PATH = Path(__file__).parent.parent.parent.parent / "bin" / "utls-client"
 
+# Track if we've already warned about missing binary
+_warned_missing = False
+
 
 def ensure_binary():
     """Ensure the Go binary exists, building it if necessary."""
@@ -67,11 +70,21 @@ async def test_tls_fingerprint(
         url: Target URL.
         proxy: Proxy address (currently mostly unused in the minimal Go PoC, but reserved).
         fingerprint: chrome, firefox, ios, random.
+
+    Returns:
+        True if fingerprint test passed or if binary unavailable (graceful degradation).
+        False if fingerprint test explicitly failed.
     """
+    global _warned_missing
     if not ensure_binary():
-        # Fallback: Assume success if we can't test, or Fail?
-        # For safety, if we can't randomize, we might fail or just warn.
-        # Let's return True but log warning to not block the pipeline if Go is missing.
+        # Graceful degradation: Skip this enhanced security check if binary unavailable
+        # This is an optional advanced feature - core functionality should not be blocked
+        if not _warned_missing:
+            logger.warning(
+                "uTLS client binary unavailable - TLS fingerprint randomization disabled. "
+                "Install Go and rebuild to enable this security feature."
+            )
+            _warned_missing = True
         return True
 
     cmd = [str(BINARY_PATH), "-url", url, "-fp", fingerprint]
