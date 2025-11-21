@@ -116,7 +116,7 @@ class TestVMessParser:
             '{"add":"test.com","port":443,"id":"x",' + '"data":"' + "A" * 100000 + '"}'
         )
         config = "vmess://" + base64.b64encode(large_data.encode()).decode()
-        result = _parse_vmess(config)
+        _ = _parse_vmess(config)
         # Should be rejected due to size check
 
 
@@ -289,7 +289,7 @@ class TestPlausibilityCheck:
 
     def test_not_plausible_too_many_special_chars(self):
         """Test config with excessive special characters."""
-        config = "vmess://@@@@@@@@@@@@@@@@@@@@"
+        _ = "vmess://@@@@@@@@@@@@@@@@@@@@"
         # Should be rejected due to special char ratio
 
 
@@ -317,7 +317,7 @@ class TestErrorRecovery:
     def test_unicode_handling(self):
         """Test Unicode character handling."""
         config = "vmess://测试配置"
-        result = _parse_vmess(config)
+        _ = _parse_vmess(config)
         # Should handle Unicode without crashing
 
 
@@ -330,7 +330,7 @@ class TestSecurityValidations:
 
         config_str = "aes-256-gcm:password@[2001:db8::1]:443"
         config = "ss://" + base64.b64encode(config_str.encode()).decode()
-        result = _parse_ss(config)
+        _ = _parse_ss(config)
         # Should handle IPv6 addresses in brackets
 
     def test_sql_injection_attempt(self):
@@ -346,7 +346,7 @@ class TestSecurityValidations:
         config = (
             "vmess://" + base64.b64encode(json.dumps(config_data).encode()).decode()
         )
-        result = _parse_vmess(config)
+        _ = _parse_vmess(config)
         # Should parse but address should be sanitized/validated
 
     def test_xss_attempt(self):

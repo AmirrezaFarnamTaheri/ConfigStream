@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.pipeline import run_full_pipeline
-from configstream.models import Proxy
 from configstream.fetcher import FetchResult
 from copy import deepcopy
 
@@ -19,7 +18,7 @@ async def test_pipeline_simulated_run(tmp_path):
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
         patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
-        patch("configstream.pipeline.output.save_metadata") as mock_save_meta,
+        patch("configstream.pipeline.output.save_metadata") as _mock_save_meta,
         patch("configstream.pipeline.get_adapter") as mock_get_adapter,
         patch("configstream.pipeline.select_top_configs") as mock_select_top,
         patch("configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
@@ -104,6 +103,8 @@ async def test_pipeline_simulated_run(tmp_path):
         assert result.stats["parsed"] == 2
         assert result.stats["tested"] == 2
         assert result.stats["working"] == 1
+        # Use _mock_save_meta to make flake8 happy
+        _mock_save_meta.assert_called()
 
 
 @pytest.mark.asyncio

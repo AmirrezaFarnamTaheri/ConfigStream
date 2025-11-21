@@ -237,7 +237,7 @@ class SingBoxTester:
         # Jitter penalty is stored separately in scores if needed.
         # But the caller (singbox/clash) expects raw latency for load balancing.
         if len(latencies) > 1:
-            jitter = max(latencies) - min(latencies)
+            # jitter = max(latencies) - min(latencies)
             # Only valid if we have a proxy object to attach to, but this function returns float.
             # We handle jitter scoring in consolidation logic or upper layer if we want to penalize.
             # For now, we return pure average.
