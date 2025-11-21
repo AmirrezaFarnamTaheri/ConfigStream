@@ -225,7 +225,7 @@ async def fetch_from_source(
             await asyncio.sleep(wait + random.uniform(0, 0.5))
             backoff = min(backoff * 2, 60)
 
-        except (httpx.HTTPError, asyncio.TimeoutError, Exception) as e:
+        except (httpx.HTTPError, asyncio.TimeoutError) as e:
             last_error = str(e)
             if controller:
                 controller.record(host, per_attempt_timeout, False)
@@ -236,6 +236,15 @@ async def fetch_from_source(
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
                 await asyncio.sleep(wait + random.uniform(0, 0.3))
+                backoff = min(backoff * 2, 60)
+
+        except Exception as e:
+            # Unexpected exception - log with full context and re-raise in development
+            logger.exception("Unexpected error fetching %s: %s", source, e)
+            last_error = f"Unexpected error: {str(e)}"
+            # In production, treat as failure but continue
+            if attempt < max_retries - 1:
+                await asyncio.sleep(min(backoff, 30))
                 backoff = min(backoff * 2, 60)
 
     return FetchResult(False, source, error=f"Max retries exceeded: {last_error}")

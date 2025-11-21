@@ -126,7 +126,7 @@ class ProxyHistoryTracker:
             Reliability score 0.0-1.0
         """
         history = self.get_proxy_history(config)
-        if not history or not history["entries"]:
+        if not history or "entries" not in history or not history["entries"]:
             return 0.5  # Neutral for unknown
 
         # Calculate success rate from recent entries
@@ -147,7 +147,7 @@ class ProxyHistoryTracker:
             Dictionary with timestamps, latencies, and status
         """
         history = self.get_proxy_history(config)
-        if not history or not history["entries"]:
+        if not history or "entries" not in history or not history["entries"]:
             return {"timestamps": [], "latencies": [], "status": []}
 
         entries = history["entries"][-points:]
@@ -169,7 +169,7 @@ class ProxyHistoryTracker:
             Dictionary with summary statistics
         """
         history = self.get_proxy_history(config)
-        if not history or not history["entries"]:
+        if not history or "entries" not in history or not history["entries"]:
             return {
                 "total_tests": 0,
                 "success_rate": 0.0,
