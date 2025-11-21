@@ -170,7 +170,7 @@ class SingBoxTester:
         # Create a full Sing-box config with a random mixed inbound
         # We rely on singbox2proxy to handle port allocation or use port 0 for dynamic allocation
         full_config = {
-            "log": {"level": "error", "output": "/dev/null"},
+            "log": {"level": "info"},
             "inbounds": [
                 {
                     "type": "mixed",
