@@ -236,20 +236,18 @@ def save_metadata(
         countries[cc] = countries.get(cc, 0) + 1
         country_stats[cc] = country_stats.get(cc, 0) + 1
 
-        if p.latency_ms is not None and p.latency_ms > 0:
-            if p.latency_ms < 100:
+        # Use p.latency (float) which is in milliseconds
+        latency = p.latency
+        if latency is not None and latency > 0:
+            if latency < 100:
                 latency_distribution["fast"] += 1
-            elif p.latency_ms < 500:
+            elif latency < 500:
                 latency_distribution["medium"] += 1
-            elif p.latency_ms < 1000:
+            elif latency < 1000:
                 latency_distribution["slow"] += 1
             else:
                 latency_distribution["very_slow"] += 1
         else:
-            # Treat None or 0 latency as very slow or unknown (usually timeout/unreachable but these are "working" proxies)
-            # If they are in the list, they passed the check, so they must have had some latency.
-            # If latency is None but is_working is True, we might want to check why.
-            # For now, we'll just ignore them or put them in very_slow.
             latency_distribution["very_slow"] += 1
 
     # Type-safe conversion
