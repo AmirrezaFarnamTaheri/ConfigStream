@@ -5,6 +5,7 @@ from src.configstream.models import Proxy
 from src.configstream.fetcher import FetchResult
 from copy import deepcopy
 
+
 @pytest.mark.asyncio
 async def test_pipeline_simulated_run(tmp_path):
     """
@@ -12,15 +13,19 @@ async def test_pipeline_simulated_run(tmp_path):
     without actual network calls.
     """
     with (
-        patch("src.configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock) as mock_fetch,
+        patch(
+            "src.configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
+        ) as mock_fetch,
         patch("src.configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("src.configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
-        patch("src.configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch(
+            "src.configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
+        ),
         patch("src.configstream.pipeline.output.save_metadata") as mock_save_meta,
         patch("src.configstream.pipeline.get_adapter") as mock_get_adapter,
         patch("src.configstream.pipeline.select_top_configs") as mock_select_top,
         patch("src.configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
-        patch("src.configstream.pipeline.ConcurrencyManager") as mock_cm
+        patch("src.configstream.pipeline.ConcurrencyManager") as mock_cm,
     ):
         # Setup ConcurrencyManager
         mock_cm_instance = mock_cm.return_value
@@ -41,9 +46,9 @@ async def test_pipeline_simulated_run(tmp_path):
                 success=True,
                 source="http://source1.com",
                 content="ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ@1.2.3.4:8388#TestProxy1\n"
-                        "vless://uuid@5.6.7.8:443?security=reality&sni=example.com&pbk=pub&sid=sid&type=tcp&flow=xtls-rprx-vision#TestProxy2",
+                "vless://uuid@5.6.7.8:443?security=reality&sni=example.com&pbk=pub&sid=sid&type=tcp&flow=xtls-rprx-vision#TestProxy2",
                 status_code=200,
-                response_time=0.5
+                response_time=0.5,
             )
         }
 
@@ -91,7 +96,7 @@ async def test_pipeline_simulated_run(tmp_path):
             max_workers=2,
             timeout=1,
             max_latency=None,
-            country_filter=None
+            country_filter=None,
         )
 
         assert result.success is True
@@ -108,15 +113,19 @@ async def test_pipeline_with_filters(tmp_path):
     Test pipeline with country filter and min latency.
     """
     with (
-        patch("src.configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock) as mock_fetch,
+        patch(
+            "src.configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
+        ) as mock_fetch,
         patch("src.configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("src.configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
-        patch("src.configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock),
+        patch(
+            "src.configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
+        ),
         patch("src.configstream.pipeline.output.save_metadata"),
         patch("src.configstream.pipeline.get_adapter"),
         patch("src.configstream.pipeline.select_top_configs"),
         patch("src.configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
-        patch("src.configstream.pipeline.ConcurrencyManager") as mock_cm
+        patch("src.configstream.pipeline.ConcurrencyManager") as mock_cm,
     ):
         mock_cm_instance = mock_cm.return_value
         mock_cm_instance.start_tuner = AsyncMock()
@@ -134,12 +143,13 @@ async def test_pipeline_with_filters(tmp_path):
                 success=True,
                 source="http://source1.com",
                 content="ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ@1.2.3.4:8388#USProxy\n"
-                        "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ@5.6.7.8:8388#DEProxy",
-                status_code=200
+                "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ@5.6.7.8:8388#DEProxy",
+                status_code=200,
             )
         }
 
         mock_tester_instance = mock_tester_cls.return_value
+
         async def mock_test(proxy):
             p = deepcopy(proxy)
             p.is_working = True
@@ -154,6 +164,7 @@ async def test_pipeline_with_filters(tmp_path):
         mock_tester_instance.test = mock_test
 
         mock_geoip_instance = mock_geoip_cls.return_value
+
         def mock_lookup(ip):
             res = MagicMock()
             if ip == "1.2.3.4":
@@ -161,13 +172,14 @@ async def test_pipeline_with_filters(tmp_path):
             else:
                 res.country_code = "DE"
             return res
+
         mock_geoip_instance.lookup.side_effect = mock_lookup
 
         result = await run_full_pipeline(
             sources=["http://source1.com"],
             output_dir=str(tmp_path / "output"),
             country_filter="US",
-            max_latency=200
+            max_latency=200,
         )
 
         assert result.success is True

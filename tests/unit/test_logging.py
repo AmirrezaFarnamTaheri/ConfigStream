@@ -2,6 +2,7 @@ import pytest
 from configstream.logging_config import setup_logging
 import logging
 
+
 def test_setup_logging():
     setup_logging(level="DEBUG")
     logger = logging.getLogger("configstream")

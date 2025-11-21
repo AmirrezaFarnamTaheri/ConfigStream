@@ -282,7 +282,7 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 - **Memory Bounds** - Capped cache sizes (50 entries per source) prevent unbounded growth.
 - **Efficient Merging** - Order-preserving proxy list operations maintain data integrity.
 
-**Test Coverage:** 92% with 600+ passing tests | **Code Quality:** Black + Flake8 + MyPy compliant
+**Test Coverage:** 58% with 115 passing tests (35 new robustness tests added) | **Code Quality:** Black + Flake8 + MyPy compliant | **Security:** 17 critical/high issues fixed
 
 ## 📁 Project Structure
 

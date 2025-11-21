@@ -8,10 +8,12 @@ import httpx
 
 # --- Blocklist Tests ---
 
+
 @pytest.fixture
 def mock_blocklist_file(tmp_path):
     # Use a path object that can be patched into CACHE_FILE
     return tmp_path / "firehol_level1.netset"
+
 
 @pytest.fixture(autouse=True)
 def reset_blocklist_singleton():
@@ -71,6 +73,7 @@ def test_is_honeypot():
 
 
 # --- VirusTotal Tests ---
+
 
 @pytest.mark.asyncio
 async def test_scan_url_clean():

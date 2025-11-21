@@ -21,7 +21,8 @@ async def read_file_async(path: str | Path) -> str:
     if not path.exists():
         raise FileNotFoundError(f"File not found: {path}")
 
-    async with aiofiles.open(path, mode="r", encoding="utf-8", errors="ignore") as f:
+    # Use 'replace' instead of 'ignore' to avoid silent data loss
+    async with aiofiles.open(path, mode="r", encoding="utf-8", errors="replace") as f:
         content = await f.read()
     return content  # type: ignore
 
