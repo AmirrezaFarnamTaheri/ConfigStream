@@ -7,11 +7,6 @@ MAX_CONFIG_LINE_LENGTH = 10000
 MAX_LINES_PER_SOURCE = 10000
 MAX_SOURCE_URL_LENGTH = 2048
 
-# Timeouts (seconds)
-FETCH_TIMEOUT = 30
-TEST_TIMEOUT = 10
-GEOIP_TIMEOUT = 5
-
 # Ports & Domains
 # Removed 3306 (MySQL), 5432 (Postgres), 6379 (Redis), 27017 (Mongo)
 # These are commonly used for tunneling.
@@ -27,11 +22,6 @@ SUSPICIOUS_DOMAINS = [
 ]
 MIN_SAFE_PORT = 1024
 MAX_PORT = 65535
-
-# URL for a known, trusted endpoint to test proxy integrity (header/body tampering).
-# This should be a service you control or a highly reliable public one like httpbin.
-CANARY_URL = "https://httpbin.org/"
-
 
 # Protocols
 VALID_PROTOCOLS = [
@@ -64,18 +54,6 @@ VALID_PROTOCOLS = [
     "socks4",
     "socks5",
 ]
-
-# Test URLs for proxy validation (centralized configuration)
-TEST_URLS = {
-    "google": "https://www.google.com/generate_204",
-    "cloudflare": "https://www.cloudflare.com/cdn-cgi/trace",
-    "gstatic": "https://www.gstatic.com/generate_204",
-    "firefox": "http://detectportal.firefox.com/success.txt",
-    "httpbin": "https://httpbin.org/status/200",
-    "amazon": "https://www.amazon.com/robots.txt",
-    "bing": "https://www.bing.com/robots.txt",
-    "github": "https://api.github.com",
-}
 
 # Security issue categories (standardized)
 SECURITY_CATEGORIES = [

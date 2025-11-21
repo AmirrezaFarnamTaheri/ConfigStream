@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
-from src.configstream.pipeline import run_full_pipeline
-from src.configstream.models import Proxy
-from src.configstream.fetcher import FetchResult
+from configstream.pipeline import run_full_pipeline
+from configstream.models import Proxy
+from configstream.fetcher import FetchResult
 from copy import deepcopy
 
 
@@ -14,18 +14,18 @@ async def test_pipeline_simulated_run(tmp_path):
     """
     with (
         patch(
-            "src.configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
+            "configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
         ) as mock_fetch,
-        patch("src.configstream.pipeline.SingBoxTester") as mock_tester_cls,
-        patch("src.configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
+        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
         patch(
-            "src.configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
+            "configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
         ),
-        patch("src.configstream.pipeline.output.save_metadata") as mock_save_meta,
-        patch("src.configstream.pipeline.get_adapter") as mock_get_adapter,
-        patch("src.configstream.pipeline.select_top_configs") as mock_select_top,
-        patch("src.configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
-        patch("src.configstream.pipeline.ConcurrencyManager") as mock_cm,
+        patch("configstream.pipeline.output.save_metadata") as mock_save_meta,
+        patch("configstream.pipeline.get_adapter") as mock_get_adapter,
+        patch("configstream.pipeline.select_top_configs") as mock_select_top,
+        patch("configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
+        patch("configstream.pipeline.ConcurrencyManager") as mock_cm,
     ):
         # Setup ConcurrencyManager
         mock_cm_instance = mock_cm.return_value
@@ -115,18 +115,18 @@ async def test_pipeline_with_filters(tmp_path):
     """
     with (
         patch(
-            "src.configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
+            "configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
         ) as mock_fetch,
-        patch("src.configstream.pipeline.SingBoxTester") as mock_tester_cls,
-        patch("src.configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
+        patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
+        patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
         patch(
-            "src.configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
+            "configstream.pipeline.DEFAULT_BLOCKLIST.update", new_callable=AsyncMock
         ),
-        patch("src.configstream.pipeline.output.save_metadata"),
-        patch("src.configstream.pipeline.get_adapter"),
-        patch("src.configstream.pipeline.select_top_configs"),
-        patch("src.configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
-        patch("src.configstream.pipeline.ConcurrencyManager") as mock_cm,
+        patch("configstream.pipeline.output.save_metadata"),
+        patch("configstream.pipeline.get_adapter"),
+        patch("configstream.pipeline.select_top_configs"),
+        patch("configstream.pipeline.SourceQualityTracker") as mock_quality_cls,
+        patch("configstream.pipeline.ConcurrencyManager") as mock_cm,
     ):
         mock_cm_instance = mock_cm.return_value
         mock_cm_instance.start_tuner = AsyncMock()
