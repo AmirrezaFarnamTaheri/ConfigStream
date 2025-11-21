@@ -27,7 +27,6 @@ import httpx
 from .http_client import get_client
 from .security.rate_limiter import RateLimiter
 from .concurrency_manager import ConcurrencyManager
-from .hedged_requests import hedged_get
 from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
 from .dns_prewarm import prewarm_dns_cache
