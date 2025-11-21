@@ -205,7 +205,7 @@ async def fetch_from_source(
 
             # Metric Recording
             if controller:
-                controller.record(host, response_time, True)
+                await controller.record(host, response_time, True)
             if timeout_tracker:
                 timeout_tracker.record(source, response_time)
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
@@ -228,7 +228,7 @@ async def fetch_from_source(
         except (httpx.HTTPError, asyncio.TimeoutError) as e:
             last_error = str(e)
             if controller:
-                controller.record(host, per_attempt_timeout, False)
+                await controller.record(host, per_attempt_timeout, False)
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
                 breaker_manager.get_breaker(host).record_failure()
 

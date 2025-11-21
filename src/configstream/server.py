@@ -83,7 +83,7 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
 async def download_subscription(format: str):
     """
     Download subscription file.
-    Formats: base64, clash, singbox, shadowrocket, quantumult
+    Formats: base64, clash, singbox, shadowrocket, quantumult, quantumultx, loon, sip008, surge
     """
     file_map = {
         "base64": "vpn_subscription_base64.txt",
@@ -91,7 +91,10 @@ async def download_subscription(format: str):
         "singbox": "singbox.json",
         "shadowrocket": "shadowrocket.txt",
         "quantumult": "quantumult.conf",
+        "quantumultx": "quantumult.conf",  # Alias for quantumult
         "surge": "surge.conf",
+        "loon": "loon.conf",
+        "sip008": "sip008.json",
     }
 
     if format not in file_map:

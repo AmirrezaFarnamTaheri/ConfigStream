@@ -61,15 +61,28 @@ def ensure_library():
 
 
 _lib = None
+_warned_missing = False
 
 
 def verify_ss_rust(config: dict) -> bool:
     """
     Verify a Shadowsocks config using the Rust core.
+
+    Returns:
+        True if config is valid or if Rust library unavailable (graceful degradation).
+        False if config validation explicitly failed.
     """
-    global _lib
+    global _lib, _warned_missing
     if not ensure_library():
-        return True  # Fallback
+        # Graceful degradation: Skip this enhanced validation if library unavailable
+        # This is an optional advanced feature - core functionality should not be blocked
+        if not _warned_missing:
+            logger.warning(
+                "Shadowsocks-Rust library unavailable - enhanced SS validation disabled. "
+                "Install Rust/Cargo and rebuild to enable this security feature."
+            )
+            _warned_missing = True
+        return True
 
     try:
         if _lib is None:
