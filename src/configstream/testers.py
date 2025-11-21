@@ -193,7 +193,9 @@ class SingBoxTester:
                 # Security: Wrap in timeout to prevent hung subprocess from blocking event loop
                 if singbox_factory:
                     sb_instance = await asyncio.wait_for(
-                        loop.run_in_executor(None, lambda: singbox_factory(config_path)),
+                        loop.run_in_executor(
+                            None, lambda: singbox_factory(config_path)
+                        ),
                         timeout=self.timeout,
                     )
 
@@ -215,7 +217,9 @@ class SingBoxTester:
                         else:
                             proxy.is_working = False
                 else:
-                    logger.error("singbox2proxy module not found, cannot test complex protocols")
+                    logger.error(
+                        "singbox2proxy module not found, cannot test complex protocols"
+                    )
                     proxy.is_working = False
 
             except Exception:
