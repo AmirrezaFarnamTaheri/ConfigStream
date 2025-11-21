@@ -306,16 +306,23 @@ def generate_categorized_outputs(
 
 def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
     """
-    Save list of proxies to JSON file atomically.
+    Save list of proxies to JSON file atomically with fsync for durability.
     If compress=True, also saves a .gz version.
     """
     data = [serialize_proxy(p) for p in proxies]
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
-    # Save plain JSON atomically using temp file + rename
+    # Save plain JSON atomically using temp file + fsync + rename
     temp_path = path.with_suffix(path.suffix + ".tmp")
     try:
-        temp_path.write_text(json_content, encoding="utf-8")
+        # Write with fsync for crash safety
+        temp_fd = os.open(str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+        try:
+            os.write(temp_fd, json_content.encode('utf-8'))
+            os.fsync(temp_fd)  # Ensure data hits disk before rename
+        finally:
+            os.close(temp_fd)
+
         # On POSIX systems, rename is atomic. On Windows it's atomic in Python 3.3+
         temp_path.replace(path)
     except Exception:
@@ -412,13 +419,20 @@ def save_metadata(
         },
     }
 
-    # Write metadata atomically
+    # Write metadata atomically with fsync
     metadata_content = json.dumps(metadata, indent=2)
     for filename in ["metadata.json", "summary.json"]:
         target_path = output_dir / filename
         temp_path = target_path.with_suffix(target_path.suffix + ".tmp")
         try:
-            temp_path.write_text(metadata_content, encoding="utf-8")
+            # Write with fsync for crash safety
+            temp_fd = os.open(str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
+            try:
+                os.write(temp_fd, metadata_content.encode('utf-8'))
+                os.fsync(temp_fd)
+            finally:
+                os.close(temp_fd)
+
             temp_path.replace(target_path)
         except Exception:
             if temp_path.exists():
