@@ -254,14 +254,24 @@ async def run_full_pipeline(
 
             # --- Parsing ---
             # Batch parse is faster
-            parsed_batch = []
-            with tracker.phase("parse"):
-                for line in raw_lines:
+            # Run parsing in executor to prevent blocking the event loop
+            # especially for large batches of regex/base64 operations
+            loop = asyncio.get_running_loop()
+
+            def _parse_chunk(lines, src):
+                result = []
+                for line in lines:
                     p = parse_config(line)
                     if p:
-                        # Temporarily store source in details for tracking
-                        p.details["_source"] = source
-                        parsed_batch.append(p)
+                        p.details["_source"] = src
+                        result.append(p)
+                return result
+
+            parsed_batch = []
+            with tracker.phase("parse"):
+                parsed_batch = await loop.run_in_executor(
+                    None, _parse_chunk, raw_lines, source
+                )
 
             if not parsed_batch:
                 work_queue.task_done()
@@ -457,13 +467,8 @@ async def run_full_pipeline(
         (output_path / "surge.conf").write_text(
             get_adapter("surge").export(optimized_proxies)
         )
-        (
-            output_path / "shadowrocket.txt"
-        ).write_text(  # Re-using shadowrocket if we had adapter, but sticking to existing output.py if preferred, but here I use adapter as requested
-            get_adapter("surge").export(
-                optimized_proxies
-            )  # Shadowrocket often parses Surge/Clash/SS, let's stick to what we have or specific if needed. Actually Surge format works for SR often.
-            # Wait, the user asked for "Surge / Loon / Quantumult X". Shadowrocket was already there.
+        (output_path / "shadowrocket.txt").write_text(
+            get_adapter("shadowrocket").export(optimized_proxies)
         )
         # Loon
         (output_path / "loon.conf").write_text(

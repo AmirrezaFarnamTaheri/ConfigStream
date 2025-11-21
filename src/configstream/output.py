@@ -28,17 +28,74 @@ logger = logging.getLogger(__name__)
 
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """Convert internal Proxy model to Clash dictionary."""
+
+    def _add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
+        """Helper to add ws/grpc/http options to Clash config."""
+        net = details.get("net") or details.get("type") or "tcp"
+        base["network"] = net
+
+        if net == "ws":
+            ws_opts = {}
+            if "path" in details:
+                ws_opts["path"] = details["path"]
+            if "host" in details or "sni" in details:
+                ws_opts["headers"] = {"Host": details.get("host") or details.get("sni")}
+            if ws_opts:
+                base["ws-opts"] = ws_opts
+
+        elif net == "grpc":
+            grpc_opts = {}
+            if "serviceName" in details:
+                grpc_opts["grpc-service-name"] = details["serviceName"]
+            if grpc_opts:
+                base["grpc-opts"] = grpc_opts
+
+        elif net == "h2" or net == "http":
+            h2_opts = {}
+            if "path" in details:
+                h2_opts["path"] = [details["path"]]
+            if "host" in details:
+                h2_opts["host"] = [details["host"]]
+            if h2_opts:
+                base["h2-opts"] = h2_opts
+
+        # Common TLS fields
+        if details.get("tls") == "tls" or details.get("security") in ["tls", "reality"]:
+            base["tls"] = True
+            if "sni" in details:
+                base["servername"] = details["sni"]
+            if "fp" in details:
+                base["client-fingerprint"] = details["fp"]
+            if details.get("security") == "reality":
+                base["client-fingerprint"] = details.get("fp", "chrome") # Reality needs explicit FP often
+                base["reality-opts"] = {
+                    "public-key": details.get("pbk"),
+                    "short-id": details.get("sid", "")
+                }
+
+        return base
+
     if proxy.protocol == "vmess":
-        return {
+        base = {
             "type": "vmess",
             "server": proxy.address,
             "port": proxy.port,
             "uuid": proxy.uuid,
             "alterId": int(proxy.details.get("aid", 0)),
             "cipher": proxy.details.get("scy", "auto"),
-            "network": proxy.details.get("net", "tcp"),
-            "tls": proxy.details.get("tls") == "tls",
         }
+        return _add_transport_opts(base, proxy.details)
+
+    elif proxy.protocol == "vless":
+        base = {
+            "type": "vless",
+            "server": proxy.address,
+            "port": proxy.port,
+            "uuid": proxy.uuid,
+            "flow": proxy.details.get("flow", ""),
+        }
+        return _add_transport_opts(base, proxy.details)
+
     elif proxy.protocol == "shadowsocks":
         return {
             "type": "ss",
@@ -97,14 +154,69 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         "server_port": proxy.port,
     }
 
+    def _add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
+        """Helper to add transport options for Sing-box."""
+        net = details.get("net") or details.get("type") or "tcp"
+
+        transport = {}
+        if net == "ws":
+            transport["type"] = "ws"
+            if "path" in details:
+                transport["path"] = details["path"]
+            if "host" in details or "sni" in details:
+                transport["headers"] = {"Host": details.get("host") or details.get("sni")}
+        elif net == "grpc":
+            transport["type"] = "grpc"
+            if "serviceName" in details:
+                transport["service_name"] = details["serviceName"]
+        elif net == "http" or net == "h2":
+            transport["type"] = "http"
+            if "path" in details:
+                transport["path"] = details["path"]
+            if "host" in details:
+                transport["host"] = [details["host"]]
+
+        if transport:
+            out["transport"] = transport
+
+        # TLS
+        if details.get("tls") == "tls" or details.get("security") in ["tls", "reality"]:
+            tls = {"enabled": True}
+            if "sni" in details:
+                tls["server_name"] = details["sni"]
+            if "fp" in details:
+                tls["utls"] = {"enabled": True, "fingerprint": details["fp"]}
+
+            if details.get("security") == "reality":
+                tls["reality"] = {
+                    "enabled": True,
+                    "public_key": details.get("pbk"),
+                    "short_id": details.get("sid", "")
+                }
+
+            out["tls"] = tls
+
+        return out
+
     if proxy.protocol == "vmess":
-        return {
+        out = {
             "type": "vmess",
             **base,
             "uuid": proxy.uuid,
             "security": "auto",
-            "alter_id": 0,
+            "alter_id": int(proxy.details.get("aid", 0)),
         }
+        return _add_transport_sb(out, proxy.details)
+
+    elif proxy.protocol == "vless":
+        out = {
+            "type": "vless",
+            **base,
+            "uuid": proxy.uuid,
+            "flow": proxy.details.get("flow", ""),
+        }
+        return _add_transport_sb(out, proxy.details)
+
     elif proxy.protocol == "shadowsocks":
         return {
             "type": "shadowsocks",
@@ -285,13 +397,18 @@ def save_metadata(
         "protocol_colors": {
             "vmess": "#FF6B6B",
             "vless": "#4ECDC4",
-            "trojan": "#96CEB4",
             "shadowsocks": "#45B7D1",
+            "trojan": "#96CEB4",
+            "hysteria": "#FFEAA7",
             "hysteria2": "#DFE6E9",
+            "tuic": "#A29BFE",
             "wireguard": "#74B9FF",
-            "socks5": "#FFA502",
-            "http": "#7EFFF5",
-            "openvpn": "#FD79A8",
+            "naive": "#FD79A8",
+            "http": "#FDCB6E",
+            "https": "#6C5CE7",
+            "socks": "#00B894",
+            "socks5": "#00B894",
+            "openvpn": "#E84393",
         },
     }
 
