@@ -98,18 +98,20 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
     """
     Aggressive post-processing filter.
-    Groups working proxies by (Resolved IP, Port, Protocol, SNI, Path).
+    Groups working proxies by (Resolved IP, Port, Protocol, SNI, Path, UUID/Auth).
     """
-    # Key: (Protocol, IP, Port, SNI, Path)
-    endpoint_map: Dict[Tuple[str, str, int, str, str], Proxy] = {}
+    # Key: (Protocol, IP, Port, SNI, Path, UUID/Auth)
+    endpoint_map: Dict[Tuple[str, str, int, str, str, str], Proxy] = {}
 
     for p in proxies:
         addr = p.resolved_ip if p.resolved_ip else p.address
         sni = (p.sni or "").lower().strip()
         # INCLUDE PATH to save multiplexed services
         path = (p.path or "").strip()
+        # INCLUDE UUID/Password to allow multiple accounts on same server
+        auth = (p.uuid or "").strip() or str(p.details.get("password", "")).strip()
 
-        key = (p.protocol.lower(), addr.lower(), int(p.port), sni, path)
+        key = (p.protocol.lower(), addr.lower(), int(p.port), sni, path, auth)
 
         existing = endpoint_map.get(key)
         if not existing:
