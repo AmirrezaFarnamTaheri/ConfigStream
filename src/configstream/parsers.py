@@ -661,15 +661,19 @@ def _parse_wireguard(c: str) -> Optional[Proxy]:
             is_b64 = re.match(r"^[a-zA-Z0-9+/=]+$", reserved)
 
             if not (is_bracketed or is_csv or is_b64):
-                 logger.debug(f"Invalid reserved bytes format for WireGuard: {reserved}")
-                 # If invalid format, we might choose to drop it or clear it.
-                 # For safety, let's clear it to avoid breaking clients
-                 del proxy.details["reserved"]
+                logger.debug(f"Invalid reserved bytes format for WireGuard: {reserved}")
+                # If invalid format, we might choose to drop it or clear it.
+                # For safety, let's clear it to avoid breaking clients
+                del proxy.details["reserved"]
         else:
             # If it's not a string (e.g. list from some internal process), assume valid if it's a list of ints
-            if not (isinstance(reserved, list) and all(isinstance(x, int) for x in reserved)):
-                 logger.debug(f"Invalid reserved bytes type for WireGuard: {type(reserved)}")
-                 del proxy.details["reserved"]
+            if not (
+                isinstance(reserved, list) and all(isinstance(x, int) for x in reserved)
+            ):
+                logger.debug(
+                    f"Invalid reserved bytes type for WireGuard: {type(reserved)}"
+                )
+                del proxy.details["reserved"]
 
     return proxy
 

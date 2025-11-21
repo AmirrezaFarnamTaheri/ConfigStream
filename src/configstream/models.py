@@ -8,6 +8,7 @@ class Proxy(BaseModel):
     Represents a proxy with its configuration and test results.
     Migrated to Pydantic for robust validation.
     """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     config: str
