@@ -79,7 +79,7 @@ def verify_ss_rust(config: dict) -> bool:
 
         config_json = json.dumps(config).encode("utf-8")
         result = _lib.verify_shadowsocks(config_json)
-        return result == 1
+        return bool(result == 1)
     except Exception as e:
         logger.error(f"FFI Error: {e}")
         return False

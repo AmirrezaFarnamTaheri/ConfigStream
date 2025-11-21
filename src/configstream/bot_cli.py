@@ -16,12 +16,13 @@ BASE_URL = "https://farnam.github.io/ConfigStream/files"
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Hello! I am the ConfigStream Bot. 🚀\n"
-        "Use /stats to see pipeline status.\n"
-        "Use /get <COUNTRY_CODE> to get a proxy (e.g., /get US).\n"
-        "Use /sub for subscription links."
-    )
+    if update.message:
+        await update.message.reply_text(
+            "Hello! I am the ConfigStream Bot. 🚀\n"
+            "Use /stats to see pipeline status.\n"
+            "Use /get <COUNTRY_CODE> to get a proxy (e.g., /get US).\n"
+            "Use /sub for subscription links."
+        )
 
 
 async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -41,10 +42,14 @@ async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except Exception as e:
             msg = f"⚠️ Error fetching stats: {str(e)}"
 
-    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+    if update.message:
+        await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 
 async def get_proxy(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
+
     if not context.args:
         await update.message.reply_text(
             "⚠️ Please specify a country code. Usage: `/get US`",
@@ -92,7 +97,8 @@ async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"SingBox: `{BASE_URL}/singbox.json`\n"
         f"Base64: `{BASE_URL}/vpn_subscription_base64.txt`"
     )
-    await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
+    if update.message:
+        await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
 
 def run_bot(token: str):

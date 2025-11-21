@@ -11,9 +11,7 @@ from src.configstream.parsers import (
 )
 from src.configstream.models import Proxy
 
-
 class TestParsers:
-
     def test_parse_ss_simple(self):
         config = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ@127.0.0.1:8388#Example"
         proxy = _parse_ss(config)
@@ -35,7 +33,6 @@ class TestParsers:
         assert proxy.remarks == "Reality"
 
     def test_parse_hysteria2_ports(self):
-        # Test port hopping
         config = "hysteria2://password@example.com:443?ports=80,443,10000-20000&obfs=salamander&obfs-password=secret#Hys2"
         proxy = _parse_hysteria2(config)
         assert proxy is not None
@@ -44,19 +41,11 @@ class TestParsers:
         assert proxy.details["obfs"] == "salamander"
 
     def test_parse_wireguard_reserved(self):
-        # Valid reserved. Note: reserved must be [1,2,3] or base64. 1,2,3 is not valid bracketed.
-        # Let's fix the test case to match the regex r'^\[[\d,\s]+\]$'
-        # Also need to make sure the URL format is standard enough for generic parser.
-        # wireguard://privatekey@1.2.3.4:51820
-        config = "wireguard://privatekey@1.2.3.4:51820?public_key=pub&reserved=%5B1%2C2%2C3%5D&address=10.0.0.1/24#WG"
+        config = "wireguard://user@1.2.3.4:51820?public_key=pub&private_key=priv&reserved=[1,2,3]&address=10.0.0.1/24#WG"
         proxy = _parse_wireguard(config)
         assert proxy is not None
         assert proxy.protocol == "wireguard"
-        # Check invalid reserved
-        config_bad = "wireguard://privatekey@1.2.3.4:51820?public_key=pub&reserved=badformat&address=10.0.0.1/24#WG"
-        # Depending on implementation, it might strip it or just log warning.
-        # Our implementation logs warning but keeps it if regex fails?
-        # Actually the code logs warning and does nothing (doesn't strip).
+        config_bad = "wireguard://user@1.2.3.4:51820?public_key=pub&private_key=priv&reserved=badformat&address=10.0.0.1/24#WG"
         proxy_bad = _parse_wireguard(config_bad)
         assert proxy_bad is not None
 

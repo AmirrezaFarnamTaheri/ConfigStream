@@ -1,14 +1,27 @@
 {
-  "total_tested": 1529,
-  "passed": 0,
-  "rejected": {
-    "total_security_issues": 1529,
-    "security_by_category": {
-      "tls": 1529,
-      "error": 1529
-    },
-    "no_response": 0
+  "last_updated_utc": "2025-11-21T08:03:24.266107+00:00",
+  "total_proxies": 0,
+  "total_working": 0,
+  "total_fetched": 0,
+  "duration_seconds": 0.297126,
+  "protocols": {},
+  "countries": {},
+  "country_stats": {},
+  "latency_distribution": {
+    "fast": 0,
+    "medium": 0,
+    "slow": 0,
+    "very_slow": 0
   },
-  "by_protocol": {},
-  "by_country": {}
+  "protocol_colors": {
+    "vmess": "#FF6B6B",
+    "vless": "#4ECDC4",
+    "trojan": "#96CEB4",
+    "shadowsocks": "#45B7D1",
+    "hysteria2": "#DFE6E9",
+    "wireguard": "#74B9FF",
+    "socks5": "#FFA502",
+    "http": "#7EFFF5",
+    "openvpn": "#FD79A8"
+  }
 }
