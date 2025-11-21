@@ -175,7 +175,20 @@ async def run_full_pipeline(
                 if s.startswith("http"):
                     remote_urls.append(s)
                 # Handle individual proxy configs or non-standard schemes
-                elif s.startswith(("ss://", "vmess://", "vless://", "trojan://", "hysteria://", "hy2://", "tuic://", "ssh://", "wg://", "wireguard://")):
+                elif s.startswith(
+                    (
+                        "ss://",
+                        "vmess://",
+                        "vless://",
+                        "trojan://",
+                        "hysteria://",
+                        "hy2://",
+                        "tuic://",
+                        "ssh://",
+                        "wg://",
+                        "wireguard://",
+                    )
+                ):
                     # Treat as a single-line config supplied directly
                     await work_queue.put(("supplied-config", [s]))
                 elif s.startswith("ssconf://"):
