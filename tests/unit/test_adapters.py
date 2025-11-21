@@ -1,6 +1,13 @@
-from configstream.adapters import LoonAdapter, QuantumultXAdapter, SurgeAdapter, SIP008Adapter, get_adapter
+from configstream.adapters import (
+    LoonAdapter,
+    QuantumultXAdapter,
+    SurgeAdapter,
+    SIP008Adapter,
+    get_adapter,
+)
 from configstream.models import Proxy
 import pytest
+
 
 def test_loon_adapter():
     adapter = LoonAdapter()
@@ -10,10 +17,11 @@ def test_loon_adapter():
         address="1.2.3.4",
         port=443,
         details={"method": "aes-256-gcm", "password": "pass"},
-        remarks="Test Proxy"
+        remarks="Test Proxy",
     )
     output = adapter.export([proxy])
-    assert "Test Proxy = shadowsocks, 1.2.3.4, 443, aes-256-gcm, \"pass\"" in output
+    assert 'Test Proxy = shadowsocks, 1.2.3.4, 443, aes-256-gcm, "pass"' in output
+
 
 def test_quantumultx_adapter():
     adapter = QuantumultXAdapter()
@@ -24,10 +32,14 @@ def test_quantumultx_adapter():
         port=443,
         uuid="uuid-1234",
         details={"method": "chacha20-poly1305"},
-        remarks="Test VMess"
+        remarks="Test VMess",
     )
     output = adapter.export([proxy])
-    assert "vmess=Test VMess: 1.2.3.4, 443, method=chacha20-poly1305, password=uuid-1234" in output
+    assert (
+        "vmess=Test VMess: 1.2.3.4, 443, method=chacha20-poly1305, password=uuid-1234"
+        in output
+    )
+
 
 def test_surge_adapter():
     adapter = SurgeAdapter()
@@ -38,10 +50,11 @@ def test_surge_adapter():
         port=80,
         uuid="user",
         details={"password": "pass"},
-        remarks="Test HTTP"
+        remarks="Test HTTP",
     )
     output = adapter.export([proxy])
     assert "Test HTTP = http, 1.2.3.4, 80, username=user, password=pass" in output
+
 
 def test_get_adapter():
     assert isinstance(get_adapter("surge"), SurgeAdapter)

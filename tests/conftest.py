@@ -2,6 +2,7 @@ import pytest
 import asyncio
 import nest_asyncio
 
+
 @pytest.fixture(scope="session", autouse=True)
 def event_loop():
     """

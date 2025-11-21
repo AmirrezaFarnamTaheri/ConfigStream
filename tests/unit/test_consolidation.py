@@ -51,7 +51,9 @@ def sample_proxies():
 
 
 def test_calculate_compound_score():
-    p = Proxy(config="test", protocol="vmess", address="1.1.1.1", port=443, latency=100.0)
+    p = Proxy(
+        config="test", protocol="vmess", address="1.1.1.1", port=443, latency=100.0
+    )
     assert calculate_compound_score(p) == 100.0
 
     p_stale = Proxy(

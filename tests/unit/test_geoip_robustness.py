@@ -110,10 +110,7 @@ class TestGeoIPRobustness:
     def test_geodata_with_values(self):
         """Test GeoData with specific values."""
         data = GeoData(
-            country_code="US",
-            city="New York",
-            asn="AS15169",
-            org="Google LLC"
+            country_code="US", city="New York", asn="AS15169", org="Google LLC"
         )
         assert data.country_code == "US"
         assert data.city == "New York"
