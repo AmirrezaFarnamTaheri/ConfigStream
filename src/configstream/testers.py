@@ -13,6 +13,7 @@ import atexit
 import time
 from typing import Optional, Set
 from contextlib import contextmanager
+import json
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
@@ -30,6 +31,7 @@ from .security.blocklist import DEFAULT_BLOCKLIST
 from .security.honeypot import is_honeypot
 from .security.utls_wrapper import test_tls_fingerprint
 from .security.ss_ffi import verify_ss_rust
+from .output import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 
@@ -155,35 +157,66 @@ class SingBoxTester:
 
         loop = asyncio.get_running_loop()
 
+        # Generate a valid Sing-box outbound config for testing
+        outbound_config = to_singbox_outbound(proxy)
+        if not outbound_config:
+            # If we can't generate a valid outbound (e.g. unsupported protocol), fail fast
+            proxy.is_working = False
+            return proxy
+
+        # Assign a unique tag
+        outbound_config["tag"] = "proxy-test"
+
+        # Create a full Sing-box config with a random mixed inbound
+        # We rely on singbox2proxy to handle port allocation or use port 0 for dynamic allocation
+        full_config = {
+            "log": {"level": "error", "output": "/dev/null"},
+            "inbounds": [
+                {
+                    "type": "mixed",
+                    "tag": "mixed-in",
+                    "listen": "127.0.0.1",
+                    "listen_port": 0,  # Let OS pick a port
+                }
+            ],
+            "outbounds": [outbound_config],
+        }
+
+        config_content = json.dumps(full_config)
+
         # Use secure context for the config file
-        with SecureConfigContext(proxy.config) as config_path:
+        with SecureConfigContext(config_content) as config_path:
             sb_instance = None
             try:
                 # Start Sing-box in a thread to avoid blocking the event loop
                 # singbox_factory is synchronous
                 # Security: Wrap in timeout to prevent hung subprocess from blocking event loop
-                sb_instance = await asyncio.wait_for(
-                    loop.run_in_executor(None, lambda: singbox_factory(config_path)),
-                    timeout=self.timeout,
-                )
+                if singbox_factory:
+                    sb_instance = await asyncio.wait_for(
+                        loop.run_in_executor(None, lambda: singbox_factory(config_path)),
+                        timeout=self.timeout,
+                    )
 
-                if not sb_instance or not sb_instance.http_proxy_url:
-                    proxy.is_working = False
-                    return proxy
-
-                # Connect to the local SOCKS/HTTP proxy provided by Sing-box
-                async with aiohttp.ClientSession(
-                    connector=ProxyConnector.from_url(sb_instance.http_proxy_url)
-                ) as session:
-                    latency = await self._measure_latency_robust(session)
-
-                    if latency is not None:
-                        proxy.latency = latency
-                        proxy.is_working = True
-                        if self.strict_security:
-                            await self._run_security_checks(session, proxy)
-                    else:
+                    if not sb_instance or not sb_instance.http_proxy_url:
                         proxy.is_working = False
+                        return proxy
+
+                    # Connect to the local SOCKS/HTTP proxy provided by Sing-box
+                    async with aiohttp.ClientSession(
+                        connector=ProxyConnector.from_url(sb_instance.http_proxy_url)
+                    ) as session:
+                        latency = await self._measure_latency_robust(session)
+
+                        if latency is not None:
+                            proxy.latency = latency
+                            proxy.is_working = True
+                            if self.strict_security:
+                                await self._run_security_checks(session, proxy)
+                        else:
+                            proxy.is_working = False
+                else:
+                    logger.error("singbox2proxy module not found, cannot test complex protocols")
+                    proxy.is_working = False
 
             except Exception:
                 proxy.is_working = False
