@@ -1,14 +1,17 @@
 import pytest
 import json
 from unittest.mock import MagicMock, patch
-from src.configstream.output import (
+from configstream.intelligence.washer import (
     ProxyWasher,
     generate_smart_chains,
     create_chain,
-    to_singbox_outbound,
-    generate_split_outputs
 )
-from src.configstream.models import Proxy
+from configstream.output import (
+    to_singbox_outbound,
+    generate_split_outputs,
+)
+from configstream.models import Proxy
+
 
 @pytest.fixture
 def sample_proxies():
@@ -20,9 +23,14 @@ def sample_proxies():
             port=443,
             uuid="uuid",
             country_code="IR",
-            details={"security": "reality", "pbk": "pubkey", "sid": "shortid", "sni": "example.com"},
+            details={
+                "security": "reality",
+                "pbk": "pubkey",
+                "sid": "shortid",
+                "sni": "example.com",
+            },
             is_working=True,
-            latency=100.0
+            latency=100.0,
         ),
         Proxy(
             config="hysteria2://pass@2.2.2.2:443?sni=fast.com#Fast-Relay",
@@ -33,7 +41,7 @@ def sample_proxies():
             country_code="DE",
             details={"sni": "fast.com"},
             is_working=True,
-            latency=50.0
+            latency=50.0,
         ),
         Proxy(
             config="vmess://uuid@3.3.3.3:443?security=auto#US-Exit",
@@ -43,7 +51,7 @@ def sample_proxies():
             uuid="uuid",
             country_code="US",
             is_working=True,
-            latency=150.0
+            latency=150.0,
         ),
         Proxy(
             config="socks5://user:pass@4.4.4.4:1080#Dirty-Socks",
@@ -54,26 +62,29 @@ def sample_proxies():
             details={"password": "pass"},
             is_working=True,
             tags=["dirty_ip", "insecure"],
-            latency=80.0
-        )
+            latency=80.0,
+        ),
     ]
+
 
 @pytest.fixture
 def warp_keys():
-    return json.dumps([
-        {"id": "key1", "private_key": "priv1", "peer_public_key": "pub1"}
-    ])
+    return json.dumps(
+        [{"id": "key1", "private_key": "priv1", "peer_public_key": "pub1"}]
+    )
+
 
 def test_proxy_washer_washing(sample_proxies, warp_keys):
     washer = ProxyWasher(warp_keys)
-    washed = washer.wash_batch(sample_proxies)
+    washed_outbounds, washed_ids = washer.wash_batch(sample_proxies)
 
     # Should only wash the 'Dirty-Socks' proxy
     # Output should contain 2 items: Relay and Exit
-    assert len(washed) == 2
+    assert len(washed_outbounds) == 2
+    assert len(washed_ids) == 1
 
-    relay = washed[0]
-    exit_node = washed[1]
+    relay = washed_outbounds[0]
+    exit_node = washed_outbounds[1]
 
     assert relay["type"] == "socks"
     assert relay["tag"].startswith("RELAY-CHAIN-")
@@ -83,16 +94,19 @@ def test_proxy_washer_washing(sample_proxies, warp_keys):
     assert exit_node["detour"] == relay["tag"]
     assert exit_node["private_key"] == "priv1"
 
+
 def test_proxy_washer_consistent_hashing(sample_proxies, warp_keys):
     washer1 = ProxyWasher(warp_keys)
-    res1 = washer1.wash_batch(sample_proxies)
+    res1, ids1 = washer1.wash_batch(sample_proxies)
 
     washer2 = ProxyWasher(warp_keys)
-    res2 = washer2.wash_batch(sample_proxies)
+    res2, ids2 = washer2.wash_batch(sample_proxies)
 
     # Results should be identical including tags and selected keys
     assert res1 == res2
     assert res1[0]["tag"] == res2[0]["tag"]
+    assert ids1 == ids2
+
 
 def test_generate_smart_chains(sample_proxies):
     chains = generate_smart_chains(sample_proxies)
@@ -102,7 +116,7 @@ def test_generate_smart_chains(sample_proxies):
     # It should pair with sample_proxies[1] (DE) and sample_proxies[2] (US)
 
     intranet_chains = chains["intranet"]
-    assert len(intranet_chains) >= 4 # 2 chains * 2 objects (Relay + Exit)
+    assert len(intranet_chains) >= 4  # 2 chains * 2 objects (Relay + Exit)
 
     # Check that we have both Hysteria2 (DE) and VMess (US) as exits
     exit_types = [o["type"] for o in intranet_chains if "EXIT" in o["tag"]]
@@ -120,9 +134,10 @@ def test_generate_smart_chains(sample_proxies):
     assert exp_exit["type"] == "vmess"
     assert exp_exit["detour"] == exp_relay["tag"]
 
+
 def test_create_chain(sample_proxies):
-    relay = sample_proxies[1] # Hysteria
-    exit_node = sample_proxies[2] # VMess
+    relay = sample_proxies[1]  # Hysteria
+    exit_node = sample_proxies[2]  # VMess
 
     chain = create_chain(relay, exit_node, "TEST")
 
@@ -131,12 +146,15 @@ def test_create_chain(sample_proxies):
     assert chain[1]["tag"] == f"TEST-EXIT-{exit_node.country}-{exit_node.id[:6]}"
     assert chain[1]["detour"] == chain[0]["tag"]
 
+
 def test_generate_split_outputs(tmp_path, sample_proxies, warp_keys):
     washer = ProxyWasher(warp_keys)
-    washed = washer.wash_batch(sample_proxies)
+    washed_outbounds, washed_ids = washer.wash_batch(sample_proxies)
     smart = generate_smart_chains(sample_proxies)
 
-    files = generate_split_outputs(sample_proxies, tmp_path, washed, smart)
+    files = generate_split_outputs(
+        sample_proxies, tmp_path, washed_outbounds, washed_ids, smart
+    )
 
     assert "singbox_vpn" in files
     assert "singbox" in files

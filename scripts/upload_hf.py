@@ -2,9 +2,11 @@
 Hugging Face Upload Script
 Uploads the output directory to a Hugging Face Dataset.
 """
+
 import os
 import sys
 from huggingface_hub import HfApi
+
 
 def main():
     token = os.getenv("HF_TOKEN")
@@ -23,12 +25,13 @@ def main():
             folder_path=output_dir,
             repo_id=repo_id,
             repo_type="dataset",
-            commit_message=f"Update proxies: {os.getenv('VERSION_TAG', 'auto')}"
+            commit_message=f"Update proxies: {os.getenv('VERSION_TAG', 'auto')}",
         )
         print("Upload complete.")
     except Exception as e:
         print(f"Failed to upload to Hugging Face: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

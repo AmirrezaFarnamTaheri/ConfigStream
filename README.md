@@ -8,11 +8,11 @@
 
 ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions. This process includes comprehensive security testing, geolocation enrichment, and anomaly detection.
 
-## 🚀 New Features (v2.0 "Zero to Hero")
-*   **Exotic Chaining**: Automatically creates "Double-Hop" chains (e.g., Hysteria -> VMess) to bypass tough firewalls.
-*   **Proxy Washing**: Recycles "Dirty" proxies (Google blocked or Insecure HTTP) into high-speed, secure encrypted tunnels using WARP and TLS.
-*   **High-Performance Engine**: Now powered by a native **Go** binary for 10x faster testing and lower CPU usage.
-*   **Unstoppable Distribution**: Fan-out uploads to Telegram, Hugging Face, and GitHub Releases.
+## 🚀 New Features (v1.3 "Atomic Scale")
+*   **Go-Powered Engine**: A native **Go** sidecar (`configstream-tester`) now handles 500+ concurrent proxy tests, eliminating Python GIL bottlenecks.
+*   **Smart Washing**: Automatically routes "Dirty" (Google-blocked) or "Insecure" (HTTP) proxies through **Cloudflare WARP** WireGuard tunnels, transforming them into clean, encrypted exits.
+*   **Double-Hop Chains**: Generates "Intranet Bridge" (IR->EU) and "IPv6 Portal" chains for advanced routing.
+*   **Atomic Persistence**: Zero-corruption guarantee for data storage using atomic write-and-rename operations.
 *   **Split Outputs**: Tailored configs for every use case:
     *   `singbox-vpn.json` (The Tank): Full VPN mode with TUN/FakeIP.
     *   `singbox.json` (The Sniper): Fast, lightweight with fragmentation.
@@ -37,7 +37,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 - **SSL/TLS validation** - Ensures secure HTTPS connections.
 - **Header preservation** - Verifies proxies don't strip important headers.
 - **Active MITM Detection** - Detects interception attempts via SSL fingerprinting.
-- **Honey Pot Detection** - Identifies proxies injecting ads or malicious redirects.
+- **Honey Pot Detection** - Identifies proxies injecting ads or malicious redirects using active probes.
 
 ### 🌍 Rich Geolocation Data
 - **Country and city** information for each proxy.
@@ -48,7 +48,7 @@ Visit our GitHub Pages site to download the latest tested configurations:
 ### ⚡ Performance Optimized
 - **Latency testing** for all proxies.
 - **Automatic sorting** by ping time.
-- **Concurrent testing** with configurable workers.
+- **Concurrent testing** with configurable workers (Go + Python).
 - **Failed proxy filtering**.
 
 ### 📊 Network Intelligence (Analytics)
@@ -75,9 +75,9 @@ graph LR
 A[GitHub ActionsEvery 6 Hours] -->|Trigger| B[Fetch Sources]
 B --> C[Parse & Normalise]
 C --> D[Disk Queue]
-D --> E[Async Testing]
-E --> F[Geo & Scoring]
-F --> G[Rank Views]
+D --> E[Go Batch Testing]
+E --> F[Geo & Intelligence]
+F --> G[Wash & Chain]
 G --> H[Generate Outputs]
 H --> I[Commit to Repo]
 I --> J[GitHub PagesAuto-Deploy]
@@ -86,14 +86,15 @@ I --> J[GitHub PagesAuto-Deploy]
 ### Pipeline Steps:
 
 1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source.
-2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers.
+2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers (v1.3 Parsers).
 3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps).
-4. **Test** - Sing-box verification with latency budgets and retry heuristics.
+4. **Test** - **Go Batch Engine** verification with latency budgets and retry heuristics.
 5. **Secure** - Security testing with detailed issue tracking and categorization.
 6. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token).
-7. **Score** - Compute balanced, speed, privacy, and stability rankings.
-8. **Generate** - Emit canonical + ranked JSON outputs with metadata.
-9. **Publish** - Commit and deploy to GitHub Pages without failing when output exists.
+7. **Intelligence** - "Wash" dirty proxies through WARP and create smart chains.
+8. **Score** - Compute balanced, speed, privacy, and stability rankings.
+9. **Generate** - Emit canonical + ranked JSON outputs with metadata.
+10. **Publish** - Commit and deploy to GitHub Pages without failing when output exists.
 
 ## 📥 Available Formats
 
@@ -128,8 +129,8 @@ https://amirrezafarnamtaheri.github.io/ConfigStream/output/clash.yaml
 ```
 
 ### 3. New Client Support
-- **Surge:** `output/surge.conf`
-- **Loon:** `output/loon.conf`
+- **Surge:** `output/surge.conf` (Supports WireGuard-over-Proxy)
+- **Loon:** `output/loon.conf` (Supports WireGuard-over-Proxy)
 - **Quantumult X:** `output/quantumult.conf`
 - **SIP008:** `output/sip008.json`
 
@@ -183,6 +184,7 @@ Detailed information including:
 
 - Python 3.10 or higher
 - pip
+- Go 1.21+ (for the testing engine)
 - Git
 
 ### Installation
@@ -197,6 +199,10 @@ pip install -e .
 
 # Install development dependencies
 pip install -e ".[dev]"
+
+# Build the Go tester
+cd src/go/tester
+go build -o ../../../bin/configstream-tester main.go
 ```
 
 ### Usage
@@ -218,19 +224,6 @@ configstream update-databases
 
 # Show help
 configstream --help
-```
-
-### Available Options
-
-```
---sources Path to sources file (required)
---output Output directory (default: output/)
---max-proxies Maximum number of proxies to test
---country Filter by country code (e.g., US, DE)
---min-latency Minimum latency in milliseconds
---max-latency Maximum latency in milliseconds
---max-workers Number of concurrent workers (default: 10)
---timeout Timeout per test in seconds (default: 10)
 ```
 
 ### Database Management
@@ -273,6 +266,7 @@ ConfigStream has been significantly improved with zero-budget, production-ready 
 ### 💾 Reliability & Data Integrity
 - **Automated Database Backups** - Timestamped SQLite backups with 7-day retention policy.
 - **WAL Mode** - Write-Ahead Logging for better concurrency and crash recovery.
+- **Atomic Operations** - File writes are atomic to prevent corruption.
 - **Error Resilience** - Comprehensive error handling and graceful degradation.
 
 ### 🔒 Security Hardening
@@ -298,12 +292,14 @@ ConfigStream/
 ├── src/
 │ └── configstream/
 │ ├── cli.py # Command-line interface
-│ ├── core.py # Core proxy testing logic
 │ ├── pipeline.py # Main processing pipeline
-│ ├── config.py # Configuration management
+│ ├── testers.py # Python <-> Go Bridge
+│ ├── output.py # Output generation & Chaining
 │ ├── adapters.py # Client format adapters
-│ ├── anomaly.py # Advanced anomaly detection
-│ └── logo.svg # Project logo
+│ ├── parsers/ # Modular protocol parsers
+│ ├── intelligence/ # Washing & Smart Logic
+│ └── ...
+├── src/go/tester/ # High-performance Go engine
 ├── output/ # Generated configs (auto-updated)
 │ ├── base64.txt # All configs in base64 format
 │ ├── all.txt # Raw proxy links
@@ -314,10 +310,6 @@ ConfigStream/
 │ ├── proxies.json # Detailed proxy data
 │ ├── metadata.json # Update metadata
 ├── frontend/ # Frontend Assets
-│ ├── index.html # Dashboard
-│ ├── analytics.html # Network Intelligence
-│ ├── assets/ # JS, CSS, SVG
-│ └── manifest.json # PWA Manifest
 ├── data/ # GeoIP databases
 ├── tests/ # Test suite
 ├── sources/ # Source URLs (batch files)
@@ -408,7 +400,7 @@ We welcome community contributions of high-quality configuration sources!
 
 **To Add New Sources:**
 1. Fork the repository
-2. Add URLs to appropriate `sources/batch_*.txt` file (one per line)
+2. Add URLs to appropriate `sources/batch_1.txt` file (one per line)
 3. Ensure sources provide raw configuration strings (not web pages)
 4. Preferred sources:
 - Auto-updating repositories (updates every 15-60 minutes)
@@ -493,4 +485,4 @@ This project is licensed under the GNU General Public License v3.0. See the [LIC
 
 Made with ❤️ for internet freedom
 
-Educational purposes only
+Educational purposes only.

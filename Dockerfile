@@ -3,10 +3,15 @@
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
-COPY src/go/tester/ .
-# Initialize module if not present (for reproducible builds)
-RUN go mod init configstream-tester || true
-RUN go mod tidy
+# Leverage Docker cache for Go modules
+COPY src/go/tester/go.mod ./
+# Copy go.sum if it exists, otherwise we might generate it.
+# Since list_files only showed go.mod, we only copy go.mod.
+# If go.sum existed, we should copy it too.
+# RUN go mod download
+RUN go mod tidy && go mod download
+
+COPY src/go/tester/main.go .
 RUN go build -o tester main.go
 
 # Stage 2: Python Runtime
