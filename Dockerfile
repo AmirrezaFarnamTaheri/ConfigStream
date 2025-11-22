@@ -4,18 +4,14 @@ FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 # Leverage Docker cache for Go modules
-COPY src/go/tester/go.mod ./
-# Copy go.sum if it exists, otherwise we might generate it.
-# Since list_files only showed go.mod, we only copy go.mod.
-# If go.sum existed, we should copy it too.
-# RUN go mod download
-RUN go mod tidy && go mod download
+COPY src/go/tester/go.mod src/go/tester/go.sum ./
+RUN go mod download
 
 COPY src/go/tester/main.go .
 RUN go build -o tester main.go
 
 # Stage 2: Python Runtime
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -33,7 +29,8 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 
 # Install Python dependencies
 COPY --chown=runner:runner pyproject.toml requirements.txt ./
-RUN pip install --user --no-cache-dir -e .[dev]
+# We need to ensure pip is upgraded
+RUN pip install --upgrade pip && pip install --user --no-cache-dir -e .[dev]
 
 # Copy Source Code
 COPY --chown=runner:runner . .

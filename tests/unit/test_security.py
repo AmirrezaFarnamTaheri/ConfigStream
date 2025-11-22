@@ -1,10 +1,7 @@
 import pytest
-from unittest.mock import patch, MagicMock, PropertyMock, AsyncMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from configstream.security.blocklist import BlocklistManager
 from configstream.security.virus_total import scan_url, check_ip_reputation
-from pathlib import Path
-import asyncio
-import httpx
 
 # --- Blocklist Tests ---
 
@@ -66,10 +63,10 @@ async def test_update_blocklist(mock_blocklist_file):
         assert manager.is_blocked("10.10.10.5") is True
 
 
-def test_is_honeypot():
+def test_is_suspicious_port():
     manager = BlocklistManager()
-    assert manager.is_honeypot("1.1.1.1", 23) is True  # Telnet
-    assert manager.is_honeypot("1.1.1.1", 443) is False
+    assert manager.is_suspicious_port(23) is True  # Telnet
+    assert manager.is_suspicious_port(443) is False
 
 
 # --- VirusTotal Tests ---
