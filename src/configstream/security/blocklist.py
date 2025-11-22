@@ -103,11 +103,21 @@ class BlocklistManager:
 
         return False
 
-    def is_honeypot(self, ip: str, port: int, asn: str = "") -> bool:
+    def is_suspicious_port(self, port: int) -> bool:
         """
-        Detects potential honey pots using heuristics.
+        Checks if the port is a known honeypot port.
+        Renamed from is_honeypot to avoid confusion with the passive VirusTotal check.
         """
         if port in HONEYPOT_PORTS:
+            return True
+        return False
+
+    def is_honeypot(self, ip: str, port: int, asn: str = "") -> bool:
+        """
+        DEPRECATED: Use is_suspicious_port instead.
+        Detects potential honey pots using heuristics.
+        """
+        if self.is_suspicious_port(port):
             return True
 
         if asn in HONEYPOT_ASNS:
