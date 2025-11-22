@@ -25,6 +25,7 @@ class Proxy(BaseModel):
     latency: Optional[float] = None
     is_working: bool = False
     is_secure: bool = True
+    tags: List[str] = Field(default_factory=list)
     security_issues: Dict[str, List[str]] = Field(default_factory=dict)
     tested_at: str = ""
     details: Dict[str, Any] = Field(default_factory=dict)
