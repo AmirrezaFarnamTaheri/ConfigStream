@@ -19,25 +19,6 @@
     <link rel="manifest" href="manifest.json">
 
     <style>
-        /* Basic styling for new widgets */
-        #pipeline-feed {
-            background: #0f172a;
-            border: 1px solid #1e293b;
-            padding: 10px;
-            height: 150px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 0.85rem;
-            margin-top: 20px;
-            border-radius: 8px;
-            color: #e2e8f0;
-        }
-        .feed-entry { margin-bottom: 4px; color: #94a3b8; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
-        .feed-entry.info { color: #3b82f6; }
-        .feed-entry.warning { color: #eab308; }
-        .feed-entry.error { color: #ef4444; }
-        .feed-entry.success { color: #22c55e; }
-
         /* Language Selector */
         .lang-selector {
             background: transparent;
@@ -149,7 +130,7 @@
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
                 <p class="subtitle" style="--delay: 0.2s;" data-i18n="hero.subtitle">
-                    Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from over 668 curated sources stream in every 6 hours, ensuring you always have a reliable path to the open internet.
+                    Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from over <span id="heroSourceCount">668</span> curated sources stream in every 6 hours.
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
@@ -163,11 +144,17 @@
                 </div>
             </section>
 
-            <!-- Live Pipeline Feed -->
-            <section style="--delay: 0.35s;">
-                <h3 class="text-center" style="margin-bottom: 0.5rem; font-size: 1rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;" data-i18n="pipeline.title">Live Pipeline Activity</h3>
-                <div id="pipeline-feed">
-                    <div class="feed-entry info">[System] Connecting to WebSocket feed...</div>
+            <!-- Chosen Top 1000 (Promoted) -->
+            <section class="chosen-promoted" style="--delay: 0.35s; margin-bottom: 2rem;">
+                <div class="stats-card" style="background: linear-gradient(45deg, var(--bg-secondary) 0%, rgba(var(--brand-primary-rgb), 0.1) 100%); border: 1px solid var(--brand-primary);">
+                    <div class="text-center" style="padding: 1.5rem;">
+                        <h3 data-i18n="downloads.chosen.title" style="color: var(--brand-primary); margin-bottom: 0.5rem;">🏆 Chosen Top 1000</h3>
+                        <p class="subtitle-sm" data-i18n="downloads.chosen.desc" style="margin-bottom: 1rem;">Our best selection: top 50 from each protocol, ranked by latency. Perfect for most users!</p>
+                        <button class="btn btn-primary copy-btn" data-file="files/chosen/base64.txt">
+                            <i data-feather="copy"></i>
+                            <span>Copy Chosen Subscription</span>
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -232,12 +219,16 @@
                                         <div class="download-icon"><i data-feather="copy"></i></div>
                                         <div class="download-info">
                                             <h3 class="download-title" data-i18n="downloads.singbox">Sing-box Config</h3>
-                                            <p class="download-desc" data-i18n="downloads.singbox.desc">Optimized JSON configuration for Sing-box/NekoBox clients.</p>
+                                            <p class="download-desc" data-i18n="downloads.singbox.desc">Optimized JSON configuration.</p>
+                                            <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap;">
+                                                <button class="btn btn-sm btn-secondary copy-btn" data-file="subscribe/singbox">
+                                                    <i data-feather="target"></i> Sniper (Router)
+                                                </button>
+                                                <button class="btn btn-sm btn-secondary copy-btn" data-file="subscribe/singbox-vpn">
+                                                    <i data-feather="shield"></i> Tank (VPN)
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="subscribe/singbox">
-                                            <i data-feather="copy"></i>
-                                            <span>Copy Link</span>
-                                        </button>
                                     </div>
                                     <div class="download-card" style="--delay: 0.8s;">
                                         <div class="download-icon"><i data-feather="download-cloud"></i></div>
@@ -260,26 +251,6 @@
                                             <i data-feather="copy"></i>
                                             <span>Copy Link</span>
                                         </button>
-                                    </div>
-                                </div>
-
-                                <!-- Chosen 1000 Section -->
-                                <div class="chosen-section text-center mt-4">
-                                    <div class="divider"></div>
-                                    <h3 class="mt-4" data-i18n="downloads.chosen.title">🏆 Chosen Top 1000</h3>
-                                    <p class="subtitle-sm" data-i18n="downloads.chosen.desc">Our best selection: top 50 from each protocol, ranked by latency. Perfect for most users!</p>
-                                    <div class="downloads-grid centered-grid">
-                                        <div class="download-card highlight-card">
-                                            <div class="download-icon"><i data-feather="star"></i></div>
-                                            <div class="download-info">
-                                                <h3 class="download-title" data-i18n="downloads.chosen.btn">Chosen Subscription</h3>
-                                                <p class="download-desc">Curated list of the top 1000 fastest, most reliable proxies.</p>
-                                            </div>
-                                            <button class="btn btn-primary copy-btn" data-file="files/chosen/base64.txt">
-                                                <i data-feather="copy"></i>
-                                                <span>Copy Link</span>
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -354,15 +325,19 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>Our system is fully automated using GitHub Actions. Every 8 hours, we fetch fresh proxies from public sources, deduplicate them, and test each one for security and performance.</p>
+                                <p>Our system is fully automated using GitHub Actions. Every 6 hours, we fetch fresh proxies from public sources, deduplicate them, and test each one for security and performance.</p>
                                 <br>
                                 <h4>🚀 Intelligent Routing (New)</h4>
-                                <p>Our "Sniper" configs now include advanced routing logic:</p>
+                                <p>Our configs now include advanced routing logic:</p>
                                 <ul class="info-list">
                                     <li><strong>Intranet Bridge:</strong> Uses domestic relays to bypass severe throttling.</li>
                                     <li><strong>IPv6 Portal:</strong> Unlocks IPv6-only infrastructure from IPv4 networks.</li>
                                     <li><strong>Secure Washing:</strong> Automatically wraps insecure proxies in encrypted tunnels.</li>
                                 </ul>
+                                <div class="feature-card-highlight">
+                                    <strong>🧠 Network Intelligence</strong>
+                                    <p>We don't just list proxies; we optimize routes. Our "Proxy Washing" tech can revive blocked IPs by tunnelling them through Cloudflare WARP.</p>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -391,8 +366,13 @@
                             <div>
                                 <ul class="info-list">
                                     <li><strong>Base64 Subscription:</strong> A single, shareable link that’s easy to import into clients like V2Ray, Xray, and NekoBox. This is the most convenient option for most users.</li>
+                                    <li><strong>Sing-box Config:</strong>
+                                        <ul>
+                                            <li><strong>Sniper (Router):</strong> Best for residential routers or advanced setups. Routes selectively based on rules.</li>
+                                            <li><strong>Tank (VPN):</strong> Best for mobile/desktop. Routes ALL traffic through the proxy (TUN mode).</li>
+                                        </ul>
+                                    </li>
                                     <li><strong>Clash Config:</strong> A downloadable YAML file specifically for users of Clash, a popular rule-based proxy client.</li>
-                                    <li><strong>Raw Proxy Links:</strong> A plain text file with one proxy configuration per line, ideal for developers and custom scripts.</li>
                                 </ul>
                             </div>
                         </div>
@@ -404,7 +384,7 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>This project is powered by the community, with over 668 curated proxy sources from trusted repositories. Our automated pipeline runs every 6 hours, continuously updating configurations with the latest proxies. We welcome contributions to help us improve our testing, add new sources, and expand our reach.</p>
+                                <p>This project is powered by the community, with over <span id="heroSourceCount">668</span> curated proxy sources from trusted repositories. Our automated pipeline runs every 6 hours, continuously updating configurations with the latest proxies. We welcome contributions to help us improve our testing, add new sources, and expand our reach.</p>
                             </div>
                         </div>
                     </section>
@@ -446,7 +426,6 @@
     <script src="assets/js/loading-controller.js" defer></script>
     <script src="assets/js/logo-controller.js" defer></script>
     <script src="assets/js/main.js" defer></script>
-    <script src="assets/js/websocket.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

@@ -55,6 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const date = new Date(metadata.last_updated_utc);
                 const formatted = formatTimestamp(date);
                 updateElement('#footerUpdate', formatted);
+
+                // Update freshness indicator
+                updateFreshness(date);
             }
 
             // Update stats card
@@ -63,6 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateElement('#totalConfigs', stats.total_tested || 0);
                 updateElement('#workingConfigs', stats.total_working || 0);
                 updateElement('#updateFrequency', '6 hrs');
+
+                // Update Hero Text
+                const heroCount = document.getElementById('heroSourceCount');
+                if (heroCount && stats.total_fetched) {
+                    heroCount.textContent = stats.total_fetched;
+                }
             }
 
         } catch (error) {
@@ -87,6 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
     })();
 });
 
+function updateFreshness(date) {
+    const diffHours = (new Date() - date) / (1000 * 60 * 60);
+    const footerUpdate = document.getElementById('footerUpdate');
+    if (!footerUpdate) return;
+
+    let color = '#22c55e'; // Green
+    if (diffHours > 8) color = '#eab308'; // Yellow
+    if (diffHours > 24) color = '#ef4444'; // Red
+
+    footerUpdate.style.color = color;
+    footerUpdate.style.fontWeight = 'bold';
+}
 
 function initHeaderScroll() {
     const header = document.querySelector('.header');
@@ -174,7 +195,25 @@ function initCopyButtons() {
         if (config) {
             textToCopy = decodeURIComponent(config);
         } else if (file) {
-            textToCopy = getFullUrl(file);
+            // Hard mapping for GitHub Pages static hosting
+            const FILE_MAP = {
+                'subscribe/singbox': 'output/singbox.json',
+                'subscribe/singbox-vpn': 'output/singbox-vpn.json',
+                'subscribe/clash': 'output/clash.yaml',
+                'subscribe/base64': 'output/base64.txt',
+                'subscribe/shadowrocket': 'output/shadowrocket.txt',
+                'subscribe/surge': 'output/surge.conf',
+                'subscribe/loon': 'output/loon.conf',
+                'subscribe/quantumultx': 'output/quanx.conf',
+                'subscribe/sip008': 'output/sip008.json',
+                'files/chosen/base64.txt': 'output/chosen/base64.txt' // Correct path per diagnosis
+            };
+
+            // Handle "files/" paths which might be legacy or direct
+            let targetFile = FILE_MAP[file] || file;
+
+            // If it's one of our known maps, getFullUrl will handle the base
+            textToCopy = getFullUrl(targetFile);
         } else {
             return;
         }
