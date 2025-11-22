@@ -135,7 +135,9 @@ async def websocket_endpoint(websocket: WebSocket):
 
 # --- Static File Serving ---
 
-# Mount the output directory for direct file access (e.g. /files/clash.yaml)
+# Mount the output directory for direct file access (e.g. /output/clash.yaml)
+app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
+# Legacy compatibility for old clients
 app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
 
 # Mount frontend assets (css, js, images)
