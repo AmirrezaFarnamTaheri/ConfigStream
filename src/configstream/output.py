@@ -479,29 +479,59 @@ def generate_smart_chains(proxies: List[Proxy]) -> Dict[str, List[Dict[str, Any]
     return chains
 
 
-def generate_split_outputs(proxies: List[Proxy], output_dir: Path,
-                          washed_outbounds: List[Dict[str, Any]],
-                          smart_chains: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Path]:
+def generate_split_outputs(
+    proxies: List[Proxy],
+    output_dir: Path,
+    washed_outbounds: List[Dict[str, Any]],
+    smart_chains: Dict[str, List[Dict[str, Any]]],
+) -> Dict[str, Path]:
     """
     Generate specific configuration files for different use cases.
     Includes washed proxies and smart chains in Sing-box configs.
     """
     files: Dict[str, Path] = {}
 
+    # Washed Proxies (Tags starting with 🛡️ Secure)
+    washed_exits = [
+        o for o in washed_outbounds if o.get("tag", "").startswith("🛡️ Secure")
+    ]
+    # Identify original relays that were washed to exclude them from standard set (Dirty Pollution Fix)
+    # washed_outbounds contains RELAY- and Secure- tags.
+    # The RELAY tag format: RELAY-CHAIN-{cc}-{relay_id_prefix}-{exit_id}
+    # We can't easily extract exact ID. But we can check tags.
+    # Wait, washed_outbounds are the *new* outbounds.
+    # The issue is that 'proxies' list still contains the dirty proxy.
+    # We need to map washed chains back to original proxies if possible, OR just rely on tags?
+    # Actually, ProxyWasher implementation uses `relay.id[:6]` in chain_id.
+    # Let's extract those IDs from washed_outbounds RELAY tags.
+    washed_relay_ids = set()
+    for o in washed_outbounds:
+        tag = o.get("tag", "")
+        if tag.startswith("RELAY-CHAIN-"):
+            # RELAY-CHAIN-IR-123456-ABCD
+            parts = tag.split("-")
+            if len(parts) >= 4:
+                # The relay ID prefix is at index 3 (0=RELAY, 1=CHAIN, 2=CC, 3=ID)
+                washed_relay_ids.add(parts[3])
+
     # Prepare selector lists
     standard_proxies = []
     standard_tags = []
     for i, p in enumerate(proxies, 1):
-        if not p.is_working: continue
+        if not p.is_working:
+            continue
+
+        # Dirty Pollution Fix: If this proxy was washed, skip adding it to standard list
+        # Check if p.id[:6] is in washed_relay_ids
+        if p.id[:6] in washed_relay_ids:
+            continue
+
         out = to_singbox_outbound(p)
         if out:
             tag = f"{p.country_code or 'XX'} {i:02d} | {p.protocol.upper()}"
             out["tag"] = tag
             standard_proxies.append(out)
             standard_tags.append(tag)
-
-    # Washed Proxies (Tags starting with 🛡️ Secure)
-    washed_exits = [o for o in washed_outbounds if o.get("tag", "").startswith("🛡️ Secure")]
     washed_tags = [o["tag"] for o in washed_exits]
 
     # Smart Chain Exits
@@ -659,21 +689,22 @@ def generate_split_outputs(proxies: List[Proxy], output_dir: Path,
 
 
 def generate_categorized_outputs(
-    proxies: List[Proxy], output_dir: Path
+    proxies: List[Proxy],
+    output_dir: Path,
+    washed_proxies: List[Dict[str, Any]] = None,
 ) -> Dict[str, Path]:
     """
     Generate files organized by protocol and country.
     """
+    if washed_proxies is None:
+        washed_proxies = []
+
     files: Dict[str, Path] = {}
 
     # 1. Master List (Standard)
     master_file = output_dir / "proxies.json"
     save_json(proxies, master_file, compress=True)
     files["master"] = master_file
-
-    # 1.1 Generate Advanced (Washed & Chained) Proxies
-    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
-    washed_proxies = washer.wash_batch(proxies)
 
     smart_chains = generate_smart_chains(proxies)
 

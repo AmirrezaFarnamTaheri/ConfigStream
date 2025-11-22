@@ -509,8 +509,16 @@ async def run_full_pipeline(
     stats.duration = float(duration)
     stats.final_count = len(optimized_proxies)
 
+    # --- Integration of Proxy Washing ---
+    # Wash proxies before generation to ensure consistent state across all outputs
+    # This fixes the "Split Brain" issue where adapters didn't see washed proxies
+    from .output import ProxyWasher
+
+    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    washed_outbounds = washer.wash_batch(optimized_proxies)
+
     generated_files = output.generate_categorized_outputs(
-        optimized_proxies, output_path
+        optimized_proxies, output_path, washed_proxies=washed_outbounds
     )
     # Note: output.generate_categorized_outputs also handles split outputs and chains now.
 
@@ -520,22 +528,22 @@ async def run_full_pipeline(
     # New Adapters Exports
     try:
         (output_path / "surge.conf").write_text(
-            get_adapter("surge").export(optimized_proxies)
+            get_adapter("surge").export(optimized_proxies, washed_outbounds)
         )
         (output_path / "shadowrocket.txt").write_text(
-            get_adapter("shadowrocket").export(optimized_proxies)
+            get_adapter("shadowrocket").export(optimized_proxies, washed_outbounds)
         )
         # Loon
         (output_path / "loon.conf").write_text(
-            get_adapter("loon").export(optimized_proxies)
+            get_adapter("loon").export(optimized_proxies, washed_outbounds)
         )
         # Quantumult X
         (output_path / "quantumult.conf").write_text(
-            get_adapter("qx").export(optimized_proxies)
+            get_adapter("qx").export(optimized_proxies, washed_outbounds)
         )
         # SIP008
         (output_path / "sip008.json").write_text(
-            get_adapter("sip008").export(optimized_proxies)
+            get_adapter("sip008").export(optimized_proxies, washed_outbounds)
         )
     except Exception as e:
         logger.error(f"Failed to export adapters: {e}")

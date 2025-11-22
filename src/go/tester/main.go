@@ -145,33 +145,51 @@ func worker(input <-chan ProxyInput, output chan<- TestResult) {
 	}
 }
 
-// Helper to find free port and generate config
+// Helper to find free port, generate config, AND START instance with retries
 func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, error) {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		return nil, 0, err
+	var lastErr error
+	for i := 0; i < 3; i++ {
+		// 1. Find free port
+		l, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		port := l.Addr().(*net.TCPAddr).Port
+		l.Close()
+
+		// 2. Configure
+		configTemplate := `{
+			"log": {"level": "panic"},
+			"inbounds": [{"type": "mixed", "tag": "in", "listen": "127.0.0.1", "listen_port": %d}],
+			"outbounds": [%s, {"type": "direct", "tag": "direct"}]
+		}`
+		configStr := fmt.Sprintf(configTemplate, port, outboundJSON)
+
+		options, err := option.UnmarshalJSON([]byte(configStr))
+		if err != nil {
+			return nil, 0, fmt.Errorf("config error: %w", err)
+		}
+
+		// 3. Create Instance
+		instance, err := box.New(box.Options{Options: options, Context: ctx})
+		if err != nil {
+			lastErr = err
+			continue
+		}
+
+		// 4. Start Instance (The critical fix for race condition)
+		if err := instance.Start(); err != nil {
+			instance.Close()
+			lastErr = err
+			// Exponential backoff
+			time.Sleep(time.Duration(i+1) * 50 * time.Millisecond)
+			continue
+		}
+
+		return instance, port, nil
 	}
-	port := l.Addr().(*net.TCPAddr).Port
-	l.Close()
-
-	configTemplate := `{
-		"log": {"level": "panic"},
-		"inbounds": [{"type": "mixed", "tag": "in", "listen": "127.0.0.1", "listen_port": %d}],
-		"outbounds": [%s, {"type": "direct", "tag": "direct"}]
-	}`
-	configStr := fmt.Sprintf(configTemplate, port, outboundJSON)
-
-	options, err := option.UnmarshalJSON([]byte(configStr))
-	if err != nil {
-		return nil, 0, err
-	}
-
-	instance, err := box.New(box.Options{Options: options, Context: ctx})
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return instance, port, nil
+	return nil, 0, fmt.Errorf("setupSingbox failed after retries: %w", lastErr)
 }
 
 // testLatency creates a temporary Sing-box instance to test the outbound
@@ -182,12 +200,8 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	}
 	defer instance.Close()
 
-	if err := instance.Start(); err != nil {
-		return 0, nil, err
-	}
-
-	// Give it a tiny moment to bind
-	time.Sleep(50 * time.Millisecond)
+	// Give it a tiny moment to bind - reduced sleep as we now verify Start()
+	time.Sleep(10 * time.Millisecond)
 
 	client := &http.Client{
 		Timeout: TestTimeout,
@@ -218,9 +232,9 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 		return float64(time.Since(start).Milliseconds()), nil, nil
 	}
 
-	// 2. Try Cloudflare (Fallback)
+	// 2. Try 1.1.1.1 (Fallback) - Use HTTPS to verify TLS capability
 	// If Google failed, we try a non-blocked target to see if the proxy is alive but "Dirty"
-	target = "http://cp.cloudflare.com/generate_204"
+	target = "https://1.1.1.1"
 	start = time.Now() // Restart timer for fair latency measurement to the working target
 	resp, err = client.Get(target)
 
@@ -229,7 +243,7 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 204 || resp.StatusCode == 200 {
+	if resp.StatusCode == 200 {
 		// Proxy is working, but blocked by Google
 		issues = append(issues, "DIRTY_IP")
 		return float64(time.Since(start).Milliseconds()), issues, nil
@@ -255,13 +269,12 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 	// 3. Send to Canary via Proxy
 	instance, port, err := setupSingbox(ctx, p.Config)
 	if err != nil {
-		return false // Fail open? Or assume safe? Default safe to avoid blockage on error.
+		return false // Fail open? Or assume safe? Default safe.
 	}
 	defer instance.Close()
-	if err := instance.Start(); err != nil {
-		return false
-	}
-	time.Sleep(50 * time.Millisecond)
+
+	// Start is already called in setupSingbox
+	time.Sleep(10 * time.Millisecond)
 
 	client := &http.Client{
 		Timeout: 5 * time.Second,

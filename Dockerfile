@@ -3,10 +3,9 @@
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
+COPY src/go/tester/go.mod src/go/tester/go.sum* ./
+RUN go mod download || (go mod init configstream-tester && go mod tidy)
 COPY src/go/tester/ .
-# Initialize module if not present (for reproducible builds)
-RUN go mod init configstream-tester || true
-RUN go mod tidy
 RUN go build -o tester main.go
 
 # Stage 2: Python Runtime

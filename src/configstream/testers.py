@@ -132,7 +132,9 @@ class GoBatchTester:
             )
 
             stdin_data = "\n".join(json.dumps(i) for i in inputs).encode("utf-8")
-            stdout, stderr = await proc.communicate(input=stdin_data)
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(input=stdin_data), timeout=300
+            )
 
             if stderr:
                 logger.debug(f"Go Tester Stderr: {stderr.decode().strip()}")
