@@ -194,7 +194,9 @@ class SingBoxTester:
             sb_instance = None
             try:
                 # Log config file creation for debugging
-                logger.debug(f"Created sing-box config at {config_path}, size: {len(config_content)} bytes")
+                logger.debug(
+                    f"Created sing-box config at {config_path}, size: {len(config_content)} bytes"
+                )
 
                 # Start Sing-box in a thread to avoid blocking the event loop
                 # singbox_factory is synchronous
@@ -208,12 +210,16 @@ class SingBoxTester:
                             timeout=self.timeout,
                         )
                     except asyncio.TimeoutError:
-                        logger.error(f"Sing-box startup timeout for {proxy.protocol} proxy")
+                        logger.error(
+                            f"Sing-box startup timeout for {proxy.protocol} proxy"
+                        )
                         proxy.is_working = False
                         return proxy
 
                     if not sb_instance or not sb_instance.http_proxy_url:
-                        logger.warning(f"Sing-box failed to start or no HTTP proxy URL for {proxy.protocol} proxy")
+                        logger.warning(
+                            f"Sing-box failed to start or no HTTP proxy URL for {proxy.protocol} proxy"
+                        )
                         proxy.is_working = False
                         return proxy
 

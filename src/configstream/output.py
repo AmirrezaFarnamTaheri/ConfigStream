@@ -44,10 +44,10 @@ def _safe_int_conversion(value: Any, default: int = 0) -> int:
         return value
     if isinstance(value, bytes):
         try:
-            return int.from_bytes(value, byteorder='big', signed=False)
+            return int.from_bytes(value, byteorder="big", signed=False)
         except (ValueError, OverflowError):
             try:
-                return int(value.decode('utf-8'))
+                return int(value.decode("utf-8"))
             except (UnicodeDecodeError, ValueError):
                 return default
     try:
