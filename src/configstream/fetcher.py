@@ -233,6 +233,13 @@ async def fetch_from_source(
                 await controller.record(host, response_time, True)
             if timeout_tracker:
                 timeout_tracker.record(source, response_time)
+                # Jitter Check (Phase 1 Hardening)
+                jitter = timeout_tracker.get_jitter(source)
+                if jitter > 2.0:  # If standard deviation > 2s, it's very unstable
+                    logger.warning(
+                        f"High Jitter detected for {source}: {jitter:.2f}s. Source may be overloaded."
+                    )
+
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
                 breaker_manager.get_breaker(host).record_success()
 

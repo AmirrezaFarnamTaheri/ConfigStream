@@ -1,8 +1,16 @@
 {
-  "countries": {
-    "US": 1
+  "total_tested": 0,
+  "total_working": 0,
+  "protocols": {},
+  "countries": {},
+  "asns": {},
+  "chosen": {
+    "total": 0,
+    "working": 0,
+    "protocols": {}
   },
-  "protocols": {
-    "vmess": 1
-  }
+  "total_proxies": 0,
+  "proxies_by_protocol": {},
+  "proxies_by_country": {},
+  "top_10_countries": []
 }
