@@ -9,8 +9,9 @@ import gzip
 import logging
 import os
 import random
+import hashlib
 from pathlib import Path
-from typing import List, Dict, Union, Optional, Any
+from typing import List, Dict, Union, Optional, Any, Set
 from datetime import datetime, timezone
 
 # Fix imports
@@ -31,24 +32,15 @@ logger = logging.getLogger(__name__)
 def _safe_int_conversion(value: Any, default: int = 0) -> int:
     """
     Safely convert a value to int, handling bytes and other types.
-
-    Args:
-        value: The value to convert (can be int, str, bytes, or other)
-        default: The default value if conversion fails
-
-    Returns:
-        int: The converted value or default if conversion fails
     """
     if value is None:
         return default
     if isinstance(value, int):
         return value
     if isinstance(value, bytes):
-        # First, try to decode as UTF-8 string (handles b"2" -> "2" -> 2)
         try:
             return int(value.decode("utf-8"))
         except (UnicodeDecodeError, ValueError):
-            # Fall back to raw bytes interpretation only if decode fails
             try:
                 return int.from_bytes(value, byteorder="big", signed=False)
             except (ValueError, OverflowError):
@@ -106,7 +98,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if details.get("security") == "reality":
                 base["client-fingerprint"] = str(
                     details.get("fp", "chrome")
-                )  # Reality needs explicit FP often
+                )
                 base["reality-opts"] = {
                     "public-key": str(details.get("pbk")),
                     "short-id": str(details.get("sid", "")),
@@ -190,7 +182,6 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "udp": True,
         }
 
-    # Add other protocols as needed
     return None
 
 
@@ -307,14 +298,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
-        # Add TLS
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni", "")),
             "insecure": bool(proxy.details.get("allowInsecure", False)),
             "alpn": proxy.details.get("alpn", [])
         }
-        # Obfs
         if proxy.details.get("obfs-type") == "salamander":
              out["obfs"] = {"type": "salamander", "password": str(proxy.details.get("obfs-password", ""))}
         return out
@@ -327,7 +316,6 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": str(proxy.details.get("password", "")),
             "congestion_controller": str(proxy.details.get("congestion_controller", "bbr")),
         }
-        # Add TLS
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni", "")),
@@ -337,201 +325,201 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     return None
 
+# --- Proxy Washer (Consistent Hashing) ---
 
-def wash_dirty_proxies(proxies: List[Proxy]) -> List[Dict[str, Any]]:
-    """
-    Recycles insecure proxies by chaining them to secure endpoints.
-    """
-    washed_outbounds = []
+class ProxyWasher:
+    def __init__(self, warp_keys_json: str):
+        try:
+            self.warp_keys = json.loads(warp_keys_json) if warp_keys_json else []
+        except json.JSONDecodeError:
+            self.warp_keys = []
+        self.seen_chains: Set[str] = set()
 
-    # 1. Identify The "Dirty Laundry" (Insecure Proxies)
-    # Must be working, but marked insecure or dirty
-    dirty_socks = [
-        p for p in proxies
-        if p.is_working and (
-            "socks" in p.protocol.lower() and ("dirty_ip" in p.tags or "insecure" in p.tags or p.protocol.lower() in ["socks", "socks5"])
-        ) and ("tls" not in p.details or p.details["tls"] != "tls")
-    ]
-    dirty_http = [
-        p for p in proxies
-        if p.is_working and (
-            "http" in p.protocol.lower() and ("dirty_ip" in p.tags or "insecure" in p.tags or p.protocol.lower() == "http")
-        ) and ("tls" not in p.details or p.details["tls"] != "tls")
-    ]
+    def _get_consistent_exit(self, relay_id: str, exit_pool: List[Dict]) -> Optional[Dict]:
+        """
+        Selects an exit node deterministically based on the relay's ID.
+        Acts as a 'Stateless Cache'.
+        """
+        if not exit_pool:
+            return None
 
-    # Also include those explicitly tagged "dirty_ip" regardless of protocol, if we can use them as relays
-    # But currently we focus on SOCKS/HTTP as relays because they are simple to chain
+        # Create a deterministic index from the Relay ID
+        hash_val = int(hashlib.md5(relay_id.encode()).hexdigest(), 16)
+        index = hash_val % len(exit_pool)
+        return exit_pool[index]
 
-    # 2. Identify The "Soap" (Secure Exits)
-    # WARP Keys for SOCKS
-    warp_keys_str = os.getenv("WARP_KEY_POOL", "[]")
-    try:
-        warp_keys = json.loads(warp_keys_str)
-    except json.JSONDecodeError:
-        warp_keys = []
+    def wash_batch(self, proxies: List[Proxy]) -> List[Dict[str, Any]]:
+        """
+        Process a batch of proxies, identifying 'washable' candidates
+        and generating unique chains.
+        """
+        washed_outbounds = []
 
-    # Secure TLS Proxies for HTTP (VLESS/Trojan with TLS)
-    secure_exits = [
-        p for p in proxies
-        if p.is_working and p.is_secure and p.protocol.lower() in ['vless', 'trojan', 'vmess']
-        and (p.details.get("tls") == "tls" or p.details.get("security") in ["tls", "reality"])
-    ]
+        # 1. Identify Candidates (Dirty or Insecure)
+        candidates = [
+            p for p in proxies
+            if p.is_working and ("dirty_ip" in p.tags or "insecure" in p.tags)
+        ]
 
-    # --- CYCLE 1: WASH SOCKS5 WITH WARP ---
-    if warp_keys:
-        for i, socks in enumerate(dirty_socks):
-            key = random.choice(warp_keys)
-            if not isinstance(key, dict) or "private_key" not in key:
+        for i, relay in enumerate(candidates):
+            # 2. Select the "Soap" (Exit Node)
+            # We use our WARP pool as the default soap
+            if not self.warp_keys:
+                break
+
+            exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
+            if not exit_key or "private_key" not in exit_key:
                 continue
 
-            # Create SOCKS outbound
-            relay_out = to_singbox_outbound(socks)
+            # 3. Generate Deterministic Chain ID
+            chain_id = f"CHAIN-{relay.country_code}-{relay.id[:6]}-{exit_key.get('id', '00')[:4]}"
+
+            if chain_id in self.seen_chains:
+                continue # Skip duplicates
+            self.seen_chains.add(chain_id)
+
+            # 4. Construct the Chain Objects
+            relay_out = to_singbox_outbound(relay)
             if not relay_out: continue
 
-            relay_tag = f"WASH-SOCKS-{i}-{socks.country_code}"
+            relay_tag = f"RELAY-{chain_id}"
             relay_out["tag"] = relay_tag
 
-            # Create WARP Exit
-            exit_tag = f"CLEAN-WARP-{i}-{socks.country_code}"
+            exit_tag = f"🛡️ Secure-{relay.country_code}-{i+1}"
             warp_out = {
                 "type": "wireguard",
                 "tag": exit_tag,
                 "local_address": ["172.16.0.2/32"],
-                "private_key": key["private_key"],
-                "peer_public_key": key.get("peer_public_key", "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="),
+                "private_key": exit_key["private_key"],
                 "server": "162.159.192.1",
                 "server_port": 2408,
-                "detour": relay_tag  # <--- The Wash
+                "peer_public_key": exit_key.get("peer_public_key", "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="),
+                "detour": relay_tag  # <--- The Link
             }
+
             washed_outbounds.append(relay_out)
             washed_outbounds.append(warp_out)
 
-    # --- CYCLE 2: WASH HTTP WITH TLS PROXIES ---
-    if secure_exits:
-        # We limit to a reasonable number to avoid exploding config size
-        limit = min(len(dirty_http), 200)
-        for i, http in enumerate(dirty_http[:limit]):
-            # Pick a random secure exit to upgrade to
-            secure_node = random.choice(secure_exits)
-
-            # Create HTTP Relay
-            relay_out = to_singbox_outbound(http)
-            if not relay_out: continue
-
-            relay_tag = f"WASH-HTTP-{i}-{http.country_code}"
-            relay_out["tag"] = relay_tag
-
-            # Create Secure Exit (Modified to detour through HTTP)
-            exit_out = to_singbox_outbound(secure_node)
-            if not exit_out: continue
-
-            exit_tag = f"CLEAN-TLS-{i}-{secure_node.country_code}-via-{http.country_code}"
-            exit_out["tag"] = exit_tag
-            exit_out["detour"] = relay_tag # <--- The Upgrade
-
-            washed_outbounds.append(relay_out)
-            washed_outbounds.append(exit_out)
-
-    return washed_outbounds
+        return washed_outbounds
 
 
-def generate_exotic_chains(proxies: List[Proxy]) -> List[Dict[str, Any]]:
+def create_chain(relay: Proxy, exit_node: Proxy, tag_prefix: str) -> List[Dict[str, Any]]:
+    """Helper to generate Sing-box outbound objects for a chain."""
+    relay_out = to_singbox_outbound(relay)
+    exit_out = to_singbox_outbound(exit_node)
+
+    if not relay_out or not exit_out:
+        return []
+
+    relay_tag = f"{tag_prefix}-RELAY-{relay.id[:6]}"
+    exit_tag = f"{tag_prefix}-EXIT-{exit_node.country}-{exit_node.id[:6]}"
+
+    relay_out["tag"] = relay_tag
+    exit_out["tag"] = exit_tag
+    exit_out["detour"] = relay_tag # The chaining magic
+
+    return [relay_out, exit_out]
+
+
+def generate_smart_chains(proxies: List[Proxy]) -> Dict[str, List[Dict[str, Any]]]:
     """
-    Generate exotic proxy chains (Double-Hop) to solve censorship challenges.
+    Generate intelligent proxy chains based on network topology.
+    Returns a dict of chain types to list of outbound objects.
     """
-    chains = []
+    chains: Dict[str, List[Dict[str, Any]]] = {
+        "intranet": [],
+        "ipv6": [],
+        "streamer": [],
+        "experimental": [] # Hysteria->VMess
+    }
 
-    # 1. Categorize Proxies
-    # Relays: Good at bypass (Hysteria, Reality, Tuic)
-    relays = [
-        p for p in proxies
-        if p.is_working and (
-            p.protocol.lower() in ['hysteria2', 'tuic'] or
-            p.details.get('security') == 'reality'
-        )
-    ]
+    # 1. Categorize Resources
+    relays_ir = [p for p in proxies if p.country_code == "IR" and p.is_working]
+    relays_dual_stack = [p for p in proxies if p.is_working and ":" not in p.address] # Approx IPv4
+    relays_fast = [p for p in proxies if p.is_working and p.protocol in ['hysteria2', 'tuic']]
 
-    # Exits: Standard protocols (VMess, SS, Trojan)
-    exits = [
-        p for p in proxies
-        if p.is_working and p.protocol.lower() in ['vmess', 'shadowsocks', 'trojan']
-    ]
+    exits_ipv6 = [p for p in proxies if p.is_working and ":" in p.address]
+    exits_streaming = [p for p in proxies if p.is_working and p.country_code in ['US', 'GB', 'DE']]
+    exits_standard = [p for p in proxies if p.is_working and p.protocol in ['vmess', 'shadowsocks', 'trojan']]
 
-    # 2. Generate Pairs (Create 20 random chains)
-    if not relays or not exits:
-        return chains
+    # --- CHAIN 1: THE INTRANET BRIDGE (Gold Standard) ---
+    for relay in relays_ir:
+        # Link to top 5 fastest foreign exits
+        for exit_node in proxies[:5]:
+            if exit_node.country_code != "IR" and exit_node.is_working:
+                chain_objs = create_chain(relay, exit_node, "INTRANET-BRIDGE")
+                if chain_objs:
+                    chains["intranet"].extend(chain_objs)
 
-    # Use a loop that doesn't depend on min(len) being restrictive if we reuse relays
-    # But we want max 20 chains
-    # Using max(1, ...) ensures target_count is at least 1 if relays/exits exist,
-    # but we cap at 20. The previous logic min(len) limited us to the smallest pool size.
-    # We want to allow reusing relays/exits.
-    target_count = min(20, max(len(relays), len(exits)) * 2) # Heuristic to try getting 20
-    target_count = min(20, target_count)
-    target_count = max(1, target_count) # Ensure at least 1 loop if lists are small but non-empty
+    # --- CHAIN 2: THE IPv6 PORTAL ---
+    for exit_node in exits_ipv6[:20]: # Limit to avoid bloat
+        if relays_dual_stack:
+            relay = random.choice(relays_dual_stack)
+            chain_objs = create_chain(relay, exit_node, "IPv6-GATEWAY")
+            if chain_objs:
+                chains["ipv6"].extend(chain_objs)
 
-    for i in range(target_count):
-        relay_node = random.choice(relays)
-        exit_node = random.choice(exits)
+    # --- CHAIN 3: THE STREAMER ---
+    for exit_node in exits_streaming[:20]:
+        if relays_fast:
+            relay = random.choice(relays_fast)
+            chain_objs = create_chain(relay, exit_node, "STREAMING-ACCEL")
+            if chain_objs:
+                chains["streamer"].extend(chain_objs)
 
-        # Convert to Sing-box Objects
-        relay_out = to_singbox_outbound(relay_node)
-        exit_out = to_singbox_outbound(exit_node)
-
-        if not relay_out or not exit_out:
-            continue
-
-        # 3. The Magic: Link them via Tags
-        relay_tag = f"RELAY-{i}-{relay_node.country_code}"
-        relay_out["tag"] = relay_tag
-
-        exit_tag = f"CHAIN-{i}-{relay_node.country_code}-to-{exit_node.country_code}"
-        exit_out["tag"] = exit_tag
-
-        # This line creates the tunnel: Exit traffic flows THROUGH Relay
-        exit_out["detour"] = relay_tag
-
-        chains.append(relay_out)
-        chains.append(exit_out)
+    # --- CHAIN 4: EXPERIMENTAL (Hysteria -> VMess) ---
+    if relays_fast and exits_standard:
+        for i in range(10):
+            relay = random.choice(relays_fast)
+            exit_node = random.choice(exits_standard)
+            chain_objs = create_chain(relay, exit_node, f"EXP-{i}")
+            if chain_objs:
+                chains["experimental"].extend(chain_objs)
 
     return chains
 
 
-def generate_split_outputs(proxies: List[Proxy], output_dir: Path, washed_outbounds: List[Dict[str, Any]]) -> Dict[str, Path]:
+def generate_split_outputs(proxies: List[Proxy], output_dir: Path,
+                          washed_outbounds: List[Dict[str, Any]],
+                          smart_chains: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Path]:
     """
     Generate specific configuration files for different use cases.
-    Includes washed proxies in Sing-box configs.
+    Includes washed proxies and smart chains in Sing-box configs.
     """
     files: Dict[str, Path] = {}
 
-    # 1. singbox-vpn.json (The "Tank") - Tun, GVisor, FakeIP
-    # Include normal proxies + washed proxies (only the exits of the chains)
-    # Filter washed outbounds for 'exits' (tags starting with CLEAN or CHAIN)
-    washed_exits = [o for o in washed_outbounds if o.get("tag", "").startswith(("CLEAN-", "CHAIN-"))]
-    washed_relays = [o for o in washed_outbounds if not o.get("tag", "").startswith(("CLEAN-", "CHAIN-"))]
-
-    # We need all underlying proxies for the exits to work, so include relays too but don't add to selector
-    all_sb_outbounds = []
-    selector_tags = []
-
-    # Add standard proxies
+    # Prepare selector lists
+    standard_proxies = []
+    standard_tags = []
     for i, p in enumerate(proxies, 1):
+        if not p.is_working: continue
         out = to_singbox_outbound(p)
         if out:
             tag = f"{p.country_code or 'XX'} {i:02d} | {p.protocol.upper()}"
             out["tag"] = tag
-            all_sb_outbounds.append(out)
-            selector_tags.append(tag)
+            standard_proxies.append(out)
+            standard_tags.append(tag)
 
-    # Add washed/chained proxies
-    for out in washed_exits:
-        all_sb_outbounds.append(out)
-        selector_tags.append(out["tag"])
+    # Washed Proxies (Tags starting with 🛡️ Secure)
+    washed_exits = [o for o in washed_outbounds if o.get("tag", "").startswith("🛡️ Secure")]
+    washed_tags = [o["tag"] for o in washed_exits]
 
-    for out in washed_relays:
-        all_sb_outbounds.append(out)
+    # Smart Chain Exits
+    intranet_exits = [o for o in smart_chains["intranet"] if "EXIT" in o.get("tag", "")]
+    intranet_tags = [o["tag"] for o in intranet_exits]
 
-    # VPN Config
+    ipv6_exits = [o for o in smart_chains["ipv6"] if "EXIT" in o.get("tag", "")]
+    ipv6_tags = [o["tag"] for o in ipv6_exits]
+
+    streamer_exits = [o for o in smart_chains["streamer"] if "EXIT" in o.get("tag", "")]
+    streamer_tags = [o["tag"] for o in streamer_exits]
+
+    # Collect all outbounds for the config
+    all_outbounds = standard_proxies + washed_outbounds
+    for chain_list in smart_chains.values():
+        all_outbounds.extend(chain_list)
+
+    # 1. singbox-vpn.json (The "Tank")
     vpn_config = {
         "log": {"level": "info"},
         "dns": {
@@ -539,9 +527,7 @@ def generate_split_outputs(proxies: List[Proxy], output_dir: Path, washed_outbou
                 {"tag": "google", "address": "8.8.8.8", "detour": "🌍 Proxy Select"},
                 {"tag": "local", "address": "223.5.5.5", "detour": "direct"}
             ],
-            "rules": [
-                {"outbound": "any", "server": "google"}
-            ],
+            "rules": [{"outbound": "any", "server": "google"}],
             "final": "google",
             "strategy": "ipv4_only"
         },
@@ -561,18 +547,30 @@ def generate_split_outputs(proxies: List[Proxy], output_dir: Path, washed_outbou
             {
                 "type": "selector",
                 "tag": "🌍 Proxy Select",
-                "outbounds": ["🚀 Auto"] + selector_tags
+                "outbounds": ["🚀 Auto", "🛡️ Washed", "🇮🇷 Intranet"] + standard_tags
             },
             {
                 "type": "urltest",
                 "tag": "🚀 Auto",
-                "outbounds": selector_tags,
+                "outbounds": standard_tags,
+                "url": "http://www.gstatic.com/generate_204",
+                "interval": "5m"
+            },
+            {
+                "type": "selector",
+                "tag": "🛡️ Washed",
+                "outbounds": washed_tags if washed_tags else ["direct"]
+            },
+            {
+                "type": "urltest",
+                "tag": "🇮🇷 Intranet",
+                "outbounds": intranet_tags if intranet_tags else ["direct"],
                 "url": "http://www.gstatic.com/generate_204",
                 "interval": "5m"
             },
             {"type": "direct", "tag": "direct"},
             {"type": "dns", "tag": "dns-out"}
-        ] + all_sb_outbounds
+        ] + all_outbounds
     }
 
     vpn_file = output_dir / "singbox-vpn.json"
@@ -580,7 +578,7 @@ def generate_split_outputs(proxies: List[Proxy], output_dir: Path, washed_outbou
         json.dump(vpn_config, f, indent=2)
     files["singbox_vpn"] = vpn_file
 
-    # 2. singbox.json (The "Sniper") - Mixed Port, Fragment
+    # 2. singbox.json (The "Sniper")
     sniper_config = {
         "log": {"level": "info"},
         "inbounds": [
@@ -593,28 +591,52 @@ def generate_split_outputs(proxies: List[Proxy], output_dir: Path, washed_outbou
             }
         ],
         "outbounds": [
-            {
+             {
                 "type": "selector",
-                "tag": "🌍 Proxy Select",
-                "outbounds": ["🚀 Auto"] + selector_tags
+                "tag": "🚀 Mode Selector",
+                "outbounds": ["⚡ Auto Fast", "🛡️ Secure Washed", "🇮🇷 Intranet Bridge", "🇺🇸 US Streaming", "🌌 IPv6 Portal"]
             },
             {
                 "type": "urltest",
-                "tag": "🚀 Auto",
-                "outbounds": selector_tags,
+                "tag": "⚡ Auto Fast",
+                "outbounds": standard_tags,
                 "url": "http://www.gstatic.com/generate_204",
                 "interval": "5m"
             },
+            {
+                "type": "urltest",
+                "tag": "🛡️ Secure Washed",
+                "outbounds": washed_tags if washed_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204"
+            },
+            {
+                "type": "urltest",
+                "tag": "🇮🇷 Intranet Bridge",
+                "outbounds": intranet_tags if intranet_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204"
+            },
+            {
+                "type": "urltest",
+                "tag": "🇺🇸 US Streaming",
+                "outbounds": streamer_tags if streamer_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204"
+            },
+            {
+                "type": "urltest",
+                "tag": "🌌 IPv6 Portal",
+                "outbounds": ipv6_tags if ipv6_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204"
+            },
             {"type": "direct", "tag": "direct"},
             {"type": "dns", "tag": "dns-out"}
-        ] + all_sb_outbounds
+        ] + all_outbounds
     }
 
-    # Inject fragmentation for Sniper (as per roadmap)
-    for out in sniper_config["outbounds"]:
+    # Inject fragmentation for Sniper
+    for out in all_outbounds:
+        # Be careful only to inject into TLS outbounds that are direct (not chains/selectors)
+        # Actually we inject into the OUTBOUND definitions in the list
         if "tls" in out and isinstance(out["tls"], dict):
-            # Don't override if already there?
-            # Add fragment
             out["tls"]["tls_fragment"] = {
                 "enabled": True,
                 "size": "100-200",
@@ -626,9 +648,8 @@ def generate_split_outputs(proxies: List[Proxy], output_dir: Path, washed_outbou
         json.dump(sniper_config, f, indent=2)
     files["singbox"] = sniper_file
 
-    # 3. clash.yaml (The "Diplomat") - Conservative, No Wash
-    # Filter out experimental stuff (washed/chained) for Clash as it's legacy
-    clash_content = generate_clash_config(proxies) # Uses standard proxies only
+    # 3. clash.yaml (The "Diplomat")
+    clash_content = generate_clash_config(proxies)
     clash_file = output_dir / "clash.yaml"
     with open(clash_file, "w", encoding="utf-8") as f:
         f.write(clash_content)
@@ -647,24 +668,23 @@ def generate_categorized_outputs(
 
     # 1. Master List (Standard)
     master_file = output_dir / "proxies.json"
-    save_json(
-        proxies, master_file, compress=True
-    )  # Compress by default for large files
+    save_json(proxies, master_file, compress=True)
     files["master"] = master_file
 
     # 1.1 Generate Advanced (Washed & Chained) Proxies
-    washed_proxies = wash_dirty_proxies(proxies)
-    exotic_chains = generate_exotic_chains(proxies)
-    all_advanced_outbounds = washed_proxies + exotic_chains
+    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    washed_proxies = washer.wash_batch(proxies)
+
+    smart_chains = generate_smart_chains(proxies)
 
     # Save Chains separately (Sing-box only)
     chains_file = output_dir / "singbox-chains.json"
+    all_chains = []
+    for k, v in smart_chains.items():
+        all_chains.extend(v)
+
     with open(chains_file, "w", encoding="utf-8") as f:
-        # Create a mini config for just chains
-        chain_tags = [o["tag"] for o in exotic_chains if o["tag"].startswith("CHAIN-")]
-        chain_config = {
-            "outbounds": exotic_chains
-        }
+        chain_config = {"outbounds": all_chains}
         json.dump(chain_config, f, indent=2)
     files["chains"] = chains_file
 
@@ -701,7 +721,7 @@ def generate_categorized_outputs(
         files[f"country_{cc}"] = fpath
 
     # 4. Generate Split Outputs (Tank, Sniper, Diplomat)
-    split_files = generate_split_outputs(proxies, output_dir, all_advanced_outbounds)
+    split_files = generate_split_outputs(proxies, output_dir, washed_proxies, smart_chains)
     files.update(split_files)
 
     return files
@@ -710,31 +730,24 @@ def generate_categorized_outputs(
 def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
     """
     Save list of proxies to JSON file atomically with fsync for durability.
-    If compress=True, also saves a .gz version.
     """
     data = [serialize_proxy(p) for p in proxies]
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
-    # Save plain JSON atomically using temp file + fsync + rename
     temp_path = path.with_suffix(path.suffix + ".tmp")
     try:
-        # Write with fsync for crash safety
         temp_fd = os.open(str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644)
         try:
             os.write(temp_fd, json_content.encode("utf-8"))
-            os.fsync(temp_fd)  # Ensure data hits disk before rename
+            os.fsync(temp_fd)
         finally:
             os.close(temp_fd)
-
-        # On POSIX systems, rename is atomic. On Windows it's atomic in Python 3.3+
         temp_path.replace(path)
     except Exception:
-        # Clean up temp file if something went wrong
         if temp_path.exists():
             temp_path.unlink()
         raise
 
-    # Save Gzipped version atomically
     if compress:
         gz_path = Path(str(path) + ".gz")
         temp_gz_path = gz_path.with_suffix(gz_path.suffix + ".tmp")
@@ -754,42 +767,27 @@ def save_metadata(
     """
     Save metadata.json with statistics for the frontend.
     """
-    # Calculate breakdowns
     protocols: Dict[str, int] = {}
     countries: Dict[str, int] = {}
     country_stats: Dict[str, int] = {}
-
-    # Latency buckets: <100ms, 100-500ms, 500-1000ms, >1s
-    latency_distribution = {
-        "fast": 0,  # < 100ms
-        "medium": 0,  # 100-500ms
-        "slow": 0,  # 500-1000ms
-        "very_slow": 0,  # > 1000ms
-    }
+    latency_distribution = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
 
     for p in proxies:
         proto = p.protocol.lower()
         protocols[proto] = protocols.get(proto, 0) + 1
-
         cc = (p.country_code or "UNK").upper()
         countries[cc] = countries.get(cc, 0) + 1
         country_stats[cc] = country_stats.get(cc, 0) + 1
 
-        # Use p.latency (float) which is in milliseconds
         latency = p.latency
         if latency is not None and latency > 0:
-            if latency < 100:
-                latency_distribution["fast"] += 1
-            elif latency < 500:
-                latency_distribution["medium"] += 1
-            elif latency < 1000:
-                latency_distribution["slow"] += 1
-            else:
-                latency_distribution["very_slow"] += 1
+            if latency < 100: latency_distribution["fast"] += 1
+            elif latency < 500: latency_distribution["medium"] += 1
+            elif latency < 1000: latency_distribution["slow"] += 1
+            else: latency_distribution["very_slow"] += 1
         else:
             latency_distribution["very_slow"] += 1
 
-    # Type-safe conversion
     total_working = int(stats.get("working", 0))
     fetched_lines = int(stats.get("fetched_lines", 0))
     duration = float(stats.get("duration", 0.0))
@@ -803,32 +801,21 @@ def save_metadata(
         "protocols": protocols,
         "countries": countries,
         "country_stats": country_stats,
-        "latency_distribution": latency_distribution,  # Added real data
+        "latency_distribution": latency_distribution,
         "protocol_colors": {
-            "vmess": "#FF6B6B",
-            "vless": "#4ECDC4",
-            "shadowsocks": "#45B7D1",
-            "trojan": "#96CEB4",
-            "hysteria": "#FFEAA7",
-            "hysteria2": "#DFE6E9",
-            "tuic": "#A29BFE",
-            "wireguard": "#74B9FF",
-            "naive": "#FD79A8",
-            "http": "#FDCB6E",
-            "https": "#6C5CE7",
-            "socks": "#00B894",
-            "socks5": "#00B894",
-            "openvpn": "#E84393",
+            "vmess": "#FF6B6B", "vless": "#4ECDC4", "shadowsocks": "#45B7D1",
+            "trojan": "#96CEB4", "hysteria": "#FFEAA7", "hysteria2": "#DFE6E9",
+            "tuic": "#A29BFE", "wireguard": "#74B9FF", "naive": "#FD79A8",
+            "http": "#FDCB6E", "https": "#6C5CE7", "socks": "#00B894",
+            "socks5": "#00B894", "openvpn": "#E84393",
         },
     }
 
-    # Write metadata atomically with fsync
     metadata_content = json.dumps(metadata, indent=2)
     for filename in ["metadata.json", "summary.json"]:
         target_path = output_dir / filename
         temp_path = target_path.with_suffix(target_path.suffix + ".tmp")
         try:
-            # Write with fsync for crash safety
             temp_fd = os.open(
                 str(temp_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o644
             )
@@ -837,7 +824,6 @@ def save_metadata(
                 os.fsync(temp_fd)
             finally:
                 os.close(temp_fd)
-
             temp_path.replace(target_path)
         except Exception:
             if temp_path.exists():
@@ -854,9 +840,8 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
     names = []
 
     for i, p in enumerate(proxies, 1):
-        # Generate a unique name
+        if not p.is_working: continue
         display_name = f"{p.country_code or 'XX'} {i:02d} | {p.protocol.upper()}"
-
         config = to_clash_proxy(p)
         if config:
             config["name"] = display_name
@@ -889,13 +874,13 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
         "rules": ["MATCH,🚀 ConfigStream Auto"],
     }
 
-    # Ensure return is always a string
     result = yaml_lib.dump(payload, allow_unicode=True, sort_keys=False)
     return str(result) if result else ""
 
 
 def generate_singbox_config(proxies: List[Proxy]) -> str:
-    """Generate Sing-box JSON configuration."""
+    """Legacy method for backward compatibility."""
+    # Just returns standard config without chains if called directly
     outbounds: List[Dict[str, Any]] = []
     selector_tags: List[str] = []
 
@@ -907,38 +892,23 @@ def generate_singbox_config(proxies: List[Proxy]) -> str:
             outbounds.append(config)
             selector_tags.append(tag)
 
-    # Add selector and auto groups
     if selector_tags:
-        outbounds.insert(
-            0,
-            {
-                "type": "selector",
-                "tag": "🌍 Proxy Select",
-                "outbounds": ["🚀 Auto"] + selector_tags,
-            },
-        )
-        outbounds.insert(
-            1,
-            {
-                "type": "urltest",
-                "tag": "🚀 Auto",
-                "outbounds": selector_tags,
-                "url": "http://www.gstatic.com/generate_204",
-                "interval": "5m",
-            },
-        )
+        outbounds.insert(0, {
+            "type": "selector",
+            "tag": "🌍 Proxy Select",
+            "outbounds": ["🚀 Auto"] + selector_tags,
+        })
+        outbounds.insert(1, {
+            "type": "urltest",
+            "tag": "🚀 Auto",
+            "outbounds": selector_tags,
+            "url": "http://www.gstatic.com/generate_204",
+            "interval": "5m",
+        })
 
-    # Basic structure
     full_config = {
         "log": {"level": "info"},
-        "inbounds": [
-            {
-                "type": "mixed",
-                "tag": "mixed-in",
-                "listen": "127.0.0.1",
-                "listen_port": 2080,
-            }
-        ],
+        "inbounds": [{"type": "mixed", "tag": "mixed-in", "listen": "127.0.0.1", "listen_port": 2080}],
         "outbounds": outbounds,
     }
 
@@ -949,16 +919,7 @@ def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generate standard Base64 subscription string."""
     lines = []
     for p in proxies:
-        if p.config:
-            # Handle OpenVPN full content which isn't a one-liner usually
-            if p.protocol == "openvpn":
-                # For OVPN, we can't really put it in a base64 sub easily mixed with others
-                # unless we encode it specifically.
-                # Typically subs are list of URLs.
-                # We skip OpenVPN content for the general sub list to avoid breaking clients
-                continue
-            if "://" in p.config:
-                lines.append(p.config)
-
+        if p.config and p.protocol != "openvpn" and "://" in p.config:
+            lines.append(p.config)
     text = "\n".join(lines)
     return base64.b64encode(text.encode("utf-8")).decode("utf-8")
