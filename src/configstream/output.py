@@ -43,12 +43,14 @@ def _safe_int_conversion(value: Any, default: int = 0) -> int:
     if isinstance(value, int):
         return value
     if isinstance(value, bytes):
+        # First, try to decode as UTF-8 string (handles b"2" -> "2" -> 2)
         try:
-            return int.from_bytes(value, byteorder="big", signed=False)
-        except (ValueError, OverflowError):
+            return int(value.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError):
+            # Fall back to raw bytes interpretation only if decode fails
             try:
-                return int(value.decode("utf-8"))
-            except (UnicodeDecodeError, ValueError):
+                return int.from_bytes(value, byteorder="big", signed=False)
+            except (ValueError, OverflowError):
                 return default
     try:
         return int(value)
