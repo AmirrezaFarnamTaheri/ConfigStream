@@ -144,7 +144,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const latency = p.latency ? `${p.latency}ms` : 'N/A';
             const protocol = p.protocol || 'N/A';
             const config = p.config || '';
-            const remarks = p.remarks || 'N/A';
+
+            // Intelligence Badges
+            const isWashed = p.tags && (p.tags.includes('washed') || p.tags.some(t => typeof t === 'string' && t.includes('Secure')));
+            const protocolBadge = isWashed ? ' <span class="shield-badge" title="Securely Washed Proxy">🛡️</span>' : '';
+
             // Status based on is_working field (uptime data not available in backend)
             const isOnline = p.is_working !== false;
             const statusClass = isOnline ? 'status-online' : 'status-offline';
@@ -160,19 +164,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return `
                 <tr class="${rowClasses.join(' ')}" style="--delay: ${index * 0.03}s" data-source="${p.source}">
-                    <td>${protocol}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
-                    <td class="location-cell">
+                    <td data-label="Protocol">${protocol}${protocolBadge}${p.is_working ? '' : ' <span class="status-pill status-pill--offline">Offline</span>'}</td>
+                    <td class="location-cell" data-label="Location">
                         ${countryCode ? `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" alt="${countryCode}" class="country-flag" onerror="this.onerror=null;this.outerHTML='<i data-feather=\\\'globe\\\' class=\\\'country-flag-icon\\\'></i>'">` : `<i data-feather="globe" class="country-flag-icon"></i>`}
                         <span>${location}</span>
                     </td>
-                    <td>${latency}</td>
-                    <td class="status-cell">
+                    <td data-label="Latency">${latency}</td>
+                    <td class="status-cell" data-label="Status">
                         <span class="status-badge ${statusClass}">
                             <span class="status-icon">${statusIcon}</span>
                             <span class="status-text">${statusText}</span>
                         </span>
                     </td>
-                    <td><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
+                    <td data-label="Action"><button class="btn btn-secondary copy-btn" data-config="${encodeURIComponent(config)}" aria-label="Copy proxy link"><i data-feather="copy"></i></button></td>
                 </tr>
             `;
         }).join('');
