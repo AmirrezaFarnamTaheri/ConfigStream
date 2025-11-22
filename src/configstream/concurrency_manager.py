@@ -7,6 +7,7 @@ import asyncio
 import logging
 from collections import deque
 from typing import Deque, Optional
+from .utils import BoundedConcurrencyManager as ResizableSemaphore
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class ConcurrencyManager:
         self.min_limit = min_limit
         self.max_limit = max_limit
 
-        self.semaphore = asyncio.Semaphore(initial_limit)
+        self.semaphore = ResizableSemaphore(initial_limit)
         self.latencies: Deque[float] = deque(maxlen=100)
         self.errors: Deque[bool] = deque(maxlen=100)
         self._stats_lock = asyncio.Lock()  # Protect deque access
@@ -32,7 +33,7 @@ class ConcurrencyManager:
         self.tuning_task: Optional[asyncio.Task] = None
         self._running = False
 
-    def get_semaphore(self) -> asyncio.Semaphore:
+    def get_semaphore(self) -> ResizableSemaphore:
         return self.semaphore
 
     async def record(self, host: str, latency: float, success: bool):
@@ -65,39 +66,20 @@ class ConcurrencyManager:
                 logger.debug(
                     f"High error rate ({error_rate:.2f}). Decreasing concurrency to {new_limit}"
                 )
-                self._resize_semaphore(new_limit)
+                # This is running in a loop task, so we can await
+                await self._resize_semaphore(new_limit)
         elif error_rate < 0.01:
             # Low errors -> Additive Increase
             new_limit = min(self.max_limit, self.current_limit + 5)
             if new_limit != self.current_limit:
                 logger.debug(f"Low error rate. Increasing concurrency to {new_limit}")
-                self._resize_semaphore(new_limit)
+                await self._resize_semaphore(new_limit)
 
-    def _resize_semaphore(self, new_limit: int):
-        # Asyncio Semaphore doesn't support dynamic resizing cleanly
-        # We approximate by changing the internal value if possible,
-        # or replacing it (careful with active tasks).
-        # Since replacing is dangerous, we just update the target
-        # and let the logic respect 'current_limit' if we implemented a custom semaphore.
-        # Standard asyncio.Semaphore logic:
-        # We can release extra permits or acquire excess to balance.
-
-        diff = new_limit - self.current_limit
+    async def _resize_semaphore(self, new_limit: int):
+        # Uses the BoundedConcurrencyManager's resize mechanism
+        # Note: set_limit is async because it needs to acquire lock to notify
         self.current_limit = new_limit
-
-        if diff > 0:
-            # Growing: Release permits
-            for _ in range(diff):
-                try:
-                    self.semaphore.release()
-                except ValueError:
-                    pass
-        elif diff < 0:
-            # Shrinking: Acquire permits (non-blocking best effort)
-            # This is tricky without blocking. We skip actual shrinking implementation
-            # for standard Semaphore to avoid deadlocks.
-            # Real implementation would use a bounded semaphore wrapper.
-            pass
+        await self.semaphore.set_limit(new_limit)
 
     def start_tuner(self):
         if not self._running:

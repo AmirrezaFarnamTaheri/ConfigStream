@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from .models import Proxy
+from .utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +62,8 @@ class TestResultCache:
         """Save the current in-memory cache to the JSON file."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with self.db_path.open("w", encoding="utf-8") as f:
-                json.dump(self._cache, f, indent=2)
+            content = json.dumps(self._cache, indent=2)
+            AtomicFileWriter.write_text(self.db_path, content)
             logger.info(
                 "Saved %d entries to cache file: %s", len(self._cache), self.db_path
             )

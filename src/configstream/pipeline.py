@@ -12,7 +12,8 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Set, Dict, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+import os
 
 from rich.progress import Progress, TaskID
 
@@ -51,6 +52,7 @@ from .consolidation import select_top_configs
 from . import output
 from .performance import PerformanceTracker
 from .proxy_history import ProxyHistoryTracker
+from .output import ProxyWasher
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +85,11 @@ class PipelineStats:
 
 class PipelineResult:
     def __init__(
-        self, success: bool, stats: PipelineStats, output_files: dict, error: str | None = None
+        self,
+        success: bool,
+        stats: PipelineStats,
+        output_files: dict,
+        error: str | None = None,
     ):
         self.success = success
         self.stats = stats
@@ -412,7 +418,9 @@ async def run_full_pipeline(
                         chunk_size = 20
                         for i in range(0, len(proxies_to_actually_test), chunk_size):
                             chunk = proxies_to_actually_test[i : i + chunk_size]
-                            results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
+                            results = await asyncio.gather(
+                                *[_test_wrap(x) for x in chunk]
+                            )
 
                             for res in results:
                                 await concurrency.record(
@@ -509,33 +517,43 @@ async def run_full_pipeline(
     stats.duration = float(duration)
     stats.final_count = len(optimized_proxies)
 
+    # --- Intelligence Phase: Washing & Chaining (Centralized) ---
+    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    washed_outbounds, washed_ids = washer.wash_batch(optimized_proxies)
+
+    smart_chains = output.generate_smart_chains(optimized_proxies)
+
     generated_files = output.generate_categorized_outputs(
-        optimized_proxies, output_path
+        optimized_proxies,
+        output_path,
+        washed_outbounds=washed_outbounds,
+        washed_ids=washed_ids,
+        smart_chains=smart_chains,
     )
-    # Note: output.generate_categorized_outputs also handles split outputs and chains now.
 
     # NEW: Generate Metadata for Frontend
     output.save_metadata(stats.to_dict(), optimized_proxies, output_path)
 
     # New Adapters Exports
     try:
+        # Pass washed_outbounds to adapters that support it (Surge)
         (output_path / "surge.conf").write_text(
-            get_adapter("surge").export(optimized_proxies)
+            get_adapter("surge").export(optimized_proxies, washed_outbounds)
         )
         (output_path / "shadowrocket.txt").write_text(
-            get_adapter("shadowrocket").export(optimized_proxies)
+            get_adapter("shadowrocket").export(optimized_proxies, washed_outbounds)
         )
         # Loon
         (output_path / "loon.conf").write_text(
-            get_adapter("loon").export(optimized_proxies)
+            get_adapter("loon").export(optimized_proxies, washed_outbounds)
         )
         # Quantumult X
         (output_path / "quantumult.conf").write_text(
-            get_adapter("qx").export(optimized_proxies)
+            get_adapter("qx").export(optimized_proxies, washed_outbounds)
         )
         # SIP008
         (output_path / "sip008.json").write_text(
-            get_adapter("sip008").export(optimized_proxies)
+            get_adapter("sip008").export(optimized_proxies, washed_outbounds)
         )
     except Exception as e:
         logger.error(f"Failed to export adapters: {e}")
