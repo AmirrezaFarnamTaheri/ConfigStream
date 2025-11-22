@@ -1,62 +1,37 @@
 """
 Honey Pot Detection Module.
-Actively probes proxies for suspicious behavior.
+Uses passive verification (VirusTotal) instead of active scanning to avoid abuse complaints.
 """
 
-import asyncio
 import logging
+import asyncio
+from configstream.security.virus_total import check_ip_reputation
 
 logger = logging.getLogger(__name__)
 
-SUSPICIOUS_PORTS = [22, 23, 25, 3389, 53]  # SSH, Telnet, SMTP, RDP, DNS
-
-
-async def check_open_ports(host: str, timeout: float = 2.0) -> bool:
+async def is_honeypot(host: str) -> bool:
     """
-    Check if the proxy host has suspicious open ports on itself.
-    Many legitimate proxies are just open relays on hacked servers which might also expose other services.
-    However, a 'Honey Pot' specifically might be logging everything.
-
-    This function checks if the proxy IP *itself* exposes suspicious services.
-    Returns True if suspicious ports are OPEN.
+    Checks if the proxy host is a known honeypot or malicious IP using passive intelligence.
+    Active port scanning is strictly prohibited on GitHub Actions to avoid IP bans.
     """
-    # This is a heuristic. Open SSH (22) is common on servers, so maybe not purely malicious,
-    # but an open Telnet (23) is very suspicious.
+    try:
+        # Passive check via VirusTotal
+        # If VT_API_KEY is missing, this returns {'malicious': 0} (Safe Fail-Open for missing key)
+        report = await check_ip_reputation(host)
 
-    for port in SUSPICIOUS_PORTS:
-        try:
-            # Simple connect test
-            reader, writer = await asyncio.wait_for(
-                asyncio.open_connection(host, port), timeout=timeout
-            )
-            writer.close()
-            await writer.wait_closed()
-            logger.warning(f"Suspicious port {port} open on {host}")
+        if report.get("malicious", 0) > 0:
+            logger.warning(f"Passive Intel: Host {host} flagged as malicious by VirusTotal.")
             return True
-        except (OSError, asyncio.TimeoutError):
-            continue
 
-    return False
+        return False
+    except Exception as e:
+        logger.error(f"Honeypot check failed for {host}: {e}")
+        return False  # Fail open on error to avoid blocking good proxies due to API errors
 
 
 async def check_traffic_interception(proxy_config: dict) -> bool:
     """
-    Simulate a check for traffic interception.
-    In a real scenario, this would fetch a 'canary' URL over HTTP (not HTTPS)
-    and check if the content is modified or if headers are injected.
+    Stub for traffic interception check.
+    Kept for API compatibility.
     """
-    # Placeholder for advanced logic
-    # 1. Fetch http://neverssl.com via proxy
-    # 2. Check hash of response
-    # Since we don't have a live proxy connection context here easily without circular deps,
-    # we'll implement the logic structure.
-    return False
-
-
-async def is_honeypot(host: str) -> bool:
-    """
-    Aggregate honeypot checks.
-    """
-    if await check_open_ports(host):
-        return True
     return False

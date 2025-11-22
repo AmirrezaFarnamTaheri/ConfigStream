@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS history (
 
         except Exception as e:
             logger.warning(f"Anomaly check failed for {url}: {e}")
-            return True, "Error (Fail Open)"
+            return False, "Error (Fail Closed)"
 
     def record(self, url: str, count: int):
         """
