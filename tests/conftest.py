@@ -3,19 +3,9 @@ import asyncio
 import nest_asyncio
 import importlib.metadata
 
-# Apply nest_asyncio globally to allow nested event loops
-nest_asyncio.apply()
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """
-    Create a session-scoped event loop.
-    """
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
+@pytest.fixture(scope="session", autouse=True)
+def apply_nest_asyncio():
+    nest_asyncio.apply()
 
 @pytest.fixture(autouse=True)
 def mock_version(monkeypatch):

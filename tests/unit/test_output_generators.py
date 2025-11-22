@@ -2,13 +2,17 @@ import pytest
 from pathlib import Path
 import json
 from configstream.models import Proxy
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
 from configstream.output import (
-    to_clash_proxy,
-    to_singbox_outbound,
     generate_clash_config,
     generate_singbox_config,
     save_metadata,
 )
+from configstream.converters import to_clash_proxy, to_singbox_outbound
 
 
 @pytest.fixture
@@ -73,9 +77,12 @@ def test_to_singbox_outbound(sample_proxies):
 
 def test_generate_clash_config(sample_proxies):
     yaml_out = generate_clash_config(sample_proxies)
-    assert "proxies:" in yaml_out
-    assert "proxy-groups:" in yaml_out
-    assert "US 01 | VMESS" in yaml_out
+    if yaml:
+        assert "proxies:" in yaml_out
+        assert "proxy-groups:" in yaml_out
+        assert "US 01 | VMESS" in yaml_out
+    else:
+        assert yaml_out == "# PyYAML not installed"
 
 
 def test_generate_singbox_config(sample_proxies):

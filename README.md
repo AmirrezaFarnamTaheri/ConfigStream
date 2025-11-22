@@ -4,15 +4,19 @@
 
 [![Pipeline Status](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 
 ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions. This process includes comprehensive security testing, geolocation enrichment, and anomaly detection.
 
-## 🚀 New Features (v1.3 "Atomic Scale")
-*   **Go-Powered Engine**: A native **Go** sidecar (`configstream-tester`) now handles 500+ concurrent proxy tests, eliminating Python GIL bottlenecks.
+## 🚀 New Features (v1.4 "Resilient Core")
+*   **Refactored Architecture**: Monoliths broken down into modular components (`pipeline_stages`, `output_generators`, `testers_core`) for easier maintenance and scalability.
+*   **Go-Powered Engine**: A native **Go** sidecar (`configstream-tester`) now handles 500+ concurrent proxy tests with retry logic to prevent port collisions.
 *   **Smart Washing**: Automatically routes "Dirty" (Google-blocked) or "Insecure" (HTTP) proxies through **Cloudflare WARP** WireGuard tunnels, transforming them into clean, encrypted exits.
-*   **Double-Hop Chains**: Generates "Intranet Bridge" (IR->EU) and "IPv6 Portal" chains for advanced routing.
-*   **Atomic Persistence**: Zero-corruption guarantee for data storage using atomic write-and-rename operations.
+*   **Smart Chains**: Generates "Intranet Bridge" (IR->EU) and "IPv6 Portal" chains for advanced routing.
+*   **Robust Pipeline**:
+    *   Atomic file operations prevent data corruption.
+    *   Retry loops and timeouts prevent deadlocks.
+    *   Duplicate logic ensures "Dirty" proxies are filtered if a "Washed" version is available.
 *   **Split Outputs**: Tailored configs for every use case:
     *   `singbox-vpn.json` (The Tank): Full VPN mode with TUN/FakeIP.
     *   `singbox.json` (The Sniper): Fast, lightweight with fragmentation.
@@ -86,11 +90,11 @@ I --> J[GitHub PagesAuto-Deploy]
 ### Pipeline Steps:
 
 1. **Fetch** - HTTP/2 client with ETag/Last-Modified caching per source.
-2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers (v1.3 Parsers).
-3. **Queue** - Persist every entry to a SQLite-backed disk queue (no in-memory caps).
+2. **Parse** - Canonicalise endpoints and compute stable proxy identifiers.
+3. **Queue** - Persist every entry to a SQLite-backed disk queue.
 4. **Test** - **Go Batch Engine** verification with latency budgets and retry heuristics.
 5. **Secure** - Security testing with detailed issue tracking and categorization.
-6. **Geolocate** - Offline GeoIP lookup with DNS caching (no external token).
+6. **Geolocate** - Offline GeoIP lookup with DNS caching.
 7. **Intelligence** - "Wash" dirty proxies through WARP and create smart chains.
 8. **Score** - Compute balanced, speed, privacy, and stability rankings.
 9. **Generate** - Emit canonical + ranked JSON outputs with metadata.
@@ -182,7 +186,7 @@ Detailed information including:
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.12 or higher
 - pip
 - Go 1.21+ (for the testing engine)
 - Git
@@ -292,9 +296,13 @@ ConfigStream/
 ├── src/
 │ └── configstream/
 │ ├── cli.py # Command-line interface
-│ ├── pipeline.py # Main processing pipeline
-│ ├── testers.py # Python <-> Go Bridge
-│ ├── output.py # Output generation & Chaining
+│ ├── pipeline.py # Orchestrator
+│ ├── pipeline_stages.py # Pipeline logic stages
+│ ├── testers.py # Facade for testers
+│ ├── testers_core.py # Tester implementation
+│ ├── output.py # Facade for output
+│ ├── output_generators.py # Output logic
+│ ├── converters.py # Format converters
 │ ├── adapters.py # Client format adapters
 │ ├── parsers/ # Modular protocol parsers
 │ ├── intelligence/ # Washing & Smart Logic
