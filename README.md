@@ -8,12 +8,15 @@
 
 ConfigStream automatically collects, tests, and publishes working VPN configurations from free public sources. All configurations are automatically tested and updated every 6 hours via GitHub Actions. This process includes comprehensive security testing, geolocation enrichment, and anomaly detection.
 
-## 🚀 New Features
-*   **Smart Mirroring**: Automated multi-cloud deployment to Vercel, Netlify, and IPFS.
-*   **Telegram Bot**: Get proxies directly in chat. [Guide](docs/BOT_GUIDE.md).
-*   **Hardcore Security**: Honeypot detection and uTLS fingerprint randomization. [Details](docs/SECURITY.md).
-*   **Advanced Protocols**: Support for Hysteria 2 port hopping and Shadowsocks-Rust verification.
-*   **Expanded Client Support**: Native export for Surge, Loon, Quantumult X, and SIP008.
+## 🚀 New Features (v2.0 "Zero to Hero")
+*   **Exotic Chaining**: Automatically creates "Double-Hop" chains (e.g., Hysteria -> VMess) to bypass tough firewalls.
+*   **Proxy Washing**: Recycles "Dirty" proxies (Google blocked or Insecure HTTP) into high-speed, secure encrypted tunnels using WARP and TLS.
+*   **High-Performance Engine**: Now powered by a native **Go** binary for 10x faster testing and lower CPU usage.
+*   **Unstoppable Distribution**: Fan-out uploads to Telegram, Hugging Face, and GitHub Releases.
+*   **Split Outputs**: Tailored configs for every use case:
+    *   `singbox-vpn.json` (The Tank): Full VPN mode with TUN/FakeIP.
+    *   `singbox.json` (The Sniper): Fast, lightweight with fragmentation.
+    *   `clash.yaml` (The Diplomat): Compatible legacy config.
 
 ## 🌐 Get Fresh Configurations
 

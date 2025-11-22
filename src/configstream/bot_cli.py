@@ -1,114 +1,84 @@
+"""
+ConfigStream Bot CLI
+Command line interface for the Telegram Bot.
+"""
+
+import os
+import sys
 import logging
-from telegram import Update
-from telegram.constants import ParseMode
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-import httpx
+import asyncio
+import json
+import random
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Constants - Should ideally be loaded from env or config
-METADATA_URL = "https://farnam.github.io/ConfigStream/files/metadata.json"
-BASE_URL = "https://farnam.github.io/ConfigStream/files"
+try:
+    from telegram import Update
+    from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+except ImportError:
+    logger.error("python-telegram-bot is not installed. Please install it.")
+    sys.exit(1)
 
+from configstream.tools.warp import generate_warp_account
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.message:
-        await update.message.reply_text(
-            "Hello! I am the ConfigStream Bot. 🚀\n"
-            "Use /stats to see pipeline status.\n"
-            "Use /get <COUNTRY_CODE> to get a proxy (e.g., /get US).\n"
-            "Use /sub for subscription links."
-        )
-
-
-async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(METADATA_URL)
-            if resp.status_code == 200:
-                data = resp.json()
-                msg = (
-                    f"📊 *Pipeline Stats*\n"
-                    f"Active Proxies: `{data.get('working', '?')}`\n"
-                    f"Total Tested: `{data.get('total', '?')}`\n"
-                    f"Last Updated: `{data.get('generated_at', '?')}`"
-                )
-            else:
-                msg = "⚠️ Could not fetch stats."
-        except Exception as e:
-            msg = f"⚠️ Error fetching stats: {str(e)}"
-
-    if update.message:
-        await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
-
-
-async def get_proxy(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message:
-        return
-
-    if not context.args:
-        await update.message.reply_text(
-            "⚠️ Please specify a country code. Usage: `/get US`",
-            parse_mode=ParseMode.MARKDOWN,
-        )
-        return
-
-    country = context.args[0].upper()
-    url = f"{BASE_URL}/by_country/{country.lower()}.json"
-
-    async with httpx.AsyncClient() as client:
-        try:
-            resp = await client.get(url)
-            if resp.status_code == 200:
-                proxies = resp.json()
-                if proxies:
-                    # Select a random proxy
-                    import random
-
-                    proxy = random.choice(proxies)
-                    # Prefer returning a link/URI if available, else the full JSON
-                    proxy_str = proxy.get("link") or str(proxy)
-
-                    # Escape for Markdown? simple backticks usually work
-                    await update.message.reply_text(
-                        f"🌍 *Proxy for {country}*\n```\n{proxy_str}\n```",
-                        parse_mode=ParseMode.MARKDOWN,
-                    )
-                else:
-                    await update.message.reply_text(
-                        f"❌ No proxies found for {country}."
-                    )
-            else:
-                await update.message.reply_text(
-                    f"❌ Country {country} not available or invalid."
-                )
-        except Exception as e:
-            await update.message.reply_text(f"⚠️ Error: {str(e)}")
-
-
-async def sub(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = (
-        "🔗 *Subscription Links*\n"
-        f"Clash: `{BASE_URL}/clash.yaml`\n"
-        f"SingBox: `{BASE_URL}/singbox.json`\n"
-        f"Base64: `{BASE_URL}/vpn_subscription_base64.txt`"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Welcome to ConfigStream Bot!\nCommands:\n/warp - Generate WARP Key\n/mirror - Get latest configs"
     )
-    if update.message:
-        await update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
+async def warp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Generating WARP key... This may take a moment.")
 
-def run_bot(token: str):
-    """Run the bot polling loop."""
+    try:
+        # Run generation in executor
+        loop = asyncio.get_running_loop()
+        account = await loop.run_in_executor(None, generate_warp_account)
+
+        if account:
+             msg = (
+                 f"**Cloudflare WARP+**\n"
+                 f"License: `{account['license']}`\n"
+                 f"ID: `{account['id']}`\n"
+                 f"Data: {account['referral_count']} GB"
+             )
+             await context.bot.send_message(chat_id=update.effective_chat.id, text=msg, parse_mode='Markdown')
+        else:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="Failed to generate key.")
+
+    except Exception as e:
+        logger.error(f"Error generating WARP: {e}")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="An error occurred.")
+
+async def mirror(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # In a real deployment, this would fetch from GitHub Releases or local file if available
+    # For now, we assume the bot runs where output is available or we send a link
+
+    release_url = "https://github.com/YOUR_USER/configstream/releases/latest"
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f"Latest configs are available here: {release_url}"
+    )
+
+def main():
+    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    if not token:
+        logger.error("TELEGRAM_BOT_TOKEN not set")
+        return
+
     application = ApplicationBuilder().token(token).build()
 
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("stats", stats))
-    application.add_handler(CommandHandler("get", get_proxy))
-    application.add_handler(CommandHandler("sub", sub))
+    application.add_handler(CommandHandler('start', start))
+    application.add_handler(CommandHandler('warp', warp))
+    application.add_handler(CommandHandler('mirror', mirror))
 
-    print("🤖 Bot is starting polling...")
     application.run_polling()
+
+if __name__ == '__main__':
+    main()
