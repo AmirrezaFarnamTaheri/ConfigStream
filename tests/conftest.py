@@ -1,15 +1,29 @@
 import pytest
 import asyncio
 import nest_asyncio
+import importlib.metadata
+
+# Apply nest_asyncio globally to allow nested event loops
+nest_asyncio.apply()
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def event_loop():
     """
-    Create an instance of the default event loop for the session.
-    Apply nest_asyncio to allow nested event loops.
+    Create a session-scoped event loop.
     """
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    nest_asyncio.apply(loop)
+    loop = asyncio.new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(autouse=True)
+def mock_version(monkeypatch):
+    """
+    Mock importlib.metadata.version to avoid PackageNotFoundError during tests.
+    """
+
+    def mock_return(package):
+        return "1.2.0"
+
+    monkeypatch.setattr(importlib.metadata, "version", mock_return)

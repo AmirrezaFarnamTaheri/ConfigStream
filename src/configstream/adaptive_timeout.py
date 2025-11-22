@@ -7,6 +7,7 @@ import logging
 import statistics
 import json
 from pathlib import Path
+from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,10 @@ class AdaptiveTimeout:
         self.min_timeout = min_t
         self.max_timeout = max_t
         self.history_file = history_file or Path("data/timeout_history.json")
+        # Global latencies for base timeout calculation
         self.latencies: list[float] = []
+        # Per-source latencies for jitter analysis
+        self.source_latencies: dict[str, list[float]] = defaultdict(list)
         self._load_history()
 
     def _load_history(self):
@@ -44,24 +48,38 @@ class AdaptiveTimeout:
         Record a successful connection latency.
 
         Args:
-            source: The source URL (currently unused for differentiation)
+            source: The source URL
             latency: Latency in seconds
         """
-        # We expect seconds. If someone passes > 100, it's likely ms, so we warn/convert
-        # but let's strictly assume seconds as per Fetcher
         val = latency
         if val > 100:
-            # Heuristic: likely ms, but technically valid seconds (slow proxy).
-            # Given max_timeout defaults to 30, >100 is suspicious.
-            # For now, we treat it as seconds to be "dumb but predictable".
             logger.debug(f"High latency recorded: {val}s (likely ms?)")
 
+        # Update global list
         self.latencies.append(val)
-        # Keep window small
         if len(self.latencies) > 100:
             self.latencies.pop(0)
-        # Force update on every record for testing responsiveness
+
+        # Update per-source list
+        s_list = self.source_latencies[source]
+        s_list.append(val)
+        if len(s_list) > 20:  # Keep window small for source jitter
+            s_list.pop(0)
+
         self.update()
+
+    def get_jitter(self, source: str) -> float:
+        """
+        Calculate the standard deviation (jitter) of latency for a source.
+        Returns 0.0 if insufficient data.
+        """
+        data = self.source_latencies.get(source, [])
+        if len(data) < 2:
+            return 0.0
+        try:
+            return statistics.stdev(data)
+        except statistics.StatisticsError:
+            return 0.0
 
     def update(self):
         """Recalculate optimal timeout."""
@@ -70,8 +88,6 @@ class AdaptiveTimeout:
 
         # Calculate p95 latency
         try:
-            # If we don't have enough data for quantiles(n=20), use max or median?
-            # statistics.quantiles requires at least n-1 data points? No, it requires at least 2 points.
             if len(self.latencies) < 2:
                 return
 
