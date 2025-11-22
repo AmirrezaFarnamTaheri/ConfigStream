@@ -68,13 +68,18 @@ def SecureConfigContext(content: str):
     Context manager that creates a secure temporary file for Sing-box config.
     Enforces 0600 permissions and guarantees deletion.
     """
-    fd, path = tempfile.mkstemp(suffix=".json", text=True)
+    fd, path = tempfile.mkstemp(suffix=".json")
     _TEMP_FILES.add(path)
     try:
-        # Secure: Only owner can read/write
+        # Secure: Only owner can read/write (must be done before writing)
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
-        with os.fdopen(fd, "w") as f:
+        # Write config content using the file descriptor
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(content)
+            f.flush()  # Ensure content is written to disk
+        # Verify file exists and is readable
+        if not os.path.exists(path):
+            raise OSError(f"Failed to create temp config file at {path}")
         yield path
     finally:
         try:
@@ -188,18 +193,27 @@ class SingBoxTester:
         with SecureConfigContext(config_content) as config_path:
             sb_instance = None
             try:
+                # Log config file creation for debugging
+                logger.debug(f"Created sing-box config at {config_path}, size: {len(config_content)} bytes")
+
                 # Start Sing-box in a thread to avoid blocking the event loop
                 # singbox_factory is synchronous
                 # Security: Wrap in timeout to prevent hung subprocess from blocking event loop
                 if singbox_factory:
-                    sb_instance = await asyncio.wait_for(
-                        loop.run_in_executor(
-                            None, lambda: singbox_factory(config_path)
-                        ),
-                        timeout=self.timeout,
-                    )
+                    try:
+                        sb_instance = await asyncio.wait_for(
+                            loop.run_in_executor(
+                                None, lambda: singbox_factory(config_path)
+                            ),
+                            timeout=self.timeout,
+                        )
+                    except asyncio.TimeoutError:
+                        logger.error(f"Sing-box startup timeout for {proxy.protocol} proxy")
+                        proxy.is_working = False
+                        return proxy
 
                     if not sb_instance or not sb_instance.http_proxy_url:
+                        logger.warning(f"Sing-box failed to start or no HTTP proxy URL for {proxy.protocol} proxy")
                         proxy.is_working = False
                         return proxy
 
