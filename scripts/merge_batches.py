@@ -24,6 +24,8 @@ from configstream.consolidation import (  # noqa: E402
     rank_and_rename_proxies,
     select_top_configs,
 )
+from configstream.source_quality import SourceQualityTracker  # noqa: E402
+from configstream.anomaly import AnomalyDetector  # noqa: E402
 
 
 def merge_batches(
@@ -61,6 +63,22 @@ def merge_batches(
         )
     else:
         print("No test caches found to merge.")
+
+    # --- Merge Telemetry (Source Quality & Anomaly) ---
+    print("\n=== Step 0.5: Merging Telemetry ===")
+    main_sq = SourceQualityTracker(db_path=output_dir / "data" / "source_quality.db")
+    main_anomaly = AnomalyDetector(db_path=output_dir / "data" / "anomaly.db")
+
+    for batch_dir in batch_output_dirs:
+        sq_db = batch_dir / "data" / "source_quality.db"
+        anomaly_db = batch_dir / "data" / "anomaly.db"
+
+        if sq_db.exists():
+            main_sq.merge_from(sq_db)
+        if anomaly_db.exists():
+            main_anomaly.merge_from(anomaly_db)
+
+    print("✅ Merged Telemetry Databases.")
 
     # Map to store: config -> (proxy, timestamp)
     # This ensures we keep the latest version of each proxy

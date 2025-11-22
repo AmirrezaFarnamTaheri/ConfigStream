@@ -196,7 +196,7 @@ def validate_batch_configs(
    - HTML injection detection
    - Header preservation check
    - SSL certificate validation
-   - Honeypot detection
+   - Honeypot detection (Passive VirusTotal lookup)
 
 **Implementation**:
 ```python

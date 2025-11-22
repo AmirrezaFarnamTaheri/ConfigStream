@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
         fetched_count: int,
         working_count: int,
         diversity_score: float = 0.0,
+        avg_jitter: float = 0.0,
     ):
         """
         Update the stats for a source after a pipeline run.
@@ -117,6 +118,7 @@ CREATE TABLE IF NOT EXISTS source_stats (
             fetched_count: How many valid config lines were parsed
             working_count: How many proxies actually passed the tests
             diversity_score: A score (0-1) indicating geo-diversity
+            avg_jitter: Average latency jitter (standard deviation) in seconds
         """
         now = int(datetime.now().timestamp())
         # We consider it a failure if we fetched content but NOTHING worked
@@ -156,11 +158,16 @@ CREATE TABLE IF NOT EXISTS source_stats (
                         0, 100 - (new_cf * 10)
                     )  # -10 points per consecutive failure
 
+                    # Jitter Penalty: If jitter > 1.0s, penalize score
+                    jitter_penalty = min(20, avg_jitter * 10) if avg_jitter > 1.0 else 0
+
                     trust_score = (
                         (new_reliability * 0.5)
                         + (diversity_score * 100 * 0.3)
                         + (consistency_score * 0.2)
-                    )
+                    ) - jitter_penalty
+
+                    trust_score = max(0, trust_score)
 
                     conn.execute(
                         """
@@ -188,11 +195,16 @@ CREATE TABLE IF NOT EXISTS source_stats (
                     initial_reliability = yield_rate * 100
 
                     consistency_score = 100 if not is_failure else 90
+
+                    jitter_penalty = min(20, avg_jitter * 10) if avg_jitter > 1.0 else 0
+
                     trust_score = (
                         (initial_reliability * 0.5)
                         + (diversity_score * 100 * 0.3)
                         + (consistency_score * 0.2)
-                    )
+                    ) - jitter_penalty
+
+                    trust_score = max(0, trust_score)
 
                     conn.execute(
                         """
@@ -226,6 +238,57 @@ CREATE TABLE IF NOT EXISTS source_stats (
                 return row[0] if row else 50.0  # Default to neutral
         except Exception:
             return 50.0
+
+    def merge_from(self, other_db_path: Path):
+        """
+        Merge data from another SQLite database into this one.
+        Prioritizes the entry with the later timestamp.
+        """
+        if not other_db_path.exists():
+            return
+
+        try:
+            with (
+                sqlite3.connect(other_db_path) as src,
+                sqlite3.connect(self.db_path) as dst,
+            ):
+                # Enable WAL for both
+                src.execute("PRAGMA journal_mode=WAL")
+                dst.execute("PRAGMA journal_mode=WAL")
+
+                rows = src.execute("SELECT * FROM source_stats").fetchall()
+
+                # Get column names to construct dynamic query
+                cursor = src.execute("SELECT * FROM source_stats LIMIT 1")
+                columns = [description[0] for description in cursor.description]
+                placeholders = ",".join(["?"] * len(columns))
+
+                for row in rows:
+                    data = dict(zip(columns, row))
+                    url = data["url"]
+                    last_checked = data.get("last_checked", 0)
+
+                    # Check if we have this URL
+                    existing = dst.execute(
+                        "SELECT last_checked FROM source_stats WHERE url = ?", (url,)
+                    ).fetchone()
+
+                    if not existing:
+                        # Insert new
+                        dst.execute(
+                            f"INSERT INTO source_stats VALUES ({placeholders})", row
+                        )
+                    elif existing[0] < last_checked:
+                        # Update if newer
+                        dst.execute("DELETE FROM source_stats WHERE url = ?", (url,))
+                        dst.execute(
+                            f"INSERT INTO source_stats VALUES ({placeholders})", row
+                        )
+
+                dst.commit()
+                logger.info(f"Merged source stats from {other_db_path}")
+        except Exception as e:
+            logger.error(f"Failed to merge source quality DB {other_db_path}: {e}")
 
 
 def calculate_diversity_score(proxies: List[Proxy]) -> float:

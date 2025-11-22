@@ -12,12 +12,12 @@ VT_BASE_URL = "https://www.virustotal.com/api/v3"
 
 # Simple LRU Cache for IP reputation to respect API limits
 # Format: {ip: (result, timestamp)}
-_IP_CACHE = OrderedDict()
+_IP_CACHE: OrderedDict[str, tuple[dict, float]] = OrderedDict()
 CACHE_TTL = 3600  # 1 hour cache
 CACHE_SIZE = 1000
 
 
-async def scan_url(url: str) -> dict:
+async def scan_url(url: str) -> dict[str, int]:
     """
     Scans a URL using VirusTotal API.
     Actually submits the URL for scanning or retrieves a report.
@@ -44,7 +44,9 @@ async def scan_url(url: str) -> dict:
                         .get("attributes", {})
                         .get("last_analysis_stats", {})
                     )
-                    return {"malicious": stats.get("malicious", 0)}
+                    # Use explicit cast or conversion to ensure dict return type
+                    malicious_count: int = stats.get("malicious", 0)
+                    return {"malicious": malicious_count}
                 elif resp.status == 404:
                     # URL not found, could submit it but for now just return clean
                     # Submitting requires POST to /urls
@@ -57,7 +59,7 @@ async def scan_url(url: str) -> dict:
         return {"malicious": 0}
 
 
-async def check_ip_reputation(ip: str) -> dict:
+async def check_ip_reputation(ip: str) -> dict[str, int]:
     """
     Checks IP reputation with in-memory caching.
     """

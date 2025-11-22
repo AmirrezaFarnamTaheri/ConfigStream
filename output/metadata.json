@@ -1,9 +1,9 @@
 {
-  "last_updated_utc": "2025-11-21T08:03:24.266107+00:00",
+  "last_updated_utc": "2025-11-22T03:38:20.790957+00:00",
   "total_proxies": 0,
   "total_working": 0,
   "total_fetched": 0,
-  "duration_seconds": 0.297126,
+  "duration_seconds": 0.0,
   "protocols": {},
   "countries": {},
   "country_stats": {},
@@ -16,12 +16,17 @@
   "protocol_colors": {
     "vmess": "#FF6B6B",
     "vless": "#4ECDC4",
-    "trojan": "#96CEB4",
     "shadowsocks": "#45B7D1",
+    "trojan": "#96CEB4",
+    "hysteria": "#FFEAA7",
     "hysteria2": "#DFE6E9",
+    "tuic": "#A29BFE",
     "wireguard": "#74B9FF",
-    "socks5": "#FFA502",
-    "http": "#7EFFF5",
-    "openvpn": "#FD79A8"
+    "naive": "#FD79A8",
+    "http": "#FDCB6E",
+    "https": "#6C5CE7",
+    "socks": "#00B894",
+    "socks5": "#00B894",
+    "openvpn": "#E84393"
   }
 }
