@@ -1,77 +1,41 @@
-# syntax=docker/dockerfile:1
-
-# --------------------------------------------------------
-# Stage 1: Builder (Compiles dependencies)
-# --------------------------------------------------------
-FROM python:3.11-slim AS builder
-
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+# Multi-stage build for ConfigStream
+# Stage 1: Build Go Tester
+FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
+COPY src/go/tester/ .
+# Initialize module if not present (for reproducible builds)
+RUN go mod init configstream-tester || true
+RUN go mod tidy
+RUN go build -o tester main.go
 
-# Install system build tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libc-dev \
+# Stage 2: Python Runtime
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
     curl \
-    tar \
     && rm -rf /var/lib/apt/lists/*
 
-# Install sing-box
-RUN LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "browser_download_url.*linux-amd64.tar.gz" | cut -d '"' -f 4) && \
-    curl -L -o sing-box.tar.gz $LATEST_URL && \
-    tar -xzf sing-box.tar.gz && \
-    EXTRACTED_DIR=$(tar -tzf sing-box.tar.gz | head -1 | cut -f1 -d"/") && \
-    mv $EXTRACTED_DIR/sing-box /usr/local/bin/ && \
-    rm -rf sing-box.tar.gz $EXTRACTED_DIR
-
-# Copy only dependency files first
-COPY pyproject.toml README.md ./
-COPY src/configstream/__init__.py src/configstream/
-
-# Install dependencies into a virtual environment
-RUN pip install --upgrade pip build
-RUN pip install --prefix=/install .
-
-# --------------------------------------------------------
-# Stage 2: Runner (The actual final image)
-# --------------------------------------------------------
-FROM python:3.11-slim AS runtime
-
+# Set up user
+RUN useradd -m -u 1000 runner
+USER runner
 WORKDIR /app
 
-# Install minimal runtime deps (curl, ca-certificates)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Copy Go binary
+COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 
-# Copy sing-box from builder
-COPY --from=builder /usr/local/bin/sing-box /usr/local/bin/sing-box
+# Install Python dependencies
+COPY --chown=runner:runner pyproject.toml requirements.txt ./
+RUN pip install --user --no-cache-dir -e .[dev]
 
-# Copy installed python packages from builder stage
-COPY --from=builder /install /usr/local
+# Copy Source Code
+COPY --chown=runner:runner . .
 
-# Copy application code
-COPY . .
+# Set Environment
+ENV PATH="/home/runner/.local/bin:$PATH"
+ENV PYTHONPATH="/app/src"
 
-# Create persistent volume directories
-RUN mkdir -p data output sources
-
-# Set environment variables
-ENV OUTPUT_DIR=/app/output \
-    DATA_DIR=/app/data \
-    FRONTEND_DIR=/app/frontend
-
-# Expose the Web Port
-EXPOSE 8000
-
-# Healthcheck to ensure web server is up
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
-
-# Default Command
-CMD ["uvicorn", "configstream.server:app", "--host", "0.0.0.0", "--port", "8000"]
+# Entrypoint
+ENTRYPOINT ["python", "-m", "configstream.cli"]

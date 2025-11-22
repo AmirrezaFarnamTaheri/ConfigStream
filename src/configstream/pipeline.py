@@ -354,42 +354,68 @@ async def run_full_pipeline(
                     # Stop testing, but process what we have
                     pass
                 else:
-                    concurrency.start_tuner()
+                    # Try batch testing first if available
+                    if tester.go_tester.available:
+                        # Process in chunks of 50 for the Go binary
+                        chunk_size = 50
+                        for i in range(0, len(proxies_to_actually_test), chunk_size):
+                            chunk = proxies_to_actually_test[i : i + chunk_size]
+                            # test_batch modifies proxies in-place
+                            await tester.test_batch(chunk)
 
-                    # Helper for concurrent testing
-                    async def _test_wrap(p: Proxy):
-                        sem = concurrency.get_semaphore()
-                        async with sem:
-                            res = await tester.test(p)
-                            if res.is_working:
-                                event_stream.emit(
-                                    "test_success",
-                                    f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
+                            for res in chunk:
+                                if res.is_working:
+                                    final_batch_for_this_source.append(res)
+                                    event_stream.emit(
+                                        "test_success",
+                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
+                                    )
+
+                            stats["tested"] = int(stats["tested"]) + len(chunk) # type: ignore
+                            if progress and task_process:
+                                progress.update(
+                                    task_process,
+                                    completed=int(stats["tested"]), # type: ignore
+                                    description=f"[green]Testing... ({stats['working']} working)",
                                 )
-                            return res
+                    else:
+                        # Fallback to Legacy Loop
+                        concurrency.start_tuner()
 
-                    # Chunk the tests to allow progress updates
-                    chunk_size = 20
-                    for i in range(0, len(proxies_to_actually_test), chunk_size):
-                        chunk = proxies_to_actually_test[i : i + chunk_size]
-                        results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
+                        # Helper for concurrent testing
+                        async def _test_wrap(p: Proxy):
+                            sem = concurrency.get_semaphore()
+                            async with sem:
+                                res = await tester.test(p)
+                                if res.is_working:
+                                    event_stream.emit(
+                                        "test_success",
+                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
+                                    )
+                                return res
 
-                        for res in results:
-                            await concurrency.record(
-                                "default", res.latency or 9999, res.is_working
-                            )
-                            if res.is_working:
-                                final_batch_for_this_source.append(res)
+                        # Chunk the tests to allow progress updates
+                        chunk_size = 20
+                        for i in range(0, len(proxies_to_actually_test), chunk_size):
+                            chunk = proxies_to_actually_test[i : i + chunk_size]
+                            results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
 
-                        stats["tested"] = int(stats["tested"]) + len(chunk)  # type: ignore
-                        if progress and task_process:
-                            progress.update(
-                                task_process,
-                                completed=int(stats["tested"]),  # type: ignore
-                                description=f"[green]Testing... ({stats['working']} working)",
-                            )
+                            for res in results:
+                                await concurrency.record(
+                                    "default", res.latency or 9999, res.is_working
+                                )
+                                if res.is_working:
+                                    final_batch_for_this_source.append(res)
 
-                    await concurrency.stop_tuner()
+                            stats["tested"] = int(stats["tested"]) + len(chunk)  # type: ignore
+                            if progress and task_process:
+                                progress.update(
+                                    task_process,
+                                    completed=int(stats["tested"]),  # type: ignore
+                                    description=f"[green]Testing... ({stats['working']} working)",
+                                )
+
+                        await concurrency.stop_tuner()
 
             # --- Post-Processing Working Proxies ---
 
@@ -472,20 +498,10 @@ async def run_full_pipeline(
     generated_files = output.generate_categorized_outputs(
         optimized_proxies, output_path
     )
+    # Note: output.generate_categorized_outputs also handles split outputs and chains now.
 
     # NEW: Generate Metadata for Frontend
     output.save_metadata(stats, optimized_proxies, output_path)
-
-    # Generate specific client configs
-    (output_path / "clash.yaml").write_text(
-        output.generate_clash_config(optimized_proxies)
-    )
-    (output_path / "singbox.json").write_text(
-        output.generate_singbox_config(optimized_proxies)
-    )
-    (output_path / "vpn_subscription_base64.txt").write_text(
-        output.generate_base64_subscription(optimized_proxies)
-    )
 
     # New Adapters Exports
     try:
