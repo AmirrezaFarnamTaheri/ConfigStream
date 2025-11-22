@@ -2,6 +2,39 @@
 
 All notable changes to ConfigStream will be documented in this file.
 
+## [2.0.0] - 2025-11-25
+
+### Added - Major Architectural Overhaul (Zero to Hero)
+
+#### Phase 1: Unstoppable Distribution
+- **Fan-Out Architecture**: Parallel uploads to Telegram, Hugging Face, and GitHub Releases.
+- **Scripts**: Added `scripts/upload_telegram.py` and `scripts/upload_hf.py`.
+- **Versioning**: Timestamped releases (vYYYY.MM.DD-HHMM).
+
+#### Phase 2: High-Performance Engine (Go & Docker)
+- **Go Batch Tester**: Native Go binary (`src/go/tester/main.go`) replaces python subprocesses for 10x speedup.
+- **Dockerized Pipeline**: Multi-stage `Dockerfile` (Go build -> Python runtime) pushed to GHCR.
+- **Pipeline Update**: CI workflow now uses the pre-built Docker image.
+
+#### Phase 3: Smart Anti-Censorship (The Brain)
+- **Exotic Chaining**: Auto-generation of "Double-Hop" chains (e.g., Hysteria Relay -> VMess Exit) in `output.py`.
+- **Proxy Washing**: "Dirty" proxies (Google blocked or Insecure) are recycled into high-value secure tunnels using WARP and TLS chaining.
+- **Chain Output**: New `output/singbox-chains.json` artifact.
+
+#### Phase 5: Advanced Outputs
+- **Split Output Strategy**:
+    - `singbox-vpn.json` (Tank): TUN, FakeIP, Auto-Route.
+    - `singbox.json` (Sniper): Mixed Port, Fragmentation.
+    - `clash.yaml` (Diplomat): Conservative configuration.
+
+#### Phase 6: User Automation
+- **Telegram Bot**: New CLI `src/configstream/bot_cli.py` for user interaction (/warp, /mirror).
+
+### Changed
+- **Testers**: Updated `testers.py` to tag "dirty" proxies instead of discarding them.
+- **Models**: Added `tags` field to `Proxy` model.
+- **Output**: Refactored `output.py` to support complex chaining and split config generation.
+
 ## [1.3.1] - 2025-11-21
 
 ### Fixed - High Priority Backend Improvements
