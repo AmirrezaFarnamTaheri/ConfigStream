@@ -27,6 +27,35 @@ logger = logging.getLogger(__name__)
 # --- Helper Functions for Clash/Singbox ---
 
 
+def _safe_int_conversion(value: Any, default: int = 0) -> int:
+    """
+    Safely convert a value to int, handling bytes and other types.
+
+    Args:
+        value: The value to convert (can be int, str, bytes, or other)
+        default: The default value if conversion fails
+
+    Returns:
+        int: The converted value or default if conversion fails
+    """
+    if value is None:
+        return default
+    if isinstance(value, int):
+        return value
+    if isinstance(value, bytes):
+        try:
+            return int.from_bytes(value, byteorder='big', signed=False)
+        except (ValueError, OverflowError):
+            try:
+                return int(value.decode('utf-8'))
+            except (UnicodeDecodeError, ValueError):
+                return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """Convert internal Proxy model to Clash dictionary."""
 
@@ -90,7 +119,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server": proxy.address,
             "port": proxy.port,
             "uuid": proxy.uuid,
-            "alterId": int(proxy.details.get("aid", 0)),
+            "alterId": _safe_int_conversion(proxy.details.get("aid"), 0),
             "cipher": str(proxy.details.get("scy", "auto")),
         }
         return _add_transport_opts(base, proxy.details)
@@ -223,7 +252,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "uuid": proxy.uuid,
             "security": "auto",
-            "alter_id": int(proxy.details.get("aid", 0)),
+            "alter_id": _safe_int_conversion(proxy.details.get("aid"), 0),
         }
         return _add_transport_sb(out, proxy.details)
 
