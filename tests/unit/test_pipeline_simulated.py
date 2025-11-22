@@ -53,6 +53,9 @@ async def test_pipeline_simulated_run(tmp_path):
         # Setup Mock Tester - Return REAL Proxy objects
         mock_tester_instance = mock_tester_cls.return_value
 
+        # Mock go_tester.available to False to force python test loop
+        mock_tester_instance.go_tester.available = False
+
         async def mock_test(proxy):
             p = deepcopy(proxy)
 
@@ -99,10 +102,10 @@ async def test_pipeline_simulated_run(tmp_path):
 
         assert result.success is True
         mock_fetch.assert_called()
-        assert result.stats["fetched_sources"] == 1
-        assert result.stats["parsed"] == 2
-        assert result.stats["tested"] == 2
-        assert result.stats["working"] == 1
+        assert result.stats.fetched_sources == 1
+        assert result.stats.parsed == 2
+        assert result.stats.tested == 2
+        assert result.stats.working == 1
         # Use _mock_save_meta to make flake8 happy
         _mock_save_meta.assert_called()
 
@@ -148,6 +151,8 @@ async def test_pipeline_with_filters(tmp_path):
         }
 
         mock_tester_instance = mock_tester_cls.return_value
+        # Mock go_tester.available to False to force python test loop
+        mock_tester_instance.go_tester.available = False
 
         async def mock_test(proxy):
             p = deepcopy(proxy)
@@ -183,4 +188,4 @@ async def test_pipeline_with_filters(tmp_path):
 
         assert result.success is True
         mock_fetch.assert_called()
-        assert result.stats["working"] == 1
+        assert result.stats.working == 1

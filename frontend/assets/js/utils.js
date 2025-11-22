@@ -702,9 +702,9 @@ function getFullUrl(file) {
   // Ensure file starts with / or is relative to root
   if (file.startsWith('http')) return file;
   if (file.startsWith('/')) return base + file;
-  // If it points to 'output/', remap to 'files/' or 'subscribe/'
+// If it points to 'output/', just ensure it's rooted
   if (file.startsWith('output/')) {
-      return base + '/files/' + file.replace('output/', '');
+      return base + '/' + file;
   }
   return base + '/' + file;
 }

@@ -46,4 +46,3 @@ data/
 # Exceptions
 !data/.gitkeep
 !output/.gitkeep
-output_batch_*/
