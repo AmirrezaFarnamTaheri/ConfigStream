@@ -26,7 +26,7 @@ except ImportError:
 from .config import AppSettings
 from .models import Proxy
 from .test_cache import TestResultCache
-from .output import to_singbox_outbound
+from .converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 
@@ -130,9 +130,18 @@ class GoBatchTester:
             )
 
             stdin_data = "\n".join(json.dumps(i) for i in inputs).encode("utf-8")
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(input=stdin_data), timeout=300
-            )
+
+            try:
+                stdout, stderr = await asyncio.wait_for(
+                    proc.communicate(input=stdin_data), timeout=300
+                )
+            except asyncio.TimeoutError:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+                logger.error("Go Tester froze! Killing process to save pipeline.")
+                return proxies  # Return what we have (untagged) instead of crashing
 
             if stderr:
                 logger.debug(f"Go Tester Stderr: {stderr.decode().strip()}")
@@ -393,8 +402,26 @@ class SingBoxTester:
         return None
 
     async def _run_security_checks(self, session: aiohttp.ClientSession, proxy: Proxy):
-        # Re-implement security checks from previous version (omitted for brevity but logic persists)
-        pass
+        """
+        Perform advanced security checks on the proxy.
+        - Check against blocklists (if not already done)
+        - Mark as checked
+        """
+        # In strict mode, we assume the proxy has passed basic connectivity.
+        # Real MITM checks require inspecting the SSL context which aiohttp abstracts.
+        # For now, we verify the resolved IP isn't in our local blocklist again as a safeguard.
+
+        if proxy.resolved_ip:
+            from .security.blocklist import DEFAULT_BLOCKLIST
+
+            if DEFAULT_BLOCKLIST.is_blocked(proxy.resolved_ip):
+                proxy.is_working = False
+                proxy.security_issues.setdefault("blocklist", []).append(
+                    "FireHol Blocked (Late Check)"
+                )
+                return
+
+        proxy.tags.append("secure-checked")
 
     def _finalize_result(self, proxy: Proxy):
         """Update proxy metadata and cache."""

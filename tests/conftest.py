@@ -7,14 +7,21 @@ import importlib.metadata
 nest_asyncio.apply()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def event_loop():
     """
-    Create a session-scoped event loop.
+    Create a function-scoped event loop.
+    This overrides the default pytest-asyncio loop fixture to ensure we can customize it if needed,
+    but crucially, we apply nest_asyncio to it.
     """
-    loop = asyncio.new_event_loop()
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+
+    nest_asyncio.apply(loop)
     yield loop
-    loop.close()
+    # loop.close() # Don't close running loop if obtained via get_running_loop
 
 
 @pytest.fixture(autouse=True)
