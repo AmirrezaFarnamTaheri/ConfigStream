@@ -12,6 +12,7 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple, Set, Dict, Union
+from dataclasses import dataclass, field
 
 from rich.progress import Progress, TaskID
 
@@ -54,9 +55,35 @@ from .proxy_history import ProxyHistoryTracker
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class PipelineStats:
+    fetched_sources: int = 0
+    fetched_lines: int = 0
+    parsed: int = 0
+    tested: int = 0
+    working: int = 0
+    geo_resolved: int = 0
+    duration: float = 0.0
+    final_count: int = 0
+    cache_misses: int = 0
+
+    def to_dict(self) -> Dict[str, Union[int, float]]:
+        return {
+            "fetched_sources": self.fetched_sources,
+            "fetched_lines": self.fetched_lines,
+            "parsed": self.parsed,
+            "tested": self.tested,
+            "working": self.working,
+            "geo_resolved": self.geo_resolved,
+            "duration": self.duration,
+            "final_count": self.final_count,
+            "cache_misses": self.cache_misses,
+        }
+
+
 class PipelineResult:
     def __init__(
-        self, success: bool, stats: dict, output_files: dict, error: str | None = None
+        self, success: bool, stats: PipelineStats, output_files: dict, error: str | None = None
     ):
         self.success = success
         self.stats = stats
@@ -117,17 +144,7 @@ async def run_full_pipeline(
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
 
-    stats: Dict[str, Union[int, float]] = {
-        "fetched_sources": 0,
-        "fetched_lines": 0,
-        "parsed": 0,
-        "tested": 0,
-        "working": 0,
-        "geo_resolved": 0,
-        "duration": 0.0,
-        "final_count": 0,  # Ensure final_count is initialized
-        "cache_misses": 0,  # Track cache miss rate for observability
-    }
+    stats = PipelineStats()
 
     # Work Queue: Stores (source_url, raw_content_chunk)
     # We use a bounded queue to apply backpressure on the fetcher if processing is slow
@@ -270,11 +287,8 @@ async def run_full_pipeline(
                 break
 
             source, raw_lines = item
-            # Ignore type checking for stats increment as we defined it as Union[int, float]
-            stats["fetched_sources"] = int(stats["fetched_sources"]) + 1  # type: ignore
-            stats["fetched_lines"] = int(stats["fetched_lines"]) + len(
-                raw_lines
-            )  # type: ignore
+            stats.fetched_sources += 1
+            stats.fetched_lines += len(raw_lines)
 
             # --- Parsing ---
             # Batch parse is faster
@@ -310,7 +324,7 @@ async def run_full_pipeline(
                     seen_keys.add(k)
                     unique_batch.append(p)
 
-            stats["parsed"] = int(stats["parsed"]) + len(unique_batch)  # type: ignore
+            stats.parsed += len(unique_batch)
 
             # --- Security Validation ---
             safe_batch = validate_batch_configs(unique_batch, policy)
@@ -343,13 +357,13 @@ async def run_full_pipeline(
                     else:
                         # Cache miss - retest instead of dropping proxy
                         logger.debug(f"Cache miss for {p.id}, will retest")
-                        stats["cache_misses"] = int(stats.get("cache_misses", 0)) + 1  # type: ignore
+                        stats.cache_misses += 1
                         proxies_to_actually_test.append(p)
 
             # --- Testing ---
             if proxies_to_actually_test:
                 # Respect max_proxies if set (global check approx)
-                if max_proxies and int(stats["tested"]) >= max_proxies:  # type: ignore
+                if max_proxies and stats.tested >= max_proxies:
                     logger.info("Max proxies limit reached.")
                     # Stop testing, but process what we have
                     pass
@@ -371,12 +385,12 @@ async def run_full_pipeline(
                                         f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
                                     )
 
-                            stats["tested"] = int(stats["tested"]) + len(chunk) # type: ignore
+                            stats.tested += len(chunk)
                             if progress and task_process:
                                 progress.update(
                                     task_process,
-                                    completed=int(stats["tested"]), # type: ignore
-                                    description=f"[green]Testing... ({stats['working']} working)",
+                                    completed=stats.tested,
+                                    description=f"[green]Testing... ({stats.working} working)",
                                 )
                     else:
                         # Fallback to Legacy Loop
@@ -407,12 +421,12 @@ async def run_full_pipeline(
                                 if res.is_working:
                                     final_batch_for_this_source.append(res)
 
-                            stats["tested"] = int(stats["tested"]) + len(chunk)  # type: ignore
+                            stats.tested += len(chunk)
                             if progress and task_process:
                                 progress.update(
                                     task_process,
-                                    completed=int(stats["tested"]),  # type: ignore
-                                    description=f"[green]Testing... ({stats['working']} working)",
+                                    completed=stats.tested,
+                                    description=f"[green]Testing... ({stats.working} working)",
                                 )
 
                         await concurrency.stop_tuner()
@@ -439,7 +453,7 @@ async def run_full_pipeline(
                             p.city = geo_data.city
                             p.asn = geo_data.asn
                             p.org = geo_data.org
-                        stats["geo_resolved"] = int(stats["geo_resolved"]) + 1  # type: ignore
+                        stats.geo_resolved += 1
 
                 # Country Filter
                 if country_filter:
@@ -447,7 +461,7 @@ async def run_full_pipeline(
                         continue
 
                 final_proxies.append(p)
-                stats["working"] = int(stats["working"]) + 1  # type: ignore
+                stats.working += 1
 
             working_count = sum(1 for p in final_batch_for_this_source if p.is_working)
             fetched_count = len(parsed_batch)  # Total parsable
@@ -492,8 +506,8 @@ async def run_full_pipeline(
 
     # Ensure stats duration is set before metadata generation
     duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-    stats["duration"] = float(duration)
-    stats["final_count"] = len(optimized_proxies)  # Explicitly set final_count
+    stats.duration = float(duration)
+    stats.final_count = len(optimized_proxies)
 
     generated_files = output.generate_categorized_outputs(
         optimized_proxies, output_path
@@ -501,7 +515,7 @@ async def run_full_pipeline(
     # Note: output.generate_categorized_outputs also handles split outputs and chains now.
 
     # NEW: Generate Metadata for Frontend
-    output.save_metadata(stats, optimized_proxies, output_path)
+    output.save_metadata(stats.to_dict(), optimized_proxies, output_path)
 
     # New Adapters Exports
     try:

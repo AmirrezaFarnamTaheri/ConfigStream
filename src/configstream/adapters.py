@@ -188,6 +188,53 @@ def get_adapter(format_name: str) -> Adapter:
 class ShadowrocketAdapter(Adapter):
     """Export to Shadowrocket format (Base64 encoded links)."""
 
+    def _reconstruct_uri(self, p: Proxy) -> str:
+        """Attempt to reconstruct standard URI from proxy object."""
+        if p.protocol == "ss" or p.protocol == "shadowsocks":
+            # ss://base64(method:password)@server:port#remarks
+            import base64
+
+            method = p.details.get("method", "chacha20-ietf-poly1305")
+            password = p.details.get("password", "")
+            userpass = f"{method}:{password}"
+            b64_auth = (
+                base64.urlsafe_b64encode(userpass.encode())
+                .decode()
+                .rstrip("=")
+            )
+            return f"ss://{b64_auth}@{p.address}:{p.port}#{p.remarks or 'ConfigStream'}"
+
+        elif p.protocol == "trojan":
+            # trojan://password@server:port#remarks
+            return f"trojan://{p.uuid}@{p.address}:{p.port}#{p.remarks or 'ConfigStream'}"
+
+        elif p.protocol == "vmess":
+            # vmess://base64(json)
+            import base64
+            import json
+
+            v_obj = {
+                "v": "2",
+                "ps": p.remarks or "ConfigStream",
+                "add": p.address,
+                "port": str(p.port),
+                "id": p.uuid,
+                "aid": str(p.details.get("aid", 0)),
+                "scy": p.details.get("scy", "auto"),
+                "net": p.details.get("net", "tcp"),
+                "type": p.details.get("type", "none"),
+                "host": p.details.get("host", ""),
+                "path": p.details.get("path", ""),
+                "tls": p.details.get("tls", ""),
+                "sni": p.details.get("sni", ""),
+                "alpn": p.details.get("alpn", ""),
+            }
+            return "vmess://" + base64.b64encode(
+                json.dumps(v_obj).encode()
+            ).decode()
+
+        return ""
+
     def export(self, proxies: List[Proxy]) -> str:
         # Shadowrocket mainly uses standard subscription links (ss://, vmess://, etc.)
         # but can also import Surge/Clash configs.
@@ -198,9 +245,14 @@ class ShadowrocketAdapter(Adapter):
                 # Use the original config string if available and valid
                 lines.append(p.config)
             else:
-                # Fallback to reconstruction (TODO: Implement full reconstruction if needed)
-                # For now, we skip if we can't reproduce the exact URI
-                pass
+                # Fallback to reconstruction
+                # We try to reconstruct standard URIs for common protocols
+                try:
+                    uri = self._reconstruct_uri(p)
+                    if uri:
+                        lines.append(uri)
+                except Exception:
+                    pass
 
         # Return as plain text list (decoded subscription)
         return "\n".join(lines)
