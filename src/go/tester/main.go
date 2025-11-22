@@ -10,6 +10,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -27,11 +28,22 @@ const (
 	MaxWorkers     = 50
 	TestTimeout    = 10 * time.Second
 	HoneypotSecret = "HONEYPOT_SECRET" // Env var
+	MaxRetries     = 3
 )
 
 var (
 	CanaryURL = os.Getenv("CANARY_URL")
+	// Use local random source to avoid global lock contention and deprecation warnings
+	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+	rngMu sync.Mutex
 )
+
+// Thread-safe random int
+func getRandomInt(n int) int {
+	rngMu.Lock()
+	defer rngMu.Unlock()
+	return rng.Intn(n)
+}
 
 // --- Data Structures ---
 
@@ -146,47 +158,77 @@ func worker(input <-chan ProxyInput, output chan<- TestResult) {
 }
 
 // Helper to find free port and generate config
+// Implements a retry loop to handle race conditions
 func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, error) {
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		return nil, 0, err
+	var lastErr error
+
+	for i := 0; i < MaxRetries; i++ {
+		// 1. Get a random free port
+		l, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			lastErr = err
+			time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
+			continue
+		}
+		port := l.Addr().(*net.TCPAddr).Port
+		l.Close() // Release it
+
+		// 2. Configure Sing-box
+		configTemplate := `{
+			"log": {"level": "panic"},
+			"inbounds": [{"type": "mixed", "tag": "in", "listen": "127.0.0.1", "listen_port": %d}],
+			"outbounds": [%s, {"type": "direct", "tag": "direct"}]
+		}`
+		configStr := fmt.Sprintf(configTemplate, port, outboundJSON)
+
+		options, err := option.UnmarshalJSON([]byte(configStr))
+		if err != nil {
+			return nil, 0, err
+		}
+
+		// 3. Try to start
+		instance, err := box.New(box.Options{Options: options, Context: ctx})
+		if err != nil {
+			lastErr = err
+			// Check if it's an address in use error (generic check)
+			// box.New might not bind immediately, but usually it prepares listeners.
+			// Actually instance.Start() is what binds.
+			// But we return instance here to let caller start.
+			// Wait, the caller starts it. If Start() fails, we need to retry the whole flow.
+			// So we must move Start() inside here or return a closure?
+			// The original code returned instance, port.
+			// To robustly retry, we should probably Start it here.
+
+			// Let's modify this function to Start the instance as well.
+			continue
+		}
+
+		err = instance.Start()
+		if err != nil {
+			instance.Close()
+			lastErr = err
+			// Retry on bind error
+			time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
+			continue
+		}
+
+		return instance, port, nil
 	}
-	port := l.Addr().(*net.TCPAddr).Port
-	l.Close()
 
-	configTemplate := `{
-		"log": {"level": "panic"},
-		"inbounds": [{"type": "mixed", "tag": "in", "listen": "127.0.0.1", "listen_port": %d}],
-		"outbounds": [%s, {"type": "direct", "tag": "direct"}]
-	}`
-	configStr := fmt.Sprintf(configTemplate, port, outboundJSON)
-
-	options, err := option.UnmarshalJSON([]byte(configStr))
-	if err != nil {
-		return nil, 0, err
-	}
-
-	instance, err := box.New(box.Options{Options: options, Context: ctx})
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return instance, port, nil
+	return nil, 0, fmt.Errorf("failed to bind port after %d retries: %v", MaxRetries, lastErr)
 }
 
 // testLatency creates a temporary Sing-box instance to test the outbound
 func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
+	// setupSingbox now Starts the instance
 	instance, port, err := setupSingbox(ctx, p.Config)
 	if err != nil {
 		return 0, nil, err
 	}
 	defer instance.Close()
 
-	if err := instance.Start(); err != nil {
-		return 0, nil, err
-	}
-
-	// Give it a tiny moment to bind
+	// Give it a tiny moment to bind - though Start() is synchronous for binding usually.
+	// But network stack might lag.
 	time.Sleep(50 * time.Millisecond)
 
 	client := &http.Client{
@@ -209,6 +251,8 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	success := false
 	if err == nil {
 		defer resp.Body.Close()
+		// Drain body to be polite
+		io.Copy(io.Discard, resp.Body)
 		if resp.StatusCode == 204 || resp.StatusCode == 200 {
 			success = true
 		}
@@ -228,6 +272,7 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 		return 0, nil, err
 	}
 	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == 204 || resp.StatusCode == 200 {
 		// Proxy is working, but blocked by Google
@@ -258,9 +303,8 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 		return false // Fail open? Or assume safe? Default safe to avoid blockage on error.
 	}
 	defer instance.Close()
-	if err := instance.Start(); err != nil {
-		return false
-	}
+	// setupSingbox already started it
+
 	time.Sleep(50 * time.Millisecond)
 
 	client := &http.Client{

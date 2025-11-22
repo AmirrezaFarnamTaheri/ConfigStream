@@ -5,14 +5,16 @@ Tests edge cases, error handling, and security validations.
 
 import pytest
 from configstream.parsers import (
-    _parse_vmess,
-    _parse_vless,
-    _parse_ss,
-    _parse_ssr,
-    _parse_openvpn,
-    _extract_config_lines,
-    _safe_b64_decode,
-    _is_plausible_proxy_config,
+    parse_vmess as _parse_vmess,
+    parse_vless as _parse_vless,
+    parse_ss as _parse_ss,
+    parse_ssr as _parse_ssr,
+    parse_openvpn as _parse_openvpn,
+    extract_config_lines as _extract_config_lines,
+)
+from configstream.parsers.base import (
+    safe_b64_decode as _safe_b64_decode,
+    is_plausible_proxy_config as _is_plausible_proxy_config,
 )
 
 

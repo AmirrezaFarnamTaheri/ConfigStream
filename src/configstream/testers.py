@@ -11,15 +11,12 @@ import stat
 import tempfile
 import atexit
 import time
-import shutil
-import subprocess
 import json
-from typing import Optional, Set, List, Dict, Any
+from typing import Optional, Set, List
 from contextlib import contextmanager
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
-from bs4 import BeautifulSoup
 
 try:
     from singbox2proxy import SingBoxProxy as singbox_factory
@@ -29,10 +26,6 @@ except ImportError:
 from .config import AppSettings
 from .models import Proxy
 from .test_cache import TestResultCache
-from .security.blocklist import DEFAULT_BLOCKLIST
-from .security.honeypot import is_honeypot
-from .security.utls_wrapper import test_tls_fingerprint
-from .security.ss_ffi import verify_ss_rust
 from .output import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
@@ -93,13 +86,16 @@ class GoBatchTester:
     """
     Interface to the high-performance Go batch testing binary.
     """
+
     def __init__(self, binary_path: str = "/usr/local/bin/configstream-tester"):
         self.binary_path = binary_path
         self.available = os.path.exists(binary_path)
         if not self.available:
             logger.warning(f"Go batch tester binary not found at {binary_path}")
 
-    async def test_batch(self, proxies: List[Proxy], check_honeypot: bool = False) -> List[Proxy]:
+    async def test_batch(
+        self, proxies: List[Proxy], check_honeypot: bool = False
+    ) -> List[Proxy]:
         """
         Feeds a batch of proxies to the Go binary and updates them with results.
         """
@@ -112,11 +108,13 @@ class GoBatchTester:
         for p in proxies:
             outbound = to_singbox_outbound(p)
             if outbound:
-                inputs.append({
-                    "config": json.dumps(outbound),
-                    "id": p.id,
-                    "check_honeypot": check_honeypot
-                })
+                inputs.append(
+                    {
+                        "config": json.dumps(outbound),
+                        "id": p.id,
+                        "check_honeypot": check_honeypot,
+                    }
+                )
                 proxy_map[p.id] = p
 
         if not inputs:
@@ -132,7 +130,9 @@ class GoBatchTester:
             )
 
             stdin_data = "\n".join(json.dumps(i) for i in inputs).encode("utf-8")
-            stdout, stderr = await proc.communicate(input=stdin_data)
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(input=stdin_data), timeout=300
+            )
 
             if stderr:
                 logger.debug(f"Go Tester Stderr: {stderr.decode().strip()}")
@@ -141,15 +141,19 @@ class GoBatchTester:
             for line in stdout.decode().splitlines():
                 try:
                     res = json.loads(line)
-                    p = proxy_map.get(res.get("id"))
-                    if p:
+                    p_id = res.get("id")
+                    # Mypy fix: Ensure p is not None before usage (proxy_map.get can return None)
+                    if p_id and p_id in proxy_map:
+                        p = proxy_map[p_id]
                         if res.get("is_working"):
                             p.is_working = True
                             p.latency = res.get("latency")
                             # Flag issues
                             if res.get("issues"):
                                 for issue in res["issues"]:
-                                    p.security_issues.setdefault("go_check", []).append(issue)
+                                    p.security_issues.setdefault("go_check", []).append(
+                                        issue
+                                    )
                                     if issue == "DIRTY_IP":
                                         p.tags.append("dirty_ip")
                         else:
@@ -222,7 +226,9 @@ class SingBoxTester:
 
             # Test fresh
             if to_test:
-                await self.go_tester.test_batch(to_test, check_honeypot=self.strict_security)
+                await self.go_tester.test_batch(
+                    to_test, check_honeypot=self.strict_security
+                )
 
                 # Update cache
                 if self.cache:
@@ -254,8 +260,11 @@ class SingBoxTester:
                     proxy.is_working = True
 
                     # Check for insecure proxy (HTTP/SOCKS without TLS)
-                    if proxy.protocol in ["http", "socks", "socks5"] and proxy.details.get("tls") != "tls":
-                         proxy.tags.append("insecure")
+                    if (
+                        proxy.protocol in ["http", "socks", "socks5"]
+                        and proxy.details.get("tls") != "tls"
+                    ):
+                        proxy.tags.append("insecure")
 
                     if self.strict_security:
                         await self._run_security_checks(session, proxy)
@@ -349,7 +358,7 @@ class SingBoxTester:
         self, session: aiohttp.ClientSession, proxy: Optional[Proxy] = None
     ) -> Optional[float]:
 
-        async def _try_url(url):
+        async def _try_url(url: str) -> Optional[float]:
             latencies = []
             for _ in range(2):
                 try:
@@ -365,7 +374,9 @@ class SingBoxTester:
                 return None
             return sum(latencies) / len(latencies)
 
-        google_url = self.settings.TEST_URLS.get("google", "https://www.google.com/generate_204")
+        google_url = self.settings.TEST_URLS.get(
+            "google", "https://www.google.com/generate_204"
+        )
         latency = await _try_url(google_url)
 
         if latency is not None:
@@ -394,4 +405,5 @@ class SingBoxTester:
 
 def datetime_now_iso() -> str:
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).isoformat()

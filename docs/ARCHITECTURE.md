@@ -72,19 +72,21 @@ ConfigStream is an automated VPN configuration aggregator that collects, tests, 
 │  │      └─────────┴─────────┴─────────┴─────────┘            │ │
 │  │                        │                                   │ │
 │  │              ┌─────────▼───────────┐                       │ │
-│  │              │   SING-BOX ENGINE   │                       │ │
-│  │              │  (Proxy Testing)    │                       │ │
+│  │              │  GO BATCH ENGINE    │                       │ │
+│  │              │  (High Performance) │                       │ │
 │  │              └─────────────────────┘                       │ │
 │  └────────────────────────────────────────────────────────────┘ │
 │                                                        │         │
 │  ┌────────────────────────────────────────────────────▼──────┐  │
-│  │                    POST-PROCESSING                         │  │
-│  │  • GeoIP Enrichment   • Scoring   • Filtering             │  │
+│  │             INTELLIGENCE & POST-PROCESSING                 │  │
+│  │  • GeoIP      • Scoring     • Anomaly Detection           │  │
+│  │  • Proxy Washing (WARP)     • Chain Synthesis             │  │
 │  └────────────────────────────────────────────────────┬──────┘  │
 │                                                        │         │
 │  ┌────────────────────────────────────────────────────▼──────┐  │
 │  │                   OUTPUT GENERATION                        │  │
 │  │  • Base64  • Clash  • Sing-box  • Shadowrocket  • More    │  │
+│  │  • Washed Chains  • Smart Routing                         │  │
 │  └────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────┬────────────────────────────────┘
                                    │
@@ -184,43 +186,62 @@ def validate_batch_configs(
 
 ---
 
-### 4. Tester (`testers.py`)
+### 4. Tester (`testers.py` & `src/go/tester`)
 
 **Responsibility**: Test proxy functionality
 
+**Architecture**:
+- **Go Batch Tester**: High-performance binary for concurrent testing
+- **Sing-box Core**: Used as the underlying engine
+
 **Test Flow**:
-1. **DNS Resolution**: Pre-resolve domains
-2. **Connectivity Test**: 3× HTTP requests to test URLs
-3. **Latency Measurement**: Median of 3 samples
-4. **Security Tests** (if enabled):
-   - HTML injection detection
-   - Header preservation check
-   - SSL certificate validation
-   - Honeypot detection (Passive VirusTotal lookup)
+1. **Batching**: Python pipelines batches of proxies to Go binary
+2. **Connectivity**: Test URLs (Google, Cloudflare)
+3. **Latency**: Precise measurement
+4. **Security Tests**: Honeypot detection (Active/Passive)
+5. **Retry Logic**: Robust port binding retry loop in Go
 
 **Implementation**:
-```python
-class SingBoxTester:
-    async def test(self, proxy: Proxy) -> Proxy:
-        """
-        1. Start sing-box server with proxy config
-        2. Connect through SOCKS5 proxy
-        3. Perform HTTP requests
-        4. Calculate latency
-        5. Run security checks
-        6. Stop sing-box server
-        """
+```go
+// Go implementation
+func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, error) {
+    // Retry loop for port race conditions
+    for i := 0; i < MaxRetries; i++ {
+        // ... bind port 0 ...
+    }
+}
 ```
 
 **Key Features**:
 - **Process Isolation**: Each proxy gets separate sing-box instance
-- **Timeout Management**: Per-test and global timeouts
+- **Race Condition Prevention**: Retry loops for port binding
+- **Deadlock Prevention**: Async timeouts in Python wrapper
 - **Resource Cleanup**: Guaranteed process termination
-- **Jitter Calculation**: Stability scoring
 
 ---
 
-### 5. GeoIP Resolver (`geoip.py`)
+### 5. Intelligence Engine (`intelligence/washer.py`)
+
+**Responsibility**: Enhance proxy quality and security
+
+**Features**:
+1. **Proxy Washing**: Chains dirty/insecure proxies through Cloudflare WARP (WireGuard)
+2. **Smart Chaining**: Creates routing chains (e.g., Intranet Bridge, IPv6 Portal)
+3. **Consistent Hashing**: Deterministic exit node selection
+
+**Implementation**:
+```python
+class ProxyWasher:
+    def wash_batch(self, proxies: List[Proxy]) -> Tuple[List[Dict], Set[str]]:
+        """
+        Identify dirty proxies and wrap them in WireGuard chains.
+        Returns cleaned chains and IDs of washed proxies.
+        """
+```
+
+---
+
+### 6. GeoIP Resolver (`geoip.py`)
 
 **Responsibility**: Enrich proxies with geographic data
 
@@ -246,7 +267,7 @@ def lookup(ip: str) -> GeoData:
 
 ---
 
-### 6. Scorer (`score.py`)
+### 7. Scorer (`score.py`)
 
 **Responsibility**: Rank proxies by multiple criteria
 
@@ -286,15 +307,16 @@ def calculate_balanced_score(proxy: Proxy) -> float:
 
 ---
 
-### 7. Output Generator (`output.py`)
+### 8. Output Generator (`output.py` & `adapters.py`)
 
 **Responsibility**: Generate subscription files
 
 **Output Formats**:
 - Base64 subscription URLs
 - Clash YAML
-- Sing-box JSON
-- Surge conf
+- Sing-box JSON (including Washed chains)
+- Surge conf (supports WireGuard-over-Proxy)
+- Loon conf (supports WireGuard-over-Proxy)
 - Quantumult X
 - Shadowrocket
 - SIP008 JSON
@@ -303,6 +325,7 @@ def calculate_balanced_score(proxy: Proxy) -> float:
 - **Atomic Writes**: Temp file + rename
 - **Compression**: Gzipped variants
 - **Metadata**: JSON with statistics
+- **Split-Brain Prevention**: Centralized washing logic
 - **Country Splits**: Separate files per country
 
 ---
@@ -398,12 +421,8 @@ def calculate_balanced_score(proxy: Proxy) -> float:
                 │
                 ▼
       ┌─────────────────────┐
-      │  SORT by Score      │
-      └─────────┬───────────┘
-                │
-                ▼
-      ┌─────────────────────┐
-      │  SELECT TOP N       │
+      │  INTELLIGENCE       │
+      │  (Wash & Chain)     │
       └─────────┬───────────┘
                 │
                 ▼
@@ -498,11 +517,6 @@ class ConcurrencyManager:
             # Additive Increase
             new_limit = current_limit + 5
 ```
-
-**Benefits**:
-- Adapts to network conditions
-- Prevents overwhelming sources
-- Maintains stability under load
 
 ### Semaphore-Based Limiting
 
@@ -1056,6 +1070,6 @@ Key architectural decisions:
 
 ---
 
-**Last Updated**: 2025-11-21
-**Version**: 1.3.0
+**Last Updated**: 2025-05-27
+**Version**: 1.3.2
 **Author**: ConfigStream Team
