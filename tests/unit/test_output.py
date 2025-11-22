@@ -40,6 +40,9 @@ def test_generate_base64(sample_proxies):
 
 
 def test_generate_clash(sample_proxies):
+    # Ensure is_working is True for proxies to be included
+    for p in sample_proxies:
+        p.is_working = True
     output = generate_clash_config(sample_proxies)
     assert "proxies:" in output
     assert "name: Test Proxy" in output or "name: US 01 | VMESS" in output

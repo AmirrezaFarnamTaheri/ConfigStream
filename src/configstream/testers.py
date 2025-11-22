@@ -150,6 +150,8 @@ class GoBatchTester:
                             if res.get("issues"):
                                 for issue in res["issues"]:
                                     p.security_issues.setdefault("go_check", []).append(issue)
+                                    if issue == "DIRTY_IP":
+                                        p.tags.append("dirty_ip")
                         else:
                             p.is_working = False
                             if res.get("error"):
