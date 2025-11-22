@@ -44,11 +44,13 @@ async def test_pipeline_full_run(tmp_path: Path, respx_mock: respx.MockRouter):
     # 4. Assert the results
     assert result.success is True
     assert result.error is None
-    assert result.stats["fetched_sources"] == 1
-    assert result.stats["parsed"] > 0
-    assert result.stats["tested"] > 0
-    assert result.stats["working"] > 0
-    assert result.stats["final_count"] > 0
+
+    # Use attribute access for dataclass
+    assert result.stats.fetched_sources == 1
+    assert result.stats.parsed > 0
+    assert result.stats.tested > 0
+    assert result.stats.working > 0
+    assert result.stats.final_count > 0
 
     # Verify output files were created
     summary_file = output_dir / "summary.json"
