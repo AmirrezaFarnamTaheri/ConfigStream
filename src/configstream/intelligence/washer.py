@@ -9,7 +9,7 @@ import random
 import logging
 from typing import List, Dict, Optional, Set, Any, Tuple
 from ..models import Proxy
-from ..output import to_singbox_outbound
+from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 

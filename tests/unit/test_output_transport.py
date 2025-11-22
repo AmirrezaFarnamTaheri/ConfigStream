@@ -1,5 +1,5 @@
 import pytest
-from configstream.output import to_clash_proxy, to_singbox_outbound
+from configstream.converters import to_clash_proxy, to_singbox_outbound
 from configstream.models import Proxy
 
 

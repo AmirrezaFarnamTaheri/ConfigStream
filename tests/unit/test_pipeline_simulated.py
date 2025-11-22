@@ -5,6 +5,16 @@ from configstream.fetcher import FetchResult
 from copy import deepcopy
 
 
+# Simple Geo Data Class to avoid MagicMock JSON issues
+class SimpleGeoData:
+    def __init__(self, code="XX", country="Unknown", city="Unknown", asn="", org=""):
+        self.country_code = code
+        self.country = country
+        self.city = city
+        self.asn = asn
+        self.org = org
+
+
 @pytest.mark.asyncio
 async def test_pipeline_simulated_run(tmp_path):
     """
@@ -13,7 +23,7 @@ async def test_pipeline_simulated_run(tmp_path):
     """
     with (
         patch(
-            "configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
+            "configstream.pipeline_stages.fetch_multiple_sources", new_callable=AsyncMock
         ) as mock_fetch,
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
@@ -61,7 +71,7 @@ async def test_pipeline_simulated_run(tmp_path):
 
             if "TestProxy1" in p.remarks:
                 p.is_working = True
-                p.latency = 100
+                p.latency = 100.0
             else:
                 p.is_working = False
                 p.latency = None
@@ -75,13 +85,9 @@ async def test_pipeline_simulated_run(tmp_path):
 
         # Setup Mock GeoIP
         mock_geoip_instance = mock_geoip_cls.return_value
-        mock_geo_data = MagicMock()
-        mock_geo_data.country_code = "US"
-        mock_geo_data.country = "United States"
-        mock_geo_data.city = "New York"
-        mock_geo_data.asn = "AS12345"
-        mock_geo_data.org = "ISP Inc"
-        mock_geoip_instance.lookup.return_value = mock_geo_data
+        mock_geoip_instance.lookup.return_value = SimpleGeoData(
+            code="US", country="United States", city="New York", asn="AS12345", org="ISP Inc"
+        )
 
         # Setup Output
         output_dir = tmp_path / "output"
@@ -117,7 +123,7 @@ async def test_pipeline_with_filters(tmp_path):
     """
     with (
         patch(
-            "configstream.pipeline.fetch_multiple_sources", new_callable=AsyncMock
+            "configstream.pipeline_stages.fetch_multiple_sources", new_callable=AsyncMock
         ) as mock_fetch,
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver") as mock_geoip_cls,
@@ -170,12 +176,10 @@ async def test_pipeline_with_filters(tmp_path):
         mock_geoip_instance = mock_geoip_cls.return_value
 
         def mock_lookup(ip):
-            res = MagicMock()
             if ip == "1.2.3.4":
-                res.country_code = "US"
+                return SimpleGeoData(code="US")
             else:
-                res.country_code = "DE"
-            return res
+                return SimpleGeoData(code="DE")
 
         mock_geoip_instance.lookup.side_effect = mock_lookup
 
