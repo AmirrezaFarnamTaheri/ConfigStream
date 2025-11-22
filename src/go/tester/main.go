@@ -46,7 +46,7 @@ type TestResult struct {
 	IsWorking bool     `json:"is_working"`
 	Latency   float64  `json:"latency"`   // milliseconds
 	Error     string   `json:"error,omitempty"`
-	Issues    []string `json:"issues,omitempty"` // e.g. ["HONEYPOT_DETECTED"]
+	Issues    []string `json:"issues,omitempty"` // e.g. ["HONEYPOT_DETECTED", "DIRTY_IP"]
 }
 
 type HoneypotResponse struct {
@@ -62,7 +62,7 @@ func main() {
 	if CanaryURL == "" {
 		// Fallback or strict failure depending on policy.
 		// For now, we warn but proceed.
-		fmt.Fprintln(os.Stderr, "Warning: CANARY_URL not set, skipping honeypot checks")
+		// fmt.Fprintln(os.Stderr, "Warning: CANARY_URL not set, skipping honeypot checks")
 	}
 
 	inputChan := make(chan ProxyInput, *workers*2)
@@ -120,11 +120,14 @@ func worker(input <-chan ProxyInput, output chan<- TestResult) {
 		res := TestResult{ID: p.ID}
 
 		// 1. Basic Connectivity Test
-		latency, err := testLatency(ctx, p)
+		latency, issues, err := testLatency(ctx, p)
 
 		if err == nil {
 			res.IsWorking = true
 			res.Latency = latency
+			if len(issues) > 0 {
+				res.Issues = append(res.Issues, issues...)
+			}
 
 			// 2. Security / Honeypot Check (if requested and connected)
 			if p.CheckHoneypot && CanaryURL != "" {
@@ -172,15 +175,15 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 }
 
 // testLatency creates a temporary Sing-box instance to test the outbound
-func testLatency(ctx context.Context, p ProxyInput) (float64, error) {
+func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	instance, port, err := setupSingbox(ctx, p.Config)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	defer instance.Close()
 
 	if err := instance.Start(); err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	// Give it a tiny moment to bind
@@ -196,19 +199,43 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, error) {
 		},
 	}
 
+	var issues []string
+
+	// 1. Try Google (Gold Standard)
 	target := "https://www.google.com/generate_204"
 	start := time.Now()
 	resp, err := client.Get(target)
+
+	success := false
+	if err == nil {
+		defer resp.Body.Close()
+		if resp.StatusCode == 204 || resp.StatusCode == 200 {
+			success = true
+		}
+	}
+
+	if success {
+		return float64(time.Since(start).Milliseconds()), nil, nil
+	}
+
+	// 2. Try Cloudflare (Fallback)
+	// If Google failed, we try a non-blocked target to see if the proxy is alive but "Dirty"
+	target = "http://cp.cloudflare.com/generate_204"
+	start = time.Now() // Restart timer for fair latency measurement to the working target
+	resp, err = client.Get(target)
+
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 204 && resp.StatusCode != 200 {
-		return 0, fmt.Errorf("status %d", resp.StatusCode)
+	if resp.StatusCode == 204 || resp.StatusCode == 200 {
+		// Proxy is working, but blocked by Google
+		issues = append(issues, "DIRTY_IP")
+		return float64(time.Since(start).Milliseconds()), issues, nil
 	}
 
-	return float64(time.Since(start).Milliseconds()), nil
+	return 0, nil, fmt.Errorf("all targets failed")
 }
 
 func isHoneypot(ctx context.Context, p ProxyInput) bool {
@@ -226,10 +253,6 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 	expectedSig := hex.EncodeToString(mac.Sum(nil))
 
 	// 3. Send to Canary via Proxy
-	// We need to reuse the singbox instance?
-	// Doing a separate start/stop for security check is safer but slower.
-	// For batch mode, we accept the overhead for flagged proxies.
-
 	instance, port, err := setupSingbox(ctx, p.Config)
 	if err != nil {
 		return false // Fail open? Or assume safe? Default safe to avoid blockage on error.
@@ -262,8 +285,6 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 
 	// 4. Verify
 	if r.Signature != expectedSig {
-		// Mismatch! Man-in-the-middle modified the request or replayed it?
-		// Or the worker is returning wrong sig?
 		// Mismatch = MALICIOUS.
 		return true
 	}
