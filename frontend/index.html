@@ -149,7 +149,7 @@
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
                 <p class="subtitle" style="--delay: 0.2s;" data-i18n="hero.subtitle">
-                    Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from over 668 curated sources stream in every 6 hours, ensuring you always have a reliable path to the open internet.
+                    Access a world of information with our free, auto-updating VPN configurations. Fresh proxies from over <span id="heroTotalSources">668</span> curated sources stream in every 6 hours, ensuring you always have a reliable path to the open internet.
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
@@ -160,14 +160,6 @@
                         <i data-feather="download"></i>
                         <span data-i18n="hero.get">Get Configs</span>
                     </a>
-                </div>
-            </section>
-
-            <!-- Live Pipeline Feed -->
-            <section style="--delay: 0.35s;">
-                <h3 class="text-center" style="margin-bottom: 0.5rem; font-size: 1rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;" data-i18n="pipeline.title">Live Pipeline Activity</h3>
-                <div id="pipeline-feed">
-                    <div class="feed-entry info">[System] Connecting to WebSocket feed...</div>
                 </div>
             </section>
 
@@ -446,7 +438,6 @@
     <script src="assets/js/loading-controller.js" defer></script>
     <script src="assets/js/logo-controller.js" defer></script>
     <script src="assets/js/main.js" defer></script>
-    <script src="assets/js/websocket.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

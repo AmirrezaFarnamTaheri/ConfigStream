@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "0 */4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -191,6 +191,10 @@ jobs:
             WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
         run: python -m scripts.merge_batches
 
+      - name: Copy Frontend Assets
+        run: |
+           cp -r frontend/* output/
+
       - name: Generate Version Tag
         id: tag
         run: |
@@ -223,7 +227,7 @@ jobs:
              output/singbox.json
              output/clash.yaml
              output/singbox-vpn.json
-             output/vpn_subscription_base64.txt
+             output/base64.txt
           draft: false
           prerelease: false
         env:

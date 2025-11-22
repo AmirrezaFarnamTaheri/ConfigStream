@@ -2935,6 +2935,39 @@ body.dark #preloader {
     .proxies-table td {
         padding: calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 1);
     }
+
+    /* Mobile Card Layout for Table */
+    .proxies-table, .proxies-table tbody, .proxies-table tr { display: block; }
+    .proxies-table thead { display: none; }
+    .proxies-table tr {
+        margin-bottom: 1rem;
+        border-radius: var(--radius-md);
+        background: var(--bg-secondary);
+        padding: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .proxies-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border: none;
+        background: transparent !important;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    .proxies-table tbody tr:hover td {
+        background: transparent;
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Add labels via CSS content */
+    .proxies-table td:nth-child(1)::before { content: "Protocol"; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; }
+    .proxies-table td:nth-child(2)::before { content: "Location"; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; }
+    .proxies-table td:nth-child(3)::before { content: "Latency"; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; }
+    .proxies-table td:nth-child(4)::before { content: "Status"; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; }
+    .proxies-table td:nth-child(5)::before { content: "Action"; font-weight: 600; color: var(--text-secondary); font-size: 0.85rem; }
 }
 
 /* ===== COMPREHENSIVE MOBILE IMPROVEMENTS ===== */

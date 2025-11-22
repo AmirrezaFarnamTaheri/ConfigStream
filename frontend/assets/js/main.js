@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update stats card
             if (stats) {
                 updateElement('#totalSourced', stats.total_fetched || 0);
+                updateElement('#heroTotalSources', stats.total_fetched || 668);
                 updateElement('#totalConfigs', stats.total_tested || 0);
                 updateElement('#workingConfigs', stats.total_working || 0);
                 updateElement('#updateFrequency', '6 hrs');
@@ -162,6 +163,18 @@ function initAccordion() {
 }
 
 function initCopyButtons() {
+    const FILE_MAP = {
+        'subscribe/singbox': 'output/singbox.json',
+        'subscribe/singbox-vpn': 'output/singbox-vpn.json',
+        'subscribe/clash': 'output/clash.yaml',
+        'subscribe/base64': 'output/base64.txt',
+        'subscribe/shadowrocket': 'output/shadowrocket.txt',
+        'subscribe/surge': 'output/surge.conf',
+        'subscribe/loon': 'output/loon.conf',
+        'subscribe/quantumultx': 'output/quantumultx.conf',
+        'subscribe/sip008': 'output/sip008.json'
+    };
+
     document.addEventListener('click', async (e) => {
         const button = e.target.closest('.copy-btn');
         if (!button) return;
@@ -174,7 +187,8 @@ function initCopyButtons() {
         if (config) {
             textToCopy = decodeURIComponent(config);
         } else if (file) {
-            textToCopy = getFullUrl(file);
+            const mappedFile = FILE_MAP[file] || file;
+            textToCopy = getFullUrl(mappedFile);
         } else {
             return;
         }

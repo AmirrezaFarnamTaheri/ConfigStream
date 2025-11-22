@@ -29,6 +29,7 @@ from .anomaly import AnomalyDetector
 from .performance import PerformanceTracker
 from .event_stream import EventStream
 from .security.blocklist import DEFAULT_BLOCKLIST
+from .proxy_history import ProxyHistoryTracker
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +158,7 @@ async def source_producer(
                                 await work_queue.put((source, lines))
                         else:
                             logger.warning(f"⚠️ BLOCKING {source}: {reason}")
+                            anomaly_detector.record_block(source, reason)
                             event_stream.emit(
                                 "fetch_blocked",
                                 f"Blocked source {source}: {reason}",
@@ -180,6 +182,7 @@ async def processing_consumer(
     tracker: PerformanceTracker,
     event_stream: EventStream,
     quality_tracker: SourceQualityTracker,
+    history: ProxyHistoryTracker,
     progress: Optional[Progress],
     task_process: Optional[TaskID],
     max_proxies: Optional[int],
@@ -254,6 +257,7 @@ async def processing_consumer(
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         await tester.test_batch(chunk)
                         for res in chunk:
+                            history.record_test_result(res)
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
                                 event_stream.emit(
@@ -289,6 +293,7 @@ async def processing_consumer(
                             await concurrency.record(
                                 "default", res.latency or 9999, res.is_working
                             )
+                            history.record_test_result(res)
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
                         stats.tested += len(chunk)

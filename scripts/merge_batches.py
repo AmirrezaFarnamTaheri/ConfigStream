@@ -10,13 +10,16 @@ from typing import Dict
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir / "src"))
 
+import os
 from configstream.models import Proxy  # noqa: E402
 from configstream.output import (  # noqa: E402
     generate_base64_subscription,
     generate_singbox_config,
     generate_clash_config,
+    generate_split_outputs,
     save_metadata,
 )
+from configstream.intelligence.washer import ProxyWasher, generate_smart_chains  # noqa: E402
 from configstream.adapters import get_adapter  # noqa: E402
 from configstream.test_cache import TestResultCache  # noqa: E402
 from configstream.consolidation import (  # noqa: E402
@@ -188,6 +191,23 @@ def merge_batches(
         if file_path.is_file():
             file_path.unlink()
 
+    # --- Intelligence Processing (Washing & Chaining) ---
+    print("\n=== Step 2.5: Intelligence Processing ===")
+    # Wash proxies (create secure tunnels for dirty IPs)
+    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    washed_outbounds, washed_ids = washer.wash_batch(ranked_proxies)
+    print(f"✓ Washed {len(washed_ids)} proxies")
+
+    # Tag proxies that have been washed
+    for p in ranked_proxies:
+        if p.id in washed_ids:
+            if "🛡️ Secure" not in p.tags:
+                p.tags.append("🛡️ Secure")
+
+    # Generate Smart Chains
+    smart_chains = generate_smart_chains(ranked_proxies)
+    print(f"✓ Generated Smart Chains: {sum(len(v) for v in smart_chains.values())} rules")
+
     # --- Regenerate output files ---
     print("\n=== Step 3: Generating Output Files ===")
 
@@ -248,11 +268,11 @@ def merge_batches(
         f.write(clash_content)
     print("✓ Generated clash.yaml")
 
-    # Sing-box
-    singbox_content = generate_singbox_config(ranked_proxies)
-    with open(output_dir / "singbox.json", "w") as f:
-        f.write(singbox_content)
-    print("✓ Generated singbox.json")
+    # Sing-box (Split Outputs: Sniper & Tank)
+    generate_split_outputs(
+        ranked_proxies, output_dir, washed_outbounds, washed_ids, smart_chains
+    )
+    print("✓ Generated singbox.json (Sniper) and singbox-vpn.json (Tank)")
 
     # Adapters
     try:
@@ -306,6 +326,7 @@ def merge_batches(
         # Fields for main page stats card (all ranked proxies)
         "total_tested": len(ranked_proxies),
         "total_working": working_proxies,
+        "threats_neutralized": main_anomaly.get_blocked_count_today(),
         # Fields for analytics page charts
         "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
         "countries": dict(sorted(country_counts.items())),

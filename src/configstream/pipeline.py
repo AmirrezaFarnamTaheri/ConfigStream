@@ -156,6 +156,7 @@ async def run_full_pipeline(
             tracker,
             event_stream,
             quality_tracker,
+            history,
             progress,
             task_process,
             max_proxies,
@@ -170,7 +171,17 @@ async def run_full_pipeline(
     # 5. Final Cleanup & Output
 
     # Deduplicate Endpoints (IP:Port)
-    optimized_proxies = filter_unique_endpoints(final_proxies)
+    unique_proxies = filter_unique_endpoints(final_proxies)
+
+    # Apply Score Decay (Filter low reliability proxies)
+    optimized_proxies = []
+    for p in unique_proxies:
+        stats = history.get_summary_stats(p.config)
+        # Only filter if enough tests have occurred (>3) and success rate is poor (<60%)
+        if stats["total_tests"] > 3 and stats["success_rate"] < 0.6:
+            logger.info(f"Dropping low-quality proxy {p.id[:8]}: {stats['success_rate']:.2f}")
+            continue
+        optimized_proxies.append(p)
 
     # Sort by latency
     optimized_proxies.sort(key=lambda x: x.latency if x.latency else 9999)

@@ -70,9 +70,11 @@ class ConcurrencyManager:
                 await self._resize_semaphore(new_limit)
         elif error_rate < 0.01:
             # Low errors -> Additive Increase
-            new_limit = min(self.max_limit, self.current_limit + 5)
+            # Burst: if limit is low, increase faster (Burst-Limit Pooling)
+            step = 25 if self.current_limit < (self.max_limit / 2) else 5
+            new_limit = min(self.max_limit, self.current_limit + step)
             if new_limit != self.current_limit:
-                logger.debug(f"Low error rate. Increasing concurrency to {new_limit}")
+                logger.debug(f"Low error rate. Increasing concurrency to {new_limit} (step={step})")
                 await self._resize_semaphore(new_limit)
 
     async def _resize_semaphore(self, new_limit: int):

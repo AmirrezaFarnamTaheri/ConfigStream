@@ -35,6 +35,7 @@ def serialize_proxy(proxy: Proxy) -> Dict[str, Any]:
         "details": proxy.details,
         "config": proxy.config,
         "remarks": proxy.remarks,
+        "tags": proxy.tags,
         # Exclude huge raw config to save space in summary if not needed,
         # but frontend uses `p.config` for copy button.
     }

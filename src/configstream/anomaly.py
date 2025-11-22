@@ -38,6 +38,15 @@ CREATE TABLE IF NOT EXISTS history (
 )
 """
                 )
+                conn.execute(
+                    """
+CREATE TABLE IF NOT EXISTS blocked_events (
+    url TEXT,
+    reason TEXT,
+    timestamp INTEGER
+)
+"""
+                )
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_url ON history(url)")
                 conn.commit()
         except Exception as e:
@@ -195,6 +204,29 @@ CREATE TABLE IF NOT EXISTS history (
         except Exception as e:
             logger.warning(f"Failed to record anomaly stats: {e}")
 
+    def record_block(self, url: str, reason: str):
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute(
+                    "INSERT INTO blocked_events (url, reason, timestamp) VALUES (?, ?, ?)",
+                    (url, reason, int(time.time())),
+                )
+                conn.commit()
+        except Exception as e:
+            logger.warning(f"Failed to record block: {e}")
+
+    def get_blocked_count_today(self) -> int:
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                start_of_day = int(time.time()) - 86400  # Last 24 hours
+                row = conn.execute(
+                    "SELECT COUNT(*) FROM blocked_events WHERE timestamp > ?",
+                    (start_of_day,),
+                ).fetchone()
+                return row[0] if row else 0
+        except Exception:
+            return 0
+
     def merge_from(self, other_db_path: Path):
         """
         Merge history from another Anomaly DB.
@@ -231,6 +263,27 @@ CREATE TABLE IF NOT EXISTS history (
                             "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
                             (url, count, ts),
                         )
+
+                # Merge blocked events
+                try:
+                    blocked_rows = src.execute(
+                        "SELECT url, reason, timestamp FROM blocked_events"
+                    ).fetchall()
+
+                    for row in blocked_rows:
+                        url, reason, ts = row
+                        exists = dst.execute(
+                            "SELECT 1 FROM blocked_events WHERE url = ? AND timestamp = ?",
+                            (url, ts),
+                        ).fetchone()
+                        if not exists:
+                            dst.execute(
+                                "INSERT INTO blocked_events (url, reason, timestamp) VALUES (?, ?, ?)",
+                                (url, reason, ts),
+                            )
+                except sqlite3.OperationalError:
+                    # Table might not exist in source if it's old
+                    pass
 
                 dst.commit()
                 logger.info(f"Merged anomaly stats from {other_db_path}")

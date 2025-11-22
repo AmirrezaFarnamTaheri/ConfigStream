@@ -142,7 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const city = p.city || '';
             const location = city ? `${city}, ${country}` : country;
             const latency = p.latency ? `${p.latency}ms` : 'N/A';
-            const protocol = p.protocol || 'N/A';
+            let protocol = p.protocol || 'N/A';
+            if (p.tags && p.tags.includes('🛡️ Secure')) {
+                 protocol += ' <span class="status-pill" style="background:rgba(0,180,100,0.1); color:#00b464; border:1px solid rgba(0,180,100,0.2);">🛡️ Washed</span>';
+            }
+
             const config = p.config || '';
             const remarks = p.remarks || 'N/A';
             // Status based on is_working field (uptime data not available in backend)
