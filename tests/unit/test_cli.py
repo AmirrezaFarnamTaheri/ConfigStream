@@ -42,7 +42,9 @@ def test_cli_merge_dry_run():
 
 
 def test_cli_version():
-    runner = CliRunner()
-    result = runner.invoke(main, ["--version"])
-    assert result.exit_code == 0
-    assert "version" in result.output
+    with patch("importlib.metadata.version") as mock_version:
+        mock_version.return_value = "1.2.3"
+        runner = CliRunner()
+        result = runner.invoke(main, ["--version"])
+        assert result.exit_code == 0
+        assert "version 1.2.3" in result.output
