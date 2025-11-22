@@ -141,6 +141,40 @@ CREATE TABLE IF NOT EXISTS history (
             logger.warning(f"Anomaly check failed for {url}: {e}")
             return False, "Error (Fail Closed)"
 
+    def check_subnet_flood(self, proxies: list[dict]) -> bool:
+        """
+        Detect if a source is flooding with proxies from the same subnet.
+        Returns True if flooding is detected (unsafe), False otherwise.
+        Criteria: > 90% from same /24 subnet if count > 50.
+        """
+        if len(proxies) < 50:
+            return False
+
+        subnets = []
+        for p in proxies:
+            ip = p.get("server") or p.get("ip") or "0.0.0.0"
+            if ip.count(".") == 3:
+                # Extract /24 subnet
+                subnet = ".".join(ip.split(".")[:3])
+                subnets.append(subnet)
+
+        if not subnets:
+            return False
+
+        from collections import Counter
+
+        counts = Counter(subnets)
+        most_common = counts.most_common(1)[0]
+
+        # If one subnet accounts for > 90% of proxies
+        if most_common[1] / len(proxies) > 0.9:
+            logger.warning(
+                f"Subnet Flood detected: {most_common[0]}.0/24 accounts for {most_common[1]}/{len(proxies)} proxies."
+            )
+            return True
+
+        return False
+
     def record(self, url: str, count: int):
         """
         Record a successful fetch count for future baselines.
@@ -160,3 +194,45 @@ CREATE TABLE IF NOT EXISTS history (
                 conn.commit()
         except Exception as e:
             logger.warning(f"Failed to record anomaly stats: {e}")
+
+    def merge_from(self, other_db_path: Path):
+        """
+        Merge history from another Anomaly DB.
+        """
+        if not other_db_path.exists():
+            return
+
+        try:
+            with (
+                sqlite3.connect(other_db_path) as src,
+                sqlite3.connect(self.db_path) as dst,
+            ):
+                src.execute("PRAGMA journal_mode=WAL")
+                dst.execute("PRAGMA journal_mode=WAL")
+
+                # Copy all history records. We rely on the fact that (url, timestamp) collisions are unlikely
+                # or acceptable (idempotent in spirit, though SQLite doesn't enforce unique on history).
+                # We should probably avoid strict duplicates.
+
+                rows = src.execute(
+                    "SELECT url, count, timestamp FROM history"
+                ).fetchall()
+
+                for row in rows:
+                    url, count, ts = row
+                    # Check if exists
+                    exists = dst.execute(
+                        "SELECT 1 FROM history WHERE url = ? AND timestamp = ?",
+                        (url, ts),
+                    ).fetchone()
+
+                    if not exists:
+                        dst.execute(
+                            "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
+                            (url, count, ts),
+                        )
+
+                dst.commit()
+                logger.info(f"Merged anomaly stats from {other_db_path}")
+        except Exception as e:
+            logger.error(f"Failed to merge anomaly DB {other_db_path}: {e}")
