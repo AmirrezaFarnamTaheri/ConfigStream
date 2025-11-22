@@ -3,6 +3,7 @@
 
 const GITHUB_PAGES_URL = "https://farnam.github.io/ConfigStream"; // Replace with actual repo URL
 const METADATA_URL = `${GITHUB_PAGES_URL}/files/metadata.json`;
+const SECRET_KEY = "REPLACE_WITH_YOUR_SECRET"; // Use wrangler secret in prod
 
 export default {
   async fetch(request, env, ctx) {
@@ -17,9 +18,29 @@ export default {
       return new Response("Method not allowed", { status: 405 });
     }
 
+    // Canary Endpoint for Signed Honeypot Verification
+    if (path === "/canary/sign") {
+        const token = url.searchParams.get("token");
+        if (!token) return new Response("Missing token", { status: 400 });
+
+        // Sign the token
+        const signature = await hmacSha256(env.CANARY_SECRET || SECRET_KEY, token);
+        return new Response(JSON.stringify({ signature: signature }), {
+            headers: { "Content-Type": "application/json" }
+        });
+    }
+
     return new Response("ConfigStream Bot Worker is Running", { status: 200 });
   },
 };
+
+async function hmacSha256(key, data) {
+    const enc = new TextEncoder();
+    const algorithm = { name: "HMAC", hash: "SHA-256" };
+    const keyBuf = await crypto.subtle.importKey("raw", enc.encode(key), algorithm, false, ["sign"]);
+    const signature = await crypto.subtle.sign(algorithm.name, keyBuf, enc.encode(data));
+    return [...new Uint8Array(signature)].map(x => x.toString(16).padStart(2, '0')).join('');
+}
 
 async function handleTelegramWebhook(request, env) {
   try {
@@ -60,6 +81,7 @@ async function handleTelegramWebhook(request, env) {
         responseText = "🔗 *Subscription Links*\n";
         responseText += `Clash: ${GITHUB_PAGES_URL}/files/clash.yaml\n`;
         responseText += `SingBox: ${GITHUB_PAGES_URL}/files/singbox.json\n`;
+        responseText += `VPN Profile: ${GITHUB_PAGES_URL}/files/singbox-vpn.json\n`;
     }
 
     // Send response back to Telegram

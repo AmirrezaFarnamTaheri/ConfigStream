@@ -3,7 +3,17 @@
 # --------------------------------------------------------
 # Stage 1: Builder (Compiles dependencies)
 # --------------------------------------------------------
-FROM python:3.11-slim AS builder
+FROM golang:1.21-bookworm AS go-builder
+
+WORKDIR /go/src/app
+COPY src/go/tester/go.mod ./
+# Copy source
+COPY src/go/tester/ .
+# Build statically linked binary
+RUN go mod tidy && \
+    CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /usr/local/bin/tester main.go
+
+FROM python:3.11-slim AS py-builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -49,11 +59,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy sing-box from builder
-COPY --from=builder /usr/local/bin/sing-box /usr/local/bin/sing-box
+# Copy sing-box from py-builder
+COPY --from=py-builder /usr/local/bin/sing-box /usr/local/bin/sing-box
 
-# Copy installed python packages from builder stage
-COPY --from=builder /install /usr/local
+# Copy Go tester from go-builder
+COPY --from=go-builder /usr/local/bin/tester /usr/local/bin/tester
+
+# Copy installed python packages from py-builder stage
+COPY --from=py-builder /install /usr/local
 
 # Copy application code
 COPY . .
