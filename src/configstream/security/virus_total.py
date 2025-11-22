@@ -2,11 +2,19 @@ import os
 import logging
 import base64
 import aiohttp
+import time
+from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
 VT_API_KEY = os.getenv("VT_API_KEY", "")
 VT_BASE_URL = "https://www.virustotal.com/api/v3"
+
+# Simple LRU Cache for IP reputation to respect API limits
+# Format: {ip: (result, timestamp)}
+_IP_CACHE = OrderedDict()
+CACHE_TTL = 3600  # 1 hour cache
+CACHE_SIZE = 1000
 
 
 async def scan_url(url: str) -> dict:
@@ -51,10 +59,20 @@ async def scan_url(url: str) -> dict:
 
 async def check_ip_reputation(ip: str) -> dict:
     """
-    Checks IP reputation.
+    Checks IP reputation with in-memory caching.
     """
     if not VT_API_KEY:
         return {"malicious": 0}
+
+    # Check Cache
+    now = time.time()
+    if ip in _IP_CACHE:
+        result, timestamp = _IP_CACHE[ip]
+        if now - timestamp < CACHE_TTL:
+            _IP_CACHE.move_to_end(ip)
+            return result
+        else:
+            del _IP_CACHE[ip]
 
     url = f"{VT_BASE_URL}/ip_addresses/{ip}"
     headers = {"x-apikey": VT_API_KEY}
@@ -74,7 +92,14 @@ async def check_ip_reputation(ip: str) -> dict:
                         .get("attributes", {})
                         .get("last_analysis_stats", {})
                     )
-                    return {"malicious": stats.get("malicious", 0)}
+                    result = {"malicious": stats.get("malicious", 0)}
+
+                    # Update Cache
+                    _IP_CACHE[ip] = (result, now)
+                    if len(_IP_CACHE) > CACHE_SIZE:
+                        _IP_CACHE.popitem(last=False)
+
+                    return result
                 else:
                     logger.error(f"VirusTotal API error: {resp.status}")
                     return {"malicious": 0}
