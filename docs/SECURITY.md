@@ -254,45 +254,29 @@ except ValueError:
 
 ### Layer 4: Active Security Scanning
 
-#### Honeypot Detection
+#### Honeypot Detection (Passive)
 
 **Implementation**: `src/configstream/security/honeypot.py`
 
+**Strategy**: Passive Intelligence (VirusTotal)
+
+ConfigStream strictly avoids active scanning (e.g., port scanning) from GitHub Actions to prevent abuse complaints and IP bans.
+
 **Detection Methods**:
 
-1. **Port Scanning**
-   ```python
-   suspicious_ports = [22, 23, 25, 3389, 5900]
-   for port in suspicious_ports:
-       if await is_port_open(ip, port, timeout=2):
-           risk_score += 20
-   ```
+1. **IP Reputation Lookup**
+   - Queries VirusTotal API for the proxy IP.
+   - Checks for malicious flags from 70+ security vendors.
+   - Uses LRU caching to respect API rate limits.
 
-2. **Banner Analysis**
-   ```python
-   banner = await read_banner(ip, port, timeout=2)
-   if "honeypot" in banner.lower():
-       return True
-   ```
+2. **Behavioral Indicators** (Passive)
+   - Subnet flooding detection (Anomaly Module).
+   - High jitter/latency instability.
 
-3. **Behavioral Indicators**
-   - Multiple open services (jack-of-all-trades)
-   - Non-standard SSH banners
-   - Telnet on modern systems
-   - Open SMTP relay
-
-**Risk Scoring**:
-```
-0-20:   Likely legitimate
-21-40:  Suspicious
-41-60:  High risk
-61-100: Definite honeypot
-```
-
-**Trade-offs**:
-- Timeout: 2 seconds (balance speed vs. accuracy)
-- False positives: Legitimate multi-service servers
-- False negatives: Sophisticated honeypots
+**Policy**:
+- **No Active Port Scanning**: To prevent abuse complaints.
+- **Fail Open**: If API is unreachable, defaults to "Safe" to avoid blocking legitimate traffic.
+- **Caching**: Results cached for 1 hour.
 
 #### TLS Fingerprint Randomization (uTLS)
 
