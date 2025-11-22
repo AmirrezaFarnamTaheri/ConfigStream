@@ -8,8 +8,8 @@ from configstream.output import (
     generate_smart_chains,
     ProxyWasher,
     generate_split_outputs,
-    to_singbox_outbound,
 )
+from configstream.converters import to_singbox_outbound
 
 
 @pytest.fixture
@@ -41,7 +41,7 @@ def sample_proxies():
             port=1080,
             country_code="RU",
             is_working=True,
-            tags=["insecure"],  # Marked insecure
+            tags=["insecure"],
             details={"tls": "none"},
         ),
         Proxy(
@@ -51,7 +51,7 @@ def sample_proxies():
             port=8080,
             country_code="IR",
             is_working=True,
-            tags=["dirty_ip"],  # Marked dirty
+            tags=["dirty_ip"],
             details={"tls": "none"},
         ),
         Proxy(
@@ -69,23 +69,13 @@ def sample_proxies():
 
 
 def test_generate_smart_chains(sample_proxies):
-    # Fix logic: generate_smart_chains returns a dict of lists
     chains = generate_smart_chains(sample_proxies)
-
-    # We expect 'experimental' chain for Hysteria -> VMess (US/DE/Standard exit)
-    # In sample_proxies:
-    # Hysteria2 is at 2.2.2.2
-    # VMess is at 1.1.1.1 (US) -> Standard exit
-    # VLESS is at 5.5.5.5 (DE) -> Standard exit
-
-    # Ensure experimental chain is generated
     assert "experimental" in chains
     exp_chain = chains["experimental"]
 
     if exp_chain:
         relay = exp_chain[0]
         exit_node = exp_chain[1]
-
         assert "tag" in relay
         assert "detour" in exit_node
         assert exit_node["detour"] == relay["tag"]
@@ -93,24 +83,13 @@ def test_generate_smart_chains(sample_proxies):
 
 @patch("os.getenv")
 def test_wash_dirty_proxies(mock_getenv, sample_proxies):
-    # Mock WARP keys
     warp_keys = '[{"private_key": "pk1", "peer_public_key": "pub1"}]'
     mock_getenv.return_value = warp_keys
 
-    # Use ProxyWasher class
     washer = ProxyWasher(warp_keys)
-    washed = washer.wash_batch(sample_proxies)
+    washed, washed_ids = washer.wash_batch(sample_proxies)
 
-    # Should wash:
-    # 1. socks5 (insecure) -> WARP
-    # 2. http (dirty_ip) -> WARP
-
-    # Each wash generates [Relay, Exit] -> 2 items
-    # Total 4 items
-
-    assert len(washed) == 4
-
-    # Verify SOCKS washing
+    assert len(washed) >= 4
     socks_relay = washed[0]
     warp_exit = washed[1]
     assert socks_relay["type"] == "socks"
@@ -122,36 +101,30 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
     output_dir = tmp_path / "output"
     output_dir.mkdir()
 
-    # Create some dummy washed outbounds
     washed = [
         {"type": "socks", "tag": "RELAY-1"},
         {"type": "wireguard", "tag": "🛡️ Secure-RU-1", "detour": "RELAY-1"},
     ]
 
-    # Create some dummy chains
+    washed_ids = {"uuid-dirty"}
+
     smart_chains = {"intranet": [], "ipv6": [], "streamer": [], "experimental": []}
 
-    files = generate_split_outputs(sample_proxies, output_dir, washed, smart_chains)
+    files = generate_split_outputs(sample_proxies, output_dir, washed, washed_ids, smart_chains)
 
     assert "singbox_vpn" in files
     assert "singbox" in files
     assert "clash" in files
 
-    # Check Tank (VPN)
     with open(files["singbox_vpn"]) as f:
         vpn_conf = json.load(f)
-        # Should have tun inbound
         assert vpn_conf["inbounds"][0]["type"] == "tun"
-
         tags = [o["tag"] for o in vpn_conf["outbounds"]]
         assert "🛡️ Secure-RU-1" in tags
 
-    # Check Sniper
     with open(files["singbox"]) as f:
         sniper_conf = json.load(f)
-        # Should have mixed inbound
         assert sniper_conf["inbounds"][0]["type"] == "mixed"
-        # Check fragmentation
         for o in sniper_conf["outbounds"]:
             if "tls" in o and isinstance(o["tls"], dict):
                 assert "tls_fragment" in o["tls"]

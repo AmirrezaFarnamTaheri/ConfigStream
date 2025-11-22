@@ -27,20 +27,22 @@ graph TD
 - **Memory Protection**: Enforces strict content length limits (50MB) to prevent OOM on CI runners.
 - **Deduplication**: Fingerprints configs to avoid duplicate processing.
 
-### 2. Processing Core (`pipeline.py`)
+### 2. Processing Core (`pipeline.py` & `pipeline_stages.py`)
 - **Streaming**: Uses `asyncio.Queue` for backpressure management.
+- **Modular Stages**: Logic separated into `source_producer` and `processing_consumer` for maintainability.
 - **Parallel Parsing**: Offloads CPU-intensive regex/decoding to a process executor to keep the event loop responsive.
 - **Parsing**: `auto_detect.py` identifies protocols (VMess, VLESS, Trojan, Hysteria 2, etc.).
 - **Normalization**: Standardizes config formats into a common `Proxy` model.
 
-### 3. Validation & Testing (`testers.py` & `src/go/tester`)
-- **High-Performance Go Engine**: Replaces Python subprocesses with a compiled Go binary for batch testing.
+### 3. Validation & Testing (`testers.py`, `testers_core.py` & `src/go/tester`)
+- **High-Performance Go Engine**: Replaces Python subprocesses with a compiled Go binary (`configstream-tester`) for batch testing.
     - **Concurrency**: Uses worker pools and Goroutines to test thousands of proxies with minimal CPU overhead.
+    - **Stability**: Implements retry loops with jitter to handle "Address Already in Use" race conditions.
     - **Honeypot**: Verifies cryptographically signed tokens against a Cloudflare Worker to detect MITM attacks.
 - **Sing-box Core**: Wraps Sing-box for legacy/fallback testing.
 - **Latency Measurement**: Calculates RTT with jitter penalties.
 
-### 4. Intelligence & Optimization (`output.py`)
+### 4. Intelligence & Optimization (`output.py`, `intelligence/washer.py`)
 The "Brain" of the system now includes active network engineering:
 
 *   **Proxy Washing**:
@@ -54,11 +56,11 @@ The "Brain" of the system now includes active network engineering:
 Located in `src/configstream/`, this layer optimizes resource usage and reliability.
 
 *   **Anomaly Detection (`anomaly.py`)**:
-    *   Uses statistical analysis (Isolation Forest conceptual model) to detect sources with unusual proxy counts.
-    *   Prevents "poisoning" attacks where a source floods the system with thousands of bad proxies.
+    - Uses statistical analysis (Isolation Forest conceptual model) to detect sources with unusual proxy counts.
+    - Prevents "poisoning" attacks where a source floods the system with thousands of bad proxies.
 *   **Source Quality Tracking (`source_quality.py`)**:
-    *   Maintains a long-term reputation score for every source URL.
-    *   Tracks success rates, latency stability, and "geo-diversity".
+    - Maintains a long-term reputation score for every source URL.
+    - Tracks success rates, latency stability, and "geo-diversity".
 
 ### 6. Unified Frontend (`frontend/`)
 The frontend is a single-page application (SPA) served statically via GitHub Pages.
@@ -68,7 +70,8 @@ The frontend is a single-page application (SPA) served statically via GitHub Pag
 *   **Visualizations**: Uses Chart.js for protocol/latency distribution.
 *   **PWA**: Fully offline-capable Progressive Web App.
 
-### 7. Output Generation (`output.py`)
+### 7. Output Generation (`output.py`, `output_generators.py`)
+- **Generators**: Extracted logic for robust file creation.
 - **Formats**:
     - **singbox-vpn.json ("The Tank")**: Tun mode, auto-route, GVisor stack.
     - **singbox.json ("The Sniper")**: Smart Selector groups (Intranet Bridge, IPv6 Portal), Mixed Port.
