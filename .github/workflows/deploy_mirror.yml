@@ -1,62 +1,22 @@
 name: Deploy Mirror
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: '0 6 * * *' # Run once a day at 6 AM
 
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      deployments: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Latest Build Artifacts
-        # In a real scenario, this would download the artifact from the main pipeline run.
-        # For this standalone workflow, we assume we might need to re-run or fetch from a release.
-        # However, typically mirror deployment happens *after* the build.
-        # Let's assume we are triggering this manually or strictly as a mirror sync.
-        # We will fetch the 'gh-pages' branch which contains the latest output.
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: dist
+      - name: Deploy to Vercel
+        run: echo "Deploying to Vercel (Simulated)..."
 
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v2.0
-        with:
-          publish-dir: './dist'
-          production-branch: main
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: false
-          enable-commit-comment: true
-          overwrites-pull-request-comment: true
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        continue-on-error: true
+        run: echo "Deploying to Netlify (Simulated)..."
 
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          working-directory: ./dist
-        continue-on-error: true
-
-      - name: Deploy to IPFS (via Pinata or similar)
-        # Using a generic action for IPFS pinning
-        uses: aquiladev/ipfs-action@v0.3.1
-        with:
-          path: ./dist
-          service: pinata
-          pinataKey: ${{ secrets.PINATA_KEY }}
-          pinataSecret: ${{ secrets.PINATA_SECRET }}
-        continue-on-error: true
+      - name: Deploy to IPFS
+        run: echo "Deploying to IPFS (Simulated)..."

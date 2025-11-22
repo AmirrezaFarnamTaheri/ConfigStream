@@ -5,33 +5,35 @@
 # --------------------------------------------------------
 FROM python:3.11-slim AS builder
 
-# Prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1 \
-PYTHONDONTWRITEBYTECODE=1 \
-PIP_NO_CACHE_DIR=1 \
-PIP_DISABLE_PIP_VERSION_CHECK=1
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-# Install system build tools (needed for some python C-extensions)
+# Install system build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-gcc \
-libc-dev \
-&& rm -rf /var/lib/apt/lists/*
     gcc \
     libc-dev \
+    curl \
+    tar \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only dependency files first to leverage Docker cache
+# Install sing-box
+RUN LATEST_URL=$(curl -s "https://api.github.com/repos/SagerNet/sing-box/releases/latest" | grep "browser_download_url.*linux-amd64.tar.gz" | cut -d '"' -f 4) && \
+    curl -L -o sing-box.tar.gz $LATEST_URL && \
+    tar -xzf sing-box.tar.gz && \
+    EXTRACTED_DIR=$(tar -tzf sing-box.tar.gz | head -1 | cut -f1 -d"/") && \
+    mv $EXTRACTED_DIR/sing-box /usr/local/bin/ && \
+    rm -rf sing-box.tar.gz $EXTRACTED_DIR
+
+# Copy only dependency files first
 COPY pyproject.toml README.md ./
 COPY src/configstream/__init__.py src/configstream/
 
 # Install dependencies into a virtual environment
 RUN pip install --upgrade pip build
-# Install project + dependencies into /install directory
 RUN pip install --prefix=/install .
 
 # --------------------------------------------------------
@@ -41,12 +43,14 @@ FROM python:3.11-slim AS runtime
 
 WORKDIR /app
 
-# Install minimal runtime deps (curl for healthchecks)
+# Install minimal runtime deps (curl, ca-certificates)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-curl \
-&& rm -rf /var/lib/apt/lists/*
     curl \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Copy sing-box from builder
+COPY --from=builder /usr/local/bin/sing-box /usr/local/bin/sing-box
 
 # Copy installed python packages from builder stage
 COPY --from=builder /install /usr/local
@@ -59,8 +63,6 @@ RUN mkdir -p data output sources
 
 # Set environment variables
 ENV OUTPUT_DIR=/app/output \
-DATA_DIR=/app/data \
-FRONTEND_DIR=/app/frontend
     DATA_DIR=/app/data \
     FRONTEND_DIR=/app/frontend
 
@@ -69,9 +71,7 @@ EXPOSE 8000
 
 # Healthcheck to ensure web server is up
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-CMD curl -f http://localhost:8000/health || exit 1
     CMD curl -f http://localhost:8000/health || exit 1
 
-# Default Command: Start Web Server AND Worker (managed via script or compose)
-# By default, we run the web server. Users can override command to run 'configstream merge ...'
+# Default Command
 CMD ["uvicorn", "configstream.server:app", "--host", "0.0.0.0", "--port", "8000"]
