@@ -6,8 +6,9 @@ Supports Surge, Loon, Quantumult X, and SIP008.
 import abc
 import json
 import logging
-from typing import List
+from typing import List, Optional, Dict, Any
 from .models import Proxy
+from .adapters_base import format_singbox_chain_for_surge, format_singbox_chain_for_loon
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,11 @@ class Adapter(abc.ABC):
     """Base class for proxy adapters."""
 
     @abc.abstractmethod
-    def export(self, proxies: List[Proxy]) -> str:
+    def export(
+        self,
+        proxies: List[Proxy],
+        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
         """Export a list of proxies to the adapter's format."""
         raise NotImplementedError
 
@@ -24,8 +29,14 @@ class Adapter(abc.ABC):
 class SurgeAdapter(Adapter):
     """Export to Surge 4/5 format."""
 
-    def export(self, proxies: List[Proxy]) -> str:
+    def export(
+        self,
+        proxies: List[Proxy],
+        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
         lines = ["# Surge Policy Export"]
+
+        # 1. Export Standard Proxies
         for p in proxies:
             try:
                 line = self._format_proxy(p)
@@ -33,6 +44,26 @@ class SurgeAdapter(Adapter):
                     lines.append(line)
             except Exception as e:
                 logger.debug(f"Failed to export {p.protocol} to Surge: {e}")
+
+        # 2. Export Washed Proxies (Converted from Sing-box Outbounds)
+        if washed_outbounds:
+            for out in washed_outbounds:
+                try:
+                    # We are looking for the WireGuard Exit nodes that detour to a Relay
+                    if (
+                        out.get("type") == "wireguard"
+                        and out.get("tag", "").startswith("🛡️ Secure")
+                        and out.get("detour")
+                    ):
+                        # Mypy fix: format_singbox_chain_for_surge returns Optional[str], we append only if str
+                        chain_line = format_singbox_chain_for_surge(
+                            out, washed_outbounds
+                        )
+                        if chain_line:
+                            lines.append(chain_line)
+                except Exception as e:
+                    logger.debug(f"Failed to export chain to Surge: {e}")
+
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
@@ -69,14 +100,21 @@ class SurgeAdapter(Adapter):
             psk = p.details.get("psk", "")
             return f"{name} = snell, {p.address}, {p.port}, psk={psk}"
 
+        # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
         return ""
 
 
 class LoonAdapter(Adapter):
     """Export to Loon format."""
 
-    def export(self, proxies: List[Proxy]) -> str:
+    def export(
+        self,
+        proxies: List[Proxy],
+        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
         lines = ["# Loon Proxy Export"]
+
+        # 1. Export Standard Proxies
         for p in proxies:
             try:
                 line = self._format_proxy(p)
@@ -84,6 +122,25 @@ class LoonAdapter(Adapter):
                     lines.append(line)
             except Exception as e:
                 logger.debug(f"Failed to export {p.protocol} to Loon: {e}")
+
+        # 2. Export Washed Proxies (Loon WireGuard-over-Proxy)
+        if washed_outbounds:
+            for out in washed_outbounds:
+                try:
+                    if (
+                        out.get("type") == "wireguard"
+                        and out.get("tag", "").startswith("🛡️ Secure")
+                        and out.get("detour")
+                    ):
+                        # Mypy fix: format_singbox_chain_for_loon returns Optional[str]
+                        chain_line = format_singbox_chain_for_loon(
+                            out, washed_outbounds
+                        )
+                        if chain_line:
+                            lines.append(chain_line)
+                except Exception as e:
+                    logger.debug(f"Failed to export chain to Loon: {e}")
+
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
@@ -107,13 +164,18 @@ class LoonAdapter(Adapter):
             password = p.uuid
             return f'{name} = trojan, {p.address}, {p.port}, "{password}"'
 
+        # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
         return ""
 
 
 class QuantumultXAdapter(Adapter):
     """Export to Quantumult X format."""
 
-    def export(self, proxies: List[Proxy]) -> str:
+    def export(
+        self,
+        proxies: List[Proxy],
+        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
         lines = []
         for p in proxies:
             try:
@@ -144,13 +206,18 @@ class QuantumultXAdapter(Adapter):
             password = p.uuid
             return f"trojan={name}: {p.address}, {p.port}, password={password}"
 
+        # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
         return ""
 
 
 class SIP008Adapter(Adapter):
     """Export to SIP008 JSON format."""
 
-    def export(self, proxies: List[Proxy]) -> str:
+    def export(
+        self,
+        proxies: List[Proxy],
+        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
         # SIP008 is a JSON format for Shadowsocks delivery
         servers = []
         for p in proxies:
@@ -197,16 +264,14 @@ class ShadowrocketAdapter(Adapter):
             method = p.details.get("method", "chacha20-ietf-poly1305")
             password = p.details.get("password", "")
             userpass = f"{method}:{password}"
-            b64_auth = (
-                base64.urlsafe_b64encode(userpass.encode())
-                .decode()
-                .rstrip("=")
-            )
+            b64_auth = base64.urlsafe_b64encode(userpass.encode()).decode().rstrip("=")
             return f"ss://{b64_auth}@{p.address}:{p.port}#{p.remarks or 'ConfigStream'}"
 
         elif p.protocol == "trojan":
             # trojan://password@server:port#remarks
-            return f"trojan://{p.uuid}@{p.address}:{p.port}#{p.remarks or 'ConfigStream'}"
+            return (
+                f"trojan://{p.uuid}@{p.address}:{p.port}#{p.remarks or 'ConfigStream'}"
+            )
 
         elif p.protocol == "vmess":
             # vmess://base64(json)
@@ -229,13 +294,15 @@ class ShadowrocketAdapter(Adapter):
                 "sni": p.details.get("sni", ""),
                 "alpn": p.details.get("alpn", ""),
             }
-            return "vmess://" + base64.b64encode(
-                json.dumps(v_obj).encode()
-            ).decode()
+            return "vmess://" + base64.b64encode(json.dumps(v_obj).encode()).decode()
 
         return ""
 
-    def export(self, proxies: List[Proxy]) -> str:
+    def export(
+        self,
+        proxies: List[Proxy],
+        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
         # Shadowrocket mainly uses standard subscription links (ss://, vmess://, etc.)
         # but can also import Surge/Clash configs.
         # The best "native" format is a list of URI schemes.

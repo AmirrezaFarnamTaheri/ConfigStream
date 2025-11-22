@@ -8,8 +8,9 @@ from configstream.output import (
     generate_smart_chains,
     ProxyWasher,
     generate_split_outputs,
-    to_singbox_outbound
+    to_singbox_outbound,
 )
+
 
 @pytest.fixture
 def sample_proxies():
@@ -22,7 +23,7 @@ def sample_proxies():
             uuid="uuid1",
             country_code="US",
             is_working=True,
-            details={"net": "ws"}
+            details={"net": "ws"},
         ),
         Proxy(
             config="hysteria2://...",
@@ -31,7 +32,7 @@ def sample_proxies():
             port=443,
             country_code="CN",
             is_working=True,
-            details={}
+            details={},
         ),
         Proxy(
             config="socks5://...",
@@ -40,8 +41,8 @@ def sample_proxies():
             port=1080,
             country_code="RU",
             is_working=True,
-            tags=["insecure"], # Marked insecure
-            details={"tls": "none"}
+            tags=["insecure"],  # Marked insecure
+            details={"tls": "none"},
         ),
         Proxy(
             config="http://...",
@@ -50,8 +51,8 @@ def sample_proxies():
             port=8080,
             country_code="IR",
             is_working=True,
-            tags=["dirty_ip"], # Marked dirty
-            details={"tls": "none"}
+            tags=["dirty_ip"],  # Marked dirty
+            details={"tls": "none"},
         ),
         Proxy(
             config="vless://...",
@@ -62,9 +63,10 @@ def sample_proxies():
             country_code="DE",
             is_working=True,
             is_secure=True,
-            details={"tls": "tls"}
-        )
+            details={"tls": "tls"},
+        ),
     ]
+
 
 def test_generate_smart_chains(sample_proxies):
     # Fix logic: generate_smart_chains returns a dict of lists
@@ -87,6 +89,7 @@ def test_generate_smart_chains(sample_proxies):
         assert "tag" in relay
         assert "detour" in exit_node
         assert exit_node["detour"] == relay["tag"]
+
 
 @patch("os.getenv")
 def test_wash_dirty_proxies(mock_getenv, sample_proxies):
@@ -114,6 +117,7 @@ def test_wash_dirty_proxies(mock_getenv, sample_proxies):
     assert warp_exit["type"] == "wireguard"
     assert warp_exit["detour"] == socks_relay["tag"]
 
+
 def test_generate_split_outputs(tmp_path, sample_proxies):
     output_dir = tmp_path / "output"
     output_dir.mkdir()
@@ -121,16 +125,11 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
     # Create some dummy washed outbounds
     washed = [
         {"type": "socks", "tag": "RELAY-1"},
-        {"type": "wireguard", "tag": "🛡️ Secure-RU-1", "detour": "RELAY-1"}
+        {"type": "wireguard", "tag": "🛡️ Secure-RU-1", "detour": "RELAY-1"},
     ]
 
     # Create some dummy chains
-    smart_chains = {
-        "intranet": [],
-        "ipv6": [],
-        "streamer": [],
-        "experimental": []
-    }
+    smart_chains = {"intranet": [], "ipv6": [], "streamer": [], "experimental": []}
 
     files = generate_split_outputs(sample_proxies, output_dir, washed, smart_chains)
 

@@ -13,6 +13,7 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
 from .models import Proxy
+from .utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,8 @@ class ProxyHistoryTracker:
     def _save_history(self) -> None:
         """Save history data to disk."""
         try:
-            self.history_path.write_text(json.dumps(self.history_data, indent=2))
+            content = json.dumps(self.history_data, indent=2)
+            AtomicFileWriter.write_text(self.history_path, content)
         except Exception as e:
             logger.error("Failed to save proxy history: %s", e)
 
@@ -227,8 +229,11 @@ class ProxyHistoryTracker:
 
         # Save
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(viz_data, indent=2))
-        logger.info("Exported history visualization data to %s", output_path)
+        try:
+            AtomicFileWriter.write_text(output_path, json.dumps(viz_data, indent=2))
+            logger.info("Exported history visualization data to %s", output_path)
+        except Exception as e:
+            logger.error("Failed to export visualization data: %s", e)
 
     def cleanup_old_data(self, days: int = 30) -> int:
         """
@@ -324,7 +329,10 @@ class ProxyHistoryTracker:
             logger.warning("No working proxy data found for trend analysis.")
             # Write an empty list so the frontend doesn't 404
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(json.dumps([], indent=2))
+            try:
+                AtomicFileWriter.write_text(output_path, json.dumps([], indent=2))
+            except Exception as e:
+                logger.error("Failed to write empty trend data: %s", e)
             return
 
         # Convert the defaultdict(set) to a sorted list
@@ -340,5 +348,8 @@ class ProxyHistoryTracker:
 
         # Save to file
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(trend_data, indent=2))
-        logger.info("Exported active proxy trend data to %s", output_path)
+        try:
+            AtomicFileWriter.write_text(output_path, json.dumps(trend_data, indent=2))
+            logger.info("Exported active proxy trend data to %s", output_path)
+        except Exception as e:
+            logger.error("Failed to export trend data: %s", e)
