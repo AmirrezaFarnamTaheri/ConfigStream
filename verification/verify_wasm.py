@@ -63,7 +63,7 @@ def run():
                                     "protocol": "vmess",
                                     "country_code": "US",
                                     "city": "New York",
-                                    "latency": 10,
+                                    "latency": 120,
                                     "is_working": true,
                                     "config": "vmess://...",
                                     "history": [100, 110, 800, 120, 115],
@@ -109,11 +109,11 @@ def run():
         rows = page.locator(".proxy-row")
         expect(rows).to_have_count(2)
 
-        # 2. Verify Sparkline (on first row)
+        # 2. Verify Sparkline
         sparkline = rows.first.locator("svg.sparkline")
         expect(sparkline).to_be_visible()
 
-        # 3. Verify Washed Badge (on first row, since we made it faster)
+        # 3. Verify Washed Badge
         badge = rows.first.locator(".shield-badge")
         expect(badge).to_be_visible()
 
