@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import random
+import hashlib
 from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 
 from .models import Proxy
@@ -97,36 +98,63 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 
 def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
     """
-    Aggressive post-processing filter.
-    Groups working proxies by (Resolved IP, Port, Protocol, SNI, Path, UUID/Auth).
+    Aggressive post-processing filter using Fuzzy Fingerprinting.
+    Groups proxies by a hash of (Resolved IP, Port, UUID, Transport Path, SNI).
+    This handles cases where the same server is listed with different remarks or slight URL variations.
     """
-    # Key: (Protocol, IP, Port, SNI, Path, UUID/Auth)
-    endpoint_map: Dict[Tuple[str, str, int, str, str, str], Proxy] = {}
+    # Key: Fingerprint Hash -> Proxy
+    fingerprint_map: Dict[str, Proxy] = {}
 
     for p in proxies:
-        addr = p.resolved_ip if p.resolved_ip else p.address
-        sni = (p.sni or "").lower().strip()
-        # INCLUDE PATH to save multiplexed services
+        # 1. Gather Core Identity Fields
+        addr = (p.resolved_ip or p.address).lower().strip()
+        port = str(p.port)
+        uuid = (p.uuid or "").lower().strip()
+
+        # 2. Gather Transport Specifics (critical for differentiation)
         path = (p.path or "").strip()
-        # INCLUDE UUID/Password to allow multiple accounts on same server
-        auth = (p.uuid or "").strip() or str(p.details.get("password", "")).strip()
+        if path == "/": path = ""
 
-        key = (p.protocol.lower(), addr.lower(), int(p.port), sni, path, auth)
+        sni = (p.sni or "").lower().strip()
 
-        existing = endpoint_map.get(key)
+        # 3. Construct Fingerprint String
+        # We ignore 'remarks', 'protocol' (sometimes vmess/vless are confused but same backend),
+        # and 'title'.
+        # Format: IP:PORT|UUID|PATH|SNI
+        raw_fingerprint = f"{addr}:{port}|{uuid}|{path}|{sni}"
+
+        # 4. Hash it
+        fingerprint = hashlib.md5(raw_fingerprint.encode('utf-8')).hexdigest()
+
+        existing = fingerprint_map.get(fingerprint)
         if not existing:
-            endpoint_map[key] = p
+            fingerprint_map[fingerprint] = p
         else:
-            # Collision: keep the faster one
+            # Collision: keep the "better" one
+
+            # Preference 1: Working vs Not Working
+            if p.is_working and not existing.is_working:
+                fingerprint_map[fingerprint] = p
+                continue
+            if existing.is_working and not p.is_working:
+                continue
+
+            # Preference 2: Lower Latency
             existing_latency = (
                 existing.latency if existing.latency is not None else float("inf")
             )
             new_latency = p.latency if p.latency is not None else float("inf")
 
             if new_latency < existing_latency:
-                endpoint_map[key] = p
+                fingerprint_map[fingerprint] = p
+                continue
 
-    return list(endpoint_map.values())
+            # Preference 3: Has more metadata (e.g. correct Country Code)
+            if p.country_code and p.country_code != 'XX' and existing.country_code == 'XX':
+                fingerprint_map[fingerprint] = p
+                continue
+
+    return list(fingerprint_map.values())
 
 
 class ProxyFilter:

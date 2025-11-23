@@ -3178,3 +3178,69 @@ body:not(.dark) .mission-card {
         padding: 1rem;
     }
 }
+
+/* Force Mobile Card View */
+@media (max-width: 768px) {
+    .proxies-table, .proxies-table tbody, .proxies-table tr {
+        display: block;
+        width: 100%;
+    }
+
+    .proxies-table thead {
+        display: none;
+    }
+
+    .proxies-table tr {
+        margin-bottom: 1rem;
+        border-radius: var(--radius-md);
+        background: var(--bg-secondary);
+        padding: 1rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .proxies-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border: none;
+        border-bottom: 1px solid var(--border);
+        text-align: right;
+    }
+
+    .proxies-table td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .proxies-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-right: 1rem;
+        text-align: left;
+    }
+
+    /* Hide empty labels if data-label is missing */
+    .proxies-table td:not([data-label])::before {
+        display: none;
+    }
+
+    /* Adjust cell contents for card view */
+    .location-cell {
+        justify-content: flex-end;
+    }
+
+    .status-cell {
+        justify-content: flex-end;
+    }
+
+    /* Reset border radius for cells since they are now stacked */
+    .proxies-table tr:first-child td:first-child,
+    .proxies-table tr:first-child td:last-child,
+    .proxies-table tr:last-child td:first-child,
+    .proxies-table tr:last-child td:last-child {
+        border-radius: 0;
+    }
+}
