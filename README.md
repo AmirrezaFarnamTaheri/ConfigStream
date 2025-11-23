@@ -5,74 +5,75 @@
 
 **The Network Intelligence Platform for the Open Internet.**
 
-ConfigStream is an automated, high-performance system that aggregates, tests, and distributes censorship-resistant proxy configurations (VLESS, VMess, Trojan, Shadowsocks) using a "Zero Budget" architecture.
+ConfigStream is an automated, high-performance system that aggregates, tests, and distributes censorship-resistant proxy configurations (VLESS, VMess, Trojan, Shadowsocks) using a **Strict "Zero Budget" Architecture**.
+
+We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-*   **Hybrid Engine:** Combines Python's intelligence with Go's raw networking power to verify thousands of proxies in seconds.
-*   **Proxy Washing:** Automatically wraps "dirty" or blocked IPs in secure WireGuard tunnels (via WARP) to bypass 403 Forbidden blocks.
-*   **Smart Routing:** Generates "Intranet Bridges" and "IPv6 Portals" to route traffic intelligently around censorship firewalls.
-*   **Zero-Trust Security:**
-    *   **Active Honeypot Detection:** Scans for dangerous open ports (SSH/Telnet) to reject surveillance nodes.
-    *   **Passive Intelligence:** Checks IP reputation against VirusTotal.
-*   **Fuzzy Fingerprinting:** Uses advanced hashing to remove 40% of "fake unique" duplicates that plague other aggregators.
+### 🧠 Intelligence Core
+*   **Hybrid Engine:** Combines Python's flexibility with a high-performance Go sidecar to verify thousands of proxies in seconds.
+*   **Proxy Washing:** Automatically wraps "dirty" or blocked IPs in secure WireGuard tunnels (via Cloudflare WARP) to bypass region blocks.
+*   **Pareto Optimization:** Sorts proxies not just by latency, but by a weighted score of **Reliability, Uptime, and Success Rate**.
+
+### 🛡️ Zero-Abuse Security
+*   **Passive Verification:** We reject active scanning (port scanning) to protect our infrastructure and respect the net. We use **VirusTotal** and **IP Reputation** lists instead.
+*   **Honeypot Avoidance:** Detects and filters out surveillance nodes and fake proxies.
+*   **Safe FFI:** Optional Rust-based Shadowsocks verification (disabled by default in CI to save build minutes).
+
+### ⚡ Client-Side Edge Computing
+*   **WASM Tester:** (Experimental) Moves the verification logic to the user's browser via WebAssembly, creating a distributed, decentralized testing network.
+*   **Static Vector Search:** (Roadmap) Pre-computed similarity indexes allow for "Smart Filtering" directly in the frontend.
 
 ---
 
-## 📚 Documentation
+## 📚 Zero to Hero Documentation
 
-We believe in "Zero to Hero" documentation.
+We believe in comprehensive, deep documentation.
 
-*   [**Wiki Home**](docs/wiki/Home.md): Start here.
-*   [**Architecture**](docs/wiki/Architecture.md): How the Sidecar pattern works.
-*   [**Security**](docs/wiki/Security.md): Deep dive into Honeypot detection and Washing.
-*   [**Engineering**](docs/wiki/Engineering.md): The algorithms behind scoring and deduplication.
-*   [**API Reference**](docs/wiki/API_Reference.md): JSON output schemas.
+*   [**Architecture Deep Dive**](ARCHITECTURE.md): The complete system design, data flow, and component analysis.
+*   [**Frontend Dashboard**](https://amirrezafarnamtaheri.github.io/ConfigStream/): Real-time visualization and subscription management.
 
 ---
 
 ## 📦 Usage
 
 ### Subscription Links
-For the best experience, visit our [**Frontend Dashboard**](https://amirrezafarnamtaheri.github.io/ConfigStream/).
+Direct links to generated configurations (updated every 6 hours):
 
-Direct Links (replace with your URL):
-*   **Universal (Base64):** `https://.../output/base64.txt`
-*   **Sing-box (Sniper/Router):** `https://.../output/singbox.json`
-*   **Sing-box (Tank/VPN):** `https://.../output/singbox-vpn.json`
-*   **Clash:** `https://.../output/clash.yaml`
+*   **The Sniper (Routing):** `https://.../output/singbox.json` (Best for speed/rules)
+*   **The Tank (VPN):** `https://.../output/singbox-vpn.json` (Best for stability/tun)
+*   **The Diplomat (Clash):** `https://.../output/clash.yaml` (Wide compatibility)
+*   **Universal:** `https://.../output/base64.txt`
 
 ### Running Locally
 
-You can run the entire pipeline locally using Docker.
+Run the full pipeline on your machine:
 
 ```bash
-# Build and run
+# Using Docker (Recommended)
 docker compose up --build
 
-# The output will be available in the local output/ directory
+# Using Python
+pip install -e ".[dev]"
+python -m configstream.cli merge --sources sources/batch_1.txt
 ```
 
 ---
 
-## 🛠️ Development
+## 🛠️ Contributing
 
-We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for our roadmap and style guide.
+We operate on a **Zero Budget** constraint.
+*   **No Paid Services:** Do not introduce dependencies on paid APIs or databases.
+*   **No Abuse:** Do not add active scanning or aggressive scraping.
+*   **Efficiency:** Optimize for CI/CD limits (CPU minutes, storage).
 
-**Quick Start:**
-
-```bash
-# Install dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License.
+MIT License.

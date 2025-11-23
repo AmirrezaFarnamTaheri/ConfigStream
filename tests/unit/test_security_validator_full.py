@@ -1,20 +1,25 @@
-
 import pytest
-from configstream.security_validator import validate_batch_configs, STRICT_POLICY, TEST_POLICY
+from configstream.security_validator import (
+    validate_batch_configs,
+    STRICT_POLICY,
+    TEST_POLICY,
+)
 from configstream.models import Proxy
-from tests.conftest_helper import create_test_proxy
+from tests.unit.conftest_helper import create_test_proxy
+
 
 def test_validate_strict_policy():
     # Should pass
-    p1 = create_test_proxy(address="1.1.1.1", port=443, details={'tls': True})
+    p1 = create_test_proxy(address="1.1.1.1", port=443, details={"tls": True})
     # Should fail (non-standard port, no tls)
-    p2 = create_test_proxy(address="1.1.1.1", port=8080, details={'tls': False})
+    p2 = create_test_proxy(address="1.1.1.1", port=8080, details={"tls": False})
 
     # Strict policy enforces TLS and safe ports (usually)
     results = validate_batch_configs([p1, p2], STRICT_POLICY)
 
     # Strict policy logic checks port
     assert len(results) >= 1
+
 
 def test_validate_rejects_bad_ips():
     # Private IP
@@ -24,11 +29,13 @@ def test_validate_rejects_bad_ips():
     results = validate_batch_configs([p1, p2, p3], TEST_POLICY)
     assert len(results) == 0
 
+
 def test_validate_rejects_invalid_uuid():
     p1 = create_test_proxy(uuid="invalid-uuid")
     # Default validation might not check UUID format strictly unless configured
     results = validate_batch_configs([p1], TEST_POLICY)
     assert len(results) >= 0
+
 
 def test_validate_malformed_address():
     # Validator might accept it if it looks like a domain but logic checks blocklist etc.

@@ -1,7 +1,7 @@
-
 import pytest
 from configstream.performance import PerformanceTracker
 import time
+
 
 def test_performance_tracker():
     tracker = PerformanceTracker()

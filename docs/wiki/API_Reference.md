@@ -1,53 +1,62 @@
 # API Reference
 
-ConfigStream generates static JSON/YAML artifacts. These are your "endpoints".
+ConfigStream produces static JSON/YAML artifacts. These are served via GitHub Pages and act as a read-only API.
 
-**Base URL:** `https://YOUR_USERNAME.github.io/ConfigStream/output/`
+## Core Endpoints
 
-## 1. Subscription Files
-
-| File | Format | Description |
-| :--- | :--- | :--- |
-| `singbox.json` | JSON | **Sniper Mode**. Best for routers. Contains Routing Rules (blocked sites -> proxy, local -> direct). |
-| `singbox-vpn.json` | JSON | **Tank Mode**. Best for apps. Routes ALL traffic through the proxy (TUN mode). |
-| `clash.yaml` | YAML | Standard Clash configuration. |
-| `base64.txt` | Text | Standard Base64 subscription string. Compatible with v2rayNG, Streisand, etc. |
-| `shadowrocket.txt` | Text | Optimized for Shadowrocket (iOS). |
-| `sip008.json` | JSON | SIP008 standard format for Shadowsocks. |
-
-## 2. Metadata & Statistics
+### `proxies.json`
+The master list of all working proxies.
+```json
+[
+  {
+    "protocol": "vmess",
+    "address": "1.2.3.4",
+    "port": 443,
+    "uuid": "...",
+    "country_code": "US",
+    "latency": 120,
+    "is_working": true,
+    "details": {
+      "net": "ws",
+      "tls": "tls",
+      "sni": "example.com"
+    }
+  }
+]
+```
 
 ### `metadata.json`
-Contains system health data.
-
+Statistics and system status for the frontend.
 ```json
 {
-  "last_updated_utc": "2023-10-27T10:00:00Z",
-  "total_fetched": 15000,
-  "total_tested": 8000,
-  "total_working": 2500,
-  "version": "4.0.0",
-  "protocol_colors": {
-    "vmess": "#ff0000",
-    "vless": "#00ff00"
+  "last_updated_utc": "2023-10-27T10:00:00+00:00",
+  "total_proxies": 1542,
+  "total_working": 850,
+  "countries": { "US": 400, "DE": 200 },
+  "protocols": { "vmess": 500, "vless": 350 },
+  "latency_distribution": {
+    "fast": 100,
+    "medium": 400,
+    "slow": 300,
+    "very_slow": 50
   }
 }
 ```
 
-### `summary.json`
-Contains granular stats for the analytics dashboard.
-
+### `vectors.json`
+**New in v1.4**: Feature vectors for client-side similarity search.
 ```json
 {
-  "protocols": {
-    "vmess": 1200,
-    "vless": 800,
-    "trojan": 500
-  },
-  "countries": {
-    "US": 500,
-    "DE": 300,
-    "SG": 200
-  }
+  "proxy_uuid_hash": [3, 8, 1, 4, 2, 0, 0, 0],
+  ...
 }
 ```
+*   **Vector Schema**: `[ProtocolHash, CountryHash, LatencyBucket, PortHash, ISPHash, SecScore, StabScore, RelScore]`
+*   Used by the frontend to find "proxies like this one" without a backend vector DB.
+
+## Subscription Endpoints
+
+*   `/output/singbox.json`: Sing-box "Sniper" config (Routing-focused).
+*   `/output/singbox-vpn.json`: Sing-box "Tank" config (Tun/VPN-focused).
+*   `/output/clash.yaml`: Clash.Meta configuration.
+*   `/output/base64.txt`: Standard base64 subscription list.

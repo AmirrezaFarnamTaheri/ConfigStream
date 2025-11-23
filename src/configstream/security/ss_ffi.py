@@ -7,6 +7,7 @@ import logging
 import shutil
 import subprocess
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -24,40 +25,16 @@ LIB_PATH = Path(__file__).parent.parent.parent.parent / "bin" / LIB_NAME
 
 
 def ensure_library():
-    """Ensure the Rust library exists, building it if necessary."""
+    """Ensure the Rust library exists. DO NOT BUILD at runtime."""
     if LIB_PATH.exists():
         return True
 
-    if not shutil.which("cargo"):
-        logger.warning("Cargo not found. Cannot build Shadowsocks-Rust FFI.")
-        return False
-
-    src_dir = Path(__file__).parent.parent.parent.parent / "src" / "rust" / "ss_checker"
-
-    logger.info("Building Shadowsocks-Rust FFI...")
-    try:
-        subprocess.run(
-            ["cargo", "build", "--release"],
-            cwd=src_dir,
-            check=True,
-            capture_output=True,
-        )
-
-        # Move artifact to bin/
-        target_dir = src_dir / "target" / "release"
-        # Find the dylib
-        found = list(target_dir.glob(f"*{Path(LIB_NAME).suffix}"))
-        if found:
-            output_dir = LIB_PATH.parent
-            output_dir.mkdir(exist_ok=True)
-            shutil.copy(found[0], LIB_PATH)
-            return True
-        else:
-            logger.error("Build passed but artifact not found.")
-            return False
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to build Rust library: {e}")
-        return False
+    # In a Zero-Budget / CI environment, we avoid compiling Rust at runtime
+    # to save minutes. We rely on the binary being pre-built or just fall back.
+    logger.debug(
+        "Shadowsocks-Rust library not found. Skipping compilation for efficiency."
+    )
+    return False
 
 
 _lib = None
@@ -75,11 +52,10 @@ def verify_ss_rust(config: dict) -> bool:
     global _lib, _warned_missing
     if not ensure_library():
         # Graceful degradation: Skip this enhanced validation if library unavailable
-        # This is an optional advanced feature - core functionality should not be blocked
         if not _warned_missing:
             logger.warning(
                 "Shadowsocks-Rust library unavailable - enhanced SS validation disabled. "
-                "Install Rust/Cargo and rebuild to enable this security feature."
+                "Pre-build binary required for this feature."
             )
             _warned_missing = True
         return True

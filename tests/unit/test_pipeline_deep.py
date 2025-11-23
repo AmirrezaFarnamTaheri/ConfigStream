@@ -1,4 +1,3 @@
-
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch
@@ -10,12 +9,13 @@ from configstream.concurrency_manager import ConcurrencyManager
 from configstream.performance import PerformanceTracker
 from configstream.source_quality import SourceQualityTracker
 
+
 @pytest.mark.asyncio
 async def test_processing_consumer_flow():
     queue = asyncio.Queue()
     # Put one valid item
     await queue.put(("source1", ["vmess://test"]))
-    await queue.put(None) # Stop signal
+    await queue.put(None)  # Stop signal
 
     stats = PipelineStats()
     seen_keys = set()
@@ -23,7 +23,7 @@ async def test_processing_consumer_flow():
 
     # Mocks
     mock_tester = MagicMock()
-    mock_tester.go_tester.available = False # Use Python path
+    mock_tester.go_tester.available = False  # Use Python path
     mock_tester.test = MagicMock()
 
     # Mock result for test() must be awaitable
@@ -31,6 +31,7 @@ async def test_processing_consumer_flow():
         p.is_working = True
         p.latency = 100
         return p
+
     mock_tester.test.side_effect = mock_test_result
 
     mock_scheduler = MagicMock(spec=SmartRetestScheduler)
@@ -41,12 +42,17 @@ async def test_processing_consumer_flow():
 
     mock_concurrency = MagicMock(spec=ConcurrencyManager)
     mock_concurrency.get_semaphore.return_value = asyncio.Semaphore(10)
-    mock_concurrency.record = MagicMock() # awaitable? record is async def
-    async def mock_record(*args): pass
+    mock_concurrency.record = MagicMock()  # awaitable? record is async def
+
+    async def mock_record(*args):
+        pass
+
     mock_concurrency.record.side_effect = mock_record
 
     mock_geoip = MagicMock()
-    mock_geoip.lookup.return_value = MagicMock(country_code="US", city="Test", asn="AS1", org="Org")
+    mock_geoip.lookup.return_value = MagicMock(
+        country_code="US", city="Test", asn="AS1", org="Org"
+    )
 
     tracker = PerformanceTracker()
     mock_quality = MagicMock(spec=SourceQualityTracker)
@@ -58,10 +64,24 @@ async def test_processing_consumer_flow():
         mock_parse.return_value = p
 
         await processing_consumer(
-            queue, stats, seen_keys, final_proxies,
-            mock_tester, mock_scheduler, mock_cache, mock_concurrency,
-            mock_geoip, tracker, None, mock_quality, None, None,
-            None, None, None, False
+            queue,
+            stats,
+            seen_keys,
+            final_proxies,
+            mock_tester,
+            mock_scheduler,
+            mock_cache,
+            mock_concurrency,
+            mock_geoip,
+            tracker,
+            None,
+            mock_quality,
+            None,
+            None,
+            None,
+            None,
+            None,
+            False,
         )
 
     assert len(final_proxies) == 1

@@ -343,6 +343,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // WASM Tester integration
+    const testWasmBtn = document.createElement('button');
+    testWasmBtn.id = 'testWasm';
+    testWasmBtn.className = 'btn btn-secondary';
+    testWasmBtn.innerHTML = '<i data-feather="check-circle"></i><span>Test (WASM)</span>';
+    if (document.querySelector('.action-group')) {
+        document.querySelector('.action-group').appendChild(testWasmBtn);
+    }
+
+    testWasmBtn.addEventListener('click', async () => {
+        if (!window.testProxy) {
+            alert("WASM module loading...");
+            return;
+        }
+        const proxies = getFilteredProxies().slice(0, 5); // Test top 5
+        alert(`Testing top ${proxies.length} proxies via WASM... Check Console.`);
+        for (const p of proxies) {
+            console.log(`Testing ${p.address}...`);
+            const result = await window.testProxy(p.config);
+            console.log("Result:", result);
+        }
+    });
+
     // Clear filters button
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', () => {
