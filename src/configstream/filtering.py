@@ -113,7 +113,8 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
 
         # 2. Gather Transport Specifics (critical for differentiation)
         path = (p.path or "").strip()
-        if path == "/": path = ""
+        if path == "/":
+            path = ""
 
         sni = (p.sni or "").lower().strip()
 
@@ -124,7 +125,7 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
         raw_fingerprint = f"{addr}:{port}|{uuid}|{path}|{sni}"
 
         # 4. Hash it
-        fingerprint = hashlib.md5(raw_fingerprint.encode('utf-8')).hexdigest()
+        fingerprint = hashlib.md5(raw_fingerprint.encode("utf-8")).hexdigest()
 
         existing = fingerprint_map.get(fingerprint)
         if not existing:
@@ -150,7 +151,11 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
                 continue
 
             # Preference 3: Has more metadata (e.g. correct Country Code)
-            if p.country_code and p.country_code != 'XX' and existing.country_code == 'XX':
+            if (
+                p.country_code
+                and p.country_code != "XX"
+                and existing.country_code == "XX"
+            ):
                 fingerprint_map[fingerprint] = p
                 continue
 

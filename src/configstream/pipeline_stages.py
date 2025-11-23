@@ -27,8 +27,10 @@ from .geoip import GeoIPResolver
 from .source_quality import SourceQualityTracker, calculate_diversity_score
 from .anomaly import AnomalyDetector
 from .performance import PerformanceTracker
-from .event_stream import EventStream
 from .security.blocklist import DEFAULT_BLOCKLIST
+
+if False: # TYPE_CHECKING
+    from .event_stream import EventStream
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +81,7 @@ async def source_producer(
     proxies: Optional[List[Proxy]],
     quality_tracker: SourceQualityTracker,
     anomaly_detector: AnomalyDetector,
-    event_stream: EventStream,
+    event_stream: Optional["EventStream"],
     progress: Optional[Progress],
     task_fetch: Optional[TaskID],
 ):
@@ -150,17 +152,19 @@ async def source_producer(
                         if is_safe:
                             if lines:
                                 anomaly_detector.record(source, count)
-                                event_stream.emit(
-                                    "fetch_success",
-                                    f"Fetched {count} proxies from {source}",
-                                )
+                                if event_stream:
+                                    event_stream.emit(
+                                        "fetch_success",
+                                        f"Fetched {count} proxies from {source}",
+                                    )
                                 await work_queue.put((source, lines))
                         else:
                             logger.warning(f"⚠️ BLOCKING {source}: {reason}")
-                            event_stream.emit(
-                                "fetch_blocked",
-                                f"Blocked source {source}: {reason}",
-                            )
+                            if event_stream:
+                                event_stream.emit(
+                                    "fetch_blocked",
+                                    f"Blocked source {source}: {reason}",
+                                )
     except Exception as e:
         logger.error("Producer failed: %s", e)
     finally:
@@ -178,7 +182,7 @@ async def processing_consumer(
     concurrency: ConcurrencyManager,
     geoip: GeoIPResolver,
     tracker: PerformanceTracker,
-    event_stream: EventStream,
+    event_stream: Optional["EventStream"],
     quality_tracker: SourceQualityTracker,
     progress: Optional[Progress],
     task_process: Optional[TaskID],
@@ -256,10 +260,11 @@ async def processing_consumer(
                         for res in chunk:
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
-                                event_stream.emit(
-                                    "test_success",
-                                    f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
-                                )
+                                if event_stream:
+                                    event_stream.emit(
+                                        "test_success",
+                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
+                                    )
                         stats.tested += len(chunk)
                         if progress and task_process:
                             progress.update(
@@ -275,10 +280,11 @@ async def processing_consumer(
                         async with sem:
                             res = await tester.test(p)
                             if res.is_working:
-                                event_stream.emit(
-                                    "test_success",
-                                    f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
-                                )
+                                if event_stream:
+                                    event_stream.emit(
+                                        "test_success",
+                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
+                                    )
                             return res
 
                     chunk_size = 20

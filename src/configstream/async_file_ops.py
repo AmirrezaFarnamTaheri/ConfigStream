@@ -6,14 +6,14 @@ Non-blocking file I/O using aiofiles.
 import asyncio
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import aiofiles
 
 logger = logging.getLogger(__name__)
 
 
-async def read_file_async(path: str | Path) -> str:
+async def read_file_async(path: Union[str, Path]) -> str:
     """
     Read a file asynchronously.
     """
@@ -25,6 +25,18 @@ async def read_file_async(path: str | Path) -> str:
     async with aiofiles.open(path, mode="r", encoding="utf-8", errors="replace") as f:
         content = await f.read()
     return content  # type: ignore
+
+
+async def write_file_async(path: Union[str, Path], content: str) -> None:
+    """
+    Write to a file asynchronously (atomic-like overwrite).
+    """
+    path = Path(path)
+    # Ensure parent exists
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    async with aiofiles.open(path, mode="w", encoding="utf-8") as f:
+        await f.write(content)
 
 
 async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
@@ -50,6 +62,6 @@ async def read_multiple_files_async(paths: List[str]) -> List[Tuple[str, str]]:
     return output
 
 
-def ensure_directory(path: str | Path):
+def ensure_directory(path: Union[str, Path]):
     """Ensure directory exists (Sync wrapper for convenience)."""
     Path(path).mkdir(parents=True, exist_ok=True)

@@ -2,11 +2,10 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
-from .event_stream import EventStream
 
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -105,32 +104,6 @@ async def download_subscription(format: str):
         raise HTTPException(404, "File not generated yet")
 
     return FileResponse(target, filename=file_map[format])
-
-
-# --- WebSocket Feed ---
-
-
-@app.websocket("/ws/feed")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    stream = EventStream(OUTPUT_DIR)
-
-    try:
-        # Send initial connection status
-        await websocket.send_json({"type": "status", "status": "connected"})
-
-        async for event in stream.tail():
-            await websocket.send_json(event)
-
-    except WebSocketDisconnect:
-        pass
-    except Exception as e:
-        print(f"WebSocket error: {e}")
-        # Try to close if possible, though typically handled by disconnect
-        try:
-            await websocket.close()
-        except Exception:  # noqa: E722
-            pass
 
 
 # --- Static File Serving ---
