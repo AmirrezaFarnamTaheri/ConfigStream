@@ -2,6 +2,7 @@ import pytest
 import asyncio
 from configstream.utils import AtomicFileWriter, BoundedConcurrencyManager
 
+
 def test_atomic_file_writer_text(tmp_path):
     target_file = tmp_path / "test.txt"
     content = "Hello, World!"
@@ -25,6 +26,7 @@ def test_atomic_file_writer_bytes(tmp_path):
 
     assert target_file.exists()
     assert target_file.read_bytes() == content
+
 
 @pytest.mark.asyncio
 async def test_bounded_concurrency_manager():

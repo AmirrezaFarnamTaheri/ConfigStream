@@ -17,12 +17,15 @@ logger = logging.getLogger(__name__)
 HONEYPOT_PORTS = [21, 22, 23]
 
 
-async def check_common_honeypot_ports(host: str, ports: List[int] = HONEYPOT_PORTS) -> bool:
+async def check_common_honeypot_ports(
+    host: str, ports: List[int] = HONEYPOT_PORTS
+) -> bool:
     """
     Actively checks if common management ports are open.
     If a proxy server exposes Telnet or FTP, it is likely a honeypot or misconfigured.
     Returns True if any dangerous port is OPEN.
     """
+
     async def check_port(p: int) -> bool:
         try:
             # Very short timeout - we only care if it responds immediately
@@ -44,7 +47,9 @@ async def check_common_honeypot_ports(host: str, ports: List[int] = HONEYPOT_POR
     results = await asyncio.gather(*[check_port(p) for p in ports])
     if any(results):
         open_ports = [port for port, is_open in zip(ports, results) if is_open]
-        logger.warning(f"Active Intel: Host {host} exposes dangerous ports: {open_ports}")
+        logger.warning(
+            f"Active Intel: Host {host} exposes dangerous ports: {open_ports}"
+        )
         return True
 
     return False

@@ -7,6 +7,7 @@ The frontend is a **Static Single Page Application (SPA)**. It is hosted on GitH
 -   **Data Source**: It fetches `metadata.json` and `proxies.json` directly from the same domain.
 -   **Framework**: Vanilla JavaScript (ES6+). No React/Vue/Angular.
 -   **CSS**: Custom CSS variables for theming.
+-   **Updates**: It polls `metadata.json` periodically to show "Last Updated" status.
 
 ## Key Components
 
@@ -18,7 +19,7 @@ We use `globe.gl` to render a 3D interactive earth.
 ### 2. Downloads & Adapters
 The frontend provides client-specific configuration files.
 -   **Clash**: YAML.
--   **Sing-box**: JSON.
+-   **Sing-box**: JSON (Tank and Sniper modes).
 -   **Surge / Loon**: New additions.
 -   **Quantumult X**: Custom configuration format.
 -   **SIP008**: Standard interchange format.
@@ -30,6 +31,9 @@ The frontend provides client-specific configuration files.
 ### 4. Telegram Bot Integration
 The frontend links to the Telegram Bot for users who prefer chat-based interaction.
 -   **Deep Linking**: `t.me/ConfigStreamBot?start=US` (future feature) to request specific countries.
+
+### 5. WebAssembly (WASM) - Future
+We are exploring compiling the Go Tester to WASM to allow users to test proxies directly from their browser ("Edge Testing"), eliminating server-client discrepancies.
 
 ## Building & Deploying
 
