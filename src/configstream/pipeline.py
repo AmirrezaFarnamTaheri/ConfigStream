@@ -33,7 +33,7 @@ from . import output
 from .output_generators import generate_base64_subscription
 from .performance import PerformanceTracker
 from .proxy_history import ProxyHistoryTracker
-from .output import ProxyWasher
+from .intelligence.washer import ProxyWasher
 from .filtering import filter_unique_endpoints
 from .serialize import serialize_proxy
 from .intelligence.vectors import generate_vectors

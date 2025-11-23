@@ -6,9 +6,11 @@ Refactored from output.py to reduce monolith size.
 import json
 import base64
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
+from pathlib import Path
 from .models import Proxy
 from .converters import to_clash_proxy, to_singbox_outbound
+from .utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -124,3 +126,205 @@ def generate_base64_subscription(proxies: List[Proxy]) -> str:
             lines.append(p.config)
     text = "\n".join(lines)
     return base64.b64encode(text.encode("utf-8")).decode("utf-8")
+
+
+def generate_split_outputs(
+    proxies: List[Proxy],
+    output_dir: Path,
+    washed_outbounds: List[Dict[str, Any]],
+    washed_ids: Set[str],
+    smart_chains: Dict[str, List[Dict[str, Any]]],
+) -> Dict[str, Path]:
+    """
+    Generate specific configuration files for different use cases.
+    Includes washed proxies and smart chains in Sing-box configs.
+    Filters out raw proxies that have been washed to avoid "Dirty Duplicates".
+    """
+    files: Dict[str, Path] = {}
+
+    # Prepare selector lists
+    standard_proxies = []
+    standard_tags = []
+
+    # Dirty Duplicate Filter:
+    # If a proxy ID is in washed_ids, we do NOT add it to the standard (Auto) list.
+    # It will be accessible via the "Washed" group.
+
+    for i, p in enumerate(proxies, 1):
+        if not p.is_working:
+            continue
+
+        # If proxy was washed, skip adding its raw/dirty version to main selectors
+        if p.id in washed_ids:
+            continue
+
+        out = to_singbox_outbound(p)
+        if out:
+            tag = f"{p.country_code or 'XX'} {i:02d} | {p.protocol.upper()}"
+            out["tag"] = tag
+            standard_proxies.append(out)
+            standard_tags.append(tag)
+
+    # Washed Proxies (Tags starting with 🛡️ Secure)
+    washed_exits = [
+        o for o in washed_outbounds if o.get("tag", "").startswith("🛡️ Secure")
+    ]
+    washed_tags = [o["tag"] for o in washed_exits]
+
+    # Smart Chain Exits
+    intranet_exits = [o for o in smart_chains["intranet"] if "EXIT" in o.get("tag", "")]
+    intranet_tags = [o["tag"] for o in intranet_exits]
+
+    ipv6_exits = [o for o in smart_chains["ipv6"] if "EXIT" in o.get("tag", "")]
+    ipv6_tags = [o["tag"] for o in ipv6_exits]
+
+    streamer_exits = [o for o in smart_chains["streamer"] if "EXIT" in o.get("tag", "")]
+    streamer_tags = [o["tag"] for o in streamer_exits]
+
+    # Collect all outbounds for the config
+    all_outbounds = standard_proxies + washed_outbounds
+    for chain_list in smart_chains.values():
+        all_outbounds.extend(chain_list)
+
+    # 1. singbox-vpn.json (The "Tank")
+    vpn_config = {
+        "log": {"level": "info"},
+        "dns": {
+            "servers": [
+                {"tag": "google", "address": "8.8.8.8", "detour": "🌍 Proxy Select"},
+                {"tag": "local", "address": "223.5.5.5", "detour": "direct"},
+            ],
+            "rules": [{"outbound": "any", "server": "google"}],
+            "final": "google",
+            "strategy": "ipv4_only",
+        },
+        "inbounds": [
+            {
+                "type": "tun",
+                "tag": "tun-in",
+                "interface_name": "tun0",
+                "inet4_address": "172.19.0.1/30",
+                "auto_route": True,
+                "strict_route": True,
+                "stack": "gvisor",
+                "sniff": True,
+            }
+        ],
+        "outbounds": [
+            {
+                "type": "selector",
+                "tag": "🌍 Proxy Select",
+                "outbounds": ["🚀 Auto", "🛡️ Washed", "🇮🇷 Intranet"] + standard_tags,
+            },
+            {
+                "type": "urltest",
+                "tag": "🚀 Auto",
+                "outbounds": standard_tags,
+                "url": "http://www.gstatic.com/generate_204",
+                "interval": "5m",
+            },
+            {
+                "type": "selector",
+                "tag": "🛡️ Washed",
+                "outbounds": washed_tags if washed_tags else ["direct"],
+            },
+            {
+                "type": "urltest",
+                "tag": "🇮🇷 Intranet",
+                "outbounds": intranet_tags if intranet_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204",
+                "interval": "5m",
+            },
+            {"type": "direct", "tag": "direct"},
+            {"type": "dns", "tag": "dns-out"},
+        ]
+        + all_outbounds,
+    }
+
+    vpn_file = output_dir / "singbox-vpn.json"
+    AtomicFileWriter.write_text(vpn_file, json.dumps(vpn_config, indent=2))
+    files["singbox_vpn"] = vpn_file
+
+    # 2. singbox.json (The "Sniper")
+    sniper_config = {
+        "log": {"level": "info"},
+        "inbounds": [
+            {
+                "type": "mixed",
+                "tag": "mixed-in",
+                "listen": "127.0.0.1",
+                "listen_port": 2080,
+                "sniff": True,
+            }
+        ],
+        "outbounds": [
+            {
+                "type": "selector",
+                "tag": "🚀 Mode Selector",
+                "outbounds": [
+                    "⚡ Auto Fast",
+                    "🛡️ Secure Washed",
+                    "🇮🇷 Intranet Bridge",
+                    "🇺🇸 US Streaming",
+                    "🌌 IPv6 Portal",
+                ],
+            },
+            {
+                "type": "urltest",
+                "tag": "⚡ Auto Fast",
+                "outbounds": standard_tags,
+                "url": "http://www.gstatic.com/generate_204",
+                "interval": "5m",
+            },
+            {
+                "type": "urltest",
+                "tag": "🛡️ Secure Washed",
+                "outbounds": washed_tags if washed_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204",
+            },
+            {
+                "type": "urltest",
+                "tag": "🇮🇷 Intranet Bridge",
+                "outbounds": intranet_tags if intranet_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204",
+            },
+            {
+                "type": "urltest",
+                "tag": "🇺🇸 US Streaming",
+                "outbounds": streamer_tags if streamer_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204",
+            },
+            {
+                "type": "urltest",
+                "tag": "🌌 IPv6 Portal",
+                "outbounds": ipv6_tags if ipv6_tags else ["direct"],
+                "url": "http://www.gstatic.com/generate_204",
+            },
+            {"type": "direct", "tag": "direct"},
+            {"type": "dns", "tag": "dns-out"},
+        ]
+        + all_outbounds,
+    }
+
+    # Inject fragmentation for Sniper
+    for out in all_outbounds:
+        # Be careful only to inject into TLS outbounds that are direct (not chains/selectors)
+        # Actually we inject into the OUTBOUND definitions in the list
+        if "tls" in out and isinstance(out["tls"], dict):
+            out["tls"]["tls_fragment"] = {
+                "enabled": True,
+                "size": "100-200",
+                "sleep": "10-20",
+            }
+
+    sniper_file = output_dir / "singbox.json"
+    AtomicFileWriter.write_text(sniper_file, json.dumps(sniper_config, indent=2))
+    files["singbox"] = sniper_file
+
+    # 3. clash.yaml (The "Diplomat")
+    clash_content = generate_clash_config(proxies)
+    clash_file = output_dir / "clash.yaml"
+    AtomicFileWriter.write_text(clash_file, clash_content)
+    files["clash"] = clash_file
+
+    return files

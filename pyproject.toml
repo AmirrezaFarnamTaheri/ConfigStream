@@ -8,7 +8,7 @@ version = "1.2.0"
 description = "High-performance VPN configuration aggregator with smart scheduling"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "GPL-3.0"}
+license = {text = "AGPL-3.0"}
 authors = [
     {name = "Amirreza 'Farnam' Taheri", email = "taherifarnam@gmail.com"}
 ]
@@ -17,7 +17,7 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Topic :: Internet :: Proxy Servers",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",

@@ -48,7 +48,7 @@ def output_dir(tmp_path):
 
 def test_save_json(proxies, output_dir):
     path = output_dir / "proxies.json"
-    with patch("configstream.output.ProxyHistoryTracker") as MockHistory:
+    with patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory:
         MockHistory.return_value.get_history.return_value = []
         save_json(proxies, path)
 
@@ -62,7 +62,7 @@ def test_save_json(proxies, output_dir):
 
 def test_save_json_compress(proxies, output_dir):
     path = output_dir / "proxies.json"
-    with patch("configstream.output.ProxyHistoryTracker") as MockHistory:
+    with patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory:
         MockHistory.return_value.get_history.return_value = []
         save_json(proxies, path, compress=True)
 
@@ -104,8 +104,10 @@ def test_generate_split_outputs(proxies, output_dir):
     smart_chains = {"intranet": [], "ipv6": [], "streamer": []}
 
     with (
-        patch("configstream.output.to_singbox_outbound") as mock_conv,
-        patch("configstream.output.generate_clash_config", return_value="clash"),
+        patch("configstream.output_generators.to_singbox_outbound") as mock_conv,
+        patch(
+            "configstream.output_generators.generate_clash_config", return_value="clash"
+        ),
     ):
 
         mock_conv.return_value = {"type": "vless", "tag": "vless-out"}
@@ -128,10 +130,13 @@ def test_generate_split_outputs(proxies, output_dir):
 
 def test_generate_categorized_outputs(proxies, output_dir):
     with (
-        patch("configstream.output.ProxyWasher") as MockWasher,
-        patch("configstream.output.generate_smart_chains", return_value={"chains": []}),
-        patch("configstream.output.generate_split_outputs", return_value={}),
-        patch("configstream.output.ProxyHistoryTracker") as MockHistory,
+        patch("configstream.output_logic.ProxyWasher") as MockWasher,
+        patch(
+            "configstream.output_logic.generate_smart_chains",
+            return_value={"chains": []},
+        ),
+        patch("configstream.output_logic.generate_split_outputs", return_value={}),
+        patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory,
     ):  # Mock history to return serializable data
 
         # Configure mock history to return empty list (serializable)
