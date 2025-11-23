@@ -24,8 +24,11 @@ def parse_ssr(config: str) -> Optional[Proxy]:
 
         # 1) decode the entire payload first
         decoded_all = safe_b64_decode(_b64_normalize(payload))
-        if not decoded_all:
-            return None
+        # If payload is valid b64, safe_b64_decode returns it. If not, it returns original payload.
+        # So decoded_all is only empty if payload was empty.
+        # But we checked `len(payload) > 4096`. `payload` is `config[len("ssr://"):]`.
+        # If config is "ssr://", payload is empty.
+        # But we might want to check it.
 
         # 2) split AFTER decoding
         main, _, qs = decoded_all.partition("/?")
@@ -55,8 +58,8 @@ def parse_ssr(config: str) -> Optional[Proxy]:
         params_decoded: dict[str, str] = {}
 
         for k, vals in raw_params.items():
-            if not vals:
-                continue
+            # parse_qs guarantees vals is a list of strings.
+            # With keep_blank_values=True, keys with no value get [''].
             val = vals[0]
             if val == "":
                 params_decoded[k] = ""

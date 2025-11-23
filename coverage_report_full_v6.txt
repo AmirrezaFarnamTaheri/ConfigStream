@@ -1,0 +1,40 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.4.2, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: asyncio-0.21.1, anyio-4.11.0, pyfakefs-5.10.2, respx-0.22.0, cov-7.0.0, base-url-2.1.0, aiohttp-1.1.0, hypothesis-6.148.2, playwright-0.7.1
+asyncio: mode=Mode.AUTO
+collected 109 items
+
+tests/unit/test_parsers_base_coverage.py ............................... [ 28%]
+                                                                         [ 28%]
+tests/unit/test_parsers_extended.py ..                                   [ 30%]
+tests/unit/test_parsers_full.py .....                                    [ 34%]
+tests/unit/test_parsers_generic_coverage.py ................             [ 49%]
+tests/unit/test_parsers_generic_extended.py .......                      [ 55%]
+tests/unit/test_parsers_new.py ......                                    [ 61%]
+tests/unit/test_parsers_robustness.py .................................. [ 92%]
+.                                                                        [ 93%]
+tests/unit/test_parsers_split.py .......
+ERROR: Coverage failure: total of 80 is less than fail-under=100
+                                                                         [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.12-final-0 _______________
+
+Name                                      Stmts   Miss  Cover   Missing
+-----------------------------------------------------------------------
+src/configstream/parsers/__init__.py         29      0   100%
+src/configstream/parsers/base.py            116      0   100%
+src/configstream/parsers/generic.py          76      2    97%   43, 63
+src/configstream/parsers/openvpn.py          26      7    73%   14, 29-31, 49-51
+src/configstream/parsers/others.py           87     38    56%   16-21, 24, 27, 41-43, 47, 64-65, 68, 74, 80, 100-112, 118-122, 127, 132, 137-141, 147-154
+src/configstream/parsers/shadowsocks.py      62     19    69%   33-34, 44, 49, 72-74, 79-95
+src/configstream/parsers/ssr.py              54     27    50%   19, 23, 28, 40, 47-96
+src/configstream/parsers/trojan.py           24      6    75%   15, 18, 21, 37-39
+src/configstream/parsers/vless.py            31      8    74%   14, 17, 20, 27-28, 44-46
+src/configstream/parsers/vmess.py            39      3    92%   24-25, 38
+-----------------------------------------------------------------------
+TOTAL                                       544    110    80%
+FAIL Required test coverage of 100% not reached. Total coverage: 79.78%
+============================= 109 passed in 13.98s =============================

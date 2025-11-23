@@ -17,6 +17,7 @@ def parse_trojan(config: str) -> Optional[Proxy]:
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
         port = parsed.port or 443
+        # port 0 or > 65535 is invalid
         if not (1 <= port <= 65535):
             return None
         uuid = parsed.username or ""

@@ -11,14 +11,8 @@ logger = logging.getLogger(__name__)
 def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
     try:
         parsed = urlparse(config)
-        if parsed.scheme and parsed.scheme.lower() not in (protocol, protocol.lower()):
-            # Fallback for cases where protocol is passed but urlparse uses scheme
-            if not parsed.scheme and config.startswith(f"{protocol}://"):
-                # Retry parsing if scheme is missing but prefix is there (unlikely with urlparse)
-                pass
-            elif parsed.scheme.lower() != protocol.lower():
-                # Mismatch
-                pass
+        # If protocol mismatch, we proceed anyway as we treat the config's content
+        # as the source of truth for properties, but the 'protocol' arg enforces the type.
 
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
@@ -52,8 +46,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
     if proxy:
         # Hysteria 2 Obfuscation & Masquerading
         # 'obfs' -> type (e.g., 'salamander'), 'obfs-password' -> password
-        if "obfs" in proxy.details:
-            pass
+        # Logic is already in parse_qs returning details["obfs"]
 
         # Port Hopping (Advanced)
         # Format: ports=80,443,8000-9000
@@ -64,8 +57,6 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
                 logger.warning(f"Invalid port hopping format: {ports_val}")
                 del proxy.details["ports"]
 
-        if not proxy.uuid:  # Auth is optional in some cases but usually required
-            pass
     return proxy
 
 

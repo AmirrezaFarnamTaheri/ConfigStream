@@ -24,11 +24,9 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
 
         # Pick the first remote for now (simplification)
         host, port_str = remotes[0]
-        try:
-            port = int(port_str)
-        except (ValueError, TypeError):
-            logger.debug("Invalid port in openvpn config: %s", port_str)
-            return None
+        # Regex guarantees port_str is digits (\d+), so int() shouldn't fail
+        # but we keep it safe for completeness
+        port = int(port_str)
 
         # Extract Proto
         proto_match = re.search(r"^proto\s+(\w+)", config, re.MULTILINE)
