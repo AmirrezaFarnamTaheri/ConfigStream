@@ -1,6 +1,6 @@
-
 import os
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import sync_playwright
+
 
 def verify_wiki(page):
     # Go to Wiki page (assuming local file access)
@@ -22,6 +22,7 @@ def verify_wiki(page):
 
     # Take screenshot
     page.screenshot(path="/home/jules/verification/wiki.png")
+
 
 if __name__ == "__main__":
     with sync_playwright() as p:
