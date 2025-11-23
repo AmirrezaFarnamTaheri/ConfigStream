@@ -7,8 +7,7 @@ Mirrors the 'output/' directory to a Hugging Face Dataset repository.
 import os
 import logging
 import argparse
-from pathlib import Path
-from huggingface_hub import HfApi, upload_folder
+from huggingface_hub import HfApi
 
 # Configure logging
 logging.basicConfig(
