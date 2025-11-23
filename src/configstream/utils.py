@@ -9,7 +9,7 @@ import os
 import tempfile
 from pathlib import Path
 from typing import Union
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +94,12 @@ class BoundedConcurrencyManager:
     def limit(self):
         return self._limit
 
-    @contextmanager
+    @asynccontextmanager
     async def acquire(self):
+        """
+        Acquire semaphore-like lock.
+        Usage: async with cm.acquire(): ...
+        """
         async with self._cond:
             while self._active >= self._limit:
                 await self._cond.wait()
@@ -108,12 +112,13 @@ class BoundedConcurrencyManager:
                 self._active -= 1
                 self._cond.notify()
 
-    # Async context manager
+    # Async context manager protocol support
     async def __aenter__(self):
         async with self._cond:
             while self._active >= self._limit:
                 await self._cond.wait()
             self._active += 1
+        return self
 
     async def __aexit__(self, exc_type, exc, tb):
         async with self._cond:
