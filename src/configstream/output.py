@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 
 from .models import Proxy
 from .serialize import serialize_proxy
+from .proxy_history import ProxyHistoryTracker
 from .intelligence.washer import ProxyWasher, generate_smart_chains
 from .utils import AtomicFileWriter
 from .converters import to_singbox_outbound
@@ -306,7 +307,8 @@ def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
     """
     Save list of proxies to JSON file atomically with fsync for durability.
     """
-    data = [serialize_proxy(p) for p in proxies]
+    history = ProxyHistoryTracker()  # Singleton access
+    data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
     try:
