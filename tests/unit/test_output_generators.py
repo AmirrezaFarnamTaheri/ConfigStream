@@ -1,20 +1,25 @@
-
 import pytest
 from configstream.output_generators import generate_clash_config
-from tests.conftest_helper import create_test_proxy
+from tests.unit.conftest_helper import create_test_proxy
+
 
 def test_generate_clash():
     sample_proxies = [
         create_test_proxy(
-            config='vmess://test',
-            protocol='vmess',
-            address='1.1.1.1',
+            config="vmess://test",
+            protocol="vmess",
+            address="1.1.1.1",
             port=443,
-            uuid='a1b2c3d4',
-            remarks='Test Proxy',
-            network='ws',
-            details={'ws_path': '/', 'ws_headers': {'Host': 'example.com'}, 'tls': True, 'sni': 'example.com'},
-            is_working=True
+            uuid="a1b2c3d4",
+            remarks="Test Proxy",
+            network="ws",
+            details={
+                "ws_path": "/",
+                "ws_headers": {"Host": "example.com"},
+                "tls": True,
+                "sni": "example.com",
+            },
+            is_working=True,
         )
     ]
 

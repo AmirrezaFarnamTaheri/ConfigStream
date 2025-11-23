@@ -3,7 +3,7 @@ Output Converter Helpers.
 Moved here to avoid circular imports between output.py and washer.py.
 """
 
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 from .models import Proxy
 
 

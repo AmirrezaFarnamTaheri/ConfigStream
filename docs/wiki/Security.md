@@ -1,38 +1,30 @@
-# Security Engineering
+# Security & Intelligence
 
-ConfigStream operates on a **Zero-Trust** model. We assume every public proxy is potentially malicious, broken, or surveilled until verified.
+## Zero Abuse Policy
+ConfigStream strictly adheres to a "No Active Abuse" policy to maintain its free infrastructure.
+*   **No Port Scanning:** We do not connect to ports 22 (SSH), 23 (Telnet), or 3389 (RDP) to verify servers. This is flagged as malicious by cloud providers (Azure/GitHub Actions).
+*   **Passive Only:** We rely on passive signals like VirusTotal API and ASN reputation to identify bad actors.
 
-## 1. Active Countermeasures
+## Honeypot Detection (Passive Mode)
+Surveillance nodes often pose as open proxies.
+1.  **VirusTotal API:** Check if the IP is flagged as a scanner/botnet.
+2.  **ASN Reputation:** Block known "Bulletproof Hosting" or "Research Scanner" ASNs.
+3.  **Behavioral Analysis:** If a source provides 10,000 proxies and 99% fail, the entire batch is flagged as "Poisoned".
 
-### Honeypot Detection
-Malicious actors often set up "Free VPN" servers that are actually honeypots designed to log traffic or attack the user.
+## Proxy Washing
+Many free proxies work but are blocked by Google/Cloudflare (403 Forbidden).
+**The Solution:** We use them as a transport layer for a clean WireGuard tunnel.
 
-*   **Passive Check (VirusTotal):** We query the IP against VirusTotal's threat intelligence API. If it's flagged as a known botnet or malware host, we discard it.
-*   **Active Port Scanning:** We actively probe specific "Management Ports" on the proxy server (TCP 21/FTP, 22/SSH, 23/Telnet).
-    *   *Logic:* A legitimate censorship-circumvention node (VLESS/Trojan) should **never** expose these insecure ports to the public. If they are open, it's likely a compromised VPS or a honeypot.
+1.  **The Dirty Proxy:** A VLESS node in Iran (blocked by Google).
+2.  **The Cleaner:** Cloudflare WARP (free WireGuard).
+3.  **The Chain:** `Client -> VLESS (Iran) -> WARP -> Google`.
 
-### Traffic Verification (The "Canary")
-We don't just ping `google.com`. We perform a cryptographic handshake.
-*   The tester attempts to establish a real TLS connection through the proxy.
-*   If the proxy intercepts the TLS handshake (Man-in-the-Middle), the certificate validation fails, and the proxy is rejected.
+This allows us to recycle "useless" proxies into high-quality VPN connections.
 
-## 2. Proxy Washing
+## Smart Chains
+### Intranet Bridges
+We automatically detect proxies that are on the same domestic intranet (e.g., China Mobile to China Mobile) and chain them to an exit node to bypass throttling.
 
-**Problem:** Many clean, high-speed proxies are hosted on IPs that are blocked by Google, Netflix, or ChatGPT (403 Forbidden).
-**Solution:** Proxy Washing.
-
-We wrap these "Dirty" proxies in a **WireGuard Tunnel** using Cloudflare WARP.
-
-*   **The Chain:** `User -> Dirty Proxy (Relay) -> WARP (Exit) -> Internet`
-*   **Benefit:**
-    1.  **Unblocking:** The final IP seen by websites is Cloudflare's clean IP.
-    2.  **Security:** The "Dirty" proxy operator only sees encrypted WireGuard UDP packets. They cannot inspect the SNI or content.
-
-This effectively turns "Trash" proxies into "Premium" private lines.
-
-## 3. Anomaly Detection
-
-To prevent "Supply Chain Poisoning" (a malicious source flooding our repo with 10,000 fake proxies), we use the `AnomalyDetector`.
-
-*   **Subnet Floods:** If >90% of proxies in a batch come from the same `/24` subnet, we reject the entire batch.
-*   **Z-Score Analysis:** We track the average "Yield" of a source. If a source normally provides 5 proxies but suddenly provides 5,000, it triggers an anomaly alert and is quarantined.
+### IPv6 Portals
+If a proxy supports IPv6 but the client doesn't, we chain it:
+`Client (IPv4) -> Relay (Dual Stack) -> Target (IPv6)`

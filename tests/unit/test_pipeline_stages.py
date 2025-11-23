@@ -1,9 +1,9 @@
-
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch
 from configstream.pipeline_stages import source_producer
 from configstream.models import Proxy
+
 
 @pytest.mark.asyncio
 async def test_source_producer():
@@ -26,7 +26,9 @@ async def test_source_producer():
         mock_res.content = "vmess://test"
         mock_fetch.return_value = {"http://example.com/source1": mock_res}
 
-        await source_producer(sources, queue, None, mock_quality, mock_anomaly, None, None, None)
+        await source_producer(
+            sources, queue, None, mock_quality, mock_anomaly, None, None, None
+        )
 
     # Check queue has the lines
     item = await queue.get()
