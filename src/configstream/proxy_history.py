@@ -8,7 +8,7 @@ trend analysis and reliability visualization.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional, cast, List
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
@@ -159,6 +159,29 @@ class ProxyHistoryTracker:
             "latencies": [e["latency"] if e["latency"] else 0 for e in entries],
             "status": [1 if e["is_working"] else 0 for e in entries],
         }
+
+    def get_history(self, config: str) -> List[float]:
+        """
+        Get simplified history (last 5-10 data points) for serialization.
+        Returns a list of latencies. None/Failures are represented as 9999 or skipped.
+
+        Args:
+            config: Proxy identifier (config or ID)
+        """
+        history = self.get_proxy_history(config)
+        if not history or "entries" not in history:
+            return []
+
+        # Get last 10 entries
+        entries = history["entries"][-10:]
+        points = []
+        for e in entries:
+            if e["is_working"] and e["latency"] is not None:
+                points.append(float(e["latency"]))
+            else:
+                # Representation of failure/offline in sparkline
+                points.append(9999.0)
+        return points
 
     def get_summary_stats(self, config: str) -> Dict[str, Any]:
         """

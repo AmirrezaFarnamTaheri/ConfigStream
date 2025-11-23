@@ -1,37 +1,83 @@
+#!/usr/bin/env python3
 """
-Hugging Face Upload Script
-Uploads the output directory to a Hugging Face Dataset.
+Hugging Face Dataset Uploader for ConfigStream.
+Mirrors the 'output/' directory to a Hugging Face Dataset repository.
 """
 
 import os
-import sys
-from huggingface_hub import HfApi
+import logging
+import argparse
+from pathlib import Path
+from huggingface_hub import HfApi, upload_folder
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
 
-def main():
-    token = os.getenv("HF_TOKEN")
-    repo_id = os.getenv("HF_REPO_ID")
-    output_dir = "output"
+def upload_to_hf(
+    local_dir: str,
+    repo_id: str,
+    token: str,
+    repo_type: str = "dataset",
+    commit_message: str = "Update ConfigStream output",
+):
+    """
+    Uploads a folder to Hugging Face.
+    """
+    if not os.path.exists(local_dir):
+        logger.error(f"Local directory not found: {local_dir}")
+        return
 
-    if not token or not repo_id:
-        print("Missing HF_TOKEN or HF_REPO_ID")
-        sys.exit(1)
-
-    api = HfApi(token=token)
+    logger.info(f"Uploading {local_dir} to {repo_id} ({repo_type})...")
 
     try:
-        print(f"Uploading {output_dir} to {repo_id}...")
-        api.upload_folder(
-            folder_path=output_dir,
-            repo_id=repo_id,
-            repo_type="dataset",
-            commit_message=f"Update proxies: {os.getenv('VERSION_TAG', 'auto')}",
-        )
-        print("Upload complete.")
-    except Exception as e:
-        print(f"Failed to upload to Hugging Face: {e}")
-        sys.exit(1)
+        api = HfApi(token=token)
 
+        # Ensure repo exists
+        try:
+            api.create_repo(repo_id=repo_id, repo_type=repo_type, exist_ok=True)
+            logger.info(f"Repository {repo_id} confirmed.")
+        except Exception as e:
+            logger.warning(f"Repo check failed (might already exist or token permissions): {e}")
+
+        # Upload
+        url = api.upload_folder(
+            folder_path=local_dir,
+            repo_id=repo_id,
+            repo_type=repo_type,
+            commit_message=commit_message,
+        )
+        logger.info(f"Upload complete: {url}")
+
+    except Exception as e:
+        logger.error(f"Failed to upload to Hugging Face: {e}")
+        # We generally don't want to fail the CI pipeline if the mirror fails,
+        # unless strict mirroring is required.
+        # sys.exit(1)
+
+def main():
+    parser = argparse.ArgumentParser(description="Upload output to Hugging Face")
+    parser.add_argument("--path", default="output", help="Path to output directory")
+    parser.add_argument("--repo-id", required=True, help="Hugging Face Repo ID (e.g., user/dataset)")
+    parser.add_argument("--token", help="HF API Token (or use HF_TOKEN env var)")
+    parser.add_argument("--repo-type", default="dataset", choices=["dataset", "model", "space"], help="Repository type")
+
+    args = parser.parse_args()
+
+    token = args.token or os.environ.get("HF_TOKEN")
+    if not token:
+        logger.error("No Hugging Face token provided. Set HF_TOKEN env var or use --token.")
+        return
+
+    upload_to_hf(
+        local_dir=args.path,
+        repo_id=args.repo_id,
+        token=token,
+        repo_type=args.repo_type
+    )
 
 if __name__ == "__main__":
     main()

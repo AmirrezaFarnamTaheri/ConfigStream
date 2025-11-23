@@ -12,12 +12,11 @@ import logging
 import os
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Set, Dict, Union
+from typing import List, Optional, Set
 
 from rich.progress import Progress, TaskID
 
 from .models import Proxy
-from .config import AppSettings
 from .adapters import get_adapter
 from .testers import SingBoxTester
 from .test_cache import TestResultCache
@@ -261,7 +260,7 @@ async def run_full_pipeline(
     chosen_dir.mkdir(exist_ok=True)
 
     (chosen_dir / "proxies.json").write_text(
-        json.dumps([serialize_proxy(p) for p in chosen_proxies], indent=2)
+        json.dumps([serialize_proxy(p, history.get_history(p.id)) for p in chosen_proxies], indent=2)
     )
     (chosen_dir / "base64.txt").write_text(generate_base64_subscription(chosen_proxies))
 
