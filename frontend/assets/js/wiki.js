@@ -15,6 +15,7 @@ const WIKI_PAGES = [
     { id: 'security', title: 'Security', file: '07-security.md' },
     { id: 'api', title: 'API Reference', file: '08-api-reference.md' },
     { id: 'contributing', title: 'Contributing', file: '09-contributing.md' },
+    { id: 'troubleshooting', title: 'Troubleshooting', file: '10-troubleshooting.md' },
     { id: 'home_page', title: 'Page: Home', file: 'Home_Page.md' },
     { id: 'analytics_page', title: 'Page: Analytics', file: 'Analytics_Page.md' },
     { id: 'proxies_page', title: 'Page: Proxies', file: 'Proxies_Page.md' },
