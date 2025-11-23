@@ -4,10 +4,7 @@ Shadowsocks-Rust FFI Wrapper.
 
 import ctypes
 import logging
-import shutil
-import subprocess
 import json
-import os
 from pathlib import Path
 import sys
 

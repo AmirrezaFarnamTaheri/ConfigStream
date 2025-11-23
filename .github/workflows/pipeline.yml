@@ -212,7 +212,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
-        run: python scripts/upload_hf.py &
+        run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID --token $HF_TOKEN &
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

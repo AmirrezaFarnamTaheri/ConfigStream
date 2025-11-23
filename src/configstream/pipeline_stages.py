@@ -5,7 +5,7 @@ Components for the streaming pipeline.
 
 import asyncio
 import logging
-from typing import List, Tuple, Optional, Set, Dict, Union
+from typing import List, Optional, Set, Dict, Union
 from dataclasses import dataclass
 
 from rich.progress import Progress, TaskID
@@ -22,12 +22,10 @@ from .testers import SingBoxTester
 from .test_cache import TestResultCache
 from .scheduler import SmartRetestScheduler
 from .concurrency_manager import ConcurrencyManager
-from .adaptive_timeout import AdaptiveTimeout
 from .geoip import GeoIPResolver
 from .source_quality import SourceQualityTracker, calculate_diversity_score
 from .anomaly import AnomalyDetector
 from .performance import PerformanceTracker
-from .security.blocklist import DEFAULT_BLOCKLIST
 
 if False:  # TYPE_CHECKING
     from .event_stream import EventStream
