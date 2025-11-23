@@ -35,6 +35,7 @@ Many "free" proxies are on IPs that are flagged by Cloudflare, Google, or other 
     *   The `WARP` WireGuard tunnel is a second `outbound`.
     *   A `route` rule sends traffic from the Proxy outbound *into* the WARP outbound.
     *   The user gets a clean Cloudflare IP.
+*   **Deterministic Key Assignment**: We map the Proxy ID to a specific WARP key using MD5, ensuring the same proxy always gets the same "Identity" (WARP key), preventing session churn.
 
 ### 4. TLS Fingerprinting (uTLS)
 Standard Python `requests` or `ssl` libraries have a very distinct TLS fingerprint (JA3). Firewalls block this immediately.
@@ -44,6 +45,11 @@ Standard Python `requests` or `ssl` libraries have a very distinct TLS fingerpri
     *   Firefox 118
     *   Safari 17
 *   **Result**: We can successfully test and connect to proxies that block non-browser traffic.
+
+### 5. Intranet Bridge
+Some proxies are located inside restrictive domestic networks (e.g., Iran, China) and cannot reach the global internet directly, but *can* reach other domestic servers.
+*   **Mechanism**: We chain these "Intranet" proxies through a "Bridge" proxy (a domestic server with international access, or a relay).
+*   **Routing**: We create specific routing rules in `singbox.json` to tunnel traffic intelligently.
 
 ## Secrets Management
 

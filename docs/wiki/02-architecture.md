@@ -87,7 +87,7 @@ To decentralize testing and provide users with truth from *their* perspective, w
 *   **Limitations & Solutions**:
     *   Browsers cannot open raw TCP sockets.
     *   **Solution 1 (WebSocket)**: For `vmess+ws`, `vless+ws`, `trojan+ws`, the WASM module uses the browser's native WebSocket API to perform a real handshake and connectivity test.
-    *   **Solution 2 (HTTP/Relay)**: For raw TCP protocols, we are experimenting with a "Relay" approach (future roadmap) or falling back to simple HTTP latency checks if a CORS-enabled endpoint is available.
+    *   **Solution 2 (HTTP/Relay)**: For raw TCP protocols, we use standard HTTP latency checks where CORS permits.
 
 ## Memory Management Strategy
 

@@ -98,6 +98,11 @@ Detects "Pollution Attacks" or "Spam Batches."
     *   `Client -> DirtyProxy -> WARP (Clean IP) -> Target`
 *   **Implementation**: We maintain a pool of valid Cloudflare WARP WireGuard keys. We generate a Sing-box "Chain" configuration that routes the outbound traffic of the dirty proxy into the WARP interface.
 
+### BoundedConcurrencyManager
+To prevent "thundering herd" problems and OOM kills, we use a custom `BoundedConcurrencyManager`.
+*   It uses an `asyncio.Condition` to manage a pool of permits.
+*   It supports **Dynamic Resizing**: If the error rate spikes (indicating server overload or rate limiting), we dynamically reduce the concurrency limit. If errors drop, we increase it (AIMD - Additive Increase Multiplicative Decrease).
+
 ## 6. Static Vectors (Vector Search)
 
 To enable "Natural Language Search" on a static site:
