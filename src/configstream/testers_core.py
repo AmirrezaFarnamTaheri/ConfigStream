@@ -10,9 +10,11 @@ import json
 import time
 import stat
 import tempfile
-import aiohttp
+import atexit
 from typing import List, Optional, Set
 from contextlib import contextmanager
+
+import aiohttp
 from aiohttp_socks import ProxyConnector
 
 from .config import AppSettings
@@ -45,8 +47,6 @@ def _cleanup_temp_files():
         except Exception:
             pass
 
-
-import atexit
 
 atexit.register(_cleanup_temp_files)
 
