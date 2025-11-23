@@ -5,13 +5,17 @@ Refactored from output.py to reduce monolith size.
 
 import json
 import base64
+import logging
 from typing import List, Dict, Any, Optional
 from .models import Proxy
 from .converters import to_clash_proxy, to_singbox_outbound
 
+logger = logging.getLogger(__name__)
+
 try:
     import yaml as yaml_lib
 except ImportError:
+    logger.warning("PyYAML not found. Clash config generation will be disabled.")
     yaml_lib = None  # type: ignore
 
 
@@ -48,12 +52,12 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
                 "url": "http://www.gstatic.com/generate_204",
                 "interval": 300,
                 "tolerance": 50,
-                "proxies": names,
+                "proxies": names if names else ["DIRECT"],
             },
             {
                 "name": "🌍 Proxy Select",
                 "type": "select",
-                "proxies": names + ["🚀 ConfigStream Auto"],
+                "proxies": names + ["🚀 ConfigStream Auto"] if names else ["DIRECT"],
             },
         ],
         "rules": ["MATCH,🚀 ConfigStream Auto"],
