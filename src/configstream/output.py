@@ -7,6 +7,7 @@ import json
 import gzip
 import logging
 import os
+import importlib.metadata
 from pathlib import Path
 from typing import List, Dict, Union, Optional, Any, Set
 from datetime import datetime, timezone
@@ -343,12 +344,26 @@ def save_metadata(
     country_stats: Dict[str, int] = {}
     latency_distribution = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
 
+    # Enhanced Metadata Tracking
+    isp_stats: Dict[str, int] = {}
+    city_stats: Dict[str, int] = {}
+
     for p in proxies:
         proto = p.protocol.lower()
         protocols[proto] = protocols.get(proto, 0) + 1
+
         cc = (p.country_code or "UNK").upper()
         countries[cc] = countries.get(cc, 0) + 1
         country_stats[cc] = country_stats.get(cc, 0) + 1
+
+        # Track ISP and City if available
+        if p.org:
+            isp = p.org
+            isp_stats[isp] = isp_stats.get(isp, 0) + 1
+
+        if p.city:
+            city = f"{p.city}, {cc}"
+            city_stats[city] = city_stats.get(city, 0) + 1
 
         latency = p.latency
         if latency is not None and latency > 0:
@@ -367,7 +382,13 @@ def save_metadata(
     fetched_lines = int(stats.get("fetched_lines", 0))
     duration = float(stats.get("duration", 0.0))
 
+    try:
+        version = importlib.metadata.version("configstream")
+    except Exception:
+        version = "unknown"
+
     metadata = {
+        "version": version,
         "last_updated_utc": datetime.now(timezone.utc).isoformat(),
         "total_proxies": len(proxies),
         "total_working": total_working,
@@ -376,6 +397,12 @@ def save_metadata(
         "protocols": protocols,
         "countries": countries,
         "country_stats": country_stats,
+        "isp_stats": dict(
+            sorted(isp_stats.items(), key=lambda x: x[1], reverse=True)[:20]
+        ),  # Top 20 ISPs
+        "city_stats": dict(
+            sorted(city_stats.items(), key=lambda x: x[1], reverse=True)[:20]
+        ),  # Top 20 Cities
         "latency_distribution": latency_distribution,
         "protocol_colors": {
             "vmess": "#FF6B6B",

@@ -1,82 +1,95 @@
 # 05. DevOps & Infrastructure
 
-ConfigStream's DevOps strategy is centered around the "Zero Budget" constraint. We treat GitHub Actions not just as a CI tool, but as a distributed serverless compute platform.
+ConfigStream relies on a robust, automated DevOps pipeline. We adhere to "GitOps" principles: everything is code, and the repository state is the source of truth.
 
-## The Pipeline Workflow (`.github/workflows/pipeline.yml`)
+## 1. The GitHub Actions Pipeline
 
-### Triggers
-1.  **Schedule**: Runs every 6 hours (`0 */6 * * *`).
-2.  **Dispatch**: Manual trigger via GitHub UI.
-3.  **Push**: On commits to `main` (for testing).
+The heart of the system is `.github/workflows/pipeline.yml`.
 
-### The Matrix Strategy
-We split the workload to bypass the 6-hour timeout limit of a single runner and to maximize concurrency.
+### Workflow Triggers
+*   **Schedule**: `cron: "0 */6 * * *"` (Every 6 hours).
+*   **Manual**: `workflow_dispatch` (For emergency updates).
+*   **Push**: On changes to `main` (For testing code changes).
 
-```yaml
-strategy:
-  matrix:
-    batch: [1, 2, 3, 4, 5, 6]
+### Job Architecture
+
+The pipeline uses a **Matrix Strategy** to parallelize work.
+
+```mermaid
+graph TD
+    A[Setup Job] --> B{Matrix Jobs 1..6}
+    B -->|Shard 1| C1[Run Batch 1]
+    B -->|Shard 2| C2[Run Batch 2]
+    B -->|...| C3[Run Batch 6]
+    C1 --> D[Merge & Publish]
+    C2 --> D
+    C3 --> D
+    D --> E[Deploy Pages]
 ```
-*   **Job 1**: Processes `sources/batch_1.txt`
-*   **Job 2**: Processes `sources/batch_2.txt`
-*   ...
 
-### Artifact Lifecycle
+#### 1. Setup (`setup`)
+*   Installs dependencies (`pip`, `go`, `cargo`).
+*   Restores caches:
+    *   `pip-cache`
+    *   `go-build-cache`
+    *   `intelligence-db-cache` (`data/*.db`)
+*   Pre-warms DNS cache.
 
-1.  **Setup**:
-    *   Job restores `actions/cache` containing `data/history.db` and `data/source_quality.db`.
-2.  **Execution**:
-    *   Each matrix job runs independently.
-    *   Each produces a local `output/` directory and a `data/` delta.
-3.  **Upload**:
-    *   Each job uploads its results as an artifact: `batch-results-1`, `batch-results-2`, etc.
-4.  **Merge**:
-    *   The final `merge_results` job downloads **all** artifacts.
-    *   It runs `scripts/merge_batches.py` to combine the databases (SQL Merge) and the proxy lists (De-duplication).
-5.  **Deploy**:
-    *   The combined `output/` is pushed to `gh-pages`.
+#### 2. Sharding (`aggregator`)
+*   We split `sources/` into 6 batch files (`sources/batch_1.txt` to `batch_6.txt`).
+*   Each job in the matrix picks one batch file and processes it independently.
+*   **Result**: Each job outputs a `partial_output_{id}.zip`.
 
-## Caching Strategy
+#### 3. Merge (`merge_results`)
+*   Downloads all partial artifacts.
+*   Merges:
+    *   Proxy lists (Deduplication).
+    *   SQLite Databases (`anomaly.db`, `source_quality.db`) using `merge_from` logic.
+*   Generates final `metadata.json` and `summary.json`.
+*   Commits updated databases back to a persistent cache branch or artifact storage.
 
-We use a sophisticated caching key structure to ensure we always get the latest valid DB but don't fail if it's missing.
+## 2. Caching Strategy
 
-```yaml
-key: configstream-data-${{ github.run_id }}
-restore-keys: |
-  configstream-data-
-```
-*   We use `sqlite3`'s WAL mode to ensure database integrity even if a process crashes.
-*   The DBs are "Vacuumed" periodically to keep size small.
+We heavily utilize `actions/cache` to persist state between ephemeral runners.
 
-## Security Scanning
+| Cache Key | Contents | Purpose |
+| :--- | :--- | :--- |
+| `db-sqlite-{hash}` | `data/*.db` | Persist Anomaly/Quality history. |
+| `mmdb-geoip` | `data/*.mmdb` | Avoid redownloading GeoIP DBs. |
+| `warp-keys` | `data/warp_keys.json` | Keep valid WARP identities. |
 
-### Secrets
-*   **Pre-commit**: We use `gitleaks` locally to prevent committing API keys.
-*   **GitHub**: Secret Scanning is enabled on the repo.
+## 3. Security in CI/CD
 
-### Dependencies
-*   **Dependabot**: configured to check `pip` and `go` dependencies weekly.
-*   **Pinning**: We pin versions in `requirements.txt` to avoid supply-chain attacks or breaking changes.
+*   **Secret Scanning**: We use `gitleaks` in pre-commit hooks to prevent committing API keys.
+*   **Dependency Pinning**: All dependencies in `pyproject.toml` are pinned or version-ranged to prevent supply chain attacks.
+*   **Minimum Permissions**: The `GITHUB_TOKEN` has read-only access except for the specific `deploy` job which needs write access to `gh-pages`.
 
-## Deployment Targets
+## 4. Deployment & CDNs
 
-1.  **GitHub Pages**: The primary static host. Served via Fastly CDN.
-2.  **Cloudflare Pages**: A mirror configured via a separate workflow (or pull-based).
-3.  **Hugging Face**: We treat Hugging Face Datasets as an "Immutable Backup."
-    *   Script: `scripts/upload_hf.py`
-    *   Why? HF has massive bandwidth and is rarely blocked.
+### GitHub Pages
+*   **Branch**: `gh-pages` (Orphan branch).
+*   **Content**: The `output/` directory + `frontend/` assets.
+*   **CDN**: Served via Fastly (GitHub's partner).
 
-## Local Development (Docker)
+### Mirrors (Redundancy)
+If GitHub is blocked, we automatically mirror to:
+1.  **Cloudflare Pages**: Via a separate workflow trigger or pull-model.
+2.  **IPFS**: We pin the output folder to IPFS using a pinning service (like Pinata) if configured.
+3.  **Hugging Face**: We push datasets to Hugging Face Hub for ML usage.
 
-To replicate the CI environment locally:
+## 5. Local Development
+
+We provide a `docker-compose.yml` for replicating the CI environment.
 
 ```bash
-# Start the full stack
+# Start the pipeline locally
 docker compose up --build
 
-# Run a specific command inside the container
-docker compose exec web configstream run --sources sources/batch_1.txt
+# Run the web server
+docker compose up web
 ```
 
-*   **Volumes**: `output/` and `data/` are mounted to the host, so you can see the results immediately.
-*   **Network**: The container runs in a constrained network mode to simulate CI limits.
+### Environment Variables
+*   `MAX_WORKERS`: Control concurrency (Default: Auto).
+*   `WARP_KEY_POOL`: JSON list of keys for the Washer.
+*   `TELEGRAM_BOT_TOKEN`: For the bot interface.

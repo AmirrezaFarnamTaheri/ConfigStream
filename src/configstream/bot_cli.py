@@ -91,7 +91,10 @@ def main():
     if not token:
         logger.error("TELEGRAM_BOT_TOKEN not set")
         return
+    run_bot(token)
 
+
+def run_bot(token: str):
     application = ApplicationBuilder().token(token).build()
 
     application.add_handler(CommandHandler("start", start))

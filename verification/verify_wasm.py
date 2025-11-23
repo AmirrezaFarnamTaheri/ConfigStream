@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright, expect
 import os
 
+
 def run():
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -13,7 +14,8 @@ def run():
 
         # Create the HTML file injecting the JS
         with open("verification/test.html", "w") as f:
-            f.write(f"""
+            f.write(
+                f"""
             <!DOCTYPE html>
             <html>
             <head>
@@ -95,7 +97,8 @@ def run():
                 </script>
             </body>
             </html>
-            """)
+            """
+            )
 
         cwd = os.getcwd()
         page_path = f"file://{cwd}/verification/test.html"
@@ -126,6 +129,7 @@ def run():
         print("Verification successful, screenshot saved.")
 
         browser.close()
+
 
 if __name__ == "__main__":
     run()

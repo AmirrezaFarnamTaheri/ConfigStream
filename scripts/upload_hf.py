@@ -17,6 +17,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 def upload_to_hf(
     local_dir: str,
     repo_id: str,
@@ -41,7 +42,9 @@ def upload_to_hf(
             api.create_repo(repo_id=repo_id, repo_type=repo_type, exist_ok=True)
             logger.info(f"Repository {repo_id} confirmed.")
         except Exception as e:
-            logger.warning(f"Repo check failed (might already exist or token permissions): {e}")
+            logger.warning(
+                f"Repo check failed (might already exist or token permissions): {e}"
+            )
 
         # Upload
         url = api.upload_folder(
@@ -58,26 +61,34 @@ def upload_to_hf(
         # unless strict mirroring is required.
         # sys.exit(1)
 
+
 def main():
     parser = argparse.ArgumentParser(description="Upload output to Hugging Face")
     parser.add_argument("--path", default="output", help="Path to output directory")
-    parser.add_argument("--repo-id", required=True, help="Hugging Face Repo ID (e.g., user/dataset)")
+    parser.add_argument(
+        "--repo-id", required=True, help="Hugging Face Repo ID (e.g., user/dataset)"
+    )
     parser.add_argument("--token", help="HF API Token (or use HF_TOKEN env var)")
-    parser.add_argument("--repo-type", default="dataset", choices=["dataset", "model", "space"], help="Repository type")
+    parser.add_argument(
+        "--repo-type",
+        default="dataset",
+        choices=["dataset", "model", "space"],
+        help="Repository type",
+    )
 
     args = parser.parse_args()
 
     token = args.token or os.environ.get("HF_TOKEN")
     if not token:
-        logger.error("No Hugging Face token provided. Set HF_TOKEN env var or use --token.")
+        logger.error(
+            "No Hugging Face token provided. Set HF_TOKEN env var or use --token."
+        )
         return
 
     upload_to_hf(
-        local_dir=args.path,
-        repo_id=args.repo_id,
-        token=token,
-        repo_type=args.repo_type
+        local_dir=args.path, repo_id=args.repo_id, token=token, repo_type=args.repo_type
     )
+
 
 if __name__ == "__main__":
     main()
