@@ -6,7 +6,7 @@ Refactored from output.py to reduce monolith size.
 import json
 import base64
 import logging
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from .models import Proxy
 from .converters import to_clash_proxy, to_singbox_outbound
 
