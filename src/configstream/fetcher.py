@@ -17,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
+import os
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Any, Dict, Optional, Tuple
@@ -35,7 +36,10 @@ from .adaptive_timeout import AdaptiveTimeout
 logger = logging.getLogger(__name__)
 
 # Constants
-MAX_RESPONSE_SIZE = 50 * 1024 * 1024  # 50 MB
+# Allow override via env for low-memory environments
+MAX_RESPONSE_SIZE = int(
+    os.getenv("MAX_RESPONSE_SIZE", 50 * 1024 * 1024)
+)  # Default 50 MB
 
 
 class FetcherError(Exception):
@@ -159,6 +163,8 @@ async def fetch_from_source(
         "Accept-Encoding": "gzip, deflate, br",
     }
 
+    last_status_code = None
+
     for attempt in range(max_retries):
         loop = asyncio.get_running_loop()
         start_ts = loop.time()
@@ -189,6 +195,7 @@ async def fetch_from_source(
                 ) as response:
                     response_time = loop.time() - start_ts
                     status = response.status_code
+                    last_status_code = status
 
                     # Rate Limit Handling
                     if status == 429:
@@ -258,11 +265,22 @@ async def fetch_from_source(
             backoff = min(backoff * 2, 60)
 
         except (httpx.HTTPError, asyncio.TimeoutError, ValueError) as e:
+            # Capture status code if available in exception
+            err_status = None
+            if isinstance(e, httpx.HTTPStatusError):
+                err_status = e.response.status_code
+
             last_error = str(e)
             if controller:
                 await controller.record(host, per_attempt_timeout, False)
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
                 breaker_manager.get_breaker(host).record_failure()
+
+            # If it's a 4xx/5xx error that was raised, we might want to return it in the result
+            # But the loop retries. If we exhaust retries, we return False.
+            # However, for 404 specifically, we might want to stop retrying immediately?
+            # The current logic retries.
+            # If we return a failure FetchResult at the end, it should ideally have the status code of the last attempt.
 
             # Don't sleep on the last attempt
             if attempt < max_retries - 1:
@@ -277,7 +295,12 @@ async def fetch_from_source(
                 await asyncio.sleep(min(backoff, 30))
                 backoff = min(backoff * 2, 60)
 
-    return FetchResult(False, source, error=f"Max retries exceeded: {last_error}")
+    return FetchResult(
+        False,
+        source,
+        error=f"Max retries exceeded: {last_error}",
+        status_code=last_status_code
+    )
 
 
 def _parse_retry_after(header: str | None) -> float | None:

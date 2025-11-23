@@ -3,9 +3,11 @@ import asyncio
 import nest_asyncio
 import importlib.metadata
 
+
 @pytest.fixture(scope="session", autouse=True)
 def apply_nest_asyncio():
     nest_asyncio.apply()
+
 
 @pytest.fixture(autouse=True)
 def mock_version(monkeypatch):

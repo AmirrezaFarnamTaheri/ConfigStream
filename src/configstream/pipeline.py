@@ -29,7 +29,6 @@ from .geoip import GeoIPResolver
 from .source_quality import SourceQualityTracker
 from .anomaly import AnomalyDetector
 from .security.blocklist import DEFAULT_BLOCKLIST
-from .event_stream import EventStream
 from .consolidation import select_top_configs
 from . import output
 from .output_generators import generate_base64_subscription
@@ -89,12 +88,6 @@ async def run_full_pipeline(
     quality_tracker = SourceQualityTracker()
     anomaly_detector = AnomalyDetector()
 
-    # Initialize Event Stream
-    event_stream = EventStream(output_path)
-    event_stream.emit(
-        "pipeline_start", f"Pipeline started with {len(sources)} sources."
-    )
-
     # Initialize Blocklist
     asyncio.create_task(DEFAULT_BLOCKLIST.update())
 
@@ -137,7 +130,7 @@ async def run_full_pipeline(
             proxies,
             quality_tracker,
             anomaly_detector,
-            event_stream,
+            None, # No event stream
             progress,
             task_fetch,
         )
@@ -154,7 +147,7 @@ async def run_full_pipeline(
             concurrency,
             geoip,
             tracker,
-            event_stream,
+            None, # No event stream
             quality_tracker,
             progress,
             task_process,
@@ -177,10 +170,6 @@ async def run_full_pipeline(
 
     # Generate Outputs
     logger.info(f"Generating outputs for {len(optimized_proxies)} proxies...")
-    event_stream.emit(
-        "pipeline_finish",
-        f"Pipeline finished. Generated {len(optimized_proxies)} proxies.",
-    )
 
     duration = (datetime.now(timezone.utc) - start_time).total_seconds()
     stats.duration = float(duration)
@@ -237,9 +226,7 @@ async def run_full_pipeline(
     (chosen_dir / "proxies.json").write_text(
         json.dumps([serialize_proxy(p) for p in chosen_proxies], indent=2)
     )
-    (chosen_dir / "base64.txt").write_text(
-        generate_base64_subscription(chosen_proxies)
-    )
+    (chosen_dir / "base64.txt").write_text(generate_base64_subscription(chosen_proxies))
 
     # Save History & Cache
     history.save()

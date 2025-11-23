@@ -27,12 +27,13 @@ flowchart TD
         G -->|Rust FFI| H{Valid?}
         H -->|No| X
         H -->|Yes| I{Connectivity}
-        I -->|uTLS Sidecar| J(Working Proxies)
+        I -->|Go Sidecar / uTLS| J(Working Proxies)
     end
 
     subgraph Output ["Phase 4: Output (IO)"]
         J -->|GeoIP Enrichment| K(Enriched Data)
-        K -->|Generate Configs| L[Clash/Singbox/Surge/Loon]
+        K -->|Washing & Chaining| K1(Smart Chains)
+        K1 -->|Generate Configs| L[Clash/Singbox/Surge/Loon]
         K -->|Update History| M[SQLite DB]
     end
 
@@ -57,21 +58,27 @@ Parsing is dangerous. Input is untrusted and often malformed.
 -   **Auto-Detection**: The `auto_detect.py` module uses heuristics to identify protocols even if the scheme is missing.
 -   **Protocol Expansion**: Support for Hysteria 2 (port hopping) and WireGuard (reserved bytes).
 
-### 3. Testing (The Engine)
-We employ a hybrid testing engine:
--   **Sing-box**: The primary connectivity tester for complex protocols (VLESS, VMess, Tuic).
--   **Python aiohttp**: For basic HTTP/SOCKS checks.
+### 3. Testing (The Hybrid Engine)
+We employ a hybrid testing engine, the "Resilient Core":
+-   **Go Batch Tester**: A high-performance sidecar (`src/go/tester`) that handles massive concurrency (500+ checks) using Go routines, eliminating the Python GIL bottleneck. It handles raw socket connections and real protocol handshakes.
+-   **Sing-box**: The primary connectivity tester for complex protocols (VLESS, VMess, Tuic) when deep packet inspection evasion is needed.
+-   **Python Orchestrator**: Manages the pipeline logic, intelligence, and data flow.
 -   **Rust FFI**: For high-performance Shadowsocks crypto validation (`src/rust/ss_checker`).
--   **Go Sidecar**: For uTLS fingerprint randomization (`src/go/utls_client`) to simulate real browser handshakes.
 -   **Honeypot Probe**: Actively scans the proxy IP for suspicious ports (22, 23, 3389) to detect interception nodes.
 
-### 4. Output & Distribution
+### 4. Intelligence Layer (Proxy Washing)
+ConfigStream includes a unique "Washing" layer:
+-   **Dirty IP Washing**: Proxies with flagged IPs are wrapped in Cloudflare WARP tunnels.
+-   **Smart Chains**: Logic to bridge domestic relays (e.g., IR) to foreign exits, or IPv4 relays to IPv6 exits.
+-   **Deterministic Keying**: Ensures the same relay always gets the same exit identity to prevent connection flapping.
+
+### 5. Output & Distribution
 We generate multiple formats:
 -   **Universal**: Base64 subscription.
--   **Clients**: Clash, Sing-box, Surge, Loon, Quantumult X, SIP008.
+-   **Clients**: Clash, Sing-box (Tank & Sniper modes), Surge, Loon, Quantumult X, SIP008.
 -   **Metadata**: `metadata.json` for the frontend and bot.
 
-### 5. The Bot Architecture
+### 6. The Bot Architecture
 The ConfigStream Bot operates in two modes:
 1.  **Stateless (Cloudflare Worker)**: Fetches `metadata.json` and `proxies.json` from the GitHub Pages CDN and serves them to users. No database required.
 2.  **Polling (CLI)**: Runs as a standard Python process (`configstream bot`) for local or server-based deployments.
@@ -88,7 +95,7 @@ sequenceDiagram
     participant Fetcher
     participant Parser
     participant Security
-    participant Tester
+    participant HybridTester
     participant Bot
 
     Scheduler->>Fetcher: Get Source URL
@@ -96,8 +103,8 @@ sequenceDiagram
     Parser->>Security: Proxy Object
     Security->>Security: Honeypot Check (Port Scan)
     Security->>Security: Rust FFI Verify
-    Security->>Tester: Valid Proxy
-    Tester->>Tester: Run Sing-box / uTLS
-    Tester-->>Scheduler: Result (Latency)
+    Security->>HybridTester: Valid Proxy
+    HybridTester->>HybridTester: Go Routine / Sing-box
+    HybridTester-->>Scheduler: Result (Latency)
     Scheduler->>Bot: Update Metadata
 ```

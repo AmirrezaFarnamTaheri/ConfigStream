@@ -110,7 +110,9 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
 
     smart_chains = {"intranet": [], "ipv6": [], "streamer": [], "experimental": []}
 
-    files = generate_split_outputs(sample_proxies, output_dir, washed, washed_ids, smart_chains)
+    files = generate_split_outputs(
+        sample_proxies, output_dir, washed, washed_ids, smart_chains
+    )
 
     assert "singbox_vpn" in files
     assert "singbox" in files

@@ -51,18 +51,20 @@
                     ConfigStream was built to provide reliable, free access to the global internet for users in restricted network environments. By aggregating proxies from hundreds of public sources and rigorously testing them, we ensure high availability without manual effort.
                 </p>
 
-                <h2 class="about-section-title">Architecture</h2>
-                <p class="about-text-content">The system operates as a fully automated pipeline:</p>
+                <h2 class="about-section-title">Architecture: The "Resilient Core"</h2>
+                <p class="about-text-content">
+                    We utilize a "Zero Budget" architecture that runs entirely on GitHub's infrastructure, ensuring sustainability and censorship resistance.
+                </p>
                 <ul class="feature-list">
-                    <li><strong>Aggregator:</strong> Fetches from over 600 sources.</li>
-                    <li><strong>Validator:</strong> Tests connectivity, latency, and security (SSL/Injection).</li>
-                    <li><strong>Intelligence:</strong> Uses historical data and smart scheduling to optimize re-testing.</li>
-                    <li><strong>Publisher:</strong> Generates ready-to-use configs for V2Ray, Clash, and Sing-box.</li>
+                    <li><strong>Hybrid Engine:</strong> Combines Python's flexibility for intelligence with a high-performance <strong>Go Sidecar</strong> for massively concurrent network testing.</li>
+                    <li><strong>Intelligence Layer:</strong> Our "Proxy Washing" technology automatically repairs blocked IPs by tunnelling them through Cloudflare WARP, creating "Smart Chains" that bypass deeper restrictions.</li>
+                    <li><strong>Aggregator:</strong> Fetches from over 600 sources every 6 hours.</li>
+                    <li><strong>Publisher:</strong> Generates optimized configs for V2Ray, Clash, Sing-box (Tank/Sniper modes), and more.</li>
                 </ul>
 
                 <h2 class="about-section-title">Security</h2>
                 <p class="about-text-content">
-                    While we perform automated security checks (blocking ads, malware sites, and verification of TLS), these are public proxies. We recommend using them for browsing and avoiding sensitive transactions (banking, passwords).
+                    While we perform automated security checks (blocking ads, malware sites, honeypots, and verification of TLS), these are public proxies. We recommend using them for browsing and avoiding sensitive transactions (banking, passwords).
                 </p>
 
                 <div class="text-center">
