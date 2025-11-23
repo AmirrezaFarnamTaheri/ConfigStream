@@ -11,12 +11,12 @@ root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir / "src"))
 
 from configstream.models import Proxy  # noqa: E402
-from configstream.output import (  # noqa: E402
+from configstream.output_generators import (  # noqa: E402
     generate_base64_subscription,
     generate_singbox_config,
     generate_clash_config,
-    save_metadata,
 )
+from configstream.output import save_metadata  # noqa: E402
 from configstream.adapters import get_adapter  # noqa: E402
 from configstream.test_cache import TestResultCache  # noqa: E402
 from configstream.consolidation import (  # noqa: E402
