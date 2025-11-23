@@ -6,10 +6,8 @@ from configstream.intelligence.washer import (
     generate_smart_chains,
     create_chain,
 )
-from configstream.output import (
-    to_singbox_outbound,
-    generate_split_outputs,
-)
+from configstream.converters import to_singbox_outbound
+from configstream.output import generate_split_outputs
 from configstream.models import Proxy
 
 

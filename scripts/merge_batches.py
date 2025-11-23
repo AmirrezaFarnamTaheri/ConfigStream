@@ -348,6 +348,23 @@ def merge_batches(
     save_metadata(meta_stats, ranked_proxies, output_dir)
     print("✓ Generated metadata.json and summary.json via shared logic")
 
+    # --- Copy Wiki Documentation ---
+    print("\n=== Step 4: Copying Wiki Documentation ===")
+    wiki_src = root_dir / "docs" / "wiki"
+    wiki_dest = output_dir / "wiki"
+
+    if wiki_src.exists():
+        wiki_dest.mkdir(exist_ok=True)
+        for md_file in wiki_src.glob("*.md"):
+            # Atomic copy manually since shutil isn't imported and we want control
+            dest_file = wiki_dest / md_file.name
+            dest_file.write_text(md_file.read_text())
+        print(f"✓ Copied {len(list(wiki_src.glob('*.md')))} wiki pages to output/wiki/")
+    else:
+        print(
+            "⚠️ Warning: docs/wiki directory not found. Wiki pages will not be deployed."
+        )
+
     print(f"\n{'=' * 60}")
     print(f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies")
     print("✅ Ranked all proxies by protocol and latency")

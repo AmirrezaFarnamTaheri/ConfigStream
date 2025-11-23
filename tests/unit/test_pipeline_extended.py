@@ -5,6 +5,7 @@ from pathlib import Path
 from configstream.pipeline import run_full_pipeline
 from configstream.models import Proxy
 from configstream.pipeline_stages import PipelineStats, PipelineResult
+from configstream.intelligence.washer import ProxyWasher
 
 
 @pytest.fixture
@@ -66,7 +67,9 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         patch("configstream.pipeline.output.save_metadata"),
         patch("configstream.pipeline.generate_vectors"),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
-        patch("configstream.pipeline.ProxyWasher") as MockWasher,
+        patch(
+            "configstream.pipeline.ProxyWasher", new=MagicMock(spec=ProxyWasher)
+        ) as MockWasher,
         patch("configstream.pipeline.get_adapter"),
         patch("configstream.pipeline.select_top_configs", return_value=mock_proxies),
         patch("configstream.pipeline.output.generate_smart_chains", return_value={}),
@@ -120,7 +123,9 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         patch("configstream.pipeline.output.save_metadata"),
         patch("configstream.pipeline.generate_vectors"),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
-        patch("configstream.pipeline.ProxyWasher") as MockWasher,
+        patch(
+            "configstream.pipeline.ProxyWasher", new=MagicMock(spec=ProxyWasher)
+        ) as MockWasher,
         patch("configstream.pipeline.get_adapter"),
         patch("configstream.pipeline.select_top_configs", return_value=mock_proxies),
         patch("configstream.pipeline.output.generate_smart_chains", return_value={}),
@@ -191,7 +196,9 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch("configstream.pipeline.output.save_metadata"),
         patch("configstream.pipeline.generate_vectors"),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
-        patch("configstream.pipeline.ProxyWasher") as MockWasher,
+        patch(
+            "configstream.pipeline.ProxyWasher", new=MagicMock(spec=ProxyWasher)
+        ) as MockWasher,
         patch("configstream.pipeline.get_adapter") as mock_get_adapter,
         patch("configstream.pipeline.select_top_configs", return_value=mock_proxies),
         patch("configstream.pipeline.output.generate_smart_chains", return_value={}),

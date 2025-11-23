@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initSidebar() {
     const sidebar = document.getElementById('wikiSidebar');
+    if (!sidebar) return;
     sidebar.innerHTML = '';
 
     WIKI_PAGES.forEach(page => {
@@ -60,41 +61,55 @@ async function loadFromHash() {
 
 async function renderPage(filename) {
     const container = document.getElementById('wikiRenderer');
+    if (!container) return;
+
     container.innerHTML = '<div class="loading-spinner">Loading...</div>';
 
     try {
-        // Try fetching from potential locations (Raw GitHub or Local)
-        // In a real deployment, these MD files might be copied to a specific folder during build
-        // For now, we try a relative path assuming standard deployment structure or the raw GitHub URL as fallback
+        // Strategy:
+        // 1. Try fetching from 'wiki/' relative path (Production, served from output/wiki)
+        // 2. Try fetching from raw GitHub (Fallback)
+        // 3. Try fetching from local docs folder (Local Dev)
+
+        // Note: fetch will succeed even on 404, so we must check response.ok
 
         let content = '';
+        let success = false;
 
-        // Strategy: Try relative 'wiki/' path first (if copied by build), then raw GitHub
-        // Since we can't guarantee the build process copies them yet, I'll assume they are accessible via raw URL
-        // OR we need to ensure the build process copies `docs/wiki` to `output/wiki` or `frontend/wiki`.
+        const strategies = [
+            `wiki/${filename}`,
+            WIKI_BASE_URL + filename,
+            `../docs/wiki/${filename}`
+        ];
 
-        // For this implementation, I'll try to fetch from a local path relative to the HTML
-        // assuming the user will instruct the build to copy them, or I will add that to the build plan.
-        // Let's try a common convention: /wiki/filename
-
-        const responses = await Promise.allSettled([
-            fetch(`wiki/${filename}`), // Production (if copied)
-            fetch(WIKI_BASE_URL + filename), // Fallback
-            fetch(`../docs/wiki/${filename}`) // Local Dev
-        ]);
-
-        const successful = responses.find(r => r.status === 'fulfilled' && r.value.ok);
-
-        if (!successful) {
-            throw new Error('Could not load wiki page');
+        for (const url of strategies) {
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    content = await response.text();
+                    success = true;
+                    break;
+                }
+            } catch (e) {
+                // Continue to next strategy
+            }
         }
 
-        content = await successful.value.text();
+        if (!success) {
+            throw new Error('Could not load wiki page from any source.');
+        }
 
         // Parse Markdown
         const html = marked.parse(content);
         const sanitized = DOMPurify.sanitize(html);
         container.innerHTML = sanitized;
+
+        // Highlight code blocks if any
+        if (window.hljs) {
+             container.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+        }
 
     } catch (error) {
         container.innerHTML = `
