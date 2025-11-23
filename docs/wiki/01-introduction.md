@@ -68,8 +68,9 @@ We are guests on the internet infrastructure. We must behave responsibly.
 
 ### 3. Client Agnostic
 We do not believe in "one app to rule them all." Users have preferences.
-*   We output native configurations for **Clash**, **Sing-box**, **Surge**, **Loon**, **Quantumult X**, and generic **SIP008** / **Base64**.
-*   We handle the complex mapping of protocol fields (e.g., converting VLESS flow settings to Clash's specific format).
+*   **Native Configs**: We output tailored configurations for **Clash**, **Sing-box**, **Surge**, **Loon**, **Quantumult X**.
+*   **Universal Formats**: We provide **SIP008** and **Base64** subscriptions for maximum compatibility.
+*   **Field Mapping**: We handle complex mapping of protocol fields (e.g., converting VLESS flow settings to Clash's specific format).
 
 ### 4. Transparency & Verifiability
 Trust is earned.
@@ -93,5 +94,6 @@ A central point of failure is a censorship target.
     *   **Smart Intelligence**: Source quality tracking and anomaly detection.
     *   **Proxy Washing**: Cleaning dirty IPs.
     *   **Vector Search**: Natural language filtering.
+    *   **Full Client Support**: Surge, Loon, QX, SIP008.
 
 ConfigStream is not just a tool; it is a demonstration of how powerful software can be built without a budget, relying on architectural ingenuity rather than capital.
