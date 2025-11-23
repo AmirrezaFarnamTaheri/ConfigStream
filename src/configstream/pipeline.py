@@ -37,6 +37,7 @@ from .proxy_history import ProxyHistoryTracker
 from .output import ProxyWasher
 from .filtering import filter_unique_endpoints
 from .serialize import serialize_proxy
+from .intelligence.vectors import generate_vectors
 
 from .pipeline_stages import (
     PipelineStats,
@@ -44,6 +45,7 @@ from .pipeline_stages import (
     source_producer,
     processing_consumer,
 )
+from .event_stream import EventStream
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +96,9 @@ async def run_full_pipeline(
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
 
+    # Initialize Event Stream
+    event_stream = EventStream(output_path)
+
     stats = PipelineStats()
 
     # Work Queue
@@ -130,7 +135,7 @@ async def run_full_pipeline(
             proxies,
             quality_tracker,
             anomaly_detector,
-            None, # No event stream
+            event_stream,
             progress,
             task_fetch,
         )
@@ -147,7 +152,7 @@ async def run_full_pipeline(
             concurrency,
             geoip,
             tracker,
-            None, # No event stream
+            event_stream,
             quality_tracker,
             progress,
             task_process,
@@ -165,8 +170,37 @@ async def run_full_pipeline(
     # Deduplicate Endpoints (IP:Port)
     optimized_proxies = filter_unique_endpoints(final_proxies)
 
-    # Sort by latency
-    optimized_proxies.sort(key=lambda x: x.latency if x.latency else 9999)
+    # Pareto Sort: Latency (50%), Reliability/Uptime (30%), Success (20%)
+    # We leverage the history tracker to get reliability scores.
+
+    def pareto_score(p: Proxy) -> float:
+        # Lower score is better
+        latency = p.latency if p.latency else 9999
+
+        # Normalize latency: 0-1000ms -> 0-1. Clamp at 1 (1s+)
+        norm_latency = min(latency / 1000.0, 1.0)
+
+        # Reliability (Success Rate) from History
+        # Note: get_reliability_score returns 0-1 (higher is better)
+        # We invert it so lower is better (1 - score)
+        reliability = history.get_reliability_score(p.id)
+
+        # Stability (Jitter)
+        # We use uptime_percentage from summary as 'stability' proxy if available
+        summary = history.get_summary_stats(p.id)
+        uptime = summary.get("uptime_percentage", 50.0) / 100.0
+
+        # Weighted Score
+        # Latency: 50%
+        # Reliability (History Success): 30%
+        # Stability (Uptime): 20%
+
+        score = (
+            (norm_latency * 0.5) + ((1.0 - reliability) * 0.3) + ((1.0 - uptime) * 0.2)
+        )
+        return float(score)
+
+    optimized_proxies.sort(key=pareto_score)
 
     # Generate Outputs
     logger.info(f"Generating outputs for {len(optimized_proxies)} proxies...")
@@ -191,6 +225,9 @@ async def run_full_pipeline(
 
     # NEW: Generate Metadata for Frontend
     output.save_metadata(stats.to_dict(), optimized_proxies, output_path)
+
+    # NEW: Generate Static Vectors for Client-Side Search
+    generate_vectors(optimized_proxies, output_path)
 
     # New Adapters Exports
     try:

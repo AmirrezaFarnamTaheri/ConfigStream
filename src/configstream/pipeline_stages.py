@@ -29,7 +29,7 @@ from .anomaly import AnomalyDetector
 from .performance import PerformanceTracker
 from .security.blocklist import DEFAULT_BLOCKLIST
 
-if False: # TYPE_CHECKING
+if False:  # TYPE_CHECKING
     from .event_stream import EventStream
 
 logger = logging.getLogger(__name__)
@@ -315,11 +315,13 @@ async def processing_consumer(
                 with tracker.phase("geo"):
                     geo_data = geoip.lookup(p.resolved_ip or p.address)
                     if geo_data.country_code:
-                        p.country_code = geo_data.country_code
-                        p.country = geo_data.country_code
-                        p.city = geo_data.city
-                        p.asn = geo_data.asn
-                        p.org = geo_data.org
+                        # Fix type mismatch: ensure country_code is str or ""
+                        cc = geo_data.country_code or ""
+                        p.country_code = cc
+                        p.country = cc
+                        p.city = geo_data.city or ""
+                        p.asn = geo_data.asn or ""
+                        p.org = geo_data.org or ""
                     stats.geo_resolved += 1
             if country_filter:
                 if p.country_code != country_filter.upper():

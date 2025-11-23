@@ -266,9 +266,10 @@ async def fetch_from_source(
 
         except (httpx.HTTPError, asyncio.TimeoutError, ValueError) as e:
             # Capture status code if available in exception
-            err_status = None
             if isinstance(e, httpx.HTTPStatusError):
-                err_status = e.response.status_code
+                # err_status used to be assigned here but was unused.
+                # We just capture it via last_error or could log it
+                logger.debug(f"HTTP Error {e.response.status_code} for {source}")
 
             last_error = str(e)
             if controller:
@@ -299,7 +300,7 @@ async def fetch_from_source(
         False,
         source,
         error=f"Max retries exceeded: {last_error}",
-        status_code=last_status_code
+        status_code=last_status_code,
     )
 
 
