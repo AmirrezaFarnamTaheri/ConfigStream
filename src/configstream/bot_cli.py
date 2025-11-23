@@ -6,15 +6,12 @@ Command line interface for the Telegram Bot.
 import os
 import sys
 import logging
-import asyncio
 
 # Configure logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
-# from .tools.warp import generate_warp_account  # noqa: E402
 
 try:
     from telegram import Update

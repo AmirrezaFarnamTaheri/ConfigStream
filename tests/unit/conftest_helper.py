@@ -1,6 +1,6 @@
-
 import pytest
 from configstream.models import Proxy
+
 
 def create_test_proxy(
     config: str = "vmess://test",
@@ -8,7 +8,7 @@ def create_test_proxy(
     address: str = "1.1.1.1",
     port: int = 443,
     is_working: bool = True,
-    **kwargs
+    **kwargs,
 ):
     return Proxy(
         config=config,
@@ -16,8 +16,9 @@ def create_test_proxy(
         address=address,
         port=port,
         is_working=is_working,
-        **kwargs
+        **kwargs,
     )
+
 
 @pytest.fixture
 def test_proxy():

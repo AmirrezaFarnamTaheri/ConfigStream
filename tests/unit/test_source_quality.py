@@ -1,11 +1,11 @@
-
 import pytest
 from configstream.source_quality import SourceQualityTracker
 from pathlib import Path
 
+
 def test_source_quality_scoring(tmp_path):
     db_path = tmp_path / "quality.db"
-    tracker = SourceQualityTracker(db_path=db_path) # Pass Path object
+    tracker = SourceQualityTracker(db_path=db_path)  # Pass Path object
 
     source = "http://example.com/list"
     tracker.update(source, fetched_count=100, working_count=80, diversity_score=0.5)
@@ -14,9 +14,10 @@ def test_source_quality_scoring(tmp_path):
     should = tracker.should_fetch(source)
     assert should is True
 
+
 def test_source_quality_decay(tmp_path):
     db_path = tmp_path / "quality.db"
-    tracker = SourceQualityTracker(db_path=db_path) # Pass Path object
+    tracker = SourceQualityTracker(db_path=db_path)  # Pass Path object
     source = "http://example.com/bad"
 
     # Consistent failure

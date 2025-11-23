@@ -18,8 +18,6 @@ from .utils import AtomicFileWriter
 from .converters import to_singbox_outbound
 from .output_generators import (
     generate_clash_config,
-    generate_singbox_config,
-    generate_base64_subscription,
 )
 
 logger = logging.getLogger(__name__)
@@ -139,8 +137,7 @@ def generate_split_outputs(
     }
 
     vpn_file = output_dir / "singbox-vpn.json"
-    with open(vpn_file, "w", encoding="utf-8") as f:
-        json.dump(vpn_config, f, indent=2)
+    AtomicFileWriter.write_text(vpn_file, json.dumps(vpn_config, indent=2))
     files["singbox_vpn"] = vpn_file
 
     # 2. singbox.json (The "Sniper")
@@ -216,15 +213,13 @@ def generate_split_outputs(
             }
 
     sniper_file = output_dir / "singbox.json"
-    with open(sniper_file, "w", encoding="utf-8") as f:
-        json.dump(sniper_config, f, indent=2)
+    AtomicFileWriter.write_text(sniper_file, json.dumps(sniper_config, indent=2))
     files["singbox"] = sniper_file
 
     # 3. clash.yaml (The "Diplomat")
     clash_content = generate_clash_config(proxies)
     clash_file = output_dir / "clash.yaml"
-    with open(clash_file, "w", encoding="utf-8") as f:
-        f.write(clash_content)
+    AtomicFileWriter.write_text(clash_file, clash_content)
     files["clash"] = clash_file
 
     return files
@@ -262,9 +257,8 @@ def generate_categorized_outputs(
     for k, v in smart_chains.items():
         all_chains.extend(v)
 
-    with open(chains_file, "w", encoding="utf-8") as f:
-        chain_config = {"outbounds": all_chains}
-        json.dump(chain_config, f, indent=2)
+    chain_config = {"outbounds": all_chains}
+    AtomicFileWriter.write_text(chains_file, json.dumps(chain_config, indent=2))
     files["chains"] = chains_file
 
     # 2. By Protocol

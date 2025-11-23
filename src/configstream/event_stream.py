@@ -1,14 +1,30 @@
-
-import asyncio
+import logging
 from pathlib import Path
-from typing import Optional
+
+logger = logging.getLogger(__name__)
+
 
 class EventStream:
+    """
+    Handles real-time event emission for the pipeline.
+    Currently logs events to the standard logger, but designed to support
+    WebSocket broadcasting or file-based event streams in the future.
+    """
+
     def __init__(self, output_dir: Path):
         self.output_dir = output_dir
-        # For now, just a simple logger or no-op if we removed websockets
 
     def emit(self, event_type: str, message: str):
-        # Placeholder for event emission (logs, file append, etc.)
-        # print(f"[{event_type}] {message}")
-        pass
+        """
+        Emit an event to the stream.
+        """
+        # Log to standard logger for now
+        if event_type in ("error", "critical"):
+            logger.error(f"[{event_type}] {message}")
+        elif event_type in ("warning",):
+            logger.warning(f"[{event_type}] {message}")
+        else:
+            logger.info(f"[{event_type}] {message}")
+
+        # Future: Append to a rotating event log file in output_dir
+        # for the frontend to poll if WebSockets are not used.
