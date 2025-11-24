@@ -1,4 +1,3 @@
-import pytest
 from configstream.tagging import ProxyTagger, format_proxy_name
 from tests.unit.conftest_helper import create_test_proxy
 

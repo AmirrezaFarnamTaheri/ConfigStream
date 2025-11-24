@@ -1,9 +1,7 @@
 """Tests for vector generation."""
 
-import pytest
 import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from configstream.intelligence.vectors import _compute_vector, generate_vectors
 from configstream.models import Proxy
 

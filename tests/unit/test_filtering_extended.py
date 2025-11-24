@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import MagicMock, patch
 from configstream.filtering import (
     proxy_unique_key,

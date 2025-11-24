@@ -20,8 +20,6 @@ from typing import Dict, List, Any
 class HealthCheckError(Exception):
     """Health check failure."""
 
-    pass
-
 
 def check_file_exists(file_path: Path, name: str) -> None:
     """Check if required file exists."""

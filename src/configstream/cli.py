@@ -43,7 +43,6 @@ def setup_logging(verbose: bool):
 @click.version_option()
 def main():
     """ConfigStream: Automated Proxy Aggregator & Tester"""
-    pass
 
 
 @main.command()

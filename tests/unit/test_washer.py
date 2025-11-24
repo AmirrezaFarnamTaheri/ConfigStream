@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from configstream.intelligence.washer import ProxyWasher, generate_smart_chains
 from configstream.models import Proxy
 

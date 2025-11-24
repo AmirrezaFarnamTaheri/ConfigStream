@@ -1,6 +1,4 @@
-import pytest
 from configstream.source_quality import SourceQualityTracker
-from pathlib import Path
 
 
 def test_source_quality_scoring(tmp_path):

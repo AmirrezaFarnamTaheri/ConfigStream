@@ -1,4 +1,3 @@
-import pytest
 from configstream.filtering import filter_unique_endpoints
 from tests.unit.conftest_helper import create_test_proxy
 

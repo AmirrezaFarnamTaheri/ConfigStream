@@ -1,7 +1,6 @@
 import pytest
 import asyncio
-import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from configstream.utils import AtomicFileWriter, BoundedConcurrencyManager
 
 

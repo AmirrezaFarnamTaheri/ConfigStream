@@ -1,10 +1,7 @@
 import json
 import logging
-import os
-import ctypes
 from pathlib import Path
-from typing import Dict, List, Optional
-import wasmtime
+from typing import Dict, Optional
 from wasmtime import Engine, Store, Module, Instance
 
 from ..models import Proxy
@@ -12,10 +9,12 @@ from ..parsers.base import normalize_proxy_details
 
 logger = logging.getLogger(__name__)
 
+
 class WasmParser:
     """
     Adapter for WASM-based parsers.
     """
+
     def __init__(self, name: str, wasm_path: Path):
         self.name = name
         self.wasm_path = wasm_path
@@ -42,7 +41,7 @@ class WasmParser:
         result_ptr = 0
         length = 0
         try:
-            config_bytes = config.encode('utf-8')
+            config_bytes = config.encode("utf-8")
             length = len(config_bytes)
 
             # Allocate memory in WASM
@@ -58,8 +57,8 @@ class WasmParser:
             # Deallocate input buffer immediately if dealloc is available
             # We assume the plugin doesn't need it after parse returns.
             if self.dealloc:
-                 self.dealloc(self.store, ptr, length)
-                 ptr = 0 # Prevent double free if exception happens later
+                self.dealloc(self.store, ptr, length)
+                ptr = 0  # Prevent double free if exception happens later
 
             if result_ptr == 0:
                 return None
@@ -79,18 +78,20 @@ class WasmParser:
 
             while not found_null and current_offset < mem_size:
                 read_len = min(chunk_size, mem_size - current_offset)
-                chunk = self.memory.read(self.store, current_offset, current_offset + read_len)
+                chunk = self.memory.read(
+                    self.store, current_offset, current_offset + read_len
+                )
 
                 # Check for null byte
-                if b'\0' in chunk:
-                    null_idx = chunk.index(b'\0')
+                if b"\0" in chunk:
+                    null_idx = chunk.index(b"\0")
                     raw_bytes.extend(chunk[:null_idx])
                     found_null = True
                 else:
                     raw_bytes.extend(chunk)
                     current_offset += read_len
 
-            string_content = raw_bytes.decode('utf-8')
+            string_content = raw_bytes.decode("utf-8")
 
             if not string_content:
                 return None

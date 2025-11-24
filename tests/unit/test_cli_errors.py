@@ -1,6 +1,4 @@
 import pytest
-import sys
-from unittest.mock import patch
 from configstream.cli_errors import handle_cli_errors, CLIError, ErrorContext
 
 

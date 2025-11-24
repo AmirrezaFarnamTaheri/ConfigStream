@@ -1,7 +1,6 @@
 import pytest
-import respx
 import httpx
-from configstream.fetcher import fetch_from_source, FetcherError, RateLimitError
+from configstream.fetcher import fetch_from_source
 
 
 @pytest.mark.asyncio

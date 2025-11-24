@@ -1,21 +1,12 @@
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
-from pathlib import Path
+from unittest.mock import MagicMock, patch
 from configstream.pipeline import run_full_pipeline
 from configstream.models import Proxy
-from configstream.pipeline_stages import PipelineStats, PipelineResult
 from configstream.intelligence.washer import ProxyWasher
 
 
 @pytest.fixture
 def mock_proxies():
-    # Using plain MagicMock spec=Proxy fails because it seems properties or defaults
-    # are not handled well with spec when used in Pydantic context or when deep attribute access happens.
-    # Instead of spec=Proxy which restricts attributes, we can create a mock and populate it
-    # OR use a real Proxy object if possible (it's a Pydantic model, so easy).
-
-    # Let's try real Proxy objects to avoid attribute errors.
     p1 = Proxy(
         config="vless://1",
         protocol="vless",
@@ -62,17 +53,17 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
             "configstream.pipeline.filter_unique_endpoints", return_value=mock_proxies
         ),
         patch(
-            "configstream.pipeline.output.generate_categorized_outputs", return_value={}
+            "configstream.pipeline_core.output_handler.generate_categorized_outputs", return_value={}
         ),
-        patch("configstream.pipeline.output.save_metadata"),
-        patch("configstream.pipeline.generate_vectors"),
+        patch("configstream.pipeline_core.output_handler.save_metadata"),
+        patch("configstream.pipeline_core.output_handler.generate_vectors"),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
         patch(
-            "configstream.pipeline.ProxyWasher", new=MagicMock(spec=ProxyWasher)
+            "configstream.pipeline_core.output_handler.ProxyWasher", new=MagicMock(spec=ProxyWasher)
         ) as MockWasher,
-        patch("configstream.pipeline.get_adapter"),
-        patch("configstream.pipeline.select_top_configs", return_value=mock_proxies),
-        patch("configstream.pipeline.output.generate_smart_chains", return_value={}),
+        patch("configstream.pipeline_core.output_handler.get_adapter"),
+        patch("configstream.pipeline_core.output_handler.select_top_configs", return_value=mock_proxies),
+        patch("configstream.pipeline_core.output_handler.generate_smart_chains", return_value={}),
     ):
 
         history = MagicMock()
@@ -118,17 +109,17 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
             "configstream.pipeline.filter_unique_endpoints", return_value=mock_proxies
         ),
         patch(
-            "configstream.pipeline.output.generate_categorized_outputs", return_value={}
+            "configstream.pipeline_core.output_handler.generate_categorized_outputs", return_value={}
         ),
-        patch("configstream.pipeline.output.save_metadata"),
-        patch("configstream.pipeline.generate_vectors"),
+        patch("configstream.pipeline_core.output_handler.save_metadata"),
+        patch("configstream.pipeline_core.output_handler.generate_vectors"),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
         patch(
-            "configstream.pipeline.ProxyWasher", new=MagicMock(spec=ProxyWasher)
+            "configstream.pipeline_core.output_handler.ProxyWasher", new=MagicMock(spec=ProxyWasher)
         ) as MockWasher,
-        patch("configstream.pipeline.get_adapter"),
-        patch("configstream.pipeline.select_top_configs", return_value=mock_proxies),
-        patch("configstream.pipeline.output.generate_smart_chains", return_value={}),
+        patch("configstream.pipeline_core.output_handler.get_adapter"),
+        patch("configstream.pipeline_core.output_handler.select_top_configs", return_value=mock_proxies),
+        patch("configstream.pipeline_core.output_handler.generate_smart_chains", return_value={}),
     ):
 
         MockWasher.return_value.wash_batch.return_value = ([], set())
@@ -152,23 +143,9 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
             sources=[], output_dir=str(tmp_path), proxies=mock_proxies
         )
 
-        # List is sorted in place in run_full_pipeline, but we passed mock_proxies via filter_unique_endpoints return
-        # So we check order of return
-        # Wait, optimized_proxies is the sorted list.
-        # We can't easily check local variable optimized_proxies.
-        # But select_top_configs is called with optimized_proxies.
-        # We can check what it was called with if we mock it properly.
+        from configstream.pipeline_core import output_handler
 
-        # Or check `final_proxies` if it was sorted in place?
-        # `filter_unique_endpoints` returns a new list. `final_proxies` is not sorted.
-        # `optimized_proxies` is sorted.
-        # `output.generate_categorized_outputs` is called with `optimized_proxies`.
-
-        # We mocked generate_categorized_outputs. Let's check call args.
-
-        from configstream.pipeline import output
-
-        args, _ = output.generate_categorized_outputs.call_args
+        args, _ = output_handler.generate_categorized_outputs.call_args
         sorted_proxies = args[0]
 
         assert sorted_proxies[0].id == "u1"
@@ -191,17 +168,17 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
             "configstream.pipeline.filter_unique_endpoints", return_value=mock_proxies
         ),
         patch(
-            "configstream.pipeline.output.generate_categorized_outputs", return_value={}
+            "configstream.pipeline_core.output_handler.generate_categorized_outputs", return_value={}
         ),
-        patch("configstream.pipeline.output.save_metadata"),
-        patch("configstream.pipeline.generate_vectors"),
+        patch("configstream.pipeline_core.output_handler.save_metadata"),
+        patch("configstream.pipeline_core.output_handler.generate_vectors"),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
         patch(
-            "configstream.pipeline.ProxyWasher", new=MagicMock(spec=ProxyWasher)
+            "configstream.pipeline_core.output_handler.ProxyWasher", new=MagicMock(spec=ProxyWasher)
         ) as MockWasher,
-        patch("configstream.pipeline.get_adapter") as mock_get_adapter,
-        patch("configstream.pipeline.select_top_configs", return_value=mock_proxies),
-        patch("configstream.pipeline.output.generate_smart_chains", return_value={}),
+        patch("configstream.pipeline_core.output_handler.get_adapter") as mock_get_adapter,
+        patch("configstream.pipeline_core.output_handler.select_top_configs", return_value=mock_proxies),
+        patch("configstream.pipeline_core.output_handler.generate_smart_chains", return_value={}),
     ):
 
         MockWasher.return_value.wash_batch.return_value = ([], set())
