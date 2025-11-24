@@ -176,10 +176,10 @@ def generate_split_outputs(
     intranet_tags = [o["tag"] for o in intranet_exits]
 
     ipv6_exits = [o for o in smart_chains["ipv6"] if "EXIT" in o.get("tag", "")]
-    ipv6_tags = [o["tag"] for o in ipv6_exits]
+    ipv6_tags = [o["tag"] for o in ipv6_exits]  # noqa: F841
 
     streamer_exits = [o for o in smart_chains["streamer"] if "EXIT" in o.get("tag", "")]
-    streamer_tags = [o["tag"] for o in streamer_exits]
+    streamer_tags = [o["tag"] for o in streamer_exits]  # noqa: F841
 
     # Collect all outbounds for the config
     all_outbounds = standard_proxies + washed_outbounds
@@ -245,9 +245,91 @@ def generate_split_outputs(
     AtomicFileWriter.write_text(vpn_file, json.dumps(vpn_config, indent=2))
     files["singbox_vpn"] = vpn_file
 
-    # 2. singbox.json (The "Sniper")
+    # 2. singbox.json (The "Sniper" - Now "The Smart Sniper")
+
+    # Define the Grouping Architecture
+
+    # Group A: The Speed Demon (URL Test)
+    # Aggressively checks every 5 mins. Switches to the fastest.
+    auto_fast_group = {
+        "type": "urltest",
+        "tag": "⚡ Auto-Fast",
+        "outbounds": standard_tags,  # The raw, fast proxies
+        "url": "http://cp.cloudflare.com/generate_204",
+        "interval": "5m",
+        "tolerance": 50,  # Switch only if new proxy is >50ms faster
+        "interrupt_exist_connections": False,
+    }
+
+    # Group B: The Unkillable (Fallback)
+    # If Auto-Fast fails (all proxies dead), it falls back to Washed.
+    # If Washed fails, it falls back to Intranet.
+    fallback_group = {
+        "type": "fallback",  # CRITICAL CHANGE: 'fallback' type
+        "tag": "🛡️ Auto-Fallback",
+        "outbounds": [
+            "⚡ Auto-Fast",  # First try speed
+            "🛡️ Secure Washed",  # Then try WARP chains
+            "🇮🇷 Intranet Bridge",  # Last resort
+        ],
+        "url": "http://cp.cloudflare.com/generate_204",
+        "interval": "5m",
+    }
+
+    # Group C: The Manual Override (Selector)
+    # Allows user to pick a specific Country or Mode
+    main_selector = {
+        "type": "selector",
+        "tag": "🚀 Main Selector",
+        "outbounds": [
+            "🛡️ Auto-Fallback",  # Default: Smart Fallback
+            "⚡ Auto-Fast",
+            "🛡️ Secure Washed",
+            "Manual Select",
+            "direct",
+        ],
+    }
+
+    # Group D: Country Buckets (Optional but good for UX)
+    # You can generate these dynamically based on country codes if needed
+    manual_select = {
+        "type": "selector",
+        "tag": "Manual Select",
+        "outbounds": standard_tags,
+    }
+
+    # Assemble the Outbounds List
+    final_outbounds = [
+        main_selector,
+        fallback_group,
+        auto_fast_group,
+        manual_select,
+        # Add the referenced sub-groups
+        {
+            "type": "urltest",
+            "tag": "🛡️ Secure Washed",
+            "outbounds": washed_tags if washed_tags else ["direct"],
+            "url": "http://cp.cloudflare.com/generate_204",
+        },
+        {
+            "type": "urltest",
+            "tag": "🇮🇷 Intranet Bridge",
+            "outbounds": intranet_tags if intranet_tags else ["direct"],
+            "url": "http://cp.cloudflare.com/generate_204",
+        },
+        {"type": "direct", "tag": "direct"},
+        {"type": "dns", "tag": "dns-out"},
+    ] + all_outbounds
+
     sniper_config = {
         "log": {"level": "info"},
+        "dns": {
+            # Standard DNS block provided in previous artifact or default
+            "servers": [
+                {"tag": "google", "address": "8.8.8.8", "detour": "🚀 Main Selector"}
+            ],
+            "strategy": "ipv4_only",
+        },
         "inbounds": [
             {
                 "type": "mixed",
@@ -257,53 +339,7 @@ def generate_split_outputs(
                 "sniff": True,
             }
         ],
-        "outbounds": [
-            {
-                "type": "selector",
-                "tag": "🚀 Mode Selector",
-                "outbounds": [
-                    "⚡ Auto Fast",
-                    "🛡️ Secure Washed",
-                    "🇮🇷 Intranet Bridge",
-                    "🇺🇸 US Streaming",
-                    "🌌 IPv6 Portal",
-                ],
-            },
-            {
-                "type": "urltest",
-                "tag": "⚡ Auto Fast",
-                "outbounds": standard_tags,
-                "url": "http://www.gstatic.com/generate_204",
-                "interval": "5m",
-            },
-            {
-                "type": "urltest",
-                "tag": "🛡️ Secure Washed",
-                "outbounds": washed_tags if washed_tags else ["direct"],
-                "url": "http://www.gstatic.com/generate_204",
-            },
-            {
-                "type": "urltest",
-                "tag": "🇮🇷 Intranet Bridge",
-                "outbounds": intranet_tags if intranet_tags else ["direct"],
-                "url": "http://www.gstatic.com/generate_204",
-            },
-            {
-                "type": "urltest",
-                "tag": "🇺🇸 US Streaming",
-                "outbounds": streamer_tags if streamer_tags else ["direct"],
-                "url": "http://www.gstatic.com/generate_204",
-            },
-            {
-                "type": "urltest",
-                "tag": "🌌 IPv6 Portal",
-                "outbounds": ipv6_tags if ipv6_tags else ["direct"],
-                "url": "http://www.gstatic.com/generate_204",
-            },
-            {"type": "direct", "tag": "direct"},
-            {"type": "dns", "tag": "dns-out"},
-        ]
-        + all_outbounds,
+        "outbounds": final_outbounds,
     }
 
     # Inject fragmentation for Sniper
