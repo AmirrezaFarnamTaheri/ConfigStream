@@ -3,25 +3,20 @@
 import re
 import logging
 from dataclasses import dataclass, replace
-from typing import Optional, List, Tuple, Dict, FrozenSet
+from typing import List, Tuple, Dict, FrozenSet, Optional
 from urllib.parse import urlparse
 
 from .models import Proxy
-from .config import AppSettings
-from .constants import (
-    DANGEROUS_PORTS,
-    SUSPICIOUS_DOMAINS,
-    MAX_PORT,
-    VALID_PROTOCOLS,
-    MAX_CONFIG_LINE_LENGTH,
-)
 from .security.blocklist import DEFAULT_BLOCKLIST
+from .security.rules import (
+    SECURITY_CATEGORIES,
+    validate_port,
+    validate_address,
+    validate_protocol,
+    validate_config_string,
+)
 
 logger = logging.getLogger(__name__)
-
-# Cache AppSettings instance to avoid repeated instantiation in hot paths
-_APP_SETTINGS_CACHE = AppSettings()
-
 
 # RFC 2606 reserved names + localhost: safe for tests and docs
 RESERVED_DOMAINS: FrozenSet[str] = frozenset(
@@ -30,7 +25,7 @@ RESERVED_DOMAINS: FrozenSet[str] = frozenset(
         "example.org",
         "example.net",
         "localhost",
-        "invalid",  # TLD "test" is a suffix, handle via endswith(".test")
+        "invalid",
     }
 )
 
@@ -49,23 +44,9 @@ class ValidationPolicy:
 STRICT_POLICY = ValidationPolicy()
 TEST_POLICY = replace(
     STRICT_POLICY,
-    # Keep checks but allow specific fixtures like "example.com"
     suspicious_domain_allowlist=STRICT_POLICY.suspicious_domain_allowlist
     | frozenset({"valid-proxy-domain.com", "another-valid-proxy.net"}),
 )
-
-
-# Security issue categories for better classification
-SECURITY_CATEGORIES = {
-    "PORT_UNSAFE": "port_security",
-    "ADDRESS_PRIVATE": "address_private_ip",
-    "ADDRESS_SUSPICIOUS": "address_suspicious",
-    "ADDRESS_BLOCKED": "address_blocked",
-    "PROTOCOL_UNKNOWN": "protocol_invalid",
-    "CONFIG_TOO_LONG": "suspicious_config_format",
-    "CONFIG_NULL_BYTE": "suspicious_config_malformed",
-    "HONEYPOT_SUSPECTED": "honeypot_suspected",
-}
 
 
 class SecurityValidator:
@@ -89,7 +70,7 @@ class SecurityValidator:
 
         # Port validation
         if policy.check_ports:
-            port_issue = SecurityValidator._validate_port(proxy.port)
+            port_issue = validate_port(proxy.port)
             if port_issue:
                 category = SECURITY_CATEGORIES["PORT_UNSAFE"]
                 if category not in categorized_issues:
@@ -107,7 +88,7 @@ class SecurityValidator:
 
         # Address validation
         if policy.check_suspicious_domains:
-            address_issues = SecurityValidator._validate_address(
+            address_issues = validate_address(
                 proxy.address, policy.suspicious_domain_allowlist
             )
             for category, issue in address_issues.items():
@@ -127,7 +108,7 @@ class SecurityValidator:
 
         # Protocol validation
         if policy.check_protocols:
-            protocol_issue = SecurityValidator._validate_protocol(proxy.protocol)
+            protocol_issue = validate_protocol(proxy.protocol)
             if protocol_issue:
                 category = SECURITY_CATEGORIES["PROTOCOL_UNKNOWN"]
                 if category not in categorized_issues:
@@ -136,7 +117,7 @@ class SecurityValidator:
 
         # Config string validation
         if policy.check_config_string:
-            config_issues = SecurityValidator._validate_config_string(proxy.config)
+            config_issues = validate_config_string(proxy.config)
             for category, issue in config_issues.items():
                 if category not in categorized_issues:
                     categorized_issues[category] = []
@@ -145,144 +126,46 @@ class SecurityValidator:
         is_secure = len(categorized_issues) == 0
         return is_secure, categorized_issues
 
+    # Wrapper methods for internal/backward compatibility
     @staticmethod
     def _validate_port(port: int) -> Optional[str]:
-        """Check if port is safe and return issue if not."""
-        if port < 1 or port > MAX_PORT:
-            return f"Port out of valid range (1-{MAX_PORT}): {port}"
-        if port in DANGEROUS_PORTS:
-            logger.warning("Dangerous port detected: %s", port)
-            return f"Dangerous port: {port}"
-        return None
+        return validate_port(port)
 
     @staticmethod
     def _validate_address(
         address: str, suspicious_domain_allowlist: FrozenSet[str]
     ) -> Dict[str, str]:
-        """Check address safety and return categorized issues."""
-        issues = {}
-
-        if not address:
-            issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = "Empty address"
-            return issues
-
-        address_lower = address.lower()
-
-        # Allow bypass for reserved or test-specific domains
-        if address_lower in suspicious_domain_allowlist or address_lower.endswith(
-            ".test"
-        ):
-            pass
-        # Check for suspicious patterns (exact or subdomain match)
-        for suspicious in SUSPICIOUS_DOMAINS:
-            if address_lower == suspicious or address_lower.endswith("." + suspicious):
-                logger.warning("Suspicious address pattern found: %s", address)
-                issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
-                    f"Suspicious address pattern: {address}"
-                )
-                return issues
-
-        # DNS rebinding protection - check for hex notation or octal notation
-        if address_lower.startswith("0x") or re.match(
-            r"^0[0-7]{1,11}\.", address_lower
-        ):
-            logger.warning("Non-standard IP notation: %s", address)
-            issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
-                f"Non-standard notation: {address}"
-            )
-            return issues
-
-        # Combined check for private, reserved, and special-use addresses
-        # This is more robust and covers more edge cases.
-        # Use cached settings to avoid repeated instantiation
-        if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
-            special_address_patterns = [
-                # Loopback
-                r"^127\.",
-                r"^::1$",
-                r"^localhost$",
-                # Private ranges
-                r"^10\.",
-                r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
-                r"^192\.168\.",
-                # Link-local
-                r"^169\.254\.",
-                r"^fe80:",
-                # Unique local
-                r"^fc00:",
-                r"^fd00:",
-                # Unspecified
-                r"^0\.0\.0\.0$",
-                r"^0\.",  # "This network"
-                # Broadcast
-                r"^255\.255\.255\.255$",
-            ]
-
-            for pattern in special_address_patterns:
-                if re.match(pattern, address_lower):
-                    logger.warning("Special or private address detected: %s", address)
-                    issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
-                        f"Special address: {address}"
-                    )
-                    return issues
-
-        return issues
+        return validate_address(address, suspicious_domain_allowlist)
 
     @staticmethod
     def _validate_protocol(protocol: str) -> Optional[str]:
-        """Validate protocol is recognized."""
-        if protocol.lower() not in VALID_PROTOCOLS:
-            return f"Unknown protocol: {protocol}"
-        return None
+        return validate_protocol(protocol)
 
     @staticmethod
     def _validate_config_string(config: str) -> Dict[str, str]:
-        """Check config string for injection attempts and return categorized issues."""
-        issues = {}
-
-        if not config:
-            issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = "Suspicious: Empty config"
-            return issues
-
-        # Check for null bytes
-        if "\x00" in config:
-            logger.error("Null byte detected in config")
-            issues[SECURITY_CATEGORIES["CONFIG_NULL_BYTE"]] = (
-                "Suspicious: Contains null byte"
-            )
-            return issues
-
-        # Check length
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
-            logger.warning("Config too long: %s chars", len(config))
-            issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = (
-                f"Config exceeds max length: {len(config)} chars"
-            )
-            return issues
-
-        return issues
+        return validate_config_string(config)
 
     # Backward compatibility methods
     @staticmethod
     def _is_port_safe(port: int) -> bool:
         """Backward compatibility: Check if port is in safe range."""
-        return SecurityValidator._validate_port(port) is None
+        return validate_port(port) is None
 
     @staticmethod
     def _is_address_safe(address: str) -> bool:
         """Backward compatibility: Check if address is safe."""
         # Note: Uses an empty allowlist for the strictest check.
-        return len(SecurityValidator._validate_address(address, frozenset())) == 0
+        return len(validate_address(address, frozenset())) == 0
 
     @staticmethod
     def _is_protocol_safe(protocol: str) -> bool:
         """Backward compatibility: Validate protocol is recognized."""
-        return SecurityValidator._validate_protocol(protocol) is None
+        return validate_protocol(protocol) is None
 
     @staticmethod
     def _is_config_string_safe(config: str) -> bool:
         """Backward compatibility: Check config string for injection attempts."""
-        return len(SecurityValidator._validate_config_string(config)) == 0
+        return len(validate_config_string(config)) == 0
 
     @staticmethod
     def validate_url(url: str) -> Tuple[bool, Optional[str]]:
