@@ -30,7 +30,7 @@ from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
 from .dns_prewarm import prewarm_dns_cache
 from .adaptive_timeout import AdaptiveTimeout
-from .fetcher_core.models import FetchResult, RateLimitError
+from .fetcher_core.models import FetchResult, RateLimitError, FetcherError
 from .fetcher_core.utils import parse_retry_after
 
 logger = logging.getLogger(__name__)
