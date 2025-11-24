@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-06-01
+
+### Major Features (Sovereignty & Stealth)
+- **Steganography with Key Rotation:** Implemented a robust transport layer that hides proxy configs inside PNG images. Includes a self-healing mechanism that rotates encryption keys every run and injects them into the frontend.
+- **WASM Client-Side Tester:** Full implementation of the Go-based WebAssembly tester (`src/go/tester/wasm_main.go`), allowing users to verify proxies directly from their browser via WebSockets.
+- **Bring Your Own Worker (BYOW):** Frontend feature enabling users to tunnel traffic through their own Cloudflare Workers.
+- **Static Vector Search:** Zero-cost "Similar Proxy" search using feature hashing (`src/configstream/intelligence/vectors.py`).
+
+### Architecture
+- **Modular Pipeline:** Refactored monolithic pipeline into `src/configstream/pipeline_core/` with dedicated sorters and output handlers.
+- **Plugin System:** Introduced `src/configstream/plugins/` for dynamic protocol support.
+- **Zero Budget Compliance:** Removed all active scanning components; strictly passive verification to ensure GitHub Actions compliance.
+
+### Fixed
+- **WASM Build Target:** Corrected build script to target `wasm_main.go`.
+- **Vector Generation Order:** Ensured vectors are generated before metadata for correct frontend indexing.
+- **Output Stability:** Enforced atomic writes for all public artifacts.
+
 ## [1.3.2] - 2025-05-27
 
 ### Added
@@ -33,17 +51,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2025-04-15
 
 ### Added
-- Initial implementation of Proxy Washing.
-- Anomaly Detection with Isolation Forests.
-- Adaptive Timeout Strategy.
+- **Initial implementation of Proxy Washing.**
+- **Anomaly Detection with Isolation Forests.**
+- **Adaptive Timeout Strategy.**
 
 ### Changed
-- Switched from `aiohttp` to `httpx` for fetching.
-- Migrated to Pydantic v2.
+- **Switched from `aiohttp` to `httpx` for fetching.**
+- **Migrated to Pydantic v2.**
 
 ## [1.0.0] - 2025-01-01
 
 ### Added
-- Initial release.
-- Basic fetching, parsing, testing pipeline.
-- GitHub Actions integration.
+- **Initial release.**
+- **Basic fetching, parsing, testing pipeline.**
+- **GitHub Actions integration.**
