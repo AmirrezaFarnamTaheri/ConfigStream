@@ -18,9 +18,7 @@ import asyncio
 import logging
 import random
 import os
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
-from typing import Any, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 import httpx
@@ -32,6 +30,8 @@ from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
 from .dns_prewarm import prewarm_dns_cache
 from .adaptive_timeout import AdaptiveTimeout
+from .fetcher_core.models import FetchResult, RateLimitError
+from .fetcher_core.utils import parse_retry_after
 
 logger = logging.getLogger(__name__)
 
@@ -40,62 +40,6 @@ logger = logging.getLogger(__name__)
 MAX_RESPONSE_SIZE = int(
     os.getenv("MAX_RESPONSE_SIZE", 50 * 1024 * 1024)
 )  # Default 50 MB
-
-
-class FetcherError(Exception):
-    """Base exception for fetcher-related errors."""
-
-
-class RateLimitError(FetcherError):
-    """Raised when an HTTP 429 Rate Limit is detected."""
-
-    def __init__(self, retry_after: float | None = None):
-        self.retry_after = retry_after
-        msg = (
-            f"Rate limited. Retry after {retry_after:.1f}s"
-            if retry_after
-            else "Rate limited."
-        )
-        super().__init__(msg)
-
-
-class FetchResult:
-    """Container for fetch results with performance metadata."""
-
-    __slots__ = (
-        "success",
-        "source",
-        "content",
-        "error",
-        "response_time",
-        "status_code",
-    )
-
-    def __init__(
-        self,
-        success: bool,
-        source: str,
-        content: str = "",
-        error: str | None = None,
-        response_time: float | None = None,
-        status_code: int | None = None,
-    ):
-        self.success = success
-        self.source = source
-        self.content = content
-        self.error = error
-        self.response_time = response_time
-        self.status_code = status_code
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "source": self.source,
-            "success": self.success,
-            "content_length": len(self.content),
-            "error": self.error,
-            "response_time": self.response_time,
-            "status_code": self.status_code,
-        }
 
 
 async def fetch_from_source(
@@ -199,7 +143,7 @@ async def fetch_from_source(
 
                     # Rate Limit Handling
                     if status == 429:
-                        retry_after = _parse_retry_after(
+                        retry_after = parse_retry_after(
                             response.headers.get("Retry-After")
                         )
                         raise RateLimitError(retry_after)
@@ -302,22 +246,6 @@ async def fetch_from_source(
         error=f"Max retries exceeded: {last_error}",
         status_code=last_status_code,
     )
-
-
-def _parse_retry_after(header: str | None) -> float | None:
-    """Parse Retry-After header to seconds."""
-    if not header:
-        return None
-    try:
-        if header.isdigit():
-            return float(header)
-        parsed = parsedate_to_datetime(header)
-        if parsed.tzinfo is None:
-            parsed = parsed.replace(tzinfo=timezone.utc)
-        now = datetime.now(timezone.utc)
-        return max(0.0, (parsed - now).total_seconds())
-    except Exception:
-        return None
 
 
 async def fetch_multiple_sources(
