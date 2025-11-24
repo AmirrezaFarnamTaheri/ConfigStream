@@ -1,4 +1,3 @@
-import pytest
 from configstream.adapters import get_adapter, ShadowrocketAdapter
 from configstream.models import Proxy
 

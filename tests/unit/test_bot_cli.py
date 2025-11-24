@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.bot_cli import start, warp, mirror, main as bot_main
 from telegram import Update

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import asyncio
 import unittest
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import MagicMock
 from datetime import datetime, timedelta, timezone
 
 from configstream.scheduler import SmartRetestScheduler

@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 import httpx
 from datetime import datetime, timezone, timedelta
 from unittest.mock import patch, MagicMock, AsyncMock
@@ -8,10 +7,9 @@ from configstream.fetcher import (
     fetch_multiple_sources,
     MAX_RESPONSE_SIZE,
 )
-from configstream.fetcher_core.models import FetchResult, RateLimitError, FetcherError
+from configstream.fetcher_core.models import FetchResult
 from configstream.fetcher_core.utils import parse_retry_after as _parse_retry_after
 
-from configstream.adaptive_timeout import AdaptiveTimeout
 from configstream.config import AppSettings
 from configstream.security.rate_limiter import RateLimiter
 

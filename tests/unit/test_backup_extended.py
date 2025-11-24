@@ -11,7 +11,6 @@ from configstream.backup import (
     list_backups,
     get_backup_statistics,
     _parse_timestamp_from_name,
-    _group_backups_by_database,
 )
 
 
@@ -147,7 +146,6 @@ def test_path_traversal_prevention(data_dir, backup_dir):
         # logic: backup_path.resolve().relative_to(backup_dir.resolve())
         # We need a case where safe_stem logic fails or we construct a path that escapes.
         # Since we sanitize stem, it's hard to escape via filename.
-        pass
 
 
 def test_sqlite_backup_fail(data_dir, backup_dir):

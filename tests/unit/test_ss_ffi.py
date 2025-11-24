@@ -1,6 +1,5 @@
-import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-from configstream.security.ss_ffi import verify_ss_rust, ensure_library
+from unittest.mock import patch, MagicMock
+from configstream.security.ss_ffi import verify_ss_rust
 
 
 def test_ss_ffi_graceful_degradation():

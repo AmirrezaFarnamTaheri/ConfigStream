@@ -1,7 +1,5 @@
 from configstream.metrics import PipelineMetrics, export_metrics
-from pathlib import Path
 import json
-import time
 
 
 def test_pipeline_metrics_init():

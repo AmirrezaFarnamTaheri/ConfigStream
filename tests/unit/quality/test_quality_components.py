@@ -1,7 +1,6 @@
-import pytest
 import sqlite3
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from configstream.quality.storage import QualityStorage
 from configstream.quality.scoring import (

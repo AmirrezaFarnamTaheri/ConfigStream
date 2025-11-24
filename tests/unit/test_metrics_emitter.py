@@ -1,5 +1,3 @@
-import pytest
-from pathlib import Path
 from configstream.metrics_emitter import MetricsEmitter, HostMetrics
 
 

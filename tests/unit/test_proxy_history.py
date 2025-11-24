@@ -1,4 +1,3 @@
-import pytest
 from configstream.proxy_history import ProxyHistoryTracker
 from tests.unit.conftest_helper import create_test_proxy
 

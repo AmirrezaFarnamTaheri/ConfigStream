@@ -1,4 +1,3 @@
-import pytest
 from configstream.country_inferrer import (
     infer_country_from_remarks,
     _flag_to_country_code,

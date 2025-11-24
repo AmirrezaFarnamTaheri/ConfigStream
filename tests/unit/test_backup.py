@@ -1,8 +1,5 @@
-import pytest
 from configstream.backup import backup_databases, cleanup_old_backups
-from pathlib import Path
 import sqlite3
-import time
 
 
 def test_backup_manager(tmp_path):
