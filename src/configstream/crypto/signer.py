@@ -1,5 +1,5 @@
 import time
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from cryptography.hazmat.primitives.asymmetric import ed25519
 from cryptography.hazmat.primitives import serialization
 from cryptography.exceptions import InvalidSignature
@@ -10,7 +10,7 @@ class Signer:
     Handles Ed25519 signing and verification of subscription content.
     """
 
-    def __init__(self, private_key_hex: str = None):
+    def __init__(self, private_key_hex: Optional[str] = None):
         """
         Initialize the Signer.
 

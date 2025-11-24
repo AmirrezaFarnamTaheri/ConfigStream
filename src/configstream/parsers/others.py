@@ -70,8 +70,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
         if "obfs" in proxy.details:
             obfs_type = proxy.details["obfs"]
             if obfs_type not in ["salamander", "none"]:
-                # Default or validation
-                pass
+                logger.debug(f"Unknown Hysteria2 obfs type: {obfs_type}")
 
             # Validate obfs-password presence if obfs is set
             if obfs_type == "salamander" and "obfs-password" not in proxy.details:

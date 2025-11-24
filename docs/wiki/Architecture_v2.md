@@ -11,10 +11,12 @@
  - **Objective:** Censorship-resistant fallback.
  - **Implementation:** Daily snapshots pinned to IPFS/IPNS.
  - **Failover:** If `github.io` is blocked, the client switches to IPFS gateways.
+ - **Requirement:** The `publish_ipfs.py` script requires a local `ipfs` node daemon running to publish IPNS updates, or a pinning service with API support.
 
  ## 3. "Bring Your Own Worker" (BYOW)
  - **Objective:** Decentralize the exit node infrastructure.
  - **Mechanism:** Users deploy a Cloudflare Worker (VLESS-over-WS) and link it in the dashboard.
+ - **Features:** Supports custom UUID input for authenticated workers.
  - **Benefit:** Clean IP reputation, zero cost for the platform.
 
  ## 4. Client-Side WASM Verification

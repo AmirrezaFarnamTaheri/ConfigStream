@@ -32,6 +32,7 @@ def sample_proxies():
         uuid="user",
         country_code="US",
         is_working=True,
+        tags={"dirty_ip"},  # Explicitly mark as dirty to trigger washing
         details={"password": "pass"},
     )
     return [p1, p2]
