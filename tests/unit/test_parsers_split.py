@@ -117,24 +117,11 @@ MII...
 
 def test_parse_wireguard_valid():
     config = "wireguard://privatekey@1.1.1.1:51820?publickey=pub&reserved=1,2,3#WG"
-    # Note: Our parser expects the scheme to be handled or passed correctly.
-    # _parse_url_scheme logic inside parse_wireguard:
+    # With the new fix in parsers/others.py, if uuid is present and private_key not in details,
+    # it maps uuid -> private_key.
     proxy = parse_wireguard(config)
-    assert proxy is None  # Fails because private_key is in details not username
-
-    # Correct WG URI format often puts private key as username or in params?
-    # Our parser: proxy = _parse_url_scheme(c, "wireguard", 51820)
-    # _parse_url_scheme uses urlparse.
-    # If config is "wireguard://privatekey@..." -> username=privatekey
-    # But parse_wireguard checks: if "private_key" not in proxy.details
-    # _parse_url_scheme puts query params in details.
-    # It does NOT put username into details['private_key'].
-
-    # Wait, this looks like a bug or specific format expectation in `parsers/others.py`.
-    # Let's check `_parse_wireguard`.
-    # It checks `proxy.details.get("private_key")`.
-    # It does NOT map `proxy.uuid` (username) to private_key.
-    # So the URI must be `wireguard://host:port?private_key=...`
+    assert proxy is not None  # Now it should pass!
+    assert proxy.details["private_key"] == "privatekey"
 
     config_correct = "wireguard://1.1.1.1:51820?private_key=priv&peer_public_key=pub#WG"
     proxy = parse_wireguard(config_correct)
