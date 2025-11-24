@@ -1,31 +1,32 @@
-# ConfigStream
+# ConfigStream v2.0
 
 [![ConfigStream Pipeline](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
 [![Pipeline Health Check](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml)
 
 **The Network Intelligence Platform for the Open Internet.**
 
-ConfigStream is an automated, high-performance system that aggregates, tests, and distributes censorship-resistant proxy configurations (VLESS, VMess, Trojan, Shadowsocks) using a **Strict "Zero Budget" Architecture**.
+ConfigStream is a modular, sovereignty-grade anti-censorship platform. It aggregates, tests, and distributes resilient proxy configurations using a **Strict "Zero Budget" Architecture**.
 
 We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
 
 ---
 
-## 🚀 Key Features
+## 🚀 v2.0 Features: Sovereignty & Stealth
 
-### 🧠 Intelligence Core
-*   **Hybrid Engine:** Combines Python's flexibility with a high-performance Go sidecar to verify thousands of proxies in seconds.
-*   **Proxy Washing:** Automatically wraps "dirty" or blocked IPs in secure WireGuard tunnels (via Cloudflare WARP) to bypass region blocks.
-*   **Pareto Optimization:** Sorts proxies not just by latency, but by a weighted score of **Reliability, Uptime, and Success Rate**.
+### 🕵️ Steganography Transport (Key Rotation)
+*   **Invisible Delivery:** Encrypts proxy configurations into standard PNG images (`gallery.png`) to bypass Deep Packet Inspection (DPI) and firewall keyword filtering.
+*   **Self-Healing Keys:** Automatically rotates encryption keys every 6 hours. The new key is securely injected into the frontend code during deployment, ensuring perfect synchronization without manual intervention.
 
-### 🛡️ Zero-Abuse Security
-*   **Passive Verification:** We reject active scanning (port scanning) to protect our infrastructure and respect the net. We use **VirusTotal** and **IP Reputation** lists instead.
-*   **Honeypot Avoidance:** Detects and filters out surveillance nodes and fake proxies.
-*   **Safe FFI:** Optional Rust-based Shadowsocks verification (disabled by default in CI to save build minutes).
+### 🌐 Client-Side Edge Verification
+*   **WASM Tester:** Moves the verification logic to the user's browser using WebAssembly. This creates a massive, distributed testing network that verifies connectivity from the *user's* perspective (Real Ground Truth).
+*   **Zero Server Cost:** By offloading testing to the client, we scale infinitely for free.
 
-### ⚡ Client-Side Edge Computing
-*   **WASM Tester:** (Experimental) Moves the verification logic to the user's browser via WebAssembly, creating a distributed, decentralized testing network.
-*   **Static Vector Search:** (Roadmap) Pre-computed similarity indexes allow for "Smart Filtering" directly in the frontend.
+### 🏗️ Bring Your Own Worker (BYOW)
+*   **Decentralized Exit Nodes:** Users can plug in their own Cloudflare Workers to act as private tunnel endpoints. The frontend dynamically rewrites configurations to route traffic through user-owned infrastructure.
+
+### 🧠 Advanced Intelligence
+*   **Pareto Optimization:** Sorts proxies by a weighted score of Latency (50%), Reliability (30%), and Stability (20%).
+*   **Static Vector Search:** Uses feature hashing to enable "Similar Proxy" search directly in the browser ($O(1)$ lookup) without heavy ML models.
 
 ---
 
@@ -33,7 +34,7 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 
 We believe in comprehensive, deep documentation.
 
-*   [**Architecture Deep Dive**](ARCHITECTURE.md): The complete system design, data flow, and component analysis.
+*   [**Architecture Deep Dive**](docs/wiki/02-architecture.md): The complete system design, data flow, and component analysis.
 *   [**Frontend Dashboard**](https://amirrezafarnamtaheri.github.io/ConfigStream/): Real-time visualization and subscription management.
 
 ---
@@ -58,7 +59,7 @@ docker compose up --build
 
 # Using Python
 pip install -e ".[dev]"
-python -m configstream.cli merge --sources sources/batch_1.txt
+configstream merge --sources sources/batch_1.txt
 ```
 
 ---

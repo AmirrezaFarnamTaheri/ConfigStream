@@ -7,6 +7,7 @@ This guide will help you get ConfigStream up and running in minutes.
 -   **Python 3.10+**
 -   **Pip**
 -   **Git**
+-   **Go 1.21+** (Optional, for WASM/Tester builds)
 
 ---
 
@@ -22,7 +23,6 @@ cd ConfigStream
 
 ### 2. Install Dependencies
 ```bash
-pip install -e .
 pip install -e ".[dev]"
 ```
 
@@ -46,6 +46,7 @@ The results will be in the `output/` directory:
 - `output/proxies.json` (Data)
 - `output/base64.txt` (Subscription)
 - `output/chosen/` (Best proxies)
+- `output/gallery.png` (Steganography Image)
 
 ---
 
