@@ -3,10 +3,12 @@
 import binascii
 import json
 import logging
+from pathlib import Path
 from typing import Optional, Protocol, cast
 from urllib.parse import urlparse
 
 from .models import Proxy
+from .plugins.loader import PluginManager
 from .parsers import (
     _parse_generic_url_scheme,
     _parse_hysteria,
@@ -28,6 +30,14 @@ class ParserCallable(Protocol):
 
 logger = logging.getLogger(__name__)
 
+# Initialize Plugin Manager
+PLUGIN_DIR = Path(__file__).parent / "plugins"
+PLUGIN_MANAGER = PluginManager(PLUGIN_DIR)
+try:
+    PLUGIN_MANAGER.load_plugins()
+except Exception as e:
+    logger.warning(f"Failed to load plugins: {e}")
+
 
 def auto_detect_and_parse(config: str) -> Optional[Proxy]:
     """
@@ -44,6 +54,14 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
     config = config.strip()
     if not config:
         return None
+
+    # 0. Try Plugins First (Universal Plugin System)
+    try:
+        plugin_result = PLUGIN_MANAGER.parse_all(config)
+        if plugin_result:
+            return plugin_result
+    except Exception as exc:
+        logger.debug("Plugin parsing failed: %s", exc)
 
     # Try OpenVPN first (content based)
     if "client" in config and ("dev tun" in config or "dev tap" in config):
