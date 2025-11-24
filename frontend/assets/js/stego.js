@@ -1,10 +1,10 @@
 // frontend/assets/js/stego.js
 
 const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
-// This SECRET_KEY must match the one used in your Python script (Task 5)
-// Store this in GitHub Secrets and inject it during build, OR hardcode it here if
-// you treat the code as public but the transport as the secret.
-const SECRET_KEY = "YOUR_GENERATED_FERNET_KEY_HERE";
+
+// ⚠️ DO NOT CHANGE THIS LINE MANUALLY ⚠️
+// The Python pipeline will automatically overwrite this string on every build.
+const SECRET_KEY = "PLACEHOLDER_KEY_WILL_BE_REPLACED";
 
 async function fetchStegoConfig(imageUrl) {
     try {

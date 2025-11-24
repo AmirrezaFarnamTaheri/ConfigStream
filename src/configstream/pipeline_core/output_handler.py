@@ -8,6 +8,9 @@ from ..intelligence.vectors import generate_vectors
 from ..output_generators import generate_base64_subscription
 from ..serialize import serialize_proxy
 from ..consolidation import select_top_configs
+from ..transport.stego import generate_stego_assets
+from ..output_transport import inject_stego_key_into_frontend
+from cryptography.fernet import Fernet
 import json
 import logging
 import os
@@ -50,11 +53,11 @@ async def generate_pipeline_outputs(
         smart_chains=smart_chains,
     )
 
-    # NEW: Generate Metadata for Frontend
-    save_metadata(stats.to_dict(), optimized_proxies, output_path)
-
     # NEW: Generate Static Vectors for Client-Side Search
     generate_vectors(optimized_proxies, output_path)
+
+    # NEW: Generate Metadata for Frontend
+    save_metadata(stats.to_dict(), optimized_proxies, output_path)
 
     # New Adapters Exports
     try:
@@ -94,5 +97,60 @@ async def generate_pipeline_outputs(
         )
     )
     (chosen_dir / "base64.txt").write_text(generate_base64_subscription(chosen_proxies))
+
+    # ---------------------------------------------------------
+    # ZERO CONFIGURATION STEGANOGRAPHY (Key Rotation)
+    # ---------------------------------------------------------
+
+    # 1. Generate a fresh, random key for this run
+    dynamic_key = Fernet.generate_key().decode()
+
+    # Assuming 'frontend/assets/images' is where your cover images live
+    assets_dir = output_path.parent / "frontend" / "assets" / "images"
+    if not assets_dir.exists():
+         # Fallback logic for when running from root or elsewhere
+         if os.path.exists("frontend/assets/images"):
+             assets_dir = "frontend/assets/images"
+
+    from pathlib import Path
+    assets_path = Path(assets_dir)
+
+    if assets_path.exists():
+        logger.info(f"Generating Stego assets using key ending in ...{dynamic_key[-6:]}")
+        try:
+            # 2. Generate the hidden image using this key
+            generate_stego_assets(
+                config_dir=output_path,   # Where singbox.json lives
+                assets_dir=assets_path,    # Where cover images (background.png) live
+                secret_key=dynamic_key
+            )
+        except Exception as e:
+            logger.error(f"Stego generation failed: {e}")
+    else:
+        logger.warning(f"Assets directory not found at {assets_path}, skipping Stego.")
+
+    # 3. Inject the key into the frontend code (assets/js/stego.js)
+    # This ensures the static site matches the encrypted image
+    # Note: frontend/assets/js/stego.js must exist.
+    # We should look for it relative to where we found assets_dir or output_path
+
+    # Try to find stego.js
+    js_path = None
+    possible_paths = [
+        output_path.parent / "frontend" / "assets" / "js" / "stego.js",
+        Path("frontend/assets/js/stego.js")
+    ]
+
+    for p in possible_paths:
+        if p.exists():
+            js_path = p
+            break
+
+    if js_path:
+        inject_stego_key_into_frontend(dynamic_key, js_path)
+    else:
+        logger.warning("Could not find stego.js to inject key.")
+
+    # ---------------------------------------------------------
 
     return generated_files
