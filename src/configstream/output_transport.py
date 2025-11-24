@@ -7,6 +7,7 @@ import json
 import gzip
 import logging
 import os
+import re
 import importlib.metadata
 from pathlib import Path
 from typing import List, Dict, Union
@@ -145,3 +146,31 @@ def save_metadata(
             AtomicFileWriter.write_text(target_path, metadata_content)
         except Exception:
             raise
+
+
+def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
+    """
+    Self-Healing Mechanism:
+    Opens the frontend JavaScript file and implants the dynamic secret key
+    so the browser can decrypt the latest steganography image.
+    """
+    if not js_file_path.exists():
+        logger.warning(f"Frontend JS not found at {js_file_path}, skipping key injection.")
+        return
+
+    try:
+        content = js_file_path.read_text(encoding="utf-8")
+
+        # Regex to find: const SECRET_KEY = "ANYTHING_HERE";
+        # Replaces it with: const SECRET_KEY = "NEW_KEY";
+        pattern = r'(const\s+SECRET_KEY\s*=\s*")([^"]*)(")'
+        replacement = f'\\1{secret_key}\\3'
+
+        new_content = re.sub(pattern, replacement, content)
+
+        # Atomic write to prevent corruption
+        AtomicFileWriter.write_text(js_file_path, new_content)
+        logger.info(f"✅ Successfully injected new Stego Key into {js_file_path.name}")
+
+    except Exception as e:
+        logger.error(f"Failed to inject Stego Key: {e}")
