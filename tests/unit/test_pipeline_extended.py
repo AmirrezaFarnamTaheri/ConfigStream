@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.pipeline import run_full_pipeline
 from configstream.models import Proxy
 from configstream.intelligence.washer import ProxyWasher
@@ -80,7 +80,10 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         history.get_history.return_value = []
         MockHistory.return_value = history
 
-        MockWasher.return_value.wash_batch.return_value = ([], set())
+        # Mocking washer methods correctly
+        washer_instance = MockWasher.return_value
+        washer_instance.fetch_clean_ips = AsyncMock()
+        washer_instance.wash_batch = MagicMock(return_value=([], set()))
 
         async def fake_producer(*args, **kwargs):
             pass
@@ -138,7 +141,9 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         ),
     ):
 
-        MockWasher.return_value.wash_batch.return_value = ([], set())
+        washer_instance = MockWasher.return_value
+        washer_instance.fetch_clean_ips = AsyncMock()
+        washer_instance.wash_batch = MagicMock(return_value=([], set()))
 
         history = MagicMock()
 
@@ -207,7 +212,9 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         ),
     ):
 
-        MockWasher.return_value.wash_batch.return_value = ([], set())
+        washer_instance = MockWasher.return_value
+        washer_instance.fetch_clean_ips = AsyncMock()
+        washer_instance.wash_batch = MagicMock(return_value=([], set()))
 
         history = MagicMock()
         history.get_reliability_score.return_value = 0.5

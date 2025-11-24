@@ -156,7 +156,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
 
     except (ValueError, AttributeError):
         # Handles cases where urlparse fails or port is not present
-        pass
+        logger.debug("Port-based heuristics failed or not applicable")
 
     # Fallback: try all parsers
     fallback_parsers: tuple[ParserCallable, ...] = (
