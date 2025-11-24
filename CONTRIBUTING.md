@@ -33,6 +33,15 @@ We are actively looking for help with the following "Next Generation" features:
     pytest
     ```
 
+## 🏗️ Architecture & Structure
+
+ConfigStream v2.0 is modular. Please respect the folder structure:
+
+*   `src/configstream/pipeline_core/`: Core logic for sorting and output generation.
+*   `src/configstream/plugins/`: Protocol parsers (add new protocols here).
+*   `src/configstream/transport/`: Transport layers (Steganography, etc.).
+*   `src/go/tester/`: High-performance Go components.
+
 ## 📝 Style Guide
 
 *   **Python:** We use `black` and `flake8`.
@@ -48,4 +57,4 @@ We are actively looking for help with the following "Next Generation" features:
 5.  Open a Pull Request.
 
 ---
-**Note:** By contributing, you agree that your code will be licensed under the MIT License.
+**Note:** By contributing, you agree that your code will be licensed under the AGPL-3.0 License.
