@@ -10,15 +10,26 @@ logger = logging.getLogger(__name__)
 
 def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional[Proxy]:
     try:
+        # Clean config
+        config = config.strip()
         parsed = urlparse(config)
-        if parsed.scheme and parsed.scheme.lower() not in (protocol, protocol.lower()):
-            # Fallback for cases where protocol is passed but urlparse uses scheme
-            if not parsed.scheme and config.startswith(f"{protocol}://"):
-                # Retry parsing if scheme is missing but prefix is there (unlikely with urlparse)
-                pass
-            elif parsed.scheme.lower() != protocol.lower():
-                # Mismatch
-                pass
+
+        # Handle scheme mismatch or missing scheme
+        if parsed.scheme:
+            if parsed.scheme.lower() not in (protocol, protocol.lower()):
+                # If scheme mismatches (e.g. hysteria2:// in a hysteria parser), return None
+                # This allows specific parsers to own their protocols
+                return None
+        else:
+            # If scheme is missing but config starts with expected protocol,
+            # likely urlparse failed to split correctly (rare) or malformed.
+            if config.lower().startswith(f"{protocol}://"):
+                # Try to manually split if urlparse failed oddly
+                # For now, we assume if urlparse failed to see scheme, it's invalid
+                return None
+
+            # If no scheme and doesn't start with protocol, it's not for us
+            return None
 
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
@@ -27,12 +38,16 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
             return None
 
         details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+
+        # Special handling for username as uuid or private_key
+        uuid = parsed.username or ""
+
         proxy = Proxy(
             config=config,
             protocol=protocol,
             address=parsed.hostname,
             port=port,
-            uuid=parsed.username or "",
+            uuid=uuid,
             remarks=unquote(parsed.fragment or "")[:200],
             details=details,
         )
@@ -53,7 +68,16 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
         # Hysteria 2 Obfuscation & Masquerading
         # 'obfs' -> type (e.g., 'salamander'), 'obfs-password' -> password
         if "obfs" in proxy.details:
-            pass
+            obfs_type = proxy.details["obfs"]
+            if obfs_type not in ["salamander", "none"]:
+                # Default or validation
+                pass
+
+            # Validate obfs-password presence if obfs is set
+            if obfs_type == "salamander" and "obfs-password" not in proxy.details:
+                logger.debug("Hysteria2 obfs=salamander requires obfs-password")
+                # We can either drop it or keep it (it might fail later).
+                # Let's keep it but log warning.
 
         # Port Hopping (Advanced)
         # Format: ports=80,443,8000-9000
@@ -64,8 +88,12 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
                 logger.warning(f"Invalid port hopping format: {ports_val}")
                 del proxy.details["ports"]
 
-        if not proxy.uuid:  # Auth is optional in some cases but usually required
-            pass
+        if not proxy.uuid:
+            # Auth is optional in some cases but usually required.
+            # If no password, Hysteria2 might fail unless server allows anonymous (rare).
+            # We treat it as valid but suspect.
+            logger.debug("Hysteria2 config missing password (UUID field).")
+
     return proxy
 
 
@@ -78,11 +106,16 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     proxy = _parse_url_scheme(c, "wireguard", 51820)
     if not proxy:
         return None
-    if (
-        not proxy.details
-        or "private_key" not in proxy.details
-        or not proxy.details.get("private_key")
-    ):
+
+    # WireGuard specific: if private_key is not in details, try to use uuid (username)
+    if "private_key" not in proxy.details:
+        if proxy.uuid:
+            proxy.details["private_key"] = proxy.uuid
+        else:
+            logger.debug("WireGuard config missing private_key.")
+            return None
+
+    if not proxy.details.get("private_key"):
         logger.debug("WireGuard config missing private_key.")
         return None
 

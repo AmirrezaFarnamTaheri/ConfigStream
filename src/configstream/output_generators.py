@@ -280,7 +280,7 @@ def generate_split_outputs(
     # Allows user to pick a specific Country or Mode
     main_selector = {
         "type": "selector",
-        "tag": "🚀 Main Selector",
+        "tag": "🚀 Mode Selector",
         "outbounds": [
             "🛡️ Auto-Fallback",  # Default: Smart Fallback
             "⚡ Auto-Fast",
@@ -326,7 +326,7 @@ def generate_split_outputs(
         "dns": {
             # Standard DNS block provided in previous artifact or default
             "servers": [
-                {"tag": "google", "address": "8.8.8.8", "detour": "🚀 Main Selector"}
+                {"tag": "google", "address": "8.8.8.8", "detour": "🚀 Mode Selector"}
             ],
             "strategy": "ipv4_only",
         },

@@ -120,6 +120,7 @@ class GeoIPResolver:
                 result.org = response_asn.autonomous_system_organization
 
         except geoip2.errors.AddressNotFoundError:
+            # Expected for private IPs or missing data
             pass
         except Exception as e:
             # Log verbosely only if it's not a common expected error
