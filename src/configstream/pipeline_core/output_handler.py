@@ -15,7 +15,7 @@ import os
 logger = logging.getLogger(__name__)
 
 
-def generate_pipeline_outputs(
+async def generate_pipeline_outputs(
     optimized_proxies: List[Proxy], output_path, stats, history: ProxyHistoryTracker
 ):
     """
@@ -34,6 +34,10 @@ def generate_pipeline_outputs(
 
     # --- Intelligence Phase: Washing & Chaining (Centralized) ---
     washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+
+    # Fetch Clean IPs before washing
+    await washer.fetch_clean_ips()
+
     washed_outbounds, washed_ids = washer.wash_batch(optimized_proxies)
 
     smart_chains = generate_smart_chains(optimized_proxies)
