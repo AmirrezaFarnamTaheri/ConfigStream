@@ -43,6 +43,7 @@ dependencies = [
     "aiofiles>=23.2.0",
     "orjson>=3.9.0",
     "nest-asyncio",
+    "wasmtime>=39.0.0",
 
     # CLI & UI
     "click",
