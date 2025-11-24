@@ -64,6 +64,28 @@ jobs:
           flake8 .
           mypy .
 
+  build_wasm:
+    name: Build WASM Module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Build WASM Binary
+        run: |
+          chmod +x scripts/build_wasm.sh
+          ./scripts/build_wasm.sh
+
+      - name: Upload WASM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-wasm
+          path: |
+            frontend/assets/wasm/tester.wasm
+            frontend/assets/js/wasm_exec.js
+
   test:
     name: Run Test Suite
     runs-on: ubuntu-latest
@@ -176,6 +198,39 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Download WASM Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-wasm
+          path: output/assets/wasm
+          # We need to move wasm_exec.js to js folder, tester.wasm is fine in wasm folder (but our script put both in wasm dir or specific paths)
+          # build_wasm script puts tester.wasm in frontend/assets/wasm and wasm_exec.js in frontend/assets/js
+          # The artifact upload path preserved directory structure? No, check upload step.
+          # Upload path was:
+          # frontend/assets/wasm/tester.wasm
+          # frontend/assets/js/wasm_exec.js
+          # So when we download, we should preserve structure.
+
+      - name: Move WASM Artifacts
+        run: |
+           # Artifact download might flatten or nest depending on config.
+           # Let's assume we download to a temp dir and move.
+           # Actually, let's skip complex moves and rely on "Copy Frontend Assets" step.
+           # Wait, "Copy Frontend Assets" copies from `frontend/` to `output/`.
+           # The `build_wasm` job generates files IN `frontend/` (on the runner).
+           # But `merge_results` is a NEW job on a NEW runner. It checks out the repo, so it has `frontend/` from git (EMPTY of WASM).
+           # So we MUST download WASM artifacts into `frontend/` BEFORE "Copy Frontend Assets".
+
+           # Correcting the Previous Step:
+           pass
+
+      - name: Download WASM for Deployment
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-wasm
+          path: frontend/
+          # This should restore assets/wasm/tester.wasm and assets/js/wasm_exec.js into frontend/
+
       - name: Restore previous outputs for merge
         run: |
           set -euxo pipefail
@@ -196,6 +251,23 @@ jobs:
           cp -r frontend/* output/
           # Ensure no overwrite of generated files if any collision (unlikely but safe)
           # Actually, frontend shouldn't contain proxies.json etc.
+
+      - name: Generate Stealth Assets
+        env:
+          # You must generate a Fernet key once (python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
+          # And save it as a Repository Secret: STEGO_KEY
+          STEGO_KEY: ${{ secrets.STEGO_KEY }}
+        run: |
+          # Ensure we have a cover image
+          mkdir -p output/assets
+          # If no cover image exists, use a fallback or skip (prevent failure if assets are missing)
+          if [ -f "frontend/assets/images/header-bg.png" ]; then
+             cp frontend/assets/images/header-bg.png output/assets/cover.png
+             # Run the packer script
+             python -c "from configstream.transport.stego import generate_stego_assets; from pathlib import Path; generate_stego_assets(Path('output'), Path('output/assets'), '${{ env.STEGO_KEY }}')"
+          else
+             echo "Cover image not found, skipping steganography generation."
+          fi
 
       - name: Generate Version Tag
         id: tag
@@ -220,6 +292,16 @@ jobs:
           HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
         run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID --token $HF_TOKEN &
 
+      - name: Upload to Google Drive Mirror
+        if: env.GDRIVE_FOLDER_ID != ''
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        run: |
+          # Ensure dependencies are installed (if not in previous steps)
+          pip install google-api-python-client google-auth
+          python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID &
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -230,6 +312,7 @@ jobs:
              output/clash.yaml
              output/singbox-vpn.json
              output/vpn_subscription_base64.txt
+             output/stealth_cover.png
           draft: false
           prerelease: false
         env:

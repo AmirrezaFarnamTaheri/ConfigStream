@@ -7,11 +7,16 @@ import json
 import hashlib
 import random
 import logging
+import httpx
 from typing import List, Dict, Optional, Set, Any, Tuple
 from ..models import Proxy
 from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
+
+# Static fallback if fetch fails
+DEFAULT_CLEAN_IPS = ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
+CLEAN_IP_SOURCE = "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/export/singbox/singbox.json"
 
 
 class ProxyWasher:
@@ -21,6 +26,34 @@ class ProxyWasher:
         except json.JSONDecodeError:
             self.warp_keys = []
         self.seen_chains: Set[str] = set()
+        self.clean_ips: List[str] = []
+
+    async def fetch_clean_ips(self):
+        """Fetches the latest clean IPs for WARP endpoints."""
+        try:
+            async with httpx.AsyncClient(timeout=5) as client:
+                # Better source for raw IPs: https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt
+                resp = await client.get(
+                    "https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt"
+                )
+                if resp.status_code == 200:
+                    # Filter valid IPs
+                    lines = [
+                        line.strip() for line in resp.text.splitlines() if line.strip()
+                    ]
+                    # Basic validation (check if it looks like an IP)
+                    self.clean_ips = [ip for ip in lines if ip.count(".") == 3]
+                    logger.info(f"Fetched {len(self.clean_ips)} clean IPs for Washing.")
+        except Exception as e:
+            logger.warning(f"Failed to fetch clean IPs: {e}. Using defaults.")
+            self.clean_ips = []
+
+    def _get_clean_endpoint(self, relay_id: str) -> str:
+        """Deterministically selects a clean IP based on proxy ID."""
+        pool = self.clean_ips if self.clean_ips else DEFAULT_CLEAN_IPS
+        # Consistent hashing so the same proxy always gets the same endpoint (stability)
+        hash_val = int(hashlib.md5(relay_id.encode()).hexdigest(), 16)
+        return pool[hash_val % len(pool)]
 
     def _get_consistent_exit(
         self, relay_id: str, exit_pool: List[Dict]
@@ -81,18 +114,24 @@ class ProxyWasher:
             relay_tag = f"RELAY-{chain_id}"
             relay_out["tag"] = relay_tag
 
+            # --- NEW: Use Clean IP ---
+            clean_endpoint = self._get_clean_endpoint(relay.id)
+            clean_port = 2408  # Standard WireGuard port
+
             exit_tag = f"🛡️ Secure-{relay.country_code}-{i+1}"
             warp_out = {
                 "type": "wireguard",
                 "tag": exit_tag,
                 "local_address": ["172.16.0.2/32"],
                 "private_key": exit_key["private_key"],
-                "server": "162.159.192.1",
-                "server_port": 2408,
+                "server": clean_endpoint,  # Replaces hardcoded 162.159...
+                "server_port": clean_port,
                 "peer_public_key": exit_key.get(
                     "peer_public_key", "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
                 ),
                 "detour": relay_tag,  # <--- The Link
+                # Inject keepalive to maintain NAT mapping
+                "keepalive_interval": 20,
             }
 
             washed_outbounds.append(relay_out)

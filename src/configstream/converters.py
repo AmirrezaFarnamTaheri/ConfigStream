@@ -214,7 +214,46 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
             out["tls"] = tls
 
-        return out
+    # --- NEW HELPER: POLYMORPHISM INJECTOR ---
+    def _apply_stealth_profile(
+        outbound_config: Dict[str, Any], protocol: str
+    ) -> Dict[str, Any]:
+        """
+        Injects anti-censorship features (Multiplexing, Padding, Headers).
+        Only applies to TCP-based protocols (VMess, VLESS, Trojan).
+        """
+        # 1. Multiplexing & Padding (The "Noise" Layer)
+        # This makes traffic look like random streams rather than distinct requests.
+        # 'padding: true' is critical for NaiveProxy-like obfuscation.
+        outbound_config["multiplex"] = {
+            "enabled": True,
+            "padding": True,  # Randomizes packet size
+            "protocol": "h2mux",  # Modern multiplexing protocol
+            "max_connections": 4,  # Parallelism
+            "min_streams": 4,  # Keep streams alive
+            "brutal": {  # TCP Brutal (Congestion Control)
+                "enabled": True,
+                "up": 50,  # Mbps upload cap target
+                "down": 100,  # Mbps download cap target
+            },
+        }
+
+        # 2. Browser Mimicry (The "Camouflage" Layer)
+        # If transport is WebSocket or HTTP, enforce User-Agent.
+        transport = outbound_config.get("transport", {})
+        if transport.get("type") in ["ws", "http"]:
+            headers = transport.get("headers", {})
+            # Overwrite or add User-Agent if missing
+            if "User-Agent" not in headers:
+                headers["User-Agent"] = (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                )
+            transport["headers"] = headers
+            outbound_config["transport"] = transport
+
+        return outbound_config
+
+    out: Optional[Dict[str, Any]] = None
 
     if proxy.protocol == "vmess":
         out = {
@@ -224,7 +263,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "security": "auto",
             "alter_id": _safe_int_conversion(proxy.details.get("aid"), 0),
         }
-        return _add_transport_sb(out, proxy.details)
+        _add_transport_sb(out, proxy.details)
 
     elif proxy.protocol == "vless":
         out = {
@@ -233,20 +272,20 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "uuid": proxy.uuid,
             "flow": str(proxy.details.get("flow", "")),
         }
-        return _add_transport_sb(out, proxy.details)
+        _add_transport_sb(out, proxy.details)
 
     elif proxy.protocol == "shadowsocks":
-        return {
+        out = {
             "type": "shadowsocks",
             **base,
             "method": str(proxy.details.get("method", "chacha20-ietf-poly1305")),
             "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "trojan":
-        return {"type": "trojan", **base, "password": proxy.uuid}
+        out = {"type": "trojan", **base, "password": proxy.uuid}
 
     elif proxy.protocol == "http":
-        return {
+        out = {
             "type": "http",
             **base,
             "username": proxy.uuid if proxy.uuid else "",
@@ -254,14 +293,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "tls": {"enabled": proxy.details.get("tls") == "tls"},
         }
     elif proxy.protocol == "socks5":
-        return {
+        out = {
             "type": "socks",
             **base,
             "username": proxy.uuid if proxy.uuid else "",
             "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "wireguard":
-        return {
+        out = {
             "type": "wireguard",
             **base,
             "local_address": [str(proxy.details.get("local_address", "10.10.0.2/32"))],
@@ -304,4 +343,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         }
         return out
 
-    return None
+    if out and proxy.protocol in ["vmess", "vless", "trojan", "shadowsocks"]:
+        out = _apply_stealth_profile(out, proxy.protocol)
+
+    return out
