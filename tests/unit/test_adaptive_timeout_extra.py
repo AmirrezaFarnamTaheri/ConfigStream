@@ -5,7 +5,7 @@ import statistics
 import json
 from unittest.mock import patch, MagicMock
 from pathlib import Path
-from src.configstream.adaptive_timeout import AdaptiveTimeout
+from configstream.adaptive_timeout import AdaptiveTimeout
 
 
 def test_initialization():
@@ -104,6 +104,6 @@ def test_update_statistics_error():
 
 def test_record_high_latency(caplog):
     at = AdaptiveTimeout(history_file=Path("dummy"))
-    with patch("src.configstream.adaptive_timeout.logger") as mock_logger:
+    with patch("configstream.adaptive_timeout.logger") as mock_logger:
         at.record("src", 101.0)
         assert mock_logger.debug.called

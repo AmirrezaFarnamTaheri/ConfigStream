@@ -5,7 +5,7 @@ import sys
 import json
 from unittest.mock import patch, MagicMock
 from io import StringIO
-from src.configstream.cli_errors import (
+from configstream.cli_errors import (
     CLIError,
     FileError,
     ConfigError,

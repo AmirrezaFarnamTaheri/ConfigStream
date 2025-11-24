@@ -5,7 +5,7 @@ import logging
 import sys
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.configstream.logging_config import (
+from configstream.logging_config import (
     setup_logging,
     SensitiveDataFilter,  # Correct name based on file content
     # configure_uvicorn_logging # Not in file
