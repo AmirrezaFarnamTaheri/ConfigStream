@@ -39,6 +39,10 @@ def test_parse_ss_invalid():
 def test_rate_limiter_allow():
     limiter = RateLimiter(requests_per_second=10)
     # Manually set state to avoid timing issues
+    # Ensure buckets exist
+    if "host1" not in limiter.buckets:
+        limiter.buckets["host1"] = {"tokens": 1.0, "last_update": 0}
+
     limiter.buckets["host1"]["last_update"] = 1000
     limiter.buckets["host1"]["tokens"] = 0
 
@@ -49,6 +53,9 @@ def test_rate_limiter_allow():
 
 def test_rate_limiter_block():
     limiter = RateLimiter(requests_per_second=1)
+    if "host1" not in limiter.buckets:
+        limiter.buckets["host1"] = {"tokens": 1.0, "last_update": 0}
+
     limiter.buckets["host1"]["last_update"] = 1000
     limiter.buckets["host1"]["tokens"] = 0
 

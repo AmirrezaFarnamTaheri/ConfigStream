@@ -29,12 +29,15 @@ async function applyBYOW() {
     // We will inject a single "User Worker" outbound and set it as the default for the "Manual" selector.
 
     const cleanUrl = workerUrl.replace('https://', '').replace('http://', '').replace(/\/$/, '');
+    const workerUuidInput = document.getElementById('worker-uuid');
+    const workerUuid = workerUuidInput && workerUuidInput.value.trim() ? workerUuidInput.value.trim() : "uuid-placeholder";
+
     const userWorker = {
         "type": "vless",
         "tag": "🚀 My Private Worker",
         "server": cleanUrl.split('/')[0], // Extract host
         "server_port": 443,
-        "uuid": "uuid-placeholder", // Ideally this should be input by user too, but VLESS workers often use a static one or ignore it
+        "uuid": workerUuid,
         "tls": { "enabled": true },
         "transport": {
             "type": "ws",

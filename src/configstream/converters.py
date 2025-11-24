@@ -307,6 +307,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "private_key": str(proxy.details.get("private_key")),
             "peer_public_key": str(proxy.details.get("peer_public_key", "")),
         }
+        return out
+
     elif proxy.protocol == "hysteria2":
         out = {
             "type": "hysteria2",
