@@ -115,6 +115,7 @@
                     <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                         <label for="worker-url" style="white-space: nowrap;">🚀 Turbo Mode (BYOW):</label>
                         <input type="text" id="worker-url" placeholder="Paste your Cloudflare Worker URL here..." class="input-dark" style="flex: 1; min-width: 200px;">
+                        <input type="text" id="worker-uuid" placeholder="Optional: UUID (if required)" class="input-dark" style="width: 200px;">
                         <button id="apply-byow" onclick="applyBYOW()" class="btn btn-primary">Apply</button>
                     </div>
                     <p class="hint" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Deploy your own worker for private, unblockable speeds.</p>

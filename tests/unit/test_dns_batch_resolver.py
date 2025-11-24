@@ -6,7 +6,9 @@ from configstream.dns_batch_resolver import BatchDNSResolver
 
 @pytest.fixture
 def resolver():
-    return BatchDNSResolver()
+    # We patch aiodns to prevent actual initialization issues
+    with patch("aiodns.DNSResolver"):
+        return BatchDNSResolver()
 
 
 @pytest.mark.asyncio
@@ -60,12 +62,3 @@ async def test_resolve_batch_failures(resolver):
     results = await resolver.resolve(domains)
 
     assert "fail.com" not in results
-
-
-def test_init_fail():
-    with patch("aiodns.DNSResolver", side_effect=Exception("Init Fail")):
-        # It catches exception (specifically aiodns.error.DNSError, but generic Exception might raise?)
-        # Source code: except aiodns.error.DNSError
-        # So we must raise that specific error or just check if it handles it.
-        # We need to import aiodns to raise correct error or mock it.
-        pass

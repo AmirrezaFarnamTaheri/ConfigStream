@@ -128,9 +128,9 @@ async def fetch_from_source(
 
             # Record metrics on success
             if controller:
-                await controller.record(host, result.response_time, True)
+                await controller.record(host, float(result.response_time or 0.0), True)
             if timeout_tracker:
-                timeout_tracker.record(source, result.response_time)
+                timeout_tracker.record(source, float(result.response_time or 0.0))
                 # Jitter Check
                 jitter = timeout_tracker.get_jitter(source)
                 if jitter > 2.0:
@@ -155,7 +155,7 @@ async def fetch_from_source(
 
             last_error = str(e)
             if controller:
-                await controller.record(host, per_attempt_timeout, False)
+                await controller.record(host, float(per_attempt_timeout), False)
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
                 breaker_manager.get_breaker(host).record_failure()
 

@@ -86,12 +86,9 @@ class ProxyWasher:
         candidates = [
             p
             for p in proxies
-            # Check if working AND either has explicit dirty tag OR is insecure
-            # But in tests tags might not be populated by tagging module yet?
-            # In test_output_logic.py: sample_proxies have no tags except what tagger adds.
-            # But p.tags is a set.
-            # Let's assume if it is working, we try to wash it if we have WARP keys.
-            if p.is_working and self.warp_keys
+            if p.is_working
+            and self.warp_keys
+            and ("dirty_ip" in p.tags or "insecure" in p.tags)
         ]
 
         for i, relay in enumerate(candidates):

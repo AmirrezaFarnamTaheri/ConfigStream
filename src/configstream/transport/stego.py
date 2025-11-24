@@ -3,6 +3,7 @@
 import zlib
 import logging
 from pathlib import Path
+from typing import Optional
 from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ MAGIC_MARKER = b"CSTREAM_PAYLOAD_START>>"
 
 
 class StegoPacker:
-    def __init__(self, key: bytes = None):
+    def __init__(self, key: Optional[bytes] = None):
         """
         Initialize with a Fernet key.
         If None, generates a new one (for dynamic sessions).

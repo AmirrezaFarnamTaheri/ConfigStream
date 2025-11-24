@@ -24,16 +24,25 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
 def publish_ipns(cid: str, ipns_key: str) -> None:
     """
     Publishes the new CID to IPNS.
-    Note: This is a placeholder. Real IPNS publishing requires a running IPFS node
-    with the private key, or a service that supports IPNS updating via API.
-    Pinata does NOT support IPNS updates via API directly in the same way.
-
-    If using a local node:
-    subprocess.run(["ipfs", "name", "publish", "--key=" + ipns_key, cid])
+    Requires a running IPFS node with the private key.
     """
-    print(f"DEBUG: Would publish {cid} to IPNS key {ipns_key}")
-    # In a real implementation with a local node:
-    # subprocess.run(["ipfs", "name", "publish", "--key", ipns_key, cid], check=True)
+    import subprocess
+    import shutil
+
+    if not shutil.which("ipfs"):
+        print("Warning: 'ipfs' command not found. Skipping IPNS publish.")
+        return
+
+    print(f"Publishing {cid} to IPNS key {ipns_key}...")
+    try:
+        subprocess.run(
+            ["ipfs", "name", "publish", "--key", ipns_key, cid],
+            check=True,
+            timeout=300
+        )
+        print("IPNS publish successful.")
+    except Exception as e:
+        print(f"Failed to publish to IPNS: {e}")
 
 
 def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
