@@ -110,6 +110,19 @@
                     <p>Explore our complete list of vetted proxies. Search, sort, and find the perfect connection for your needs.</p>
                 </div>
 
+                <!-- BYOW Section -->
+                <div class="byow-container" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <label for="worker-url" style="white-space: nowrap;">🚀 Turbo Mode (BYOW):</label>
+                        <input type="text" id="worker-url" placeholder="Paste your Cloudflare Worker URL here..." class="input-dark" style="flex: 1; min-width: 200px;">
+                        <button id="apply-byow" onclick="applyBYOW()" class="btn btn-primary">Apply</button>
+                    </div>
+                    <p class="hint" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Deploy your own worker for private, unblockable speeds.</p>
+                    <div id="byow-links" style="display:none; margin-top: 1rem;">
+                        <a id="btn-singbox-byow" class="btn btn-success">Download Turbo Config</a>
+                    </div>
+                </div>
+
                 <div class="filter-controls-redesigned">
                     <!-- Search Input (Natural Language) -->
                     <div class="filter-bar" style="margin-bottom: 1rem;">
@@ -233,6 +246,11 @@
     <!-- Inline icons (MIT licensed Feather icons, self-hosted for zero external dependencies) -->
     <script src="assets/js/inline-icons.js"></script>
 
+    <!-- Steganography Deps -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fernet@0.4.0/fernetBrowser.min.js"></script>
+    <script src="assets/js/stego.js"></script>
+
     <!-- CRITICAL: Load cache config FIRST -->
     <script src="assets/js/cache-config.js" defer></script>
 
@@ -257,6 +275,14 @@
     <script src="assets/js/wasm_exec.js" defer></script>
     <script src="assets/js/wasm_loader.js" defer></script>
     <script src="assets/js/plugin_loader.js" defer></script>
+
+    <div class="wasm-control" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <button id="btn-verify-local" class="btn btn-outline-success" onclick="runLocalVerification()">
+            <i data-feather="cpu"></i> Turbo-Verify (Local)
+        </button>
+        <span id="wasm-status" class="text-muted text-sm" style="display: block; margin-top: 5px; font-size: 0.8rem;">Ready to verify via WASM</span>
+    </div>
+    <script src="assets/js/byow.js" defer></script>
     <script src="assets/js/main.js" defer></script>
     <script src="assets/js/proxies.js" defer></script>
 </body>

@@ -7,6 +7,7 @@ import time
 
 # --- Shadowsocks Parser Tests ---
 
+
 def test_parse_ss_valid():
     uri = "ss://YWVzLTI1Ni1nY206cGFzc3dvcmQ=@1.2.3.4:8388#Remarks"
     proxy = parse_ss(uri)
@@ -15,6 +16,7 @@ def test_parse_ss_valid():
     assert proxy.details["method"] == "aes-256-gcm"
     assert proxy.details["password"] == "password"
     assert proxy.remarks == "Remarks"
+
 
 def test_parse_ss_legacy():
     # SIP002
@@ -25,11 +27,14 @@ def test_parse_ss_legacy():
     assert proxy.details["method"] == "aes-256-gcm"
     assert proxy.details["password"] == "password"
 
+
 def test_parse_ss_invalid():
     proxy = parse_ss("invalid://garbage")
     assert proxy is None
 
+
 # --- Rate Limiter Tests ---
+
 
 def test_rate_limiter_allow():
     limiter = RateLimiter(requests_per_second=10)
@@ -38,8 +43,9 @@ def test_rate_limiter_allow():
     limiter.buckets["host1"]["tokens"] = 0
 
     with patch("configstream.security.rate_limiter.time") as mock_time:
-        mock_time.return_value = 1001 # 1 second later
+        mock_time.return_value = 1001  # 1 second later
         assert limiter.is_allowed("host1") is True
+
 
 def test_rate_limiter_block():
     limiter = RateLimiter(requests_per_second=1)
@@ -47,10 +53,12 @@ def test_rate_limiter_block():
     limiter.buckets["host1"]["tokens"] = 0
 
     with patch("configstream.security.rate_limiter.time") as mock_time:
-        mock_time.return_value = 1000.01 # 0.01s later
+        mock_time.return_value = 1000.01  # 0.01s later
         assert limiter.is_allowed("host1") is False
 
+
 # --- VirusTotal Tests ---
+
 
 class MockResponse:
     def __init__(self, status, data):
@@ -66,17 +74,16 @@ class MockResponse:
     async def __aexit__(self, *args):
         pass
 
+
 @pytest.mark.asyncio
 async def test_vt_ip_clean():
-    mock_response = MockResponse(200, {
-        "data": {
-            "attributes": {
-                "last_analysis_stats": {"malicious": 0}
-            }
-        }
-    })
+    mock_response = MockResponse(
+        200, {"data": {"attributes": {"last_analysis_stats": {"malicious": 0}}}}
+    )
 
-    with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+    with patch(
+        "configstream.security.virus_total.aiohttp.ClientSession"
+    ) as mock_session_cls:
         mock_session = MagicMock()
         mock_session_cls.return_value.__aenter__.return_value = mock_session
         mock_session.get.return_value = mock_response
@@ -85,33 +92,35 @@ async def test_vt_ip_clean():
             result = await check_ip_reputation("1.1.1.1")
             assert result["malicious"] == 0
 
+
 @pytest.mark.asyncio
 async def test_vt_ip_malicious():
-    mock_response = MockResponse(200, {
-        "data": {
-            "attributes": {
-                "last_analysis_stats": {"malicious": 5}
-            }
-        }
-    })
+    mock_response = MockResponse(
+        200, {"data": {"attributes": {"last_analysis_stats": {"malicious": 5}}}}
+    )
 
-    with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+    with patch(
+        "configstream.security.virus_total.aiohttp.ClientSession"
+    ) as mock_session_cls:
         mock_session = MagicMock()
         mock_session_cls.return_value.__aenter__.return_value = mock_session
         mock_session.get.return_value = mock_response
 
         with patch("configstream.security.virus_total.VT_API_KEY", "test_key"):
-            result = await check_ip_reputation("2.2.2.2") # Unique IP
+            result = await check_ip_reputation("2.2.2.2")  # Unique IP
             assert result["malicious"] == 5
+
 
 @pytest.mark.asyncio
 async def test_vt_ip_error():
-    with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+    with patch(
+        "configstream.security.virus_total.aiohttp.ClientSession"
+    ) as mock_session_cls:
         mock_session = MagicMock()
         mock_session_cls.return_value.__aenter__.return_value = mock_session
         # Simulate network error on get()
         mock_session.get.side_effect = Exception("Network Error")
 
         with patch("configstream.security.virus_total.VT_API_KEY", "test_key"):
-            result = await check_ip_reputation("3.3.3.3") # Unique IP
+            result = await check_ip_reputation("3.3.3.3")  # Unique IP
             assert result["malicious"] == 0

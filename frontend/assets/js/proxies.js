@@ -291,4 +291,29 @@ document.addEventListener('DOMContentLoaded', () => {
              }
          }
     });
+
+    // --- New Local Verification (WASM) ---
+    window.runLocalVerification = async () => {
+        const btn = document.getElementById('btn-verify-local');
+        const status = document.getElementById('wasm-status');
+
+        btn.disabled = true;
+        status.innerText = "Testing nodes against YOUR internet...";
+
+        // 'allProxies' is our global list
+        if (!allProxies || allProxies.length === 0) {
+            status.innerText = "No proxies to test.";
+            btn.disabled = false;
+            return;
+        }
+
+        const optimizedProxies = await window.verifyProxyBatch(allProxies);
+
+        // Update global list and re-render
+        allProxies = optimizedProxies;
+        renderTable();
+
+        status.innerText = `Verified! Top node: ${optimizedProxies[0].latency}ms`;
+        btn.disabled = false;
+    };
 });
