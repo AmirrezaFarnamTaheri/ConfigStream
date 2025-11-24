@@ -1,7 +1,7 @@
 """Tests for security rules."""
 
 import pytest
-from src.configstream.security.rules import (
+from configstream.security.rules import (
     validate_port,
     validate_address,
     validate_protocol,
@@ -9,7 +9,7 @@ from src.configstream.security.rules import (
     SECURITY_CATEGORIES,
     MAX_PORT,
 )
-from src.configstream.config import AppSettings
+from configstream.config import AppSettings
 from unittest.mock import patch, MagicMock
 
 
@@ -37,7 +37,7 @@ def test_validate_address():
 
     # Mock SUSPICIOUS_DOMAINS to test that logic specifically
     with patch(
-        "src.configstream.security.rules.SUSPICIOUS_DOMAINS", ["suspicious.com"]
+        "configstream.security.rules.SUSPICIOUS_DOMAINS", ["suspicious.com"]
     ):
         issues = validate_address("suspicious.com", allowlist)
         assert SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"] in issues
@@ -60,8 +60,8 @@ def test_validate_address():
     # Mock AppSettings to ensure ALLOW_PRIVATE_IPS is False
     # Also mock SUSPICIOUS_DOMAINS to be empty so we fall through to private IP check
     with (
-        patch("src.configstream.security.rules._APP_SETTINGS_CACHE") as mock_settings,
-        patch("src.configstream.security.rules.SUSPICIOUS_DOMAINS", []),
+        patch("configstream.security.rules._APP_SETTINGS_CACHE") as mock_settings,
+        patch("configstream.security.rules.SUSPICIOUS_DOMAINS", []),
     ):
         mock_settings.ALLOW_PRIVATE_IPS = False
 
@@ -82,12 +82,12 @@ def test_validate_address():
         assert SECURITY_CATEGORIES["ADDRESS_PRIVATE"] in issues
 
     # Private IPs allowed
-    with patch("src.configstream.security.rules._APP_SETTINGS_CACHE") as mock_settings:
+    with patch("configstream.security.rules._APP_SETTINGS_CACHE") as mock_settings:
         mock_settings.ALLOW_PRIVATE_IPS = True
 
         # We need to ensure it's NOT in SUSPICIOUS_DOMAINS for this test
         # because SUSPICIOUS_DOMAINS check happens BEFORE private IP check
-        with patch("src.configstream.security.rules.SUSPICIOUS_DOMAINS", []):
+        with patch("configstream.security.rules.SUSPICIOUS_DOMAINS", []):
             issues = validate_address("127.0.0.1", allowlist)
             assert issues == {}
 
@@ -112,6 +112,6 @@ def test_validate_config_string():
 
     # Too long
     long_config = "a" * 10001
-    with patch("src.configstream.security.rules.MAX_CONFIG_LINE_LENGTH", 10000):
+    with patch("configstream.security.rules.MAX_CONFIG_LINE_LENGTH", 10000):
         issues = validate_config_string(long_config)
         assert SECURITY_CATEGORIES["CONFIG_TOO_LONG"] in issues

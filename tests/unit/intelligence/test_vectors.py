@@ -4,8 +4,8 @@ import pytest
 import json
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-from src.configstream.intelligence.vectors import _compute_vector, generate_vectors
-from src.configstream.models import Proxy
+from configstream.intelligence.vectors import _compute_vector, generate_vectors
+from configstream.models import Proxy
 
 
 def test_compute_vector():
@@ -55,7 +55,7 @@ def test_generate_vectors_error(tmp_path):
     p1 = Proxy(protocol="ss", address="1.1.1.1", port=80, is_working=True, config="c1")
 
     with patch(
-        "src.configstream.utils.AtomicFileWriter.write_text",
+        "configstream.utils.AtomicFileWriter.write_text",
         side_effect=Exception("Fail"),
     ):
         generate_vectors([p1], tmp_path)  # Should log error but not crash
