@@ -198,38 +198,13 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Download WASM Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-wasm
-          path: output/assets/wasm
-          # We need to move wasm_exec.js to js folder, tester.wasm is fine in wasm folder (but our script put both in wasm dir or specific paths)
-          # build_wasm script puts tester.wasm in frontend/assets/wasm and wasm_exec.js in frontend/assets/js
-          # The artifact upload path preserved directory structure? No, check upload step.
-          # Upload path was:
-          # frontend/assets/wasm/tester.wasm
-          # frontend/assets/js/wasm_exec.js
-          # So when we download, we should preserve structure.
-
-      - name: Move WASM Artifacts
-        run: |
-           # Artifact download might flatten or nest depending on config.
-           # Let's assume we download to a temp dir and move.
-           # Actually, let's skip complex moves and rely on "Copy Frontend Assets" step.
-           # Wait, "Copy Frontend Assets" copies from `frontend/` to `output/`.
-           # The `build_wasm` job generates files IN `frontend/` (on the runner).
-           # But `merge_results` is a NEW job on a NEW runner. It checks out the repo, so it has `frontend/` from git (EMPTY of WASM).
-           # So we MUST download WASM artifacts into `frontend/` BEFORE "Copy Frontend Assets".
-
-           # Correcting the Previous Step:
-           pass
-
       - name: Download WASM for Deployment
         uses: actions/download-artifact@v4
         with:
           name: frontend-wasm
           path: frontend/
-          # This should restore assets/wasm/tester.wasm and assets/js/wasm_exec.js into frontend/
+          # This restores assets/wasm/tester.wasm and assets/js/wasm_exec.js into frontend/
+          # effectively populating the frontend source before copying to output
 
       - name: Restore previous outputs for merge
         run: |

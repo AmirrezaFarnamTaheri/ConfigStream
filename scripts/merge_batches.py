@@ -187,6 +187,10 @@ def merge_batches(
 
     # Clear the existing output directory
     output_dir.mkdir(exist_ok=True)
+    # Do not delete everything, we might want to keep some files, but generally clean start is good
+    # Except we might lose some persistent data if we are not careful?
+    # Actually, persistent data is in `data/`, which we just merged into.
+    # So deleting output/*.* files is fine.
     for file_path in output_dir.glob("*.*"):
         if file_path.is_file():
             file_path.unlink()
@@ -207,7 +211,7 @@ def merge_batches(
     for protocol, configs in proxies_by_protocol.items():
         with open(output_dir / f"{protocol}.txt", "w") as f:
             f.write("\n".join(configs))
-    print("✓ Generated {len(proxies_by_protocol)} protocol files")
+    print(f"✓ Generated protocol files ({len(proxies_by_protocol)} protocols)")
 
     # 5. Subscription files (all.txt, base64.txt - from all ranked)
     all_configs = [p.config for p in ranked_proxies]
@@ -234,9 +238,6 @@ def merge_batches(
 
         # 5a. Sign Subscriptions
         if signer:
-            # Sign singbox.json (it's generated later, but we prep logic here)
-            # We'll sign the main subscription files
-
             # Sign base64.txt content
             try:
                 signed_b64 = signer.sign_subscription(base64_subscription_content)
@@ -293,8 +294,6 @@ def merge_batches(
 
     # Steganography: Create Polyglot Image (The Gallery)
     # We embed the singbox.json into a carrier image
-    # We look for a carrier image in `frontend/assets/images/carrier.png` or similar
-    # For now, we'll try to find any png in frontend/assets/images or use a default one.
     carrier_image = root_dir / "frontend/assets/images/background.png"
     # Fallback to creating a dummy image if not exists (for testing)
     if not carrier_image.exists():
@@ -313,9 +312,10 @@ def merge_batches(
                 str(carrier_image),
                 singbox_content,
                 str(polyglot_path),
-                password=os.environ.get("STEGO_PASSWORD"),
+                password=os.environ.get("STEGO_PASSWORD")
+                or "default_password_if_missing",
             )
-            print(f"✓ Generated gallery.png (Steganography)")
+            print("✓ Generated gallery.png (Steganography)")
         except Exception as e:
             print(f"⚠️ Failed to generate stego image: {e}")
 
