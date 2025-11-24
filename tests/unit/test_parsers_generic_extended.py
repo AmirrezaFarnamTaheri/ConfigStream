@@ -1,4 +1,3 @@
-import pytest
 from configstream.parsers.generic import (
     parse_generic_url_scheme,
     parse_naive,

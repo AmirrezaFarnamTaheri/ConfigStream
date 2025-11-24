@@ -30,8 +30,8 @@ from .config import AppSettings
 from .circuit_breaker import CircuitBreakerManager
 from .dns_prewarm import prewarm_dns_cache
 from .adaptive_timeout import AdaptiveTimeout
-from .fetcher_core.models import FetchResult, RateLimitError, FetcherError
-from .fetcher_core.utils import parse_retry_after
+from .fetcher_core.models import FetchResult, RateLimitError
+from .fetcher_core.worker import fetch_single_source
 
 logger = logging.getLogger(__name__)
 
@@ -114,93 +114,32 @@ async def fetch_from_source(
         start_ts = loop.time()
 
         try:
-            # Streaming Request to enforce size limit
-            try:
-                # We use client.stream() to get headers first, then iterate
-                # However, hedged_requests logic is complex to adapt to streaming if not natively supported.
-                # For now, we stick to standard client.stream if hedging is off,
-                # or use a specialized hedged streamer if we were to implement it.
-                # Given the constraints, if hedging is ON, we might risk the memory IF the library doesn't support streaming.
-                # But httpx DOES support streaming.
+            # Delegate to core worker
+            result = await fetch_single_source(
+                client,
+                source,
+                headers,
+                MAX_RESPONSE_SIZE,
+                app_settings,
+                per_attempt_timeout,
+                start_ts,
+                loop,
+            )
 
-                if app_settings.HEDGING_ENABLED:
-                    # Hedging with streaming is complex. For robustness, we disable hedging for large files
-                    # or we accept that hedged_get might buffer.
-                    # Let's assume standard fetch for now to guarantee safety.
-                    # NOTE: Reverting to standard stream for safety over speed here.
-                    pass
-
-                async with client.stream(
-                    "GET",
-                    source,
-                    headers=headers,
-                    timeout=per_attempt_timeout,
-                    follow_redirects=True,
-                ) as response:
-                    response_time = loop.time() - start_ts
-                    status = response.status_code
-                    last_status_code = status
-
-                    # Rate Limit Handling
-                    if status == 429:
-                        retry_after = parse_retry_after(
-                            response.headers.get("Retry-After")
-                        )
-                        raise RateLimitError(retry_after)
-
-                    if status >= 400:
-                        response.raise_for_status()
-
-                    # Content Length Header Check
-                    content_len_header = response.headers.get("Content-Length")
-                    if (
-                        content_len_header
-                        and int(content_len_header) > MAX_RESPONSE_SIZE
-                    ):
-                        raise ValueError(
-                            f"Response too large (header): {content_len_header} bytes"
-                        )
-
-                    # Stream Content
-                    content_parts = []
-                    current_size = 0
-                    async for chunk in response.aiter_text():
-                        chunk_len = len(chunk.encode("utf-8"))  # Approximation
-                        current_size += chunk_len
-                        if current_size > MAX_RESPONSE_SIZE:
-                            raise ValueError(
-                                f"Response too large (streamed): >{MAX_RESPONSE_SIZE} bytes"
-                            )
-                        content_parts.append(chunk)
-
-                    content = "".join(content_parts)
-
-            except httpx.HTTPError as e:
-                # Map httpx errors
-                raise e
-
-            # Success Recording
+            # Record metrics on success
             if controller:
-                await controller.record(host, response_time, True)
+                await controller.record(host, result.response_time, True)
             if timeout_tracker:
-                timeout_tracker.record(source, response_time)
-                # Jitter Check (Phase 1 Hardening)
+                timeout_tracker.record(source, result.response_time)
+                # Jitter Check
                 jitter = timeout_tracker.get_jitter(source)
-                if jitter > 2.0:  # If standard deviation > 2s, it's very unstable
-                    logger.warning(
-                        f"High Jitter detected for {source}: {jitter:.2f}s. Source may be overloaded."
-                    )
+                if jitter > 2.0:
+                    logger.warning(f"High Jitter detected for {source}: {jitter:.2f}s")
 
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
                 breaker_manager.get_breaker(host).record_success()
 
-            return FetchResult(
-                True,
-                source,
-                content=content,
-                response_time=response_time,
-                status_code=status,
-            )
+            return result
 
         except RateLimitError as e:
             last_error = str(e)
@@ -211,9 +150,8 @@ async def fetch_from_source(
         except (httpx.HTTPError, asyncio.TimeoutError, ValueError) as e:
             # Capture status code if available in exception
             if isinstance(e, httpx.HTTPStatusError):
-                # err_status used to be assigned here but was unused.
-                # We just capture it via last_error or could log it
-                logger.debug(f"HTTP Error {e.response.status_code} for {source}")
+                last_status_code = e.response.status_code
+                logger.debug(f"HTTP Error {last_status_code} for {source}")
 
             last_error = str(e)
             if controller:

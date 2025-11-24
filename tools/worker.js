@@ -1,58 +1,77 @@
-/**
- * ConfigStream Signed Honeypot Worker
- * Verifies that a request actually passed through a proxy and wasn't spoofed.
- *
- * Environment Variables:
- * - HONEYPOT_SECRET: The shared secret key used for HMAC signature.
- */
+// Cloudflare Worker Script for "Bring Your Own Worker" (BYOW)
+// Acts as a VLESS-over-WebSocket relay.
 
-export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-    const token = url.searchParams.get("token");
+// To deploy:
+// 1. Copy this code.
+// 2. Go to Cloudflare Dashboard -> Workers -> Create Service.
+// 3. Paste and Deploy.
 
-    if (!token) {
-      return new Response("Missing token", { status: 400 });
-    }
+const userID = 'user-generated-uuid'; // REPLACE THIS with your UUID
+const proxyIP = '1.2.3.4'; // Default fallback, or dynamic via header
+const proxyPort = 443;
 
-    if (!env.HONEYPOT_SECRET) {
-      return new Response("Server configuration error", { status: 500 });
-    }
+addEventListener("fetch", event => {
+  event.respondWith(handleRequest(event.request));
+});
 
-    // Calculate HMAC-SHA256 Signature
-    const signature = await hmacSha256(env.HONEYPOT_SECRET, token);
+async function handleRequest(request) {
+  const upgradeHeader = request.headers.get("Upgrade");
+  if (!upgradeHeader || upgradeHeader !== "websocket") {
+    return new Response("ConfigStream Worker is Alive", { status: 200 });
+  }
 
-    return new Response(
-      JSON.stringify({
-        signature: signature,
-        timestamp: new Date().toISOString(),
-        ip: request.headers.get("CF-Connecting-IP")
-      }),
-      {
-        headers: { "Content-Type": "application/json" }
+  // Extract target from custom header if present (Client-Side Chaining)
+  let targetIP = proxyIP;
+  let targetPort = proxyPort;
+
+  const forwardHeader = request.headers.get("X-Forward-To");
+  if (forwardHeader) {
+      const parts = forwardHeader.split(":");
+      if (parts.length === 2) {
+          targetIP = parts[0];
+          targetPort = parseInt(parts[1]);
       }
-    );
-  },
-};
+  }
 
-// Helper: HMAC-SHA256
-async function hmacSha256(secret, message) {
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    enc.encode(message)
-  );
+  const webSocket = new WebSocketPair();
+  const [client, server] = Object.values(webSocket);
 
-  // Convert ArrayBuffer to Hex String
-  return [...new Uint8Array(signature)]
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
+  server.accept();
+
+  // Dial the target TCP socket
+  // Note: Standard Workers cannot dial arbitrary TCP ports directly unless using connect() (Beta)
+  // or if wrapping traffic via WebSocket to another endpoint.
+  // Assuming the target allows WebSocket connections (VLESS-ws).
+
+  // For raw TCP, we need 'cloudflare:sockets' (connect).
+  // This example assumes VLESS-over-WS relay to another WS endpoint.
+
+  // Implementation for TCP dialing (requires Workers Unbound or specific plan features):
+  try {
+      const socket = connect({ hostname: targetIP, port: targetPort });
+      const writer = socket.writable.getWriter();
+      const reader = socket.readable.getReader();
+
+      server.addEventListener('message', async event => {
+          await writer.write(event.data);
+      });
+
+      // Pump back
+      (async () => {
+          while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              server.send(value);
+          }
+          server.close();
+      })();
+
+      return new Response(null, {
+          status: 101,
+          webSocket: client,
+      });
+
+  } catch (err) {
+      return new Response(err.stack, { status: 500 });
+  }
 }

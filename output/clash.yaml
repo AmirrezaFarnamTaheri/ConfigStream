@@ -11,10 +11,11 @@ proxy-groups:
   url: http://www.gstatic.com/generate_204
   interval: 300
   tolerance: 50
-  proxies: []
+  proxies:
+  - DIRECT
 - name: 🌍 Proxy Select
   type: select
   proxies:
-  - 🚀 ConfigStream Auto
+  - DIRECT
 rules:
 - MATCH,🚀 ConfigStream Auto

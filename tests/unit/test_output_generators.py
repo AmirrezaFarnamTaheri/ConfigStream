@@ -1,4 +1,3 @@
-import pytest
 from configstream.output_generators import generate_clash_config
 from tests.unit.conftest_helper import create_test_proxy
 

@@ -3,10 +3,8 @@ Comprehensive robustness tests for parsers module.
 Tests edge cases, error handling, and security validations.
 """
 
-import pytest
 from configstream.parsers import (
     parse_vmess as _parse_vmess,
-    parse_vless as _parse_vless,
     parse_ss as _parse_ss,
     parse_ssr as _parse_ssr,
     parse_openvpn as _parse_openvpn,

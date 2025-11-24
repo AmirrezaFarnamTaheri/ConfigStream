@@ -1,4 +1,3 @@
-import pytest
 from configstream.security_validator import (
     validate_batch_configs,
     STRICT_POLICY,
@@ -35,4 +34,3 @@ def test_validate_rejects_invalid_uuid():
     validate_batch_configs([p1], TEST_POLICY)
     # It might just tag it or filter it.
     # Assuming validation logic filters invalid proxies.
-    pass

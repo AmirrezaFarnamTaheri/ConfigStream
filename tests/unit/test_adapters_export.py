@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import MagicMock
 from configstream.adapters import (
     get_adapter,
     SurgeAdapter,
@@ -7,7 +6,6 @@ from configstream.adapters import (
     LoonAdapter,
     ShadowrocketAdapter,
     SIP008Adapter,
-    Adapter,
 )
 from configstream.models import Proxy
 

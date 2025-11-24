@@ -1,4 +1,3 @@
-import pytest
 from configstream.logging_config import setup_logging
 import logging
 

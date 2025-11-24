@@ -1,7 +1,5 @@
 import pytest
 import asyncio
-import os
-from pathlib import Path
 from configstream.utils import AtomicFileWriter, BoundedConcurrencyManager
 
 

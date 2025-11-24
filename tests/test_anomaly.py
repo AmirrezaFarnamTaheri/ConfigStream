@@ -1,6 +1,4 @@
 import pytest
-import shutil
-from pathlib import Path
 from configstream.anomaly import AnomalyDetector
 
 

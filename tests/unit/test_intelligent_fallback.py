@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock
 from configstream.intelligent_fallback import FallbackManager
 from configstream.models import Proxy

@@ -1,9 +1,8 @@
 """Tests for AdaptiveTimeout."""
 
-import pytest
 import statistics
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from pathlib import Path
 from configstream.adaptive_timeout import AdaptiveTimeout
 

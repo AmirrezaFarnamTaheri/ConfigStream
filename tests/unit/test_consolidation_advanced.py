@@ -1,7 +1,5 @@
 """Advanced tests for consolidation and proxy ranking."""
 
-import pytest
-
 from configstream.consolidation import (
     calculate_compound_score,
     get_country_flag,

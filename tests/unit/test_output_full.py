@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch, mock_open
-from pathlib import Path
+from unittest.mock import patch
 from configstream.output import (
     save_json,
     save_metadata,

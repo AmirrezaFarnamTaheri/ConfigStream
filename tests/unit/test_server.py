@@ -1,8 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from pathlib import Path
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from configstream.server import app
 
 client = TestClient(app)

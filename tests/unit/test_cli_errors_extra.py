@@ -1,9 +1,8 @@
 """Tests for CLI errors module."""
 
 import pytest
-import sys
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from io import StringIO
 from configstream.cli_errors import (
     CLIError,

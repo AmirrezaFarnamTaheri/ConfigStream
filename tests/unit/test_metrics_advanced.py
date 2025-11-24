@@ -4,7 +4,6 @@ import json
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from configstream.metrics import PipelineMetrics, export_metrics
 

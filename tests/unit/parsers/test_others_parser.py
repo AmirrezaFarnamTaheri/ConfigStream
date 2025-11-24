@@ -1,6 +1,5 @@
 """Tests for Other Parsers (Hysteria, WG, etc)."""
 
-import pytest
 from configstream.parsers.others import (
     parse_hysteria,
     parse_hysteria2,
@@ -13,7 +12,6 @@ from configstream.parsers.others import (
     parse_ssh,
     _parse_url_scheme,
 )
-from configstream.models import Proxy
 
 
 def test_parse_hysteria():
