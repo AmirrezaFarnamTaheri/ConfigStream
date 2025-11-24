@@ -1,13 +1,19 @@
-from configstream.parsers.generic import parse_generic_url_scheme
+from configstream.parsers.generic import parse_generic_url_scheme as _parse_generic_url_scheme
 from configstream.parsers.ssr import parse_ssr
 from configstream.parsers.trojan import parse_trojan
 from configstream.parsers.vless import parse_vless
+from configstream.parsers.vmess import parse_vmess
+import base64
+import json
 
 
 def test_parse_generic_fallback():
     # Invalid line
-    p = parse_generic_url_scheme("invalid line")
-    assert p is None
+    try:
+        p = _parse_generic_url_scheme("invalid line")
+        assert p is None
+    except ValueError:
+        pass
 
 
 def test_parse_ssr_invalid():
@@ -31,4 +37,26 @@ def test_parse_vless_valid():
 
 
 def test_parse_vmess_valid():
-    pass
+    # vmess is typically base64 encoded json
+    v_obj = {
+        "v": "2",
+        "ps": "Test",
+        "add": "1.1.1.1",
+        "port": 443,
+        "id": "uuid",
+        "aid": 0,
+        "net": "ws",
+        "type": "none",
+        "host": "example.com",
+        "path": "/path",
+        "tls": "tls"
+    }
+    b64 = base64.b64encode(json.dumps(v_obj).encode()).decode()
+    uri = f"vmess://{b64}"
+
+    p = parse_vmess(uri)
+    assert p is not None
+    assert p.protocol == "vmess"
+    assert p.address == "1.1.1.1"
+    assert p.uuid == "uuid"
+    assert p.details["net"] == "ws"

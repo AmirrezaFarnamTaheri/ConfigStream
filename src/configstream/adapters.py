@@ -318,8 +318,8 @@ class ShadowrocketAdapter(Adapter):
                     uri = self._reconstruct_uri(p)
                     if uri:
                         lines.append(uri)
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Failed to reconstruct URI for {p.protocol}: {e}")
 
         # Return as plain text list (decoded subscription)
         return "\n".join(lines)

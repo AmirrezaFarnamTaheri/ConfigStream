@@ -10,13 +10,6 @@ def test_infer_from_name():
     assert res is not None
     assert res["country_code"] == "US"
 
-    res = infer_country_from_remarks("Germany Node 1")
-    # Germany Node 1 -> Does not match regex patterns likely unless 'DE' is in there or name matches.
-    # Wait, the regex matches 2-letter codes. 'DE' is in 'Node' (NO - Norway? DE - Germany?)
-    # "Germany Node 1" -> "DE" is inside "Node"? No.
-    # "NO" is in "Node". "NO" is in excluded codes? Yes.
-    # So "Germany Node 1" might return None if strictly relying on codes.
-    # Let's test with implicit code in brackets which is common.
     res = infer_country_from_remarks("Server [DE]")
     assert res["country_code"] == "DE"
 
@@ -25,12 +18,12 @@ def test_infer_from_name():
 
 
 def test_infer_priority():
-    # UK maps to GB if we had a mapper, but the code only extracts ISO codes via regex.
-    # So "UK" is not a valid ISO 3166-1 alpha-2 code (it's reserved but GB is standard).
-    # If regex matches "UK", `_country_payload_from_code` checks `COUNTRY_NAMES`.
-    # Does `COUNTRY_NAMES` have "UK"? Let's assume standard ISO.
-    # If "UK" is not in COUNTRY_NAMES, it returns None.
-    pass
+    # If explicit code is present, it should take precedence?
+    # Actually the current logic finds ALL codes and picks the first valid one not excluded.
+    res = infer_country_from_remarks("Server (US) [DE]")
+    # It depends on regex order.
+    assert res is not None
+    assert res["country_code"] in ["US", "DE"]
 
 
 def test_infer_case_insensitive():
@@ -57,8 +50,10 @@ def test_infer_from_flag_in_remarks():
 
 
 def test_excluded_codes():
-    # "MY" is excluded
+    # "MY" is excluded as a standalone word usually, but regex might catch it.
+    # The current regex logic in country_inferrer.py excludes MY, ID, NO, etc. if they appear as plain words to avoid false positives.
     assert infer_country_from_remarks("This is MY server") is None
-    # "MY" in brackets should work
+    # "MY" in brackets should work because regex looks for specific patterns or flags first.
+    # Actually, the implementation likely prioritizes flags, then bracketed codes.
     res = infer_country_from_remarks("Malaysia [MY]")
     assert res["country_code"] == "MY"

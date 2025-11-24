@@ -41,11 +41,20 @@ async def test_processing_consumer_flow():
     mock_cache.get.return_value = None
 
     mock_concurrency = MagicMock(spec=ConcurrencyManager)
+    # mock get_semaphore must return an async context manager
+    # asyncio.Semaphore is one.
     mock_concurrency.get_semaphore.return_value = asyncio.Semaphore(10)
     mock_concurrency.record = MagicMock()  # awaitable? record is async def
 
     async def mock_record(*args):
         pass
+
+    # We also need start_tuner and stop_tuner
+    mock_concurrency.start_tuner = MagicMock()
+    # Ensure stop_tuner is awaitable
+    f = asyncio.Future()
+    f.set_result(None)
+    mock_concurrency.stop_tuner = MagicMock(return_value=f)
 
     mock_concurrency.record.side_effect = mock_record
 
@@ -63,26 +72,30 @@ async def test_processing_consumer_flow():
         p = Proxy(config="vmess://test", protocol="vmess", address="1.1.1.1", port=443)
         mock_parse.return_value = p
 
-        await processing_consumer(
-            queue,
-            stats,
-            seen_keys,
-            final_proxies,
-            mock_tester,
-            mock_scheduler,
-            mock_cache,
-            mock_concurrency,
-            mock_geoip,
-            tracker,
-            None,
-            mock_quality,
-            None,
-            None,
-            None,
-            None,
-            None,
-            False,
-        )
+        # We also need to mock validate_batch_configs to just return the list
+        with patch("configstream.pipeline_stages.validate_batch_configs") as mock_validate:
+            mock_validate.side_effect = lambda batch, policy: batch
+
+            await processing_consumer(
+                work_queue=queue,
+                stats=stats,
+                seen_keys=seen_keys,
+                final_proxies=final_proxies,
+                tester=mock_tester,
+                scheduler=mock_scheduler,
+                test_cache=mock_cache,
+                concurrency=mock_concurrency,
+                geoip=mock_geoip,
+                tracker=tracker,
+                event_stream=None,
+                quality_tracker=mock_quality,
+                progress=None,
+                task_process=None,
+                max_proxies=None,
+                max_latency=None,
+                country_filter=None,
+                leniency=False,
+            )
 
     assert len(final_proxies) == 1
     assert final_proxies[0].country_code == "US"
