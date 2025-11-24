@@ -62,14 +62,29 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
     Note: Real-time filtering of large JSONs is memory intensive.
     For high-performance, we serve pre-generated files.
     """
+    import re
+
+    # Validate inputs to prevent path traversal attacks
+    safe_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
+
     if country:
+        if not safe_pattern.match(country):
+            raise HTTPException(400, "Invalid country parameter")
         fpath = OUTPUT_DIR / "by_country" / f"{country.lower()}.json"
+        # Verify the resolved path is within OUTPUT_DIR
+        if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
+            raise HTTPException(400, "Invalid country parameter")
         if fpath.exists():
             return FileResponse(fpath)
         raise HTTPException(404, "Country not found")
 
     if protocol:
+        if not safe_pattern.match(protocol):
+            raise HTTPException(400, "Invalid protocol parameter")
         fpath = OUTPUT_DIR / "by_protocol" / f"{protocol.lower()}.json"
+        # Verify the resolved path is within OUTPUT_DIR
+        if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
+            raise HTTPException(400, "Invalid protocol parameter")
         if fpath.exists():
             return FileResponse(fpath)
         raise HTTPException(404, "Protocol not found")
@@ -142,9 +157,22 @@ async def health_check():
 
 @app.get("/{page}")
 async def read_page(page: str):
+    import re
+
     # Serve html pages from root
+    # Validate page parameter to prevent path traversal
+    safe_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
+    if not safe_pattern.match(page):
+        return FileResponse(FRONTEND_DIR / "index.html")
+
     clean_page = page if page.endswith(".html") else f"{page}.html"
     page_path = FRONTEND_DIR / clean_page
-    if page_path.exists():
-        return FileResponse(page_path)
+
+    # Verify the resolved path is within FRONTEND_DIR
+    try:
+        if page_path.resolve().is_relative_to(FRONTEND_DIR.resolve()) and page_path.exists():
+            return FileResponse(page_path)
+    except (ValueError, OSError):
+        pass
+
     return FileResponse(FRONTEND_DIR / "index.html")  # Fallback for SPA-like feel

@@ -108,21 +108,24 @@ async def generate_pipeline_outputs(
     # Assuming 'frontend/assets/images' is where your cover images live
     assets_dir = output_path.parent / "frontend" / "assets" / "images"
     if not assets_dir.exists():
-         # Fallback logic for when running from root or elsewhere
-         if os.path.exists("frontend/assets/images"):
-             assets_dir = "frontend/assets/images"
+        # Fallback logic for when running from root or elsewhere
+        if os.path.exists("frontend/assets/images"):
+            assets_dir = "frontend/assets/images"
 
     from pathlib import Path
+
     assets_path = Path(assets_dir)
 
     if assets_path.exists():
-        logger.info(f"Generating Stego assets using key ending in ...{dynamic_key[-6:]}")
+        logger.info(
+            f"Generating Stego assets using key ending in ...{dynamic_key[-6:]}"
+        )
         try:
             # 2. Generate the hidden image using this key
             generate_stego_assets(
-                config_dir=output_path,   # Where singbox.json lives
-                assets_dir=assets_path,    # Where cover images (background.png) live
-                secret_key=dynamic_key
+                config_dir=output_path,  # Where singbox.json lives
+                assets_dir=assets_path,  # Where cover images (background.png) live
+                secret_key=dynamic_key,
             )
         except Exception as e:
             logger.error(f"Stego generation failed: {e}")
@@ -138,7 +141,7 @@ async def generate_pipeline_outputs(
     js_path = None
     possible_paths = [
         output_path.parent / "frontend" / "assets" / "js" / "stego.js",
-        Path("frontend/assets/js/stego.js")
+        Path("frontend/assets/js/stego.js"),
     ]
 
     for p in possible_paths:

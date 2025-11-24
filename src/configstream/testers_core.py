@@ -287,7 +287,10 @@ class SingBoxTester:
                             proxy.is_working = False
                 else:
                     proxy.is_working = False
-            except Exception:
+            except Exception as e:
+                logger.warning(
+                    f"Exception during proxy test for {proxy.address}:{proxy.port}: {e}"
+                )
                 proxy.is_working = False
             finally:
                 if sb_instance:
@@ -295,8 +298,10 @@ class SingBoxTester:
                         await asyncio.wait_for(
                             loop.run_in_executor(None, sb_instance.stop), timeout=5.0
                         )
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug(
+                            f"Failed to stop Sing-box instance gracefully: {e}"
+                        )
         self._finalize_result(proxy)
         return proxy
 

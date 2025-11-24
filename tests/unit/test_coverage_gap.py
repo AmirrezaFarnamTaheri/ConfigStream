@@ -36,7 +36,8 @@ def test_parse_ss_invalid():
 # --- Rate Limiter Tests ---
 
 
-def test_rate_limiter_allow():
+@pytest.mark.asyncio
+async def test_rate_limiter_allow():
     limiter = RateLimiter(requests_per_second=10)
     # Manually set state to avoid timing issues
     # Ensure buckets exist
@@ -48,10 +49,11 @@ def test_rate_limiter_allow():
 
     with patch("configstream.security.rate_limiter.time") as mock_time:
         mock_time.return_value = 1001  # 1 second later
-        assert limiter.is_allowed("host1") is True
+        assert await limiter.is_allowed("host1") is True
 
 
-def test_rate_limiter_block():
+@pytest.mark.asyncio
+async def test_rate_limiter_block():
     limiter = RateLimiter(requests_per_second=1)
     if "host1" not in limiter.buckets:
         limiter.buckets["host1"] = {"tokens": 1.0, "last_update": 0}
@@ -61,7 +63,7 @@ def test_rate_limiter_block():
 
     with patch("configstream.security.rate_limiter.time") as mock_time:
         mock_time.return_value = 1000.01  # 0.01s later
-        assert limiter.is_allowed("host1") is False
+        assert await limiter.is_allowed("host1") is False
 
 
 # --- VirusTotal Tests ---
