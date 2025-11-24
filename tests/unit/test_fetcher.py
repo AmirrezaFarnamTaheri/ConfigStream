@@ -6,12 +6,11 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from configstream.fetcher import (
     fetch_from_source,
     fetch_multiple_sources,
-    FetchResult,
-    RateLimitError,
-    _parse_retry_after,
-    FetcherError,
     MAX_RESPONSE_SIZE,
 )
+from configstream.fetcher_core.models import FetchResult, RateLimitError, FetcherError
+from configstream.fetcher_core.utils import parse_retry_after as _parse_retry_after
+
 from configstream.adaptive_timeout import AdaptiveTimeout
 from configstream.config import AppSettings
 from configstream.security.rate_limiter import RateLimiter
