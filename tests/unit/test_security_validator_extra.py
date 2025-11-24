@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock
 
 
 def test_validate_url():
-    from src.configstream.security_validator import SecurityValidator
+    from configstream.security_validator import SecurityValidator
 
     # Valid
     assert SecurityValidator.validate_url("https://google.com")[0] is True
@@ -20,13 +20,13 @@ def test_validate_url():
 
     # Exception handling
     with patch(
-        "src.configstream.security_validator.urlparse", side_effect=Exception("Boom")
+        "configstream.security_validator.urlparse", side_effect=Exception("Boom")
     ):
         assert SecurityValidator.validate_url("https://google.com")[0] is False
 
 
 def test_sanitize_log_message():
-    from src.configstream.security_validator import SecurityValidator
+    from configstream.security_validator import SecurityValidator
 
     msg = "User 12345678-1234-1234-1234-1234567890ab logged in with pass:secret@host"
     sanitized = SecurityValidator.sanitize_log_message(msg)
@@ -46,8 +46,8 @@ def test_sanitize_log_message():
 
 
 def test_validate_batch_configs():
-    from src.configstream.security_validator import validate_batch_configs
-    from src.configstream.models import Proxy
+    from configstream.security_validator import validate_batch_configs
+    from configstream.models import Proxy
 
     proxies = [
         Proxy(protocol="ss", address="1.1.1.1", port=443, config="safe"),
@@ -56,7 +56,7 @@ def test_validate_batch_configs():
 
     # Mock validator to fail the second one
     with patch(
-        "src.configstream.security_validator.SecurityValidator.validate_proxy_config"
+        "configstream.security_validator.SecurityValidator.validate_proxy_config"
     ) as mock_val:
         mock_val.side_effect = [(True, {}), (False, {"category": ["issue"]})]
 

@@ -1,8 +1,8 @@
 """Tests for fetcher models and utils."""
 
 from datetime import datetime, timedelta, timezone
-from src.configstream.fetcher_core.utils import parse_retry_after
-from src.configstream.fetcher_core.models import FetchResult, RateLimitError
+from configstream.fetcher_core.utils import parse_retry_after
+from configstream.fetcher_core.models import FetchResult, RateLimitError
 from unittest.mock import patch
 
 
@@ -44,7 +44,7 @@ def test_parse_retry_after():
 
     # Exception case mocking
     with patch(
-        "src.configstream.fetcher_core.utils.parsedate_to_datetime",
+        "configstream.fetcher_core.utils.parsedate_to_datetime",
         side_effect=Exception("Boom"),
     ):
         assert parse_retry_after("date") is None

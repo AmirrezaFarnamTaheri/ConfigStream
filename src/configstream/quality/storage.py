@@ -51,14 +51,15 @@ class QualityStorage:
         except Exception as e:
             logger.error(f"Failed to init source quality DB: {e}")
 
-    def get_source_state(self, url: str) -> Optional[Tuple]:
+    def get_source_state(self, url: str) -> Optional[Tuple[Any, ...]]:
         """Get state for a source: (status, last_checked, consecutive_failures, reliability_score)."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                return conn.execute(
+                row = conn.execute(
                     "SELECT status, last_checked, consecutive_failures, reliability_score, total_fetched, total_working FROM source_stats WHERE url = ?",
                     (url,),
                 ).fetchone()
+                return row  # type: ignore
         except Exception as e:
             logger.error(f"Failed to get source state for {url}: {e}")
             return None
