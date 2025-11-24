@@ -1,10 +1,6 @@
 """Tests for logging config."""
 
-import pytest
 import logging
-import sys
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 from configstream.logging_config import (
     setup_logging,
     SensitiveDataFilter,  # Correct name based on file content

@@ -1,9 +1,8 @@
 """Tests for history components."""
 
-import pytest
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from configstream.history.storage import HistoryStorage
 from configstream.history.analytics import HistoryAnalytics

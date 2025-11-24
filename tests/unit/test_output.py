@@ -1,9 +1,7 @@
 import pytest
 import json
-from pathlib import Path
 from configstream.output import save_json, save_metadata, generate_split_outputs
 from configstream.models import Proxy
-from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture

@@ -1,8 +1,6 @@
 """Tests for SSR parser."""
 
-import pytest
 from configstream.parsers.ssr import parse_ssr
-from configstream.models import Proxy
 import base64
 
 

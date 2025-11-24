@@ -1,10 +1,7 @@
 import pytest
 import sqlite3
-import time
-import shutil
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from configstream.anomaly import AnomalyDetector
-from pathlib import Path
 
 
 @pytest.fixture

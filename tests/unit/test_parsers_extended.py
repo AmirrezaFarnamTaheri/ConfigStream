@@ -1,6 +1,4 @@
-import pytest
 from configstream.parsers import _parse_vless
-from configstream.models import Proxy
 
 
 def test_vless_sid_enforcement():

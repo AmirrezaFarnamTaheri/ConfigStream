@@ -150,7 +150,6 @@ class GoBatchTester:
 
         except Exception as e:
             logger.error(f"Go Batch Tester failed: {e}")
-            pass
 
         return proxies
 

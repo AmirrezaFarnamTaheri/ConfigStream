@@ -1,15 +1,11 @@
-import pytest
 from configstream.parsers import (
     _parse_ss,
     _parse_vless,
-    _parse_vmess,
-    _parse_trojan,
     _parse_hysteria2,
     _parse_wireguard,
     _parse_openvpn,
     _extract_config_lines,
 )
-from configstream.models import Proxy
 
 
 class TestParsers:

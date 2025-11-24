@@ -1,6 +1,5 @@
 """Test GeoIP resolver robustness and edge cases."""
 
-import pytest
 from configstream.geoip import GeoIPResolver, GeoData
 
 

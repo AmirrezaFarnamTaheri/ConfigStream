@@ -1,10 +1,7 @@
-import pytest
 from configstream.parsers.generic import parse_generic_url_scheme
 from configstream.parsers.ssr import parse_ssr
 from configstream.parsers.trojan import parse_trojan
 from configstream.parsers.vless import parse_vless
-from configstream.parsers.vmess import parse_vmess
-from configstream.models import Proxy
 
 
 def test_parse_generic_fallback():

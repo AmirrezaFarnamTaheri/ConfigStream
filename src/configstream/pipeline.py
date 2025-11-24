@@ -7,9 +7,7 @@ high-concurrency, memory-efficient streaming workflow.
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Set
@@ -17,7 +15,6 @@ from typing import List, Optional, Set
 from rich.progress import Progress, TaskID
 
 from .models import Proxy
-from .adapters import get_adapter
 from .testers import SingBoxTester
 from .test_cache import TestResultCache
 from .scheduler import SmartRetestScheduler
@@ -28,15 +25,9 @@ from .geoip import GeoIPResolver
 from .source_quality import SourceQualityTracker
 from .anomaly import AnomalyDetector
 from .security.blocklist import DEFAULT_BLOCKLIST
-from .consolidation import select_top_configs
-from . import output
-from .output_generators import generate_base64_subscription
 from .performance import PerformanceTracker
 from .proxy_history import ProxyHistoryTracker
-from .intelligence.washer import ProxyWasher
 from .filtering import filter_unique_endpoints
-from .serialize import serialize_proxy
-from .intelligence.vectors import generate_vectors
 
 from .pipeline_stages import (
     PipelineStats,
@@ -44,6 +35,8 @@ from .pipeline_stages import (
     source_producer,
     processing_consumer,
 )
+from .pipeline_core.sorter import sort_proxies_pareto
+from .pipeline_core.output_handler import generate_pipeline_outputs
 from .event_stream import EventStream
 
 logger = logging.getLogger(__name__)
@@ -169,103 +162,16 @@ async def run_full_pipeline(
     # Deduplicate Endpoints (IP:Port)
     optimized_proxies = filter_unique_endpoints(final_proxies)
 
-    # Pareto Sort: Latency (50%), Reliability/Uptime (30%), Success (20%)
-    # We leverage the history tracker to get reliability scores.
-
-    def pareto_score(p: Proxy) -> float:
-        # Lower score is better
-        latency = p.latency if p.latency else 9999
-
-        # Normalize latency: 0-1000ms -> 0-1. Clamp at 1 (1s+)
-        norm_latency = min(latency / 1000.0, 1.0)
-
-        # Reliability (Success Rate) from History
-        # Note: get_reliability_score returns 0-1 (higher is better)
-        # We invert it so lower is better (1 - score)
-        reliability = history.get_reliability_score(p.id)
-
-        # Stability (Jitter)
-        # We use uptime_percentage from summary as 'stability' proxy if available
-        summary = history.get_summary_stats(p.id)
-        uptime = summary.get("uptime_percentage", 50.0) / 100.0
-
-        # Weighted Score
-        # Latency: 50%
-        # Reliability (History Success): 30%
-        # Stability (Uptime): 20%
-
-        score = (
-            (norm_latency * 0.5) + ((1.0 - reliability) * 0.3) + ((1.0 - uptime) * 0.2)
-        )
-        return float(score)
-
-    optimized_proxies.sort(key=pareto_score)
+    # Pareto Sort
+    sort_proxies_pareto(optimized_proxies, history)
 
     # Generate Outputs
-    logger.info(f"Generating outputs for {len(optimized_proxies)} proxies...")
-
     duration = (datetime.now(timezone.utc) - start_time).total_seconds()
     stats.duration = float(duration)
-    stats.final_count = len(optimized_proxies)
 
-    # --- Intelligence Phase: Washing & Chaining (Centralized) ---
-    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
-    washed_outbounds, washed_ids = washer.wash_batch(optimized_proxies)
-
-    smart_chains = output.generate_smart_chains(optimized_proxies)
-
-    generated_files = output.generate_categorized_outputs(
-        optimized_proxies,
-        output_path,
-        washed_outbounds=washed_outbounds,
-        washed_ids=washed_ids,
-        smart_chains=smart_chains,
+    generated_files = generate_pipeline_outputs(
+        optimized_proxies, output_path, stats, history
     )
-
-    # NEW: Generate Metadata for Frontend
-    output.save_metadata(stats.to_dict(), optimized_proxies, output_path)
-
-    # NEW: Generate Static Vectors for Client-Side Search
-    generate_vectors(optimized_proxies, output_path)
-
-    # New Adapters Exports
-    try:
-        # Pass washed_outbounds to adapters that support it (Surge)
-        (output_path / "surge.conf").write_text(
-            get_adapter("surge").export(optimized_proxies, washed_outbounds)
-        )
-        (output_path / "shadowrocket.txt").write_text(
-            get_adapter("shadowrocket").export(optimized_proxies, washed_outbounds)
-        )
-        # Loon
-        (output_path / "loon.conf").write_text(
-            get_adapter("loon").export(optimized_proxies, washed_outbounds)
-        )
-        # Quantumult X
-        (output_path / "quantumult.conf").write_text(
-            get_adapter("qx").export(optimized_proxies, washed_outbounds)
-        )
-        # SIP008
-        (output_path / "sip008.json").write_text(
-            get_adapter("sip008").export(optimized_proxies, washed_outbounds)
-        )
-    except Exception as e:
-        logger.error(f"Failed to export adapters: {e}")
-
-    # Chosen 1000 Generation
-    chosen_proxies = select_top_configs(
-        optimized_proxies, top_per_protocol=50, total_limit=1000
-    )
-    chosen_dir = output_path / "chosen"
-    chosen_dir.mkdir(exist_ok=True)
-
-    (chosen_dir / "proxies.json").write_text(
-        json.dumps(
-            [serialize_proxy(p, history.get_history(p.id)) for p in chosen_proxies],
-            indent=2,
-        )
-    )
-    (chosen_dir / "base64.txt").write_text(generate_base64_subscription(chosen_proxies))
 
     # Save History & Cache
     history.save()

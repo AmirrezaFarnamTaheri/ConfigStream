@@ -26,6 +26,9 @@ from configstream.consolidation import (  # noqa: E402
 )
 from configstream.source_quality import SourceQualityTracker  # noqa: E402
 from configstream.anomaly import AnomalyDetector  # noqa: E402
+from configstream.crypto.signer import Signer  # noqa: E402
+from configstream.transport.polyglot import create_polyglot_image  # noqa: E402
+import os
 
 
 def merge_batches(
@@ -208,15 +211,40 @@ def merge_batches(
 
     # 5. Subscription files (all.txt, base64.txt - from all ranked)
     all_configs = [p.config for p in ranked_proxies]
+
+    # Initialize Signer
+    signing_key = os.environ.get("SIGNING_KEY")
+    signer = None
+    if signing_key:
+        try:
+            signer = Signer(private_key_hex=signing_key)
+            print("🔐 Signing enabled.")
+        except Exception as e:
+            print(f"⚠️ Signing setup failed: {e}")
+
     if all_configs:
         with open(output_dir / "all.txt", "w") as f:
             f.write("\n".join(all_configs))
-        print("✓ Generated all.txt ({len(all_configs)} configs)")
+        print(f"✓ Generated all.txt ({len(all_configs)} configs)")
 
         base64_subscription_content = generate_base64_subscription(ranked_proxies)
         with open(output_dir / "base64.txt", "w") as f:
             f.write(base64_subscription_content)
         print("✓ Generated base64.txt")
+
+        # 5a. Sign Subscriptions
+        if signer:
+            # Sign singbox.json (it's generated later, but we prep logic here)
+            # We'll sign the main subscription files
+
+            # Sign base64.txt content
+            try:
+                signed_b64 = signer.sign_subscription(base64_subscription_content)
+                with open(output_dir / "base64.signed.json", "w") as f:
+                    json.dump(signed_b64, f)
+                print("✓ Generated base64.signed.json")
+            except Exception as e:
+                print(f"⚠️ Failed to sign base64: {e}")
 
     # 6. CHOSEN subset files (top 1000 configs)
     print("\n=== Generating CHOSEN Subset Files ===")
@@ -253,6 +281,43 @@ def merge_batches(
     with open(output_dir / "singbox.json", "w") as f:
         f.write(singbox_content)
     print("✓ Generated singbox.json")
+
+    if signer:
+        try:
+            signed_singbox = signer.sign_subscription(singbox_content)
+            with open(output_dir / "singbox.signed.json", "w") as f:
+                json.dump(signed_singbox, f)
+            print("✓ Generated singbox.signed.json")
+        except Exception as e:
+            print(f"⚠️ Failed to sign singbox: {e}")
+
+    # Steganography: Create Polyglot Image (The Gallery)
+    # We embed the singbox.json into a carrier image
+    # We look for a carrier image in `frontend/assets/images/carrier.png` or similar
+    # For now, we'll try to find any png in frontend/assets/images or use a default one.
+    carrier_image = root_dir / "frontend/assets/images/background.png"
+    # Fallback to creating a dummy image if not exists (for testing)
+    if not carrier_image.exists():
+        # Check if there is any png
+        pngs = list((root_dir / "frontend/assets/images").glob("*.png"))
+        if pngs:
+            carrier_image = pngs[0]
+        else:
+            print("⚠️ No carrier image found for steganography. Skipping.")
+            carrier_image = None
+
+    if carrier_image:
+        try:
+            polyglot_path = output_dir / "gallery.png"
+            create_polyglot_image(
+                str(carrier_image),
+                singbox_content,
+                str(polyglot_path),
+                password=os.environ.get("STEGO_PASSWORD"),
+            )
+            print(f"✓ Generated gallery.png (Steganography)")
+        except Exception as e:
+            print(f"⚠️ Failed to generate stego image: {e}")
 
     # Adapters
     try:

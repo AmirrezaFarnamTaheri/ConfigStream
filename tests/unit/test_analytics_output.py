@@ -1,7 +1,5 @@
 import json
-import pytest
 from pathlib import Path
-from unittest.mock import MagicMock
 from configstream.models import Proxy
 from configstream.output import save_metadata
 

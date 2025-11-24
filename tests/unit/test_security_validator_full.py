@@ -1,10 +1,8 @@
-import pytest
 from configstream.security_validator import (
     validate_batch_configs,
     STRICT_POLICY,
     TEST_POLICY,
 )
-from configstream.models import Proxy
 from tests.unit.conftest_helper import create_test_proxy
 
 

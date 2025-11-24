@@ -1,16 +1,13 @@
 """Tests for security rules."""
 
-import pytest
 from configstream.security.rules import (
     validate_port,
     validate_address,
     validate_protocol,
     validate_config_string,
     SECURITY_CATEGORIES,
-    MAX_PORT,
 )
-from configstream.config import AppSettings
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 def test_validate_port():
@@ -36,9 +33,7 @@ def test_validate_address():
     assert validate_address("test.test", allowlist) == {}  # .test TLD
 
     # Mock SUSPICIOUS_DOMAINS to test that logic specifically
-    with patch(
-        "configstream.security.rules.SUSPICIOUS_DOMAINS", ["suspicious.com"]
-    ):
+    with patch("configstream.security.rules.SUSPICIOUS_DOMAINS", ["suspicious.com"]):
         issues = validate_address("suspicious.com", allowlist)
         assert SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"] in issues
 

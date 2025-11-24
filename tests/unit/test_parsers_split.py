@@ -2,7 +2,6 @@
 Unit tests for the new parsers package.
 """
 
-import pytest
 import base64
 import json
 from configstream.parsers import (

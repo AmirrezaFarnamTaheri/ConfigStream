@@ -1,12 +1,10 @@
 import json
 import pytest
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from configstream.models import Proxy
 from configstream.intelligence.washer import generate_smart_chains, ProxyWasher
 from configstream.output import generate_split_outputs
-from configstream.converters import to_singbox_outbound
 
 
 @pytest.fixture
