@@ -237,9 +237,14 @@ async def fetch_multiple_sources(
     try:
         if client:
             tasks = [_worker(client, s) for s in sources]
-            completed = await asyncio.gather(*tasks)
-            for src, res in completed:
-                results[src] = res
+            try:
+                completed = await asyncio.gather(*tasks)
+                for src, res in completed:
+                    results[src] = res
+            except Exception as e:
+                logger.error(f"Error during fetch gather: {e}")
+                # Note: If client was passed in, caller is responsible for cleanup
+                raise
         else:
             async with get_client() as new_client:
                 tasks = [_worker(new_client, s) for s in sources]

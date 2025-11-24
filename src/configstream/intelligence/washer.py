@@ -7,6 +7,7 @@ import json
 import hashlib
 import random
 import logging
+import threading
 import httpx
 from typing import List, Dict, Optional, Set, Any, Tuple
 from ..models import Proxy
@@ -22,10 +23,18 @@ CLEAN_IP_SOURCE = "https://raw.githubusercontent.com/ircfspace/warpendpoint/main
 class ProxyWasher:
     def __init__(self, warp_keys_json: str):
         try:
-            self.warp_keys = json.loads(warp_keys_json) if warp_keys_json else []
-        except json.JSONDecodeError:
+            parsed = json.loads(warp_keys_json) if warp_keys_json else []
+            # Validate that it's a list
+            if not isinstance(parsed, list):
+                logger.warning(f"warp_keys_json is not a list, got {type(parsed)}")
+                self.warp_keys = []
+            else:
+                self.warp_keys = parsed
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse warp_keys_json: {e}")
             self.warp_keys = []
         self.seen_chains: Set[str] = set()
+        self._seen_chains_lock = threading.Lock()
         self.clean_ips: List[str] = []
 
     async def fetch_clean_ips(self):
@@ -100,9 +109,11 @@ class ProxyWasher:
             # 3. Generate Deterministic Chain ID
             chain_id = f"CHAIN-{relay.country_code}-{relay.id[:6]}-{exit_key.get('id', '00')[:4]}"
 
-            if chain_id in self.seen_chains:
-                continue  # Skip duplicates
-            self.seen_chains.add(chain_id)
+            # Thread-safe check-then-act for deduplication
+            with self._seen_chains_lock:
+                if chain_id in self.seen_chains:
+                    continue  # Skip duplicates
+                self.seen_chains.add(chain_id)
 
             # 4. Construct the Chain Objects
             relay_out = to_singbox_outbound(relay)

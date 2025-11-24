@@ -54,7 +54,8 @@ atexit.register(_cleanup_temp_files)
 @contextmanager
 def SecureConfigContext(content: str):
     fd, path = tempfile.mkstemp(suffix=".json")
-    _TEMP_FILES.add(path)
+    with _TEMP_FILES_LOCK:
+        _TEMP_FILES.add(path)
     try:
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -65,11 +66,15 @@ def SecureConfigContext(content: str):
         yield path
     finally:
         try:
-            if os.path.exists(path):
-                os.unlink(path)
-            _TEMP_FILES.discard(path)
+            # os.unlink raises FileNotFoundError if file doesn't exist, which is fine
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
         except OSError as e:
             logger.warning("Failed to unlink temp file %s: %s", path, e)
+        finally:
+            with _TEMP_FILES_LOCK:
+                _TEMP_FILES.discard(path)
 
 
 class GoBatchTester:

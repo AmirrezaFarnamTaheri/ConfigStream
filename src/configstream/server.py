@@ -170,7 +170,10 @@ async def read_page(page: str):
 
     # Verify the resolved path is within FRONTEND_DIR
     try:
-        if page_path.resolve().is_relative_to(FRONTEND_DIR.resolve()) and page_path.exists():
+        if (
+            page_path.resolve().is_relative_to(FRONTEND_DIR.resolve())
+            and page_path.exists()
+        ):
             return FileResponse(page_path)
     except (ValueError, OSError):
         pass
