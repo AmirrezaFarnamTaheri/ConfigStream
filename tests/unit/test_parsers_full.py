@@ -1,4 +1,6 @@
-from configstream.parsers.generic import parse_generic_url_scheme as _parse_generic_url_scheme
+from configstream.parsers.generic import (
+    parse_generic_url_scheme as _parse_generic_url_scheme,
+)
 from configstream.parsers.ssr import parse_ssr
 from configstream.parsers.trojan import parse_trojan
 from configstream.parsers.vless import parse_vless
@@ -49,7 +51,7 @@ def test_parse_vmess_valid():
         "type": "none",
         "host": "example.com",
         "path": "/path",
-        "tls": "tls"
+        "tls": "tls",
     }
     b64 = base64.b64encode(json.dumps(v_obj).encode()).decode()
     uri = f"vmess://{b64}"

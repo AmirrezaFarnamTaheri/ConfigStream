@@ -66,9 +66,9 @@ async def test_fetch_circuit_breaker_open():
     # Trip the breaker
     breaker = breaker_manager.get_breaker(host)
     for _ in range(10):
-        breaker.record_failure()
+        await breaker.record_failure()
 
-    assert breaker.is_open
+    assert await breaker.is_open()
 
     client = httpx.AsyncClient()
     res = await fetch_from_source(

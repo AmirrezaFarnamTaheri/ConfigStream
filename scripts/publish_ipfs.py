@@ -36,9 +36,7 @@ def publish_ipns(cid: str, ipns_key: str) -> None:
     print(f"Publishing {cid} to IPNS key {ipns_key}...")
     try:
         subprocess.run(
-            ["ipfs", "name", "publish", "--key", ipns_key, cid],
-            check=True,
-            timeout=300
+            ["ipfs", "name", "publish", "--key", ipns_key, cid], check=True, timeout=300
         )
         print("IPNS publish successful.")
     except Exception as e:

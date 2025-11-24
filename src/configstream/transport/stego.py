@@ -65,7 +65,9 @@ class StegoPacker:
 
 
 # Helper for CI integration
-def generate_stego_assets(config_dir: Path, assets_dir: Path, secret_key: str = None):
+def generate_stego_assets(
+    config_dir: Path, assets_dir: Path, secret_key: Optional[str] = None
+):
     """
     scans output directory for singbox.json and creates image variants.
     """
