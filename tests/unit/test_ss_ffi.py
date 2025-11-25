@@ -69,13 +69,13 @@ def test_ss_ffi_json_serialization():
 
 def test_ensure_library_exists():
     """Test ensure_library when library exists."""
-    with patch.object(LIB_PATH, "exists", return_value=True):
+    with patch("pathlib.Path.exists", return_value=True):
         assert ensure_library() is True
 
 
 def test_ensure_library_not_exists():
     """Test ensure_library when library doesn't exist."""
-    with patch.object(LIB_PATH, "exists", return_value=False):
+    with patch("pathlib.Path.exists", return_value=False):
         assert ensure_library() is False
 
 
