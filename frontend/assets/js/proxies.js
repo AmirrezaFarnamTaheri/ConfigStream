@@ -1,4 +1,13 @@
 // Page-specific logic for the proxies page
+
+// HTML escape function to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (!document.getElementById('proxiesTable')) return;
 
@@ -166,12 +175,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentProxies = filteredProxies.slice((currentPage - 1) * proxiesPerPage, currentPage * proxiesPerPage);
 
         tableBody.innerHTML = currentProxies.map((p, index) => {
-            const countryCode = (p.country_code && p.country_code !== 'XX') ? p.country_code : null;
+            const countryCode = (p.country_code && p.country_code !== 'XX') ? escapeHtml(p.country_code) : null;
             const country = countryCode || 'Unknown';
-            const city = p.city || '';
+            const city = escapeHtml(p.city) || '';
             const location = city ? `${city}, ${country}` : country;
-            const latency = p.latency ? `${p.latency}ms` : 'N/A';
-            const protocol = p.protocol || 'N/A';
+            const latency = p.latency ? `${escapeHtml(String(p.latency))}ms` : 'N/A';
+            const protocol = escapeHtml(p.protocol) || 'N/A';
 
             // Sparkline Generation
             // Ensure p.history exists (it comes from backend now)
@@ -187,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr class="proxy-row" style="--delay: ${index * 0.02}s">
                     <td data-label="Protocol">${protocol}${protocolBadge}</td>
                     <td class="location-cell" data-label="Location">
-                        ${countryCode ? `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" class="country-flag">` : `<i data-feather="globe"></i>`}
+                        ${countryCode ? `<img src="https://flagcdn.com/w20/${countryCode.toLowerCase()}.png" class="country-flag" alt="${country}">` : `<i data-feather="globe"></i>`}
                         <span>${location}</span>
                     </td>
                     <td data-label="Latency">
