@@ -152,6 +152,7 @@ jobs:
             data/source_quality.db
             data/test_cache.json
             data/GeoLite2-City.mmdb
+            data/GeoLite2-ASN.mmdb
           key: configstream-data-${{ github.ref }}
           restore-keys: |
             configstream-data-
