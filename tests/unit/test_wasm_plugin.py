@@ -149,6 +149,318 @@ class TestWasmPlugin(unittest.TestCase):
         self.assertEqual(result, mock_proxy)
         mock_plugin_manager.parse_all.assert_called_with(config)
 
+    @patch("configstream.plugins.loader.Engine")
+    @patch("configstream.plugins.loader.Store")
+    @patch("configstream.plugins.loader.Module")
+    @patch("configstream.plugins.loader.Instance")
+    def test_wasm_parser_returns_none_on_zero_result_ptr(
+        self, MockInstance, MockModule, MockStore, MockEngine
+    ):
+        """Test that parse returns None when WASM function returns 0."""
+        mock_instance = MockInstance.return_value
+        mock_exports = MagicMock()
+        mock_instance.exports.return_value = mock_exports
+
+        mock_memory = MagicMock()
+        mock_memory.data_len.return_value = 2048
+
+        mock_alloc = MagicMock(return_value=100)
+        mock_parse = MagicMock(return_value=0)  # Returns 0 (NULL)
+        mock_dealloc = MagicMock()
+        mock_free_string = MagicMock()
+
+        def get_export(key, default=None):
+            return {
+                "memory": mock_memory,
+                "alloc": mock_alloc,
+                "parse": mock_parse,
+                "dealloc": mock_dealloc,
+                "free_string": mock_free_string,
+            }.get(key, default)
+
+        mock_exports.__getitem__.side_effect = lambda key: get_export(key)
+        mock_exports.get.side_effect = get_export
+
+        parser = WasmParser("test_plugin", self.mock_wasm_path)
+        result = parser.parse("test://config")
+
+        self.assertIsNone(result)
+
+    @patch("configstream.plugins.loader.Engine")
+    @patch("configstream.plugins.loader.Store")
+    @patch("configstream.plugins.loader.Module")
+    @patch("configstream.plugins.loader.Instance")
+    def test_wasm_parser_handles_empty_json_response(
+        self, MockInstance, MockModule, MockStore, MockEngine
+    ):
+        """Test handling of empty JSON string from WASM."""
+        mock_instance = MockInstance.return_value
+        mock_exports = MagicMock()
+        mock_instance.exports.return_value = mock_exports
+
+        mock_memory = MagicMock()
+        mock_memory.data_len.return_value = 2048
+
+        mock_alloc = MagicMock(return_value=100)
+        mock_parse = MagicMock(return_value=500)
+        mock_dealloc = MagicMock()
+        mock_free_string = MagicMock()
+
+        def get_export(key, default=None):
+            return {
+                "memory": mock_memory,
+                "alloc": mock_alloc,
+                "parse": mock_parse,
+                "dealloc": mock_dealloc,
+                "free_string": mock_free_string,
+            }.get(key, default)
+
+        mock_exports.__getitem__.side_effect = lambda key: get_export(key)
+        mock_exports.get.side_effect = get_export
+
+        # Return empty string with null terminator
+        mock_memory.read.return_value = b"\0"
+
+        parser = WasmParser("test_plugin", self.mock_wasm_path)
+        result = parser.parse("test://config")
+
+        self.assertIsNone(result)
+
+    @patch("configstream.plugins.loader.Engine")
+    @patch("configstream.plugins.loader.Store")
+    @patch("configstream.plugins.loader.Module")
+    @patch("configstream.plugins.loader.Instance")
+    def test_wasm_parser_handles_json_decode_error(
+        self, MockInstance, MockModule, MockStore, MockEngine
+    ):
+        """Test handling of invalid JSON from WASM."""
+        mock_instance = MockInstance.return_value
+        mock_exports = MagicMock()
+        mock_instance.exports.return_value = mock_exports
+
+        mock_memory = MagicMock()
+        mock_memory.data_len.return_value = 2048
+
+        mock_alloc = MagicMock(return_value=100)
+        mock_parse = MagicMock(return_value=500)
+        mock_dealloc = MagicMock()
+        mock_free_string = MagicMock()
+
+        def get_export(key, default=None):
+            return {
+                "memory": mock_memory,
+                "alloc": mock_alloc,
+                "parse": mock_parse,
+                "dealloc": mock_dealloc,
+                "free_string": mock_free_string,
+            }.get(key, default)
+
+        mock_exports.__getitem__.side_effect = lambda key: get_export(key)
+        mock_exports.get.side_effect = get_export
+
+        # Return invalid JSON
+        invalid_json = b"not valid json{[}\0"
+        mock_memory.read.return_value = invalid_json
+
+        parser = WasmParser("test_plugin", self.mock_wasm_path)
+        result = parser.parse("test://config")
+
+        self.assertIsNone(result)
+
+    @patch("configstream.plugins.loader.Engine")
+    @patch("configstream.plugins.loader.Store")
+    @patch("configstream.plugins.loader.Module")
+    @patch("configstream.plugins.loader.Instance")
+    def test_wasm_parser_without_optional_functions(
+        self, MockInstance, MockModule, MockStore, MockEngine
+    ):
+        """Test WasmParser when optional dealloc/free_string are missing."""
+        mock_instance = MockInstance.return_value
+        mock_exports = MagicMock()
+        mock_instance.exports.return_value = mock_exports
+
+        mock_memory = MagicMock()
+        mock_memory.data_len.return_value = 2048
+
+        mock_alloc = MagicMock(return_value=100)
+        mock_parse = MagicMock(return_value=500)
+
+        def get_export(key, default=None):
+            exports = {
+                "memory": mock_memory,
+                "alloc": mock_alloc,
+                "parse": mock_parse,
+            }
+            return exports.get(key, default)
+
+        mock_exports.__getitem__.side_effect = lambda key: get_export(key)
+        mock_exports.get.side_effect = get_export
+
+        proxy_data = {"config": "test://example.com:443", "protocol": "test", "address": "example.com", "port": 443}
+        proxy_json = json.dumps(proxy_data)
+
+        def side_effect_read(store, start, end):
+            offset = start - 500
+            content = proxy_json.encode("utf-8") + b"\0"
+            if 0 <= offset < len(content):
+                length = end - start
+                return content[offset : offset + length]
+            return b"\0" * (end - start)
+
+        mock_memory.read.side_effect = side_effect_read
+
+        parser = WasmParser("test_plugin", self.mock_wasm_path)
+        self.assertIsNone(parser.dealloc)
+        self.assertIsNone(parser.free_string)
+
+        result = parser.parse("test://config")
+        self.assertIsNotNone(result)
+
+    @patch("configstream.plugins.loader.Engine")
+    @patch("configstream.plugins.loader.Store")
+    @patch("configstream.plugins.loader.Module")
+    def test_wasm_parser_loading_error(self, MockModule, MockStore, MockEngine):
+        """Test WasmParser initialization failure."""
+        MockModule.from_file.side_effect = Exception("Failed to load WASM module")
+
+        with self.assertRaises(Exception):
+            WasmParser("failing_plugin", self.mock_wasm_path)
+
+    @patch("configstream.plugins.loader.Path")
+    def test_plugin_manager_no_plugin_dir(self, MockPath):
+        """Test PluginManager when plugin directory doesn't exist."""
+        from configstream.plugins.loader import PluginManager
+
+        mock_path = MagicMock()
+        mock_path.exists.return_value = False
+
+        manager = PluginManager(mock_path)
+        manager.load_plugins()
+
+        # Should not crash, no plugins loaded
+        self.assertEqual(len(manager.parsers), 0)
+
+    @patch("configstream.plugins.loader.Path")
+    @patch("configstream.plugins.loader.WasmParser")
+    def test_plugin_manager_load_plugins(self, MockWasmParser, MockPath):
+        """Test PluginManager loads plugins from directory."""
+        from configstream.plugins.loader import PluginManager
+
+        mock_file1 = MagicMock()
+        mock_file1.stem = "plugin1"
+        mock_file2 = MagicMock()
+        mock_file2.stem = "plugin2"
+
+        mock_path = MagicMock()
+        mock_path.exists.return_value = True
+        mock_path.glob.return_value = [mock_file1, mock_file2]
+
+        mock_parser1 = MagicMock()
+        mock_parser2 = MagicMock()
+        MockWasmParser.side_effect = [mock_parser1, mock_parser2]
+
+        manager = PluginManager(mock_path)
+        manager.load_plugins()
+
+        self.assertEqual(len(manager.parsers), 2)
+        self.assertEqual(manager.parsers["plugin1"], mock_parser1)
+        self.assertEqual(manager.parsers["plugin2"], mock_parser2)
+
+    @patch("configstream.plugins.loader.Path")
+    @patch("configstream.plugins.loader.WasmParser")
+    def test_plugin_manager_load_plugins_with_errors(self, MockWasmParser, MockPath):
+        """Test PluginManager handles plugin loading errors gracefully."""
+        from configstream.plugins.loader import PluginManager
+
+        mock_file1 = MagicMock()
+        mock_file1.stem = "good_plugin"
+        mock_file2 = MagicMock()
+        mock_file2.stem = "bad_plugin"
+
+        mock_path = MagicMock()
+        mock_path.exists.return_value = True
+        mock_path.glob.return_value = [mock_file1, mock_file2]
+
+        mock_parser = MagicMock()
+        MockWasmParser.side_effect = [mock_parser, Exception("Failed to load")]
+
+        manager = PluginManager(mock_path)
+        manager.load_plugins()
+
+        # Only the good plugin should be loaded
+        self.assertEqual(len(manager.parsers), 1)
+        self.assertEqual(manager.parsers["good_plugin"], mock_parser)
+
+    def test_plugin_manager_get_parser_exists(self):
+        """Test PluginManager.get_parser for existing plugin."""
+        from configstream.plugins.loader import PluginManager
+
+        manager = PluginManager(Path("/nonexistent"))
+        mock_parser = MagicMock()
+        manager.parsers["test_plugin"] = mock_parser
+
+        result = manager.get_parser("test_plugin")
+        self.assertEqual(result, mock_parser)
+
+    def test_plugin_manager_get_parser_not_exists(self):
+        """Test PluginManager.get_parser for non-existent plugin."""
+        from configstream.plugins.loader import PluginManager
+
+        manager = PluginManager(Path("/nonexistent"))
+
+        result = manager.get_parser("nonexistent_plugin")
+        self.assertIsNone(result)
+
+    def test_plugin_manager_parse_all_no_plugins(self):
+        """Test PluginManager.parse_all with no plugins loaded."""
+        from configstream.plugins.loader import PluginManager
+
+        manager = PluginManager(Path("/nonexistent"))
+
+        result = manager.parse_all("test://config")
+        self.assertIsNone(result)
+
+    def test_plugin_manager_parse_all_no_match(self):
+        """Test PluginManager.parse_all when no plugin matches."""
+        from configstream.plugins.loader import PluginManager
+
+        manager = PluginManager(Path("/nonexistent"))
+
+        mock_parser1 = MagicMock()
+        mock_parser1.parse.return_value = None
+        mock_parser2 = MagicMock()
+        mock_parser2.parse.return_value = None
+
+        manager.parsers = {"plugin1": mock_parser1, "plugin2": mock_parser2}
+
+        result = manager.parse_all("test://config")
+        self.assertIsNone(result)
+
+    def test_plugin_manager_parse_all_first_match(self):
+        """Test PluginManager.parse_all returns first match."""
+        from configstream.plugins.loader import PluginManager
+
+        manager = PluginManager(Path("/nonexistent"))
+
+        mock_proxy = Proxy(
+            config="test://example.com:443",
+            protocol="test",
+            address="example.com",
+            port=443
+        )
+
+        mock_parser1 = MagicMock()
+        mock_parser1.parse.return_value = mock_proxy
+        mock_parser2 = MagicMock()
+        mock_parser2.parse.return_value = None
+
+        manager.parsers = {"plugin1": mock_parser1, "plugin2": mock_parser2}
+
+        result = manager.parse_all("test://config")
+        self.assertEqual(result, mock_proxy)
+        # Should stop after first match
+        mock_parser1.parse.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

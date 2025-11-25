@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Dict, Optional
 from wasmtime import Engine, Store, Module, Instance, Memory, Func
 
 from ..models import Proxy
