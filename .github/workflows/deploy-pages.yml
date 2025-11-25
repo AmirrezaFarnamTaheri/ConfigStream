@@ -49,8 +49,8 @@ jobs:
           mkdir -p github_pages_root
 
           cp -v .nojekyll github_pages_root/.nojekyll || true
-          cp -v index.html proxies.html analytics.html sw.js github_pages_root/
-          cp -rv assets github_pages_root/assets
+          cp -v frontend/index.html frontend/proxies.html frontend/analytics.html frontend/service-worker.js github_pages_root/
+          cp -rv frontend/assets github_pages_root/assets
 
           # Use the output from the repository (already committed by pipeline)
           cp -rv output github_pages_root/
