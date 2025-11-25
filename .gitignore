@@ -26,6 +26,13 @@ htmlcov/
 # Python generated files
 *.py[cod]
 
+# Go build artifacts
+src/go/tester/tester
+*.exe
+*.dll
+*.so
+*.dylib
+
 # Prevent DB locking artifacts and binary blobs
 data/*.db
 data/*.db-shm
