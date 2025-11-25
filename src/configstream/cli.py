@@ -158,12 +158,64 @@ def merge(
 @main.command()
 def update_databases():
     """Download latest GeoIP databases."""
-    console.print(
-        "[yellow]This feature is handled by the CI/CD workflow or manual download.[/yellow]"
-    )
-    console.print(
-        "Please place GeoLite2-City.mmdb and GeoLite2-ASN.mmdb in the 'data/' directory."
-    )
+    import subprocess
+    import os
+
+    data_dir = Path("data")
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    console.print("[yellow]Downloading GeoIP databases...[/yellow]")
+
+    # URLs for free GeoIP databases (FyraLabs mirror - updated daily)
+    # Using GitHub releases for reliable access without MaxMind license
+    base_url = "https://github.com/FyraLabs/geolite2/releases/latest/download"
+    urls = {
+        "GeoLite2-City.mmdb": f"{base_url}/GeoLite2-City.mmdb",
+        "GeoLite2-ASN.mmdb": f"{base_url}/GeoLite2-ASN.mmdb",
+    }
+
+    success = True
+    for name, url in urls.items():
+        target = data_dir / name
+
+        # Skip if already exists and is valid
+        if target.exists() and target.stat().st_size > 0:
+            size_mb = target.stat().st_size / (1024 * 1024)
+            console.print(f"[green]✓ {name} already exists ({size_mb:.1f} MB)[/green]")
+            continue
+
+        console.print(f"[cyan]Downloading {name}...[/cyan]")
+
+        try:
+            result = subprocess.run(
+                ["curl", "-L", "-o", str(target), url],
+                capture_output=True,
+                timeout=120
+            )
+
+            if result.returncode != 0:
+                console.print(f"[red]Failed to download {name}[/red]")
+                console.print(f"[dim]Error: {result.stderr.decode()}[/dim]")
+                success = False
+            elif not target.exists() or target.stat().st_size == 0:
+                console.print(f"[red]Downloaded {name} is empty or missing[/red]")
+                success = False
+            else:
+                size_mb = target.stat().st_size / (1024 * 1024)
+                console.print(f"[green]✓ {name} ({size_mb:.1f} MB)[/green]")
+        except subprocess.TimeoutExpired:
+            console.print(f"[red]Download of {name} timed out[/red]")
+            success = False
+        except Exception as e:
+            console.print(f"[red]Error downloading {name}: {e}[/red]")
+            success = False
+
+    if success:
+        console.print("[bold green]✓ GeoIP databases updated successfully[/bold green]")
+        sys.exit(0)
+    else:
+        console.print("[bold red]✗ Failed to download one or more databases[/bold red]")
+        sys.exit(1)
 
 
 @main.command()

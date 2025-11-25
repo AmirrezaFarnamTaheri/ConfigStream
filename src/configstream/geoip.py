@@ -93,10 +93,11 @@ class GeoIPResolver:
             logger.info("Attempting to download GeoIP databases...")
             data_dir.mkdir(parents=True, exist_ok=True)
 
-            # URLs for P3TERX mirror
+            # URLs for FyraLabs mirror (updated daily)
+            base_url = "https://github.com/FyraLabs/geolite2/releases/latest/download"
             urls = {
-                "GeoLite2-City.mmdb": "https://git.io/GeoLite2-City.mmdb",
-                "GeoLite2-ASN.mmdb": "https://git.io/GeoLite2-ASN.mmdb",
+                "GeoLite2-City.mmdb": f"{base_url}/GeoLite2-City.mmdb",
+                "GeoLite2-ASN.mmdb": f"{base_url}/GeoLite2-ASN.mmdb",
             }
 
             for name, url in urls.items():
