@@ -1,4 +1,5 @@
-const IPNS_KEY = "k51qzi5uqu5d..."; // This should match constants.js or be fetched
+import { IPNS_KEY } from './constants.js';
+
 const GATEWAYS = [
     "https://ipfs.io/ipns/",
     "https://cloudflare-ipfs.com/ipns/",
@@ -13,6 +14,12 @@ async function fetchWithFallback(primaryUrl) {
         return await response.json();
     } catch (e) {
         console.warn("Primary fetch failed, attempting IPFS fallback...");
+
+        // Validate IPNS key was configured
+        if (IPNS_KEY === "PLACEHOLDER_IPNS_KEY_INJECTED_BY_CI" || IPNS_KEY.length < 20) {
+            console.error("IPFS fallback not configured: IPNS_KEY is placeholder");
+            throw new Error("IPFS fallback unavailable - IPNS_KEY not configured");
+        }
 
         // Try DNSLink first (faster than IPNS resolve)
         // Assuming we have a domain like _dnslink.fallback.com

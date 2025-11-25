@@ -6,7 +6,7 @@ const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 // This is a PLACEHOLDER. The Python pipeline injects the real key from STEGO_KEY environment variable.
 // If deploying manually, set STEGO_KEY in your environment or this feature will not work.
 // The key below is rotated every 6 hours by GitHub Actions.
-const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";
+const SECRET_KEY = "vaLR6A663j6TZqZIDKDw7psi4TnlfTQZ-2ClfMxg2qI=";
 
 async function fetchStegoConfig(imageUrl) {
     try {
