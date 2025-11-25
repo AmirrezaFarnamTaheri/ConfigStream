@@ -140,9 +140,6 @@ jobs:
         PYTHONPATH: /app/src
 
     steps:
-      - name: Checkout (for sources only, logic is in container)
-        uses: actions/checkout@v4
-
       - name: Restore Cache (Adaptive Logic)
         uses: actions/cache@v3
         with:
