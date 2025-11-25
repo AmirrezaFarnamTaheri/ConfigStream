@@ -192,7 +192,13 @@ async def processing_consumer(
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
     while True:
-        item = await work_queue.get()
+        try:
+            # Add timeout to prevent indefinite blocking if producer dies
+            item = await asyncio.wait_for(work_queue.get(), timeout=300.0)
+        except asyncio.TimeoutError:
+            logger.warning("Consumer timed out waiting for work. Exiting.")
+            break
+
         if item is None:
             work_queue.task_done()
             break

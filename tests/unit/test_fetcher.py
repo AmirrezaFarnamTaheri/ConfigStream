@@ -88,9 +88,9 @@ async def test_fetch_from_source_rate_limit():
 async def test_fetch_from_source_rate_limiter_precheck():
     client = AsyncMock(spec=httpx.AsyncClient)
     rate_limiter = MagicMock(spec=RateLimiter)
-    # First call not allowed, second allowed
-    rate_limiter.is_allowed.side_effect = [False, True]
-    rate_limiter.get_wait_time.return_value = 0.01
+    # First call not allowed, second allowed (async methods)
+    rate_limiter.is_allowed = AsyncMock(side_effect=[False, True])
+    rate_limiter.get_wait_time = AsyncMock(return_value=0.01)
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         # Ensure successful fetch after waiting
@@ -119,7 +119,7 @@ async def test_fetch_from_source_circuit_breaker():
     client = AsyncMock(spec=httpx.AsyncClient)
     breaker_manager = MagicMock()
     breaker = MagicMock()
-    breaker.is_open = True
+    breaker.is_open = AsyncMock(return_value=True)
     breaker_manager.get_breaker.return_value = breaker
 
     app_settings = AppSettings()
@@ -193,8 +193,9 @@ async def test_fetch_from_source_jitter_warning(caplog):
     client.stream.return_value = mock_stream_ctx
 
     tracker = MagicMock()
-    tracker.get_timeout.return_value = 10.0
-    tracker.get_jitter.return_value = 3.0  # High jitter
+    tracker.get_timeout = MagicMock(return_value=10.0)
+    tracker.record = AsyncMock()
+    tracker.get_jitter = AsyncMock(return_value=3.0)  # High jitter
 
     with patch("configstream.fetcher.logger") as mock_logger:
         await fetch_from_source(client, "http://valid.com", timeout_tracker=tracker)

@@ -3,6 +3,7 @@ Adaptive Timeout Mechanism.
 Dynamically adjusts socket timeouts based on network conditions.
 """
 
+import asyncio
 import logging
 import statistics
 import json
@@ -28,6 +29,7 @@ class AdaptiveTimeout:
         self.latencies: list[float] = []
         # Per-source latencies for jitter analysis
         self.source_latencies: dict[str, list[float]] = defaultdict(list)
+        self._lock = asyncio.Lock()
         self._load_history()
 
     def _load_history(self):
@@ -43,43 +45,56 @@ class AdaptiveTimeout:
         """Get timeout for a source. Currently ignores source but ready for expansion."""
         return self.current_timeout
 
-    def record(self, source: str, latency: float):
+    async def record(self, source: str, latency: float):
         """
-        Record a successful connection latency.
+        Record a successful connection latency (async-safe with lock).
 
         Args:
             source: The source URL
             latency: Latency in seconds
         """
-        val = latency
-        if val > 100:
-            logger.debug(f"High latency recorded: {val}s (likely ms?)")
+        async with self._lock:
+            val = latency
+            if val > 100:
+                logger.debug(f"High latency recorded: {val}s (likely ms?)")
 
-        # Update global list
-        self.latencies.append(val)
-        if len(self.latencies) > 100:
-            self.latencies.pop(0)
+            # Update global list
+            self.latencies.append(val)
+            if len(self.latencies) > 100:
+                self.latencies.pop(0)
 
-        # Update per-source list
-        s_list = self.source_latencies[source]
-        s_list.append(val)
-        if len(s_list) > 20:  # Keep window small for source jitter
-            s_list.pop(0)
+            # Update per-source list with LRU eviction for DOS protection
+            # Limit total unique sources to prevent unbounded memory growth
+            MAX_SOURCES = 1000
+            if (
+                source not in self.source_latencies
+                and len(self.source_latencies) >= MAX_SOURCES
+            ):
+                # Evict oldest source (first key in dict - Python 3.7+ maintains insertion order)
+                oldest = next(iter(self.source_latencies))
+                del self.source_latencies[oldest]
+                logger.debug(f"Evicted oldest source {oldest} from latency tracking")
 
-        self.update()
+            s_list = self.source_latencies[source]
+            s_list.append(val)
+            if len(s_list) > 20:  # Keep window small for source jitter
+                s_list.pop(0)
 
-    def get_jitter(self, source: str) -> float:
+            self.update()
+
+    async def get_jitter(self, source: str) -> float:
         """
-        Calculate the standard deviation (jitter) of latency for a source.
+        Calculate the standard deviation (jitter) of latency for a source (async-safe).
         Returns 0.0 if insufficient data.
         """
-        data = self.source_latencies.get(source, [])
-        if len(data) < 2:
-            return 0.0
-        try:
-            return statistics.stdev(data)
-        except statistics.StatisticsError:
-            return 0.0
+        async with self._lock:
+            data = self.source_latencies.get(source, [])
+            if len(data) < 2:
+                return 0.0
+            try:
+                return statistics.stdev(data)
+            except statistics.StatisticsError:
+                return 0.0
 
     def update(self):
         """Recalculate optimal timeout."""
@@ -91,7 +106,10 @@ class AdaptiveTimeout:
             if len(self.latencies) < 2:
                 return
 
-            p95 = statistics.quantiles(self.latencies, n=20)[18]  # 95th percentile
+            # Use percentile for more robust calculation
+            # statistics.quantiles(data, n=100) returns 99 values (percentiles 1-99)
+            # For 95th percentile, we want index 94
+            p95 = statistics.quantiles(self.latencies, n=100)[94]  # 95th percentile
 
             # Safety margin: 2x the p95 latency, but bounded
             new_target = p95 * 2.0

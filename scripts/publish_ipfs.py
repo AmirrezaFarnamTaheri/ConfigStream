@@ -16,7 +16,7 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
         response = requests.post(url, files=files, headers=headers)
 
     if response.status_code == 200:
-        return response.json()["IpfsHash"]
+        return str(response.json()["IpfsHash"])
     else:
         raise Exception(f"Failed to pin to IPFS: {response.text}")
 
@@ -36,9 +36,7 @@ def publish_ipns(cid: str, ipns_key: str) -> None:
     print(f"Publishing {cid} to IPNS key {ipns_key}...")
     try:
         subprocess.run(
-            ["ipfs", "name", "publish", "--key", ipns_key, cid],
-            check=True,
-            timeout=300
+            ["ipfs", "name", "publish", "--key", ipns_key, cid], check=True, timeout=300
         )
         print("IPNS publish successful.")
     except Exception as e:

@@ -21,7 +21,7 @@ CACHE_FILE = Path("data/firehol_level1.netset")
 # Known Honey Pot Indicators (Simplified)
 # Removed 2222 as it is often used for legitimate non-standard SSH/Proxy ports
 HONEYPOT_PORTS = {23, 2323}  # Telnet traps usually
-HONEYPOT_ASNS = {"AS12345"}  # Placeholder for known research scanner ASNs if needed
+HONEYPOT_ASNS: Set[str] = set()  # Reserved for known research scanner ASNs
 
 
 class BlocklistManager:
