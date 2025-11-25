@@ -92,7 +92,7 @@ async def fetch_from_source(
             await asyncio.sleep(wait)
 
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-        breaker = breaker_manager.get_breaker(host)
+        breaker = await breaker_manager.get_breaker(host)
         if await breaker.is_open():
             return FetchResult(False, source, error="Circuit Breaker Open")
 
@@ -137,7 +137,8 @@ async def fetch_from_source(
                     logger.warning(f"High Jitter detected for {source}: {jitter:.2f}s")
 
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-                await breaker_manager.get_breaker(host).record_success()
+                breaker = await breaker_manager.get_breaker(host)
+                await breaker.record_success()
 
             return result
 
@@ -157,7 +158,8 @@ async def fetch_from_source(
             if controller:
                 await controller.record(host, float(per_attempt_timeout), False)
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-                await breaker_manager.get_breaker(host).record_failure()
+                breaker = await breaker_manager.get_breaker(host)
+                await breaker.record_failure()
 
             # If it's a 4xx/5xx error that was raised, we might want to return it in the result
             # But the loop retries. If we exhaust retries, we return False.

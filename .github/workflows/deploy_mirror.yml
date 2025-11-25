@@ -13,10 +13,40 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy to Vercel
-        run: echo "Deploying to Vercel (Simulated)..."
+        if: env.VERCEL_TOKEN != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "⏭️ Vercel deployment skipped (VERCEL_TOKEN not set)"
+            exit 0
+          fi
+          npm install -g vercel
+          vercel deploy --prod --token=$VERCEL_TOKEN
 
       - name: Deploy to Netlify
-        run: echo "Deploying to Netlify (Simulated)..."
+        if: env.NETLIFY_AUTH_TOKEN != ''
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+            echo "⏭️ Netlify deployment skipped (NETLIFY_AUTH_TOKEN not set)"
+            exit 0
+          fi
+          npm install -g netlify-cli
+          netlify deploy --prod --dir=output --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
 
       - name: Deploy to IPFS
-        run: echo "Deploying to IPFS (Simulated)..."
+        if: env.PINATA_JWT != ''
+        env:
+          PINATA_JWT: ${{ secrets.PINATA_JWT }}
+        run: |
+          if [ -z "$PINATA_JWT" ]; then
+            echo "⏭️ IPFS deployment skipped (PINATA_JWT not set)"
+            exit 0
+          fi
+          npm install -g @pinata/cli
+          pinata upload output/ --jwt=$PINATA_JWT

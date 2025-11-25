@@ -15,7 +15,7 @@ from .utils import AtomicFileWriter
 logger = logging.getLogger(__name__)
 
 try:
-    import yaml as yaml_lib
+    import yaml as yaml_lib  # type: ignore[import-untyped]
 except ImportError:
     logger.warning("PyYAML not found. Clash config generation will be disabled.")
     yaml_lib = None  # type: ignore

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import logging
 import base64
@@ -13,6 +14,7 @@ VT_BASE_URL = "https://www.virustotal.com/api/v3"
 # Simple LRU Cache for IP reputation to respect API limits
 # Format: {ip: (result, timestamp)}
 _IP_CACHE: OrderedDict[str, tuple[dict, float]] = OrderedDict()
+_CACHE_LOCK: asyncio.Lock = asyncio.Lock()
 CACHE_TTL = 3600  # 1 hour cache
 CACHE_SIZE = 1000
 
@@ -66,15 +68,16 @@ async def check_ip_reputation(ip: str) -> dict[str, int]:
     if not VT_API_KEY:
         return {"malicious": 0}
 
-    # Check Cache
+    # Check Cache with lock
     now = time.time()
-    if ip in _IP_CACHE:
-        result, timestamp = _IP_CACHE[ip]
-        if now - timestamp < CACHE_TTL:
-            _IP_CACHE.move_to_end(ip)
-            return result
-        else:
-            del _IP_CACHE[ip]
+    async with _CACHE_LOCK:
+        if ip in _IP_CACHE:
+            result, timestamp = _IP_CACHE[ip]
+            if now - timestamp < CACHE_TTL:
+                _IP_CACHE.move_to_end(ip)
+                return result
+            else:
+                del _IP_CACHE[ip]
 
     url = f"{VT_BASE_URL}/ip_addresses/{ip}"
     headers = {"x-apikey": VT_API_KEY}
@@ -96,10 +99,11 @@ async def check_ip_reputation(ip: str) -> dict[str, int]:
                     )
                     result = {"malicious": stats.get("malicious", 0)}
 
-                    # Update Cache
-                    _IP_CACHE[ip] = (result, now)
-                    if len(_IP_CACHE) > CACHE_SIZE:
-                        _IP_CACHE.popitem(last=False)
+                    # Update Cache with lock
+                    async with _CACHE_LOCK:
+                        _IP_CACHE[ip] = (result, now)
+                        if len(_IP_CACHE) > CACHE_SIZE:
+                            _IP_CACHE.popitem(last=False)
 
                     return result
                 else:

@@ -64,7 +64,7 @@ async def test_fetch_circuit_breaker_open():
     breaker_manager = CircuitBreakerManager()
     host = "broken.com"
     # Trip the breaker
-    breaker = breaker_manager.get_breaker(host)
+    breaker = await breaker_manager.get_breaker(host)
     for _ in range(10):
         await breaker.record_failure()
 
