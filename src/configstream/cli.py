@@ -159,7 +159,6 @@ def merge(
 def update_databases():
     """Download latest GeoIP databases."""
     import subprocess
-    import os
 
     data_dir = Path("data")
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -188,9 +187,7 @@ def update_databases():
 
         try:
             result = subprocess.run(
-                ["curl", "-L", "-o", str(target), url],
-                capture_output=True,
-                timeout=120
+                ["curl", "-L", "-o", str(target), url], capture_output=True, timeout=120
             )
 
             if result.returncode != 0:
