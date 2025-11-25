@@ -34,7 +34,7 @@ const (
 var (
 	CanaryURL = os.Getenv("CANARY_URL")
 	// Use local random source to avoid global lock contention and deprecation warnings
-	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
+	rng   = rand.New(rand.NewSource(time.Now().UnixNano()))
 	rngMu sync.Mutex
 )
 
@@ -48,15 +48,15 @@ func getRandomInt(n int) int {
 // --- Data Structures ---
 
 type ProxyInput struct {
-	Config       string `json:"config"` // Full Sing-box outbound JSON
-	ID           string `json:"id"`
+	Config        string `json:"config"` // Full Sing-box outbound JSON
+	ID            string `json:"id"`
 	CheckHoneypot bool   `json:"check_honeypot"`
 }
 
 type TestResult struct {
 	ID        string   `json:"id"`
 	IsWorking bool     `json:"is_working"`
-	Latency   float64  `json:"latency"`   // milliseconds
+	Latency   float64  `json:"latency"` // milliseconds
 	Error     string   `json:"error,omitempty"`
 	Issues    []string `json:"issues,omitempty"` // e.g. ["HONEYPOT_DETECTED", "DIRTY_IP"]
 }
