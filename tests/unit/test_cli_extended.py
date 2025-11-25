@@ -13,7 +13,9 @@ def test_version(runner):
     result = runner.invoke(main, ["--version"])
     # If not installed as package, this might fail. We accept 1 if it prints error about package.
     if result.exit_code != 0:
-        assert "not installed" in str(result.exception) or "package_name" in str(result.exception)
+        assert "not installed" in str(result.exception) or "package_name" in str(
+            result.exception
+        )
     else:
         assert result.exit_code == 0
         assert "version" in result.output

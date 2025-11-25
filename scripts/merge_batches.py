@@ -1,10 +1,11 @@
 import json
+import os
 import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from dataclasses import asdict
-from typing import Dict
+from typing import Dict, Optional
 
 # Add src directory to path for imports
 root_dir = Path(__file__).parent.parent
@@ -28,7 +29,6 @@ from configstream.source_quality import SourceQualityTracker  # noqa: E402
 from configstream.anomaly import AnomalyDetector  # noqa: E402
 from configstream.crypto.signer import Signer  # noqa: E402
 from configstream.transport.polyglot import create_polyglot_image  # noqa: E402
-import os
 
 
 def merge_batches(
@@ -294,9 +294,9 @@ def merge_batches(
 
     # Steganography: Create Polyglot Image (The Gallery)
     # We embed the singbox.json into a carrier image
-    carrier_image = root_dir / "frontend/assets/images/background.png"
+    carrier_image: Optional[Path] = root_dir / "frontend/assets/images/background.png"
     # Fallback to creating a dummy image if not exists (for testing)
-    if not carrier_image.exists():
+    if carrier_image and not carrier_image.exists():
         # Check if there is any png
         pngs = list((root_dir / "frontend/assets/images").glob("*.png"))
         if pngs:

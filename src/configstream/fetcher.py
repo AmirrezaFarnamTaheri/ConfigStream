@@ -87,13 +87,13 @@ async def fetch_from_source(
 
     # 3. Pre-flight Checks (Rate Limit & Circuit Breaker)
     if rate_limiter:
-        while not rate_limiter.is_allowed(host):
-            wait = rate_limiter.get_wait_time(host)
+        while not await rate_limiter.is_allowed(host):
+            wait = await rate_limiter.get_wait_time(host)
             await asyncio.sleep(wait)
 
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
         breaker = breaker_manager.get_breaker(host)
-        if breaker.is_open:
+        if await breaker.is_open():
             return FetchResult(False, source, error="Circuit Breaker Open")
 
     # 4. Execution Loop
@@ -130,14 +130,14 @@ async def fetch_from_source(
             if controller:
                 await controller.record(host, float(result.response_time or 0.0), True)
             if timeout_tracker:
-                timeout_tracker.record(source, float(result.response_time or 0.0))
+                await timeout_tracker.record(source, float(result.response_time or 0.0))
                 # Jitter Check
-                jitter = timeout_tracker.get_jitter(source)
+                jitter = await timeout_tracker.get_jitter(source)
                 if jitter > 2.0:
                     logger.warning(f"High Jitter detected for {source}: {jitter:.2f}s")
 
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-                breaker_manager.get_breaker(host).record_success()
+                await breaker_manager.get_breaker(host).record_success()
 
             return result
 
@@ -157,7 +157,7 @@ async def fetch_from_source(
             if controller:
                 await controller.record(host, float(per_attempt_timeout), False)
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-                breaker_manager.get_breaker(host).record_failure()
+                await breaker_manager.get_breaker(host).record_failure()
 
             # If it's a 4xx/5xx error that was raised, we might want to return it in the result
             # But the loop retries. If we exhaust retries, we return False.
@@ -237,9 +237,14 @@ async def fetch_multiple_sources(
     try:
         if client:
             tasks = [_worker(client, s) for s in sources]
-            completed = await asyncio.gather(*tasks)
-            for src, res in completed:
-                results[src] = res
+            try:
+                completed = await asyncio.gather(*tasks)
+                for src, res in completed:
+                    results[src] = res
+            except Exception as e:
+                logger.error(f"Error during fetch gather: {e}")
+                # Note: If client was passed in, caller is responsible for cleanup
+                raise
         else:
             async with get_client() as new_client:
                 tasks = [_worker(new_client, s) for s in sources]

@@ -5,6 +5,46 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-11-25
+
+### Security
+- **CRITICAL: Path Traversal Vulnerability Fixed** - Added regex validation and path resolution checks in server.py to prevent arbitrary file read
+- **Race Condition Fixes** - Made RateLimiter and CircuitBreaker async-safe with proper asyncio.Lock() protection
+- **Resource Leak Prevention** - Improved HTTP client exception handling to prevent resource leaks
+- **DOS Protection** - Added LRU eviction (MAX_SOURCES=1000) to prevent unbounded memory growth in adaptive timeout tracker
+
+### Fixed
+- **Concurrency Issues**:
+  - Fixed queue deadlock in pipeline_stages.py with 300s timeout protection
+  - Fixed temp file cleanup race with threading.Lock in testers_core.py
+  - Fixed AdaptiveTimeout race conditions by making methods async with asyncio.Lock
+  - Fixed ProxyWasher seen_chains race with threading.Lock
+- **Calculation Errors**:
+  - Fixed off-by-one error in quantile calculation (n=20[18] → n=100[94] for 95th percentile)
+- **Code Quality**:
+  - Removed placeholder HONEYPOT_ASNS (empty set with proper type annotation)
+  - Fixed import ordering in merge_batches.py
+  - Removed unused imports in plugins/loader.py
+  - Added missing threading import and lock declaration in testers_core.py
+  - Fixed missing await for async AdaptiveTimeout methods in fetcher.py
+- **Frontend**:
+  - Replaced hardcoded UUID placeholder with dynamic UUID generation in byow.js
+
+### Changed
+- **Silent Exception Handling** - Added logging to all exception handlers for better production debugging
+- **Test Coverage** - Increased from 85% to 89% with 307 new comprehensive tests
+- **Code Quality** - All code now passes flake8 linting and black formatting (100% compliant)
+
+### Testing
+- **New Test Suites**:
+  - transport/stego.py: 36% → 100% coverage (20 tests)
+  - __init__.py: 28% → 96% coverage (22 tests)
+  - parsers/shadowsocks.py: 69% → 87% coverage (40 tests)
+  - security/virus_total.py: 70% → 100% coverage (23 tests)
+  - proxy_history.py: 70% → 100% coverage (29 tests)
+- **Test Infrastructure**: Fixed 9 test failures in comprehensive test suite
+- **Total Tests**: Increased from 435 to 742 tests
+
 ## [2.0.0] - 2025-06-01
 
 ### Major Features (Sovereignty & Stealth)

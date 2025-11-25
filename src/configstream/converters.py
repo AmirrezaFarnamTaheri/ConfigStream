@@ -214,6 +214,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
             out["tls"] = tls
 
+        return out
+
     # --- NEW HELPER: POLYMORPHISM INJECTOR ---
     def _apply_stealth_profile(
         outbound_config: Dict[str, Any], protocol: str

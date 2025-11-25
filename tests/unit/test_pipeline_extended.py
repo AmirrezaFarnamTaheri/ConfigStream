@@ -47,6 +47,7 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         patch("configstream.pipeline.SourceQualityTracker"),
         patch("configstream.pipeline.AnomalyDetector"),
         patch("configstream.pipeline.EventStream"),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
         patch(
@@ -85,18 +86,32 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         washer_instance.fetch_clean_ips = AsyncMock()
         washer_instance.wash_batch = MagicMock(return_value=([], set()))
 
-        async def fake_producer(*args, **kwargs):
-            pass
+        async def fake_producer(
+            sources, work_queue, proxies, *args, **kwargs
+        ):
+            # Simulate putting proxies in queue
+            if proxies:
+                lines = [p.config for p in proxies if p.config]
+                if lines:
+                    await work_queue.put(("test-source", lines))
+            # Signal completion
+            await work_queue.put(None)
 
         async def fake_consumer(
             work_queue, stats, seen_keys, final_proxies, *args, **kwargs
         ):
-            # Simulate consumer draining queue and adding proxies
-            final_proxies.extend(mock_proxies)
-            stats.working = len(mock_proxies)
-            # Drain queue if items exist
-            while not work_queue.empty():
-                work_queue.get_nowait()
+            # Process items from queue
+            while True:
+                item = await work_queue.get()
+                if item is None:
+                    work_queue.task_done()
+                    break
+                source, lines = item
+                stats.fetched_sources += 1
+                stats.fetched_lines += len(lines)
+                # Add mock proxies to final_proxies
+                final_proxies.extend(mock_proxies)
+                stats.working = len(mock_proxies)
                 work_queue.task_done()
 
         mock_producer.side_effect = fake_producer
@@ -124,7 +139,8 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         patch("configstream.pipeline.SourceQualityTracker"),
         patch("configstream.pipeline.AnomalyDetector"),
         patch("configstream.pipeline.EventStream"),
-        patch("configstream.pipeline.source_producer"),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
+        patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
         patch(
             "configstream.pipeline.filter_unique_endpoints", return_value=mock_proxies
@@ -165,14 +181,35 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         history.get_history.return_value = []
         MockHistory.return_value = history
 
+        async def fake_producer(
+            sources, work_queue, proxies, *args, **kwargs
+        ):
+            # Simulate putting proxies in queue
+            if proxies:
+                lines = [p.config for p in proxies if p.config]
+                if lines:
+                    await work_queue.put(("test-source", lines))
+            # Signal completion
+            await work_queue.put(None)
+
         async def fake_consumer(
             work_queue, stats, seen, final_proxies, *args, **kwargs
         ):
-            final_proxies.extend(mock_proxies)
-            while not work_queue.empty():
-                work_queue.get_nowait()
+            # Process items from queue
+            while True:
+                item = await work_queue.get()
+                if item is None:
+                    work_queue.task_done()
+                    break
+                source, lines = item
+                stats.fetched_sources += 1
+                stats.fetched_lines += len(lines)
+                # Add mock proxies to final_proxies
+                final_proxies.extend(mock_proxies)
+                stats.working = len(mock_proxies)
                 work_queue.task_done()
 
+        mock_producer.side_effect = fake_producer
         mock_consumer.side_effect = fake_consumer
 
         await run_full_pipeline(
@@ -203,6 +240,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch("configstream.pipeline.SourceQualityTracker"),
         patch("configstream.pipeline.AnomalyDetector"),
         patch("configstream.pipeline.EventStream"),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer"),
         patch("configstream.pipeline.processing_consumer", side_effect=fake_consumer),
         patch(

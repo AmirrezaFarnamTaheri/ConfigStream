@@ -1,5 +1,6 @@
 """Tests for AdaptiveTimeout."""
 
+import pytest
 import statistics
 import json
 from unittest.mock import patch
@@ -37,7 +38,8 @@ def test_load_history_fail(tmp_path):
     assert at.current_timeout == 5.0  # Unchanged
 
 
-def test_record_update():
+@pytest.mark.asyncio
+async def test_record_update():
     # Use custom history file to avoid loading existing one
     at = AdaptiveTimeout(
         initial=10.0, min_t=1.0, max_t=20.0, history_file=Path("dummy")
@@ -45,7 +47,7 @@ def test_record_update():
 
     # Add low latencies
     for _ in range(20):
-        at.record("src", 0.5)
+        await at.record("src", 0.5)
 
     # p95 of 0.5 is 0.5. Target = 1.0.
     # Moving from 10.0 towards 1.0
@@ -53,23 +55,24 @@ def test_record_update():
 
     # Add high latencies
     for _ in range(20):
-        at.record("src", 5.0)
+        await at.record("src", 5.0)
 
     # p95 around 5.0. Target = 10.0.
     # Should move up
     assert at.current_timeout > 2.0
 
 
-def test_jitter():
+@pytest.mark.asyncio
+async def test_jitter():
     at = AdaptiveTimeout(history_file=Path("dummy"))
-    assert at.get_jitter("src") == 0.0
+    assert await at.get_jitter("src") == 0.0
 
-    at.record("src", 1.0)
-    assert at.get_jitter("src") == 0.0  # < 2 samples
+    await at.record("src", 1.0)
+    assert await at.get_jitter("src") == 0.0  # < 2 samples
 
-    at.record("src", 2.0)
+    await at.record("src", 2.0)
     # stdev([1.0, 2.0]) -> ~0.707
-    jitter = at.get_jitter("src")
+    jitter = await at.get_jitter("src")
     assert 0.7 < jitter < 0.71
 
 
@@ -101,8 +104,9 @@ def test_update_statistics_error():
         at.update()  # Should catch and log
 
 
-def test_record_high_latency(caplog):
+@pytest.mark.asyncio
+async def test_record_high_latency(caplog):
     at = AdaptiveTimeout(history_file=Path("dummy"))
     with patch("configstream.adaptive_timeout.logger") as mock_logger:
-        at.record("src", 101.0)
+        await at.record("src", 101.0)
         assert mock_logger.debug.called

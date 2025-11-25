@@ -5,7 +5,7 @@ This package provides tools to fetch, test, and manage VPN configurations
 from various sources.
 """
 
-__version__ = "1.0.0"
+__version__ = "2.0.1"
 __author__ = "Amirreza 'Farnam' Taheri"
 
 # Use selector event loop on Windows to avoid proactor shutdown issues

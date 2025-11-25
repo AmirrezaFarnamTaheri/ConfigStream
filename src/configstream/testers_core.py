@@ -11,6 +11,7 @@ import time
 import stat
 import tempfile
 import atexit
+import threading
 from typing import List, Optional, Set
 from contextlib import contextmanager
 
@@ -31,6 +32,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 _TEMP_FILES: Set[str] = set()
+_TEMP_FILES_LOCK = threading.Lock()
 
 
 def datetime_now_iso() -> str:
@@ -54,7 +56,8 @@ atexit.register(_cleanup_temp_files)
 @contextmanager
 def SecureConfigContext(content: str):
     fd, path = tempfile.mkstemp(suffix=".json")
-    _TEMP_FILES.add(path)
+    with _TEMP_FILES_LOCK:
+        _TEMP_FILES.add(path)
     try:
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -65,11 +68,15 @@ def SecureConfigContext(content: str):
         yield path
     finally:
         try:
-            if os.path.exists(path):
-                os.unlink(path)
-            _TEMP_FILES.discard(path)
+            # os.unlink raises FileNotFoundError if file doesn't exist, which is fine
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
         except OSError as e:
             logger.warning("Failed to unlink temp file %s: %s", path, e)
+        finally:
+            with _TEMP_FILES_LOCK:
+                _TEMP_FILES.discard(path)
 
 
 class GoBatchTester:
@@ -287,7 +294,10 @@ class SingBoxTester:
                             proxy.is_working = False
                 else:
                     proxy.is_working = False
-            except Exception:
+            except Exception as e:
+                logger.warning(
+                    f"Exception during proxy test for {proxy.address}:{proxy.port}: {e}"
+                )
                 proxy.is_working = False
             finally:
                 if sb_instance:
@@ -295,8 +305,10 @@ class SingBoxTester:
                         await asyncio.wait_for(
                             loop.run_in_executor(None, sb_instance.stop), timeout=5.0
                         )
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.debug(
+                            f"Failed to stop Sing-box instance gracefully: {e}"
+                        )
         self._finalize_result(proxy)
         return proxy
 

@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Dict, Optional
-from wasmtime import Engine, Store, Module, Instance
+from wasmtime import Engine, Store, Module, Instance, Memory, Func
 
 from ..models import Proxy
 from ..parsers.base import normalize_proxy_details
@@ -25,12 +25,13 @@ class WasmParser:
             self.instance = Instance(self.store, self.module, [])
             self.exports = self.instance.exports(self.store)
 
-            self.memory = self.exports["memory"]
-            self.alloc = self.exports["alloc"]
-            self.parse_func = self.exports["parse"]
+            # Type hints for WASM exports to help mypy
+            self.memory: Memory = self.exports["memory"]  # type: ignore[assignment]
+            self.alloc: Func = self.exports["alloc"]  # type: ignore[assignment]
+            self.parse_func: Func = self.exports["parse"]  # type: ignore[assignment]
             # Optional deallocators
-            self.dealloc = self.exports.get("dealloc")
-            self.free_string = self.exports.get("free_string")
+            self.dealloc: Optional[Func] = self.exports.get("dealloc")  # type: ignore[assignment]
+            self.free_string: Optional[Func] = self.exports.get("free_string")  # type: ignore[assignment]
 
         except Exception as e:
             logger.error(f"Failed to load WASM plugin {name}: {e}")
