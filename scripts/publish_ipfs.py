@@ -1,6 +1,6 @@
 import argparse
 import sys
-import requests
+import requests  # type: ignore
 
 
 def pin_to_ipfs(filepath: str, jwt: str) -> str:
