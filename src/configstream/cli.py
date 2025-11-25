@@ -159,7 +159,6 @@ def merge(
 def update_databases():
     """Download latest GeoIP databases."""
     import subprocess
-    import os
 
     data_dir = Path("data")
     data_dir.mkdir(parents=True, exist_ok=True)
