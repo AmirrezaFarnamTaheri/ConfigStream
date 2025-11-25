@@ -66,6 +66,7 @@ class Signer:
         if not self._private_key:
             raise ValueError("Private key not configured.")
         public_key = self._private_key.public_key()
-        return public_key.public_bytes(
+        raw_bytes: bytes = public_key.public_bytes(
             encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-        ).hex()
+        )
+        return raw_bytes.hex()

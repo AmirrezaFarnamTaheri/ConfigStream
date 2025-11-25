@@ -4,13 +4,14 @@ Downloads and enforces IP reputation checks using FireHol Level 1.
 Also detects potential honey pots based on traffic patterns.
 """
 
+import asyncio
 import logging
 import ipaddress
 from pathlib import Path
-from typing import Set
+from typing import Set, Optional
 
 import httpx
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,9 @@ HONEYPOT_ASNS: Set[str] = set()  # Reserved for known research scanner ASNs
 
 
 class BlocklistManager:
-    _instance = None
+    _instance: Optional["BlocklistManager"] = None
+    _lock: asyncio.Lock = asyncio.Lock()
+    _init_lock: asyncio.Lock = asyncio.Lock()
 
     def __new__(cls):
         if cls._instance is None:
@@ -39,6 +42,7 @@ class BlocklistManager:
         self.blocked_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = (
             set()
         )
+        self._data_lock = asyncio.Lock()  # Protects blocked_networks
         self._initialized = True
 
     async def update(self):
@@ -69,6 +73,8 @@ class BlocklistManager:
             return
 
         count = 0
+        new_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = set()
+
         try:
             async with aiofiles.open(CACHE_FILE, "r", encoding="utf-8") as f:
                 async for line in f:
@@ -78,10 +84,14 @@ class BlocklistManager:
                     try:
                         # FireHol lists are CIDRs
                         net = ipaddress.ip_network(line, strict=False)
-                        self.blocked_networks.add(net)
+                        new_networks.add(net)
                         count += 1
                     except ValueError:
                         continue
+
+            # Atomic update of shared state
+            async with self._data_lock:
+                self.blocked_networks = new_networks
 
             logger.info(f"Loaded {count} blocked networks from FireHol Level 1.")
         except Exception as e:
@@ -89,13 +99,18 @@ class BlocklistManager:
 
     def is_blocked(self, ip: str) -> bool:
         """Check if an IP is in the blocklist."""
-        if not self.blocked_networks:
+        # Create a snapshot to avoid race conditions during iteration
+        networks_snapshot = (
+            self.blocked_networks.copy() if self.blocked_networks else set()
+        )
+
+        if not networks_snapshot:
             return False
 
         try:
             addr = ipaddress.ip_address(ip)
             # Linear search is slow for massive lists, but FireHol Level 1 is usually < 5000 aggregated CIDRs.
-            for net in self.blocked_networks:
+            for net in networks_snapshot:
                 if addr in net:
                     return True
         except ValueError:

@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import List, Tuple, Union
 
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 

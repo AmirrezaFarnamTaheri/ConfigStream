@@ -64,7 +64,9 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
             "configstream.pipeline_core.output_handler.ProxyWasher",
             new=MagicMock(spec=ProxyWasher),
         ) as MockWasher,
-        patch("configstream.pipeline_core.output_handler.get_adapter"),
+        patch(
+            "configstream.pipeline_core.output_handler.get_adapter"
+        ) as mock_get_adapter,
         patch(
             "configstream.pipeline_core.output_handler.select_top_configs",
             return_value=mock_proxies,
@@ -86,9 +88,12 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         washer_instance.fetch_clean_ips = AsyncMock()
         washer_instance.wash_batch = MagicMock(return_value=([], set()))
 
-        async def fake_producer(
-            sources, work_queue, proxies, *args, **kwargs
-        ):
+        # Mock adapter to return proper strings
+        mock_adapter = MagicMock()
+        mock_adapter.convert.return_value = "mocked_config_data"
+        mock_get_adapter.return_value = mock_adapter
+
+        async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             # Simulate putting proxies in queue
             if proxies:
                 lines = [p.config for p in proxies if p.config]
@@ -156,7 +161,9 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
             "configstream.pipeline_core.output_handler.ProxyWasher",
             new=MagicMock(spec=ProxyWasher),
         ) as MockWasher,
-        patch("configstream.pipeline_core.output_handler.get_adapter"),
+        patch(
+            "configstream.pipeline_core.output_handler.get_adapter"
+        ) as mock_get_adapter,
         patch(
             "configstream.pipeline_core.output_handler.select_top_configs",
             return_value=mock_proxies,
@@ -171,6 +178,11 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         washer_instance.fetch_clean_ips = AsyncMock()
         washer_instance.wash_batch = MagicMock(return_value=([], set()))
 
+        # Mock adapter to return proper strings
+        mock_adapter = MagicMock()
+        mock_adapter.convert.return_value = "mocked_config_data"
+        mock_get_adapter.return_value = mock_adapter
+
         history = MagicMock()
 
         def get_rel(id):
@@ -181,9 +193,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         history.get_history.return_value = []
         MockHistory.return_value = history
 
-        async def fake_producer(
-            sources, work_queue, proxies, *args, **kwargs
-        ):
+        async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             # Simulate putting proxies in queue
             if proxies:
                 lines = [p.config for p in proxies if p.config]
