@@ -14,11 +14,12 @@ def encrypt_payload(data: bytes, key: bytes) -> bytes:
     Encrypts data using AES-GCM.
     """
     iv = os.urandom(12)
-    encryptor = Cipher(
-        algorithms.AES(key), modes.GCM(iv), backend=default_backend()
-    ).encryptor()
-    ciphertext = encryptor.update(data) + encryptor.finalize()
-    return iv + encryptor.tag + ciphertext
+    cipher = Cipher(algorithms.AES(key), modes.GCM(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    ciphertext: bytes = encryptor.update(data) + encryptor.finalize()
+    tag: bytes = encryptor.tag  # type: ignore[assignment]
+    result: bytes = iv + tag + ciphertext
+    return result
 
 
 def create_polyglot_image(

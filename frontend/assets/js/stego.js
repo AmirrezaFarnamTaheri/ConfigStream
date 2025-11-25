@@ -3,11 +3,18 @@
 const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 
 // ⚠️ DO NOT CHANGE THIS LINE MANUALLY ⚠️
-// The Python pipeline will automatically overwrite this string on every build.
-const SECRET_KEY = "PLACEHOLDER_KEY_WILL_BE_REPLACED";
+// This is a PLACEHOLDER. The Python pipeline injects the real key from STEGO_KEY environment variable.
+// If deploying manually, set STEGO_KEY in your environment or this feature will not work.
+// The key below is rotated every 6 hours by GitHub Actions.
+const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";
 
 async function fetchStegoConfig(imageUrl) {
     try {
+        // Validate that key was injected
+        if (SECRET_KEY === "PLACEHOLDER_KEY_INJECTED_BY_CI" || SECRET_KEY.length < 20) {
+            throw new Error("Stego key not configured. This deployment did not inject STEGO_KEY.");
+        }
+
         if(window.updateStatus) updateStatus("Fetching stealth image...");
         const response = await fetch(imageUrl, { cache: "no-store" });
         const buffer = await response.arrayBuffer();

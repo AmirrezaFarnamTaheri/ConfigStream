@@ -49,10 +49,13 @@ class CircuitBreakerManager:
         self._breakers: Dict[str, CircuitBreaker] = {}
         self._failure_threshold = failure_threshold
         self._recovery_timeout = recovery_timeout
+        self._lock = asyncio.Lock()
 
-    def get_breaker(self, key: str) -> CircuitBreaker:
-        if key not in self._breakers:
-            self._breakers[key] = CircuitBreaker(
-                self._failure_threshold, self._recovery_timeout
-            )
-        return self._breakers[key]
+    async def get_breaker(self, key: str) -> CircuitBreaker:
+        """Get or create a circuit breaker for the given key (async-safe with lock)."""
+        async with self._lock:
+            if key not in self._breakers:
+                self._breakers[key] = CircuitBreaker(
+                    self._failure_threshold, self._recovery_timeout
+                )
+            return self._breakers[key]

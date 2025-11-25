@@ -86,9 +86,7 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         washer_instance.fetch_clean_ips = AsyncMock()
         washer_instance.wash_batch = MagicMock(return_value=([], set()))
 
-        async def fake_producer(
-            sources, work_queue, proxies, *args, **kwargs
-        ):
+        async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             # Simulate putting proxies in queue
             if proxies:
                 lines = [p.config for p in proxies if p.config]
@@ -181,9 +179,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         history.get_history.return_value = []
         MockHistory.return_value = history
 
-        async def fake_producer(
-            sources, work_queue, proxies, *args, **kwargs
-        ):
+        async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             # Simulate putting proxies in queue
             if proxies:
                 lines = [p.config for p in proxies if p.config]
