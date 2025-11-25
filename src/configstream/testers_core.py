@@ -11,6 +11,7 @@ import time
 import stat
 import tempfile
 import atexit
+import threading
 from typing import List, Optional, Set
 from contextlib import contextmanager
 
@@ -31,6 +32,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 _TEMP_FILES: Set[str] = set()
+_TEMP_FILES_LOCK = threading.Lock()
 
 
 def datetime_now_iso() -> str:

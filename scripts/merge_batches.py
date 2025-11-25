@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 from collections import defaultdict
 from datetime import datetime
@@ -28,7 +29,6 @@ from configstream.source_quality import SourceQualityTracker  # noqa: E402
 from configstream.anomaly import AnomalyDetector  # noqa: E402
 from configstream.crypto.signer import Signer  # noqa: E402
 from configstream.transport.polyglot import create_polyglot_image  # noqa: E402
-import os
 
 
 def merge_batches(

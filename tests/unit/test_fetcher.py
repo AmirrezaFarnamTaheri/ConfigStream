@@ -193,8 +193,9 @@ async def test_fetch_from_source_jitter_warning(caplog):
     client.stream.return_value = mock_stream_ctx
 
     tracker = MagicMock()
-    tracker.get_timeout.return_value = 10.0
-    tracker.get_jitter.return_value = 3.0  # High jitter
+    tracker.get_timeout = MagicMock(return_value=10.0)
+    tracker.record = AsyncMock()
+    tracker.get_jitter = AsyncMock(return_value=3.0)  # High jitter
 
     with patch("configstream.fetcher.logger") as mock_logger:
         await fetch_from_source(client, "http://valid.com", timeout_tracker=tracker)

@@ -130,9 +130,9 @@ async def fetch_from_source(
             if controller:
                 await controller.record(host, float(result.response_time or 0.0), True)
             if timeout_tracker:
-                timeout_tracker.record(source, float(result.response_time or 0.0))
+                await timeout_tracker.record(source, float(result.response_time or 0.0))
                 # Jitter Check
-                jitter = timeout_tracker.get_jitter(source)
+                jitter = await timeout_tracker.get_jitter(source)
                 if jitter > 2.0:
                     logger.warning(f"High Jitter detected for {source}: {jitter:.2f}s")
 
