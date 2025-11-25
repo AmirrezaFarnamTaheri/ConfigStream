@@ -78,7 +78,7 @@ def test_merge_failure(runner):
 def test_update_databases(runner):
     result = runner.invoke(main, ["update-databases"])
     assert result.exit_code == 0
-    assert "handled by the CI/CD" in result.output
+    assert "GeoIP databases" in result.output
 
 
 def test_generate_warp(runner):

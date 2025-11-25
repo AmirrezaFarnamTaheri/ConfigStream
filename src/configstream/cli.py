@@ -188,9 +188,7 @@ def update_databases():
 
         try:
             result = subprocess.run(
-                ["curl", "-L", "-o", str(target), url],
-                capture_output=True,
-                timeout=120
+                ["curl", "-L", "-o", str(target), url], capture_output=True, timeout=120
             )
 
             if result.returncode != 0:
