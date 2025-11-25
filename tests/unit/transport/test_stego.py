@@ -6,7 +6,11 @@ from unittest.mock import patch, MagicMock, mock_open
 from cryptography.fernet import Fernet
 import zlib
 
-from configstream.transport.stego import StegoPacker, generate_stego_assets, MAGIC_MARKER
+from configstream.transport.stego import (
+    StegoPacker,
+    generate_stego_assets,
+    MAGIC_MARKER,
+)
 
 
 class TestStegoPacker:
@@ -87,7 +91,7 @@ class TestStegoPacker:
         marker_pos = output_data.find(MAGIC_MARKER)
         assert marker_pos != -1
 
-        encrypted_payload = output_data[marker_pos + len(MAGIC_MARKER):]
+        encrypted_payload = output_data[marker_pos + len(MAGIC_MARKER) :]
 
         # Decrypt and decompress
         decrypted = packer.cipher.decrypt(encrypted_payload)
@@ -166,7 +170,7 @@ class TestStegoPacker:
         # Verify we can decrypt it back
         output_data = output_image.read_bytes()
         marker_pos = output_data.find(MAGIC_MARKER)
-        encrypted = output_data[marker_pos + len(MAGIC_MARKER):]
+        encrypted = output_data[marker_pos + len(MAGIC_MARKER) :]
         decrypted = packer.cipher.decrypt(encrypted)
         decompressed = zlib.decompress(decrypted).decode("utf-8")
         assert decompressed == payload
@@ -245,7 +249,9 @@ class TestGenerateStegoAssets:
         generate_stego_assets(config_dir, assets_dir)
 
         # Should log warning
-        assert any("no cover images" in record.message.lower() for record in caplog.records)
+        assert any(
+            "no cover images" in record.message.lower() for record in caplog.records
+        )
 
     def test_generate_with_multiple_covers(self, tmp_path):
         """Test generating stego assets with multiple cover images."""

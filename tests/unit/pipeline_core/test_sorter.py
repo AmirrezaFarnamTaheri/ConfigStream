@@ -2,6 +2,7 @@
 Comprehensive tests for pipeline_core/sorter.py module.
 Tests the Pareto-based proxy sorting algorithm.
 """
+
 import pytest
 from unittest.mock import MagicMock
 from configstream.pipeline_core.sorter import sort_proxies_pareto
@@ -25,7 +26,7 @@ class TestSortProxiesPareto:
             protocol="test",
             address="1.1.1.1",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
         proxies = [proxy]
         history = MagicMock()
@@ -43,14 +44,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="fast.com",
             port=443,
-            latency=50.0
+            latency=50.0,
         )
         proxy_slow = Proxy(
             config="test://slow.com:443",
             protocol="test",
             address="slow.com",
             port=443,
-            latency=500.0
+            latency=500.0,
         )
 
         proxies = [proxy_slow, proxy_fast]
@@ -71,14 +72,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="good.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
         proxy_without_latency = Proxy(
             config="test://unknown.com:443",
             protocol="test",
             address="unknown.com",
             port=443,
-            latency=None
+            latency=None,
         )
 
         proxies = [proxy_without_latency, proxy_with_latency]
@@ -99,21 +100,21 @@ class TestSortProxiesPareto:
             protocol="test",
             address="medium.com",
             port=443,
-            latency=500.0  # 0.5 normalized
+            latency=500.0,  # 0.5 normalized
         )
         proxy_high = Proxy(
             config="test://high.com:443",
             protocol="test",
             address="high.com",
             port=443,
-            latency=2000.0  # Clamped to 1.0
+            latency=2000.0,  # Clamped to 1.0
         )
         proxy_very_high = Proxy(
             config="test://veryhigh.com:443",
             protocol="test",
             address="veryhigh.com",
             port=443,
-            latency=5000.0  # Also clamped to 1.0
+            latency=5000.0,  # Also clamped to 1.0
         )
 
         proxies = [proxy_very_high, proxy_high, proxy_medium]
@@ -134,14 +135,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="reliable.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
         proxy_unreliable = Proxy(
             config="test://unreliable.com:443",
             protocol="test",
             address="unreliable.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
 
         proxies = [proxy_unreliable, proxy_reliable]
@@ -173,14 +174,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="stable.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
         proxy_unstable = Proxy(
             config="test://unstable.com:443",
             protocol="test",
             address="unstable.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
 
         proxies = [proxy_unstable, proxy_stable]
@@ -207,14 +208,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="a.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
         proxy_b = Proxy(
             config="test://b.com:443",
             protocol="test",
             address="b.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
 
         proxies = [proxy_a, proxy_b]
@@ -236,21 +237,21 @@ class TestSortProxiesPareto:
             protocol="test",
             address="best.com",
             port=443,
-            latency=50.0  # Fast
+            latency=50.0,  # Fast
         )
         proxy_worst = Proxy(
             config="test://worst.com:443",
             protocol="test",
             address="worst.com",
             port=443,
-            latency=900.0  # Slow
+            latency=900.0,  # Slow
         )
         proxy_balanced = Proxy(
             config="test://balanced.com:443",
             protocol="test",
             address="balanced.com",
             port=443,
-            latency=200.0  # Medium
+            latency=200.0,  # Medium
         )
 
         proxies = [proxy_worst, proxy_balanced, proxy_best]
@@ -289,7 +290,7 @@ class TestSortProxiesPareto:
                 protocol="test",
                 address=f"proxy{i}.com",
                 port=443,
-                latency=100.0
+                latency=100.0,
             )
             proxies.append(proxy)
 
@@ -308,14 +309,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="zero.com",
             port=443,
-            latency=0.0
+            latency=0.0,
         )
         proxy_normal = Proxy(
             config="test://normal.com:443",
             protocol="test",
             address="normal.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
 
         proxies = [proxy_normal, proxy_zero]
@@ -338,14 +339,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="extreme-good.com",
             port=443,
-            latency=1.0  # Very fast
+            latency=1.0,  # Very fast
         )
         proxy_extreme_bad = Proxy(
             config="test://extreme-bad.com:443",
             protocol="test",
             address="extreme-bad.com",
             port=443,
-            latency=10000.0  # Extremely slow
+            latency=10000.0,  # Extremely slow
         )
 
         proxies = [proxy_extreme_bad, proxy_extreme_good]
@@ -377,14 +378,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="1.com",
             port=443,
-            latency=200.0
+            latency=200.0,
         )
         proxy2 = Proxy(
             config="test://2.com:443",
             protocol="test",
             address="2.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
 
         proxies = [proxy1, proxy2]
@@ -413,7 +414,7 @@ class TestSortProxiesPareto:
                 protocol="test",
                 address=f"proxy{i}.com",
                 port=443,
-                latency=float(i * 10 + 10)  # Varied latencies from 10 to 1000
+                latency=float(i * 10 + 10),  # Varied latencies from 10 to 1000
             )
             proxies.append(proxy)
 
@@ -438,14 +439,14 @@ class TestSortProxiesPareto:
             protocol="test",
             address="perfect.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
         proxy_failing = Proxy(
             config="test://failing.com:443",
             protocol="test",
             address="failing.com",
             port=443,
-            latency=100.0
+            latency=100.0,
         )
 
         proxies = [proxy_failing, proxy_perfect]
@@ -472,13 +473,15 @@ class TestSortProxiesPareto:
             protocol="test",
             address="test.com",
             port=443,
-            latency=500.0  # norm_latency = 0.5
+            latency=500.0,  # norm_latency = 0.5
         )
 
         proxies = [proxy]
         history = MagicMock()
         history.get_reliability_score.return_value = 0.6  # (1 - 0.6) * 0.3 = 0.12
-        history.get_summary_stats.return_value = {"uptime_percentage": 70.0}  # (1 - 0.7) * 0.2 = 0.06
+        history.get_summary_stats.return_value = {
+            "uptime_percentage": 70.0
+        }  # (1 - 0.7) * 0.2 = 0.06
 
         # Expected score: (0.5 * 0.5) + (0.4 * 0.3) + (0.3 * 0.2) = 0.25 + 0.12 + 0.06 = 0.43
 

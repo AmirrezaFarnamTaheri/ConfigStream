@@ -2,6 +2,7 @@
 Comprehensive tests for adapters.py module.
 Tests all adapter classes with edge cases and error handling.
 """
+
 import pytest
 import json
 from unittest.mock import Mock, MagicMock, patch
@@ -28,7 +29,7 @@ class TestSurgeAdapter:
             address="1.2.3.4",
             port=443,
             details={"method": "chacha20-ietf-poly1305", "password": "secret"},
-            remarks="SS Proxy"
+            remarks="SS Proxy",
         )
         result = adapter.export([proxy])
 
@@ -44,7 +45,7 @@ class TestSurgeAdapter:
             protocol="vmess",
             address="example.com",
             port=443,
-            uuid="12345678-1234-1234-1234-123456789012"
+            uuid="12345678-1234-1234-1234-123456789012",
         )
         result = adapter.export([proxy])
 
@@ -59,7 +60,7 @@ class TestSurgeAdapter:
             protocol="trojan",
             address="trojan.example.com",
             port=443,
-            uuid="mypassword"
+            uuid="mypassword",
         )
         result = adapter.export([proxy])
 
@@ -75,7 +76,7 @@ class TestSurgeAdapter:
             address="proxy.example.com",
             port=8080,
             uuid="user123",
-            details={"password": "pass123"}
+            details={"password": "pass123"},
         )
         result = adapter.export([proxy])
 
@@ -90,7 +91,7 @@ class TestSurgeAdapter:
             config="http://test",
             protocol="http",
             address="proxy.example.com",
-            port=8080
+            port=8080,
         )
         result = adapter.export([proxy])
 
@@ -107,7 +108,7 @@ class TestSurgeAdapter:
             address="socks.example.com",
             port=1080,
             uuid="sockuser",
-            details={"password": "sockpass"}
+            details={"password": "sockpass"},
         )
         result = adapter.export([proxy])
 
@@ -123,7 +124,7 @@ class TestSurgeAdapter:
             protocol="snell",
             address="snell.example.com",
             port=8388,
-            details={"psk": "presharedkey123"}
+            details={"psk": "presharedkey123"},
         )
         result = adapter.export([proxy])
 
@@ -134,10 +135,7 @@ class TestSurgeAdapter:
         """Test exporting unsupported protocol returns empty string."""
         adapter = SurgeAdapter()
         proxy = Proxy(
-            config="unknown://test",
-            protocol="unknown",
-            address="test.com",
-            port=443
+            config="unknown://test", protocol="unknown", address="test.com", port=443
         )
         result = adapter.export([proxy])
 
@@ -153,7 +151,7 @@ class TestSurgeAdapter:
             address="1.2.3.4",
             port=443,
             details={"method": "aes-256-gcm", "password": "pass"},
-            remarks="Test, Proxy, Name"
+            remarks="Test, Proxy, Name",
         )
         result = adapter.export([proxy])
 
@@ -168,18 +166,16 @@ class TestSurgeAdapter:
             protocol="ss",
             address="1.2.3.4",
             port=443,
-            details={"method": "aes-256-gcm", "password": "pass"}
+            details={"method": "aes-256-gcm", "password": "pass"},
         )
 
         washed_outbounds = [
-            {
-                "type": "wireguard",
-                "tag": "🛡️ Secure-US-1",
-                "detour": "RELAY-test"
-            }
+            {"type": "wireguard", "tag": "🛡️ Secure-US-1", "detour": "RELAY-test"}
         ]
 
-        with patch("configstream.adapters.format_singbox_chain_for_surge") as mock_format:
+        with patch(
+            "configstream.adapters.format_singbox_chain_for_surge"
+        ) as mock_format:
             mock_format.return_value = "WireGuard chain config"
             result = adapter.export([proxy], washed_outbounds)
 
@@ -217,7 +213,7 @@ class TestLoonAdapter:
             address="1.2.3.4",
             port=443,
             details={"method": "aes-256-gcm", "password": "secret"},
-            remarks="Loon SS"
+            remarks="Loon SS",
         )
         result = adapter.export([proxy])
 
@@ -232,7 +228,7 @@ class TestLoonAdapter:
             address="example.com",
             port=443,
             uuid="test-uuid",
-            details={"method": "auto"}
+            details={"method": "auto"},
         )
         result = adapter.export([proxy])
 
@@ -246,7 +242,7 @@ class TestLoonAdapter:
             protocol="trojan",
             address="trojan.com",
             port=443,
-            uuid="password123"
+            uuid="password123",
         )
         result = adapter.export([proxy])
 
@@ -261,7 +257,7 @@ class TestLoonAdapter:
             address="1.2.3.4",
             port=443,
             details={"method": "aes-256-gcm", "password": "pass"},
-            remarks="Test=Proxy,Name"
+            remarks="Test=Proxy,Name",
         )
         result = adapter.export([proxy])
 
@@ -271,10 +267,7 @@ class TestLoonAdapter:
         """Test unsupported protocol returns empty."""
         adapter = LoonAdapter()
         proxy = Proxy(
-            config="unknown://test",
-            protocol="unknown",
-            address="test.com",
-            port=443
+            config="unknown://test", protocol="unknown", address="test.com", port=443
         )
         result = adapter.export([proxy])
 
@@ -293,7 +286,7 @@ class TestQuantumultXAdapter:
             address="1.2.3.4",
             port=443,
             details={"method": "aes-256-gcm", "password": "secret"},
-            remarks="QX SS"
+            remarks="QX SS",
         )
         result = adapter.export([proxy])
 
@@ -309,7 +302,7 @@ class TestQuantumultXAdapter:
             protocol="vmess",
             address="example.com",
             port=443,
-            uuid="test-uuid"
+            uuid="test-uuid",
         )
         result = adapter.export([proxy])
 
@@ -323,7 +316,7 @@ class TestQuantumultXAdapter:
             protocol="trojan",
             address="trojan.com",
             port=443,
-            uuid="password123"
+            uuid="password123",
         )
         result = adapter.export([proxy])
 
@@ -343,7 +336,7 @@ class TestSIP008Adapter:
             address="1.2.3.4",
             port=443,
             details={"method": "aes-256-gcm", "password": "secret"},
-            remarks="SIP008 SS"
+            remarks="SIP008 SS",
         )
         result = adapter.export([proxy])
 
@@ -364,14 +357,14 @@ class TestSIP008Adapter:
             protocol="vmess",
             address="example.com",
             port=443,
-            uuid="test"
+            uuid="test",
         )
         proxy2 = Proxy(
             config="ss://test",
             protocol="shadowsocks",
             address="1.2.3.4",
             port=443,
-            details={"method": "aes-256-gcm", "password": "secret"}
+            details={"method": "aes-256-gcm", "password": "secret"},
         )
         result = adapter.export([proxy1, proxy2])
 
@@ -399,8 +392,9 @@ class TestSIP008Adapter:
                 address=f"1.2.3.{i}",
                 port=443 + i,
                 details={"method": "aes-256-gcm", "password": f"pass{i}"},
-                remarks=f"SS{i}"
-            ) for i in range(5)
+                remarks=f"SS{i}",
+            )
+            for i in range(5)
         ]
         result = adapter.export(proxies)
 
@@ -421,7 +415,7 @@ class TestShadowrocketAdapter:
             address="1.2.3.4",
             port=443,
             details={"method": "aes-256-gcm", "password": "secret"},
-            remarks="SR SS"
+            remarks="SR SS",
         )
         result = adapter.export([proxy])
 
@@ -438,7 +432,7 @@ class TestShadowrocketAdapter:
             address="trojan.com",
             port=443,
             uuid="password123",
-            remarks="SR Trojan"
+            remarks="SR Trojan",
         )
         result = adapter.export([proxy])
 
@@ -453,13 +447,8 @@ class TestShadowrocketAdapter:
             address="example.com",
             port=443,
             uuid="test-uuid",
-            details={
-                "aid": 0,
-                "scy": "auto",
-                "net": "tcp",
-                "type": "none"
-            },
-            remarks="SR VMess"
+            details={"aid": 0, "scy": "auto", "net": "tcp", "type": "none"},
+            remarks="SR VMess",
         )
         result = adapter.export([proxy])
 
@@ -474,7 +463,7 @@ class TestShadowrocketAdapter:
             protocol="ss",
             address="1.2.3.4",
             port=443,
-            details={"method": "aes-256-gcm", "password": "secret"}
+            details={"method": "aes-256-gcm", "password": "secret"},
         )
         result = adapter.export([proxy])
 
@@ -492,10 +481,7 @@ class TestShadowrocketAdapter:
         """Test that unsupported protocols are skipped."""
         adapter = ShadowrocketAdapter()
         proxy = Proxy(
-            config="unknown",  # No ://
-            protocol="unknown",
-            address="test.com",
-            port=443
+            config="unknown", protocol="unknown", address="test.com", port=443  # No ://
         )
         result = adapter.export([proxy])
 
@@ -516,8 +502,8 @@ class TestShadowrocketAdapter:
                 "sni": "example.com",
                 "alpn": "h2,http/1.1",
                 "net": "ws",
-                "path": "/path"
-            }
+                "path": "/path",
+            },
         )
         result = adapter.export([proxy])
 
@@ -584,7 +570,7 @@ class TestEdgeCases:
             LoonAdapter(),
             QuantumultXAdapter(),
             SIP008Adapter(),
-            ShadowrocketAdapter()
+            ShadowrocketAdapter(),
         ]
 
         for adapter in adapters:
@@ -599,7 +585,7 @@ class TestEdgeCases:
             protocol="ss",
             address="1.2.3.4",
             port=443,
-            details={"method": "aes-256-gcm", "password": "pass"}
+            details={"method": "aes-256-gcm", "password": "pass"},
         )
 
         adapters = [
@@ -607,7 +593,7 @@ class TestEdgeCases:
             LoonAdapter(),
             QuantumultXAdapter(),
             SIP008Adapter(),
-            ShadowrocketAdapter()
+            ShadowrocketAdapter(),
         ]
 
         for adapter in adapters:
@@ -621,7 +607,7 @@ class TestEdgeCases:
             protocol="ss",
             address="1.2.3.4",
             port=443,
-            details={"method": "aes-256-gcm", "password": "pass"}
+            details={"method": "aes-256-gcm", "password": "pass"},
         )
 
         adapter = SurgeAdapter()

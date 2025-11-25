@@ -359,7 +359,11 @@ class TestProxyHistoryTracker:
         proxy = create_test_proxy(address="1.2.3.4")
 
         # Create timestamp with Z suffix
-        old_timestamp = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat().replace("+00:00", "Z")
+        old_timestamp = (
+            (datetime.now(timezone.utc) - timedelta(days=40))
+            .isoformat()
+            .replace("+00:00", "Z")
+        )
 
         tracker.history_data[proxy.config] = {
             "protocol": proxy.protocol,
@@ -381,6 +385,7 @@ class TestProxyHistoryTracker:
     def test_cleanup_old_data_logs_removal(self, tmp_path, caplog):
         """Test that cleanup logs removal information."""
         import logging
+
         caplog.set_level(logging.INFO)
 
         history_file = tmp_path / "history.json"
@@ -485,8 +490,12 @@ class TestEdgeCases:
         tracker = ProxyHistoryTracker()
 
         # Create proxies with different configs
-        proxy1 = create_test_proxy(config="vmess://server1", address="1.2.3.4", port=8080)
-        proxy2 = create_test_proxy(config="vmess://server2", address="5.6.7.8", port=9090)
+        proxy1 = create_test_proxy(
+            config="vmess://server1", address="1.2.3.4", port=8080
+        )
+        proxy2 = create_test_proxy(
+            config="vmess://server2", address="5.6.7.8", port=9090
+        )
 
         tracker.record_test_result(proxy1)
         tracker.record_test_result(proxy2)

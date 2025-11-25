@@ -2,6 +2,7 @@
 Comprehensive tests for parsers/openvpn.py module.
 Tests the OpenVPN configuration parser.
 """
+
 import pytest
 from configstream.parsers.openvpn import parse_openvpn
 

@@ -103,7 +103,7 @@ def test_ss_ffi_complex_config():
                 "method": "chacha20-ietf-poly1305",
                 "password": "secret",
                 "plugin": "obfs-local",
-                "plugin_opts": "obfs=http;obfs-host=example.com"
+                "plugin_opts": "obfs=http;obfs-host=example.com",
             }
 
             with patch("configstream.security.ss_ffi._lib", None):

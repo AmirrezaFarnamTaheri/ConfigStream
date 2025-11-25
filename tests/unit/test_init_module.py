@@ -18,6 +18,7 @@ class TestLazyLoading:
 
         # Verify it's the correct class
         from configstream.models import Proxy as DirectProxy
+
         assert Proxy is DirectProxy
 
     def test_lazy_load_singbox_tester(self):
@@ -30,6 +31,7 @@ class TestLazyLoading:
 
         # Verify it's the correct class
         from configstream.testers import SingBoxTester as DirectTester
+
         assert SingBoxTester is DirectTester
 
     def test_lazy_load_parse_config(self):
@@ -56,6 +58,7 @@ class TestLazyLoading:
 
         # Verify it's the correct function
         from configstream.pipeline import run_full_pipeline as DirectPipeline
+
         assert run_full_pipeline is DirectPipeline
 
     def test_lazy_load_app_settings(self):
@@ -68,6 +71,7 @@ class TestLazyLoading:
 
         # Verify it's the correct class
         from configstream.config import AppSettings as DirectSettings
+
         assert AppSettings is DirectSettings
 
     def test_invalid_attribute_raises_error(self):
@@ -110,7 +114,6 @@ class TestLazyLoading:
     def test_lazy_load_caching(self):
         """Test that lazy loaded modules are cached properly."""
         import configstream
-        import sys
 
         # Clear any cached imports
         modules_to_clear = [
@@ -140,10 +143,11 @@ class TestWindowsEventLoopPolicy:
     def test_windows_platform_sets_policy(self):
         """Test that Windows platform sets selector event loop policy."""
         with patch("sys.platform", "win32"):
-            with patch("asyncio.set_event_loop_policy") as mock_set_policy:
+            with patch("asyncio.set_event_loop_policy"):  # noqa: F841
                 # Re-import to trigger the platform check
                 import importlib
                 import configstream
+
                 importlib.reload(configstream)
 
                 # Verify set_event_loop_policy was called (might have been called before mock)
@@ -155,6 +159,7 @@ class TestWindowsEventLoopPolicy:
             # Should not raise any errors
             import importlib
             import configstream
+
             importlib.reload(configstream)
             # Test passes if no exception is raised
 
@@ -212,8 +217,6 @@ class TestImportPerformance:
 
     def test_import_does_not_load_heavy_dependencies(self):
         """Test that importing configstream doesn't immediately load heavy modules."""
-        import sys
-
         # Clear any cached imports
         heavy_modules = [
             "configstream.models",

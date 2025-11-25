@@ -41,7 +41,10 @@ class TestScanURL:
             result = await scan_url("https://example.com")
 
             assert result == {"malicious": 0}
-            assert any("api key not found" in record.message.lower() for record in caplog.records)
+            assert any(
+                "api key not found" in record.message.lower()
+                for record in caplog.records
+            )
 
     @pytest.mark.asyncio
     async def test_scan_url_success_clean(self):
@@ -61,7 +64,9 @@ class TestScanURL:
             },
         )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -88,7 +93,9 @@ class TestScanURL:
             },
         )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -103,7 +110,9 @@ class TestScanURL:
         """Test scanning URL that's not in VT database (404)."""
         mock_response = MockResponse(404, {})
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -118,7 +127,9 @@ class TestScanURL:
         """Test scanning URL with API error response."""
         mock_response = MockResponse(403, {})
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -127,14 +138,18 @@ class TestScanURL:
                 result = await scan_url("https://example.com")
 
                 assert result["malicious"] == 0
-                assert any("api error" in record.message.lower() for record in caplog.records)
+                assert any(
+                    "api error" in record.message.lower() for record in caplog.records
+                )
 
     @pytest.mark.asyncio
     async def test_scan_url_invalid_response_data(self):
         """Test scanning URL with invalid (non-dict) response data."""
         mock_response = MockResponse(200, "not a dict")
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -149,7 +164,9 @@ class TestScanURL:
         """Test scanning URL with missing nested data fields."""
         mock_response = MockResponse(200, {"data": {}})
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -162,7 +179,9 @@ class TestScanURL:
     @pytest.mark.asyncio
     async def test_scan_url_network_exception(self, caplog):
         """Test scanning URL with network exception."""
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.side_effect = Exception("Network error")
@@ -171,14 +190,20 @@ class TestScanURL:
                 result = await scan_url("https://example.com")
 
                 assert result["malicious"] == 0
-                assert any("scan failed" in record.message.lower() for record in caplog.records)
+                assert any(
+                    "scan failed" in record.message.lower() for record in caplog.records
+                )
 
     @pytest.mark.asyncio
     async def test_scan_url_base64_encoding(self):
         """Test that URL is properly base64 encoded for API."""
-        mock_response = MockResponse(200, {"data": {"attributes": {"last_analysis_stats": {"malicious": 0}}}})
+        mock_response = MockResponse(
+            200, {"data": {"attributes": {"last_analysis_stats": {"malicious": 0}}}}
+        )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -223,7 +248,9 @@ class TestCheckIPReputation:
             },
         )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -249,7 +276,9 @@ class TestCheckIPReputation:
             },
         )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -268,7 +297,9 @@ class TestCheckIPReputation:
         _IP_CACHE[test_ip] = (cached_result, time.time())
 
         with patch("configstream.security.virus_total.VT_API_KEY", "test_key"):
-            with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+            with patch(
+                "configstream.security.virus_total.aiohttp.ClientSession"
+            ) as mock_session_cls:
                 result = await check_ip_reputation(test_ip)
 
                 assert result == cached_result
@@ -296,7 +327,9 @@ class TestCheckIPReputation:
             },
         )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -337,7 +370,9 @@ class TestCheckIPReputation:
             },
         )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -355,7 +390,9 @@ class TestCheckIPReputation:
         """Test checking IP with invalid (non-dict) response data."""
         mock_response = MockResponse(200, ["not", "a", "dict"])
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -370,7 +407,9 @@ class TestCheckIPReputation:
         """Test checking IP with API error response."""
         mock_response = MockResponse(429, {})  # Rate limit error
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -379,12 +418,16 @@ class TestCheckIPReputation:
                 result = await check_ip_reputation("1.2.3.4")
 
                 assert result["malicious"] == 0
-                assert any("api error" in record.message.lower() for record in caplog.records)
+                assert any(
+                    "api error" in record.message.lower() for record in caplog.records
+                )
 
     @pytest.mark.asyncio
     async def test_check_ip_network_exception(self, caplog):
         """Test checking IP with network exception."""
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.side_effect = Exception("Network timeout")
@@ -393,7 +436,10 @@ class TestCheckIPReputation:
                 result = await check_ip_reputation("1.2.3.4")
 
                 assert result["malicious"] == 0
-                assert any("check failed" in record.message.lower() for record in caplog.records)
+                assert any(
+                    "check failed" in record.message.lower()
+                    for record in caplog.records
+                )
 
     @pytest.mark.asyncio
     async def test_check_ip_caches_result(self):
@@ -413,7 +459,9 @@ class TestCheckIPReputation:
             },
         )
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -432,7 +480,9 @@ class TestCheckIPReputation:
         """Test checking IP with missing nested data fields."""
         mock_response = MockResponse(200, {"data": {"attributes": {}}})
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
@@ -475,7 +525,9 @@ class TestCacheManagement:
         first_ip = "192.168.0.1"
         _IP_CACHE[first_ip] = ({"malicious": 0}, time.time())
 
-        with patch("configstream.security.virus_total.aiohttp.ClientSession") as mock_session_cls:
+        with patch(
+            "configstream.security.virus_total.aiohttp.ClientSession"
+        ) as mock_session_cls:
             mock_session = MagicMock()
             mock_session_cls.return_value.__aenter__.return_value = mock_session
             mock_session.get.return_value = mock_response
