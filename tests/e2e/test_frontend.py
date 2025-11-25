@@ -21,7 +21,9 @@ def test_homepage_loads(page: Page, http_server):
         page.goto(url, wait_until="domcontentloaded", timeout=5000)
     except PlaywrightError as e:
         if "crashed" in str(e).lower():
-            pytest.skip("Browser crashed - likely due to containerized environment limitations")
+            pytest.skip(
+                "Browser crashed - likely due to containerized environment limitations"
+            )
         raise
 
     expect(page).to_have_title("ConfigStream - Your Gateway to the Open Internet")
@@ -49,7 +51,9 @@ def test_pwa_manifest_link(page: Page, http_server):
         page.goto(url, wait_until="domcontentloaded", timeout=5000)
     except PlaywrightError as e:
         if "crashed" in str(e).lower():
-            pytest.skip("Browser crashed - likely due to containerized environment limitations")
+            pytest.skip(
+                "Browser crashed - likely due to containerized environment limitations"
+            )
         raise
 
     # Check manifest link
@@ -112,7 +116,9 @@ def test_widgets_presence(page: Page, http_server):
         page.goto(url, wait_until="domcontentloaded", timeout=5000)
     except PlaywrightError as e:
         if "crashed" in str(e).lower():
-            pytest.skip("Browser crashed - likely due to containerized environment limitations")
+            pytest.skip(
+                "Browser crashed - likely due to containerized environment limitations"
+            )
         raise
 
     # Globe Viz (Replaces Map Container in V4)

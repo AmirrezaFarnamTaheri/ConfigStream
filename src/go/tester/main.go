@@ -18,7 +18,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sagernet/sing-box/box"
+	box "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/option"
 )
 
@@ -181,13 +181,18 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 		}`
 		configStr := fmt.Sprintf(configTemplate, port, outboundJSON)
 
-		options, err := option.UnmarshalJSON([]byte(configStr))
+		var opts option.Options
+		err = opts.UnmarshalJSONContext(ctx, []byte(configStr))
 		if err != nil {
 			return nil, 0, err
 		}
 
 		// 3. Try to start
-		instance, err := box.New(box.Options{Options: options, Context: ctx})
+		boxOpts := box.Options{
+			Options: opts,
+			Context: ctx,
+		}
+		instance, err := box.New(boxOpts)
 		if err != nil {
 			lastErr = err
 			// Check if it's an address in use error (generic check)
