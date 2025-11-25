@@ -16,7 +16,7 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
         response = requests.post(url, files=files, headers=headers)
 
     if response.status_code == 200:
-        return response.json()["IpfsHash"]
+        return str(response.json()["IpfsHash"])
     else:
         raise Exception(f"Failed to pin to IPFS: {response.text}")
 
