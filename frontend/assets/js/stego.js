@@ -4,7 +4,7 @@ const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 
 // ⚠️ DO NOT CHANGE THIS LINE MANUALLY ⚠️
 // The Python pipeline will automatically overwrite this string on every build.
-[NfKCidBDJ7LZY2oZoYyWfNA4TOi35sRTESvy_1Mpc=";
+const SECRET_KEY = "PLACEHOLDER_KEY_WILL_BE_REPLACED";
 
 async function fetchStegoConfig(imageUrl) {
     try {

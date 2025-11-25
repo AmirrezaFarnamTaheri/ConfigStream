@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from dataclasses import asdict
-from typing import Dict
+from typing import Dict, Optional
 
 # Add src directory to path for imports
 root_dir = Path(__file__).parent.parent
@@ -294,7 +294,7 @@ def merge_batches(
 
     # Steganography: Create Polyglot Image (The Gallery)
     # We embed the singbox.json into a carrier image
-    carrier_image = root_dir / "frontend/assets/images/background.png"
+    carrier_image: Optional[Path] = root_dir / "frontend/assets/images/background.png"
     # Fallback to creating a dummy image if not exists (for testing)
     if not carrier_image.exists():
         # Check if there is any png
