@@ -68,7 +68,14 @@ async def test_download_db_trigger():
 async def test_download_db_execution(tmp_path):
     GeoIPResolver._instance = None
 
-    # Mock asyncio subprocess to simulate download
+    # Mock to prevent __init__ from triggering download
+    with (
+        patch("configstream.geoip.Path.exists", return_value=True),
+        patch("geoip2.database.Reader"),
+    ):
+        resolver = GeoIPResolver()  # __init__ won't trigger download
+
+    # Now test the download method directly
     with patch("asyncio.create_subprocess_exec") as mock_proc:
         # Mock the process object
         mock_process = MagicMock()
@@ -76,7 +83,7 @@ async def test_download_db_execution(tmp_path):
         mock_process.wait = AsyncMock(return_value=None)
         mock_proc.return_value = mock_process
 
-        resolver = GeoIPResolver()  # Mocks above will handle init
         # Manually call download
         await resolver._download_db_async(tmp_path)
-        assert mock_proc.call_count == 2  # 2 files
+        # Should download 2 files (City and ASN)
+        assert mock_proc.call_count == 2

@@ -64,7 +64,7 @@ class GeoIPResolver:
             if not city_path.exists() or not asn_path.exists():
                 # Try to download if missing (will use async if event loop available)
                 try:
-                    loop = asyncio.get_running_loop()
+                    asyncio.get_running_loop()
                     # If we're in an async context, schedule download
                     asyncio.create_task(self._download_db_async(data_dir))
                     logger.info("Scheduled async GeoIP database download.")
