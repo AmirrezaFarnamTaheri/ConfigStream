@@ -296,7 +296,7 @@ def merge_batches(
     # We embed the singbox.json into a carrier image
     carrier_image: Optional[Path] = root_dir / "frontend/assets/images/background.png"
     # Fallback to creating a dummy image if not exists (for testing)
-    if not carrier_image.exists():
+    if carrier_image and not carrier_image.exists():
         # Check if there is any png
         pngs = list((root_dir / "frontend/assets/images").glob("*.png"))
         if pngs:

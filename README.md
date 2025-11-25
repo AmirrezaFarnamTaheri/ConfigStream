@@ -1,4 +1,4 @@
-# ConfigStream v2.0
+# ConfigStream v2.0.1
 
 [![ConfigStream Pipeline](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
 [![Pipeline Health Check](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml)
@@ -8,6 +8,8 @@
 ConfigStream is a modular, sovereignty-grade anti-censorship platform. It aggregates, tests, and distributes resilient proxy configurations using a **Strict "Zero Budget" Architecture**.
 
 We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
+
+> **🔒 Security Update (v2.0.1):** This release resolves 18 security vulnerabilities including critical path traversal, race conditions, and DOS protection. See [SECURITY_AUDIT_2025-11.md](docs/SECURITY_AUDIT_2025-11.md) for details.
 
 ---
 
