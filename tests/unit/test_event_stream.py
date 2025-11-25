@@ -2,6 +2,7 @@
 Comprehensive tests for event_stream.py module.
 Tests the EventStream class for real-time event emission.
 """
+
 import pytest
 import logging
 from pathlib import Path
@@ -33,7 +34,7 @@ class TestEventStream:
         # Should not create the directory at init time
         assert stream.output_dir == output_dir
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_error_event(self, mock_logger, tmp_path):
         """Test emitting an error event."""
         stream = EventStream(tmp_path)
@@ -43,7 +44,7 @@ class TestEventStream:
         mock_logger.warning.assert_not_called()
         mock_logger.info.assert_not_called()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_critical_event(self, mock_logger, tmp_path):
         """Test emitting a critical event."""
         stream = EventStream(tmp_path)
@@ -53,7 +54,7 @@ class TestEventStream:
         mock_logger.warning.assert_not_called()
         mock_logger.info.assert_not_called()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_warning_event(self, mock_logger, tmp_path):
         """Test emitting a warning event."""
         stream = EventStream(tmp_path)
@@ -63,7 +64,7 @@ class TestEventStream:
         mock_logger.error.assert_not_called()
         mock_logger.info.assert_not_called()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_info_event(self, mock_logger, tmp_path):
         """Test emitting an info event."""
         stream = EventStream(tmp_path)
@@ -73,7 +74,7 @@ class TestEventStream:
         mock_logger.error.assert_not_called()
         mock_logger.warning.assert_not_called()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_default_event_type(self, mock_logger, tmp_path):
         """Test emitting an event with unknown type defaults to info."""
         stream = EventStream(tmp_path)
@@ -83,7 +84,7 @@ class TestEventStream:
         mock_logger.error.assert_not_called()
         mock_logger.warning.assert_not_called()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_success_event(self, mock_logger, tmp_path):
         """Test emitting a success event (should use info)."""
         stream = EventStream(tmp_path)
@@ -91,7 +92,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once_with("[success] Operation succeeded")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_empty_message(self, mock_logger, tmp_path):
         """Test emitting an event with an empty message."""
         stream = EventStream(tmp_path)
@@ -99,7 +100,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once_with("[info] ")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_multiline_message(self, mock_logger, tmp_path):
         """Test emitting an event with a multiline message."""
         stream = EventStream(tmp_path)
@@ -108,16 +109,18 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once_with(f"[info] {message}")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_message_with_special_characters(self, mock_logger, tmp_path):
         """Test emitting messages with special characters."""
         stream = EventStream(tmp_path)
-        special_message = "Error: Connection failed @ 192.168.1.1:8080 (timeout: 30s) - [CRITICAL]"
+        special_message = (
+            "Error: Connection failed @ 192.168.1.1:8080 (timeout: 30s) - [CRITICAL]"
+        )
         stream.emit("error", special_message)
 
         mock_logger.error.assert_called_once_with(f"[error] {special_message}")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_message_with_unicode(self, mock_logger, tmp_path):
         """Test emitting messages with Unicode characters."""
         stream = EventStream(tmp_path)
@@ -126,7 +129,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once_with(f"[info] {unicode_message}")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_multiple_emit_calls(self, mock_logger, tmp_path):
         """Test multiple emit calls in sequence."""
         stream = EventStream(tmp_path)
@@ -139,7 +142,7 @@ class TestEventStream:
         assert mock_logger.warning.call_count == 1
         assert mock_logger.error.call_count == 1
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_very_long_message(self, mock_logger, tmp_path):
         """Test emitting a very long message."""
         stream = EventStream(tmp_path)
@@ -150,7 +153,7 @@ class TestEventStream:
         call_args = mock_logger.info.call_args[0][0]
         assert long_message in call_args
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_with_format_strings(self, mock_logger, tmp_path):
         """Test emitting messages with format string-like content."""
         stream = EventStream(tmp_path)
@@ -159,7 +162,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once_with(f"[info] {message}")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_case_sensitive_event_types(self, mock_logger, tmp_path):
         """Test that event types are case-sensitive."""
         stream = EventStream(tmp_path)
@@ -175,7 +178,7 @@ class TestEventStream:
         mock_logger.info.assert_called_once()
         mock_logger.error.assert_not_called()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_with_numeric_message(self, mock_logger, tmp_path):
         """Test emitting with numeric content in message."""
         stream = EventStream(tmp_path)
@@ -183,7 +186,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_rapid_fire(self, mock_logger, tmp_path):
         """Test rapid consecutive emit calls."""
         stream = EventStream(tmp_path)
@@ -193,7 +196,7 @@ class TestEventStream:
 
         assert mock_logger.info.call_count == 100
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_different_event_types_mixed(self, mock_logger, tmp_path):
         """Test emitting different event types in mixed order."""
         stream = EventStream(tmp_path)
@@ -214,10 +217,10 @@ class TestEventStream:
         output_dir = tmp_path / "test_output"
         stream = EventStream(output_dir)
 
-        assert hasattr(stream, 'output_dir')
+        assert hasattr(stream, "output_dir")
         assert stream.output_dir == output_dir
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_with_none_message_converted_to_string(self, mock_logger, tmp_path):
         """Test emitting with message that gets stringified."""
         stream = EventStream(tmp_path)
@@ -226,7 +229,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once()
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_preserves_message_exactly(self, mock_logger, tmp_path):
         """Test that the message is preserved exactly as provided."""
         stream = EventStream(tmp_path)
@@ -236,7 +239,7 @@ class TestEventStream:
         expected_call = f"[info] {original_message}"
         mock_logger.info.assert_called_once_with(expected_call)
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_with_json_like_message(self, mock_logger, tmp_path):
         """Test emitting JSON-like string messages."""
         stream = EventStream(tmp_path)
@@ -245,7 +248,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once_with(f"[info] {json_message}")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_with_sql_like_message(self, mock_logger, tmp_path):
         """Test emitting SQL-like string messages."""
         stream = EventStream(tmp_path)
@@ -266,7 +269,7 @@ class TestEventStream:
         assert stream1.output_dir == dir1
         assert stream2.output_dir == dir2
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_with_path_in_message(self, mock_logger, tmp_path):
         """Test emitting messages containing file paths."""
         stream = EventStream(tmp_path)
@@ -275,7 +278,7 @@ class TestEventStream:
 
         mock_logger.info.assert_called_once_with(f"[info] {path_message}")
 
-    @patch('configstream.event_stream.logger')
+    @patch("configstream.event_stream.logger")
     def test_emit_with_url_in_message(self, mock_logger, tmp_path):
         """Test emitting messages containing URLs."""
         stream = EventStream(tmp_path)

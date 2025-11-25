@@ -3,7 +3,7 @@ from unittest.mock import patch, AsyncMock
 from configstream.security.honeypot import (
     is_honeypot,
     check_common_honeypot_ports,
-    check_traffic_interception
+    check_traffic_interception,
 )
 
 
@@ -69,7 +69,7 @@ async def test_check_traffic_interception_with_various_configs():
         {},
         {"host": "example.com"},
         {"host": "1.1.1.1", "port": 443, "protocol": "vmess"},
-        None
+        None,
     ]
     for config in configs:
         result = await check_traffic_interception(config)

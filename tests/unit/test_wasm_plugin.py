@@ -296,7 +296,12 @@ class TestWasmPlugin(unittest.TestCase):
         mock_exports.__getitem__.side_effect = lambda key: get_export(key)
         mock_exports.get.side_effect = get_export
 
-        proxy_data = {"config": "test://example.com:443", "protocol": "test", "address": "example.com", "port": 443}
+        proxy_data = {
+            "config": "test://example.com:443",
+            "protocol": "test",
+            "address": "example.com",
+            "port": 443,
+        }
         proxy_json = json.dumps(proxy_data)
 
         def side_effect_read(store, start, end):
@@ -446,7 +451,7 @@ class TestWasmPlugin(unittest.TestCase):
             config="test://example.com:443",
             protocol="test",
             address="example.com",
-            port=443
+            port=443,
         )
 
         mock_parser1 = MagicMock()

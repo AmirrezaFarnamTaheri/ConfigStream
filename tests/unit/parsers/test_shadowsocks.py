@@ -189,7 +189,9 @@ class TestParseSS:
     def test_parse_ss_complex_password(self):
         """Test parsing SS with complex password containing special characters."""
         password = "p@ssw0rd!#$%^&*()"
-        user_info = base64.urlsafe_b64encode(f"aes-256-gcm:{password}".encode()).decode()
+        user_info = base64.urlsafe_b64encode(
+            f"aes-256-gcm:{password}".encode()
+        ).decode()
         uri = f"ss://{user_info}@1.2.3.4:8388"
 
         proxy = parse_ss(uri)
@@ -200,7 +202,9 @@ class TestParseSS:
     def test_parse_ss_multiple_colons_in_password(self):
         """Test parsing SS with password containing colons."""
         password = "pass:word:with:colons"
-        user_info = base64.urlsafe_b64encode(f"aes-256-gcm:{password}".encode()).decode()
+        user_info = base64.urlsafe_b64encode(
+            f"aes-256-gcm:{password}".encode()
+        ).decode()
         uri = f"ss://{user_info}@1.2.3.4:8388"
 
         proxy = parse_ss(uri)
@@ -249,7 +253,9 @@ class TestParseSS2022:
     def test_parse_ss2022_valid(self):
         """Test parsing valid SS2022 URL."""
         # Create valid ss:// URL first
-        user_info = base64.urlsafe_b64encode(b"2022-blake3-aes-256-gcm:password").decode()
+        user_info = base64.urlsafe_b64encode(
+            b"2022-blake3-aes-256-gcm:password"
+        ).decode()
         ss_uri = f"ss://{user_info}@1.2.3.4:8388#SS2022Server"
 
         # Convert to ss2022://
@@ -367,7 +373,9 @@ class TestEdgeCases:
     def test_parse_ss_very_long_password(self):
         """Test parsing SS with very long password."""
         password = "a" * 1000
-        user_info = base64.urlsafe_b64encode(f"aes-256-gcm:{password}".encode()).decode()
+        user_info = base64.urlsafe_b64encode(
+            f"aes-256-gcm:{password}".encode()
+        ).decode()
         uri = f"ss://{user_info}@1.2.3.4:8388"
 
         proxy = parse_ss(uri)
@@ -380,6 +388,7 @@ class TestEdgeCases:
         user_info = base64.urlsafe_b64encode(b"aes-256-gcm:password").decode()
         # URL encode unicode
         import urllib.parse
+
         remark = "服务器测试"
         encoded_remark = urllib.parse.quote(remark)
         uri = f"ss://{user_info}@1.2.3.4:8388#{encoded_remark}"
@@ -426,7 +435,9 @@ class TestEdgeCases:
         passwords = ["p", "pa", "pas", "pass"]
 
         for password in passwords:
-            user_info = base64.urlsafe_b64encode(f"aes-256-gcm:{password}".encode()).decode()
+            user_info = base64.urlsafe_b64encode(
+                f"aes-256-gcm:{password}".encode()
+            ).decode()
             uri = f"ss://{user_info}@1.2.3.4:8388"
 
             proxy = parse_ss(uri)
