@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Set, Optional
 
 import httpx
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
