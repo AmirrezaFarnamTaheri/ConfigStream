@@ -1,8 +1,8 @@
 module configstream-tester
 
-go 1.23.1
+go 1.23
 
-toolchain go1.24.7
+toolchain go1.23.4
 
 require (
 	github.com/sagernet/sing-box v1.12.12
