@@ -212,9 +212,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-wasm
-          path: frontend/
-          # This restores assets/wasm/tester.wasm and assets/js/wasm_exec.js into frontend/
-          # effectively populating the frontend source before copying to output
+          path: .
+          # This restores frontend/assets/wasm/tester.wasm and frontend/assets/js/wasm_exec.js
+          # The artifact contains files with full paths, so extract to root directory
 
       - name: Restore previous outputs for merge
         run: |
