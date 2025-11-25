@@ -20,6 +20,8 @@ jobs:
     name: Build & Push Container
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
+    outputs:
+      repo_lowercase: ${{ steps.repo_name.outputs.repo_lowercase }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,7 +37,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set lowercase repository name
-        run: echo "REPO_LOWERCASE=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        id: repo_name
+        run: |
+          REPO_LOWERCASE=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+          echo "REPO_LOWERCASE=$REPO_LOWERCASE" >> $GITHUB_ENV
+          echo "repo_lowercase=$REPO_LOWERCASE" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker image
         uses: docker/build-push-action@v5
@@ -125,7 +131,7 @@ jobs:
       fail-fast: false
 
     container:
-      image: ghcr.io/${{ github.repository | lower }}:latest
+      image: ghcr.io/${{ needs.build_container.outputs.repo_lowercase }}:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
