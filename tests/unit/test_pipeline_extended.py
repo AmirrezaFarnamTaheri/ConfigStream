@@ -47,6 +47,7 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         patch("configstream.pipeline.SourceQualityTracker"),
         patch("configstream.pipeline.AnomalyDetector"),
         patch("configstream.pipeline.EventStream"),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
         patch(
@@ -138,6 +139,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         patch("configstream.pipeline.SourceQualityTracker"),
         patch("configstream.pipeline.AnomalyDetector"),
         patch("configstream.pipeline.EventStream"),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
         patch(
@@ -238,6 +240,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch("configstream.pipeline.SourceQualityTracker"),
         patch("configstream.pipeline.AnomalyDetector"),
         patch("configstream.pipeline.EventStream"),
+        patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer"),
         patch("configstream.pipeline.processing_consumer", side_effect=fake_consumer),
         patch(
