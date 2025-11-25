@@ -64,7 +64,9 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
             "configstream.pipeline_core.output_handler.ProxyWasher",
             new=MagicMock(spec=ProxyWasher),
         ) as MockWasher,
-        patch("configstream.pipeline_core.output_handler.get_adapter") as mock_get_adapter,
+        patch(
+            "configstream.pipeline_core.output_handler.get_adapter"
+        ) as mock_get_adapter,
         patch(
             "configstream.pipeline_core.output_handler.select_top_configs",
             return_value=mock_proxies,
@@ -159,7 +161,9 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
             "configstream.pipeline_core.output_handler.ProxyWasher",
             new=MagicMock(spec=ProxyWasher),
         ) as MockWasher,
-        patch("configstream.pipeline_core.output_handler.get_adapter") as mock_get_adapter,
+        patch(
+            "configstream.pipeline_core.output_handler.get_adapter"
+        ) as mock_get_adapter,
         patch(
             "configstream.pipeline_core.output_handler.select_top_configs",
             return_value=mock_proxies,
