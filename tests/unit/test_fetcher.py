@@ -120,7 +120,7 @@ async def test_fetch_from_source_circuit_breaker():
     breaker_manager = MagicMock()
     breaker = MagicMock()
     breaker.is_open = AsyncMock(return_value=True)
-    breaker_manager.get_breaker.return_value = breaker
+    breaker_manager.get_breaker = AsyncMock(return_value=breaker)
 
     app_settings = AppSettings()
     app_settings.CIRCUIT_BREAKER_ENABLED = True

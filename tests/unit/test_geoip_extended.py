@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.geoip import GeoIPResolver
 
 
@@ -43,7 +43,8 @@ def test_lookup_db_error(resolver):
     assert data.country_code is None
 
 
-def test_download_db_trigger():
+@pytest.mark.asyncio
+async def test_download_db_trigger():
     # Test if download is triggered when files missing
     GeoIPResolver._instance = None
 
@@ -51,19 +52,31 @@ def test_download_db_trigger():
         patch(
             "configstream.geoip.Path.exists", side_effect=[False, False, False, False]
         ),
-        patch("configstream.geoip.GeoIPResolver._download_db") as mock_download,
+        patch("configstream.geoip.GeoIPResolver._download_db_async") as mock_download,
+        patch("asyncio.create_task") as mock_create_task,
     ):
+        # Mock the download to be a coroutine
+        mock_download.return_value = AsyncMock()
 
         GeoIPResolver()
-        mock_download.assert_called_once()
+
+        # Check that create_task was called with the coroutine
+        mock_create_task.assert_called_once()
 
 
-def test_download_db_execution(tmp_path):
+@pytest.mark.asyncio
+async def test_download_db_execution(tmp_path):
     GeoIPResolver._instance = None
 
-    # Mock subprocess to simulate download
-    with patch("subprocess.run") as mock_run:
+    # Mock asyncio subprocess to simulate download
+    with patch("asyncio.create_subprocess_exec") as mock_proc:
+        # Mock the process object
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.wait = AsyncMock(return_value=None)
+        mock_proc.return_value = mock_process
+
         resolver = GeoIPResolver()  # Mocks above will handle init
         # Manually call download
-        resolver._download_db(tmp_path)
-        assert mock_run.call_count == 2  # 2 files
+        await resolver._download_db_async(tmp_path)
+        assert mock_proc.call_count == 2  # 2 files
