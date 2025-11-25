@@ -4,7 +4,7 @@ Tests all adapter classes with edge cases and error handling.
 """
 import pytest
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock, patch
 from configstream.adapters import (
     SurgeAdapter,
     LoonAdapter,
@@ -194,9 +194,10 @@ class TestSurgeAdapter:
         proxy.address = "1.2.3.4"
         proxy.port = 443
         proxy.remarks = None
-        proxy.details = {}
+        # Use MagicMock for details to allow mocking get method
+        proxy.details = MagicMock()
         # Make accessing details raise an exception
-        proxy.details.get = Mock(side_effect=Exception("Test error"))
+        proxy.details.get.side_effect = Exception("Test error")
 
         result = adapter.export([proxy])
 
@@ -413,8 +414,9 @@ class TestShadowrocketAdapter:
     def test_shadowsocks_reconstruction(self):
         """Test Shadowsocks URI reconstruction."""
         adapter = ShadowrocketAdapter()
+        # Don't provide config with "://" to trigger reconstruction
         proxy = Proxy(
-            config="ss://test",
+            config="raw_config_data",
             protocol="ss",
             address="1.2.3.4",
             port=443,
@@ -429,8 +431,9 @@ class TestShadowrocketAdapter:
     def test_trojan_reconstruction(self):
         """Test Trojan URI reconstruction."""
         adapter = ShadowrocketAdapter()
+        # Don't provide config with "://" to trigger reconstruction
         proxy = Proxy(
-            config="trojan://test",
+            config="raw_config_data",
             protocol="trojan",
             address="trojan.com",
             port=443,

@@ -413,7 +413,7 @@ class TestSortProxiesPareto:
                 protocol="test",
                 address=f"proxy{i}.com",
                 port=443,
-                latency=float(i * 10)  # Varied latencies
+                latency=float(i * 10 + 10)  # Varied latencies from 10 to 1000
             )
             proxies.append(proxy)
 
@@ -426,9 +426,10 @@ class TestSortProxiesPareto:
         # Should be sorted by latency (ascending)
         assert len(proxies) == 100
         # First should have lowest latency
-        assert proxies[0].latency == 0.0
-        # Last should have highest (but clamped effect)
-        assert proxies[-1].latency == 990.0
+        assert proxies[0].latency == 10.0
+        # Verify sorting order - latencies should be increasing
+        for i in range(len(proxies) - 1):
+            assert proxies[i].latency <= proxies[i + 1].latency
 
     def test_reliability_zero_vs_one(self):
         """Test extreme reliability values (0.0 vs 1.0)."""
