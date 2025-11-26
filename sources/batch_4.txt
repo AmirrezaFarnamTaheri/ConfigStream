@@ -1,1 +1,5 @@
-https://raw.githubusercontent.com/freefq/free/master/v2
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_trojan.txt
+https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub
+https://raw.githubusercontent.com/itsyebekhe/PSG/main/lite/subscriptions/meta/mix
+https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/sub/sub.txt
