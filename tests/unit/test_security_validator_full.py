@@ -30,9 +30,9 @@ def test_validate_rejects_bad_ips():
 
 def test_validate_rejects_invalid_uuid():
     p1 = create_test_proxy(uuid="invalid-uuid")
-    # Default validation might not check UUID format strictly unless configured
     results = validate_batch_configs([p1], TEST_POLICY)
-    assert len(results) >= 0
+    # Invalid UUID formats must be rejected under TEST_POLICY
+    assert len(results) == 0
 
 
 def test_validate_malformed_address():

@@ -3,7 +3,7 @@
 **Date**: November 25, 2025
 **Version**: 2.0.1
 **Auditor**: Comprehensive Automated Security Review
-**Status**: ✅ All Critical/High/Medium Issues Resolved
+**Status**: ✅ All previously identified Critical/High/Medium issues implemented in code and validated by tests as of v2.0.1
 
 ---
 
@@ -300,6 +300,28 @@ black --check src/ tests/ scripts/
 - [ ] Implement rate limiting on GitHub Pages endpoints
 - [ ] Add anomaly detection for suspicious access patterns
 - [ ] Setup alerting for security-relevant log events
+
+---
+
+## 2025-11 Follow-up: Additional Findings & Remediations
+
+After the initial audit, a second deep-dive identified a broader set of pipeline, parser, and security‑layer issues (Issues #22–#48 in the extended report). The most important fixes have now been implemented:
+
+*   **Pipeline Robustness**
+    *   Go tester availability is now logged as **CRITICAL**, and the pipeline clearly warns when all sources are on cooldown or when no sources/proxies are provided.
+    *   The consumer includes a hard timeout when waiting on the work queue, and the queue size has been increased to better absorb bursty fetches.
+*   **Anomaly & Source Quality**
+    *   `AnomalyDetector.is_safe()` now fails **open** on transient DB errors, preventing total pipeline shutdown due to SQLite issues.
+    *   `SourceQualityTracker`‑driven cooldowns that block all URLs now emit explicit error logs.
+*   **Parsers & Validation**
+    *   VLESS Reality enforcement: `security=reality` requires `pbk` and `sid`, and VMess `alterId` is now forced to `0` regardless of input.
+    *   Strict UUID validation has been added for UUID‑based protocols, and DNS rebinding defenses were expanded to include URL‑encoded and IPv6 loopback variants.
+*   **Security & Intelligence**
+    *   VirusTotal honeypot checks now warn loudly when the API key is missing; honeypot detection remains passive by design.
+    *   Proxy washing uses a more conservative stance by washing all working proxies when WARP keys are configured, and vector hashing now relies on SHA‑256 instead of MD5.
+*   **Testing & Documentation**
+    *   A lightweight end‑to‑end pipeline test exercising the real producer/consumer flow has been added under `tests/e2e/`.
+    *   Security and engineering wiki pages have been updated to reflect the current implementation and clarified where certain behavioural analyses remain aspirational/future work.
 
 ---
 

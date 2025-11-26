@@ -37,6 +37,10 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         if not uuid or len(uuid) > 100:
             return None
 
+        # Enforce AlterID deprecation: always normalize to 0 regardless of input.
+        # Non-zero AlterID is considered insecure / legacy and is ignored here.
+        vmess_data["aid"] = 0
+
         proxy = Proxy(
             config=config,
             protocol="vmess",

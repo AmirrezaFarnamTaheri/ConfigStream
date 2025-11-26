@@ -33,6 +33,11 @@ def parse_ssr(config: str) -> Optional[Proxy]:
         # 3) parse the main part
         parts = main.split(":", 5)
         if len(parts) != 6:
+            logger.debug(
+                "Invalid SSR payload: expected 6 colon-separated parts, got %d (%r)",
+                len(parts),
+                main[:120],
+            )
             return None
 
         server, port_str, protocol, cipher, obfs, pwd_part = parts

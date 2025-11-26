@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, ConfigDict
+import hashlib
 
 
 class Proxy(BaseModel):
@@ -46,7 +47,27 @@ class Proxy(BaseModel):
 
     @property
     def id(self) -> str:
-        return (self.uuid or self.config or "").strip()
+        """
+        Stable identifier used for caching, history, and external tools.
+
+        - Prefer explicit UUID when present.
+        - Otherwise derive a short, stable hash from protocol + address + port.
+        - Avoid using full config strings as IDs to keep keys compact and stable.
+        """
+        if self.uuid:
+            return self.uuid.strip()
+
+        # Build a minimal fingerprint; fall back to config only if absolutely necessary.
+        if self.protocol and self.address and self.port:
+            key = f"{self.protocol}:{self.address}:{self.port}"
+        else:
+            key = (self.config or "").strip()
+
+        if not key:
+            return ""
+
+        digest = hashlib.sha256(key.encode("utf-8")).hexdigest()
+        return digest[:16]
 
     @property
     def scheme(self) -> str:

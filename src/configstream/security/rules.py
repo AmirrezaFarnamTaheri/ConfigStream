@@ -27,6 +27,7 @@ SECURITY_CATEGORIES = {
     "CONFIG_TOO_LONG": "suspicious_config_format",
     "CONFIG_NULL_BYTE": "suspicious_config_malformed",
     "HONEYPOT_SUSPECTED": "honeypot_suspected",
+    "UUID_INVALID": "config_uuid_invalid",
 }
 
 # Cache AppSettings instance
@@ -67,11 +68,43 @@ def validate_address(
             )
             return issues
 
-    # DNS rebinding protection - check for hex notation or octal notation
+    # DNS rebinding / localhost evasion protection
+    # 1) Hex or octal IPv4 notations that can map to localhost or private ranges.
     if address_lower.startswith("0x") or re.match(r"^0[0-7]{1,11}\.", address_lower):
-        logger.warning("Non-standard IP notation: %s", address)
+        logger.warning("Non-standard IP notation (possible DNS rebinding): %s", address)
         issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
             f"Non-standard notation: {address}"
+        )
+        return issues
+
+    # 2) URL-encoded localhost / 127.0.0.1 variants
+    #    e.g. %31%32%37%2E%30%2E%30%2E%31
+    if "%" in address_lower:
+        try:
+            from urllib.parse import unquote
+
+            decoded = unquote(address_lower)
+            if decoded.startswith("127.") or decoded in ("localhost", "::1"):
+                logger.warning(
+                    "URL-encoded localhost/loopback detected: %s -> %s",
+                    address,
+                    decoded,
+                )
+                issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
+                    f"Encoded loopback address: {decoded}"
+                )
+                return issues
+        except Exception:
+            # If decoding fails we just fall back to normal checks
+            pass
+
+    # 3) IPv6 loopback / IPv4-mapped loopback
+    if address_lower in ("::1", "0:0:0:0:0:0:0:1") or address_lower.startswith(
+        "::ffff:127."
+    ):
+        logger.warning("Loopback IPv6 or IPv4-mapped localhost detected: %s", address)
+        issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
+            f"Loopback address: {address}"
         )
         return issues
 

@@ -105,7 +105,13 @@ class GoBatchTester:
         self.binary_path = resolved or binary_path
         self.available = resolved is not None
         if not self.available:
-            logger.warning(f"Go batch tester binary not found at {binary_path}")
+            # Fail loudly here so operators understand that NO proxies will be tested
+            # when the Go batch tester is expected but missing.
+            logger.error(
+                "CRITICAL: Go batch tester binary not found at %s. "
+                "No proxies will be tested via the high-performance path!",
+                binary_path,
+            )
 
     async def test_batch(
         self, proxies: List[Proxy], check_honeypot: bool = False

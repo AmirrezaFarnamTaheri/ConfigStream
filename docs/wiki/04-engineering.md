@@ -56,16 +56,26 @@ The `SingBoxTester` (`src/configstream/testers_core.py`) is the interface betwee
     if protocol in ["http", "socks"]:
         return self._test_direct(proxy)  # Uses aiohttp
     elif self.go_tester.available:
-        return self.go_tester.test_batch(batch) # Uses Go Sidecar
+        return self.go_tester.test_batch(batch)  # Uses Go Sidecar
     else:
-        return self._test_via_singbox(proxy) # Uses Sing-box subprocess
+        return self._test_via_singbox(proxy)  # Uses Sing-box subprocess
     ```
 
 ### The Go Sidecar (Batch Tester)
 *   **Path**: `src/go/tester/main.go`
 *   **Concurrency**: Uses Go routines. Can handle 500 concurrent checks easily.
 *   **Interface**: Reads JSON lines from STDIN, writes JSON lines to STDOUT.
-*   **Honeypot Check**: Optionally performs active probing (only if strict mode is enabled).
+*   **Honeypot Check**: Optionally performs a canary request using a `CANARY_URL` when `strict_security` is enabled.
+    *   If `CANARY_URL` is **not** set, the tester logs a **warning** and disables honeypot detection while still measuring latency.
+    *   This makes configuration drift visible without breaking the overall test pipeline.
+
+## 4. Pipeline Orchestration & Backpressure
+
+The `run_full_pipeline` function (`src/configstream/pipeline.py`) orchestrates producer/consumer stages, concurrency tuning, and output generation.
+
+*   **Work Queue**: Uses an `asyncio.Queue` with a **max size of 500** to provide sufficient buffering between the fetcher and tester stages without risking deadlocks under high load.
+*   **Timeouts**: The consumer side uses `asyncio.wait_for(..., timeout=300.0)` to avoid blocking indefinitely if the producer dies unexpectedly.
+*   **Event Stream Lifecycle**: The `EventStream` is now closed in a `finally` block to guarantee that file handles and buffers are flushed even if the pipeline raises an exception.
 
 ## 4. Intelligence Layers
 
@@ -97,6 +107,7 @@ Detects "Pollution Attacks" or "Spam Batches."
 *   **Solution**: We wrap the proxy in a **Chain**.
     *   `Client -> DirtyProxy -> WARP (Clean IP) -> Target`
 *   **Implementation**: We maintain a pool of valid Cloudflare WARP WireGuard keys. We generate a Sing-box "Chain" configuration that routes the outbound traffic of the dirty proxy into the WARP interface.
+*   **Candidate Selection Update**: When a WARP pool is configured, we currently wash **all working proxies** (not just those tagged `dirty_ip`), providing a safer default in case tagging fails upstream.
 
 ### BoundedConcurrencyManager
 To prevent "thundering herd" problems and OOM kills, we use a custom `BoundedConcurrencyManager`.
@@ -106,6 +117,6 @@ To prevent "thundering herd" problems and OOM kills, we use a custom `BoundedCon
 ## 6. Static Vectors (Vector Search)
 
 To enable "Natural Language Search" on a static site:
-1.  **Vector Generation**: We convert proxy attributes (Country, City, ISP, Protocol, Speed Tag) into a simplistic high-dimensional vector or a weighted keyword bag.
+1.  **Vector Generation**: We convert proxy attributes (Country, City, ISP, Protocol, Speed Tag) into a simplistic low-dimensional vector, using SHA‑256–based feature hashing for consistency.
 2.  **Pre-computation**: We generate `output/vectors.json` mapping `ProxyID -> [Vector]`.
 3.  **Client-Side**: The JS frontend computes Cosine Similarity between the user's query vector and the proxy vectors.
