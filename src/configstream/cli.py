@@ -133,17 +133,22 @@ def merge(
         result = asyncio.run(_run())
 
         if result.success:
-            stats = result.stats
-            console.print(
-                "\n[bold green]✨ Pipeline Completed Successfully![/bold green]"
-            )
-            console.print(f"⏱️ Duration: {stats['duration']:.1f}s")
-            console.print(f"📥 Fetched: {stats['fetched_lines']}")
-            console.print(f"🧪 Tested: {stats['tested']}")
-            console.print(f"✅ Working: {stats['working']}")
-            console.print(f"🌍 GeoIP: {stats['geo_resolved']}")
+            stats_obj = result.stats
+            stats = stats_obj.to_dict() if hasattr(stats_obj, "to_dict") else stats_obj
+
+            def _get(key):
+                if hasattr(stats_obj, key):
+                    return getattr(stats_obj, key)
+                return stats.get(key, 0)
+
+            console.print("\n[bold green]Pipeline Completed Successfully![/bold green]")
+            console.print(f"Duration: {_get('duration'):.1f}s")
+            console.print(f"Fetched: {_get('fetched_lines')}")
+            console.print(f"Tested: {_get('tested')}")
+            console.print(f"Working: {_get('working')}")
+            console.print(f"GeoIP: {_get('geo_resolved')}")
         else:
-            console.print(f"\n[bold red]❌ Pipeline Failed: {result.error}[/bold red]")
+            console.print(f"\n[bold red]Pipeline Failed: {result.error}[/bold red]")
             sys.exit(1)
 
     except KeyboardInterrupt:
