@@ -144,11 +144,15 @@ def merge_batches(
             )
             continue
 
+        batch_name = batch_dir.name
+        batch_source = batch_name.replace("output_batch_", "")
+
         with open(proxies_file, "r") as f:
             try:
                 proxies_data = json.load(f)
                 total_processed += len(proxies_data)
                 for proxy_data in proxies_data:
+                    proxy_data["batch_source"] = batch_source
                     proxy = Proxy(**proxy_data)
 
                     # LATEST-WINS logic: Always overwrite with newer data
@@ -412,6 +416,20 @@ def merge_batches(
     # save_metadata writes both metadata.json and summary.json
     save_metadata(meta_stats, ranked_proxies, output_dir)
     print("✓ Generated metadata.json and summary.json via shared logic")
+
+    # 8. batch_statistics.json
+    print("\n=== Generating Batch Statistics ===")
+    batch_stats = defaultdict(lambda: {"total": 0, "working": 0, "protocols": defaultdict(int)})
+    for proxy in ranked_proxies:
+        batch_source = proxy.batch_source or "unknown"
+        batch_stats[batch_source]["total"] += 1
+        if proxy.is_working:
+            batch_stats[batch_source]["working"] += 1
+        batch_stats[batch_source]["protocols"][proxy.protocol] += 1
+
+    with open(output_dir / "batch_statistics.json", "w") as f:
+        json.dump(batch_stats, f, indent=2)
+    print("✓ Generated batch_statistics.json")
 
     # --- Copy Wiki Documentation ---
     print("\n=== Step 4: Copying Wiki Documentation ===")
