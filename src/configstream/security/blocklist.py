@@ -42,6 +42,10 @@ class BlocklistManager:
         self.blocked_networks: Set[ipaddress.IPv4Network | ipaddress.IPv6Network] = (
             set()
         )
+        # Simple prefix indexes to avoid scanning the full set for every lookup.
+        # For IPv4 we bucket by first octet, for IPv6 by first hextet.
+        self._v4_index: dict[int, Set[ipaddress.IPv4Network]] = {}
+        self._v6_index: dict[int, Set[ipaddress.IPv6Network]] = {}
         self._data_lock = asyncio.Lock()  # Protects blocked_networks
         self._initialized = True
 
@@ -92,6 +96,22 @@ class BlocklistManager:
             # Atomic update of shared state
             async with self._data_lock:
                 self.blocked_networks = new_networks
+                # Rebuild prefix indexes
+                v4_index: dict[int, Set[ipaddress.IPv4Network]] = {}
+                v6_index: dict[int, Set[ipaddress.IPv6Network]] = {}
+                for net in new_networks:
+                    if isinstance(net, ipaddress.IPv4Network):
+                        first_octet = int(net.network_address.packed[0])
+                        v4_index.setdefault(first_octet, set()).add(net)
+                    else:
+                        # IPv6: group by first 16-bit segment
+                        first_segment = int(net.network_address.packed[0]) << 8 | int(
+                            net.network_address.packed[1]
+                        )
+                        v6_index.setdefault(first_segment, set()).add(net)  # type: ignore[arg-type]
+
+                self._v4_index = v4_index
+                self._v6_index = v6_index
 
             logger.info(f"Loaded {count} blocked networks from FireHol Level 1.")
         except Exception as e:
@@ -99,20 +119,28 @@ class BlocklistManager:
 
     def is_blocked(self, ip: str) -> bool:
         """Check if an IP is in the blocklist."""
-        # Create a snapshot to avoid race conditions during iteration
-        networks_snapshot = (
-            self.blocked_networks.copy() if self.blocked_networks else set()
-        )
-
-        if not networks_snapshot:
-            return False
-
         try:
             addr = ipaddress.ip_address(ip)
-            # Linear search is slow for massive lists, but FireHol Level 1 is usually < 5000 aggregated CIDRs.
-            for net in networks_snapshot:
-                if addr in net:
-                    return True
+
+            # Take a snapshot under the assumption that updates are rare and
+            # reads are frequent.
+            if isinstance(addr, ipaddress.IPv4Address):
+                with_index = self._v4_index.copy()
+                bucket = with_index.get(int(addr.packed[0]))
+                if not bucket:
+                    return False
+                for net in bucket:
+                    if addr in net:
+                        return True
+            else:
+                with_index_v6 = self._v6_index.copy()
+                first_segment = int(addr.packed[0]) << 8 | int(addr.packed[1])
+                bucket_v6 = with_index_v6.get(first_segment)
+                if not bucket_v6:
+                    return False
+                for net in bucket_v6:
+                    if addr in net:
+                        return True
         except ValueError:
             pass  # Invalid IP or Domain
 

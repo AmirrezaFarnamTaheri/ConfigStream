@@ -366,13 +366,13 @@ async def processing_consumer(
             if not p.country_code:
                 with tracker.phase("geo"):
                     geo_data = geoip.lookup(p.resolved_ip or p.address)
-                        if geo_data.country_code:
-                            # Ensure country_code is a normalized ISO code;
-                            # country is kept for legacy compatibility and may
-                            # duplicate the code for now.
-                            cc = geo_data.country_code or ""
-                            p.country_code = cc
-                            p.country = cc
+                    if geo_data.country_code:
+                        # Ensure country_code is a normalized ISO code.
+                        cc = geo_data.country_code or ""
+                        p.country_code = cc
+                        # Use human-readable country name when available,
+                        # otherwise fall back to the ISO code.
+                        p.country = geo_data.country_name or cc
                         p.city = geo_data.city or ""
                         p.asn = geo_data.asn or ""
                         p.org = geo_data.org or ""

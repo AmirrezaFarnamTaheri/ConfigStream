@@ -119,4 +119,5 @@ To prevent "thundering herd" problems and OOM kills, we use a custom `BoundedCon
 To enable "Natural Language Search" on a static site:
 1.  **Vector Generation**: We convert proxy attributes (Country, City, ISP, Protocol, Speed Tag) into a simplistic low-dimensional vector, using SHA‑256–based feature hashing for consistency.
 2.  **Pre-computation**: We generate `output/vectors.json` mapping `ProxyID -> [Vector]`.
-3.  **Client-Side**: The JS frontend computes Cosine Similarity between the user's query vector and the proxy vectors.
+3.  **Client-Side (Current)**: The frontend uses these vectors together with basic metadata to compute a simple keyword‑based relevance score (see `06-frontend.md`).
+4.  **Client-Side (Planned)**: A future enhancement may use true cosine similarity over these vectors in a Web Worker to provide semantic search on large datasets.
