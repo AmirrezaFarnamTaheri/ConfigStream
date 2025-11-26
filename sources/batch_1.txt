@@ -1,2 +1,2 @@
-https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/vmess
-https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/vless
+https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2
+https://raw.githubusercontent.com/a2470982985/getNode/main/v2ray.txt
