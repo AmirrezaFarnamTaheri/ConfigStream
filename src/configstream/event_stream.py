@@ -28,3 +28,14 @@ class EventStream:
 
         # Future: Append to a rotating event log file in output_dir
         # for the frontend to poll if WebSockets are not used.
+
+    async def aclose(self):
+        """
+        Asynchronously close the event stream and flush any buffered events.
+        This is a placeholder for future implementations that might involve
+        network connections or file handles.
+        """
+        self.emit("stream_close", "Event stream closing.")
+        # In a real implementation, you might await a file write or a
+        # network socket closure here.
+        pass

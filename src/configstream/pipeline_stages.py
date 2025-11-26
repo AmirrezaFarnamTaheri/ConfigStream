@@ -366,7 +366,7 @@ async def processing_consumer(
             if not p.country_code:
                 with tracker.phase("geo"):
                     geo_data = geoip.lookup(p.resolved_ip or p.address)
-                    if geo_data.country_code:
+                    if geo_data and geo_data.country_code:
                         # Ensure country_code is a normalized ISO code.
                         cc = geo_data.country_code or ""
                         p.country_code = cc
@@ -376,7 +376,7 @@ async def processing_consumer(
                         p.city = geo_data.city or ""
                         p.asn = geo_data.asn or ""
                         p.org = geo_data.org or ""
-                    stats.geo_resolved += 1
+                        stats.geo_resolved += 1
             if country_filter:
                 if p.country_code != country_filter.upper():
                     continue
