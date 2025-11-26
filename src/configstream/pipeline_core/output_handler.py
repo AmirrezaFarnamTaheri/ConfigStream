@@ -116,12 +116,10 @@ async def generate_pipeline_outputs(
 
     # Copy frontend assets into the output directory so static pages (wiki/about)
     # are available when serving the pipeline artifacts directly.
-    copied_frontend = False
     for candidate in (output_path.parent / "frontend", Path("frontend")):
         if candidate.exists():
             try:
                 shutil.copytree(candidate, output_path, dirs_exist_ok=True)
-                copied_frontend = True
                 logger.info(
                     f"Copied frontend assets from {candidate} into {output_path}"
                 )
