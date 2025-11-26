@@ -186,6 +186,6 @@ async def run_full_pipeline(
     finally:
         # Ensure event stream is always closed to flush handles/buffers
         try:
-            event_stream.close()
+            await event_stream.aclose()
         except Exception:
             logger.exception("Failed to close EventStream cleanly")
