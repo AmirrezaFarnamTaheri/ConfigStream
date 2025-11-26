@@ -50,6 +50,75 @@ def main():
 
 
 @main.command()
+@click.option("--input", "-i", required=True, help="Path to proxies.json file")
+@click.option("--output", "-o", default="output", help="Output directory")
+@click.option("--max-workers", "-w", default=0, help="Concurrency limit (0=Auto-scale)")
+@click.option("--timeout", "-t", default=10, help="Test timeout in seconds")
+@click.option(
+    "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
+)
+@click.option(
+    "--leniency/--strict",
+    default=False,
+    help="Allow potentially insecure proxies (default: Strict)",
+)
+@click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")
+def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
+    """Retest proxies from a JSON file."""
+    setup_logging(verbose)
+    from .models import Proxy
+    from .async_file_ops import read_file_async
+
+    async def _run_retest():
+        input_path = Path(input)
+        if not input_path.exists():
+            console.print(f"[red]Error: Input file not found: {input}[/red]")
+            sys.exit(1)
+
+        console.print(f"[bold green]🚀 Retesting proxies from {input}...[/bold green]")
+        content = await read_file_async(input_path)
+        proxies = [Proxy.model_validate(p) for p in content]
+        console.print(f"Loaded {len(proxies)} proxies for retesting.")
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console,
+        ) as progress:
+            result = await run_full_pipeline(
+                sources=[],
+                proxies=proxies,
+                output_dir=output,
+                max_workers=max_workers,
+                timeout=timeout,
+                max_latency=max_latency,
+                leniency=leniency,
+                progress=progress,
+            )
+        return result
+
+    try:
+        result = asyncio.run(_run_retest())
+        if result.success:
+            stats = result.stats.to_dict()
+            console.print("\n[bold green]Retest Completed Successfully![/bold green]")
+            console.print(f"Duration: {stats['duration']:.1f}s")
+            console.print(f"Tested: {stats['tested']}")
+            console.print(f"Working: {stats['working']}")
+        else:
+            console.print(f"\n[bold red]Retest Failed: {result.error}[/bold red]")
+            sys.exit(1)
+
+    except Exception as e:
+        console.print(f"\n[bold red]Fatal Error: {e}[/bold red]")
+        if verbose:
+            console.print_exception()
+        sys.exit(1)
+
+
+@main.command()
 @click.option(
     "--sources", "-s", required=True, help="Path to sources file (local or URL list)"
 )
