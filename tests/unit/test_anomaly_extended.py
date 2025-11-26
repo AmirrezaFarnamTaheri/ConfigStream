@@ -140,8 +140,9 @@ def test_record_pruning(detector):
     assert count == 100
 
 
-def test_fail_closed_on_error(detector):
+def test_fail_open_on_error(detector):
+    # When the anomaly DB fails, we now fail OPEN to avoid blocking all sources.
     with patch("sqlite3.connect", side_effect=Exception("DB Error")):
         safe, reason = detector.is_safe("http://test", 100)
-        assert safe is False
-        assert "Fail Closed" in reason
+        assert safe is True
+        assert "Fail Open" in reason
