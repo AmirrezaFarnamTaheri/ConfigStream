@@ -19,25 +19,28 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /app
+
 # Set up user
 RUN useradd -m -u 1000 runner
-USER runner
-WORKDIR /app
 
 # Copy Go binary
 COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 
 # Install Python dependencies
-COPY --chown=runner:runner pyproject.toml requirements.txt ./
+COPY pyproject.toml requirements.txt ./
 # We need to ensure pip is upgraded
-RUN pip install --upgrade pip && pip install --user --no-cache-dir -e .[dev]
+RUN pip install --upgrade pip && pip install --no-cache-dir -e .[dev]
 
 # Copy Source Code
-COPY --chown=runner:runner . .
+COPY . .
+RUN chown -R runner:runner /app
 
 # Set Environment
 ENV PATH="/home/runner/.local/bin:$PATH"
 ENV PYTHONPATH="/app/src"
+
+USER runner
 
 # Entrypoint
 ENTRYPOINT ["python", "-m", "configstream.cli"]

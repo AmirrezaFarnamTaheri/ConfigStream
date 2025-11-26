@@ -1,6 +1,11 @@
+import io
+import tarfile
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from click.testing import CliRunner
-from unittest.mock import patch, MagicMock, AsyncMock
+
 from configstream.cli import main
 
 
@@ -75,10 +80,68 @@ def test_merge_failure(runner):
         assert "Pipeline Failed" in result.output
 
 
-def test_update_databases(runner):
-    result = runner.invoke(main, ["update-databases"])
-    assert result.exit_code == 0
-    assert "GeoIP databases" in result.output
+class FakeResponse:
+    def __init__(self, payload: bytes):
+        self.payload = payload
+        self.status_code = 200
+
+    def iter_content(self, chunk_size=8192):
+        for i in range(0, len(self.payload), chunk_size):
+            yield self.payload[i : i + chunk_size]
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+
+def _tar_payload(edition: str):
+    buf = io.BytesIO()
+    content = f"{edition}-data".encode()
+    with tarfile.open(fileobj=buf, mode="w:gz") as archive:
+        info = tarfile.TarInfo(name=f"{edition}_20250101/{edition}.mmdb")
+        info.size = len(content)
+        archive.addfile(info, io.BytesIO(content))
+    buf.seek(0)
+    return buf.read()
+
+
+def test_update_databases_prefers_maxmind(monkeypatch, runner):
+    payloads = iter(
+        [
+            _tar_payload("GeoLite2-City"),
+            _tar_payload("GeoLite2-ASN"),
+        ]
+    )
+
+    def fake_get(url, stream=True, timeout=120):
+        return FakeResponse(next(payloads))
+
+    monkeypatch.setattr("configstream.cli.requests.get", fake_get)
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            main, ["update-databases"], env={"MAXMIND_LICENSE_KEY": "abc123"}
+        )
+        assert result.exit_code == 0
+        assert Path("data/GeoLite2-City.mmdb").is_file()
+        assert Path("data/GeoLite2-ASN.mmdb").is_file()
+
+
+def test_update_databases_mirror_fallback(monkeypatch, runner):
+    payloads = iter([b"city-bytes", b"asn-bytes"])
+
+    def fake_get(url, stream=True, timeout=120):
+        return FakeResponse(next(payloads))
+
+    monkeypatch.setattr("configstream.cli.requests.get", fake_get)
+
+    with runner.isolated_filesystem():
+        result = runner.invoke(main, ["update-databases"])
+        assert result.exit_code == 0
+        assert Path("data/GeoLite2-City.mmdb").read_bytes() == b"city-bytes"
+        assert Path("data/GeoLite2-ASN.mmdb").read_bytes() == b"asn-bytes"
 
 
 def test_generate_warp(runner):

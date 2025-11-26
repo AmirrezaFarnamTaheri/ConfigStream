@@ -5,9 +5,13 @@ Command Line Interface for ConfigStream.
 import asyncio
 import logging
 import sys
+import os
+import shutil
+import tarfile
 from pathlib import Path
 
 import click
+import requests
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.progress import (
@@ -158,60 +162,112 @@ def merge(
 @main.command()
 def update_databases():
     """Download latest GeoIP databases."""
-    import subprocess
-
     data_dir = Path("data")
     data_dir.mkdir(parents=True, exist_ok=True)
 
     console.print("[yellow]Downloading GeoIP databases...[/yellow]")
 
-    # URLs for free GeoIP databases (FyraLabs mirror - updated daily)
-    # Using GitHub releases for reliable access without MaxMind license
+    license_key = os.environ.get("MAXMIND_LICENSE_KEY")
+
+    # Prefer official MaxMind downloads when a license key is provided, fall back to public mirror otherwise.
     base_url = "https://github.com/FyraLabs/geolite2/releases/latest/download"
-    urls = {
+    mirror_urls = {
         "GeoLite2-City.mmdb": f"{base_url}/GeoLite2-City.mmdb",
         "GeoLite2-ASN.mmdb": f"{base_url}/GeoLite2-ASN.mmdb",
     }
+    maxmind_editions = {
+        "GeoLite2-City.mmdb": "GeoLite2-City",
+        "GeoLite2-ASN.mmdb": "GeoLite2-ASN",
+    }
 
-    success = True
-    for name, url in urls.items():
-        target = data_dir / name
+    def stream_download(url: str, target: Path) -> bool:
+        try:
+            with requests.get(url, stream=True, timeout=120) as resp:
+                if resp.status_code != 200:
+                    console.print(
+                        f"[red]HTTP {resp.status_code} while fetching {url}[/red]"
+                    )
+                    return False
+                with target.open("wb") as f:
+                    for chunk in resp.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+            return target.exists() and target.stat().st_size > 0
+        except requests.RequestException as exc:
+            console.print(f"[red]Request error for {url}: {exc}[/red]")
+            return False
+        except Exception as exc:  # pragma: no cover - best effort logging
+            console.print(f"[red]Unexpected error for {url}: {exc}[/red]")
+            return False
 
-        # Skip if already exists and is valid
-        if target.exists() and target.stat().st_size > 0:
-            size_mb = target.stat().st_size / (1024 * 1024)
-            console.print(f"[green]✓ {name} already exists ({size_mb:.1f} MB)[/green]")
-            continue
+    def download_from_maxmind(edition: str, target: Path) -> bool:
+        if not license_key:
+            return False
 
-        console.print(f"[cyan]Downloading {name}...[/cyan]")
+        tar_path = target.with_suffix(".tar.gz")
+        url = (
+            "https://download.maxmind.com/app/geoip_download"
+            f"?edition_id={edition}&license_key={license_key}&suffix=tar.gz"
+        )
+        console.print(f"[cyan]Fetching {edition} from MaxMind...[/cyan]")
+
+        if not stream_download(url, tar_path):
+            return False
 
         try:
-            result = subprocess.run(
-                ["curl", "-L", "-o", str(target), url], capture_output=True, timeout=120
-            )
+            with tarfile.open(tar_path, "r:gz") as archive:
+                member = next(
+                    (
+                        m
+                        for m in archive.getmembers()
+                        if m.name.endswith(f"{edition}.mmdb")
+                    ),
+                    None,
+                )
+                if not member:
+                    console.print(f"[red]{edition}.mmdb not found in archive[/red]")
+                    return False
+                extracted = archive.extractfile(member)
+                if extracted is None:
+                    console.print(f"[red]Archive entry for {edition} is empty[/red]")
+                    return False
+                with target.open("wb") as dest:
+                    shutil.copyfileobj(extracted, dest)
+            return target.exists() and target.stat().st_size > 0
+        except Exception as exc:
+            console.print(f"[red]Failed to extract {edition}: {exc}[/red]")
+            return False
+        finally:
+            if tar_path.exists():
+                tar_path.unlink(missing_ok=True)
 
-            if result.returncode != 0:
-                console.print(f"[red]Failed to download {name}[/red]")
-                console.print(f"[dim]Error: {result.stderr.decode()}[/dim]")
-                success = False
-            elif not target.exists() or target.stat().st_size == 0:
-                console.print(f"[red]Downloaded {name} is empty or missing[/red]")
-                success = False
-            else:
-                size_mb = target.stat().st_size / (1024 * 1024)
-                console.print(f"[green]✓ {name} ({size_mb:.1f} MB)[/green]")
-        except subprocess.TimeoutExpired:
-            console.print(f"[red]Download of {name} timed out[/red]")
-            success = False
-        except Exception as e:
-            console.print(f"[red]Error downloading {name}: {e}[/red]")
+    success = True
+    for name, mirror_url in mirror_urls.items():
+        target = data_dir / name
+
+        if target.exists() and target.stat().st_size > 0:
+            size_mb = target.stat().st_size / (1024 * 1024)
+            console.print(f"[green]OK {name} already exists ({size_mb:.1f} MB)[/green]")
+            continue
+
+        edition = maxmind_editions[name]
+        downloaded = download_from_maxmind(edition, target)
+        if not downloaded:
+            console.print(f"[cyan]Falling back to mirror for {name}...[/cyan]")
+            downloaded = stream_download(mirror_url, target)
+
+        if downloaded and target.stat().st_size > 0:
+            size_mb = target.stat().st_size / (1024 * 1024)
+            console.print(f"[green]OK {name} ({size_mb:.1f} MB)[/green]")
+        else:
+            console.print(f"[red]Failed to download {name}[/red]")
             success = False
 
     if success:
-        console.print("[bold green]✓ GeoIP databases updated successfully[/bold green]")
+        console.print("[bold green]GeoIP databases updated successfully[/bold green]")
         sys.exit(0)
     else:
-        console.print("[bold red]✗ Failed to download one or more databases[/bold red]")
+        console.print("[bold red]Failed to download one or more databases[/bold red]")
         sys.exit(1)
 
 
