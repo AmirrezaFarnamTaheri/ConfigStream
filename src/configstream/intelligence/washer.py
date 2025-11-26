@@ -41,7 +41,8 @@ class ProxyWasher:
         """Fetches the latest clean IPs for WARP endpoints."""
         try:
             async with httpx.AsyncClient(timeout=5) as client:
-                # Better source for raw IPs: https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt
+                # Better source for raw IPs:
+                # https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt
                 resp = await client.get(
                     "https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt"
                 )
@@ -52,7 +53,9 @@ class ProxyWasher:
                     ]
                     # Basic validation (check if it looks like an IP)
                     self.clean_ips = [ip for ip in lines if ip.count(".") == 3]
-                    logger.info(f"Fetched {len(self.clean_ips)} clean IPs for Washing.")
+                    logger.info(
+                        "Fetched %d clean IPs for Washing.", len(self.clean_ips)
+                    )
         except Exception as e:
             logger.warning(f"Failed to fetch clean IPs: {e}. Using defaults.")
             self.clean_ips = []
