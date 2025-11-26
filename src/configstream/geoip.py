@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class GeoData(BaseModel):
     country_code: Optional[str] = None
+    country_name: Optional[str] = None
     city: Optional[str] = None
     asn: Optional[str] = None
     org: Optional[str] = None
@@ -145,6 +146,7 @@ class GeoIPResolver:
             if self.reader_city:
                 response = self.reader_city.city(ip)
                 result.country_code = response.country.iso_code
+                result.country_name = response.country.name
                 result.city = response.city.name
 
             if self.reader_asn:

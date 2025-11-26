@@ -53,12 +53,14 @@ Browsers cannot open TCP sockets.
 ## Vector Search (Natural Language)
 
 *   **Input**: "Fast reliable US proxy"
-*   **Process**:
-    1.  Frontend tokenizes the query.
-    2.  Fetches `vectors.json` (pre-computed).
-    3.  Calculates **Cosine Similarity** between query vector and proxy vectors.
-    4.  Ranks results.
-*   **Performance**: Done in a Web Worker to avoid blocking the UI thread.
+*   **Process (Current Implementation)**:
+    1.  Frontend tokenizes the query into lowercase keywords.
+    2.  Fetches `vectors.json` (pre-computed) and proxy metadata.
+    3.  Computes a simple keyword‑based relevance score on the client (protocol, country code, city, tags).
+    4.  Ranks results by this score.
+*   **Planned Enhancements (Not Yet Implemented)**:
+    *   Replace the heuristic score with a proper vector‑space similarity measure (for example, cosine similarity over dense vectors).
+    *   Move heavy ranking into a Web Worker to avoid blocking the UI thread for very large datasets.
 
 ## Time-Travel Sparklines
 

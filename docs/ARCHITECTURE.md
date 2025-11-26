@@ -285,7 +285,8 @@ def lookup(ip: str) -> GeoData:
    Score = 100 - (latency / soft_cap × 50)
    ```
 
-3. **Privacy Score**
+3. **Privacy Score** (Conceptual)
+   > Design pattern only – not wired into the default pipeline yet.
    ```
    Score = (security_checks × 30) +
            (no_logs_asn × 20) +
