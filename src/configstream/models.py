@@ -36,6 +36,7 @@ class Proxy(BaseModel):
     stale: bool = False
     scores: Dict[str, float] = Field(default_factory=dict)
     resolved_ip: Optional[str] = None
+    batch_source: Optional[str] = None
 
     @property
     def latency_ms(self) -> Optional[float]:
