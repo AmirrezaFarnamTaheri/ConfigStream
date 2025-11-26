@@ -1,4 +1,6 @@
+from pathlib import Path
 from typing import List
+import shutil
 from ..models import Proxy
 from ..proxy_history import ProxyHistoryTracker
 from ..output import generate_smart_chains, generate_categorized_outputs, save_metadata
@@ -112,11 +114,32 @@ async def generate_pipeline_outputs(
         if os.path.exists("frontend/assets/images"):
             assets_dir = "frontend/assets/images"
 
-    from pathlib import Path
+    # Copy frontend assets into the output directory so static pages (wiki/about)
+    # are available when serving the pipeline artifacts directly.
+    copied_frontend = False
+    for candidate in (output_path.parent / "frontend", Path("frontend")):
+        if candidate.exists():
+            try:
+                shutil.copytree(candidate, output_path, dirs_exist_ok=True)
+                copied_frontend = True
+                logger.info(
+                    f"Copied frontend assets from {candidate} into {output_path}"
+                )
+                break
+            except Exception as e:
+                logger.warning(f"Failed to copy frontend assets from {candidate}: {e}")
 
-    assets_path = Path(assets_dir)
+    assets_path = None
+    for p in (
+        output_path / "assets" / "images",
+        output_path.parent / "frontend" / "assets" / "images",
+        Path("frontend/assets/images"),
+    ):
+        if Path(p).exists():
+            assets_path = Path(p)
+            break
 
-    if assets_path.exists():
+    if assets_path:
         logger.info(
             f"Generating Stego assets using key ending in ...{dynamic_key[-6:]}"
         )
@@ -130,7 +153,7 @@ async def generate_pipeline_outputs(
         except Exception as e:
             logger.error(f"Stego generation failed: {e}")
     else:
-        logger.warning(f"Assets directory not found at {assets_path}, skipping Stego.")
+        logger.warning("Assets directory not found, skipping Stego.")
 
     # 3. Inject the key into the frontend code (assets/js/stego.js)
     # This ensures the static site matches the encrypted image
@@ -140,6 +163,7 @@ async def generate_pipeline_outputs(
     # Try to find stego.js
     js_path = None
     possible_paths = [
+        output_path / "assets" / "js" / "stego.js",
         output_path.parent / "frontend" / "assets" / "js" / "stego.js",
         Path("frontend/assets/js/stego.js"),
     ]
