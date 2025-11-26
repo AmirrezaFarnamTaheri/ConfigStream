@@ -138,8 +138,15 @@ CREATE TABLE IF NOT EXISTS history (
                 return True, "OK"
 
         except Exception as e:
-            logger.warning(f"Anomaly check failed for {url}: {e}")
-            return False, "Error (Fail Closed)"
+            # Do NOT hard-block all traffic from this source on transient DB errors.
+            # Failing closed here can effectively disable the entire pipeline if the
+            # anomaly database is temporarily unavailable.
+            logger.error(
+                "Anomaly DB error for %s: %s - allowing source (fail-open behaviour)",
+                url,
+                e,
+            )
+            return True, "DB Error (Fail Open)"
 
     def check_subnet_flood(self, proxies: list[dict]) -> bool:
         """

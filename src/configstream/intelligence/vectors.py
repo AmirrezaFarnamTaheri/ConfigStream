@@ -31,12 +31,12 @@ def _compute_vector(proxy: Proxy) -> List[int]:
     7: Reliability Score (if available, else 0)
     """
 
-    # 1. Protocol Hash
-    h_proto = int(hashlib.md5(proxy.protocol.encode()).hexdigest(), 16) % 10
+    # 1. Protocol Hash (use SHA-256 for consistency, even though this is not security-critical)
+    h_proto = int(hashlib.sha256(proxy.protocol.encode()).hexdigest(), 16) % 10
 
     # 2. Country Hash
     cc = proxy.country_code or "XX"
-    h_country = int(hashlib.md5(cc.encode()).hexdigest(), 16) % 10
+    h_country = int(hashlib.sha256(cc.encode()).hexdigest(), 16) % 10
 
     # 3. Latency Bucket
     lat = proxy.latency or 9999
@@ -51,7 +51,7 @@ def _compute_vector(proxy: Proxy) -> List[int]:
     h_port = proxy.port % 10
 
     # 5. ISP Hash
-    h_isp = int(hashlib.md5((proxy.org or "").encode()).hexdigest(), 16) % 10
+    h_isp = int(hashlib.sha256((proxy.org or "").encode()).hexdigest(), 16) % 10
 
     return [h_proto, h_country, h_lat, h_port, h_isp, 0, 0, 0]
 

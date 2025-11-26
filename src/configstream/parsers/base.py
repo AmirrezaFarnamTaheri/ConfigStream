@@ -56,7 +56,20 @@ def validate_b64_input(data: str) -> Optional[str]:
 
 
 def safe_b64_decode(data: str) -> str:
-    """Safely decode base64 with comprehensive validation."""
+    """Safely decode base64 with comprehensive validation.
+
+    NOTE: We perform a fast size check *before* any heavy processing to
+    avoid memory pressure on extremely large payloads.
+    """
+    # Fast path: reject obviously oversized input before validation/decoding.
+    if isinstance(data, str) and len(data) > MAX_B64_INPUT_SIZE:
+        logger.error(
+            "Base64 input too large: %s bytes (max: %s) – skipping decode",
+            len(data),
+            MAX_B64_INPUT_SIZE,
+        )
+        return data
+
     validated = validate_b64_input(data)
     if validated is None:
         return data

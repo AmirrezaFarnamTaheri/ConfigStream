@@ -27,8 +27,15 @@ async def is_honeypot(host: str) -> bool:
     """
     try:
         # Passive check via VirusTotal
-        # If VT_API_KEY is missing, this returns {'malicious': 0} (Safe Fail-Open)
         report = await check_ip_reputation(host)
+
+        # If VT_API_KEY is missing, the VirusTotal client returns
+        # {'malicious': 0}. Surface this so operators know honeypot
+        # intelligence is effectively disabled.
+        if report.get("api_key_missing"):
+            logger.warning(
+                "VirusTotal API key not configured - honeypot reputation checks are disabled."
+            )
 
         if report.get("malicious", 0) > 0:
             logger.warning(

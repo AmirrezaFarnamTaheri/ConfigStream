@@ -108,25 +108,35 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const generateSparkline = (history) => {
-        if (!history || history.length < 2) return '';
+        if (!Array.isArray(history) || history.length < 2) return '';
+
+        // Coerce and validate numeric values to avoid injecting arbitrary strings into SVG.
+        const numericHistory = history
+            .map((v) => Number(v))
+            .filter((v) => Number.isFinite(v));
+
+        if (numericHistory.length < 2) return '';
 
         // SVG dimensions
         const width = 60;
         const height = 20;
 
-        const min = Math.min(...history);
-        const max = Math.max(...history);
+        const min = Math.min(...numericHistory);
+        const max = Math.max(...numericHistory);
         const range = max - min || 1;
 
-        const points = history.map((val, i) => {
-            const x = (i / (history.length - 1)) * width;
-            const y = height - ((val - min) / range) * height;
-            return `${x},${y}`;
-        }).join(' ');
+        const points = numericHistory
+            .map((val, i) => {
+                const x = (i / (numericHistory.length - 1)) * width;
+                const y = height - ((val - min) / range) * height;
+                return `${x},${y}`;
+            })
+            .join(' ');
 
         // Color based on trend (last point vs avg)
-        const avg = history.reduce((a,b)=>a+b,0) / history.length;
-        const last = history[history.length-1];
+        const avg =
+            numericHistory.reduce((a, b) => a + b, 0) / numericHistory.length;
+        const last = numericHistory[numericHistory.length - 1];
         const color = last > avg * 1.5 ? '#ff4d4d' : '#4caf50'; // Red if spiking, Green if stable
 
         return `<svg width="${width}" height="${height}" class="sparkline"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5" /></svg>`;

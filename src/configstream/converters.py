@@ -295,6 +295,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "tls": {"enabled": proxy.details.get("tls") == "tls"},
         }
     elif proxy.protocol == "socks5":
+        # Sing-box expects type "socks" for SOCKS5 outbounds.
         out = {
             "type": "socks",
             **base,

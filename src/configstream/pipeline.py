@@ -82,8 +82,10 @@ async def run_full_pipeline(
     quality_tracker = SourceQualityTracker()
     anomaly_detector = AnomalyDetector()
 
-    # Initialize Blocklist
-    asyncio.create_task(DEFAULT_BLOCKLIST.update())
+    # Initialize Blocklist (kick off in background but ensure it at least starts)
+    blocklist_task = asyncio.create_task(DEFAULT_BLOCKLIST.update())
+    # Yield once so the task can begin before heavy work starts
+    await asyncio.sleep(0)
 
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
@@ -93,8 +95,8 @@ async def run_full_pipeline(
 
     stats = PipelineStats()
 
-    # Work Queue
-    work_queue: asyncio.Queue = asyncio.Queue(maxsize=50)
+    # Work Queue – allow larger buffer between producer and consumer
+    work_queue: asyncio.Queue = asyncio.Queue(maxsize=500)
 
     # Results Collection
     final_proxies: List[Proxy] = []
@@ -155,28 +157,35 @@ async def run_full_pipeline(
         )
     )
 
-    await asyncio.gather(producer_task, consumer_task)
+    try:
+        await asyncio.gather(producer_task, consumer_task)
 
-    # 5. Final Cleanup & Output
+        # 5. Final Cleanup & Output
 
-    # Deduplicate Endpoints (IP:Port)
-    optimized_proxies = filter_unique_endpoints(final_proxies)
+        # Deduplicate Endpoints (IP:Port)
+        optimized_proxies = filter_unique_endpoints(final_proxies)
 
-    # Pareto Sort
-    sort_proxies_pareto(optimized_proxies, history)
+        # Pareto Sort (in-place)
+        sort_proxies_pareto(optimized_proxies, history)
 
-    # Generate Outputs
-    duration = (datetime.now(timezone.utc) - start_time).total_seconds()
-    stats.duration = float(duration)
+        # Generate Outputs
+        duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+        stats.duration = float(duration)
 
-    generated_files = await generate_pipeline_outputs(
-        optimized_proxies, output_path, stats, history
-    )
+        generated_files = await generate_pipeline_outputs(
+            optimized_proxies, output_path, stats, history
+        )
 
-    # Save History & Cache
-    history.save()
-    test_cache.save()
-    if timeout_tracker:
-        timeout_tracker.save()
+        # Save History & Cache
+        history.save()
+        test_cache.save()
+        if timeout_tracker:
+            timeout_tracker.save()
 
-    return PipelineResult(success=True, stats=stats, output_files=generated_files)
+        return PipelineResult(success=True, stats=stats, output_files=generated_files)
+    finally:
+        # Ensure event stream is always closed to flush handles/buffers
+        try:
+            event_stream.close()
+        except Exception:
+            logger.exception("Failed to close EventStream cleanly")

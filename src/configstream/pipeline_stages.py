@@ -92,7 +92,23 @@ async def source_producer(
                 await work_queue.put(("supplied-proxies", lines))
 
         # B. Handle File Sources
-        local_files = [s for s in sources if not s.startswith("http")]
+        # Treat only real filesystem paths as local files; skip proxy URIs.
+        protocol_prefixes = (
+            "http://",
+            "https://",
+            "ss://",
+            "vmess://",
+            "vless://",
+            "trojan://",
+            "hysteria://",
+            "hy2://",
+            "tuic://",
+            "ssh://",
+            "wg://",
+            "wireguard://",
+            "ssconf://",
+        )
+        local_files = [s for s in sources if not s.startswith(protocol_prefixes)]
         if local_files:
             file_results = await read_multiple_files_async(local_files)
             for fpath, content in file_results:
@@ -126,9 +142,19 @@ async def source_producer(
                 remote_urls.append(s.replace("ssconf://", "https://"))
 
         active_urls = []
+        blocked_urls = []
         for url in remote_urls:
             if quality_tracker.should_fetch(url):
                 active_urls.append(url)
+            else:
+                blocked_urls.append(url)
+
+        # If every remote source is on cooldown or disabled, surface a clear error.
+        if blocked_urls and not active_urls:
+            logger.error(
+                "ALL %d remote sources are on cooldown/disabled - no proxies will be fetched!",
+                len(blocked_urls),
+            )
 
         if active_urls:
             batch_size = 50
@@ -145,6 +171,12 @@ async def source_producer(
                     if res.success and res.content:
                         lines = _extract_config_lines(res.content)
                         count = len(lines)
+                        if count == 0:
+                            logger.debug(
+                                "Source %s returned content but no valid config lines",
+                                source,
+                            )
+                            continue
                         is_safe, reason = anomaly_detector.is_safe(source, count)
 
                         if is_safe:
@@ -166,6 +198,12 @@ async def source_producer(
     except Exception as e:
         logger.error("Producer failed: %s", e)
     finally:
+        # If absolutely nothing was provided, log a clear warning – this would
+        # otherwise result in a silent zero-output run.
+        if not sources and not proxies:
+            logger.warning(
+                "No sources or pre-supplied proxies provided - pipeline will produce zero results"
+            )
         await work_queue.put(None)
 
 
@@ -241,16 +279,19 @@ async def processing_consumer(
         final_batch_for_this_source = []
         proxies_to_actually_test = []
 
+        # Decide whether to reuse cached results or schedule a fresh test.
+        # We treat any path that leads to an actual test as a cache miss
+        # (including forced retests).
         for p in safe_batch:
-            if scheduler.should_retest(p):
-                proxies_to_actually_test.append(p)
-            else:
+            cached = None
+            if not scheduler.should_retest(p):
                 cached = test_cache.get(p)
-                if cached:
-                    final_batch_for_this_source.append(cached)
-                else:
-                    stats.cache_misses += 1
-                    proxies_to_actually_test.append(p)
+
+            if cached:
+                final_batch_for_this_source.append(cached)
+            else:
+                stats.cache_misses += 1
+                proxies_to_actually_test.append(p)
 
         if proxies_to_actually_test:
             if max_proxies and stats.tested >= max_proxies:
@@ -264,6 +305,8 @@ async def processing_consumer(
                         for res in chunk:
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
+                                # Keep stats.working consistent between Go and Python paths
+                                stats.working += 1
                                 if event_stream:
                                     event_stream.emit(
                                         "test_success",
@@ -291,24 +334,29 @@ async def processing_consumer(
                                     )
                             return res
 
-                    chunk_size = 20
-                    for i in range(0, len(proxies_to_actually_test), chunk_size):
-                        chunk = proxies_to_actually_test[i : i + chunk_size]
-                        results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
-                        for res in results:
-                            await concurrency.record(
-                                "default", res.latency or 9999, res.is_working
+                    try:
+                        chunk_size = 20
+                        for i in range(0, len(proxies_to_actually_test), chunk_size):
+                            chunk = proxies_to_actually_test[i : i + chunk_size]
+                            results = await asyncio.gather(
+                                *[_test_wrap(x) for x in chunk]
                             )
-                            if res.is_working:
-                                final_batch_for_this_source.append(res)
-                        stats.tested += len(chunk)
-                        if progress and task_process:
-                            progress.update(
-                                task_process,
-                                completed=stats.tested,
-                                description=f"[green]Testing... ({stats.working} working)",
-                            )
-                    await concurrency.stop_tuner()
+                            for res in results:
+                                await concurrency.record(
+                                    "default", res.latency or 9999, res.is_working
+                                )
+                                if res.is_working:
+                                    final_batch_for_this_source.append(res)
+                            stats.tested += len(chunk)
+                            if progress and task_process:
+                                progress.update(
+                                    task_process,
+                                    completed=stats.tested,
+                                    description=f"[green]Testing... ({stats.working} working)",
+                                )
+                    finally:
+                        # Always stop tuner so background task cannot leak
+                        await concurrency.stop_tuner()
 
         for p in final_batch_for_this_source:
             if not p.is_working:
@@ -318,11 +366,13 @@ async def processing_consumer(
             if not p.country_code:
                 with tracker.phase("geo"):
                     geo_data = geoip.lookup(p.resolved_ip or p.address)
-                    if geo_data.country_code:
-                        # Fix type mismatch: ensure country_code is str or ""
-                        cc = geo_data.country_code or ""
-                        p.country_code = cc
-                        p.country = cc
+                        if geo_data.country_code:
+                            # Ensure country_code is a normalized ISO code;
+                            # country is kept for legacy compatibility and may
+                            # duplicate the code for now.
+                            cc = geo_data.country_code or ""
+                            p.country_code = cc
+                            p.country = cc
                         p.city = geo_data.city or ""
                         p.asn = geo_data.asn or ""
                         p.org = geo_data.org or ""

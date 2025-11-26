@@ -72,9 +72,9 @@ func main() {
 	flag.Parse()
 
 	if CanaryURL == "" {
-		// Fallback or strict failure depending on policy.
-		// For now, we warn but proceed.
-		// fmt.Fprintln(os.Stderr, "Warning: CANARY_URL not set, skipping honeypot checks")
+		// Warn loudly but proceed – this disables active honeypot detection
+		// while still allowing performance testing.
+		fmt.Fprintln(os.Stderr, "Warning: CANARY_URL not set, honeypot checks are DISABLED")
 	}
 
 	inputChan := make(chan ProxyInput, *workers*2)

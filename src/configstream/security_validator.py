@@ -1,6 +1,7 @@
 """Enhanced security validation for proxy configurations."""
 
 import re
+import uuid
 import logging
 from dataclasses import dataclass, replace
 from typing import List, Tuple, Dict, FrozenSet, Optional
@@ -122,6 +123,19 @@ class SecurityValidator:
                 if category not in categorized_issues:
                     categorized_issues[category] = []
                 categorized_issues[category].append(issue)
+
+        # UUID format validation for UUID-based protocols
+        if proxy.uuid:
+            try:
+                # Raises ValueError for invalid UUID formats
+                uuid.UUID(str(proxy.uuid))
+            except (ValueError, AttributeError, TypeError):
+                category = SECURITY_CATEGORIES["UUID_INVALID"]
+                if category not in categorized_issues:
+                    categorized_issues[category] = []
+                categorized_issues[category].append(
+                    f"Invalid UUID format: {proxy.uuid!r}"
+                )
 
         is_secure = len(categorized_issues) == 0
         return is_secure, categorized_issues

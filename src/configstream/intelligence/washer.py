@@ -91,13 +91,12 @@ class ProxyWasher:
         washed_outbounds = []
         washed_ids = set()
 
-        # 1. Identify Candidates (Dirty or Insecure)
+        # 1. Identify Candidates
+        # Current strategy: when WARP keys are available, wash ALL working
+        # proxies rather than relying solely on tags. Tags are still useful
+        # for downstream labeling but not a hard requirement here.
         candidates = [
-            p
-            for p in proxies
-            if p.is_working
-            and self.warp_keys
-            and ("dirty_ip" in p.tags or "insecure" in p.tags)
+            p for p in proxies if p.is_working and self.warp_keys
         ]
 
         for i, relay in enumerate(candidates):
