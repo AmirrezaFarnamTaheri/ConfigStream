@@ -102,13 +102,17 @@ class BlocklistManager:
                 for net in new_networks:
                     if isinstance(net, ipaddress.IPv4Network):
                         first_octet = int(net.network_address.packed[0])
-                        v4_index.setdefault(first_octet, set()).add(net)
-                    else:
+                        if first_octet not in v4_index:
+                            v4_index[first_octet] = set()
+                        v4_index[first_octet].add(net)
+                    elif isinstance(net, ipaddress.IPv6Network):
                         # IPv6: group by first 16-bit segment
                         first_segment = int(net.network_address.packed[0]) << 8 | int(
                             net.network_address.packed[1]
                         )
-                        v6_index.setdefault(first_segment, set()).add(net)  # type: ignore[arg-type]
+                        if first_segment not in v6_index:
+                            v6_index[first_segment] = set()
+                        v6_index[first_segment].add(net)  # type: ignore[arg-type]
 
                 self._v4_index = v4_index
                 self._v6_index = v6_index
@@ -138,8 +142,8 @@ class BlocklistManager:
                 bucket_v6 = with_index_v6.get(first_segment)
                 if not bucket_v6:
                     return False
-                for net in bucket_v6:
-                    if addr in net:
+                for net_v6 in bucket_v6:
+                    if addr in net_v6:
                         return True
         except ValueError:
             pass  # Invalid IP or Domain

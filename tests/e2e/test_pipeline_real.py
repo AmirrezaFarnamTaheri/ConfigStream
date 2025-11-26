@@ -32,9 +32,7 @@ async def test_full_pipeline_with_local_source(tmp_path, monkeypatch):
         marker.write_text(f"{len(optimized_proxies)} proxies", encoding="utf-8")
         return {"marker": str(marker)}
 
-    monkeypatch.setattr(
-        "configstream.pipeline.DEFAULT_BLOCKLIST.update", fake_update
-    )
+    monkeypatch.setattr("configstream.pipeline.DEFAULT_BLOCKLIST.update", fake_update)
     monkeypatch.setattr(
         "configstream.pipeline_core.output_handler.generate_pipeline_outputs",
         fake_generate_outputs,
