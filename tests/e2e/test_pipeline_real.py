@@ -50,5 +50,3 @@ async def test_full_pipeline_with_local_source(tmp_path, monkeypatch):
     assert result.success is True
     # We should have at least one proxy flowing through the pipeline in dry-run mode
     assert result.stats.final_count >= 1
-
-

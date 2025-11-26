@@ -98,9 +98,7 @@ class ProxyWasher:
         # Current strategy: when WARP keys are available, wash ALL working
         # proxies rather than relying solely on tags. Tags are still useful
         # for downstream labeling but not a hard requirement here.
-        candidates = [
-            p for p in proxies if p.is_working and self.warp_keys
-        ]
+        candidates = [p for p in proxies if p.is_working and self.warp_keys]
 
         for i, relay in enumerate(candidates):
             # 2. Select the "Soap" (Exit Node)
@@ -109,7 +107,11 @@ class ProxyWasher:
                 continue
 
             # 3. Generate Deterministic Chain ID
-            chain_id = f"CHAIN-{relay.country_code}-{relay.id[:6]}-{exit_key.get('id', '00')[:4]}"
+            chain_id = "CHAIN-{cc}-{rid}-{eid}".format(
+                cc=relay.country_code,
+                rid=relay.id[:6],
+                eid=exit_key.get("id", "00")[:4],
+            )
 
             # Thread-safe check-then-act for deduplication
             with self._seen_chains_lock:

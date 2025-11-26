@@ -83,7 +83,7 @@ async def run_full_pipeline(
     anomaly_detector = AnomalyDetector()
 
     # Initialize Blocklist (kick off in background but ensure it at least starts)
-    blocklist_task = asyncio.create_task(DEFAULT_BLOCKLIST.update())
+    asyncio.create_task(DEFAULT_BLOCKLIST.update())
     # Yield once so the task can begin before heavy work starts
     await asyncio.sleep(0)
 
