@@ -55,3 +55,4 @@ typing_extensions==4.15.0
 urllib3==2.5.0
 uvicorn==0.38.0
 yarl==1.22.0
+singbox2proxy==0.2.4

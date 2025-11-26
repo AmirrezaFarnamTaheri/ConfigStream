@@ -8,10 +8,12 @@ import logging
 import os
 import json
 import time
+import shutil
 import stat
 import tempfile
 import atexit
 import threading
+from pathlib import Path
 from typing import List, Optional, Set
 from contextlib import contextmanager
 
@@ -81,8 +83,27 @@ def SecureConfigContext(content: str):
 
 class GoBatchTester:
     def __init__(self, binary_path: str = "/usr/local/bin/configstream-tester"):
-        self.binary_path = binary_path
-        self.available = os.path.exists(binary_path)
+        env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
+        if env_path:
+            binary_path = env_path
+
+        resolved = None
+        if os.path.exists(binary_path):
+            resolved = binary_path
+        else:
+            which_result = shutil.which(Path(binary_path).name)
+            if which_result:
+                resolved = which_result
+            else:
+                name_only = Path(binary_path).name
+                for base in os.environ.get("PATH", "").split(os.pathsep):
+                    candidate = Path(base) / name_only
+                    if candidate.exists():
+                        resolved = str(candidate)
+                        break
+
+        self.binary_path = resolved or binary_path
+        self.available = resolved is not None
         if not self.available:
             logger.warning(f"Go batch tester binary not found at {binary_path}")
 
