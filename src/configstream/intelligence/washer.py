@@ -7,6 +7,7 @@ import json
 import hashlib
 import logging
 import threading
+import os
 import httpx
 from typing import List, Dict, Optional, Set, Any, Tuple
 from ..models import Proxy
@@ -149,7 +150,7 @@ class ProxyWasher:
 
             # --- NEW: Use Clean IP ---
             clean_endpoint = self._get_clean_endpoint(relay.id)
-            clean_port = 2408  # Standard WireGuard port
+            clean_port = int(os.environ.get("WARP_PORT", "2408"))
 
             exit_tag = f"🛡️ Secure-{relay.country_code}-{i+1}"
             warp_out = {

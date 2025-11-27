@@ -26,7 +26,10 @@ async function fetchStegoConfig(imageUrl) {
         let payloadStart = -1;
 
         // Naive search (fast enough for 5MB images)
-        for (let i = buffer.byteLength - 500000; i < buffer.byteLength; i++) {
+        // Prevent negative start index for small images
+        const searchStart = Math.max(0, buffer.byteLength - 500000);
+
+        for (let i = searchStart; i < buffer.byteLength; i++) {
             // Optimization: Scan last 500KB only
             if (dataView[i] === markerSeq[0]) {
                 let match = true;
