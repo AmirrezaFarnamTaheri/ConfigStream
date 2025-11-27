@@ -1,61 +1,51 @@
+# src/configstream/transport/polyglot.py
+
+import logging
 import zipfile
 import io
-import os
-from typing import Optional
+from pathlib import Path
 
-# Using cryptography for encryption if needed, though zipfile password is easier for simple obfuscation.
-# The spec suggests AES encryption before zipping.
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
+logger = logging.getLogger(__name__)
 
-
-def encrypt_payload(data: bytes, key: bytes) -> bytes:
-    """
-    Encrypts data using AES-GCM.
-    """
-    iv = os.urandom(12)
-    cipher = Cipher(algorithms.AES(key), modes.GCM(iv), backend=default_backend())
-    encryptor = cipher.encryptor()
-    ciphertext: bytes = encryptor.update(data) + encryptor.finalize()
-    tag: bytes = encryptor.tag  # type: ignore[assignment]
-    result: bytes = iv + tag + ciphertext
-    return result
+# =============================================================================
+# DEPRECATED / EXPERIMENTAL
+# =============================================================================
+# This module implements "Polyglot" steganography (PNG + ZIP concatenation).
+# As of v2.0.0, the primary transport method is the MARKER-BASED approach
+# implemented in `src/configstream/transport/stego.py`.
+#
+# This module is retained for research/fallback purposes but is NOT used
+# in the default ConfigStream pipeline.
+# =============================================================================
 
 
-def create_polyglot_image(
-    image_path: str, config_json: str, output_path: str, password: Optional[str] = None
-):
-    """
-    Creates a PNG + Zip polyglot file.
-    """
-    with open(image_path, "rb") as f:
-        image_bytes = f.read()
+class PolyglotPacker:
+    def pack(
+        self,
+        cover_image: Path,
+        payload_data: str,
+        payload_filename: str,
+        output_path: Path,
+    ):
+        try:
+            # 1. Create In-Memory ZIP
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr(payload_filename, payload_data)
 
-    # Prepare payload
-    payload_bytes = config_json.encode("utf-8")
+            zip_bytes = zip_buffer.getvalue()
 
-    # Optional: Encrypt payload manually if password provided
-    # For now, we just Zip it.
-    # NOTE: Standard zipfile in Python does not support strong encryption (AES).
-    # It only supports legacy ZipCrypto.
-    # To follow the spec "Encrypt ... then append", we can encrypt the JSON first.
+            # 2. Read Image
+            image_bytes = cover_image.read_bytes()
 
-    if password:
-        # Pad key to 32 bytes
-        key = password.encode("utf-8").ljust(32, b"\0")[:32]
-        payload_bytes = encrypt_payload(payload_bytes, key)
-        filename = "config.enc"
-    else:
-        filename = "config.json"
+            # 3. Concatenate
+            final_bytes = image_bytes + zip_bytes
 
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr(filename, payload_bytes)
+            # 4. Write
+            output_path.write_bytes(final_bytes)
+            logger.info(f"Polyglot image saved to {output_path}")
+            return True
 
-    zip_data = zip_buffer.getvalue()
-
-    with open(output_path, "wb") as out:
-        out.write(image_bytes)
-        out.write(zip_data)
-
-    print(f"Created polyglot image at {output_path}")
+        except Exception as e:
+            logger.error(f"Polyglot packing failed: {e}")
+            return False

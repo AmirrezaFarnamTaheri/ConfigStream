@@ -28,7 +28,10 @@ from configstream.consolidation import (  # noqa: E402
 from configstream.source_quality import SourceQualityTracker  # noqa: E402
 from configstream.anomaly import AnomalyDetector  # noqa: E402
 from configstream.crypto.signer import Signer  # noqa: E402
-from configstream.transport.polyglot import create_polyglot_image  # noqa: E402
+from configstream.transport.stego import generate_stego_assets  # noqa: E402
+from configstream.output_transport import inject_stego_key_into_frontend  # noqa: E402
+from cryptography.fernet import Fernet  # noqa: E402
+import shutil  # noqa: E402
 
 
 def merge_batches(
@@ -296,32 +299,47 @@ def merge_batches(
         except Exception as e:
             print(f"⚠️ Failed to sign singbox: {e}")
 
-    # Steganography: Create Polyglot Image (The Gallery)
-    # We embed the singbox.json into a carrier image
-    carrier_image: Optional[Path] = root_dir / "frontend/assets/images/background.png"
-    # Fallback to creating a dummy image if not exists (for testing)
-    if carrier_image and not carrier_image.exists():
-        # Check if there is any png
-        pngs = list((root_dir / "frontend/assets/images").glob("*.png"))
-        if pngs:
-            carrier_image = pngs[0]
-        else:
-            print("⚠️ No carrier image found for steganography. Skipping.")
-            carrier_image = None
+    # Steganography: Marker-Based Approach (Primary)
+    print("\n=== Generating Steganography Assets ===")
 
-    if carrier_image:
+    # 1. Copy frontend assets to output (if not already there)
+    # This ensures stego.js is available for injection
+    frontend_src = root_dir / "frontend"
+    if frontend_src.exists():
         try:
-            polyglot_path = output_dir / "gallery.png"
-            create_polyglot_image(
-                str(carrier_image),
-                singbox_content,
-                str(polyglot_path),
-                password=os.environ.get("STEGO_PASSWORD")
-                or "default_password_if_missing",
-            )
-            print("✓ Generated gallery.png (Steganography)")
+            shutil.copytree(frontend_src, output_dir, dirs_exist_ok=True)
+            print(f"✓ Copied frontend assets to {output_dir}")
         except Exception as e:
-            print(f"⚠️ Failed to generate stego image: {e}")
+            print(f"⚠️ Failed to copy frontend assets: {e}")
+
+    # 2. Generate Key
+    dynamic_key = Fernet.generate_key().decode()
+
+    # 3. Generate Images
+    assets_images = output_dir / "assets" / "images"
+    if assets_images.exists():
+        try:
+            generate_stego_assets(
+                config_dir=output_dir,
+                assets_dir=assets_images,
+                secret_key=dynamic_key
+            )
+            print("✓ Generated stego assets (stealth_*.png)")
+        except Exception as e:
+            print(f"⚠️ Stego generation failed: {e}")
+    else:
+        print("⚠️ No assets/images found for steganography.")
+
+    # 4. Inject Key
+    js_path = output_dir / "assets" / "js" / "stego.js"
+    if js_path.exists():
+        try:
+            inject_stego_key_into_frontend(dynamic_key, js_path)
+            print("✓ Injected dynamic key into stego.js")
+        except Exception as e:
+            print(f"⚠️ Failed to inject stego key: {e}")
+    else:
+        print("⚠️ stego.js not found for key injection.")
 
     # Adapters
     try:

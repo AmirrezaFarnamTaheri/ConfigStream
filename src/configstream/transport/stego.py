@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 # Magic Marker to separate Image from Payload
 # We use a distinct byte sequence unlikely to appear in image data
+# This is the PRIMARY transport method for ConfigStream v2.0+.
 MAGIC_MARKER = b"CSTREAM_PAYLOAD_START>>"
 
 
