@@ -195,6 +195,14 @@ jobs:
         contents: write # For Releases
         id-token: write
 
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
+      GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+      GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -270,24 +278,15 @@ jobs:
       # --- Fan-Out Distribution (Parallel) ---
 
       - name: Upload to Telegram
-        if: secrets.TELEGRAM_BOT_TOKEN != ''
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        if: env.TELEGRAM_BOT_TOKEN != ''
         run: python scripts/upload_telegram.py &
 
       - name: Upload to Hugging Face
-        if: secrets.HF_TOKEN != ''
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
+        if: env.HF_TOKEN != ''
         run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID --token $HF_TOKEN &
 
       - name: Upload to Google Drive Mirror
-        if: secrets.GDRIVE_FOLDER_ID != ''
-        env:
-          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
-          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+        if: env.GDRIVE_FOLDER_ID != ''
         run: |
           # Ensure dependencies are installed (if not in previous steps)
           pip install google-api-python-client google-auth
