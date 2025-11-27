@@ -125,7 +125,9 @@ class SecurityValidator:
                 categorized_issues[category].append(issue)
 
         # UUID format validation for UUID-based protocols
-        if proxy.uuid:
+        # Only validate UUID for protocols that strictly require it (VMess, VLESS).
+        # Protocols like Trojan use passwords (any string) which are stored in proxy.uuid.
+        if proxy.uuid and proxy.protocol in ("vmess", "vless"):
             try:
                 # Raises ValueError for invalid UUID formats
                 uuid.UUID(str(proxy.uuid))

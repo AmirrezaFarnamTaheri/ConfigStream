@@ -89,6 +89,14 @@ class ErrorBoundary {
   showErrorPage(error) {
     const main = document.querySelector('main');
     if (main) {
+      // Escape dynamic content
+      const escape = (str) => String(str).replace(/[&<>"']/g, function(m) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+      });
+
+      const safeMessage = escape(error.message || 'Unknown Error');
+      const safeStack = escape(error.stack || '');
+
       main.innerHTML = `
         <div class="error-page">
           <div class="error-page-content">
@@ -97,7 +105,7 @@ class ErrorBoundary {
             <p>The page encountered an error and needs to be reloaded.</p>
             <details class="error-details">
               <summary>Error Details</summary>
-              <pre>${error.message}\n\n${error.stack}</pre>
+              <pre>${safeMessage}\n\n${safeStack}</pre>
             </details>
             <button onclick="window.location.reload()" class="btn btn-primary">
               <i data-feather="refresh-cw"></i> Reload Page
