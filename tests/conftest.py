@@ -11,14 +11,8 @@ nest_asyncio.apply()
 
 
 # Configure pytest-asyncio to handle event loops automatically
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for each test session."""
-    import asyncio
-
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+# We rely on pytest-asyncio's default loop fixture, but we ensure nest_asyncio is applied.
+# nest_asyncio.apply() at module level (above) patches the asyncio module classes.
 
 
 # Playwright browser launch args for containerized/CI environments

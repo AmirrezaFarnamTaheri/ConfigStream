@@ -16,6 +16,36 @@ We use a custom Service Worker (`service-worker.js`) to make the site censorship
 2.  **Data (JSON)**: Network-First. We try to fetch the latest proxy list. If the network fails (blocked), we serve the last cached list.
 3.  **Updates**: The SW checks for a new version of the app in the background.
 
+## Security Hardening Checklist
+
+When making changes to the frontend, you **must** adhere to these security practices to prevent XSS (Cross-Site Scripting) and other client-side attacks.
+
+### 1. No Unsafe `innerHTML`
+*   **Never** assign user-controlled data directly to `innerHTML`.
+*   **Use** `textContent` for text updates.
+*   **Use** `updateElement(selector, content, { method: 'textContent' })` helper.
+*   **If you MUST use HTML**:
+    *   Sanitize it first using `DOMPurify.sanitize()`.
+    *   Use `updateElement(selector, content, { method: 'innerHTML' })`, which handles sanitization automatically (unless `trustedHTML: true` is set).
+
+### 2. DOMPurify
+*   We load `DOMPurify` (vendored in `assets/js/lib/purify.min.js`).
+*   Ensure it is included in your HTML file before your scripts run.
+*   Any large block of HTML constructed from data (e.g., Markdown rendering, Proxy Tables) must be passed through `DOMPurify.sanitize()`.
+
+### 3. URL Handling
+*   Validate all URLs before setting them as `href` or `src`.
+*   Use `validateURL()` helper from `utils.js`.
+*   Avoid `javascript:` URIs.
+
+### 4. Dependencies
+*   **Vendor everything**. Do not rely on external CDNs (they can be blocked or compromised).
+*   Keep `assets/js/lib/` clean. Only minimal, audited libraries.
+
+### 5. Content Security Policy (CSP)
+*   The `index.html` should enforce a strict CSP (via meta tag or headers).
+*   `script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:;` (Adjusted for WASM/Inline scripts requirements, tighten where possible).
+
 ## Visualization Components
 
 ### 1. The Globe (`globe.gl`)
