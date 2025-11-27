@@ -5,7 +5,6 @@ Handles the logic for creating proxy chains and washing proxies through WARP/Wir
 
 import json
 import hashlib
-import random
 import logging
 import threading
 import httpx
@@ -30,6 +29,10 @@ class ProxyWasher:
                 self.warp_keys = []
             else:
                 self.warp_keys = parsed
+                if self.warp_keys:
+                    logger.info(f"Loaded {len(self.warp_keys)} WARP keys for washing")
+                else:
+                    logger.warning("No WARP keys configured - washing will be disabled")
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse warp_keys_json: {e}")
             self.warp_keys = []
@@ -64,7 +67,7 @@ class ProxyWasher:
         """Deterministically selects a clean IP based on proxy ID."""
         pool = self.clean_ips if self.clean_ips else DEFAULT_CLEAN_IPS
         # Consistent hashing so the same proxy always gets the same endpoint (stability)
-        hash_val = int(hashlib.md5(relay_id.encode()).hexdigest(), 16)
+        hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
         return pool[hash_val % len(pool)]
 
     def _get_consistent_exit(
@@ -78,7 +81,7 @@ class ProxyWasher:
             return None
 
         # Create a deterministic index from the Relay ID
-        hash_val = int(hashlib.md5(relay_id.encode()).hexdigest(), 16)
+        hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
         index = hash_val % len(exit_pool)
         return exit_pool[index]
 
@@ -91,19 +94,33 @@ class ProxyWasher:
             - List of Sing-box outbound objects (Relay + Exit)
             - Set of Proxy IDs that were successfully washed
         """
-        washed_outbounds = []
-        washed_ids = set()
+        washed_outbounds: List[Dict[str, Any]] = []
+        washed_ids: Set[str] = set()
+
+        # Early exit with clear logging
+        if not self.warp_keys:
+            logger.info("Washing skipped: WARP_KEY_POOL not configured")
+            return washed_outbounds, washed_ids
+
+        working_count = sum(1 for p in proxies if p.is_working)
+        if working_count == 0:
+            logger.warning(
+                "Washing skipped: No working proxies available (upstream testing failed)"
+            )
+            return washed_outbounds, washed_ids
 
         # 1. Identify Candidates
         # Current strategy: when WARP keys are available, wash ALL working
         # proxies rather than relying solely on tags. Tags are still useful
         # for downstream labeling but not a hard requirement here.
         candidates = [p for p in proxies if p.is_working and self.warp_keys]
+        logger.info(f"Washing {len(candidates)} proxies through WARP")
 
         for i, relay in enumerate(candidates):
             # 2. Select the "Soap" (Exit Node)
             exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
             if not exit_key or "private_key" not in exit_key:
+                logger.debug(f"Skipping proxy {relay.id[:8]}: invalid WARP key")
                 continue
 
             # 3. Generate Deterministic Chain ID
@@ -122,6 +139,9 @@ class ProxyWasher:
             # 4. Construct the Chain Objects
             relay_out = to_singbox_outbound(relay)
             if not relay_out:
+                logger.debug(
+                    f"Skipping proxy {relay.id[:8]}: conversion to singbox failed"
+                )
                 continue
 
             relay_tag = f"RELAY-{chain_id}"
@@ -151,6 +171,7 @@ class ProxyWasher:
             washed_outbounds.append(warp_out)
             washed_ids.add(relay.id)
 
+        logger.info(f"Washing complete: {len(washed_ids)} proxies washed")
         return washed_outbounds, washed_ids
 
 
@@ -172,6 +193,19 @@ def create_chain(
     exit_out["detour"] = relay_tag  # The chaining magic
 
     return [relay_out, exit_out]
+
+
+def _deterministic_select(pool: List[Proxy], seed: str) -> Proxy:
+    """
+    Select a proxy from pool deterministically based on seed string.
+    This ensures reproducible builds - same input produces same output.
+    """
+    if not pool:
+        raise ValueError("Cannot select from empty pool")
+
+    # Use SHA-256 for consistent hashing
+    hash_val = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
+    return pool[hash_val % len(pool)]
 
 
 def generate_smart_chains(proxies: List[Proxy]) -> Dict[str, List[Dict[str, Any]]]:
@@ -206,7 +240,7 @@ def generate_smart_chains(proxies: List[Proxy]) -> Dict[str, List[Dict[str, Any]
     ]
 
     # --- CHAIN 1: THE INTRANET BRIDGE (Gold Standard) ---
-    for relay in relays_ir:
+    for idx, relay in enumerate(relays_ir):
         # Link to top 5 fastest foreign exits
         for exit_node in proxies[:5]:
             if exit_node.country_code != "IR" and exit_node.is_working:
@@ -215,17 +249,19 @@ def generate_smart_chains(proxies: List[Proxy]) -> Dict[str, List[Dict[str, Any]
                     chains["intranet"].extend(chain_objs)
 
     # --- CHAIN 2: THE IPv6 PORTAL ---
-    for exit_node in exits_ipv6[:20]:  # Limit to avoid bloat
+    for idx, exit_node in enumerate(exits_ipv6[:20]):  # Limit to avoid bloat
         if relays_dual_stack:
-            relay = random.choice(relays_dual_stack)
+            # Deterministic selection based on exit node ID
+            relay = _deterministic_select(relays_dual_stack, f"ipv6-{exit_node.id}")
             chain_objs = create_chain(relay, exit_node, "IPv6-GATEWAY")
             if chain_objs:
                 chains["ipv6"].extend(chain_objs)
 
     # --- CHAIN 3: THE STREAMER ---
-    for exit_node in exits_streaming[:20]:
+    for idx, exit_node in enumerate(exits_streaming[:20]):
         if relays_fast:
-            relay = random.choice(relays_fast)
+            # Deterministic selection based on exit node ID
+            relay = _deterministic_select(relays_fast, f"stream-{exit_node.id}")
             chain_objs = create_chain(relay, exit_node, "STREAMING-ACCEL")
             if chain_objs:
                 chains["streamer"].extend(chain_objs)
@@ -233,8 +269,9 @@ def generate_smart_chains(proxies: List[Proxy]) -> Dict[str, List[Dict[str, Any]
     # --- CHAIN 4: EXPERIMENTAL (Hysteria -> VMess) ---
     if relays_fast and exits_standard:
         for i in range(10):
-            relay = random.choice(relays_fast)
-            exit_node = random.choice(exits_standard)
+            # Deterministic selection using index as seed
+            relay = _deterministic_select(relays_fast, f"exp-relay-{i}")
+            exit_node = _deterministic_select(exits_standard, f"exp-exit-{i}")
             chain_objs = create_chain(relay, exit_node, f"EXP-{i}")
             if chain_objs:
                 chains["experimental"].extend(chain_objs)

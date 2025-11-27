@@ -164,11 +164,15 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
         content = js_file_path.read_text(encoding="utf-8")
 
         # Regex to find: const SECRET_KEY = "ANYTHING_HERE";
-        # Replaces it with: const SECRET_KEY = "NEW_KEY";
         pattern = r'(const\s+SECRET_KEY\s*=\s*")([^"]*)(")'
-        replacement = f"\\1{secret_key}\\3"
 
-        new_content = re.sub(pattern, replacement, content)
+        # Use a replacement function to avoid regex interpretation of special chars
+        # in the secret_key (e.g., base64 Fernet keys can contain sequences like
+        # backslash+digits that would be interpreted as backreferences like \17)
+        def replacer(match):
+            return match.group(1) + secret_key + match.group(3)
+
+        new_content = re.sub(pattern, replacer, content)
 
         # Atomic write to prevent corruption
         AtomicFileWriter.write_text(js_file_path, new_content)
