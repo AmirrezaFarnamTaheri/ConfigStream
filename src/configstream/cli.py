@@ -11,7 +11,7 @@ import tarfile
 from pathlib import Path
 
 import click
-import requests
+import requests  # type: ignore
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.progress import (
