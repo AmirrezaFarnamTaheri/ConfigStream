@@ -165,7 +165,32 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
-    """Convert internal Proxy model to Sing-box outbound."""
+    """
+    Convert a Proxy model to a Sing-box outbound configuration.
+    Returns None if conversion fails or proxy is invalid.
+    """
+    # Early validation - reject invalid proxies before expensive conversion
+    if not proxy or not proxy.address or not proxy.port:
+        return None
+
+    # Filter subscription URLs that got past parser
+    addr_lower = proxy.address.lower()
+    if any(
+        domain in addr_lower
+        for domain in [
+            "github.com",
+            "githubusercontent.com",
+            "gitlab.com",
+            "bitbucket.org",
+            "t.me",
+        ]
+    ):
+        return None
+
+    # Reject invalid port ranges
+    if not isinstance(proxy.port, int) or proxy.port <= 0 or proxy.port > 65535:
+        return None
+
     base: Dict[str, Any] = {
         "server": proxy.address,
         "server_port": proxy.port,

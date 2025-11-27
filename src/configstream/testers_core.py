@@ -171,18 +171,43 @@ class GoBatchTester:
                 logger.error("Go Tester froze! Killing process to save pipeline.")
                 return proxies
 
+            # CRITICAL: Log stderr at WARNING level to surface Go tester issues
             if stderr:
-                logger.debug(f"Go Tester Stderr: {stderr.decode().strip()}")
+                stderr_text = stderr.decode().strip()
+                if stderr_text:
+                    # Check for critical errors vs warnings
+                    if "panic" in stderr_text.lower() or "fatal" in stderr_text.lower():
+                        logger.error(f"Go Tester CRASHED: {stderr_text[:500]}")
+                    else:
+                        logger.warning(f"Go Tester stderr: {stderr_text[:200]}")
+
+            # Check if we got any output at all
+            if not stdout or not stdout.strip():
+                logger.error(
+                    "Go Tester produced NO OUTPUT! "
+                    f"Sent {len(inputs)} proxies, received nothing. "
+                    "Check if sing-box core is working correctly."
+                )
+                # Mark all as failed explicitly
+                for p in proxies:
+                    p.is_working = False
+                return proxies
+
+            # Count results for diagnostics
+            result_count = 0
+            working_count = 0
 
             for line in stdout.decode().splitlines():
                 try:
                     res = json.loads(line)
+                    result_count += 1
                     p_id = res.get("id")
                     if p_id and p_id in proxy_map:
                         p = proxy_map[p_id]
                         if res.get("is_working"):
                             p.is_working = True
                             p.latency = res.get("latency")
+                            working_count += 1
                             if res.get("issues"):
                                 for issue in res["issues"]:
                                     p.security_issues.setdefault("go_check", []).append(
@@ -192,8 +217,27 @@ class GoBatchTester:
                                         p.tags.append("dirty_ip")
                         else:
                             p.is_working = False
+                            # Log first few errors for diagnostics
+                            if result_count <= 5:
+                                logger.debug(
+                                    f"Proxy test failed: {p.address}:{p.port} - {res.get('error', 'unknown')}"
+                                )
                 except json.JSONDecodeError:
                     continue
+
+            # Log summary statistics
+            logger.info(
+                f"Go Tester results: {working_count}/{result_count} working "
+                f"(sent {len(inputs)}, parsed {result_count})"
+            )
+
+            # Detect if Go tester is returning but all failing
+            if result_count > 0 and working_count == 0:
+                logger.warning(
+                    "Go Tester returned results but ALL tests failed. "
+                    "Possible causes: network blocked, test URLs unreachable, "
+                    "or sing-box outbound config issues."
+                )
 
         except Exception as e:
             logger.error(f"Go Batch Tester failed: {e}")
