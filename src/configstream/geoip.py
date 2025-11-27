@@ -169,6 +169,25 @@ class GeoIPResolver:
         if self.reader_asn:
             self.reader_asn.close()
 
+    def log_enrichment_stats(self, proxies: list) -> dict:
+        """Log and return GeoIP enrichment statistics."""
+        stats = {
+            "total": len(proxies),
+            "with_country": sum(
+                1 for p in proxies if p.country_code and p.country_code != "XX"
+            ),
+            "with_city": sum(1 for p in proxies if p.city),
+            "with_asn": sum(1 for p in proxies if p.asn),
+        }
+        coverage = (
+            (stats["with_country"] / stats["total"] * 100) if stats["total"] > 0 else 0
+        )
+        logger.info(
+            f"GeoIP enrichment: {stats['with_country']}/{stats['total']} ({coverage:.1f}%) "
+            f"countries resolved, {stats['with_city']} cities, {stats['with_asn']} ASNs"
+        )
+        return stats
+
 
 # Global Singleton
 DEFAULT_RESOLVER = GeoIPResolver()

@@ -25,13 +25,17 @@ from .models import Proxy
 from .test_cache import TestResultCache
 from .converters import to_singbox_outbound
 
+logger = logging.getLogger(__name__)
+
 # Optional dependency
 try:
     from singbox2proxy import SingBoxProxy as singbox_factory
 except ImportError:
     singbox_factory = None
-
-logger = logging.getLogger(__name__)
+    logger.warning(
+        "singbox2proxy not installed - Python fallback testing will be limited. "
+        "Install with: pip install singbox2proxy"
+    )
 
 _TEMP_FILES: Set[str] = set()
 _TEMP_FILES_LOCK = threading.Lock()
@@ -132,8 +136,17 @@ class GoBatchTester:
                     }
                 )
                 proxy_map[p.id] = p
+            else:
+                # Log when converter fails - this is likely a major issue
+                logger.warning(
+                    f"Cannot convert proxy to singbox format: {p.protocol}://{p.address}:{p.port} - skipping test"
+                )
+                p.is_working = False
 
         if not inputs:
+            logger.warning(
+                f"No valid inputs for Go tester from {len(proxies)} proxies - all conversions failed"
+            )
             return proxies
 
         try:
@@ -391,4 +404,12 @@ class SingBoxTester:
     def _finalize_result(self, proxy: Proxy):
         proxy.tested_at = datetime_now_iso()
         if self.cache:
+            # Only cache if we actually got a definitive test result
+            # Don't cache if this was never converted/tested properly
+            # Check if is_working is False and latency is None - likely a conversion failure
+            if not proxy.is_working and proxy.latency is None:
+                logger.debug(
+                    f"Skipping cache for untested/failed-conversion proxy: {proxy.id}"
+                )
+                return
             self.cache.set(proxy)

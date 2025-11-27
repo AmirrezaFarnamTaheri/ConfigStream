@@ -3,9 +3,12 @@ from __future__ import annotations
 import os
 import random
 import hashlib
+import logging
 from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 
 from .models import Proxy
+
+logger = logging.getLogger(__name__)
 
 
 def proxy_unique_key(
@@ -93,6 +96,14 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 
     rng = random.Random(rng_seed)
     rng.shuffle(unique)
+
+    # Log deduplication statistics
+    removed_count = len(proxies) - len(unique)
+    if removed_count > 0:
+        logger.info(
+            f"Deduplication: {len(proxies)} -> {len(unique)} ({removed_count} duplicates removed)"
+        )
+
     return unique
 
 
@@ -158,6 +169,14 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
             ):
                 fingerprint_map[fingerprint] = p
                 continue
+
+    # Log endpoint filtering statistics
+    removed_count = len(proxies) - len(fingerprint_map)
+    if removed_count > 0:
+        logger.info(
+            f"Endpoint filtering: {len(proxies)} -> {len(fingerprint_map)} "
+            f"({removed_count} duplicate endpoints removed)"
+        )
 
     return list(fingerprint_map.values())
 

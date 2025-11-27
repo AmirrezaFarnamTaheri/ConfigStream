@@ -3,8 +3,11 @@ Output Converter Helpers.
 Moved here to avoid circular imports between output.py and washer.py.
 """
 
+import logging
 from typing import Any, Dict, Optional
 from .models import Proxy
+
+logger = logging.getLogger(__name__)
 
 
 def _safe_int_conversion(value: Any, default: int = 0) -> int:
@@ -258,6 +261,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     out: Optional[Dict[str, Any]] = None
 
     if proxy.protocol == "vmess":
+        # Validate required UUID
+        if not proxy.uuid:
+            logger.debug(f"VMess proxy missing UUID: {proxy.address}:{proxy.port}")
+            return None
         out = {
             "type": "vmess",
             **base,
@@ -268,6 +275,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         _add_transport_sb(out, proxy.details)
 
     elif proxy.protocol == "vless":
+        # Validate required UUID
+        if not proxy.uuid:
+            logger.debug(f"VLESS proxy missing UUID: {proxy.address}:{proxy.port}")
+            return None
         out = {
             "type": "vless",
             **base,
@@ -277,6 +288,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         _add_transport_sb(out, proxy.details)
 
     elif proxy.protocol == "shadowsocks":
+        # Validate required password
+        if not proxy.details.get("password"):
+            logger.debug(
+                f"Shadowsocks proxy missing password: {proxy.address}:{proxy.port}"
+            )
+            return None
         out = {
             "type": "shadowsocks",
             **base,
@@ -284,6 +301,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "trojan":
+        # Validate required password (stored as uuid)
+        if not proxy.uuid:
+            logger.debug(f"Trojan proxy missing password: {proxy.address}:{proxy.port}")
+            return None
         out = {"type": "trojan", **base, "password": proxy.uuid}
 
     elif proxy.protocol == "http":

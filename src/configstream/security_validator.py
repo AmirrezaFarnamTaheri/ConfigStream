@@ -283,15 +283,25 @@ def validate_batch_configs(
             for category, issues_list in categorized_issues.items():
                 all_issues.extend(issues_list)
 
-            logger.warning("Insecure proxy filtered: %s:%s", proxy.address, proxy.port)
-            logger.debug("Security issues: %s", ", ".join(all_issues))
+            # Only log at debug level to avoid spam, summarize at end
+            logger.debug(
+                f"Insecure proxy filtered: {proxy.address}:{proxy.port} - {', '.join(all_issues)}"
+            )
             proxy.is_secure = False
             proxy.security_issues = categorized_issues
         else:
             proxy.is_secure = True
             secure_proxies.append(proxy)
 
-    logger.info(
-        "Security validation: %s/%s proxies passed", len(secure_proxies), len(proxies)
-    )
+    # Log summary instead of individual warnings
+    rejected_count = len(proxies) - len(secure_proxies)
+    if rejected_count > 0:
+        logger.info(
+            f"Security validation: {len(secure_proxies)}/{len(proxies)} proxies passed "
+            f"({rejected_count} filtered)"
+        )
+    else:
+        logger.info(
+            f"Security validation: {len(secure_proxies)}/{len(proxies)} proxies passed"
+        )
     return secure_proxies
