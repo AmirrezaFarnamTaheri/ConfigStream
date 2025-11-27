@@ -304,15 +304,15 @@ async def processing_consumer(
                 pass
             else:
                 if tester.go_tester.available:
-                    chunk_size = 50
+                    chunk_size = (
+                        500  # Increased from 50 to reduce serialization overhead
+                    )
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         await tester.test_batch(chunk)
                         for res in chunk:
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
-                                # Keep stats.working consistent between Go and Python paths
-                                stats.working += 1
                                 if event_stream:
                                     event_stream.emit(
                                         "test_success",
@@ -347,18 +347,21 @@ async def processing_consumer(
                             return res
 
                     try:
-                        chunk_size = 20
+                        chunk_size = 50  # Keep Python batch size smaller to avoid event loop blocking
                         for i in range(0, len(proxies_to_actually_test), chunk_size):
                             chunk = proxies_to_actually_test[i : i + chunk_size]
                             results = await asyncio.gather(
                                 *[_test_wrap(x) for x in chunk]
                             )
                             for res in results:
-                                await concurrency.record(
-                                    "default", res.latency or 9999, res.is_working
-                                )
+                                # ONLY record latency for success. Do NOT record failure as system error,
+                                # because dead proxies are expected and should not trigger backoff.
                                 if res.is_working:
+                                    await concurrency.record(
+                                        "default", res.latency or 0, True
+                                    )
                                     final_batch_for_this_source.append(res)
+
                             stats.tested += len(chunk)
                             if progress and task_process:
                                 progress.update(

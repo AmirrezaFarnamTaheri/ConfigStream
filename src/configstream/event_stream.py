@@ -38,4 +38,3 @@ class EventStream:
         self.emit("stream_close", "Event stream closing.")
         # In a real implementation, you might await a file write or a
         # network socket closure here.
-        pass
