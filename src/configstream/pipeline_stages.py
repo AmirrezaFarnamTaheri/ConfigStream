@@ -229,6 +229,12 @@ async def processing_consumer(
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
+    # Log tester status at start for debugging
+    if tester.go_tester.available:
+        logger.info("Using Go batch tester for proxy testing")
+    else:
+        logger.warning("Go batch tester unavailable - falling back to Python tester")
+
     while True:
         try:
             # Add timeout to prevent indefinite blocking if producer dies
@@ -312,7 +318,17 @@ async def processing_consumer(
                                         "test_success",
                                         f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
                                     )
+                            else:
+                                # Log test failures for debugging
+                                logger.debug(
+                                    f"Proxy test failed: {res.protocol}://{res.address}:{res.port}"
+                                )
                         stats.tested += len(chunk)
+                        # Log batch test summary
+                        working_in_chunk = sum(1 for r in chunk if r.is_working)
+                        logger.debug(
+                            f"Batch test result: {working_in_chunk}/{len(chunk)} working"
+                        )
                         if progress and task_process:
                             progress.update(
                                 task_process,
@@ -395,3 +411,17 @@ async def processing_consumer(
             )
 
         work_queue.task_done()
+
+    # Log final summary with breakdown
+    if stats.tested > 0 and stats.working == 0:
+        logger.error(
+            f"CRITICAL: All {stats.tested} proxy tests failed! "
+            f"This likely indicates: 1) Go tester not available, "
+            f"2) Network connectivity issues to test URLs, or "
+            f"3) All proxy configurations are invalid/incompatible."
+        )
+    elif stats.tested > 0:
+        success_rate = (stats.working / stats.tested) * 100
+        logger.info(
+            f"Test summary: {stats.working}/{stats.tested} working ({success_rate:.1f}% success rate)"
+        )

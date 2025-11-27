@@ -64,6 +64,11 @@ def save_metadata(
     # Enhanced Metadata Tracking
     isp_stats: Dict[str, int] = {}
     city_stats: Dict[str, int] = {}
+    security_distribution = {"reality": 0, "tls": 0, "none": 0, "other": 0}
+    transport_distribution: Dict[str, int] = {}
+    working_by_protocol: Dict[str, int] = {}
+    total_latency = 0.0
+    latency_count = 0
 
     for p in proxies:
         proto = p.protocol.lower()
@@ -82,7 +87,32 @@ def save_metadata(
             city = f"{p.city}, {cc}"
             city_stats[city] = city_stats.get(city, 0) + 1
 
+        # Track security type
+        if p.details:
+            sec = p.details.get("security", "none")
+            if sec == "reality":
+                security_distribution["reality"] += 1
+            elif sec in ("tls", "xtls"):
+                security_distribution["tls"] += 1
+            elif sec in ("none", ""):
+                security_distribution["none"] += 1
+            else:
+                security_distribution["other"] += 1
+
+            # Track transport type
+            transport = p.details.get("type") or p.details.get("net") or "tcp"
+            transport_distribution[transport] = (
+                transport_distribution.get(transport, 0) + 1
+            )
+
+        # Track working by protocol
+        if p.is_working:
+            working_by_protocol[proto] = working_by_protocol.get(proto, 0) + 1
+
         latency = p.latency
+        if latency and latency > 0:
+            total_latency += latency
+            latency_count += 1
         if latency is not None and latency > 0:
             if latency < 100:
                 latency_distribution["fast"] += 1
@@ -121,6 +151,19 @@ def save_metadata(
             sorted(city_stats.items(), key=lambda x: x[1], reverse=True)[:20]
         ),  # Top 20 Cities
         "latency_distribution": latency_distribution,
+        "security_distribution": security_distribution,
+        "transport_distribution": dict(
+            sorted(transport_distribution.items(), key=lambda x: x[1], reverse=True)
+        ),
+        "working_by_protocol": working_by_protocol,
+        "quality_metrics": {
+            "success_rate": (
+                round((total_working / len(proxies) * 100), 2) if proxies else 0
+            ),
+            "avg_latency": (
+                round(total_latency / latency_count, 2) if latency_count > 0 else 0
+            ),
+        },
         "protocol_colors": {
             "vmess": "#FF6B6B",
             "vless": "#4ECDC4",
