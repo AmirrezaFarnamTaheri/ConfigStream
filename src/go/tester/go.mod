@@ -1,12 +1,12 @@
 module configstream-tester
 
-go 1.23
+go 1.23.1
 
-toolchain go1.23.4
+toolchain go1.24.3
 
 require (
+	github.com/gorilla/websocket v1.5.3
 	github.com/sagernet/sing-box v1.12.12
-	nhooyr.io/websocket v1.8.10
 )
 
 require (
@@ -19,8 +19,8 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/yamux v0.1.2 // indirect
+	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/libdns/alidns v1.0.5-libdns.v1.beta1 // indirect
 	github.com/libdns/cloudflare v0.2.2-0.20250708034226-c574dccb31a6 // indirect
