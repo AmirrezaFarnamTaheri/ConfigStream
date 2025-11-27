@@ -217,8 +217,17 @@ class GoBatchTester:
                                         p.tags.append("dirty_ip")
                         else:
                             p.is_working = False
-                            # Log first few errors for diagnostics
-                            if result_count <= 5:
+                            # DIAGNOSTIC: Log explicit failure reason if success rate is low
+                            if result_count <= 20 and working_count == 0:
+                                error_msg = res.get("error", "unknown error")
+                                # Filter out common noise
+                                if "timeout" not in error_msg.lower():
+                                    logger.warning(
+                                        f"Test failed for {p.protocol}://{p.address}:{p.port} -> {error_msg}"
+                                    )
+                                else:
+                                    logger.debug(f"Test timeout: {p.address}")
+                            elif result_count <= 5:
                                 logger.debug(
                                     f"Proxy test failed: {p.address}:{p.port} - {res.get('error', 'unknown')}"
                                 )

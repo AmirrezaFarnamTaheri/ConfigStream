@@ -25,13 +25,16 @@ def parse_ss(config: str) -> Optional[Proxy]:
         # The part before the @ is either plain text or base64 encoded
         if "@" in main_part:
             user_info, host_info = main_part.split("@", 1)
-            # Potentially base64 encoded user_info
-            try:
-                decoded_user_info = safe_b64_decode(user_info)
-                if ":" in decoded_user_info:
-                    user_info = decoded_user_info
-            except (binascii.Error, ValueError):
-                pass  # Not base64, proceed
+
+            # Optimization: If it contains ':', it's definitely not standard Base64
+            # (which uses +/ or -_). Treat as plain method:password to avoid log warning.
+            if ":" not in user_info:
+                try:
+                    decoded_user_info = safe_b64_decode(user_info)
+                    if ":" in decoded_user_info:
+                        user_info = decoded_user_info
+                except (binascii.Error, ValueError):
+                    pass  # Not base64, proceed
         else:
             # SIP002: ss://<base64-encoded-part>
             decoded_main = safe_b64_decode(main_part)
