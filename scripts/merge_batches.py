@@ -419,16 +419,30 @@ def merge_batches(
 
     # 8. batch_statistics.json
     print("\n=== Generating Batch Statistics ===")
-    batch_stats = defaultdict(lambda: {"total": 0, "working": 0, "protocols": defaultdict(int)})
+    batch_stats: defaultdict[str, dict[str, int]] = defaultdict(
+        lambda: {"total": 0, "working": 0}
+    )
+    protocols_stats: defaultdict[str, defaultdict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
     for proxy in ranked_proxies:
         batch_source = proxy.batch_source or "unknown"
         batch_stats[batch_source]["total"] += 1
         if proxy.is_working:
             batch_stats[batch_source]["working"] += 1
-        batch_stats[batch_source]["protocols"][proxy.protocol] += 1
+        protocols_stats[batch_source][proxy.protocol] += 1
+
+    final_batch_stats: dict[str, dict[str, object]] = {
+        k: {
+            "total": v["total"],
+            "working": v["working"],
+            "protocols": protocols_stats[k],
+        }
+        for k, v in batch_stats.items()
+    }
 
     with open(output_dir / "batch_statistics.json", "w") as f:
-        json.dump(batch_stats, f, indent=2)
+        json.dump(final_batch_stats, f, indent=2)
     print("✓ Generated batch_statistics.json")
 
     # --- Copy Wiki Documentation ---
