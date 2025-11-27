@@ -17,7 +17,17 @@ logger = logging.getLogger(__name__)
 
 # Static fallback if fetch fails
 DEFAULT_CLEAN_IPS = ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
-CLEAN_IP_SOURCE = "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/export/singbox/singbox.json"
+
+# Multiple fallback sources for Clean IP endpoints
+# Priority order: first working source wins
+CLEAN_IP_SOURCES = [
+    # Primary: ircfspace warpendpoint (new location)
+    "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/result/warp-ip.txt",
+    # Fallback 1: Cloudflare official ranges (general CDN IPs)
+    "https://www.cloudflare.com/ips-v4",
+    # Fallback 2: Alternative community-maintained list
+    "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist",
+]
 
 
 class ProxyWasher:
@@ -41,51 +51,61 @@ class ProxyWasher:
         self._seen_chains_lock = threading.Lock()
         self.clean_ips: List[str] = []
 
-    async def fetch_clean_ips(self):
-        """Fetches the latest clean IPs for WARP endpoints with retry logic."""
+    async def fetch_clean_ips(self) -> None:
+        """
+        Fetches the latest clean IPs for WARP endpoints with retry logic.
+        Tries multiple sources in priority order.
+        """
         import asyncio
 
-        max_retries = 3
-        backoff_factor = 2
-        base_delay = 1
+        for source_url in CLEAN_IP_SOURCES:
+            max_retries = 2
+            backoff_factor = 2
+            base_delay = 1
 
-        for attempt in range(max_retries):
-            try:
-                async with httpx.AsyncClient(timeout=5) as client:
-                    # Better source for raw IPs:
-                    # https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt
-                    resp = await client.get(
-                        "https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt"
-                    )
-                    if resp.status_code == 200:
-                        # Filter valid IPs
-                        lines = [
-                            line.strip()
-                            for line in resp.text.splitlines()
-                            if line.strip()
-                        ]
-                        # Basic validation (check if it looks like an IP)
-                        self.clean_ips = [ip for ip in lines if ip.count(".") == 3]
-                        logger.info(
-                            "Fetched %d clean IPs for Washing.", len(self.clean_ips)
-                        )
-                        return  # Success - exit retry loop
+            for attempt in range(max_retries):
+                try:
+                    async with httpx.AsyncClient(timeout=10) as client:
+                        resp = await client.get(source_url)
+                        if resp.status_code == 200:
+                            # Filter valid IPs (IPv4 only for now)
+                            lines = [
+                                line.strip()
+                                for line in resp.text.splitlines()
+                                if line.strip() and not line.startswith("#")
+                            ]
+                            # Basic validation: must look like IPv4
+                            valid_ips = [
+                                ip.split("/")[0]  # Handle CIDR notation
+                                for ip in lines
+                                if ip.count(".") == 3 and ip[0].isdigit()
+                            ]
+                            if valid_ips:
+                                self.clean_ips = valid_ips[:100]  # Limit pool size
+                                logger.info(
+                                    "Fetched %d clean IPs from %s",
+                                    len(self.clean_ips),
+                                    source_url.split("/")[2],  # Domain only
+                                )
+                                return  # Success - exit all loops
+                        else:
+                            logger.debug(
+                                f"Clean IPs fetch from {source_url} returned {resp.status_code}"
+                            )
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        delay = base_delay * (backoff_factor**attempt)
+                        await asyncio.sleep(delay)
                     else:
-                        logger.warning(
-                            f"Clean IPs fetch returned status {resp.status_code} (attempt {attempt + 1}/{max_retries})"
+                        logger.debug(
+                            f"Source {source_url} failed after {max_retries} attempts: {e}"
                         )
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    delay = base_delay * (backoff_factor**attempt)
-                    logger.warning(
-                        f"Failed to fetch clean IPs: {e}. Retrying in {delay}s (attempt {attempt + 1}/{max_retries})"
-                    )
-                    await asyncio.sleep(delay)
-                else:
-                    logger.error(
-                        f"Failed to fetch clean IPs after {max_retries} attempts: {e}. Using defaults."
-                    )
-                    self.clean_ips = []
+
+        # All sources failed - use defaults
+        logger.warning(
+            f"All Clean IP sources failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
+        )
+        self.clean_ips = DEFAULT_CLEAN_IPS.copy()
 
     def _get_clean_endpoint(self, relay_id: str) -> str:
         """Deterministically selects a clean IP based on proxy ID."""

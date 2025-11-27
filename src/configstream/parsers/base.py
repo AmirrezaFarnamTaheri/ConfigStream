@@ -136,6 +136,28 @@ def is_plausible_proxy_config(config: str) -> bool:
         # It's likely an OVPN file content, which is handled separately
         return True
 
+    # Filter subscription URLs (not proxy configs)
+    config_lower = config.lower()
+    if config_lower.startswith("https://") or config_lower.startswith("http://"):
+        # Blocked domains logic - these are typically subscription URLs
+        blocked_domains = [
+            "github.com",
+            "githubusercontent.com",
+            "gitlab.com",
+            "bitbucket.org",
+            "t.me",
+            "telegram",
+            "pastebin",
+            ".workers.dev",
+            "netlify",
+            "vercel",
+            "pages.dev",
+            "cloudflare.com",
+            "jsdelivr.net",
+        ]
+        if "@" not in config and any(d in config_lower for d in blocked_domains):
+            return False
+
     if "://" not in config:
         return False
     protocol, rest = config.split("://", 1)
