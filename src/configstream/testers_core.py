@@ -320,6 +320,9 @@ class SingBoxTester:
                         else:
                             proxy.is_working = False
                 else:
+                    logger.warning(
+                        "Skipping test: 'singbox2proxy' library not found. Install it or use the Go tester."
+                    )
                     proxy.is_working = False
             except Exception as e:
                 logger.warning(
