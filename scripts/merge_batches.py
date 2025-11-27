@@ -5,7 +5,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from dataclasses import asdict
-from typing import Dict, Optional
+from typing import Dict
 
 # Add src directory to path for imports
 root_dir = Path(__file__).parent.parent
@@ -320,9 +320,7 @@ def merge_batches(
     if assets_images.exists():
         try:
             generate_stego_assets(
-                config_dir=output_dir,
-                assets_dir=assets_images,
-                secret_key=dynamic_key
+                config_dir=output_dir, assets_dir=assets_images, secret_key=dynamic_key
             )
             print("✓ Generated stego assets (stealth_*.png)")
         except Exception as e:
