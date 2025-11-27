@@ -70,7 +70,32 @@ def validate_address(
 
     # DNS rebinding / localhost evasion protection
     # 1) Hex or octal IPv4 notations that can map to localhost or private ranges.
-    if address_lower.startswith("0x") or re.match(r"^0[0-7]{1,11}\.", address_lower):
+    if address_lower.startswith("0x"):
+        # Exclude valid domains that happen to start with 0x (like 0xerfan.github.io)
+        if "." in address_lower:
+            # This looks like a domain name, not hex IP
+            # Only flag if it looks like an actual hex IP address
+            parts = address_lower.split(".")
+            if not all(p.startswith("0x") or p.isdigit() for p in parts):
+                # It's a normal domain, not a hex-encoded IP - allow it
+                pass
+            else:
+                logger.warning(
+                    "Non-standard IP notation (possible DNS rebinding): %s", address
+                )
+                issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
+                    f"Non-standard notation: {address}"
+                )
+                return issues
+        else:
+            logger.warning(
+                "Non-standard IP notation (possible DNS rebinding): %s", address
+            )
+            issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
+                f"Non-standard notation: {address}"
+            )
+            return issues
+    elif re.match(r"^0[0-7]{1,11}\.", address_lower):
         logger.warning("Non-standard IP notation (possible DNS rebinding): %s", address)
         issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
             f"Non-standard notation: {address}"

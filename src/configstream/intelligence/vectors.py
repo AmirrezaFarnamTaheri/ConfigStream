@@ -26,9 +26,9 @@ def _compute_vector(proxy: Proxy) -> List[int]:
     2: Latency bucket (0=Fast, 1=Med, 2=Slow)
     3: Port bucket (hash mod 10)
     4: ISP/Org (hash mod 10)
-    5: Security Score (if available, else 0)
-    6: Stability Score (if available, else 0)
-    7: Reliability Score (if available, else 0)
+    5: Security Score (0-9 based on protocol and TLS)
+    6: Stability Score (default 5)
+    7: Reliability Score (default 5)
     """
 
     # 1. Protocol Hash (use SHA-256 for consistency, even though this is not security-critical)
@@ -53,7 +53,31 @@ def _compute_vector(proxy: Proxy) -> List[int]:
     # 5. ISP Hash
     h_isp = int(hashlib.sha256((proxy.org or "").encode()).hexdigest(), 16) % 10
 
-    return [h_proto, h_country, h_lat, h_port, h_isp, 0, 0, 0]
+    # 6. Security Score (0-9 based on protocol and TLS)
+    security = 0
+    if proxy.protocol in ("vless", "trojan"):
+        security += 3
+    if proxy.details and proxy.details.get("security") in ("tls", "reality"):
+        security += 4
+    if proxy.details and proxy.details.get("tls") == "tls":
+        security += 2
+    h_security = min(security, 9)
+
+    # 7-8. Stability and Reliability (default 5 - middle value)
+    # Future: integrate with proxy_history for real values
+    h_stability = 5
+    h_reliability = 5
+
+    return [
+        h_proto,
+        h_country,
+        h_lat,
+        h_port,
+        h_isp,
+        h_security,
+        h_stability,
+        h_reliability,
+    ]
 
 
 def generate_vectors(proxies: List[Proxy], output_dir: Path) -> None:
