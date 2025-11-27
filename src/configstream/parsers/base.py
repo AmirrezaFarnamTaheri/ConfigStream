@@ -5,7 +5,9 @@ Base parsing utilities and constants.
 import base64
 import binascii
 import logging
-from typing import Optional, List
+import time
+from collections import defaultdict
+from typing import Optional, List, Dict
 
 from ..constants import (
     MAX_B64_INPUT_SIZE,
@@ -17,6 +19,32 @@ from ..constants import (
 from ..models import Proxy
 
 logger = logging.getLogger(__name__)
+
+# Rate limit tracking for warnings
+_warning_counts: Dict[str, int] = defaultdict(int)
+_last_warning_reset = time.time()
+_WARNING_THRESHOLD = 10  # Max warnings per type before suppression
+_WARNING_RESET_INTERVAL = 60  # Reset counters every 60 seconds
+
+
+def _rate_limited_warning(msg_type: str, message: str):
+    """Log a warning with rate limiting to avoid log spam."""
+    global _last_warning_reset
+
+    # Reset counters periodically
+    now = time.time()
+    if now - _last_warning_reset > _WARNING_RESET_INTERVAL:
+        _warning_counts.clear()
+        _last_warning_reset = now
+
+    _warning_counts[msg_type] += 1
+    if _warning_counts[msg_type] <= _WARNING_THRESHOLD:
+        logger.warning(message)
+    elif _warning_counts[msg_type] == _WARNING_THRESHOLD + 1:
+        logger.warning(
+            f"{msg_type}: Further warnings suppressed (threshold: {_WARNING_THRESHOLD})"
+        )
+
 
 VALID_B64_CHARS = set(
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t"
@@ -89,7 +117,7 @@ def safe_b64_decode(data: str) -> str:
             logger.debug("Decoded data is not valid UTF-8, trying latin-1")
             return decoded_bytes.decode("latin-1")
     except (binascii.Error, ValueError) as exc:
-        logger.warning("Base64 decode failed: %s", exc)
+        _rate_limited_warning("base64_decode", f"Base64 decode failed: {exc}")
         return data
     except MemoryError:
         logger.error("Out of memory decoding base64")
@@ -136,7 +164,10 @@ def extract_config_lines(
 
     lines = payload.splitlines()
     if len(lines) > max_lines:
-        logger.warning("Payload has %s lines, truncating to %s", len(lines), max_lines)
+        logger.warning(
+            f"Payload has {len(lines)} lines, truncating to {max_lines}. "
+            f"Consider splitting this source or increasing MAX_LINES to avoid data loss."
+        )
         lines = lines[:max_lines]
 
     valid_prefixes = {p for p in VALID_PROTOCOLS if not p.endswith("://")}
