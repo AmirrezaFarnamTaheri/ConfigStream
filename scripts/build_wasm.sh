@@ -8,7 +8,26 @@ cd src/go/tester
 GOOS=js GOARCH=wasm go build -o ../../../frontend/assets/wasm/tester.wasm wasm_main.go
 
 # 2. Copy JS Glue Code (Required for Go WASM to run)
-# We assume 'go' is in path
-cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" ../../../frontend/assets/js/
+GOROOT=$(go env GOROOT)
+WASM_EXEC_PATH=""
+
+# Check possible locations
+if [ -f "$GOROOT/lib/wasm/wasm_exec.js" ]; then
+    WASM_EXEC_PATH="$GOROOT/lib/wasm/wasm_exec.js"
+elif [ -f "$GOROOT/misc/wasm/wasm_exec.js" ]; then
+    WASM_EXEC_PATH="$GOROOT/misc/wasm/wasm_exec.js"
+else
+    # Fallback search
+    echo "⚠️  wasm_exec.js not found in standard locations. Searching..."
+    WASM_EXEC_PATH=$(find "$GOROOT" -name wasm_exec.js | head -n 1)
+fi
+
+if [ -z "$WASM_EXEC_PATH" ]; then
+    echo "❌ Error: Could not find wasm_exec.js in GOROOT: $GOROOT"
+    exit 1
+fi
+
+echo "📋 Found wasm_exec.js at: $WASM_EXEC_PATH"
+cp "$WASM_EXEC_PATH" ../../../frontend/assets/js/
 
 echo "✅ WASM Build Complete."
