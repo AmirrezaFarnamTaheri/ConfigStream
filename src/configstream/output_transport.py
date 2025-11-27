@@ -17,6 +17,7 @@ from .models import Proxy
 from .serialize import serialize_proxy
 from .proxy_history import ProxyHistoryTracker
 from .utils import AtomicFileWriter
+from .constants import PROTOCOL_COLORS
 
 logger = logging.getLogger(__name__)
 
@@ -164,22 +165,7 @@ def save_metadata(
                 round(total_latency / latency_count, 2) if latency_count > 0 else 0
             ),
         },
-        "protocol_colors": {
-            "vmess": "#FF6B6B",
-            "vless": "#4ECDC4",
-            "shadowsocks": "#45B7D1",
-            "trojan": "#96CEB4",
-            "hysteria": "#FFEAA7",
-            "hysteria2": "#DFE6E9",
-            "tuic": "#A29BFE",
-            "wireguard": "#74B9FF",
-            "naive": "#FD79A8",
-            "http": "#FDCB6E",
-            "https": "#6C5CE7",
-            "socks": "#00B894",
-            "socks5": "#00B894",
-            "openvpn": "#E84393",
-        },
+        "protocol_colors": PROTOCOL_COLORS,
     }
 
     metadata_content = json.dumps(metadata, indent=2)

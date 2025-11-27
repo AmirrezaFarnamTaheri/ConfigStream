@@ -42,27 +42,50 @@ class ProxyWasher:
         self.clean_ips: List[str] = []
 
     async def fetch_clean_ips(self):
-        """Fetches the latest clean IPs for WARP endpoints."""
-        try:
-            async with httpx.AsyncClient(timeout=5) as client:
-                # Better source for raw IPs:
-                # https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt
-                resp = await client.get(
-                    "https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt"
-                )
-                if resp.status_code == 200:
-                    # Filter valid IPs
-                    lines = [
-                        line.strip() for line in resp.text.splitlines() if line.strip()
-                    ]
-                    # Basic validation (check if it looks like an IP)
-                    self.clean_ips = [ip for ip in lines if ip.count(".") == 3]
-                    logger.info(
-                        "Fetched %d clean IPs for Washing.", len(self.clean_ips)
+        """Fetches the latest clean IPs for WARP endpoints with retry logic."""
+        import asyncio
+
+        max_retries = 3
+        backoff_factor = 2
+        base_delay = 1
+
+        for attempt in range(max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=5) as client:
+                    # Better source for raw IPs:
+                    # https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt
+                    resp = await client.get(
+                        "https://raw.githubusercontent.com/ircfspace/endpoint/main/ipv4.txt"
                     )
-        except Exception as e:
-            logger.warning(f"Failed to fetch clean IPs: {e}. Using defaults.")
-            self.clean_ips = []
+                    if resp.status_code == 200:
+                        # Filter valid IPs
+                        lines = [
+                            line.strip()
+                            for line in resp.text.splitlines()
+                            if line.strip()
+                        ]
+                        # Basic validation (check if it looks like an IP)
+                        self.clean_ips = [ip for ip in lines if ip.count(".") == 3]
+                        logger.info(
+                            "Fetched %d clean IPs for Washing.", len(self.clean_ips)
+                        )
+                        return  # Success - exit retry loop
+                    else:
+                        logger.warning(
+                            f"Clean IPs fetch returned status {resp.status_code} (attempt {attempt + 1}/{max_retries})"
+                        )
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    delay = base_delay * (backoff_factor**attempt)
+                    logger.warning(
+                        f"Failed to fetch clean IPs: {e}. Retrying in {delay}s (attempt {attempt + 1}/{max_retries})"
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    logger.error(
+                        f"Failed to fetch clean IPs after {max_retries} attempts: {e}. Using defaults."
+                    )
+                    self.clean_ips = []
 
     def _get_clean_endpoint(self, relay_id: str) -> str:
         """Deterministically selects a clean IP based on proxy ID."""
