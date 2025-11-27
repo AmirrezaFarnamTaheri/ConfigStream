@@ -70,9 +70,25 @@ def validate_b64_input(data: str) -> Optional[str]:
         )
         return None
 
+    # Auto-fix URL-encoded base64 (e.g., %3D, %2F)
+    if "%" in trimmed:
+        try:
+            from urllib.parse import unquote
+
+            unquoted = unquote(trimmed)
+            # Only use unquoted version if it actually changed and looks valid
+            if unquoted != trimmed:
+                trimmed = unquoted
+        except Exception:
+            pass
+
     invalid_chars = set(trimmed) - VALID_B64_CHARS
     if invalid_chars:
-        logger.warning("Invalid base64 characters: %s", invalid_chars)
+        # Don't log warning if it's just a config line trying to be decoded as base64
+        if len(trimmed) < 1000:
+            logger.debug("Invalid base64 characters in short string: %s", invalid_chars)
+        else:
+            logger.warning("Invalid base64 characters: %s", invalid_chars)
         return None
 
     cleaned = "".join(c for c in trimmed if c not in " \n\r\t")

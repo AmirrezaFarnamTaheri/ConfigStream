@@ -82,8 +82,10 @@ async def fetch_from_source(
         effective_timeout = max(5, min(adaptive, base_timeout))
 
     # Divide budget across attempts, reserving 30% for backoff overhead
-    attempts = max(1, int(max_retries))
-    per_attempt_timeout = max(5, int((effective_timeout * 0.7) / attempts))
+    max(1, int(max_retries))
+    # Use the full effective timeout for each attempt to handle slow/large sources.
+    # We rely on the loop and total wall-clock time (implicit) to manage overall duration.
+    per_attempt_timeout = effective_timeout
 
     # 3. Pre-flight Checks (Rate Limit & Circuit Breaker)
     if rate_limiter:

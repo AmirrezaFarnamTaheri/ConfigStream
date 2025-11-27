@@ -10,6 +10,11 @@ import time
 nest_asyncio.apply()
 
 
+@pytest.fixture(scope="function", autouse=True)
+def apply_nest_asyncio():
+    nest_asyncio.apply()
+
+
 # Configure pytest-asyncio to handle event loops automatically
 # We rely on pytest-asyncio's default loop fixture, but we ensure nest_asyncio is applied.
 # nest_asyncio.apply() at module level (above) patches the asyncio module classes.
