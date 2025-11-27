@@ -28,7 +28,7 @@ jobs:
       - name: Checkout with PAT
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }} # Needed to trigger workflow_run
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }} # Needed to trigger workflow_run
           ref: main
           fetch-depth: 1
 
@@ -49,7 +49,7 @@ jobs:
           mkdir -p github_pages_root
 
           cp -v .nojekyll github_pages_root/.nojekyll || true
-          cp -v frontend/index.html frontend/proxies.html frontend/analytics.html frontend/service-worker.js github_pages_root/
+          cp -v frontend/index.html frontend/proxies.html frontend/analytics.html frontend/wiki.html frontend/about.html frontend/service-worker.js github_pages_root/
           cp -rv frontend/assets github_pages_root/assets
 
           # Use the output from the repository (already committed by pipeline)

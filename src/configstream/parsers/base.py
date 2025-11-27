@@ -19,7 +19,7 @@ from ..models import Proxy
 logger = logging.getLogger(__name__)
 
 VALID_B64_CHARS = set(
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=\n\r \t"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t"
 )
 
 
