@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2025-11-28
+
+### Critical Fixes (Pipeline Reliability)
+- **Base64 Validation**: Fixed strict validation that was rejecting URL-encoded characters (like `%2B`, `%2F`, `%3D`). Added automatic URL-decoding in `parsers/base.py` and `parsers/vmess.py`.
+- **Shadowsocks Parsing**: Fixed a major log spam issue where plaintext credentials were incorrectly being attempted as Base64, raising thousands of warnings.
+- **Tester Logging**: Implemented visibility for silent failures. Now logs specific error reasons (e.g., "I/O Timeout") when success rate is near zero, allowing for actual debugging.
+- **Environment Compatibility**: Disabled "TCP Brutal" and "Multiplexing" injection by default in `converters.py` to ensure compatibility with standard CI environments (GitHub Actions) and Docker containers lacking specific kernel modules.
+
+### Performance
+- **Pipeline Throughput**: Increased Go tester batch size from 50 to 500, resolving a massive serialization bottleneck that was starving the worker process.
+- **Fetcher Timeout**: Fixed aggressive timeout slicing. Fetcher now respects the full user-defined timeout per attempt instead of splitting it, preventing "Fetch Failed" on slow but valid sources.
+- **Concurrency Logic**: Adjusted `ConcurrencyManager` to stop treating expected dead proxies as "system errors," preventing unnecessary self-throttling.
+
+### Fixed
+- **Statistics**: Removed double-counting of working proxies in the pipeline execution report.
+
 ## [2.0.2] - 2025-11-27
 
 ### Added
