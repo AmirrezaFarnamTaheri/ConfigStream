@@ -14,7 +14,7 @@ import tempfile
 import atexit
 import threading
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 from contextlib import contextmanager
 
 import aiohttp
@@ -179,7 +179,7 @@ class GoBatchTester:
                     if "panic" in stderr_text.lower() or "fatal" in stderr_text.lower():
                         logger.error(f"Go Tester CRASHED: {stderr_text[:500]}")
                     else:
-                        logger.warning(f"Go Tester stderr: {stderr_text[:200]}")
+                        logger.warning(f"Go Tester stderr: {stderr_text[:500]}")
 
             # Check if we got any output at all
             if not stdout or not stdout.strip():
@@ -196,6 +196,7 @@ class GoBatchTester:
             # Count results for diagnostics
             result_count = 0
             working_count = 0
+            failure_reasons: Dict[str, int] = {}
 
             for line in stdout.decode().splitlines():
                 try:
@@ -217,11 +218,33 @@ class GoBatchTester:
                                         p.tags.append("dirty_ip")
                         else:
                             p.is_working = False
+                            error_msg = res.get("error", "unknown")
+
+                            # Categorize errors for better visibility
+                            if "HONEYPOT" in error_msg:
+                                error_cat = "HONEYPOT"
+                            elif "DIRTY_IP" in error_msg:
+                                error_cat = "DIRTY_IP"
+                            elif "PANIC" in error_msg:
+                                error_cat = "PANIC"
+                            elif "timeout" in error_msg.lower():
+                                error_cat = "TIMEOUT"
+                            elif (
+                                "bind" in error_msg.lower()
+                                and "in use" in error_msg.lower()
+                            ):
+                                error_cat = "BIND_ERROR"
+                            else:
+                                error_cat = "OTHER"
+
+                            failure_reasons[error_cat] = (
+                                failure_reasons.get(error_cat, 0) + 1
+                            )
+
                             # DIAGNOSTIC: Log explicit failure reason if success rate is low
                             if result_count <= 20 and working_count == 0:
-                                error_msg = res.get("error", "unknown error")
                                 # Filter out common noise
-                                if "timeout" not in error_msg.lower():
+                                if error_cat not in ["TIMEOUT"]:
                                     logger.warning(
                                         f"Test failed for {p.protocol}://{p.address}:{p.port} -> {error_msg}"
                                     )
@@ -235,9 +258,12 @@ class GoBatchTester:
                     continue
 
             # Log summary statistics
+            failure_summary = ", ".join(
+                [f"{k}: {v}" for k, v in failure_reasons.items()]
+            )
             logger.info(
                 f"Go Tester results: {working_count}/{result_count} working "
-                f"(sent {len(inputs)}, parsed {result_count})"
+                f"(sent {len(inputs)}, parsed {result_count}). Failures: {failure_summary}"
             )
 
             # Detect if Go tester is returning but all failing
@@ -245,7 +271,8 @@ class GoBatchTester:
                 logger.warning(
                     "Go Tester returned results but ALL tests failed. "
                     "Possible causes: network blocked, test URLs unreachable, "
-                    "or sing-box outbound config issues."
+                    "or sing-box outbound config issues. "
+                    f"Breakdown: {failure_summary}"
                 )
 
         except Exception as e:
