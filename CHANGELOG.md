@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.2] - 2025-11-27
+
+### Added
+- **WARP Key Validation System** - Comprehensive validation module for Cloudflare WARP credentials (Issue #22)
+  - Format validation for Curve25519 keys (base64, 32-byte length)
+  - Reserved bytes validation
+  - Account activation checking via Cloudflare API
+  - Endpoint reachability verification for known WARP ranges
+- **Statistics & Observability** (Issues #17-18, #20-21)
+  - `get_statistics()` method for AnomalyDetector monitoring
+  - Export statistics logging in SurgeAdapter
+  - `save_shard_metadata()` function for shard distribution tracking
+  - Sorting statistics with latency metrics in Pareto sorter
+- **Protocol Support** (Issue #26)
+  - VLESS and Hysteria2 support in Surge adapter
+- **Error Classification** (Issue #19)
+  - WASM tester now reports structured error types (timeout, connection refused, dial failed)
+
+### Fixed
+- **Configuration Consolidation** (Issue #29)
+  - Moved protocol colors to constants.py (18 protocols with aliases)
+  - Eliminated duplication between config.py and output_transport.py
+- **Reliability Improvements** (Issues #27-28)
+  - Added geopy import fallback with haversine distance calculation
+  - Added retry logic with exponential backoff (3 attempts, 2s/4s/8s delays) to `fetch_clean_ips()`
+
+### Changed
+- Increased MAX_LINES_PER_SOURCE from 10,000 to 40,000 for large proxy lists
+
 ## [2.0.1] - 2025-11-25
 
 ### Security
