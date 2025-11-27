@@ -484,7 +484,14 @@ function updateElement(selector, content, options = {}) {
       if (trustedHTML) {
         element.innerHTML = String(content);
       } else {
-        const sanitized = sanitizeHTML(String(content));
+        // Use DOMPurify if available, otherwise fall back to basic escaping
+        let sanitized;
+        if (window.DOMPurify) {
+            sanitized = window.DOMPurify.sanitize(String(content));
+        } else {
+            console.warn('[updateElement] DOMPurify not found, falling back to basic sanitization');
+            sanitized = sanitizeHTML(String(content));
+        }
         element.innerHTML = sanitized;
       }
     } else if (method === 'textContent') {

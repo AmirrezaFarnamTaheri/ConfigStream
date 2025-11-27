@@ -101,7 +101,7 @@ async function renderPage(filename) {
 
         // Parse Markdown
         const html = marked.parse(content);
-        const sanitized = DOMPurify.sanitize(html);
+        const sanitized = window.DOMPurify ? window.DOMPurify.sanitize(html) : html;
         container.innerHTML = sanitized;
 
         // Highlight code blocks if any

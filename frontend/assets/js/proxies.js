@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPage = Math.max(1, Math.min(currentPage, maxPage));
         const currentProxies = filteredProxies.slice((currentPage - 1) * proxiesPerPage, currentPage * proxiesPerPage);
 
-        tableBody.innerHTML = currentProxies.map((p, index) => {
+        const rowsHTML = currentProxies.map((p, index) => {
             const countryCode = (p.country_code && p.country_code !== 'XX') ? escapeHtml(p.country_code) : null;
             const country = countryCode || 'Unknown';
             const city = escapeHtml(p.city) || '';
@@ -227,6 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
+        // Sanitize the constructed table rows before inserting
+        if (window.DOMPurify) {
+             tableBody.innerHTML = window.DOMPurify.sanitize(rowsHTML, {
+                 ADD_TAGS: ['img', 'button', 'i', 'span', 'tr', 'td', 'div', 'svg', 'polyline'],
+                 ADD_ATTR: ['src', 'alt', 'class', 'data-label', 'data-config', 'data-feather', 'title', 'width', 'height', 'points', 'fill', 'stroke', 'stroke-width', 'style']
+             });
+        } else {
+             tableBody.innerHTML = rowsHTML; // Fallback (escapeHtml is used inside map)
+        }
+
         if (window.feather) window.feather.replace();
         renderPagination(filteredProxies.length);
     };
@@ -245,7 +255,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Next
         html += `<button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">&rsaquo;</button>`;
 
-        paginationContainer.innerHTML = html;
+        if (window.DOMPurify) {
+            paginationContainer.innerHTML = window.DOMPurify.sanitize(html);
+        } else {
+            paginationContainer.innerHTML = html;
+        }
     };
 
     // Global function for pagination clicks (dirty but simple for vanilla JS)

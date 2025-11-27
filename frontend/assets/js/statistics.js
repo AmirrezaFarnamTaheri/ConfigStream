@@ -226,7 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const flag = countryCode ? getCountryFlag(countryCode) : '🌍';
-            updateElement('#topRegion', `${flag} ${countryName}`, { method: 'innerHTML', trustedHTML: true });
+            // Remove trustedHTML: true because countryName might technically come from external data (though unlikely to be malicious, good practice)
+            updateElement('#topRegion', `${flag} ${countryName}`, { method: 'innerHTML' });
             updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
         }
 
