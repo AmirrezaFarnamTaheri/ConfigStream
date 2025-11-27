@@ -49,9 +49,31 @@ func testProxy(this js.Value, args []js.Value) interface{} {
 
 	conn, _, err := dialer.Dial(proxyUrl, http.Header{})
 	if err != nil {
+		// Classify error type for better debugging
+		errType := "UNKNOWN"
+		errMsg := err.Error()
+
+		// Check for common error patterns
+		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+			errType = "CONNECTION_CLOSED"
+		} else if websocket.IsUnexpectedCloseError(err) {
+			errType = "UNEXPECTED_CLOSE"
+		} else {
+			// String matching for other error types
+			switch {
+			case len(errMsg) > 0 && errMsg[0:7] == "timeout":
+				errType = "TIMEOUT"
+			case len(errMsg) > 0 && errMsg[0:10] == "connection":
+				errType = "CONNECTION_REFUSED"
+			default:
+				errType = "DIAL_FAILED"
+			}
+		}
+
 		return map[string]interface{}{
-			"alive": false,
-			"error": err.Error(),
+			"alive":     false,
+			"error":     errMsg,
+			"error_type": errType,
 		}
 	}
 	defer conn.Close()

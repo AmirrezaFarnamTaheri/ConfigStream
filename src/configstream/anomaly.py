@@ -11,7 +11,7 @@ import statistics
 import time
 import numpy as np
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Dict, Any
 from sklearn.ensemble import IsolationForest
 
 logger = logging.getLogger(__name__)
@@ -201,6 +201,38 @@ CREATE TABLE IF NOT EXISTS history (
                 conn.commit()
         except Exception as e:
             logger.warning(f"Failed to record anomaly stats: {e}")
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get anomaly detection statistics for monitoring."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                total_sources = conn.execute(
+                    "SELECT COUNT(DISTINCT url) FROM history"
+                ).fetchone()[0]
+                total_records = conn.execute("SELECT COUNT(*) FROM history").fetchone()[
+                    0
+                ]
+                recent_anomalies = conn.execute(
+                    "SELECT COUNT(*) FROM history WHERE timestamp > ?",
+                    (int(time.time()) - 86400,),
+                ).fetchone()[0]
+
+                stats = {
+                    "total_sources_tracked": total_sources,
+                    "total_history_records": total_records,
+                    "records_last_24h": recent_anomalies,
+                    "db_size_bytes": (
+                        self.db_path.stat().st_size if self.db_path.exists() else 0
+                    ),
+                }
+                logger.info(
+                    f"Anomaly stats: {total_sources} sources tracked, "
+                    f"{total_records} total records, {recent_anomalies} in last 24h"
+                )
+                return stats
+        except Exception as e:
+            logger.error(f"Failed to get anomaly stats: {e}")
+            return {}
 
     def merge_from(self, other_db_path: Path):
         """

@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass
 from typing import Optional
+from .constants import PROTOCOL_COLORS
 
 
 @dataclass
@@ -53,21 +54,8 @@ class AppSettings:
         "current_status": 10.0,
     }
 
-    # Protocol colors for UI
-    PROTOCOL_COLORS = {
-        "vmess": "#FF6B6B",
-        "vless": "#4ECDC4",
-        "shadowsocks": "#45B7D1",
-        "trojan": "#96CEB4",
-        "hysteria": "#FFEAA7",
-        "hysteria2": "#DFE6E9",
-        "tuic": "#A29BFE",
-        "wireguard": "#74B9FF",
-        "naive": "#FD79A8",
-        "http": "#FDCB6E",
-        "https": "#6C5CE7",
-        "socks": "#00B894",
-    }
+    # Protocol colors for UI (imported from constants)
+    PROTOCOL_COLORS = PROTOCOL_COLORS
 
     # Malicious node detection thresholds
     SECURITY = {

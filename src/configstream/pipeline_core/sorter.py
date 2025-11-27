@@ -1,6 +1,9 @@
 from typing import List
+import logging
 from ..models import Proxy
 from ..proxy_history import ProxyHistoryTracker
+
+logger = logging.getLogger(__name__)
 
 
 def sort_proxies_pareto(proxies: List[Proxy], history: ProxyHistoryTracker) -> None:
@@ -36,4 +39,19 @@ def sort_proxies_pareto(proxies: List[Proxy], history: ProxyHistoryTracker) -> N
         )
         return float(score)
 
-    proxies.sort(key=pareto_score)
+    # Calculate statistics before sorting
+    if proxies:
+        latencies = [p.latency for p in proxies if p.latency]
+        avg_latency = sum(latencies) / len(latencies) if latencies else 0
+        min_latency = min(latencies) if latencies else 0
+        max_latency = max(latencies) if latencies else 0
+
+        proxies.sort(key=pareto_score)
+
+        # Log sorting statistics
+        logger.info(
+            f"Sorted {len(proxies)} proxies using Pareto scoring "
+            f"(latency: avg={avg_latency:.1f}ms, min={min_latency:.1f}ms, max={max_latency:.1f}ms)"
+        )
+    else:
+        logger.warning("No proxies to sort")

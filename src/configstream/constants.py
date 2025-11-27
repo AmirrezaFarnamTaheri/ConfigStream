@@ -70,3 +70,25 @@ SECURITY_CATEGORIES = [
 # Selection criteria for "chosen" proxies
 CHOSEN_TOP_PER_PROTOCOL = 40  # Top N proxies per protocol
 CHOSEN_TOTAL_TARGET = 1000  # Total target for chosen list
+
+# Protocol colors for UI/frontend
+PROTOCOL_COLORS = {
+    "vmess": "#FF6B6B",
+    "vless": "#4ECDC4",
+    "shadowsocks": "#45B7D1",
+    "ss": "#45B7D1",  # Alias for shadowsocks
+    "trojan": "#96CEB4",
+    "hysteria": "#FFEAA7",
+    "hysteria2": "#DFE6E9",
+    "hy2": "#DFE6E9",  # Alias for hysteria2
+    "tuic": "#A29BFE",
+    "wireguard": "#74B9FF",
+    "wg": "#74B9FF",  # Alias for wireguard
+    "naive": "#FD79A8",
+    "http": "#FDCB6E",
+    "https": "#6C5CE7",
+    "socks": "#00B894",
+    "socks4": "#00B894",
+    "socks5": "#00B894",
+    "openvpn": "#E84393",
+}

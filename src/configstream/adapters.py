@@ -35,6 +35,9 @@ class SurgeAdapter(Adapter):
         washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
         lines = ["# Surge Policy Export"]
+        exported_count = 0
+        chain_count = 0
+        failed_count = 0
 
         # 1. Export Standard Proxies
         for p in proxies:
@@ -42,8 +45,10 @@ class SurgeAdapter(Adapter):
                 line = self._format_proxy(p)
                 if line:
                     lines.append(line)
+                    exported_count += 1
             except Exception as e:
                 logger.debug(f"Failed to export {p.protocol} to Surge: {e}")
+                failed_count += 1
 
         # 2. Export Washed Proxies (Converted from Sing-box Outbounds)
         if washed_outbounds:
@@ -61,9 +66,14 @@ class SurgeAdapter(Adapter):
                         )
                         if chain_line:
                             lines.append(chain_line)
+                            chain_count += 1
                 except Exception as e:
                     logger.debug(f"Failed to export chain to Surge: {e}")
+                    failed_count += 1
 
+        logger.info(
+            f"Surge export: {exported_count} proxies, {chain_count} chains, {failed_count} failed"
+        )
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
@@ -80,9 +90,18 @@ class SurgeAdapter(Adapter):
             uuid = p.uuid
             return f"{name} = vmess, {p.address}, {p.port}, username={uuid}"
 
+        elif p.protocol == "vless":
+            uuid = p.uuid
+            # Surge supports VLESS with similar syntax to VMess
+            return f"{name} = vless, {p.address}, {p.port}, username={uuid}"
+
         elif p.protocol == "trojan":
             password = p.uuid  # Trojan uses uuid field as password often in this model
             return f"{name} = trojan, {p.address}, {p.port}, password={password}"
+
+        elif p.protocol in ("hysteria2", "hy2"):
+            password = p.uuid or p.details.get("password", "")
+            return f"{name} = hysteria2, {p.address}, {p.port}, password={password}"
 
         elif p.protocol == "http":
             user = p.uuid

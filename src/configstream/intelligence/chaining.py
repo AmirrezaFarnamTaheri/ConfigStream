@@ -1,5 +1,42 @@
 from typing import List, Dict, Any
-from geopy.distance import geodesic  # type: ignore
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    from geopy.distance import geodesic  # type: ignore
+
+    GEOPY_AVAILABLE = True
+except ImportError:
+    logger.warning(
+        "geopy not installed - optimal relay selection disabled. Install with: pip install geopy"
+    )
+    GEOPY_AVAILABLE = False
+
+    # Fallback haversine distance calculation
+    def geodesic(coord1, coord2):
+        """Fallback distance calculation using haversine formula."""
+        import math
+
+        lat1, lon1 = coord1
+        lat2, lon2 = coord2
+        R = 6371  # Earth radius in km
+
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(math.radians(lat1))
+            * math.cos(math.radians(lat2))
+            * math.sin(dlon / 2) ** 2
+        )
+        c = 2 * math.asin(math.sqrt(a))
+
+        class Distance:
+            def __init__(self, km):
+                self.km = km
+
+        return Distance(R * c)
 
 
 # Minimal Proxy definition for typing
