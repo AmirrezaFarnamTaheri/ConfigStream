@@ -129,7 +129,8 @@ function enrichProxyList(data, { fallback = false } = {}) {
 
 async function fetchFallbackSnapshot() {
   // Fallback to static file if API fails
-  const fallbackUrl = `/files/proxies.json${getCacheBust()}`;
+  // On static hosting, proxies.json is at root
+  const fallbackUrl = `proxies.json${getCacheBust()}`;
   console.warn('⚠️ Falling back to tested proxy snapshot');
   const response = await fetchWithRetry(fallbackUrl, 2, 1500);
   const payload = await response.json();
@@ -222,8 +223,8 @@ async function fetchStatistics() {
     } catch (apiError) {
         console.warn('API fetch failed, trying static fallback for stats:', apiError);
         // Fallback to static file
-        // We use 'files/' path convention which works for both Server (mounted) and Static (if structured correctly)
-        url = `files/metadata.json${getCacheBust()}`;
+        // On static hosting, metadata.json is at root
+        url = `metadata.json${getCacheBust()}`;
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
         console.log('Fetched statistics data from static:', data);
