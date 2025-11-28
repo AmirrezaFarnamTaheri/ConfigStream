@@ -24,6 +24,7 @@ class Proxy(BaseModel):
     isp: str = ""
     org: str = ""
     latency: Optional[float] = None
+    fetch_latency: Optional[float] = None
     is_working: bool = False
     is_secure: bool = True
     tags: List[str] = Field(default_factory=list)
@@ -37,6 +38,7 @@ class Proxy(BaseModel):
     scores: Dict[str, float] = Field(default_factory=dict)
     resolved_ip: Optional[str] = None
     batch_source: Optional[str] = None
+    source_line: Optional[int] = None
 
     @property
     def latency_ms(self) -> Optional[float]:
