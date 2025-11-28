@@ -8,7 +8,8 @@ COPY src/go/tester/go.mod src/go/tester/go.sum ./
 RUN go mod download
 
 COPY src/go/tester/main.go .
-RUN go build -o tester main.go
+# [FIX] Added tags for uTLS, QUIC, WireGuard, etc.
+RUN go build -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o tester main.go
 
 # Stage 2: Python Runtime
 FROM python:3.12-slim

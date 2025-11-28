@@ -285,7 +285,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     if proxy.protocol == "vmess":
         # Validate required UUID
         if not proxy.uuid:
-            logger.debug(f"VMess proxy missing UUID: {proxy.address}:{proxy.port}")
+            # [FIX] Elevated to WARNING to surface data quality issues
+            logger.warning(
+                f"Dropping VMess proxy missing UUID: {proxy.address}:{proxy.port}"
+            )
             return None
         out = {
             "type": "vmess",
@@ -312,8 +315,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     elif proxy.protocol == "shadowsocks":
         # Validate required password
         if not proxy.details.get("password"):
-            logger.debug(
-                f"Shadowsocks proxy missing password: {proxy.address}:{proxy.port}"
+            # [FIX] Elevated to WARNING
+            logger.warning(
+                f"Dropping Shadowsocks proxy missing password: {proxy.address}:{proxy.port}"
             )
             return None
         out = {
@@ -389,7 +393,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "uuid": proxy.uuid,
             "password": str(proxy.details.get("password", "")),
-            "congestion_controller": str(
+            # [FIX] Changed 'congestion_controller' to 'congestion_control' for sing-box standard
+            "congestion_control": str(
                 proxy.details.get("congestion_controller", "bbr")
             ),
         }

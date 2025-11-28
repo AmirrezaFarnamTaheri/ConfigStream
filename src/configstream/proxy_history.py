@@ -46,8 +46,8 @@ class ProxyHistoryTracker:
         Args:
             proxy: Proxy with test results
         """
-        # Use config as unique identifier
-        proxy_id = proxy.config
+        # [FIX] Use stable ID instead of raw config to preserve history across minor changes
+        proxy_id = proxy.id
 
         if proxy_id not in self.history_data:
             self.history_data[proxy_id] = {
