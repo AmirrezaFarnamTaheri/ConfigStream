@@ -150,8 +150,24 @@ class GoBatchTester:
             return proxies
 
         try:
+            # Construct command with flags
+            cmd = [self.binary_path, "-workers", "50"]
+
+            # Pass timeout
+            # We want Go timeout to be slightly less than Python's TEST_TIMEOUT to ensure we get a result
+            # However, if Python timeout is 15s, we can pass 10s to Go.
+            # But here we are passing AppSettings.TEST_TIMEOUT which is now 15.
+            # If we pass 15s to Go, and Python waits for 300s (batch timeout), it's fine.
+            # The critical thing is that Go doesn't hang forever.
+            cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
+
+            # Pass URLs
+            if AppSettings.TEST_URLS:
+                urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
+                cmd.extend(["-urls", urls])
+
             proc = await asyncio.create_subprocess_exec(
-                self.binary_path,
+                *cmd,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
