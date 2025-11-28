@@ -5,6 +5,7 @@ Components for the streaming pipeline.
 
 import asyncio
 import logging
+import json
 from typing import List, Optional, Set, Dict, Union
 from dataclasses import dataclass
 
@@ -89,7 +90,7 @@ async def source_producer(
         if proxies:
             lines = [p.config for p in proxies if p.config]
             if lines:
-                await work_queue.put(("supplied-proxies", lines))
+                await work_queue.put(("supplied-proxies", lines, {}))
 
         # B. Handle File Sources
         # Treat only real filesystem paths as local files; skip proxy URIs.
@@ -114,7 +115,7 @@ async def source_producer(
             for fpath, content in file_results:
                 lines = _extract_config_lines(content)
                 if lines:
-                    await work_queue.put((fpath, lines))
+                    await work_queue.put((fpath, lines, {}))
                 if progress and task_fetch:
                     progress.advance(task_fetch)
 
@@ -137,7 +138,7 @@ async def source_producer(
                     "wireguard://",
                 )
             ):
-                await work_queue.put(("supplied-config", [s]))
+                await work_queue.put(("supplied-config", [s], {}))
             elif s.startswith("ssconf://"):
                 remote_urls.append(s.replace("ssconf://", "https://"))
 
@@ -187,7 +188,8 @@ async def source_producer(
                                         "fetch_success",
                                         f"Fetched {count} proxies from {source}",
                                     )
-                                await work_queue.put((source, lines))
+                                metadata = {"fetch_duration": res.response_time or 0.0}
+                                await work_queue.put((source, lines, metadata))
                         else:
                             logger.warning(f"⚠️ BLOCKING {source}: {reason}")
                             if event_stream:
@@ -247,9 +249,17 @@ async def processing_consumer(
             work_queue.task_done()
             break
 
-        source, raw_lines = item
+        # Unpack queue item: (source, raw_lines, metadata)
+        if len(item) == 3:
+            source, raw_lines, metadata = item
+        else:
+            source, raw_lines = item
+            metadata = {}
+
         stats.fetched_sources += 1
         stats.fetched_lines += len(raw_lines)
+
+        process_start_time = asyncio.get_running_loop().time()
 
         loop = asyncio.get_running_loop()
 
@@ -456,11 +466,58 @@ async def processing_consumer(
         fetched_count = len(parsed_batch)
         diversity_score = calculate_diversity_score(final_batch_for_this_source)
 
+        process_end_time = asyncio.get_running_loop().time()
+        total_duration = (process_end_time - process_start_time) * 1000  # ms
+        fetch_duration = (
+            metadata.get("fetch_duration") or 0.0
+        ) * 1000  # convert s to ms
+        full_duration_ms = total_duration + fetch_duration
+
+        # Aggregate Failure Modes and GeoIP
+        failure_modes: Dict[str, int] = {}
+        geoip_stats: Dict[str, int] = {}
+
+        for p in proxies_to_actually_test:
+            if not p.is_working:
+                error = p.details.get("error", "unknown")
+                # Simplify error message
+                if "timeout" in error.lower():
+                    error_key = "timeout"
+                elif "connection" in error.lower():
+                    error_key = "connection_error"
+                elif "dirty_ip" in error.lower() or "dirty ip" in error.lower():
+                    error_key = "dirty_ip"
+                elif "honeypot" in error.lower():
+                    error_key = "honeypot"
+                elif "handshake" in error.lower():
+                    error_key = "handshake_fail"
+                else:
+                    error_key = "other"
+
+                failure_modes[error_key] = failure_modes.get(error_key, 0) + 1
+
+        for p in final_batch_for_this_source:
+            if p.country_code:
+                geoip_stats[p.country_code] = geoip_stats.get(p.country_code, 0) + 1
+
         if not source.startswith("supplied-proxies") and not source.startswith(
             "sources/"
         ):
             quality_tracker.update(
                 source, fetched_count, working_count, diversity_score
+            )
+            # Record detailed run
+            quality_tracker.record_run(
+                source,
+                {
+                    "timestamp": int(process_end_time),
+                    "duration_ms": full_duration_ms,
+                    "fetched_count": fetched_count,
+                    "working_count": working_count,
+                    "geoip_json": json.dumps(geoip_stats),
+                    "failure_modes_json": json.dumps(failure_modes),
+                    "batch_source": "pipeline",
+                },
             )
 
         work_queue.task_done()

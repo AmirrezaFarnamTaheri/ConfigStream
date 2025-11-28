@@ -3445,3 +3445,151 @@ body:not(.dark) .mission-card {
         padding: calc(var(--space-unit) * 3);
     }
 }
+
+/* Language Dropdown Modern */
+.lang-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 16px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-weight: 600;
+}
+
+.lang-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--brand-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.lang-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+.lang-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    padding: 8px;
+    min-width: 150px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all var(--transition-fast);
+    z-index: 100;
+}
+
+.lang-dropdown:hover .lang-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.lang-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.lang-menu button:hover {
+    background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+    color: var(--brand-primary);
+}
+
+.lang-menu button.active {
+    background: var(--brand-gradient);
+    color: white;
+}
+
+/* BYOW Panel Modern */
+.byow-panel {
+    background: linear-gradient(135deg, rgba(94, 85, 241, 0.1), rgba(168, 85, 247, 0.1));
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 30%, transparent);
+    border-radius: var(--radius-lg);
+    padding: calc(var(--space-unit) * 3);
+    margin-bottom: calc(var(--space-unit) * 3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(var(--space-unit) * 2);
+    justify-content: space-between;
+}
+
+.byow-header h3 {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+    color: var(--brand-primary);
+}
+
+.byow-header .hint {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.byow-actions {
+    display: flex;
+    gap: var(--space-unit);
+    flex-grow: 1;
+    justify-content: flex-end;
+}
+
+.input-modern {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    transition: all var(--transition-fast);
+    min-width: 250px;
+}
+
+.input-modern:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+    outline: none;
+}
+
+.input-short {
+    min-width: 120px;
+    width: 150px;
+}
+
+@media (max-width: 768px) {
+    .byow-panel {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .byow-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    .input-modern, .input-short {
+        width: 100%;
+        min-width: 0;
+    }
+}

@@ -1,12 +1,9 @@
 """Comprehensive tests for proxy history tracker."""
 
-import pytest
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, MagicMock
 
 from configstream.proxy_history import ProxyHistoryTracker
-from configstream.models import Proxy
 from tests.unit.conftest_helper import create_test_proxy
 
 

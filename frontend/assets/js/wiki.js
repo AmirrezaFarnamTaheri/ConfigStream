@@ -68,8 +68,9 @@ async function renderPage(filename) {
     try {
         // Strategy:
         // 1. Try fetching from 'wiki/' relative path (Production, served from output/wiki)
-        // 2. Try fetching from raw GitHub (Fallback)
-        // 3. Try fetching from local docs folder (Local Dev)
+        // 2. Try fetching from './' relative path (If served from output/wiki/index.html)
+        // 3. Try fetching from raw GitHub (Fallback)
+        // 4. Try fetching from local docs folder (Local Dev)
 
         // Note: fetch will succeed even on 404, so we must check response.ok
 
@@ -78,6 +79,7 @@ async function renderPage(filename) {
 
         const strategies = [
             `wiki/${filename}`,
+            `${filename}`, // For /wiki/ context
             WIKI_BASE_URL + filename,
             `../docs/wiki/${filename}`
         ];
@@ -100,9 +102,15 @@ async function renderPage(filename) {
         }
 
         // Parse Markdown
-        const html = marked.parse(content);
-        const sanitized = window.DOMPurify ? window.DOMPurify.sanitize(html) : html;
-        container.innerHTML = sanitized;
+        // Check for marked library
+        if (typeof marked !== 'undefined') {
+            const html = marked.parse(content);
+            const sanitized = window.DOMPurify ? window.DOMPurify.sanitize(html) : html;
+            container.innerHTML = sanitized;
+        } else {
+            container.innerText = content; // Fallback text only
+            console.warn("marked library not loaded");
+        }
 
         // Highlight code blocks if any
         if (window.hljs) {
