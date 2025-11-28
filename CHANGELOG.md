@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.5] - 2025-11-29
+
+### Critical Fixes
+- **Go Tester Logic**: Fixed critical bug in `src/go/tester/main.go` where `UnmarshalJSONContext` was causing "missing inbound fields registry" error. Switched to `json.Unmarshal`.
+- **Go Tester Performance**: Reduced instance-per-test overhead by optimizing config template and implementing flags for timeout and URLs.
+- **Go Tester Rate Limiting**: Implemented random target selection in Go tester to prevent single-target rate limiting (Google 204).
+- **CI/CD Reliability**: Fixed checkout failure in GitHub Actions by adding proper token permissions.
+- **Infrastructure**: Added `setup_data` job to cache GeoIP databases, reducing redundant downloads and speeding up pipeline.
+- **Configuration**: Synced Python and Go timeouts to prevent false negatives (Python now waits 15s, Go times out at 10s).
+- **Testing**: Fixed `pytest-asyncio` version mismatch causing "RuntimeError: Runner is closed" in tests.
+
 ## [2.0.4] - 2025-11-29
 
 ### Critical Fixes (Go Tester & Pipeline Stability)
