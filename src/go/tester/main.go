@@ -86,12 +86,6 @@ func main() {
 	urls := flag.String("urls", "", "Comma-separated list of test URLs")
 	flag.Parse()
 
-	// [FIX] Force hard cap on workers regardless of flag to ensure stability
-	if *workers > 25 {
-		*workers = 25
-		fmt.Fprintf(os.Stderr, "WARN: Capping workers to %d for stability\n", *workers)
-	}
-
 	TestTimeout = *timeout
 
 	if *urls != "" {
@@ -228,8 +222,8 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 
 		// [CRITICAL FIX] Do NOT use net.Listen to check ports. It creates a race condition.
 		// Just pick a random port and let Sing-box try to bind it.
-		// Range: 20000 - 60000
-		port := 20000 + getRandomInt(40000)
+		// Range: 10000 - 60000 (Widen range to reduce collisions)
+		port := 10000 + getRandomInt(50000)
 
 		// [CRITICAL FIX] Changed inbound type from "mixed" to "socks" to avoid "missing endpoint registry"
 		// error in sing-box v1.12+. The tester only uses SOCKS5 anyway.
@@ -292,8 +286,8 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	}
 	defer instance.Close()
 
-	// [OPTIMIZATION] Reduced sleep time. Start() is usually synchronous enough.
-	time.Sleep(10 * time.Millisecond)
+	// [OPTIMIZATION] Increased sleep time to ensure SOCKS listener is ready
+	time.Sleep(50 * time.Millisecond)
 
 	// [CRITICAL] Ensure the transport forces resolution via the proxy if needed.
 	proxyURL, _ := url.Parse(fmt.Sprintf("socks5://127.0.0.1:%d", port))
@@ -304,6 +298,7 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 			Proxy: http.ProxyURL(proxyURL),
 			// [OPTIMIZATION] Disable keep-alives to prevent FD exhaustion on localhost
 			DisableKeepAlives: true,
+			MaxIdleConns:      -1, // Force disable pooling
 		},
 	}
 
