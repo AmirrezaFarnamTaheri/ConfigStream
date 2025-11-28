@@ -36,7 +36,7 @@ class TestProxyHistoryTracker:
 
         tracker.record_test_result(proxy)
 
-        history = tracker.get_proxy_history(proxy.config)
+        history = tracker.get_proxy_history(proxy.id)
         assert history is not None
         assert history["protocol"] == proxy.protocol
         assert history["address"] == proxy.address
@@ -61,7 +61,7 @@ class TestProxyHistoryTracker:
         proxy.latency = None
         tracker.record_test_result(proxy)
 
-        history = tracker.get_proxy_history(proxy.config)
+        history = tracker.get_proxy_history(proxy.id)
         assert len(history["entries"]) == 2
 
     def test_record_test_result_max_entries_limit(self):
@@ -74,7 +74,7 @@ class TestProxyHistoryTracker:
             proxy.latency = i * 10
             tracker.record_test_result(proxy)
 
-        history = tracker.get_proxy_history(proxy.config)
+        history = tracker.get_proxy_history(proxy.id)
         assert len(history["entries"]) == 5
         # Should keep the most recent entries
         assert history["entries"][-1]["latency"] == 90
@@ -90,7 +90,7 @@ class TestProxyHistoryTracker:
 
         # Load in new instance
         tracker2 = ProxyHistoryTracker(history_path=history_file)
-        history = tracker2.get_proxy_history(proxy.config)
+        history = tracker2.get_proxy_history(proxy.id)
         assert history is not None
 
     def test_get_proxy_history_nonexistent(self):
@@ -109,7 +109,7 @@ class TestProxyHistoryTracker:
             proxy.is_working = True
             tracker.record_test_result(proxy)
 
-        score = tracker.get_reliability_score(proxy.config)
+        score = tracker.get_reliability_score(proxy.id)
         assert isinstance(score, float)
         assert 0 <= score <= 1
 
@@ -132,7 +132,7 @@ class TestProxyHistoryTracker:
             proxy.latency = 100 + i * 10
             tracker.record_test_result(proxy)
 
-        trend = tracker.get_trend_data(proxy.config, points=5)
+        trend = tracker.get_trend_data(proxy.id, points=5)
         assert isinstance(trend, dict)
 
     def test_get_trend_data_nonexistent(self):
@@ -150,7 +150,7 @@ class TestProxyHistoryTracker:
             proxy.is_working = True
             tracker.record_test_result(proxy)
 
-        history = tracker.get_history(proxy.config)
+        history = tracker.get_history(proxy.id)
         assert isinstance(history, list)
 
     def test_get_summary_stats(self):
@@ -162,7 +162,7 @@ class TestProxyHistoryTracker:
             proxy.is_working = i % 2 == 0  # Alternating success/failure
             tracker.record_test_result(proxy)
 
-        stats = tracker.get_summary_stats(proxy.config)
+        stats = tracker.get_summary_stats(proxy.id)
         assert "total_tests" in stats
         assert stats["total_tests"] == 5
 
@@ -219,7 +219,8 @@ class TestProxyHistoryTracker:
 
         # Manually create old entry
         old_timestamp = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
-        tracker.history_data[proxy.config] = {
+        # Use proxy.id instead of config
+        tracker.history_data[proxy.id] = {
             "protocol": proxy.protocol,
             "address": proxy.address,
             "port": proxy.port,
@@ -235,7 +236,7 @@ class TestProxyHistoryTracker:
 
         removed = tracker.cleanup_old_data(days=30)
         assert removed == 1
-        assert proxy.config not in tracker.history_data
+        assert proxy.id not in tracker.history_data
 
     def test_cleanup_old_data_keeps_recent(self, tmp_path):
         """Test cleanup keeps proxies with recent data."""
@@ -247,7 +248,7 @@ class TestProxyHistoryTracker:
 
         # proxy1: Old data only
         old_timestamp = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
-        tracker.history_data[proxy1.config] = {
+        tracker.history_data[proxy1.id] = {
             "protocol": proxy1.protocol,
             "address": proxy1.address,
             "port": proxy1.port,
@@ -263,7 +264,7 @@ class TestProxyHistoryTracker:
 
         # proxy2: Recent data
         recent_timestamp = datetime.now(timezone.utc).isoformat()
-        tracker.history_data[proxy2.config] = {
+        tracker.history_data[proxy2.id] = {
             "protocol": proxy2.protocol,
             "address": proxy2.address,
             "port": proxy2.port,
@@ -279,8 +280,8 @@ class TestProxyHistoryTracker:
 
         removed = tracker.cleanup_old_data(days=30)
         assert removed >= 1  # At least proxy1 should be removed
-        assert proxy1.config not in tracker.history_data
-        assert proxy2.config in tracker.history_data
+        assert proxy1.id not in tracker.history_data
+        assert proxy2.id in tracker.history_data
 
     def test_cleanup_old_data_partial_removal(self, tmp_path):
         """Test cleanup removes old entries but keeps proxy if recent data exists."""
@@ -293,7 +294,7 @@ class TestProxyHistoryTracker:
         old_timestamp = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
         recent_timestamp = datetime.now(timezone.utc).isoformat()
 
-        tracker.history_data[proxy.config] = {
+        tracker.history_data[proxy.id] = {
             "protocol": proxy.protocol,
             "address": proxy.address,
             "port": proxy.port,
@@ -315,9 +316,9 @@ class TestProxyHistoryTracker:
 
         removed = tracker.cleanup_old_data(days=30)
         assert removed == 0  # Proxy not removed
-        assert proxy.config in tracker.history_data
+        assert proxy.id in tracker.history_data
         # But old entry should be filtered out
-        assert len(tracker.history_data[proxy.config]["entries"]) == 1
+        assert len(tracker.history_data[proxy.id]["entries"]) == 1
 
     def test_cleanup_old_data_saves_changes(self, tmp_path):
         """Test that cleanup saves changes if data was removed."""
@@ -328,7 +329,7 @@ class TestProxyHistoryTracker:
 
         # Create old entry
         old_timestamp = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
-        tracker.history_data[proxy.config] = {
+        tracker.history_data[proxy.id] = {
             "protocol": proxy.protocol,
             "address": proxy.address,
             "port": proxy.port,
@@ -346,7 +347,7 @@ class TestProxyHistoryTracker:
 
         # Load new tracker and verify changes were saved
         tracker2 = ProxyHistoryTracker(history_path=history_file)
-        assert proxy.config not in tracker2.history_data
+        assert proxy.id not in tracker2.history_data
 
     def test_cleanup_old_data_with_z_suffix(self, tmp_path):
         """Test cleanup handles timestamps with Z suffix."""
@@ -362,7 +363,7 @@ class TestProxyHistoryTracker:
             .replace("+00:00", "Z")
         )
 
-        tracker.history_data[proxy.config] = {
+        tracker.history_data[proxy.id] = {
             "protocol": proxy.protocol,
             "address": proxy.address,
             "port": proxy.port,
@@ -392,7 +393,7 @@ class TestProxyHistoryTracker:
 
         # Create old entry
         old_timestamp = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
-        tracker.history_data[proxy.config] = {
+        tracker.history_data[proxy.id] = {
             "protocol": proxy.protocol,
             "address": proxy.address,
             "port": proxy.port,
@@ -424,7 +425,7 @@ class TestEdgeCases:
 
         tracker.record_test_result(proxy)
 
-        history = tracker.get_proxy_history(proxy.config)
+        history = tracker.get_proxy_history(proxy.id)
         assert history["entries"][0]["latency"] is None
 
     def test_record_with_none_country(self):
@@ -435,7 +436,7 @@ class TestEdgeCases:
 
         tracker.record_test_result(proxy)
 
-        history = tracker.get_proxy_history(proxy.config)
+        history = tracker.get_proxy_history(proxy.id)
         assert history["entries"][0]["country"] is None
 
     def test_max_entries_zero(self):
@@ -447,7 +448,7 @@ class TestEdgeCases:
 
         # With max_entries=0, trimming happens after append
         # So there will still be entries (trimming logic keeps last N)
-        history = tracker.get_proxy_history(proxy.config)
+        history = tracker.get_proxy_history(proxy.id)
         # Just verify history exists, trimming behavior may vary
         assert history is not None
 
@@ -462,7 +463,7 @@ class TestEdgeCases:
         proxy.latency = 200
         tracker.record_test_result(proxy)
 
-        history = tracker.get_proxy_history(proxy.config)
+        history = tracker.get_proxy_history(proxy.id)
         assert len(history["entries"]) == 1
         assert history["entries"][0]["latency"] == 200
 
@@ -498,5 +499,5 @@ class TestEdgeCases:
         tracker.record_test_result(proxy2)
 
         assert len(tracker.history_data) == 2
-        assert tracker.get_proxy_history(proxy1.config) is not None
-        assert tracker.get_proxy_history(proxy2.config) is not None
+        assert tracker.get_proxy_history(proxy1.id) is not None
+        assert tracker.get_proxy_history(proxy2.id) is not None

@@ -21,4 +21,3 @@ https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/merged.txt
 https://raw.githubusercontent.com/ts-sf/fly/main/v2
 https://raw.githubusercontent.com/xhmotor/V2rayn/main/v2rayn
 https://raw.githubusercontent.com/zjfb/SubCrawler/main/sub/share/all
-https://cdn.jsdelivr.net/gh/cry0ice/genode@main/public/trojan.txt

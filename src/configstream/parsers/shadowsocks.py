@@ -60,6 +60,11 @@ def parse_ss(config: str) -> Optional[Proxy]:
         if not (1 <= port <= 65535) or not host:
             return None
 
+        # [FIX] Basic validation to reject garbage methods like "ss"
+        if method.lower() in ["ss", "shadowsocks", ""]:
+            logger.debug("Invalid Shadowsocks method detected: %s", method)
+            return None
+
         details.update({"method": method, "password": password})
 
         proxy = Proxy(
@@ -73,7 +78,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError, binascii.Error) as e:
-        logger.debug("Failed to parse Shadowsocks: %s", e)
+        # [FIX] Elevated to WARNING for visibility on bad sources
+        logger.warning(f"Failed to parse Shadowsocks config: {str(e)[:100]}")
         return None
 
 
