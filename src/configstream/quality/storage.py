@@ -24,6 +24,7 @@ class QualityStorage:
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA synchronous=NORMAL")
 
+                # Main stats table
                 conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS source_stats (
@@ -40,13 +41,32 @@ class QualityStorage:
                     """
                 )
 
-                # Migration check
+                # Migration check for trust_score
                 cursor = conn.execute("PRAGMA table_info(source_stats)")
                 columns = [info[1] for info in cursor.fetchall()]
                 if "trust_score" not in columns:
                     conn.execute(
                         "ALTER TABLE source_stats ADD COLUMN trust_score REAL DEFAULT 50.0"
                     )
+
+                # History table for detailed run tracing
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS source_runs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        url TEXT NOT NULL,
+                        timestamp INTEGER NOT NULL,
+                        duration_ms REAL DEFAULT 0.0,
+                        fetched_count INTEGER DEFAULT 0,
+                        working_count INTEGER DEFAULT 0,
+                        geoip_json TEXT DEFAULT '{}',
+                        failure_modes_json TEXT DEFAULT '{}',
+                        batch_source TEXT,
+                        FOREIGN KEY(url) REFERENCES source_stats(url)
+                    )
+                    """
+                )
+
                 conn.commit()
         except Exception as e:
             logger.error(f"Failed to init source quality DB: {e}")
@@ -79,15 +99,6 @@ class QualityStorage:
         """Insert or Update source stats."""
         try:
             with sqlite3.connect(self.db_path) as conn:
-                # Check if exists (handled by INSERT OR REPLACE or explicit check)
-                # We use explicit check to be safe with partial updates if needed,
-                # but here we usually update everything.
-                # However, logic in original code was: SELECT first, then UPDATE or INSERT.
-
-                # We can use INSERT OR REPLACE if we provide all columns, but we want to preserve 'status' if not provided
-                # Let's assume stats contains updated values for metrics.
-
-                # Check existence
                 exists = conn.execute(
                     "SELECT 1 FROM source_stats WHERE url = ?", (url,)
                 ).fetchone()
@@ -133,6 +144,31 @@ class QualityStorage:
         except Exception as e:
             logger.error(f"Failed to update stats for {url}: {e}")
 
+    def record_run(self, url: str, run_data: Dict[str, Any]):
+        """Record a single run detail."""
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                conn.execute(
+                    """
+                    INSERT INTO source_runs
+                    (url, timestamp, duration_ms, fetched_count, working_count, geoip_json, failure_modes_json, batch_source)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        url,
+                        run_data["timestamp"],
+                        run_data["duration_ms"],
+                        run_data["fetched_count"],
+                        run_data["working_count"],
+                        run_data.get("geoip_json", "{}"),
+                        run_data.get("failure_modes_json", "{}"),
+                        run_data.get("batch_source", None),
+                    ),
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to record run for {url}: {e}")
+
     def merge_from(self, other_db_path: Path):
         """Merge another DB into this one."""
         if not other_db_path.exists():
@@ -146,29 +182,63 @@ class QualityStorage:
                 src.execute("PRAGMA journal_mode=WAL")
                 dst.execute("PRAGMA journal_mode=WAL")
 
+                # Merge source_stats
                 rows = src.execute("SELECT * FROM source_stats").fetchall()
-                cursor = src.execute("SELECT * FROM source_stats LIMIT 1")
-                columns = [d[0] for d in cursor.description]
-                placeholders = ",".join(["?"] * len(columns))
+                if rows:
+                    cursor = src.execute("SELECT * FROM source_stats LIMIT 1")
+                    columns = [d[0] for d in cursor.description]
+                    placeholders = ",".join(["?"] * len(columns))
+                    url_idx = columns.index("url")
+                    last_checked_idx = (
+                        columns.index("last_checked")
+                        if "last_checked" in columns
+                        else -1
+                    )
 
-                for row in rows:
-                    data = dict(zip(columns, row))
-                    url = data["url"]
-                    last_checked = data.get("last_checked", 0)
-
-                    existing = dst.execute(
-                        "SELECT last_checked FROM source_stats WHERE url = ?", (url,)
-                    ).fetchone()
-
-                    if not existing:
-                        dst.execute(
-                            f"INSERT INTO source_stats VALUES ({placeholders})", row
+                    for row in rows:
+                        url = row[url_idx]
+                        last_checked = (
+                            row[last_checked_idx] if last_checked_idx >= 0 else 0
                         )
-                    elif existing[0] < last_checked:
-                        dst.execute("DELETE FROM source_stats WHERE url = ?", (url,))
-                        dst.execute(
-                            f"INSERT INTO source_stats VALUES ({placeholders})", row
-                        )
+
+                        existing = dst.execute(
+                            "SELECT last_checked FROM source_stats WHERE url = ?",
+                            (url,),
+                        ).fetchone()
+
+                        if not existing:
+                            dst.execute(
+                                f"INSERT INTO source_stats VALUES ({placeholders})", row
+                            )
+                        elif existing[0] < last_checked:
+                            dst.execute(
+                                "DELETE FROM source_stats WHERE url = ?", (url,)
+                            )
+                            dst.execute(
+                                f"INSERT INTO source_stats VALUES ({placeholders})", row
+                            )
+
+                # Merge source_runs
+                try:
+                    run_rows = src.execute("SELECT * FROM source_runs").fetchall()
+                    if run_rows:
+                        cursor = src.execute("SELECT * FROM source_runs LIMIT 1")
+                        columns = [d[0] for d in cursor.description]
+                        # Remove 'id' from columns/values since it's auto-increment
+                        cols_no_id = [c for c in columns if c != "id"]
+                        placeholders = ",".join(["?"] * len(cols_no_id))
+                        # Indices for data without ID
+                        indices = [i for i, c in enumerate(columns) if c != "id"]
+
+                        for row in run_rows:
+                            data = [row[i] for i in indices]
+                            dst.execute(
+                                f"INSERT INTO source_runs ({','.join(cols_no_id)}) VALUES ({placeholders})",
+                                data,
+                            )
+                except sqlite3.OperationalError:
+                    # source_runs might not exist in older DBs
+                    pass
 
                 dst.commit()
                 logger.info(f"Merged source stats from {other_db_path}")
