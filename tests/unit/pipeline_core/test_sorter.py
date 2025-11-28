@@ -3,7 +3,6 @@ Comprehensive tests for pipeline_core/sorter.py module.
 Tests the Pareto-based proxy sorting algorithm.
 """
 
-import pytest
 from unittest.mock import MagicMock
 from configstream.pipeline_core.sorter import sort_proxies_pareto
 from configstream.models import Proxy

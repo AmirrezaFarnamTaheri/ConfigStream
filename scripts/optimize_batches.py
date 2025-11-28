@@ -5,20 +5,21 @@ to ensure uniform execution time across parallel CI jobs.
 """
 
 import sqlite3
-import glob
-import os
 import statistics
 import logging
 from pathlib import Path
 from collections import defaultdict
 from typing import Dict, List, Tuple
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 DB_PATH = Path("data/source_quality.db")
 SOURCES_DIR = Path("sources")
 BATCH_COUNT = 10
+
 
 def get_source_durations(db_path: Path) -> Dict[str, float]:
     """
@@ -31,7 +32,9 @@ def get_source_durations(db_path: Path) -> Dict[str, float]:
     try:
         with sqlite3.connect(db_path) as conn:
             # Check if source_runs table exists
-            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='source_runs'")
+            cursor = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='source_runs'"
+            )
             if not cursor.fetchone():
                 return {}
 
@@ -52,6 +55,7 @@ def get_source_durations(db_path: Path) -> Dict[str, float]:
         logger.error(f"Error reading database: {e}")
         return {}
 
+
 def read_all_sources(sources_dir: Path) -> List[str]:
     """
     Read all sources from all batch files.
@@ -68,7 +72,10 @@ def read_all_sources(sources_dir: Path) -> List[str]:
             logger.error(f"Error reading {batch_file}: {e}")
     return list(all_sources)
 
-def distribute_sources(sources: List[str], durations: Dict[str, float], num_batches: int) -> Dict[int, List[str]]:
+
+def distribute_sources(
+    sources: List[str], durations: Dict[str, float], num_batches: int
+) -> Dict[int, List[str]]:
     """
     Distribute sources into batches using a greedy algorithm to balance total duration.
     """
@@ -92,7 +99,7 @@ def distribute_sources(sources: List[str], durations: Dict[str, float], num_batc
 
     for source, duration in weighted_sources:
         # Find batch with minimum current total duration
-        min_batch = min(batch_times, key=batch_times.get)
+        min_batch = min(batch_times, key=lambda k: batch_times[k])
         batches[min_batch].append((source, duration))
         batch_times[min_batch] += duration
 
@@ -104,9 +111,12 @@ def distribute_sources(sources: List[str], durations: Dict[str, float], num_batc
     for i in range(1, num_batches + 1):
         count = len(result.get(i, []))
         total_time = batch_times[i]
-        logger.info(f"  Batch {i}: {count} sources, ~{total_time/1000:.2f}s est. duration")
+        logger.info(
+            f"  Batch {i}: {count} sources, ~{total_time/1000:.2f}s est. duration"
+        )
 
     return result
+
 
 def write_batches(batches: Dict[int, List[str]], sources_dir: Path):
     """
@@ -125,6 +135,7 @@ def write_batches(batches: Dict[int, List[str]], sources_dir: Path):
         except Exception as e:
             logger.error(f"Failed to write {file_path}: {e}")
 
+
 def main():
     durations = get_source_durations(DB_PATH)
     all_sources = read_all_sources(SOURCES_DIR)
@@ -138,6 +149,7 @@ def main():
 
     batches = distribute_sources(all_sources, durations, BATCH_COUNT)
     write_batches(batches, SOURCES_DIR)
+
 
 if __name__ == "__main__":
     main()
