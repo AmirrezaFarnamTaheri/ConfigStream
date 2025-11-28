@@ -88,9 +88,13 @@ def validate_b64_input(data: str) -> Optional[str]:
     # Return None silently or with debug to avoid log spam.
     if invalid_chars:
         error_rate = len(invalid_chars) / len(trimmed)
-        if error_rate > 0.05: # >5% invalid chars -> definitely not base64 (probably HTML or text)
-             logger.debug("Skipping invalid base64 input (high noise ratio): %s", invalid_chars)
-             return None
+        if (
+            error_rate > 0.05
+        ):  # >5% invalid chars -> definitely not base64 (probably HTML or text)
+            logger.debug(
+                "Skipping invalid base64 input (high noise ratio): %s", invalid_chars
+            )
+            return None
 
         # Don't log warning if it's just a config line trying to be decoded as base64
         if len(trimmed) < 1000:
@@ -167,8 +171,8 @@ def is_plausible_proxy_config(config: str) -> bool:
         blocked_domains = [
             "github.com",
             "githubusercontent.com",
-            "githubrowcontent.com", # [ADDED]
-            "raw.githubusercontent.com", # [ADDED]
+            "githubrowcontent.com",  # [ADDED]
+            "raw.githubusercontent.com",  # [ADDED]
             "gitlab.com",
             "bitbucket.org",
             "t.me",
