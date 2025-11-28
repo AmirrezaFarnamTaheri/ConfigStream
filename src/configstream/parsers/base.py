@@ -179,17 +179,17 @@ def is_plausible_proxy_config(config: str) -> bool:
             "telegram",
             "pastebin",
             ".workers.dev",
-            "netlify.app",  # [UPDATED]
-            "vercel.app",  # [UPDATED]
+            "netlify.app", # [UPDATED]
+            "vercel.app", # [UPDATED]
             "pages.dev",
             "cloudflare.com",
             "jsdelivr.net",
-            "fastgit.org",  # [ADDED]
-            "herokuapp.com",  # [ADDED]
-            "render.com",  # [ADDED]
-            "onrender.com",  # [ADDED]
-            "hf.space",  # [ADDED]
-            "huggingface.co",  # [ADDED]
+            "fastgit.org", # [ADDED]
+            "herokuapp.com", # [ADDED]
+            "render.com", # [ADDED]
+            "onrender.com", # [ADDED]
+            "hf.space", # [ADDED]
+            "huggingface.co", # [ADDED]
         ]
         if "@" not in config and any(d in config_lower for d in blocked_domains):
             return False
