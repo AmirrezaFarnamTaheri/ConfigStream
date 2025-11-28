@@ -1,6 +1,4 @@
-import asyncio
 import pytest
-from pathlib import Path
 from configstream.pipeline import run_full_pipeline
 
 
@@ -44,7 +42,6 @@ async def test_anomaly_db_failure(tmp_path, monkeypatch, caplog):
     Scenario: Anomaly Detector DB raises exception.
     Expectation: Pipeline continues (fail open) or handles gracefully.
     """
-    import logging
 
     # Mock AnomalyDetector to fail on is_safe
     def fake_is_safe(self, source, count):

@@ -1,8 +1,6 @@
 """Comprehensive tests for steganography transport module."""
 
-import pytest
-from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch
 from cryptography.fernet import Fernet
 import zlib
 
