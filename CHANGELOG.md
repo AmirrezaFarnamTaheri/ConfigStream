@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.6] - 2025-11-29
 
 ### Critical Fixes (Architecture & Stability)
+- **Removed Artificial Throttling**: Removed hardcoded worker limits (capped at 25) in both `pipeline.py` and `src/go/tester/main.go`. The system now respects the user's `--max-workers` flag or adaptive calculation, allowing full utilization of capable hardware.
+- **Go Tester Stability**:
+    - Widen port range to `10000-60000` to reduce collisions.
+    - Increased startup stabilization delay (10ms -> 50ms).
+    - Added explicit `MaxIdleConns: -1` to disable connection pooling in the local tester, preventing file descriptor exhaustion.
+- **Security Logic Update**: Changed default behavior for Hysteria2 and TUIC protocols in `converters.py` from `insecure=True` to strict verification (`insecure=False`), unless explicitly requested by the proxy configuration.
+- **Blocklist Race Condition**: Fixed a race condition where the security blocklist update was fired in the background without waiting, potentially allowing early batches to bypass checks. Now awaits update completion.
+
+### Critical Fixes (Previous)
 - **Local Resource DOS Prevention**: Capped pipeline max workers at 25 and Go tester workers at 20 to prevent OS socket exhaustion and "bind: address already in use" crashes.
 - **Go Tester Race Condition**: Removed manual port binding/unbinding ("Port Dance") in `main.go` and implemented a jittered retry mechanism with random port selection (20000-60000) to resolve collision storms.
 - **Go Tester Resilience**: Implemented standard `json.Unmarshal` usage and explicit panic recovery to prevent worker crashes on malformed configs.
