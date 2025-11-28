@@ -2,7 +2,7 @@
 
 import pytest
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 class TestLazyLoading:
@@ -230,7 +230,6 @@ class TestImportPerformance:
                 del sys.modules[module]
 
         # Import configstream
-        import configstream
 
         # Verify heavy modules are not yet loaded (they're lazy)
         # Note: Some might be loaded by other imports, so we just check the mechanism exists
@@ -255,7 +254,6 @@ class TestEdgeCases:
 
     def test_lazy_load_handles_import_errors(self):
         """Test that lazy loading handles import errors gracefully."""
-        import configstream
 
         # If a module is missing or broken, accessing it should raise AttributeError or ImportError
         # This is more of a structural test
@@ -292,7 +290,6 @@ class TestPackageStructure:
     def test_configstream_is_package(self):
         """Test that configstream is a package."""
         import configstream
-        import os
 
         # Should have __path__ attribute for packages
         assert hasattr(configstream, "__path__") or hasattr(configstream, "__file__")

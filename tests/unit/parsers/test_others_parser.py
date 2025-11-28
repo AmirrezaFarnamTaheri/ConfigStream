@@ -2,8 +2,6 @@
 Unit tests for other parsers (Hysteria, TUIC, etc).
 """
 
-import pytest
-from configstream.models import Proxy
 from configstream.parsers.others import (
     _parse_url_scheme,
     parse_hysteria,
@@ -13,8 +11,6 @@ from configstream.parsers.others import (
     parse_juicity,
     parse_ssh,
     parse_xray,
-    parse_snell,
-    parse_brook,
 )
 
 

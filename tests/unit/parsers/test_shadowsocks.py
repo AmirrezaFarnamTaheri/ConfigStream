@@ -1,6 +1,5 @@
 """Comprehensive tests for Shadowsocks parser."""
 
-import pytest
 import base64
 from configstream.parsers.shadowsocks import parse_ss, parse_ss2022
 

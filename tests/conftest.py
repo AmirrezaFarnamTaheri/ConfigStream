@@ -5,19 +5,25 @@ import http.server
 import socketserver
 import os
 import time
+import asyncio
 
 # Apply nest_asyncio to allow nested event loops (critical for testing async code that runs other async code)
 nest_asyncio.apply()
 
 
 @pytest.fixture(scope="function", autouse=True)
-def apply_nest_asyncio():
+def apply_nest_asyncio_fixture():
     nest_asyncio.apply()
 
 
-# Configure pytest-asyncio to handle event loops automatically
-# We rely on pytest-asyncio's default loop fixture, but we ensure nest_asyncio is applied.
-# nest_asyncio.apply() at module level (above) patches the asyncio module classes.
+@pytest.fixture(scope="function")
+def event_loop():
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    nest_asyncio.apply(loop)
+    yield loop
+    loop.close()
 
 
 # Playwright browser launch args for containerized/CI environments

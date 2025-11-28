@@ -3,10 +3,7 @@ Comprehensive tests for event_stream.py module.
 Tests the EventStream class for real-time event emission.
 """
 
-import pytest
-import logging
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from configstream.event_stream import EventStream
 
 
