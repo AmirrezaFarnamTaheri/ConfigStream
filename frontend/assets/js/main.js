@@ -196,17 +196,18 @@ function initCopyButtons() {
             textToCopy = decodeURIComponent(config);
         } else if (file) {
             // Hard mapping for GitHub Pages static hosting
+            // Assuming output/ is the site root
             const FILE_MAP = {
-                'subscribe/singbox': 'output/singbox.json',
-                'subscribe/singbox-vpn': 'output/singbox-vpn.json',
-                'subscribe/clash': 'output/clash.yaml',
-                'subscribe/base64': 'output/base64.txt',
-                'subscribe/shadowrocket': 'output/shadowrocket.txt',
-                'subscribe/surge': 'output/surge.conf',
-                'subscribe/loon': 'output/loon.conf',
-                'subscribe/quantumultx': 'output/quanx.conf',
-                'subscribe/sip008': 'output/sip008.json',
-                'files/chosen/base64.txt': 'output/chosen/base64.txt' // Correct path per diagnosis
+                'subscribe/singbox': 'singbox.json',
+                'subscribe/singbox-vpn': 'singbox-vpn.json',
+                'subscribe/clash': 'clash.yaml',
+                'subscribe/base64': 'base64.txt',
+                'subscribe/shadowrocket': 'shadowrocket.txt',
+                'subscribe/surge': 'surge.conf',
+                'subscribe/loon': 'loon.conf',
+                'subscribe/quantumultx': 'quantumult.conf',
+                'subscribe/sip008': 'sip008.json',
+                'files/chosen/base64.txt': 'chosen/base64.txt'
             };
 
             // Handle "files/" paths which might be legacy or direct

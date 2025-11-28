@@ -78,13 +78,27 @@
               <span class="header-logo-text">ConfigStream</span>
             </div>
             <nav class="nav" id="main-nav" aria-label="Main navigation">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="proxies.html" class="nav-link">Proxy List</a>
-                <a href="analytics.html" class="nav-link">Analytics</a>
-                <a href="wiki.html" class="nav-link">Wiki</a>
-                <a href="about.html" class="nav-link">About</a>
+                <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+                <a href="proxies.html" class="nav-link" data-i18n="nav.proxies">Proxy List</a>
+                <a href="analytics.html" class="nav-link" data-i18n="nav.analytics">Analytics</a>
+                <a href="wiki.html" class="nav-link" data-i18n="nav.wiki">Wiki</a>
+                <a href="about.html" class="nav-link" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
+                <!-- Modern Language Dropdown -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
+                    </button>
+                    <div class="lang-menu" id="lang-menu">
+                        <button onclick="window.i18n.setLanguage('en')">English</button>
+                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
+                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
+                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
+                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
+                    </div>
+                </div>
+
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
                         <i data-feather="moon" class="moon-icon"></i>
@@ -106,21 +120,23 @@
         <div class="container">
             <section id="proxies-card" class="card">
                 <div class="card-header">
-                    <h2>Live Proxy List</h2>
+                    <h2 data-i18n="nav.proxies">Live Proxy List</h2>
                     <p>Explore our complete list of vetted proxies. Search, sort, and find the perfect connection for your needs.</p>
                 </div>
 
-                <!-- BYOW Section -->
-                <div class="byow-container" style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
-                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                        <label for="worker-url" style="white-space: nowrap;">🚀 Turbo Mode (BYOW):</label>
-                        <input type="text" id="worker-url" placeholder="Paste your Cloudflare Worker URL here..." class="input-dark" style="flex: 1; min-width: 200px;">
-                        <input type="text" id="worker-uuid" placeholder="Optional: UUID (if required)" class="input-dark" style="width: 200px;">
-                        <button id="apply-byow" onclick="applyBYOW()" class="btn btn-primary">Apply</button>
+                <!-- Modern BYOW Panel -->
+                <div class="byow-panel">
+                    <div class="byow-header">
+                        <h3 data-i18n="byow.title">🚀 Turbo Mode (BYOW)</h3>
+                        <p class="hint" data-i18n="byow.hint">Deploy your own worker for private speeds.</p>
                     </div>
-                    <p class="hint" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Deploy your own worker for private, unblockable speeds.</p>
-                    <div id="byow-links" style="display:none; margin-top: 1rem;">
-                        <a id="btn-singbox-byow" class="btn btn-success">Download Turbo Config</a>
+                    <div class="byow-actions">
+                        <input type="text" id="worker-url" data-i18n="byow.url.placeholder" placeholder="Paste Worker URL..." class="input-modern">
+                        <input type="text" id="worker-uuid" data-i18n="byow.uuid.placeholder" placeholder="UUID (Optional)" class="input-modern input-short">
+                        <button id="apply-byow" onclick="applyBYOW()" class="btn btn-primary" data-i18n="byow.apply">Apply</button>
+                    </div>
+                    <div id="byow-links" style="width: 100%; text-align: right; display:none; margin-top: 10px;">
+                        <a id="btn-singbox-byow" class="btn btn-success" data-i18n="byow.download">Download Turbo Config</a>
                     </div>
                 </div>
 
@@ -129,7 +145,7 @@
                     <div class="filter-bar" style="margin-bottom: 1rem;">
                         <div class="filter-input-wrapper" style="width: 100%;">
                             <i data-feather="search" class="filter-icon"></i>
-                            <input type="text" id="searchInput" placeholder="e.g., fastest US vmess, or Germany < 100ms" aria-label="Search proxies">
+                            <input type="text" id="searchInput" data-i18n="filters.search" placeholder="e.g., fastest US vmess, or Germany < 100ms" aria-label="Search proxies">
                         </div>
                     </div>
 
@@ -138,7 +154,7 @@
                             <div class="filter-input-wrapper">
                                 <i data-feather="list" class="filter-icon"></i>
                                 <select id="filterProtocol" aria-label="Filter by protocol">
-                                    <option value="">All Protocols</option>
+                                    <option value="" data-i18n="filters.protocol">All Protocols</option>
                                 </select>
                             </div>
                             <div class="filter-input-wrapper">
@@ -147,7 +163,7 @@
                                     <i data-feather="globe" class="country-flag-icon-small"></i>
                                 </span>
                                 <select id="filterCountry" aria-label="Filter by country">
-                                    <option value="">All Countries</option>
+                                    <option value="" data-i18n="filters.country">All Countries</option>
                                 </select>
                             </div>
                             <div class="filter-input-wrapper">
@@ -156,7 +172,7 @@
                                     <i data-feather="globe" class="country-flag-icon-small"></i>
                                 </span>
                                 <select id="filterCity" aria-label="Filter by city">
-                                    <option value="">All Cities</option>
+                                    <option value="" data-i18n="filters.city">All Cities</option>
                                 </select>
                             </div>
                         </div>
@@ -176,15 +192,15 @@
                         <div class="action-group">
                             <button id="copyAll" class="btn btn-secondary">
                                 <i data-feather="copy"></i>
-                                <span>Copy All</span>
+                                <span data-i18n="filters.copy_all">Copy All</span>
                             </button>
                             <button id="copyFiltered" class="btn btn-secondary">
                                 <i data-feather="copy"></i>
-                                <span>Copy Filtered</span>
+                                <span data-i18n="filters.copy_filtered">Copy Filtered</span>
                             </button>
                             <button id="downloadFiltered" class="btn btn-primary">
                                 <i data-feather="download"></i>
-                                <span>Download Filtered</span>
+                                <span data-i18n="filters.download_filtered">Download Filtered</span>
                             </button>
                         </div>
                         <div class="pagination-info">
@@ -212,17 +228,17 @@
                         <div class="empty-state-icon">
                             <i data-feather="frown"></i>
                         </div>
-                        <h3>No Matches Found</h3>
-                        <p>Your search for proxies didn't return any results. Please try adjusting your filters.</p>
+                        <h3 data-i18n="filters.empty_title">No Matches Found</h3>
+                        <p data-i18n="filters.empty_text">Your search for proxies didn't return any results. Please try adjusting your filters.</p>
                     </div>
                     <table id="proxiesTable" class="proxies-table hidden" aria-live="polite">
                         <thead>
                             <tr>
-                                <th class="sortable" data-sort="protocol" aria-sort="none">Protocol <i data-feather="chevron-down"></i></th>
-                                <th class="sortable" data-sort="location" aria-sort="none">Location <i data-feather="chevron-down"></i></th>
-                                <th class="sortable" data-sort="latency" aria-sort="ascending">Latency <i data-feather="chevron-down"></i></th>
-                                <th class="sortable" data-sort="status" aria-sort="none">Status <i data-feather="chevron-down"></i></th>
-                                <th>Copy Link</th>
+                                <th class="sortable" data-sort="protocol" aria-sort="none"><span data-i18n="table.protocol">Protocol</span> <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="location" aria-sort="none"><span data-i18n="table.location">Location</span> <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="latency" aria-sort="ascending"><span data-i18n="table.latency">Latency</span> <i data-feather="chevron-down"></i></th>
+                                <th class="sortable" data-sort="status" aria-sort="none"><span data-i18n="table.status">Status</span> <i data-feather="chevron-down"></i></th>
+                                <th data-i18n="table.copy">Copy Link</th>
                             </tr>
                         </thead>
                         <tbody id="proxiesTableBody"></tbody>
@@ -239,7 +255,7 @@
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" rel="noopener noreferrer" aria-label="Visit our GitHub page"><i data-feather="github"></i></a>
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
             </div>
-            <p>A passion project for a free and open internet. ✨</p>
+            <p data-i18n="footer.love">A passion project for a free and open internet. ✨</p>
             <p class="last-updated">Last updated: <span id="footerUpdate" class="loading">checking...</span></p>
         </div>
     </footer>
@@ -256,6 +272,7 @@
     <script src="assets/js/cache-config.js" defer></script>
 
     <!-- Then load other scripts -->
+    <script src="assets/js/i18n.js" defer></script>
     <script src="assets/js/error-handler.js" defer></script>
     <script src="assets/js/state-manager.js" defer></script>
     <script src="assets/js/utils.js" defer></script>
@@ -279,12 +296,25 @@
 
     <div class="wasm-control" style="position: fixed; bottom: 20px; right: 20px; z-index: 1000; background: var(--bg-card); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
         <button id="btn-verify-local" class="btn btn-outline-success" onclick="runLocalVerification()">
-            <i data-feather="cpu"></i> Turbo-Verify (Local)
+            <i data-feather="cpu"></i> <span data-i18n="verify.local">Turbo-Verify (Local)</span>
         </button>
-        <span id="wasm-status" class="text-muted text-sm" style="display: block; margin-top: 5px; font-size: 0.8rem;">Ready to verify via WASM</span>
+        <span id="wasm-status" class="text-muted text-sm" style="display: block; margin-top: 5px; font-size: 0.8rem;" data-i18n="verify.status">Ready to verify via WASM</span>
     </div>
     <script src="assets/js/byow.js" defer></script>
     <script src="assets/js/main.js" defer></script>
     <script src="assets/js/proxies.js" defer></script>
+    <script>
+        // Language sync
+        if (window.i18n) {
+            window.addEventListener('languageChanged', (e) => {
+                 const label = document.getElementById('current-lang-label');
+                 if(label) label.textContent = e.detail.lang.toUpperCase();
+            });
+            document.addEventListener('DOMContentLoaded', () => {
+                 const label = document.getElementById('current-lang-label');
+                 if(label) label.textContent = window.i18n.currentLang.toUpperCase();
+            });
+        }
+    </script>
 </body>
 </html>

@@ -389,6 +389,7 @@ def merge_batches(
 
     stats = {
         # Fields for main page stats card (all ranked proxies)
+        "total_fetched": total_processed,
         "total_tested": len(ranked_proxies),
         "total_working": working_proxies,
         # Fields for analytics page charts
@@ -473,10 +474,26 @@ def merge_batches(
             dest_file = wiki_dest / md_file.name
             dest_file.write_text(md_file.read_text())
         print(f"✓ Copied {len(list(wiki_src.glob('*.md')))} wiki pages to output/wiki/")
+
+        # Create wiki/index.html from frontend/wiki.html for /wiki support
+        if (root_dir / "frontend/wiki.html").exists():
+            (wiki_dest / "index.html").write_text(
+                (root_dir / "frontend/wiki.html").read_text()
+            )
+            print("✓ Created output/wiki/index.html")
     else:
         print(
             "⚠️ Warning: docs/wiki directory not found. Wiki pages will not be deployed."
         )
+
+    # Create about/index.html for clean URL support
+    about_dest = output_dir / "about"
+    about_dest.mkdir(exist_ok=True)
+    if (root_dir / "frontend/about.html").exists():
+        (about_dest / "index.html").write_text(
+            (root_dir / "frontend/about.html").read_text()
+        )
+        print("✓ Created output/about/index.html")
 
     print(f"\n{'=' * 60}")
     print(f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies")
