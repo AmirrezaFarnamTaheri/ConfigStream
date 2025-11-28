@@ -21,4 +21,3 @@ https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/sub/sub.txt
 https://raw.githubusercontent.com/tjyu010/jiedian/main/21
 https://raw.githubusercontent.com/webdao/v2ray/master/nodes.txt
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/speednodes.yaml
-http://subxfxssr.xfxvpn.me/api/v1/client/subscribe?token=87f969d8db0c6686c5755b68a4bb44d0

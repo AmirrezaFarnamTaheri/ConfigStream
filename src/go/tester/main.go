@@ -251,6 +251,10 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 		}
 		instance, err := box.New(boxOpts)
 		if err != nil {
+			// [FIX] Abort immediately on configuration/parse errors (e.g., missing uTLS)
+			if strings.Contains(err.Error(), "parse outbound") || strings.Contains(err.Error(), "unknown field") {
+				return nil, 0, err
+			}
 			lastErr = err
 			fmt.Fprintf(os.Stderr, "WARN: box.New failed (attempt %d): %v\n", i+1, err)
 			time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
@@ -260,6 +264,10 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 		err = instance.Start()
 		if err != nil {
 			instance.Close()
+			// [FIX] Abort if error indicates a fatal config issue not caught by New
+			if strings.Contains(err.Error(), "not included in this build") {
+				return nil, 0, err
+			}
 			lastErr = err
 			fmt.Fprintf(os.Stderr, "WARN: instance.Start failed (attempt %d): %v\n", i+1, err)
 			// Backoff slightly on bind errors

@@ -1,6 +1,3 @@
-http://subxfxssr.xfxvpn.me/api/v1/client/subscribe?token=87f969d8db0c6686c5755b68a4bb44d0
-https://cdn.jsdelivr.net/gh/cry0ice/genode@main/public/trojan.txt
-https://freessrnode.github.io/uploads/2024/08/4-20240822.txt
 https://github.com/ebrasha/free-v2ray-public-list/raw/main/all_extracted_configs.txt
 https://raw.githubusercontent.com/245237866/v2rayn/main/everydaynode
 https://raw.githubusercontent.com/Danialsamadi/v2go/main/All_Configs_Sub.txt
