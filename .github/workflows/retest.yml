@@ -16,6 +16,9 @@ jobs:
       PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -40,9 +43,12 @@ jobs:
           pip install jsonschema || true
           jsonschema -i output/proxies.json schema/proxy.schema.json || echo "::warning ::schema validation failed"
       - name: Pull latest changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY
           git checkout main
           git pull --rebase --autostash origin main
       - name: Commit updated outputs

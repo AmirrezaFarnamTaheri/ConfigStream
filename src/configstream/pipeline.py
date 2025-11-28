@@ -19,7 +19,6 @@ from .testers import SingBoxTester
 from .test_cache import TestResultCache
 from .scheduler import SmartRetestScheduler
 from .concurrency_manager import ConcurrencyManager
-from .adaptive_workers import calculate_optimal_workers
 from .adaptive_timeout import AdaptiveTimeout
 from .geoip import GeoIPResolver
 from .source_quality import SourceQualityTracker
@@ -66,8 +65,10 @@ async def run_full_pipeline(
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    if max_workers <= 0:
-        max_workers = calculate_optimal_workers()
+    # [FIX] Cap max_workers globally to protect local network stack
+    if max_workers <= 0 or max_workers > 25:
+        max_workers = 25
+        logger.info(f"Auto-capped max_workers to {max_workers} for system stability")
 
     # Initialize Intelligence Stack
     timeout_tracker = AdaptiveTimeout()

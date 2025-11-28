@@ -21,7 +21,7 @@ class TestParsers:
         assert proxy.remarks == "Example"
 
     def test_parse_vless_reality(self):
-        config = "vless://uuid@example.com:443?security=reality&sni=example.com&fp=chrome&pbk=publickey&sid=shortid&type=tcp&flow=xtls-rprx-vision#Reality"
+        config = "vless://uuid@example.com:443?security=reality&sni=example.com&fp=chrome&pbk=publickey&sid=1234abcd&type=tcp&flow=xtls-rprx-vision#Reality"
         proxy = _parse_vless(config)
         assert proxy is not None
         assert proxy.protocol == "vless"

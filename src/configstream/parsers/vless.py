@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
@@ -9,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 def parse_vless(config: str) -> Optional[Proxy]:
     try:
+        # [FIX] Aggressive pre-cleaning
+        config = config.strip()
         parsed = urlparse(config)
         if not parsed.hostname or len(parsed.hostname) > 255:
             return None
@@ -19,16 +22,37 @@ def parse_vless(config: str) -> Optional[Proxy]:
         if not uuid or len(uuid) > 100:
             return None
 
-        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+        # [FIX] Aggressive sanitization
+        raw_details = parse_qs(parsed.query)
+        details = {}
+        for k, v in raw_details.items():
+            # Strip whitespace and non-printable chars from keys and values
+            clean_key = k.strip()
+            # Values are lists in parse_qs
+            clean_val = "".join(c for c in v[0] if c.isprintable()).strip()
+            details[clean_key] = clean_val
 
         # REALITY Verification
         if details.get("security") == "reality":
             if not details.get("pbk"):
-                logger.debug("VLESS Reality missing 'pbk'")
+                # logger.debug("VLESS Reality missing 'pbk'")
                 return None
-            if not details.get("sid"):
-                logger.debug("VLESS Reality missing 'sid'")
+
+            sid = details.get("sid", "")
+            # [FIX] Validate HEX for sid
+            try:
+                if sid:
+                    int(sid, 16)
+                    # Remove any non-hex characters just in case, though int() check handles validity
+                    sid = re.sub(r"[^0-9a-fA-F]", "", sid)
+                    details["sid"] = sid
+            except ValueError:
+                logger.debug(f"Invalid non-hex SID: {sid}")
                 return None
+
+            if not sid and not details.get("sid"):
+                # if sid was invalid or empty originally
+                pass
 
         proxy = Proxy(
             config=config,

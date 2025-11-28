@@ -4,6 +4,7 @@ Moved here to avoid circular imports between output.py and washer.py.
 """
 
 import logging
+import hashlib
 from typing import Any, Dict, Optional
 from .models import Proxy
 
@@ -226,14 +227,38 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             out["transport"] = transport
 
         # TLS
-        if details.get("tls") == "tls" or details.get("security") in ["tls", "reality"]:
+        security = details.get("security", "")
+        # [FIX] Added logic for Trojan TLS enforcement
+        if (
+            details.get("tls") == "tls"
+            or security in ["tls", "reality"]
+            or "password" in out
+        ):  # Trojan often implies TLS
+            # Actually "password" check is too broad, Trojan check is better handled outside or explicitly
+            pass
+
+        # Re-evaluating condition to match patch logic more closely
+        if (
+            details.get("tls") == "tls"
+            or security in ["tls", "reality"]
+            or out.get("type") == "trojan"
+        ):
             tls: Dict[str, Any] = {"enabled": True}
             if "sni" in details:
                 tls["server_name"] = str(details["sni"])
-            if "fp" in details:
-                tls["utls"] = {"enabled": True, "fingerprint": str(details["fp"])}
+
+            # [FIX] Logic to ensure uTLS is present for Reality
+            fp = details.get("fp")
+            if not fp and security == "reality":
+                fp = "chrome"  # Default for Reality
+
+            if fp:
+                tls["utls"] = {"enabled": True, "fingerprint": str(fp)}
 
             # Map insecure flags (CRITICAL FIX)
+            # [FIX] Force insecure=True for testing stability on free proxies if needed,
+            # but keeping strict check unless explicitly insecure for general cases,
+            # except Hysteria/TUIC which are handled separately.
             if (
                 details.get("allowInsecure")
                 or details.get("insecure")
@@ -242,7 +267,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 tls["insecure"] = True
                 logger.debug(f"Enabled insecure TLS for {base.get('server')}")
 
-            if details.get("security") == "reality":
+            if security == "reality":
                 tls["reality"] = {
                     "enabled": True,
                     "public_key": str(details.get("pbk")),
@@ -341,6 +366,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             logger.debug(f"Trojan proxy missing password: {proxy.address}:{proxy.port}")
             return None
         out = {"type": "trojan", **base, "password": proxy.uuid}
+        # [FIX] Trojan requires TLS. Force it if not present.
+        proxy.details["tls"] = "tls"
+        _add_transport_sb(out, proxy.details)
 
     elif proxy.protocol == "http":
         out = {
@@ -349,6 +377,34 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "username": proxy.uuid if proxy.uuid else "",
             "password": str(proxy.details.get("password", "")),
             "tls": {"enabled": proxy.details.get("tls") == "tls"},
+        }
+
+    # [FIX] Missing Protocols Implementation
+    elif proxy.protocol == "ssh":
+        out = {
+            "type": "ssh",
+            **base,
+            "user": proxy.uuid or "root",
+            "password": str(proxy.details.get("password", "")),
+        }
+        if "private_key" in proxy.details:
+            out["private_key"] = str(proxy.details["private_key"])
+        if "host_key" in proxy.details:
+            out["host_key"] = str(proxy.details["host_key"])
+
+    elif proxy.protocol == "hysteria":
+        # Map Hysteria v1
+        out = {
+            "type": "hysteria",
+            **base,
+            "auth_str": str(proxy.details.get("auth_str", "")),
+            "up_mbps": 100,
+            "down_mbps": 100,
+        }
+        out["tls"] = {
+            "enabled": True,
+            "server_name": str(proxy.details.get("sni", "")),
+            "insecure": True,
         }
     elif proxy.protocol == "socks5":
         # Sing-box expects type "socks" for SOCKS5 outbounds.
@@ -359,10 +415,17 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "wireguard":
+        # [FIX] Generate unique local IP to allow concurrent testing
+        # Simple hash of address+port to 3rd octet: 172.16.{0-255}.2
+        # Using hashlib to be deterministic for same proxy but random-ish across different ones
+        h = hashlib.md5(f"{proxy.address}:{proxy.port}".encode()).digest()
+        octet = h[0]
+        unique_ip = f"172.16.{octet}.2/32"
+
         out = {
             "type": "wireguard",
             **base,
-            "local_address": [str(proxy.details.get("local_address", "10.10.0.2/32"))],
+            "local_address": [unique_ip],
             "private_key": str(proxy.details.get("private_key")),
             "peer_public_key": str(proxy.details.get("peer_public_key", "")),
         }
@@ -374,10 +437,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
+        # [FIX] Default insecure to True for Hysteria2 to improve test yield
+        is_insecure = True  # Defaulting to True as requested
+        if "allowInsecure" in proxy.details:
+            is_insecure = bool(proxy.details["allowInsecure"])
+
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni", "")),
-            "insecure": bool(proxy.details.get("allowInsecure", False)),
+            "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }
         if proxy.details.get("obfs-type") == "salamander":
@@ -398,9 +466,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 proxy.details.get("congestion_controller", "bbr")
             ),
         }
+        # [FIX] Default insecure to True for TUIC
+        is_insecure = True
+        if "allowInsecure" in proxy.details:
+            is_insecure = bool(proxy.details["allowInsecure"])
+
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni", "")),
+            "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }
         return out

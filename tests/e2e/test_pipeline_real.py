@@ -17,7 +17,7 @@ async def test_full_pipeline_with_local_source(tmp_path, monkeypatch):
     src_file = tmp_path / "source.txt"
     src_file.write_text(
         "vless://11111111-1111-1111-1111-111111111111@1.1.1.1:443"
-        "?security=reality&pbk=pubkey&sid=shortid#Test-Source\n",
+        "?security=reality&pbk=pubkey&sid=1234abcd#Test-Source\n",
         encoding="utf-8",
     )
 
