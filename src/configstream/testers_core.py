@@ -235,6 +235,7 @@ class GoBatchTester:
                         else:
                             p.is_working = False
                             error_msg = res.get("error", "unknown")
+                            p.details["error"] = error_msg
 
                             # Categorize errors for better visibility
                             if "HONEYPOT" in error_msg:
@@ -367,8 +368,9 @@ class SingBoxTester:
                         await self._run_security_checks(session, proxy)
                 else:
                     proxy.is_working = False
-        except Exception:
+        except Exception as e:
             proxy.is_working = False
+            proxy.details["error"] = str(e)
         self._finalize_result(proxy)
         return proxy
 
@@ -438,6 +440,7 @@ class SingBoxTester:
                     f"Exception during proxy test for {proxy.address}:{proxy.port}: {e}"
                 )
                 proxy.is_working = False
+                proxy.details["error"] = str(e)
             finally:
                 if sb_instance:
                     try:

@@ -4,6 +4,7 @@ Refactored to use submodules.
 """
 
 import logging
+from typing import Dict, Any
 from pathlib import Path
 from datetime import datetime, timedelta
 
@@ -99,6 +100,12 @@ class SourceQualityTracker:
         }
 
         self.storage.upsert_stats(url, stats)
+
+    def record_run(self, url: str, run_data: Dict[str, Any]):
+        """
+        Record detailed run metadata for historical analysis.
+        """
+        self.storage.record_run(url, run_data)
 
     def get_source_score(self, url: str) -> float:
         """Get the current trust score for a source."""
