@@ -77,7 +77,14 @@ def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
 
         console.print(f"[bold green]🚀 Retesting proxies from {input}...[/bold green]")
         content = await read_file_async(input_path)
-        proxies = [Proxy.model_validate(p) for p in content]
+        import json
+
+        try:
+            data = json.loads(content)
+            proxies = [Proxy.model_validate(p) for p in data]
+        except json.JSONDecodeError:
+            console.print(f"[red]Error: Invalid JSON in {input}[/red]")
+            sys.exit(1)
         console.print(f"Loaded {len(proxies)} proxies for retesting.")
 
         with Progress(

@@ -48,10 +48,15 @@ async function applyBYOW() {
         "server": cleanUrl.split('/')[0], // Extract host
         "server_port": 443,
         "uuid": workerUuid,
-        "tls": { "enabled": true },
+        "tls": {
+            "enabled": true,
+            "server_name": cleanUrl.split('/')[0],
+            "utls": { "enabled": true, "fingerprint": "chrome" } // [FIX] Enforce uTLS
+        },
         "transport": {
             "type": "ws",
-            "path": "/?ed=2048"
+            "path": "/?ed=2048",
+            "headers": { "Host": cleanUrl.split('/')[0] } // [FIX] Ensure Host header
         }
     };
 
