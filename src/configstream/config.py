@@ -21,8 +21,8 @@ class AppSettings:
     }
 
     TEST_TIMEOUT = int(
-        os.getenv("TEST_TIMEOUT", "6")
-    )  # Reduced from 10 to 6 for faster testing
+        os.getenv("TEST_TIMEOUT", "15")
+    )  # Increased to 15s to ensure Go tester (10s timeout) has enough time
     FETCH_TIMEOUT = int(
         os.getenv("FETCH_TIMEOUT", "15")
     )  # Timeout for fetching remote sources
