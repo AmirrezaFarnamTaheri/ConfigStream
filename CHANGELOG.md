@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.4] - 2025-11-29
+
+### Critical Fixes (Go Tester & Pipeline Stability)
+- **Go Import Registry**: Fixed a fatal error (`missing inbound fields registry`) where the Sing-box core library was not registering protocol modules. Added side-effect import `_ "github.com/sagernet/sing-box/include"` to `src/go/tester/main.go` to ensure VLESS, VMess, and other protocols are recognized.
+- **Panic Recovery**: Implemented robust panic recovery in the Go tester's worker threads. Previously, a single malformed config could crash a worker silently; now, panics are caught, logged, and the worker survives.
+- **Port Race Condition**: Fixed a TOCTOU (Time-of-Check to Time-of-Use) race condition in port binding by increasing retries and optimizing the bind-close-bind sequence in the Go tester.
+- **Input Buffer Limit**: Switched from `bufio.Scanner` to `json.Decoder` in the Go tester to bypass the 64KB token limit, preventing silent drops of large proxy configurations.
+
+### Logic Improvements
+- **Shadowsocks Plugins**: Updated `src/configstream/converters.py` to correctly map `plugin` and `plugin_opts` fields. Obfuscated Shadowsocks proxies (obfs-local, v2ray-plugin) are no longer stripped to raw TCP.
+- **TLS Insecure Mode**: Added mapping for `allowInsecure`, `insecure`, and `skip_cert_verify` flags in `converters.py`, preventing false negatives for proxies with self-signed certificates.
+
+### Observability
+- **Detailed Failure Logging**: Enhanced `src/configstream/testers_core.py` to categorize and log specific failure reasons (Panic, Honeypot, Dirty IP, Timeout, Bind Error) instead of generic error messages.
+
 ## [2.0.3] - 2025-11-28
 
 ### Critical Fixes (Pipeline Reliability)
@@ -48,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added retry logic with exponential backoff (3 attempts, 2s/4s/8s delays) to `fetch_clean_ips()`
 
 ### Changed
-- Increased MAX_LINES_PER_SOURCE from 10,000 to 40,000 for large proxy lists
+- **Increased MAX_LINES_PER_SOURCE** from 10,000 to 40,000 for large proxy lists
 
 ## [2.0.1] - 2025-11-25
 
