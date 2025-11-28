@@ -258,8 +258,8 @@ class GoBatchTester:
                             )
 
                             # DIAGNOSTIC: Log explicit failure reason if success rate is low
-                            if result_count <= 20 and working_count == 0:
-                                # Filter out common noise
+                            # For better transparency as requested, log all non-trivial failures until we see some success
+                            if working_count == 0 and result_count <= 50:
                                 if error_cat not in ["TIMEOUT"]:
                                     logger.warning(
                                         f"Test failed for {p.protocol}://{p.address}:{p.port} -> {error_msg}"
@@ -284,7 +284,7 @@ class GoBatchTester:
 
             # Detect if Go tester is returning but all failing
             if result_count > 0 and working_count == 0:
-                logger.warning(
+                logger.error(
                     "Go Tester returned results but ALL tests failed. "
                     "Possible causes: network blocked, test URLs unreachable, "
                     "or sing-box outbound config issues. "
