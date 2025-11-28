@@ -1,5 +1,3 @@
-import asyncio
-from pathlib import Path
 import pytest
 from configstream.pipeline import run_full_pipeline
 

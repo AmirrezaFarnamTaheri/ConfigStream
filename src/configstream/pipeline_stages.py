@@ -468,12 +468,14 @@ async def processing_consumer(
 
         process_end_time = asyncio.get_running_loop().time()
         total_duration = (process_end_time - process_start_time) * 1000  # ms
-        fetch_duration = (metadata.get("fetch_duration") or 0.0) * 1000  # convert s to ms
+        fetch_duration = (
+            metadata.get("fetch_duration") or 0.0
+        ) * 1000  # convert s to ms
         full_duration_ms = total_duration + fetch_duration
 
         # Aggregate Failure Modes and GeoIP
-        failure_modes = {}
-        geoip_stats = {}
+        failure_modes: Dict[str, int] = {}
+        geoip_stats: Dict[str, int] = {}
 
         for p in proxies_to_actually_test:
             if not p.is_working:

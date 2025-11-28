@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ConfigStream Wiki - Documentation and Guides">
     <title>ConfigStream Wiki - Documentation</title>
-    <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
-    <link rel="alternate icon" href="assets/images/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32x32.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
+    <link rel="icon" type="image/svg+xml" href="../assets/svg/favicon.svg">
+    <link rel="alternate icon" href="../assets/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="../assets/images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/images/apple-touch-icon.png">
 
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/state-manager.css">
-    <link rel="stylesheet" href="assets/css/error-handler.css">
-    <link rel="stylesheet" href="assets/css/loading.css">
-    <link rel="stylesheet" href="assets/css/header-animation.css">
-    <link rel="stylesheet" href="assets/css/logo-animations.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/state-manager.css">
+    <link rel="stylesheet" href="../assets/css/error-handler.css">
+    <link rel="stylesheet" href="../assets/css/loading.css">
+    <link rel="stylesheet" href="../assets/css/header-animation.css">
+    <link rel="stylesheet" href="../assets/css/logo-animations.css">
 
     <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -235,7 +235,7 @@
     <div id="loading-screen" class="loading-screen" role="status" aria-live="polite">
       <div class="loading-container">
         <div class="loader-logo">
-          <object data="assets/svg/logo-loading.svg" type="image/svg+xml" aria-label="ConfigStream Logo"></object>
+          <object data="../assets/svg/logo-loading.svg" type="image/svg+xml" aria-label="ConfigStream Logo"></object>
         </div>
         <div class="loading-message">
           <p class="loading-text">Loading Documentation...</p>
@@ -332,14 +332,18 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="assets/js/cache-config.js" defer></script>
-    <script src="assets/js/i18n.js" defer></script>
-    <script src="assets/js/error-handler.js" defer></script>
-    <script src="assets/js/state-manager.js" defer></script>
-    <script src="assets/js/utils.js" defer></script>
-    <script src="assets/js/loading-controller.js" defer></script>
-    <script src="assets/js/wiki.js" defer></script>
-    <script src="assets/js/inline-icons.js"></script>
+    <script>
+        // Set root path for scripts
+        window.ROOT_PATH = '../';
+    </script>
+    <script src="../assets/js/cache-config.js" defer></script>
+    <script src="../assets/js/i18n.js" defer></script>
+    <script src="../assets/js/error-handler.js" defer></script>
+    <script src="../assets/js/state-manager.js" defer></script>
+    <script src="../assets/js/utils.js" defer></script>
+    <script src="../assets/js/loading-controller.js" defer></script>
+    <script src="../assets/js/wiki.js" defer></script>
+    <script src="../assets/js/inline-icons.js"></script>
     <script>
         // Init Feather Icons if inline-icons.js doesn't catch it or if we need it immediately
         // Actually inline-icons.js handles replacement.

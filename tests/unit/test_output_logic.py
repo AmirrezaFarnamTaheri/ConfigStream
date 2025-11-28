@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from configstream.models import Proxy
 from configstream.output_logic import generate_split_outputs
 from configstream.intelligence.washer import ProxyWasher, generate_smart_chains
