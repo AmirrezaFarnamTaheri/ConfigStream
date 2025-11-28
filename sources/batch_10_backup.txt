@@ -21,4 +21,3 @@ https://raw.githubusercontent.com/shirkerboy/scp/main/sub
 https://raw.githubusercontent.com/vpei/free-node-1/main/o/proxies.txt
 https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
 https://raw.githubusercontent.com/zzz6839/SubCrawler/main/sub/share/all
-https://freessrnode.github.io/uploads/2024/08/4-20240822.txt

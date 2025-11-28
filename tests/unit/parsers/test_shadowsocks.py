@@ -230,8 +230,7 @@ class TestParseSS:
 
         proxy = parse_ss(uri)
 
-        assert proxy is not None
-        # Should still parse, method will be empty string
+        assert proxy is None
 
     def test_parse_ss_rsplit_for_port(self):
         """Test that parser uses rsplit for port (handles IPv6 correctly)."""

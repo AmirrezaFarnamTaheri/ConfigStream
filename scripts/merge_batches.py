@@ -4,7 +4,6 @@ import sys
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from dataclasses import asdict
 from typing import Dict
 
 # Add src directory to path for imports
@@ -207,7 +206,7 @@ def merge_batches(
 
     # 1. proxies.json (main output file)
     with open(output_dir / "proxies.json", "w") as f:
-        json.dump([asdict(p) for p in ranked_proxies], f, indent=2)
+        json.dump([p.model_dump() for p in ranked_proxies], f, indent=2)
     print(f"✓ Generated proxies.json ({len(ranked_proxies)} proxies)")
 
     # 4. Individual protocol files (*.txt) - from ranked proxies
@@ -261,7 +260,7 @@ def merge_batches(
 
     # chosen/proxies.json
     with open(chosen_dir / "proxies.json", "w") as f:
-        json.dump([asdict(p) for p in chosen_proxies], f, indent=2)
+        json.dump([p.model_dump() for p in chosen_proxies], f, indent=2)
     print(f"✓ Generated chosen/proxies.json ({len(chosen_proxies)} proxies)")
 
     # chosen/all.txt

@@ -176,8 +176,9 @@ class GoBatchTester:
             stdin_data = "\n".join(json.dumps(i) for i in inputs).encode("utf-8")
 
             try:
+                # [FIX] Increased timeout to 600s to accommodate heavy batches/retries
                 stdout, stderr = await asyncio.wait_for(
-                    proc.communicate(input=stdin_data), timeout=300
+                    proc.communicate(input=stdin_data), timeout=600
                 )
             except asyncio.TimeoutError:
                 try:
@@ -193,9 +194,11 @@ class GoBatchTester:
                 if stderr_text:
                     # Check for critical errors vs warnings
                     if "panic" in stderr_text.lower() or "fatal" in stderr_text.lower():
-                        logger.error(f"Go Tester CRASHED: {stderr_text[:500]}")
+                        # [FIX] Increased limit to 4KB to capture full stack traces
+                        logger.error(f"Go Tester CRASHED: {stderr_text[:4096]}")
                     else:
-                        logger.warning(f"Go Tester stderr: {stderr_text[:500]}")
+                        # [FIX] Increased limit to 2KB for standard warnings
+                        logger.warning(f"Go Tester stderr: {stderr_text[:2048]}")
 
             # Check if we got any output at all
             if not stdout or not stdout.strip():

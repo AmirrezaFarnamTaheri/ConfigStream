@@ -13,6 +13,7 @@ def history_tracker(tmp_path):
 def test_record_test_result(history_tracker):
     p = MagicMock(spec=Proxy)
     p.config = "vless://1"
+    p.id = "vless://1"  # Fix ID
     p.protocol = "vless"
     p.address = "1.1.1.1"
     p.port = 443
@@ -31,6 +32,7 @@ def test_record_test_result(history_tracker):
 def test_get_reliability_score(history_tracker):
     p = MagicMock(spec=Proxy)
     p.config = "vless://1"
+    p.id = "vless://1"  # Fix ID
     p.protocol = "vless"
     p.address = "1.1.1.1"
     p.port = 443
@@ -56,6 +58,7 @@ def test_get_reliability_score(history_tracker):
 def test_get_summary_stats(history_tracker):
     p = MagicMock(spec=Proxy)
     p.config = "vless://1"
+    p.id = "vless://1"  # Fix ID
     p.protocol = "vless"
     p.address = "1.1.1.1"
     p.port = 443
@@ -73,6 +76,7 @@ def test_get_summary_stats(history_tracker):
 def test_pruning(history_tracker):
     p = MagicMock(spec=Proxy)
     p.config = "vless://1"
+    p.id = "vless://1"  # Fix ID
     p.protocol = "vless"
     p.address = "1.1.1.1"
     p.port = 443
@@ -93,6 +97,7 @@ def test_persistence(tmp_path):
     t1 = ProxyHistoryTracker(db_path)
     p = MagicMock(spec=Proxy)
     p.config = "vless://1"
+    p.id = "vless://1"  # Fix ID
     p.protocol = "vless"
     p.address = "1.1.1.1"
     p.port = 443
