@@ -233,6 +233,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if "fp" in details:
                 tls["utls"] = {"enabled": True, "fingerprint": str(details["fp"])}
 
+            # Map insecure flags (CRITICAL FIX)
+            if (
+                details.get("allowInsecure")
+                or details.get("insecure")
+                or details.get("skip_cert_verify")
+            ):
+                tls["insecure"] = True
+                logger.debug(f"Enabled insecure TLS for {base.get('server')}")
+
             if details.get("security") == "reality":
                 tls["reality"] = {
                     "enabled": True,
@@ -313,6 +322,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "method": str(proxy.details.get("method", "chacha20-ietf-poly1305")),
             "password": str(proxy.details.get("password", "")),
         }
+        # CRITICAL FIX: Map plugins (obfs-local, v2ray-plugin, etc.)
+        if "plugin" in proxy.details:
+            out["plugin"] = str(proxy.details["plugin"])
+            if "plugin_opts" in proxy.details:
+                out["plugin_opts"] = str(proxy.details["plugin_opts"])
+            logger.debug(
+                f"Mapped Shadowsocks plugin for {proxy.address}: {out['plugin']}"
+            )
+
     elif proxy.protocol == "trojan":
         # Validate required password (stored as uuid)
         if not proxy.uuid:
