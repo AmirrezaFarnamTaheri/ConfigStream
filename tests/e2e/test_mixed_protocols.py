@@ -12,7 +12,7 @@ async def test_mixed_protocols_dry_run(tmp_path, monkeypatch):
     # 1. Prepare Mixed Source File
     source_content = [
         # VLESS Reality (Added &sid=shortid for parser validity)
-        "vless://22222222-2222-2222-2222-222222222222@2.2.2.2:443?security=reality&encryption=none&pbk=76543210&sid=shortid&fp=chrome&type=tcp&sni=example.com#VLESS-Mix",
+        "vless://22222222-2222-2222-2222-222222222222@2.2.2.2:443?security=reality&encryption=none&pbk=76543210&sid=1234abcd&fp=chrome&type=tcp&sni=example.com#VLESS-Mix",
         # VMess WS
         "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIlZNZXNzLU1peCIsDQogICJhZGQiOiAiMy4zLjMuMyIsDQogICJwb3J0IjogIjQ0MyIsDQogICJpZCI6ICIzMzMzMzMzMy0zMzMzLTMzMzMtMzMzMy0zMzMzMzMzMzMzMzMiLA0KICAiYWlkIjogIjAiLA0KICAic2N5IjogImF1dG8iLA0KICAibmV0IjogIndzIiwNCiAgInR5cGUiOiAibm9uZSIsDQogICJob3N0IjogImNkbS5leGFtcGxlLmNvbSIsDQogICJwYXRoIjogIi9hcGkiLA0KICAidGxzIjogInRscyIsDQogICJzbmkiOiAiY2RtLmV4YW1wbGUuY29tIiwNCiAgImFscG4iOiAiIg0KfQ==",
         # Shadowsocks

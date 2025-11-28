@@ -195,11 +195,20 @@ class ProxyWasher:
             clean_endpoint = self._get_clean_endpoint(relay.id)
             clean_port = int(os.environ.get("WARP_PORT", "2408"))
 
+            # [FIX] Generate Unique Local IP for WireGuard to avoid collisions
+            # 172.16.X.Y
+            # Use chain_id or key_idx to ensure uniqueness if key_idx was available,
+            # here we can use i and relay.id
+            h = int(hashlib.sha256(chain_id.encode()).hexdigest(), 16)
+            octet_2 = (h >> 8) % 255
+            octet_3 = (h % 250) + 2  # Avoid .0 and .1 and .255 usually
+            unique_ip = f"172.16.{octet_2}.{octet_3}/32"
+
             exit_tag = f"🛡️ Secure-{relay.country_code}-{i+1}"
             warp_out = {
                 "type": "wireguard",
                 "tag": exit_tag,
-                "local_address": ["172.16.0.2/32"],
+                "local_address": [unique_ip],
                 "private_key": exit_key["private_key"],
                 "server": clean_endpoint,  # Replaces hardcoded 162.159...
                 "server_port": clean_port,
