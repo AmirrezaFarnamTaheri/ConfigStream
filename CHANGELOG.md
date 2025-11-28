@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.6] - 2025-11-29
+
+### Critical Fixes (Architecture & Stability)
+- **Local Resource DOS Prevention**: Capped pipeline max workers at 25 and Go tester workers at 20 to prevent OS socket exhaustion and "bind: address already in use" crashes.
+- **Go Tester Race Condition**: Removed manual port binding/unbinding ("Port Dance") in `main.go` and implemented a jittered retry mechanism with random port selection (20000-60000) to resolve collision storms.
+- **Go Tester Resilience**: Implemented standard `json.Unmarshal` usage and explicit panic recovery to prevent worker crashes on malformed configs.
+- **WireGuard Concurrency**: Fixed routing conflicts during parallel testing by generating deterministic unique local IPs (172.16.x.y) for WireGuard configs.
+
+### Data Hygiene & Protocol Fixes
+- **VLESS Reality Sanitization**: Implemented aggressive cleaning in `parsers/vless.py` to strip invisible characters and enforce valid HEX format for `sid` (Short ID), preventing parser crashes.
+- **uTLS Enforcement**: Updated `converters.py` to automatically inject `uTLS` fingerprint (defaulting to "chrome") for all Reality configurations, resolving "uTLS is required" errors.
+- **Modern Protocol Stability**: Forced `insecure=True` for Hysteria2 and TUIC protocols during testing to bypass handshake failures on self-signed certificates common in free proxies.
+- **Missing Protocols**: Added full conversion support for SSH, Hysteria (v1), and improved Trojan TLS handling.
+
+### Features
+- **Smart Washing**: Updated `washer.py` to generate unique local IPs for WireGuard chains, preventing collision when multiple chains are active.
+- **WASM & BYOW**: Enhanced `wasm_main.go` to warn on non-WS protocols and updated `byow.js` to enforce uTLS for user-injected workers.
+- **Documentation**: Updated architecture notes regarding worker limits and protocol support.
+
 ## [2.0.5] - 2025-11-29
 
 ### Critical Fixes

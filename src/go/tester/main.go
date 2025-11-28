@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -27,10 +26,10 @@ import (
 // --- Configuration ---
 
 const (
-	MaxWorkers     = 50
+	MaxWorkers     = 20
 	HoneypotSecret = "HONEYPOT_SECRET" // Env var
 	// [OPTIMIZATION] Increased retries to handle port race conditions under load
-	MaxRetries     = 10
+	MaxRetries     = 15
 )
 
 var (
@@ -86,6 +85,12 @@ func main() {
 	timeout := flag.Duration("timeout", 10*time.Second, "Timeout for each test")
 	urls := flag.String("urls", "", "Comma-separated list of test URLs")
 	flag.Parse()
+
+	// [FIX] Force hard cap on workers regardless of flag to ensure stability
+	if *workers > 25 {
+		*workers = 25
+		fmt.Fprintf(os.Stderr, "WARN: Capping workers to %d for stability\n", *workers)
+	}
 
 	TestTimeout = *timeout
 
@@ -183,6 +188,9 @@ func worker(id int, input <-chan ProxyInput, output chan<- TestResult) {
 			}()
 
 			res := TestResult{ID: p.ID}
+			// Add random jitter before starting to desynchronize port binding
+			time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
+
 			latency, issues, err := testLatency(ctx, p)
 
 			if err == nil {
@@ -213,16 +221,15 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 	var lastErr error
 
 	for i := 0; i < MaxRetries; i++ {
-		// [OPTIMIZATION] Get a free port but keep trying if Sing-box fails to bind
-		l, err := net.Listen("tcp", "127.0.0.1:0")
-		if err != nil {
-			lastErr = err
-			fmt.Fprintf(os.Stderr, "WARN: Failed to find free port (attempt %d): %v\n", i+1, err)
-			time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
-			continue
+		// [FIX 2] Jitter Retry: Sleep randomly to avoid port collision storms
+		if i > 0 {
+			time.Sleep(time.Duration(getRandomInt(150)+50) * time.Millisecond)
 		}
-		port := l.Addr().(*net.TCPAddr).Port
-		l.Close()
+
+		// [CRITICAL FIX] Do NOT use net.Listen to check ports. It creates a race condition.
+		// Just pick a random port and let Sing-box try to bind it.
+		// Range: 20000 - 60000
+		port := 20000 + getRandomInt(40000)
 
 		// [CRITICAL FIX] Changed inbound type from "mixed" to "socks" to avoid "missing endpoint registry"
 		// error in sing-box v1.12+. The tester only uses SOCKS5 anyway.
@@ -236,7 +243,7 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 
 		var opts option.Options
 		// [CRITICAL FIX] Use standard json.Unmarshal to utilize the global type registry
-		err = json.Unmarshal([]byte(configStr), &opts)
+		err := json.Unmarshal([]byte(configStr), &opts)
 		if err != nil {
 			// Config error (permanent), don't retry
 			fmt.Fprintf(os.Stderr, "ERROR: Invalid config JSON for port %d: %v\n", port, err)
@@ -256,8 +263,7 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 				return nil, 0, err
 			}
 			lastErr = err
-			fmt.Fprintf(os.Stderr, "WARN: box.New failed (attempt %d): %v\n", i+1, err)
-			time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
+			// fmt.Fprintf(os.Stderr, "WARN: box.New failed (attempt %d): %v\n", i+1, err)
 			continue
 		}
 
@@ -269,9 +275,7 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 				return nil, 0, err
 			}
 			lastErr = err
-			fmt.Fprintf(os.Stderr, "WARN: instance.Start failed (attempt %d): %v\n", i+1, err)
-			// Backoff slightly on bind errors
-			time.Sleep(time.Duration(getRandomInt(100)) * time.Millisecond)
+			// fmt.Fprintf(os.Stderr, "WARN: instance.Start failed (attempt %d): %v\n", i+1, err)
 			continue
 		}
 

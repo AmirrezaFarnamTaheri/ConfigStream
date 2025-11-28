@@ -6,6 +6,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"syscall/js"
 	"time"
 
@@ -26,8 +27,16 @@ func testProxy(this js.Value, args []js.Value) interface{} {
 	}
 	proxyUrl := args[0].String()
 
-	// Default to a websocket test
+	// [FIX] Detect non-WS protocols and warn user
 	// In a browser environment, we can't make raw TCP connections.
+	if !strings.Contains(proxyUrl, "ws") && !strings.Contains(proxyUrl, "http") {
+		return map[string]interface{}{
+			"alive": false,
+			"error": "WASM Limitation: Browser can only test WebSocket/HTTP transports. TCP/UDP proxies require backend testing.",
+		}
+	}
+
+	// Default to a websocket test
 	// We can only test WebSocket-based proxies (VLESS-ws, VMess-ws, etc.)
 	// or perform a simple HTTP fetch if the proxy exposes an HTTP endpoint (unlikely for raw proxies).
 
