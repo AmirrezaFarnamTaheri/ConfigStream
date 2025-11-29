@@ -299,6 +299,13 @@ jobs:
             WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
         run: python -m scripts.merge_batches
 
+      - name: Upload Pipeline Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-output
+          path: output/
+          retention-days: 1
+
       - name: Copy Frontend Assets
         run: |
           cp -r frontend/* output/

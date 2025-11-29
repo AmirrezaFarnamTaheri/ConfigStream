@@ -32,6 +32,14 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
+      - name: Download Pipeline Output
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          name: pipeline-output
+          path: output
+          workflow: pipeline.yml
+          run_id: ${{ github.event.workflow_run.id }}
+
       - name: Verify output directory exists
         run: |
           if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
