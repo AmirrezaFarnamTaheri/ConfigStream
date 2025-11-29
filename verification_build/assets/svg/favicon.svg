@@ -1,0 +1,36 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Primary Gradient (Purple to Pink) -->
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea" />
+      <stop offset="50%" style="stop-color:#764ba2" />
+      <stop offset="100%" style="stop-color:#f093fb" />
+    </linearGradient>
+
+    <!-- Drop Shadow -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#667eea" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Outer C Arc (Simplified for favicon) -->
+  <path id="outerC"
+        d="M 150 40 A 60 60 0 1 1 150 160"
+        stroke="url(#primaryGradient)"
+        stroke-width="12"
+        stroke-linecap="round"
+        fill="none"
+        filter="url(#shadow)"/>
+
+  <!-- Inner S Stream (Simplified) -->
+  <g id="innerS">
+    <path d="M 70 70 Q 90 60 110 70 Q 130 80 130 100 Q 130 120 110 130 Q 90 140 70 130"
+          stroke="url(#primaryGradient)"
+          stroke-width="10"
+          stroke-linecap="round"
+          fill="none"/>
+  </g>
+
+  <!-- Center Dot -->
+  <circle cx="100" cy="100" r="8" fill="url(#primaryGradient)"/>
+</svg>
