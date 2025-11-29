@@ -142,14 +142,13 @@
     <script src="assets/js/cache-config.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/inline-icons.js"></script>
+    <script src="assets/js/common-ui.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
-        feather.replace();
+        // Feather replace handled by common-ui.js or inline-icons.js if present
+        // but if not, let's keep it safe
         document.addEventListener('DOMContentLoaded', () => {
-            if (window.api) {
-                if (window.api.initMobileNav) window.api.initMobileNav();
-                if (window.api.initTheme) window.api.initTheme();
-            }
+             if (window.feather) feather.replace();
         });
     </script>
     <script src="assets/js/analytics.js"></script>

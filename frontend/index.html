@@ -233,57 +233,24 @@
                                         </a>
                                     </div>
                                     <div class="download-card" style="--delay: 0.9s;">
-                                        <div class="download-icon"><i data-feather="file-text"></i></div>
+                                        <div class="download-icon" id="dynamic-icon"><i data-feather="grid"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title" data-i18n="downloads.shadowrocket">Shadowrocket</h3>
-                                            <p class="download-desc" data-i18n="downloads.shadowrocket.desc">Configuration format optimized for Shadowrocket on iOS.</p>
+                                            <h3 class="download-title">
+                                                <select id="client-selector" class="client-select" aria-label="Select Client">
+                                                    <option value="shadowrocket" selected>Shadowrocket</option>
+                                                    <option value="surge">Surge</option>
+                                                    <option value="loon">Loon</option>
+                                                    <option value="quantumultx">Quantumult X</option>
+                                                    <option value="sip008">SIP008</option>
+                                                </select>
+                                            </h3>
+                                            <p class="download-desc" id="client-desc">Select your client to get the appropriate configuration.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="subscribe/shadowrocket">
+                                        <button id="dynamic-copy-btn" class="btn btn-primary copy-btn" data-file="subscribe/shadowrocket">
                                             <i data-feather="copy"></i>
                                             <span data-i18n="table.copy">Copy Link</span>
                                         </button>
                                     </div>
-                                </div>
-
-                                <!-- New Adapters Section -->
-                                <div class="chosen-section text-center mt-4">
-                                     <div class="divider"></div>
-                                     <h3 class="mt-4" data-i18n="adapters.title">🔌 New Formats</h3>
-                                     <p class="subtitle-sm" data-i18n="adapters.subtitle">Experimental support for additional clients.</p>
-                                     <div class="downloads-grid">
-                                         <div class="download-card">
-                                             <div class="download-icon"><i data-feather="zap"></i></div>
-                                             <div class="download-info">
-                                                <h3 class="download-title">Surge</h3>
-                                                <p class="download-desc">Powerful rule-based utility.</p>
-                                             </div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/surge"><i data-feather="copy"></i> <span data-i18n="table.copy">Copy</span></button>
-                                         </div>
-                                         <div class="download-card">
-                                             <div class="download-icon"><i data-feather="smartphone"></i></div>
-                                             <div class="download-info">
-                                                <h3 class="download-title">Loon</h3>
-                                                <p class="download-desc">Lightweight network toolbox.</p>
-                                             </div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/loon"><i data-feather="copy"></i> <span data-i18n="table.copy">Copy</span></button>
-                                         </div>
-                                         <div class="download-card">
-                                             <div class="download-icon"><i data-feather="box"></i></div>
-                                             <div class="download-info">
-                                                <h3 class="download-title">Quantumult X</h3>
-                                                <p class="download-desc">Advanced network tool.</p>
-                                             </div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/quantumultx"><i data-feather="copy"></i> <span data-i18n="table.copy">Copy</span></button>
-                                         </div>
-                                         <div class="download-card">
-                                             <div class="download-icon"><i data-feather="code"></i></div>
-                                             <div class="download-info">
-                                                <h3 class="download-title">SIP008</h3>
-                                                <p class="download-desc">Standard format.</p>
-                                             </div>
-                                             <button class="btn btn-primary copy-btn" data-file="subscribe/sip008"><i data-feather="copy"></i> <span data-i18n="table.copy">Copy</span></button>
-                                         </div>
-                                     </div>
                                 </div>
 
                             </div>
@@ -370,6 +337,8 @@
     <script src="assets/js/cache-manager.js" defer></script>
     <script src="assets/js/loading-controller.js" defer></script>
     <script src="assets/js/logo-controller.js" defer></script>
+    <script src="assets/js/dynamic-downloads.js" defer></script>
+    <script src="assets/js/common-ui.js" defer></script>
     <script src="assets/js/main.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
     <script>
