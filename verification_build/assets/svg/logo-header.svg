@@ -1,0 +1,16 @@
+<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--brand-primary)"/>
+            <stop offset="50%" stop-color="var(--brand-tertiary)"/>
+            <stop offset="100%" stop-color="var(--brand-secondary)"/>
+        </linearGradient>
+        <filter id="logo-shadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="1" dy="2" stdDeviation="3.5" flood-color="var(--brand-secondary)" flood-opacity="0.25"/>
+        </filter>
+    </defs>
+    <g filter="url(#logo-shadow)">
+        <path d="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" stroke="url(#logo-gradient)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <path d="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" stroke="url(#logo-gradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </g>
+</svg>

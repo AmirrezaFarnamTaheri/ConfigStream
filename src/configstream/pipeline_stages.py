@@ -270,7 +270,16 @@ async def processing_consumer(
         stats.fetched_sources += 1
         stats.fetched_lines += len(raw_lines)
 
-        logger.debug(f"Processing source {source}: {len(raw_lines)} raw lines")
+        # Log metadata from fetcher if available
+        fetch_meta_str = ""
+        if metadata:
+            fetch_dur = metadata.get("fetch_duration")
+            if fetch_dur:
+                fetch_meta_str = f" [Fetch: {fetch_dur * 1000:.0f}ms]"
+
+        logger.info(
+            f"Processing source {source}: {len(raw_lines)} raw lines{fetch_meta_str}"
+        )
 
         process_start_time = asyncio.get_running_loop().time()
 

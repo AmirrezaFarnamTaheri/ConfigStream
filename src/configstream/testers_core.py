@@ -208,6 +208,10 @@ class GoBatchTester:
                     f"Stderr: {stderr.decode()[:500] if stderr else 'None'}. "
                     "Check if sing-box core is working correctly."
                 )
+                # Ensure we log context for the first few failures to aid debugging
+                if inputs:
+                    sample_input = json.dumps(inputs[0])
+                    logger.debug(f"Sample input causing failure: {sample_input}")
                 # Mark all as failed explicitly
                 for p in proxies:
                     p.is_working = False
