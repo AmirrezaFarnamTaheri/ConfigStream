@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 
+
 def run():
     with sync_playwright() as p:
         browser = p.chromium.launch()
@@ -21,6 +22,7 @@ def run():
         page.screenshot(path="verification/verification_wiki_http.png")
 
         browser.close()
+
 
 if __name__ == "__main__":
     run()
