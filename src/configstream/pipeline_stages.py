@@ -292,18 +292,26 @@ async def processing_consumer(
             )
 
         if not parsed_batch:
+            logger.info(f"No proxies parsed from source {source}")
             work_queue.task_done()
             continue
 
         unique_batch = []
+        duplicates_count = 0
         for p in parsed_batch:
             k = proxy_unique_key(p)
             if k not in seen_keys:
                 seen_keys.add(k)
                 unique_batch.append(p)
+            else:
+                duplicates_count += 1
 
         stats.parsed += len(unique_batch)
         safe_batch = validate_batch_configs(unique_batch, policy)
+
+        dropped_unsafe = len(unique_batch) - len(safe_batch)
+        if dropped_unsafe > 0:
+            logger.debug(f"Dropped {dropped_unsafe} unsafe proxies from {source}")
 
         final_batch_for_this_source = []
         proxies_to_actually_test = []
@@ -462,6 +470,20 @@ async def processing_consumer(
         for p in final_batch_for_this_source:
             if p.country_code:
                 geoip_stats[p.country_code] = geoip_stats.get(p.country_code, 0) + 1
+
+        # LOG SUMMARY FOR THIS SOURCE
+        logger.info(
+            f"Source Summary [{source}]: "
+            f"Raw={len(raw_lines)}, Parsed={len(parsed_batch)}, "
+            f"Unique={len(unique_batch)} (Dupes={duplicates_count}), "
+            f"Safe={len(safe_batch)} (Unsafe={dropped_unsafe}), "
+            f"Tested={len(proxies_to_actually_test)}, "
+            f"Working={working_count} (Rate={(working_count/len(safe_batch)*100) if safe_batch else 0:.1f}%), "
+            f"Duration={full_duration_ms:.0f}ms"
+        )
+
+        if failure_modes:
+            logger.debug(f"Failure Breakdown [{source}]: {json.dumps(failure_modes)}")
 
         if not source.startswith("supplied-proxies") and not source.startswith(
             "sources/"
