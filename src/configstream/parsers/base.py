@@ -92,7 +92,9 @@ def validate_b64_input(data: str) -> Optional[str]:
             error_rate > 0.05
         ):  # >5% invalid chars -> definitely not base64 (probably HTML or text)
             logger.debug(
-                "Skipping invalid base64 input (high noise ratio): %s", invalid_chars
+                "Skipping invalid base64 input (high noise ratio: %.2f%%): %d invalid chars",
+                error_rate * 100,
+                len(invalid_chars)
             )
             return None
 
@@ -232,6 +234,7 @@ def extract_config_lines(
     valid_prefixes.update({p + "://" for p in VALID_PROTOCOLS})
 
     configs = []
+    dropped_count = 0
     for line in lines:
         candidate = line.strip()
         if (
@@ -246,6 +249,12 @@ def extract_config_lines(
             protocol = parts[0]
             if protocol in valid_prefixes and is_plausible_proxy_config(candidate):
                 configs.append(candidate)
+            else:
+                dropped_count += 1
+
+    if dropped_count > 0 and len(configs) > 0:
+        logger.debug(f"Extracted {len(configs)} configs, dropped {dropped_count} invalid lines.")
+
     return configs
 
 
