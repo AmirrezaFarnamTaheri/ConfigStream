@@ -20,7 +20,7 @@ def parse_logs(log_files: List[str]) -> Dict[str, int]:
     """
     Scans log files to build a map of {source_url: proxy_count}.
     """
-    source_weights = {}
+    source_weights: Dict[str, int] = {}
     print(f"🔍 Scanning {len(log_files)} log files...")
 
     for log_file in log_files:
