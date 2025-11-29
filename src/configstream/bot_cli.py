@@ -3,9 +3,12 @@ ConfigStream Bot CLI
 Command line interface for the Telegram Bot.
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import logging
+from typing import TYPE_CHECKING
 
 # Configure logging
 logging.basicConfig(
@@ -13,12 +16,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-try:
+if TYPE_CHECKING:
     from telegram import Update
-    from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+    from telegram.ext import ContextTypes
+
+try:
+    from telegram import Update  # noqa: F811
+    from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler  # noqa: F811
 except ImportError:
-    logger.error("python-telegram-bot is not installed. Please install it.")
-    sys.exit(1)
+    logger.warning(
+        "python-telegram-bot is not installed. Bot features will be disabled."
+    )
+    Update = None  # type: ignore
+    ApplicationBuilder = None  # type: ignore
+    ContextTypes = None  # type: ignore
+    CommandHandler = None  # type: ignore
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -87,6 +99,12 @@ async def mirror(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
+    if ApplicationBuilder is None:
+        logger.error(
+            "python-telegram-bot is not installed. Please install it to use the bot CLI."
+        )
+        sys.exit(1)
+
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     if not token:
         logger.error("TELEGRAM_BOT_TOKEN not set")
@@ -95,6 +113,9 @@ def main():
 
 
 def run_bot(token: str):
+    if ApplicationBuilder is None:
+        raise ImportError("python-telegram-bot is not installed")
+
     application = ApplicationBuilder().token(token).build()
 
     application.add_handler(CommandHandler("start", start))
