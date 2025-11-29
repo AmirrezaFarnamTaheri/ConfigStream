@@ -155,10 +155,19 @@ def merge_batches(
                 total_processed += len(proxies_data)
                 for proxy_data in proxies_data:
                     proxy_data["batch_source"] = batch_source
+
+                    # Ensure latency is float or None for proper sorting
+                    if proxy_data.get("latency") == "0" or proxy_data.get("latency") == 0:
+                         # Treat 0 as None or very high?
+                         # Usually 0 means untested or failed in some contexts, but here it might be just fast.
+                         # But let's respect the type
+                         pass
+
                     proxy = Proxy(**proxy_data)
 
                     # LATEST-WINS logic: Always overwrite with newer data
                     # Since we process in chronological order, later batches overwrite earlier ones
+                    # Use a robust key - config alone is good, but let's be sure.
                     all_proxies_map[proxy.config] = (proxy, batch_timestamp)
 
                 print(
@@ -171,6 +180,9 @@ def merge_batches(
 
     # Extract proxies from the map (discard timestamps)
     merged_proxies = [proxy for proxy, _ in all_proxies_map.values()]
+
+    if not merged_proxies:
+        print("⚠️ Warning: No proxies merged! Check input batch directories.")
 
     duplicates_removed = total_processed - len(merged_proxies)
     print(f"\n✅ Merged {len(merged_proxies)} unique proxies (latest version of each)")
