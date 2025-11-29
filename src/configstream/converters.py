@@ -438,7 +438,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
         # [FIX] Default insecure to True for Hysteria2 to improve test yield
-        is_insecure = True  # Defaulting to True as requested
+        is_insecure = False
         if "allowInsecure" in proxy.details:
             is_insecure = bool(proxy.details["allowInsecure"])
 
@@ -467,7 +467,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             ),
         }
         # [FIX] Default insecure to True for TUIC
-        is_insecure = True
+        is_insecure = False
         if "allowInsecure" in proxy.details:
             is_insecure = bool(proxy.details["allowInsecure"])
 
