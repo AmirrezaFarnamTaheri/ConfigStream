@@ -1,10 +1,12 @@
 """Centralized constants for all modules."""
 
 # Size Limits
-MAX_B64_INPUT_SIZE = 50 * 1024 * 1024  # 50 MB
-MAX_B64_OUTPUT_SIZE = 100 * 1024 * 1024  # 100 MB
+MAX_B64_INPUT_SIZE = 10 * 1024 * 1024  # 10 MB (Audit Recommendation: Reduced from 50MB)
+MAX_B64_OUTPUT_SIZE = (
+    50 * 1024 * 1024
+)  # 50 MB (Audit Recommendation: Reduced from 100MB)
 MAX_CONFIG_LINE_LENGTH = 10000
-MAX_LINES_PER_SOURCE = 40000  # Increased from 10000 to handle larger sources
+MAX_LINES_PER_SOURCE = 20000  # Reduced from 40000 to improve memory safety
 MAX_SOURCE_URL_LENGTH = 2048
 
 # Ports & Domains

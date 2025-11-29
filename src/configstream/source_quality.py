@@ -6,7 +6,7 @@ Refactored to use submodules.
 import logging
 from typing import Dict, Any
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from .quality.storage import QualityStorage
 from .quality.scoring import (
@@ -37,9 +37,12 @@ class SourceQualityTracker:
             return False
 
         cooldown_hours = calculate_cooldown_hours(failures)
-        next_allowed = datetime.fromtimestamp(last_ts) + timedelta(hours=cooldown_hours)
+        # Ensure timezone-aware (UTC)
+        next_allowed = datetime.fromtimestamp(last_ts, tz=timezone.utc) + timedelta(
+            hours=cooldown_hours
+        )
 
-        if datetime.now() < next_allowed:
+        if datetime.now(timezone.utc) < next_allowed:
             if failures > 2:
                 logger.debug(
                     f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})"
@@ -59,7 +62,7 @@ class SourceQualityTracker:
         """
         Update the stats for a source after a pipeline run.
         """
-        now = int(datetime.now().timestamp())
+        now = int(datetime.now(timezone.utc).timestamp())
         is_failure = working_count == 0
 
         row = self.storage.get_source_state(url)

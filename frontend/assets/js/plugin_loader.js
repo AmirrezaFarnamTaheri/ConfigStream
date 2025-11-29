@@ -38,9 +38,16 @@ class WasmPlugin {
 
             // Read result string (null terminated)
             let end = resultPtr;
+
+            // Audit: Validate pointer within bounds
+            if (resultPtr >= this.memory.buffer.byteLength) {
+                console.error("Plugin returned out-of-bounds pointer");
+                return null;
+            }
+
             const view = new Uint8Array(this.memory.buffer);
             // Safety bound to avoid infinite loop
-            const maxLen = 10 * 1024 * 1024; // 10MB limit
+            const maxLen = 1 * 1024 * 1024; // 1MB limit (Audit Recommendation: Reduced from 10MB)
             let count = 0;
             while (view[end] !== 0 && end < view.length && count < maxLen) {
                 end++;
