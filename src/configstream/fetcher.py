@@ -111,7 +111,9 @@ async def fetch_from_source(
 
     last_status_code = None
 
-    logger.debug(f"Starting fetch for {source} with effective timeout {effective_timeout}s")
+    logger.debug(
+        f"Starting fetch for {source} with effective timeout {effective_timeout}s"
+    )
 
     for attempt in range(max_retries):
         loop = asyncio.get_running_loop()
@@ -142,9 +144,13 @@ async def fetch_from_source(
                     logger.warning(f"High Jitter detected for {source}: {jitter:.2f}s")
 
             if result.success:
-                logger.info(f"Successfully fetched {len(result.content)} bytes from {source}")
+                logger.info(
+                    f"Successfully fetched {len(result.content)} bytes from {source} (Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s)"
+                )
             else:
-                 logger.warning(f"Fetch succeeded at network level but returned no valid content/success flag for {source}")
+                logger.warning(
+                    f"Fetch succeeded at network level but returned no valid content/success flag for {source}"
+                )
 
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
                 breaker = await breaker_manager.get_breaker(host)
