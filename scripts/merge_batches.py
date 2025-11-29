@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import logging
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -32,6 +33,50 @@ from configstream.output_transport import inject_stego_key_into_frontend  # noqa
 from cryptography.fernet import Fernet  # noqa: E402
 import shutil  # noqa: E402
 
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler("configstream_merge.log", encoding="utf-8"),
+    ],
+)
+logger = logging.getLogger(__name__)
+
+
+def consolidate_logs(output_dir: Path):
+    """
+    Finds all pipeline_batch_*.log files in the current directory (or restored artifacts),
+    merges them into a single consolidated log file, and moves it to the output directory.
+    """
+    logger.info("=== Consolidating Pipeline Logs ===")
+    log_files = sorted(Path(".").glob("pipeline_batch_*.log"))
+
+    if not log_files:
+        logger.warning("No pipeline batch logs found to consolidate.")
+        return
+
+    consolidated_log_path = output_dir / "consolidated_pipeline.log"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    with open(consolidated_log_path, "w", encoding="utf-8") as outfile:
+        outfile.write(f"Consolidated Pipeline Logs - {datetime.now().isoformat()}\n")
+        outfile.write("=" * 60 + "\n\n")
+
+        for log_file in log_files:
+            logger.info(f"Merging {log_file.name}...")
+            outfile.write(f"\n\n--- START OF {log_file.name} ---\n")
+            try:
+                with open(log_file, "r", encoding="utf-8", errors="replace") as infile:
+                    shutil.copyfileobj(infile, outfile)
+            except Exception as e:
+                logger.error(f"Failed to read {log_file}: {e}")
+                outfile.write(f"\n[ERROR READING FILE: {e}]\n")
+            outfile.write(f"\n--- END OF {log_file.name} ---\n")
+
+    logger.info(f"✅ Consolidated logs saved to {consolidated_log_path}")
+
 
 def merge_batches(
     batch_dir_glob: str = "output_batch_*", output_dir_str: str = "output"
@@ -49,13 +94,13 @@ def merge_batches(
     batch_output_dirs = sorted(list(root_dir.glob(batch_dir_glob)))
 
     # --- Merge Test Caches ---
-    print("\n=== Step 0: Merging Test Caches ===")
+    logger.info("\n=== Step 0: Merging Test Caches ===")
     main_cache = TestResultCache(db_path=str(output_dir / "test_cache.json"))
     total_caches_merged = 0
     for batch_dir in batch_output_dirs:
         cache_file = batch_dir / "data" / "test_cache.json"
         if cache_file.exists():
-            print(f"Merging cache from {batch_dir.name}...")
+            logger.info(f"Merging cache from {batch_dir.name}...")
             shard_cache = TestResultCache(db_path=str(cache_file))
             main_cache.merge(shard_cache)
             total_caches_merged += 1
@@ -63,14 +108,14 @@ def merge_batches(
     if total_caches_merged > 0:
         main_cache.cleanup_expired()
         main_cache.save()
-        print(
+        logger.info(
             f"✅ Merged {total_caches_merged} test caches. Final cache has {len(main_cache._cache)} entries."
         )
     else:
-        print("No test caches found to merge.")
+        logger.info("No test caches found to merge.")
 
     # --- Merge Telemetry (Source Quality & Anomaly) ---
-    print("\n=== Step 0.5: Merging Telemetry ===")
+    logger.info("\n=== Step 0.5: Merging Telemetry ===")
     main_sq = SourceQualityTracker(db_path=output_dir / "data" / "source_quality.db")
     main_anomaly = AnomalyDetector(db_path=output_dir / "data" / "anomaly.db")
 
@@ -83,7 +128,7 @@ def merge_batches(
         if anomaly_db.exists():
             main_anomaly.merge_from(anomaly_db)
 
-    print("✅ Merged Telemetry Databases.")
+    logger.info("✅ Merged Telemetry Databases.")
 
     # Map to store: config -> (proxy, timestamp)
     # This ensures we keep the latest version of each proxy
@@ -94,13 +139,13 @@ def merge_batches(
 
     for batch_dir in batch_output_dirs:
         if not batch_dir.exists():
-            print(f"Info: Batch directory {batch_dir} not found. Skipping.")
+            logger.info(f"Info: Batch directory {batch_dir} not found. Skipping.")
             continue
 
         # Load metadata to get run timestamp
         metadata_file = batch_dir / "metadata.json"
         if not metadata_file.exists():
-            print(
+            logger.warning(
                 f"Warning: No metadata.json in {batch_dir}. Using directory mtime for ordering."
             )
             # Fallback: use directory modification time
@@ -119,7 +164,7 @@ def merge_batches(
                     else:
                         timestamp = batch_dir.stat().st_mtime
             except (json.JSONDecodeError, KeyError, ValueError) as e:
-                print(
+                logger.warning(
                     f"Warning: Could not parse metadata in {batch_dir}: {e}. Using fallback."
                 )
                 timestamp = batch_dir.stat().st_mtime
@@ -129,7 +174,7 @@ def merge_batches(
     # Sort batches by timestamp (oldest first, so newest overwrites)
     batches_with_timestamps.sort(key=lambda x: x[1])
 
-    print(
+    logger.info(
         f"Processing {len(batches_with_timestamps)} batches in chronological order..."
     )
 
@@ -141,7 +186,7 @@ def merge_batches(
             proxies_file = batch_dir / "index.json"
 
         if not proxies_file.exists():
-            print(
+            logger.info(
                 f"Info: Neither proxies.json nor index.json found in {batch_dir}. Skipping."
             )
             continue
@@ -157,11 +202,14 @@ def merge_batches(
                     proxy_data["batch_source"] = batch_source
 
                     # Ensure latency is float or None for proper sorting
-                    if proxy_data.get("latency") == "0" or proxy_data.get("latency") == 0:
-                         # Treat 0 as None or very high?
-                         # Usually 0 means untested or failed in some contexts, but here it might be just fast.
-                         # But let's respect the type
-                         pass
+                    if (
+                        proxy_data.get("latency") == "0"
+                        or proxy_data.get("latency") == 0
+                    ):
+                        # Treat 0 as None or very high?
+                        # Usually 0 means untested or failed in some contexts, but here it might be just fast.
+                        # But let's respect the type
+                        pass
 
                     proxy = Proxy(**proxy_data)
 
@@ -170,11 +218,11 @@ def merge_batches(
                     # Use a robust key - config alone is good, but let's be sure.
                     all_proxies_map[proxy.config] = (proxy, batch_timestamp)
 
-                print(
+                logger.info(
                     f"Processed {batch_dir.name}: {len(proxies_data)} proxies at {datetime.fromtimestamp(batch_timestamp).isoformat()}"
                 )
             except (json.JSONDecodeError, TypeError) as e:
-                print(
+                logger.warning(
                     f"Warning: Could not process {proxies_file}. Error: {e}. Skipping."
                 )
 
@@ -182,22 +230,24 @@ def merge_batches(
     merged_proxies = [proxy for proxy, _ in all_proxies_map.values()]
 
     if not merged_proxies:
-        print("⚠️ Warning: No proxies merged! Check input batch directories.")
+        logger.warning("⚠️ Warning: No proxies merged! Check input batch directories.")
 
     duplicates_removed = total_processed - len(merged_proxies)
-    print(f"\n✅ Merged {len(merged_proxies)} unique proxies (latest version of each)")
-    print(f"Total proxies processed across all batches: {total_processed}")
-    print(f"Duplicates removed (keeping latest): {duplicates_removed}")
+    logger.info(
+        f"\n✅ Merged {len(merged_proxies)} unique proxies (latest version of each)"
+    )
+    logger.info(f"Total proxies processed across all batches: {total_processed}")
+    logger.info(f"Duplicates removed (keeping latest): {duplicates_removed}")
 
     # Sort proxies by latency for consistent output
     merged_proxies.sort(key=lambda p: (p.latency is None, calculate_compound_score(p)))
 
-    print("\n=== Step 1: Ranking and Renaming ===")
+    logger.info("\n=== Step 1: Ranking and Renaming ===")
     # Rank and rename all proxies by protocol
     ranked_proxies = rank_and_rename_proxies(merged_proxies)
-    print(f"Ranked {len(ranked_proxies)} proxies by protocol and latency")
+    logger.info(f"Ranked {len(ranked_proxies)} proxies by protocol and latency")
 
-    print("\n=== Step 2: Selecting Top Configs ===")
+    logger.info("\n=== Step 2: Selecting Top Configs ===")
     # Select top 1000 configs (top 50 per protocol + fill from overall)
     chosen_proxies = select_top_configs(
         ranked_proxies, top_per_protocol=50, total_limit=1000
@@ -214,12 +264,12 @@ def merge_batches(
             file_path.unlink()
 
     # --- Regenerate output files ---
-    print("\n=== Step 3: Generating Output Files ===")
+    logger.info("\n=== Step 3: Generating Output Files ===")
 
     # 1. proxies.json (main output file)
     with open(output_dir / "proxies.json", "w") as f:
         json.dump([p.model_dump() for p in ranked_proxies], f, indent=2)
-    print(f"✓ Generated proxies.json ({len(ranked_proxies)} proxies)")
+    logger.info(f"✓ Generated proxies.json ({len(ranked_proxies)} proxies)")
 
     # 4. Individual protocol files (*.txt) - from ranked proxies
     proxies_by_protocol = defaultdict(list)
@@ -229,7 +279,7 @@ def merge_batches(
     for protocol, configs in proxies_by_protocol.items():
         with open(output_dir / f"{protocol}.txt", "w") as f:
             f.write("\n".join(configs))
-    print(f"✓ Generated protocol files ({len(proxies_by_protocol)} protocols)")
+    logger.info(f"✓ Generated protocol files ({len(proxies_by_protocol)} protocols)")
 
     # 5. Subscription files (all.txt, base64.txt - from all ranked)
     all_configs = [p.config for p in ranked_proxies]
@@ -240,19 +290,19 @@ def merge_batches(
     if signing_key:
         try:
             signer = Signer(private_key_hex=signing_key)
-            print("🔐 Signing enabled.")
+            logger.info("🔐 Signing enabled.")
         except Exception as e:
-            print(f"⚠️ Signing setup failed: {e}")
+            logger.warning(f"⚠️ Signing setup failed: {e}")
 
     if all_configs:
         with open(output_dir / "all.txt", "w") as f:
             f.write("\n".join(all_configs))
-        print(f"✓ Generated all.txt ({len(all_configs)} configs)")
+        logger.info(f"✓ Generated all.txt ({len(all_configs)} configs)")
 
         base64_subscription_content = generate_base64_subscription(ranked_proxies)
         with open(output_dir / "base64.txt", "w") as f:
             f.write(base64_subscription_content)
-        print("✓ Generated base64.txt")
+        logger.info("✓ Generated base64.txt")
 
         # 5a. Sign Subscriptions
         if signer:
@@ -261,31 +311,31 @@ def merge_batches(
                 signed_b64 = signer.sign_subscription(base64_subscription_content)
                 with open(output_dir / "base64.signed.json", "w") as f:
                     json.dump(signed_b64, f)
-                print("✓ Generated base64.signed.json")
+                logger.info("✓ Generated base64.signed.json")
             except Exception as e:
-                print(f"⚠️ Failed to sign base64: {e}")
+                logger.warning(f"⚠️ Failed to sign base64: {e}")
 
     # 6. CHOSEN subset files (top 1000 configs)
-    print("\n=== Generating CHOSEN Subset Files ===")
+    logger.info("\n=== Generating CHOSEN Subset Files ===")
     chosen_dir = output_dir / "chosen"
     chosen_dir.mkdir(exist_ok=True)
 
     # chosen/proxies.json
     with open(chosen_dir / "proxies.json", "w") as f:
         json.dump([p.model_dump() for p in chosen_proxies], f, indent=2)
-    print(f"✓ Generated chosen/proxies.json ({len(chosen_proxies)} proxies)")
+    logger.info(f"✓ Generated chosen/proxies.json ({len(chosen_proxies)} proxies)")
 
     # chosen/all.txt
     chosen_configs = [p.config for p in chosen_proxies]
     with open(chosen_dir / "all.txt", "w") as f:
         f.write("\n".join(chosen_configs))
-    print(f"✓ Generated chosen/all.txt ({len(chosen_configs)} configs)")
+    logger.info(f"✓ Generated chosen/all.txt ({len(chosen_configs)} configs)")
 
     # chosen/base64.txt (subscription link for top 1000)
     chosen_base64 = generate_base64_subscription(chosen_proxies)
     with open(chosen_dir / "base64.txt", "w") as f:
         f.write(chosen_base64)
-    print("✓ Generated chosen/base64.txt")
+    logger.info("✓ Generated chosen/base64.txt")
 
     # 9. Client Configs (Clash, SingBox, Adapters)
 
@@ -293,25 +343,25 @@ def merge_batches(
     clash_content = generate_clash_config(ranked_proxies)
     with open(output_dir / "clash.yaml", "w") as f:
         f.write(clash_content)
-    print("✓ Generated clash.yaml")
+    logger.info("✓ Generated clash.yaml")
 
     # Sing-box
     singbox_content = generate_singbox_config(ranked_proxies)
     with open(output_dir / "singbox.json", "w") as f:
         f.write(singbox_content)
-    print("✓ Generated singbox.json")
+    logger.info("✓ Generated singbox.json")
 
     if signer:
         try:
             signed_singbox = signer.sign_subscription(singbox_content)
             with open(output_dir / "singbox.signed.json", "w") as f:
                 json.dump(signed_singbox, f)
-            print("✓ Generated singbox.signed.json")
+            logger.info("✓ Generated singbox.signed.json")
         except Exception as e:
-            print(f"⚠️ Failed to sign singbox: {e}")
+            logger.warning(f"⚠️ Failed to sign singbox: {e}")
 
     # Steganography: Marker-Based Approach (Primary)
-    print("\n=== Generating Steganography Assets ===")
+    logger.info("\n=== Generating Steganography Assets ===")
 
     # 1. Copy frontend assets to output (if not already there)
     # This ensures stego.js is available for injection
@@ -319,9 +369,9 @@ def merge_batches(
     if frontend_src.exists():
         try:
             shutil.copytree(frontend_src, output_dir, dirs_exist_ok=True)
-            print(f"✓ Copied frontend assets to {output_dir}")
+            logger.info(f"✓ Copied frontend assets to {output_dir}")
         except Exception as e:
-            print(f"⚠️ Failed to copy frontend assets: {e}")
+            logger.warning(f"⚠️ Failed to copy frontend assets: {e}")
 
     # 2. Generate Key
     dynamic_key = Fernet.generate_key().decode()
@@ -333,22 +383,22 @@ def merge_batches(
             generate_stego_assets(
                 config_dir=output_dir, assets_dir=assets_images, secret_key=dynamic_key
             )
-            print("✓ Generated stego assets (stealth_*.png)")
+            logger.info("✓ Generated stego assets (stealth_*.png)")
         except Exception as e:
-            print(f"⚠️ Stego generation failed: {e}")
+            logger.warning(f"⚠️ Stego generation failed: {e}")
     else:
-        print("⚠️ No assets/images found for steganography.")
+        logger.warning("⚠️ No assets/images found for steganography.")
 
     # 4. Inject Key
     js_path = output_dir / "assets" / "js" / "stego.js"
     if js_path.exists():
         try:
             inject_stego_key_into_frontend(dynamic_key, js_path)
-            print("✓ Injected dynamic key into stego.js")
+            logger.info("✓ Injected dynamic key into stego.js")
         except Exception as e:
-            print(f"⚠️ Failed to inject stego key: {e}")
+            logger.warning(f"⚠️ Failed to inject stego key: {e}")
     else:
-        print("⚠️ stego.js not found for key injection.")
+        logger.warning("⚠️ stego.js not found for key injection.")
 
     # Adapters
     try:
@@ -367,9 +417,11 @@ def merge_batches(
         (output_dir / "sip008.json").write_text(
             get_adapter("sip008").export(ranked_proxies)
         )
-        print("✓ Generated adapter configs (Surge, Shadowrocket, Loon, QX, SIP008)")
+        logger.info(
+            "✓ Generated adapter configs (Surge, Shadowrocket, Loon, QX, SIP008)"
+        )
     except Exception as e:
-        print(f"⚠️ Failed to generate adapter configs: {e}")
+        logger.warning(f"⚠️ Failed to generate adapter configs: {e}")
 
     # chosen/protocols (individual protocol files for chosen)
     chosen_by_protocol = defaultdict(list)
@@ -379,10 +431,10 @@ def merge_batches(
     for protocol, configs in chosen_by_protocol.items():
         with open(chosen_dir / f"{protocol}.txt", "w") as f:
             f.write("\n".join(configs))
-    print(f"✓ Generated {len(chosen_by_protocol)} chosen protocol files")
+    logger.info(f"✓ Generated {len(chosen_by_protocol)} chosen protocol files")
 
     # 7. statistics.json
-    print("\n=== Generating Statistics ===")
+    logger.info("\n=== Generating Statistics ===")
     # Count working proxies (from ranked list)
     working_proxies = sum(1 for p in ranked_proxies if p.is_working)
     working_chosen = sum(1 for p in chosen_proxies if p.is_working)
@@ -424,7 +476,7 @@ def merge_batches(
 
     with open(output_dir / "statistics.json", "w") as f:
         json.dump(stats, f, indent=2)
-    print("✓ Generated statistics.json")
+    logger.info("✓ Generated statistics.json")
 
     # 8. metadata.json
     # Use output.py's save_metadata for consistency (includes latency distribution)
@@ -443,10 +495,10 @@ def merge_batches(
 
     # save_metadata writes both metadata.json and summary.json
     save_metadata(meta_stats, ranked_proxies, output_dir)
-    print("✓ Generated metadata.json and summary.json via shared logic")
+    logger.info("✓ Generated metadata.json and summary.json via shared logic")
 
     # 8. batch_statistics.json
-    print("\n=== Generating Batch Statistics ===")
+    logger.info("\n=== Generating Batch Statistics ===")
     batch_stats: defaultdict[str, dict[str, int]] = defaultdict(
         lambda: {"total": 0, "working": 0}
     )
@@ -471,10 +523,10 @@ def merge_batches(
 
     with open(output_dir / "batch_statistics.json", "w") as f:
         json.dump(final_batch_stats, f, indent=2)
-    print("✓ Generated batch_statistics.json")
+    logger.info("✓ Generated batch_statistics.json")
 
     # --- Copy Wiki Documentation ---
-    print("\n=== Step 4: Copying Wiki Documentation ===")
+    logger.info("\n=== Step 4: Copying Wiki Documentation ===")
     wiki_src = root_dir / "docs" / "wiki"
     wiki_dest = output_dir / "wiki"
 
@@ -484,16 +536,18 @@ def merge_batches(
             # Atomic copy manually since shutil isn't imported and we want control
             dest_file = wiki_dest / md_file.name
             dest_file.write_text(md_file.read_text())
-        print(f"✓ Copied {len(list(wiki_src.glob('*.md')))} wiki pages to output/wiki/")
+        logger.info(
+            f"✓ Copied {len(list(wiki_src.glob('*.md')))} wiki pages to output/wiki/"
+        )
 
         # Create wiki/index.html from frontend/wiki.html for /wiki support
         if (root_dir / "frontend/wiki.html").exists():
             (wiki_dest / "index.html").write_text(
                 (root_dir / "frontend/wiki.html").read_text()
             )
-            print("✓ Created output/wiki/index.html")
+            logger.info("✓ Created output/wiki/index.html")
     else:
-        print(
+        logger.warning(
             "⚠️ Warning: docs/wiki directory not found. Wiki pages will not be deployed."
         )
 
@@ -504,15 +558,20 @@ def merge_batches(
         (about_dest / "index.html").write_text(
             (root_dir / "frontend/about.html").read_text()
         )
-        print("✓ Created output/about/index.html")
+        logger.info("✓ Created output/about/index.html")
 
-    print(f"\n{'=' * 60}")
-    print(f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies")
-    print("✅ Ranked all proxies by protocol and latency")
-    print(
+    # --- Consolidate Logs ---
+    consolidate_logs(output_dir)
+
+    logger.info(f"\n{'=' * 60}")
+    logger.info(
+        f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies"
+    )
+    logger.info("✅ Ranked all proxies by protocol and latency")
+    logger.info(
         f"✅ Selected top {len(chosen_proxies)} configs (available at output/chosen/)"
     )
-    print(f"{'=' * 60}\n")
+    logger.info(f"{'=' * 60}\n")
 
 
 if __name__ == "__main__":

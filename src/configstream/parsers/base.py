@@ -94,7 +94,7 @@ def validate_b64_input(data: str) -> Optional[str]:
             logger.debug(
                 "Skipping invalid base64 input (high noise ratio: %.2f%%): %d invalid chars",
                 error_rate * 100,
-                len(invalid_chars)
+                len(invalid_chars),
             )
             return None
 
@@ -253,7 +253,9 @@ def extract_config_lines(
                 dropped_count += 1
 
     if dropped_count > 0 and len(configs) > 0:
-        logger.debug(f"Extracted {len(configs)} configs, dropped {dropped_count} invalid lines.")
+        logger.debug(
+            f"Extracted {len(configs)} configs, dropped {dropped_count} invalid lines."
+        )
 
     return configs
 

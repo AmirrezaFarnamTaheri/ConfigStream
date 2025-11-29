@@ -1,21 +1,20 @@
 import re
-import os
 import glob
 import shutil
-from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
 
 # --- Configuration ---
-LOG_PATTERN = "*.log"          # Pattern to match your pipeline logs
+LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
 SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
-NUM_BATCHES = 10               # Target number of shards
-DEFAULT_WEIGHT = 100           # Fallback weight for sources not found in logs
+NUM_BATCHES = 10  # Target number of shards
+DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
 
 # Regex to parse the rich logger output
 # Matches: "[fetch_success] Fetched 129 proxies from https://..."
 LOG_REGEX = re.compile(r"Fetched\s+(\d+)\s+proxies\s+from\s+(https?://\S+)")
+
 
 def parse_logs(log_files: List[str]) -> Dict[str, int]:
     """
@@ -26,7 +25,7 @@ def parse_logs(log_files: List[str]) -> Dict[str, int]:
 
     for log_file in log_files:
         try:
-            with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
                 for line in f:
                     match = LOG_REGEX.search(line)
                     if match:
@@ -40,6 +39,7 @@ def parse_logs(log_files: List[str]) -> Dict[str, int]:
 
     print(f"📊 Identified {len(source_weights)} active sources from logs.")
     return source_weights
+
 
 def get_existing_sources() -> List[str]:
     """
@@ -57,6 +57,7 @@ def get_existing_sources() -> List[str]:
             if line and not line.startswith("#"):
                 urls.add(line)
     return list(urls)
+
 
 def main():
     # 1. Setup Workspace
@@ -115,9 +116,9 @@ def main():
         est_load = batch_loads[i]
         content = [
             f"# ConfigStream Batch {i+1}",
-            f"# Optimized based on run-time logs",
+            "# Optimized based on run-time logs",
             f"# Est. Load: {est_load} proxies",
-            ""
+            "",
         ]
         content.extend(batch)
 
@@ -125,6 +126,7 @@ def main():
         print(f"Batch {i+1:<4} | {len(batch):<10} | {est_load:<15}")
 
     print("\n✅ Refactor complete. Run the pipeline again to see performance gains.")
+
 
 if __name__ == "__main__":
     main()
