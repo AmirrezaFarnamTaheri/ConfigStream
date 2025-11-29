@@ -66,9 +66,10 @@ async def run_full_pipeline(
     output_path.mkdir(parents=True, exist_ok=True)
 
     # [FIX] Cap max_workers globally to protect local network stack
-    if max_workers <= 0 or max_workers > 25:
-        max_workers = 25
-        logger.info(f"Auto-capped max_workers to {max_workers} for system stability")
+    if max_workers <= 0:
+        from .adaptive_workers import calculate_optimal_workers
+
+        max_workers = calculate_optimal_workers(0)
 
     # Initialize Intelligence Stack
     timeout_tracker = AdaptiveTimeout()
@@ -83,10 +84,9 @@ async def run_full_pipeline(
     quality_tracker = SourceQualityTracker()
     anomaly_detector = AnomalyDetector()
 
-    # Initialize Blocklist (kick off in background but ensure it at least starts)
-    asyncio.create_task(DEFAULT_BLOCKLIST.update())
-    # Yield once so the task can begin before heavy work starts
-    await asyncio.sleep(0)
+    # Initialize Blocklist - Await update to ensure security rules apply to first batch
+    logger.info("Initializing security blocklists...")
+    await DEFAULT_BLOCKLIST.update()
 
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
