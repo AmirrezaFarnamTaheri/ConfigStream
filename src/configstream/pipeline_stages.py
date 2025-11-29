@@ -156,11 +156,18 @@ async def source_producer(
                 "ALL %d remote sources are on cooldown/disabled - no proxies will be fetched!",
                 len(blocked_urls),
             )
+            # Log specific reasons for blockage if debug is on
+            for url in blocked_urls:
+                logger.debug(f"Source blocked/cooldown: {url}")
 
         if active_urls:
+            logger.info(f"Starting fetch for {len(active_urls)} active sources")
             batch_size = 50
             for i in range(0, len(active_urls), batch_size):
                 batch = active_urls[i : i + batch_size]
+                logger.info(
+                    f"Fetching batch {i // batch_size + 1}: {len(batch)} sources"
+                )
                 results = await fetch_multiple_sources(
                     batch,
                     max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
@@ -173,9 +180,10 @@ async def source_producer(
                         lines = _extract_config_lines(res.content)
                         count = len(lines)
                         if count == 0:
-                            logger.debug(
-                                "Source %s returned content but no valid config lines",
+                            logger.warning(
+                                "Source %s returned content (size=%d) but no valid config lines found",
                                 source,
+                                len(res.content),
                             )
                             continue
                         is_safe, reason = anomaly_detector.is_safe(source, count)
@@ -190,6 +198,7 @@ async def source_producer(
                                     )
                                 metadata = {"fetch_duration": res.response_time or 0.0}
                                 await work_queue.put((source, lines, metadata))
+                                logger.info(f"Queued {count} proxies from {source}")
                         else:
                             logger.warning(f"⚠️ BLOCKING {source}: {reason}")
                             if event_stream:
@@ -197,6 +206,8 @@ async def source_producer(
                                     "fetch_blocked",
                                     f"Blocked source {source}: {reason}",
                                 )
+                    else:
+                        logger.warning(f"Failed to fetch {source}: {res.error}")
     except Exception as e:
         logger.error("Producer failed: %s", e)
     finally:
