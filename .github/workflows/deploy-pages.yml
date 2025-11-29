@@ -25,12 +25,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Checkout with PAT
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }} # Needed to trigger workflow_run
           ref: main
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Verify output directory exists
         run: |
