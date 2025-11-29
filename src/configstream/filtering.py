@@ -136,7 +136,8 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
         raw_fingerprint = f"{addr}:{port}|{uuid}|{path}|{sni}"
 
         # 4. Hash it
-        fingerprint = hashlib.md5(raw_fingerprint.encode("utf-8")).hexdigest()
+        # Audit: SHA-256 for collision resistance
+        fingerprint = hashlib.sha256(raw_fingerprint.encode("utf-8")).hexdigest()
 
         existing = fingerprint_map.get(fingerprint)
         if not existing:

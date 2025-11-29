@@ -17,6 +17,15 @@ BINARY_PATH = Path(__file__).parent.parent.parent.parent / "bin" / "utls-client"
 _warned_missing = False
 
 
+def _verify_binary_checksum(path: Path) -> bool:
+    """
+    Verify the SHA-256 checksum of the binary.
+    TODO: Implement strict checking against signed manifest.
+    This is a placeholder for future supply-chain security enforcement.
+    """
+    return True
+
+
 def ensure_binary():
     """Ensure the Go binary exists, building it if necessary."""
     if BINARY_PATH.exists():
@@ -86,6 +95,10 @@ async def test_tls_fingerprint(
             )
             _warned_missing = True
         return True
+
+    if not _verify_binary_checksum(BINARY_PATH):
+        logger.error("uTLS client binary failed checksum verification.")
+        return False
 
     cmd = [str(BINARY_PATH), "-url", url, "-fp", fingerprint]
     if proxy:

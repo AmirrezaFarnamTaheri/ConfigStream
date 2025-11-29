@@ -41,6 +41,11 @@ class ErrorBoundary {
    * Central error handler
    */
   handleError(error, componentName) {
+    // Audit: Limit log size
+    if (this.errors.length >= 50) {
+        this.errors.shift();
+    }
+
     this.errors.push({
       message: error.message || String(error),
       component: componentName,

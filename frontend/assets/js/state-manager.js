@@ -44,7 +44,9 @@ class UIStateManager {
     
     // Queue for pending state updates
     this.updateQueue = [];
-    
+    // Audit: Limit queue size
+    this.maxQueueSize = 100;
+
     // Flag indicating we're currently processing updates
     this.isProcessing = false;
     
@@ -100,10 +102,17 @@ class UIStateManager {
       this.listeners.set(key, new Set());
     }
     
+    const listeners = this.listeners.get(key);
+    // Audit: Prevent memory leaks
+    if (listeners.size >= 50) {
+        this.log.warn(`Too many listeners for ${key} (${listeners.size}). Possible leak.`);
+        // Optional: Force clear or reject? Just warn for now.
+    }
+
     // Add callback to set
-    this.listeners.get(key).add(callback);
+    listeners.add(callback);
     
-    this.log.debug(`Subscribed to '${key}' (${this.listeners.get(key).size} listeners)`);
+    this.log.debug(`Subscribed to '${key}' (${listeners.size} listeners)`);
     
     // Return unsubscribe function
     return () => {
@@ -127,6 +136,12 @@ class UIStateManager {
       return;
     }
     
+    // Audit: Limit queue size
+    if (this.updateQueue.length >= this.maxQueueSize) {
+        this.log.warn("Update queue full, dropping update");
+        return;
+    }
+
     // Add to update queue
     this.updateQueue.push(updates);
     
@@ -457,30 +472,49 @@ class UIStateManager {
    * Initialize global event listeners
    */
   initializeEventListeners() {
+    // Store handlers to remove them later
+    this._handlers = {
+        visibility: () => this.setState({ isPageVisible: !document.hidden }),
+        online: () => {
+            this.setState({ isOnline: true });
+            this.setSuccess('Connection restored');
+        },
+        offline: () => {
+            this.setState({ isOnline: false });
+            this.setError('You are offline. Some features may not work.');
+        },
+        dataUpdated: (event) => {
+            this.setState({
+                lastUpdate: event.detail?.generated_at || Date.now()
+            });
+        }
+    };
+
     // Page visibility changes
-    document.addEventListener('visibilitychange', () => {
-      this.setState({
-        isPageVisible: !document.hidden
-      });
-    });
+    document.addEventListener('visibilitychange', this._handlers.visibility);
     
     // Online/offline status
-    window.addEventListener('online', () => {
-      this.setState({ isOnline: true });
-      this.setSuccess('Connection restored');
-    });
+    window.addEventListener('online', this._handlers.online);
     
-    window.addEventListener('offline', () => {
-      this.setState({ isOnline: false });
-      this.setError('You are offline. Some features may not work.');
-    });
+    window.addEventListener('offline', this._handlers.offline);
     
     // Listen for data updates from cache manager
-    window.addEventListener('dataUpdated', (event) => {
-      this.setState({
-        lastUpdate: event.detail?.generated_at || Date.now()
-      });
-    });
+    window.addEventListener('dataUpdated', this._handlers.dataUpdated);
+  }
+
+  /**
+   * Cleanup method to remove listeners
+   */
+  destroy() {
+      if (this._handlers) {
+          document.removeEventListener('visibilitychange', this._handlers.visibility);
+          window.removeEventListener('online', this._handlers.online);
+          window.removeEventListener('offline', this._handlers.offline);
+          window.removeEventListener('dataUpdated', this._handlers.dataUpdated);
+          this.log.info("Destroyed and cleaned up listeners");
+      }
+      this.listeners.clear();
+      this.updateQueue = [];
   }
 }
 

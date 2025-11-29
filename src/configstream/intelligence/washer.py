@@ -50,6 +50,8 @@ class ProxyWasher:
         self.seen_chains: Set[str] = set()
         self._seen_chains_lock = threading.Lock()
         self.clean_ips: List[str] = []
+        # Audit: Limit seen chains memory usage
+        self.max_seen_chains = 100000
 
     async def fetch_clean_ips(self) -> None:
         """
@@ -178,6 +180,12 @@ class ProxyWasher:
             with self._seen_chains_lock:
                 if chain_id in self.seen_chains:
                     continue  # Skip duplicates
+
+                # Prune if too large (simple flush for now, LRU is better but heavier)
+                if len(self.seen_chains) > self.max_seen_chains:
+                    self.seen_chains.clear()
+                    logger.warning("Flushed seen_chains cache (limit exceeded)")
+
                 self.seen_chains.add(chain_id)
 
             # 4. Construct the Chain Objects
@@ -196,12 +204,17 @@ class ProxyWasher:
             clean_port = int(os.environ.get("WARP_PORT", "2408"))
 
             # [FIX] Generate Unique Local IP for WireGuard to avoid collisions
-            # 172.16.X.Y
-            # Use chain_id or key_idx to ensure uniqueness if key_idx was available,
-            # here we can use i and relay.id
+            # 172.16.X.Y (IPv4) or fd00::X:Y (IPv6)
             h = int(hashlib.sha256(chain_id.encode()).hexdigest(), 16)
+
+            # Support IPv6 environment if needed (Audit recommendation)
+            # We generate both or detect environment? Since we are generating config,
+            # assume IPv4 is standard for now but provide unique local V6 just in case.
+            # But Singbox WireGuard outbound usually takes one local address.
+            # Let's stick to IPv4 but ensure range is safe.
+
             octet_2 = (h >> 8) % 255
-            octet_3 = (h % 250) + 2  # Avoid .0 and .1 and .255 usually
+            octet_3 = (h % 250) + 2  # Avoid .0 and .1
             unique_ip = f"172.16.{octet_2}.{octet_3}/32"
 
             exit_tag = f"🛡️ Secure-{relay.country_code}-{i+1}"

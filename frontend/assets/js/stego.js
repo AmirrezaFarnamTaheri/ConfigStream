@@ -64,8 +64,11 @@ async function fetchStegoConfig(imageUrl) {
         const compressedString = token.decode();
 
         // 4. Decompress (Zlib/Pako)
-        // You'll need 'pako' library for browser zlib inflation
-        // <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+        // Audit: Limit payload size to avoid memory exhaustion
+        if (compressedString.length > 2 * 1024 * 1024) { // 2MB limit
+             throw new Error("Decompressed payload too large (security limit)");
+        }
+
         const jsonString = pako.inflate(compressedString, { to: 'string' });
 
         return JSON.parse(jsonString);
