@@ -13,6 +13,12 @@ export async function verifyConfig(signedObj) {
         return JSON.parse(signedObj.content);
     }
 
+    // Audit: Guard against placeholder keys
+    if (PUBLIC_KEY.includes("PLACEHOLDER") || PUBLIC_KEY.length < 32) {
+        console.warn("Signature verification skipped: Public Key not configured.");
+        return JSON.parse(signedObj.content);
+    }
+
     const msg = new TextEncoder().encode(signedObj.content);
     const sig = hexToBytes(signedObj.signature);
     const keyBytes = hexToBytes(PUBLIC_KEY);

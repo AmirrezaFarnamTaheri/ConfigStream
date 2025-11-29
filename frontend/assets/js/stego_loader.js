@@ -9,9 +9,28 @@ export async function loadPolyglot(url, password = null) {
     if (!response.ok) throw new Error("Failed to fetch image");
 
     const blob = await response.blob();
+    // Audit: Validate blob size
+    if (blob.size > 5 * 1024 * 1024) { // 5MB limit
+        throw new Error("Image too large, potential DOS attack.");
+    }
+
+    // Simple MIME type check
+    if (blob.type && !blob.type.startsWith('image/')) {
+        throw new Error("Invalid content type for polyglot image.");
+    }
 
     // unzipit scans for the PK signature at the end of the file
     const { entries } = await unzip(blob);
+
+    // Audit: Check for unexpected entries
+    const allowed = ['config.json', 'config.enc'];
+    const filenames = Object.keys(entries);
+    for (const name of filenames) {
+        if (!allowed.includes(name)) {
+            console.warn("Unexpected file in polyglot archive:", name);
+            // Optionally throw error
+        }
+    }
 
     let content;
     if (entries['config.json']) {
@@ -52,7 +71,7 @@ async function decryptPayload(buffer, password) {
         ["decrypt"]
     );
 
-    return await window.crypto.subtle.decrypt(
+    const decrypted = await window.crypto.subtle.decrypt(
         {
             name: "AES-GCM",
             iv: iv
@@ -60,4 +79,11 @@ async function decryptPayload(buffer, password) {
         keyMaterial,
         encrypted
     );
+
+    // Audit: Limit decrypted payload size
+    if (decrypted.byteLength > 2 * 1024 * 1024) { // 2MB limit for config
+        throw new Error("Decrypted config too large.");
+    }
+
+    return decrypted;
 }
