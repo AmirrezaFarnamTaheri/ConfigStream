@@ -36,6 +36,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
         # Checkout the commit associated with the triggering context (no hardcoded ref)
 
       - name: Set up Python
