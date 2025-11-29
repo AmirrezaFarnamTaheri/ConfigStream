@@ -18,6 +18,8 @@ async function fetchWithFallback(primaryUrl) {
         // Validate IPNS key was configured
         if (IPNS_KEY === "PLACEHOLDER_IPNS_KEY_INJECTED_BY_CI" || IPNS_KEY.length < 20) {
             console.error("IPFS fallback not configured: IPNS_KEY is placeholder");
+            // Audit: Providing user-friendly message
+            alert("Connection lost. Fallback unavailable because IPNS is not configured.");
             throw new Error("IPFS fallback unavailable - IPNS_KEY not configured");
         }
 

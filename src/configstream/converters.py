@@ -94,7 +94,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server": proxy.address,
             "port": proxy.port,
             "uuid": proxy.uuid,
-            "alterId": _safe_int_conversion(proxy.details.get("aid"), 0),
+            "alterId": 0,  # [FIX] Enforce 0 for security/modern server compatibility
             "cipher": str(proxy.details.get("scy", "auto")),
         }
         return _add_transport_opts(base, proxy.details)
@@ -130,7 +130,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "http",
             "server": proxy.address,
             "port": proxy.port,
-            "username": proxy.uuid if proxy.uuid else None,
+            "username": str(proxy.details.get("username", proxy.uuid or "")),
             "password": (
                 str(proxy.details.get("password", ""))
                 if proxy.details.get("password")
@@ -143,7 +143,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "socks5",
             "server": proxy.address,
             "port": proxy.port,
-            "username": proxy.uuid if proxy.uuid else None,
+            "username": str(proxy.details.get("username", proxy.uuid or "")),
             "password": (
                 str(proxy.details.get("password", ""))
                 if proxy.details.get("password")
@@ -320,7 +320,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "uuid": proxy.uuid,
             "security": "auto",
-            "alter_id": _safe_int_conversion(proxy.details.get("aid"), 0),
+            "alter_id": 0,  # [FIX] Enforce 0
         }
         _add_transport_sb(out, proxy.details)
 
@@ -418,7 +418,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         # [FIX] Generate unique local IP to allow concurrent testing
         # Simple hash of address+port to 3rd octet: 172.16.{0-255}.2
         # Using hashlib to be deterministic for same proxy but random-ish across different ones
-        h = hashlib.md5(f"{proxy.address}:{proxy.port}".encode()).digest()
+        # Audit: SHA-256
+        h = hashlib.sha256(f"{proxy.address}:{proxy.port}".encode()).digest()
         octet = h[0]
         unique_ip = f"172.16.{octet}.2/32"
 

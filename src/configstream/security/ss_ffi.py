@@ -38,6 +38,16 @@ _lib = None
 _warned_missing = False
 
 
+def _verify_binary_checksum(path: Path) -> bool:
+    """
+    Verify the SHA-256 checksum of the binary.
+    TODO: Implement strict checking against signed manifest.
+    For now, we trust the local filesystem but this is a placeholder for supply chain security.
+    """
+    # Placeholder: Always return True until infrastructure for signing is in place
+    return True
+
+
 def verify_ss_rust(config: dict) -> bool:
     """
     Verify a Shadowsocks config using the Rust core.
@@ -56,6 +66,10 @@ def verify_ss_rust(config: dict) -> bool:
             )
             _warned_missing = True
         return True
+
+    if not _verify_binary_checksum(LIB_PATH):
+        logger.error("Shadowsocks-Rust library failed checksum verification.")
+        return False
 
     try:
         if _lib is None:

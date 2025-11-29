@@ -126,10 +126,11 @@ class BlocklistManager:
         try:
             addr = ipaddress.ip_address(ip)
 
-            # Take a snapshot under the assumption that updates are rare and
-            # reads are frequent.
+            # Audit: Take a reference to the index instead of copying.
+            # Since _v4_index is replaced atomically in load(), this reference
+            # is consistent and immutable for our purpose.
             if isinstance(addr, ipaddress.IPv4Address):
-                with_index = self._v4_index.copy()
+                with_index = self._v4_index
                 bucket = with_index.get(int(addr.packed[0]))
                 if not bucket:
                     return False
@@ -137,7 +138,7 @@ class BlocklistManager:
                     if addr in net:
                         return True
             else:
-                with_index_v6 = self._v6_index.copy()
+                with_index_v6 = self._v6_index
                 first_segment = int(addr.packed[0]) << 8 | int(addr.packed[1])
                 bucket_v6 = with_index_v6.get(first_segment)
                 if not bucket_v6:
@@ -163,7 +164,11 @@ class BlocklistManager:
         """
         DEPRECATED: Use is_suspicious_port instead.
         Detects potential honey pots using heuristics.
+
+        NOTE: Passive VirusTotal checks should be used for definitive identification.
         """
+        # Explicit deprecation warning in logs might be too noisy if called often,
+        # but leaving comment for developers.
         if self.is_suspicious_port(port):
             return True
 

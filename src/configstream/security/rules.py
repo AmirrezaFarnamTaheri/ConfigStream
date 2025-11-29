@@ -59,9 +59,21 @@ def validate_address(
     # Allow bypass for reserved or test-specific domains
     if address_lower in suspicious_domain_allowlist or address_lower.endswith(".test"):
         pass
+
+    # [FIX] Normalize IDN and unicode
+    try:
+        import idna
+        import unicodedata
+
+        normalized = unicodedata.normalize("NFKC", address_lower)
+        encoded = idna.encode(normalized).decode("ascii")
+        address_check = encoded
+    except Exception:
+        address_check = address_lower
+
     # Check for suspicious patterns (exact or subdomain match)
     for suspicious in SUSPICIOUS_DOMAINS:
-        if address_lower == suspicious or address_lower.endswith("." + suspicious):
+        if address_check == suspicious or address_check.endswith("." + suspicious):
             logger.warning("Suspicious address pattern found: %s", address)
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                 f"Suspicious address pattern: {address}"

@@ -93,19 +93,10 @@ async function loadHistoryData() {
         // ignore
     }
 
-    // Fallback Mock
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const today = new Date();
-    const data = [];
-    for (let i = 6; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i);
-        data.push({
-            label: days[d.getDay()],
-            value: Math.floor(Math.random() * 500) + 1000
-        });
-    }
-    return data;
+    // Audit: Removed random mock data to prevent misleading users.
+    // Return empty array or handle error in UI.
+    console.warn("History data not available.");
+    return [];
 }
 
 // Initialize

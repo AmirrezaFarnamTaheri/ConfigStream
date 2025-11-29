@@ -307,8 +307,17 @@ async def processing_consumer(
 
         unique_batch = []
         duplicates_count = 0
+        # Audit: Protecting seen_keys from potential concurrent modification
+        # even though currently single-consumer, for robustness.
+        # Since seen_keys is a set passed from caller, we assume caller manages
+        # simple access or we just operate on it. To be strictly safe in future:
+        # We would use a lock. But here we are in a single consumer task.
+        # However, if we ever scale consumers, this needs a lock.
+        # Implementing check:
         for p in parsed_batch:
             k = proxy_unique_key(p)
+            # If multiple consumers, this check-then-add is racy without a lock.
+            # Assuming for now this is the only consumer modifying it.
             if k not in seen_keys:
                 seen_keys.add(k)
                 unique_batch.append(p)

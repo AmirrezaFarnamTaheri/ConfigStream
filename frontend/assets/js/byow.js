@@ -2,9 +2,17 @@
 
 async function applyBYOW() {
     const workerUrlInput = document.getElementById('worker-url');
-    const workerUrl = workerUrlInput.value.trim();
-    if (!workerUrl) {
-        alert("Please enter a valid Worker URL.");
+    // Sanitize and validate
+    const rawUrl = workerUrlInput.value.trim();
+
+    // Allow hostname or full URL, strip protocol
+    const cleanUrl = rawUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+    // Strict hostname validation (dots, hyphens, alphanumeric)
+    const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+    if (!cleanUrl || !hostnameRegex.test(cleanUrl.split('/')[0])) {
+        alert("Please enter a valid Worker Hostname (e.g., worker.user.workers.dev).");
         return;
     }
 
@@ -13,11 +21,19 @@ async function applyBYOW() {
     let config;
     try {
         const response = await fetch('./singbox.json');
-        if (!response.ok) throw new Error("Failed to fetch singbox.json");
+        if (!response.ok) {
+            // Audit: Retry logic or clearer error
+            throw new Error(`Failed to fetch base config: ${response.status}`);
+        }
         config = await response.json();
+
+        // Audit: Validate config structure
+        if (!config || typeof config !== 'object' || !Array.isArray(config.outbounds)) {
+             throw new Error("Invalid base configuration format.");
+        }
     } catch (e) {
-        console.error(e);
-        alert("Could not load base config to modify.");
+        console.error("BYOW Init Failed:", e);
+        alert(`Error initializing BYOW: ${e.message}. Please try refreshing the page.`);
         return;
     }
 
@@ -28,7 +44,6 @@ async function applyBYOW() {
     // Let's assume the Worker acts as a VLESS node itself.
     // We will inject a single "User Worker" outbound and set it as the default for the "Manual" selector.
 
-    const cleanUrl = workerUrl.replace('https://', '').replace('http://', '').replace(/\/$/, '');
     const workerUuidInput = document.getElementById('worker-uuid');
 
     // Generate a random UUID v4 if not provided
@@ -40,23 +55,33 @@ async function applyBYOW() {
         });
     };
 
-    const workerUuid = workerUuidInput && workerUuidInput.value.trim() ? workerUuidInput.value.trim() : generateUUID();
+    let workerUuid = workerUuidInput && workerUuidInput.value.trim() ? workerUuidInput.value.trim() : generateUUID();
+
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(workerUuid)) {
+        alert("Invalid UUID format. Using generated UUID.");
+        workerUuid = generateUUID();
+    }
+
+    // Safe extraction of host
+    const workerHost = cleanUrl.split('/')[0];
 
     const userWorker = {
         "type": "vless",
         "tag": "🚀 My Private Worker",
-        "server": cleanUrl.split('/')[0], // Extract host
+        "server": workerHost, // Extract host
         "server_port": 443,
         "uuid": workerUuid,
         "tls": {
             "enabled": true,
-            "server_name": cleanUrl.split('/')[0],
+            "server_name": workerHost,
             "utls": { "enabled": true, "fingerprint": "chrome" } // [FIX] Enforce uTLS
         },
         "transport": {
             "type": "ws",
             "path": "/?ed=2048",
-            "headers": { "Host": cleanUrl.split('/')[0] } // [FIX] Ensure Host header
+            "headers": { "Host": workerHost } // [FIX] Ensure Host header
         }
     };
 

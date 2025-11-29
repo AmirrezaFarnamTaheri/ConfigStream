@@ -30,6 +30,8 @@ class CircuitBreaker:
     async def record_success(self) -> None:
         """Record a success (async-safe with lock)"""
         async with self._lock:
+            # In HALF_OPEN, a success resets to CLOSED
+            # In CLOSED, it just resets failure count (though likely 0 already)
             self.failure_count = 0
             self.state = CircuitBreakerState.CLOSED
 
@@ -39,8 +41,12 @@ class CircuitBreaker:
             if self.state == CircuitBreakerState.OPEN:
                 if time.monotonic() - self.last_failure_time > self.recovery_timeout:
                     self.state = CircuitBreakerState.HALF_OPEN
+                    # Allow a probe request
                     return False
                 return True
+            # In HALF_OPEN, we allow requests. If they fail, it trips back to OPEN (via record_failure).
+            # We don't enforce a strict 'single probe' here to keep it simple, but rely on concurrent
+            # requests racing. If one succeeds, it closes. If one fails, it opens.
             return False
 
 
