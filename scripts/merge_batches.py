@@ -45,16 +45,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def consolidate_logs(output_dir: Path):
+def consolidate_logs(output_dir: Path, summary_text: str = ""):
     """
     Finds all pipeline_batch_*.log files in the current directory (or restored artifacts),
     merges them into a single consolidated log file, and moves it to the output directory.
+    Also includes the merge process log itself.
     """
     logger.info("=== Consolidating Pipeline Logs ===")
+
+    # Force flush the current merge log so it's up to date on disk
+    for handler in logging.getLogger().handlers:
+        handler.flush()
+
     log_files = sorted(Path(".").glob("pipeline_batch_*.log"))
 
+    # Add the merge log itself
+    merge_log = Path("configstream_merge.log")
+    if merge_log.exists():
+        log_files.append(merge_log)
+
     if not log_files:
-        logger.warning("No pipeline batch logs found to consolidate.")
+        logger.warning("No pipeline batch logs or merge logs found to consolidate.")
         return
 
     consolidated_log_path = output_dir / "consolidated_pipeline.log"
@@ -62,7 +73,12 @@ def consolidate_logs(output_dir: Path):
 
     with open(consolidated_log_path, "w", encoding="utf-8") as outfile:
         outfile.write(f"Consolidated Pipeline Logs - {datetime.now().isoformat()}\n")
-        outfile.write("=" * 60 + "\n\n")
+        outfile.write("=" * 60 + "\n")
+        if summary_text:
+            outfile.write("GLOBAL SUMMARY\n")
+            outfile.write("-" * 20 + "\n")
+            outfile.write(summary_text)
+            outfile.write("\n" + ("=" * 60) + "\n\n")
 
         for log_file in log_files:
             logger.info(f"Merging {log_file.name}...")
@@ -561,7 +577,25 @@ def merge_batches(
         logger.info("✓ Created output/about/index.html")
 
     # --- Consolidate Logs ---
-    consolidate_logs(output_dir)
+
+    # Construct Summary Text
+    summary_lines = [
+        f"Total Processed (Raw): {total_processed}",
+        f"Merged Unique: {len(merged_proxies)}",
+        f"Total Working: {working_proxies}",
+        f"Chosen Subset: {len(chosen_proxies)} (Working: {working_chosen})",
+        "",
+        "Breakdown by Batch Source:",
+    ]
+    for src, data in final_batch_stats.items():
+        summary_lines.append(f"  - {src}: {data['working']}/{data['total']} working")
+
+    summary_lines.append("")
+    summary_lines.append("Breakdown by Protocol (Working):")
+    for proto, count in sorted(proxies_by_protocol.items()):
+        summary_lines.append(f"  - {proto}: {len(count)}")
+
+    consolidate_logs(output_dir, summary_text="\n".join(summary_lines))
 
     logger.info(f"\n{'=' * 60}")
     logger.info(
