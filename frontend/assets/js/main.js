@@ -1,28 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize theme
-    if (window.api && window.api.initTheme) {
-        window.api.initTheme();
-    }
+    // Note: Common UI (Theme, Header Scroll, Mobile Nav, Copy Buttons) is now handled by common-ui.js
 
-    // Initialize header scroll effect
-    initHeaderScroll();
-
-    // Initialize copy buttons
-    initCopyButtons();
-
-    // Initialize inline icons
-    if (window.inlineIcons) {
-        window.inlineIcons.replace();
-    }
-
-    // Initialize mobile navigation
-    if (window.api && window.api.initMobileNav) {
-        window.api.initMobileNav();
-    }
-
-    // Initialize accordion
+    // Initialize accordion (Home page specific)
     initAccordion();
 
+    // Initialize Dynamic Downloads (Client Selector)
+    initDynamicDownloads();
 
     // --- DATA FETCHING & INITIALIZATION ---
     (async () => {
@@ -109,19 +92,6 @@ function updateFreshness(date) {
     footerUpdate.style.fontWeight = 'bold';
 }
 
-function initHeaderScroll() {
-    const header = document.querySelector('.header');
-    if (!header) return;
-
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    });
-}
-
 function initAccordion() {
     const accordionContainers = document.querySelectorAll('.accordion-container');
     if (accordionContainers.length === 0) return;
@@ -182,43 +152,3 @@ function initAccordion() {
     window.addEventListener('resize', onResize);
 }
 
-function initCopyButtons() {
-    document.addEventListener('click', async (e) => {
-        const button = e.target.closest('.copy-btn');
-        if (!button) return;
-
-        const config = button.dataset.config;
-        const file = button.dataset.file;
-
-        let textToCopy;
-
-        if (config) {
-            textToCopy = decodeURIComponent(config);
-        } else if (file) {
-            // Hard mapping for GitHub Pages static hosting
-            // Assuming output/ is the site root
-            const FILE_MAP = {
-                'subscribe/singbox': 'singbox.json',
-                'subscribe/singbox-vpn': 'singbox-vpn.json',
-                'subscribe/clash': 'clash.yaml',
-                'subscribe/base64': 'base64.txt',
-                'subscribe/shadowrocket': 'shadowrocket.txt',
-                'subscribe/surge': 'surge.conf',
-                'subscribe/loon': 'loon.conf',
-                'subscribe/quantumultx': 'quantumult.conf',
-                'subscribe/sip008': 'sip008.json',
-                'files/chosen/base64.txt': 'chosen/base64.txt'
-            };
-
-            // Handle "files/" paths which might be legacy or direct
-            let targetFile = FILE_MAP[file] || file;
-
-            // If it's one of our known maps, getFullUrl will handle the base
-            textToCopy = getFullUrl(targetFile);
-        } else {
-            return;
-        }
-
-        await copyToClipboard(textToCopy, button);
-    });
-}

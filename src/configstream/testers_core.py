@@ -262,12 +262,19 @@ class GoBatchTester:
                                 failure_reasons.get(error_cat, 0) + 1
                             )
 
+                            # Enhanced Metadata Tracking
+                            # Track failure reason in details for analytics
+                            if error_cat not in ["TIMEOUT", "OTHER"]:
+                                p.details["failure_category"] = error_cat
+
                             # DIAGNOSTIC: Log explicit failure reason if success rate is low
                             # For better transparency as requested, log all non-trivial failures until we see some success
                             if working_count == 0 and result_count <= 50:
                                 if error_cat not in ["TIMEOUT"]:
+                                    # Log metadata if available (ASN/Country)
+                                    meta_str = f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
                                     logger.warning(
-                                        f"Test failed for {p.protocol}://{p.address}:{p.port} -> {error_msg}"
+                                        f"Test failed {meta_str} for {p.protocol}://{p.address}:{p.port} -> {error_msg}"
                                     )
                                 else:
                                     logger.debug(f"Test timeout: {p.address}")
