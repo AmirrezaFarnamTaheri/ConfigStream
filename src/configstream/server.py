@@ -123,6 +123,13 @@ async def download_subscription(format: str):
 
 # --- Static File Serving ---
 
+# Ensure output directory exists before mounting to prevent RuntimeError
+if not OUTPUT_DIR.exists():
+    try:
+        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass  # If we can't create it (permissions), we might crash on mount, but we tried.
+
 # Mount the output directory for direct file access (e.g. /output/clash.yaml)
 app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
 # Legacy compatibility for old clients

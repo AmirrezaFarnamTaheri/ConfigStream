@@ -203,8 +203,9 @@ class GoBatchTester:
             # Check if we got any output at all
             if not stdout or not stdout.strip():
                 logger.error(
-                    "Go Tester produced NO OUTPUT! "
+                    f"Go Tester produced NO OUTPUT! (Exit Code: {proc.returncode}) "
                     f"Sent {len(inputs)} proxies, received nothing. "
+                    f"Stderr: {stderr.decode()[:500] if stderr else 'None'}. "
                     "Check if sing-box core is working correctly."
                 )
                 # Mark all as failed explicitly
@@ -451,7 +452,7 @@ class SingBoxTester:
                             loop.run_in_executor(None, sb_instance.stop), timeout=5.0
                         )
                     except Exception as e:
-                        logger.debug(
+                        logger.warning(
                             f"Failed to stop Sing-box instance gracefully: {e}"
                         )
         self._finalize_result(proxy)

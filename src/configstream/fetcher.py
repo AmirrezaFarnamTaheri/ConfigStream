@@ -96,6 +96,7 @@ async def fetch_from_source(
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
         breaker = await breaker_manager.get_breaker(host)
         if await breaker.is_open():
+            logger.info(f"Circuit breaker OPEN for {host} - skipping fetch of {source}")
             return FetchResult(False, source, error="Circuit Breaker Open")
 
     # 4. Execution Loop
@@ -161,6 +162,7 @@ async def fetch_from_source(
         except RateLimitError as e:
             last_error = str(e)
             wait = e.retry_after if e.retry_after else backoff
+            logger.info(f"Rate limited by {host}. Waiting {wait:.2f}s before retry.")
             await asyncio.sleep(wait + random.uniform(0, 0.5))
             backoff = min(backoff * 2, 60)
 
@@ -168,7 +170,11 @@ async def fetch_from_source(
             # Capture status code if available in exception
             if isinstance(e, httpx.HTTPStatusError):
                 last_status_code = e.response.status_code
-                logger.debug(f"HTTP Error {last_status_code} for {source}")
+                logger.warning(f"HTTP Error {last_status_code} for {source}: {e}")
+            elif isinstance(e, asyncio.TimeoutError):
+                logger.warning(
+                    f"Timeout fetching {source} after {per_attempt_timeout}s"
+                )
 
             last_error = str(e)
             if controller:
@@ -186,6 +192,9 @@ async def fetch_from_source(
             # Don't sleep on the last attempt
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
+                logger.debug(
+                    f"Retrying {source} in {wait}s (Attempt {attempt+1}/{max_retries})"
+                )
                 await asyncio.sleep(wait + random.uniform(0, 0.3))
                 backoff = min(backoff * 2, 60)
 
