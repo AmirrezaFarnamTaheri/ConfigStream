@@ -260,6 +260,12 @@ class ProxyWasher:
             f"clean_ips={len(self.clean_ips)}). "
             f"Skip reasons: {json.dumps(skip_reasons)}"
         )
+
+        if conversion_failures > 0:
+            logger.debug(
+                f"Washing conversion failures details: {json.dumps(skip_reasons)}"
+            )
+
         return washed_outbounds, washed_ids
 
 

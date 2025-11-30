@@ -93,17 +93,26 @@ def validate_b64_input(data: str) -> Optional[str]:
             error_rate > 0.05
         ):  # >5% invalid chars -> definitely not base64 (probably HTML or text)
             logger.debug(
-                "Skipping invalid base64 input (high noise ratio: %.2f%%): %d invalid chars",
+                "Skipping invalid base64 input (high noise ratio: %.2f%%): %d invalid chars. First 10: %s",
                 error_rate * 100,
                 len(invalid_chars),
+                list(invalid_chars)[:10],
             )
             return None
 
         # Don't log warning if it's just a config line trying to be decoded as base64
         if len(trimmed) < 1000:
-            logger.debug("Invalid base64 characters in short string: %s", invalid_chars)
+            logger.debug(
+                "Invalid base64 characters in short string: %s. Context: %s...",
+                invalid_chars,
+                trimmed[:50],
+            )
         else:
-            logger.warning("Invalid base64 characters: %s", invalid_chars)
+            logger.warning(
+                "Invalid base64 characters: %s in payload starting with: %s...",
+                invalid_chars,
+                trimmed[:50],
+            )
         return None
 
     cleaned = "".join(c for c in trimmed if c not in " \n\r\t")
@@ -215,13 +224,20 @@ def extract_config_lines(
 ) -> List[str]:
     """Extract configuration lines with validation and limits."""
     if not isinstance(payload, str) or not payload.strip():
+        logger.debug("extract_config_lines: Empty or invalid payload type.")
         return []
 
     # Check if it's an OpenVPN file
     if "client" in payload and ("dev tun" in payload or "dev tap" in payload):
+        logger.debug("extract_config_lines: Detected OpenVPN configuration.")
         # Treat the whole payload as one config
         if len(payload) < MAX_B64_OUTPUT_SIZE:  # Size limit check
             return [payload]
+        else:
+            logger.warning(
+                "extract_config_lines: OpenVPN config exceeds size limit (%d bytes).",
+                len(payload),
+            )
 
     lines = payload.splitlines()
     if len(lines) > max_lines:
@@ -254,6 +270,11 @@ def extract_config_lines(
                 configs.append(candidate)
             else:
                 dropped_count += 1
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(
+                        "Dropping invalid config line: %s... (Reason: Invalid protocol or implausible format)",
+                        candidate[:100],
+                    )
                 if len(dropped_samples) < 5:
                     dropped_samples.append(candidate[:100])  # Truncate for log safety
 

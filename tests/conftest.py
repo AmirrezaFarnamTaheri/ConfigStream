@@ -13,17 +13,30 @@ nest_asyncio.apply()
 
 @pytest.fixture(scope="function", autouse=True)
 def apply_nest_asyncio_fixture():
-    nest_asyncio.apply()
+    # Re-apply nest_asyncio to the current loop, just in case
+    try:
+        loop = asyncio.get_running_loop()
+        nest_asyncio.apply(loop)
+    except RuntimeError:
+        # No running loop, that's fine
+        pass
 
 
 @pytest.fixture(scope="function")
 def event_loop():
     """Create an instance of the default event loop for each test case."""
+    # Create a new loop
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
+    # Apply nest_asyncio to this specific loop
     nest_asyncio.apply(loop)
     yield loop
-    loop.close()
+    # Cleanup
+    try:
+        if not loop.is_closed():
+            loop.close()
+    except Exception:
+        pass
 
 
 # Playwright browser launch args for containerized/CI environments
