@@ -15,6 +15,7 @@ class FetchResult:
         "error",
         "response_time",
         "status_code",
+        "headers",
     )
 
     def __init__(
@@ -25,6 +26,7 @@ class FetchResult:
         error: str | None = None,
         response_time: float | None = None,
         status_code: int | None = None,
+        headers: dict[str, Any] | None = None,
     ):
         self.success = success
         self.source = source
@@ -32,6 +34,7 @@ class FetchResult:
         self.error = error
         self.response_time = response_time
         self.status_code = status_code
+        self.headers = headers or {}
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -41,6 +44,7 @@ class FetchResult:
             "error": self.error,
             "response_time": self.response_time,
             "status_code": self.status_code,
+            "headers": self.headers,
         }
 
 

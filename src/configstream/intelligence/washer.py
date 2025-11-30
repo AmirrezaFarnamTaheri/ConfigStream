@@ -162,10 +162,14 @@ class ProxyWasher:
         candidates = [p for p in proxies if p.is_working and self.warp_keys]
         logger.info(f"Washing {len(candidates)} proxies through WARP")
 
+        skip_reasons: Dict[str, int] = {}
         for i, relay in enumerate(candidates):
             # 2. Select the "Soap" (Exit Node)
             exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
             if not exit_key or "private_key" not in exit_key:
+                skip_reasons["invalid_warp_key"] = (
+                    skip_reasons.get("invalid_warp_key", 0) + 1
+                )
                 logger.debug(f"Skipping proxy {relay.id[:8]}: invalid WARP key")
                 continue
 
@@ -179,6 +183,9 @@ class ProxyWasher:
             # Thread-safe check-then-act for deduplication
             with self._seen_chains_lock:
                 if chain_id in self.seen_chains:
+                    skip_reasons["duplicate_chain"] = (
+                        skip_reasons.get("duplicate_chain", 0) + 1
+                    )
                     continue  # Skip duplicates
 
                 # Prune if too large (simple flush for now, LRU is better but heavier)
@@ -191,6 +198,9 @@ class ProxyWasher:
             # 4. Construct the Chain Objects
             relay_out = to_singbox_outbound(relay)
             if not relay_out:
+                skip_reasons["conversion_failed"] = (
+                    skip_reasons.get("conversion_failed", 0) + 1
+                )
                 logger.debug(
                     f"Skipping proxy {relay.id[:8]}: conversion to singbox failed"
                 )
@@ -244,7 +254,8 @@ class ProxyWasher:
             f"Washing complete: {len(washed_ids)}/{len(candidates)} proxies washed "
             f"(conversion_failures={conversion_failures}, "
             f"warp_pool_size={len(self.warp_keys)}, "
-            f"clean_ips={len(self.clean_ips)})"
+            f"clean_ips={len(self.clean_ips)}). "
+            f"Skip reasons: {json.dumps(skip_reasons)}"
         )
         return washed_outbounds, washed_ids
 
