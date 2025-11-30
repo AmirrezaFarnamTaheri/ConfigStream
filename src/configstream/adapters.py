@@ -71,6 +71,9 @@ class SurgeAdapter(Adapter):
                     logger.debug(f"Failed to export chain to Surge: {e}")
                     failed_count += 1
 
+        if failed_count > 0:
+            logger.debug(f"Surge export had {failed_count} failures during formatting.")
+
         logger.info(
             f"Surge export summary: {exported_count} proxies, {chain_count} chains "
             f"(Total Lines: {len(lines)}, Failures: {failed_count})"
@@ -211,6 +214,9 @@ class QuantumultXAdapter(Adapter):
             except Exception as e:
                 logger.debug(f"Failed to export {p.protocol} to QuantumultX: {e}")
                 failed_count += 1
+
+        if failed_count > 0:
+            logger.debug(f"Quantumult X export had {failed_count} failures.")
 
         logger.info(
             f"Quantumult X export summary: {len(lines)} proxies (Failures: {failed_count})"

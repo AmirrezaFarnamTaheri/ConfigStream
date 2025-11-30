@@ -69,6 +69,7 @@ async def fetch_from_source(
             raise ValueError(f"Invalid URL: {source}")
         host = parsed.netloc
     except Exception as e:
+        logger.debug(f"URL validation failed for {source}: {e}")
         return FetchResult(False, source, error=str(e))
 
     # 2. Adaptive Timeout Calculation
@@ -91,6 +92,7 @@ async def fetch_from_source(
     if rate_limiter:
         while not await rate_limiter.is_allowed(host):
             wait = await rate_limiter.get_wait_time(host)
+            logger.debug(f"Rate limiting active for {host}. Waiting {wait:.2f}s...")
             await asyncio.sleep(wait)
 
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
@@ -171,7 +173,8 @@ async def fetch_from_source(
             else:
                 logger.warning(
                     f"Fetch succeeded at network level but returned no valid content/success flag for {source}. "
-                    f"Status Code: {result.status_code if result.status_code else 'Unknown'}"
+                    f"Status Code: {result.status_code if result.status_code else 'Unknown'}. "
+                    f"Error: {result.error}"
                 )
 
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
