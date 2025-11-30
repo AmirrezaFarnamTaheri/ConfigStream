@@ -263,6 +263,10 @@ class GoBatchTester:
                                 and "in use" in error_msg.lower()
                             ):
                                 error_cat = "BIND_ERROR"
+                            elif "handshake" in error_msg.lower():
+                                error_cat = "HANDSHAKE_FAIL"
+                            elif "connection refused" in error_msg.lower():
+                                error_cat = "CONN_REFUSED"
                             else:
                                 error_cat = "OTHER"
 

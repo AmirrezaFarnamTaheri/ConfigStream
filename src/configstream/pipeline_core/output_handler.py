@@ -148,8 +148,9 @@ async def generate_pipeline_outputs(
                 assets_dir=assets_path,  # Where cover images (background.png) live
                 secret_key=dynamic_key,
             )
+            logger.info("Stego assets generation completed successfully.")
         except Exception as e:
-            logger.error(f"Stego generation failed: {e}")
+            logger.error(f"Stego generation failed: {e}", exc_info=True)
     else:
         logger.warning("Assets directory not found, skipping Stego.")
 
