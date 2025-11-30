@@ -181,6 +181,7 @@ def validate_address(
 def validate_protocol(protocol: str) -> Optional[str]:
     """Validate protocol is recognized."""
     if protocol.lower() not in VALID_PROTOCOLS:
+        logger.warning("Unknown protocol detected: %s", protocol)
         return f"Unknown protocol: {protocol}"
     return None
 
