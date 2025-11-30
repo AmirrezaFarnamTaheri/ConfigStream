@@ -329,7 +329,10 @@ async def processing_consumer(
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
-            logger.debug(f"Dropped {dropped_unsafe} unsafe proxies from {source}")
+            logger.warning(
+                f"Dropped {dropped_unsafe} unsafe proxies from {source}. "
+                f"Valid: {len(safe_batch)}/{len(unique_batch)}"
+            )
 
         final_batch_for_this_source = []
         proxies_to_actually_test = []
@@ -491,13 +494,14 @@ async def processing_consumer(
 
         # LOG SUMMARY FOR THIS SOURCE
         logger.info(
-            f"Source Summary [{source}]: "
-            f"Raw={len(raw_lines)}, Parsed={len(parsed_batch)}, "
-            f"Unique={len(unique_batch)} (Dupes={duplicates_count}), "
-            f"Safe={len(safe_batch)} (Unsafe={dropped_unsafe}), "
-            f"Tested={len(proxies_to_actually_test)}, "
-            f"Working={working_count} (Rate={(working_count/len(safe_batch)*100) if safe_batch else 0:.1f}%), "
-            f"Duration={full_duration_ms:.0f}ms"
+            f"Source Summary [{source}]:\n"
+            f"  Raw Lines:     {len(raw_lines)}\n"
+            f"  Parsed:        {len(parsed_batch)}\n"
+            f"  Unique:        {len(unique_batch)} (Dupes: {duplicates_count})\n"
+            f"  Safe:          {len(safe_batch)} (Unsafe/Dropped: {dropped_unsafe})\n"
+            f"  Tested:        {len(proxies_to_actually_test)} (Cached: {len(final_batch_for_this_source) - len(proxies_to_actually_test) if len(final_batch_for_this_source) > 0 else 0})\n"
+            f"  Working:       {working_count} (Success Rate: {(working_count/len(safe_batch)*100) if safe_batch else 0:.1f}%)\n"
+            f"  Duration:      {full_duration_ms:.0f}ms (Fetch: {fetch_duration:.0f}ms, Process: {total_duration:.0f}ms)"
         )
 
         if failure_modes:
