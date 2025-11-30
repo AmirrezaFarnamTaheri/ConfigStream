@@ -145,7 +145,8 @@ class GoBatchTester:
 
         if not inputs:
             logger.warning(
-                f"No valid inputs for Go tester from {len(proxies)} proxies - all conversions failed"
+                f"No valid inputs for Go tester from {len(proxies)} proxies - all conversions failed. "
+                "Check protocol support and configuration validity."
             )
             return proxies
 
@@ -206,7 +207,7 @@ class GoBatchTester:
                     "Check if sing-box core is working correctly."
                 )
                 if stderr:
-                     logger.debug(f"Full Go Tester Stderr: {stderr.decode()}")
+                    logger.debug(f"Full Go Tester Stderr: {stderr.decode()}")
                 # Ensure we log context for the first few failures to aid debugging
                 if inputs:
                     sample_input = json.dumps(inputs[0])
@@ -288,7 +289,9 @@ class GoBatchTester:
 
                             # Additional per-proxy debug logging for transparency
                             if logger.isEnabledFor(logging.DEBUG) and not p.is_working:
-                                 logger.debug(f"Detailed failure for {p.id} ({p.protocol}): {p.details.get('error')}")
+                                logger.debug(
+                                    f"Detailed failure for {p.id} ({p.protocol}): {p.details.get('error')}"
+                                )
 
                 except json.JSONDecodeError:
                     continue
@@ -365,6 +368,9 @@ class SingBoxTester:
                         self._finalize_result(p)
             return proxies
         else:
+            logger.info(
+                f"Fallback: Testing batch of {len(proxies)} proxies using Python tester"
+            )
             tasks = [self.test(p) for p in proxies]
             return await asyncio.gather(*tasks)
 
