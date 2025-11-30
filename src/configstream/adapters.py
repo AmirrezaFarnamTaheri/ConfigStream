@@ -72,7 +72,8 @@ class SurgeAdapter(Adapter):
                     failed_count += 1
 
         logger.info(
-            f"Surge export: {exported_count} proxies, {chain_count} chains, {failed_count} failed"
+            f"Surge export summary: {exported_count} proxies, {chain_count} chains "
+            f"(Total Lines: {len(lines)}, Failures: {failed_count})"
         )
         return "\n".join(lines)
 
@@ -143,6 +144,7 @@ class LoonAdapter(Adapter):
                 logger.debug(f"Failed to export {p.protocol} to Loon: {e}")
 
         # 2. Export Washed Proxies (Loon WireGuard-over-Proxy)
+        chain_count = 0
         if washed_outbounds:
             for out in washed_outbounds:
                 try:
@@ -157,9 +159,13 @@ class LoonAdapter(Adapter):
                         )
                         if chain_line:
                             lines.append(chain_line)
+                            chain_count += 1
                 except Exception as e:
                     logger.debug(f"Failed to export chain to Loon: {e}")
 
+        logger.info(
+            f"Loon export summary: {len(lines) - 1 - chain_count} proxies, {chain_count} chains"
+        )
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:

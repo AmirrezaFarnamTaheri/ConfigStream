@@ -72,6 +72,7 @@ async def fetch_single_source(
                 content=content,
                 response_time=response_time,
                 status_code=status,
+                headers=dict(response.headers),
             )
 
     except httpx.HTTPError as e:

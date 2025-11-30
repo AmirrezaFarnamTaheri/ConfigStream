@@ -155,8 +155,12 @@ async def fetch_from_source(
                 else:
                     preview_text = str(result.content)[:50].replace("\n", "\\n")
 
+                content_type = result.headers.get("Content-Type", "unknown")
+                content_len = result.headers.get("Content-Length", "unknown")
+
                 logger.info(
                     f"Successfully fetched {len(result.content)} bytes from {source} "
+                    f"[Type: {content_type}, Len: {content_len}] "
                     f"(Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s). "
                     f"Preview: {preview_text}..."
                 )
@@ -264,7 +268,7 @@ async def fetch_multiple_sources(
     global_sem = asyncio.Semaphore(max_concurrent)
 
     # Optimization: Pre-warm DNS (Best effort for HTTP sources)
-    logger.debug(f"Pre-warming DNS for {len(sources)} sources...")
+    logger.info(f"Pre-warming DNS for {len(sources)} sources...")
     await prewarm_dns_cache(sources)
 
     async def _worker(

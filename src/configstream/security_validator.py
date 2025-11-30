@@ -2,6 +2,7 @@
 
 import re
 import uuid
+import json
 import logging
 from dataclasses import dataclass, replace
 from typing import List, Tuple, Dict, FrozenSet, Optional
@@ -272,6 +273,7 @@ def validate_batch_configs(
     """
     validator = SecurityValidator()
     secure_proxies = []
+    rejection_reasons: Dict[str, int] = {}
 
     for proxy in proxies:
         is_secure, categorized_issues = validator.validate_proxy_config(
@@ -282,6 +284,7 @@ def validate_batch_configs(
             all_issues = []
             for category, issues_list in categorized_issues.items():
                 all_issues.extend(issues_list)
+                rejection_reasons[category] = rejection_reasons.get(category, 0) + 1
 
             # Only log at debug level to avoid spam, summarize at end
             logger.debug(
@@ -298,7 +301,7 @@ def validate_batch_configs(
     if rejected_count > 0:
         logger.info(
             f"Security validation: {len(secure_proxies)}/{len(proxies)} proxies passed "
-            f"({rejected_count} filtered)"
+            f"({rejected_count} filtered). Reasons: {json.dumps(rejection_reasons)}"
         )
     else:
         logger.info(
