@@ -390,7 +390,12 @@ def merge_batches(
             logger.warning(f"⚠️ Failed to copy frontend assets: {e}")
 
     # 2. Generate Key
-    dynamic_key = Fernet.generate_key().decode()
+    dynamic_key = os.environ.get("STEGO_KEY")
+    if not dynamic_key:
+        logger.info("ℹ️ STEGO_KEY not found in environment, generating a random one.")
+        dynamic_key = Fernet.generate_key().decode()
+    else:
+        logger.info("ℹ️ Using STEGO_KEY from environment.")
 
     # 3. Generate Images
     assets_images = output_dir / "assets" / "images"
