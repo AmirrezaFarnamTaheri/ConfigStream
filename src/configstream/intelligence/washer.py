@@ -249,6 +249,10 @@ class ProxyWasher:
             washed_outbounds.append(relay_out)
             washed_outbounds.append(warp_out)
             washed_ids.add(relay.id)
+            logger.debug(
+                f"Created washed chain {chain_id}: {relay_tag} -> {exit_tag} "
+                f"(Clean IP: {clean_endpoint})"
+            )
 
         # Calculate detailed washing statistics
         conversion_failures = len(candidates) - len(washed_ids)

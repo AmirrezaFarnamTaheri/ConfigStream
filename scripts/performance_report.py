@@ -44,21 +44,33 @@ async def main():
     )
 
     # Extract metrics
-    metrics = result.get("metrics", {})
-    stats = result.get("stats", {})
+    # PipelineResult objects have attributes, not .get() methods
+    stats = result.stats
+    # Metrics are not directly on PipelineResult/Stats usually,
+    # but PipelineStats might be convertable or accessed.
+    # The original code expected a dict.
+    # stats is a PipelineStats object.
+
+    # We need to map PipelineStats to the expected format or just dump it.
+    stats_dict = stats.to_dict()
 
     # Generate report
     report = {
         "timestamp": datetime.now().isoformat(),
-        "success": result.get("success"),
+        "success": result.success,
         "sources": len(sources),
-        "stats": stats,
+        "stats": stats_dict,
+        # Performance metrics might be missing if not in PipelineResult
+        # The previous code assumed "metrics" key in result.
+        # But run_full_pipeline returns PipelineResult(success, stats, output_files)
+        # It seems performance metrics might need to be derived from stats.
         "performance": {
-            "total_time_seconds": metrics.get("total_seconds", 0),
-            "fetch_time_seconds": metrics.get("fetch_seconds", 0),
-            "parse_time_seconds": metrics.get("parse_seconds", 0),
-            "test_time_seconds": metrics.get("test_seconds", 0),
-            "proxies_per_second": metrics.get("proxies_per_second", 0),
+            "total_time_seconds": stats.duration,
+            # granular metrics might not be available in PipelineResult directly unless we change it
+            # For now, use 0 or available data
+            "proxies_per_second": (
+                (stats.tested / stats.duration) if stats.duration > 0 else 0
+            ),
         },
     }
 
@@ -72,15 +84,12 @@ async def main():
     print("=" * 60)
     print(f"✅ Success: {report['success']}")
     print(f"📦 Sources processed: {len(sources)}")
-    print(f"🔍 Configs fetched: {stats.get('fetched', 0)}")
-    print(f"🧪 Proxies tested: {stats.get('tested', 0)}")
-    print(f"✨ Working proxies: {stats.get('working', 0)}")
+    print(f"🔍 Configs fetched: {stats.fetched_lines}")
+    print(f"🧪 Proxies tested: {stats.tested}")
+    print(f"✨ Working proxies: {stats.working}")
     print()
     print("⏱️  TIMING:")
     print(f"   Total time: {report['performance']['total_time_seconds']:.2f}s")
-    print(f"   Fetch time: {report['performance']['fetch_time_seconds']:.2f}s")
-    print(f"   Parse time: {report['performance']['parse_time_seconds']:.2f}s")
-    print(f"   Test time: {report['performance']['test_time_seconds']:.2f}s")
     print()
     print(
         f"🚀 Throughput: {report['performance']['proxies_per_second']:.1f} proxies/sec"
