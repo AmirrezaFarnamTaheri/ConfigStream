@@ -235,6 +235,8 @@ def extract_config_lines(
 
     configs = []
     dropped_count = 0
+    dropped_samples: List[str] = []
+
     for line in lines:
         candidate = line.strip()
         if (
@@ -251,6 +253,8 @@ def extract_config_lines(
                 configs.append(candidate)
             else:
                 dropped_count += 1
+                if len(dropped_samples) < 5:
+                    dropped_samples.append(candidate[:100])  # Truncate for log safety
 
     if dropped_count > 0:
         if len(configs) > 0:
@@ -261,7 +265,12 @@ def extract_config_lines(
         else:
             logger.warning(
                 f"All {dropped_count} lines were dropped as invalid/implausible. "
-                "Check source format or content. First few dropped lines may be logged at debug level."
+                "Check source format or content."
+            )
+
+        if dropped_samples:
+            logger.debug(
+                f"Sample dropped lines (first {len(dropped_samples)}): {dropped_samples}"
             )
     else:
         logger.info(f"Successfully extracted {len(configs)} configs (0 dropped).")

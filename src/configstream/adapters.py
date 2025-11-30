@@ -202,6 +202,7 @@ class QuantumultXAdapter(Adapter):
         washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
         lines = []
+        failed_count = 0
         for p in proxies:
             try:
                 line = self._format_proxy(p)
@@ -209,6 +210,9 @@ class QuantumultXAdapter(Adapter):
                     lines.append(line)
             except Exception as e:
                 logger.debug(f"Failed to export {p.protocol} to QuantumultX: {e}")
+                failed_count += 1
+
+        logger.info(f"Quantumult X export summary: {len(lines)} proxies (Failures: {failed_count})")
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
@@ -256,6 +260,7 @@ class SIP008Adapter(Adapter):
                 }
                 servers.append(server)
 
+        logger.info(f"SIP008 export summary: {len(servers)} Shadowsocks servers")
         return json.dumps(
             {"version": 1, "servers": servers, "bytes_used": 0, "bytes_remaining": 0},
             indent=2,
@@ -332,6 +337,7 @@ class ShadowrocketAdapter(Adapter):
         # but can also import Surge/Clash configs.
         # The best "native" format is a list of URI schemes.
         lines = []
+        reconstructed_count = 0
         for p in proxies:
             if p.config and "://" in p.config:
                 # Use the original config string if available and valid
@@ -343,8 +349,10 @@ class ShadowrocketAdapter(Adapter):
                     uri = self._reconstruct_uri(p)
                     if uri:
                         lines.append(uri)
+                        reconstructed_count += 1
                 except Exception as e:
                     logger.debug(f"Failed to reconstruct URI for {p.protocol}: {e}")
 
+        logger.info(f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})")
         # Return as plain text list (decoded subscription)
         return "\n".join(lines)

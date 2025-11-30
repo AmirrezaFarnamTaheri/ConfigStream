@@ -356,6 +356,14 @@ async def processing_consumer(
                 f"Valid: {len(safe_batch)}/{len(unique_batch)} "
                 f"(Retention: {len(safe_batch)/len(unique_batch):.1%})"
             )
+            # [LOGGING] Log details of dropped proxies if useful
+            if logger.isEnabledFor(logging.DEBUG):
+                dropped_details = [
+                    f"{p.protocol}://{p.address}"
+                    for p in unique_batch
+                    if p not in safe_batch
+                ][:5]
+                logger.debug(f"Sample dropped proxies: {dropped_details}...")
         else:
             logger.info(
                 f"Security Filter [{source}]: All {len(unique_batch)} proxies passed validation."
@@ -367,6 +375,7 @@ async def processing_consumer(
         # Decide whether to reuse cached results or schedule a fresh test.
         # We treat any path that leads to an actual test as a cache miss
         # (including forced retests).
+        cache_hits = 0
         for p in safe_batch:
             cached = None
             if not scheduler.should_retest(p):
@@ -374,9 +383,15 @@ async def processing_consumer(
 
             if cached:
                 final_batch_for_this_source.append(cached)
+                cache_hits += 1
             else:
                 stats.cache_misses += 1
                 proxies_to_actually_test.append(p)
+
+        logger.info(
+            f"Cache Check [{source}]: {cache_hits} hits, {len(proxies_to_actually_test)} misses "
+            f"(Total: {len(safe_batch)})"
+        )
 
         if proxies_to_actually_test:
             if max_proxies and stats.tested >= max_proxies:
@@ -399,14 +414,17 @@ async def processing_consumer(
                                     )
                             else:
                                 # Log failure for debugging transparency
+                                # [LOGGING] Enhanced failure logging
+                                error_msg = res.details.get("error", "unknown")
                                 logger.debug(
-                                    f"Proxy test failed: {res.protocol}://{res.address}:{res.port} - {res.details.get('error', 'unknown')}"
+                                    f"Proxy test failed [{source}]: {res.protocol}://{res.address}:{res.port} - {error_msg}"
                                 )
                         stats.tested += len(chunk)
                         # Log batch test summary
                         working_in_chunk = sum(1 for r in chunk if r.is_working)
                         logger.info(
-                            f"Batch test result for {source}: {working_in_chunk}/{len(chunk)} working"
+                            f"Batch test result for {source}: {working_in_chunk}/{len(chunk)} working "
+                            f"({(working_in_chunk/len(chunk)*100):.1f}%)"
                         )
                         if working_in_chunk == 0 and len(chunk) > 0:
                             logger.warning(
