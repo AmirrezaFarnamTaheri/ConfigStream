@@ -496,4 +496,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     if out and proxy.protocol in ["vmess", "vless", "trojan", "shadowsocks"]:
         out = _apply_stealth_profile(out, proxy.protocol)
 
+    if out:
+        logger.debug(
+            f"Successfully converted {proxy.protocol} proxy: {proxy.address} "
+            f"(Source: {proxy.details.get('_source', 'unknown')})"
+        )
+
     return out
