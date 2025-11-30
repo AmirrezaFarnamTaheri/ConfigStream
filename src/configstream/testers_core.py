@@ -154,17 +154,14 @@ class GoBatchTester:
             cmd = [self.binary_path, "-workers", "50"]
 
             # Pass timeout
-            # We want Go timeout to be slightly less than Python's TEST_TIMEOUT to ensure we get a result
-            # However, if Python timeout is 15s, we can pass 10s to Go.
-            # But here we are passing AppSettings.TEST_TIMEOUT which is now 15.
-            # If we pass 15s to Go, and Python waits for 300s (batch timeout), it's fine.
-            # The critical thing is that Go doesn't hang forever.
             cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
 
             # Pass URLs
             if AppSettings.TEST_URLS:
                 urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
+
+            logger.debug(f"Invoking Go tester: {' '.join(cmd)}")
 
             proc = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -208,6 +205,8 @@ class GoBatchTester:
                     f"Stderr: {stderr.decode()[:500] if stderr else 'None'}. "
                     "Check if sing-box core is working correctly."
                 )
+                if stderr:
+                     logger.debug(f"Full Go Tester Stderr: {stderr.decode()}")
                 # Ensure we log context for the first few failures to aid debugging
                 if inputs:
                     sample_input = json.dumps(inputs[0])
@@ -286,6 +285,11 @@ class GoBatchTester:
                                 logger.debug(
                                     f"Proxy test failed: {p.address}:{p.port} - {res.get('error', 'unknown')}"
                                 )
+
+                            # Additional per-proxy debug logging for transparency
+                            if logger.isEnabledFor(logging.DEBUG) and not p.is_working:
+                                 logger.debug(f"Detailed failure for {p.id} ({p.protocol}): {p.details.get('error')}")
+
                 except json.JSONDecodeError:
                     continue
 
