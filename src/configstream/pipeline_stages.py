@@ -161,7 +161,10 @@ async def source_producer(
                 logger.info(f"Source blocked/cooldown: {url}")
 
         if active_urls:
-            logger.info(f"Starting fetch for {len(active_urls)} active sources")
+            logger.info(
+                f"Starting fetch for {len(active_urls)} active sources "
+                f"(Batch Size: 50, Concurrent Limit: {settings.PER_HOST_MAX_CONCURRENCY})"
+            )
             batch_size = 50
             for i in range(0, len(active_urls), batch_size):
                 batch = active_urls[i : i + batch_size]
@@ -190,6 +193,9 @@ async def source_producer(
 
                         if is_safe:
                             if lines:
+                                logger.debug(
+                                    f"Anomaly check passed for {source} (Count: {count})"
+                                )
                                 anomaly_detector.record(source, count)
                                 if event_stream:
                                     event_stream.emit(
@@ -300,11 +306,21 @@ async def processing_consumer(
 
         def _parse_chunk(lines, src):
             result = []
-            for line in lines:
-                p = parse_config(line)
-                if p:
-                    p.details["_source"] = src
-                    result.append(p)
+            try:
+                for i, line in enumerate(lines):
+                    try:
+                        p = parse_config(line)
+                        if p:
+                            p.details["_source"] = src
+                            result.append(p)
+                    except Exception as e:
+                        logger.debug(
+                            f"Parsing error for line {i} in {src}: {e}", exc_info=True
+                        )
+            except Exception as e:
+                logger.error(
+                    f"Fatal error in _parse_chunk for {src}: {e}", exc_info=True
+                )
             return result
 
         parsed_batch = []
@@ -316,7 +332,8 @@ async def processing_consumer(
         if not parsed_batch:
             logger.warning(
                 f"No valid proxies parsed from source {source} "
-                f"(Raw lines: {len(raw_lines)})"
+                f"(Raw lines: {len(raw_lines)}). "
+                f"Check parser logs/format compatibility."
             )
             work_queue.task_done()
             continue
@@ -347,6 +364,9 @@ async def processing_consumer(
                 duplicates_count += 1
 
         stats.parsed += len(unique_batch)
+        logger.debug(
+            f"Starting security validation for {len(unique_batch)} proxies from {source}..."
+        )
         safe_batch = validate_batch_configs(unique_batch, policy)
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
@@ -376,10 +396,13 @@ async def processing_consumer(
         # We treat any path that leads to an actual test as a cache miss
         # (including forced retests).
         cache_hits = 0
+        forced_retests = 0
         for p in safe_batch:
             cached = None
             if not scheduler.should_retest(p):
                 cached = test_cache.get(p)
+            else:
+                forced_retests += 1
 
             if cached:
                 final_batch_for_this_source.append(cached)
@@ -390,7 +413,7 @@ async def processing_consumer(
 
         logger.info(
             f"Cache Check [{source}]: {cache_hits} hits, {len(proxies_to_actually_test)} misses "
-            f"(Total: {len(safe_batch)})"
+            f"(Forced Retests: {forced_retests}, Total: {len(safe_batch)})"
         )
 
         if proxies_to_actually_test:
@@ -438,6 +461,9 @@ async def processing_consumer(
                                 description=f"[green]Testing... ({stats.working} working)",
                             )
                 else:
+                    logger.info(
+                        "Starting Concurrency Tuner for Python fallback testing..."
+                    )
                     concurrency.start_tuner()
 
                     async def _test_wrap(p: Proxy):
@@ -478,6 +504,7 @@ async def processing_consumer(
                     finally:
                         # Always stop tuner so background task cannot leak
                         await concurrency.stop_tuner()
+                        logger.debug("Concurrency Tuner stopped.")
 
         for p in final_batch_for_this_source:
             if not p.is_working:

@@ -187,10 +187,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "t.me",
         ]
     ):
+        logger.debug(f"Conversion skipped for subscription URL: {proxy.address}")
         return None
 
     # Reject invalid port ranges
     if not isinstance(proxy.port, int) or proxy.port <= 0 or proxy.port > 65535:
+        logger.warning(
+            f"Conversion failed: invalid port {proxy.port} for {proxy.address}"
+        )
         return None
 
     base: Dict[str, Any] = {

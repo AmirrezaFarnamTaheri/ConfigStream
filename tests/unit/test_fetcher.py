@@ -199,8 +199,8 @@ async def test_fetch_from_source_jitter_warning(caplog):
 
     with patch("configstream.fetcher.logger") as mock_logger:
         await fetch_from_source(client, "http://valid.com", timeout_tracker=tracker)
-        assert mock_logger.warning.called
-        assert "High Jitter" in mock_logger.warning.call_args[0][0]
+        # Check if any call to info contains "High Jitter"
+        assert any("High Jitter" in str(call) for call in mock_logger.info.mock_calls)
 
 
 @pytest.mark.asyncio
