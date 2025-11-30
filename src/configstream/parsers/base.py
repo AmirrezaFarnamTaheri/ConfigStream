@@ -78,6 +78,7 @@ def validate_b64_input(data: str) -> Optional[str]:
             unquoted = unquote(trimmed)
             # Only use unquoted version if it actually changed and looks valid
             if unquoted != trimmed:
+                logger.debug("Auto-fixed URL-encoded base64 input")
                 trimmed = unquoted
         except Exception:
             pass

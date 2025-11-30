@@ -160,7 +160,10 @@ class ProxyWasher:
         # proxies rather than relying solely on tags. Tags are still useful
         # for downstream labeling but not a hard requirement here.
         candidates = [p for p in proxies if p.is_working and self.warp_keys]
-        logger.info(f"Washing {len(candidates)} proxies through WARP")
+        logger.info(
+            f"Washing {len(candidates)} proxies through WARP "
+            f"(Total Working: {working_count}, Key Pool: {len(self.warp_keys)})"
+        )
 
         skip_reasons: Dict[str, int] = {}
         for i, relay in enumerate(candidates):
