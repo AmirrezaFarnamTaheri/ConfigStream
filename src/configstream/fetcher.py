@@ -96,7 +96,10 @@ async def fetch_from_source(
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
         breaker = await breaker_manager.get_breaker(host)
         if await breaker.is_open():
-            logger.info(f"Circuit breaker OPEN for {host} - skipping fetch of {source}")
+            logger.warning(
+                f"Circuit Breaker BLOCKED request to {host} (Source: {source}). "
+                "The host is considered unstable due to recent failures."
+            )
             return FetchResult(False, source, error="Circuit Breaker Open")
 
     # 4. Execution Loop
@@ -113,7 +116,8 @@ async def fetch_from_source(
     last_status_code = None
 
     logger.debug(
-        f"Starting fetch for {source} with effective timeout {effective_timeout}s"
+        f"Starting fetch for {source} with effective timeout {effective_timeout}s "
+        f"(Backoff: {backoff}s, Retries: {max_retries})"
     )
 
     for attempt in range(max_retries):
@@ -142,7 +146,7 @@ async def fetch_from_source(
                 # Jitter Check
                 jitter = await timeout_tracker.get_jitter(source)
                 if jitter > 2.0:
-                    logger.warning(f"High Jitter detected for {source}: {jitter:.2f}s")
+                    logger.info(f"High Jitter detected for {source}: {jitter:.2f}s")
 
             if result.success:
                 # [FIX] Handle bytes vs str for content preview
@@ -195,8 +199,8 @@ async def fetch_from_source(
                         f"Source not found (404): {source} - check URL validity"
                     )
                 elif last_status_code == 403:
-                    logger.info(
-                        f"Access forbidden (403): {source} - check permissions/geo-block"
+                    logger.warning(
+                        f"Access forbidden (403): {source} - check permissions/geo-block or user-agent"
                     )
                 elif last_status_code >= 500:
                     logger.warning(f"Server error ({last_status_code}) from {source}")

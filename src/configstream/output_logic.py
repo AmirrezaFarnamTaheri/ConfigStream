@@ -70,7 +70,7 @@ def generate_categorized_outputs(
         fpath = proto_dir / f"{proto}.json"
         save_json(subset, fpath)
         files[f"proto_{proto}"] = fpath
-    logger.info(f"Generated {len(files) - 2} protocol-specific files.")
+    logger.info(f"Generated {len(by_proto)} protocol-specific files.")
 
     # 3. By Country
     country_dir = output_dir / "by_country"
@@ -90,6 +90,7 @@ def generate_categorized_outputs(
     logger.info(f"Generated {len(by_country)} country-specific files.")
 
     # 4. Generate Split Outputs (Tank, Sniper, Diplomat)
+    logger.debug("Generating split outputs (Tank/Sniper/Diplomat)...")
     split_files = generate_split_outputs(
         proxies, output_dir, washed_outbounds, washed_ids, smart_chains
     )

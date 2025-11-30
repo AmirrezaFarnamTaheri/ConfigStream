@@ -71,6 +71,7 @@ def SecureConfigContext(content: str):
             f.flush()
         if not os.path.exists(path):
             raise OSError(f"Failed to create temp config file at {path}")
+        logger.debug(f"Created temp config file: {path}")
         yield path
     finally:
         try:
@@ -83,6 +84,7 @@ def SecureConfigContext(content: str):
         finally:
             with _TEMP_FILES_LOCK:
                 _TEMP_FILES.discard(path)
+            logger.debug(f"Cleaned up temp config file: {path}")
 
 
 class GoBatchTester:
@@ -381,6 +383,7 @@ class SingBoxTester:
         try:
             proto = "socks5" if "socks" in proxy.protocol else proxy.protocol
             url = f"{proto}://{proxy.address}:{proxy.port}"
+            logger.debug(f"Testing direct connection: {url}")
             connector = ProxyConnector.from_url(url)
             async with aiohttp.ClientSession(connector=connector) as session:
                 latency = await self._measure_latency_robust(session, proxy)
