@@ -52,7 +52,14 @@ class SmartRetestScheduler:
         else:
             interval = RetestInterval.FAIR
 
-        return self._check_interval(cached, interval)
+        should = self._check_interval(cached, interval)
+        if not should:
+            # Log debug info about skip reason
+            logger.debug(
+                f"Skipping retest for {proxy.id[:8]} (Score: {score:.2f}). "
+                f"Next test allowed in {interval}"
+            )
+        return should
 
     def _check_interval(self, proxy: Proxy, interval: timedelta) -> bool:
         """Returns True if time since last test > interval."""
@@ -66,8 +73,14 @@ class SmartRetestScheduler:
                 last_test = last_test.replace(tzinfo=timezone.utc)
 
             age = datetime.now(timezone.utc) - last_test
-            return age > interval
-        except Exception:
+            should_retest = age > interval
+            if should_retest:
+                logger.debug(
+                    f"Retesting {proxy.id[:8]}: Age {age} > Interval {interval}"
+                )
+            return should_retest
+        except Exception as e:
+            logger.warning(f"Error parsing date for {proxy.id[:8]}: {e}")
             return True
 
     def filter_proxies_for_retest(self, proxies: List[Proxy]) -> List[Proxy]:

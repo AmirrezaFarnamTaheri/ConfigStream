@@ -92,4 +92,9 @@ def generate_categorized_outputs(
     )
     files.update(split_files)
 
+    logger.info(
+        f"Categorized outputs generated: "
+        f"{len(by_proto)} protocols, {len(by_country)} countries, "
+        f"{len(files)} total files."
+    )
     return files

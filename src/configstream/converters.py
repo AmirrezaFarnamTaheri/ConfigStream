@@ -172,6 +172,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """
     # Early validation - reject invalid proxies before expensive conversion
     if not proxy or not proxy.address or not proxy.port:
+        logger.debug(f"Conversion failed: invalid address/port for {proxy}")
         return None
 
     # Filter subscription URLs that got past parser
@@ -327,7 +328,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     elif proxy.protocol == "vless":
         # Validate required UUID
         if not proxy.uuid:
-            logger.debug(f"VLESS proxy missing UUID: {proxy.address}:{proxy.port}")
+            logger.warning(
+                f"Dropping VLESS proxy missing UUID: {proxy.address}:{proxy.port}"
+            )
             return None
         out = {
             "type": "vless",
@@ -363,7 +366,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     elif proxy.protocol == "trojan":
         # Validate required password (stored as uuid)
         if not proxy.uuid:
-            logger.debug(f"Trojan proxy missing password: {proxy.address}:{proxy.port}")
+            logger.warning(
+                f"Dropping Trojan proxy missing password: {proxy.address}:{proxy.port}"
+            )
             return None
         out = {"type": "trojan", **base, "password": proxy.uuid}
         # [FIX] Trojan requires TLS. Force it if not present.

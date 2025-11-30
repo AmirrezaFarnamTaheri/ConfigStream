@@ -156,9 +156,9 @@ async def source_producer(
                 "ALL %d remote sources are on cooldown/disabled - no proxies will be fetched!",
                 len(blocked_urls),
             )
-            # Log specific reasons for blockage if debug is on
+            # Log specific reasons for blockage
             for url in blocked_urls:
-                logger.debug(f"Source blocked/cooldown: {url}")
+                logger.info(f"Source blocked/cooldown: {url}")
 
         if active_urls:
             logger.info(f"Starting fetch for {len(active_urls)} active sources")
@@ -198,16 +198,29 @@ async def source_producer(
                                     )
                                 metadata = {"fetch_duration": res.response_time or 0.0}
                                 await work_queue.put((source, lines, metadata))
-                                logger.info(f"Queued {count} proxies from {source}")
+                                fetch_time = (
+                                    f"{res.response_time:.2f}s"
+                                    if res.response_time is not None
+                                    else "N/A"
+                                )
+                                logger.info(
+                                    f"Queued {count} proxies from {source} "
+                                    f"(Fetch time: {fetch_time})"
+                                )
                         else:
-                            logger.warning(f"⚠️ BLOCKING {source}: {reason}")
+                            logger.warning(
+                                f"⚠️ BLOCKING {source}: {reason} (count={count})"
+                            )
                             if event_stream:
                                 event_stream.emit(
                                     "fetch_blocked",
                                     f"Blocked source {source}: {reason}",
                                 )
                     else:
-                        logger.warning(f"Failed to fetch {source}: {res.error}")
+                        logger.warning(
+                            f"Failed to fetch {source}: {res.error} "
+                            f"(Status: {res.status_code})"
+                        )
     except Exception as e:
         logger.error("Producer failed: %s", e)
     finally:
@@ -301,9 +314,18 @@ async def processing_consumer(
             )
 
         if not parsed_batch:
-            logger.info(f"No proxies parsed from source {source}")
+            logger.warning(
+                f"No valid proxies parsed from source {source} "
+                f"(Raw lines: {len(raw_lines)})"
+            )
             work_queue.task_done()
             continue
+
+        # Log protocol breakdown for parsed batch
+        protocol_counts: Dict[str, int] = {}
+        for p in parsed_batch:
+            protocol_counts[p.protocol] = protocol_counts.get(p.protocol, 0) + 1
+        logger.info(f"Parsed breakdown for {source}: {json.dumps(protocol_counts)}")
 
         unique_batch = []
         duplicates_count = 0
@@ -330,13 +352,13 @@ async def processing_consumer(
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
             logger.warning(
-                f"Security Filter: Dropped {dropped_unsafe} unsafe proxies from {source}. "
+                f"Security Filter [{source}]: Dropped {dropped_unsafe} unsafe proxies. "
                 f"Valid: {len(safe_batch)}/{len(unique_batch)} "
                 f"(Retention: {len(safe_batch)/len(unique_batch):.1%})"
             )
         else:
-            logger.debug(
-                f"Security Filter: All {len(unique_batch)} proxies passed validation."
+            logger.info(
+                f"Security Filter [{source}]: All {len(unique_batch)} proxies passed validation."
             )
 
         final_batch_for_this_source = []
@@ -386,6 +408,11 @@ async def processing_consumer(
                         logger.info(
                             f"Batch test result for {source}: {working_in_chunk}/{len(chunk)} working"
                         )
+                        if working_in_chunk == 0 and len(chunk) > 0:
+                            logger.warning(
+                                f"Batch failure details for {source}: All {len(chunk)} proxies failed in this chunk."
+                            )
+
                         if progress and task_process:
                             progress.update(
                                 task_process,
