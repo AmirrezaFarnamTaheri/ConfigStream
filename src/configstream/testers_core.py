@@ -162,7 +162,9 @@ class GoBatchTester:
                 urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
 
-            logger.debug(f"Invoking Go tester: {' '.join(cmd)}")
+            logger.info(
+                f"Invoking Go tester with {len(inputs)} proxies: {' '.join(cmd)}"
+            )
 
             proc = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -302,7 +304,8 @@ class GoBatchTester:
             )
             logger.info(
                 f"Go Tester results: {working_count}/{result_count} working "
-                f"(sent {len(inputs)}, parsed {result_count}). Failures: {failure_summary}"
+                f"(sent {len(inputs)}, parsed {result_count}). "
+                f"Failures breakdown: {failure_summary if failure_summary else 'None'}"
             )
 
             # Detect if Go tester is returning but all failing

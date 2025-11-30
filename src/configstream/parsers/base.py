@@ -261,10 +261,10 @@ def extract_config_lines(
         else:
             logger.warning(
                 f"All {dropped_count} lines were dropped as invalid/implausible. "
-                "Check source format or content."
+                "Check source format or content. First few dropped lines may be logged at debug level."
             )
     else:
-        logger.debug(f"Successfully extracted {len(configs)} configs (0 dropped).")
+        logger.info(f"Successfully extracted {len(configs)} configs (0 dropped).")
 
     return configs
 
