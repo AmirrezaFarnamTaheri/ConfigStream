@@ -330,8 +330,13 @@ async def processing_consumer(
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
             logger.warning(
-                f"Dropped {dropped_unsafe} unsafe proxies from {source}. "
-                f"Valid: {len(safe_batch)}/{len(unique_batch)}"
+                f"Security Filter: Dropped {dropped_unsafe} unsafe proxies from {source}. "
+                f"Valid: {len(safe_batch)}/{len(unique_batch)} "
+                f"(Retention: {len(safe_batch)/len(unique_batch):.1%})"
+            )
+        else:
+            logger.debug(
+                f"Security Filter: All {len(unique_batch)} proxies passed validation."
             )
 
         final_batch_for_this_source = []
@@ -505,7 +510,15 @@ async def processing_consumer(
         )
 
         if failure_modes:
-            logger.debug(f"Failure Breakdown [{source}]: {json.dumps(failure_modes)}")
+            # Log failure modes at INFO level if significant failures occurred, otherwise DEBUG
+            if working_count < len(safe_batch) * 0.5:
+                logger.info(
+                    f"Failure Breakdown [{source}]: {json.dumps(failure_modes)}"
+                )
+            else:
+                logger.debug(
+                    f"Failure Breakdown [{source}]: {json.dumps(failure_modes)}"
+                )
 
         if not source.startswith("supplied-proxies") and not source.startswith(
             "sources/"
