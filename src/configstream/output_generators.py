@@ -363,4 +363,10 @@ def generate_split_outputs(
     AtomicFileWriter.write_text(clash_file, clash_content)
     files["clash"] = clash_file
 
+    # Log summary of generated files
+    logger.info(
+        f"Generated output files in {output_dir}: {list(files.keys())} "
+        f"(Total proxies: {len(proxies)}, Washed: {len(washed_ids)})"
+    )
+
     return files

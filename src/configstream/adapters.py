@@ -72,7 +72,10 @@ class SurgeAdapter(Adapter):
                     failed_count += 1
 
         if failed_count > 0:
-            logger.debug(f"Surge export had {failed_count} failures during formatting.")
+            logger.warning(
+                f"Surge export had {failed_count} failures during formatting. "
+                "Enable debug logs to see specific proxy details."
+            )
 
         logger.info(
             f"Surge export summary: {exported_count} proxies, {chain_count} chains "
@@ -216,7 +219,10 @@ class QuantumultXAdapter(Adapter):
                 failed_count += 1
 
         if failed_count > 0:
-            logger.debug(f"Quantumult X export had {failed_count} failures.")
+            logger.warning(
+                f"Quantumult X export had {failed_count} failures. "
+                "Check for missing required fields (e.g. password, uuid)."
+            )
 
         logger.info(
             f"Quantumult X export summary: {len(lines)} proxies (Failures: {failed_count})"
