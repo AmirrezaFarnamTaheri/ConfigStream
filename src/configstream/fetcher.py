@@ -147,7 +147,11 @@ async def fetch_from_source(
             if result.success:
                 # [FIX] Handle bytes vs str for content preview
                 if isinstance(result.content, bytes):
-                    preview_text = result.content[:50].decode("utf-8", errors="replace").replace("\n", "\\n")
+                    preview_text = (
+                        result.content[:50]
+                        .decode("utf-8", errors="replace")
+                        .replace("\n", "\\n")
+                    )
                 else:
                     preview_text = str(result.content)[:50].replace("\n", "\\n")
 
@@ -181,11 +185,11 @@ async def fetch_from_source(
                 last_status_code = e.response.status_code
                 logger.warning(f"HTTP Error {last_status_code} for {source}: {e}")
                 if last_status_code == 404:
-                     logger.debug(f"Source not found (404): {source}")
+                    logger.debug(f"Source not found (404): {source}")
                 elif last_status_code == 403:
-                     logger.debug(f"Access forbidden (403): {source}")
+                    logger.debug(f"Access forbidden (403): {source}")
                 elif last_status_code >= 500:
-                     logger.warning(f"Server error ({last_status_code}) from {source}")
+                    logger.warning(f"Server error ({last_status_code}) from {source}")
 
             elif isinstance(e, asyncio.TimeoutError):
                 logger.warning(
@@ -260,6 +264,7 @@ async def fetch_multiple_sources(
     global_sem = asyncio.Semaphore(max_concurrent)
 
     # Optimization: Pre-warm DNS (Best effort for HTTP sources)
+    logger.debug(f"Pre-warming DNS for {len(sources)} sources...")
     await prewarm_dns_cache(sources)
 
     async def _worker(
@@ -279,6 +284,9 @@ async def fetch_multiple_sources(
             return source, res
 
     try:
+        logger.info(
+            f"Starting parallel fetch for {len(sources)} sources (max_concurrent={max_concurrent})"
+        )
         if client:
             tasks = [_worker(client, s) for s in sources]
             try:
@@ -301,6 +309,12 @@ async def fetch_multiple_sources(
             timeout_tracker.save()
 
     success_count = sum(1 for r in results.values() if r.success)
-    logger.info(f"Fetch Summary: {success_count}/{len(sources)} sources successful.")
+    total_bytes = sum(
+        len(r.content) for r in results.values() if r.success and r.content
+    )
+    logger.info(
+        f"Fetch Summary: {success_count}/{len(sources)} sources successful. "
+        f"Total data fetched: {total_bytes / 1024:.2f} KB"
+    )
 
     return results
