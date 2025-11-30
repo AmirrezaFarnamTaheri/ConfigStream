@@ -313,6 +313,7 @@ async def fetch_multiple_sources(
         logger.info(
             f"Starting parallel fetch for {len(sources)} sources (max_concurrent={max_concurrent})"
         )
+        start_time = asyncio.get_running_loop().time()
         if client:
             tasks = [_worker(client, s) for s in sources]
             try:
@@ -329,6 +330,9 @@ async def fetch_multiple_sources(
                 completed = await asyncio.gather(*tasks)
                 for src, res in completed:
                     results[src] = res
+
+        duration = asyncio.get_running_loop().time() - start_time
+        logger.info(f"Batch fetch completed in {duration:.2f}s")
     finally:
         await controller.stop_tuner()
         if timeout_tracker:

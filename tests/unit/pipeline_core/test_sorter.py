@@ -13,7 +13,7 @@ class TestSortProxiesPareto:
 
     def test_empty_list(self):
         """Test sorting an empty list doesn't crash."""
-        proxies = []
+        proxies: list[Proxy] = []
         history = MagicMock()
         sort_proxies_pareto(proxies, history)
         assert proxies == []

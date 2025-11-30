@@ -291,8 +291,9 @@ def extract_config_lines(
             )
 
         if dropped_samples:
+            # Enhanced debug logging for better transparency
             logger.debug(
-                f"Sample dropped lines (first {len(dropped_samples)}): {dropped_samples}"
+                f"Dropped lines analysis: Total={dropped_count}. Samples (first {len(dropped_samples)}): {dropped_samples}"
             )
     else:
         logger.info(f"Successfully extracted {len(configs)} configs (0 dropped).")
@@ -351,5 +352,6 @@ def normalize_proxy_details(proxy: Proxy) -> None:
             # Can be comma-separated
             alpn_list = [s.strip() for s in alpn.split(",")]
             proxy.details["alpn"] = alpn_list
+            logger.debug(f"Normalized ALPN for {proxy.id[:8]}: {alpn_list}")
         elif isinstance(alpn, (list, tuple)):
             proxy.details["alpn"] = [str(item) for item in alpn]

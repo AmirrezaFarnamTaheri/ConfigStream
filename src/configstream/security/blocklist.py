@@ -136,6 +136,7 @@ class BlocklistManager:
                     return False
                 for net in bucket:
                     if addr in net:
+                        logger.debug(f"IP {ip} blocked by network {net}")
                         return True
             else:
                 with_index_v6 = self._v6_index
@@ -145,6 +146,7 @@ class BlocklistManager:
                     return False
                 for net_v6 in bucket_v6:
                     if addr in net_v6:
+                        logger.debug(f"IP {ip} blocked by network {net_v6}")
                         return True
         except ValueError:
             pass  # Invalid IP or Domain
