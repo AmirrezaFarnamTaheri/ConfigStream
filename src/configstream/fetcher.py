@@ -145,12 +145,21 @@ async def fetch_from_source(
                     logger.warning(f"High Jitter detected for {source}: {jitter:.2f}s")
 
             if result.success:
+                # [FIX] Handle bytes vs str for content preview
+                if isinstance(result.content, bytes):
+                    preview_text = result.content[:50].decode("utf-8", errors="replace").replace("\n", "\\n")
+                else:
+                    preview_text = str(result.content)[:50].replace("\n", "\\n")
+
                 logger.info(
-                    f"Successfully fetched {len(result.content)} bytes from {source} (Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s)"
+                    f"Successfully fetched {len(result.content)} bytes from {source} "
+                    f"(Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s). "
+                    f"Preview: {preview_text}..."
                 )
             else:
                 logger.warning(
-                    f"Fetch succeeded at network level but returned no valid content/success flag for {source}"
+                    f"Fetch succeeded at network level but returned no valid content/success flag for {source}. "
+                    f"Status Code: {result.status_code if result.status_code else 'Unknown'}"
                 )
 
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
@@ -171,9 +180,17 @@ async def fetch_from_source(
             if isinstance(e, httpx.HTTPStatusError):
                 last_status_code = e.response.status_code
                 logger.warning(f"HTTP Error {last_status_code} for {source}: {e}")
+                if last_status_code == 404:
+                     logger.debug(f"Source not found (404): {source}")
+                elif last_status_code == 403:
+                     logger.debug(f"Access forbidden (403): {source}")
+                elif last_status_code >= 500:
+                     logger.warning(f"Server error ({last_status_code}) from {source}")
+
             elif isinstance(e, asyncio.TimeoutError):
                 logger.warning(
-                    f"Timeout fetching {source} after {per_attempt_timeout}s"
+                    f"Timeout fetching {source} after {per_attempt_timeout}s. "
+                    f"Consider increasing timeout or checking network."
                 )
 
             last_error = str(e)
