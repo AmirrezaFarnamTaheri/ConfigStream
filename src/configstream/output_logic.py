@@ -53,6 +53,7 @@ def generate_categorized_outputs(
     chain_config = {"outbounds": all_chains}
     AtomicFileWriter.write_text(chains_file, json.dumps(chain_config, indent=2))
     files["chains"] = chains_file
+    logger.info(f"Generated singbox-chains.json with {len(all_chains)} chains.")
 
     # 2. By Protocol
     proto_dir = output_dir / "by_protocol"
@@ -69,6 +70,7 @@ def generate_categorized_outputs(
         fpath = proto_dir / f"{proto}.json"
         save_json(subset, fpath)
         files[f"proto_{proto}"] = fpath
+    logger.info(f"Generated {len(files) - 2} protocol-specific files.")
 
     # 3. By Country
     country_dir = output_dir / "by_country"
@@ -85,6 +87,7 @@ def generate_categorized_outputs(
         fpath = country_dir / f"{cc}.json"
         save_json(subset, fpath)
         files[f"country_{cc}"] = fpath
+    logger.info(f"Generated {len(by_country)} country-specific files.")
 
     # 4. Generate Split Outputs (Tank, Sniper, Diplomat)
     split_files = generate_split_outputs(
