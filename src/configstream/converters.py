@@ -317,7 +317,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if not proxy.uuid:
             # [FIX] Elevated to WARNING to surface data quality issues
             logger.warning(
-                f"Dropping VMess proxy missing UUID: {proxy.address}:{proxy.port}"
+                f"Dropping VMess proxy missing UUID: {proxy.address}:{proxy.port}. "
+                f"Source: {proxy.details.get('_source', 'unknown')}"
             )
             return None
         out = {
@@ -333,7 +334,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         # Validate required UUID
         if not proxy.uuid:
             logger.warning(
-                f"Dropping VLESS proxy missing UUID: {proxy.address}:{proxy.port}"
+                f"Dropping VLESS proxy missing UUID: {proxy.address}:{proxy.port}. "
+                f"Source: {proxy.details.get('_source', 'unknown')}"
             )
             return None
         out = {
@@ -349,7 +351,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if not proxy.details.get("password"):
             # [FIX] Elevated to WARNING
             logger.warning(
-                f"Dropping Shadowsocks proxy missing password: {proxy.address}:{proxy.port}"
+                f"Dropping Shadowsocks proxy missing password: {proxy.address}:{proxy.port}. "
+                f"Source: {proxy.details.get('_source', 'unknown')}"
             )
             return None
         out = {
@@ -371,7 +374,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         # Validate required password (stored as uuid)
         if not proxy.uuid:
             logger.warning(
-                f"Dropping Trojan proxy missing password: {proxy.address}:{proxy.port}"
+                f"Dropping Trojan proxy missing password: {proxy.address}:{proxy.port}. "
+                f"Source: {proxy.details.get('_source', 'unknown')}"
             )
             return None
         out = {"type": "trojan", **base, "password": proxy.uuid}

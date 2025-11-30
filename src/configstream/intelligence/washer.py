@@ -253,11 +253,19 @@ class ProxyWasher:
         # Calculate detailed washing statistics
         conversion_failures = len(candidates) - len(washed_ids)
 
+        # Enhanced logging for clean IPs usage
+        clean_ip_usage: Dict[str, int] = {}
+        for out in washed_outbounds:
+            if out.get("type") == "wireguard" and "server" in out:
+                srv = out["server"]
+                clean_ip_usage[srv] = clean_ip_usage.get(srv, 0) + 1
+
         logger.info(
             f"Washing complete: {len(washed_ids)}/{len(candidates)} proxies washed "
             f"(conversion_failures={conversion_failures}, "
             f"warp_pool_size={len(self.warp_keys)}, "
             f"clean_ips={len(self.clean_ips)}). "
+            f"Clean IP Usage: {json.dumps(clean_ip_usage)}. "
             f"Skip reasons: {json.dumps(skip_reasons)}"
         )
 

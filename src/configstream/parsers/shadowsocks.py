@@ -62,7 +62,9 @@ def parse_ss(config: str) -> Optional[Proxy]:
 
         # [FIX] Basic validation to reject garbage methods like "ss"
         if method.lower() in ["ss", "shadowsocks", ""]:
-            logger.debug("Invalid Shadowsocks method detected: %s", method)
+            logger.debug(
+                f"Invalid Shadowsocks method detected: {method} in {config[:50]}..."
+            )
             return None
 
         details.update({"method": method, "password": password})
@@ -79,7 +81,9 @@ def parse_ss(config: str) -> Optional[Proxy]:
         return proxy
     except (ValueError, IndexError, binascii.Error) as e:
         # [FIX] Elevated to WARNING for visibility on bad sources
-        logger.warning(f"Failed to parse Shadowsocks config: {str(e)[:100]}")
+        logger.warning(
+            f"Failed to parse Shadowsocks config: {str(e)[:100]} | Context: {config[:50]}..."
+        )
         return None
 
 
