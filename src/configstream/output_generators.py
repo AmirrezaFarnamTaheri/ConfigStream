@@ -51,7 +51,7 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
             {
                 "name": "🚀 ConfigStream Auto",
                 "type": "url-test",
-                "url": "http://www.gstatic.com/generate_204",
+                "url": "https://www.gstatic.com/generate_204",
                 "interval": 300,
                 "tolerance": 50,
                 "proxies": names if names else ["DIRECT"],
@@ -97,7 +97,7 @@ def generate_singbox_config(proxies: List[Proxy]) -> str:
                 "type": "urltest",
                 "tag": "🚀 Auto",
                 "outbounds": selector_tags,
-                "url": "http://www.gstatic.com/generate_204",
+                "url": "https://www.gstatic.com/generate_204",
                 "interval": "5m",
             },
         )
@@ -220,7 +220,7 @@ def generate_split_outputs(
                 "type": "urltest",
                 "tag": "🚀 Auto",
                 "outbounds": standard_tags,
-                "url": "http://www.gstatic.com/generate_204",
+                "url": "https://www.gstatic.com/generate_204",
                 "interval": "5m",
             },
             {
@@ -232,7 +232,7 @@ def generate_split_outputs(
                 "type": "urltest",
                 "tag": "🇮🇷 Intranet",
                 "outbounds": intranet_tags if intranet_tags else ["direct"],
-                "url": "http://www.gstatic.com/generate_204",
+                "url": "https://www.gstatic.com/generate_204",
                 "interval": "5m",
             },
             {"type": "direct", "tag": "direct"},
@@ -255,7 +255,7 @@ def generate_split_outputs(
         "type": "urltest",
         "tag": "⚡ Auto-Fast",
         "outbounds": standard_tags,  # The raw, fast proxies
-        "url": "http://cp.cloudflare.com/generate_204",
+        "url": "https://cp.cloudflare.com/generate_204",
         "interval": "5m",
         "tolerance": 50,  # Switch only if new proxy is >50ms faster
         "interrupt_exist_connections": False,
@@ -272,7 +272,7 @@ def generate_split_outputs(
             "🛡️ Secure Washed",  # Then try WARP chains
             "🇮🇷 Intranet Bridge",  # Last resort
         ],
-        "url": "http://cp.cloudflare.com/generate_204",
+        "url": "https://cp.cloudflare.com/generate_204",
         "interval": "5m",
     }
 
@@ -309,13 +309,13 @@ def generate_split_outputs(
             "type": "urltest",
             "tag": "🛡️ Secure Washed",
             "outbounds": washed_tags if washed_tags else ["direct"],
-            "url": "http://cp.cloudflare.com/generate_204",
+            "url": "https://cp.cloudflare.com/generate_204",
         },
         {
             "type": "urltest",
             "tag": "🇮🇷 Intranet Bridge",
             "outbounds": intranet_tags if intranet_tags else ["direct"],
-            "url": "http://cp.cloudflare.com/generate_204",
+            "url": "https://cp.cloudflare.com/generate_204",
         },
         {"type": "direct", "tag": "direct"},
         {"type": "dns", "tag": "dns-out"},

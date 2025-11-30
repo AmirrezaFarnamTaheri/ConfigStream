@@ -55,19 +55,41 @@ jobs:
           set -euxo pipefail
           rm -rf github_pages_root
           mkdir -p github_pages_root
+          mkdir -p github_pages_root/api # API Simulation
+          mkdir -p github_pages_root/wiki
+          mkdir -p github_pages_root/about
 
           cp -v .nojekyll github_pages_root/.nojekyll || true
-          cp -v frontend/index.html frontend/proxies.html frontend/analytics.html frontend/wiki.html frontend/about.html frontend/service-worker.js github_pages_root/
+
+          # Move pages to expected structure for clean URLs and relative path support
+          cp frontend/index.html github_pages_root/
+          cp frontend/proxies.html github_pages_root/
+          cp frontend/analytics.html github_pages_root/
+
+          # Move sub-pages to their folders
+          cp frontend/wiki.html github_pages_root/wiki/index.html
+          cp frontend/about.html github_pages_root/about/index.html
+
+          cp frontend/service-worker.js github_pages_root/
+
           cp -rv frontend/assets github_pages_root/assets
 
           # Use the output from the repository (already committed by pipeline)
+          # 'output' artifacts should be placed in 'output/' inside pages root
+          # Note: The download step places them in 'output' folder in workspace.
           cp -rv output github_pages_root/
+
+          # API Simulation
+          # Tricks the frontend into thinking it's hitting an API
+          cp output/proxies.json github_pages_root/api/proxies
+          cp output/metadata.json github_pages_root/api/stats
 
           ts=$(date +%Y%m%d%H%M%S)
           sed -i "s/const VERSION = '[^']*'/const VERSION = '${ts}'/" github_pages_root/assets/js/cache-config.js
 
           test -s github_pages_root/index.html
           test -d github_pages_root/output
+          test -s github_pages_root/api/proxies
           # Ensure there is some data to deploy
           test -n "$(find github_pages_root/output -name '*.json' -print -quit)"
 

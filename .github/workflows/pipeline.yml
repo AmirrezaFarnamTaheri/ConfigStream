@@ -227,6 +227,13 @@ jobs:
             --timeout 24 \
             --max-latency 6000 | tee "pipeline_batch_${BATCH_NUMBER}.log"
 
+          # Prepare DBs for upload (Move into output_batch to keep them separate per shard)
+          mkdir -p output_batch_${BATCH_NUMBER}/data
+          # Copy only if they exist
+          [ -f data/source_quality.db ] && cp data/source_quality.db output_batch_${BATCH_NUMBER}/data/ || true
+          [ -f data/anomaly.db ] && cp data/anomaly.db output_batch_${BATCH_NUMBER}/data/ || true
+          [ -f data/adaptive_timeout.db ] && cp data/adaptive_timeout.db output_batch_${BATCH_NUMBER}/data/ || true
+
       - name: Upload shard artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -297,6 +304,7 @@ jobs:
       - name: Run merge script
         env:
             WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
+            STEGO_KEY: ${{ secrets.STEGO_KEY }}
         run: python -m scripts.merge_batches
 
       - name: Upload Pipeline Output
@@ -305,29 +313,6 @@ jobs:
           name: pipeline-output
           path: output/
           retention-days: 1
-
-      - name: Copy Frontend Assets
-        run: |
-          cp -r frontend/* output/
-          # Ensure no overwrite of generated files if any collision (unlikely but safe)
-          # Actually, frontend shouldn't contain proxies.json etc.
-
-      - name: Generate Stealth Assets
-        env:
-          # You must generate a Fernet key once (python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())")
-          # And save it as a Repository Secret: STEGO_KEY
-          STEGO_KEY: ${{ secrets.STEGO_KEY }}
-        run: |
-          # Ensure we have a cover image
-          mkdir -p output/assets
-          # If no cover image exists, use a fallback or skip (prevent failure if assets are missing)
-          if [ -f "frontend/assets/images/header-bg.png" ]; then
-             cp frontend/assets/images/header-bg.png output/assets/cover.png
-             # Run the packer script
-             python -c "from configstream.transport.stego import generate_stego_assets; from pathlib import Path; generate_stego_assets(Path('output'), Path('output/assets'), '${{ env.STEGO_KEY }}')"
-          else
-             echo "Cover image not found, skipping steganography generation."
-          fi
 
       - name: Generate Version Tag
         id: tag
