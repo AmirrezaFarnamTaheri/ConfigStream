@@ -1,3 +1,4 @@
+console.log('Proxies script loaded');
 // Page-specific logic for the proxies page
 
 // HTML escape function to prevent XSS
@@ -42,24 +43,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Vector Search Helper ---
     // Calculates simple cosine similarity or token overlap
-    const calculateSimilarity = (query, proxy) => {
-        const queryTokens = query.toLowerCase().split(/\s+/);
+    // Optimized to avoid excessive string concatenation
+    const calculateSimilarity = (queryTokens, proxy) => {
         let score = 0;
 
-        // Check if we have pre-computed vectors
-        if (allVectors[proxy.id]) {
-            // Advanced: Dot product (Simulated for this demo using keywords)
-            // Real implementation would use the float32 array from vectors.json
-            // Here we fallback to improved keyword matching
+        // Pre-compute string for search only once per proxy?
+        // Actually, let's check fields directly to avoid giant string concat
+        const protocol = proxy.protocol ? proxy.protocol.toLowerCase() : '';
+        const country = proxy.country_code ? proxy.country_code.toLowerCase() : '';
+        const city = proxy.city ? proxy.city.toLowerCase() : '';
+        const org = proxy.org ? proxy.org.toLowerCase() : '';
+        const tags = proxy.tags ? proxy.tags.join(' ').toLowerCase() : '';
+
+        for (let i = 0; i < queryTokens.length; i++) {
+            const token = queryTokens[i];
+            if (country === token) { score += 20; continue; }
+            if (protocol.includes(token)) { score += 5; }
+            if (country.includes(token)) { score += 2; }
+            if (city.includes(token)) { score += 5; }
+            if (org.includes(token)) { score += 2; }
+            if (tags.includes(token)) { score += 3; }
         }
-
-        const pStr = `${proxy.protocol} ${proxy.country_code} ${proxy.city} ${proxy.org} ${proxy.tags ? proxy.tags.join(' ') : ''}`.toLowerCase();
-
-        queryTokens.forEach(token => {
-            if (pStr.includes(token)) score += 10;
-            if (proxy.protocol.includes(token)) score += 5; // Boost protocol
-            if (proxy.country_code && proxy.country_code.toLowerCase() === token) score += 20; // Boost exact country
-        });
 
         return score;
     };
@@ -97,11 +101,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 filtered = filtered.filter(p => (p.latency || 9999) < limit);
             }
 
+            // Optimize: Tokenize once
+            const queryTokens = searchQuery.split(/\s+/);
+
             // Rank by similarity
-            filtered = filtered.map(p => ({ proxy: p, score: calculateSimilarity(searchQuery, p) }))
-                               .filter(item => item.score > 0)
-                               .sort((a, b) => b.score - a.score)
-                               .map(item => item.proxy);
+            // Use a temporary array to store scores to avoid re-sorting overhead on objects
+            const scored = [];
+            for (let i = 0; i < filtered.length; i++) {
+                const score = calculateSimilarity(queryTokens, filtered[i]);
+                if (score > 0) {
+                    scored.push({ proxy: filtered[i], score: score });
+                }
+            }
+
+            scored.sort((a, b) => b.score - a.score);
+            filtered = scored.map(item => item.proxy);
         }
 
         return filtered;
@@ -274,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
     countryFilter.addEventListener('change', () => { currentPage = 1; renderTable(); });
 
     // Load Data
-    const loadData = async () => {
+    const loadData = async () => { console.log('Inside loadData');
         try {
             // Fetch Proxies
             allProxies = await window.api.fetchProxies();
@@ -311,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    loadData();
+    console.log('Calling loadData'); loadData();
 
     // WASM Testing Hook
     document.getElementById('testWasm')?.addEventListener('click', async () => {
