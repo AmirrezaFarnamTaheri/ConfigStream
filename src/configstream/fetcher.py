@@ -179,7 +179,9 @@ async def fetch_from_source(
         except RateLimitError as e:
             last_error = str(e)
             wait = e.retry_after if e.retry_after else backoff
-            logger.info(f"Rate limited by {host}. Waiting {wait:.2f}s before retry.")
+            logger.warning(
+                f"Rate limited by {host}. Waiting {wait:.2f}s before retry (Attempt {attempt+1}/{max_retries})."
+            )
             await asyncio.sleep(wait + random.uniform(0, 0.5))
             backoff = min(backoff * 2, 60)
 
@@ -189,9 +191,13 @@ async def fetch_from_source(
                 last_status_code = e.response.status_code
                 logger.warning(f"HTTP Error {last_status_code} for {source}: {e}")
                 if last_status_code == 404:
-                    logger.debug(f"Source not found (404): {source}")
+                    logger.info(
+                        f"Source not found (404): {source} - check URL validity"
+                    )
                 elif last_status_code == 403:
-                    logger.debug(f"Access forbidden (403): {source}")
+                    logger.info(
+                        f"Access forbidden (403): {source} - check permissions/geo-block"
+                    )
                 elif last_status_code >= 500:
                     logger.warning(f"Server error ({last_status_code}) from {source}")
 
@@ -207,6 +213,10 @@ async def fetch_from_source(
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
                 breaker = await breaker_manager.get_breaker(host)
                 await breaker.record_failure()
+                if await breaker.is_open():
+                    logger.warning(
+                        f"Circuit breaker TRIPPED for {host} due to failures."
+                    )
 
             # If it's a 4xx/5xx error that was raised, we might want to return it in the result
             # But the loop retries. If we exhaust retries, we return False.
@@ -217,8 +227,8 @@ async def fetch_from_source(
             # Don't sleep on the last attempt
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
-                logger.debug(
-                    f"Retrying {source} in {wait}s (Attempt {attempt+1}/{max_retries})"
+                logger.info(
+                    f"Retrying {source} in {wait}s due to error: {last_error} (Attempt {attempt+1}/{max_retries})"
                 )
                 await asyncio.sleep(wait + random.uniform(0, 0.3))
                 backoff = min(backoff * 2, 60)
@@ -227,6 +237,10 @@ async def fetch_from_source(
             logger.exception("Unexpected error fetching %s: %s", source, e)
             last_error = f"Unexpected error: {str(e)}"
             if attempt < max_retries - 1:
+                wait = min(backoff, 30)
+                logger.info(
+                    f"Retrying {source} in {wait}s after unexpected error (Attempt {attempt+1}/{max_retries})"
+                )
                 await asyncio.sleep(min(backoff, 30))
                 backoff = min(backoff * 2, 60)
 
@@ -270,6 +284,7 @@ async def fetch_multiple_sources(
     # Optimization: Pre-warm DNS (Best effort for HTTP sources)
     logger.info(f"Pre-warming DNS for {len(sources)} sources...")
     await prewarm_dns_cache(sources)
+    logger.info("DNS pre-warming completed.")
 
     async def _worker(
         http_client: httpx.AsyncClient, source: str
