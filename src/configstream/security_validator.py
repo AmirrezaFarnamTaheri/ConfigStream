@@ -141,6 +141,14 @@ class SecurityValidator:
                 )
 
         is_secure = len(categorized_issues) == 0
+
+        # Log granular rejection details for debugging
+        if not is_secure and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                f"Validation failed for {proxy.address}:{proxy.port} (Proto: {proxy.protocol}): "
+                f"{json.dumps(categorized_issues)}"
+            )
+
         return is_secure, categorized_issues
 
     # Wrapper methods for internal/backward compatibility

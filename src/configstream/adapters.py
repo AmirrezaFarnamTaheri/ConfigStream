@@ -212,7 +212,9 @@ class QuantumultXAdapter(Adapter):
                 logger.debug(f"Failed to export {p.protocol} to QuantumultX: {e}")
                 failed_count += 1
 
-        logger.info(f"Quantumult X export summary: {len(lines)} proxies (Failures: {failed_count})")
+        logger.info(
+            f"Quantumult X export summary: {len(lines)} proxies (Failures: {failed_count})"
+        )
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
@@ -353,6 +355,8 @@ class ShadowrocketAdapter(Adapter):
                 except Exception as e:
                     logger.debug(f"Failed to reconstruct URI for {p.protocol}: {e}")
 
-        logger.info(f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})")
+        logger.info(
+            f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})"
+        )
         # Return as plain text list (decoded subscription)
         return "\n".join(lines)
