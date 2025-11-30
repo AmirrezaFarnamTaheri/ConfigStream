@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import Optional
+import importlib.metadata
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,10 +13,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", BASE_DIR / "output"))
 FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", BASE_DIR / "frontend"))
 
+try:
+    VERSION = importlib.metadata.version("configstream")
+except importlib.metadata.PackageNotFoundError:
+    VERSION = "0.0.0"
+
 app = FastAPI(
     title="ConfigStream",
     description="High-Performance VPN Aggregator API",
-    version="1.2.0",
+    version=VERSION,
     docs_url="/api/docs",
     redoc_url=None,
 )
