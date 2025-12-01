@@ -90,7 +90,9 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
         if not proxy.uuid:
             # Auth is optional in some cases but usually required.
             # If no password, Hysteria2 is only valid if the server allows anonymous access.
-            logger.debug("Hysteria2 config missing password (UUID field) - assuming anonymous auth.")
+            logger.debug(
+                "Hysteria2 config missing password (UUID field) - assuming anonymous auth."
+            )
 
     return proxy
 
@@ -128,7 +130,9 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             is_b64 = re.match(r"^[a-zA-Z0-9+/=]+$", reserved)
 
             if not (is_bracketed or is_csv or is_b64):
-                logger.warning(f"Invalid reserved bytes format for WireGuard: {reserved}. Removing invalid field.")
+                logger.warning(
+                    f"Invalid reserved bytes format for WireGuard: {reserved}. Removing invalid field."
+                )
                 del proxy.details["reserved"]
         else:
             # If it's not a string (e.g. list from some internal process), assume valid if it's a list of ints

@@ -282,7 +282,9 @@ class GoBatchTester:
                             # [LOGGING] Enhanced failure visibility
                             # Log explicit failure reason regardless of success rate if it's not a timeout
                             # This provides granular visibility into protocol mismatches or blockages
-                            meta_str = f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
+                            meta_str = (
+                                f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
+                            )
 
                             if error_cat not in ["TIMEOUT"]:
                                 logger.info(
