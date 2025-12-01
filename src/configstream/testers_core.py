@@ -287,7 +287,7 @@ class GoBatchTester:
                             )
 
                             if error_cat not in ["TIMEOUT"]:
-                                logger.info(
+                                logger.debug(
                                     f"Test failed {meta_str} for {p.protocol}://{p.address}:{p.port} -> {error_msg} (Category: {error_cat})"
                                 )
                             else:
