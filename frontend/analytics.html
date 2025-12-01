@@ -63,12 +63,37 @@
                 <a href="index.html" class="nav-link">Home</a>
                 <a href="proxies.html" class="nav-link">Proxy List</a>
                 <a href="analytics.html" class="nav-link active">Analytics</a>
-                <a href="wiki.html" class="nav-link">Wiki</a>
-                <a href="about.html" class="nav-link">About</a>
+                <a href="wiki/" class="nav-link">Wiki</a>
+                <a href="about/" class="nav-link">About</a>
             </nav>
             <div class="header-actions">
-                <button id="theme-switcher" class="theme-btn"><i data-feather="moon"></i></button>
-                <button class="mobile-nav-toggle" id="mobile-nav-toggle"><i data-feather="menu"></i></button>
+                <!-- Modern Language Dropdown -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
+                    </button>
+                    <div class="lang-menu" id="lang-menu">
+                        <button onclick="window.i18n.setLanguage('en')">English</button>
+                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
+                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
+                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
+                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
+                    </div>
+                </div>
+
+                <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
+                    <div class="theme-btn-inner">
+                        <i data-feather="moon" class="moon-icon"></i>
+                        <i data-feather="sun" class="sun-icon"></i>
+                    </div>
+                </button>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub">
+                    <i data-feather="github"></i>
+                </a>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
+                    <i data-feather="menu" class="menu-icon"></i>
+                    <i data-feather="x" class="close-icon"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -166,6 +191,17 @@
         // but if not, let's keep it safe
         document.addEventListener('DOMContentLoaded', () => {
              if (window.feather) feather.replace();
+
+             // Initial set label
+             const label = document.getElementById('current-lang-label');
+             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();
+        });
+
+        // Listen for language changes to update UI label
+        window.addEventListener('languageChanged', (e) => {
+             const lang = e.detail.lang;
+             const label = document.getElementById('current-lang-label');
+             if(label) label.textContent = lang.toUpperCase();
         });
     </script>
     <script src="assets/js/analytics.js"></script>
