@@ -1,29 +1,24 @@
 # ConfigStream Batch 10
-# Optimized based on run-time logs
-# Est. Load: 2500 proxies
-
-https://raw.githubusercontent.com/Mahanfix/v2rayvpn/main/mahanfix
-https://9527521.xyz/config/lxB7k130djsSomFT
-http://subxfxssr.xfxvpn.me/api/v1/client/subscribe?token=0d5306ab80abb3f2012edf9169f5f00a
-https://raw.githubusercontent.com/mshojaei77/v2rayAuto/main/mix
-https://raw.githubusercontent.com/NiceVPN123/NiceVPN/main/Clash.yaml
-https://raw.githubusercontent.com/openRunner/clash-freenode/main/v2ray.txt
-http://subxfxssr.xfxvpn.me/api/v1/client/subscribe?token=4ce4cc4513e5d3ef87abc677a9f7951d
-https://raw.githubusercontent.com/xiaoji235/airport-free/refs/heads/main/v2ray.txt
-https://freessrnode.github.io/uploads/2024/08/2-20240822.txt
-https://raw.githubusercontent.com/freebaipiao/freebaipiao/main/jiassweetoy3.yaml
-https://raw.githubusercontent.com/YasserDivaR/pr0xy/main/winformClash.yaml
+# Redistributed with 22 sources
+https://raw.githubusercontent.com/vpei/free-node-1/main/o/proxies.txt
+https://raw.githubusercontent.com/vveg26/chromego_merge/main/sub/merged_proxies.yaml
+https://raw.githubusercontent.com/vveg26/get_proxy/main/dist/clash.config.yaml
 https://raw.githubusercontent.com/vxiaov/free_proxies/main/links.txt
-https://raw.githubusercontent.com/SamanValipour1/My-v2ray-configs/main/MySub.txt
-https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/main/sub/ss
-https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/hy2
+https://raw.githubusercontent.com/vxiaov/free_proxy_ss/main/ss/sssub
+https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/Long_term_subscription2
+https://raw.githubusercontent.com/webdao/v2ray/master/nodes.txt
 https://raw.githubusercontent.com/wrfree/free/refs/heads/main/v2
-https://raw.githubusercontent.com/freessr0/FREE-SSR/master/SSR_2020-05-02__18-54-50.txt
-https://raw.githubusercontent.com/hotsymbol/vpnsetting/master/v2rayopen
-https://freessrnode.github.io/uploads/2024/08/4-20240822.txt
-https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2
-https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/clash/mix
-https://github.com/Epodonios/v2ray-configs/raw/main/All_Configs_Sub.txt
-https://raw.githubusercontent.com/sh3d0ww02f/sh3d0ww02f.github.io/main/ssr.config
-https://raw.githubusercontent.com/obscure1990/freeVM/master/snippets/nodes.yml
-https://raw.githubusercontent.com/gitbigg/permalink/main/subscribe
+https://raw.githubusercontent.com/xhmotor/V2rayn/main/v2rayn
+https://raw.githubusercontent.com/xiaoji235/airport-free/refs/heads/main/v2ray.txt
+https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
+https://raw.githubusercontent.com/yaney01/Yaney01/main/yaney_01
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/tuic
+https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/ss_iran.txt
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_.txt
+https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/speednodes.yaml
+https://raw.githubusercontent.com/zhlx2835/freefq/main/v2
+https://raw.githubusercontent.com/zjfb/SubCrawler/main/sub/share/all
+https://raw.githubusercontent.com/zjr13808836946/zjr_clash/main/V2_SSR_M
+https://raw.githubusercontent.com/zzz6839/SubCrawler/main/sub/share/all
+https://v2rayshare.com/wp-content/uploads/2022/12/20221208.txt
