@@ -1,5 +1,5 @@
 # ConfigStream Batch 8
-# Total sources in this batch: 48
+# Total sources in this batch: 55
 https://cdn.jsdelivr.net/gh/cry0ice/genode@main/public/all.txt
 https://github.com/LonUp/NodeList/raw/main/Clash/Node/Latest.yaml
 https://zhuanhuan.diga.workers.dev/sub?target=clash&url=https%3A%2F%2Fraw.githubusercontent.com%2FLewis-1217%2FFreeNodes%2Fmain%2Fbpjzx1&insert=false&emoji=true&list=false&tfo=false&scv=false&fdn=false&sort=false&new_name=true
@@ -48,3 +48,10 @@ https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks5.txt
 https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/tuic
 https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link
 https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/mixed_iran.txt
+http://openit.ml/Clash.yaml
+http://openit.ml/long
+https://paste.xz88.ml/raw/0a9115519e60
+https://nicevpn.top/Base64
+https://vpn.fail/free-proxy/v2ray
+https://bamarambash.monster/subscriptions/b8767a6a-1c30-11ee-ba76-9ee097a90b8b
+https://zebelkhan10.fallahpour25.workers.dev/sub/74f829f3-480b-4e7f-8039-9418d055375b
