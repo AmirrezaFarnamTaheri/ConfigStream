@@ -83,6 +83,7 @@ async def source_producer(
     event_stream: Optional["EventStream"],
     progress: Optional[Progress],
     task_fetch: Optional[TaskID],
+    num_consumers: int = 1,
 ):
     settings = AppSettings()
     try:
@@ -236,7 +237,10 @@ async def source_producer(
             logger.warning(
                 "No sources or pre-supplied proxies provided - pipeline will produce zero results"
             )
-        await work_queue.put(None)
+
+        # Signal all consumers to exit
+        for _ in range(num_consumers):
+            await work_queue.put(None)
 
 
 async def processing_consumer(
