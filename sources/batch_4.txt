@@ -1,5 +1,5 @@
 # ConfigStream Batch 4
-# Total sources in this batch: 55
+# Total sources in this batch: 62
 https://freevpnspy.githubrowcontent.com/2024/08/20240802_vless.yaml
 https://github.com/theGreatPeter/v2rayNodes/raw/main/nodes.txt
 https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Afghanistan.txt
@@ -32,7 +32,6 @@ https://raw.githubusercontent.com/coldwater-10/Vpnclashfa/main/meta/ermaozi.yaml
 https://raw.githubusercontent.com/dalazhi/v2ray/main/clash.yaml
 https://raw.githubusercontent.com/du5/free/master/file/0909/Clash.yaml
 https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v2
-https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts
 https://raw.githubusercontent.com/gtang8/SubCrawler/main/sub/share/all
 https://raw.githubusercontent.com/itxve/fetch-clash-node/main/node/ClashNode.yaml
 https://raw.githubusercontent.com/jetkai/proxy-list/main/archive/txt/proxies.txt
@@ -55,3 +54,11 @@ https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/vmess.txt
 https://raw.githubusercontent.com/xiaoji235/airport-free/master/v2ray.txt
 https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/meta.yaml
+https://paste.wmlabs.net/raw/081982ee133d
+https://pastebin.com/raw/aAB3VrBz
+https://pastebin.com/raw/GxR5pELe
+https://pastebin.com/raw/2jcHptrS
+https://sub.heimayun.xyz/api/v1/client/subscribe?token=003f5674d106c0abef166984de1d7dfe
+https://s.youyun666.site/link/12j72rr7vKUdbZS3?clash=1
+https://sub.cm/X8Hq4Co
+https://dingyuedizhi.com/api/v1/client/subscribe?token=a70e5d2267361d257a7cd66db2a7f8ef

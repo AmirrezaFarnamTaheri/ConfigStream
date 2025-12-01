@@ -1,5 +1,5 @@
 # ConfigStream Batch 1
-# Total sources in this batch: 50
+# Total sources in this batch: 59
 https://freessrnode.github.io/uploads/2024/08/3-20240822.txt
 https://github.com/barry-far/V2ray-Configs/raw/main/Splitted-By-Protocol/ss.txt
 https://raw.githubusercontent.com/10ium/free-config/refs/heads/main/free-mihomo-sub/HighSpeed.yaml
@@ -30,7 +30,6 @@ https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/all_extrac
 https://raw.githubusercontent.com/go4sharing/sub/main/sub.yaml
 https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/ss.txt
 https://raw.githubusercontent.com/hans-thomas/v2ray-subscription/refs/heads/master/servers.txt
-https://raw.githubusercontent.com/ineo6/hosts/master/hosts
 https://raw.githubusercontent.com/ircfspace/tvc/main/sub/mix
 https://raw.githubusercontent.com/ircfspace/warpsub/main/export/warp
 https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/sub_merge.txt
@@ -50,3 +49,13 @@ https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main
 https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/countries/za/mixed
 https://raw.githubusercontent.com/ts-sf/fly/main/v2
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/trojan.txt
+https://vpny.online/VPNy.json
+https://robin.victoriacross.ir
+https://v2.alicivil.workers.dev
+https://shadowmere.xyz/api/b64sub
+https://openproxylist.com/v2ray/
+https://sub.amiralter.com/config-lite
+https://sub.amiralter.com/config
+https://trojanvmess.pages.dev/cmcm?b64
+https://azadnet05.pages.dev/sub/4d794980-54c0-4fcb-8def-c2beaecadbad
+https://clash.221207.xyz/pubclashyaml
