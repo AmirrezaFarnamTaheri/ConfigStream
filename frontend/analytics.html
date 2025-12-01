@@ -199,9 +199,11 @@
 
         // Listen for language changes to update UI label
         window.addEventListener('languageChanged', (e) => {
-             const lang = e.detail.lang;
+             const lang = e.detail?.lang;
              const label = document.getElementById('current-lang-label');
-             if(label) label.textContent = lang.toUpperCase();
+             if(label && lang) {
+                label.textContent = lang.toUpperCase();
+             }
         });
     </script>
     <script src="assets/js/analytics.js"></script>
