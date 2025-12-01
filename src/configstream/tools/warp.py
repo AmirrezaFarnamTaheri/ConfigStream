@@ -94,13 +94,17 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
             "id": data.get("id"),
             "private_key": private_key,
             "peer_public_key": data.get("config", {})
-            .get("peers", [{}])[0]
-            .get("public_key"),
+            .get("peers", [])[0]
+            .get("public_key")
+            if data.get("config", {}).get("peers")
+            else None,
             "reserved": data.get("config", {})
-            .get("peers", [{}])[0]
+            .get("peers", [])[0]
             .get("endpoint", {})
             .get("v4", {})
-            .get("reserved"),
+            .get("reserved")
+            if data.get("config", {}).get("peers")
+            else None,
             "address": data.get("config", {})
             .get("interface", {})
             .get("addresses", {})

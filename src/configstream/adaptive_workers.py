@@ -38,7 +38,11 @@ def calculate_optimal_workers(requested: int = 0) -> int:
             mem = psutil_module.virtual_memory()
             # Reserve 500MB system overhead, assume 20MB per worker
             available_mb = (mem.available / 1024 / 1024) - 500
-            max_by_mem = int(max(10, available_mb / 20))
+            if available_mb <= 0:
+                # Not enough memory for even the safety buffer, use a safe minimum.
+                max_by_mem = 10
+            else:
+                max_by_mem = int(max(10, available_mb / 20))
 
             optimal = min(optimal, max_by_mem)
 

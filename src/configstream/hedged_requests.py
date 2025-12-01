@@ -76,6 +76,10 @@ async def hedged_get(
         # We handle the case where BOTH fail by counting expected responses.
         expected_responses = len(active_tasks)
         received_responses = 0
+        last_error: Any = Exception("No hedged request started")
+
+        if expected_responses == 0:
+            return False, last_error
 
         # We loop until we get a success or exhaust all tasks
         while received_responses < expected_responses:
@@ -88,11 +92,11 @@ async def hedged_get(
             if success:
                 return True, result
 
-            # If both failed (received_responses == expected_responses),
-            # the loop exits and we return the last error.
+            # Track last error for final return
+            last_error = result
 
         # If we exit the loop, all tasks failed.
-        return False, result
+        return False, last_error
 
     except asyncio.TimeoutError:
         return False, asyncio.TimeoutError("Hedged requests timed out")

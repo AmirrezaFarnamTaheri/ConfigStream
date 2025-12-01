@@ -140,9 +140,21 @@ if not OUTPUT_DIR.exists():
         print(f"Warning: Could not create output directory {OUTPUT_DIR}: {e}")
 
 # Mount the output directory for direct file access (e.g. /output/clash.yaml)
-app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
+try:
+    app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
+except Exception as e:
+    # Degrade gracefully: expose a minimal handler instead of failing app startup
+    print(f"Warning: Failed to mount /output static files: {e}")
+
+    @app.get("/output/{path:path}")
+    async def output_fallback(path: str):
+        raise HTTPException(status_code=503, detail="Output directory unavailable")
+
 # Legacy compatibility for old clients
-app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
+try:
+    app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
+except Exception:
+    pass
 
 # Mount frontend assets (css, js, images)
 if FRONTEND_DIR.exists():
