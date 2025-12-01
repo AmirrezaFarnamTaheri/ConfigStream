@@ -10,6 +10,10 @@ def create_test_proxy(
     is_working: bool = True,
     **kwargs,
 ):
+    # Ensure default vmess/vless proxies have a valid UUID if not provided
+    if protocol in ("vmess", "vless") and "uuid" not in kwargs:
+        kwargs["uuid"] = "12345678-1234-5678-1234-567812345678"
+
     return Proxy(
         config=config,
         protocol=protocol,

@@ -18,6 +18,7 @@ class CircuitBreaker:
         self.state = CircuitBreakerState.CLOSED
         self.last_failure_time: float = 0.0
         self._lock = asyncio.Lock()
+        self._logged_open = False  # Track if we've logged the open state
 
     async def record_failure(self) -> None:
         """Record a failure (async-safe with lock)"""
@@ -34,6 +35,7 @@ class CircuitBreaker:
             # In CLOSED, it just resets failure count (though likely 0 already)
             self.failure_count = 0
             self.state = CircuitBreakerState.CLOSED
+            self._logged_open = False  # Reset logged state on recovery
 
     async def is_open(self) -> bool:
         """Check if circuit breaker is open (async-safe with lock)"""
@@ -47,6 +49,14 @@ class CircuitBreaker:
             # In HALF_OPEN, we allow requests. If they fail, it trips back to OPEN (via record_failure).
             # We don't enforce a strict 'single probe' here to keep it simple, but rely on concurrent
             # requests racing. If one succeeds, it closes. If one fails, it opens.
+            return False
+
+    async def should_log_open(self) -> bool:
+        """Check if we should log the open state (first time only)."""
+        async with self._lock:
+            if self.state == CircuitBreakerState.OPEN and not self._logged_open:
+                self._logged_open = True
+                return True
             return False
 
 

@@ -122,7 +122,17 @@ async def run_full_pipeline(
         dry_run=dry_run,
     )
 
-    # Run Producer and Consumer concurrently
+    # Determine parallel consumers based on workers, but keep reasonable limits
+    # to avoid overwhelming the system with too many heavy testing loops.
+    # A good heuristic is 2-4 consumers to prevent single-source blocking while
+    # keeping the main event loop responsive.
+    num_consumers = 2
+    if max_workers >= 100:
+        num_consumers = 4
+
+    logger.info(f"Starting pipeline with {num_consumers} parallel consumers")
+
+    # Run Producer and Consumers concurrently
     producer_task = asyncio.create_task(
         source_producer(
             sources,
@@ -133,33 +143,38 @@ async def run_full_pipeline(
             event_stream,
             progress,
             task_fetch,
-        )
-    )
-    consumer_task = asyncio.create_task(
-        processing_consumer(
-            work_queue,
-            stats,
-            seen_keys,
-            final_proxies,
-            tester,
-            scheduler,
-            test_cache,
-            concurrency,
-            geoip,
-            tracker,
-            event_stream,
-            quality_tracker,
-            progress,
-            task_process,
-            max_proxies,
-            max_latency,
-            country_filter,
-            leniency,
+            num_consumers=num_consumers,
         )
     )
 
+    consumer_tasks = []
+    for _ in range(num_consumers):
+        t = asyncio.create_task(
+            processing_consumer(
+                work_queue,
+                stats,
+                seen_keys,
+                final_proxies,
+                tester,
+                scheduler,
+                test_cache,
+                concurrency,
+                geoip,
+                tracker,
+                event_stream,
+                quality_tracker,
+                progress,
+                task_process,
+                max_proxies,
+                max_latency,
+                country_filter,
+                leniency,
+            )
+        )
+        consumer_tasks.append(t)
+
     try:
-        await asyncio.gather(producer_task, consumer_task)
+        await asyncio.gather(producer_task, *consumer_tasks)
 
         # 5. Final Cleanup & Output
 
