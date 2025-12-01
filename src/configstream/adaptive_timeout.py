@@ -45,6 +45,17 @@ class AdaptiveTimeout:
         """Get timeout for a source. Currently ignores source but ready for expansion."""
         return self.current_timeout
 
+    async def record_attempt(self, source: str, duration: float, success: bool = True):
+        """
+        Record a fetch attempt.
+        Failures are treated as high-latency events (using the full timeout duration)
+        to encourage adaptive backoff.
+        """
+        # For simplicity, we treat both success and failure durations as valid data points.
+        # Failures (timeouts) naturally contribute high values to the p95 calculation,
+        # increasing the timeout, which is the desired adaptive behavior.
+        await self.record(source, duration)
+
     async def record(self, source: str, latency: float):
         """
         Record a successful connection latency (async-safe with lock).

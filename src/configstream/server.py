@@ -150,6 +150,7 @@ except Exception as e:
     async def output_fallback(path: str):
         raise HTTPException(status_code=503, detail="Output directory unavailable")
 
+
 # Legacy compatibility for old clients
 try:
     app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
