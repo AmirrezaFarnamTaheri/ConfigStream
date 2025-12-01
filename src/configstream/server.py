@@ -43,7 +43,7 @@ async def get_stats():
     """Return the latest pipeline metadata and statistics."""
     metadata_path = OUTPUT_DIR / "metadata.json"
     if not metadata_path.exists():
-        # Return placeholder if first run hasn't finished
+        # Return initializing status if first run hasn't finished
         return JSONResponse(
             content={
                 "status": "initializing",
@@ -133,8 +133,11 @@ async def download_subscription(format: str):
 if not OUTPUT_DIR.exists():
     try:
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    except OSError:
-        pass  # If we can't create it (permissions), we might crash on mount, but we tried.
+    except OSError as e:
+        # Fatal error: If output directory cannot be created/accessed, server cannot function correctly.
+        # However, for read-only filesystem environments (e.g. strict container), we log and proceed,
+        # expecting the mount to possibly fail or serve empty.
+        print(f"Warning: Could not create output directory {OUTPUT_DIR}: {e}")
 
 # Mount the output directory for direct file access (e.g. /output/clash.yaml)
 app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")

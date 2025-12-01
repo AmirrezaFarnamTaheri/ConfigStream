@@ -65,11 +65,7 @@ class WasmParser:
                 return None
 
             # Read result string
-            # We need to find the null terminator
-            # Reading byte by byte is slow, but safe.
-            # Or we can read a chunk and find \0.
-
-            # Let's read chunks of 1KB
+            # Finding the null terminator: Read chunks to optimize performance over byte-by-byte.
             chunk_size = 1024
             raw_bytes = bytearray()
             current_offset = result_ptr

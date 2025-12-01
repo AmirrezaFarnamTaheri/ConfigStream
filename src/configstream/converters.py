@@ -252,7 +252,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if "sni" in details:
                 tls["server_name"] = str(details["sni"])
 
-            # [FIX] Logic to ensure uTLS is present for Reality
+            # Ensure uTLS fingerprint is set for Reality (required).
             fp = details.get("fp")
             if not fp and security == "reality":
                 fp = "chrome"  # Default for Reality
@@ -500,6 +500,11 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         logger.debug(
             f"Successfully converted {proxy.protocol} proxy: {proxy.address} "
             f"(Source: {proxy.details.get('_source', 'unknown')})"
+        )
+    else:
+        # [LOGGING] Log drop reason if we reached here without returning (should be rare if earlier checks caught it)
+        logger.debug(
+            f"Dropped {proxy.protocol} proxy {proxy.address} during conversion (Unknown reason)"
         )
 
     return out

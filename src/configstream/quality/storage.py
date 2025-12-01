@@ -247,7 +247,8 @@ class QualityStorage:
                                 data,
                             )
                 except sqlite3.OperationalError:
-                    # source_runs might not exist in older DBs
+                    # 'source_runs' table missing in legacy schema versions.
+                    # Ignore during merging; schema migration is handled in init.
                     pass
 
                 dst.commit()
