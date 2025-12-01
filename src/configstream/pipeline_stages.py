@@ -344,19 +344,20 @@ async def processing_consumer(
             protocol_counts[p.protocol] = protocol_counts.get(p.protocol, 0) + 1
         logger.info(f"Parsed breakdown for {source}: {json.dumps(protocol_counts)}")
 
+        # [LOGGING] Trace parsing drop rate
+        if len(parsed_batch) < len(raw_lines) * 0.5:
+            logger.warning(
+                f"Low parsing success rate for {source}: {len(parsed_batch)}/{len(raw_lines)} lines parsed. "
+                "Check for format changes or encoding issues."
+            )
+
         unique_batch = []
         duplicates_count = 0
-        # Audit: Protecting seen_keys from potential concurrent modification
-        # even though currently single-consumer, for robustness.
-        # Since seen_keys is a set passed from caller, we assume caller manages
-        # simple access or we just operate on it. To be strictly safe in future:
-        # We would use a lock. But here we are in a single consumer task.
-        # However, if we ever scale consumers, this needs a lock.
-        # Implementing check:
+        # Deduplication logic.
+        # Note: seen_keys is a shared set. In the current single-consumer architecture,
+        # this is thread-safe. If parallel consumers are introduced, a lock must be added here.
         for p in parsed_batch:
             k = proxy_unique_key(p)
-            # If multiple consumers, this check-then-add is racy without a lock.
-            # Assuming for now this is the only consumer modifying it.
             if k not in seen_keys:
                 seen_keys.add(k)
                 unique_batch.append(p)
@@ -610,6 +611,12 @@ async def processing_consumer(
                     "failure_modes_json": json.dumps(failure_modes),
                     "batch_source": "pipeline",
                 },
+            )
+        else:
+            # [LOGGING] Log for local/manual sources too
+            logger.info(
+                f"Completed processing for local source {source} - "
+                f"Fetch/Parse/Work: {len(raw_lines)}/{len(parsed_batch)}/{working_count}"
             )
 
         work_queue.task_done()

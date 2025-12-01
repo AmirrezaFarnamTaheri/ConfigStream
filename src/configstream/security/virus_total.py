@@ -46,8 +46,11 @@ async def scan_url(url: str) -> dict[str, int]:
                         .get("attributes", {})
                         .get("last_analysis_stats", {})
                     )
-                    # Use explicit cast or conversion to ensure dict return type
-                    malicious_count: int = stats.get("malicious", 0)
+                    # Ensure stats is a dictionary before accessing
+                    if not isinstance(stats, dict):
+                        stats = {}
+
+                    malicious_count: int = int(stats.get("malicious", 0))
                     return {"malicious": malicious_count}
                 elif resp.status == 404:
                     # URL not found, could submit it but for now just return clean

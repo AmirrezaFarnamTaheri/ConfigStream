@@ -225,17 +225,24 @@ async def fetch_from_source(
                         f"Circuit breaker TRIPPED for {host} due to failures."
                     )
 
-            # If it's a 4xx/5xx error that was raised, we might want to return it in the result
-            # But the loop retries. If we exhaust retries, we return False.
-            # However, for 404 specifically, we might want to stop retrying immediately?
-            # The current logic retries.
-            # If we return a failure FetchResult at the end, it should ideally have the status code of the last attempt.
+            # If it's a 404 (Not Found) or 410 (Gone), retrying is futile.
+            if last_status_code in (404, 410):
+                logger.info(
+                    f"Aborting retries for {source} due to permanent error status code: {last_status_code}"
+                )
+                return FetchResult(
+                    False,
+                    source,
+                    error=f"Permanent Error: {last_status_code}",
+                    status_code=last_status_code,
+                )
 
             # Don't sleep on the last attempt
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
                 logger.info(
-                    f"Retrying {source} in {wait}s due to error: {last_error} (Attempt {attempt+1}/{max_retries})"
+                    f"Retrying {source} in {wait}s due to error: {last_error} "
+                    f"(Attempt {attempt+1}/{max_retries}, Status: {last_status_code or 'N/A'})"
                 )
                 await asyncio.sleep(wait + random.uniform(0, 0.3))
                 backoff = min(backoff * 2, 60)
@@ -246,7 +253,8 @@ async def fetch_from_source(
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
                 logger.info(
-                    f"Retrying {source} in {wait}s after unexpected error (Attempt {attempt+1}/{max_retries})"
+                    f"Retrying {source} in {wait}s after unexpected error "
+                    f"(Attempt {attempt+1}/{max_retries})"
                 )
                 await asyncio.sleep(min(backoff, 30))
                 backoff = min(backoff * 2, 60)

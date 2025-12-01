@@ -1,37 +1,42 @@
-
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.cli import main as cli, setup_logging as cli_setup_logging
 from click.testing import CliRunner
 import asyncio
 
+
 @pytest.fixture
 def runner():
     return CliRunner()
+
 
 def test_cli_setup_logging_verbose():
     with patch("logging.basicConfig") as mock_basic_config:
         cli_setup_logging(True)
         # Check if level was DEBUG (10)
         args, kwargs = mock_basic_config.call_args
-        assert kwargs['level'] == 10
+        assert kwargs["level"] == 10
+
 
 def test_cli_setup_logging_default():
     with patch("logging.basicConfig") as mock_basic_config:
         cli_setup_logging(False)
         # Check if level was INFO (20)
         args, kwargs = mock_basic_config.call_args
-        assert kwargs['level'] == 20
+        assert kwargs["level"] == 20
+
 
 def test_cli_version(runner):
     result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
     assert "version" in result.output
 
+
 def test_cli_help(runner):
     result = runner.invoke(cli, ["--help"])
     assert result.exit_code == 0
     assert "Usage:" in result.output
+
 
 @patch("configstream.cli.run_full_pipeline")
 def test_cli_merge_command(mock_pipeline, runner):
@@ -44,11 +49,11 @@ def test_cli_merge_command(mock_pipeline, runner):
     stats_mock.working = 40
     stats_mock.geo_resolved = 30
     stats_mock.to_dict.return_value = {
-        'duration': 1.5,
-        'fetched_lines': 100,
-        'tested': 50,
-        'working': 40,
-        'geo_resolved': 30
+        "duration": 1.5,
+        "fetched_lines": 100,
+        "tested": 50,
+        "working": 40,
+        "geo_resolved": 30,
     }
 
     # Mock pipeline result
@@ -64,13 +69,16 @@ def test_cli_merge_command(mock_pipeline, runner):
         with open("sources.txt", "w") as f:
             f.write("https://example.com/subs")
 
-        result = runner.invoke(cli, ["merge", "--sources", "sources.txt", "--max-workers", "10"])
+        result = runner.invoke(
+            cli, ["merge", "--sources", "sources.txt", "--max-workers", "10"]
+        )
 
         if result.exit_code != 0:
             print(f"CLI Output: {result.output}")
             print(f"CLI Exception: {result.exception}")
 
         assert result.exit_code == 0
+
 
 @patch("configstream.cli.run_full_pipeline")
 def test_cli_merge_command_fail(mock_pipeline, runner):

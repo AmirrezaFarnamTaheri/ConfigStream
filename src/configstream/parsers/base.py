@@ -320,8 +320,7 @@ def normalize_proxy_details(proxy: Proxy) -> None:
     if sni:
         proxy.details["sni"] = str(sni)
 
-    # For VMess, SNI might be in headers which is a dict. This should take
-    # precedence over the 'host' field.
+    # For VMess, SNI takes precedence from the 'Host' header if present.
     if proxy.protocol == "vmess":
         headers = proxy.details.get("headers")
         if isinstance(headers, dict) and "Host" in headers:

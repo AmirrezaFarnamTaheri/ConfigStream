@@ -1,7 +1,7 @@
-
 import pytest
 from configstream.parsers.ssr import parse_ssr
 from configstream.models import Proxy
+
 
 def test_parse_ssr_valid():
     # ssr://server:port:protocol:method:obfs:password_b64/?obfsparam=...
@@ -22,15 +22,18 @@ def test_parse_ssr_valid():
     assert proxy.details["obfs"] == "plain"
     assert proxy.details["password"] == "password"
 
+
 def test_parse_ssr_invalid_b64():
     proxy = parse_ssr("ssr://Invalid!!!")
     assert proxy is None
+
 
 def test_parse_ssr_missing_fields():
     # Malformed decoded string
     # "1.1.1.1:443" (missing other parts) -> B64: MS4xLjEuMTo0NDM=
     proxy = parse_ssr("ssr://MS4xLjEuMTo0NDM=")
     assert proxy is None
+
 
 def test_parse_ssr_legacy_params():
     # Test with parameters /?obfsparam=...
@@ -41,6 +44,7 @@ def test_parse_ssr_legacy_params():
     # B64 of whole string
     raw_inner = "1.1.1.1:443:origin:aes-256-cfb:plain:cGFzc3dvcmQ/?obfsparam=b2JmczEyMw==&protoparam=cHJvdG8xMjM="
     import base64
+
     b64 = base64.urlsafe_b64encode(raw_inner.encode()).decode()
 
     proxy = parse_ssr(f"ssr://{b64}")

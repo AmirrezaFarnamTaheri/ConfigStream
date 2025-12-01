@@ -222,10 +222,9 @@ def merge_batches(
                         proxy_data.get("latency") == "0"
                         or proxy_data.get("latency") == 0
                     ):
-                        # Treat 0 as None or very high?
-                        # Usually 0 means untested or failed in some contexts, but here it might be just fast.
-                        # But let's respect the type
-                        pass
+                        # 0 latency usually indicates a failure or default value in some contexts.
+                        # We treat it as None (failed/untested) to avoid sorting it as "fastest".
+                        proxy_data["latency"] = None
 
                     proxy = Proxy(**proxy_data)
 
@@ -271,10 +270,8 @@ def merge_batches(
 
     # Clear the existing output directory
     output_dir.mkdir(exist_ok=True)
-    # Do not delete everything, we might want to keep some files, but generally clean start is good
-    # Except we might lose some persistent data if we are not careful?
-    # Actually, persistent data is in `data/`, which we just merged into.
-    # So deleting output/*.* files is fine.
+    # Clean up old artifact files in the root of output directory.
+    # We explicitly do NOT delete the 'data/' directory where persistent DBs live.
     for file_path in output_dir.glob("*.*"):
         if file_path.is_file():
             file_path.unlink()
@@ -502,16 +499,11 @@ def merge_batches(
     # 8. metadata.json
     # Use output.py's save_metadata for consistency (includes latency distribution)
 
-    # We need to reconstruct 'stats' dict for save_metadata
-    # It expects keys: working, fetched_lines, duration
-    # We don't have exact fetched_lines or duration for the merged set easily,
-    # but we can approximate or aggregate if we stored them.
-    # For now, we'll pass what we have.
-
+    # We reconstruct 'stats' dict for save_metadata using the aggregated totals.
     meta_stats = {
         "working": working_proxies,
-        "fetched_lines": total_processed,  # Approximation
-        "duration": 0.0,  # Merging is fast, duration not tracked per se
+        "fetched_lines": total_processed,
+        "duration": 0.0,  # Merging duration is negligible for this context
     }
 
     # save_metadata writes both metadata.json and summary.json

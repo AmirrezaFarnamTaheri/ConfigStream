@@ -20,8 +20,7 @@ _warned_missing = False
 def _verify_binary_checksum(path: Path) -> bool:
     """
     Verify the SHA-256 checksum of the binary.
-    TODO: Implement strict checking against signed manifest.
-    This is a placeholder for future supply-chain security enforcement.
+    Currently a no-op until supply-chain security infrastructure is ready.
     """
     return True
 
@@ -38,8 +37,8 @@ def ensure_binary():
 
     src_dir = Path(__file__).parent.parent.parent.parent / "src" / "go" / "utls_client"
     if not src_dir.exists():
-        # In some CI environments or packages, source might not be there.
-        # We can't build, so return False.
+        # Source directory missing (e.g., in packaged distribution).
+        # Cannot build binary; functionality gracefully degraded.
         return False
 
     output_dir = BINARY_PATH.parent
