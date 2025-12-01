@@ -1,5 +1,5 @@
 # ConfigStream Batch 2
-# Total sources in this batch: 49
+# Total sources in this batch: 55
 https://freessrnode.github.io/uploads/2024/08/4-20240822.txt
 https://github.com/ebrasha/free-v2ray-public-list/raw/main/all_extracted_configs.txt
 https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Bahrain.txt
@@ -49,3 +49,9 @@ https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main
 https://raw.githubusercontent.com/valid7996/Gozargah/main/Gozargah_sing-box_sub
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/tuic.txt
 https://raw.githubusercontent.com/zjr13808836946/zjr_clash/main/V2_SSR_M
+https://oss.v2rayse.com/proxies/data/2023-02-06/fUGMnmQ.yaml
+https://channel-freevpnhomes-subscription.shampoosirsehat.homes
+https://igdux.top/~FREE2CONFIG,T,H
+https://ainita.s3.eu-north-1.amazonaws.com/AinitaServer-1.csv
+https://ainita.s3.eu-north-1.amazonaws.com/AinitaServer-2.csv
+https://ainita.s3.eu-north-1.amazonaws.com/AinitaServer-3.csv
