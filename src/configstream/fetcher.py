@@ -236,11 +236,16 @@ async def fetch_from_source(
                         await breaker.record_failure()
                     # Inform adaptive timeout tracker of the failure for this attempt
                     if timeout_tracker is not None:
-                        timeout_tracker.record_attempt(host, float(per_attempt_timeout), success=False)
+                        await timeout_tracker.record_attempt(
+                            host, float(per_attempt_timeout), success=False
+                        )
                 except (asyncio.CancelledError, KeyboardInterrupt):
                     raise
                 except Exception:
-                    logger.debug("Failed to record controller/circuit-breaker/timeout state on permanent error", exc_info=True)
+                    logger.debug(
+                        "Failed to record controller/circuit-breaker/timeout state on permanent error",
+                        exc_info=True,
+                    )
 
                 logger.info(
                     f"Aborting retries for {source} due to permanent error status code: {last_status_code}"
