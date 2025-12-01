@@ -140,8 +140,8 @@ class WARPKeyValidator:
         Returns:
             (is_reachable, latency_or_error)
         """
-        # For UDP endpoints, we can't easily test without WireGuard.
-        # Instead, verify it's a valid IP in the expected range.
+        # UDP reachability check requires a raw socket or WireGuard handshake.
+        # Here we perform static validation against known IP ranges to ensure plausibility.
 
         # Basic validation: Is it a valid IP?
         try:

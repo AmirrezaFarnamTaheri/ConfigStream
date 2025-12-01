@@ -1,7 +1,7 @@
-
 import pytest
 from configstream.converters import to_singbox_outbound
 from configstream.models import Proxy
+
 
 @pytest.fixture
 def base_proxy():
@@ -17,10 +17,11 @@ def base_proxy():
             "net": "ws",
             "ws-path": "/path",
             "host": "example.com",
-            "sni": "example.com", # Added sni
-            "tls": "tls"
-        }
+            "sni": "example.com",  # Added sni
+            "tls": "tls",
+        },
     )
+
 
 def test_to_singbox_outbound_vmess(base_proxy):
     out = to_singbox_outbound(base_proxy)
@@ -32,6 +33,7 @@ def test_to_singbox_outbound_vmess(base_proxy):
     assert out["transport"]["type"] == "ws"
     assert out["tls"]["enabled"] is True
     assert out["tls"]["server_name"] == "example.com"
+
 
 def test_to_singbox_outbound_vless():
     proxy = Proxy(
@@ -47,8 +49,8 @@ def test_to_singbox_outbound_vless():
             "pbk": "public-key",
             "fp": "chrome",
             "sni": "example.com",
-            "sid": "short-id"
-        }
+            "sid": "short-id",
+        },
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
@@ -59,6 +61,7 @@ def test_to_singbox_outbound_vless():
     assert out["tls"]["reality"]["public_key"] == "public-key"
     assert out["tls"]["reality"]["short_id"] == "short-id"
 
+
 def test_to_singbox_outbound_trojan():
     proxy = Proxy(
         config="trojan://test",
@@ -66,10 +69,7 @@ def test_to_singbox_outbound_trojan():
         uuid="password",
         address="1.1.1.1",
         port=443,
-        details={
-            "net": "tcp",
-            "sni": "example.com"
-        }
+        details={"net": "tcp", "sni": "example.com"},
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
@@ -77,6 +77,7 @@ def test_to_singbox_outbound_trojan():
     assert out["password"] == "password"
     assert out["tls"]["enabled"] is True
     assert out["tls"]["server_name"] == "example.com"
+
 
 def test_to_singbox_outbound_shadowsocks():
     proxy = Proxy(
@@ -89,8 +90,8 @@ def test_to_singbox_outbound_shadowsocks():
             "password": "password",
             "method": "aes-256-gcm",
             "plugin": "v2ray-plugin",
-            "plugin_opts": "server;host=example.com"
-        }
+            "plugin_opts": "server;host=example.com",
+        },
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
@@ -98,6 +99,7 @@ def test_to_singbox_outbound_shadowsocks():
     assert out["method"] == "aes-256-gcm"
     assert out["plugin"] == "v2ray-plugin"
     assert "plugin_opts" in out
+
 
 def test_to_singbox_outbound_hysteria2():
     proxy = Proxy(
@@ -110,8 +112,8 @@ def test_to_singbox_outbound_hysteria2():
             "sni": "example.com",
             "allowInsecure": "1",
             "obfs": "salam",
-            "obfs-password": "password"
-        }
+            "obfs-password": "password",
+        },
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
@@ -119,6 +121,7 @@ def test_to_singbox_outbound_hysteria2():
     assert out["password"] == "auth"
     assert out["tls"]["enabled"] is True
     assert out["tls"]["insecure"] is True
+
 
 def test_to_singbox_outbound_tuic():
     proxy = Proxy(
@@ -131,7 +134,7 @@ def test_to_singbox_outbound_tuic():
             "password": "password",
             "sni": "example.com",
             "congestion_controller": "bbr",
-        }
+        },
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
@@ -140,10 +143,18 @@ def test_to_singbox_outbound_tuic():
     assert out["password"] == "password"
     assert out["congestion_control"] == "bbr"
 
+
 def test_to_singbox_outbound_unknown_protocol():
-    proxy = Proxy(config="unknown://test", protocol="unknown", address="1.1.1.1", port=80, details={})
+    proxy = Proxy(
+        config="unknown://test",
+        protocol="unknown",
+        address="1.1.1.1",
+        port=80,
+        details={},
+    )
     out = to_singbox_outbound(proxy)
     assert out is None
+
 
 def test_to_singbox_outbound_wireguard():
     proxy = Proxy(
@@ -152,12 +163,12 @@ def test_to_singbox_outbound_wireguard():
         address="1.1.1.1",
         port=51820,
         details={
-            "private_key": "privkey", # Changed from private-key
-            "peer_public_key": "pubkey", # Changed from public-key
+            "private_key": "privkey",  # Changed from private-key
+            "peer_public_key": "pubkey",  # Changed from public-key
             "address": "10.0.0.2/32",
             "mtu": "1280",
-            "reserved": "1,2,3"
-        }
+            "reserved": "1,2,3",
+        },
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
@@ -165,6 +176,7 @@ def test_to_singbox_outbound_wireguard():
     assert out["local_address"] == ["172.16.196.2/32"]
     assert out["private_key"] == "privkey"
     assert out["peer_public_key"] == "pubkey"
+
 
 def test_add_transport_sb_coverage():
     # Test indirect coverage via proxy conversion
@@ -174,13 +186,14 @@ def test_add_transport_sb_coverage():
         uuid="uuid",
         address="1.1.1.1",
         port=443,
-        details={"net": "http", "path": "/p", "host": "h"} # Changed http-path->path
+        details={"net": "http", "path": "/p", "host": "h"},  # Changed http-path->path
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
     assert out["transport"]["type"] == "http"
     assert out["transport"]["path"] == "/p"
     assert out["transport"]["host"] == ["h"]
+
 
 def test_add_tls_sb_coverage():
     # Test indirect coverage via proxy conversion
@@ -190,7 +203,7 @@ def test_add_tls_sb_coverage():
         uuid="password",
         address="1.1.1.1",
         port=443,
-        details={"allowInsecure": "1", "sni": "example.com"}
+        details={"allowInsecure": "1", "sni": "example.com"},
     )
     out = to_singbox_outbound(proxy)
     assert out is not None

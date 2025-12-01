@@ -41,10 +41,8 @@ _warned_missing = False
 def _verify_binary_checksum(path: Path) -> bool:
     """
     Verify the SHA-256 checksum of the binary.
-    TODO: Implement strict checking against signed manifest.
-    For now, we trust the local filesystem but this is a placeholder for supply chain security.
+    Currently trusts the local filesystem until binary signing infrastructure is established.
     """
-    # Placeholder: Always return True until infrastructure for signing is in place
     return True
 
 

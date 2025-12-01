@@ -32,15 +32,14 @@ func main() {
 	// to the target (or via proxy if we added SOCKS5 support, but let's keep it simple first).
     // Note: To properly route through a proxy using Go, we'd need a SOCKS/HTTP dialer.
     // Given the constraints, we will demonstrate uTLS connectivity directly to the target
-    // to prove the fingerprinting capability. The Python fetcher handles the actual proxy routing
-    // but if we want to test if the *proxy* passes the fingerprint, we need to tunnel through it.
-    // For now, let's assume we are testing the connection logic itself.
+    // to prove the fingerprinting capability. The Python fetcher handles the actual proxy routing.
+    // This proof-of-concept validates the uTLS handshake logic independently.
 
 	dialer := &net.Dialer{
 		Timeout: 10 * time.Second,
 	}
 
-    // Mock connection setup
+    // Standard TCP connection setup
 	conn, err := dialer.Dial("tcp", "www.google.com:443") // Hardcoded for PoC, normally parse *targetUrl
 	if err != nil {
 		fmt.Printf("Failed to dial: %v\n", err)

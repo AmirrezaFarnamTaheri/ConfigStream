@@ -169,8 +169,6 @@ class BlocklistManager:
 
         NOTE: Passive VirusTotal checks should be used for definitive identification.
         """
-        # Explicit deprecation warning in logs might be too noisy if called often,
-        # but leaving comment for developers.
         if self.is_suspicious_port(port):
             return True
 

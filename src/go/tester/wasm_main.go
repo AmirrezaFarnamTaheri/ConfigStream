@@ -41,7 +41,7 @@ func testProxy(this js.Value, args []js.Value) interface{} {
 	// or perform a simple HTTP fetch if the proxy exposes an HTTP endpoint (unlikely for raw proxies).
 
 	// NOTE: The browser enforces CORS. Connecting to a random VLESS-ws endpoint
-	// might fail if the server doesn't send Access-Control-Allow-Origin.
+	// may fail if the server doesn't send Access-Control-Allow-Origin.
 	// However, for WebSocket, the Same-Origin Policy is more relaxed,
 	// but the server must still accept the connection.
 
@@ -52,11 +52,16 @@ func testProxy(this js.Value, args []js.Value) interface{} {
 		HandshakeTimeout: 5 * time.Second,
 	}
 
-	// We might need to transform the custom scheme (vless://) to ws:// or wss://
-	// Ideally the input should be the actual WebSocket endpoint URL.
-	// For this PoC, we assume the input is "wss://host:port/path"
+	// Helper: Ensure scheme is websocket compatible
+	targetUrl := proxyUrl
+	if strings.HasPrefix(targetUrl, "vless://") || strings.HasPrefix(targetUrl, "vmess://") {
+		// Assuming conversion logic happens in JS before calling this or valid WS URL is passed
+		// But as a fallback, replace scheme if it looks like a standard URL structure
+		targetUrl = strings.Replace(targetUrl, "vless://", "wss://", 1)
+		targetUrl = strings.Replace(targetUrl, "vmess://", "wss://", 1)
+	}
 
-	conn, _, err := dialer.Dial(proxyUrl, http.Header{})
+	conn, _, err := dialer.Dial(targetUrl, http.Header{})
 	if err != nil {
 		// Classify error type for better debugging
 		errType := "UNKNOWN"

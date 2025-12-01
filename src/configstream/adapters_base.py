@@ -99,7 +99,7 @@ def format_singbox_chain_for_loon(
     # Surge: encrypt-method=...
     # Loon: method, "password"
 
-    # We need a Loon specific converter or adjust the output
+    # Handle Loon specific syntax differences
     o_type = relay.get("type")
     if o_type == "shadowsocks":
         server = relay.get("server")

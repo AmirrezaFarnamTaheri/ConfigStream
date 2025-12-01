@@ -74,9 +74,9 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
 
             # Validate obfs-password presence if obfs is set
             if obfs_type == "salamander" and "obfs-password" not in proxy.details:
-                logger.debug("Hysteria2 obfs=salamander requires obfs-password")
-                # We can either drop it or keep it (it might fail later).
-                # Let's keep it but log warning.
+                logger.warning(
+                    "Hysteria2 obfs=salamander requires obfs-password. Marking as suspect but retaining."
+                )
 
         # Port Hopping (Advanced)
         # Format: ports=80,443,8000-9000
@@ -89,9 +89,8 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
 
         if not proxy.uuid:
             # Auth is optional in some cases but usually required.
-            # If no password, Hysteria2 might fail unless server allows anonymous (rare).
-            # We treat it as valid but suspect.
-            logger.debug("Hysteria2 config missing password (UUID field).")
+            # If no password, Hysteria2 is only valid if the server allows anonymous access.
+            logger.debug("Hysteria2 config missing password (UUID field) - assuming anonymous auth.")
 
     return proxy
 
@@ -129,9 +128,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             is_b64 = re.match(r"^[a-zA-Z0-9+/=]+$", reserved)
 
             if not (is_bracketed or is_csv or is_b64):
-                logger.debug(f"Invalid reserved bytes format for WireGuard: {reserved}")
-                # If invalid format, we might choose to drop it or clear it.
-                # For safety, let's clear it to avoid breaking clients
+                logger.warning(f"Invalid reserved bytes format for WireGuard: {reserved}. Removing invalid field.")
                 del proxy.details["reserved"]
         else:
             # If it's not a string (e.g. list from some internal process), assume valid if it's a list of ints

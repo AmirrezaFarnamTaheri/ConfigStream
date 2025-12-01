@@ -252,7 +252,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             if "sni" in details:
                 tls["server_name"] = str(details["sni"])
 
-            # [FIX] Logic to ensure uTLS is present for Reality
+            # Ensure uTLS fingerprint is set for Reality (required).
             fp = details.get("fp")
             if not fp and security == "reality":
                 fp = "chrome"  # Default for Reality

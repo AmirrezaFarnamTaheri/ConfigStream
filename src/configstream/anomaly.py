@@ -98,10 +98,10 @@ CREATE TABLE IF NOT EXISTS history (
                                 current_count < (min(counts) * 0.5)
                                 and current_count > 20
                             ):
-                                # Significant drop is usually safe but might indicate issue
-                                # We generally care about poisoning (spikes)
+                                # Significant drop detected. This typically indicates a failing source but is not a security risk (spike).
+                                # We log it for monitoring but do not block the source.
                                 logger.debug(
-                                    f"Significant drop detected for {url}: {current_count} vs avg {avg}. Ignoring as not a spike."
+                                    f"Significant volume drop for {url}: {current_count} vs avg {avg}. Treated as safe (not a spike)."
                                 )
 
                     except Exception as ml_err:

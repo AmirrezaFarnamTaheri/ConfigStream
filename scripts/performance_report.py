@@ -19,11 +19,16 @@ from configstream.pipeline import run_full_pipeline  # noqa: E402
 
 
 async def main():
-    # Load sources
+    # Load sources - check standard batch files if sources.txt is missing
     sources_file = Path("sources.txt")
     if not sources_file.exists():
-        print("❌ sources.txt not found")
-        return 1
+        batch_files = sorted(list(Path("sources").glob("batch_*.txt")))
+        if batch_files:
+            sources_file = batch_files[0]
+            print(f"ℹ️ sources.txt not found, using {sources_file} instead.")
+        else:
+            print("❌ No source files found in sources/ or sources.txt")
+            return 1
 
     sources = [
         line.strip()
@@ -31,7 +36,7 @@ async def main():
         if line.strip() and not line.startswith("#")
     ]
 
-    print(f"🚀 Running pipeline with {len(sources)} sources...")
+    print(f"🚀 Running pipeline with {len(sources)} sources from {sources_file}...")
     print("   Limiting to 100 proxies for performance testing\n")
 
     # Run pipeline
@@ -44,14 +49,7 @@ async def main():
     )
 
     # Extract metrics
-    # PipelineResult objects have attributes, not .get() methods
     stats = result.stats
-    # Metrics are not directly on PipelineResult/Stats usually,
-    # but PipelineStats might be convertable or accessed.
-    # The original code expected a dict.
-    # stats is a PipelineStats object.
-
-    # We need to map PipelineStats to the expected format or just dump it.
     stats_dict = stats.to_dict()
 
     # Generate report
@@ -60,14 +58,8 @@ async def main():
         "success": result.success,
         "sources": len(sources),
         "stats": stats_dict,
-        # Performance metrics might be missing if not in PipelineResult
-        # The previous code assumed "metrics" key in result.
-        # But run_full_pipeline returns PipelineResult(success, stats, output_files)
-        # It seems performance metrics might need to be derived from stats.
         "performance": {
             "total_time_seconds": stats.duration,
-            # granular metrics might not be available in PipelineResult directly unless we change it
-            # For now, use 0 or available data
             "proxies_per_second": (
                 (stats.tested / stats.duration) if stats.duration > 0 else 0
             ),

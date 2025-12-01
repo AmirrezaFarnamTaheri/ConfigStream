@@ -225,11 +225,17 @@ async def fetch_from_source(
                         f"Circuit breaker TRIPPED for {host} due to failures."
                     )
 
-            # If it's a 4xx/5xx error that was raised, we might want to return it in the result
-            # But the loop retries. If we exhaust retries, we return False.
-            # However, for 404 specifically, we might want to stop retrying immediately?
-            # The current logic retries.
-            # If we return a failure FetchResult at the end, it should ideally have the status code of the last attempt.
+            # If it's a 404 (Not Found) or 410 (Gone), retrying is futile.
+            if last_status_code in (404, 410):
+                logger.info(
+                    f"Aborting retries for {source} due to permanent error status code: {last_status_code}"
+                )
+                return FetchResult(
+                    False,
+                    source,
+                    error=f"Permanent Error: {last_status_code}",
+                    status_code=last_status_code,
+                )
 
             # Don't sleep on the last attempt
             if attempt < max_retries - 1:
