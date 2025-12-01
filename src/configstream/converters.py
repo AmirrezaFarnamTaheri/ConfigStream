@@ -501,5 +501,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             f"Successfully converted {proxy.protocol} proxy: {proxy.address} "
             f"(Source: {proxy.details.get('_source', 'unknown')})"
         )
+    else:
+        # [LOGGING] Log drop reason if we reached here without returning (should be rare if earlier checks caught it)
+        logger.debug(f"Dropped {proxy.protocol} proxy {proxy.address} during conversion (Unknown reason)")
 
     return out

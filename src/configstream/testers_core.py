@@ -279,21 +279,17 @@ class GoBatchTester:
                             if error_cat not in ["TIMEOUT", "OTHER"]:
                                 p.details["failure_category"] = error_cat
 
-                            # DIAGNOSTIC: Log explicit failure reason if success rate is low
-                            # For better transparency as requested, log all non-trivial failures until we see some success
-                            if working_count == 0 and result_count <= 50:
-                                if error_cat not in ["TIMEOUT"]:
-                                    # Log metadata if available (ASN/Country)
-                                    meta_str = f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
-                                    logger.warning(
-                                        f"Test failed {meta_str} for {p.protocol}://{p.address}:{p.port} -> {error_msg}"
-                                    )
-                                else:
-                                    logger.debug(f"Test timeout: {p.address}")
-                            elif result_count <= 5:
-                                logger.debug(
-                                    f"Proxy test failed: {p.address}:{p.port} - {res.get('error', 'unknown')}"
+                            # [LOGGING] Enhanced failure visibility
+                            # Log explicit failure reason regardless of success rate if it's not a timeout
+                            # This provides granular visibility into protocol mismatches or blockages
+                            meta_str = f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
+
+                            if error_cat not in ["TIMEOUT"]:
+                                logger.info(
+                                    f"Test failed {meta_str} for {p.protocol}://{p.address}:{p.port} -> {error_msg} (Category: {error_cat})"
                                 )
+                            else:
+                                logger.debug(f"Test timeout {meta_str}: {p.address}")
 
                             # Additional per-proxy debug logging for transparency
                             if logger.isEnabledFor(logging.DEBUG) and not p.is_working:

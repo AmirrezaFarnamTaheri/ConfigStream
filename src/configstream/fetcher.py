@@ -241,7 +241,8 @@ async def fetch_from_source(
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
                 logger.info(
-                    f"Retrying {source} in {wait}s due to error: {last_error} (Attempt {attempt+1}/{max_retries})"
+                    f"Retrying {source} in {wait}s due to error: {last_error} "
+                    f"(Attempt {attempt+1}/{max_retries}, Status: {last_status_code or 'N/A'})"
                 )
                 await asyncio.sleep(wait + random.uniform(0, 0.3))
                 backoff = min(backoff * 2, 60)
@@ -252,7 +253,8 @@ async def fetch_from_source(
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
                 logger.info(
-                    f"Retrying {source} in {wait}s after unexpected error (Attempt {attempt+1}/{max_retries})"
+                    f"Retrying {source} in {wait}s after unexpected error "
+                    f"(Attempt {attempt+1}/{max_retries})"
                 )
                 await asyncio.sleep(min(backoff, 30))
                 backoff = min(backoff * 2, 60)
