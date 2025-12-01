@@ -32,6 +32,7 @@ from .dns_prewarm import prewarm_dns_cache
 from .adaptive_timeout import AdaptiveTimeout
 from .fetcher_core.models import FetchResult, RateLimitError
 from .fetcher_core.worker import fetch_single_source
+from .security_validator import SecurityValidator  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -63,13 +64,14 @@ async def fetch_from_source(
         app_settings = AppSettings()
 
     # 1. URL Validation
+    sanitized_source = SecurityValidator.sanitize_log_message(source)
     try:
         parsed = urlparse(source)
         if not parsed.scheme or not parsed.netloc:
-            raise ValueError(f"Invalid URL: {source}")
+            raise ValueError(f"Invalid URL: {sanitized_source}")
         host = parsed.netloc
     except Exception as e:
-        logger.debug(f"URL validation failed for {source}: {e}")
+        logger.debug(f"URL validation failed for {sanitized_source}: {e}")
         return FetchResult(False, source, error=str(e))
 
     # 2. Adaptive Timeout Calculation
@@ -98,9 +100,10 @@ async def fetch_from_source(
     if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
         breaker = await breaker_manager.get_breaker(host)
         if await breaker.is_open():
-            logger.warning(
+            # Only log warning if it's the first time we noticed it's open (debounce)
+            # or simply use debug to avoid spam
+            logger.debug(
                 f"Circuit Breaker BLOCKED request to {host} (Source: {source}). "
-                "The host is considered unstable due to recent failures."
             )
             return FetchResult(False, source, error="Circuit Breaker Open")
 

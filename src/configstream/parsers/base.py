@@ -57,6 +57,19 @@ def validate_b64_input(data: str) -> Optional[str]:
         logger.warning("Expected string, got %s", type(data).__name__)
         return None
 
+    # Handle comments starting with '#' or space-separated remarks
+    # Split by '#' first (common comment delimiter)
+    if "#" in data:
+        data = data.split("#", 1)[0]
+
+    # Heuristic: If we have spaces, it might be "BASE64 REMARK".
+    # Standard Base64 does not contain spaces.
+    # We take the first part.
+    if data and not data.isspace():
+        parts = data.split(None, 1)
+        if parts:
+            data = parts[0]
+
     trimmed = data.strip()
     if not trimmed:
         logger.debug("Empty base64 input")
