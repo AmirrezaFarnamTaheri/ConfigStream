@@ -243,8 +243,16 @@ class TestProxyHistoryTracker:
         history_file = tmp_path / "history.json"
         tracker = ProxyHistoryTracker(history_path=history_file)
 
-        proxy1 = create_test_proxy(config="vmess://old", address="1.2.3.4")
-        proxy2 = create_test_proxy(config="vmess://recent", address="5.6.7.8")
+        proxy1 = create_test_proxy(
+            config="vmess://old",
+            address="1.2.3.4",
+            uuid="11111111-1111-1111-1111-111111111111",
+        )
+        proxy2 = create_test_proxy(
+            config="vmess://recent",
+            address="5.6.7.8",
+            uuid="22222222-2222-2222-2222-222222222222",
+        )
 
         # proxy1: Old data only
         old_timestamp = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat()
@@ -489,10 +497,16 @@ class TestEdgeCases:
 
         # Create proxies with different configs
         proxy1 = create_test_proxy(
-            config="vmess://server1", address="1.2.3.4", port=8080
+            config="vmess://server1",
+            address="1.2.3.4",
+            port=8080,
+            uuid="11111111-1111-1111-1111-111111111111",
         )
         proxy2 = create_test_proxy(
-            config="vmess://server2", address="5.6.7.8", port=9090
+            config="vmess://server2",
+            address="5.6.7.8",
+            port=9090,
+            uuid="22222222-2222-2222-2222-222222222222",
         )
 
         tracker.record_test_result(proxy1)

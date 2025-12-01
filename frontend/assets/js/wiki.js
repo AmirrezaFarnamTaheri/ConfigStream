@@ -1,6 +1,6 @@
 // Wiki Loader Script
 
-const WIKI_BASE_URL = 'https://raw.githubusercontent.com/yebekhe/ConfigStream/main/docs/wiki/';
+const WIKI_BASE_URL = 'https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/docs/wiki/';
 // Fallback for local dev or different repo structure
 const LOCAL_WIKI_BASE = '../docs/wiki/';
 

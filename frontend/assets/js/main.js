@@ -5,7 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initAccordion();
 
     // Initialize Dynamic Downloads (Client Selector)
-    initDynamicDownloads();
+    if (typeof initDynamicDownloads === 'function') {
+        initDynamicDownloads();
+    } else {
+        console.warn('initDynamicDownloads is not defined. dynamic-downloads.js might be missing.');
+    }
 
     // --- DATA FETCHING & INITIALIZATION ---
     (async () => {
