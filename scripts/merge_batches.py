@@ -575,11 +575,11 @@ def merge_batches(
 
     # Remove root about.html and wiki.html to prevent confusion and broken paths
     # (since they are now served from subdirectories with index.html)
-    for f in ["about.html", "wiki.html"]:
-        p = output_dir / f
+    for filename in ["about.html", "wiki.html"]:
+        p = output_dir / filename
         if p.exists():
             p.unlink()
-            logger.info(f"✓ Removed redundant {f} from output root")
+            logger.info(f"✓ Removed redundant {filename} from output root")
 
     # --- Consolidate Logs ---
 
