@@ -1,5 +1,6 @@
 # ConfigStream Batch 5
 # Total sources in this batch: 60
+https://ghp.ci/https://gist.githubusercontent.com/dalazhi-hotmail/4c0033fda050c7290d0d1f04e90ad129/raw/clash.yaml
 https://ghp.ci/https%3A%2F%2Fgist.githubusercontent.com%2Fdalazhi-hotmail%2F4c0033fda050c7290d0d1f04e90ad129%2Fraw%2Fclash.yaml
 https://github.com/vxiaov/free_proxy_ss/raw/main/clash/clash.provider.yaml
 https://raw.githubusercontent.com/69z1zfw2fly/fly/main/2.yaml
