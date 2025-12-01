@@ -1,5 +1,5 @@
 # ConfigStream Batch 2
-# Total sources in this batch: 55
+# Total sources in this batch: 57
 https://freessrnode.github.io/uploads/2024/08/4-20240822.txt
 https://github.com/ebrasha/free-v2ray-public-list/raw/main/all_extracted_configs.txt
 https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Bahrain.txt
