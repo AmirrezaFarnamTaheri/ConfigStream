@@ -6,18 +6,9 @@ Converts Proxy objects to dictionary/JSON-safe formats.
 from typing import Dict, Any, List, Optional
 from .models import Proxy
 
-# Optional: Initialize tracker lazily if needed, but for serialization we might need to access the shared instance.
-# Since serialize_proxy is usually called in loops, we should pass history data if available or fetch it efficiently.
-# For simplicity in this function signature, we assume the pipeline injects history data or we use a global tracker.
-# However, to avoid global state issues, let's assume the pipeline enriches the proxy object BEFORE serialization
-# OR we modify this function to accept history.
-#
-# Strategy: The Proxy object doesn't hold full history (to save RAM). The HistoryTracker does.
-# We will assume the Proxy object has a 'history' attribute injected dynamically during the output phase,
-# or we just return what is on the object.
-#
-# Correction: The pipeline code (pipeline.py) creates the outputs. It should attach history there.
-# Let's ensure the Proxy model supports 'history' attribute dynamically or just put it in details.
+# Proxy object serialization.
+# Note: History data (latency points) is injected dynamically by the pipeline before serialization,
+# or passed explicitly to serialize_proxy to avoid carrying heavy history in the Proxy model constantly.
 
 try:
     import orjson as json_lib

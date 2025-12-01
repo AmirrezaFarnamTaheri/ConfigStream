@@ -107,7 +107,7 @@ async def generate_pipeline_outputs(
     # 1. Generate a fresh, random key for this run
     dynamic_key = Fernet.generate_key().decode()
 
-    # Assuming 'frontend/assets/images' is where your cover images live
+    # Locate cover images for steganography
     assets_dir = output_path.parent / "frontend" / "assets" / "images"
     if not assets_dir.exists():
         # Fallback logic for when running from root or elsewhere

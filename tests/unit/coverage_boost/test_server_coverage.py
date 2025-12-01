@@ -1,9 +1,9 @@
-
 import pytest
 from configstream.server import app, StaticFiles
 from fastapi.testclient import TestClient
 import os
 from unittest.mock import patch, MagicMock
+
 
 @pytest.fixture
 def client(tmp_path):
@@ -17,11 +17,13 @@ def client(tmp_path):
 
     return TestClient(app)
 
+
 def test_server_root(client):
     # Root serves index.html from frontend dir. We might not have frontend dir in test env.
     # If not found, it might 500 or 404.
     # Given we are in a container/environment where frontend might exist or not.
     pass
+
 
 def test_server_health_check(client):
     response = client.get("/health")
@@ -29,6 +31,7 @@ def test_server_health_check(client):
     json_data = response.json()
     assert json_data["status"] == "ok"
     assert "output_dir" in json_data
+
 
 def test_server_static_file_serving(client):
     # Ensure static files are served from /output mount

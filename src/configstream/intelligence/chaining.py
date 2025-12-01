@@ -96,8 +96,9 @@ def find_optimal_relay(
     Returns the best relay proxy and metadata.
     """
     if origin_cc not in COUNTRIES:
-        # Fallback: if origin unknown, we can't optimize path properly.
-        # Maybe default to a generic "bad" score or try to infer from region.
+        logger.warning(
+            f"Geodesic optimization skipped: Origin country '{origin_cc}' not in coordinate database."
+        )
         return {"error": f"Unknown origin country: {origin_cc}"}
 
     origin_coords = COUNTRIES[origin_cc]

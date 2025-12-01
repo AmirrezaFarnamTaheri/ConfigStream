@@ -23,8 +23,7 @@ from .generic import parse_generic_url_scheme, parse_naive, parse_v2ray_json
 from .openvpn import parse_openvpn
 
 # Alias internal names to public ones to maintain compatibility with imports
-# that might expect `_parse_vmess` style names if accessing directly,
-# though `auto_detect.py` likely imports them directly or uses this map.
+# accessing via legacy `_parse_*` naming convention.
 
 # For `src/configstream/parsers.py` compatibility:
 _extract_config_lines = extract_config_lines
