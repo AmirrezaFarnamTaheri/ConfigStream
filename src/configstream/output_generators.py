@@ -364,9 +364,13 @@ def generate_split_outputs(
     files["clash"] = clash_file
 
     # Log summary of generated files
+    total_size_mb = sum(p.stat().st_size for p in files.values()) / (1024 * 1024)
+    file_details = ", ".join([f"{k}: {p.name}" for k, p in files.items()])
+
     logger.info(
-        f"Generated output files in {output_dir}: {list(files.keys())} "
-        f"(Total proxies: {len(proxies)}, Washed: {len(washed_ids)})"
+        f"Generated output files in {output_dir} ({total_size_mb:.2f} MB total). "
+        f"Files: [{file_details}]. "
+        f"(Total proxies: {len(proxies)}, Washed: {len(washed_ids)}, Smart Chains: {sum(len(v) for v in smart_chains.values())})"
     )
 
     return files

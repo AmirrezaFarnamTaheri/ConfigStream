@@ -1,9 +1,9 @@
-
 import pytest
 from configstream.security.blocklist import BlocklistManager
 import ipaddress
 import asyncio
 from unittest.mock import patch, MagicMock
+
 
 @pytest.fixture
 def blocklist_manager():
@@ -16,9 +16,11 @@ def blocklist_manager():
     bm._v6_index = {}
     return bm
 
+
 @pytest.mark.asyncio
 async def test_blocklist_manager_initialization(blocklist_manager):
     assert isinstance(blocklist_manager.blocked_networks, set)
+
 
 @pytest.mark.asyncio
 async def test_blocklist_manager_load_logic(blocklist_manager, tmp_path):
@@ -34,6 +36,7 @@ async def test_blocklist_manager_load_logic(blocklist_manager, tmp_path):
         assert blocklist_manager.is_blocked("2.2.2.2") is True
         assert blocklist_manager.is_blocked("3.3.3.3") is False
 
+
 def test_blocklist_manager_is_blocked_manual(blocklist_manager):
     # Manually populate for unit test of checking logic
     net = ipaddress.ip_network("10.0.0.0/8")
@@ -46,10 +49,12 @@ def test_blocklist_manager_is_blocked_manual(blocklist_manager):
     assert blocklist_manager.is_blocked("10.1.1.1") is True
     assert blocklist_manager.is_blocked("11.1.1.1") is False
 
+
 def test_blocklist_manager_suspicious_port(blocklist_manager):
     assert blocklist_manager.is_suspicious_port(23) is True
-    assert blocklist_manager.is_suspicious_port(2222) is False # Removed per comments
+    assert blocklist_manager.is_suspicious_port(2222) is False  # Removed per comments
     assert blocklist_manager.is_suspicious_port(443) is False
+
 
 def test_blocklist_manager_is_honeypot_deprecated(blocklist_manager):
     # Wraps is_suspicious_port

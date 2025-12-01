@@ -72,27 +72,27 @@ async def hedged_get(
 
     # Now wait for whichever finishes first (T1 or T2)
     try:
-        # We wait on the QUEUE, not the tasks, because the queue tells us the result
-        # But we need to handle the case where BOTH fail.
+        # We wait on the QUEUE, not the tasks, because the queue tells us the result.
+        # We handle the case where BOTH fail by counting expected responses.
+        expected_responses = len(active_tasks)
+        received_responses = 0
 
-        # We loop until we get a success or run out of active tasks
-        while active_tasks:
+        # We loop until we get a success or exhaust all tasks
+        while received_responses < expected_responses:
             # Wait for next result
             task_id, success, result = await asyncio.wait_for(
                 queue.get(), timeout=timeout + 1
             )
+            received_responses += 1
 
             if success:
                 return True, result
 
-            # If failure, we just continue waiting for the other task (if active)
-            # Identify which task failed and remove it from conceptual tracking
-            # (Realistically we just wait for the next queue item)
+            # If both failed (received_responses == expected_responses),
+            # the loop exits and we return the last error.
 
-            # If we've received failures for ALL launched tasks, we are done.
-            # Since we launch at most 2 tasks:
-            if queue.empty() and all(t.done() for t in active_tasks):
-                return False, result  # Return the last error
+        # If we exit the loop, all tasks failed.
+        return False, result
 
     except asyncio.TimeoutError:
         return False, asyncio.TimeoutError("Hedged requests timed out")

@@ -57,19 +57,10 @@ async def warp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     try:
-        # Run generation in executor
-        # Note: generate_warp_account returns account dict with license, id, referral_count
-        # We need to fix the import if it's missing, or mock it if tools.warp doesn't have it
-        # Looking at tools/warp.py, it has register_warp_account but it returns different keys.
-        # It returns {id, private_key, ...}. It does NOT return license or referral_count.
-        # This CLI seems to expect a different warp generator (maybe legacy).
-        # We'll use register_warp_account but adapt the message.
-
         from .tools.warp import register_warp_account
 
-        account = (
-            await register_warp_account()
-        )  # It's async, no need for executor if async
+        # It's async, no need for executor if async
+        account = await register_warp_account()
 
         if account:
             msg = (
