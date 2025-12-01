@@ -237,6 +237,8 @@ async def fetch_from_source(
                     # Inform adaptive timeout tracker of the failure for this attempt
                     if timeout_tracker is not None:
                         timeout_tracker.record_attempt(host, float(per_attempt_timeout), success=False)
+                except (asyncio.CancelledError, KeyboardInterrupt):
+                    raise
                 except Exception:
                     logger.debug("Failed to record controller/circuit-breaker/timeout state on permanent error", exc_info=True)
 
