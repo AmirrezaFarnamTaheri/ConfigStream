@@ -1,29 +1,26 @@
 # ConfigStream Batch 8
-# Optimized based on run-time logs
-# Est. Load: 2500 proxies
-
-https://raw.githubusercontent.com/yaney01/Yaney01/main/yaney_01
-https://raw.githubusercontent.com/SANYIMOE/VPN-free/master/sub
-https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/refs/heads/main/V2Ray-Config-By-EbraSha.txt
-https://raw.githubusercontent.com/BUTUbird/ClashPoint/main/application.yaml
-https://raw.githubusercontent.com/Jia-Pingwa/free-v2ray-merge/main/output.txt
-https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg
-https://raw.githubusercontent.com/parkerpa/zypjj/main/clash
-https://raw.githubusercontent.com/lcx12901/v2ray-/master/sspool.herokuapp.com/yzcloud.yaml
-http://subxfxssr.xfxvpn.me/api/v1/client/subscribe?token=6b67e83b516748e040bf75bfee8bc395
-https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
-https://cdn.jsdelivr.net/gh/cry0ice/genode@main/public/ss.txt
-http://ssr.kanter.cn/dxxzst
-https://github.com/mermeroo/telegram-configs-collector/raw/main/protocols/tuic
-https://raw.githubusercontent.com/a2470982985/getNode/main/v2ray.txt
-https://raw.githubusercontent.com/cxr9912/cxr2022/main/ss.yaml
-https://raw.githubusercontent.com/gooooooooooooogle/Clash-Config/main/Clash.yaml
-https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/master/collected-proxies/row-url/all.txt
-https://raw.githubusercontent.com/Pasimand/v2ray-config-agg/main/config.txt
-https://raw.githubusercontent.com/chongdong1230/dxz/main/clash
-https://raw.githubusercontent.com/voken100g/AutoSSR/master/recent
+# Redistributed with 24 sources
 https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/sub_merge.txt
-https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/Long_term_subscription2
-https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub
-https://raw.githubusercontent.com/freefq/free/master/v2
-https://raw.githubusercontent.com/budamu/clashconfig/main/v2ray.txt
+https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge.txt
+https://raw.githubusercontent.com/mermeroo/Clash-V2ray/main/v2ray
+https://raw.githubusercontent.com/mermeroo/Loon/main/node
+https://raw.githubusercontent.com/mermeroo/QX/refs/heads/main/Nodes
+https://raw.githubusercontent.com/mermeroo/QuantumultX/refs/heads/main/Trojan.nodes
+https://raw.githubusercontent.com/mermeroo/V2RAY-CLASH-BASE64-Subscription.Links/main/SUB%20LINKS
+https://raw.githubusercontent.com/mermeroo/free-v2ray-collector/main/main/mix
+https://raw.githubusercontent.com/mfuu/v2ray/master/merge/merge.txt
+https://raw.githubusercontent.com/mheidari98/.proxy/main/all
+https://raw.githubusercontent.com/misersun/config003/main/config_all.yaml
+https://raw.githubusercontent.com/mlabalabala/v2ray-node/main/nodefree4clash.txt
+https://raw.githubusercontent.com/moneyfly1/sublist/main/clash.yml
+https://raw.githubusercontent.com/mshojaei77/v2rayAuto/main/mix
+https://raw.githubusercontent.com/nasheep/FreeNode/main/clash/PlayLab
+https://raw.githubusercontent.com/obscure1990/freeVM/master/snippets/nodes.yml
+https://raw.githubusercontent.com/openRunner/clash-freenode/main/v2ray.txt
+https://raw.githubusercontent.com/oslook/clash-freenode/main/clash.yaml
+https://raw.githubusercontent.com/parkerpa/zypjj/main/clash
+https://raw.githubusercontent.com/parsashonam/v2ray/main/all
+https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml
+https://raw.githubusercontent.com/personqianduixue/SubCrawler/main/sub/share/all
+https://raw.githubusercontent.com/pojiezhiyuanjun/2023/master/0804clash.yml
+https://raw.githubusercontent.com/pojiezhiyuanjun/freev2/master/20200808.txt
