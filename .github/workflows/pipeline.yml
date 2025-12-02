@@ -355,15 +355,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./output
-          publish_branch: gh-pages
-          force_orphan: true
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-
       - name: Wait for Background Jobs
-        run: wait
+        run: |
+          # Wait for all background processes and fail if any failed
+          FAIL=0
+          for job in $(jobs -p); do
+            wait $job || FAIL=1
+          done
+          exit $FAIL

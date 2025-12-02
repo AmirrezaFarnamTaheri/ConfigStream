@@ -53,56 +53,33 @@ jobs:
       - name: Build Pages artifact
         run: |
           set -euxo pipefail
-          rm -rf github_pages_root
-          mkdir -p github_pages_root
-          mkdir -p github_pages_root/api # API Simulation
-          mkdir -p github_pages_root/wiki
-          mkdir -p github_pages_root/about
 
-          cp -v .nojekyll github_pages_root/.nojekyll || true
+          # The pipeline output artifact already contains the fully generated site.
+          # We just need to add API simulation and ensure .nojekyll.
 
-          # Move pages to expected structure for clean URLs and relative path support
-          cp frontend/index.html github_pages_root/
-          cp frontend/proxies.html github_pages_root/
-          cp frontend/analytics.html github_pages_root/
+          # Create API simulation structure
+          mkdir -p output/api
 
-          # Move sub-pages to their folders
-          cp frontend/wiki.html github_pages_root/wiki/index.html
-          cp frontend/about.html github_pages_root/about/index.html
+          # Required artifacts: fail fast with clear message if missing
+          [ -s output/proxies.json ] || { echo "ERROR: output/proxies.json missing"; exit 1; }
+          [ -s output/metadata.json ] || { echo "ERROR: output/metadata.json missing"; exit 1; }
 
-          cp frontend/service-worker.js github_pages_root/
+          cp output/proxies.json output/api/proxies
+          cp output/metadata.json output/api/stats
 
-          cp -rv frontend/assets github_pages_root/assets
+          # Ensure .nojekyll exists
+          touch output/.nojekyll
 
-          # Use the output from the repository (already committed by pipeline)
-          # 'output' artifacts should be placed in 'output/' inside pages root
-          # Note: The download step places them in 'output' folder in workspace.
-          cp -rv output github_pages_root/
-
-          # API Simulation
-          # Tricks the frontend into thinking it's hitting an API
-          cp output/proxies.json github_pages_root/api/proxies
-          cp output/metadata.json github_pages_root/api/stats
-
-          # Fallback Simulation (Static Hosting Support)
-          # Copies JSON files to root so utils.js fallback fetch works (e.g. fetch('proxies.json'))
-          [ -f output/proxies.json ] && cp output/proxies.json github_pages_root/ || true
-          [ -f output/metadata.json ] && cp output/metadata.json github_pages_root/ || true
-          [ -f output/statistics.json ] && cp output/statistics.json github_pages_root/ || true
-
+          # Update cache version
           ts=$(date +%Y%m%d%H%M%S)
-          sed -i "s/const VERSION = '[^']*'/const VERSION = '${ts}'/" github_pages_root/assets/js/cache-config.js
-
-          test -s github_pages_root/index.html
-          test -d github_pages_root/output
-          test -s github_pages_root/api/proxies
-          # Ensure there is some data to deploy
-          test -n "$(find github_pages_root/output -name '*.json' -print -quit)"
+          if [ -f output/assets/js/cache-config.js ]; then
+             sed -i "s/const VERSION = '[^']*'/const VERSION = '${ts}'/" output/assets/js/cache-config.js
+          fi
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: github_pages_root
+          path: output
           retention-days: 1
 
       - name: Deploy to GitHub Pages

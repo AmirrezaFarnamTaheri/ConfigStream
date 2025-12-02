@@ -21,8 +21,8 @@ def proxy_unique_key(
     mode (grpc), host (ws/http), transport (vmess), security (tls/reality/etc)
     """
     proto = p.protocol.lower().strip()
-    # Use resolved IP for strict dedupe, fallback to address
-    addr = (p.resolved_ip or p.address).lower().strip()
+    # Use address (hostname) for stable deduplication before testing
+    addr = p.address.lower().strip()
     port = int(p.port)
     uuid = (p.uuid or "").lower().strip()
 

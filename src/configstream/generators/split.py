@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Dict, Any, Set, Optional
 
 from ..models import Proxy
-from .singbox import generate_singbox_config
 from .clash import generate_clash_config
 from ..converters import to_singbox_outbound
 

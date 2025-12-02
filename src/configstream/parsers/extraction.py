@@ -88,8 +88,17 @@ def extract_config_lines(
             )
 
     # Attempt Base64 decode for subscriptions
-    # safe_b64_decode returns original data if it fails or is invalid, so this is safe
     decoded = safe_b64_decode(payload)
+    if decoded is None:
+        # It's likely not base64, so treat it as plain text (legacy behavior)
+        # OR it was invalid base64.
+        # However, safe_b64_decode returns None ONLY if it failed validation/decoding but was potentially base64
+        # OR if it was just plain text that failed validation as base64.
+
+        # If safe_b64_decode returns None, it means "this is not valid base64 content we should decode".
+        # So we fall back to using the original payload as plain text lines.
+        decoded = payload
+
     if decoded != payload:
         logger.debug("Successfully decoded Base64 subscription payload")
         lines = decoded.splitlines()

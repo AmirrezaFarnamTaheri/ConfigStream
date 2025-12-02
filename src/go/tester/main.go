@@ -390,8 +390,22 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 	}
 	defer resp.Body.Close()
 
+	// A proxy that returns a non-200 status for the canary URL is not necessarily a honeypot.
+	// It might be misconfigured or the canary service could be temporarily down.
+	// Classifying it as a honeypot is a false positive.
+	if resp.StatusCode != 200 {
+		return false
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		// If we can't read the body, we can't verify the signature.
+		// Assume it's not a honeypot to avoid a false positive.
+		return false
+	}
+
 	var r HoneypotResponse
-	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
+	if err := json.Unmarshal(body, &r); err != nil {
 		return true
 	}
 
