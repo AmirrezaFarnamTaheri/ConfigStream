@@ -37,6 +37,10 @@ async def generate_pipeline_outputs(
 
     stats.final_count = len(optimized_proxies)
 
+    # Inject history into proxies
+    for p in optimized_proxies:
+        p.history = history.get_history(p.id)
+
     # --- Intelligence Phase: Washing & Chaining (Centralized) ---
     washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
 
@@ -128,13 +132,13 @@ async def generate_pipeline_outputs(
                 logger.warning(f"Failed to copy frontend assets from {candidate}: {e}")
 
     assets_path = None
-    for p in (
+    for path_candidate in (
         output_path / "assets" / "images",
         output_path.parent / "frontend" / "assets" / "images",
         Path("frontend/assets/images"),
     ):
-        if Path(p).exists():
-            assets_path = Path(p)
+        if Path(path_candidate).exists():
+            assets_path = Path(path_candidate)
             break
 
     if assets_path:

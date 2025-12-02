@@ -106,9 +106,9 @@ async def source_producer(
         for i in range(0, len(remote_urls), chunk_size):
             chunk = remote_urls[i : i + chunk_size]
             tasks = [_check_url(url) for url in chunk]
-            results = await asyncio.gather(*tasks)
+            check_results = await asyncio.gather(*tasks)
 
-            for url, should_fetch in results:
+            for url, should_fetch in check_results:
                 if should_fetch:
                     active_urls.append(url)
                 else:

@@ -39,6 +39,7 @@ class Proxy(BaseModel):
     resolved_ip: Optional[str] = None
     batch_source: Optional[str] = None
     source_line: Optional[int] = None
+    history: Optional[List[float]] = None
 
     @property
     def latency_ms(self) -> Optional[float]:

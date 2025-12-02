@@ -51,6 +51,8 @@ def serialize_proxy(
     # Inject history if provided or attached
     if history_points:
         data["history"] = history_points
+    elif getattr(proxy, "history", None):
+        data["history"] = proxy.history
     elif hasattr(proxy, "history_points"):
         data["history"] = getattr(proxy, "history_points")
 

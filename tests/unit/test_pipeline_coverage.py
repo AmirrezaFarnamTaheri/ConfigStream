@@ -118,6 +118,7 @@ async def test_processing_consumer_basic(
                 tracker,
                 None,  # event_stream
                 mock_quality_tracker,
+                MagicMock(),  # history
                 None,  # progress
                 None,  # task_process
                 max_proxies=None,
