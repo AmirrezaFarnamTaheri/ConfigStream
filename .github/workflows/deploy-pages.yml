@@ -59,6 +59,11 @@ jobs:
 
           # Create API simulation structure
           mkdir -p output/api
+
+          # Required artifacts: fail fast with clear message if missing
+          [ -s output/proxies.json ] || { echo "ERROR: output/proxies.json missing"; exit 1; }
+          [ -s output/metadata.json ] || { echo "ERROR: output/metadata.json missing"; exit 1; }
+
           cp output/proxies.json output/api/proxies
           cp output/metadata.json output/api/stats
 
