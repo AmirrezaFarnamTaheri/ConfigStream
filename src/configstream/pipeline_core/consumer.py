@@ -28,6 +28,7 @@ if False:  # TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
+
 async def processing_consumer(
     work_queue: asyncio.Queue,
     stats: PipelineStats,
@@ -132,7 +133,9 @@ async def processing_consumer(
         protocol_counts: Dict[str, int] = {}
         for p in parsed_batch:
             protocol_counts[p.protocol] = protocol_counts.get(p.protocol, 0) + 1
-        logger.info(f"Parsed breakdown for {safe_source}: {json.dumps(protocol_counts)}")
+        logger.info(
+            f"Parsed breakdown for {safe_source}: {json.dumps(protocol_counts)}"
+        )
 
         # [LOGGING] Trace parsing drop rate
         if len(parsed_batch) < len(raw_lines) * 0.5:
@@ -392,30 +395,39 @@ async def processing_consumer(
         if not source.startswith("supplied-proxies") and not source.startswith(
             "sources/"
         ):
-            await loop.run_in_executor(
-                None,
-                quality_tracker.update,
-                source,
-                fetched_count,
-                working_count,
-                diversity_score,
-                0.0,
-            )
-            # Record detailed run
-            await loop.run_in_executor(
-                None,
-                quality_tracker.record_run,
-                source,
-                {
-                    "timestamp": int(process_end_time),
-                    "duration_ms": full_duration_ms,
-                    "fetched_count": fetched_count,
-                    "working_count": working_count,
-                    "geoip_json": json.dumps(geoip_stats),
-                    "failure_modes_json": json.dumps(failure_modes),
-                    "batch_source": "pipeline",
-                },
-            )
+            try:
+                await loop.run_in_executor(
+                    None,
+                    quality_tracker.update,
+                    source,
+                    fetched_count,
+                    working_count,
+                    diversity_score,
+                    0.0,
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Quality update failed for {safe_source}: {e}", exc_info=True
+                )
+            try:
+                await loop.run_in_executor(
+                    None,
+                    quality_tracker.record_run,
+                    source,
+                    {
+                        "timestamp": int(process_end_time),
+                        "duration_ms": full_duration_ms,
+                        "fetched_count": fetched_count,
+                        "working_count": working_count,
+                        "geoip_json": json.dumps(geoip_stats),
+                        "failure_modes_json": json.dumps(failure_modes),
+                        "batch_source": "pipeline",
+                    },
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Quality record_run failed for {safe_source}: {e}", exc_info=True
+                )
         else:
             # [LOGGING] Log for local/manual sources too
             logger.info(

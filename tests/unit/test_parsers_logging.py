@@ -2,6 +2,7 @@ import logging
 import pytest
 from configstream.parsers.base import extract_config_lines, is_plausible_proxy_config
 
+
 def test_extract_config_lines_logging(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -21,9 +22,15 @@ def test_extract_config_lines_logging(caplog):
     assert "Dropping invalid config line" in caplog.text
     assert "Invalid protocol 'invalid_protocol'" in caplog.text
     # http://github.com is blocked
-    assert "Implausible format or blocked domain" in caplog.text or "Reason: Implausible" in caplog.text
+    assert (
+        "Implausible format or blocked domain" in caplog.text
+        or "Reason: Implausible" in caplog.text
+    )
+
 
 def test_blocked_domains():
     assert is_plausible_proxy_config("http://github.com/user/repo") is False
-    assert is_plausible_proxy_config("https://raw.githubusercontent.com/config") is False
+    assert (
+        is_plausible_proxy_config("https://raw.githubusercontent.com/config") is False
+    )
     assert is_plausible_proxy_config("vmess://valid") is True

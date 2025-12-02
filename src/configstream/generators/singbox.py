@@ -7,6 +7,7 @@ from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 
+
 def generate_singbox_config(proxies: List[Proxy]) -> str:
     """Generates a Sing-box JSON configuration (The Sniper/The Tank)."""
     outbounds = []
@@ -25,36 +26,37 @@ def generate_singbox_config(proxies: List[Proxy]) -> str:
     # 2. Add Selectors/URLTest
     if selector_tags:
         # URL Test (Best Latency)
-        outbounds.append({
-            "type": "urltest",
-            "tag": "⚡ Best Latency",
-            "outbounds": selector_tags,
-            "url": "http://cp.cloudflare.com/generate_204",
-            "interval": "10m"
-        })
+        outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "⚡ Best Latency",
+                "outbounds": selector_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
 
         # Selector
-        outbounds.append({
-            "type": "selector",
-            "tag": "🚀 Select Proxy",
-            "outbounds": ["⚡ Best Latency"] + selector_tags,
-            "default": "⚡ Best Latency"
-        })
+        outbounds.append(
+            {
+                "type": "selector",
+                "tag": "🚀 Select Proxy",
+                "outbounds": ["⚡ Best Latency"] + selector_tags,
+                "default": "⚡ Best Latency",
+            }
+        )
 
     config: dict[str, Any] = {
-        "log": {
-            "level": "info",
-            "timestamp": True
-        },
+        "log": {"level": "info", "timestamp": True},
         "inbounds": [
             {
                 "type": "mixed",
                 "tag": "mixed-in",
                 "listen": "127.0.0.1",
-                "listen_port": 2080
+                "listen_port": 2080,
             }
         ],
-        "outbounds": outbounds
+        "outbounds": outbounds,
     }
 
     return json.dumps(config, indent=2)

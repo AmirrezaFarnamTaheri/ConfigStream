@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List
 
 from .setup_path import setup_python_path
+
 setup_python_path()
 
 from configstream.test_cache import TestResultCache
@@ -10,6 +11,7 @@ from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
 
 logger = logging.getLogger(__name__)
+
 
 def merge_telemetry(batch_dirs: List[Path], output_dir: Path):
     """Merges test caches and telemetry databases."""
