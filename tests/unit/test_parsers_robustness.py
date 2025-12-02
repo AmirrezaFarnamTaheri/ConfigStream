@@ -27,20 +27,20 @@ class TestBase64Decoding:
     def test_safe_b64_decode_invalid_chars(self):
         """Test invalid base64 characters."""
         result = _safe_b64_decode("Hello@#$%")
-        assert result == "Hello@#$%"  # Returns original on failure
+        assert result is None  # Returns None on failure
 
     def test_safe_b64_decode_empty(self):
         """Test empty string."""
         result = _safe_b64_decode("")
-        assert result == ""
+        assert result is None
 
     def test_safe_b64_decode_oversized(self):
         """Test oversized base64 input."""
         # Create a very large base64 string
         large_input = "A" * (10 * 1024 * 1024 + 1)  # Over 10MB
         result = _safe_b64_decode(large_input)
-        # Should return empty string if too large
-        assert result == ""
+        # Should return None if too large
+        assert result is None
 
 
 class TestVMessParser:

@@ -144,7 +144,8 @@ def safe_b64_decode(data: str) -> Optional[str]:
 
     validated = validate_b64_input(data)
     if validated is None:
-        return data
+        # If validation fails, it's not base64. Return None to signal failure.
+        return None
 
     try:
         decoded_bytes = base64.b64decode(validated, validate=True)
@@ -153,7 +154,9 @@ def safe_b64_decode(data: str) -> Optional[str]:
             logger.error(
                 f"Decoded output too large: {len(decoded_bytes)} bytes (max: {MAX_B64_OUTPUT_SIZE})"
             )
-            return data
+            # If output is too large, it might be a valid decode but we reject it for safety.
+            # Returning None is consistent with validation failure.
+            return None
 
         try:
             return decoded_bytes.decode("utf-8")
@@ -162,10 +165,11 @@ def safe_b64_decode(data: str) -> Optional[str]:
             return decoded_bytes.decode("latin-1")
     except (binascii.Error, ValueError) as exc:
         _rate_limited_warning("base64_decode", f"Base64 decode failed: {exc}")
-        return data
+        # If decode fails, return None to signal it is not a valid base64 string
+        return None
     except MemoryError:
         logger.error("Out of memory decoding base64")
-        return data
+        return None
     except Exception as exc:
         logger.error("Unexpected error decoding base64: %s", exc)
-        return data
+        return None
