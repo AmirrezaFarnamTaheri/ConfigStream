@@ -165,7 +165,8 @@ class GoBatchTester:
                 cmd.extend(["-urls", urls])
 
             logger.info(
-                f"Invoking Go tester with {len(inputs)} proxies: {' '.join(cmd)}"
+                f"Invoking Go tester with {len(inputs)} proxies. "
+                f"Payload size: {len(json.dumps(inputs))/1024:.2f} KB. Cmd: {' '.join(cmd)}"
             )
 
             proc = await asyncio.create_subprocess_exec(
@@ -438,13 +439,16 @@ class SingBoxTester:
             try:
                 if singbox_factory:
                     try:
+                        start_time = time.monotonic()
                         sb_instance = await asyncio.wait_for(
                             loop.run_in_executor(
                                 None, lambda: singbox_factory(config_path)
                             ),
                             timeout=self.timeout,
                         )
+                        logger.debug(f"Sing-box instance started in {time.monotonic() - start_time:.4f}s")
                     except asyncio.TimeoutError:
+                        logger.warning(f"Sing-box instance start timed out for {proxy.address}")
                         proxy.is_working = False
                         return proxy
 

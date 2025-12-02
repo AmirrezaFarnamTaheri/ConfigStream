@@ -435,6 +435,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         h = hashlib.sha256(f"{proxy.address}:{proxy.port}".encode()).digest()
         octet = h[0]
         unique_ip = f"172.16.{octet}.2/32"
+        logger.debug(f"Generated unique local IP {unique_ip} for WireGuard proxy {proxy.address}")
 
         out = {
             "type": "wireguard",
