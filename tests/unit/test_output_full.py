@@ -99,11 +99,11 @@ def test_save_metadata(proxies, output_dir):
 
 def test_generate_split_outputs(proxies, output_dir):
     washed = [{"tag": "🛡️ Secure Washed", "type": "urltest"}]
-    washed_ids = {"p2"}
+    washed_ids = {"u2"}
     smart_chains = {"intranet": [], "ipv6": [], "streamer": []}
 
     with (
-        patch("configstream.output_generators.to_singbox_outbound") as mock_conv,
+        patch("configstream.generators.singbox.to_singbox_outbound") as mock_conv,
         patch(
             "configstream.output_generators.generate_clash_config", return_value="clash"
         ),
