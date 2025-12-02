@@ -7,6 +7,7 @@ import logging
 import hashlib
 from typing import Any, Dict, Optional
 from .models import Proxy
+from .security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -435,7 +436,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         h = hashlib.sha256(f"{proxy.address}:{proxy.port}".encode()).digest()
         octet = h[0]
         unique_ip = f"172.16.{octet}.2/32"
-        logger.debug(f"Generated unique local IP {unique_ip} for WireGuard proxy {proxy.address}")
+        safe_addr = SecurityValidator.sanitize_log_message(
+            getattr(proxy, "address", "unknown")
+        )
+        # Extra masking for strict privacy in debug logs
+        if safe_addr and len(safe_addr) > 6:
+            safe_addr = safe_addr[:3] + "***" + safe_addr[-3:]
+        logger.debug(
+            f"Generated unique local IP {unique_ip} for WireGuard proxy {safe_addr} (hash-octet={octet})"
+        )
 
         out = {
             "type": "wireguard",
@@ -503,9 +512,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             f"(Source: {proxy.details.get('_source', 'unknown')})"
         )
     else:
-        # [LOGGING] Log drop reason if we reached here without returning (should be rare if earlier checks caught it)
-        logger.debug(
-            f"Dropped {proxy.protocol} proxy {proxy.address} during conversion (Unknown reason)"
+        logger.warning(
+            f"Dropped {proxy.protocol} proxy {proxy.address} during conversion. "
+            f"Reason: Logic fell through (Missing implementation or valid fields). "
+            f"Details: {proxy.details}"
         )
 
     return out
