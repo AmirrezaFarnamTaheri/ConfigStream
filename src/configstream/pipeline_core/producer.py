@@ -11,6 +11,7 @@ from ..async_file_ops import read_multiple_files_async
 from ..parsers import _extract_config_lines
 from ..source_quality import SourceQualityTracker
 from ..anomaly import AnomalyDetector
+from ..security_validator import SecurityValidator
 
 if False:  # TYPE_CHECKING
     from ..event_stream import EventStream
@@ -88,8 +89,14 @@ async def source_producer(
 
         active_urls = []
         blocked_urls = []
+
+        loop = asyncio.get_running_loop()
+
         for url in remote_urls:
-            if quality_tracker.should_fetch(url):
+            should_fetch = await loop.run_in_executor(
+                None, quality_tracker.should_fetch, url
+            )
+            if should_fetch:
                 active_urls.append(url)
             else:
                 blocked_urls.append(url)
@@ -102,7 +109,8 @@ async def source_producer(
             )
             # Log specific reasons for blockage
             for url in blocked_urls:
-                logger.info(f"Source blocked/cooldown: {url}")
+                safe_url = SecurityValidator.sanitize_log_message(url)
+                logger.info(f"Source blocked/cooldown: {safe_url}")
 
         if active_urls:
             logger.info(
@@ -126,25 +134,33 @@ async def source_producer(
                     if res.success and res.content:
                         lines = _extract_config_lines(res.content)
                         count = len(lines)
+                        safe_source = SecurityValidator.sanitize_log_message(source)
+
                         if count == 0:
                             logger.warning(
                                 "Source %s returned content (size=%d) but no valid config lines found",
-                                source,
+                                safe_source,
                                 len(res.content),
                             )
                             continue
-                        is_safe, reason = anomaly_detector.is_safe(source, count)
+                        # Offload anomaly check to executor to avoid blocking on DB/ML
+                        is_safe, reason = await loop.run_in_executor(
+                            None, anomaly_detector.is_safe, source, count
+                        )
 
                         if is_safe:
                             if lines:
                                 logger.debug(
-                                    f"Anomaly check passed for {source} (Count: {count})"
+                                    f"Anomaly check passed for {safe_source} (Count: {count})"
                                 )
-                                anomaly_detector.record(source, count)
+                                # Offload record to executor
+                                await loop.run_in_executor(
+                                    None, anomaly_detector.record, source, count
+                                )
                                 if event_stream:
                                     event_stream.emit(
                                         "fetch_success",
-                                        f"Fetched {count} proxies from {source}",
+                                        f"Fetched {count} proxies from {safe_source}",
                                     )
                                 metadata = {"fetch_duration": res.response_time or 0.0}
                                 await work_queue.put((source, lines, metadata))
@@ -154,21 +170,22 @@ async def source_producer(
                                     else "N/A"
                                 )
                                 logger.info(
-                                    f"Queued {count} proxies from {source} "
+                                    f"Queued {count} proxies from {safe_source} "
                                     f"(Fetch time: {fetch_time})"
                                 )
                         else:
                             logger.warning(
-                                f"⚠️ BLOCKING {source}: {reason} (count={count})"
+                                f"⚠️ BLOCKING {safe_source}: {reason} (count={count})"
                             )
                             if event_stream:
                                 event_stream.emit(
                                     "fetch_blocked",
-                                    f"Blocked source {source}: {reason}",
+                                    f"Blocked source {safe_source}: {reason}",
                                 )
                     else:
+                        safe_source = SecurityValidator.sanitize_log_message(source)
                         logger.warning(
-                            f"Failed to fetch {source}: {res.error} "
+                            f"Failed to fetch {safe_source}: {res.error} "
                             f"(Status: {res.status_code})"
                         )
     except Exception as e:

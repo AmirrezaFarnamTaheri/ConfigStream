@@ -95,7 +95,7 @@ async def fetch_from_source(
     last_status_code = None
 
     logger.debug(
-        f"Starting fetch for {source} with effective timeout {effective_timeout}s "
+        f"Starting fetch for {sanitized_source} with effective timeout {effective_timeout}s "
         f"(Backoff: {backoff}s, Retries: {max_retries})"
     )
 
@@ -104,7 +104,7 @@ async def fetch_from_source(
         start_ts = loop.time()
 
         try:
-            logger.debug(f"Fetch attempt {attempt + 1}/{max_retries} for {source}")
+            logger.debug(f"Fetch attempt {attempt + 1}/{max_retries} for {sanitized_source}")
             # Delegate to core worker
             result = await fetch_single_source(
                 client,
@@ -157,7 +157,7 @@ async def fetch_from_source(
                     )
             else:
                 logger.warning(
-                    f"Fetch succeeded at network level but returned no valid content/success flag for {source}. "
+                    f"Fetch succeeded at network level but returned no valid content/success flag for {sanitized_source}. "
                     f"Status Code: {result.status_code if result.status_code else 'Unknown'}. "
                     f"Error: {result.error}"
                 )
@@ -181,21 +181,21 @@ async def fetch_from_source(
             # Capture status code if available in exception
             if isinstance(e, httpx.HTTPStatusError):
                 last_status_code = e.response.status_code
-                logger.warning(f"HTTP Error {last_status_code} for {source}: {e}")
+                logger.warning(f"HTTP Error {last_status_code} for {sanitized_source}: {e}")
                 if last_status_code == 404:
                     logger.info(
-                        f"Source not found (404): {source} - check URL validity"
+                        f"Source not found (404): {sanitized_source} - check URL validity"
                     )
                 elif last_status_code == 403:
                     logger.warning(
-                        f"Access forbidden (403): {source} - check permissions/geo-block or user-agent"
+                        f"Access forbidden (403): {sanitized_source} - check permissions/geo-block or user-agent"
                     )
                 elif last_status_code >= 500:
-                    logger.warning(f"Server error ({last_status_code}) from {source}")
+                    logger.warning(f"Server error ({last_status_code}) from {sanitized_source}")
 
             elif isinstance(e, asyncio.TimeoutError):
                 logger.warning(
-                    f"Timeout fetching {source} after {per_attempt_timeout}s. "
+                    f"Timeout fetching {sanitized_source} after {per_attempt_timeout}s. "
                     f"Consider increasing timeout or checking network."
                 )
 
@@ -233,7 +233,7 @@ async def fetch_from_source(
                     )
 
                 logger.info(
-                    f"Aborting retries for {source} due to permanent error status code: {last_status_code}"
+                    f"Aborting retries for {sanitized_source} due to permanent error status code: {last_status_code}"
                 )
                 return FetchResult(
                     False,
@@ -246,19 +246,19 @@ async def fetch_from_source(
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
                 logger.info(
-                    f"Retrying {source} in {wait}s due to error: {last_error} "
+                    f"Retrying {sanitized_source} in {wait}s due to error: {last_error} "
                     f"(Attempt {attempt+1}/{max_retries}, Status: {last_status_code or 'N/A'})"
                 )
                 await asyncio.sleep(wait + random.uniform(0, 0.3))
                 backoff = min(backoff * 2, 60)
 
         except Exception as e:
-            logger.exception("Unexpected error fetching %s: %s", source, e)
+            logger.exception("Unexpected error fetching %s: %s", sanitized_source, e)
             last_error = f"Unexpected error: {str(e)}"
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
                 logger.info(
-                    f"Retrying {source} in {wait}s after unexpected error "
+                    f"Retrying {sanitized_source} in {wait}s after unexpected error "
                     f"(Attempt {attempt+1}/{max_retries})"
                 )
                 await asyncio.sleep(min(backoff, 30))

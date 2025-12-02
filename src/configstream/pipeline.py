@@ -120,6 +120,7 @@ async def run_full_pipeline(
         cache=test_cache,
         strict_security=strict_security,
         dry_run=dry_run,
+        max_workers=max_workers,
     )
 
     # Determine parallel consumers based on workers, but keep reasonable limits
