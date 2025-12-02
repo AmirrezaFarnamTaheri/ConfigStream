@@ -1,7 +1,7 @@
 const translations = {
     en: {
         "nav.home": "Home",
-        "nav.proxies": "Proxy List",
+        "nav.proxies": "Live Proxies",
         "nav.analytics": "Analytics",
         "nav.wiki": "Wiki",
         "nav.about": "About",
@@ -14,12 +14,12 @@ const translations = {
         "pipeline.title": "Live Pipeline Status",
 
         "stats.sourced": "Total Sourced",
-        "stats.unique": "Unique & Tested",
+        "stats.unique": "Unique & Verified",
         "stats.online": "Online Now",
         "stats.hybrid": "Hybrid Engine",
         "stats.hybrid.desc": "Go + Python Core",
         "stats.update": "Update Frequency",
-        "stats.threats": "Threats Neutralized",
+        "stats.threats": "Threats Blocked",
 
         "downloads.title": "Get Your Configs",
         "downloads.subtitle": "Select your preferred format below. All files contain our latest verified proxies.",
@@ -113,7 +113,7 @@ const translations = {
     },
     zh: {
         "nav.home": "首页",
-        "nav.proxies": "节点列表",
+        "nav.proxies": "实时节点",
         "nav.analytics": "数据分析",
         "nav.wiki": "百科",
         "nav.about": "关于我们",
@@ -211,7 +211,7 @@ const translations = {
     },
     fa: {
         "nav.home": "خانه",
-        "nav.proxies": "لیست پروکسی‌ها",
+        "nav.proxies": "پروکسی‌های زنده",
         "nav.analytics": "آمار",
         "nav.wiki": "دانشنامه",
         "nav.about": "درباره ما",
@@ -309,7 +309,7 @@ const translations = {
     },
     ru: {
         "nav.home": "Главная",
-        "nav.proxies": "Список прокси",
+        "nav.proxies": "Живые прокси",
         "nav.analytics": "Аналитика",
         "nav.wiki": "Вики",
         "nav.about": "О проекте",
@@ -407,7 +407,7 @@ const translations = {
     },
     ar: {
         "nav.home": "الرئيسية",
-        "nav.proxies": "قائمة الخوادم",
+        "nav.proxies": "الخوادم الحية",
         "nav.analytics": "الإحصائيات",
         "nav.wiki": "الموسوعة",
         "nav.about": "عن المشروع",

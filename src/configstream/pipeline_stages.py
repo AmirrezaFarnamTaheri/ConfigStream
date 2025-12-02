@@ -17,7 +17,12 @@ from .auto_detect import auto_detect_and_parse as parse_config
 from .parsers import _extract_config_lines
 from .fetcher import fetch_multiple_sources
 from .async_file_ops import read_multiple_files_async
-from .security_validator import validate_batch_configs, STRICT_POLICY, TEST_POLICY
+from .security_validator import (
+    validate_batch_configs,
+    STRICT_POLICY,
+    TEST_POLICY,
+    SecurityValidator,
+)
 from .filtering import proxy_unique_key
 from .testers import SingBoxTester
 from .test_cache import TestResultCache
@@ -369,8 +374,9 @@ async def processing_consumer(
                 duplicates_count += 1
 
         stats.parsed += len(unique_batch)
+        safe_source = SecurityValidator.sanitize_log_message(str(source))
         logger.debug(
-            f"Starting security validation for {len(unique_batch)} proxies from {source}..."
+            f"Starting security validation for {len(unique_batch)} proxies from {safe_source}..."
         )
         with tracker.phase("security_validation"):
             validation_start = loop.time()
@@ -393,8 +399,9 @@ async def processing_consumer(
                 ][:5]
                 logger.debug(f"Sample dropped proxies: {dropped_details}...")
         else:
+            safe_source = SecurityValidator.sanitize_log_message(str(source))
             logger.info(
-                f"Security Filter [{source}]: All {len(unique_batch)} proxies passed validation in {validation_dur:.2f}ms."
+                f"Security Filter [{safe_source}]: All {len(unique_batch)} proxies passed validation in {validation_dur:.2f}ms."
             )
 
         final_batch_for_this_source = []

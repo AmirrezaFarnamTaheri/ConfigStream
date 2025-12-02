@@ -24,6 +24,7 @@ from .config import AppSettings
 from .models import Proxy
 from .test_cache import TestResultCache
 from .converters import to_singbox_outbound
+from .security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -164,10 +165,14 @@ class GoBatchTester:
                 urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
 
+            payload_json = json.dumps(inputs)
+            payload_kb = len(payload_json) / 1024.0
+
             logger.info(
-                f"Invoking Go tester with {len(inputs)} proxies. "
-                f"Payload size: {len(json.dumps(inputs))/1024:.2f} KB. Cmd: {' '.join(cmd)}"
+                f"Invoking Go tester with {len(inputs)} proxies. Payload size: {payload_kb:.2f} KB."
             )
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"Go tester command: {' '.join(cmd)}")
 
             proc = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -176,12 +181,10 @@ class GoBatchTester:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            stdin_data = "\n".join(json.dumps(i) for i in inputs).encode("utf-8")
-
             try:
                 # [FIX] Increased timeout to 600s to accommodate heavy batches/retries
                 stdout, stderr = await asyncio.wait_for(
-                    proc.communicate(input=stdin_data), timeout=600
+                    proc.communicate(input=payload_json.encode("utf-8")), timeout=600
                 )
             except asyncio.TimeoutError:
                 try:
@@ -446,9 +449,16 @@ class SingBoxTester:
                             ),
                             timeout=self.timeout,
                         )
-                        logger.debug(f"Sing-box instance started in {time.monotonic() - start_time:.4f}s")
+                        logger.debug(
+                            f"Sing-box instance started in {time.monotonic() - start_time:.4f}s"
+                        )
                     except asyncio.TimeoutError:
-                        logger.warning(f"Sing-box instance start timed out for {proxy.address}")
+                        safe_addr = SecurityValidator.sanitize_log_message(
+                            getattr(proxy, "address", "unknown")
+                        )
+                        logger.warning(
+                            f"Sing-box instance start timed out for proxy {safe_addr}"
+                        )
                         proxy.is_working = False
                         return proxy
 
@@ -515,6 +525,8 @@ class SingBoxTester:
         )
         latency = await _try_url(google_url)
         if latency is not None:
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"Latency check passed via Google: {latency:.2f}ms")
             return round(latency, 2)
 
         fallback_url = "http://cp.cloudflare.com/generate_204"
