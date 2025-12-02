@@ -5,17 +5,22 @@ const translations = {
         "nav.analytics": "Analytics",
         "nav.wiki": "Wiki",
         "nav.about": "About",
+
         "hero.title": "Unlock the Internet",
         "hero.subtitle": "Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from over 668 sources every 6 hours, ensuring you always have a reliable connection.",
         "hero.browse": "Browse Proxies",
         "hero.get": "Get Configs",
+
         "pipeline.title": "Live Pipeline Status",
+
         "stats.sourced": "Total Sourced",
         "stats.unique": "Unique & Tested",
         "stats.online": "Online Now",
         "stats.hybrid": "Hybrid Engine",
         "stats.hybrid.desc": "Go + Python Core",
         "stats.update": "Update Frequency",
+        "stats.threats": "Threats Neutralized",
+
         "downloads.title": "Get Your Configs",
         "downloads.subtitle": "Select your preferred format below. All files contain our latest verified proxies.",
         "downloads.universal": "Universal Subscription",
@@ -29,30 +34,37 @@ const translations = {
         "downloads.chosen.title": "🏆 Chosen Top 1000",
         "downloads.chosen.desc": "Our premium selection: Top 50 proxies per protocol, ranked by lowest latency. The best choice for most users!",
         "downloads.chosen.btn": "Copy Chosen Subscription",
+
         "info.start.title": "Getting Started",
         "info.start.text": "Using ConfigStream is simple. Copy a subscription link above and import it into your VPN client.",
         "info.how.title": "How It Works",
         "info.security.title": "Our Security Promise",
         "info.community.title": "Community Powered",
+
         "footer.love": "A passion project for a free and open internet. ✨",
+
         "formats.title": "Format Guide",
         "formats.base64": "Base64: A single link for V2Ray, Xray, NekoBox, etc.",
         "formats.singbox": "Sing-box: Includes 'Sniper' (Smart Routing) and 'Tank' (Full VPN) modes.",
         "formats.clash": "Clash: YAML file for Clash clients.",
+
         "notice.title": "Security Notice",
         "notice.text": "These are free public proxies. While we test them for safety, we cannot guarantee privacy.",
         "notice.list.1": "DO NOT use for banking or sensitive data.",
         "notice.list.2": "GREAT for unblocking content and browsing.",
         "notice.list.3": "Traffic flows through third-party servers.",
         "notice.disclaimer": "Use responsibly at your own risk.",
+
         "adapters.title": "🔌 New Formats",
         "adapters.subtitle": "Experimental support for additional clients.",
+
         "byow.title": "🚀 Turbo Mode (BYOW)",
         "byow.url.placeholder": "Paste your Cloudflare Worker URL...",
         "byow.uuid.placeholder": "Optional: UUID",
         "byow.apply": "Apply Custom Worker",
         "byow.hint": "Use your own Worker for private, high-speed connectivity.",
         "byow.download": "Download Turbo Config",
+
         "filters.search": "Search e.g., 'fastest US vmess' or 'Germany < 100ms'",
         "filters.protocol": "All Protocols",
         "filters.country": "All Countries",
@@ -62,13 +74,41 @@ const translations = {
         "filters.download_filtered": "Download Filtered",
         "filters.empty_title": "No Matches Found",
         "filters.empty_text": "We couldn't find any proxies matching your criteria. Try adjusting your filters.",
+
         "table.protocol": "Protocol",
         "table.location": "Location",
         "table.latency": "Latency",
         "table.status": "Status",
-        "table.copy": "Copy",
+        "table.copy": "Copy Link",
+
         "verify.local": "Turbo-Verify (Local)",
-        "verify.status": "Ready to verify via WASM"
+        "verify.status": "Ready to verify via WASM",
+
+        /* About Page */
+        "about.hero.title": "About ConfigStream",
+        "about.subtitle": "Automated, resilient, and free access to the open internet.",
+        "about.mission.title": "Mission",
+        "about.mission.text": "ConfigStream was built to provide reliable, free access to the global internet for users in restricted network environments. By aggregating proxies from hundreds of public sources and rigorously testing them, we ensure high availability without manual effort.",
+        "about.arch.title": "Architecture: The \"Resilient Core\"",
+        "about.arch.text": "We utilize a \"Zero Budget\" architecture that runs entirely on GitHub's infrastructure, ensuring sustainability and censorship resistance.",
+        "about.arch.hybrid": "<strong>Hybrid Engine:</strong> Combines Python's flexibility for intelligence with a high-performance <strong>Go Sidecar</strong> for massively concurrent network testing.",
+        "about.arch.intel": "<strong>Intelligence Layer:</strong> Our \"Proxy Washing\" technology automatically repairs blocked IPs by tunnelling them through Cloudflare WARP.",
+        "about.arch.agg": "<strong>Aggregator:</strong> Fetches from over 600 sources every 6 hours.",
+        "about.arch.pub": "<strong>Publisher:</strong> Generates optimized configs for V2Ray, Clash, Sing-box (Tank/Sniper modes), and more.",
+        "about.security.title": "Security",
+        "about.security.text": "While we perform automated security checks (blocking ads, malware sites, honeypots, and verification of TLS), these are public proxies. We recommend using them for browsing and avoiding sensitive transactions (banking, passwords).",
+        "about.btn.source": "View Source on GitHub",
+
+        /* Analytics Page */
+        "analytics.hero.title": "Network Intelligence",
+        "analytics.hero.subtitle": "Real-time insights into global proxy distribution and performance.",
+        "analytics.charts.protocol": "Protocol Distribution",
+        "analytics.charts.latency": "Latency Distribution",
+        "analytics.charts.countries": "Top Countries",
+
+        /* Proxies Page */
+        "proxies.hero.title": "Live Proxy List",
+        "proxies.hero.subtitle": "Explore our complete list of vetted proxies. Search, sort, and find the perfect connection for your needs."
     },
     zh: {
         "nav.home": "首页",
@@ -87,6 +127,7 @@ const translations = {
         "stats.hybrid": "混合引擎",
         "stats.hybrid.desc": "Go + Python 内核",
         "stats.update": "更新频率",
+        "stats.threats": "已拦截威胁",
         "downloads.title": "获取配置",
         "downloads.subtitle": "选择您需要的格式。所有订阅均包含最新并通过测试的节点。",
         "downloads.universal": "通用订阅",
@@ -137,9 +178,35 @@ const translations = {
         "table.location": "位置",
         "table.latency": "延迟",
         "table.status": "状态",
-        "table.copy": "复制",
+        "table.copy": "复制链接",
         "verify.local": "本地极速验证",
-        "verify.status": "WASM 组件就绪"
+        "verify.status": "WASM 组件就绪",
+
+        /* About Page */
+        "about.hero.title": "关于 ConfigStream",
+        "about.subtitle": "自动化、高可用、免费访问开放互联网。",
+        "about.mission.title": "使命",
+        "about.mission.text": "ConfigStream 旨在为受网络限制的用户提供可靠、免费的全球互联网接入。通过每 6 小时从数百个公共源聚合代理并进行严格测试，我们确保无需人工干预的高可用性。",
+        "about.arch.title": "架构：“弹性核心”",
+        "about.arch.text": "我们采用“零预算”架构，完全运行在 GitHub 的基础设施上，确保可持续性和抗审查性。",
+        "about.arch.hybrid": "<strong>混合引擎：</strong> 结合 Python 的灵活性（用于情报分析）与高性能 <strong>Go Sidecar</strong>（用于大规模并发网络测试）。",
+        "about.arch.intel": "<strong>情报层：</strong> 我们的“代理清洗”技术通过 Cloudflare WARP 隧道自动修复被封锁的 IP。",
+        "about.arch.agg": "<strong>聚合器：</strong> 每 6 小时从 600+ 个来源获取数据。",
+        "about.arch.pub": "<strong>发布器：</strong> 为 V2Ray、Clash、Sing-box（坦克/狙击手模式）等生成优化配置。",
+        "about.security.title": "安全性",
+        "about.security.text": "虽然我们执行自动安全检查（拦截广告、恶意软件网站、蜜罐和 TLS 验证），但这些是公共代理。我们建议仅用于浏览，避免进行敏感交易（如银行、密码）。",
+        "about.btn.source": "在 GitHub 上查看源码",
+
+        /* Analytics Page */
+        "analytics.hero.title": "网络情报",
+        "analytics.hero.subtitle": "全球代理分布和性能的实时洞察。",
+        "analytics.charts.protocol": "协议分布",
+        "analytics.charts.latency": "延迟分布",
+        "analytics.charts.countries": "热门国家",
+
+        /* Proxies Page */
+        "proxies.hero.title": "实时节点列表",
+        "proxies.hero.subtitle": "探索我们完整的经过验证的代理列表。搜索、排序并找到最适合您的连接。"
     },
     fa: {
         "nav.home": "خانه",
@@ -158,6 +225,7 @@ const translations = {
         "stats.hybrid": "موتور ترکیبی",
         "stats.hybrid.desc": "هسته Go + Python",
         "stats.update": "بروزرسانی",
+        "stats.threats": "تهدیدات خنثی شده",
         "downloads.title": "دریافت اشتراک",
         "downloads.subtitle": "فرمت دلخواه خود را انتخاب کنید. تمام فایل‌ها حاوی پروکسی‌های تست شده هستند.",
         "downloads.universal": "اشتراک جامع (Universal)",
@@ -210,7 +278,33 @@ const translations = {
         "table.status": "وضعیت",
         "table.copy": "کپی",
         "verify.local": "تست سرعت (محلی)",
-        "verify.status": "آماده تست با WASM"
+        "verify.status": "آماده تست با WASM",
+
+        /* About Page */
+        "about.hero.title": "درباره ConfigStream",
+        "about.subtitle": "دسترسی خودکار، پایدار و رایگان به اینترنت آزاد.",
+        "about.mission.title": "ماموریت",
+        "about.mission.text": "ConfigStream برای فراهم کردن دسترسی قابل اعتماد و رایگان به اینترنت جهانی برای کاربران در محیط‌های محدود شبکه ساخته شده است. با جمع‌آوری پروکسی‌ها از صدها منبع عمومی و تست دقیق آنها، ما دسترسی بالا را بدون نیاز به تلاش دستی تضمین می‌کنیم.",
+        "about.arch.title": "معماری: \"هسته مقاوم\"",
+        "about.arch.text": "ما از معماری \"بودجه صفر\" استفاده می‌کنیم که کاملاً بر روی زیرساخت گیت‌هاب اجرا می‌شود و پایداری و مقاومت در برابر سانسور را تضمین می‌کند.",
+        "about.arch.hybrid": "<strong>موتور ترکیبی:</strong> ترکیب انعطاف‌پذیری پایتون برای هوش مصنوعی با <strong>Go Sidecar</strong> قدرتمند برای تست همزمان شبکه.",
+        "about.arch.intel": "<strong>لایه هوشمند:</strong> تکنولوژی \"شستشوی پروکسی\" ما به طور خودکار IPهای مسدود شده را از طریق تونل Cloudflare WARP تعمیر می‌کند.",
+        "about.arch.agg": "<strong>جمع‌آوری‌کننده:</strong> هر ۶ ساعت از بیش از ۶۰۰ منبع اطلاعات دریافت می‌کند.",
+        "about.arch.pub": "<strong>ناشر:</strong> کانفیگ‌های بهینه شده برای V2Ray، Clash، Sing-box (حالت‌های تانک/اسنایپر) و غیره تولید می‌کند.",
+        "about.security.title": "امنیت",
+        "about.security.text": "در حالی که ما بررسی‌های امنیتی خودکار انجام می‌دهیم (مسدود کردن تبلیغات، سایت‌های بدافزار، هانی‌پات‌ها و تایید TLS)، این‌ها پروکسی‌های عمومی هستند. توصیه می‌کنیم از آن‌ها برای وب‌گردی استفاده کنید و از انجام تراکنش‌های حساس (بانکی، رمز عبور) خودداری کنید.",
+        "about.btn.source": "مشاهده سورس در گیت‌هاب",
+
+        /* Analytics Page */
+        "analytics.hero.title": "هوش شبکه",
+        "analytics.hero.subtitle": "بینش لحظه‌ای از توزیع و عملکرد پروکسی‌های جهانی.",
+        "analytics.charts.protocol": "توزیع پروتکل",
+        "analytics.charts.latency": "توزیع تاخیر (Latency)",
+        "analytics.charts.countries": "کشورهای برتر",
+
+        /* Proxies Page */
+        "proxies.hero.title": "لیست زنده پروکسی‌ها",
+        "proxies.hero.subtitle": "لیست کامل پروکسی‌های تایید شده ما را کاوش کنید. جستجو کنید، مرتب کنید و اتصال مناسب نیاز خود را پیدا کنید."
     },
     ru: {
         "nav.home": "Главная",
@@ -229,6 +323,7 @@ const translations = {
         "stats.hybrid": "Гибридный движок",
         "stats.hybrid.desc": "Ядро Go + Python",
         "stats.update": "Частота обновлений",
+        "stats.threats": "Угроз нейтрализовано",
         "downloads.title": "Ваши конфигурации",
         "downloads.subtitle": "Выберите удобный формат. Все файлы содержат проверенные и надежные прокси.",
         "downloads.universal": "Универсальная подписка",
@@ -281,7 +376,33 @@ const translations = {
         "table.status": "Статус",
         "table.copy": "Копировать",
         "verify.local": "Быстрая проверка (Local)",
-        "verify.status": "WASM готов к работе"
+        "verify.status": "WASM готов к работе",
+
+        /* About Page */
+        "about.hero.title": "О ConfigStream",
+        "about.subtitle": "Автоматизированный, надежный и бесплатный доступ к открытому интернету.",
+        "about.mission.title": "Миссия",
+        "about.mission.text": "ConfigStream был создан для обеспечения надежного и бесплатного доступа к глобальному интернету для пользователей в сетях с ограничениями. Агрегируя прокси из сотен публичных источников и тщательно их тестируя, мы обеспечиваем высокую доступность без ручного вмешательства.",
+        "about.arch.title": "Архитектура: \"Устойчивое ядро\"",
+        "about.arch.text": "Мы используем архитектуру \"Нулевой бюджет\", которая полностью работает на инфраструктуре GitHub, обеспечивая устойчивость и сопротивление цензуре.",
+        "about.arch.hybrid": "<strong>Гибридный движок:</strong> Сочетает гибкость Python для анализа с высокопроизводительным <strong>Go Sidecar</strong> для массового параллельного тестирования сети.",
+        "about.arch.intel": "<strong>Слой интеллекта:</strong> Наша технология \"Промывки прокси\" автоматически восстанавливает заблокированные IP, туннелируя их через Cloudflare WARP.",
+        "about.arch.agg": "<strong>Агрегатор:</strong> Собирает данные из более чем 600 источников каждые 6 часов.",
+        "about.arch.pub": "<strong>Издатель:</strong> Генерирует оптимизированные конфиги для V2Ray, Clash, Sing-box (режимы Танк/Снайпер) и других.",
+        "about.security.title": "Безопасность",
+        "about.security.text": "Хотя мы проводим автоматические проверки безопасности (блокировка рекламы, вредоносных сайтов, ханипотов и проверка TLS), это публичные прокси. Мы рекомендуем использовать их для просмотра веб-страниц и избегать чувствительных операций (банкинг, пароли).",
+        "about.btn.source": "Исходный код на GitHub",
+
+        /* Analytics Page */
+        "analytics.hero.title": "Сетевая разведка",
+        "analytics.hero.subtitle": "Аналитика в реальном времени по глобальному распределению и производительности прокси.",
+        "analytics.charts.protocol": "Распределение протоколов",
+        "analytics.charts.latency": "Распределение задержки",
+        "analytics.charts.countries": "Топ стран",
+
+        /* Proxies Page */
+        "proxies.hero.title": "Список прокси онлайн",
+        "proxies.hero.subtitle": "Изучите наш полный список проверенных прокси. Ищите, сортируйте и находите идеальное соединение для ваших нужд."
     },
     ar: {
         "nav.home": "الرئيسية",
@@ -300,6 +421,7 @@ const translations = {
         "stats.hybrid": "محرك هجين",
         "stats.hybrid.desc": "نواة Go + Python",
         "stats.update": "معدل التحديث",
+        "stats.threats": "تهديدات تم تحييدها",
         "downloads.title": "تحميل التكوينات",
         "downloads.subtitle": "اختر التنسيق المناسب لجهازك. جميع الملفات محدثة ومفحوصة.",
         "downloads.universal": "اشتراك شامل (Universal)",
@@ -352,7 +474,33 @@ const translations = {
         "table.status": "الحالة",
         "table.copy": "نسخ",
         "verify.local": "فحص محلي (WASM)",
-        "verify.status": "جاهز للفحص"
+        "verify.status": "جاهز للفحص",
+
+        /* About Page */
+        "about.hero.title": "عن ConfigStream",
+        "about.subtitle": "وصول آلي، مرن، ومجاني للإنترنت المفتوح.",
+        "about.mission.title": "المهمة",
+        "about.mission.text": "تم بناء ConfigStream لتوفير وصول موثوق ومجاني للإنترنت العالمي للمستخدمين في بيئات الشبكات المقيدة. من خلال تجميع الخوادم من مئات المصادر العامة واختبارها بصرامة، نضمن توافرية عالية دون جهد يدوي.",
+        "about.arch.title": "الهندسة: \"النواة المرنة\"",
+        "about.arch.text": "نستخدم هندسة \"الميزانية الصفرية\" التي تعمل بالكامل على البنية التحتية لـ GitHub، مما يضمن الاستدامة ومقاومة الرقابة.",
+        "about.arch.hybrid": "<strong>المحرك الهجين:</strong> يجمع بين مرونة Python للذكاء مع <strong>Go Sidecar</strong> عالي الأداء لاختبار الشبكة بشكل متزامن هائل.",
+        "about.arch.intel": "<strong>طبقة الذكاء:</strong> تقنية \"غسل البروكسي\" الخاصة بنا تقوم بإصلاح عناوين IP المحظورة تلقائيًا عن طريق تمريرها عبر نفق Cloudflare WARP.",
+        "about.arch.agg": "<strong>المجمع:</strong> يجلب من أكثر من 600 مصدر كل 6 ساعات.",
+        "about.arch.pub": "<strong>الناشر:</strong> يولد تكوينات محسنة لـ V2Ray، Clash، Sing-box (أوضاع الدبابة/القناص)، والمزيد.",
+        "about.security.title": "الأمان",
+        "about.security.text": "بينما نقوم بإجراء فحوصات أمان تلقائية (حظر الإعلانات، ومواقع البرمجيات الخبيثة، ومصائد الجذب، والتحقق من TLS)، فهذه خوادم عامة. نوصي باستخدامها للتصفح وتجنب المعاملات الحساسة (البنوك، كلمات المرور).",
+        "about.btn.source": "عرض المصدر على GitHub",
+
+        /* Analytics Page */
+        "analytics.hero.title": "ذكاء الشبكة",
+        "analytics.hero.subtitle": "رؤى في الوقت الفعلي حول توزيع وأداء البروكسي العالمي.",
+        "analytics.charts.protocol": "توزيع البروتوكول",
+        "analytics.charts.latency": "توزيع سرعة الاستجابة",
+        "analytics.charts.countries": "أهم الدول",
+
+        /* Proxies Page */
+        "proxies.hero.title": "قائمة الخوادم الحية",
+        "proxies.hero.subtitle": "استكشف قائمتنا الكاملة من الخوادم التي تم فحصها. ابحث، ورتب، واعثر على الاتصال المثالي لاحتياجاتك."
     }
 };
 
@@ -393,6 +541,9 @@ class I18n {
 
             if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
                  el.setAttribute('placeholder', translation);
+            } else if (el.innerHTML.includes('<') && (key.includes('.arch.') || key.includes('.html'))) {
+                 // Allow HTML for specific keys like architecture features
+                 el.innerHTML = translation;
             } else {
                  el.textContent = translation;
             }
