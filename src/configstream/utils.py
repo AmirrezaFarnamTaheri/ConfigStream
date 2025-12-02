@@ -48,8 +48,8 @@ class AtomicFileWriter:
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.unlink(temp_path)
-                except OSError:
-                    pass
+                except OSError as e_cleanup:
+                    logger.debug(f"Failed to cleanup temp file {temp_path}: {e_cleanup}")
             raise
 
     @staticmethod
@@ -74,8 +74,8 @@ class AtomicFileWriter:
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.unlink(temp_path)
-                except OSError:
-                    pass
+                except OSError as e_cleanup:
+                    logger.debug(f"Failed to cleanup temp file {temp_path}: {e_cleanup}")
             raise
 
 

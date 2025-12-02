@@ -35,7 +35,7 @@ def parse_vless(config: str) -> Optional[Proxy]:
         # REALITY Verification
         if details.get("security") == "reality":
             if not details.get("pbk"):
-                # logger.debug("VLESS Reality missing 'pbk'")
+                logger.debug("VLESS Reality missing 'pbk'")
                 return None
 
             sid = details.get("sid", "")
@@ -51,8 +51,8 @@ def parse_vless(config: str) -> Optional[Proxy]:
                 return None
 
             if not sid and not details.get("sid"):
-                # if sid was invalid or empty originally
-                pass
+                # if sid was invalid or empty originally, we allow it (empty sid is valid)
+                logger.debug("VLESS Reality with empty SID - allowing")
 
         proxy = Proxy(
             config=config,

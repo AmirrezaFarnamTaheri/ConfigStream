@@ -23,14 +23,18 @@ def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
     all_proxies_map = {}
     batches_with_timestamps = []
 
+    # Global stats
+    total_fetched_global = 0
+
     for batch_dir in batch_dirs:
         if not batch_dir.exists():
             logger.info(f"Info: Batch directory {batch_dir} not found. Skipping.")
             continue
 
-        # Load metadata to get run timestamp
+        # Load metadata to get run timestamp and stats
         metadata_file = batch_dir / "metadata.json"
         timestamp = batch_dir.stat().st_mtime
+
         if metadata_file.exists():
             try:
                 with open(metadata_file, "r") as f:
@@ -42,6 +46,11 @@ def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
                         timestamp = datetime.fromisoformat(
                             timestamp_str.replace("Z", "+00:00")
                         ).timestamp()
+
+                    # Accumulate fetched lines from metadata (if available)
+                    # This provides accurate count of all lines processed, including failed ones
+                    total_fetched_global += int(metadata.get("total_fetched", 0))
+
             except (json.JSONDecodeError, KeyError, ValueError) as e:
                 logger.warning(
                     f"Warning: Could not parse metadata in {batch_dir}: {e}. Using fallback."
@@ -104,4 +113,8 @@ def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
     # Sort proxies by latency for consistent output
     merged_proxies.sort(key=lambda p: (p.latency is None, calculate_compound_score(p)))
 
-    return merged_proxies, total_processed
+    # If we accumulated global fetched counts from metadata, use that.
+    # Otherwise fallback to total_processed (which is just working proxies).
+    final_fetched_count = total_fetched_global if total_fetched_global > 0 else total_processed
+
+    return merged_proxies, final_fetched_count

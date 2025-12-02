@@ -140,7 +140,7 @@ def safe_b64_decode(data: str) -> str:
             len(data),
             MAX_B64_INPUT_SIZE,
         )
-        return data
+        return ""
 
     validated = validate_b64_input(data)
     if validated is None:

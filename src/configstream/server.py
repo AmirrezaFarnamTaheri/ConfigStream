@@ -1,12 +1,19 @@
 import os
+import json
+import logging
+import re
+import importlib.metadata
 from pathlib import Path
 from typing import Optional
-import importlib.metadata
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -35,6 +42,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Pre-compile regex for path validation
+SAFE_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
+
+
 # --- API Endpoints ---
 
 
@@ -51,13 +62,12 @@ async def get_stats():
             }
         )
 
-    # Read and return JSON content directly to ensure proper content-type and parsing
-    import json
-
     try:
-        content = json.loads(metadata_path.read_text())
+        # Read and return JSON content directly to ensure proper content-type and parsing
+        content = json.loads(metadata_path.read_text(encoding="utf-8"))
         return JSONResponse(content=content)
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to read metadata.json: {e}")
         return FileResponse(metadata_path)
 
 
@@ -68,29 +78,32 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
     Note: Real-time filtering of large JSONs is memory intensive.
     For high-performance, we serve pre-generated files.
     """
-    import re
-
-    # Validate inputs to prevent path traversal attacks
-    safe_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
-
     if country:
-        if not safe_pattern.match(country):
+        if not SAFE_PATH_PATTERN.match(country):
             raise HTTPException(400, "Invalid country parameter")
         fpath = OUTPUT_DIR / "by_country" / f"{country.lower()}.json"
         # Verify the resolved path is within OUTPUT_DIR
-        if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
-            raise HTTPException(400, "Invalid country parameter")
+        try:
+            if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
+                raise HTTPException(400, "Invalid country parameter")
+        except ValueError:
+            raise HTTPException(400, "Invalid path")
+
         if fpath.exists():
             return FileResponse(fpath)
         raise HTTPException(404, "Country not found")
 
     if protocol:
-        if not safe_pattern.match(protocol):
+        if not SAFE_PATH_PATTERN.match(protocol):
             raise HTTPException(400, "Invalid protocol parameter")
         fpath = OUTPUT_DIR / "by_protocol" / f"{protocol.lower()}.json"
         # Verify the resolved path is within OUTPUT_DIR
-        if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
-            raise HTTPException(400, "Invalid protocol parameter")
+        try:
+            if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
+                raise HTTPException(400, "Invalid protocol parameter")
+        except ValueError:
+             raise HTTPException(400, "Invalid path")
+
         if fpath.exists():
             return FileResponse(fpath)
         raise HTTPException(404, "Protocol not found")
@@ -135,38 +148,36 @@ if not OUTPUT_DIR.exists():
         OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     except OSError as e:
         # Fatal error: If output directory cannot be created/accessed, server cannot function correctly.
-        # However, for read-only filesystem environments (e.g. strict container), we log and proceed,
-        # expecting the mount to possibly fail or serve empty.
-        print(f"Warning: Could not create output directory {OUTPUT_DIR}: {e}")
+        # However, for read-only filesystem environments (e.g. strict container), we log and proceed.
+        logger.warning(f"Warning: Could not create output directory {OUTPUT_DIR}: {e}")
 
 # Mount the output directory for direct file access (e.g. /output/clash.yaml)
 try:
     app.mount("/output", StaticFiles(directory=str(OUTPUT_DIR)), name="output")
 except Exception as e:
     # Degrade gracefully: expose a minimal handler instead of failing app startup
-    print(f"Warning: Failed to mount /output static files: {e}")
+    logger.warning(f"Warning: Failed to mount /output static files: {e}")
 
     @app.get("/output/{path:path}")
     async def output_fallback(path: str):
         raise HTTPException(status_code=503, detail="Output directory unavailable")
 
 
-# Legacy compatibility for old clients
-try:
-    app.mount("/files", StaticFiles(directory=str(OUTPUT_DIR)), name="files")
-except Exception:
-    pass
-
 # Mount frontend assets (css, js, images)
 if FRONTEND_DIR.exists():
     app.mount(
         "/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets"
     )
+else:
+    logger.warning(f"Frontend directory not found at {FRONTEND_DIR}")
 
 
 @app.get("/")
 async def read_index():
-    return FileResponse(FRONTEND_DIR / "index.html")
+    index_path = FRONTEND_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    return JSONResponse({"status": "ok", "message": "ConfigStream API is running (Frontend not found)"})
 
 
 @app.get("/health")
@@ -186,13 +197,11 @@ async def health_check():
 
 @app.get("/{page}")
 async def read_page(page: str):
-    import re
-
     # Serve html pages from root
     # Validate page parameter to prevent path traversal
-    safe_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
-    if not safe_pattern.match(page):
-        return FileResponse(FRONTEND_DIR / "index.html")
+    if not SAFE_PATH_PATTERN.match(page):
+        # Redirect to index if invalid
+        return await read_index()
 
     clean_page = page if page.endswith(".html") else f"{page}.html"
     page_path = FRONTEND_DIR / clean_page
@@ -207,4 +216,5 @@ async def read_page(page: str):
     except (ValueError, OSError):
         pass
 
-    return FileResponse(FRONTEND_DIR / "index.html")  # Fallback for SPA-like feel
+    # Fallback for SPA-like feel
+    return await read_index()
