@@ -24,7 +24,7 @@ def parse_ssr(config: str) -> Optional[Proxy]:
 
         # 1) decode the entire payload first
         decoded_all = safe_b64_decode(_b64_normalize(payload))
-        if not decoded_all:
+        if decoded_all is None or not decoded_all:
             return None
 
         # 2) split AFTER decoding
@@ -70,8 +70,11 @@ def parse_ssr(config: str) -> Optional[Proxy]:
             v_norm = _b64_normalize(val)
             decoded_val = safe_b64_decode(v_norm)
 
+            if decoded_val is None:
+                decoded_val = val
+
             # If it wasn't valid base64, don't fail hard—keep original.
-            if decoded_val == v_norm and validate_b64_input(v_norm) is None:
+            elif decoded_val == v_norm and validate_b64_input(v_norm) is None:
                 logger.debug(
                     "SSR param '%s' not valid base64: %s; leaving as-is.", k, repr(val)
                 )

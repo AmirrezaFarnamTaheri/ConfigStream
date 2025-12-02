@@ -108,7 +108,9 @@ class ProxyWasher:
         """Deterministically selects a clean IP based on proxy ID."""
         pool = self.clean_ips if self.clean_ips else DEFAULT_CLEAN_IPS
         if not pool:
-            logger.critical("Clean IP pool is empty, falling back to a single default IP.")
+            logger.critical(
+                "Clean IP pool is empty, falling back to a single default IP."
+            )
             return DEFAULT_CLEAN_IPS[0] if DEFAULT_CLEAN_IPS else "162.159.192.1"
 
         # Consistent hashing so the same proxy always gets the same endpoint (stability)

@@ -243,8 +243,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = apply_stealth_profile(out, proxy.protocol)
 
     if out:
-        safe_addr = SecurityValidator.sanitize_address(getattr(proxy, "address", "unknown"))
-        safe_source = SecurityValidator.sanitize_log_message(str(proxy.details.get("_source", "unknown")))
+        safe_addr = SecurityValidator.sanitize_address(
+            getattr(proxy, "address", "unknown")
+        )
+        safe_source = SecurityValidator.sanitize_log_message(
+            str(proxy.details.get("_source", "unknown"))
+        )
         logger.debug(
             f"Successfully converted {proxy.protocol} proxy: {safe_addr} "
             f"(Source: {safe_source})"

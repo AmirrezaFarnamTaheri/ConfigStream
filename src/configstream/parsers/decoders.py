@@ -127,7 +127,7 @@ def validate_b64_input(data: str) -> Optional[str]:
     return cleaned
 
 
-def safe_b64_decode(data: str) -> str:
+def safe_b64_decode(data: str) -> Optional[str]:
     """Safely decode base64 with comprehensive validation.
 
     NOTE: We perform a fast size check *before* any heavy processing to
@@ -140,7 +140,7 @@ def safe_b64_decode(data: str) -> str:
             len(data),
             MAX_B64_INPUT_SIZE,
         )
-        return ""
+        return None
 
     validated = validate_b64_input(data)
     if validated is None:

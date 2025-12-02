@@ -132,6 +132,13 @@ async def run_full_pipeline(
     if max_workers >= 100:
         num_consumers = 4
 
+    # [FIX] Start Concurrency Tuner globally if fallback to Python tester is likely
+    if not tester.go_tester.available:
+        logger.info(
+            "Go tester unavailable - Starting global concurrency tuner for Python fallback"
+        )
+        concurrency.start_tuner()
+
     logger.info(f"Starting pipeline with {num_consumers} parallel consumers")
 
     # Run Producer and Consumers concurrently
@@ -203,6 +210,9 @@ async def run_full_pipeline(
 
         return PipelineResult(success=True, stats=stats, output_files=generated_files)
     finally:
+        # [FIX] Stop tuner if running
+        await concurrency.stop_tuner()
+
         # Ensure event stream is always closed to flush handles/buffers
         try:
             await event_stream.aclose()

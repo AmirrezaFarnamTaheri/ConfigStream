@@ -16,18 +16,20 @@ class QualityStorage:
     def __init__(self, db_path: Path):
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._conn: Optional[sqlite3.Connection] = None  # Reuse connection
+        self._thread_local = threading.local()  # per-thread storage
         self._lock = threading.Lock()
         with self._lock:
             self._init_db()
 
     def _get_conn(self) -> sqlite3.Connection:
-        # Reuse a single connection per process; guarded by self._lock.
-        if self._conn is None:
-            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
-            self._conn.execute("PRAGMA journal_mode=WAL")
-            self._conn.execute("PRAGMA synchronous=NORMAL")
-        return self._conn
+        # Each thread uses its own connection to avoid cross-thread contention.
+        conn = getattr(self._thread_local, "conn", None)
+        if conn is None:
+            conn = sqlite3.connect(self.db_path, check_same_thread=True)
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            self._thread_local.conn = conn
+        return conn
 
     def _init_db(self):
         """Initialize the SQLite schema."""
@@ -81,10 +83,11 @@ class QualityStorage:
             logger.error(f"Failed to init source quality DB: {e}")
 
     def close(self):
-        with self._lock:
-            if self._conn:
-                self._conn.close()
-                self._conn = None
+        # Close current thread's connection
+        conn = getattr(self._thread_local, "conn", None)
+        if conn:
+            conn.close()
+            self._thread_local.conn = None
 
     def get_source_state(self, url: str) -> Optional[Tuple[Any, ...]]:
         """Get state for a source: (status, last_checked, consecutive_failures, reliability_score)."""
