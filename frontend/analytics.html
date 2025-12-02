@@ -101,8 +101,8 @@
     <main>
         <div class="container">
             <section class="hero text-center">
-                <h1 class="analytics-hero-title">Network Intelligence</h1>
-                <p class="subtitle">Real-time insights into global proxy distribution and performance.</p>
+                <h1 class="analytics-hero-title" data-i18n="analytics.hero.title">Network Intelligence</h1>
+                <p class="subtitle" data-i18n="analytics.hero.subtitle">Real-time insights into global proxy distribution and performance.</p>
             </section>
 
             <!-- Summary Stats Cards -->
@@ -112,28 +112,28 @@
                         <div class="stat-icon"><i data-feather="download-cloud"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="totalSourced" class="stat-value loading">0</div>
-                            <div class="stat-label">Total Sourced</div>
+                            <div class="stat-label" data-i18n="stats.sourced">Total Sourced</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="totalConfigs" class="stat-value loading">0</div>
-                            <div class="stat-label">Unique & Tested</div>
+                            <div class="stat-label" data-i18n="stats.unique">Unique & Tested</div>
                         </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon"><i data-feather="zap"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="workingConfigs" class="stat-value loading">0</div>
-                            <div class="stat-label">Currently Online</div>
+                            <div class="stat-label" data-i18n="stats.online">Currently Online</div>
                         </div>
                     </div>
                      <div class="stat-item">
                         <div class="stat-icon" style="background: var(--danger-color); box-shadow: 0 4px 12px -4px var(--danger-color);"><i data-feather="shield"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="threatsNeutralized" class="stat-value" style="color: var(--danger-color);">127</div>
-                            <div class="stat-label">Threats Neutralized</div>
+                            <div class="stat-label" data-i18n="stats.threats">Threats Neutralized</div>
                         </div>
                     </div>
                 </div>
@@ -145,7 +145,7 @@
             <div class="analytics-grid">
                 <!-- Protocol Distribution -->
                 <div class="chart-container">
-                    <h3>Protocol Distribution</h3>
+                    <h3 data-i18n="analytics.charts.protocol">Protocol Distribution</h3>
                     <div style="flex: 1; position: relative;">
                         <canvas id="protocolChart"></canvas>
                     </div>
@@ -153,7 +153,7 @@
 
                 <!-- Latency Trends -->
                 <div class="chart-container">
-                    <h3>Latency Distribution</h3>
+                    <h3 data-i18n="analytics.charts.latency">Latency Distribution</h3>
                     <div style="flex: 1; position: relative;">
                          <canvas id="latencyChart"></canvas>
                     </div>
@@ -161,7 +161,7 @@
 
                 <!-- Country Top 10 -->
                 <div class="chart-container" style="grid-column: 1/-1;">
-                    <h3>Top Countries</h3>
+                    <h3 data-i18n="analytics.charts.countries">Top Countries</h3>
                     <div style="flex: 1; position: relative;">
                         <canvas id="countryChart"></canvas>
                     </div>
