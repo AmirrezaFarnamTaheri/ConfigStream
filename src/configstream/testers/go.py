@@ -12,13 +12,19 @@ from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 
+
 class GoBatchTester:
     def __init__(
         self,
         binary_path: str = "/usr/local/bin/configstream-tester",
         workers: int = 50,
     ):
-        self.workers = workers
+        # Clamp workers to a safe range
+        try:
+            w = int(workers)
+        except Exception:
+            w = 50
+        self.workers = max(1, min(w, 1000))
         env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
         if env_path:
             binary_path = env_path

@@ -17,6 +17,7 @@ from .constants import MAX_RESPONSE_SIZE
 
 logger = logging.getLogger(__name__)
 
+
 async def fetch_from_source(
     client: httpx.AsyncClient,
     source: str,
@@ -104,7 +105,9 @@ async def fetch_from_source(
         start_ts = loop.time()
 
         try:
-            logger.debug(f"Fetch attempt {attempt + 1}/{max_retries} for {sanitized_source}")
+            logger.debug(
+                f"Fetch attempt {attempt + 1}/{max_retries} for {sanitized_source}"
+            )
             # Delegate to core worker
             result = await fetch_single_source(
                 client,
@@ -181,7 +184,9 @@ async def fetch_from_source(
             # Capture status code if available in exception
             if isinstance(e, httpx.HTTPStatusError):
                 last_status_code = e.response.status_code
-                logger.warning(f"HTTP Error {last_status_code} for {sanitized_source}: {e}")
+                logger.warning(
+                    f"HTTP Error {last_status_code} for {sanitized_source}: {e}"
+                )
                 if last_status_code == 404:
                     logger.info(
                         f"Source not found (404): {sanitized_source} - check URL validity"
@@ -191,7 +196,9 @@ async def fetch_from_source(
                         f"Access forbidden (403): {sanitized_source} - check permissions/geo-block or user-agent"
                     )
                 elif last_status_code >= 500:
-                    logger.warning(f"Server error ({last_status_code}) from {sanitized_source}")
+                    logger.warning(
+                        f"Server error ({last_status_code}) from {sanitized_source}"
+                    )
 
             elif isinstance(e, asyncio.TimeoutError):
                 logger.warning(

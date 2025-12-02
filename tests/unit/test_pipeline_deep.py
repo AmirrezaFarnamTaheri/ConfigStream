@@ -73,7 +73,8 @@ async def test_processing_consumer_flow():
         mock_parse.return_value = p
 
         # We also need to mock validate_batch_configs to just return the list
-        with patch("configstream.pipeline_core.consumer.validate_batch_configs"
+        with patch(
+            "configstream.pipeline_core.consumer.validate_batch_configs"
         ) as mock_validate:
             mock_validate.side_effect = lambda batch, policy: batch
 

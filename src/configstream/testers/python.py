@@ -26,8 +26,14 @@ except ImportError:
         "Install with: pip install singbox2proxy"
     )
 
+
 class PythonTester:
-    def __init__(self, settings: AppSettings, timeout: float = 10.0, strict_security: bool = False):
+    def __init__(
+        self,
+        settings: AppSettings,
+        timeout: float = 10.0,
+        strict_security: bool = False,
+    ):
         self.settings = settings
         self.timeout = timeout
         self.strict_security = strict_security

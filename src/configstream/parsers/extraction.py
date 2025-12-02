@@ -10,6 +10,7 @@ from ..constants import (
 
 logger = logging.getLogger(__name__)
 
+
 def is_plausible_proxy_config(config: str) -> bool:
     """Basic plausibility check for proxy configuration."""
     # OpenVPN support
@@ -86,7 +87,9 @@ def extract_config_lines(
             )
 
     lines = payload.splitlines()
-    logger.debug(f"Extracting configs from payload of {len(payload)} bytes ({len(lines)} lines)")
+    logger.debug(
+        f"Extracting configs from payload of {len(payload)} bytes ({len(lines)} lines)"
+    )
 
     if len(lines) > max_lines:
         logger.warning(
@@ -127,10 +130,13 @@ def extract_config_lines(
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(
                         "Dropping invalid config line: %s... (Reason: %s)",
-                        candidate[:100], reason
+                        candidate[:100],
+                        reason,
                     )
                 if len(dropped_samples) < 5:
-                    dropped_samples.append(f"{candidate[:100]} [{reason}]")  # Truncate for log safety
+                    dropped_samples.append(
+                        f"{candidate[:100]} [{reason}]"
+                    )  # Truncate for log safety
 
     if dropped_count > 0:
         if len(configs) > 0:

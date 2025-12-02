@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 _TEMP_FILES: Set[str] = set()
 _TEMP_FILES_LOCK = threading.Lock()
 
+
 def _cleanup_temp_files():
     for path in _TEMP_FILES:
         try:
@@ -20,7 +21,9 @@ def _cleanup_temp_files():
         except Exception:
             pass
 
+
 atexit.register(_cleanup_temp_files)
+
 
 @contextmanager
 def SecureConfigContext(content: str):

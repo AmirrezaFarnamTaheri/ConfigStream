@@ -26,6 +26,7 @@ CLEAN_IP_SOURCES = [
     "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist",
 ]
 
+
 class ProxyWasher:
     def __init__(self, warp_keys_json: str):
         try:

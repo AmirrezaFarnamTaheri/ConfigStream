@@ -5,6 +5,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 def consolidate_logs(output_dir: Path, summary_text: str = ""):
     """
     Finds all pipeline_batch_*.log files in the current directory (or restored artifacts),

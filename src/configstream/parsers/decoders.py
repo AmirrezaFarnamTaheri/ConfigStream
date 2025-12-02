@@ -22,6 +22,7 @@ VALID_B64_CHARS = set(
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t"
 )
 
+
 def _rate_limited_warning(msg_type: str, message: str):
     """Log a warning with rate limiting to avoid log spam."""
     global _last_warning_reset
@@ -39,6 +40,7 @@ def _rate_limited_warning(msg_type: str, message: str):
         logger.warning(
             f"{msg_type}: Further warnings suppressed (threshold: {_WARNING_THRESHOLD})"
         )
+
 
 def validate_b64_input(data: str) -> Optional[str]:
     """Validate base64 string before attempting decode."""
@@ -123,6 +125,7 @@ def validate_b64_input(data: str) -> Optional[str]:
         cleaned += "=" * padding_needed
 
     return cleaned
+
 
 def safe_b64_decode(data: str) -> str:
     """Safely decode base64 with comprehensive validation.

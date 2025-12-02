@@ -1,5 +1,6 @@
 from typing import Any
 
+
 def safe_int_conversion(value: Any, default: int = 0) -> int:
     """
     Safely convert a value to int, handling bytes and other types.

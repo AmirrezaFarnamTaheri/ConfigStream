@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, Union, Optional
 
+
 @dataclass
 class PipelineStats:
     fetched_sources: int = 0
@@ -25,6 +26,7 @@ class PipelineStats:
             "final_count": self.final_count,
             "cache_misses": self.cache_misses,
         }
+
 
 class PipelineResult:
     def __init__(
