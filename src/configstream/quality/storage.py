@@ -22,13 +22,12 @@ class QualityStorage:
             self._init_db()
 
     def _get_conn(self) -> sqlite3.Connection:
-        if self._conn is None:
-            # Set check_same_thread=False to allow access from multiple threads
-            # (guarded by self._lock).
-            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
-            self._conn.execute("PRAGMA journal_mode=WAL")
-            self._conn.execute("PRAGMA synchronous=NORMAL")
-        return self._conn
+        # Each thread should get its own connection.
+        # The lock in each method will serialize access to the database file.
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        return conn
 
     def _init_db(self):
         """Initialize the SQLite schema."""

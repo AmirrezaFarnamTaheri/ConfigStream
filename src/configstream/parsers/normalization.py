@@ -3,6 +3,7 @@ from ..models import Proxy
 
 logger = logging.getLogger(__name__)
 
+
 def normalize_proxy_details(proxy: Proxy) -> None:
     """
     Standardizes common proxy attributes (sni, path, etc.) from the

@@ -60,58 +60,56 @@ CREATE TABLE IF NOT EXISTS history (
             return True, "Small Batch"
 
         try:
-            with self._lock, sqlite3.connect(self.db_path) as conn:
-                # Get last 50 fetches (increased history depth for ML)
-                rows = conn.execute(
-                    "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
-                    (url,),
-                ).fetchall()
+            # Fetch rows under lock (short critical section), then release for computation
+            with self._lock:
+                with sqlite3.connect(self.db_path) as conn:
+                    rows = conn.execute(
+                        "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
+                        (url,),
+                    ).fetchall()
 
-                if not rows:
-                    return True, "New Source"
+            if not rows:
+                return True, "New Source"
 
-                counts = [r[0] for r in rows]
-                n = len(counts)
-                avg = statistics.mean(counts)
+            counts = [r[0] for r in rows if isinstance(r[0], int)]
+            n = len(counts)
+            avg = statistics.mean(counts)
 
-                # Strategy: Use Isolation Forest if we have enough data points
-                if n >= 15:
-                    try:
-                        # Prepare data for Isolation Forest (needs 2D array)
-                        X = np.array(counts).reshape(-1, 1)
+            # Strategy: Use Isolation Forest if we have enough data points
+            if n >= 15:
+                try:
+                    # Prepare data for Isolation Forest (needs 2D array)
+                    X = np.array(counts).reshape(-1, 1)
 
-                        # Fit Isolation Forest
-                        # contamination='auto' lets it decide outlier proportion
-                        clf = IsolationForest(random_state=42, contamination=0.05)
-                        clf.fit(X)
+                    # Fit Isolation Forest
+                    # contamination='auto' lets it decide outlier proportion
+                    clf = IsolationForest(random_state=42, contamination=0.05)
+                    clf.fit(X)
 
-                        # Predict on current value
-                        prediction = clf.predict([[current_count]])
+                    # Predict on current value
+                    prediction = clf.predict([[current_count]])
 
-                        # -1 is outlier, 1 is inlier
-                        if prediction[0] == -1:
-                            # Double check: If it's just a higher yield but within reason (< 2x max historic), let it slide
-                            max_historic = max(counts)
-                            if current_count > (max_historic * 2.0):
-                                return (
-                                    False,
-                                    f"Isolation Forest Outlier (Count: {current_count})",
-                                )
-                            elif (
-                                current_count < (min(counts) * 0.5)
-                                and current_count > 20
-                            ):
-                                # Significant drop detected. This typically indicates a failing source but is not a security risk (spike).
-                                # We log it for monitoring but do not block the source.
-                                logger.debug(
-                                    f"Significant volume drop for {url}: {current_count} vs avg {avg}. Treated as safe (not a spike)."
-                                )
+                    # -1 is outlier, 1 is inlier
+                    if prediction[0] == -1:
+                        # Double check: If it's just a higher yield but within reason (< 2x max historic), let it slide
+                        max_historic = max(counts)
+                        if current_count > (max_historic * 2.0):
+                            return (
+                                False,
+                                f"Isolation Forest Outlier (Count: {current_count})",
+                            )
+                        elif current_count < (min(counts) * 0.5) and current_count > 20:
+                            # Significant drop detected. This typically indicates a failing source but is not a security risk (spike).
+                            # We log it for monitoring but do not block the source.
+                            logger.debug(
+                                f"Significant volume drop for {url}: {current_count} vs avg {avg}. Treated as safe (not a spike)."
+                            )
 
-                    except Exception as ml_err:
-                        logger.warning(
-                            f"ML Anomaly check failed, falling back to Z-Score: {ml_err}"
-                        )
-                        # Fall through to Z-Score logic
+                except Exception as ml_err:
+                    logger.warning(
+                        f"ML Anomaly check failed, falling back to Z-Score: {ml_err}"
+                    )
+                    # Fall through to Z-Score logic
 
                 # Logic: Detect Massive Spikes (Fallback Z-Score / Simple Heuristics)
                 # Only apply logic if the source is somewhat established (avg > 10)

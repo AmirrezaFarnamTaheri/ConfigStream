@@ -7,6 +7,7 @@ from ...converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 
+
 def create_chain(
     relay: Proxy, exit_node: Proxy, tag_prefix: str
 ) -> List[Dict[str, Any]]:

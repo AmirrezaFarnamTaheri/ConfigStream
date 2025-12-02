@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import List, Dict
 
 from .setup_path import setup_python_path
+
 setup_python_path()
 
 from configstream.models import Proxy
@@ -24,7 +25,14 @@ from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)
 
-def generate_outputs(ranked_proxies: List[Proxy], chosen_proxies: List[Proxy], output_dir: Path, total_processed: int, root_dir: Path):
+
+def generate_outputs(
+    ranked_proxies: List[Proxy],
+    chosen_proxies: List[Proxy],
+    output_dir: Path,
+    total_processed: int,
+    root_dir: Path,
+):
     """Generates all output files."""
 
     # Clear existing outputs (except data/)
@@ -120,12 +128,20 @@ def generate_outputs(ranked_proxies: List[Proxy], chosen_proxies: List[Proxy], o
     _generate_adapters(ranked_proxies, output_dir)
 
     # 8. Statistics & Metadata
-    _generate_statistics(ranked_proxies, chosen_proxies, output_dir, total_processed, proxies_by_protocol, chosen_by_protocol)
+    _generate_statistics(
+        ranked_proxies,
+        chosen_proxies,
+        output_dir,
+        total_processed,
+        proxies_by_protocol,
+        chosen_by_protocol,
+    )
 
     # 9. Wiki & Pages
     _copy_pages(root_dir, output_dir)
 
     return proxies_by_protocol
+
 
 def _generate_stego(output_dir: Path, root_dir: Path):
     frontend_src = root_dir / "frontend"
@@ -140,7 +156,9 @@ def _generate_stego(output_dir: Path, root_dir: Path):
     assets_images = output_dir / "assets" / "images"
     if assets_images.exists():
         try:
-            generate_stego_assets(config_dir=output_dir, assets_dir=assets_images, secret_key=dynamic_key)
+            generate_stego_assets(
+                config_dir=output_dir, assets_dir=assets_images, secret_key=dynamic_key
+            )
         except Exception as e:
             logger.warning(f"⚠️ Stego generation failed: {e}")
 
@@ -151,18 +169,28 @@ def _generate_stego(output_dir: Path, root_dir: Path):
         except Exception as e:
             logger.warning(f"⚠️ Failed to inject stego key: {e}")
 
+
 def _generate_adapters(proxies: List[Proxy], output_dir: Path):
     try:
         (output_dir / "surge.conf").write_text(get_adapter("surge").export(proxies))
-        (output_dir / "shadowrocket.txt").write_text(get_adapter("shadowrocket").export(proxies))
+        (output_dir / "shadowrocket.txt").write_text(
+            get_adapter("shadowrocket").export(proxies)
+        )
         (output_dir / "loon.conf").write_text(get_adapter("loon").export(proxies))
         (output_dir / "quantumult.conf").write_text(get_adapter("qx").export(proxies))
         (output_dir / "sip008.json").write_text(get_adapter("sip008").export(proxies))
     except Exception as e:
         logger.warning(f"⚠️ Failed to generate adapter configs: {e}")
 
-def _generate_statistics(ranked: List[Proxy], chosen: List[Proxy], output_dir: Path, total_processed: int,
-                         proxies_by_protocol: Dict, chosen_by_protocol: Dict):
+
+def _generate_statistics(
+    ranked: List[Proxy],
+    chosen: List[Proxy],
+    output_dir: Path,
+    total_processed: int,
+    proxies_by_protocol: Dict,
+    chosen_by_protocol: Dict,
+):
     working_proxies = sum(1 for p in ranked if p.is_working)
     working_chosen = sum(1 for p in chosen if p.is_working)
 
@@ -191,7 +219,9 @@ def _generate_statistics(ranked: List[Proxy], chosen: List[Proxy], output_dir: P
         "total_proxies": len(ranked),
         "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
         "proxies_by_country": dict(sorted(country_counts.items())),
-        "top_10_countries": sorted(country_counts.items(), key=lambda item: item[1], reverse=True)[:10],
+        "top_10_countries": sorted(
+            country_counts.items(), key=lambda item: item[1], reverse=True
+        )[:10],
     }
 
     with open(output_dir / "statistics.json", "w") as f:
@@ -228,6 +258,7 @@ def _generate_statistics(ranked: List[Proxy], chosen: List[Proxy], output_dir: P
     # Store for use in logs
     return final_batch_stats
 
+
 def _copy_pages(root_dir: Path, output_dir: Path):
     wiki_src = root_dir / "docs" / "wiki"
     wiki_dest = output_dir / "wiki"
@@ -238,12 +269,16 @@ def _copy_pages(root_dir: Path, output_dir: Path):
             (wiki_dest / md_file.name).write_text(md_file.read_text())
 
         if (root_dir / "frontend/wiki.html").exists():
-            (wiki_dest / "index.html").write_text((root_dir / "frontend/wiki.html").read_text())
+            (wiki_dest / "index.html").write_text(
+                (root_dir / "frontend/wiki.html").read_text()
+            )
 
     about_dest = output_dir / "about"
     about_dest.mkdir(exist_ok=True)
     if (root_dir / "frontend/about.html").exists():
-        (about_dest / "index.html").write_text((root_dir / "frontend/about.html").read_text())
+        (about_dest / "index.html").write_text(
+            (root_dir / "frontend/about.html").read_text()
+        )
 
     for filename in ["about.html", "wiki.html"]:
         p = output_dir / filename

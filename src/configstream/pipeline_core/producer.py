@@ -18,6 +18,7 @@ if False:  # TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
+
 async def source_producer(
     sources: List[str],
     work_queue: asyncio.Queue,
@@ -92,10 +93,16 @@ async def source_producer(
 
         loop = asyncio.get_running_loop()
 
-        for url in remote_urls:
+        async def _check_url(url):
             should_fetch = await loop.run_in_executor(
                 None, quality_tracker.should_fetch, url
             )
+            return url, should_fetch
+
+        tasks = [_check_url(url) for url in remote_urls]
+        results = await asyncio.gather(*tasks)
+
+        for url, should_fetch in results:
             if should_fetch:
                 active_urls.append(url)
             else:

@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+
 def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
     """Helper to add ws/grpc/http options to Clash config."""
     net = details.get("net") or details.get("type") or "tcp"

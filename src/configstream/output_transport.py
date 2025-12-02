@@ -136,12 +136,19 @@ def save_metadata(
     except Exception:
         version = "unknown"
 
-    # Calculate success rate based on parsed count to be accurate
-    success_rate = 0.0
-    if parsed_count > 0:
-        success_rate = round((total_working / parsed_count * 100), 2)
-    elif fetched_lines > 0:
-        success_rate = round((total_working / fetched_lines * 100), 2)
+    # Normalize inputs to avoid negative or >parsed anomalies
+    safe_working = max(0, int(total_working))
+    safe_parsed = max(0, int(parsed_count))
+    safe_fetched = max(0, int(fetched_lines))
+
+    if safe_parsed > 0:
+        success_rate = (safe_working / safe_parsed) * 100.0
+    elif safe_fetched > 0:
+        success_rate = (safe_working / safe_fetched) * 100.0
+    else:
+        success_rate = 0.0
+
+    success_rate = round(min(100.0, max(0.0, success_rate)), 2)
 
     metadata = {
         "version": version,

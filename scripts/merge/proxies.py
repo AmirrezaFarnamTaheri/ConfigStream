@@ -5,12 +5,14 @@ from pathlib import Path
 from typing import List, Tuple
 
 from .setup_path import setup_python_path
+
 setup_python_path()
 
 from configstream.models import Proxy
 from configstream.consolidation import calculate_compound_score
 
 logger = logging.getLogger(__name__)
+
 
 def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
     """
@@ -33,18 +35,26 @@ def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
             try:
                 with open(metadata_file, "r") as f:
                     metadata = json.load(f)
-                    timestamp_str = metadata.get("last_updated_utc") or metadata.get("generated_at")
+                    timestamp_str = metadata.get("last_updated_utc") or metadata.get(
+                        "generated_at"
+                    )
                     if timestamp_str:
-                        timestamp = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00")).timestamp()
+                        timestamp = datetime.fromisoformat(
+                            timestamp_str.replace("Z", "+00:00")
+                        ).timestamp()
             except (json.JSONDecodeError, KeyError, ValueError) as e:
-                logger.warning(f"Warning: Could not parse metadata in {batch_dir}: {e}. Using fallback.")
+                logger.warning(
+                    f"Warning: Could not parse metadata in {batch_dir}: {e}. Using fallback."
+                )
 
         batches_with_timestamps.append((batch_dir, timestamp))
 
     # Sort batches by timestamp (oldest first, so newest overwrites)
     batches_with_timestamps.sort(key=lambda x: x[1])
 
-    logger.info(f"Processing {len(batches_with_timestamps)} batches in chronological order...")
+    logger.info(
+        f"Processing {len(batches_with_timestamps)} batches in chronological order..."
+    )
 
     total_processed = 0
     for batch_dir, batch_timestamp in batches_with_timestamps:
@@ -53,7 +63,9 @@ def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
             proxies_file = batch_dir / "index.json"
 
         if not proxies_file.exists():
-            logger.info(f"Info: Neither proxies.json nor index.json found in {batch_dir}. Skipping.")
+            logger.info(
+                f"Info: Neither proxies.json nor index.json found in {batch_dir}. Skipping."
+            )
             continue
 
         batch_name = batch_dir.name
@@ -67,15 +79,22 @@ def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
                     proxy_data["batch_source"] = batch_source
 
                     # Ensure latency is float or None for proper sorting
-                    if proxy_data.get("latency") == "0" or proxy_data.get("latency") == 0:
+                    if (
+                        proxy_data.get("latency") == "0"
+                        or proxy_data.get("latency") == 0
+                    ):
                         proxy_data["latency"] = None
 
                     proxy = Proxy(**proxy_data)
                     all_proxies_map[proxy.config] = (proxy, batch_timestamp)
 
-                logger.info(f"Processed {batch_dir.name}: {len(proxies_data)} proxies at {datetime.fromtimestamp(batch_timestamp).isoformat()}")
+                logger.info(
+                    f"Processed {batch_dir.name}: {len(proxies_data)} proxies at {datetime.fromtimestamp(batch_timestamp).isoformat()}"
+                )
             except (json.JSONDecodeError, TypeError) as e:
-                logger.warning(f"Warning: Could not process {proxies_file}. Error: {e}. Skipping.")
+                logger.warning(
+                    f"Warning: Could not process {proxies_file}. Error: {e}. Skipping."
+                )
 
     merged_proxies = [proxy for proxy, _ in all_proxies_map.values()]
 

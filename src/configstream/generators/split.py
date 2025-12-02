@@ -10,6 +10,7 @@ from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 
+
 def generate_split_outputs(
     proxies: List[Proxy],
     output_dir: Path,
@@ -41,7 +42,7 @@ def generate_split_outputs(
                 sb_proxy["tls"]["tls_fragment"] = {
                     "enabled": True,
                     "size": "100-200",
-                    "sleep": "0-10"
+                    "sleep": "0-10",
                 }
             outbounds.append(sb_proxy)
             selector_tags.append(tag)
@@ -57,41 +58,52 @@ def generate_split_outputs(
 
     # Add URLTest
     if selector_tags:
-        outbounds.append({
-            "type": "urltest",
-            "tag": "🚀 Auto",
-            "outbounds": selector_tags,
-            "url": "http://cp.cloudflare.com/generate_204",
-            "interval": "10m"
-        })
-        outbounds.append({
-            "type": "selector",
-            "tag": "🌍 Proxy Select", # Sniper usually uses this too? Or just "🚀 Auto"?
-            "outbounds": ["🚀 Auto"] + selector_tags,
-            "default": "🚀 Auto"
-        })
+        outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🚀 Auto",
+                "outbounds": selector_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
+        outbounds.append(
+            {
+                "type": "selector",
+                "tag": "🌍 Proxy Select",  # Sniper usually uses this too? Or just "🚀 Auto"?
+                "outbounds": ["🚀 Auto"] + selector_tags,
+                "default": "🚀 Auto",
+            }
+        )
         # Add "⚡ Auto-Fast" alias for compatibility if needed
-        outbounds.append({
-            "type": "selector",
-            "tag": "⚡ Auto-Fast",
-            "outbounds": ["🚀 Auto"],
-            "default": "🚀 Auto"
-        })
+        outbounds.append(
+            {
+                "type": "selector",
+                "tag": "⚡ Auto-Fast",
+                "outbounds": ["🚀 Auto"],
+                "default": "🚀 Auto",
+            }
+        )
         # Add "🛡️ Auto-Fallback" alias
-        outbounds.append({
-            "type": "urltest",
-            "tag": "🛡️ Auto-Fallback",
-            "outbounds": selector_tags,
-            "url": "http://cp.cloudflare.com/generate_204",
-            "interval": "10m"
-        })
+        outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🛡️ Auto-Fallback",
+                "outbounds": selector_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
         # Add "🚀 Mode Selector" alias
-        outbounds.append({
-            "type": "selector",
-            "tag": "🚀 Mode Selector",
-            "outbounds": ["🚀 Auto", "⚡ Auto-Fast", "🛡️ Auto-Fallback"] + selector_tags,
-            "default": "🚀 Auto"
-        })
+        outbounds.append(
+            {
+                "type": "selector",
+                "tag": "🚀 Mode Selector",
+                "outbounds": ["🚀 Auto", "⚡ Auto-Fast", "🛡️ Auto-Fallback"]
+                + selector_tags,
+                "default": "🚀 Auto",
+            }
+        )
 
     sniper_config = {
         "log": {"level": "info", "timestamp": True},
@@ -100,10 +112,10 @@ def generate_split_outputs(
                 "type": "mixed",
                 "tag": "mixed-in",
                 "listen": "127.0.0.1",
-                "listen_port": 2080
+                "listen_port": 2080,
             }
         ],
-        "outbounds": outbounds
+        "outbounds": outbounds,
     }
 
     sniper_path = output_dir / "singbox.json"
@@ -135,40 +147,54 @@ def generate_split_outputs(
             tank_outbounds.extend(json.loads(json.dumps(chain_list)))
 
     # Add Groups to Tank
-    tank_washed_tags = [w["tag"] for w in tank_outbounds if w.get("tag") and "Secure" in w["tag"]]
+    tank_washed_tags = [
+        w["tag"] for w in tank_outbounds if w.get("tag") and "Secure" in w["tag"]
+    ]
     if tank_washed_tags:
-        tank_outbounds.append({
-            "type": "urltest",
-            "tag": "🛡️ Washed",
-            "outbounds": tank_washed_tags,
-            "url": "http://cp.cloudflare.com/generate_204",
-            "interval": "10m"
-        })
+        tank_outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🛡️ Washed",
+                "outbounds": tank_washed_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
 
-    tank_intranet_tags = [w["tag"] for w in tank_outbounds if w.get("tag") and "INTRANET" in w["tag"] and "EXIT" in w["tag"]]
+    tank_intranet_tags = [
+        w["tag"]
+        for w in tank_outbounds
+        if w.get("tag") and "INTRANET" in w["tag"] and "EXIT" in w["tag"]
+    ]
     if tank_intranet_tags:
-        tank_outbounds.append({
-            "type": "urltest",
-            "tag": "🇮🇷 Intranet",
-            "outbounds": tank_intranet_tags,
-            "url": "http://cp.cloudflare.com/generate_204",
-            "interval": "5m"
-        })
+        tank_outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🇮🇷 Intranet",
+                "outbounds": tank_intranet_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "5m",
+            }
+        )
 
     # Auto Group (Test expects "🚀 Auto" in Tank)
     if tank_proxy_tags:
-        tank_outbounds.append({
-            "type": "urltest",
-            "tag": "🚀 Auto",
-            "outbounds": tank_proxy_tags,
-            "url": "http://cp.cloudflare.com/generate_204",
-            "interval": "10m"
-        })
+        tank_outbounds.append(
+            {
+                "type": "urltest",
+                "tag": "🚀 Auto",
+                "outbounds": tank_proxy_tags,
+                "url": "http://cp.cloudflare.com/generate_204",
+                "interval": "10m",
+            }
+        )
 
     # Main Selector "🌍 Proxy Select"
     main_options = ["🚀 Auto"]
-    if tank_washed_tags: main_options.append("🛡️ Washed")
-    if tank_intranet_tags: main_options.append("🇮🇷 Intranet")
+    if tank_washed_tags:
+        main_options.append("🛡️ Washed")
+    if tank_intranet_tags:
+        main_options.append("🇮🇷 Intranet")
     main_options.extend(tank_proxy_tags)
 
     # Filter out any missing tags in main_options (e.g. if Auto is empty)
@@ -176,12 +202,14 @@ def generate_split_outputs(
     existing_tags = set(o.get("tag") for o in tank_outbounds)
     main_options = [t for t in main_options if t in existing_tags]
 
-    tank_outbounds.append({
-        "type": "selector",
-        "tag": "🌍 Proxy Select",
-        "outbounds": main_options,
-        "default": "🚀 Auto" if "🚀 Auto" in main_options else None
-    })
+    tank_outbounds.append(
+        {
+            "type": "selector",
+            "tag": "🌍 Proxy Select",
+            "outbounds": main_options,
+            "default": "🚀 Auto" if "🚀 Auto" in main_options else None,
+        }
+    )
 
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
@@ -195,7 +223,7 @@ def generate_split_outputs(
                 "interface_name": "tun0",
                 "inet4_address": "172.19.0.1/30",
                 "auto_route": True,
-                "strict_route": True
+                "strict_route": True,
             }
         ],
         "outbounds": tank_outbounds,
@@ -203,9 +231,9 @@ def generate_split_outputs(
             "rules": [
                 {"protocol": "dns", "outbound": "dns-out"},
                 {"clash_mode": "Direct", "outbound": "direct"},
-                {"clash_mode": "Global", "outbound": "🌍 Proxy Select"}
+                {"clash_mode": "Global", "outbound": "🌍 Proxy Select"},
             ]
-        }
+        },
     }
 
     tank_path = output_dir / "singbox-vpn.json"
