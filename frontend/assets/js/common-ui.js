@@ -4,7 +4,20 @@
  */
 
 // Immediate fix for "White Page" issue: Remove no-js class as soon as script runs
-document.documentElement.classList.remove('no-js');
+try {
+    if (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList) {
+        document.documentElement.classList.remove('no-js');
+    } else {
+        window.addEventListener('DOMContentLoaded', () => {
+            document.documentElement.classList.remove('no-js');
+        }, { once: true });
+    }
+} catch (e) {
+    // Silently ignore to avoid breaking page initialization
+    window.addEventListener('DOMContentLoaded', () => {
+        try { document.documentElement.classList.remove('no-js'); } catch (_) {}
+    }, { once: true });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme
