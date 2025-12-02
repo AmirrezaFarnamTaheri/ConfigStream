@@ -1,5 +1,4 @@
-from src.configstream.anomaly import AnomalyDetector
-import shutil
+from configstream.anomaly import AnomalyDetector
 from pathlib import Path
 
 

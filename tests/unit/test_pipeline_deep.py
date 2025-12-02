@@ -91,6 +91,7 @@ async def test_processing_consumer_flow():
                 tracker=tracker,
                 event_stream=None,
                 quality_tracker=mock_quality,
+                history=MagicMock(),
                 progress=None,
                 task_process=None,
                 max_proxies=None,
