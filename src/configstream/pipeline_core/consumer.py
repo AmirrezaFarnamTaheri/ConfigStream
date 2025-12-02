@@ -85,8 +85,9 @@ async def processing_consumer(
             if fetch_dur:
                 fetch_meta_str = f" [Fetch: {fetch_dur * 1000:.0f}ms]"
 
+        safe_source = SecurityValidator.sanitize_log_message(str(source))
         logger.info(
-            f"Processing source {source}: {len(raw_lines)} raw lines{fetch_meta_str}"
+            f"Processing source {safe_source}: {len(raw_lines)} raw lines{fetch_meta_str}"
         )
 
         process_start_time = asyncio.get_running_loop().time()
@@ -120,7 +121,7 @@ async def processing_consumer(
 
         if not parsed_batch:
             logger.warning(
-                f"No valid proxies parsed from source {source} "
+                f"No valid proxies parsed from source {safe_source} "
                 f"(Raw lines: {len(raw_lines)}). "
                 f"Check parser logs/format compatibility."
             )
@@ -131,12 +132,12 @@ async def processing_consumer(
         protocol_counts: Dict[str, int] = {}
         for p in parsed_batch:
             protocol_counts[p.protocol] = protocol_counts.get(p.protocol, 0) + 1
-        logger.info(f"Parsed breakdown for {source}: {json.dumps(protocol_counts)}")
+        logger.info(f"Parsed breakdown for {safe_source}: {json.dumps(protocol_counts)}")
 
         # [LOGGING] Trace parsing drop rate
         if len(parsed_batch) < len(raw_lines) * 0.5:
             logger.warning(
-                f"Low parsing success rate for {source}: {len(parsed_batch)}/{len(raw_lines)} lines parsed. "
+                f"Low parsing success rate for {safe_source}: {len(parsed_batch)}/{len(raw_lines)} lines parsed. "
                 "Check for format changes or encoding issues."
             )
 
@@ -166,7 +167,7 @@ async def processing_consumer(
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
             logger.warning(
-                f"Security Filter [{source}]: Dropped {dropped_unsafe} unsafe proxies in {validation_dur:.2f}ms. "
+                f"Security Filter [{safe_source}]: Dropped {dropped_unsafe} unsafe proxies in {validation_dur:.2f}ms. "
                 f"Valid: {len(safe_batch)}/{len(unique_batch)} "
                 f"(Retention: {len(safe_batch)/len(unique_batch):.1%})"
             )
@@ -207,7 +208,7 @@ async def processing_consumer(
                 proxies_to_actually_test.append(p)
 
         logger.info(
-            f"Cache Check [{source}]: {cache_hits} hits, {len(proxies_to_actually_test)} misses "
+            f"Cache Check [{safe_source}]: {cache_hits} hits, {len(proxies_to_actually_test)} misses "
             f"(Forced Retests: {forced_retests}, Total: {len(safe_batch)})"
         )
 
@@ -235,18 +236,18 @@ async def processing_consumer(
                                 # [LOGGING] Enhanced failure logging
                                 error_msg = res.details.get("error", "unknown")
                                 logger.debug(
-                                    f"Proxy test failed [{source}]: {res.protocol}://{res.address}:{res.port} - {error_msg}"
+                                    f"Proxy test failed [{safe_source}]: {res.protocol}://{res.address}:{res.port} - {error_msg}"
                                 )
                         stats.tested += len(chunk)
                         # Log batch test summary
                         working_in_chunk = sum(1 for r in chunk if r.is_working)
                         logger.info(
-                            f"Batch test result for {source}: {working_in_chunk}/{len(chunk)} working "
+                            f"Batch test result for {safe_source}: {working_in_chunk}/{len(chunk)} working "
                             f"({(working_in_chunk/len(chunk)*100):.1f}%)"
                         )
                         if working_in_chunk == 0 and len(chunk) > 0:
                             logger.warning(
-                                f"Batch failure details for {source}: All {len(chunk)} proxies failed in this chunk."
+                                f"Batch failure details for {safe_source}: All {len(chunk)} proxies failed in this chunk."
                             )
 
                         if progress and task_process:
@@ -366,7 +367,7 @@ async def processing_consumer(
 
         # LOG SUMMARY FOR THIS SOURCE
         logger.info(
-            f"Source Summary [{source}]:\n"
+            f"Source Summary [{safe_source}]:\n"
             f"  Raw Lines:     {len(raw_lines)}\n"
             f"  Parsed:        {len(parsed_batch)}\n"
             f"  Unique:        {len(unique_batch)} (Dupes: {duplicates_count})\n"
@@ -381,21 +382,29 @@ async def processing_consumer(
             # Log failure modes at INFO level if significant failures occurred, otherwise DEBUG
             if working_count < len(safe_batch) * 0.5:
                 logger.info(
-                    f"Failure Breakdown [{source}]: {json.dumps(failure_modes)}"
+                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes)}"
                 )
             else:
                 logger.debug(
-                    f"Failure Breakdown [{source}]: {json.dumps(failure_modes)}"
+                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes)}"
                 )
 
         if not source.startswith("supplied-proxies") and not source.startswith(
             "sources/"
         ):
-            quality_tracker.update(
-                source, fetched_count, working_count, diversity_score
+            await loop.run_in_executor(
+                None,
+                quality_tracker.update,
+                source,
+                fetched_count,
+                working_count,
+                diversity_score,
+                0.0,
             )
             # Record detailed run
-            quality_tracker.record_run(
+            await loop.run_in_executor(
+                None,
+                quality_tracker.record_run,
                 source,
                 {
                     "timestamp": int(process_end_time),
@@ -410,7 +419,7 @@ async def processing_consumer(
         else:
             # [LOGGING] Log for local/manual sources too
             logger.info(
-                f"Completed processing for local source {source} - "
+                f"Completed processing for local source {safe_source} - "
                 f"Fetch/Parse/Work: {len(raw_lines)}/{len(parsed_batch)}/{working_count}"
             )
 

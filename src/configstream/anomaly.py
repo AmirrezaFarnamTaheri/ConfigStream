@@ -9,6 +9,7 @@ import sqlite3
 import logging
 import statistics
 import time
+import threading
 import numpy as np
 from pathlib import Path
 from typing import Tuple, Dict, Any
@@ -21,7 +22,9 @@ class AnomalyDetector:
     def __init__(self, db_path: Path = Path("data/anomaly.db")):
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._init_db()
+        self._lock = threading.Lock()
+        with self._lock:
+            self._init_db()
 
     def _init_db(self):
         try:
@@ -57,7 +60,7 @@ CREATE TABLE IF NOT EXISTS history (
             return True, "Small Batch"
 
         try:
-            with sqlite3.connect(self.db_path) as conn:
+            with self._lock, sqlite3.connect(self.db_path) as conn:
                 # Get last 50 fetches (increased history depth for ML)
                 rows = conn.execute(
                     "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
@@ -187,7 +190,7 @@ CREATE TABLE IF NOT EXISTS history (
         Record a successful fetch count for future baselines.
         """
         try:
-            with sqlite3.connect(self.db_path) as conn:
+            with self._lock, sqlite3.connect(self.db_path) as conn:
                 conn.execute(
                     "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
                     (url, count, int(time.time())),
@@ -205,7 +208,7 @@ CREATE TABLE IF NOT EXISTS history (
     def get_statistics(self) -> Dict[str, Any]:
         """Get anomaly detection statistics for monitoring."""
         try:
-            with sqlite3.connect(self.db_path) as conn:
+            with self._lock, sqlite3.connect(self.db_path) as conn:
                 total_sources = conn.execute(
                     "SELECT COUNT(DISTINCT url) FROM history"
                 ).fetchone()[0]
@@ -242,11 +245,12 @@ CREATE TABLE IF NOT EXISTS history (
             return
 
         try:
-            with (
-                sqlite3.connect(other_db_path) as src,
-                sqlite3.connect(self.db_path) as dst,
-            ):
-                src.execute("PRAGMA journal_mode=WAL")
+            with self._lock:
+                with (
+                    sqlite3.connect(other_db_path) as src,
+                    sqlite3.connect(self.db_path) as dst,
+                ):
+                    src.execute("PRAGMA journal_mode=WAL")
                 dst.execute("PRAGMA journal_mode=WAL")
 
                 # Copy all history records. We rely on the fact that (url, timestamp) collisions are unlikely

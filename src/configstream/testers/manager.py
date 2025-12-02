@@ -18,13 +18,14 @@ class SingBoxTester:
         cache: Optional[TestResultCache] = None,
         strict_security: bool = False,
         dry_run: bool = False,
+        max_workers: int = 50,
     ):
         self.timeout = timeout
         self.cache = cache
         self.strict_security = strict_security
         self.settings = AppSettings()
         self.dry_run = dry_run
-        self.go_tester = GoBatchTester()
+        self.go_tester = GoBatchTester(workers=max_workers)
         self.python_tester = PythonTester(self.settings, timeout, strict_security)
 
     async def test(self, proxy: Proxy) -> Proxy:
@@ -67,8 +68,14 @@ class SingBoxTester:
             logger.info(
                 f"Fallback: Testing batch of {len(proxies)} proxies using Python tester"
             )
-            tasks = [self.test(p) for p in proxies]
-            return await asyncio.gather(*tasks)
+            results = []
+            chunk_size = 50
+            for i in range(0, len(proxies), chunk_size):
+                chunk = proxies[i : i + chunk_size]
+                chunk_tasks = [self.test(p) for p in chunk]
+                chunk_results = await asyncio.gather(*chunk_tasks)
+                results.extend(chunk_results)
+            return results
 
     def _finalize_result(self, proxy: Proxy):
         # proxy.tested_at is set in python_tester methods, or go tester response
