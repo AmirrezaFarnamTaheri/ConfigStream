@@ -58,7 +58,7 @@ def validate_address(
 
     # Allow bypass for reserved or test-specific domains
     if address_lower in suspicious_domain_allowlist or address_lower.endswith(".test"):
-        pass
+        return issues
 
     # [FIX] Normalize IDN and unicode
     try:
@@ -90,7 +90,7 @@ def validate_address(
             parts = address_lower.split(".")
             if not all(p.startswith("0x") or p.isdigit() for p in parts):
                 # It's a normal domain, not a hex-encoded IP - allow it
-                pass
+                return issues
             else:
                 logger.warning(
                     "Non-standard IP notation (possible DNS rebinding): %s", address
@@ -131,9 +131,9 @@ def validate_address(
                     f"Encoded loopback address: {decoded}"
                 )
                 return issues
-        except Exception:
+        except Exception as e:
             # If decoding fails we just fall back to normal checks
-            pass
+            logger.debug(f"Failed to URL-decode address {address}: {e}")
 
     # 3) IPv6 loopback / IPv4-mapped loopback
     if address_lower in ("::1", "0:0:0:0:0:0:0:1") or address_lower.startswith(

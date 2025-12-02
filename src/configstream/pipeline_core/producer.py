@@ -92,12 +92,14 @@ async def source_producer(
         blocked_urls = []
 
         loop = asyncio.get_running_loop()
+        sem = asyncio.Semaphore(50)  # cap concurrent checks
 
         async def _check_url(url):
-            should_fetch = await loop.run_in_executor(
-                None, quality_tracker.should_fetch, url
-            )
-            return url, should_fetch
+            async with sem:
+                should_fetch = await loop.run_in_executor(
+                    None, quality_tracker.should_fetch, url
+                )
+                return url, should_fetch
 
         tasks = [_check_url(url) for url in remote_urls]
         results = await asyncio.gather(*tasks)

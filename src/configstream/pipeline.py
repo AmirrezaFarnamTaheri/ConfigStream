@@ -102,6 +102,7 @@ async def run_full_pipeline(
     # Results Collection
     final_proxies: List[Proxy] = []
     seen_keys: Set[tuple] = set()
+    seen_lock = asyncio.Lock()
 
     # --- Progress Bar Setup ---
     task_fetch: Optional[TaskID] = None
@@ -170,6 +171,7 @@ async def run_full_pipeline(
                 max_latency,
                 country_filter,
                 leniency,
+                seen_lock=seen_lock,
             )
         )
         consumer_tasks.append(t)

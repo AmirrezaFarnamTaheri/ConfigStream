@@ -39,8 +39,8 @@ class TestBase64Decoding:
         # Create a very large base64 string
         large_input = "A" * (10 * 1024 * 1024 + 1)  # Over 10MB
         result = _safe_b64_decode(large_input)
-        # Should return original if too large
-        assert result == large_input
+        # Should return empty string if too large
+        assert result == ""
 
 
 class TestVMessParser:

@@ -1,6 +1,7 @@
 import logging
 from typing import List
 
+from .decoders import safe_b64_decode
 from ..constants import (
     MAX_CONFIG_LINE_LENGTH,
     MAX_LINES_PER_SOURCE,
@@ -86,7 +87,15 @@ def extract_config_lines(
                 len(payload),
             )
 
-    lines = payload.splitlines()
+    # Attempt Base64 decode for subscriptions
+    # safe_b64_decode returns original data if it fails or is invalid, so this is safe
+    decoded = safe_b64_decode(payload)
+    if decoded != payload:
+        logger.debug("Successfully decoded Base64 subscription payload")
+        lines = decoded.splitlines()
+    else:
+        lines = payload.splitlines()
+
     logger.debug(
         f"Extracting configs from payload of {len(payload)} bytes ({len(lines)} lines)"
     )
