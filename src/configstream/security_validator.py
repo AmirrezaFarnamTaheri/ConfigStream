@@ -271,6 +271,13 @@ class SecurityValidator:
 
         return sanitized
 
+    @staticmethod
+    def sanitize_address(address: str) -> str:
+        """Mask address for privacy in logs."""
+        if address and len(address) > 6:
+            return address[:3] + "***" + address[-3:]
+        return address
+
 
 def validate_batch_configs(
     proxies: List[Proxy], policy: ValidationPolicy = STRICT_POLICY

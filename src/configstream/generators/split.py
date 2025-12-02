@@ -1,5 +1,6 @@
 import logging
 import json
+import copy
 from pathlib import Path
 from typing import List, Dict, Any, Set, Optional
 
@@ -50,7 +51,7 @@ def generate_split_outputs(
     # Add washed outbounds
     if washed_outbounds:
         # Clone to avoid mutating shared objects
-        washed_clones = json.loads(json.dumps(washed_outbounds))
+        washed_clones = copy.deepcopy(washed_outbounds)
         outbounds.extend(washed_clones)
         for w in washed_clones:
             if w.get("tag") and "RELAY" not in w["tag"]:
@@ -140,11 +141,11 @@ def generate_split_outputs(
             tank_proxy_tags.append(tag)
 
     if washed_outbounds:
-        tank_outbounds.extend(json.loads(json.dumps(washed_outbounds)))
+        tank_outbounds.extend(copy.deepcopy(washed_outbounds))
 
     if smart_chains:
         for chain_list in smart_chains.values():
-            tank_outbounds.extend(json.loads(json.dumps(chain_list)))
+            tank_outbounds.extend(copy.deepcopy(chain_list))
 
     # Add Groups to Tank
     tank_washed_tags = [

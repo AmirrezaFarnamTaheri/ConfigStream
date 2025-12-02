@@ -72,6 +72,9 @@ CREATE TABLE IF NOT EXISTS history (
                 return True, "New Source"
 
             counts = [r[0] for r in rows if isinstance(r[0], int)]
+            if not counts:
+                return True, "Insufficient numeric history"
+
             n = len(counts)
             avg = statistics.mean(counts)
 
@@ -111,32 +114,32 @@ CREATE TABLE IF NOT EXISTS history (
                     )
                     # Fall through to Z-Score logic
 
-                # Logic: Detect Massive Spikes (Fallback Z-Score / Simple Heuristics)
-                # Only apply logic if the source is somewhat established (avg > 10)
-                if avg > 10 and n > 5:
-                    stdev = statistics.stdev(counts) if n > 1 else 0
+            # Logic: Detect Massive Spikes (Fallback Z-Score / Simple Heuristics)
+            # Only apply logic if the source is somewhat established (avg > 10)
+            if avg > 10 and n > 5:
+                stdev = statistics.stdev(counts) if n > 1 else 0
 
-                    # Z-Score Check (if variance is zero, avoid div/0)
-                    if stdev > 0:
-                        z_score = (current_count - avg) / stdev
-                        if z_score > 3.0:  # > 3 SDs away is suspicious
-                            # Double check: sometimes absolute count isn't insane
-                            # If it's < 2x average, maybe ignore Z-score (natural variance)
-                            if current_count > (avg * 2.5):
-                                return False, f"Z-Score Spike ({z_score:.2f})"
-                    else:
-                        # Zero variance history (always returns X, now returns Y)
-                        if current_count > (avg * 3):
-                            return (
-                                False,
-                                f"Sudden Spike (Prev exact: {avg}, Now: {current_count})",
-                            )
+                # Z-Score Check (if variance is zero, avoid div/0)
+                if stdev > 0:
+                    z_score = (current_count - avg) / stdev
+                    if z_score > 3.0:  # > 3 SDs away is suspicious
+                        # Double check: sometimes absolute count isn't insane
+                        # If it's < 2x average, maybe ignore Z-score (natural variance)
+                        if current_count > (avg * 2.5):
+                            return False, f"Z-Score Spike ({z_score:.2f})"
+                else:
+                    # Zero variance history (always returns X, now returns Y)
+                    if current_count > (avg * 3):
+                        return (
+                            False,
+                            f"Sudden Spike (Prev exact: {avg}, Now: {current_count})",
+                        )
 
-                elif avg <= 10 and current_count > 200:
-                    # Small source suddenly returns huge amount
-                    return False, "Massive Spike for Small Source"
+            elif avg <= 10 and current_count > 200:
+                # Small source suddenly returns huge amount
+                return False, "Massive Spike for Small Source"
 
-                return True, "OK"
+            return True, "OK"
 
         except Exception as e:
             # Do NOT hard-block all traffic from this source on transient DB errors.

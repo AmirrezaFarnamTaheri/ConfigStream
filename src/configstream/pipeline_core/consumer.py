@@ -48,6 +48,7 @@ async def processing_consumer(
     max_latency: Optional[int],
     country_filter: Optional[str],
     leniency: bool,
+    seen_lock: Optional[asyncio.Lock] = None,
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
@@ -57,10 +58,15 @@ async def processing_consumer(
     else:
         logger.warning("Go batch tester unavailable - falling back to Python tester")
 
+    # Fallback if lock not provided
+    if seen_lock is None:
+        seen_lock = asyncio.Lock()
+
     while True:
         try:
             # Add timeout to prevent indefinite blocking if producer dies
-            item = await asyncio.wait_for(work_queue.get(), timeout=300.0)
+            # 600 seconds (10 minutes) to allow for slow sources/retries
+            item = await asyncio.wait_for(work_queue.get(), timeout=600.0)
         except asyncio.TimeoutError:
             logger.warning("Consumer timed out waiting for work. Exiting.")
             break
@@ -147,15 +153,15 @@ async def processing_consumer(
         unique_batch = []
         duplicates_count = 0
         # Deduplication logic.
-        # Note: seen_keys is a shared set. In the current single-consumer architecture,
-        # this is thread-safe. If parallel consumers are introduced, a lock must be added here.
-        for p in parsed_batch:
-            k = proxy_unique_key(p)
-            if k not in seen_keys:
-                seen_keys.add(k)
-                unique_batch.append(p)
-            else:
-                duplicates_count += 1
+        # Uses explicit lock to ensure safety if multiple consumers run concurrently.
+        async with seen_lock:
+            for p in parsed_batch:
+                k = proxy_unique_key(p)
+                if k not in seen_keys:
+                    seen_keys.add(k)
+                    unique_batch.append(p)
+                else:
+                    duplicates_count += 1
 
         stats.parsed += len(unique_batch)
         safe_source = SecurityValidator.sanitize_log_message(str(source))
@@ -375,7 +381,7 @@ async def processing_consumer(
             f"  Parsed:        {len(parsed_batch)}\n"
             f"  Unique:        {len(unique_batch)} (Dupes: {duplicates_count})\n"
             f"  Safe:          {len(safe_batch)} (Unsafe/Dropped: {dropped_unsafe})\n"
-            f"  Tested:        {len(proxies_to_actually_test)} (Cached: {len(final_batch_for_this_source) - len(proxies_to_actually_test) if len(final_batch_for_this_source) > 0 else 0})\n"
+            f"  Tested:        {len(proxies_to_actually_test)} (Cached: {cache_hits})\n"
             f"  Working:       {working_count} (Success Rate: {(working_count/len(safe_batch)*100) if safe_batch else 0:.1f}%)\n"
             f"  Countries:     {json.dumps(geoip_stats)}\n"
             f"  Duration:      {full_duration_ms:.0f}ms (Fetch: {fetch_duration:.0f}ms, Process: {total_duration:.0f}ms)"
