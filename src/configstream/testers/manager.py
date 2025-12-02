@@ -48,6 +48,13 @@ class SingBoxTester:
         return result
 
     async def test_batch(self, proxies: List[Proxy]) -> List[Proxy]:
+        if self.dry_run:
+            for p in proxies:
+                p.is_working = True
+                p.latency = 123.45
+                p.tested_at = datetime.now(timezone.utc).isoformat()
+            return proxies
+
         if self.go_tester.available:
             to_test = []
             for p in proxies:

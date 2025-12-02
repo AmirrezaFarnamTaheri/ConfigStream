@@ -21,6 +21,7 @@ from ..concurrency_manager import ConcurrencyManager
 from ..geoip import GeoIPResolver
 from ..source_quality import SourceQualityTracker, calculate_diversity_score
 from ..performance import PerformanceTracker
+from ..proxy_history import ProxyHistoryTracker
 from .models import PipelineStats
 
 if False:  # TYPE_CHECKING
@@ -42,6 +43,7 @@ async def processing_consumer(
     tracker: PerformanceTracker,
     event_stream: Optional["EventStream"],
     quality_tracker: SourceQualityTracker,
+    history: ProxyHistoryTracker,
     progress: Optional[Progress],
     task_process: Optional[TaskID],
     max_proxies: Optional[int],
@@ -236,6 +238,9 @@ async def processing_consumer(
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         await tester.test_batch(chunk)
                         for res in chunk:
+                            # Record history
+                            history.record_test_result(res)
+
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
                                 if event_stream:
@@ -288,6 +293,9 @@ async def processing_consumer(
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
                         for res in results:
+                            # Record history
+                            history.record_test_result(res)
+
                             if res.is_working:
                                 await concurrency.record(
                                     "default", res.latency or 0, True
