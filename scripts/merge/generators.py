@@ -195,11 +195,11 @@ def _generate_statistics(
     working_proxies = sum(1 for p in ranked if p.is_working)
     working_chosen = sum(1 for p in chosen if p.is_working)
 
-    country_counts = defaultdict(int)
+    country_counts: Dict[str, int] = defaultdict(int)
     for p in ranked:
         country_counts[p.country] += 1
 
-    asn_counts = defaultdict(int)
+    asn_counts: Dict[str, int] = defaultdict(int)
     for p in ranked:
         if p.asn:
             asn_counts[p.asn] += 1
@@ -236,8 +236,8 @@ def _generate_statistics(
     save_metadata(meta_stats, ranked, output_dir)
 
     # Batch Stats
-    batch_stats = defaultdict(lambda: {"total": 0, "working": 0})
-    protocols_stats = defaultdict(lambda: defaultdict(int))
+    batch_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: {"total": 0, "working": 0})
+    protocols_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     for p in ranked:
         src = p.batch_source or "unknown"
         batch_stats[src]["total"] += 1

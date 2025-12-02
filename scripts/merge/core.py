@@ -1,16 +1,18 @@
 import logging
 import sys
-from pathlib import Path
 
 from .setup_path import setup_python_path
 
 root_dir = setup_python_path()
 
-from configstream.consolidation import rank_and_rename_proxies, select_top_configs
-from .telemetry import merge_telemetry
-from .proxies import load_and_merge_proxies
-from .generators import generate_outputs
-from .logs import consolidate_logs
+from configstream.consolidation import (
+    rank_and_rename_proxies,
+    select_top_configs,
+)  # noqa: E402
+from .telemetry import merge_telemetry  # noqa: E402
+from .proxies import load_and_merge_proxies  # noqa: E402
+from .generators import generate_outputs  # noqa: E402
+from .logs import consolidate_logs  # noqa: E402
 
 # Setup logging
 logging.basicConfig(

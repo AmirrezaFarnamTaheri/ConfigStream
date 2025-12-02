@@ -34,7 +34,17 @@ def test_binary_found_via_path(monkeypatch, tmp_path):
     assert Path(tester.binary_path).name == "configstream-tester"
 
 
-def test_binary_missing(monkeypatch):
+def test_binary_missing(monkeypatch, tmp_path):
     monkeypatch.delenv("CONFIGSTREAM_TESTER_BIN", raising=False)
+
+    # Mock Path.cwd to point to a clean temp directory
+    # GoBatchTester uses Path.cwd() to resolve relative paths
+    monkeypatch.setattr("pathlib.Path.cwd", lambda: tmp_path)
+
+    # Ensure shutil.which returns None
+    import shutil
+
+    monkeypatch.setattr(shutil, "which", lambda x: None)
+
     tester = GoBatchTester(binary_path="/nonexistent/configstream-tester")
     assert tester.available is False

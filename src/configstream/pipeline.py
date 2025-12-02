@@ -172,6 +172,7 @@ async def run_full_pipeline(
                 tracker,
                 event_stream,
                 quality_tracker,
+                history,
                 progress,
                 task_process,
                 max_proxies,

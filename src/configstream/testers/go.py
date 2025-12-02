@@ -41,6 +41,7 @@ class GoBatchTester:
                 # Fallback to looking in known locations
                 common_locations = [
                     Path.cwd() / "configstream-tester",
+                    Path.cwd() / "src/go/tester/configstream-tester",
                     Path("/usr/local/bin/configstream-tester"),
                     Path("/opt/configstream/bin/configstream-tester"),
                 ]
@@ -102,7 +103,8 @@ class GoBatchTester:
                 urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
 
-            payload_json = json.dumps(inputs)
+            # [FIX] Use NDJSON (Newline Delimited JSON) for streaming compatibility with Go tester
+            payload_json = "\n".join(json.dumps(i) for i in inputs)
             payload_kb = len(payload_json) / 1024.0
 
             logger.info(

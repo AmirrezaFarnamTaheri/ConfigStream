@@ -52,6 +52,9 @@ def mock_dependencies():
     tracker.phase.return_value.__enter__.return_value = None
     tracker.phase.return_value.__exit__.return_value = None
 
+    history = MagicMock()
+    history.record_test_result = MagicMock()
+
     return {
         "queue": queue,
         "quality": quality,
@@ -62,6 +65,7 @@ def mock_dependencies():
         "concurrency": concurrency,
         "geoip": geoip,
         "tracker": tracker,
+        "history": history,
     }
 
 
@@ -246,6 +250,7 @@ async def test_processing_consumer_basic_flow(mock_dependencies):
                 tracker=mock_dependencies["tracker"],
                 event_stream=None,
                 quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
                 progress=None,
                 task_process=None,
                 max_proxies=None,
@@ -296,6 +301,7 @@ async def test_processing_consumer_cached_hit(mock_dependencies):
                 tracker=mock_dependencies["tracker"],
                 event_stream=None,
                 quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
                 progress=None,
                 task_process=None,
                 max_proxies=None,
@@ -348,6 +354,7 @@ async def test_processing_consumer_cache_miss(mock_dependencies):
                 tracker=mock_dependencies["tracker"],
                 event_stream=None,
                 quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
                 progress=None,
                 task_process=None,
                 max_proxies=None,
@@ -402,6 +409,7 @@ async def test_processing_consumer_go_tester(mock_dependencies):
                 tracker=mock_dependencies["tracker"],
                 event_stream=None,
                 quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
                 progress=None,
                 task_process=None,
                 max_proxies=None,
@@ -450,6 +458,7 @@ async def test_processing_consumer_filters(mock_dependencies):
                 tracker=mock_dependencies["tracker"],
                 event_stream=None,
                 quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
                 progress=None,
                 task_process=None,
                 max_proxies=None,
@@ -494,6 +503,7 @@ async def test_processing_consumer_max_proxies(mock_dependencies):
                 tracker=mock_dependencies["tracker"],
                 event_stream=None,
                 quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
                 progress=None,
                 task_process=None,
                 max_proxies=5,  # Already tested 10, so should skip
@@ -546,6 +556,7 @@ async def test_processing_consumer_country_filter(mock_dependencies):
                 tracker=mock_dependencies["tracker"],
                 event_stream=None,
                 quality_tracker=mock_dependencies["quality"],
+                history=mock_dependencies["history"],
                 progress=None,
                 task_process=None,
                 max_proxies=None,
