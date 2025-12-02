@@ -3,6 +3,9 @@
  * Handles: Header Scroll, Mobile Nav, Theme Switcher, Copy Buttons, Inline Icons
  */
 
+// Immediate fix for "White Page" issue: Remove no-js class as soon as script runs
+document.documentElement.classList.remove('no-js');
+
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme
     if (window.api && window.api.initTheme) {

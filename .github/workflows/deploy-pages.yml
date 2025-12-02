@@ -84,6 +84,12 @@ jobs:
           cp output/proxies.json github_pages_root/api/proxies
           cp output/metadata.json github_pages_root/api/stats
 
+          # Fallback Simulation (Static Hosting Support)
+          # Copies JSON files to root so utils.js fallback fetch works (e.g. fetch('proxies.json'))
+          cp output/proxies.json github_pages_root/
+          cp output/metadata.json github_pages_root/
+          cp output/statistics.json github_pages_root/ || true
+
           ts=$(date +%Y%m%d%H%M%S)
           sed -i "s/const VERSION = '[^']*'/const VERSION = '${ts}'/" github_pages_root/assets/js/cache-config.js
 
