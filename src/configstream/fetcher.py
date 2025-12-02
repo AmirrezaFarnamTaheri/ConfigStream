@@ -166,10 +166,12 @@ async def fetch_from_source(
 
                 content_type = result.headers.get("Content-Type", "unknown")
                 content_len = result.headers.get("Content-Length", "unknown")
+                server_header = result.headers.get("Server", "unknown")
+                date_header = result.headers.get("Date", "unknown")
 
                 logger.info(
                     f"Successfully fetched {len(result.content)} bytes from {source} "
-                    f"[Type: {content_type}, Len: {content_len}] "
+                    f"[Type: {content_type}, Len: {content_len}, Server: {server_header}, Date: {date_header}] "
                     f"(Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s). "
                     f"Preview: {preview_text}..."
                 )
@@ -321,8 +323,10 @@ async def fetch_multiple_sources(
 
     # Optimization: Pre-warm DNS (Best effort for HTTP sources)
     logger.info(f"Pre-warming DNS for {len(sources)} sources...")
+    dns_start = asyncio.get_running_loop().time()
     await prewarm_dns_cache(sources)
-    logger.info("DNS pre-warming completed.")
+    dns_dur = asyncio.get_running_loop().time() - dns_start
+    logger.info(f"DNS pre-warming completed in {dns_dur:.2f}s.")
 
     async def _worker(
         http_client: httpx.AsyncClient, source: str
