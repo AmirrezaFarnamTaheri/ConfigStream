@@ -33,7 +33,7 @@ class GoBatchTester:
         if env_path and os.path.exists(env_path):
             resolved = env_path
         elif os.path.isabs(binary_path) and os.path.exists(binary_path):
-             resolved = binary_path
+            resolved = binary_path
         else:
             # Try finding in PATH or current directory
             resolved = shutil.which(binary_path)

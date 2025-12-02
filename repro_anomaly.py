@@ -2,6 +2,7 @@ from src.configstream.anomaly import AnomalyDetector
 import shutil
 from pathlib import Path
 
+
 def test():
     if Path("test_anomaly.db").exists():
         Path("test_anomaly.db").unlink()
@@ -13,5 +14,6 @@ def test():
 
     res = d.is_safe(url, 1000)
     print(f"Result: {res}")
+
 
 test()

@@ -116,7 +116,9 @@ class WasmParser:
                 try:
                     self.dealloc(self.store, ptr, length)
                 except Exception as e:
-                    logger.debug(f"Failed to deallocate input buffer in {self.name}: {e}")
+                    logger.debug(
+                        f"Failed to deallocate input buffer in {self.name}: {e}"
+                    )
 
 
 class PluginManager:

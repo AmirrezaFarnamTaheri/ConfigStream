@@ -12,10 +12,11 @@ class WasmPlugin {
     parse(config) {
         let ptr = 0;
         let resultPtr = 0;
+        let len = 0;
         try {
             const encoder = new TextEncoder();
             const configBytes = encoder.encode(config);
-            const len = configBytes.length;
+            len = configBytes.length;
 
             if (!this.alloc || !this.parseFunc) {
                 console.warn(`Plugin ${this.name} missing exports`);
@@ -76,8 +77,8 @@ class WasmPlugin {
             }
             // Free input if not already freed (e.g. exception)
             if (ptr !== 0 && this.dealloc) {
-                this.dealloc(ptr, 0); // Len might be lost or we assume 0 is ok for some allocators, or we capture len.
-                // JS scoping makes capturing len easy if we didn't modify it.
+                // [FIX] Use captured len
+                this.dealloc(ptr, len);
             }
         }
     }

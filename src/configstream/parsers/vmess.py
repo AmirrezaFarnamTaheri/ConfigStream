@@ -17,6 +17,8 @@ def parse_vmess(config: str) -> Optional[Proxy]:
 
         # Use safe_b64_decode to handle URL-encoding and padding automatically
         decoded = safe_b64_decode(data)
+        if decoded is None:
+            return None
 
         # safe_b64_decode returns original data on failure; check if it looks like JSON
         if not decoded.strip().startswith("{"):
