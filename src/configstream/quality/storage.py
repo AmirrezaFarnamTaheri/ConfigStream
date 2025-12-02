@@ -22,12 +22,12 @@ class QualityStorage:
             self._init_db()
 
     def _get_conn(self) -> sqlite3.Connection:
-        # Each thread should get its own connection.
-        # The lock in each method will serialize access to the database file.
-        conn = sqlite3.connect(self.db_path)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        return conn
+        # Reuse a single connection per process; guarded by self._lock.
+        if self._conn is None:
+            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            self._conn.execute("PRAGMA journal_mode=WAL")
+            self._conn.execute("PRAGMA synchronous=NORMAL")
+        return self._conn
 
     def _init_db(self):
         """Initialize the SQLite schema."""
@@ -81,9 +81,10 @@ class QualityStorage:
             logger.error(f"Failed to init source quality DB: {e}")
 
     def close(self):
-        if self._conn:
-            self._conn.close()
-            self._conn = None
+        with self._lock:
+            if self._conn:
+                self._conn.close()
+                self._conn = None
 
     def get_source_state(self, url: str) -> Optional[Tuple[Any, ...]]:
         """Get state for a source: (status, last_checked, consecutive_failures, reliability_score)."""

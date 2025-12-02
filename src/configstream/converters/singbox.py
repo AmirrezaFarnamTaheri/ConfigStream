@@ -164,20 +164,22 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         }
     elif proxy.protocol == "wireguard":
         # [FIX] Generate unique local IP to allow concurrent testing
-        # Simple hash of address+port to 3rd octet: 172.16.{0-255}.2
-        # Using hashlib to be deterministic for same proxy but random-ish across different ones
-        # Audit: SHA-256
+        # Using 2 bytes from hash to generate a /32 IP in 172.16.0.0/16 range
+        # to minimize collision probability during concurrent testing.
         h = hashlib.sha256(f"{proxy.address}:{proxy.port}".encode()).digest()
-        octet = h[0]
-        unique_ip = f"172.16.{octet}.2/32"
-        safe_addr = SecurityValidator.sanitize_log_message(
+        octet3 = h[0]
+        octet4 = h[1]
+        # Ensure fourth octet is not .0 or .1 which can be special
+        if octet4 < 2:
+            octet4 = 2
+        unique_ip = f"172.16.{octet3}.{octet4}/32"
+
+        safe_addr = SecurityValidator.sanitize_address(
             getattr(proxy, "address", "unknown")
         )
-        # Extra masking for strict privacy in debug logs
-        if safe_addr and len(safe_addr) > 6:
-            safe_addr = safe_addr[:3] + "***" + safe_addr[-3:]
+
         logger.debug(
-            f"Generated unique local IP {unique_ip} for WireGuard proxy {safe_addr} (hash-octet={octet})"
+            f"Generated unique local IP {unique_ip} for WireGuard proxy {safe_addr}"
         )
 
         out = {
@@ -241,15 +243,21 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = apply_stealth_profile(out, proxy.protocol)
 
     if out:
+        safe_addr = SecurityValidator.sanitize_address(getattr(proxy, "address", "unknown"))
+        safe_source = SecurityValidator.sanitize_log_message(str(proxy.details.get("_source", "unknown")))
         logger.debug(
-            f"Successfully converted {proxy.protocol} proxy: {proxy.address} "
-            f"(Source: {proxy.details.get('_source', 'unknown')})"
+            f"Successfully converted {proxy.protocol} proxy: {safe_addr} "
+            f"(Source: {safe_source})"
         )
     else:
+        details_to_log = proxy.details.copy()
+        if "private_key" in details_to_log:
+            details_to_log["private_key"] = "[MASKED]"
+
         logger.warning(
             f"Dropped {proxy.protocol} proxy {proxy.address} during conversion. "
             f"Reason: Logic fell through (Missing implementation or valid fields). "
-            f"Details: {proxy.details}"
+            f"Details: {details_to_log}"
         )
 
     return out

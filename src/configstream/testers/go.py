@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class GoBatchTester:
     def __init__(
         self,
-        binary_path: str = "/usr/local/bin/configstream-tester",
+        binary_path: str = "configstream-tester",
         workers: int = 50,
     ):
         # Clamp workers to a safe range
@@ -26,33 +26,35 @@ class GoBatchTester:
             w = 50
         self.workers = max(1, min(w, 1000))
         env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
-        if env_path:
-            binary_path = env_path
 
+        # Priority: Env Var > Absolute Path arg > PATH lookup
         resolved = None
-        if os.path.exists(binary_path):
-            resolved = binary_path
+
+        if env_path and os.path.exists(env_path):
+            resolved = env_path
+        elif os.path.isabs(binary_path) and os.path.exists(binary_path):
+             resolved = binary_path
         else:
-            which_result = shutil.which(Path(binary_path).name)
-            if which_result:
-                resolved = which_result
-            else:
-                name_only = Path(binary_path).name
-                for base in os.environ.get("PATH", "").split(os.pathsep):
-                    candidate = Path(base) / name_only
-                    if candidate.exists():
-                        resolved = str(candidate)
+            # Try finding in PATH or current directory
+            resolved = shutil.which(binary_path)
+            if not resolved:
+                # Fallback to looking in known locations
+                common_locations = [
+                    Path.cwd() / "configstream-tester",
+                    Path("/usr/local/bin/configstream-tester"),
+                    Path("/opt/configstream/bin/configstream-tester"),
+                ]
+                for loc in common_locations:
+                    if loc.exists():
+                        resolved = str(loc)
                         break
 
         self.binary_path = resolved or binary_path
         self.available = resolved is not None
         if not self.available:
-            # Fail loudly here so operators understand that NO proxies will be tested
-            # when the Go batch tester is expected but missing.
             logger.error(
-                "CRITICAL: Go batch tester binary not found at %s. "
-                "No proxies will be tested via the high-performance path!",
-                binary_path,
+                f"CRITICAL: Go batch tester binary not found (searched: {binary_path}, env: {env_path}, PATH). "
+                "No proxies will be tested via the high-performance path!"
             )
 
     async def test_batch(
