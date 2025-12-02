@@ -20,6 +20,11 @@
     </script>
 </head>
 <body>
+    <noscript>
+        <div style="padding: 20px; text-align: center; background: #fee; color: #c00;">
+            JavaScript is required to view this page. Please enable JavaScript in your browser settings.
+        </div>
+    </noscript>
     <div class="nav-overlay"></div>
     <header class="header">
         <div class="container">
@@ -82,35 +87,35 @@
 
     <main>
         <div class="container text-center">
-            <h1 class="about-hero-title">About ConfigStream</h1>
-            <p class="subtitle">Automated, resilient, and free access to the open internet.</p>
+            <h1 class="about-hero-title" data-i18n="about.hero.title">About ConfigStream</h1>
+            <p class="subtitle" data-i18n="about.subtitle">Automated, resilient, and free access to the open internet.</p>
         </div>
 
         <div class="about-container">
             <div class="mission-card">
-                <h2 class="mission-title">Mission</h2>
-                <p class="about-text-content">
+                <h2 class="mission-title" data-i18n="about.mission.title">Mission</h2>
+                <p class="about-text-content" data-i18n="about.mission.text">
                     ConfigStream was built to provide reliable, free access to the global internet for users in restricted network environments. By aggregating proxies from hundreds of public sources and rigorously testing them, we ensure high availability without manual effort.
                 </p>
 
-                <h2 class="about-section-title">Architecture: The "Resilient Core"</h2>
-                <p class="about-text-content">
+                <h2 class="about-section-title" data-i18n="about.arch.title">Architecture: The "Resilient Core"</h2>
+                <p class="about-text-content" data-i18n="about.arch.text">
                     We utilize a "Zero Budget" architecture that runs entirely on GitHub's infrastructure, ensuring sustainability and censorship resistance.
                 </p>
                 <ul class="feature-list">
-                    <li><strong>Hybrid Engine:</strong> Combines Python's flexibility for intelligence with a high-performance <strong>Go Sidecar</strong> for massively concurrent network testing.</li>
-                    <li><strong>Intelligence Layer:</strong> Our "Proxy Washing" technology automatically repairs blocked IPs by tunnelling them through Cloudflare WARP, creating "Smart Chains" that bypass deeper restrictions.</li>
-                    <li><strong>Aggregator:</strong> Fetches from over 600 sources every 6 hours.</li>
-                    <li><strong>Publisher:</strong> Generates optimized configs for V2Ray, Clash, Sing-box (Tank/Sniper modes), and more.</li>
+                    <li data-i18n="about.arch.hybrid"><strong>Hybrid Engine:</strong> Combines Python's flexibility for intelligence with a high-performance <strong>Go Sidecar</strong> for massively concurrent network testing.</li>
+                    <li data-i18n="about.arch.intel"><strong>Intelligence Layer:</strong> Our "Proxy Washing" technology automatically repairs blocked IPs by tunnelling them through Cloudflare WARP, creating "Smart Chains" that bypass deeper restrictions.</li>
+                    <li data-i18n="about.arch.agg"><strong>Aggregator:</strong> Fetches from over 600 sources every 6 hours.</li>
+                    <li data-i18n="about.arch.pub"><strong>Publisher:</strong> Generates optimized configs for V2Ray, Clash, Sing-box (Tank/Sniper modes), and more.</li>
                 </ul>
 
-                <h2 class="about-section-title">Security</h2>
-                <p class="about-text-content">
+                <h2 class="about-section-title" data-i18n="about.security.title">Security</h2>
+                <p class="about-text-content" data-i18n="about.security.text">
                     While we perform automated security checks (blocking ads, malware sites, honeypots, and verification of TLS), these are public proxies. We recommend using them for browsing and avoiding sensitive transactions (banking, passwords).
                 </p>
 
                 <div class="text-center">
-                    <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="source-btn">View Source on GitHub</a>
+                    <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="source-btn" data-i18n="about.btn.source">View Source on GitHub</a>
                 </div>
             </div>
         </div>
