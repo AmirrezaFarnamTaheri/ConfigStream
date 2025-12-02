@@ -220,14 +220,17 @@ def is_plausible_proxy_config(config: str) -> bool:
             return False
 
     if "://" not in config:
+        # logger.debug(f"Plausibility check failed: No protocol separator '://' in {config[:50]}...")
         return False
     protocol, rest = config.split("://", 1)
     if len(protocol) > 20 or len(rest) < 4:
+        # logger.debug(f"Plausibility check failed: Invalid length for protocol or rest in {config[:50]}...")
         return False
     special_char_count = sum(
         1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&="
     )
     if special_char_count > len(rest) * 0.5:
+        # logger.debug(f"Plausibility check failed: High noise ratio in {config[:50]}...")
         return False
     return True
 

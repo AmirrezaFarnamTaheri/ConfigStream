@@ -166,15 +166,21 @@ async def fetch_from_source(
 
                 content_type = result.headers.get("Content-Type", "unknown")
                 content_len = result.headers.get("Content-Length", "unknown")
-                server_header = result.headers.get("Server", "unknown")
-                date_header = result.headers.get("Date", "unknown")
 
                 logger.info(
-                    f"Successfully fetched {len(result.content)} bytes from {source} "
-                    f"[Type: {content_type}, Len: {content_len}, Server: {server_header}, Date: {date_header}] "
+                    f"Successfully fetched {len(result.content)} bytes from {sanitized_source} "
+                    f"[Type: {content_type}, Len: {content_len}] "
                     f"(Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s). "
                     f"Preview: {preview_text}..."
                 )
+                # Optional detailed headers at debug level only
+                if logger.isEnabledFor(logging.DEBUG):
+                    server_header = result.headers.get("Server", "unknown")
+                    date_header = result.headers.get("Date", "unknown")
+                    logger.debug(
+                        f"Response headers (sanitized) for {sanitized_source}: "
+                        f"Server={server_header}, Date={date_header}"
+                    )
             else:
                 logger.warning(
                     f"Fetch succeeded at network level but returned no valid content/success flag for {source}. "
@@ -323,9 +329,10 @@ async def fetch_multiple_sources(
 
     # Optimization: Pre-warm DNS (Best effort for HTTP sources)
     logger.info(f"Pre-warming DNS for {len(sources)} sources...")
-    dns_start = asyncio.get_running_loop().time()
+    loop = asyncio.get_running_loop()
+    dns_start = loop.time()
     await prewarm_dns_cache(sources)
-    dns_dur = asyncio.get_running_loop().time() - dns_start
+    dns_dur = float(loop.time() - dns_start)
     logger.info(f"DNS pre-warming completed in {dns_dur:.2f}s.")
 
     async def _worker(
