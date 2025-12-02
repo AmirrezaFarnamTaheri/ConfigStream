@@ -31,14 +31,14 @@ def parse_ss(config: str) -> Optional[Proxy]:
             if ":" not in user_info:
                 try:
                     decoded_user_info = safe_b64_decode(user_info)
-                    if ":" in decoded_user_info:
+                    if decoded_user_info is not None and ":" in decoded_user_info:
                         user_info = decoded_user_info
                 except (binascii.Error, ValueError):
                     pass  # Not base64, proceed
         else:
             # SIP002: ss://<base64-encoded-part>
             decoded_main = safe_b64_decode(main_part)
-            if "@" not in decoded_main:
+            if decoded_main is None or "@" not in decoded_main:
                 return None
             user_info, host_info = decoded_main.split("@", 1)
 

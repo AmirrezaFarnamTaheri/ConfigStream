@@ -82,11 +82,13 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
         if not SAFE_PATH_PATTERN.match(country):
             raise HTTPException(400, "Invalid country parameter")
         fpath = OUTPUT_DIR / "by_country" / f"{country.lower()}.json"
-        # Verify the resolved path is within OUTPUT_DIR
+        # Verify the resolved path is within OUTPUT_DIR using robust commonpath check
         try:
-            if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
+            base = os.path.realpath(str(OUTPUT_DIR))
+            target = os.path.realpath(str(fpath))
+            if os.path.commonpath([base, target]) != base:
                 raise HTTPException(400, "Invalid country parameter")
-        except ValueError:
+        except (ValueError, OSError):
             raise HTTPException(400, "Invalid path")
 
         if fpath.exists():
@@ -99,10 +101,12 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
         fpath = OUTPUT_DIR / "by_protocol" / f"{protocol.lower()}.json"
         # Verify the resolved path is within OUTPUT_DIR
         try:
-            if not fpath.resolve().is_relative_to(OUTPUT_DIR.resolve()):
+            base = os.path.realpath(str(OUTPUT_DIR))
+            target = os.path.realpath(str(fpath))
+            if os.path.commonpath([base, target]) != base:
                 raise HTTPException(400, "Invalid protocol parameter")
-        except ValueError:
-             raise HTTPException(400, "Invalid path")
+        except (ValueError, OSError):
+            raise HTTPException(400, "Invalid path")
 
         if fpath.exists():
             return FileResponse(fpath)
@@ -177,7 +181,9 @@ async def read_index():
     index_path = FRONTEND_DIR / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
-    return JSONResponse({"status": "ok", "message": "ConfigStream API is running (Frontend not found)"})
+    return JSONResponse(
+        {"status": "ok", "message": "ConfigStream API is running (Frontend not found)"}
+    )
 
 
 @app.get("/health")
@@ -208,10 +214,9 @@ async def read_page(page: str):
 
     # Verify the resolved path is within FRONTEND_DIR
     try:
-        if (
-            page_path.resolve().is_relative_to(FRONTEND_DIR.resolve())
-            and page_path.exists()
-        ):
+        base = os.path.realpath(str(FRONTEND_DIR))
+        target = os.path.realpath(str(page_path))
+        if os.path.commonpath([base, target]) == base and page_path.exists():
             return FileResponse(page_path)
     except (ValueError, OSError):
         pass

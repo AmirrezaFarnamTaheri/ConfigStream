@@ -4,6 +4,7 @@ Uses local MMDB files instead of API calls for zero-latency, private lookups.
 """
 
 import asyncio
+import threading
 import ipaddress
 import logging
 from pathlib import Path
@@ -28,11 +29,14 @@ class GeoData(BaseModel):
 
 class GeoIPResolver:
     _instance: Optional["GeoIPResolver"] = None
+    _lock: threading.Lock = threading.Lock()
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(GeoIPResolver, cls).__new__(cls)
-            cls._instance._initialized = False
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super(GeoIPResolver, cls).__new__(cls)
+                    cls._instance._initialized = False
         return cls._instance
 
     def __init__(self):
@@ -58,13 +62,17 @@ class GeoIPResolver:
                 self.reader_city = geoip2.database.Reader(city_path)
                 logger.info("Loaded GeoLite2 City database.")
             else:
-                logger.warning("GeoLite2 City DB not found. Geolocation disabled. Run 'configstream update-databases'.")
+                logger.warning(
+                    "GeoLite2 City DB not found. Geolocation disabled. Run 'configstream update-databases'."
+                )
 
             if asn_path.exists():
                 self.reader_asn = geoip2.database.Reader(asn_path)
                 logger.info("Loaded GeoLite2 ASN database.")
             else:
-                 logger.warning("GeoLite2 ASN DB not found. ASN lookup disabled. Run 'configstream update-databases'.")
+                logger.warning(
+                    "GeoLite2 ASN DB not found. ASN lookup disabled. Run 'configstream update-databases'."
+                )
 
         except Exception as e:
             logger.error(f"Failed to load GeoIP databases: {e}")

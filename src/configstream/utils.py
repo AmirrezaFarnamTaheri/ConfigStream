@@ -49,7 +49,9 @@ class AtomicFileWriter:
                 try:
                     os.unlink(temp_path)
                 except OSError as e_cleanup:
-                    logger.debug(f"Failed to cleanup temp file {temp_path}: {e_cleanup}")
+                    logger.debug(
+                        f"Failed to cleanup temp file {temp_path}: {e_cleanup}"
+                    )
             raise
 
     @staticmethod
@@ -75,7 +77,9 @@ class AtomicFileWriter:
                 try:
                     os.unlink(temp_path)
                 except OSError as e_cleanup:
-                    logger.debug(f"Failed to cleanup temp file {temp_path}: {e_cleanup}")
+                    logger.debug(
+                        f"Failed to cleanup temp file {temp_path}: {e_cleanup}"
+                    )
             raise
 
 

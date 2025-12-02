@@ -390,6 +390,10 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return false
+	}
+
 	var r HoneypotResponse
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
 		return true

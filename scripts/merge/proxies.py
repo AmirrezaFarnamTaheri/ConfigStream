@@ -115,6 +115,8 @@ def load_and_merge_proxies(batch_dirs: List[Path]) -> Tuple[List[Proxy], int]:
 
     # If we accumulated global fetched counts from metadata, use that.
     # Otherwise fallback to total_processed (which is just working proxies).
-    final_fetched_count = total_fetched_global if total_fetched_global > 0 else total_processed
+    final_fetched_count = (
+        total_fetched_global if total_fetched_global > 0 else total_processed
+    )
 
     return merged_proxies, final_fetched_count

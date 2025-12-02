@@ -165,14 +165,15 @@ async def generate_pipeline_outputs(
 
     try:
         import importlib.resources
+
         # Find the path to the stego.js file within the installed package
         # Assuming configstream is the package and frontend is included/reachable
         # This might need adjustment based on packaging
         with importlib.resources.path("configstream", "frontend") as frontend_path:
-             # This path is usually temporary or points to install location
-             js_path_candidate = frontend_path / "assets" / "js" / "stego.js"
-             if js_path_candidate.exists():
-                 source_js_path = js_path_candidate
+            # This path is usually temporary or points to install location
+            js_path_candidate = frontend_path / "assets" / "js" / "stego.js"
+            if js_path_candidate.exists():
+                source_js_path = js_path_candidate
     except (ImportError, FileNotFoundError, Exception):
         # Fallback to relative paths
         pass

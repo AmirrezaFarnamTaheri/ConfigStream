@@ -101,14 +101,18 @@ async def source_producer(
                 )
                 return url, should_fetch
 
-        tasks = [_check_url(url) for url in remote_urls]
-        results = await asyncio.gather(*tasks)
+        # Process in chunks to avoid creating too many tasks at once
+        chunk_size = 500
+        for i in range(0, len(remote_urls), chunk_size):
+            chunk = remote_urls[i : i + chunk_size]
+            tasks = [_check_url(url) for url in chunk]
+            results = await asyncio.gather(*tasks)
 
-        for url, should_fetch in results:
-            if should_fetch:
-                active_urls.append(url)
-            else:
-                blocked_urls.append(url)
+            for url, should_fetch in results:
+                if should_fetch:
+                    active_urls.append(url)
+                else:
+                    blocked_urls.append(url)
 
         # If every remote source is on cooldown or disabled, surface a clear error.
         if blocked_urls and not active_urls:
@@ -141,7 +145,10 @@ async def source_producer(
 
                 for source, res in results.items():
                     if res.success and res.content:
-                        lines = _extract_config_lines(res.content)
+                        # [FIX] Offload parsing to executor
+                        lines = await loop.run_in_executor(
+                            None, _extract_config_lines, res.content
+                        )
                         count = len(lines)
                         safe_source = SecurityValidator.sanitize_log_message(source)
 
