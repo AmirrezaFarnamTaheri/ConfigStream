@@ -197,7 +197,8 @@ async def test_fetch_from_source_jitter_warning(caplog):
     tracker.record = AsyncMock()
     tracker.get_jitter = AsyncMock(return_value=3.0)  # High jitter
 
-    with patch("configstream.fetcher.logger") as mock_logger:
+    # [FIX] Patch correct logger location after refactor
+    with patch("configstream.fetcher_core.orchestrator.logger") as mock_logger:
         await fetch_from_source(client, "http://valid.com", timeout_tracker=tracker)
         # Check if any call to info contains "High Jitter"
         assert any("High Jitter" in str(call) for call in mock_logger.info.mock_calls)
@@ -221,7 +222,8 @@ async def test_fetch_from_source_unexpected_exception():
 @pytest.mark.asyncio
 async def test_fetch_multiple_sources_integration():
     # Integration test mocking minimal internals
-    with patch("configstream.fetcher.fetch_from_source") as mock_single:
+    # [FIX] Patch correct location
+    with patch("configstream.fetcher_core.batch.fetch_from_source") as mock_single:
         mock_single.return_value = FetchResult(True, "src1")
 
         # Implicit client=None
@@ -234,7 +236,8 @@ async def test_fetch_multiple_sources_integration():
 @pytest.mark.asyncio
 async def test_fetch_multiple_sources_with_explicit_client():
     client = AsyncMock(spec=httpx.AsyncClient)
-    with patch("configstream.fetcher.fetch_from_source") as mock_single:
+    # [FIX] Patch correct location
+    with patch("configstream.fetcher_core.batch.fetch_from_source") as mock_single:
         mock_single.return_value = FetchResult(True, "src1")
 
         results = await fetch_multiple_sources(["http://src1.com"], client=client)

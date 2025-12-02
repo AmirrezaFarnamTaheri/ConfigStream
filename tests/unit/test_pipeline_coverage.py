@@ -83,8 +83,7 @@ async def test_processing_consumer_basic(
     await mock_work_queue.put(None)  # Signal end
 
     # Mock parse_config to return a proxy
-    with patch(
-        "configstream.pipeline_stages.parse_config",
+    with patch("configstream.pipeline_core.consumer.parse_config",
         return_value=Proxy(
             protocol="vmess",
             address="1.1.1.1",
@@ -93,8 +92,7 @@ async def test_processing_consumer_basic(
             details={},
         ),
     ):
-        with patch(
-            "configstream.pipeline_stages.validate_batch_configs",
+        with patch("configstream.pipeline_core.consumer.validate_batch_configs",
             return_value=[
                 Proxy(
                     protocol="vmess",

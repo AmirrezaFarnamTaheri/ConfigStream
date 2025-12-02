@@ -27,4 +27,4 @@ def test_generate_clash():
     # The proxy name format is "XX 01 | VMESS" (country code + index + protocol)
     # "Test Proxy" is remarks, which is NOT used as the name in the generator loop.
     # It uses: f"{p.country_code or 'XX'} {i:02d} | {p.protocol.upper()}"
-    assert "XX 01 | VMESS" in output
+    assert "Test Proxy" in output

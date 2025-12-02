@@ -67,14 +67,13 @@ async def test_processing_consumer_flow():
     mock_quality = MagicMock(spec=SourceQualityTracker)
 
     # Need to mock parse_config or ensure "vmess://test" parses
-    with patch("configstream.pipeline_stages.parse_config") as mock_parse:
+    with patch("configstream.pipeline_core.consumer.parse_config") as mock_parse:
         # Return a valid proxy
         p = Proxy(config="vmess://test", protocol="vmess", address="1.1.1.1", port=443)
         mock_parse.return_value = p
 
         # We also need to mock validate_batch_configs to just return the list
-        with patch(
-            "configstream.pipeline_stages.validate_batch_configs"
+        with patch("configstream.pipeline_core.consumer.validate_batch_configs"
         ) as mock_validate:
             mock_validate.side_effect = lambda batch, policy: batch
 
