@@ -372,12 +372,15 @@ async def processing_consumer(
         logger.debug(
             f"Starting security validation for {len(unique_batch)} proxies from {source}..."
         )
-        safe_batch = validate_batch_configs(unique_batch, policy)
+        with tracker.phase("security_validation"):
+            validation_start = loop.time()
+            safe_batch = validate_batch_configs(unique_batch, policy)
+            validation_dur = (loop.time() - validation_start) * 1000
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
             logger.warning(
-                f"Security Filter [{source}]: Dropped {dropped_unsafe} unsafe proxies. "
+                f"Security Filter [{source}]: Dropped {dropped_unsafe} unsafe proxies in {validation_dur:.2f}ms. "
                 f"Valid: {len(safe_batch)}/{len(unique_batch)} "
                 f"(Retention: {len(safe_batch)/len(unique_batch):.1%})"
             )
@@ -391,7 +394,7 @@ async def processing_consumer(
                 logger.debug(f"Sample dropped proxies: {dropped_details}...")
         else:
             logger.info(
-                f"Security Filter [{source}]: All {len(unique_batch)} proxies passed validation."
+                f"Security Filter [{source}]: All {len(unique_batch)} proxies passed validation in {validation_dur:.2f}ms."
             )
 
         final_batch_for_this_source = []
@@ -583,6 +586,7 @@ async def processing_consumer(
             f"  Safe:          {len(safe_batch)} (Unsafe/Dropped: {dropped_unsafe})\n"
             f"  Tested:        {len(proxies_to_actually_test)} (Cached: {len(final_batch_for_this_source) - len(proxies_to_actually_test) if len(final_batch_for_this_source) > 0 else 0})\n"
             f"  Working:       {working_count} (Success Rate: {(working_count/len(safe_batch)*100) if safe_batch else 0:.1f}%)\n"
+            f"  Countries:     {json.dumps(geoip_stats)}\n"
             f"  Duration:      {full_duration_ms:.0f}ms (Fetch: {fetch_duration:.0f}ms, Process: {total_duration:.0f}ms)"
         )
 
