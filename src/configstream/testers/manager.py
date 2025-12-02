@@ -11,6 +11,7 @@ from .python import PythonTester
 
 logger = logging.getLogger(__name__)
 
+
 class SingBoxTester:
     def __init__(
         self,
@@ -68,11 +69,19 @@ class SingBoxTester:
             logger.info(
                 f"Fallback: Testing batch of {len(proxies)} proxies using Python tester"
             )
+            # Cap concurrency to avoid overwhelming the loop/system
+            max_concurrent = 100
+            sem = asyncio.Semaphore(max_concurrent)
+
+            async def _guarded_test(p: Proxy):
+                async with sem:
+                    return await self.test(p)
+
             results = []
-            chunk_size = 50
+            chunk_size = 200
             for i in range(0, len(proxies), chunk_size):
                 chunk = proxies[i : i + chunk_size]
-                chunk_tasks = [self.test(p) for p in chunk]
+                chunk_tasks = [_guarded_test(p) for p in chunk]
                 chunk_results = await asyncio.gather(*chunk_tasks)
                 results.extend(chunk_results)
             return results

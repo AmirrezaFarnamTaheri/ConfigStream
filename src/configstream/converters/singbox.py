@@ -7,6 +7,7 @@ from .singbox_utils import add_transport_sb, apply_stealth_profile
 
 logger = logging.getLogger(__name__)
 
+
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """
     Convert a Proxy model to a Sing-box outbound configuration.

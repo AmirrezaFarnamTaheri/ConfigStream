@@ -2,6 +2,7 @@ import base64
 from typing import List
 from ..models import Proxy
 
+
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generates a base64 encoded subscription string."""
     lines = []

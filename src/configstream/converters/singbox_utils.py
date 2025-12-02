@@ -3,6 +3,7 @@ from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
 
+
 def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
     """Helper to add transport options for Sing-box."""
     net = details.get("net") or details.get("type") or "tcp"
@@ -73,7 +74,10 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
 
     return out
 
-def apply_stealth_profile(outbound_config: Dict[str, Any], protocol: str) -> Dict[str, Any]:
+
+def apply_stealth_profile(
+    outbound_config: Dict[str, Any], protocol: str
+) -> Dict[str, Any]:
     """
     Injects anti-censorship features (Multiplexing, Padding, Headers).
     Only applies to TCP-based protocols (VMess, VLESS, Trojan).

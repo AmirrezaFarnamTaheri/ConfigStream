@@ -15,6 +15,7 @@ from .orchestrator import fetch_from_source
 
 logger = logging.getLogger(__name__)
 
+
 async def fetch_multiple_sources(
     sources: List[str],
     max_concurrent: int = 10,

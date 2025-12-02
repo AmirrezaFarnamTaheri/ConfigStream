@@ -161,16 +161,27 @@ async def generate_pipeline_outputs(
 
     # Try to find stego.js
     # Ensure we ONLY modify the output copy, not the source!
-    js_path = None
+    source_js_path = None
+    possible_paths = [
+        Path("frontend/assets/js/stego.js"),
+        output_path.parent / "frontend" / "assets" / "js" / "stego.js",
+    ]
+
+    for p in possible_paths:
+        if p.exists():
+            source_js_path = p
+            break
+
     output_js_path = output_path / "assets" / "js" / "stego.js"
 
-    if output_js_path.exists():
-        js_path = output_js_path
-
-    if js_path:
-        inject_stego_key_into_frontend(dynamic_key, js_path)
+    if source_js_path:
+        # Ensure output directory exists
+        output_js_path.parent.mkdir(parents=True, exist_ok=True)
+        # Copy source to destination before injecting key
+        shutil.copy(source_js_path, output_js_path)
+        inject_stego_key_into_frontend(dynamic_key, output_js_path)
     else:
-        logger.warning("Could not find stego.js to inject key.")
+        logger.warning("Could not find source stego.js to inject key.")
 
     # ---------------------------------------------------------
 

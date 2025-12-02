@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional
 from ..models import Proxy
 from .clash_utils import add_transport_opts
 
+
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """Convert internal Proxy model to Clash dictionary."""
     base: Dict[str, Any] = {}
