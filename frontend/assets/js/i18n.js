@@ -90,9 +90,10 @@ const translations = {
         "about.mission.title": "Mission",
         "about.mission.text": "ConfigStream was built to provide reliable, free access to the global internet for users in restricted network environments. By aggregating proxies from hundreds of public sources and rigorously testing them, we ensure high availability without manual effort.",
         "about.arch.title": "Architecture: The \"Resilient Core\"",
-        "about.arch.text": "We utilize a \"Zero Budget\" architecture that runs entirely on GitHub's infrastructure, ensuring sustainability and censorship resistance.",
+        "about.arch.text": "We utilize a \"Zero Budget\" architecture that runs entirely on GitHub's infrastructure, ensuring sustainability and censorship resistance. " +
+                            "This approach allows us to maintain a completely free and open service.",
         "about.arch.hybrid": "<strong>Hybrid Engine:</strong> Combines Python's flexibility for intelligence with a high-performance <strong>Go Sidecar</strong> for massively concurrent network testing.",
-        "about.arch.intel": "<strong>Intelligence Layer:</strong> Our \"Proxy Washing\" technology automatically repairs blocked IPs by tunnelling them through Cloudflare WARP.",
+        "about.arch.intel": "<strong>Intelligence Layer:</strong> Our \"Proxy Washing\" technology automatically repairs blocked IPs by tunnelling them through Cloudflare WARP, creating \"Smart Chains\" that bypass deeper restrictions.",
         "about.arch.agg": "<strong>Aggregator:</strong> Fetches from over 600 sources every 6 hours.",
         "about.arch.pub": "<strong>Publisher:</strong> Generates optimized configs for V2Ray, Clash, Sing-box (Tank/Sniper modes), and more.",
         "about.security.title": "Security",
@@ -541,13 +542,48 @@ class I18n {
 
             if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
                  el.setAttribute('placeholder', translation);
-            } else if (el.innerHTML.includes('<') && (key.includes('.arch.') || key.includes('.html'))) {
-                 // Allow HTML for specific keys like architecture features
-                 el.innerHTML = translation;
+            } else if (el.dataset.i18nHtml === 'true') {
+                 // Allow HTML for specific keys if explicitly marked
+                 // Sanitize translation before injecting as HTML to prevent XSS
+                 const sanitized = this.sanitize(translation);
+                 el.innerHTML = sanitized;
             } else {
                  el.textContent = translation;
             }
         });
+    }
+
+    sanitize(input) {
+        // Minimal sanitizer: remove script/style, on* attrs, and javascript: URLs
+        const tmp = document.createElement('div');
+        tmp.innerHTML = input;
+
+        const walker = document.createTreeWalker(tmp, NodeFilter.SHOW_ELEMENT, null);
+        const disallowedTags = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META']);
+        const allowedAttrs = new Set(['href', 'title', 'alt', 'src', 'class', 'id', 'role', 'aria-label', 'aria-hidden']);
+
+        const toRemove = [];
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
+            if (disallowedTags.has(node.tagName)) {
+                toRemove.push(node);
+                continue;
+            }
+            // Remove event handlers and disallowed attributes
+            [...node.attributes].forEach(attr => {
+                const name = attr.name.toLowerCase();
+                const value = attr.value || '';
+                if (name.startsWith('on') || (!allowedAttrs.has(name) && !name.startsWith('data-'))) {
+                    node.removeAttribute(attr.name);
+                    return;
+                }
+                if ((name === 'href' || name === 'src') && value.trim().toLowerCase().startsWith('javascript:')) {
+                    node.removeAttribute(attr.name);
+                }
+            });
+        }
+        toRemove.forEach(n => n.remove());
+        return tmp.innerHTML;
     }
 }
 
