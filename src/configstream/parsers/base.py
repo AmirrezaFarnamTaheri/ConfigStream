@@ -253,6 +253,8 @@ def extract_config_lines(
             )
 
     lines = payload.splitlines()
+    logger.debug(f"Extracting configs from payload of {len(payload)} bytes ({len(lines)} lines)")
+
     if len(lines) > max_lines:
         logger.warning(
             f"Payload has {len(lines)} lines, truncating to {max_lines}. "
@@ -279,17 +281,23 @@ def extract_config_lines(
         parts = candidate.split("://", 1)
         if len(parts) == 2:
             protocol = parts[0]
-            if protocol in valid_prefixes and is_plausible_proxy_config(candidate):
+            reason = ""
+            if protocol not in valid_prefixes:
+                reason = f"Invalid protocol '{protocol}'"
+            elif not is_plausible_proxy_config(candidate):
+                reason = "Implausible format or blocked domain"
+
+            if not reason:
                 configs.append(candidate)
             else:
                 dropped_count += 1
                 if logger.isEnabledFor(logging.DEBUG):
                     logger.debug(
-                        "Dropping invalid config line: %s... (Reason: Invalid protocol or implausible format)",
-                        candidate[:100],
+                        "Dropping invalid config line: %s... (Reason: %s)",
+                        candidate[:100], reason
                     )
                 if len(dropped_samples) < 5:
-                    dropped_samples.append(candidate[:100])  # Truncate for log safety
+                    dropped_samples.append(f"{candidate[:100]} [{reason}]")  # Truncate for log safety
 
     if dropped_count > 0:
         if len(configs) > 0:

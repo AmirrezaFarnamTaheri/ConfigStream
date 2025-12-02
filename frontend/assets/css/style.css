@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&family=DM+Serif+Display&family=Vazirmatn:wght@400;500;700;800&family=Noto+Sans+Arabic:wght@400;500;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap');
 
 /*
     ConfigStream - The "Perfect" UI/UX Redesign v4.0
@@ -73,6 +73,31 @@ body.dark {
     --success-color: #64ffda;
     --danger-color: #ff5277;
     --border-color: rgba(255,255,255,0.1);
+}
+
+/* Language Specific Typography */
+html[lang="fa"] body, html[lang="fa"] .btn, html[lang="fa"] input, html[lang="fa"] select, html[lang="fa"] textarea {
+    font-family: 'Vazirmatn', var(--font-sans);
+}
+html[lang="fa"] h1, html[lang="fa"] h2, html[lang="fa"] h3, html[lang="fa"] h4 {
+    font-family: 'Vazirmatn', var(--font-display);
+    font-weight: 700;
+}
+
+html[lang="ar"] body, html[lang="ar"] .btn, html[lang="ar"] input, html[lang="ar"] select, html[lang="ar"] textarea {
+    font-family: 'Noto Sans Arabic', var(--font-sans);
+}
+html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3, html[lang="ar"] h4 {
+    font-family: 'Noto Sans Arabic', var(--font-display);
+    font-weight: 700;
+}
+
+html[lang="zh"] body, html[lang="zh"] .btn, html[lang="zh"] input, html[lang="zh"] select, html[lang="zh"] textarea {
+    font-family: 'Noto Sans SC', var(--font-sans);
+}
+html[lang="zh"] h1, html[lang="zh"] h2, html[lang="zh"] h3, html[lang="zh"] h4 {
+    font-family: 'Noto Sans SC', var(--font-display);
+    font-weight: 700;
 }
 
 /* Cyberpunk Theme */
