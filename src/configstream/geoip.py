@@ -3,7 +3,6 @@ Offline GeoIP Resolver (MaxMind GeoLite2).
 Uses local MMDB files instead of API calls for zero-latency, private lookups.
 """
 
-import asyncio
 import threading
 import ipaddress
 import logging

@@ -6,7 +6,6 @@ Refactored into specific modules for better maintainability.
 from .decoders import (
     validate_b64_input,
     safe_b64_decode,
-    _rate_limited_warning,
 )  # noqa: F401
 from .extraction import is_plausible_proxy_config, extract_config_lines
 from .normalization import normalize_proxy_details

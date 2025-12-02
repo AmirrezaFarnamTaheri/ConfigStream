@@ -10,18 +10,19 @@ from .setup_path import setup_python_path
 
 setup_python_path()
 
-from configstream.models import Proxy
-from configstream.output_generators import (
+from cryptography.fernet import Fernet  # noqa: E402
+
+from configstream.models import Proxy  # noqa: E402
+from configstream.output_generators import (  # noqa: E402
     generate_base64_subscription,
     generate_singbox_config,
     generate_clash_config,
 )
-from configstream.output import save_metadata
-from configstream.adapters import get_adapter
-from configstream.crypto.signer import Signer
-from configstream.transport.stego import generate_stego_assets
-from configstream.output_transport import inject_stego_key_into_frontend
-from cryptography.fernet import Fernet
+from configstream.output import save_metadata  # noqa: E402
+from configstream.adapters import get_adapter  # noqa: E402
+from configstream.crypto.signer import Signer  # noqa: E402
+from configstream.transport.stego import generate_stego_assets  # noqa: E402
+from configstream.output_transport import inject_stego_key_into_frontend  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

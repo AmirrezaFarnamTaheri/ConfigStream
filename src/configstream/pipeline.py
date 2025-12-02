@@ -184,7 +184,20 @@ async def run_full_pipeline(
         consumer_tasks.append(t)
 
     try:
-        await asyncio.gather(producer_task, *consumer_tasks)
+        try:
+            await asyncio.gather(producer_task, *consumer_tasks)
+        except Exception:
+            # Cancel all tasks on failure to avoid leaks/hangs
+            for t in consumer_tasks:
+                t.cancel()
+            producer_task.cancel()
+            # Wait for cancellations to complete
+            await asyncio.gather(*consumer_tasks, return_exceptions=True)
+            try:
+                await producer_task
+            except asyncio.CancelledError:
+                pass
+            raise
 
         # 5. Final Cleanup & Output
 
