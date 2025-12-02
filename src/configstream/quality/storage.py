@@ -5,6 +5,7 @@ Handles SQLite interactions.
 
 import sqlite3
 import logging
+import threading
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any
 
@@ -16,11 +17,15 @@ class QualityStorage:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn: Optional[sqlite3.Connection] = None  # Reuse connection
-        self._init_db()
+        self._lock = threading.Lock()
+        with self._lock:
+            self._init_db()
 
     def _get_conn(self) -> sqlite3.Connection:
         if self._conn is None:
-            self._conn = sqlite3.connect(self.db_path)
+            # Set check_same_thread=False to allow access from multiple threads
+            # (guarded by self._lock).
+            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
             self._conn.execute("PRAGMA journal_mode=WAL")
             self._conn.execute("PRAGMA synchronous=NORMAL")
         return self._conn
@@ -83,114 +88,122 @@ class QualityStorage:
 
     def get_source_state(self, url: str) -> Optional[Tuple[Any, ...]]:
         """Get state for a source: (status, last_checked, consecutive_failures, reliability_score)."""
-        try:
-            conn = self._get_conn()
-            row = conn.execute(
-                "SELECT status, last_checked, consecutive_failures, reliability_score, total_fetched, total_working FROM source_stats WHERE url = ?",
-                (url,),
-            ).fetchone()
-            return row  # type: ignore
-        except Exception as e:
-            logger.error(f"Failed to get source state for {url}: {e}")
-            return None
+        with self._lock:
+            try:
+                conn = self._get_conn()
+                row = conn.execute(
+                    "SELECT status, last_checked, consecutive_failures, reliability_score, total_fetched, total_working FROM source_stats WHERE url = ?",
+                    (url,),
+                ).fetchone()
+                return row  # type: ignore
+            except Exception as e:
+                logger.error(f"Failed to get source state for {url}: {e}")
+                return None
 
     def get_trust_score(self, url: str) -> float:
         """Get trust score."""
-        try:
-            conn = self._get_conn()
-            row = conn.execute(
-                "SELECT trust_score FROM source_stats WHERE url = ?", (url,)
-            ).fetchone()
-            return row[0] if row else 50.0
-        except Exception:
-            return 50.0
+        with self._lock:
+            try:
+                conn = self._get_conn()
+                row = conn.execute(
+                    "SELECT trust_score FROM source_stats WHERE url = ?", (url,)
+                ).fetchone()
+                return row[0] if row else 50.0
+            except Exception:
+                return 50.0
 
     def upsert_stats(self, url: str, stats: Dict[str, Any]):
         """Insert or Update source stats."""
-        try:
-            conn = self._get_conn()
-            exists = conn.execute(
-                "SELECT 1 FROM source_stats WHERE url = ?", (url,)
-            ).fetchone()
+        with self._lock:
+            try:
+                conn = self._get_conn()
+                exists = conn.execute(
+                    "SELECT 1 FROM source_stats WHERE url = ?", (url,)
+                ).fetchone()
 
-            if exists:
+                if exists:
+                    conn.execute(
+                        """
+                        UPDATE source_stats
+                        SET total_fetched=?, total_working=?, consecutive_failures=?,
+                        last_checked=?, reliability_score=?, diversity_score=?, trust_score=?
+                        WHERE url=?
+                        """,
+                        (
+                            stats["total_fetched"],
+                            stats["total_working"],
+                            stats["consecutive_failures"],
+                            stats["last_checked"],
+                            stats["reliability_score"],
+                            stats["diversity_score"],
+                            stats["trust_score"],
+                            url,
+                        ),
+                    )
+                else:
+                    conn.execute(
+                        """
+                        INSERT INTO source_stats
+                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score, diversity_score, trust_score)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            url,
+                            stats["total_fetched"],
+                            stats["total_working"],
+                            stats["consecutive_failures"],
+                            stats["last_checked"],
+                            stats["reliability_score"],
+                            stats["diversity_score"],
+                            stats["trust_score"],
+                        ),
+                    )
+                conn.commit()
+            except Exception as e:
+                logger.error(f"Failed to update stats for {url}: {e}")
+
+    def record_run(self, url: str, run_data: Dict[str, Any]):
+        """Record a single run detail."""
+        with self._lock:
+            try:
+                conn = self._get_conn()
                 conn.execute(
                     """
-                    UPDATE source_stats
-                    SET total_fetched=?, total_working=?, consecutive_failures=?,
-                    last_checked=?, reliability_score=?, diversity_score=?, trust_score=?
-                    WHERE url=?
-                    """,
-                    (
-                        stats["total_fetched"],
-                        stats["total_working"],
-                        stats["consecutive_failures"],
-                        stats["last_checked"],
-                        stats["reliability_score"],
-                        stats["diversity_score"],
-                        stats["trust_score"],
-                        url,
-                    ),
-                )
-            else:
-                conn.execute(
-                    """
-                    INSERT INTO source_stats
-                    (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score, diversity_score, trust_score)
+                    INSERT INTO source_runs
+                    (url, timestamp, duration_ms, fetched_count, working_count, geoip_json, failure_modes_json, batch_source)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         url,
-                        stats["total_fetched"],
-                        stats["total_working"],
-                        stats["consecutive_failures"],
-                        stats["last_checked"],
-                        stats["reliability_score"],
-                        stats["diversity_score"],
-                        stats["trust_score"],
+                        run_data["timestamp"],
+                        run_data["duration_ms"],
+                        run_data["fetched_count"],
+                        run_data["working_count"],
+                        run_data.get("geoip_json", "{}"),
+                        run_data.get("failure_modes_json", "{}"),
+                        run_data.get("batch_source", None),
                     ),
                 )
-            conn.commit()
-        except Exception as e:
-            logger.error(f"Failed to update stats for {url}: {e}")
-
-    def record_run(self, url: str, run_data: Dict[str, Any]):
-        """Record a single run detail."""
-        try:
-            conn = self._get_conn()
-            conn.execute(
-                """
-                INSERT INTO source_runs
-                (url, timestamp, duration_ms, fetched_count, working_count, geoip_json, failure_modes_json, batch_source)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    url,
-                    run_data["timestamp"],
-                    run_data["duration_ms"],
-                    run_data["fetched_count"],
-                    run_data["working_count"],
-                    run_data.get("geoip_json", "{}"),
-                    run_data.get("failure_modes_json", "{}"),
-                    run_data.get("batch_source", None),
-                ),
-            )
-            conn.commit()
-        except Exception as e:
-            logger.error(f"Failed to record run for {url}: {e}")
+                conn.commit()
+            except Exception as e:
+                logger.error(f"Failed to record run for {url}: {e}")
 
     def merge_from(self, other_db_path: Path):
         """Merge another DB into this one."""
         if not other_db_path.exists():
             return
 
-        try:
-            with (
-                sqlite3.connect(other_db_path) as src,
-                sqlite3.connect(self.db_path) as dst,
-            ):
-                src.execute("PRAGMA journal_mode=WAL")
-                dst.execute("PRAGMA journal_mode=WAL")
+        # Acquire lock to ensure we don't merge while other threads are writing
+        with self._lock:
+            try:
+                # Note: We create new connections here, which is fine as long as we hold the lock
+                # preventing other threads from using self._conn to write.
+                with (
+                    sqlite3.connect(other_db_path) as src,
+                    sqlite3.connect(self.db_path) as dst,
+                ):
+                    src.execute("PRAGMA journal_mode=WAL")
+                    dst.execute("PRAGMA journal_mode=WAL")
 
                 # Merge source_stats
                 rows = src.execute("SELECT * FROM source_stats").fetchall()
@@ -228,30 +241,30 @@ class QualityStorage:
                                 f"INSERT INTO source_stats VALUES ({placeholders})", row
                             )
 
-                # Merge source_runs
-                try:
-                    run_rows = src.execute("SELECT * FROM source_runs").fetchall()
-                    if run_rows:
-                        cursor = src.execute("SELECT * FROM source_runs LIMIT 1")
-                        columns = [d[0] for d in cursor.description]
-                        # Remove 'id' from columns/values since it's auto-increment
-                        cols_no_id = [c for c in columns if c != "id"]
-                        placeholders = ",".join(["?"] * len(cols_no_id))
-                        # Indices for data without ID
-                        indices = [i for i, c in enumerate(columns) if c != "id"]
+                    # Merge source_runs
+                    try:
+                        run_rows = src.execute("SELECT * FROM source_runs").fetchall()
+                        if run_rows:
+                            cursor = src.execute("SELECT * FROM source_runs LIMIT 1")
+                            columns = [d[0] for d in cursor.description]
+                            # Remove 'id' from columns/values since it's auto-increment
+                            cols_no_id = [c for c in columns if c != "id"]
+                            placeholders = ",".join(["?"] * len(cols_no_id))
+                            # Indices for data without ID
+                            indices = [i for i, c in enumerate(columns) if c != "id"]
 
-                        for row in run_rows:
-                            data = [row[i] for i in indices]
-                            dst.execute(
-                                f"INSERT INTO source_runs ({','.join(cols_no_id)}) VALUES ({placeholders})",
-                                data,
-                            )
-                except sqlite3.OperationalError:
-                    # 'source_runs' table missing in legacy schema versions.
-                    # Ignore during merging; schema migration is handled in init.
-                    pass
+                            for row in run_rows:
+                                data = [row[i] for i in indices]
+                                dst.execute(
+                                    f"INSERT INTO source_runs ({','.join(cols_no_id)}) VALUES ({placeholders})",
+                                    data,
+                                )
+                    except sqlite3.OperationalError:
+                        # 'source_runs' table missing in legacy schema versions.
+                        # Ignore during merging; schema migration is handled in init.
+                        pass
 
-                dst.commit()
-                logger.info(f"Merged source stats from {other_db_path}")
-        except Exception as e:
-            logger.error(f"Failed to merge source quality DB {other_db_path}: {e}")
+                    dst.commit()
+                    logger.info(f"Merged source stats from {other_db_path}")
+            except Exception as e:
+                logger.error(f"Failed to merge source quality DB {other_db_path}: {e}")
