@@ -81,11 +81,17 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
     if country:
         if not SAFE_PATH_PATTERN.match(country):
             raise HTTPException(400, "Invalid country parameter")
+        # Early reject any sneaky traversal components even if regex passes
+        if ".." in country or "/" in country or "\\" in country:
+            raise HTTPException(400, "Invalid country parameter")
         fpath = OUTPUT_DIR / "by_country" / f"{country.lower()}.json"
         # Verify the resolved path is within OUTPUT_DIR using robust commonpath check
         try:
-            base = os.path.realpath(str(OUTPUT_DIR))
-            target = os.path.realpath(str(fpath))
+            base = os.path.realpath(os.path.abspath(str(OUTPUT_DIR)))
+            target = os.path.realpath(os.path.abspath(str(fpath)))
+            # Ensure OUTPUT_DIR exists and is a directory
+            if not os.path.isdir(base):
+                raise HTTPException(500, "Server output directory missing")
             if os.path.commonpath([base, target]) != base:
                 raise HTTPException(400, "Invalid country parameter")
         except (ValueError, OSError):

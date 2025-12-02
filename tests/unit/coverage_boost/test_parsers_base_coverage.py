@@ -29,8 +29,8 @@ def test_safe_b64_decode_valid():
 
 
 def test_safe_b64_decode_invalid():
-    # Should return original if decode fails
-    assert safe_b64_decode("invalid_b64") == "invalid_b64"
+        # Should return None if decode fails or validation fails
+        assert safe_b64_decode("invalid_b64") is None
 
 
 def test_is_plausible_proxy_config():
