@@ -128,12 +128,20 @@ def save_metadata(
 
     total_working = int(stats.get("working", 0))
     fetched_lines = int(stats.get("fetched_lines", 0))
+    parsed_count = int(stats.get("parsed", 0))
     duration = float(stats.get("duration", 0.0))
 
     try:
         version = importlib.metadata.version("configstream")
     except Exception:
         version = "unknown"
+
+    # Calculate success rate based on parsed count to be accurate
+    success_rate = 0.0
+    if parsed_count > 0:
+        success_rate = round((total_working / parsed_count * 100), 2)
+    elif fetched_lines > 0:
+        success_rate = round((total_working / fetched_lines * 100), 2)
 
     metadata = {
         "version": version,
@@ -158,9 +166,7 @@ def save_metadata(
         ),
         "working_by_protocol": working_by_protocol,
         "quality_metrics": {
-            "success_rate": (
-                round((total_working / len(proxies) * 100), 2) if proxies else 0
-            ),
+            "success_rate": success_rate,
             "avg_latency": (
                 round(total_latency / latency_count, 2) if latency_count > 0 else 0
             ),

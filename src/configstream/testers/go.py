@@ -13,7 +13,12 @@ from ..converters import to_singbox_outbound
 logger = logging.getLogger(__name__)
 
 class GoBatchTester:
-    def __init__(self, binary_path: str = "/usr/local/bin/configstream-tester"):
+    def __init__(
+        self,
+        binary_path: str = "/usr/local/bin/configstream-tester",
+        workers: int = 50,
+    ):
+        self.workers = workers
         env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
         if env_path:
             binary_path = env_path
@@ -79,7 +84,7 @@ class GoBatchTester:
 
         try:
             # Construct command with flags
-            cmd = [self.binary_path, "-workers", "50"]
+            cmd = [self.binary_path, "-workers", str(self.workers)]
 
             # Pass timeout
             cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
