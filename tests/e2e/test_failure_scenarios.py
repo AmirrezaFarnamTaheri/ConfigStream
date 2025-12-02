@@ -63,7 +63,7 @@ async def test_anomaly_db_failure(tmp_path, monkeypatch, caplog):
         return {"https://example.com/subs": FakeResponse()}
 
     monkeypatch.setattr(
-        "configstream.pipeline_stages.fetch_multiple_sources", fake_fetch
+        "configstream.pipeline_core.producer.fetch_multiple_sources", fake_fetch
     )
 
     # Mock output handlers
