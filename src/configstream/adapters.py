@@ -340,6 +340,33 @@ class ShadowrocketAdapter(Adapter):
             }
             return "vmess://" + base64.b64encode(json.dumps(v_obj).encode()).decode()
 
+        elif p.protocol == "ssr":
+            # ssr://base64(host:port:protocol:method:obfs:base64pass/?params)
+            import base64
+
+            def b64safe(s: str) -> str:
+                return base64.urlsafe_b64encode(s.encode()).decode().rstrip("=")
+
+            host = p.address
+            port = str(p.port)
+            protocol = p.details.get("protocol", "origin")
+            method = p.details.get("cipher", "none")
+            obfs = p.details.get("obfs", "plain")
+            password = b64safe(p.details.get("password", ""))
+
+            base_str = f"{host}:{port}:{protocol}:{method}:{obfs}:{password}"
+            params = {}
+            if p.remarks:
+                params["remarks"] = b64safe(p.remarks)
+            if "protoparam" in p.details:
+                params["protoparam"] = b64safe(p.details["protoparam"])
+            if "obfsparam" in p.details:
+                params["obfsparam"] = b64safe(p.details["obfsparam"])
+
+            param_str = "&".join([f"{k}={v}" for k, v in params.items()])
+            full_str = base_str + "/?" + param_str if param_str else base_str
+            return "ssr://" + b64safe(full_str)
+
         return ""
 
     def export(
