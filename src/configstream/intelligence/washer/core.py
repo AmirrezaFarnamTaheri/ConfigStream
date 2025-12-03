@@ -175,8 +175,8 @@ class ProxyWasher:
             exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
             if (
                 not exit_key
-                or "private_key" not in exit_key
-                or "peer_public_key" not in exit_key
+                or not exit_key.get("private_key")
+                or not exit_key.get("peer_public_key")
             ):
                 skip_reasons["invalid_warp_key"] = (
                     skip_reasons.get("invalid_warp_key", 0) + 1
@@ -224,7 +224,29 @@ class ProxyWasher:
 
             # --- NEW: Use Clean IP ---
             clean_endpoint = self._get_clean_endpoint(relay.id)
-            clean_port = int(os.environ.get("WARP_PORT", "2408"))
+            clean_port_str = os.environ.get("WARP_PORT", "2408")
+
+            # Validate endpoint/port before emitting outbound
+            if not isinstance(clean_endpoint, str) or not clean_endpoint:
+                skip_reasons["invalid_endpoint"] = (
+                    skip_reasons.get("invalid_endpoint", 0) + 1
+                )
+                logger.debug(
+                    f"Skipping proxy {relay.id[:8]}: invalid clean endpoint '{clean_endpoint}'"
+                )
+                continue
+            try:
+                clean_port = int(clean_port_str)
+                if not (1 <= clean_port <= 65535):
+                    raise ValueError("port out of range")
+            except Exception:
+                skip_reasons["invalid_endpoint"] = (
+                    skip_reasons.get("invalid_endpoint", 0) + 1
+                )
+                logger.debug(
+                    f"Skipping proxy {relay.id[:8]}: invalid clean port '{clean_port_str}'"
+                )
+                continue
 
             # [FIX] Generate Unique Local IP
             h = int(hashlib.sha256(chain_id.encode()).hexdigest(), 16)
@@ -241,13 +263,21 @@ class ProxyWasher:
 
                     # Check optimization for "IR" origin (example high censorship) to US
                     res = find_optimal_relay("IR", target_exit, [relay_stub])
-                    if "relay" in res:
+                    if isinstance(res, dict) and "relay" in res:
                         # If the penalty wasn't high enough to exclude it (it returns best of list, so we check distance)
                         # Heuristic: < 15000km is decent for IR -> US via EU
-                        if res.get("total_distance", 99999) < 15000:
-                            is_optimal = True
+                        total_distance = res.get("total_distance", 99999)
+                        try:
+                            if float(total_distance) < 15000:
+                                is_optimal = True
+                        except (TypeError, ValueError):
+                            logger.debug(
+                                f"Non-numeric total_distance for relay {relay.id}: {total_distance}"
+                            )
             except Exception as e:
-                logger.debug(f"Could not determine optimality for relay {relay.id}: {e}")
+                logger.debug(
+                    f"Could not determine optimality for relay {relay.id}: {e}"
+                )
 
             exit_tag_prefix = "🛡️ Secure"
             if is_optimal:

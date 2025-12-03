@@ -75,7 +75,6 @@ def merge_batches(
             logger.info(f"Generated {len(washed_outbounds)//2} washed chains")
         except Exception as e:
             logger.error(f"Failed to wash proxies: {e}")
-            raise
 
     # --- Feature: Intelligence Vectors ---
     logger.info("\n=== Step 2.6: Generating Intelligence Vectors ===")
