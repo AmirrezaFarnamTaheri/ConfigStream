@@ -87,7 +87,9 @@ def merge_batches(
                     exit_node = washed_outbounds[i + 1]
                     # The exit node tag is unique and sufficient ID
                     chain_id = exit_node.get("tag", f"chain_{i}")
-                    chains_to_test.append({"id": chain_id, "outbounds": [relay, exit_node]})
+                    chains_to_test.append(
+                        {"id": chain_id, "outbounds": [relay, exit_node]}
+                    )
 
                 if chains_to_test:
                     logger.info(f"Retesting {len(chains_to_test)} washed chains...")
@@ -106,10 +108,14 @@ def merge_batches(
                         else:
                             logger.debug(f"Washed chain failed retest: {cid}")
 
-                    logger.info(f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working.")
+                    logger.info(
+                        f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working."
+                    )
                     washed_outbounds = valid_washed_outbounds
             else:
-                logger.warning("Odd number of washed outbounds, skipping retest logic (integrity error).")
+                logger.warning(
+                    "Odd number of washed outbounds, skipping retest logic (integrity error)."
+                )
 
         except Exception as e:
             logger.error(f"Failed to wash proxies: {e}")
