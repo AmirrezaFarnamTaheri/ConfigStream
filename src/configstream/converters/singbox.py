@@ -49,7 +49,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     if proxy.protocol == "vmess":
         # Validate required UUID
-        if not proxy.uuid:
+        uuid = proxy.uuid or proxy.details.get("uuid") or proxy.details.get("id")
+        if not uuid:
             # [FIX] Elevated to WARNING to surface data quality issues
             logger.warning(
                 f"Dropping VMess proxy missing UUID: {proxy.address}:{proxy.port}. "
@@ -59,7 +60,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = {
             "type": "vmess",
             **base,
-            "uuid": proxy.uuid,
+            "uuid": str(uuid),
             "security": "auto",
             "alter_id": 0,  # [FIX] Enforce 0
         }
@@ -67,7 +68,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     elif proxy.protocol == "vless":
         # Validate required UUID
-        if not proxy.uuid:
+        uuid = proxy.uuid or proxy.details.get("uuid")
+        if not uuid:
             logger.warning(
                 f"Dropping VLESS proxy missing UUID: {proxy.address}:{proxy.port}. "
                 f"Source: {proxy.details.get('_source', 'unknown')}"
@@ -76,7 +78,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = {
             "type": "vless",
             **base,
-            "uuid": proxy.uuid,
+            "uuid": str(uuid),
             "flow": str(proxy.details.get("flow", "")),
         }
         add_transport_sb(out, proxy.details)
@@ -107,13 +109,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     elif proxy.protocol == "trojan":
         # Validate required password (stored as uuid)
-        if not proxy.uuid:
+        password = proxy.uuid or proxy.details.get("password")
+        if not password:
             logger.warning(
                 f"Dropping Trojan proxy missing password: {proxy.address}:{proxy.port}. "
                 f"Source: {proxy.details.get('_source', 'unknown')}"
             )
             return None
-        out = {"type": "trojan", **base, "password": proxy.uuid}
+        out = {"type": "trojan", **base, "password": str(password)}
         # [FIX] Trojan requires TLS. Force it if not present.
         proxy.details["tls"] = "tls"
         add_transport_sb(out, proxy.details)
@@ -182,11 +185,19 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             f"Generated unique local IP {unique_ip} for WireGuard proxy {safe_addr}"
         )
 
+        private_key = proxy.details.get("private_key") or proxy.uuid
+        if not private_key:
+            logger.warning(
+                f"Dropping WireGuard proxy missing private_key: {proxy.address}:{proxy.port}. "
+                f"Source: {proxy.details.get('_source', 'unknown')}"
+            )
+            return None
+
         out = {
             "type": "wireguard",
             **base,
             "local_address": [unique_ip],
-            "private_key": str(proxy.details.get("private_key")),
+            "private_key": str(private_key),
             "peer_public_key": str(proxy.details.get("peer_public_key", "")),
         }
         return out
@@ -258,10 +269,17 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if "private_key" in details_to_log:
             details_to_log["private_key"] = "[MASKED]"
 
-        logger.warning(
-            f"Dropped {proxy.protocol} proxy {proxy.address} during conversion. "
-            f"Reason: Logic fell through (Missing implementation or valid fields). "
-            f"Details: {details_to_log}"
-        )
+        # Known unsupported protocols in Sing-box (native)
+        if proxy.protocol in ["ssr", "snell", "brook", "juicity", "xray"]:
+            logger.debug(
+                f"Protocol {proxy.protocol} not supported in Sing-box conversion (skipped). "
+                f"Proxy: {proxy.address}"
+            )
+        else:
+            logger.warning(
+                f"Dropped {proxy.protocol} proxy {proxy.address} during conversion. "
+                f"Reason: Logic fell through (Missing implementation or valid fields). "
+                f"Details: {details_to_log}"
+            )
 
     return out
