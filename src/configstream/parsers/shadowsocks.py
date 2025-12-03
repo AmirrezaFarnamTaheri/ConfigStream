@@ -67,6 +67,10 @@ def parse_ss(config: str) -> Optional[Proxy]:
             )
             return None
 
+        # [FIX] Enforce mandatory password
+        if not password:
+            return None
+
         details.update({"method": method, "password": password})
 
         proxy = Proxy(
