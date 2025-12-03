@@ -237,6 +237,23 @@ def _generate_statistics(
         "fetched_lines": total_processed,
         "duration": 0.0,
     }
+    # Add washer stats if available in the log/environment (passed via washed_outbounds indirectly or we can infer)
+    # Ideally, we should pass washer stats to this function.
+    # For now, let's count known washed chains in output
+    if (output_dir / "singbox.json").exists():
+        try:
+            with open(output_dir / "singbox.json", "r") as f:
+                sb_config = json.load(f)
+                washed_count = sum(
+                    1
+                    for out in sb_config.get("outbounds", [])
+                    if out.get("tag", "").startswith("🛡️ Secure")
+                )
+                if washed_count > 0:
+                    meta_stats["washed_chains"] = washed_count
+        except Exception:
+            pass
+
     save_metadata(meta_stats, ranked, output_dir)
 
     # Batch Stats
