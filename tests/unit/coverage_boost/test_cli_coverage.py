@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.cli import main as cli, setup_logging as cli_setup_logging
 from click.testing import CliRunner
-import asyncio
 
 
 @pytest.fixture

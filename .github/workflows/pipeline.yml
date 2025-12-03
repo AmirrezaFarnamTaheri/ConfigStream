@@ -8,6 +8,10 @@ on:
     - cron: "0 */6 * * *"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   packages: write
@@ -313,12 +317,6 @@ jobs:
 
       - name: Optimize Sources
         run: python scripts/dynamic_reshard.py
-
-      - name: Commit Optimization Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "🤖 Auto-optimize source batches [skip ci]"
-          file_pattern: "sources/*.txt"
 
       - name: Quality Gate
         run: python scripts/healthcheck.py --min-proxies 100 --min-success-rate 0.2

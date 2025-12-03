@@ -2,6 +2,7 @@ import logging
 import sys
 import os
 import asyncio
+from typing import Any, Dict, List
 
 from .setup_path import setup_python_path
 
@@ -57,7 +58,7 @@ def merge_batches(
     )
 
     # --- Feature: Proxy Washing ---
-    washed_outbounds = []
+    washed_outbounds: List[Dict[str, Any]] = []
     warp_keys = os.environ.get("WARP_KEY_POOL")
     if warp_keys:
         logger.info("\n=== Step 2.5: Washing Proxies ===")
@@ -86,7 +87,12 @@ def merge_batches(
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
     proxies_by_proto = generate_outputs(
-        ranked_proxies, chosen_proxies, output_dir, total_processed, root_dir, washed_outbounds
+        ranked_proxies,
+        chosen_proxies,
+        output_dir,
+        total_processed,
+        root_dir,
+        washed_outbounds,
     )
 
     # 5. Logs & Summary

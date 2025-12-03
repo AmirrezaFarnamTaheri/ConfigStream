@@ -1,10 +1,7 @@
 import logging
 import pytest
-from unittest.mock import MagicMock
 from configstream.converters import to_singbox_outbound
 from configstream.models import Proxy
-from configstream.fetcher import fetch_from_source
-from configstream.fetcher_core.models import FetchResult
 
 
 @pytest.mark.asyncio
