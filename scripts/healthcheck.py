@@ -39,7 +39,10 @@ def check_minimum_proxies(proxies: List[Dict], min_count: int) -> None:
 def check_success_rate(metadata: Dict[str, Any], min_rate: float) -> None:
     """Check proxy test success rate."""
     # Compatible with both new and old metadata formats
-    tested = metadata.get("total_fetched", metadata.get("total_proxies_tested", 0))
+    # Use parsed count if available, otherwise fetched
+    tested = metadata.get("stats", {}).get(
+        "parsed", metadata.get("total_fetched", metadata.get("total_proxies_tested", 0))
+    )
     working = metadata.get("total_working", metadata.get("total_working_proxies", 0))
 
     # Validate metrics before division
