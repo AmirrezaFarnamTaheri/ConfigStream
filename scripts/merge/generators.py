@@ -236,7 +236,9 @@ def _generate_statistics(
     save_metadata(meta_stats, ranked, output_dir)
 
     # Batch Stats
-    batch_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: {"total": 0, "working": 0})
+    batch_stats: Dict[str, Dict[str, int]] = defaultdict(
+        lambda: {"total": 0, "working": 0}
+    )
     protocols_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
     for p in ranked:
         src = p.batch_source or "unknown"
