@@ -20,6 +20,7 @@ def parse_vless(config: str) -> Optional[Proxy]:
             return None
         uuid = parsed.username or ""
         if not uuid or len(uuid) > 100:
+            # Mandatory UUID for VLESS
             return None
 
         # [FIX] Aggressive sanitization
