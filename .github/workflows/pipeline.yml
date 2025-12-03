@@ -108,6 +108,7 @@ jobs:
             data/adaptive_timeout.db
             data/source_quality.db
             data/test_cache.json
+            data/proxy_history.json
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
           key: configstream-data-${{ github.ref }}
@@ -201,6 +202,7 @@ jobs:
             data/adaptive_timeout.db
             data/source_quality.db
             data/test_cache.json
+            data/proxy_history.json
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
           key: configstream-data-${{ github.ref }}
@@ -233,6 +235,7 @@ jobs:
           [ -f data/source_quality.db ] && cp data/source_quality.db output_batch_${BATCH_NUMBER}/data/ || true
           [ -f data/anomaly.db ] && cp data/anomaly.db output_batch_${BATCH_NUMBER}/data/ || true
           [ -f data/adaptive_timeout.db ] && cp data/adaptive_timeout.db output_batch_${BATCH_NUMBER}/data/ || true
+          [ -f data/proxy_history.json ] && cp data/proxy_history.json output_batch_${BATCH_NUMBER}/data/ || true
 
       - name: Upload shard artifact
         if: always()
@@ -260,6 +263,7 @@ jobs:
       HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
       GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
       GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+      PINATA_JWT: ${{ secrets.PINATA_JWT }}
 
     steps:
       - name: Checkout
@@ -274,7 +278,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -e .[dev] requests huggingface_hub
+        run: pip install -e .[dev] requests huggingface_hub geopy
 
       - name: Download shard artifacts
         uses: actions/download-artifact@v4
@@ -306,6 +310,29 @@ jobs:
             WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
             STEGO_KEY: ${{ secrets.STEGO_KEY }}
         run: python -m scripts.merge_batches
+
+      - name: Optimize Sources
+        run: python scripts/dynamic_reshard.py
+
+      - name: Commit Optimization Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Auto-optimize source batches [skip ci]"
+          file_pattern: "sources/*.txt"
+
+      - name: Quality Gate
+        run: python scripts/healthcheck.py --min-proxies 100 --min-success-rate 0.2
+
+      - name: Publish to IPFS (Unstoppable)
+        if: env.PINATA_JWT != ''
+        env:
+          PINATA_JWT: ${{ secrets.PINATA_JWT }}
+          CF_TOKEN: ${{ secrets.CF_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+        run: |
+          python scripts/publish_ipfs.py \
+            --file output/vpn_subscription_base64.txt \
+            --domain fallback.example.com
 
       - name: Upload Pipeline Output
         uses: actions/upload-artifact@v4
