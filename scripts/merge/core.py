@@ -73,6 +73,50 @@ def merge_batches(
             # "candidates = [p for p in proxies if p.is_working and self.warp_keys]" in Washer code handles filtering.
             washed_outbounds, washed_ids = washer.wash_batch(ranked_proxies)
             logger.info(f"Generated {len(washed_outbounds)//2} washed chains")
+
+            # --- Feature: Washer Retest ---
+            # Retest the generated chains to ensure they actually work.
+            from configstream.testers.go import GoBatchTester
+
+            # Assuming we assume there is a Relay+Exit pair in sequence.
+            # Group them into chains.
+            chains_to_test = []
+            if len(washed_outbounds) % 2 == 0:
+                for i in range(0, len(washed_outbounds), 2):
+                    relay = washed_outbounds[i]
+                    exit_node = washed_outbounds[i + 1]
+                    # The exit node tag is unique and sufficient ID
+                    chain_id = exit_node.get("tag", f"chain_{i}")
+                    chains_to_test.append(
+                        {"id": chain_id, "outbounds": [relay, exit_node]}
+                    )
+
+                if chains_to_test:
+                    logger.info(f"Retesting {len(chains_to_test)} washed chains...")
+                    # Initialize tester (ensure binary path is correct)
+                    tester = GoBatchTester(workers=50)
+                    results = asyncio.run(tester.test_custom_configs(chains_to_test))
+
+                    # Filter out failed chains
+                    valid_washed_outbounds = []
+                    passed_count = 0
+                    for chain in chains_to_test:
+                        cid = chain["id"]
+                        if results.get(cid):
+                            passed_count += 1
+                            valid_washed_outbounds.extend(chain["outbounds"])
+                        else:
+                            logger.debug(f"Washed chain failed retest: {cid}")
+
+                    logger.info(
+                        f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working."
+                    )
+                    washed_outbounds = valid_washed_outbounds
+            else:
+                logger.warning(
+                    "Odd number of washed outbounds, skipping retest logic (integrity error)."
+                )
+
         except Exception as e:
             logger.error(f"Failed to wash proxies: {e}")
 

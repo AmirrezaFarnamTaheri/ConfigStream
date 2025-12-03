@@ -4,7 +4,7 @@ import os
 import json
 import shutil
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Any
 
 from ..config import AppSettings
 from ..models import Proxy
@@ -91,14 +91,53 @@ class GoBatchTester:
             )
             return proxies
 
+        return await self._run_tester(inputs, proxy_map)
+
+    async def test_custom_configs(
+        self, configs: List[Dict[str, Any]], check_honeypot: bool = False
+    ) -> Dict[str, bool]:
+        """
+        Test raw Sing-box outbounds (or chains) directly.
+        Input: List of {'id': str, 'outbounds': List[Dict]}
+        Returns: Dict mapping ID to is_working boolean.
+        """
+        if not self.available or not configs:
+            return {}
+
+        inputs = []
+        for item in configs:
+            chain_id = item.get("id")
+            outbounds = item.get("outbounds")
+            if not chain_id or not outbounds:
+                continue
+
+            # Serialize chain components as comma-separated JSON objects
+            # This format is compatible with the Go tester's string formatting template
+            config_str = ", ".join(json.dumps(o) for o in outbounds)
+            inputs.append(
+                {
+                    "config": config_str,
+                    "id": chain_id,
+                    "check_honeypot": check_honeypot,
+                }
+            )
+
+        if not inputs:
+            return {}
+
+        results = await self._execute_go_binary(inputs)
+
+        status_map = {}
+        for res in results:
+            status_map[res["id"]] = res.get("is_working", False)
+
+        return status_map
+
+    async def _execute_go_binary(self, inputs: List[Dict]) -> List[Dict]:
+        """Core execution logic for the Go binary."""
         try:
-            # Construct command with flags
             cmd = [self.binary_path, "-workers", str(self.workers)]
-
-            # Pass timeout
             cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
-
-            # Pass URLs
             if AppSettings.TEST_URLS:
                 urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
@@ -108,7 +147,7 @@ class GoBatchTester:
             payload_kb = len(payload_json) / 1024.0
 
             logger.info(
-                f"Invoking Go tester with {len(inputs)} proxies. Payload size: {payload_kb:.2f} KB."
+                f"Invoking Go tester with {len(inputs)} items. Payload size: {payload_kb:.2f} KB."
             )
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"Go tester command: {' '.join(cmd)}")
@@ -131,140 +170,99 @@ class GoBatchTester:
                 except Exception:
                     pass
                 logger.error("Go Tester froze! Killing process to save pipeline.")
-                return proxies
+                return []
 
-            # CRITICAL: Log stderr at WARNING level to surface Go tester issues
             if stderr:
                 stderr_text = stderr.decode().strip()
                 if stderr_text:
-                    # Check for critical errors vs warnings
                     if "panic" in stderr_text.lower() or "fatal" in stderr_text.lower():
-                        # [FIX] Increased limit to 4KB to capture full stack traces
                         logger.error(f"Go Tester CRASHED: {stderr_text[:4096]}")
                     else:
-                        # [FIX] Increased limit to 2KB for standard warnings
                         logger.warning(f"Go Tester stderr: {stderr_text[:2048]}")
 
-            # Check if we got any output at all
             if not stdout or not stdout.strip():
                 logger.error(
-                    f"Go Tester produced NO OUTPUT! (Exit Code: {proc.returncode}) "
-                    f"Sent {len(inputs)} proxies, received nothing. "
-                    f"Stderr: {stderr.decode()[:500] if stderr else 'None'}. "
-                    "Check if sing-box core is working correctly."
+                    f"Go Tester produced NO OUTPUT! (Exit Code: {proc.returncode})"
                 )
-                if stderr:
-                    logger.debug(f"Full Go Tester Stderr: {stderr.decode()}")
-                # Ensure we log context for the first few failures to aid debugging
-                if inputs:
-                    sample_input = json.dumps(inputs[0])
-                    logger.debug(f"Sample input causing failure: {sample_input}")
-                # Mark all as failed explicitly
-                for p in proxies:
-                    p.is_working = False
-                return proxies
+                return []
 
-            # Count results for diagnostics
-            result_count = 0
-            working_count = 0
-            failure_reasons: Dict[str, int] = {}
-
+            results = []
             for line in stdout.decode().splitlines():
                 try:
-                    res = json.loads(line)
-                    result_count += 1
-                    p_id = res.get("id")
-                    if p_id and p_id in proxy_map:
-                        p = proxy_map[p_id]
-                        if res.get("is_working"):
-                            p.is_working = True
-                            p.latency = res.get("latency")
-                            working_count += 1
-                            if res.get("issues"):
-                                for issue in res["issues"]:
-                                    p.security_issues.setdefault("go_check", []).append(
-                                        issue
-                                    )
-                                    if issue == "DIRTY_IP":
-                                        p.tags.append("dirty_ip")
-                        else:
-                            p.is_working = False
-                            error_msg = res.get("error", "unknown")
-                            p.details["error"] = error_msg
-
-                            # Categorize errors for better visibility
-                            if "HONEYPOT" in error_msg:
-                                error_cat = "HONEYPOT"
-                            elif "DIRTY_IP" in error_msg:
-                                error_cat = "DIRTY_IP"
-                            elif "PANIC" in error_msg:
-                                error_cat = "PANIC"
-                            elif "timeout" in error_msg.lower():
-                                error_cat = "TIMEOUT"
-                            elif (
-                                "bind" in error_msg.lower()
-                                and "in use" in error_msg.lower()
-                            ):
-                                error_cat = "BIND_ERROR"
-                            elif "handshake" in error_msg.lower():
-                                error_cat = "HANDSHAKE_FAIL"
-                            elif "connection refused" in error_msg.lower():
-                                error_cat = "CONN_REFUSED"
-                            else:
-                                error_cat = "OTHER"
-
-                            failure_reasons[error_cat] = (
-                                failure_reasons.get(error_cat, 0) + 1
-                            )
-
-                            # Enhanced Metadata Tracking
-                            # Track failure reason in details for analytics
-                            if error_cat not in ["TIMEOUT", "OTHER"]:
-                                p.details["failure_category"] = error_cat
-
-                            # [LOGGING] Enhanced failure visibility
-                            # Log explicit failure reason regardless of success rate if it's not a timeout
-                            # This provides granular visibility into protocol mismatches or blockages
-                            meta_str = (
-                                f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
-                            )
-
-                            if error_cat not in ["TIMEOUT"]:
-                                logger.debug(
-                                    f"Test failed {meta_str} for {p.protocol}://{p.address}:{p.port} -> {error_msg} (Category: {error_cat})"
-                                )
-                            else:
-                                logger.debug(f"Test timeout {meta_str}: {p.address}")
-
-                            # Additional per-proxy debug logging for transparency
-                            if logger.isEnabledFor(logging.DEBUG) and not p.is_working:
-                                logger.debug(
-                                    f"Detailed failure for {p.id} ({p.protocol}): {p.details.get('error')}"
-                                )
-
+                    results.append(json.loads(line))
                 except json.JSONDecodeError:
                     continue
-
-            # Log summary statistics
-            failure_summary = ", ".join(
-                [f"{k}: {v}" for k, v in failure_reasons.items()]
-            )
-            logger.info(
-                f"Go Tester results: {working_count}/{result_count} working "
-                f"(sent {len(inputs)}, parsed {result_count}). "
-                f"Failures breakdown: {failure_summary if failure_summary else 'None'}"
-            )
-
-            # Detect if Go tester is returning but all failing
-            if result_count > 0 and working_count == 0:
-                logger.error(
-                    "Go Tester returned results but ALL tests failed. "
-                    "Possible causes: network blocked, test URLs unreachable, "
-                    "or sing-box outbound config issues. "
-                    f"Breakdown: {failure_summary}"
-                )
+            return results
 
         except Exception as e:
-            logger.error(f"Go Batch Tester failed: {e}")
+            logger.error(f"Go execution failed: {e}")
+            return []
 
-        return proxies
+    async def _run_tester(
+        self, inputs: List[Dict], proxy_map: Dict[str, Proxy]
+    ) -> List[Proxy]:
+        results = await self._execute_go_binary(inputs)
+
+        result_count = 0
+        working_count = 0
+        failure_reasons: Dict[str, int] = {}
+
+        for res in results:
+            result_count += 1
+            p_id = res.get("id")
+            if p_id and p_id in proxy_map:
+                p = proxy_map[p_id]
+                if res.get("is_working"):
+                    p.is_working = True
+                    p.latency = res.get("latency")
+                    working_count += 1
+                    if res.get("issues"):
+                        for issue in res["issues"]:
+                            p.security_issues.setdefault("go_check", []).append(issue)
+                            if issue == "DIRTY_IP":
+                                p.tags.append("dirty_ip")
+                else:
+                    p.is_working = False
+                    error_msg = res.get("error", "unknown")
+                    p.details["error"] = error_msg
+
+                    if "HONEYPOT" in error_msg:
+                        error_cat = "HONEYPOT"
+                    elif "DIRTY_IP" in error_msg:
+                        error_cat = "DIRTY_IP"
+                    elif "PANIC" in error_msg:
+                        error_cat = "PANIC"
+                    elif "timeout" in error_msg.lower():
+                        error_cat = "TIMEOUT"
+                    elif "bind" in error_msg.lower() and "in use" in error_msg.lower():
+                        error_cat = "BIND_ERROR"
+                    elif "handshake" in error_msg.lower():
+                        error_cat = "HANDSHAKE_FAIL"
+                    elif "connection refused" in error_msg.lower():
+                        error_cat = "CONN_REFUSED"
+                    else:
+                        error_cat = "OTHER"
+
+                    failure_reasons[error_cat] = failure_reasons.get(error_cat, 0) + 1
+                    if error_cat not in ["TIMEOUT", "OTHER"]:
+                        p.details["failure_category"] = error_cat
+
+                    meta_str = f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
+                    if error_cat not in ["TIMEOUT"]:
+                        logger.debug(
+                            f"Test failed {meta_str} for {p.protocol}://{p.address}:{p.port} -> {error_msg} (Category: {error_cat})"
+                        )
+                    else:
+                        logger.debug(f"Test timeout {meta_str}: {p.address}")
+
+        failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])
+        logger.info(
+            f"Go Tester results: {working_count}/{result_count} working "
+            f"(sent {len(inputs)}, parsed {result_count}). "
+            f"Failures breakdown: {failure_summary if failure_summary else 'None'}"
+        )
+
+        if result_count > 0 and working_count == 0:
+            logger.error("Go Tester returned results but ALL tests failed.")
+
+        return list(proxy_map.values())

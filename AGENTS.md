@@ -46,6 +46,9 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   Handle trailing garbage in Base64 strings.
     *   Gracefully skip invalid lines without crashing the pipeline.
     *   Log drop rates/reasons at `DEBUG` level (or `WARNING` if failure rate > 50%).
+*   **Strict Validation**:
+    *   **Mandatory Fields**: Parsers MUST return `None` (drop) if critical credentials (UUID for VLESS/VMess, Password for Trojan/Shadowsocks) are missing. This prevents pollution of downstream components.
+    *   **Method Check**: Shadowsocks method must be valid (not "ss", "shadowsocks").
 *   **Protocols**: Ensure correct mapping of `vmess`, `vless`, `trojan`, `shadowsocks` fields to the `Proxy` model.
 
 ### Fetcher (`src/configstream/fetcher.py`)
@@ -61,8 +64,10 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 
 ### Testing (`src/configstream/testers.py`)
 *   **Dual Engine**:
-    *   **Go Sidecar**: Preferred for performance/compatibility.
+    *   **Go Sidecar**: Preferred for performance/compatibility. It supports testing single proxies and **Chains** (lists of outbounds).
     *   **Python Fallback**: Minimal implementation for environments without the binary.
+*   **Washer Retesting**:
+    *   Washed chains (Relay -> WARP) MUST be re-tested before inclusion in the final output to ensure end-to-end connectivity. This is handled in `scripts/merge/core.py`.
 *   **Cache**: Use `TestResultCache` to skip re-testing recently verified proxies. Ensure path persistence.
 
 ## 5. Testing & Verification
