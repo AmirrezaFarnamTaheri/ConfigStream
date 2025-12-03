@@ -387,5 +387,18 @@ def bot(token):
     run_bot(token)
 
 
+@main.command()
+@click.option("--days", default=7, help="Retention days")
+@click.option("--dir", default="data", help="Data directory")
+def backup(days, dir):
+    """Backup databases."""
+    from .backup import backup_databases
+
+    console.print("[yellow]Backing up databases...[/yellow]")
+    backups = backup_databases(data_dir=dir, retention_days=days)
+    for b in backups:
+        console.print(f"[green]Backed up {b.name}[/green]")
+
+
 if __name__ == "__main__":
     main()

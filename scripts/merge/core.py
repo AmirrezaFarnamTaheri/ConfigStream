@@ -1,5 +1,7 @@
 import logging
 import sys
+import os
+import asyncio
 
 from .setup_path import setup_python_path
 
@@ -32,6 +34,8 @@ def merge_batches(
     from .proxies import load_and_merge_proxies
     from .generators import generate_outputs
     from .logs import consolidate_logs
+    from configstream.intelligence.washer.core import ProxyWasher
+    from configstream.intelligence.vectors import generate_vectors
 
     output_dir = root_dir / output_dir_str
     batch_dirs = sorted(list(root_dir.glob(batch_dir_glob)))
@@ -52,10 +56,37 @@ def merge_batches(
         ranked_proxies, top_per_protocol=50, total_limit=1000
     )
 
+    # --- Feature: Proxy Washing ---
+    washed_outbounds = []
+    warp_keys = os.environ.get("WARP_KEY_POOL")
+    if warp_keys:
+        logger.info("\n=== Step 2.5: Washing Proxies ===")
+        try:
+            washer = ProxyWasher(warp_keys)
+            # Fetch clean IPs asynchronously
+            asyncio.run(washer.fetch_clean_ips())
+
+            # Wash the proxies (we use chosen_proxies for stability, or ranked?
+            # Report said ranked, but washing 1000s is slow.
+            # Let's wash ALL working ranked proxies as per audit instructions.
+            # "candidates = [p for p in proxies if p.is_working and self.warp_keys]" in Washer code handles filtering.
+            washed_outbounds, washed_ids = washer.wash_batch(ranked_proxies)
+            logger.info(f"Generated {len(washed_outbounds)//2} washed chains")
+        except Exception as e:
+            logger.error(f"Failed to wash proxies: {e}")
+
+    # --- Feature: Intelligence Vectors ---
+    logger.info("\n=== Step 2.6: Generating Intelligence Vectors ===")
+    try:
+        generate_vectors(ranked_proxies, output_dir)
+        logger.info("Vectors generated successfully.")
+    except Exception as e:
+        logger.error(f"Failed to generate vectors: {e}")
+
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
     proxies_by_proto = generate_outputs(
-        ranked_proxies, chosen_proxies, output_dir, total_processed, root_dir
+        ranked_proxies, chosen_proxies, output_dir, total_processed, root_dir, washed_outbounds
     )
 
     # 5. Logs & Summary
@@ -64,6 +95,7 @@ def merge_batches(
         f"Merged Unique: {len(merged_proxies)}",
         f"Total Working: {sum(1 for p in ranked_proxies if p.is_working)}",
         f"Chosen Subset: {len(chosen_proxies)}",
+        f"Washed Chains: {len(washed_outbounds) // 2}",
         "",
         "Breakdown by Protocol (Working):",
     ]

@@ -4,7 +4,7 @@ import shutil
 import logging
 from pathlib import Path
 from collections import defaultdict
-from typing import List, Dict
+from typing import List, Dict, Any, Optional
 
 from .setup_path import setup_python_path
 
@@ -33,6 +33,7 @@ def generate_outputs(
     output_dir: Path,
     total_processed: int,
     root_dir: Path,
+    washed_outbounds: Optional[List[Dict[str, Any]]] = None,
 ):
     """Generates all output files."""
 
@@ -110,7 +111,10 @@ def generate_outputs(
     with open(output_dir / "clash.yaml", "w") as f:
         f.write(generate_clash_config(ranked_proxies))
 
-    singbox_content = generate_singbox_config(ranked_proxies)
+    # Pass washed_outbounds to generate_singbox_config
+    singbox_content = generate_singbox_config(
+        ranked_proxies, extra_outbounds=washed_outbounds
+    )
     with open(output_dir / "singbox.json", "w") as f:
         f.write(singbox_content)
 
