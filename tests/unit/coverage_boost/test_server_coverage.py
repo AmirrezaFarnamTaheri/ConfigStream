@@ -1,8 +1,7 @@
 import pytest
-from configstream.server import app, StaticFiles
+from configstream.server import app
 from fastapi.testclient import TestClient
 import os
-from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture

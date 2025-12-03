@@ -1,4 +1,3 @@
-import pytest
 from configstream.adaptive_workers import calculate_optimal_workers
 from unittest.mock import patch, MagicMock
 

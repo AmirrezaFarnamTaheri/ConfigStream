@@ -1,5 +1,5 @@
 import argparse
-from merge.core import merge_batches
+from scripts.merge.core import merge_batches
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge batch outputs.")

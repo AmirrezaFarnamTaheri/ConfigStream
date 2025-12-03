@@ -1,6 +1,4 @@
-import pytest
 from configstream.parsers.ssr import parse_ssr
-from configstream.models import Proxy
 
 
 def test_parse_ssr_valid():

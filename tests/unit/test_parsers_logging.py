@@ -1,5 +1,4 @@
 import logging
-import pytest
 from configstream.parsers.base import extract_config_lines, is_plausible_proxy_config
 
 
