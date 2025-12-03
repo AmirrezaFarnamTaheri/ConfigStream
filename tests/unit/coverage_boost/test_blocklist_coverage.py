@@ -1,8 +1,7 @@
 import pytest
 from configstream.security.blocklist import BlocklistManager
 import ipaddress
-import asyncio
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 
 @pytest.fixture

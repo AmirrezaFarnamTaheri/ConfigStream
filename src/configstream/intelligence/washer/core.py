@@ -173,11 +173,17 @@ class ProxyWasher:
         for i, relay in enumerate(candidates):
             # 2. Select the "Soap" (Exit Node)
             exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
-            if not exit_key or "private_key" not in exit_key:
+            if (
+                not exit_key
+                or "private_key" not in exit_key
+                or "peer_public_key" not in exit_key
+            ):
                 skip_reasons["invalid_warp_key"] = (
                     skip_reasons.get("invalid_warp_key", 0) + 1
                 )
-                logger.debug(f"Skipping proxy {relay.id[:8]}: invalid WARP key")
+                logger.debug(
+                    f"Skipping proxy {relay.id[:8]}: invalid WARP key (missing private or public key)"
+                )
                 continue
 
             # 3. Generate Deterministic Chain ID
@@ -240,8 +246,8 @@ class ProxyWasher:
                         # Heuristic: < 15000km is decent for IR -> US via EU
                         if res.get("total_distance", 99999) < 15000:
                             is_optimal = True
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Could not determine optimality for relay {relay.id}: {e}")
 
             exit_tag_prefix = "🛡️ Secure"
             if is_optimal:
@@ -256,9 +262,7 @@ class ProxyWasher:
                 "private_key": exit_key["private_key"],
                 "server": clean_endpoint,
                 "server_port": clean_port,
-                "peer_public_key": exit_key.get(
-                    "peer_public_key", "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
-                ),
+                "peer_public_key": exit_key["peer_public_key"],
                 "detour": relay_tag,
                 "keepalive_interval": 20,
             }

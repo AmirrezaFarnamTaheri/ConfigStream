@@ -1,4 +1,3 @@
-import pytest
 from configstream.parsers.base import (
     validate_b64_input,
     safe_b64_decode,
@@ -7,7 +6,6 @@ from configstream.parsers.base import (
     is_plausible_proxy_config,
 )
 from configstream.models import Proxy
-import logging
 
 
 def test_validate_b64_input_valid():

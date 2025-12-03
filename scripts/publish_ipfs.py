@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 import requests  # type: ignore
 
@@ -84,10 +85,26 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
 def main():
     parser = argparse.ArgumentParser(description="Publish config to IPFS/IPNS")
     parser.add_argument("--file", required=True, help="Path to file to publish")
-    parser.add_argument("--pinata-jwt", env_var="PINATA_JWT", help="Pinata JWT Token")
-    parser.add_argument("--ipns-key", env_var="IPNS_KEY", help="IPNS Key Name/ID")
-    parser.add_argument("--cf-token", env_var="CF_TOKEN", help="Cloudflare API Token")
-    parser.add_argument("--cf-zone", env_var="CF_ZONE_ID", help="Cloudflare Zone ID")
+    parser.add_argument(
+        "--pinata-jwt",
+        default=os.environ.get("PINATA_JWT"),
+        help="Pinata JWT Token (default: env PINATA_JWT)",
+    )
+    parser.add_argument(
+        "--ipns-key",
+        default=os.environ.get("IPNS_KEY"),
+        help="IPNS Key Name/ID (default: env IPNS_KEY)",
+    )
+    parser.add_argument(
+        "--cf-token",
+        default=os.environ.get("CF_TOKEN"),
+        help="Cloudflare API Token (default: env CF_TOKEN)",
+    )
+    parser.add_argument(
+        "--cf-zone",
+        default=os.environ.get("CF_ZONE_ID"),
+        help="Cloudflare Zone ID (default: env CF_ZONE_ID)",
+    )
     parser.add_argument("--domain", help="Domain for DNSLink (e.g., fallback.com)")
 
     args = parser.parse_args()
