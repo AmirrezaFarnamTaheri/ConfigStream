@@ -58,7 +58,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
     # First, find the record ID for _dnslink.<domain>
     params = {"name": f"_dnslink.{domain}", "type": "TXT"}
     resp = requests.get(url, headers=headers, params=params)
-    records = resp.json()["result"]
+    records = resp.json().get("result", [])
 
     if not records:
         print(f"No existing DNSLink record found for _dnslink.{domain}")
@@ -80,6 +80,18 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
         print(f"Successfully updated DNSLink for {domain} to {cid}")
     else:
         raise Exception(f"Failed to update DNSLink: {update_resp.text}")
+
+
+def _clean_secret(v: str) -> str:
+    """Sanitize secret values by stripping whitespace and quotes."""
+    v = v.strip() if isinstance(v, str) else v
+    if (
+        isinstance(v, str)
+        and len(v) >= 2
+        and ((v[0] == v[-1] == '"') or (v[0] == v[-1] == "'"))
+    ):
+        return v[1:-1]
+    return v
 
 
 def main():
@@ -107,21 +119,58 @@ def main():
     )
     parser.add_argument("--domain", help="Domain for DNSLink (e.g., fallback.com)")
 
+    # New flags for optional flows
+    parser.add_argument(
+        "--publish-ipns",
+        action="store_true",
+        help="Publish the pinned CID to IPNS using --ipns-key",
+    )
+    parser.add_argument(
+        "--update-dnslink",
+        action="store_true",
+        help="Update DNSLink record using Cloudflare (--cf-token, --cf-zone, --domain)",
+    )
+
     args = parser.parse_args()
 
+    # Validate file existence
+    if not os.path.isfile(args.file) or not os.access(args.file, os.R_OK):
+        print(f"Error: File not found or not readable: {args.file}")
+        sys.exit(1)
+
+    # Sanitize secrets
+    args.pinata_jwt = (
+        _clean_secret(args.pinata_jwt) if args.pinata_jwt else args.pinata_jwt
+    )
+    args.ipns_key = _clean_secret(args.ipns_key) if args.ipns_key else args.ipns_key
+    args.cf_token = _clean_secret(args.cf_token) if args.cf_token else args.cf_token
+    args.cf_zone = _clean_secret(args.cf_zone) if args.cf_zone else args.cf_zone
+
+    # Validate Pinata JWT
+    if not args.pinata_jwt:
+        print(
+            "Error: Missing required Pinata JWT. Provide via --pinata-jwt or PINATA_JWT env."
+        )
+        sys.exit(1)
+
     try:
-        if args.pinata_jwt:
-            print(f"Pinning {args.file} to IPFS...")
-            cid = pin_to_ipfs(args.file, args.pinata_jwt)
-            print(f"Pinned with CID: {cid}")
+        print(f"Pinning {args.file} to IPFS...")
+        cid = pin_to_ipfs(args.file, args.pinata_jwt)
+        print(f"Pinned with CID: {cid}")
 
-            if args.ipns_key:
-                publish_ipns(cid, args.ipns_key)
+        if args.publish_ipns:
+            if not args.ipns_key:
+                print("Error: --publish-ipns requires --ipns-key or IPNS_KEY env")
+                sys.exit(1)
+            publish_ipns(cid, args.ipns_key)
 
-            if args.cf_token and args.cf_zone and args.domain:
-                update_dnslink(cid, args.domain, args.cf_token, args.cf_zone)
-        else:
-            print("No Pinata JWT provided. Skipping IPFS publish.")
+        if args.update_dnslink:
+            if not (args.cf_token and args.cf_zone and args.domain):
+                print(
+                    "Error: --update-dnslink requires --cf-token, --cf-zone, and --domain"
+                )
+                sys.exit(1)
+            update_dnslink(cid, args.domain, args.cf_token, args.cf_zone)
 
     except Exception as e:
         print(f"Error: {e}")
