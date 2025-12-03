@@ -9,6 +9,7 @@ from typing import List, Dict, Optional, Set, Any, Tuple
 
 from ...models import Proxy
 from ...converters import to_singbox_outbound
+from ..chaining import find_optimal_relay, ProxyStub, COUNTRIES
 
 logger = logging.getLogger(__name__)
 
@@ -157,9 +158,6 @@ class ProxyWasher:
             return washed_outbounds, washed_ids
 
         # 1. Identify Candidates
-        # Current strategy: when WARP keys are available, wash ALL working
-        # proxies rather than relying solely on tags. Tags are still useful
-        # for downstream labeling but not a hard requirement here.
         candidates = [p for p in proxies if p.is_working and self.warp_keys]
         logger.info(
             f"Washing {len(candidates)} proxies through WARP "
@@ -167,6 +165,11 @@ class ProxyWasher:
         )
 
         skip_reasons: Dict[str, int] = {}
+
+        # --- NEW: Use Geodesic Optimization Target ---
+        # Assume US target for checking optimal routing (as per audit snippet)
+        target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
+
         for i, relay in enumerate(candidates):
             # 2. Select the "Soap" (Exit Node)
             exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
@@ -192,7 +195,7 @@ class ProxyWasher:
                     )
                     continue  # Skip duplicates
 
-                # Prune if too large (simple flush for now, LRU is better but heavier)
+                # Prune if too large
                 if len(self.seen_chains) > self.max_seen_chains:
                     self.seen_chains.clear()
                     logger.warning("Flushed seen_chains cache (limit exceeded)")
@@ -217,33 +220,46 @@ class ProxyWasher:
             clean_endpoint = self._get_clean_endpoint(relay.id)
             clean_port = int(os.environ.get("WARP_PORT", "2408"))
 
-            # [FIX] Generate Unique Local IP for WireGuard to avoid collisions
-            # 172.16.X.Y (IPv4) or fd00::X:Y (IPv6)
+            # [FIX] Generate Unique Local IP
             h = int(hashlib.sha256(chain_id.encode()).hexdigest(), 16)
-
-            # Support IPv6 environment if needed (Audit recommendation)
-            # We generate both or detect environment? Since we are generating config,
-            # assume IPv4 is standard for now but provide unique local V6 just in case.
-            # But Singbox WireGuard outbound usually takes one local address.
-            # Let's stick to IPv4 but ensure range is safe.
-
             octet_2 = (h >> 8) % 255
-            octet_3 = (h % 250) + 2  # Avoid .0 and .1
+            octet_3 = (h % 250) + 2
             unique_ip = f"172.16.{octet_2}.{octet_3}/32"
 
-            exit_tag = f"🛡️ Secure-{relay.country_code}-{i+1}"
+            # --- NEW: Geodesic Optimization Tagging ---
+            is_optimal = False
+            try:
+                if relay.country in COUNTRIES:
+                    relay_stub = ProxyStub(relay.country, 0.0, 0.0, relay.protocol)
+                    relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country]
+
+                    # Check optimization for "IR" origin (example high censorship) to US
+                    res = find_optimal_relay("IR", target_exit, [relay_stub])
+                    if "relay" in res:
+                        # If the penalty wasn't high enough to exclude it (it returns best of list, so we check distance)
+                        # Heuristic: < 15000km is decent for IR -> US via EU
+                        if res.get("total_distance", 99999) < 15000:
+                            is_optimal = True
+            except Exception:
+                pass
+
+            exit_tag_prefix = "🛡️ Secure"
+            if is_optimal:
+                exit_tag_prefix = "🛡️⚡ Optimal"
+
+            exit_tag = f"{exit_tag_prefix}-{relay.country_code}-{i+1}"
+
             warp_out = {
                 "type": "wireguard",
                 "tag": exit_tag,
                 "local_address": [unique_ip],
                 "private_key": exit_key["private_key"],
-                "server": clean_endpoint,  # Replaces hardcoded 162.159...
+                "server": clean_endpoint,
                 "server_port": clean_port,
                 "peer_public_key": exit_key.get(
                     "peer_public_key", "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
                 ),
-                "detour": relay_tag,  # <--- The Link
-                # Inject keepalive to maintain NAT mapping
+                "detour": relay_tag,
                 "keepalive_interval": 20,
             }
 
