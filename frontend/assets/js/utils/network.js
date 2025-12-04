@@ -144,7 +144,7 @@ async function fetchStatistics() {
         return data;
     } catch (apiError) {
         console.warn('API fetch failed, trying static fallback for stats:', apiError);
-        url = `metadata.json${getCacheBust()}`;
+        url = `statistics.json${getCacheBust()}`;
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
         cache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
