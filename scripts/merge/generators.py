@@ -222,7 +222,7 @@ def _generate_statistics(
         port_counts[str(p.port)] += 1
 
     # Rejection Reasons Aggregation
-    rejection_reasons: Dict[str, int] = defaultdict(int)
+    rejection_reasons = defaultdict(int)
     db_path = output_dir / "data" / "source_quality.db"
     if db_path.exists():
         try:
