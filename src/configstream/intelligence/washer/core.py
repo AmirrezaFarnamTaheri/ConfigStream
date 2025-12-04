@@ -307,7 +307,9 @@ class ProxyWasher:
                 f"(Clean IP: {clean_endpoint})"
             )
             # Log successful wash event
-            logger.info(f"Washer: Successfully revived proxy {relay.id[:8]} -> {exit_tag}")
+            logger.info(
+                f"Washer: Successfully revived proxy {relay.id[:8]} -> {exit_tag}"
+            )
 
         # Calculate detailed washing statistics
         conversion_failures = len(candidates) - len(washed_ids)
