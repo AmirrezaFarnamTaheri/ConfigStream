@@ -58,11 +58,21 @@ async function fetchMetadata() {
     return cache.metadata.data;
   }
   try {
-    const url = `/api/stats${getCacheBust()}`;
-    const response = await fetchWithRetry(url, 3, 1000);
-    const data = await response.json();
-    cache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
-    return data;
+    let url = `/api/stats${getCacheBust()}`;
+    try {
+      const response = await fetchWithRetry(url, 3, 1000);
+      const data = await response.json();
+      cache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
+      return data;
+    } catch (apiError) {
+      console.warn('API fetch failed, trying static fallback for metadata:', apiError);
+      const root = window.ROOT_PATH || '';
+      url = `${root}metadata.json${getCacheBust()}`;
+      const response = await fetchWithRetry(url, 3, 1000);
+      const data = await response.json();
+      cache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
+      return data;
+    }
   } catch (error) {
     console.error('❌ Failed to fetch metadata:', error);
     if (cache.metadata.data) return cache.metadata.data;

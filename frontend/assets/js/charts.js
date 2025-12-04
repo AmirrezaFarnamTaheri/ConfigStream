@@ -76,18 +76,28 @@ class HistoryChart {
 
 // Helper to load history data (reused)
 async function loadHistoryData() {
-    // ... (Same mock/fetch logic as before) ...
     try {
-        const response = await fetch('files/history.json');
+        const rootPath = window.ROOT_PATH || '';
+        const response = await fetch(rootPath + 'data/active_proxy_trend.json');
         if (response.ok) {
-             // Assume history.json format: { "2023-10-01": 500, ... }
-             const raw = await response.json();
-             // Convert to array
-             const entries = Object.entries(raw).sort((a,b) => a[0].localeCompare(b[0])).slice(-7); // Last 7 days
-             return entries.map(([date, count]) => ({
-                 label: new Date(date).toLocaleDateString(undefined, {weekday: 'short'}),
-                 value: count
-             }));
+            const raw = await response.json();
+            // raw: [{timestamp: "ISO", active_count: 123}, ...]
+
+            // Aggregate by day (max count)
+            const daily = {};
+            raw.forEach(item => {
+                const date = item.timestamp.split('T')[0];
+                daily[date] = Math.max(daily[date] || 0, item.active_count);
+            });
+
+            const entries = Object.entries(daily)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .slice(-7);
+
+            return entries.map(([date, count]) => ({
+                label: new Date(date).toLocaleDateString(undefined, { weekday: 'short' }),
+                value: count
+            }));
         }
     } catch (e) {
         // ignore
