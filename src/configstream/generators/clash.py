@@ -2,7 +2,7 @@ import logging
 from typing import List, Any
 
 try:
-    import yaml
+    import yaml  # type: ignore
 except ImportError:
     yaml = None  # type: ignore
 
@@ -50,4 +50,4 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
         "rules": ["MATCH,PROXY"],
     }
 
-    return yaml.dump(config, allow_unicode=True, sort_keys=False)
+    return str(yaml.dump(config, allow_unicode=True, sort_keys=False))

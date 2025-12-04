@@ -59,7 +59,7 @@ def get_existing_sources() -> List[str]:
     return list(urls)
 
 
-def main():
+def main() -> None:
     # 1. Setup Workspace
     log_files = glob.glob(LOG_PATTERN)
     if not log_files:
@@ -94,8 +94,8 @@ def main():
     final_sources.sort(key=lambda x: x[1], reverse=True)
 
     # 6. Greedy Bin Packing
-    batches = [[] for _ in range(NUM_BATCHES)]
-    batch_loads = [0] * NUM_BATCHES
+    batches: List[List[str]] = [[] for _ in range(NUM_BATCHES)]
+    batch_loads: List[int] = [0] * NUM_BATCHES
 
     for url, weight in final_sources:
         # Find the batch with the current lowest load

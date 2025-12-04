@@ -52,7 +52,7 @@ class GeoIPResolver:
         self._load_databases()
         self._initialized = True
 
-    def _load_databases(self):
+    def _load_databases(self) -> None:
         """Load MMDB files if available."""
         try:
             data_dir = Path("data")
