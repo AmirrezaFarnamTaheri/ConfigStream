@@ -46,10 +46,11 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   Handle trailing garbage in Base64 strings.
     *   Gracefully skip invalid lines without crashing the pipeline.
     *   Log drop rates/reasons at `DEBUG` level (or `WARNING` if failure rate > 50%).
-*   **Strict Validation**:
-    *   **Mandatory Fields**: Parsers MUST return `None` (drop) if critical credentials (UUID for VLESS/VMess, Password for Trojan/Shadowsocks) are missing. This prevents pollution of downstream components.
+*   **Robust Parsing**:
+    *   **Credential Recovery**: For VLESS, Trojan, and Shadowsocks, if the primary credential field (e.g., username for UUID) is empty, the parser **MUST** check query parameters or other fields as a fallback before dropping the proxy.
+    *   **Mandatory Fields**: If credentials are still missing after fallback attempts, parser MUST return `None` (drop).
     *   **Method Check**: Shadowsocks method must be valid (not "ss", "shadowsocks").
-*   **Protocols**: Ensure correct mapping of `vmess`, `vless`, `trojan`, `shadowsocks` fields to the `Proxy` model.
+*   **Protocols**: Support for 20+ protocols (VLESS, VMess, Trojan, SS, SSR, Hysteria, Hysteria2, Tuic, WireGuard, SSH, SOCKS, HTTP, etc.) is required. Ensure correct mapping to the `Proxy` model.
 
 ### Fetcher (`src/configstream/fetcher.py`)
 *   **Resilience**:

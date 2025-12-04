@@ -71,6 +71,17 @@ def parse_ss(config: str) -> Optional[Proxy]:
         if not password:
             return None
 
+        # Fix plugin format: if plugin exists, ensure plugin_opts is extracted
+        # Often format is: plugin=obfs-local;obfs=http;obfs-host=google.com
+        if "plugin" in details:
+            plugin_str = details["plugin"]
+            # If plugin contains options separated by ;
+            if ";" in plugin_str:
+                plugin_parts = plugin_str.split(";")
+                details["plugin"] = plugin_parts[0]
+                if len(plugin_parts) > 1:
+                    details["plugin_opts"] = ";".join(plugin_parts[1:])
+
         details.update({"method": method, "password": password})
 
         proxy = Proxy(

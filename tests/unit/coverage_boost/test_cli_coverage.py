@@ -26,9 +26,10 @@ def test_cli_setup_logging_default():
 
 
 def test_cli_version(runner):
-    result = runner.invoke(cli, ["--version"])
-    assert result.exit_code == 0
-    assert "version" in result.output
+    with patch("importlib.metadata.version", return_value="1.0.0"):
+        result = runner.invoke(cli, ["--version"])
+        assert result.exit_code == 0
+        assert "version" in result.output
 
 
 def test_cli_help(runner):

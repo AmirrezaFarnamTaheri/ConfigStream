@@ -18,11 +18,6 @@ def parse_vless(config: str) -> Optional[Proxy]:
         port = parsed.port or 443
         if not (1 <= port <= 65535):
             return None
-        uuid = parsed.username or ""
-        if not uuid or len(uuid) > 100:
-            # Mandatory UUID for VLESS
-            return None
-
         # [FIX] Aggressive sanitization
         raw_details = parse_qs(parsed.query)
         details = {}
@@ -32,6 +27,15 @@ def parse_vless(config: str) -> Optional[Proxy]:
             # Values are lists in parse_qs
             clean_val = "".join(c for c in v[0] if c.isprintable()).strip()
             details[clean_key] = clean_val
+
+        uuid = parsed.username or ""
+        # Fallback: check query params for uuid
+        if not uuid:
+            uuid = details.get("uuid", "")
+
+        if not uuid or len(uuid) > 100:
+            # Mandatory UUID for VLESS
+            return None
 
         # REALITY Verification
         if details.get("security") == "reality":

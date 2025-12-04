@@ -19,12 +19,16 @@ def parse_trojan(config: str) -> Optional[Proxy]:
         port = parsed.port or 443
         if not (1 <= port <= 65535):
             return None
+        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
+
         uuid = parsed.username or ""
+        # Fallback: check query params for password
+        if not uuid:
+            uuid = details.get("password", "")
+
         # Strict Trojan password (stored as username) requirement
         if not uuid:
             return None
-
-        details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
         proxy = Proxy(
             config=config,
             protocol="trojan",
