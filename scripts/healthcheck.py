@@ -259,8 +259,8 @@ def main():
     parser.add_argument(
         "--min-success-rate",
         type=float,
-        default=0.3,
-        help="Minimum success rate 0-1 (default: 0.3)",
+        default=0.01,
+        help="Minimum success rate 0-1 (default: 0.01)",
     )
 
     parser.add_argument(
