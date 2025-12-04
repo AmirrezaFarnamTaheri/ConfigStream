@@ -91,7 +91,8 @@ function enrichProxyList(data, { fallback = false } = {}) {
 }
 
 async function fetchFallbackSnapshot() {
-  const fallbackUrl = `proxies.json${getCacheBust()}`;
+  const root = window.ROOT_PATH || '';
+  const fallbackUrl = `${root}proxies.json${getCacheBust()}`;
   console.warn('⚠️ Falling back to tested proxy snapshot');
   const response = await fetchWithRetry(fallbackUrl, 2, 1500);
   const payload = await response.json();
@@ -144,7 +145,8 @@ async function fetchStatistics() {
         return data;
     } catch (apiError) {
         console.warn('API fetch failed, trying static fallback for stats:', apiError);
-        url = `metadata.json${getCacheBust()}`;
+        const root = window.ROOT_PATH || '';
+        url = `${root}statistics.json${getCacheBust()}`;
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
         cache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
