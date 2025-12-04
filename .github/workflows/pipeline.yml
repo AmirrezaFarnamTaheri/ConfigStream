@@ -222,6 +222,7 @@ jobs:
         env:
           BATCH_NUMBER: ${{ matrix.batch_number }}
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
+          WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
           CANARY_URL: "https://httpbin.org"
         run: |
           set -euxo pipefail
