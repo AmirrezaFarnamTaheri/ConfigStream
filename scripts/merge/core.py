@@ -37,6 +37,7 @@ def merge_batches(
     from .logs import consolidate_logs
     from configstream.intelligence.washer.core import ProxyWasher
     from configstream.intelligence.vectors import generate_vectors
+    from configstream.proxy_history import ProxyHistoryTracker
 
     output_dir = root_dir / output_dir_str
     batch_dirs = sorted(list(root_dir.glob(batch_dir_glob)))
@@ -127,6 +128,24 @@ def merge_batches(
         logger.info("Vectors generated successfully.")
     except Exception as e:
         logger.error(f"Failed to generate vectors: {e}")
+
+    # --- Feature: History Export ---
+    logger.info("\n=== Step 2.7: Exporting History Visualization ===")
+    try:
+        history_file = output_dir / "data" / "proxy_history.json"
+        if history_file.exists():
+            history_tracker = ProxyHistoryTracker(history_path=history_file)
+            history_tracker.export_for_visualization(
+                output_dir / "data" / "proxy_history_viz.json"
+            )
+            history_tracker.export_active_proxy_trend(
+                output_dir / "data" / "active_proxy_trend.json"
+            )
+            logger.info("History exported successfully.")
+        else:
+            logger.warning("No proxy history file found to export.")
+    except Exception as e:
+        logger.error(f"Failed to export history: {e}")
 
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")

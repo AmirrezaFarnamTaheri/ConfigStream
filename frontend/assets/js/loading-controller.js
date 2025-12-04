@@ -57,7 +57,7 @@ class LoadingController {
       // Fetch your data here
       // Example: fetching metadata
       const rootPath = window.ROOT_PATH || '';
-      const response = await fetch(rootPath + 'output/metadata.json');
+      const response = await fetch(rootPath + 'metadata.json');
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);

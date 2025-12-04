@@ -45,15 +45,15 @@
       // Always fetch fresh from network, never cache
       // These are dynamic JSON files that change frequently
       networkOnly: [
-        (window.ROOT_PATH || '') + 'output/metadata.json'
+        (window.ROOT_PATH || '') + 'metadata.json'
       ],
       
       // Try network first, fall back to cache if offline
       // These update regularly but cache is acceptable if offline
       networkFirst: [
-        (window.ROOT_PATH || '') + 'output/proxies.json',
-        (window.ROOT_PATH || '') + 'output/statistics.json',
-        (window.ROOT_PATH || '') + 'output/vpn_subscription_base64.txt',
+        (window.ROOT_PATH || '') + 'proxies.json',
+        (window.ROOT_PATH || '') + 'statistics.json',
+        (window.ROOT_PATH || '') + 'vpn_subscription_base64.txt',
         // HTML pages should always be fresh to ensure navigation works
         'index.html',
         'proxies.html',
