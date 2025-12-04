@@ -32,6 +32,7 @@ def serialize_proxy(
         "protocol": proxy.protocol,
         "address": proxy.address,
         "port": proxy.port,
+        "uuid": proxy.uuid,  # Critical for VLESS/Trojan/VMess reconstruction
         "country": proxy.country_code,
         "country_code": proxy.country_code,
         "city": proxy.city,
