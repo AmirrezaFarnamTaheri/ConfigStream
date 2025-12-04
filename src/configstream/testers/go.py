@@ -175,8 +175,12 @@ class GoBatchTester:
             if stderr:
                 stderr_text = stderr.decode().strip()
                 if stderr_text:
-                    if "panic" in stderr_text.lower() or "fatal" in stderr_text.lower():
+                    lower_text = stderr_text.lower()
+
+                    if "panic" in lower_text or "fatal" in lower_text:
                         logger.error(f"Go Tester CRASHED: {stderr_text[:4096]}")
+                    elif "info:" in lower_text:
+                        logger.info(f"Go Tester: {stderr_text[:2048]}")
                     else:
                         logger.warning(f"Go Tester stderr: {stderr_text[:2048]}")
 
