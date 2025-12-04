@@ -1,10 +1,12 @@
 function initDynamicDownloads() {
-    const selector = document.getElementById('client-selector');
+    const wrapper = document.getElementById('client-selector');
     const desc = document.getElementById('client-desc');
     const btn = document.getElementById('dynamic-copy-btn');
     const iconContainer = document.getElementById('dynamic-icon');
 
-    if (!selector || !desc || !btn || !iconContainer) return;
+    if (!wrapper || !desc || !btn || !iconContainer) return;
+
+    const chips = wrapper.querySelectorAll('.client-chip');
 
     const clients = {
         shadowrocket: {
@@ -42,13 +44,25 @@ function initDynamicDownloads() {
             iconContainer.innerHTML = `<i data-feather="${client.icon}"></i>`;
             if (window.feather) feather.replace();
             if (window.inlineIcons) window.inlineIcons.replace();
+
+            // Update Active State
+            chips.forEach(chip => {
+                if (chip.dataset.value === clientKey) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
         }
     };
 
-    selector.addEventListener('change', (e) => {
-        updateUI(e.target.value);
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            updateUI(chip.dataset.value);
+        });
     });
 
-    // Initialize with default
-    updateUI(selector.value);
+    // Initialize with default (first chip or active)
+    const initial = wrapper.querySelector('.active') || chips[0];
+    if(initial) updateUI(initial.dataset.value);
 }

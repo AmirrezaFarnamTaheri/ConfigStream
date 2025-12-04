@@ -25,8 +25,12 @@ function updateStats(data) {
     };
 
     update('totalSourced', data.total_fetched || 0);
-    update('totalConfigs', data.total_proxies || 0);
+    update('totalConfigs', data.total_tested || data.total_proxies || 0);
     update('workingConfigs', data.total_working || 0);
+
+    // New Stats if elements exist
+    update('totalRevived', data.total_revived || 0);
+    update('threatsNeutralized', data.total_dirty || 0);
 
     const date = new Date(data.last_updated_utc);
     update('lastUpdated', date.toLocaleString());
@@ -65,34 +69,66 @@ function initGlobe(data) {
     // Create arcs from "Internet" (Abstract center) to Countries
     // Or simply visualize active nodes.
 
-    const countryStats = data.country_stats || {};
-    const maxCount = Math.max(...Object.values(countryStats));
+    if (data.proxy_locations && data.proxy_locations.length > 0) {
+        // Use exact proxy locations
+        data.proxy_locations.forEach(p => {
+            const lat = p.lat;
+            const lng = p.lng;
+            // Color by latency (Green < 200, Yellow < 500, Red > 500)
+            let color = '#ff0000';
+            const latency = p.latency || 9999;
+            if (latency < 200) color = '#00ff00';
+            else if (latency < 500) color = '#ffff00';
 
-    Object.entries(countryStats).forEach(([cc, count]) => {
-        const info = countryCentroids[cc] || { lat: (Math.random()*160)-80, lng: (Math.random()*360)-180 };
-
-        // Points (Active Nodes)
-        pointsData.push({
-            lat: info.lat,
-            lng: info.lng,
-            size: Math.sqrt(count) / 5,
-            color: getScoreColor(count / maxCount),
-            name: `${cc}: ${count} proxies`
-        });
-
-        // Arcs (Traffic Flow Simulation)
-        // Source: Random point, Target: Country
-        // Just visual candy
-        if (count > 5) {
-            arcsData.push({
-                startLat: info.lat + (Math.random() * 10 - 5),
-                startLng: info.lng + (Math.random() * 10 - 5),
-                endLat: info.lat,
-                endLng: info.lng,
-                color: [['#5E55F1', '#A855F7'][Math.round(Math.random())]],
+            pointsData.push({
+                lat: lat,
+                lng: lng,
+                size: 0.15, // Small clean dots
+                color: color,
+                name: `${p.protocol.toUpperCase()} (${latency}ms) - ${p.country || 'XX'}`
             });
-        }
-    });
+
+            // Add arcs randomly for visual effect (10% chance)
+            if (Math.random() < 0.1) {
+                arcsData.push({
+                    startLat: lat + (Math.random() * 20 - 10),
+                    startLng: lng + (Math.random() * 20 - 10),
+                    endLat: lat,
+                    endLng: lng,
+                    color: [['#5E55F1', '#A855F7'][Math.round(Math.random())]],
+                });
+            }
+        });
+    } else {
+        const countryStats = data.country_stats || {};
+        const maxCount = Math.max(...Object.values(countryStats));
+
+        Object.entries(countryStats).forEach(([cc, count]) => {
+            const info = countryCentroids[cc] || { lat: (Math.random()*160)-80, lng: (Math.random()*360)-180 };
+
+            // Points (Active Nodes)
+            pointsData.push({
+                lat: info.lat,
+                lng: info.lng,
+                size: Math.sqrt(count) / 5,
+                color: getScoreColor(count / maxCount),
+                name: `${cc}: ${count} proxies`
+            });
+
+            // Arcs (Traffic Flow Simulation)
+            // Source: Random point, Target: Country
+            // Just visual candy
+            if (count > 5) {
+                arcsData.push({
+                    startLat: info.lat + (Math.random() * 10 - 5),
+                    startLng: info.lng + (Math.random() * 10 - 5),
+                    endLat: info.lat,
+                    endLng: info.lng,
+                    color: [['#5E55F1', '#A855F7'][Math.round(Math.random())]],
+                });
+            }
+        });
+    }
 
     const Globe = window.Globe()
       (container)
@@ -174,7 +210,93 @@ function initCharts(data) {
         }
     });
 
-    // 3. Top Countries (Horizontal Bar)
+    // 3. Rejection Reasons (Pie/Doughnut)
+    const rejEl = document.getElementById('rejectionChart');
+    if (rejEl && data.rejection_reasons) {
+        const rejCtx = rejEl.getContext('2d');
+        // Sort keys
+        const sortedRej = Object.entries(data.rejection_reasons).sort((a,b) => b[1]-a[1]).slice(0, 8);
+        new Chart(rejCtx, {
+            type: 'pie',
+            data: {
+                labels: sortedRej.map(x => x[0]),
+                datasets: [{
+                    data: sortedRej.map(x => x[1]),
+                    backgroundColor: [
+                        '#e74c3c', '#e67e22', '#f1c40f', '#9b59b6',
+                        '#34495e', '#95a5a6', '#7f8c8d', '#bdc3c7'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+
+    // 4. Threat Breakdown (Doughnut) - Filtered Rejection Reasons
+    const threatEl = document.getElementById('threatChart');
+    if (threatEl && data.rejection_reasons) {
+        const threatCtx = threatEl.getContext('2d');
+        const threatKeys = ['honeypot', 'dirty_ip', 'malware', 'invalid_cert', 'security', 'unsafe'];
+        const threats = {};
+        for(const k in data.rejection_reasons) {
+            if(threatKeys.some(tk => k.toLowerCase().includes(tk))) {
+                threats[k] = data.rejection_reasons[k];
+            }
+        }
+
+        const sortedThreats = Object.entries(threats).sort((a,b) => b[1]-a[1]);
+
+        new Chart(threatCtx, {
+            type: 'doughnut',
+            data: {
+                labels: sortedThreats.map(x => x[0].replace(/_/g, ' ').toUpperCase()),
+                datasets: [{
+                    data: sortedThreats.map(x => x[1]),
+                    backgroundColor: ['#e74c3c', '#c0392b', '#d35400', '#e67e22', '#f39c12'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' },
+                    title: { display: true, text: 'Neutralized Threats' }
+                }
+            }
+        });
+    }
+
+    // 5. Top ASNs (Bar)
+    const asnEl = document.getElementById('asnChart');
+    if (asnEl && data.asns) {
+        const asnCtx = asnEl.getContext('2d');
+        const sortedAsns = Object.entries(data.asns).sort((a,b) => b[1]-a[1]).slice(0, 15);
+        new Chart(asnCtx, {
+            type: 'bar',
+            data: {
+                labels: sortedAsns.map(x => x[0]),
+                datasets: [{
+                    label: 'Proxies Hosted',
+                    data: sortedAsns.map(x => x[1]),
+                    backgroundColor: '#3498db',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // 6. Top Countries (Horizontal Bar)
     const countryCtx = document.getElementById('countryChart').getContext('2d');
     const sortedCountries = Object.entries(data.country_stats || {})
         .sort((a, b) => b[1] - a[1])

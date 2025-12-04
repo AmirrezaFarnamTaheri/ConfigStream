@@ -52,17 +52,20 @@ const translations = {
         "downloads.chosen.btn": "Copy Chosen Subscription",
 
         "info.start.title": "Getting Started",
-        "info.start.text": "Using ConfigStream is simple. Copy a subscription link above and import it into your VPN client.",
+        "info.start.text": "It's simple: 1. Choose your preferred format above. 2. Copy the subscription link. 3. Import it into your VPN client (V2Ray, Clash, Sing-box, etc.).",
         "info.how.title": "How It Works",
-        "info.security.title": "Our Security Promise",
-        "info.community.title": "Community Powered",
+        "info.how.text": "Our automated engine scans 600+ public sources every 6 hours. It filters out dead nodes, verifies security (TLS, Honeypots), and optimizes routing using a hybrid Go+Python core.",
+        "info.how.highlight.title": "🧠 Network Intelligence",
+        "info.how.highlight.text": "We optimize routes and revive blocked IPs using advanced washing techniques.",
+        "info.security.title": "Security & Privacy",
+        "info.community.title": "Open Source",
 
-        "footer.love": "A passion project for a free and open internet. ✨",
+        "footer.love": "Empowering global access to information. Open Source & Forever Free. ✨",
 
         "formats.title": "Format Guide",
-        "formats.base64": "Base64: A single link for V2Ray, Xray, NekoBox, etc.",
-        "formats.singbox": "Sing-box: Includes 'Sniper' (Smart Routing) and 'Tank' (Full VPN) modes.",
-        "formats.clash": "Clash: YAML file for Clash clients.",
+        "formats.base64": "Universal (Base64): The standard subscription format. Compatible with V2RayNG, v2rayN, Streisand, and most clients. Best for general use.",
+        "formats.singbox": "Sing-box JSON: Next-gen configuration. 'Sniper' mode auto-routes traffic based on latency. 'Tank' mode tunnels everything.",
+        "formats.clash": "Clash YAML: Ready-to-import profile for Clash for Windows, Clash Verge, and Stash. Includes rule-based routing.",
 
         "notice.title": "Security Notice",
         "notice.text": "These are free public proxies. While we test them for safety, we cannot guarantee privacy.",
@@ -102,18 +105,17 @@ const translations = {
 
         /* About Page */
         "about.hero.title": "About ConfigStream",
-        "about.subtitle": "Automated, resilient, and free access to the open internet.",
-        "about.mission.title": "Mission",
-        "about.mission.text": "ConfigStream was built to provide reliable, free access to the global internet for users in restricted network environments. By aggregating proxies from hundreds of public sources and rigorously testing them, we ensure high availability without manual effort.",
+        "about.subtitle": "The sovereign, resilient, and automated gateway to the open internet.",
+        "about.mission.title": "Our Mission",
+        "about.mission.text": "We believe access to information is a fundamental right. ConfigStream automates the discovery, testing, and optimization of censorship-resistant proxies, providing a reliable lifeline for users in restricted network environments—completely free of charge.",
         "about.arch.title": "Architecture: The \"Resilient Core\"",
-        "about.arch.text": "We utilize a \"Zero Budget\" architecture that runs entirely on GitHub's infrastructure, ensuring sustainability and censorship resistance. " +
-                            "This approach allows us to maintain a completely free and open service.",
-        "about.arch.hybrid": "<strong>Hybrid Engine:</strong> Combines Python's flexibility for intelligence with a high-performance <strong>Go Sidecar</strong> for massively concurrent network testing.",
-        "about.arch.intel": "<strong>Intelligence Layer:</strong> Our \"Proxy Washing\" technology automatically repairs blocked IPs by tunnelling them through Cloudflare WARP, creating \"Smart Chains\" that bypass deeper restrictions.",
-        "about.arch.agg": "<strong>Aggregator:</strong> Fetches from over 600 sources every 6 hours.",
-        "about.arch.pub": "<strong>Publisher:</strong> Generates optimized configs for V2Ray, Clash, Sing-box (Tank/Sniper modes), and more.",
-        "about.security.title": "Security",
-        "about.security.text": "While we perform automated security checks (blocking ads, malware sites, honeypots, and verification of TLS), these are public proxies. We recommend using them for browsing and avoiding sensitive transactions (banking, passwords).",
+        "about.arch.text": "Built on a \"Zero Budget\" philosophy, ConfigStream leverages the immense power of distributed CI/CD infrastructure (GitHub Actions) to create a self-sustaining, unstoppable pipeline. We don't rely on expensive servers that can be blocked or taken down.",
+        "about.arch.hybrid": "<strong>Hybrid Engine:</strong> A fusion of Python's analytical intelligence and a high-performance <strong>Go Sidecar</strong> for massively concurrent, raw-socket network verification.",
+        "about.arch.intel": "<strong>Intelligence Layer:</strong> Features \"Proxy Washing\" technology that automatically rehabilitates blocked IPs by tunneling traffic through Cloudflare WARP, creating robust \"Smart Chains\".",
+        "about.arch.agg": "<strong>Global Aggregator:</strong> Scrapes, parses, and normalizes data from over 600 public sources every 6 hours.",
+        "about.arch.pub": "<strong>Universal Publisher:</strong> Delivers optimized configurations for every major client: V2Ray, Clash, Sing-box ('Sniper' routing & 'Tank' tunneling), and more.",
+        "about.security.title": "Security & Transparency",
+        "about.security.text": "We employ automated security scanning to filter out honeypots, malware, and broken nodes. However, transparency is key: these are public proxies. While we optimize for safety, we strongly recommend using them for browsing and content access, not for sensitive banking or private communications.",
         "about.btn.source": "View Source on GitHub",
 
         /* Analytics Page */
@@ -122,6 +124,9 @@ const translations = {
         "analytics.charts.protocol": "Protocol Distribution",
         "analytics.charts.latency": "Latency Distribution",
         "analytics.charts.countries": "Top Countries",
+        "analytics.charts.rejection": "Rejection Logic",
+        "analytics.charts.threats": "Threat Breakdown",
+        "analytics.charts.asns": "Top Internet Providers",
 
         /* Proxies Page */
         "proxies.hero.title": "Live Proxy List",
