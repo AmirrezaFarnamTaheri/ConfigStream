@@ -2,6 +2,7 @@ import pytest
 from configstream.models import Proxy
 from configstream.converters.singbox import to_singbox_outbound
 
+
 def test_singbox_vless_missing_uuid():
     """Test VLESS conversion with missing UUID logs warning and returns None"""
     proxy = Proxy(
@@ -9,11 +10,12 @@ def test_singbox_vless_missing_uuid():
         protocol="vless",
         address="example.com",
         port=443,
-        uuid="", # Missing
-        remarks="test"
+        uuid="",  # Missing
+        remarks="test",
     )
     # Mocking logger is tricky in unit test without fixtures, but we can check return None
     assert to_singbox_outbound(proxy) is None
+
 
 def test_singbox_trojan_conversion():
     """Test standard Trojan conversion"""
@@ -24,13 +26,14 @@ def test_singbox_trojan_conversion():
         port=443,
         uuid="pass",
         remarks="test",
-        details={"tls": "tls"}
+        details={"tls": "tls"},
     )
     out = to_singbox_outbound(proxy)
     assert out is not None
     assert out["type"] == "trojan"
     assert out["password"] == "pass"
     assert out["tls"]["enabled"] is True
+
 
 def test_singbox_wireguard_unique_ip():
     """Test WireGuard local IP generation"""
@@ -40,7 +43,7 @@ def test_singbox_wireguard_unique_ip():
         address="example.com",
         port=51820,
         uuid="private_key",
-        details={"peer_public_key": "pub"}
+        details={"peer_public_key": "pub"},
     )
     proxy2 = Proxy(
         config="wireguard://example.org:51820",
@@ -48,7 +51,7 @@ def test_singbox_wireguard_unique_ip():
         address="example.org",
         port=51820,
         uuid="private_key",
-        details={"peer_public_key": "pub"}
+        details={"peer_public_key": "pub"},
     )
 
     out1 = to_singbox_outbound(proxy1)

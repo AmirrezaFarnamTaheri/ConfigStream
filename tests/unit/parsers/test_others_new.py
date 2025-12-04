@@ -1,6 +1,7 @@
 import pytest
 from configstream.parsers.others import parse_wireguard, parse_hysteria2
 
+
 def test_wireguard_missing_keys():
     """Test WireGuard parsing with missing keys"""
     # Invalid config (no private key or uuid)
@@ -12,6 +13,7 @@ def test_wireguard_missing_keys():
     proxy = parse_wireguard(config_valid)
     assert proxy is not None
     assert proxy.details["private_key"] == "privatekey"
+
 
 def test_hysteria2_obfs():
     """Test Hysteria2 obfuscation handling"""

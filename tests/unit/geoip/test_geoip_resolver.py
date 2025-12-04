@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from configstream.geoip import GeoIPResolver, GeoData
 
+
 def test_geoip_lookup_invalid_ip():
     """Test lookup with invalid IP format"""
     resolver = GeoIPResolver()
@@ -12,6 +13,7 @@ def test_geoip_lookup_invalid_ip():
     res = resolver.lookup("invalid-ip")
     assert res.country_code is None
     assert res.asn is None
+
 
 def test_geoip_lookup_valid_mock():
     """Test lookup logic with mocked DB response"""
