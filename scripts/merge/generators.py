@@ -140,6 +140,7 @@ def generate_outputs(
         total_processed,
         proxies_by_protocol,
         chosen_by_protocol,
+        washed_outbounds,
     )
 
     # 9. Wiki & Pages
@@ -195,6 +196,7 @@ def _generate_statistics(
     total_processed: int,
     proxies_by_protocol: Dict,
     chosen_by_protocol: Dict,
+    washed_outbounds: Optional[List[Dict[str, Any]]] = None,
 ):
     working_proxies = sum(1 for p in ranked if p.is_working)
     working_chosen = sum(1 for p in chosen if p.is_working)
@@ -209,7 +211,6 @@ def _generate_statistics(
             asn_counts[p.asn] += 1
 
     # Determine washing stats
-    total_washed_count = 0
     total_revived_count = 0
     # If washed_outbounds is passed, we can count distinct washed items
     # Typically washed_outbounds contain the output of ProxyWasher.wash_batch()
