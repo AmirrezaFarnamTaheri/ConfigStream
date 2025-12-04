@@ -328,6 +328,10 @@ async def processing_consumer(
                         p.city = geo_data.city or ""
                         p.asn = geo_data.asn or ""
                         p.org = geo_data.org or ""
+                        if geo_data.lat:
+                            p.details["lat"] = geo_data.lat
+                        if geo_data.lng:
+                            p.details["lng"] = geo_data.lng
                         stats.geo_resolved += 1
             if country_filter:
                 if p.country_code != country_filter.upper():

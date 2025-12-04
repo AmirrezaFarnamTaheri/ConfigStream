@@ -27,8 +27,6 @@ async function verifyProxyBatch(proxies) {
 
     console.log(`🚀 Starting WASM Verification for ${proxies.length} nodes...`);
 
-    // Run tests in parallel (Browser limit usually ~6-10 concurrent requests)
-    // We chunk them to avoid overwhelming the browser
     const CHUNK_SIZE = 10;
     const results = [];
 
@@ -36,26 +34,46 @@ async function verifyProxyBatch(proxies) {
         const chunk = proxies.slice(i, i + CHUNK_SIZE);
         const chunkResults = await Promise.all(chunk.map(async (p) => {
             try {
-                // Call the Go function exported in Task 8
-                // Note: The Go function expects a string argument.
-                // We pass the server address or the full config URL if supported.
-                // Our simple implementation takes a URL string to HEAD.
-                // We'll try the server address (as http) or generate_204 via proxy?
-                // The Go code does `client.Head(proxyURL)`.
-                // If `p.server` is just an IP, we might need `http://${p.server}`.
+                // Determine if proxy is testable via WebSocket
+                let isWebSocket = false;
 
-                let target = p.server;
-                if (!target.startsWith('http')) target = `http://${target}`;
+                // Check transport in details
+                if (p.details && (p.details.type === 'ws' || p.details.transport === 'ws')) {
+                    isWebSocket = true;
+                }
 
-                const res = await window.testProxyWasm(target);
+                // Heuristic check
+                if (p.config && (p.config.includes('type=ws') || p.config.includes('transport=ws'))) {
+                    isWebSocket = true;
+                }
+
+                // We can only test WebSocket endpoints from browser
+                if (!isWebSocket) {
+                     return p;
+                }
+
+                let target = p.address || p.server;
+                const port = p.port || 443;
+                let path = '/';
+
+                if (p.details && p.details.path) path = p.details.path;
+
+                // Construct WSS URL
+                const targetUrl = `wss://${target}:${port}${path}`;
+
+                const res = await window.testProxyWasm(targetUrl);
+
                 if (res.alive) {
                     p.latency = res.latency;
                     if (!p.tags) p.tags = [];
-                    p.tags.push("verified-local");
+                    if (!p.tags.includes("verified-local")) {
+                        p.tags.push("verified-local");
+                    }
                 } else {
                     p.latency = 9999;
                 }
             } catch (e) {
+                console.warn(`WASM Test Error for ${p.address}:`, e);
                 p.latency = 9999;
             }
             return p;
@@ -64,7 +82,11 @@ async function verifyProxyBatch(proxies) {
     }
 
     // Re-sort by new local latency
-    return results.sort((a, b) => (a.latency || 9999) - (b.latency || 9999));
+    return results.sort((a, b) => {
+        const latA = (a.latency === null || a.latency === undefined) ? 9999 : a.latency;
+        const latB = (b.latency === null || b.latency === undefined) ? 9999 : b.latency;
+        return latA - latB;
+    });
 }
 
 // Auto-init on load

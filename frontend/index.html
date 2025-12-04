@@ -186,7 +186,7 @@
                 <div class="accordion-container">
                     <section id="downloads" class="card accordion-item accordion-open" style="--delay: 0.5s;" aria-labelledby="downloads-heading">
                         <button class="accordion-header" aria-expanded="true">
-                            <div class="card-header text-center">
+                            <div class="card-header text-center" style="flex-direction: column; align-items: center; gap: 0.5rem;">
                                 <h2 id="downloads-heading" data-i18n="downloads.title">Get Your Configs</h2>
                                 <p class="subtitle" data-i18n="downloads.subtitle">Choose your preferred format. All downloads contain our latest tested proxies.</p>
                             </div>
@@ -235,16 +235,14 @@
                                     <div class="download-card" style="--delay: 0.9s;">
                                         <div class="download-icon" id="dynamic-icon"><i data-feather="grid"></i></div>
                                         <div class="download-info">
-                                            <h3 class="download-title">
-                                                <select id="client-selector" class="client-select" aria-label="Select Client">
-                                                    <option value="shadowrocket" selected>Shadowrocket</option>
-                                                    <option value="surge">Surge</option>
-                                                    <option value="loon">Loon</option>
-                                                    <option value="quantumultx">Quantumult X</option>
-                                                    <option value="sip008">SIP008</option>
-                                                </select>
-                                            </h3>
-                                            <p class="download-desc" id="client-desc">Select your client to get the appropriate configuration.</p>
+                                            <div id="client-selector" class="client-chips-wrapper">
+                                                <button class="client-chip active" data-value="shadowrocket">Shadowrocket</button>
+                                                <button class="client-chip" data-value="surge">Surge</button>
+                                                <button class="client-chip" data-value="loon">Loon</button>
+                                                <button class="client-chip" data-value="quantumultx">Quantumult X</button>
+                                                <button class="client-chip" data-value="sip008">SIP008</button>
+                                            </div>
+                                            <p class="download-desc" id="client-desc" style="margin-top: 1rem;">Configuration format optimized for Shadowrocket.</p>
                                         </div>
                                         <button id="dynamic-copy-btn" class="btn btn-primary copy-btn" data-file="shadowrocket.txt">
                                             <i data-feather="copy"></i>
@@ -277,10 +275,10 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p>Our system is fully automated using GitHub Actions. Every 6 hours, we fetch fresh proxies from public sources, deduplicate them, and test each one for security and performance.</p>
+                                <p data-i18n="info.how.text">Our system is fully automated using GitHub Actions. Every 6 hours, we fetch fresh proxies from public sources, deduplicate them, and test each one for security and performance.</p>
                                 <div class="feature-card-highlight">
-                                    <strong>🧠 Network Intelligence</strong>
-                                    <p>We optimize routes and revive blocked IPs using advanced washing techniques.</p>
+                                    <strong data-i18n="info.how.highlight.title">🧠 Network Intelligence</strong>
+                                    <p data-i18n="info.how.highlight.text">We optimize routes and revive blocked IPs using advanced washing techniques.</p>
                                 </div>
                             </div>
                         </div>

@@ -60,6 +60,8 @@ def merge_batches(
 
     # --- Feature: Proxy Washing ---
     washed_outbounds: List[Dict[str, Any]] = []
+    total_washed_candidates = 0
+    total_revived = 0
     warp_keys = os.environ.get("WARP_KEY_POOL")
     if warp_keys:
         logger.info("\n=== Step 2.5: Washing Proxies ===")
@@ -68,11 +70,27 @@ def merge_batches(
             # Fetch clean IPs asynchronously
             asyncio.run(washer.fetch_clean_ips())
 
-            # Wash the proxies (we use chosen_proxies for stability, or ranked?
-            # Report said ranked, but washing 1000s is slow.
-            # Let's wash ALL working ranked proxies as per audit instructions.
-            # "candidates = [p for p in proxies if p.is_working and self.warp_keys]" in Washer code handles filtering.
-            washed_outbounds, washed_ids = washer.wash_batch(ranked_proxies)
+            # Identify "Dirty" candidates
+            # We only wash proxies that are flagged as 'dirty_ip' or have security issues,
+            # OR if we want to be aggressive, we wash everything that isn't explicitly clean.
+            # User directive: "wash all dirties... not all proxies including workings".
+            # So we filter for dirty indicators.
+            dirty_proxies = [
+                p
+                for p in ranked_proxies
+                if "dirty_ip" in p.tags
+                or p.security_issues
+                or (
+                    p.country_code in ["IR", "CN", "RU"]
+                )  # Geo-based assumption of dirtiness/blocking
+            ]
+
+            total_washed_candidates = len(dirty_proxies)
+            logger.info(
+                f"Identified {total_washed_candidates} dirty proxies for washing."
+            )
+
+            washed_outbounds, washed_ids = washer.wash_batch(dirty_proxies)
             logger.info(f"Generated {len(washed_outbounds)//2} washed chains")
 
             # --- Feature: Washer Retest ---
@@ -109,6 +127,7 @@ def merge_batches(
                         else:
                             logger.debug(f"Washed chain failed retest: {cid}")
 
+                    total_revived = passed_count
                     logger.info(
                         f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working."
                     )
@@ -156,6 +175,8 @@ def merge_batches(
         total_processed,
         root_dir,
         washed_outbounds,
+        total_washed_candidates,
+        total_revived,
     )
 
     # 5. Logs & Summary
