@@ -51,23 +51,21 @@ const translations = {
         "downloads.chosen.desc": "Our premium selection: Top 50 proxies per protocol, ranked by lowest latency. The best choice for most users!",
         "downloads.chosen.btn": "Copy Chosen Subscription",
 
-        "info.start.title": "Quick Start Guide",
-        "info.start.text": "1. **Select** your preferred format from the downloads section above.<br>2. **Copy** the subscription link or download the config file.<br>3. **Import** it into your VPN client (V2RayNG, Shadowrocket, Clash, etc.) and update the subscription.",
-
-        "info.how.title": "The Engine",
-        "info.how.text": "Our automated pipeline runs every 6 hours on GitHub Actions. It aggregates thousands of public proxies, filters out dead or unsafe nodes, and verifies them against real targets.",
-        "info.how.highlight.title": "🚀 Smart Routing",
-        "info.how.highlight.text": "We use advanced \"Proxy Washing\" to route traffic through Cloudflare WARP when necessary, bypassing IP blocks and enhancing privacy.",
-
+        "info.start.title": "Getting Started",
+        "info.start.text": "It's simple: 1. Choose your preferred format above. 2. Copy the subscription link. 3. Import it into your VPN client (V2Ray, Clash, Sing-box, etc.).",
+        "info.how.title": "How It Works",
+        "info.how.text": "Our automated engine scans 600+ public sources every 6 hours. It filters out dead nodes, verifies security (TLS, Honeypots), and optimizes routing using a hybrid Go+Python core.",
+        "info.how.highlight.title": "🧠 Network Intelligence",
+        "info.how.highlight.text": "We optimize routes and revive blocked IPs using advanced washing techniques.",
         "info.security.title": "Security & Privacy",
         "info.community.title": "Open Source",
 
         "footer.love": "Empowering global access to information. Open Source & Forever Free. ✨",
 
-        "formats.title": "Format Cheatsheet",
-        "formats.base64": "<strong>Universal Subscription:</strong> The industry standard. Works with almost all clients (V2Ray, Xray, v2rayN). Auto-updates.",
-        "formats.singbox": "<strong>Sing-box:</strong> Next-gen JSON config. Choose 'Sniper' for latency-based auto-routing or 'Tank' for maximum stability.",
-        "formats.clash": "<strong>Clash YAML:</strong> A complete profile for Clash clients (Verge, Stash). Includes rule-based routing.",
+        "formats.title": "Format Guide",
+        "formats.base64": "Universal (Base64): The standard subscription format. Compatible with V2RayNG, v2rayN, Streisand, and most clients. Best for general use.",
+        "formats.singbox": "Sing-box JSON: Next-gen configuration. 'Sniper' mode auto-routes traffic based on latency. 'Tank' mode tunnels everything.",
+        "formats.clash": "Clash YAML: Ready-to-import profile for Clash for Windows, Clash Verge, and Stash. Includes rule-based routing.",
 
         "notice.title": "Security Notice",
         "notice.text": "These are free public proxies. While we test them for safety, we cannot guarantee privacy.",
