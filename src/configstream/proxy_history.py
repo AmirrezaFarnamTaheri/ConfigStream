@@ -117,6 +117,29 @@ class ProxyHistoryTracker:
             self.history_data, output_path, hours_to_track, bucket_minutes
         )
 
+    def merge(self, other: "ProxyHistoryTracker") -> None:
+        """Merge another history tracker into this one."""
+        for pid, data in other.history_data.items():
+            if pid not in self.history_data:
+                self.history_data[pid] = data
+            else:
+                # Merge entries
+                existing = self.history_data[pid]["entries"]
+                new_entries = data["entries"]
+                combined = existing + new_entries
+                # Sort by timestamp
+                combined.sort(key=lambda x: x["timestamp"])
+                # Dedup
+                unique = []
+                seen = set()
+                for e in combined:
+                    if e["timestamp"] not in seen:
+                        unique.append(e)
+                        seen.add(e["timestamp"])
+
+                # Update and trim
+                self.history_data[pid]["entries"] = unique[-self.max_entries :]
+
     def cleanup_old_data(self, days: int = 30) -> int:
         """
         Remove history data older than specified days.

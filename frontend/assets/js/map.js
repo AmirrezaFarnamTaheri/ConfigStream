@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     widget.init();
 
     try {
-        const response = await fetch('files/metadata.json');
+        const response = await fetch('metadata.json');
         if (response.ok) {
             const metadata = await response.json();
             widget.render(metadata);

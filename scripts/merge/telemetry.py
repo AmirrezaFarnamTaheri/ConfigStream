@@ -9,6 +9,7 @@ setup_python_path()
 from configstream.test_cache import TestResultCache  # noqa: E402
 from configstream.source_quality import SourceQualityTracker  # noqa: E402
 from configstream.anomaly import AnomalyDetector  # noqa: E402
+from configstream.proxy_history import ProxyHistoryTracker  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -52,3 +53,22 @@ def merge_telemetry(batch_dirs: List[Path], output_dir: Path):
             main_anomaly.merge_from(anomaly_db)
 
     logger.info("✅ Merged Telemetry Databases.")
+
+    # --- Merge Proxy History ---
+    logger.info("\n=== Step 0.8: Merging Proxy History ===")
+    history_file = output_dir / "data" / "proxy_history.json"
+    main_history = ProxyHistoryTracker(history_path=history_file)
+
+    total_history_merged = 0
+    for batch_dir in batch_dirs:
+        batch_history_file = batch_dir / "data" / "proxy_history.json"
+        if batch_history_file.exists():
+            batch_tracker = ProxyHistoryTracker(history_path=batch_history_file)
+            main_history.merge(batch_tracker)
+            total_history_merged += 1
+
+    if total_history_merged > 0:
+        main_history.save()
+        logger.info(
+            f"✅ Merged {total_history_merged} history files. Final history has {len(main_history.history_data)} proxies."
+        )
