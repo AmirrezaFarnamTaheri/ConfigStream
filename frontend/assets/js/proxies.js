@@ -161,7 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update count
         if (filterCount) {
-             filterCount.textContent = `Showing ${filteredProxies.length} of ${allProxies.length} proxies`;
+             if (window.innerWidth < 768) {
+                 filterCount.textContent = `${filteredProxies.length}/${allProxies.length}`;
+             } else {
+                 filterCount.textContent = `Showing ${filteredProxies.length} of ${allProxies.length} proxies`;
+             }
         }
 
         if (filteredProxies.length === 0) {
