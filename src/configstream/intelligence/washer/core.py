@@ -163,6 +163,8 @@ class ProxyWasher:
             f"Washing {len(candidates)} proxies through WARP "
             f"(Total Working: {working_count}, Key Pool: {len(self.warp_keys)})"
         )
+        if len(candidates) > 0:
+            logger.info(f"Washer: Attempting to revive {len(candidates)} proxies...")
 
         skip_reasons: Dict[str, int] = {}
 
@@ -304,6 +306,8 @@ class ProxyWasher:
                 f"Created washed chain {chain_id}: {relay_tag} -> {exit_tag} "
                 f"(Clean IP: {clean_endpoint})"
             )
+            # Log successful wash event
+            logger.info(f"Washer: Successfully revived proxy {relay.id[:8]} -> {exit_tag}")
 
         # Calculate detailed washing statistics
         conversion_failures = len(candidates) - len(washed_ids)

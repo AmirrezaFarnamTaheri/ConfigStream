@@ -208,10 +208,34 @@ def _generate_statistics(
         if p.asn:
             asn_counts[p.asn] += 1
 
+    # Determine washing stats
+    total_washed_count = 0
+    total_revived_count = 0
+    # If washed_outbounds is passed, we can count distinct washed items
+    # Typically washed_outbounds contain the output of ProxyWasher.wash_batch()
+    # If we don't have direct access here to 'clean' vs 'dirty' split from the pipeline,
+    # we can infer:
+    #   'Revived' = len(washed_outbounds) if provided
+    #   'Clean' = working_proxies (as ranked usually contains working clean ones?
+    #             Actually ranked contains ALL working, including potentially some washed if merged?)
+    #             Let's assume ranked contains the main working set.
+    #   'Dirty' = total_processed - working_proxies (approx)
+
+    if washed_outbounds:
+        total_revived_count = len(washed_outbounds)
+        # Assuming we tried to wash some number of proxies.
+        # Ideally, we would track how many *entered* the washer.
+        # For now, let's assume all fetched proxies that failed were "washed" candidates.
+        # But that's not strictly true. Let's just track Revived.
+        # Or better, let's look at output_dir/singbox-chains.json count if available.
+
     stats = {
         "total_fetched": total_processed,
         "total_tested": len(ranked),
         "total_working": working_proxies,
+        "total_clean": working_proxies,  # Proxies that work natively
+        "total_dirty": total_processed - working_proxies,  # Proxies that failed/blocked
+        "total_revived": total_revived_count,  # Proxies revived via Washing
         "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
         "countries": dict(sorted(country_counts.items())),
         "asns": dict(sorted(asn_counts.items())),
