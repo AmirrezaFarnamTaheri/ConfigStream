@@ -11,7 +11,7 @@ if (!globalThis.ConfigStreamCache) {
 }
 
 // Step 2: Get configuration from the shared namespace
-const config = globalThis.ConfigStreamCache;
+const managerConfig = globalThis.ConfigStreamCache;
 
 // Step 3: IndexedDB Helper Class
 class IDBHelper {
@@ -88,9 +88,9 @@ class IDBHelper {
 // Step 4: Initialize the cache manager
 class CacheManager {
   constructor() {
-    this.cacheName = config.CACHE_NAME;
-    this.config = config.CACHE_CONFIG;
-    this.strategy = config.CACHE_STRATEGY;
+    this.cacheName = managerConfig.CACHE_NAME;
+    this.config = managerConfig.CACHE_CONFIG;
+    this.strategy = managerConfig.CACHE_STRATEGY;
     this.log = this.createLogger();
     this.initialized = false;
     this._cacheAvailable = undefined;

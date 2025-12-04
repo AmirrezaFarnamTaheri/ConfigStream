@@ -24,6 +24,8 @@ class GeoData(BaseModel):
     city: Optional[str] = None
     asn: Optional[str] = None
     org: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
 
 
 class GeoIPResolver:
@@ -95,6 +97,8 @@ class GeoIPResolver:
                 result.country_code = response.country.iso_code
                 result.country_name = response.country.name
                 result.city = response.city.name
+                result.lat = response.location.latitude
+                result.lng = response.location.longitude
 
             if self.reader_asn:
                 response_asn = self.reader_asn.asn(ip)

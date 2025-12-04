@@ -129,10 +129,17 @@
                             <div class="stat-label" data-i18n="stats.online">Currently Online</div>
                         </div>
                     </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: var(--brand-tertiary);"><i data-feather="refresh-cw"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="totalRevived" class="stat-value">0</div>
+                            <div class="stat-label" data-i18n="stats.revived">Revived (Washed)</div>
+                        </div>
+                    </div>
                      <div class="stat-item">
                         <div class="stat-icon" style="background: var(--danger-color); box-shadow: 0 4px 12px -4px var(--danger-color);"><i data-feather="shield"></i></div>
                         <div class="stat-value-wrapper">
-                            <div id="threatsNeutralized" class="stat-value" style="color: var(--danger-color);">127</div>
+                            <div id="threatsNeutralized" class="stat-value" style="color: var(--danger-color);">0</div>
                             <div class="stat-label" data-i18n="stats.threats">Threats Neutralized</div>
                         </div>
                     </div>
@@ -159,6 +166,30 @@
                     </div>
                 </div>
 
+                <!-- Rejection Reasons -->
+                <div class="chart-container">
+                    <h3 data-i18n="analytics.charts.rejection">Rejection Logic</h3>
+                    <div style="flex: 1; position: relative;">
+                         <canvas id="rejectionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Threat Distribution (New) -->
+                <div class="chart-container">
+                    <h3 data-i18n="analytics.charts.threats">Threat Distribution</h3>
+                    <div style="flex: 1; position: relative;">
+                         <canvas id="threatChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top ASNs (New) -->
+                <div class="chart-container chart-full-width">
+                    <h3 data-i18n="analytics.charts.asns">Top ISPs / ASNs</h3>
+                    <div style="flex: 1; position: relative;">
+                         <canvas id="asnChart"></canvas>
+                    </div>
+                </div>
+
                 <!-- Country Top 10 -->
                 <div class="chart-container" style="grid-column: 1/-1;">
                     <h3 data-i18n="analytics.charts.countries">Top Countries</h3>
@@ -181,16 +212,16 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="assets/js/cache-config.js"></script>
+    <script src="assets/js/cache-config.js" defer></script>
     <script src="assets/js/utils/helpers.js" defer></script>
     <script src="assets/js/utils/format.js" defer></script>
     <script src="assets/js/utils/dom.js" defer></script>
     <script src="assets/js/utils/network.js" defer></script>
     <script src="assets/js/utils/ui.js" defer></script>
     <script src="assets/js/utils.js" defer></script>
-    <script src="assets/js/inline-icons.js"></script>
-    <script src="assets/js/common-ui.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="assets/js/inline-icons.js" defer></script>
+    <script src="assets/js/common-ui.js" defer></script>
+    <script src="https://unpkg.com/feather-icons" defer></script>
     <script>
         // Feather replace handled by common-ui.js or inline-icons.js if present
         // but if not, let's keep it safe
@@ -211,6 +242,6 @@
              }
         });
     </script>
-    <script src="assets/js/analytics.js"></script>
+    <script src="assets/js/analytics.js" defer></script>
 </body>
 </html>

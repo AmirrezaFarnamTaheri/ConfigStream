@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import logging
+import sqlite3
 from pathlib import Path
 from collections import defaultdict
 from typing import List, Dict, Any, Optional
@@ -34,6 +35,8 @@ def generate_outputs(
     total_processed: int,
     root_dir: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    total_washed: int = 0,
+    total_revived: int = 0,
 ):
     """Generates all output files."""
 
@@ -141,6 +144,8 @@ def generate_outputs(
         proxies_by_protocol,
         chosen_by_protocol,
         washed_outbounds,
+        total_washed,
+        total_revived,
     )
 
     # 9. Wiki & Pages
@@ -197,6 +202,8 @@ def _generate_statistics(
     proxies_by_protocol: Dict,
     chosen_by_protocol: Dict,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    total_washed: int = 0,
+    total_revived: int = 0,
 ):
     working_proxies = sum(1 for p in ranked if p.is_working)
     working_chosen = sum(1 for p in chosen if p.is_working)
@@ -210,25 +217,87 @@ def _generate_statistics(
         if p.asn:
             asn_counts[p.asn] += 1
 
-    # Determine washing stats
-    total_revived_count = 0
-    # If washed_outbounds is passed, we can count distinct washed items
-    # Typically washed_outbounds contain the output of ProxyWasher.wash_batch()
-    # If we don't have direct access here to 'clean' vs 'dirty' split from the pipeline,
-    # we can infer:
-    #   'Revived' = len(washed_outbounds) if provided
-    #   'Clean' = working_proxies (as ranked usually contains working clean ones?
-    #             Actually ranked contains ALL working, including potentially some washed if merged?)
-    #             Let's assume ranked contains the main working set.
-    #   'Dirty' = total_processed - working_proxies (approx)
+    port_counts: Dict[str, int] = defaultdict(int)
+    for p in ranked:
+        port_counts[str(p.port)] += 1
 
-    if washed_outbounds:
-        total_revived_count = len(washed_outbounds)
-        # Assuming we tried to wash some number of proxies.
-        # Ideally, we would track how many *entered* the washer.
-        # For now, let's assume all fetched proxies that failed were "washed" candidates.
-        # But that's not strictly true. Let's just track Revived.
-        # Or better, let's look at output_dir/singbox-chains.json count if available.
+    # Rejection Reasons Aggregation
+    rejection_reasons = defaultdict(int)
+    db_path = output_dir / "data" / "source_quality.db"
+    if db_path.exists():
+        try:
+            with sqlite3.connect(str(db_path)) as conn:
+                cursor = conn.execute("SELECT failure_modes_json FROM source_runs")
+                for (json_str,) in cursor:
+                    if json_str and json_str != "{}":
+                        try:
+                            modes = json.loads(json_str)
+                            for k, v in modes.items():
+                                rejection_reasons[k] += v
+                        except json.JSONDecodeError:
+                            pass
+        except Exception as e:
+            logger.warning(f"Failed to aggregate rejection reasons: {e}")
+
+    # Latency Distribution
+    latency_dist = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
+    for p in ranked:
+        lat = p.latency if p.latency is not None else 9999
+        if lat < 100:
+            latency_dist["fast"] += 1
+        elif lat < 500:
+            latency_dist["medium"] += 1
+        elif lat < 1500:
+            latency_dist["slow"] += 1
+        else:
+            latency_dist["very_slow"] += 1
+
+    # Globe Sampling Logic
+    globe_points = []
+    try:
+        # 1. Filter proxies with location
+        located = [p for p in ranked if p.details.get("lat") and p.details.get("lng")]
+
+        # 2. Cluster by 1-degree grid
+        grid = defaultdict(list)
+        for p in located:
+            k = (round(p.details["lat"]), round(p.details["lng"]))
+            grid[k].append(p)
+
+        # 3. Sort each cell by latency
+        for k in grid:
+            grid[k].sort(key=lambda p: (p.latency if p.latency is not None else 9999))
+
+        # 4. Selection
+        selected = []
+        # Pass 1: Top 1 from each cell
+        for k in grid:
+            selected.append(grid[k][0])
+
+        # Pass 2: Up to 2 more from cells if total < 300
+        if len(selected) < 300:
+            remaining_slots = 300 - len(selected)
+            candidates = []
+            for k in grid:
+                candidates.extend(grid[k][1:3])  # 2nd and 3rd best
+            candidates.sort(
+                key=lambda p: (p.latency if p.latency is not None else 9999)
+            )
+            selected.extend(candidates[:remaining_slots])
+
+        # 5. Format
+        for p in selected:
+            globe_points.append(
+                {
+                    "lat": p.details["lat"],
+                    "lng": p.details["lng"],
+                    "latency": p.latency,
+                    "country": p.country_code,
+                    "protocol": p.protocol,
+                }
+            )
+    except Exception as e:
+        logger.warning(f"Failed to generate globe points: {e}")
 
     stats = {
         "total_fetched": total_processed,
@@ -236,10 +305,20 @@ def _generate_statistics(
         "total_working": working_proxies,
         "total_clean": working_proxies,  # Proxies that work natively
         "total_dirty": total_processed - working_proxies,  # Proxies that failed/blocked
-        "total_revived": total_revived_count,  # Proxies revived via Washing
+        "total_washed": total_washed,  # Candidates for washing (attempted)
+        "total_revived": total_revived,  # Successfully revived via Washing
+        "rejection_reasons": dict(rejection_reasons),
+        "latency_distribution": latency_dist,
+        "proxy_locations": globe_points,
         "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
         "countries": dict(sorted(country_counts.items())),
-        "asns": dict(sorted(asn_counts.items())),
+        "country_stats": dict(sorted(country_counts.items())),  # Alias for frontend
+        "asns": dict(
+            sorted(asn_counts.items(), key=lambda item: item[1], reverse=True)[:15]
+        ),  # Top 15 ASNs
+        "ports": dict(
+            sorted(port_counts.items(), key=lambda item: item[1], reverse=True)[:10]
+        ),  # Top 10 Ports
         "chosen": {
             "total": len(chosen),
             "working": working_chosen,
