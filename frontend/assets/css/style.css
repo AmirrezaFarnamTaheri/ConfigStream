@@ -4156,23 +4156,6 @@ body.dark .byow-panel {
     }
 }
 
-}
-
-@media (max-width: 768px) {
-    .byow-panel {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .byow-actions {
-        width: 100%;
-        flex-direction: column;
-    }
-    .input-modern, .input-short {
-        width: 100%;
-        min-width: 0;
-    }
-}
-
 /* --- Added via AI Update --- */
 
 /* Client Chips Styles */

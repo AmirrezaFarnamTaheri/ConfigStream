@@ -7,24 +7,20 @@ from pathlib import Path
 from collections import defaultdict
 from typing import List, Dict, Any, Optional
 
-from .setup_path import setup_python_path
+from cryptography.fernet import Fernet
 
-setup_python_path()
-
-from cryptography.fernet import Fernet  # noqa: E402
-
-from configstream.models import Proxy  # noqa: E402
+from configstream.models import Proxy
 from datetime import datetime, timezone
-from configstream.output_generators import (  # noqa: E402
+from configstream.output_generators import (
     generate_base64_subscription,
     generate_singbox_config,
     generate_clash_config,
 )
-from configstream.output import save_metadata  # noqa: E402
-from configstream.adapters import get_adapter  # noqa: E402
-from configstream.crypto.signer import Signer  # noqa: E402
-from configstream.transport.stego import generate_stego_assets  # noqa: E402
-from configstream.output_transport import inject_stego_key_into_frontend  # noqa: E402
+from configstream.output import save_metadata
+from configstream.adapters import get_adapter
+from configstream.crypto.signer import Signer
+from configstream.transport.stego import generate_stego_assets
+from configstream.output_transport import inject_stego_key_into_frontend
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +32,7 @@ def generate_outputs(
     total_processed: int,
     root_dir: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
-    smart_chains: Optional[List[Dict[str, Any]]] = None,
+    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
 ):
@@ -117,13 +113,12 @@ def generate_outputs(
         f.write(generate_clash_config(ranked_proxies))
 
     # Pass washed_outbounds to generate_singbox_config
-    # We combine washed outbounds + smart chains for sing-box output if desired, or keep separate?
-    # Usually smart chains are just more outbounds.
     extra_outbounds = []
     if washed_outbounds:
         extra_outbounds.extend(washed_outbounds)
     if smart_chains:
-        extra_outbounds.extend(smart_chains)
+        for chain_list in smart_chains.values():
+            extra_outbounds.extend(chain_list)
 
     singbox_content = generate_singbox_config(
         ranked_proxies, extra_outbounds=extra_outbounds
@@ -213,7 +208,7 @@ def _generate_statistics(
     proxies_by_protocol: Dict,
     chosen_by_protocol: Dict,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
-    smart_chains: Optional[List[Dict[str, Any]]] = None,
+    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
 ):
@@ -229,14 +224,16 @@ def _generate_statistics(
         if p.asn:
             asn_counts[p.asn] += 1
 
-    total_smart_chains_count = len(smart_chains) if smart_chains else 0
+    total_smart_chains_count = (
+        sum(len(v) for v in smart_chains.values()) if smart_chains else 0
+    )
 
     port_counts: Dict[str, int] = defaultdict(int)
     for p in ranked:
         port_counts[str(p.port)] += 1
 
     # Rejection Reasons Aggregation
-    rejection_reasons = defaultdict(int)
+    rejection_reasons: Dict[str, int] = defaultdict(int)
     db_path = output_dir / "data" / "source_quality.db"
     if db_path.exists():
         try:
@@ -321,13 +318,12 @@ def _generate_statistics(
         "total_dirty": total_processed - working_proxies,  # Proxies that failed/blocked
         "total_washed": total_washed,  # Candidates for washing (attempted)
         "total_revived": total_revived,  # Successfully revived via Washing
-        "total_smart_chains": total_smart_chains_count, # Smart chains generated
+        "total_smart_chains": total_smart_chains_count,  # Smart chains generated
         "rejection_reasons": dict(rejection_reasons),
         "latency_distribution": latency_dist,
         "proxy_locations": globe_points,
         "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
         "countries": dict(sorted(country_counts.items())),
-        "asns": dict(sorted(asn_counts.items())),
         "country_stats": dict(sorted(country_counts.items())),  # Alias for frontend
         "asns": dict(
             sorted(asn_counts.items(), key=lambda item: item[1], reverse=True)[:15]
@@ -352,7 +348,7 @@ def _generate_statistics(
     with open(output_dir / "statistics.json", "w") as f:
         json.dump(stats, f, indent=2)
 
-    meta_stats = {
+    meta_stats: Dict[str, Any] = {
         "working": working_proxies,
         "fetched_lines": total_processed,
         "duration": 0.0,
@@ -381,9 +377,9 @@ def _generate_statistics(
     # Replicate logic from save_metadata but synchronous and compatible with dict stats
     meta = {
         "total_proxies": total_processed,
-        "total_tested": len(ranked_proxies),
+        "total_tested": len(ranked),
         "total_working": working_proxies,
-        "success_rate": (working_proxies / len(ranked_proxies)) if ranked_proxies else 0,
+        "success_rate": (working_proxies / len(ranked)) if ranked else 0,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "last_updated_utc": datetime.now(timezone.utc).isoformat(),
         "latency_distribution": latency_dist,
@@ -393,7 +389,7 @@ def _generate_statistics(
         "asns": dict(sorted(asn_counts.items())),
         "total_revived": total_revived,
         "total_smart_chains": len(smart_chains) if smart_chains else 0,
-        "total_dirty": total_processed - working_proxies, # Approximation
+        "total_dirty": total_processed - working_proxies,  # Approximation
         "washed_chains": meta_stats.get("washed_chains", 0),
         "total_clean": working_proxies,
     }
