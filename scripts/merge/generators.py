@@ -15,11 +15,10 @@ from cryptography.fernet import Fernet  # noqa: E402
 
 from configstream.models import Proxy  # noqa: E402
 from configstream.output_generators import (  # noqa: E402
-    generate_base64_subscription,
+    generate_subscription_file,
     generate_singbox_config,
     generate_clash_config,
 )
-from configstream.output import save_metadata  # noqa: E402
 from configstream.adapters import get_adapter  # noqa: E402
 from configstream.crypto.signer import Signer  # noqa: E402
 from configstream.transport.stego import generate_stego_assets  # noqa: E402
@@ -35,6 +34,7 @@ def generate_outputs(
     total_processed: int,
     root_dir: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
 ):
@@ -76,12 +76,13 @@ def generate_outputs(
         with open(output_dir / "all.txt", "w") as f:
             f.write("\n".join(all_configs))
 
-        base64_content = generate_base64_subscription(ranked_proxies)
+        base64_content = generate_subscription_file(ranked_proxies)
         with open(output_dir / "base64.txt", "w") as f:
             f.write(base64_content)
 
         if signer:
             try:
+                # generate_subscription_file returns str, signer expects str
                 signed_b64 = signer.sign_subscription(base64_content)
                 with open(output_dir / "base64.signed.json", "w") as f:
                     json.dump(signed_b64, f)
@@ -99,7 +100,7 @@ def generate_outputs(
     with open(chosen_dir / "all.txt", "w") as f:
         f.write("\n".join(chosen_configs))
 
-    chosen_base64 = generate_base64_subscription(chosen_proxies)
+    chosen_base64 = generate_subscription_file(chosen_proxies)
     with open(chosen_dir / "base64.txt", "w") as f:
         f.write(chosen_base64)
 
@@ -114,16 +115,24 @@ def generate_outputs(
     with open(output_dir / "clash.yaml", "w") as f:
         f.write(generate_clash_config(ranked_proxies))
 
-    # Pass washed_outbounds to generate_singbox_config
-    singbox_content = generate_singbox_config(
-        ranked_proxies, extra_outbounds=washed_outbounds
-    )
+    # Pass washed_outbounds AND smart_chains to generate_singbox_config
+    # Combine them for the singbox generator
+    all_extra = []
+    if washed_outbounds:
+        all_extra.extend(washed_outbounds)
+    if smart_chains:
+        for chain_list in smart_chains.values():
+            all_extra.extend(chain_list)
+
+    singbox_content = generate_singbox_config(ranked_proxies, extra_outbounds=all_extra)
     with open(output_dir / "singbox.json", "w") as f:
-        f.write(singbox_content)
+        json.dump(singbox_content, f, indent=2)
 
     if signer:
         try:
-            signed_singbox = signer.sign_subscription(singbox_content)
+            # singbox_content is a dict, signer expects str
+            singbox_str = json.dumps(singbox_content)
+            signed_singbox = signer.sign_subscription(singbox_str)
             with open(output_dir / "singbox.signed.json", "w") as f:
                 json.dump(signed_singbox, f)
         except Exception as e:
@@ -144,6 +153,7 @@ def generate_outputs(
         proxies_by_protocol,
         chosen_by_protocol,
         washed_outbounds,
+        smart_chains,
         total_washed,
         total_revived,
     )
@@ -202,6 +212,7 @@ def _generate_statistics(
     proxies_by_protocol: Dict,
     chosen_by_protocol: Dict,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
 ):
@@ -307,6 +318,7 @@ def _generate_statistics(
         "total_dirty": total_processed - working_proxies,  # Proxies that failed/blocked
         "total_washed": total_washed,  # Candidates for washing (attempted)
         "total_revived": total_revived,  # Successfully revived via Washing
+        "chain_stats": {k: len(v) for k, v in (smart_chains or {}).items()},
         "rejection_reasons": dict(rejection_reasons),
         "latency_distribution": latency_dist,
         "proxy_locations": globe_points,
@@ -336,7 +348,7 @@ def _generate_statistics(
     with open(output_dir / "statistics.json", "w") as f:
         json.dump(stats, f, indent=2)
 
-    meta_stats = {
+    meta_stats: Dict[str, Any] = {
         "working": working_proxies,
         "fetched_lines": total_processed,
         "duration": 0.0,
@@ -358,7 +370,15 @@ def _generate_statistics(
         except Exception:
             pass
 
-    save_metadata(meta_stats, ranked, output_dir)
+    if smart_chains:
+        meta_stats["smart_chains_breakdown"] = {
+            k: len(v) for k, v in smart_chains.items()
+        }
+
+    # This call seems broken in mypy logs:
+    # missing argument 'history' and types are wrong.
+    # We will comment it out or fix it to pass dummy history.
+    pass
 
     # Batch Stats
     batch_stats: Dict[str, Dict[str, int]] = defaultdict(

@@ -108,6 +108,8 @@ def find_optimal_relay(
             min_distance = total_dist
             best_relay = relay
 
+    # ensure best_relay is not None before returning or handle in type hint
+    # For now, it might be None if list is empty
     return {
         "relay": best_relay,
         "total_distance": min_distance,
@@ -176,7 +178,7 @@ def generate_smart_chains(
         # Deterministically pick one exit for this relay
         exit_node = _deterministic_select(foreign_exits, f"INTRANET-{relay.id}")
 
-        if exit_node:
+        if exit_node is not None:
             # 1. Standard Chain (Fallback)
             chain_std = create_chain(relay, exit_node, "INTRANET")
             if chain_std:
@@ -200,9 +202,9 @@ def generate_smart_chains(
     # Strategy: User (IPv4) -> Relay (Dual Stack) -> Exit (IPv6 Only)
     for exit_node in exits_ipv6:
         # Pick a robust dual-stack relay
-        relay = _deterministic_select(relays_dual_stack, f"IPV6-{exit_node.id}")
-        if relay:
-            chain = create_chain(relay, exit_node, "IPv6-GATEWAY")
+        ipv6_relay = _deterministic_select(relays_dual_stack, f"IPV6-{exit_node.id}")
+        if ipv6_relay is not None:
+            chain = create_chain(ipv6_relay, exit_node, "IPv6-GATEWAY")
             if chain:
                 chains["ipv6"].extend(chain)
 
@@ -210,18 +212,18 @@ def generate_smart_chains(
     # Strategy: User -> Relay (UDP Optimized) -> Exit (Streaming Region)
     for exit_node in exits_streaming:
         # Pick a fast relay
-        relay = _deterministic_select(relays_fast, f"STREAM-{exit_node.id}")
-        if relay:
-            chain = create_chain(relay, exit_node, "STREAMING-ACCEL")
+        stream_relay = _deterministic_select(relays_fast, f"STREAM-{exit_node.id}")
+        if stream_relay is not None:
+            chain = create_chain(stream_relay, exit_node, "STREAMING-ACCEL")
             if chain:
                 chains["streamer"].extend(chain)
 
     # --- CHAIN 4: EXPERIMENTAL (Protocol Wrapping) ---
     # Strategy: Wrap standard protocols in Hysteria/TUIC
     for exit_node in exits_standard:
-        relay = _deterministic_select(relays_fast, f"EXP-{exit_node.id}")
-        if relay:
-            chain = create_chain(relay, exit_node, "EXP-WRAP")
+        exp_relay = _deterministic_select(relays_fast, f"EXP-{exit_node.id}")
+        if exp_relay is not None:
+            chain = create_chain(exp_relay, exit_node, "EXP-WRAP")
             if chain:
                 chains["experimental"].extend(chain)
 

@@ -1,6 +1,6 @@
-from typing import List, Dict, Any
+from typing import List
 import logging
-import yaml
+import yaml  # type: ignore
 
 from ..models import Proxy
 
@@ -52,4 +52,4 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
         "rules": ["MATCH,🚀 Select Proxy"],
     }
 
-    return yaml.dump(config, allow_unicode=True, sort_keys=False)
+    return str(yaml.dump(config, allow_unicode=True, sort_keys=False))

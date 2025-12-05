@@ -3,7 +3,7 @@ import json
 import logging
 import shutil
 import os
-from typing import List, Optional, Dict
+from typing import List, Optional
 from pathlib import Path
 
 # Configure logger for this module
@@ -107,8 +107,10 @@ class WarpScannerWorker:
 
             # Create subprocess asynchronously
             # We pipe stdout to read JSON stream, stderr to capture logs
+            # Ensure cmd only contains strings
+            str_cmd = [str(c) for c in cmd if c is not None]
             proc = await asyncio.create_subprocess_exec(
-                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                *str_cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
 
             # Wait for the process to finish and capture output
