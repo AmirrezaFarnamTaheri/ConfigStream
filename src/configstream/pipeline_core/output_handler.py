@@ -73,12 +73,12 @@ async def generate_pipeline_outputs(
     # ProxyHistoryTracker.storage is HistoryStorage.
     # We will skip passing history storage to save_metadata for now to fix the type error,
     # assuming save_metadata handles None or we pass a compatible object if possible.
-    # But save_metadata signature is (proxies, output_dir, stats, history).
+    # But save_metadata signature is (stats, proxies, output_dir, history).
     # We will pass Any to bypass mypy for now as a hotfix since QualityStorage and HistoryStorage are different.
     from typing import cast, Any
 
-    await save_metadata(
-        optimized_proxies, output_path, stats, cast(Any, history.storage)
+    save_metadata(
+        stats, optimized_proxies, output_path, cast(Any, history.storage)
     )
 
     logger.info(f"Output generation complete. Files created in {output_path}")
