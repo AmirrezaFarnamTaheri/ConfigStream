@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="About ConfigStream: The mission, architecture, and technology behind the platform.">
     <title>About - ConfigStream</title>
-    <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="icon" type="image/svg+xml" href="../assets/svg/favicon.svg">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         .about-section {
             background: var(--surface-card);
@@ -58,11 +58,11 @@
                 <span class="header-logo-text">ConfigStream</span>
             </div>
             <nav class="nav" id="main-nav">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="proxies.html" class="nav-link">Proxy List</a>
-                <a href="analytics.html" class="nav-link">Analytics</a>
-                <a href="wiki/" class="nav-link">Wiki</a>
-                <a href="about.html" class="nav-link active">About</a>
+                <a href="../index.html" class="nav-link">Home</a>
+                <a href="../proxies.html" class="nav-link">Proxy List</a>
+                <a href="../analytics.html" class="nav-link">Analytics</a>
+                <a href="../wiki/" class="nav-link">Wiki</a>
+                <a href="#" class="nav-link active">About</a>
             </nav>
             <div class="header-actions">
                 <button id="theme-switcher" class="theme-btn"><i data-feather="moon"></i></button>
@@ -131,8 +131,12 @@
         </div>
     </footer>
 
-    <script src="assets/js/utils/ui.js" defer></script>
-    <script src="assets/js/common-ui.js" defer></script>
+    <script>
+        window.ROOT_PATH = '../';
+    </script>
+    <script src="../assets/js/utils.js" defer></script>
+    <script src="../assets/js/utils/ui.js" defer></script>
+    <script src="../assets/js/common-ui.js" defer></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => feather.replace());

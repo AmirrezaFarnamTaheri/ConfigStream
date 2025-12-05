@@ -1,6 +1,7 @@
 import pytest
 import json
 import asyncio
+from unittest.mock import MagicMock
 from configstream.output import save_json, save_metadata, generate_categorized_outputs
 from configstream.models import Proxy
 from configstream.pipeline_core.stats import PipelineStats
@@ -34,8 +35,8 @@ def sample_proxies():
 
 
 @pytest.fixture
-def mock_storage(mocker):
-    return mocker.MagicMock(spec=QualityStorage)
+def mock_storage():
+    return MagicMock(spec=QualityStorage)
 
 
 def test_atomic_write_json(tmp_path, sample_proxies):
@@ -49,12 +50,11 @@ def test_atomic_write_json(tmp_path, sample_proxies):
     assert content[0]["protocol"] == "vmess"
 
 
-@pytest.mark.asyncio
-async def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
+def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
     """Verify metadata generation."""
     stats = PipelineStats(total_sourced=10, scanner_ips_found=5)
 
-    await save_metadata(sample_proxies, tmp_path, stats, mock_storage)
+    save_metadata(stats, sample_proxies, tmp_path, mock_storage)
 
     meta_file = tmp_path / "metadata.json"
     assert meta_file.exists()
