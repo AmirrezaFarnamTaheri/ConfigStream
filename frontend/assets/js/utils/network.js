@@ -148,20 +148,21 @@ async function fetchStatistics() {
     return internalCache.statistics.data;
   }
   try {
-    let url = `/api/stats${getCacheBust()}`;
+    // Audit: /api/stats returns metadata.json which lacks detailed globe points.
+    // We must fetch statistics.json directly for full analytics.
+    const root = window.ROOT_PATH || '';
+    const url = `${root}statistics.json${getCacheBust()}`;
+
     try {
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
         internalCache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
         return data;
-    } catch (apiError) {
-        console.warn('API fetch failed, trying static fallback for stats:', apiError);
-        const root = window.ROOT_PATH || '';
-        url = `${root}statistics.json${getCacheBust()}`;
-        const response = await fetchWithRetry(url, 3, 1000);
-        const data = await response.json();
-        internalCache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
-        return data;
+    } catch (error) {
+        // Fallback to metadata if statistics.json is missing (graceful degradation)
+        console.warn('statistics.json failed, falling back to metadata:', error);
+        const meta = await fetchMetadata();
+        return meta;
     }
   } catch (error) {
     console.error('❌ Failed to fetch statistics:', error);
