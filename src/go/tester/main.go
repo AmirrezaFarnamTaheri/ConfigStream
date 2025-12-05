@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	"configstream-tester/scanner" // [INTEGRATION] Import the scanner package
+
 	box "github.com/sagernet/sing-box"
 	// [CRITICAL FIX 1] Register protocol modules so "mixed", "vless", etc. are recognized
 	_ "github.com/sagernet/sing-box/include"
@@ -81,13 +83,30 @@ type HoneypotResponse struct {
 // --- Main ---
 
 func main() {
+	// [INTEGRATION] Added scan mode flags
 	workers := flag.Int("workers", MaxWorkers, "Number of concurrent workers")
-	timeout := flag.Duration("timeout", 10*time.Second, "Timeout for each test")
+	timeoutStr := flag.String("timeout", "10s", "Timeout for tests/scans")
 	urls := flag.String("urls", "", "Comma-separated list of test URLs")
+	mode := flag.String("mode", "test", "Operation mode: 'test' (proxy check) or 'scan' (WARP IP scan)")
+	limit := flag.Int("limit", 1000, "Max IPs to scan (for 'scan' mode)")
+
 	flag.Parse()
 
-	TestTimeout = *timeout
+	// Parse Timeout
+	timeout, err := time.ParseDuration(*timeoutStr)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FATAL: Invalid timeout: %v\n", err)
+		os.Exit(1)
+	}
+	TestTimeout = timeout
 
+	// [INTEGRATION] Handle Scan Mode
+	if *mode == "scan" {
+		runScanner(*workers, timeout, *limit)
+		return
+	}
+
+	// Existing "test" mode logic
 	if *urls != "" {
 		TestTargets = strings.Split(*urls, ",")
 		for i := range TestTargets {
@@ -100,7 +119,7 @@ func main() {
 	}
 
 	// [LOG] Start info
-	fmt.Fprintf(os.Stderr, "INFO: Starting Go Tester with %d workers, timeout %s\n", *workers, *timeout)
+	fmt.Fprintf(os.Stderr, "INFO: Starting Go Tester with %d workers, timeout %s\n", *workers, timeout)
 
 	inputChan := make(chan ProxyInput, *workers*2)
 	outputChan := make(chan TestResult, *workers*2)
@@ -122,6 +141,26 @@ func main() {
 	close(outputChan)
 	time.Sleep(100 * time.Millisecond)
 	fmt.Fprintln(os.Stderr, "INFO: Go Tester shutting down")
+}
+
+func runScanner(workers int, timeout time.Duration, limit int) {
+	// Create a channel for results
+	resultsChan := make(chan scanner.ScanResult, workers*2)
+
+	// Start Scanner Routine
+	go func() {
+		defer close(resultsChan)
+		// Use default CIDRs or parse from args if you add that flag
+		scanner.RunScan(workers, timeout, limit, scanner.DefaultCidrs, resultsChan)
+	}()
+
+	// Output Results as JSON stream
+	for res := range resultsChan {
+		bytes, err := json.Marshal(res)
+		if err == nil {
+			fmt.Println(string(bytes))
+		}
+	}
 }
 
 func reader(inputChan chan<- ProxyInput) {

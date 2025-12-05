@@ -4,9 +4,13 @@ Exports functionality from `output_logic`, `output_transport`, and `output_gener
 Maintains backward compatibility.
 """
 
-from .output_logic import generate_categorized_outputs
-from .output_transport import save_json, save_metadata
-from .output_generators import generate_split_outputs
+from .output_logic import generate_categorized_outputs, save_metadata
+from .output_transport import save_json
+
+# generate_split_outputs is deprecated/renamed to generate_categorized_outputs in v2.0
+# We alias it here for backward compatibility with older tests/scripts
+generate_split_outputs = generate_categorized_outputs
+
 from .intelligence.washer import generate_smart_chains, ProxyWasher
 
 __all__ = [
