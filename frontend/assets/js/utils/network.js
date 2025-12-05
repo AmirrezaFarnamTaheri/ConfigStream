@@ -9,7 +9,8 @@ const CACHE_CONFIG = window.ConfigStreamCache?.CACHE_CONFIG || {
   statsExpiry: 5 * 60 * 1000,
 };
 
-const cache = {
+// Rename internal cache to avoid conflicts
+const internalCache = {
   metadata: { data: null, expiry: 0 },
   proxies: { data: null, expiry: 0 },
   statistics: { data: null, expiry: 0 },
@@ -20,13 +21,13 @@ function getCacheBust() {
 }
 
 function isCacheValid(key) {
-  if (!cache[key] || !cache[key].data) return false;
-  return Date.now() < cache[key].expiry;
+  if (!internalCache[key] || !internalCache[key].data) return false;
+  return Date.now() < internalCache[key].expiry;
 }
 
 function clearCache() {
-  Object.keys(cache).forEach(key => {
-    cache[key] = { data: null, expiry: 0 };
+  Object.keys(internalCache).forEach(key => {
+    internalCache[key] = { data: null, expiry: 0 };
   });
   console.log('🗑️ Cache cleared');
 }
@@ -55,14 +56,14 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
 async function fetchMetadata() {
   if (isCacheValid('metadata')) {
     console.log('📦 Using cached metadata');
-    return cache.metadata.data;
+    return internalCache.metadata.data;
   }
   try {
     let url = `/api/stats${getCacheBust()}`;
     try {
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
-      cache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
+      internalCache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
       return data;
     } catch (apiError) {
       console.warn('API fetch failed, trying static fallback for metadata:', apiError);
@@ -70,12 +71,12 @@ async function fetchMetadata() {
       url = `${root}metadata.json${getCacheBust()}`;
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
-      cache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
+      internalCache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
       return data;
     }
   } catch (error) {
     console.error('❌ Failed to fetch metadata:', error);
-    if (cache.metadata.data) return cache.metadata.data;
+    if (internalCache.metadata.data) return internalCache.metadata.data;
     throw error;
   }
 }
@@ -113,7 +114,7 @@ async function fetchFallbackSnapshot() {
 async function fetchProxies() {
   if (isCacheValid('proxies')) {
     console.log('📦 Using cached proxies');
-    return cache.proxies.data;
+    return internalCache.proxies.data;
   }
   let enrichedProxies;
   try {
@@ -132,11 +133,11 @@ async function fetchProxies() {
       enrichedProxies = await fetchFallbackSnapshot();
     } catch (fallbackError) {
       console.error('❌ Fallback snapshot also failed:', fallbackError);
-      if (cache.proxies.data) return cache.proxies.data;
+      if (internalCache.proxies.data) return internalCache.proxies.data;
       throw primaryError;
     }
   }
-  cache.proxies = { data: enrichedProxies, expiry: Date.now() + CACHE_CONFIG.proxiesExpiry };
+  internalCache.proxies = { data: enrichedProxies, expiry: Date.now() + CACHE_CONFIG.proxiesExpiry };
   console.log(`✅ Loaded ${enrichedProxies.length} proxies`);
   return enrichedProxies;
 }
@@ -144,14 +145,14 @@ async function fetchProxies() {
 async function fetchStatistics() {
   if (isCacheValid('statistics')) {
     console.log('📦 Using cached statistics');
-    return cache.statistics.data;
+    return internalCache.statistics.data;
   }
   try {
     let url = `/api/stats${getCacheBust()}`;
     try {
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
-        cache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
+        internalCache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
         return data;
     } catch (apiError) {
         console.warn('API fetch failed, trying static fallback for stats:', apiError);
@@ -159,12 +160,12 @@ async function fetchStatistics() {
         url = `${root}statistics.json${getCacheBust()}`;
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
-        cache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
+        internalCache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
         return data;
     }
   } catch (error) {
     console.error('❌ Failed to fetch statistics:', error);
-    if (cache.statistics.data) return cache.statistics.data;
+    if (internalCache.statistics.data) return internalCache.statistics.data;
     throw error;
   }
 }

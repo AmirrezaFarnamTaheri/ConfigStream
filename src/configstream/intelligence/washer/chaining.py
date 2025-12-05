@@ -1,17 +1,50 @@
+import ipaddress
 import hashlib
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from ...models import Proxy
 from ...converters import to_singbox_outbound
+from ...quality.geo import COUNTRIES, haversine
 
 logger = logging.getLogger(__name__)
 
+# Import Optional and ProxyWasher (if type checking needed, use string forward ref)
+# from .core import ProxyWasher
+
+
+class ProxyStub:
+    """Minimal proxy representation for geodesic calculations."""
+
+    def __init__(self, country: str, lat: float, lon: float, protocol: str):
+        self.country = country
+        self.lat = lat
+        self.lon = lon
+        self.protocol = protocol
+
+
+def is_likely_ipv4(address: str) -> bool:
+    """
+    Returns True if address is IPv4 literal or a Domain (assumed dual-stack).
+    Returns False ONLY if it is explicitly an IPv6 literal.
+    """
+    try:
+        # If it parses as IPv6, it's definitely NOT IPv4-safe
+        ip = ipaddress.ip_address(address)
+        return isinstance(ip, ipaddress.IPv4Address)
+    except ValueError:
+        # It's a domain name. Most domains support IPv4, so we assume Safe.
+        return True
+
 
 def create_chain(
-    relay: Proxy, exit_node: Proxy, tag_prefix: str
+    relay: Proxy,
+    exit_node: Proxy,
+    tag_prefix: str,
+    warp_config: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
-    """Helper to generate Sing-box outbound objects for a chain."""
+
+    # 1. Standard Relay -> Exit construction (Existing Code)
     relay_out = to_singbox_outbound(relay)
     exit_out = to_singbox_outbound(exit_node)
 
@@ -19,149 +52,189 @@ def create_chain(
         return []
 
     relay_tag = f"{tag_prefix}-RELAY-{relay.id[:6]}"
-    exit_tag = f"{tag_prefix}-EXIT-{exit_node.country}-{exit_node.id[:6]}"
+    # If washing, mark the Exit as 'Middle' to avoid confusion, or keep standard naming
+    exit_tag_suffix = "EXIT" if not warp_config else "MID"
+    exit_tag = f"{tag_prefix}-{exit_tag_suffix}-{exit_node.country}-{exit_node.id[:6]}"
 
     relay_out["tag"] = relay_tag
     exit_out["tag"] = exit_tag
-    exit_out["detour"] = relay_tag  # The chaining magic
+    exit_out["detour"] = relay_tag
 
-    return [relay_out, exit_out]
+    chain = [relay_out, exit_out]
+
+    # 2. Add WARP Hop (The New Logic)
+    if warp_config:
+        warp_tag = f"{tag_prefix}-WARP-FINAL-{exit_node.id[:4]}"
+
+        # Create the WireGuard object using the config from Washer
+        warp_out = warp_config.copy()
+        warp_out["tag"] = warp_tag
+        warp_out["detour"] = exit_tag  # The magic: WARP goes through Exit
+
+        chain.append(warp_out)
+
+    return chain
 
 
-def _deterministic_select(pool: List[Proxy], seed: str) -> Proxy:
-    """
-    Select a proxy from pool deterministically based on seed string.
-    This ensures reproducible builds - same input produces same output.
-    """
+def _deterministic_select(pool: List[Proxy], seed: str) -> Optional[Proxy]:
+    """Selects a proxy from a pool deterministically based on a seed string."""
     if not pool:
-        raise ValueError("Cannot select from empty pool")
-
-    # Use SHA-256 for consistent hashing
+        return None
     hash_val = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
     return pool[hash_val % len(pool)]
 
 
-def generate_smart_chains(proxies: List[Proxy]) -> Dict[str, List[Dict[str, Any]]]:
+def find_optimal_relay(
+    origin_country: str, target: ProxyStub, relays: List[ProxyStub]
+) -> Dict[str, Any]:
     """
-    Generate intelligent proxy chains based on network topology.
-    Returns a dict of chain types to list of outbound objects.
+    Finds the relay that minimizes the total geodesic distance:
+    Origin -> Relay -> Target
+    """
+    if origin_country not in COUNTRIES:
+        return {"error": "Origin country unknown"}
+
+    origin_lat, origin_lon = COUNTRIES[origin_country]
+    best_relay = None
+    min_distance = float("inf")
+
+    for relay in relays:
+        # Penalty for cross-continental hops if needed, or protocol preference
+        d1 = haversine(origin_lat, origin_lon, relay.lat, relay.lon)
+        d2 = haversine(relay.lat, relay.lon, target.lat, target.lon)
+        total_dist = d1 + d2
+
+        if total_dist < min_distance:
+            min_distance = total_dist
+            best_relay = relay
+
+    return {
+        "relay": best_relay,
+        "total_distance": min_distance,
+        "origin": origin_country,
+    }
+
+
+def generate_smart_chains(
+    proxies: List[Proxy],
+    washer: Any = None,  # Using Any to avoid circular import issues with ProxyWasher
+) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Generates topology-aware proxy chains.
+    Now supports an optional 'washer' to generate 3-hop washed chains.
     """
     chains: Dict[str, List[Dict[str, Any]]] = {
         "intranet": [],
+        "intranet_washed": [],  # <--- New Category
         "ipv6": [],
         "streamer": [],
-        "experimental": [],  # Hysteria->VMess
+        "experimental": [],
     }
 
-    # Statistics tracking
-    stats = {"attempted": 0, "succeeded": 0, "failed": 0}
-
-    # 1. Categorize Resources
+    # 1. Categorize Proxies
+    # Relays: Must be in specific regions or have specific capabilities
+    # 'IR' is the standard "Intranet" origin for this project logic
     relays_ir = [p for p in proxies if p.country_code == "IR" and p.is_working]
-    relays_dual_stack = [
-        p for p in proxies if p.is_working and ":" not in p.address
-    ]  # Approx IPv4
+
+    # Fast protocols (Hysteria2, TUIC) are good relays for streaming
     relays_fast = [
-        p for p in proxies if p.is_working and p.protocol in ["hysteria2", "tuic"]
+        p for p in proxies if p.is_working and p.protocol in ("hysteria2", "tuic")
     ]
 
-    exits_ipv6 = [p for p in proxies if p.is_working and ":" in p.address]
-    exits_streaming = [
-        p for p in proxies if p.is_working and p.country_code in ["US", "GB", "DE"]
+    # Dual-stack relays (IPv4 access) needed to reach IPv6 exits
+    # UPDATED: Robust IPv4 check
+    relays_dual_stack = [
+        p for p in proxies if p.is_working and is_likely_ipv4(p.address)
     ]
-    exits_standard = [
+
+    # Exits: Destination specific
+    # Foreign Exits (Not IR)
+    foreign_exits = [p for p in proxies if p.country_code != "IR" and p.is_working]
+
+    # IPv6 Only Exits (heuristic: ':' in address) - strictly IPv6 literals often implies IPv6-only host
+    exits_ipv6 = [
         p
         for p in proxies
-        if p.is_working and p.protocol in ["vmess", "shadowsocks", "trojan"]
+        if p.is_working and ":" in p.address and not is_likely_ipv4(p.address)
     ]
 
-    # --- CHAIN 1: THE INTRANET BRIDGE (Gold Standard) - FIXED ---
-    # Sort foreign exits by latency before selection
-    foreign_exits = sorted(
-        [p for p in proxies if p.country_code != "IR" and p.is_working],
-        key=lambda p: p.latency or float("inf"),
-    )[:5]
+    # Streaming friendly locations
+    streaming_countries = ["US", "DE", "GB", "NL", "FR", "JP"]
+    exits_streaming = [
+        p for p in foreign_exits if p.country_code in streaming_countries
+    ]
 
+    # Standard protocols for exits (vmess, ss, trojan)
+    exits_standard = [
+        p for p in foreign_exits if p.protocol in ("vmess", "shadowsocks", "trojan")
+    ]
+
+    # --- CHAIN 1: THE INTRANET BRIDGE (Standard & Washed) ---
+    # Strategy: User (Intranet) -> Relay (IR) -> Exit (Foreign) [-> WARP]
+    # To avoid explosion (N*M), we select 1 deterministic exit per relay
     for relay in relays_ir:
-        for exit_node in foreign_exits:
-            stats["attempted"] += 1
-            chain_objs = create_chain(relay, exit_node, "INTRANET-BRIDGE")
-            if chain_objs:
-                chains["intranet"].extend(chain_objs)
-                stats["succeeded"] += 1
-            else:
-                stats["failed"] += 1
+        # Deterministically pick one exit for this relay
+        exit_node = _deterministic_select(foreign_exits, f"INTRANET-{relay.id}")
 
-    # --- CHAIN 2: THE IPv6 PORTAL ---
-    for idx, exit_node in enumerate(exits_ipv6[:20]):  # Limit to avoid bloat
-        if relays_dual_stack:
-            stats["attempted"] += 1
-            try:
-                # Deterministic selection based on exit node ID
-                relay = _deterministic_select(relays_dual_stack, f"ipv6-{exit_node.id}")
-                chain_objs = create_chain(relay, exit_node, "IPv6-GATEWAY")
-                if chain_objs:
-                    chains["ipv6"].extend(chain_objs)
-                    stats["succeeded"] += 1
-                else:
-                    stats["failed"] += 1
-            except ValueError as e:
-                logger.warning(f"IPv6 chain {idx} selection failed: {e}")
-                stats["failed"] += 1
+        if exit_node:
+            # 1. Standard Chain (Fallback)
+            chain_std = create_chain(relay, exit_node, "INTRANET")
+            if chain_std:
+                chains["intranet"].extend(chain_std)
 
-    # --- CHAIN 3: THE STREAMER ---
-    for idx, exit_node in enumerate(exits_streaming[:20]):
-        if relays_fast:
-            stats["attempted"] += 1
-            try:
-                # Deterministic selection based on exit node ID
-                relay = _deterministic_select(relays_fast, f"stream-{exit_node.id}")
-                chain_objs = create_chain(relay, exit_node, "STREAMING-ACCEL")
-                if chain_objs:
-                    chains["streamer"].extend(chain_objs)
-                    stats["succeeded"] += 1
-                else:
-                    stats["failed"] += 1
-            except ValueError as e:
-                logger.warning(f"Streaming chain {idx} selection failed: {e}")
-                stats["failed"] += 1
+            # 2. Washed Chain (Premium) - Only if washer is available
+            if washer:
+                # Generate a unique seed for this specific path
+                seed = f"{relay.id}-{exit_node.id}"
+                warp_cfg = washer.get_warp_config(seed)
 
-    # --- CHAIN 4: EXPERIMENTAL - FIXED with guards ---
-    if (
-        relays_fast
-        and exits_standard
-        and len(relays_fast) > 0
-        and len(exits_standard) > 0
-    ):
-        for i in range(min(10, len(relays_fast), len(exits_standard))):
-            stats["attempted"] += 1
-            try:
-                relay = _deterministic_select(relays_fast, f"exp-relay-{i}")
-                exit_node = _deterministic_select(exits_standard, f"exp-exit-{i}")
-                chain_objs = create_chain(relay, exit_node, f"EXP-{i}")
-                if chain_objs:
-                    chains["experimental"].extend(chain_objs)
-                    stats["succeeded"] += 1
-                else:
-                    stats["failed"] += 1
-            except ValueError as e:
-                logger.warning(f"Experimental chain {i} selection failed: {e}")
-                stats["failed"] += 1
+                if warp_cfg:
+                    # Create chain with WARP appended
+                    chain_washed = create_chain(
+                        relay, exit_node, "INTRANET-SECURE", warp_config=warp_cfg
+                    )
+                    if chain_washed:
+                        chains["intranet_washed"].extend(chain_washed)
 
-    # Log statistics
-    chain_counts = {
-        k: len(v) // 2 for k, v in chains.items()
-    }  # Each chain has 2 outbounds
-    total_chains = sum(chain_counts.values())
+    # --- CHAIN 2: IPv6 PORTAL ---
+    # Strategy: User (IPv4) -> Relay (Dual Stack) -> Exit (IPv6 Only)
+    for exit_node in exits_ipv6:
+        # Pick a robust dual-stack relay
+        relay = _deterministic_select(relays_dual_stack, f"IPV6-{exit_node.id}")
+        if relay:
+            chain = create_chain(relay, exit_node, "IPv6-GATEWAY")
+            if chain:
+                chains["ipv6"].extend(chain)
 
-    if total_chains > 0:
-        logger.info(
-            f"Smart chains generated: {stats['succeeded']}/{stats['attempted']} "
-            f"({stats['failed']} failures). "
-            f"intranet={chain_counts['intranet']}, ipv6={chain_counts['ipv6']}, "
-            f"streamer={chain_counts['streamer']}, experimental={chain_counts['experimental']}"
-        )
-    else:
-        logger.warning("No smart chains generated - check relay/exit availability")
+    # --- CHAIN 3: STREAMING ACCELERATOR ---
+    # Strategy: User -> Relay (UDP Optimized) -> Exit (Streaming Region)
+    for exit_node in exits_streaming:
+        # Pick a fast relay
+        relay = _deterministic_select(relays_fast, f"STREAM-{exit_node.id}")
+        if relay:
+            chain = create_chain(relay, exit_node, "STREAMING-ACCEL")
+            if chain:
+                chains["streamer"].extend(chain)
+
+    # --- CHAIN 4: EXPERIMENTAL (Protocol Wrapping) ---
+    # Strategy: Wrap standard protocols in Hysteria/TUIC
+    for exit_node in exits_standard:
+        relay = _deterministic_select(relays_fast, f"EXP-{exit_node.id}")
+        if relay:
+            chain = create_chain(relay, exit_node, "EXP-WRAP")
+            if chain:
+                chains["experimental"].extend(chain)
+
+    total_chains = sum(len(v) for v in chains.values())
+    # Adjust count because each chain is a list of objects (2 or 3), so divide by average length ~2.1
+    # Actually create_chain returns a list of outbound dicts.
+    # The 'chains' dict values are flat lists of outbounds.
+    # So we just count outbounds.
+
+    logger.info(
+        f"Smart chains generated: {total_chains} outbound objects across {len(chains)} categories. "
+        f"intranet={len(chains['intranet'])}, intranet_washed={len(chains['intranet_washed'])}, "
+        f"ipv6={len(chains['ipv6'])}, streamer={len(chains['streamer'])}"
+    )
 
     return chains

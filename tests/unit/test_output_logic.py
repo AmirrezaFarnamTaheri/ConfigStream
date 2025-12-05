@@ -1,6 +1,6 @@
 import json
 from configstream.models import Proxy
-from configstream.output_logic import generate_split_outputs
+from configstream.output_logic import generate_categorized_outputs
 from configstream.intelligence.washer import ProxyWasher, generate_smart_chains
 import pytest
 
@@ -42,42 +42,31 @@ def warp_keys():
     return '[{"id": "key1", "private_key": "priv1", "peer_public_key": "pub1"}]'
 
 
-def test_generate_split_outputs(tmp_path, sample_proxies, warp_keys):
+def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
     washer = ProxyWasher(warp_keys)
     washed_outbounds, washed_ids = washer.wash_batch(sample_proxies)
     smart = generate_smart_chains(sample_proxies)
 
-    files = generate_split_outputs(
+    files = generate_categorized_outputs(
         sample_proxies, tmp_path, washed_outbounds, washed_ids, smart
     )
 
-    assert "singbox_vpn" in files
-    assert "singbox" in files
-    assert "clash" in files
+    # Updated keys for v2.0
+    assert "singbox_full" in files
+    assert "clash_full" in files
+    assert "sub_full" in files
 
-    # Check Singbox VPN content
-    with open(files["singbox_vpn"]) as f:
+    # Check Singbox content
+    with open(files["singbox_full"]) as f:
         data = json.load(f)
         outbounds = data["outbounds"]
-        tags = [o["tag"] for o in outbounds]
-
-        assert "tun-in" in [i["tag"] for i in data["inbounds"]]
-        assert "🌍 Proxy Select" in tags
-        assert "🛡️ Washed" in tags
-        assert "🇮🇷 Intranet" in tags
-
-        # Check if washed proxies are included
-        assert any(t.startswith("🛡️ Secure") for t in tags)
-
-    # Check Sniper content
-    with open(files["singbox"]) as f:
-        data = json.load(f)
-        tags = [o["tag"] for o in data["outbounds"]]
+        tags = [o.get("tag") for o in outbounds if "tag" in o]
 
         assert "mixed-in" in [i["tag"] for i in data["inbounds"]]
-        assert "🚀 Mode Selector" in tags
+        assert "🚀 Select Proxy" in tags
+        assert "⚡ Best Latency" in tags
 
-        # We don't necessarily need IPv6 Portal in the current logic unless added.
-        # But we expect at least the basic groups
-        assert "🛡️ Auto-Fallback" in tags
-        assert "⚡ Auto-Fast" in tags
+        # Check if washed proxies are included (via extra_outbounds logic)
+        # Note: tags depend on washer generation logic (Secure/Optimal)
+        # The washer logic adds tags like "🛡️ Secure-US-1"
+        assert any(t.startswith("🛡️ Secure") for t in tags)

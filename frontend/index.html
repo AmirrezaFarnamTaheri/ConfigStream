@@ -84,10 +84,12 @@
                 <a href="about/" class="nav-link" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
-                <!-- Modern Language Dropdown -->
+                <!-- Modern Language Dropdown (Redesigned to match theme switcher) -->
                 <div class="lang-dropdown">
-                    <button class="lang-btn" aria-label="Select Language">
-                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
+                    <button class="lang-btn theme-btn" aria-label="Select Language">
+                        <div class="theme-btn-inner">
+                            <i data-feather="globe"></i>
+                        </div>
                     </button>
                     <div class="lang-menu" id="lang-menu">
                         <button onclick="window.i18n.setLanguage('en')">English</button>
@@ -235,12 +237,16 @@
                                     <div class="download-card" style="--delay: 0.9s;">
                                         <div class="download-icon" id="dynamic-icon"><i data-feather="grid"></i></div>
                                         <div class="download-info">
-                                            <div id="client-selector" class="client-chips-wrapper">
-                                                <button class="client-chip active" data-value="shadowrocket">Shadowrocket</button>
-                                                <button class="client-chip" data-value="surge">Surge</button>
-                                                <button class="client-chip" data-value="loon">Loon</button>
-                                                <button class="client-chip" data-value="quantumultx">Quantumult X</button>
-                                                <button class="client-chip" data-value="sip008">SIP008</button>
+                                            <!-- Redesigned Dropdown for Clients -->
+                                            <div class="client-dropdown-wrapper">
+                                                <select id="client-selector-dropdown" class="client-select">
+                                                    <option value="shadowrocket">Shadowrocket</option>
+                                                    <option value="surge">Surge</option>
+                                                    <option value="loon">Loon</option>
+                                                    <option value="quantumultx">Quantumult X</option>
+                                                    <option value="sip008">SIP008</option>
+                                                </select>
+                                                <i data-feather="chevron-down" class="dropdown-arrow"></i>
                                             </div>
                                             <p class="download-desc" id="client-desc" style="margin-top: 1rem;">Configuration format optimized for Shadowrocket.</p>
                                         </div>
@@ -354,16 +360,14 @@
         }
 
         // Listen for language changes to update UI label
+        // Removed text update, now purely icon based for simplicity/design matching
         window.addEventListener('languageChanged', (e) => {
-             const lang = e.detail.lang;
-             const label = document.getElementById('current-lang-label');
-             if(label) label.textContent = lang.toUpperCase();
+             // Optional: visual feedback or tooltip update
         });
 
         // Initial set label
         document.addEventListener('DOMContentLoaded', () => {
-             const label = document.getElementById('current-lang-label');
-             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();
+             // No text to set
         });
     </script>
 </body>

@@ -9,6 +9,7 @@ from typing import List, Dict, Optional, Set, Any, Tuple
 
 from ...models import Proxy
 from ...converters import to_singbox_outbound
+from ...workers.scanner import WarpScannerWorker
 from ..chaining import find_optimal_relay, ProxyStub, COUNTRIES
 
 logger = logging.getLogger(__name__)
@@ -51,11 +52,51 @@ class ProxyWasher:
         # Audit: Limit seen chains memory usage
         self.max_seen_chains = 100000
 
+        # Initialize the Active Scanner
+        self.scanner = WarpScannerWorker()
+
     async def fetch_clean_ips(self) -> None:
         """
-        Fetches the latest clean IPs for WARP endpoints with retry logic.
-        Tries multiple sources in priority order.
+        Fetches the latest clean IPs for WARP endpoints.
+        Strategy:
+        1. Active Scanning (High Performance, Local Latency)
+        2. Static Lists (Reliability Fallback)
+        3. Hardcoded Defaults (Last Resort)
         """
+
+        # --- STRATEGY 1: ACTIVE SCANNING ---
+        # Only run if the binary is available
+        if self.scanner.available:
+            try:
+                # Scan for 50 fresh IPs with a tight 5s timeout to keep pipeline fast
+                logger.info("Attempting active scan for fresh WARP endpoints...")
+                scanned_ips = await self.scanner.scan_endpoints(
+                    limit=50, timeout=5, max_latency=800
+                )
+
+                # We need at least a few IPs to consider the scan "successful"
+                if scanned_ips and len(scanned_ips) >= 5:
+                    self.clean_ips = scanned_ips
+                    logger.info(
+                        f"Active Scan Success: Using {len(self.clean_ips)} fresh IPs "
+                        f"(Static sources skipped). Top: {self.clean_ips[:3]}"
+                    )
+                    return  # SUCCESS - Exit early, skip static lists
+                else:
+                    logger.warning(
+                        f"Active scan returned insufficient IPs ({len(scanned_ips)}). "
+                        "Falling back to static lists."
+                    )
+            except Exception as e:
+                logger.error(f"Active scan failed unexpectedly: {e}")
+        else:
+            logger.debug(
+                "Scanner binary not available/configured. Skipping active scan."
+            )
+
+        # --- STRATEGY 2: STATIC LISTS ---
+        logger.info("Starting static list fetch sequence...")
+
         for source_url in CLEAN_IP_SOURCES:
             max_retries = 2
             backoff_factor = 2
@@ -99,7 +140,7 @@ class ProxyWasher:
                             f"Source {source_url} failed after {max_retries} attempts: {e}"
                         )
 
-        # All sources failed - use defaults
+        # --- STRATEGY 3: DEFAULTS ---
         logger.warning(
             f"All Clean IP sources failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
         )
@@ -132,6 +173,42 @@ class ProxyWasher:
         hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
         index = hash_val % len(exit_pool)
         return exit_pool[index]
+
+    def get_warp_config(self, seed_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Returns a configuration dictionary for a WARP WireGuard outbound.
+        Used by external modules (like chaining) to wrap connections.
+        """
+        if not self.warp_keys:
+            return None
+
+        # 1. Get consistent credentials (reuse existing logic)
+        identity = self._get_consistent_exit(seed_id, self.warp_keys)
+        if not identity:
+            return None
+
+        # 2. Get clean endpoint (reuse existing logic)
+        endpoint = self._get_clean_endpoint(seed_id)
+
+        # 3. Get Port
+        try:
+            port = int(os.environ.get("WARP_PORT", "2408"))
+        except:
+            port = 2408
+
+        # 4. Return the specific config needed for Sing-box
+        return {
+            "type": "wireguard",
+            "server": endpoint,
+            "server_port": port,
+            "local_address": [
+                f"172.16.{hash(seed_id) % 250}.2/32"
+            ],  # Simplified unique IP generation
+            "private_key": identity["private_key"],
+            "peer_public_key": identity["peer_public_key"],
+            "mtu": 1280,  # Important for chains to avoid fragmentation
+            "keepalive_interval": 20,
+        }
 
     def wash_batch(self, proxies: List[Proxy]) -> Tuple[List[Dict[str, Any]], Set[str]]:
         """
