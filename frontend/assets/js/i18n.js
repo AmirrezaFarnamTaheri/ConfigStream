@@ -32,6 +32,7 @@ const translations = {
         "stats.sourced": "Total Sourced",
         "stats.unique": "Unique & Verified",
         "stats.online": "Online Now",
+        "stats.clean": "Clean (Native)",
         "stats.hybrid": "Hybrid Engine",
         "stats.hybrid.desc": "Go + Python Core",
         "stats.update": "Update Frequency",
