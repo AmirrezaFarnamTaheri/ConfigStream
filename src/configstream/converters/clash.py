@@ -1,84 +1,104 @@
 from typing import Dict, Any, Optional
+import logging
+
 from ..models import Proxy
-from .clash_utils import add_transport_opts
+
+logger = logging.getLogger(__name__)
 
 
 def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
-    """Convert internal Proxy model to Clash dictionary."""
-    base: Dict[str, Any] = {}
+    """
+    Converts a Proxy object into a Clash proxy dictionary.
+    Returns None if the protocol is not supported or conversion fails.
+    """
+    if not proxy.is_working:
+        return None
 
-    if proxy.protocol == "vmess":
-        base = {
-            "type": "vmess",
+    try:
+        common = {
+            "name": f"{proxy.country_code}-{proxy.protocol}-{proxy.id[:6]}",
             "server": proxy.address,
             "port": proxy.port,
-            "uuid": proxy.uuid,
-            "alterId": 0,  # [FIX] Enforce 0 for security/modern server compatibility
-            "cipher": str(proxy.details.get("scy", "auto")),
-        }
-        return add_transport_opts(base, proxy.details)
-
-    elif proxy.protocol == "vless":
-        base = {
-            "type": "vless",
-            "server": proxy.address,
-            "port": proxy.port,
-            "uuid": proxy.uuid,
-            "flow": str(proxy.details.get("flow", "")),
-        }
-        return add_transport_opts(base, proxy.details)
-
-    elif proxy.protocol == "shadowsocks":
-        return {
-            "type": "ss",
-            "server": proxy.address,
-            "port": proxy.port,
-            "cipher": str(proxy.details.get("method", "chacha20-ietf-poly1305")),
-            "password": str(proxy.details.get("password", "")),
-        }
-    elif proxy.protocol == "trojan":
-        return {
-            "type": "trojan",
-            "server": proxy.address,
-            "port": proxy.port,
-            "password": proxy.uuid,
-            "udp": True,
-        }
-    elif proxy.protocol == "http":
-        return {
-            "type": "http",
-            "server": proxy.address,
-            "port": proxy.port,
-            "username": str(proxy.details.get("username", proxy.uuid or "")),
-            "password": (
-                str(proxy.details.get("password", ""))
-                if proxy.details.get("password")
-                else None
-            ),
-            "tls": proxy.details.get("tls") == "tls",
-        }
-    elif proxy.protocol == "socks5":
-        return {
-            "type": "socks5",
-            "server": proxy.address,
-            "port": proxy.port,
-            "username": str(proxy.details.get("username", proxy.uuid or "")),
-            "password": (
-                str(proxy.details.get("password", ""))
-                if proxy.details.get("password")
-                else None
-            ),
-            "tls": proxy.details.get("tls") == "tls",
-        }
-    elif proxy.protocol == "wireguard":
-        return {
-            "type": "wireguard",
-            "server": proxy.address,
-            "port": proxy.port,
-            "ip": str(proxy.details.get("local_address", "10.10.0.2")),
-            "private-key": str(proxy.details.get("private_key")),
-            "public-key": str(proxy.details.get("peer_public_key")),
-            "udp": True,
+            "type": proxy.protocol,
         }
 
-    return None
+        if proxy.protocol == "ss" or proxy.protocol == "shadowsocks":
+            common["type"] = "ss"
+            common["cipher"] = proxy.cipher or "chacha20-ietf-poly1305"
+            common["password"] = proxy.password
+            # Add plugin support if needed
+            if proxy.details.get("plugin"):
+                common["plugin"] = proxy.details["plugin"]
+                common["plugin-opts"] = proxy.details.get("plugin_opts", {})
+            return common
+
+        elif proxy.protocol == "vmess":
+            common["uuid"] = proxy.uuid
+            common["alterId"] = proxy.details.get("alterId", 0)
+            common["cipher"] = proxy.cipher or "auto"
+
+            # Transport
+            net = proxy.details.get("network", "tcp")
+            common["network"] = net
+            if net == "ws":
+                common["ws-opts"] = {
+                    "path": proxy.details.get("path", "/"),
+                    "headers": {"Host": proxy.details.get("host", "")},
+                }
+
+            # TLS
+            if proxy.details.get("security") == "tls":
+                common["tls"] = True
+                if proxy.details.get("sni"):
+                    common["servername"] = proxy.details["sni"]
+                if proxy.details.get("fp"):
+                    common["client-fingerprint"] = proxy.details["fp"]
+
+            return common
+
+        elif proxy.protocol == "trojan":
+            common["password"] = proxy.password
+            if proxy.details.get("sni"):
+                common["sni"] = proxy.details["sni"]
+            if proxy.details.get("security") == "tls":
+                common["udp"] = True
+            return common
+
+        # Basic VLESS support (Clash Meta/Premium only usually, but often mapped)
+        elif proxy.protocol == "vless":
+            common["uuid"] = proxy.uuid
+            common["flow"] = proxy.details.get("flow", "")
+
+            # Transport & TLS similar to VMess
+            net = proxy.details.get("network", "tcp")
+            common["network"] = net
+            if net == "ws":
+                common["ws-opts"] = {
+                    "path": proxy.details.get("path", "/"),
+                    "headers": {"Host": proxy.details.get("host", "")},
+                }
+            if proxy.details.get("security") == "tls":
+                common["tls"] = True
+                if proxy.details.get("sni"):
+                    common["servername"] = proxy.details["sni"]
+                if proxy.details.get("fp"):
+                    common["client-fingerprint"] = proxy.details["fp"]
+            elif proxy.details.get("security") == "reality":
+                # Clash Meta specific Reality fields
+                common["tls"] = True
+                common["servername"] = proxy.details.get("sni", "")
+                common["reality-opts"] = {
+                    "public-key": proxy.details.get("pbk", ""),
+                    "short-id": proxy.details.get("sid", ""),
+                }
+                if proxy.details.get("fp"):
+                    common["client-fingerprint"] = proxy.details["fp"]
+
+            return common
+
+        # Fallback or unknown
+        return None
+
+    except Exception as e:
+        logger.debug(f"Failed to convert proxy {proxy.id} to Clash: {e}")
+        return None

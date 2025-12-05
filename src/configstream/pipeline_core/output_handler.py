@@ -1,209 +1,74 @@
-from pathlib import Path
-from typing import List
-import shutil
-from ..models import Proxy
-from ..proxy_history import ProxyHistoryTracker
-from ..output import generate_smart_chains, generate_categorized_outputs, save_metadata
-from ..adapters import get_adapter
-from ..intelligence.washer import ProxyWasher
-from ..intelligence.vectors import generate_vectors
-from ..output_generators import generate_base64_subscription
-from ..serialize import serialize_proxy
-from ..consolidation import select_top_configs
-from ..transport.stego import generate_stego_assets
-from ..output_transport import inject_stego_key_into_frontend
-from cryptography.fernet import Fernet
-import json
-import logging
 import os
+import logging
+import asyncio
+from pathlib import Path
+from typing import List, Optional
+
+from ..models import Proxy
+from ..history.tracker import ProxyHistoryTracker
+from ..output_logic import generate_categorized_outputs, save_metadata
+from ..intelligence.washer.core import ProxyWasher
+from ..intelligence.washer.chaining import generate_smart_chains
+from ..pipeline_core.stats import PipelineStats
 
 logger = logging.getLogger(__name__)
 
 
 async def generate_pipeline_outputs(
-    optimized_proxies: List[Proxy], output_path, stats, history: ProxyHistoryTracker
+    optimized_proxies: List[Proxy],
+    output_path: Path,
+    stats: PipelineStats,
+    history: ProxyHistoryTracker,
 ):
     """
-    Handles all output generation logic:
-    - Washing
-    - Smart Chains
-    - Standard Outputs (txt, json)
-    - Metadata
-    - Vectors
-    - Adapters
-    - Chosen 1000
+    Orchestrates the generation of all pipeline outputs.
+    Integrates Washing, Smart Chaining, and File Generation.
     """
-    logger.info(f"Generating outputs for {len(optimized_proxies)} proxies...")
+    logger.info("Starting final output generation phase...")
 
-    stats.final_count = len(optimized_proxies)
-
-    # Inject history into proxies
-    for p in optimized_proxies:
-        p.history = history.get_history(p.id)
-
-    # --- Intelligence Phase: Washing & Chaining (Centralized) ---
+    # 1. Initialize Washer & Scanner (The Intelligence Layer)
+    # We load keys from Env. If empty, washer degrades gracefully to no-op.
     washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
 
-    # Fetch Clean IPs before washing
+    # [CRITICAL] Run the Go Scanner (Phase 2 Component)
+    # This populates self.clean_ips in the washer with fresh, low-latency endpoints.
+    # We await it because it's an async network operation.
     await washer.fetch_clean_ips()
 
+    # Update stats with scanner results
+    stats.scanner_ips_found = len(washer.clean_ips)
+
+    # 2. Wash Batch (The "Blanket" Wash)
+    # Generates standard WARP wraps for all working proxies (fallback/legacy behavior)
+    # Returns the list of outbound configs and the set of IDs that were washed.
     washed_outbounds, washed_ids = washer.wash_batch(optimized_proxies)
 
-    smart_chains = generate_smart_chains(optimized_proxies)
+    # Update stats with washing results
+    stats.washer_success_count = len(washed_ids)
 
+    # 3. Smart Chains (The Topology Router)
+    # Generates complex chains (Intranet, IPv6, Streamer).
+    # We pass the 'washer' instance so it can borrow the Clean IPs and Keys
+    # to create "Washed Smart Chains" (3-hop).
+    smart_chains = generate_smart_chains(optimized_proxies, washer=washer)
+
+    # Update stats with smart chain counts (total number of chains generated)
+    total_chains = sum(len(v) for v in smart_chains.values())
+    stats.smart_chain_count = total_chains
+
+    # 4. Generate Files (The Assembler)
+    # Writes everything to disk: Sing-box (with chains), Clash (raw), Subs, etc.
     generated_files = generate_categorized_outputs(
         optimized_proxies,
         output_path,
         washed_outbounds=washed_outbounds,
         washed_ids=washed_ids,
         smart_chains=smart_chains,
+        washer=washer,  # Pass washer context if needed by generators
     )
 
-    # NEW: Generate Static Vectors for Client-Side Search
-    generate_vectors(optimized_proxies, output_path)
+    # 5. Metadata & Stats
+    await save_metadata(optimized_proxies, output_path, stats, history.storage)
 
-    # NEW: Generate Metadata for Frontend
-    save_metadata(stats.to_dict(), optimized_proxies, output_path)
-
-    # New Adapters Exports
-    try:
-        # Pass washed_outbounds to adapters that support it (Surge)
-        (output_path / "surge.conf").write_text(
-            get_adapter("surge").export(optimized_proxies, washed_outbounds)
-        )
-        (output_path / "shadowrocket.txt").write_text(
-            get_adapter("shadowrocket").export(optimized_proxies, washed_outbounds)
-        )
-        # Loon
-        (output_path / "loon.conf").write_text(
-            get_adapter("loon").export(optimized_proxies, washed_outbounds)
-        )
-        # Quantumult X
-        (output_path / "quantumult.conf").write_text(
-            get_adapter("qx").export(optimized_proxies, washed_outbounds)
-        )
-        # SIP008
-        (output_path / "sip008.json").write_text(
-            get_adapter("sip008").export(optimized_proxies, washed_outbounds)
-        )
-    except Exception as e:
-        logger.error(f"Failed to export adapters: {e}")
-
-    # Chosen 1000 Generation
-    chosen_proxies = select_top_configs(
-        optimized_proxies, top_per_protocol=50, total_limit=1000
-    )
-    chosen_dir = output_path / "chosen"
-    chosen_dir.mkdir(exist_ok=True)
-
-    (chosen_dir / "proxies.json").write_text(
-        json.dumps(
-            [serialize_proxy(p, history.get_history(p.id)) for p in chosen_proxies],
-            indent=2,
-        )
-    )
-    (chosen_dir / "base64.txt").write_text(generate_base64_subscription(chosen_proxies))
-
-    # ---------------------------------------------------------
-    # ZERO CONFIGURATION STEGANOGRAPHY (Key Rotation)
-    # ---------------------------------------------------------
-
-    # 1. Generate a fresh, random key for this run
-    dynamic_key = Fernet.generate_key().decode()
-
-    # Locate cover images for steganography
-    assets_dir = output_path.parent / "frontend" / "assets" / "images"
-    if not assets_dir.exists():
-        # Fallback logic for when running from root or elsewhere
-        if os.path.exists("frontend/assets/images"):
-            assets_dir = "frontend/assets/images"
-
-    # Copy frontend assets into the output directory so static pages (wiki/about)
-    # are available when serving the pipeline artifacts directly.
-    for candidate in (output_path.parent / "frontend", Path("frontend")):
-        if candidate.exists():
-            try:
-                shutil.copytree(candidate, output_path, dirs_exist_ok=True)
-                logger.info(
-                    f"Copied frontend assets from {candidate} into {output_path}"
-                )
-                break
-            except Exception as e:
-                logger.warning(f"Failed to copy frontend assets from {candidate}: {e}")
-
-    assets_path = None
-    for path_candidate in (
-        output_path / "assets" / "images",
-        output_path.parent / "frontend" / "assets" / "images",
-        Path("frontend/assets/images"),
-    ):
-        if Path(path_candidate).exists():
-            assets_path = Path(path_candidate)
-            break
-
-    if assets_path:
-        logger.info(
-            f"Generating Stego assets using key ending in ...{dynamic_key[-6:]}"
-        )
-        try:
-            # 2. Generate the hidden image using this key
-            generate_stego_assets(
-                config_dir=output_path,  # Where singbox.json lives
-                assets_dir=assets_path,  # Where cover images (background.png) live
-                secret_key=dynamic_key,
-            )
-            logger.info("Stego assets generation completed successfully.")
-        except Exception as e:
-            logger.error(f"Stego generation failed: {e}", exc_info=True)
-    else:
-        logger.warning("Assets directory not found, skipping Stego.")
-
-    # 3. Inject the key into the frontend code (assets/js/stego.js)
-    # This ensures the static site matches the encrypted image
-    # Note: frontend/assets/js/stego.js must exist.
-    # We should look for it relative to where we found assets_dir or output_path
-
-    # Try to find stego.js
-    # Ensure we ONLY modify the output copy, not the source!
-    source_js_path = None
-
-    try:
-        import importlib.resources
-
-        # Find the path to the stego.js file within the installed package
-        # Assuming configstream is the package and frontend is included/reachable
-        # This might need adjustment based on packaging
-        with importlib.resources.path("configstream", "frontend") as frontend_path:
-            # This path is usually temporary or points to install location
-            js_path_candidate = frontend_path / "assets" / "js" / "stego.js"
-            if js_path_candidate.exists():
-                source_js_path = js_path_candidate
-    except (ImportError, FileNotFoundError, Exception):
-        # Fallback to relative paths
-        pass
-
-    if not source_js_path:
-        possible_paths = [
-            Path("frontend/assets/js/stego.js"),
-            output_path.parent / "frontend" / "assets" / "js" / "stego.js",
-        ]
-
-        for p in possible_paths:
-            if p.exists():
-                source_js_path = p
-                break
-
-    output_js_path = output_path / "assets" / "js" / "stego.js"
-
-    if source_js_path:
-        # Ensure output directory exists
-        output_js_path.parent.mkdir(parents=True, exist_ok=True)
-        # Copy source to destination before injecting key
-        shutil.copy(source_js_path, output_js_path)
-        inject_stego_key_into_frontend(dynamic_key, output_js_path)
-    else:
-        logger.warning("Could not find source stego.js to inject key.")
-
-    # ---------------------------------------------------------
-
+    logger.info(f"Output generation complete. Files created in {output_path}")
     return generated_files

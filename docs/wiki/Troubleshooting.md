@@ -1,43 +1,43 @@
-# ConfigStream Troubleshooting Guide
+# Troubleshooting Guide
 
-## Common Issues
+ConfigStream v2.0 introduces new components like the Go Scanner and Proxy Washer. This guide helps you diagnose common issues.
 
-### 1. "Signature Verification Failed"
-- **Symptom:** The frontend displays a security alert or refuses to load proxies.
-- **Cause:** The `frontend/assets/js/constants.js` public key does not match the private key used by the CI pipeline to sign the subscription.
-- **Fix:**
-    - Rotate keys in GitHub Secrets.
-    - Update `PUBLIC_KEY` in `constants.js` with the new public key.
+## 1. Pipeline Failures
 
-### 2. "Proxy List Empty"
-- **Symptom:** `proxies.json` is empty `[]`.
-- **Cause:**
-    - Fetcher failed to retrieve sources (network blocking or 404).
-    - All proxies failed validation (strict mode enabled).
-- **Fix:** Check CI logs for `fetch_from_source` errors. Verify `TEST_URLS` are reachable from the GitHub Actions runner.
+### `Go Binary Not Found`
+If you see `WarpScannerWorker: Go binary not found`, the pipeline cannot find the compiled Go tester.
+*   **Fix:** Ensure you have compiled the binary: `cd src/go/tester && go build -o configstream-tester .`
+*   **CI:** Check `.github/workflows/pipeline.yml` to ensure the `build_go` step is running correctly.
 
-### 3. "Steganography Image Corrupt"
-- **Symptom:** `gallery.png` does not load or decoder fails.
-- **Cause:** The CDN or image optimization service (e.g., Cloudflare Polish) stripped the appended Zip data.
-- **Fix:** Ensure the file is served with `Cache-Control: no-transform`. Use raw storage (GitHub Releases, Discord) instead of image hosts.
+### `Washing Skipped: No WARP keys`
+This means the environment variable `WARP_KEY_POOL` is empty or malformed.
+*   **Fix:** Generate keys using the CLI or providing your own.
+*   **Local Dev:** `export WARP_KEY_POOL='[{"id":"...", "private_key":"...", "peer_public_key":"..."}]'`
 
-### 4. IPFS Fallback Not Working
-- **Symptom:** Primary domain is down, but IPFS doesn't load.
-- **Cause:** IPNS propagation is slow (up to an hour).
-- **Fix:** Use DNSLink (`_dnslink.fallback.com`) for instant updates. Check if the Pinata API token is valid in secrets.
+## 2. Testing Issues
 
-## Debugging
+### `Address already in use` (Go Tester)
+The Go tester binds to random ports (10000-60000) for local SOCKS listeners. In high-concurrency modes, collisions might occur.
+*   **Fix:** Reduce `--workers` count or check if other services are hogging ports.
 
-### Enable Verbose Logging
-Set `LOG_LEVEL=DEBUG` in your environment or `.env` file before running the pipeline.
+### `NameError: List`
+This usually indicates an issue with type hint imports in Python 3.8/3.9 environments without `from typing import List`.
+*   **Fix:** Ensure you are using Python 3.10+ or correct the imports.
 
-```bash
-export LOG_LEVEL=DEBUG
-python -m configstream
-```
+## 3. Frontend & Analytics
 
-### Manual Testing
-Use the CLI to test a single proxy:
-```bash
-python -m configstream test --proxy "vless://..."
-```
+### Globe Not Loading
+The 3D Globe uses WebGL.
+*   **Fix:** Enable Hardware Acceleration in your browser. Check console for `three.js` errors.
+
+### "No Data" in Charts
+If analytics show zeros:
+*   **Cause:** The pipeline might have failed before the `save_metadata` step.
+*   **Check:** Look at `output/metadata.json` to see if it's empty or missing fields.
+
+## 4. Connectivity
+
+### "Connection Refused" on Washed Proxies
+If proxies tagged `🛡️ Secure` are not connecting:
+*   **Cause:** The Cloudflare endpoint might be blocked in your region, or the WARP key quota is exhausted.
+*   **Fix:** Try a different `clean_ip` or rotate WARP keys.
