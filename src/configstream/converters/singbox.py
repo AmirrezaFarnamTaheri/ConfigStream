@@ -40,7 +40,11 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         )
         return None
 
+    # Generate a unique tag
+    tag = f"{proxy.protocol}-{proxy.country_code}-{proxy.id[:8]}"
+
     base: Dict[str, Any] = {
+        "tag": tag,
         "server": proxy.address,
         "server_port": proxy.port,
     }

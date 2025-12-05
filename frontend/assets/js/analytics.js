@@ -24,8 +24,8 @@ function updateStats(data) {
         }
     };
 
-    update('totalSourced', data.total_fetched || 0);
-    update('totalConfigs', data.total_tested || data.total_proxies || 0);
+    update('totalSourced', data.total_proxies || data.total_fetched || 0); // Corrected key mapping
+    update('totalConfigs', data.total_tested || 0);
     update('workingConfigs', data.total_working || 0);
 
     // New Stats if elements exist
@@ -41,10 +41,6 @@ function initGlobe(data) {
     if (!container) return;
 
     // Prepare data for globe
-    // We need lat/lng for countries. We can use a static mapping or fetch a geojson.
-    // For this demo, we'll use random points within countries or centroids if available.
-    // Since we only have country codes, we'll map country codes to approximate lat/lng.
-
     const countryCentroids = {
         "US": { lat: 37.0902, lng: -95.7129, name: "United States" },
         "CN": { lat: 35.8617, lng: 104.1954, name: "China" },
@@ -60,21 +56,19 @@ function initGlobe(data) {
         "IN": { lat: 20.5937, lng: 78.9629, name: "India" },
         "BR": { lat: -14.2350, lng: -51.9253, name: "Brazil" },
         "IR": { lat: 32.4279, lng: 53.6880, name: "Iran" },
-        // Add more as needed
+        "TR": { lat: 38.9637, lng: 35.2433, name: "Turkey" },
+        "UA": { lat: 48.3794, lng: 31.1656, name: "Ukraine" },
+        "HK": { lat: 22.3193, lng: 114.1694, name: "Hong Kong" },
     };
 
     const arcsData = [];
     const pointsData = [];
 
-    // Create arcs from "Internet" (Abstract center) to Countries
-    // Or simply visualize active nodes.
-
     if (data.proxy_locations && data.proxy_locations.length > 0) {
-        // Use exact proxy locations
+        // Use exact proxy locations if available in metadata
         data.proxy_locations.forEach(p => {
             const lat = p.lat;
             const lng = p.lng;
-            // Color by latency (Green < 200, Yellow < 500, Red > 500)
             let color = '#ff0000';
             const latency = p.latency || 9999;
             if (latency < 200) color = '#00ff00';
@@ -83,12 +77,11 @@ function initGlobe(data) {
             pointsData.push({
                 lat: lat,
                 lng: lng,
-                size: 0.15, // Small clean dots
+                size: 0.15,
                 color: color,
                 name: `${p.protocol.toUpperCase()} (${latency}ms) - ${p.country || 'XX'}`
             });
 
-            // Add arcs randomly for visual effect (10% chance)
             if (Math.random() < 0.1) {
                 arcsData.push({
                     startLat: lat + (Math.random() * 20 - 10),
@@ -106,7 +99,6 @@ function initGlobe(data) {
         Object.entries(countryStats).forEach(([cc, count]) => {
             const info = countryCentroids[cc] || { lat: (Math.random()*160)-80, lng: (Math.random()*360)-180 };
 
-            // Points (Active Nodes)
             pointsData.push({
                 lat: info.lat,
                 lng: info.lng,
@@ -115,9 +107,6 @@ function initGlobe(data) {
                 name: `${cc}: ${count} proxies`
             });
 
-            // Arcs (Traffic Flow Simulation)
-            // Source: Random point, Target: Country
-            // Just visual candy
             if (count > 5) {
                 arcsData.push({
                     startLat: info.lat + (Math.random() * 10 - 5),
@@ -147,11 +136,9 @@ function initGlobe(data) {
       .arcDashAnimateTime(1500)
       .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
 
-    // Auto-rotate
     Globe.controls().autoRotate = true;
     Globe.controls().autoRotateSpeed = 0.5;
 
-    // Responsiveness
     window.addEventListener('resize', () => {
         Globe.width(container.clientWidth);
         Globe.height(container.clientHeight);
@@ -159,7 +146,6 @@ function initGlobe(data) {
 }
 
 function initCharts(data) {
-    // Common Chart Options
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = '#1e293b';
 
@@ -181,9 +167,7 @@ function initCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right' }
-            }
+            plugins: { legend: { position: 'right' } }
         }
     });
 
@@ -204,17 +188,14 @@ function initCharts(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
-            }
+            scales: { y: { beginAtZero: true } }
         }
     });
 
-    // 3. Rejection Reasons (Pie/Doughnut)
+    // 3. Rejection Reasons (Pie)
     const rejEl = document.getElementById('rejectionChart');
     if (rejEl && data.rejection_reasons) {
         const rejCtx = rejEl.getContext('2d');
-        // Sort keys
         const sortedRej = Object.entries(data.rejection_reasons).sort((a,b) => b[1]-a[1]).slice(0, 8);
         new Chart(rejCtx, {
             type: 'pie',
@@ -237,27 +218,37 @@ function initCharts(data) {
         });
     }
 
-    // 4. Threat Breakdown (Doughnut) - Filtered Rejection Reasons
+    // 4. Intelligence Distribution & Neutralized Threats (Doughnut)
     const threatEl = document.getElementById('threatChart');
-    if (threatEl && data.rejection_reasons) {
+    if (threatEl) {
         const threatCtx = threatEl.getContext('2d');
-        const threatKeys = ['honeypot', 'dirty_ip', 'malware', 'invalid_cert', 'security', 'unsafe'];
-        const threats = {};
-        for(const k in data.rejection_reasons) {
-            if(threatKeys.some(tk => k.toLowerCase().includes(tk))) {
-                threats[k] = data.rejection_reasons[k];
-            }
+
+        // Combine "Intelligence Layers" (Washer, Smart) AND "Neutralized Threats" (Dirty, Honeypot)
+        // into a single "Security & Intelligence" breakdown
+
+        const totalRevived = data.total_revived || 0;
+        const totalSmart = data.total_smart_chains || 0;
+
+        // Calculate threats from rejection reasons if not explicit
+        let dirty = 0;
+        let honeypots = 0;
+        if (data.rejection_reasons) {
+             dirty = data.rejection_reasons.dirty_ip || 0;
+             honeypots = data.rejection_reasons.honeypot || 0;
         }
 
-        const sortedThreats = Object.entries(threats).sort((a,b) => b[1]-a[1]);
+        // If empty, use defaults to show *something* or hide
+        const dataset = [totalRevived, totalSmart, dirty, honeypots];
+        const labels = ['Revived (Warp)', 'Smart Chains', 'Dirty IPs Blocked', 'Honeypots Blocked'];
+        const colors = ['#9b59b6', '#2ecc71', '#f39c12', '#e74c3c'];
 
         new Chart(threatCtx, {
             type: 'doughnut',
             data: {
-                labels: sortedThreats.map(x => x[0].replace(/_/g, ' ').toUpperCase()),
+                labels: labels,
                 datasets: [{
-                    data: sortedThreats.map(x => x[1]),
-                    backgroundColor: ['#e74c3c', '#c0392b', '#d35400', '#e67e22', '#f39c12'],
+                    data: dataset,
+                    backgroundColor: colors,
                     borderWidth: 0
                 }]
             },
@@ -266,7 +257,7 @@ function initCharts(data) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'right' },
-                    title: { display: true, text: 'Neutralized Threats' }
+                    title: { display: true, text: 'Intelligence & Security' }
                 }
             }
         });
