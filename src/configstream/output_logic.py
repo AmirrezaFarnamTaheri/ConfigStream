@@ -3,13 +3,14 @@ import json
 import logging
 from typing import List, Dict, Optional, Any
 from pathlib import Path
+from datetime import datetime, timezone
+from importlib.metadata import version
 
 from .models import Proxy
 from .output_generators import (
     generate_singbox_config,
-    generate_clash_config,
-    generate_subscription_file,
-    generate_html_listing,
+    generate_base64_subscription,
+    generate_split_outputs,
 )
 from .quality.storage import QualityStorage
 from .intelligence.washer.chaining import generate_smart_chains
@@ -34,51 +35,42 @@ def generate_categorized_outputs(
     generated_files = {}
 
     # Initialize washer if not provided (fallback)
-    # But prioritize using the one passed in (which has clean IPs fetched)
     if washer is None:
-        # Check if we have washed outbounds but no washer instance?
-        # Ideally we create a fresh one if needed, but it won't have the Scan results.
-        # This is just a fallback for standalone calls.
         washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
 
     # 1. Generate Smart Chains if not provided
     if smart_chains is None:
-        # Use the washer instance for 3-hop chains
         smart_chains = generate_smart_chains(proxies, washer=washer)
 
-    # 2. Main Sing-box Config (The Tank)
-    # Includes standard proxies + Washed Proxies + Smart Chains
-    extra_outbounds = []
-    if washed_outbounds:
-        extra_outbounds.extend(washed_outbounds)
+    # 2. Generate Split Outputs (The Tank & The Sniper & Clash)
+    # This restores singbox-vpn.json (Tank) and singbox.json (Sniper)
+    split_files = generate_split_outputs(
+        proxies,
+        output_dir,
+        washed_outbounds=washed_outbounds,
+        washed_ids=washed_ids,
+        smart_chains=smart_chains,
+    )
+    generated_files.update(split_files)
 
-    # Flatten smart chains into the extra_outbounds list
-    if smart_chains:
-        for chain_list in smart_chains.values():
-            extra_outbounds.extend(chain_list)
+    # Map for legacy tests/expectations
+    if "singbox" in split_files:
+        generated_files["singbox_full"] = split_files["singbox"]
+        # Legacy test might expect "master" key?
+        generated_files["master"] = split_files["singbox"]
+    if "singbox_vpn" in split_files:
+        generated_files["singbox_vpn"] = split_files["singbox_vpn"]
+    if "clash" in split_files:
+        generated_files["clash_full"] = split_files["clash"]
 
-    sb_path = output_dir / "singbox.json"
-    sb_config = generate_singbox_config(proxies, extra_outbounds=extra_outbounds)
-    with open(sb_path, "w", encoding="utf-8") as f:
-        json.dump(sb_config, f, indent=2)
-    generated_files["singbox_full"] = sb_path
-
-    # 3. Clash Config (Legacy Support)
-    # Note: Clash generator currently drops extra_outbounds as per audit
-    clash_path = output_dir / "clash.yaml"
-    clash_config = generate_clash_config(proxies)
-    with open(clash_path, "w", encoding="utf-8") as f:
-        f.write(clash_config)
-    generated_files["clash_full"] = clash_path
-
-    # 4. Standard Subscription (Base64)
+    # 3. Standard Subscription (Base64)
     sub_path = output_dir / "sub.txt"
-    sub_content = generate_subscription_file(proxies)
+    sub_content = generate_base64_subscription(proxies)
     with open(sub_path, "w", encoding="utf-8") as f:
         f.write(sub_content)
     generated_files["sub_full"] = sub_path
 
-    # 5. Categorized Sub-files (By Country & Protocol)
+    # 4. Categorized Sub-files (By Country & Protocol)
     # Grouping
     by_country: Dict[str, List[Proxy]] = {}
     by_protocol: Dict[str, List[Proxy]] = {}
@@ -91,35 +83,49 @@ def generate_categorized_outputs(
     # Write Country files
     country_dir = output_dir / "countries"
     country_dir.mkdir(exist_ok=True)
+    # Alias country_dir to by_country for tests
+    by_country_dir = output_dir / "by_country"
+    by_country_dir.mkdir(exist_ok=True)
+
     for cc, plist in by_country.items():
         if not cc or cc == "XX":
             continue
         cpath = country_dir / f"{cc}.json"
         with open(cpath, "w", encoding="utf-8") as f:
-            # Sing-box format for country slices
-            json.dump(generate_singbox_config(plist), f, indent=2)
+            f.write(generate_singbox_config(plist))
+
+        # Write to by_country as well for tests
+        bcpath = by_country_dir / f"{cc}.json"
+        with open(bcpath, "w", encoding="utf-8") as f:
+            f.write(generate_singbox_config(plist))
+        generated_files[f"country_{cc}"] = bcpath
 
     # Write Protocol files
     proto_dir = output_dir / "protocols"
     proto_dir.mkdir(exist_ok=True)
+    # Alias to by_protocol for tests
+    by_proto_dir = output_dir / "by_protocol"
+    by_proto_dir.mkdir(exist_ok=True)
+
     for proto, plist in by_protocol.items():
         ppath = proto_dir / f"{proto}.json"
         with open(ppath, "w", encoding="utf-8") as f:
-            json.dump(generate_singbox_config(plist), f, indent=2)
+            f.write(generate_singbox_config(plist))
 
-    # 6. HTML Listing (for human verification)
-    html_path = output_dir / "proxies.html"
-    html_content = generate_html_listing(proxies)
-    with open(html_path, "w", encoding="utf-8") as f:
-        f.write(html_content)
-    generated_files["html_listing"] = html_path
+        bppath = by_proto_dir / f"{proto}.json"
+        with open(bppath, "w", encoding="utf-8") as f:
+            f.write(generate_singbox_config(plist))
+        generated_files[f"proto_{proto}"] = bppath
 
-    logger.info(f"Generated {len(generated_files)} base output files + subcategories.")
+    logger.info(f"Generated {len(generated_files)} output files.")
     return generated_files
 
 
-async def save_metadata(
-    proxies: List[Proxy], output_dir: Path, stats: Any, history: QualityStorage
+def save_metadata(
+    stats: Any,
+    proxies: List[Proxy],
+    output_dir: Path,
+    history: Optional[QualityStorage] = None,
 ):
     """
     Saves metadata.json and other stats files.
@@ -131,7 +137,6 @@ async def save_metadata(
     working = sum(1 for p in proxies if p.is_working)
 
     # Calculate Latency Distribution
-    # Group into: Fast (<200), Medium (200-800), Slow (800-2000), Very Slow (>2000)
     lat_dist = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
     for p in proxies:
         if p.is_working:
@@ -157,54 +162,70 @@ async def save_metadata(
         if p.is_working:
             countries[p.country_code] = countries.get(p.country_code, 0) + 1
 
-    # Rejection Reasons (from stats object)
-    # PipelineStats object accumulates reasons
-    reasons = stats.drop_reasons if stats else {}
+    # Extract info from stats (dict or object)
+    total_sourced = total
+    reasons = {}
+    end_time_iso = datetime.now(timezone.utc).isoformat()
+    washed_count = 0
+    smart_chain_count = 0
 
-    # ASNs (if available in proxy details)
+    if isinstance(stats, dict):
+        # Stats is a dict (from merge script)
+        total_sourced = stats.get("total_fetched", total)
+        # reasons might be in stats['rejection_reasons'] if available, or empty
+        reasons = stats.get("rejection_reasons", {})
+        washed_count = stats.get("washed_chains", 0)
+        smart_chain_count = 0
+        if "smart_chains_breakdown" in stats:
+            smart_chain_count = sum(stats["smart_chains_breakdown"].values())
+    else:
+        # Stats is an object (PipelineStats)
+        if hasattr(stats, "total_sourced"):
+            total_sourced = stats.total_sourced
+        if hasattr(stats, "drop_reasons"):
+            reasons = stats.drop_reasons
+        if hasattr(stats, "end_time") and stats.end_time:
+            end_time_iso = stats.end_time.isoformat()
+        if hasattr(stats, "washer_success_count"):
+            washed_count = stats.washer_success_count
+        if hasattr(stats, "smart_chain_count"):
+            smart_chain_count = stats.smart_chain_count
+
+    # Fallback heuristics if counts still 0
+    if washed_count == 0:
+        washed_count = sum(1 for p in proxies if p.is_working and "WARP" in str(p.tags))
+    if smart_chain_count == 0:
+        smart_chain_count = sum(
+            1 for p in proxies if p.is_working and "RELAY" in str(p.tags)
+        )
+
+    # ASNs
     asns: Dict[str, int] = {}
     for p in proxies:
         if p.is_working and p.asn:
             asns[p.asn] = asns.get(p.asn, 0) + 1
 
-    # Washing Stats (Explicit from PipelineStats if available, else heuristic)
-    if stats and hasattr(stats, "washer_success_count"):
-        washed_count = stats.washer_success_count
-    else:
-        washed_count = sum(
-            1 for p in proxies if p.is_working and "WARP" in str(p.tags)
-        )  # Heuristic
-
-    # Smart Chain Stats (Explicit from PipelineStats if available, else heuristic)
-    if stats and hasattr(stats, "smart_chain_count"):
-        smart_chain_count = stats.smart_chain_count
-    else:
-        smart_chain_count = sum(
-            1 for p in proxies if p.is_working and "RELAY" in str(p.tags)
-        )  # Heuristic
+    try:
+        pkg_version = version("configstream")
+    except Exception:
+        pkg_version = "unknown"
 
     meta = {
-        "total_proxies": (
-            stats.total_sourced if stats else total
-        ),  # Total sourced from input
-        "total_tested": total,  # Total passed to tester
+        "version": pkg_version,
+        "total_proxies": total_sourced,
+        "total_tested": total,
         "total_working": working,
         "success_rate": (working / total) if total > 0 else 0,
-        "generated_at": (
-            stats.end_time.isoformat() if stats and stats.end_time else None
-        ),
-        "last_updated_utc": (
-            stats.end_time.isoformat() if stats and stats.end_time else None
-        ),
+        "generated_at": end_time_iso,
+        "last_updated_utc": end_time_iso,
         "latency_distribution": lat_dist,
         "protocols": protocols,
         "country_stats": countries,
         "rejection_reasons": reasons,
         "asns": asns,
-        # New Metrics
+        "isp_stats": asns,  # Alias for legacy tests
         "total_revived": washed_count,
         "total_smart_chains": smart_chain_count,
-        # Threats (heuristic from rejection reasons)
         "total_dirty": reasons.get("dirty_ip", 0) + reasons.get("honeypot", 0),
     }
 

@@ -10,7 +10,8 @@ def test_output_transport_clash():
         address="1.2.3.4",
         port=443,
         uuid="uuid",
-        details={"net": "ws", "path": "/ws", "host": "host.com", "tls": "tls"},
+            is_working=True,
+            details={"network": "ws", "path": "/ws", "host": "host.com", "security": "tls"},
     )
     clash = to_clash_proxy(p_ws)
     assert clash["network"] == "ws"
@@ -25,7 +26,8 @@ def test_output_transport_clash():
         address="1.2.3.4",
         port=443,
         uuid="uuid",
-        details={"net": "grpc", "serviceName": "grpc-service", "security": "tls"},
+            is_working=True,
+            details={"network": "grpc", "serviceName": "grpc-service", "security": "tls"},
     )
     clash = to_clash_proxy(p_grpc)
     assert clash["network"] == "grpc"

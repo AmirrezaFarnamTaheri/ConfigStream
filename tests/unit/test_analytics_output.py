@@ -83,10 +83,8 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     output_dir = tmp_path / "output"
     output_dir.mkdir()
 
-    # This is an async function
-    import asyncio
-
-    asyncio.run(save_metadata(proxies, output_dir, p_stats, storage))
+    # This is now a sync function, and args order changed
+    save_metadata(p_stats, proxies, output_dir, storage)
 
     metadata_file = output_dir / "metadata.json"
     assert metadata_file.exists()

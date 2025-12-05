@@ -30,9 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchProxyHistory() {
         try {
-            // Assuming stats endpoint includes history or similar,
-            // or we map this to a file served by the API
-            const url = `/files/proxy_history.json?cb=${Date.now()}`;
+            // Fetch aggregated trend data
+            const url = `data/active_proxy_trend.json?cb=${Date.now()}`;
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -345,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         labels: history.map(h => new Date(h.timestamp).toLocaleTimeString()),
                         datasets: [{
                             label: 'Working Proxies',
-                            data: history.map(h => h.working),
+                            data: history.map(h => h.active_count),
                             fill: true,
                             borderColor: 'rgba(255, 86, 48, 1)',
                             backgroundColor: 'rgba(255, 86, 48, 0.1)',

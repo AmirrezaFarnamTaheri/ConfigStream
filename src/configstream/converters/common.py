@@ -46,7 +46,9 @@ def to_uri(proxy: Proxy) -> Optional[str]:
             # user info usually base64 encoded
             import base64
 
-            userinfo = f"{proxy.cipher}:{proxy.password}"
+            cipher = proxy.details.get("method") or proxy.details.get("cipher") or "chacha20-ietf-poly1305"
+            password = proxy.details.get("password") or ""
+            userinfo = f"{cipher}:{password}"
             b64_userinfo = (
                 base64.urlsafe_b64encode(userinfo.encode()).decode().rstrip("=")
             )
@@ -54,7 +56,8 @@ def to_uri(proxy: Proxy) -> Optional[str]:
 
         elif proxy.protocol == "trojan":
             # trojan://password@host:port#name
-            return f"trojan://{proxy.password}@{proxy.address}:{proxy.port}#{urllib.parse.quote(proxy.country_code)}"
+            password = proxy.uuid
+            return f"trojan://{password}@{proxy.address}:{proxy.port}#{urllib.parse.quote(proxy.country_code)}"
 
         elif proxy.protocol in ["vmess", "vless"]:
             # These are complex JSONs usually, or complex URIs

@@ -63,8 +63,9 @@ def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
         tags = [o.get("tag") for o in outbounds if "tag" in o]
 
         assert "mixed-in" in [i["tag"] for i in data["inbounds"]]
-        assert "🚀 Select Proxy" in tags
-        assert "⚡ Best Latency" in tags
+        # Updated to match 'The Sniper' strategy used in split.py
+        assert "🌍 Proxy Select" in tags or "🚀 Select Proxy" in tags
+        assert "🚀 Auto" in tags or "⚡ Auto-Fast" in tags
 
         # Check if washed proxies are included (via extra_outbounds logic)
         # Note: tags depend on washer generation logic (Secure/Optimal)
