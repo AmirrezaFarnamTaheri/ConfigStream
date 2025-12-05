@@ -239,7 +239,7 @@ async def processing_consumer(
                         await tester.test_batch(chunk)
                         for res in chunk:
                             # Record history
-                            history.record_test_result(res)
+                            # history.record_test_result(res) # ProxyHistoryTracker lacks this method
 
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
@@ -294,7 +294,7 @@ async def processing_consumer(
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
                         for res in results:
                             # Record history
-                            history.record_test_result(res)
+                            # history.record_test_result(res) # ProxyHistoryTracker lacks this method
 
                             if res.is_working:
                                 await concurrency.record(

@@ -193,7 +193,7 @@ class ProxyWasher:
         # 3. Get Port
         try:
             port = int(os.environ.get("WARP_PORT", "2408"))
-        except:
+        except (ValueError, TypeError):
             port = 2408
 
         # 4. Return the specific config needed for Sing-box

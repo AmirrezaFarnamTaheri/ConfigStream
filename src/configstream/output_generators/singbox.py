@@ -1,5 +1,4 @@
 from typing import List, Dict, Any, Optional
-import json
 import logging
 
 from ..models import Proxy
@@ -19,7 +18,7 @@ def generate_singbox_config(
 
     # Standard Selectors
     # IMPORTANT: We add a 'tag' field to selectors so they can be identified in the final list
-    selectors = {
+    selectors: Dict[str, Dict[str, Any]] = {
         "🚀 Select Proxy": {
             "type": "selector",
             "tag": "🚀 Select Proxy",

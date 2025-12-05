@@ -1,7 +1,6 @@
 import os
 import json
 import logging
-import asyncio
 from typing import List, Dict, Optional, Any
 from pathlib import Path
 
@@ -136,24 +135,24 @@ async def save_metadata(
     lat_dist = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
     for p in proxies:
         if p.is_working:
-            l = p.latency or 9999
-            if l < 200:
+            latency = p.latency or 9999
+            if latency < 200:
                 lat_dist["fast"] += 1
-            elif l < 800:
+            elif latency < 800:
                 lat_dist["medium"] += 1
-            elif l < 2000:
+            elif latency < 2000:
                 lat_dist["slow"] += 1
             else:
                 lat_dist["very_slow"] += 1
 
     # Protocols
-    protocols = {}
+    protocols: Dict[str, int] = {}
     for p in proxies:
         if p.is_working:
             protocols[p.protocol] = protocols.get(p.protocol, 0) + 1
 
     # Countries
-    countries = {}
+    countries: Dict[str, int] = {}
     for p in proxies:
         if p.is_working:
             countries[p.country_code] = countries.get(p.country_code, 0) + 1
@@ -163,7 +162,7 @@ async def save_metadata(
     reasons = stats.drop_reasons if stats else {}
 
     # ASNs (if available in proxy details)
-    asns = {}
+    asns: Dict[str, int] = {}
     for p in proxies:
         if p.is_working and p.asn:
             asns[p.asn] = asns.get(p.asn, 0) + 1

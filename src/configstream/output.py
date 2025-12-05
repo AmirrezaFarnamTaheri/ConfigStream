@@ -4,6 +4,7 @@ Exports functionality from `output_logic`, `output_transport`, and `output_gener
 Maintains backward compatibility.
 """
 
+from .intelligence.washer import generate_smart_chains, ProxyWasher
 from .output_logic import generate_categorized_outputs, save_metadata
 from .output_transport import save_json
 
@@ -11,7 +12,6 @@ from .output_transport import save_json
 # We alias it here for backward compatibility with older tests/scripts
 generate_split_outputs = generate_categorized_outputs
 
-from .intelligence.washer import generate_smart_chains, ProxyWasher
 
 __all__ = [
     "generate_categorized_outputs",
