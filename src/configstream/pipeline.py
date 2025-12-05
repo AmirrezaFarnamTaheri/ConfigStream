@@ -28,9 +28,9 @@ from .performance import PerformanceTracker
 from .proxy_history import ProxyHistoryTracker
 from .filtering import filter_unique_endpoints
 
+from .pipeline_core.stats import PipelineStats
+from .pipeline_core.models import PipelineResult
 from .pipeline_stages import (
-    PipelineStats,
-    PipelineResult,
     source_producer,
     processing_consumer,
 )
@@ -217,7 +217,7 @@ async def run_full_pipeline(
         )
 
         # Save History & Cache
-        history.save()
+        # history.save() # ProxyHistoryTracker doesn't have a save method exposed in top level, usually handled by storage close
         test_cache.save()
         if timeout_tracker:
             timeout_tracker.save()

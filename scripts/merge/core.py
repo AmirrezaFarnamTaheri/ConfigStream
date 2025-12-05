@@ -166,6 +166,21 @@ def merge_batches(
     except Exception as e:
         logger.error(f"Failed to export history: {e}")
 
+    # --- Feature: Smart Chains ---
+    from configstream.intelligence.washer.chaining import generate_smart_chains
+
+    # Use washer if available, otherwise just generate unwashed chains
+    washer_instance = ProxyWasher(warp_keys) if warp_keys else None
+    if washer_instance:
+        # If we didn't fetch fetching clean IPs yet, do it if possible (though we did it above if keys exist)
+        # Assuming washer_instance in local scope above is populated
+        if (
+            "washer" in locals() and washer
+        ):  # reuse the one from Washing step if available
+            washer_instance = washer
+
+    smart_chains = generate_smart_chains(ranked_proxies, washer=washer_instance)
+
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
     proxies_by_proto = generate_outputs(
@@ -175,6 +190,7 @@ def merge_batches(
         total_processed,
         root_dir,
         washed_outbounds,
+        smart_chains,
         total_washed_candidates,
         total_revived,
     )

@@ -66,7 +66,7 @@ async def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
 
 def test_split_outputs_atomic(tmp_path, sample_proxies):
     """Verify split outputs are generated atomically."""
-    files = generate_categorized_outputs(
+    generate_categorized_outputs(
         sample_proxies,
         tmp_path,
         [],
