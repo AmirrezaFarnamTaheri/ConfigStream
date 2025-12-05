@@ -24,8 +24,12 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         if proxy.protocol == "ss" or proxy.protocol == "shadowsocks":
             common["type"] = "ss"
-            common["cipher"] = proxy.cipher or "chacha20-ietf-poly1305"
-            common["password"] = proxy.password
+            common["cipher"] = (
+                proxy.details.get("method")
+                or proxy.details.get("cipher")
+                or "chacha20-ietf-poly1305"
+            )
+            common["password"] = proxy.details.get("password") or proxy.uuid
             # Add plugin support if needed
             if proxy.details.get("plugin"):
                 common["plugin"] = proxy.details["plugin"]
@@ -35,7 +39,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         elif proxy.protocol == "vmess":
             common["uuid"] = proxy.uuid
             common["alterId"] = proxy.details.get("alterId", 0)
-            common["cipher"] = proxy.cipher or "auto"
+            common["cipher"] = (
+                proxy.details.get("scy") or proxy.details.get("cipher") or "auto"
+            )
 
             # Transport
             net = proxy.details.get("network", "tcp")
@@ -44,6 +50,10 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 common["ws-opts"] = {
                     "path": proxy.details.get("path", "/"),
                     "headers": {"Host": proxy.details.get("host", "")},
+                }
+            elif net == "grpc":
+                common["grpc-opts"] = {
+                    "grpc-service-name": proxy.details.get("serviceName", "")
                 }
 
             # TLS
@@ -57,7 +67,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return common
 
         elif proxy.protocol == "trojan":
-            common["password"] = proxy.password
+            common["password"] = proxy.uuid
             if proxy.details.get("sni"):
                 common["sni"] = proxy.details["sni"]
             if proxy.details.get("security") == "tls":
