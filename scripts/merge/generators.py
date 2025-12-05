@@ -14,6 +14,7 @@ setup_python_path()
 from cryptography.fernet import Fernet  # noqa: E402
 
 from configstream.models import Proxy  # noqa: E402
+from datetime import datetime, timezone
 from configstream.output_generators import (  # noqa: E402
     generate_subscription_file,
     generate_singbox_config,
@@ -375,10 +376,29 @@ def _generate_statistics(
             k: len(v) for k, v in smart_chains.items()
         }
 
-    # This call seems broken in mypy logs:
-    # missing argument 'history' and types are wrong.
-    # We will comment it out or fix it to pass dummy history.
-    pass
+    # metadata.json (Legacy/Frontend Compat)
+    # Replicate logic from save_metadata but synchronous and compatible with dict stats
+    meta = {
+        "total_proxies": total_processed,
+        "total_tested": len(ranked_proxies),
+        "total_working": working_proxies,
+        "success_rate": (working_proxies / len(ranked_proxies)) if ranked_proxies else 0,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "last_updated_utc": datetime.now(timezone.utc).isoformat(),
+        "latency_distribution": latency_dist,
+        "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
+        "country_stats": dict(sorted(country_counts.items())),
+        "rejection_reasons": dict(rejection_reasons),
+        "asns": dict(sorted(asn_counts.items())),
+        "total_revived": total_revived,
+        "total_smart_chains": len(smart_chains) if smart_chains else 0,
+        "total_dirty": total_processed - working_proxies, # Approximation
+        "washed_chains": meta_stats.get("washed_chains", 0),
+        "total_clean": working_proxies,
+    }
+
+    with open(output_dir / "metadata.json", "w") as f:
+        json.dump(meta, f, indent=2)
 
     # Batch Stats
     batch_stats: Dict[str, Dict[str, int]] = defaultdict(

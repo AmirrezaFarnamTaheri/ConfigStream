@@ -29,7 +29,12 @@ function updateStats(data) {
     update('workingConfigs', data.total_working || 0);
 
     // New Stats if elements exist
-    update('totalRevived', data.total_revived || 0);
+    const totalWorking = data.total_working || 0;
+    const totalRevived = data.total_revived || 0;
+    const totalClean = Math.max(0, totalWorking - totalRevived);
+
+    update('totalClean', data.total_clean || totalClean);
+    update('totalRevived', totalRevived);
     update('threatsNeutralized', data.total_dirty || 0);
 
     const date = new Date(data.last_updated_utc);
