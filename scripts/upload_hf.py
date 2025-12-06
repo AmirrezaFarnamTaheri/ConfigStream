@@ -4,6 +4,8 @@ Hugging Face Dataset Uploader for ConfigStream.
 Mirrors the 'output/' directory to a Hugging Face Dataset repository.
 """
 
+# pylint: disable=import-error
+
 import os
 import logging
 import argparse
@@ -28,10 +30,10 @@ def upload_to_hf(
     Uploads a folder to Hugging Face.
     """
     if not os.path.exists(local_dir):
-        logger.error(f"Local directory not found: {local_dir}")
+        logger.error("Local directory not found: %s", local_dir)
         return
 
-    logger.info(f"Uploading {local_dir} to {repo_id} ({repo_type})...")
+    logger.info("Uploading %s to %s (%s)...", local_dir, repo_id, repo_type)
 
     try:
         api = HfApi(token=token)
@@ -39,10 +41,10 @@ def upload_to_hf(
         # Ensure repo exists
         try:
             api.create_repo(repo_id=repo_id, repo_type=repo_type, exist_ok=True)
-            logger.info(f"Repository {repo_id} confirmed.")
+            logger.info("Repository %s confirmed.", repo_id)
         except Exception as e:
             logger.warning(
-                f"Repo check failed (might already exist or token permissions): {e}"
+                "Repo check failed (might already exist or token permissions): %s", e
             )
 
         # Upload
@@ -52,10 +54,10 @@ def upload_to_hf(
             repo_type=repo_type,
             commit_message=commit_message,
         )
-        logger.info(f"Upload complete: {url}")
+        logger.info("Upload complete: %s", url)
 
     except Exception as e:
-        logger.error(f"Failed to upload to Hugging Face: {e}")
+        logger.error("Failed to upload to Hugging Face: %s", e)
         # We generally don't want to fail the CI pipeline if the mirror fails,
         # unless strict mirroring is required.
         # sys.exit(1)

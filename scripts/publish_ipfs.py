@@ -14,7 +14,7 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
     with open(filepath, "rb") as f:
         files = {"file": f}
         headers = {"Authorization": f"Bearer {jwt}"}
-        response = requests.post(url, files=files, headers=headers)
+        response = requests.post(url, files=files, headers=headers, timeout=30)
 
     if response.status_code == 200:
         return str(response.json()["IpfsHash"])
@@ -57,7 +57,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
 
     # First, find the record ID for _dnslink.<domain>
     params = {"name": f"_dnslink.{domain}", "type": "TXT"}
-    resp = requests.get(url, headers=headers, params=params)
+    resp = requests.get(url, headers=headers, params=params, timeout=30)
     records = resp.json().get("result", [])
 
     if not records:
@@ -75,7 +75,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
         "ttl": 60,
     }
 
-    update_resp = requests.put(update_url, headers=headers, json=payload)
+    update_resp = requests.put(update_url, headers=headers, json=payload, timeout=30)
     if update_resp.status_code == 200:
         print(f"Successfully updated DNSLink for {domain} to {cid}")
     else:

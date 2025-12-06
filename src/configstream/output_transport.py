@@ -3,21 +3,21 @@ Output Transport Module.
 Handles serialization and file I/O for proxy data.
 """
 
-import json
 import gzip
+import importlib.metadata
+import json
 import logging
 import os
 import re
-import importlib.metadata
-from pathlib import Path
-from typing import List, Dict, Union
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Dict, List, Union
 
-from .models import Proxy
-from .serialize import serialize_proxy
-from .proxy_history import ProxyHistoryTracker
-from .utils import AtomicFileWriter
 from .constants import PROTOCOL_COLORS
+from .models import Proxy
+from .proxy_history import ProxyHistoryTracker
+from .serialize import serialize_proxy
+from .utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -30,28 +30,22 @@ def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
     data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
-    try:
-        AtomicFileWriter.write_text(path, json_content)
-    except Exception:
-        raise
+    AtomicFileWriter.write_text(path, json_content)
 
     if compress:
         gz_path = Path(str(path) + ".gz")
+        temp_gz_path = gz_path.with_suffix(gz_path.suffix + ".tmp")
         try:
-            temp_gz_path = gz_path.with_suffix(gz_path.suffix + ".tmp")
-            try:
-                with gzip.open(temp_gz_path, "wt", encoding="utf-8") as f:
-                    f.write(json_content)
-                os.replace(temp_gz_path, gz_path)
-            except Exception:
-                if temp_gz_path.exists():
-                    temp_gz_path.unlink()
-                raise
+            with gzip.open(temp_gz_path, "wt", encoding="utf-8") as f:
+                f.write(json_content)
+            os.replace(temp_gz_path, gz_path)
         except Exception:
+            if temp_gz_path.exists():
+                temp_gz_path.unlink()
             raise
 
 
-def save_metadata(
+def save_metadata(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
     stats: Dict[str, Union[int, float]], proxies: List[Proxy], output_dir: Path
 ) -> None:
     """
@@ -133,7 +127,7 @@ def save_metadata(
 
     try:
         version = importlib.metadata.version("configstream")
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         version = "unknown"
 
     # Normalize inputs to avoid negative or >parsed anomalies
@@ -184,10 +178,7 @@ def save_metadata(
     metadata_content = json.dumps(metadata, indent=2)
     for filename in ["metadata.json", "summary.json"]:
         target_path = output_dir / filename
-        try:
-            AtomicFileWriter.write_text(target_path, metadata_content)
-        except Exception:
-            raise
+        AtomicFileWriter.write_text(target_path, metadata_content)
 
 
 def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
@@ -198,7 +189,7 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
     """
     if not js_file_path.exists():
         logger.warning(
-            f"Frontend JS not found at {js_file_path}, skipping key injection."
+            "Frontend JS not found at %s, skipping key injection.", js_file_path
         )
         return
 
@@ -218,7 +209,7 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
 
         # Atomic write to prevent corruption
         AtomicFileWriter.write_text(js_file_path, new_content)
-        logger.info(f"✅ Successfully injected new Stego Key into {js_file_path.name}")
+        logger.info("✅ Successfully injected new Stego Key into %s", js_file_path.name)
 
-    except Exception as e:
-        logger.error(f"Failed to inject Stego Key: {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logger.error("Failed to inject Stego Key: %s", e)

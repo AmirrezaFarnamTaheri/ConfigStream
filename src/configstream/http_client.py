@@ -15,7 +15,7 @@ from .config import AppSettings
 
 # Check for HTTP/2 support
 try:
-    import h2  # noqa: F401
+    import h2  # pylint: disable=unused-import # noqa: F401
 
     HTTP2_AVAILABLE = True
 except ModuleNotFoundError:

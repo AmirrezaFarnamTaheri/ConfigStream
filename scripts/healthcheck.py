@@ -93,7 +93,7 @@ def check_data_freshness(metadata: Dict[str, Any], max_age_hours: int) -> None:
         )
 
     except Exception as e:
-        raise HealthCheckError(f"❌ Failed to parse timestamp: {e}")
+        raise HealthCheckError(f"❌ Failed to parse timestamp: {e}") from e
 
 
 def check_protocol_diversity(proxies: List[Dict], min_protocols: int) -> None:

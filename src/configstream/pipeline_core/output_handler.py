@@ -6,6 +6,7 @@ from typing import List
 from ..models import Proxy
 from ..proxy_history import ProxyHistoryTracker
 from ..output_logic import generate_categorized_outputs, save_metadata
+from ..output_transport import save_json
 from ..intelligence.washer.core import ProxyWasher
 from ..intelligence.washer.chaining import generate_smart_chains
 from ..pipeline_core.stats import PipelineStats
@@ -57,6 +58,10 @@ async def generate_pipeline_outputs(
 
     # 4. Generate Files (The Assembler)
     # Writes everything to disk: Sing-box (with chains), Clash (raw), Subs, etc.
+
+    # Generate Master Proxies JSON
+    save_json(optimized_proxies, output_path / "proxies.json")
+
     generated_files = generate_categorized_outputs(
         optimized_proxies,
         output_path,
