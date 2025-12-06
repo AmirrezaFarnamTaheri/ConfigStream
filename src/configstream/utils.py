@@ -43,14 +43,14 @@ class AtomicFileWriter:
             # Atomic rename
             os.replace(temp_path, path)
         except Exception as e:
-            logger.error(f"Failed to write atomically to {path}: {e}")
+            logger.error("Failed to write atomically to %s: %s", path, e)
             # Cleanup temp file if it exists
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.unlink(temp_path)
                 except OSError as e_cleanup:
                     logger.debug(
-                        f"Failed to cleanup temp file {temp_path}: {e_cleanup}"
+                        "Failed to cleanup temp file %s: %s", temp_path, e_cleanup
                     )
             raise
 
@@ -72,13 +72,13 @@ class AtomicFileWriter:
 
             os.replace(temp_path, path)
         except Exception as e:
-            logger.error(f"Failed to write atomically to {path}: {e}")
+            logger.error("Failed to write atomically to %s: %s", path, e)
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.unlink(temp_path)
                 except OSError as e_cleanup:
                     logger.debug(
-                        f"Failed to cleanup temp file {temp_path}: {e_cleanup}"
+                        "Failed to cleanup temp file %s: %s", temp_path, e_cleanup
                     )
             raise
 

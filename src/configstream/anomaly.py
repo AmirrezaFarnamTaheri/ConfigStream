@@ -5,14 +5,15 @@ cache poisoning and spam attacks.
 Uses Isolation Forest for robust outlier detection when sufficient data exists.
 """
 
-import sqlite3
 import logging
+import sqlite3
 import statistics
-import time
 import threading
-import numpy as np
+import time
 from pathlib import Path
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, Tuple
+
+import numpy as np
 from sklearn.ensemble import IsolationForest
 
 logger = logging.getLogger(__name__)
@@ -43,8 +44,8 @@ CREATE TABLE IF NOT EXISTS history (
                 )
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_url ON history(url)")
                 conn.commit()
-        except Exception as e:
-            logger.error(f"Failed to init anomaly DB: {e}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to init anomaly DB: %s", e)
 
     def is_safe(self, url: str, current_count: int) -> Tuple[bool, str]:
         """
@@ -82,7 +83,7 @@ CREATE TABLE IF NOT EXISTS history (
             if n >= 15:
                 try:
                     # Prepare data for Isolation Forest (needs 2D array)
-                    X = np.array(counts).reshape(-1, 1)
+                    X = np.array(counts).reshape(-1, 1)  # pylint: disable=invalid-name
 
                     # Fit Isolation Forest
                     # contamination='auto' lets it decide outlier proportion
@@ -94,23 +95,30 @@ CREATE TABLE IF NOT EXISTS history (
 
                     # -1 is outlier, 1 is inlier
                     if prediction[0] == -1:
-                        # Double check: If it's just a higher yield but within reason (< 2x max historic), let it slide
+                        # Double check: If it's just a higher yield but within reason
+                        # (< 2x max historic), let it slide
                         max_historic = max(counts)
                         if current_count > (max_historic * 2.0):
                             return (
                                 False,
                                 f"Isolation Forest Outlier (Count: {current_count})",
                             )
-                        elif current_count < (min(counts) * 0.5) and current_count > 20:
-                            # Significant drop detected. This typically indicates a failing source but is not a security risk (spike).
+                        if current_count < (min(counts) * 0.5) and current_count > 20:
+                            # Significant drop detected. This typically indicates a
+                            # failing source but is not a security risk (spike).
                             # We log it for monitoring but do not block the source.
                             logger.debug(
-                                f"Significant volume drop for {url}: {current_count} vs avg {avg}. Treated as safe (not a spike)."
+                                "Significant volume drop for %s: %s vs avg %s. "
+                                "Treated as safe (not a spike).",
+                                url,
+                                current_count,
+                                avg,
                             )
 
-                except Exception as ml_err:
+                except Exception as ml_err:  # pylint: disable=broad-exception-caught
                     logger.warning(
-                        f"ML Anomaly check failed, falling back to Z-Score: {ml_err}"
+                        "ML Anomaly check failed, falling back to Z-Score: %s",
+                        ml_err,
                     )
                     # Fall through to Z-Score logic
 
@@ -141,7 +149,7 @@ CREATE TABLE IF NOT EXISTS history (
 
             return True, "OK"
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             # Do NOT hard-block all traffic from this source on transient DB errors.
             # Failing closed here can effectively disable the entire pipeline if the
             # anomaly database is temporarily unavailable.
@@ -172,7 +180,7 @@ CREATE TABLE IF NOT EXISTS history (
         if not subnets:
             return False
 
-        from collections import Counter
+        from collections import Counter  # pylint: disable=import-outside-toplevel
 
         counts = Counter(subnets)
         most_common = counts.most_common(1)[0]
@@ -180,7 +188,10 @@ CREATE TABLE IF NOT EXISTS history (
         # If one subnet accounts for > 90% of proxies
         if most_common[1] / len(proxies) > 0.9:
             logger.warning(
-                f"Subnet Flood detected: {most_common[0]}.0/24 accounts for {most_common[1]}/{len(proxies)} proxies."
+                "Subnet Flood detected: %s.0/24 accounts for %s/%s proxies.",
+                most_common[0],
+                most_common[1],
+                len(proxies),
             )
             return True
 
@@ -203,8 +214,8 @@ CREATE TABLE IF NOT EXISTS history (
                     (url, url),
                 )
                 conn.commit()
-        except Exception as e:
-            logger.warning(f"Failed to record anomaly stats: {e}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("Failed to record anomaly stats: %s", e)
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get anomaly detection statistics for monitoring."""
@@ -230,12 +241,15 @@ CREATE TABLE IF NOT EXISTS history (
                     ),
                 }
                 logger.info(
-                    f"Anomaly stats: {total_sources} sources tracked, "
-                    f"{total_records} total records, {recent_anomalies} in last 24h"
+                    "Anomaly stats: %s sources tracked, "
+                    "%s total records, %s in last 24h",
+                    total_sources,
+                    total_records,
+                    recent_anomalies,
                 )
                 return stats
-        except Exception as e:
-            logger.error(f"Failed to get anomaly stats: {e}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to get anomaly stats: %s", e)
             return {}
 
     def merge_from(self, other_db_path: Path):
@@ -277,6 +291,6 @@ CREATE TABLE IF NOT EXISTS history (
                         )
 
                 dst.commit()
-                logger.info(f"Merged anomaly stats from {other_db_path}")
-        except Exception as e:
-            logger.error(f"Failed to merge anomaly DB {other_db_path}: {e}")
+                logger.info("Merged anomaly stats from %s", other_db_path)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.error("Failed to merge anomaly DB %s: %s", other_db_path, e)

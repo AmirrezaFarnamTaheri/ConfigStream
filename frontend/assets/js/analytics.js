@@ -24,8 +24,8 @@ function updateStats(data) {
         }
     };
 
-    update('totalSourced', data.total_proxies || data.total_fetched || 0); // Corrected key mapping
-    update('totalConfigs', data.total_tested || 0);
+    update('totalSourced', data.total_fetched || data.total_proxies || 0);
+    update('totalConfigs', data.total_tested || data.total_proxies || 0);
     update('workingConfigs', data.total_working || 0);
 
     // New Stats if elements exist

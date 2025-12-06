@@ -61,15 +61,8 @@ async def test_mixed_protocols_dry_run(tmp_path, monkeypatch):
     # So we MOCKED GeoIP above. The roadmap allows mocks for things that strictly require network.
     # We should let the output handler run to verify it doesn't crash on mixed types.
     # However, we need to mock `generate_stego_assets` since it requires assets/images which might not exist in tmp env.
-
-    monkeypatch.setattr(
-        "configstream.pipeline_core.output_handler.generate_stego_assets",
-        lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        "configstream.pipeline_core.output_handler.inject_stego_key_into_frontend",
-        lambda *args, **kwargs: None,
-    )
+    # But checking output_handler.py, it seems it doesn't call generate_stego_assets anymore.
+    # So we remove the mock that causes AttributeError.
 
     # 3. Run Pipeline
     result = await run_full_pipeline(

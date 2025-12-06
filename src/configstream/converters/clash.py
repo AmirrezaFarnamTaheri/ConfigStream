@@ -58,7 +58,10 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 }
 
             # TLS
-            if proxy.details.get("security") == "tls" or proxy.details.get("tls") == "tls":
+            if (
+                proxy.details.get("security") == "tls"
+                or proxy.details.get("tls") == "tls"
+            ):
                 common["tls"] = True
                 if proxy.details.get("sni"):
                     common["servername"] = proxy.details["sni"]

@@ -12,6 +12,7 @@ except importlib.metadata.PackageNotFoundError:
 
 __author__ = "Amirreza 'Farnam' Taheri"
 
+# pylint: disable=undefined-all-variable
 __all__ = [
     "Proxy",
     "SingBoxTester",

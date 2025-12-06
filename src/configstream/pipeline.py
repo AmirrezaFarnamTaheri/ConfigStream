@@ -208,6 +208,8 @@ async def run_full_pipeline(
         # Pareto Sort (in-place)
         sort_proxies_pareto(optimized_proxies, history)
 
+        stats.final_count = len(optimized_proxies)
+
         # Generate Outputs
         duration = (datetime.now(timezone.utc) - start_time).total_seconds()
         stats.duration = float(duration)
