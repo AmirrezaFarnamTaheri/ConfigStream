@@ -6,12 +6,6 @@ const LOCAL_WIKI_BASE = '../docs/wiki/';
 
 const WIKI_PAGES = [
     { id: 'Home', title: 'wiki.nav.home', defaultTitle: 'Wiki Home', file: 'Home.md' },
-    { id: 'module00', title: 'wiki.nav.module00', defaultTitle: 'Module 00: Roadmap', file: 'module-00.md' },
-    { id: 'module01', title: 'wiki.nav.module01', defaultTitle: 'Module 01: First-Order', file: 'module-01.md' },
-    { id: 'module02', title: 'wiki.nav.module02', defaultTitle: 'Module 02: Convex Ops I', file: 'module-02.md' },
-    { id: 'module03', title: 'wiki.nav.module03', defaultTitle: 'Module 03: Convex Ops II', file: 'module-03.md' },
-    { id: 'module04', title: 'wiki.nav.module04', defaultTitle: 'Module 04: Inequalities', file: 'module-04.md' },
-    { id: 'module05', title: 'wiki.nav.module05', defaultTitle: 'Module 05: Sets & Epigraphs', file: 'module-05.md' },
     { id: 'intro', title: 'wiki.nav.intro', defaultTitle: 'Introduction', file: '01-introduction.md' },
     { id: 'arch', title: 'wiki.nav.arch', defaultTitle: 'Architecture', file: '02-architecture.md' },
     { id: 'proto', title: 'wiki.nav.proto', defaultTitle: 'Protocols', file: '03-protocols.md' },
@@ -186,19 +180,6 @@ async function renderPage(filename) {
                     link.setAttribute('rel', 'noopener noreferrer');
                 }
             });
-
-            // Render Math with KaTeX
-            if (window.renderMathInElement) {
-                renderMathInElement(container, {
-                    delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false},
-                        {left: '\\(', right: '\\)', display: false},
-                        {left: '\\[', right: '\\]', display: true}
-                    ],
-                    throwOnError: false
-                });
-            }
 
         } else {
             // Fallback if marked is missing (e.g., CDN blocked)
