@@ -40,10 +40,11 @@ var (
 	rng         = rand.New(rand.NewSource(time.Now().UnixNano()))
 	rngMu       sync.Mutex
 	TestTargets = []string{
-		"https://www.google.com/generate_204",
-		"http://detectportal.firefox.com/success.txt",
-		"https://www.microsoft.com/ncsi.txt",
 		"http://cp.cloudflare.com/generate_204",
+		"http://www.google.com/generate_204",
+		"http://connectivitycheck.gstatic.com/generate_204",
+		"http://www.apple.com/library/test/success.html",
+		"http://detectportal.firefox.com/success.txt",
 	}
 )
 
@@ -89,6 +90,9 @@ func main() {
 	urls := flag.String("urls", "", "Comma-separated list of test URLs")
 	mode := flag.String("mode", "test", "Operation mode: 'test' (proxy check) or 'scan' (WARP IP scan)")
 	limit := flag.Int("limit", 1000, "Max IPs to scan (for 'scan' mode)")
+	// Per-test timeout to prevent individual tests from hanging indefinitely
+	// This should be shorter than the Python wrapper timeout
+	perTestTimeout := flag.Duration("per-test-timeout", 15*time.Second, "Timeout per individual test")
 
 	flag.Parse()
 
@@ -130,7 +134,7 @@ func main() {
 		wg.Add(1)
 		go func(workerID int) {
 			defer wg.Done()
-			worker(workerID, inputChan, outputChan)
+			worker(workerID, inputChan, outputChan, *perTestTimeout)
 		}(i)
 	}
 
@@ -197,9 +201,7 @@ func writer(outputChan <-chan TestResult) {
 	fmt.Fprintf(os.Stderr, "INFO: Wrote %d results\n", count)
 }
 
-func worker(id int, input <-chan ProxyInput, output chan<- TestResult) {
-	ctx := context.Background()
-
+func worker(id int, input <-chan ProxyInput, output chan<- TestResult, perTestTimeout time.Duration) {
 	// Global worker panic handler
 	defer func() {
 		if r := recover(); r != nil {
@@ -208,11 +210,17 @@ func worker(id int, input <-chan ProxyInput, output chan<- TestResult) {
 	}()
 
 	for p := range input {
+		// Create context with per-test timeout
+		ctx, cancel := context.WithTimeout(context.Background(), perTestTimeout)
+
+		// Channel to receive test result
+		done := make(chan TestResult, 1)
+
 		// Per-task panic handler to keep worker alive
-		func() {
+		go func() {
 			defer func() {
 				if r := recover(); r != nil {
-					output <- TestResult{
+					done <- TestResult{
 						ID: p.ID,
 						IsWorking: false,
 						Error: fmt.Sprintf("PANIC: %v", r),
@@ -242,11 +250,24 @@ func worker(id int, input <-chan ProxyInput, output chan<- TestResult) {
 				}
 			} else {
 				res.Error = err.Error()
-				// [LOG] Debug logging for failures (optional, maybe verbose)
-				// fmt.Fprintf(os.Stderr, "DEBUG: Proxy %s failed: %v\n", p.ID, err)
 			}
-			output <- res
+			done <- res
 		}()
+
+		var result TestResult
+		select {
+		case r := <-done:
+			result = r
+		case <-ctx.Done():
+			result = TestResult{
+				ID: p.ID,
+				IsWorking: false,
+				Error: "PER_TEST_TIMEOUT",
+			}
+		}
+
+		cancel()
+		output <- result
 	}
 }
 

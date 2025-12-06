@@ -144,7 +144,20 @@ def merge_batches(
                 logger.info(f"Retesting {len(chains_to_test)} washed chains...")
                 # Initialize tester (ensure binary path is correct)
                 tester = GoBatchTester(workers=50)
-                results = asyncio.run(tester.test_custom_configs(chains_to_test))
+
+                # CRITICAL: Reduced batch size to prevent Go Tester freezes
+                WASHER_RETEST_BATCH_SIZE = 50  # Down from 500
+
+                all_results = {}
+                for i in range(0, len(chains_to_test), WASHER_RETEST_BATCH_SIZE):
+                    batch = chains_to_test[i : i + WASHER_RETEST_BATCH_SIZE]
+                    logger.info(
+                        f"Retesting washer batch {i // WASHER_RETEST_BATCH_SIZE + 1}: {len(batch)} chains"
+                    )
+                    batch_results = asyncio.run(tester.test_custom_configs(batch))
+                    all_results.update(batch_results)
+
+                results = all_results
 
                 # Filter out failed chains
                 valid_washed_outbounds = []

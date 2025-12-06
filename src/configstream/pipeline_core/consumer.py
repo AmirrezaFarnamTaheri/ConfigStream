@@ -29,6 +29,11 @@ if False:  # TYPE_CHECKING
 
 logger = logging.getLogger(__name__)
 
+# Per-source limits
+SOURCE_TIMEOUT_SECONDS = 300  # 5 minutes max per source
+EARLY_TERMINATION_TESTS = 1000
+EARLY_TERMINATION_MIN_RATE = 0.01  # 1%
+
 
 async def processing_consumer(
     work_queue: asyncio.Queue,
@@ -67,6 +72,8 @@ async def processing_consumer(
     # [FIX] Do not start tuner here. It is managed by the orchestrator (pipeline.py)
     # to prevent race conditions and redundant toggling per consumer/batch.
 
+    source_start_time = None
+
     while True:
         try:
             # Add timeout to prevent indefinite blocking if producer dies
@@ -98,6 +105,9 @@ async def processing_consumer(
                 fetch_meta_str = f" [Fetch: {fetch_dur * 1000:.0f}ms]"
 
         safe_source = SecurityValidator.sanitize_log_message(str(source))
+        source_start_time = asyncio.get_event_loop().time()
+        source_tested = 0
+
         logger.info(
             f"Processing source {safe_source}: {len(raw_lines)} raw lines{fetch_meta_str}"
         )
@@ -266,6 +276,24 @@ async def processing_consumer(
                             f"Batch test result for {safe_source}: {working_in_chunk}/{len(chunk)} working "
                             f"({(working_in_chunk/len(chunk)*100):.1f}%)"
                         )
+
+                        source_tested += len(chunk)
+
+                        # Early termination check
+                        if source_tested >= EARLY_TERMINATION_TESTS:
+                            current_rate = len(final_batch_for_this_source) / (source_tested + cache_hits) if (source_tested + cache_hits) > 0 else 0
+                            if current_rate < EARLY_TERMINATION_MIN_RATE:
+                                logger.warning(
+                                    f"Early termination for {safe_source}: "
+                                    f"{current_rate:.1%} success after {source_tested} tests"
+                                )
+                                break
+
+                        # Per-source timeout check
+                        elapsed = asyncio.get_event_loop().time() - source_start_time
+                        if elapsed > SOURCE_TIMEOUT_SECONDS:
+                            logger.warning(f"Source {safe_source} exceeded {SOURCE_TIMEOUT_SECONDS}s timeout")
+                            break
                         if working_in_chunk == 0 and len(chunk) > 0:
                             logger.warning(
                                 f"Batch failure details for {safe_source}: All {len(chunk)} proxies failed in this chunk."

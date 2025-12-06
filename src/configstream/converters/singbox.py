@@ -212,10 +212,16 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
-        # [FIX] Default insecure to True for Hysteria2 to improve test yield
-        is_insecure = False
-        if "allowInsecure" in proxy.details:
-            is_insecure = bool(proxy.details["allowInsecure"])
+        # Default insecure to True for free proxy testing
+        # Most free proxies use self-signed certificates
+        # Users can override via details["allowInsecure"] = False
+        is_insecure = True
+        if "allowInsecure" in proxy.details and proxy.details["allowInsecure"] is False:
+            is_insecure = False
+        elif "insecure" in proxy.details and proxy.details["insecure"] is False:
+            is_insecure = False
+        elif "skip_cert_verify" in proxy.details and proxy.details["skip_cert_verify"] is False:
+            is_insecure = False
 
         out["tls"] = {
             "enabled": True,

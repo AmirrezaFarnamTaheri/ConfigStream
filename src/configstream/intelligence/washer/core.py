@@ -6,6 +6,8 @@ import os
 import httpx
 import asyncio
 from typing import List, Dict, Optional, Set, Any, Tuple
+from pathlib import Path
+import time
 
 from ...models import Proxy
 from ...converters import to_singbox_outbound
@@ -14,10 +16,19 @@ from ..chaining import find_optimal_relay, ProxyStub, COUNTRIES
 
 logger = logging.getLogger(__name__)
 
-# Static fallback if fetch fails
-DEFAULT_CLEAN_IPS = ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
+# Expanded default IPs (multiple ranges for resilience)
+DEFAULT_CLEAN_IPS = [
+    # 162.159.192.x range
+    "162.159.192.1", "162.159.192.5", "162.159.192.10", "162.159.192.50",
+    # 162.159.193.x range
+    "162.159.193.1", "162.159.193.10", "162.159.193.50",
+    # 162.159.195.x range
+    "162.159.195.1", "162.159.195.5", "162.159.195.10",
+    # 188.114.x range (alternative)
+    "188.114.96.1", "188.114.97.1", "188.114.98.1", "188.114.99.1",
+]
 
-# Multiple fallback sources for Clean IP endpoints
+# Static list sources (Step 1 of fallback)
 # Priority order: first working source wins
 CLEAN_IP_SOURCES = [
     # Primary: ircfspace warpendpoint (new location)
@@ -27,6 +38,16 @@ CLEAN_IP_SOURCES = [
     # Fallback 2: Alternative community-maintained list
     "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist",
 ]
+
+# Cache configuration
+CLEAN_IP_CACHE_PATH = Path("data/clean_ips_cache.json")
+CLEAN_IP_CACHE_TTL_HOURS = 24
+
+# Environment variable for secrets-based fallback
+CLEAN_IP_SECRET_ENV = "WARP_CLEAN_IPS"
+
+# Local override file (highest priority for manual intervention)
+CLEAN_IP_OVERRIDE_PATH = Path("data/clean_ips_override.txt")
 
 
 class ProxyWasher:
@@ -55,14 +76,130 @@ class ProxyWasher:
         # Initialize the Active Scanner
         self.scanner = WarpScannerWorker()
 
+    def _load_cached_ips(self) -> bool:
+        """
+        Load clean IPs from disk cache if valid.
+        Returns True if cache was loaded successfully.
+        """
+        try:
+            if not CLEAN_IP_CACHE_PATH.exists():
+                return False
+
+            data = json.loads(CLEAN_IP_CACHE_PATH.read_text())
+            cached_ips = data.get("ips", [])
+            cached_time = data.get("timestamp", 0)
+
+            # Check TTL
+            age_hours = (time.time() - cached_time) / 3600
+            if age_hours > CLEAN_IP_CACHE_TTL_HOURS:
+                logger.debug(f"Clean IP cache expired (age: {age_hours:.1f}h)")
+                return False
+
+            if cached_ips and len(cached_ips) >= 5:
+                self.clean_ips = cached_ips
+                logger.info(f"Loaded {len(self.clean_ips)} clean IPs from cache (age: {age_hours:.1f}h)")
+                return True
+
+        except Exception as e:
+            logger.debug(f"Could not load IP cache: {e}")
+        return False
+
+    def _save_cached_ips(self) -> None:
+        """Save current clean IPs to disk cache."""
+        try:
+            CLEAN_IP_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            data = {
+                "ips": self.clean_ips,
+                "timestamp": time.time(),
+                "count": len(self.clean_ips),
+            }
+            CLEAN_IP_CACHE_PATH.write_text(json.dumps(data, indent=2))
+            logger.debug(f"Saved {len(self.clean_ips)} clean IPs to cache")
+        except Exception as e:
+            logger.warning(f"Could not save IP cache: {e}")
+
+    def _load_override_ips(self) -> bool:
+        """
+        Load clean IPs from local override file.
+        This has HIGHEST priority - used for manual intervention in censored regions.
+
+        File format: One IP per line, # for comments
+        """
+        try:
+            if not CLEAN_IP_OVERRIDE_PATH.exists():
+                return False
+
+            lines = CLEAN_IP_OVERRIDE_PATH.read_text().splitlines()
+            ips = [
+                line.strip() for line in lines
+                if line.strip() and not line.strip().startswith("#")
+            ]
+
+            if ips and len(ips) >= 3:
+                self.clean_ips = ips[:100]
+                logger.info(f"Loaded {len(self.clean_ips)} clean IPs from LOCAL OVERRIDE file")
+                return True
+        except Exception as e:
+            logger.debug(f"Could not load override IPs: {e}")
+        return False
+
+    def _load_secret_ips(self) -> bool:
+        """
+        Load clean IPs from GitHub Secrets (environment variable).
+        Expected format: JSON array or comma-separated list.
+        Returns True if IPs were loaded successfully.
+        """
+        secret_value = os.environ.get(CLEAN_IP_SECRET_ENV, "").strip()
+        if not secret_value:
+            return False
+
+        try:
+            # Try JSON array first
+            if secret_value.startswith("["):
+                ips = json.loads(secret_value)
+            else:
+                # Fall back to comma-separated
+                ips = [ip.strip() for ip in secret_value.split(",") if ip.strip()]
+
+            # Validate IPs (basic check)
+            valid_ips = [ip for ip in ips if ip.count(".") == 3 and ip[0].isdigit()]
+
+            if valid_ips and len(valid_ips) >= 3:
+                self.clean_ips = valid_ips[:100]  # Limit pool size
+                logger.info(f"Loaded {len(self.clean_ips)} clean IPs from secrets ({CLEAN_IP_SECRET_ENV})")
+                return True
+            else:
+                logger.warning(f"Secret {CLEAN_IP_SECRET_ENV} contained insufficient valid IPs")
+
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse {CLEAN_IP_SECRET_ENV} as JSON: {e}")
+        except Exception as e:
+            logger.warning(f"Error loading IPs from secret: {e}")
+
+        return False
+
     async def fetch_clean_ips(self) -> None:
         """
         Fetches the latest clean IPs for WARP endpoints.
-        Strategy:
-        1. Active Scanning (High Performance, Local Latency)
-        2. Static Lists (Reliability Fallback)
-        3. Hardcoded Defaults (Last Resort)
+
+        Enhanced Fallback Strategy:
+        -1. Local Override File (manual intervention, highest priority)
+        0. Local Cache (if fresh, < 24h)
+        1. Active Scanning (if not CI, binary available)
+        2. IRCFspace Static List (primary remote source)
+        3. GitHub Secrets (WARP_CLEAN_IPS env var)
+        4. Expanded Hardcoded Defaults (last resort)
         """
+
+        # --- STRATEGY -1: LOCAL OVERRIDE (Manual Intervention) ---
+        if self._load_override_ips():
+            logger.info("Using LOCAL OVERRIDE IPs (manual intervention active)")
+            return
+
+        # --- STRATEGY 0: LOCAL CACHE ---
+        if self._load_cached_ips():
+            logger.info("Using cached clean IPs (skipping remote fetch)")
+            return
 
         # --- STRATEGY 1: ACTIVE SCANNING ---
         # Only run if the binary is available

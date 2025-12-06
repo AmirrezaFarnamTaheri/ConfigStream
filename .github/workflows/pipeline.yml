@@ -113,6 +113,7 @@ jobs:
             data/source_quality.db
             data/test_cache.json
             data/proxy_history.json
+            data/circuit_breakers.json
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
           key: configstream-data-${{ github.ref }}
@@ -327,6 +328,7 @@ jobs:
       - name: Run merge script
         env:
             WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
+            WARP_CLEAN_IPS: ${{ secrets.WARP_CLEAN_IPS }}
             STEGO_KEY: ${{ secrets.STEGO_KEY }}
         run: python -m scripts.merge_batches
 

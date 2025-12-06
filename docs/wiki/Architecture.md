@@ -1,57 +1,78 @@
-# ConfigStream v2.0 Architecture
+# ConfigStream Architecture
 
-ConfigStream has evolved into a resilient, hybrid intelligence platform. This document outlines the key architectural components introduced in version 2.0.
+## 1. High-Level Overview
 
-## 1. Hybrid Engine (Python + Go)
+ConfigStream operates as a **Streaming Pipeline**. Unlike traditional batch processors that load everything into memory, ConfigStream processes data in streams to handle massive datasets (100k+ proxies) with minimal memory footprint (aiming for <7GB RAM in CI).
 
-The core processing pipeline is split between Python (Orchestration, Logic) and Go (Performance, Networking).
+### The "Zero Budget" Constraint
+We run on GitHub Actions standard runners (2-core, 7GB RAM). This constraint dictates our architecture:
+*   **No Database Service**: We use SQLite (`source_quality.db`) and JSON artifacts.
+*   **No Long-Running Server**: The "server" is the CI pipeline execution time.
+*   **Statelessness**: Each run must recover state from previous artifacts (cache restoration).
 
-- **Python (The Brain):** Handles file parsing, database management, intelligence logic (washing, chaining), and output generation.
-- **Go (The Muscle):** A custom binary (`configstream-tester`) performs high-concurrency latency testing and active network scanning.
+## 2. Component Diagram
 
-### Why Go?
-We integrated `shahradelahi/cloudflare-warp`'s scanning logic directly into our Go tester. This allows us to scan thousands of Cloudflare endpoints per second using raw UDP packets, bypassing the overhead of Python's `asyncio` loop for CPU-bound packet construction.
+```mermaid
+graph TD
+    Sources[Source URLs/Files] -->|Async Fetch| Fetcher
+    Fetcher -->|Raw Text| Queue[Bounded Queue]
+    Queue -->|Async| Consumers[Parallel Consumers]
 
-## 2. Intelligence Layer
+    subgraph Consumers
+        Parser[Heuristic Parser] -->|Proxy Objects| Validator[Security Validator]
+        Validator -->|Safe Proxies| Tester[Hybrid Tester]
+        Tester -->|Go/Python| Results
+    end
 
-ConfigStream is no longer just a "tester". It actively improves the proxies it finds.
+    Results -->|Working Proxies| Aggregator
+    Aggregator -->|Ranked List| Intelligence[Intelligence Layer]
 
-### The Washer (Proxy Reviver)
-Located in `src/configstream/intelligence/washer/`, this module "washes" dirty or insecure proxies by wrapping them in a Cloudflare WARP tunnel.
+    subgraph Intelligence
+        Washer[Proxy Washer (WARP)]
+        Geo[GeoIP Resolver]
+        Vector[Feature Vectorizer]
+    end
 
-1.  **Scanner:** The Go binary scans for clean, low-latency Warp endpoints (Clean IPs).
-2.  **Wrapper:** The Washer takes a working proxy (Relay) and chains it to a Clean IP (Exit) using WireGuard.
-3.  **Result:** A "Washed Proxy" that has the reputation of Cloudflare and the accessibility of the original relay.
+    Intelligence --> Output[Output Generators]
+    Output --> Artifacts[JSON/Sub/Clash]
+```
 
-### Smart Chaining (Topology Aware Routing)
-Located in `src/configstream/intelligence/washer/chaining.py`, this module builds complex proxy chains to solve specific problems:
+## 3. Core Subsystems
 
--   **Intranet Bridge:** Connects a Domestic Relay (e.g., Iran) $\to$ Foreign Exit (e.g., Germany). Bypasses censorship while maintaining local network access.
--   **IPv6 Portal:** Connects an IPv4 Relay $\to$ IPv6 Exit. Unlocks IPv6-only VPS resources for legacy users.
--   **Streaming Accelerator:** Connects a UDP-optimized Relay (Hysteria2) $\to$ Streaming-friendly Exit (US/UK).
+### 3.1. The Fetcher (`src/configstream/fetcher_core`)
+*   **Resilience**: Implements `AdaptiveTimeout` (adjusts based on history) and `CircuitBreaker` (stops hammering dead hosts).
+*   **Concurrency**: Uses `asyncio.Semaphore` to limit concurrent connections.
+*   **User-Agent Rotation**: Rotates fingerprints to evade blocking.
 
-## 3. Worker System
+### 3.2. The Parser (`src/configstream/parsers`)
+*   **Heuristic Extraction**: Doesn't just base64 decode. It scans for protocol prefixes (`vmess://`, `ss://`), cleans garbage, and handles obfuscated content.
+*   **Content Sniffing**: Detects HTML error pages/captive portals to avoid parsing garbage.
 
-We introduced a "Worker" concept in `src/configstream/workers/`.
--   **WarpScannerWorker:** Orchestrates the Go binary to perform background scans without blocking the main pipeline.
+### 3.3. The Hybrid Tester (`src/configstream/testers`)
+*   **Primary (Go)**: A sidecar binary (`src/go/tester`) built on `sing-box`. It binds to ephemeral ports, runs actual connection tests (SOCKS5 handshake + HTTP GET), and returns latency. Supports concurrent testing of 50-100 proxies.
+*   **Secondary (Python)**: Fallback logic using `aiohttp` and `singbox2proxy` if the binary fails or is missing.
+*   **Honeypot Detection**: Checks if the proxy is intercepting traffic by verifying signatures from a canary server.
 
-## 4. Pipeline Flow
+### 3.4. The Intelligence Layer (`src/configstream/intelligence`)
+*   **Proxy Washer**: The crown jewel. It takes a "dirty" proxy (blocked IP) and chains it to a clean Cloudflare WARP endpoint via WireGuard.
+    *   *Mechanism*: `User <-> Relay (Dirty Proxy) <-> WARP (Clean IP) <-> Target`.
+*   **Vectorization**: Converts proxy attributes (latency, stability, country, uptime) into feature vectors for ranking.
 
-1.  **Fetch & Parse:** Sources are fetched and parsed into `Proxy` objects.
-2.  **Test:** The Go tester verifies connectivity and measures latency.
-3.  **Optimize:** Dead proxies are discarded.
-4.  **Intelligence Phase:**
-    -   **Scan:** `WarpScannerWorker` finds clean IPs.
-    -   **Wash:** `ProxyWasher` creates WARP wraps.
-    -   **Chain:** `generate_smart_chains` builds topology chains.
-5.  **Output:** Files (Sing-box, Clash, Sub) are generated with all original + intelligent proxies.
+### 3.5. Output Logic (`src/configstream/output_logic.py`)
+*   **Formatters**:
+    *   `singbox.json`: The "Sniper" config (Optimized for routing).
+    *   `singbox-vpn.json`: The "Tank" config (Tun mode, heavy resilience).
+    *   `clash.yaml`: Legacy support.
+*   **Steganography**: Encrypts the subscription in a PNG image (`stealth_cover.png`) to bypass DPI.
 
-## 5. Frontend & Analytics
+## 4. Data Flow Lifecycle
 
-The frontend now consumes a richer `metadata.json` which includes:
--   **Protocol Distribution**
--   **Latency Histograms**
--   **Threat Analysis** (Dirty IPs, Honeypots)
--   **Intelligence Stats** (Revived Proxies, Smart Chains)
-
-This architecture ensures ConfigStream remains "Zero Budget" while delivering enterprise-grade resilience.
+1.  **Initialize**: Load config, blocklists, and cache.
+2.  **Shard**: Split sources into batches (e.g., Batch 1-10).
+3.  **Process (Parallel)**:
+    *   Consumer pulls source.
+    *   Fetch -> Parse -> Validate -> Dedup -> Test.
+    *   Update Stats.
+4.  **Merge**: Combine results from all batches.
+5.  **Enhance**: Run Proxy Washer on dirty candidates.
+6.  **Publish**: Upload artifacts.

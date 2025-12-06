@@ -17,6 +17,29 @@ from .constants import MAX_RESPONSE_SIZE
 
 logger = logging.getLogger(__name__)
 
+# Browser User-Agent pool for rotation
+# These mimic common browsers to avoid fingerprinting and blocking
+USER_AGENT_POOL = [
+    # Chrome on Windows
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    # Chrome on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    # Firefox on Windows
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    # Firefox on Linux
+    "Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+    # Safari on macOS
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
+    # Edge on Windows
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0",
+]
+
+# HTTP status codes that indicate server issues (should trip breaker)
+SERVER_ERROR_CODES = {500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526}
+
+# HTTP status codes that indicate client/resource issues (should NOT trip breaker)
+CLIENT_ERROR_CODES = {400, 401, 403, 404, 405, 410, 429}
+
 
 async def fetch_from_source(
     client: httpx.AsyncClient,
@@ -86,9 +109,9 @@ async def fetch_from_source(
     backoff = retry_delay
     last_error = None
 
-    # Standard headers (No ETag to force fresh content)
+    # Standard headers with rotating User-Agent
     headers = {
-        "User-Agent": "ConfigStream/1.1",
+        "User-Agent": random.choice(USER_AGENT_POOL),
         "Accept": "text/plain, application/json, */*",
         "Accept-Encoding": "gzip, deflate, br",
     }
@@ -209,12 +232,21 @@ async def fetch_from_source(
             last_error = str(e)
             if controller:
                 await controller.record(host, float(per_attempt_timeout), False)
+
+            # Only record circuit breaker failure for actual server errors
+            # 404/410 mean "resource not found" - the server is working fine
+            # 403 means "forbidden" - could be geo-block, not server failure
             if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-                breaker = await breaker_manager.get_breaker(host)
-                await breaker.record_failure()
-                if await breaker.is_open():
-                    logger.warning(
-                        f"Circuit breaker TRIPPED for {host} due to failures."
+                if last_status_code is None or last_status_code in SERVER_ERROR_CODES:
+                    breaker = await breaker_manager.get_breaker(host)
+                    await breaker.record_failure()
+                    if await breaker.is_open():
+                        logger.warning(
+                            f"Circuit breaker TRIPPED for {host} due to server errors."
+                        )
+                else:
+                    logger.debug(
+                        f"Not counting {last_status_code} as circuit breaker failure for {host}"
                     )
 
             # If it's a 404 (Not Found) or 410 (Gone), retrying is futile.

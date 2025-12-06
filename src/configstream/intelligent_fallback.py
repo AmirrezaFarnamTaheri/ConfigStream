@@ -28,6 +28,7 @@ class FallbackManager:
         """
         self.fallback_path = Path(fallback_path)  # Ensure Path object
         self.fallback_path.parent.mkdir(parents=True, exist_ok=True)
+        self.golden_path = self.fallback_path.with_name("fallback_golden.json")
 
     def save_successful_run(
         self,
@@ -97,44 +98,75 @@ class FallbackManager:
         except OSError as e:
             logger.error("Failed to write fallback file: %s", e)
 
+    def save_golden_state(self, proxies: List[Proxy]) -> None:
+        """
+        Saves a permanent 'golden' backup that is never overwritten automatically.
+
+        Call this manually or when a run is exceptionally good (e.g., > 5000 proxies,
+        > 50% success rate).
+        """
+        try:
+            proxy_dicts = [p.model_dump() for p in proxies]
+            data = {
+                "proxies": proxy_dicts,
+                "proxy_count": len(proxies),
+                "saved_at": datetime.now(timezone.utc).isoformat(),
+                "is_golden": True,
+            }
+            self.golden_path.write_text(json.dumps(data, indent=2))
+            logger.info(f"Saved GOLDEN backup with {len(proxies)} proxies to {self.golden_path}")
+        except Exception as e:
+            logger.error(f"Failed to save golden backup: {e}")
+
+    def _load_from(self, path: Path) -> Optional[List[Proxy]]:
+        """Load proxies from a specific fallback file."""
+        if not path.exists():
+            return None
+        try:
+            data = json.loads(path.read_text())
+            proxy_dicts = data.get("proxies", [])
+            # Handle both model_dump and manual dict formats
+            proxies = []
+            for p in proxy_dicts:
+                if "config" in p: # Manual format from save_successful_run
+                     proxies.append(Proxy(
+                        config=p["config"],
+                        protocol=p["protocol"],
+                        address=p["address"],
+                        port=p["port"],
+                        latency=p.get("latency"),
+                        country=p.get("country", ""),
+                        country_code=p.get("country_code", ""),
+                        city=p.get("city", ""),
+                        is_working=True,
+                    ))
+                else: # model_dump format
+                     proxies.append(Proxy(**p))
+
+            logger.info(f"Loaded {len(proxies)} proxies from {path.name}")
+            return proxies
+        except Exception as e:
+            logger.warning(f"Could not load fallback from {path}: {e}")
+            return None
+
     def load_fallback(self) -> Optional[List[Proxy]]:
         """
-        Load fallback proxies from last successful run.
-
-        Returns:
-            List of fallback proxies, or None if not available
+        Load fallback proxies if available.
+        Attempts standard fallback first, then Golden Backup.
         """
-        if not self.fallback_path.exists():
-            logger.warning("No fallback data available")
-            return None
-
-        try:
-            data = json.loads(self.fallback_path.read_text())
-            proxies = [
-                Proxy(
-                    config=p["config"],
-                    protocol=p["protocol"],
-                    address=p["address"],
-                    port=p["port"],
-                    latency=p.get("latency"),
-                    country=p.get("country", ""),
-                    country_code=p.get("country_code", ""),
-                    city=p.get("city", ""),
-                    is_working=True,  # Assume working from last good run
-                )
-                for p in data["proxies"]
-            ]
-
-            logger.info(
-                "Loaded %d fallback proxies from %s",
-                len(proxies),
-                data["saved_at"],
-            )
+        # Try standard fallback first
+        proxies = self._load_from(self.fallback_path)
+        if proxies:
             return proxies
 
-        except Exception as e:
-            logger.error("Failed to load fallback data: %s", e)
-            return None
+        # Fall back to golden backup
+        logger.warning("Standard fallback missing/corrupt. Attempting Golden Backup...")
+        proxies = self._load_from(self.golden_path)
+        if proxies:
+            return proxies
+
+        logger.info("No fallback data available")
+        return None
 
     def should_use_fallback(
         self, current_working_count: int, threshold: int = 10

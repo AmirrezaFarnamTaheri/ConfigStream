@@ -1,4 +1,5 @@
 import asyncio
+import atexit
 import logging
 import os
 import json
@@ -11,6 +12,9 @@ from ..models import Proxy
 from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
+
+# Track active processes for cleanup
+_active_processes: List[asyncio.subprocess.Process] = []
 
 
 class GoBatchTester:
@@ -57,6 +61,48 @@ class GoBatchTester:
                 f"CRITICAL: Go batch tester binary not found (searched: {binary_path}, env: {env_path}, PATH). "
                 "No proxies will be tested via the high-performance path!"
             )
+
+        # Register cleanup handler
+        atexit.register(self._cleanup_all_processes)
+
+        # Run health check if binary was found
+        if self.available:
+            self._run_health_check()
+
+    @staticmethod
+    def _cleanup_all_processes() -> None:
+        """Kill any remaining Go processes on exit."""
+        for proc in _active_processes:
+            try:
+                if proc.returncode is None:
+                    proc.kill()
+                    logger.debug(f"Killed orphaned Go process {proc.pid}")
+            except Exception:
+                pass
+        _active_processes.clear()
+
+    def _track_process(self, proc: asyncio.subprocess.Process) -> None:
+        """Track process for cleanup."""
+        _active_processes.append(proc)
+
+    def _run_health_check(self) -> None:
+        """Verify the Go binary runs correctly before use."""
+        import subprocess
+        try:
+            result = subprocess.run(
+                [self.binary_path, "-help"],
+                capture_output=True,
+                timeout=5,
+                text=True
+            )
+            if result.returncode not in (0, 2):  # -help often returns 2
+                logger.error(f"Go tester health check failed: exit code {result.returncode}")
+                logger.error(f"Stderr: {result.stderr[:500]}")
+                self.available = False
+        except Exception as e:
+            logger.error(f"Go tester health check failed: {e}")
+            self.available = False
+            return
 
     async def test_batch(
         self, proxies: List[Proxy], check_honeypot: bool = False
@@ -158,6 +204,7 @@ class GoBatchTester:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
+            self._track_process(proc)
 
             try:
                 # [FIX] Increased timeout to 600s to accommodate heavy batches/retries
@@ -167,10 +214,27 @@ class GoBatchTester:
             except asyncio.TimeoutError:
                 try:
                     proc.kill()
+                    # CRITICAL FIX: Await process termination to prevent
+                    # "Event loop is closed" error during garbage collection.
+                    # Without this, the subprocess transport is orphaned and
+                    # its __del__ method tries to use the closed event loop.
+                    await proc.wait()
                 except Exception:
                     pass
                 logger.error("Go Tester froze! Killing process to save pipeline.")
                 return []
+            except Exception:
+                # Ensure cleanup on any other exception
+                try:
+                    proc.kill()
+                    await proc.wait()
+                except Exception:
+                    pass
+                raise
+            finally:
+                # Remove from tracking after completion
+                if proc in _active_processes:
+                    _active_processes.remove(proc)
 
             if stderr:
                 stderr_text = stderr.decode().strip()

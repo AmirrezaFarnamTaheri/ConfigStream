@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import List
 
 from .decoders import safe_b64_decode
@@ -10,6 +11,10 @@ from ..constants import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Patterns that indicate HTML/garbage content
+HTML_INDICATORS = re.compile(r'<!DOCTYPE|<html|<head|<body|<script|<style|<meta|<title', re.IGNORECASE)
+CAPTIVE_PORTAL_INDICATORS = re.compile(r'captive|portal|blocked|forbidden|access denied|not found', re.IGNORECASE)
 
 
 def is_plausible_proxy_config(config: str) -> bool:
@@ -73,6 +78,23 @@ def extract_config_lines(
     """Extract configuration lines with validation and limits."""
     if not isinstance(payload, str) or not payload.strip():
         logger.debug("extract_config_lines: Empty or invalid payload type.")
+        return []
+
+    # GARBAGE DETECTION: Check if this is HTML/error page content
+    # Examine first 1KB to detect HTML or error pages
+    preview = payload[:1024]
+
+    if HTML_INDICATORS.search(preview):
+        logger.warning(
+            f"Content appears to be HTML (detected HTML tags). Skipping parse. "
+            f"Preview: {preview[:100]}..."
+        )
+        return []
+
+    if CAPTIVE_PORTAL_INDICATORS.search(preview) and 'vmess://' not in preview and 'vless://' not in preview:
+        logger.warning(
+            f"Content appears to be a captive portal or error page. Skipping parse."
+        )
         return []
 
     # Check if it's an OpenVPN file

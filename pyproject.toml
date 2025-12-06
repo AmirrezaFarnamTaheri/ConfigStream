@@ -65,6 +65,7 @@ dependencies = [
     "scikit-learn",
     "numpy",
     "scipy",
+    "geopy>=2.4.0",
 
     # HTML Parsing (Security)
     "beautifulsoup4"
