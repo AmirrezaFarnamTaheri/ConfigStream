@@ -1,7 +1,9 @@
 import logging
 import sys
 import os
+import json
 import asyncio
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from .setup_path import setup_python_path
@@ -38,6 +40,7 @@ def merge_batches(
     from configstream.intelligence.washer.core import ProxyWasher
     from configstream.intelligence.vectors import generate_vectors
     from configstream.proxy_history import ProxyHistoryTracker
+    from configstream.output_logic import save_metadata
 
     output_dir = root_dir / output_dir_str
     batch_dirs = sorted(list(root_dir.glob(batch_dir_glob)))
@@ -59,9 +62,13 @@ def merge_batches(
                 # Sum up stats (handle inconsistent keys if necessary)
                 stats = data.get("stats", {})
                 # Use 'parsed' as a proxy for tested if 'tested' is missing
-                tested_val = stats.get("tested", data.get("total_proxies_tested", stats.get("parsed", 0)))
+                tested_val = stats.get(
+                    "tested", data.get("total_proxies_tested", stats.get("parsed", 0))
+                )
                 total_tested += tested_val
-                total_fetched += stats.get("fetched_lines", data.get("total_fetched", 0))
+                total_fetched += stats.get(
+                    "fetched_lines", data.get("total_fetched", 0)
+                )
             except Exception:
                 logger.warning(f"Failed to read stats from {meta_path}")
 
@@ -122,16 +129,16 @@ def merge_batches(
             # Though strictly, they should be paired (Relay + Exit)
             safe_limit = len(washed_outbounds) - (len(washed_outbounds) % 2)
             if len(washed_outbounds) % 2 != 0:
-                logger.warning(f"Washer produced odd number of outbounds ({len(washed_outbounds)}). Dropping last item.")
+                logger.warning(
+                    f"Washer produced odd number of outbounds ({len(washed_outbounds)}). Dropping last item."
+                )
 
             for i in range(0, safe_limit, 2):
                 relay = washed_outbounds[i]
                 exit_node = washed_outbounds[i + 1]
                 # The exit node tag is unique and sufficient ID
                 chain_id = exit_node.get("tag", f"chain_{i}")
-                chains_to_test.append(
-                    {"id": chain_id, "outbounds": [relay, exit_node]}
-                )
+                chains_to_test.append({"id": chain_id, "outbounds": [relay, exit_node]})
 
             if chains_to_test:
                 logger.info(f"Retesting {len(chains_to_test)} washed chains...")

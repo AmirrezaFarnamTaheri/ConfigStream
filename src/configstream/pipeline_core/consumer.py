@@ -245,7 +245,9 @@ async def processing_consumer(
                                 final_batch_for_this_source.append(res)
                                 if event_stream:
                                     # Log only to DEBUG to avoid spamming main log
-                                    logger.debug(f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)")
+                                    logger.debug(
+                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)"
+                                    )
                                     event_stream.emit(
                                         "test_success",
                                         f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
@@ -284,7 +286,9 @@ async def processing_consumer(
                             if res.is_working:
                                 if event_stream:
                                     # Log only to DEBUG to avoid spamming main log
-                                    logger.debug(f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)")
+                                    logger.debug(
+                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)"
+                                    )
                                     event_stream.emit(
                                         "test_success",
                                         f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
