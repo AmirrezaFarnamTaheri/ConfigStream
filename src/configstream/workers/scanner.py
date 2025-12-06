@@ -141,7 +141,9 @@ class WarpScannerWorker:
             if not raw_output.strip():
                 # In CI or restricted environments, exit code 0 with no output might happen
                 # But we should have caught CI above. If it happens here, it's likely a network block.
-                logger.warning("Scanner finished with exit code 0 but produced NO output. (Possible Firewall/Network Block)")
+                logger.warning(
+                    "Scanner finished with exit code 0 but produced NO output. (Possible Firewall/Network Block)"
+                )
                 return []
 
             for line in raw_output.splitlines():

@@ -267,6 +267,8 @@ class GoBatchTester:
         )
 
         if result_count > 0 and working_count == 0:
-            logger.warning("Go Tester returned results but ALL tests failed (Check network or batch quality).")
+            logger.warning(
+                "Go Tester returned results but ALL tests failed (Check network or batch quality)."
+            )
 
         return list(proxy_map.values())
