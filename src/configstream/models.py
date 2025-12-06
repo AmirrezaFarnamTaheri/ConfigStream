@@ -1,6 +1,14 @@
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+"""
+ConfigStream Data Models.
+Defines the core Proxy object and Pydantic schemas.
+"""
+
+# pylint: disable=no-member
+
 import hashlib
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class Proxy(BaseModel):
@@ -43,10 +51,12 @@ class Proxy(BaseModel):
 
     @property
     def latency_ms(self) -> Optional[float]:
+        """Get latency in milliseconds."""
         return self.latency
 
     @latency_ms.setter
     def latency_ms(self, value: Optional[float]) -> None:
+        """Set latency in milliseconds."""
         self.latency = value
 
     @property
@@ -75,18 +85,22 @@ class Proxy(BaseModel):
 
     @property
     def scheme(self) -> str:
+        """Get proxy protocol scheme."""
         return self.protocol
 
     @property
     def host(self) -> str:
+        """Get proxy host address."""
         return self.address
 
     @property
     def user(self) -> str:
+        """Get proxy user/UUID."""
         return self.uuid
 
     @property
     def sni(self) -> str:
+        """Get SNI from details."""
         if not self.details:
             return ""
         value = self.details.get("sni")
@@ -94,6 +108,7 @@ class Proxy(BaseModel):
 
     @property
     def alpn(self) -> List[str]:
+        """Get ALPN from details."""
         if not self.details:
             return []
         value = self.details.get("alpn")
@@ -105,6 +120,7 @@ class Proxy(BaseModel):
 
     @property
     def path(self) -> str:
+        """Get path from details."""
         if not self.details:
             return ""
         value = self.details.get("path") or self.details.get("path".upper())

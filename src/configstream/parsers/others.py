@@ -1,5 +1,7 @@
 import logging
 import re
+
+# pylint: disable=no-member
 from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy

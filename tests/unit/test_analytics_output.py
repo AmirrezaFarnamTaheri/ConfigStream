@@ -76,7 +76,6 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
 
     # Mock history storage
     from configstream.quality.storage import QualityStorage
-    import pytest
 
     storage = QualityStorage(tmp_path / "test.db")
 

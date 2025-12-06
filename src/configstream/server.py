@@ -94,8 +94,8 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
                 raise HTTPException(500, "Server output directory missing")
             if os.path.commonpath([base, target]) != base:
                 raise HTTPException(400, "Invalid country parameter")
-        except (ValueError, OSError):
-            raise HTTPException(400, "Invalid path")
+        except (ValueError, OSError) as e:
+            raise HTTPException(400, "Invalid path") from e
 
         if fpath.exists():
             return FileResponse(fpath)
@@ -111,8 +111,8 @@ async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = N
             target = os.path.realpath(str(fpath))
             if os.path.commonpath([base, target]) != base:
                 raise HTTPException(400, "Invalid protocol parameter")
-        except (ValueError, OSError):
-            raise HTTPException(400, "Invalid path")
+        except (ValueError, OSError) as e:
+            raise HTTPException(400, "Invalid path") from e
 
         if fpath.exists():
             return FileResponse(fpath)
