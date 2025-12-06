@@ -44,7 +44,8 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             )
 
             # Transport
-            net = proxy.details.get("network", "tcp")
+            # Map 'net' from details (commonly used by some parsers) to 'network'
+            net = proxy.details.get("network") or proxy.details.get("net") or "tcp"
             common["network"] = net
             if net == "ws":
                 common["ws-opts"] = {
@@ -57,7 +58,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 }
 
             # TLS
-            if proxy.details.get("security") == "tls":
+            if proxy.details.get("security") == "tls" or proxy.details.get("tls") == "tls":
                 common["tls"] = True
                 if proxy.details.get("sni"):
                     common["servername"] = proxy.details["sni"]

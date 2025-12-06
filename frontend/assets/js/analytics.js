@@ -233,6 +233,11 @@ function initCharts(data) {
 
         const totalRevived = data.total_revived || 0;
         const totalSmart = data.total_smart_chains || 0;
+        const smartBreakdown = data.smart_chains_breakdown || {};
+
+        // Breakdown Smart Chains
+        const standardChains = (smartBreakdown.intranet || 0) + (smartBreakdown.ipv6 || 0) + (smartBreakdown.streamer || 0) + (smartBreakdown.experimental || 0);
+        const washedChains = smartBreakdown.intranet_washed || 0;
 
         // Calculate threats from rejection reasons if not explicit
         let dirty = 0;
@@ -243,9 +248,10 @@ function initCharts(data) {
         }
 
         // If empty, use defaults to show *something* or hide
-        const dataset = [totalRevived, totalSmart, dirty, honeypots];
-        const labels = ['Revived (Warp)', 'Smart Chains', 'Dirty IPs Blocked', 'Honeypots Blocked'];
-        const colors = ['#9b59b6', '#2ecc71', '#f39c12', '#e74c3c'];
+        // Separation: Revived (Direct Wash), Washed Chains (Intranet+Washed), Standard Chains, Threats
+        const dataset = [totalRevived, washedChains, standardChains, dirty, honeypots];
+        const labels = ['Revived (Warp)', 'Washed Chains (Secure)', 'Standard Smart Chains', 'Dirty IPs Blocked', 'Honeypots Blocked'];
+        const colors = ['#9b59b6', '#8e44ad', '#2ecc71', '#f39c12', '#e74c3c'];
 
         new Chart(threatCtx, {
             type: 'doughnut',
