@@ -13,7 +13,8 @@ DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
 
 # Regex to parse the rich logger output
 # Matches: "[fetch_success] Fetched 129 proxies from https://..."
-LOG_REGEX = re.compile(r"Fetched\s+(\d+)\s+proxies\s+from\s+(https?://\S+)")
+# Updated to match across newlines for wrapped logs
+LOG_REGEX = re.compile(r"Fetched\s+(\d+)\s+proxies\s+from\s+[\s\n\r]+(https?://\S+)")
 
 
 def parse_logs(log_files: List[str]) -> Dict[str, int]:
@@ -25,15 +26,15 @@ def parse_logs(log_files: List[str]) -> Dict[str, int]:
 
     for log_file in log_files:
         try:
-            with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
-                for line in f:
-                    match = LOG_REGEX.search(line)
-                    if match:
-                        count = int(match.group(1))
-                        url = match.group(2).strip()
-                        # Keep the highest count if seen multiple times (conservative estimate)
-                        if count > source_weights.get(url, 0):
-                            source_weights[url] = count
+            # Read full content instead of line-by-line
+            text = Path(log_file).read_text(encoding="utf-8", errors="ignore")
+
+            for match in LOG_REGEX.finditer(text):
+                count = int(match.group(1))
+                url = match.group(2).strip()
+                # Keep the highest count if seen multiple times (conservative estimate)
+                if count > source_weights.get(url, 0):
+                    source_weights[url] = count
         except Exception as e:
             print(f"⚠️  Could not read {log_file}: {e}")
 

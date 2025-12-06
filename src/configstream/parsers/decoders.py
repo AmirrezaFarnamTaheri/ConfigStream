@@ -164,7 +164,12 @@ def safe_b64_decode(data: str) -> Optional[str]:
             logger.debug("Decoded data is not valid UTF-8, trying latin-1")
             return decoded_bytes.decode("latin-1")
     except (binascii.Error, ValueError) as exc:
-        _rate_limited_warning("base64_decode", f"Base64 decode failed: {exc}")
+        # Many parsing failures are expected in mixed content. Lower log level to debug for common cases.
+        if "Incorrect padding" in str(exc) or "Invalid base64-encoded string" in str(exc):
+            logger.debug(f"Base64 decode failed (expected for non-b64 content): {exc}")
+        else:
+            _rate_limited_warning("base64_decode", f"Base64 decode failed: {exc}")
+
         # If decode fails, return None to signal it is not a valid base64 string
         return None
     except MemoryError:

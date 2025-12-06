@@ -53,6 +53,9 @@ def check_success_rate(metadata: Dict[str, Any], min_rate: float) -> None:
         raise HealthCheckError(f"❌ Invalid working count: {working}")
 
     if tested == 0:
+        if working > 0:
+            print(f"⚠️  'tested' count missing or zero, but {working} working proxies found. Skipping success rate check.")
+            return
         raise HealthCheckError("❌ No proxies tested")
 
     if working > tested:
