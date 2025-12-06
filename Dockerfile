@@ -7,7 +7,7 @@ WORKDIR /app
 COPY src/go/tester/go.mod src/go/tester/go.sum ./
 RUN go mod download
 
-COPY src/go/tester/main.go .
+COPY src/go/tester/ .
 # [FIX] Added tags for uTLS, QUIC, WireGuard, etc.
 RUN go build -tags "with_quic,with_dhcp,with_wireguard,with_ech,with_utls,with_reality_server,with_clash_api,with_gvisor" -o tester main.go
 
