@@ -199,6 +199,11 @@ def save_metadata(
             1 for p in proxies if p.is_working and "RELAY" in str(p.tags)
         )
 
+    # Separation of Smart Chains
+    smart_chains_breakdown = {}
+    if isinstance(stats, dict) and "smart_chains_breakdown" in stats:
+        smart_chains_breakdown = stats["smart_chains_breakdown"]
+
     # ASNs
     asns: Dict[str, int] = {}
     for p in proxies:
@@ -226,6 +231,7 @@ def save_metadata(
         "isp_stats": asns,  # Alias for legacy tests
         "total_revived": washed_count,
         "total_smart_chains": smart_chain_count,
+        "smart_chains_breakdown": smart_chains_breakdown,
         "total_dirty": reasons.get("dirty_ip", 0) + reasons.get("honeypot", 0),
     }
 

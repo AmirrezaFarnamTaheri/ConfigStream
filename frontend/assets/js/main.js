@@ -1,9 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Note: Common UI (Theme, Header Scroll, Mobile Nav, Copy Buttons) is now handled by common-ui.js
 
-    // Initialize accordion (Home page specific)
-    initAccordion();
-
     // Initialize Dynamic Downloads (Client Selector)
     if (typeof initDynamicDownloads === 'function') {
         initDynamicDownloads();
@@ -42,9 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const date = new Date(metadata.last_updated_utc);
                 const formatted = formatTimestamp(date);
                 updateElement('#footerUpdate', formatted);
-
-                // Update freshness indicator
-                updateFreshness(date);
             }
 
             // Update stats card
@@ -82,77 +76,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })();
 });
-
-function updateFreshness(date) {
-    const diffHours = (new Date() - date) / (1000 * 60 * 60);
-    const footerUpdate = document.getElementById('footerUpdate');
-    if (!footerUpdate) return;
-
-    let color = '#22c55e'; // Green
-    if (diffHours > 8) color = '#eab308'; // Yellow
-    if (diffHours > 24) color = '#ef4444'; // Red
-
-    footerUpdate.style.color = color;
-    footerUpdate.style.fontWeight = 'bold';
-}
-
-function initAccordion() {
-    const accordionContainers = document.querySelectorAll('.accordion-container');
-    if (accordionContainers.length === 0) return;
-
-    const isMobile = () => window.innerWidth <= 768;
-
-    const setupAccordion = (container) => {
-        const items = container.querySelectorAll('.accordion-item');
-        if (items.length === 0) return;
-
-        // On mobile, all accordions start collapsed. On desktop, they start open.
-        items.forEach((item, index) => {
-            const header = item.querySelector('.accordion-header');
-            const content = item.querySelector('.accordion-content');
-
-            // Mobile: all collapsed. Desktop: all expanded.
-            const isExpanded = !isMobile();
-
-            header.setAttribute('aria-expanded', isExpanded);
-            content.style.gridTemplateRows = isExpanded ? '1fr' : '0fr';
-        });
-
-        items.forEach(item => {
-            const header = item.querySelector('.accordion-header');
-            if (!header.hasAttribute('data-accordion-initialized')) {
-                header.setAttribute('data-accordion-initialized', 'true');
-                header.addEventListener('click', () => {
-                    const isExpanded = header.getAttribute('aria-expanded') === 'true';
-
-                    if (isMobile()) {
-                        // On mobile, opening one closes others.
-                        items.forEach(otherItem => {
-                            if (otherItem !== item) {
-                                const otherHeader = otherItem.querySelector('.accordion-header');
-                                otherHeader.setAttribute('aria-expanded', 'false');
-                                otherItem.querySelector('.accordion-content').style.gridTemplateRows = '0fr';
-                            }
-                        });
-                    }
-
-                    // Toggle the clicked accordion
-                    header.setAttribute('aria-expanded', !isExpanded);
-                    item.querySelector('.accordion-content').style.gridTemplateRows = !isExpanded ? '1fr' : '0fr';
-                });
-            }
-        });
-    };
-
-    let resizeTimeout;
-    const onResize = () => {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            accordionContainers.forEach(setupAccordion);
-        }, 200);
-    };
-
-    accordionContainers.forEach(setupAccordion);
-    window.addEventListener('resize', onResize);
-}
-
