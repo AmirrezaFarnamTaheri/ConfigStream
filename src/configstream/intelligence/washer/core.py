@@ -207,7 +207,6 @@ class ProxyWasher:
             "private_key": identity["private_key"],
             "peer_public_key": identity["peer_public_key"],
             "mtu": 1280,  # Important for chains to avoid fragmentation
-            "keepalive_interval": 20,
         }
 
     def wash_batch(self, proxies: List[Proxy]) -> Tuple[List[Dict[str, Any]], Set[str]]:
@@ -373,7 +372,6 @@ class ProxyWasher:
                 "server_port": clean_port,
                 "peer_public_key": exit_key["peer_public_key"],
                 "detour": relay_tag,
-                "keepalive_interval": 20,
             }
 
             washed_outbounds.append(relay_out)
@@ -384,7 +382,7 @@ class ProxyWasher:
                 f"(Clean IP: {clean_endpoint})"
             )
             # Log successful wash event
-            logger.info(
+            logger.debug(
                 f"Washer: Successfully revived proxy {relay.id[:8]} -> {exit_tag}"
             )
 
