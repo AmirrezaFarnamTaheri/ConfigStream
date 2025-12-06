@@ -42,10 +42,29 @@ class WarpScannerWorker:
 
     def _resolve_binary(self, explicit_path: Optional[str]) -> Optional[str]:
         """Helper to find the executable."""
-        # 0. CI Check - Disable if running in strict CI environments to prevent blocks/timeouts
-        if os.environ.get("CI") == "true" and os.environ.get("FORCE_SCANNER") != "true":
-            logger.info("Scanner disabled: Running in CI environment (CI=true).")
+
+        # 0. CI Environment Check
+        # Disable by default in CI to prevent:
+        #   - UDP firewall blocks (GitHub Actions blocks outbound UDP)
+        #   - Rate limiting from Cloudflare (shared IP pool is flagged)
+        #   - Pipeline hangs on network timeouts
+        #
+        # To enable in CI, set FORCE_SCANNER=true (use with caution)
+        is_ci = os.environ.get("CI") == "true"
+        force_scanner = os.environ.get("FORCE_SCANNER") == "true"
+
+        if is_ci and not force_scanner:
+            logger.info(
+                "Scanner disabled: Running in CI environment. "
+                "Set FORCE_SCANNER=true to override (not recommended). "
+                "Falling back to static IP lists."
+            )
             return None
+        elif is_ci and force_scanner:
+            logger.warning(
+                "Scanner FORCE ENABLED in CI. This may cause pipeline failures "
+                "due to UDP firewall blocks or rate limiting."
+            )
 
         # 1. Check argument
         if explicit_path and os.path.exists(explicit_path):
