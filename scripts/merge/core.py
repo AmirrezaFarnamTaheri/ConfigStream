@@ -48,7 +48,24 @@ def merge_batches(
     # 2. Proxies
     merged_proxies, total_processed = load_and_merge_proxies(batch_dirs)
 
-    # 3. Rank & Select
+    # 2.1 Aggregate Stats from Batches
+    total_tested = 0
+    total_fetched = 0
+    for b_dir in batch_dirs:
+        meta_path = b_dir / "metadata.json"
+        if meta_path.exists():
+            try:
+                data = json.loads(meta_path.read_text())
+                # Sum up stats (handle inconsistent keys if necessary)
+                stats = data.get("stats", {})
+                # Use 'parsed' as a proxy for tested if 'tested' is missing
+                tested_val = stats.get("tested", data.get("total_proxies_tested", stats.get("parsed", 0)))
+                total_tested += tested_val
+                total_fetched += stats.get("fetched_lines", data.get("total_fetched", 0))
+            except Exception:
+                logger.warning(f"Failed to read stats from {meta_path}")
+
+    # 3. Rankings
     logger.info("\n=== Step 1: Ranking and Renaming ===")
     ranked_proxies = rank_and_rename_proxies(merged_proxies)
     logger.info(f"Ranked {len(ranked_proxies)} proxies")
@@ -100,42 +117,44 @@ def merge_batches(
             # Assuming we assume there is a Relay+Exit pair in sequence.
             # Group them into chains.
             chains_to_test = []
-            if len(washed_outbounds) % 2 == 0:
-                for i in range(0, len(washed_outbounds), 2):
-                    relay = washed_outbounds[i]
-                    exit_node = washed_outbounds[i + 1]
-                    # The exit node tag is unique and sufficient ID
-                    chain_id = exit_node.get("tag", f"chain_{i}")
-                    chains_to_test.append(
-                        {"id": chain_id, "outbounds": [relay, exit_node]}
-                    )
 
-                if chains_to_test:
-                    logger.info(f"Retesting {len(chains_to_test)} washed chains...")
-                    # Initialize tester (ensure binary path is correct)
-                    tester = GoBatchTester(workers=50)
-                    results = asyncio.run(tester.test_custom_configs(chains_to_test))
+            # Handle potential odd number of outbounds by truncating the last one if unpaired
+            # Though strictly, they should be paired (Relay + Exit)
+            safe_limit = len(washed_outbounds) - (len(washed_outbounds) % 2)
+            if len(washed_outbounds) % 2 != 0:
+                logger.warning(f"Washer produced odd number of outbounds ({len(washed_outbounds)}). Dropping last item.")
 
-                    # Filter out failed chains
-                    valid_washed_outbounds = []
-                    passed_count = 0
-                    for chain in chains_to_test:
-                        cid = chain["id"]
-                        if results.get(cid):
-                            passed_count += 1
-                            valid_washed_outbounds.extend(chain["outbounds"])
-                        else:
-                            logger.debug(f"Washed chain failed retest: {cid}")
-
-                    total_revived = passed_count
-                    logger.info(
-                        f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working."
-                    )
-                    washed_outbounds = valid_washed_outbounds
-            else:
-                logger.warning(
-                    "Odd number of washed outbounds, skipping retest logic (integrity error)."
+            for i in range(0, safe_limit, 2):
+                relay = washed_outbounds[i]
+                exit_node = washed_outbounds[i + 1]
+                # The exit node tag is unique and sufficient ID
+                chain_id = exit_node.get("tag", f"chain_{i}")
+                chains_to_test.append(
+                    {"id": chain_id, "outbounds": [relay, exit_node]}
                 )
+
+            if chains_to_test:
+                logger.info(f"Retesting {len(chains_to_test)} washed chains...")
+                # Initialize tester (ensure binary path is correct)
+                tester = GoBatchTester(workers=50)
+                results = asyncio.run(tester.test_custom_configs(chains_to_test))
+
+                # Filter out failed chains
+                valid_washed_outbounds = []
+                passed_count = 0
+                for chain in chains_to_test:
+                    cid = chain["id"]
+                    if results.get(cid):
+                        passed_count += 1
+                        valid_washed_outbounds.extend(chain["outbounds"])
+                    else:
+                        logger.debug(f"Washed chain failed retest: {cid}")
+
+                total_revived = passed_count
+                logger.info(
+                    f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working."
+                )
+                washed_outbounds = valid_washed_outbounds
 
         except Exception as e:
             logger.error(f"Failed to wash proxies: {e}")
@@ -183,6 +202,12 @@ def merge_batches(
 
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
+
+    # Pass aggregated stats if generate_outputs supports it, or handle it via metadata injection
+    # For now, we update the metadata later or pass kwargs if supported.
+    # Looking at signature: generate_outputs(..., total_processed, ...)
+    # We might need to patch generate_outputs to accept extra stats or update the metadata manually after.
+
     proxies_by_proto = generate_outputs(
         ranked_proxies,
         chosen_proxies,
@@ -193,6 +218,20 @@ def merge_batches(
         smart_chains,
         total_washed_candidates,
         total_revived,
+    )
+
+    # 6. Metadata
+    save_metadata(
+        stats={
+            "total_processed": total_processed,
+            "total_unique": len(merged_proxies),
+            "total_working": sum(1 for p in ranked_proxies if p.is_working),
+            "total_fetched": total_fetched,
+            "total_proxies_tested": total_tested,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        },
+        proxies=ranked_proxies,
+        output_dir=output_dir,
     )
 
     # 5. Logs & Summary

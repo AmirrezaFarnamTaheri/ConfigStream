@@ -42,6 +42,11 @@ class WarpScannerWorker:
 
     def _resolve_binary(self, explicit_path: Optional[str]) -> Optional[str]:
         """Helper to find the executable."""
+        # 0. CI Check - Disable if running in strict CI environments to prevent blocks/timeouts
+        if os.environ.get("CI") == "true" and os.environ.get("FORCE_SCANNER") != "true":
+            logger.info("Scanner disabled: Running in CI environment (CI=true).")
+            return None
+
         # 1. Check argument
         if explicit_path and os.path.exists(explicit_path):
             return explicit_path
@@ -134,7 +139,9 @@ class WarpScannerWorker:
             raw_output = stdout.decode()
 
             if not raw_output.strip():
-                logger.warning("Scanner finished but produced no output.")
+                # In CI or restricted environments, exit code 0 with no output might happen
+                # But we should have caught CI above. If it happens here, it's likely a network block.
+                logger.warning("Scanner finished with exit code 0 but produced NO output. (Possible Firewall/Network Block)")
                 return []
 
             for line in raw_output.splitlines():

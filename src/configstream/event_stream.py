@@ -23,6 +23,9 @@ class EventStream:
             logger.error(f"[{event_type}] {message}")
         elif event_type in ("warning",):
             logger.warning(f"[{event_type}] {message}")
+        elif event_type == "test_success":
+            # Demote high-volume success events to DEBUG
+            logger.debug(f"[{event_type}] {message}")
         else:
             logger.info(f"[{event_type}] {message}")
 

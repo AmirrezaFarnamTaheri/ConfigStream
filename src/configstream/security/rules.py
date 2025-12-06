@@ -39,7 +39,14 @@ def validate_port(port: int) -> Optional[str]:
     if port < 1 or port > MAX_PORT:
         return f"Port out of valid range (1-{MAX_PORT}): {port}"
     if port in DANGEROUS_PORTS:
-        logger.warning("Dangerous port detected: %s", port)
+        # Sample log to avoid spam
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.warning("Dangerous port detected: %s", port)
+        else:
+            # We don't log individual dangerous ports at INFO/WARNING to avoid spam,
+            # assuming the validator summary handles it.
+            # Or use a sampling mechanism if necessary.
+            pass
         return f"Dangerous port: {port}"
     return None
 
