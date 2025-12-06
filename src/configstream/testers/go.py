@@ -167,10 +167,23 @@ class GoBatchTester:
             except asyncio.TimeoutError:
                 try:
                     proc.kill()
+                    # CRITICAL FIX: Await process termination to prevent
+                    # "Event loop is closed" error during garbage collection.
+                    # Without this, the subprocess transport is orphaned and
+                    # its __del__ method tries to use the closed event loop.
+                    await proc.wait()
                 except Exception:
                     pass
                 logger.error("Go Tester froze! Killing process to save pipeline.")
                 return []
+            except Exception:
+                # Ensure cleanup on any other exception
+                try:
+                    proc.kill()
+                    await proc.wait()
+                except Exception:
+                    pass
+                raise
 
             if stderr:
                 stderr_text = stderr.decode().strip()
