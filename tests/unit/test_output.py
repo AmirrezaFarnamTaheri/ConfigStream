@@ -1,6 +1,5 @@
 import pytest
 import json
-import asyncio
 from unittest.mock import MagicMock
 from configstream.output import save_json, save_metadata, generate_categorized_outputs
 from configstream.models import Proxy

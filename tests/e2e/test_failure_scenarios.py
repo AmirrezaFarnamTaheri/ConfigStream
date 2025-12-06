@@ -14,16 +14,6 @@ async def test_all_sources_cooldown(tmp_path, monkeypatch):
         lambda self, url: False,
     )
 
-    # Mock output handlers
-    monkeypatch.setattr(
-        "configstream.pipeline_core.output_handler.generate_stego_assets",
-        lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        "configstream.pipeline_core.output_handler.inject_stego_key_into_frontend",
-        lambda *args, **kwargs: None,
-    )
-
     sources = ["https://example.com/subs"]
     output_dir = tmp_path / "out_cooldown"
 
@@ -64,16 +54,6 @@ async def test_anomaly_db_failure(tmp_path, monkeypatch, caplog):
 
     monkeypatch.setattr(
         "configstream.pipeline_core.producer.fetch_multiple_sources", fake_fetch
-    )
-
-    # Mock output handlers
-    monkeypatch.setattr(
-        "configstream.pipeline_core.output_handler.generate_stego_assets",
-        lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        "configstream.pipeline_core.output_handler.inject_stego_key_into_frontend",
-        lambda *args, **kwargs: None,
     )
 
     # Mock GeoIP

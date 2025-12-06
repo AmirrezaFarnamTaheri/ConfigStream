@@ -234,6 +234,7 @@ class TestResultCache:
         """
         Merge another cache into this one, keeping the newest results on conflict.
         """
+        # pylint: disable=protected-access
         for config_hash, other_entry in other_cache._cache.items():
             existing_entry = self._cache.get(config_hash)
             if not existing_entry or other_entry.get(

@@ -46,7 +46,11 @@ def to_uri(proxy: Proxy) -> Optional[str]:
             # user info usually base64 encoded
             import base64
 
-            cipher = proxy.details.get("method") or proxy.details.get("cipher") or "chacha20-ietf-poly1305"
+            cipher = (
+                proxy.details.get("method")
+                or proxy.details.get("cipher")
+                or "chacha20-ietf-poly1305"
+            )
             password = proxy.details.get("password") or ""
             userinfo = f"{cipher}:{password}"
             b64_userinfo = (

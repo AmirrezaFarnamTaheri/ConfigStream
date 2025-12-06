@@ -4,6 +4,8 @@ Syncs a local directory to a specific Google Drive folder.
 Uses Service Account for zero-interaction auth.
 """
 
+# pylint: disable=import-error
+
 import os
 import json
 import logging
@@ -70,20 +72,20 @@ def upload_file(service, folder_id, file_path, existing_files):
         if file_name in existing_files:
             # UPDATE existing file (Preserves File ID/Link)
             file_id = existing_files[file_name]
-            logger.info(f"🔄 Updating {file_name} (ID: {file_id})...")
+            logger.info("🔄 Updating %s (ID: %s)...", file_name, file_id)
             service.files().update(
                 fileId=file_id, media_body=media, fields="id"
             ).execute()
         else:
             # CREATE new file
-            logger.info(f"nw Creating {file_name}...")
+            logger.info("nw Creating %s...", file_name)
             file_metadata = {"name": file_name, "parents": [folder_id]}
             service.files().create(
                 body=file_metadata, media_body=media, fields="id"
             ).execute()
 
     except HttpError as error:
-        logger.error(f"❌ Error uploading {file_name}: {error}")
+        logger.error("❌ Error uploading %s: %s", file_name, error)
 
 
 def main():
@@ -104,10 +106,10 @@ def main():
         # 2. Walk local folder and upload
         local_path = Path(args.path)
         if not local_path.exists():
-            logger.error(f"Local path {local_path} does not exist.")
+            logger.error("Local path %s does not exist.", local_path)
             return
 
-        logger.info(f"🚀 Starting sync from {local_path}...")
+        logger.info("🚀 Starting sync from %s...", local_path)
 
         # Upload files in the root of the output directory
         # (Recursive logic can be added if you have nested folders)
@@ -118,7 +120,7 @@ def main():
         logger.info("✅ Google Drive Sync Complete.")
 
     except Exception as e:
-        logger.error(f"Critical Error: {e}")
+        logger.error("Critical Error: %s", e)
         exit(1)
 
 
