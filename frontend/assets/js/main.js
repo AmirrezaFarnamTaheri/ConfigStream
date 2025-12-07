@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update stats card
             if (stats) {
-                updateElement('#totalSourced', stats.total_sourced || stats.total_fetched || 0);
+                updateElement('#totalSourced', stats.total_proxies || 0);
                 updateElement('#totalConfigs', stats.total_tested || 0);
                 updateElement('#workingConfigs', stats.total_working || 0);
                 updateElement('#totalRevived', stats.total_revived || 0);
@@ -57,8 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Update Hero Text
                 const heroCount = document.getElementById('heroSourceCount');
-                if (heroCount && stats.total_fetched) {
-                    heroCount.textContent = stats.total_fetched;
+                if (heroCount && stats.total_proxies) {
+                    heroCount.textContent = stats.total_proxies;
                 }
             }
 
