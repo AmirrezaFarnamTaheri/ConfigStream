@@ -39,6 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const date = new Date(metadata.last_updated_utc);
                 const formatted = formatTimestamp(date);
                 updateElement('#footerUpdate', formatted);
+
+                // Update freshness indicator
+                if (window.api && window.api.updateFreshnessColor) {
+                    window.api.updateFreshnessColor(date);
+                }
             }
 
             // Update stats card
