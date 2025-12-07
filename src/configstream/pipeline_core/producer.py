@@ -173,22 +173,21 @@ async def source_producer(
                                 await loop.run_in_executor(
                                     None, anomaly_detector.record, source, count
                                 )
-                                if event_stream:
-                                    event_stream.emit(
-                                        "fetch_success",
-                                        f"Fetched {count} proxies from {safe_source}",
-                                    )
-                                metadata = {"fetch_duration": res.response_time or 0.0}
-                                await work_queue.put((source, lines, metadata))
+                                # Prepare metadata and fetch time
                                 fetch_time = (
                                     f"{res.response_time:.2f}s"
                                     if res.response_time is not None
                                     else "N/A"
                                 )
-                                logger.info(
-                                    f"Queued {count} proxies from {safe_source} "
-                                    f"(Fetch time: {fetch_time})"
-                                )
+                                metadata = {"fetch_duration": res.response_time or 0.0}
+                                await work_queue.put((source, lines, metadata))
+
+                                # Single consolidated log via event stream (includes fetch metrics)
+                                if event_stream:
+                                    event_stream.emit(
+                                        "fetch_success",
+                                        f"Fetched {count} proxies from {safe_source} (Fetch: {fetch_time})",
+                                    )
                         else:
                             logger.warning(
                                 f"⚠️ BLOCKING {safe_source}: {reason} (count={count})"

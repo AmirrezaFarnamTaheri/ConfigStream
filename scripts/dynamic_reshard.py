@@ -3,6 +3,7 @@ import glob
 import shutil
 from pathlib import Path
 from typing import Dict, List, Tuple
+import statistics
 
 # --- Configuration ---
 LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
@@ -105,7 +106,19 @@ def main() -> None:
         batches[min_load_index].append(url)
         batch_loads[min_load_index] += weight
 
-    # 7. Write Output
+    # 7. Calculate Performance Metrics
+    if batch_loads:
+        max_load = max(batch_loads)
+        min_load = min(batch_loads)
+        load_balance_ratio = max_load / min_load if min_load > 0 else float('inf')
+        std_dev = statistics.stdev(batch_loads) if len(batch_loads) > 1 else 0.0
+    else:
+        load_balance_ratio = 0.0
+        std_dev = 0.0
+        max_load = 0
+        min_load = 0
+
+    # 8. Write Output
     print("\n⚖️  Optimized Batch Distribution:")
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Proxies':<15}")
     print("-" * 40)
@@ -125,6 +138,14 @@ def main() -> None:
 
         file_path.write_text("\n".join(content), encoding="utf-8")
         print(f"Batch {i+1:<4} | {len(batch):<10} | {est_load:<15}")
+
+    # 9. Log Performance Metrics
+    print("\n📊 Optimization Metrics:")
+    print(f"  Load Balance Ratio: {load_balance_ratio:.2f}x (ideal: 1.00x)")
+    print(f"  Standard Deviation: {std_dev:.1f} proxies")
+    print(f"  Heaviest Batch: {max_load} proxies")
+    print(f"  Lightest Batch: {min_load} proxies")
+    print(f"  Sources from logs: {len(observed_weights)}/{len(all_urls)}")
 
     print("\n✅ Refactor complete. Run the pipeline again to see performance gains.")
 
