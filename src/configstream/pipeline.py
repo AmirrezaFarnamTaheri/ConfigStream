@@ -97,7 +97,8 @@ async def run_full_pipeline(
     stats = PipelineStats()
 
     # Work Queue – allow larger buffer between producer and consumer
-    work_queue: asyncio.Queue = asyncio.Queue(maxsize=500)
+    # Increased from 500 to 1000 for better buffering and reduced blocking
+    work_queue: asyncio.Queue = asyncio.Queue(maxsize=1000)
 
     # Results Collection
     final_proxies: List[Proxy] = []

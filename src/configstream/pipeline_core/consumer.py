@@ -301,8 +301,8 @@ async def processing_consumer(
                                     )
                             return res
 
-                    # Process in chunks
-                    chunk_size = 50
+                    # Process in chunks (increased from 50 to 100 for better throughput)
+                    chunk_size = 100
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
