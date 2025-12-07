@@ -3446,84 +3446,109 @@ body:not(.dark) .mission-card {
     }
 }
 
-/* Language Dropdown Modern */
+/* Language Dropdown - GitHub Style */
 .lang-dropdown {
     position: relative;
     display: inline-block;
 }
 
 .lang-btn {
-    display: flex;
+    /* GitHub-style minimal button - icon only */
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: var(--bg-glass);
-    border: 1px solid var(--border);
+    justify-content: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: var(--radius-md);
-    padding: 8px 16px;
-    color: var(--text-primary);
+    padding: 8px;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all var(--transition-fast);
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.875rem;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .lang-btn:hover {
     background: var(--bg-secondary);
-    border-color: var(--brand-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+.lang-btn:focus {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
 }
 
 .lang-btn i {
     width: 18px;
     height: 18px;
+    flex-shrink: 0;
+}
+
+#current-lang-label {
+    font-size: 0.8125rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
 .lang-menu {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     right: 0;
-    margin-top: 8px;
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    padding: 8px;
-    min-width: 150px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 4px;
+    min-width: 160px;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(10px);
-    transition: all var(--transition-fast);
-    z-index: 100;
+    transform: translateY(-8px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
 }
 
-.lang-dropdown:hover .lang-menu {
+.lang-dropdown:hover .lang-menu,
+.lang-dropdown:focus-within .lang-menu {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
 .lang-menu button {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     text-align: left;
-    padding: 10px 16px;
+    padding: 8px 12px;
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     cursor: pointer;
     border-radius: var(--radius-sm);
-    transition: all 0.2s;
+    transition: background 0.15s ease;
     font-weight: 500;
+    font-size: 0.875rem;
 }
 
 .lang-menu button:hover {
+    background: var(--bg-secondary);
+}
+
+.lang-menu button.active {
     background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
     color: var(--brand-primary);
 }
 
-.lang-menu button.active {
-    background: var(--brand-gradient);
-    color: white;
+.lang-menu button.active::after {
+    content: "✓";
+    font-weight: bold;
+    margin-left: 8px;
 }
 
 /* BYOW Panel Modern */
