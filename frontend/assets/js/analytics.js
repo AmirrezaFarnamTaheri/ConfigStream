@@ -171,7 +171,7 @@ function initGlobe(data) {
 
     // Auto-rotation cooldown logic
     let rotationCooldownTimer = null;
-    const COOLDOWN_DURATION = 3000; // Resume rotation after 3 seconds of inactivity
+    const COOLDOWN_DURATION = 4000; // Resume rotation after 4 seconds of inactivity
 
     // Pause rotation on user interaction, resume after cooldown
     const pauseRotation = () => {
