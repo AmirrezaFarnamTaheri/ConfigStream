@@ -3,7 +3,7 @@ Storage module for Proxy History.
 Handles loading and saving of history data.
 """
 
-import json
+import orjson as json
 import logging
 from pathlib import Path
 from typing import Any, Dict
@@ -43,7 +43,8 @@ class HistoryStorage:
     def save_history(self, history_data: Dict[str, Any]) -> None:
         """Save history data to disk."""
         try:
-            content = json.dumps(history_data, indent=2)
+            # Use orjson for faster serialization with indent
+            content = json.dumps(history_data, option=json.OPT_INDENT_2).decode()
             AtomicFileWriter.write_text(self.history_path, content)
         except Exception as e:
             logger.error("Failed to save proxy history: %s", e)

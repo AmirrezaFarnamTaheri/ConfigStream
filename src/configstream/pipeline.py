@@ -235,6 +235,10 @@ async def run_full_pipeline(
         # [FIX] Stop tuner if running
         await concurrency.stop_tuner()
 
+        # Shutdown tester (Go process)
+        if tester:
+            await tester.close()
+
         # Ensure event stream is always closed to flush handles/buffers
         try:
             await event_stream.aclose()

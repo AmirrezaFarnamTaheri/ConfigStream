@@ -100,6 +100,22 @@ class ProxyHistoryTracker:
         history = self.get_proxy_history(config)
         return HistoryAnalytics.get_summary_stats(history)
 
+    def get_bulk_stats(self, proxy_ids: List[str]) -> Dict[str, Dict[str, float]]:
+        """
+        Get stats for multiple proxies efficiently.
+        Returns a dict mapping proxy_id to {'reliability': float, 'uptime': float}.
+        """
+        results = {}
+        for pid in proxy_ids:
+            # We access internal data directly if possible or use cached access
+            # Since load_history loads everything into memory, individual access is fast.
+            # But we bundle it to return a simple lookup dict for the sorter.
+            rel = self.get_reliability_score(pid)
+            summary = self.get_summary_stats(pid)
+            uptime = float(summary.get("uptime_percentage", 50.0))
+            results[pid] = {"reliability": rel, "uptime": uptime}
+        return results
+
     def export_for_visualization(
         self, output_path: Path = Path("data/proxy_history_viz.json")
     ) -> None:

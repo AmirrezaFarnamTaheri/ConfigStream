@@ -12,6 +12,11 @@ def sort_proxies_pareto(proxies: List[Proxy], history: ProxyHistoryTracker) -> N
     Latency (50%), Reliability/Uptime (30%), Success (20%)
     """
 
+    # Pre-fetch stats to avoid N+1 lookups
+    # [OPTIMIZATION] Bulk fetch history stats
+    proxy_ids = [p.id for p in proxies]
+    bulk_stats = history.get_bulk_stats(proxy_ids)
+
     def pareto_score(p: Proxy) -> float:
         # Lower score is better
         latency = p.latency if p.latency else 9999
@@ -19,15 +24,11 @@ def sort_proxies_pareto(proxies: List[Proxy], history: ProxyHistoryTracker) -> N
         # Normalize latency: 0-1000ms -> 0-1. Clamp at 1 (1s+)
         norm_latency = min(latency / 1000.0, 1.0)
 
-        # Reliability (Success Rate) from History
-        # Note: get_reliability_score returns 0-1 (higher is better)
-        # We invert it so lower is better (1 - score)
-        reliability = history.get_reliability_score(p.id)
-
-        # Stability (Jitter)
-        # We use uptime_percentage from summary as 'stability' proxy if available
-        summary = history.get_summary_stats(p.id)
-        uptime = summary.get("uptime_percentage", 50.0) / 100.0
+        # Retrieve pre-calculated stats
+        stats = bulk_stats.get(p.id, {})
+        reliability = stats.get("reliability", 0.5)
+        # Uptime is already a float 0-100 from bulk_stats
+        uptime = stats.get("uptime", 50.0) / 100.0
 
         # Weighted Score
         # Latency: 50%

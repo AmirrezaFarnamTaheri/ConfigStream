@@ -47,6 +47,14 @@ def setup_logging(verbose: bool):
 @click.version_option()
 def main():
     """ConfigStream: Automated Proxy Aggregator & Tester"""
+    try:
+        import uvloop  # type: ignore
+
+        # Prevent uvloop installation during tests to avoid conflicts with pytest-asyncio
+        if "pytest" not in sys.modules and "PYTEST_CURRENT_TEST" not in os.environ:
+            uvloop.install()
+    except ImportError:
+        pass
 
 
 @main.command()
