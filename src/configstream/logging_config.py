@@ -173,6 +173,12 @@ def setup_logging(
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level_value)
     console_handler.setFormatter(formatter)
+
+    # Apply sensitive data filter ONLY to console for security
+    # File logs remain unmasked for debugging
+    if mask_sensitive:
+        console_handler.addFilter(SensitiveDataFilter())
+
     root_logger.addHandler(console_handler)
 
     if log_file:
@@ -182,6 +188,7 @@ def setup_logging(
         file_handler = logging.FileHandler(log_path, encoding="utf-8")
         file_handler.setLevel(log_level_value)
         file_handler.setFormatter(logging.Formatter(fmt))
+        # NO masking filter for file handler - keep logs interpretable for debugging
         root_logger.addHandler(file_handler)
 
     if json_log_file:
@@ -191,6 +198,7 @@ def setup_logging(
         json_file_handler = logging.FileHandler(json_log_path, encoding="utf-8")
         json_file_handler.setLevel(log_level_value)
         json_file_handler.setFormatter(JsonFormatter())
+        # NO masking filter for JSON logs - needed for log analysis tools
         root_logger.addHandler(json_file_handler)
 
     # Add trace ID filter (should be first for all handlers)
@@ -198,11 +206,6 @@ def setup_logging(
         isinstance(existing, TraceIdFilter) for existing in root_logger.filters
     ):
         root_logger.addFilter(TraceIdFilter())
-
-    if mask_sensitive and not any(
-        isinstance(existing, SensitiveDataFilter) for existing in root_logger.filters
-    ):
-        root_logger.addFilter(SensitiveDataFilter())
 
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
