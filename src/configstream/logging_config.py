@@ -43,15 +43,40 @@ class SensitiveDataFilter(logging.Filter):
         "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
     }
 
+    # URL pattern to detect and preserve URLs from masking
+    URL_PATTERN = re.compile(r"https?://\S+")
+
     def filter(self, record: logging.LogRecord) -> bool:
         message = record.getMessage()
 
-        message = re.sub(
-            self.PATTERNS["uuid"], "[MASKED_CREDENTIAL]", message, flags=re.IGNORECASE
-        )
-        message = re.sub(self.PATTERNS["email"], "[MASKED_EMAIL]", message)
+        # Extract URLs and temporarily replace them with placeholders
+        urls = []
 
-        record.msg = message
+        def url_replacer(match):
+            urls.append(match.group(0))
+            return f"__URL_PLACEHOLDER_{len(urls)-1}__"
+
+        # Temporarily remove URLs
+        message_without_urls = self.URL_PATTERN.sub(url_replacer, message)
+
+        # Apply masking to non-URL content only
+        message_without_urls = re.sub(
+            self.PATTERNS["uuid"],
+            "[MASKED_CREDENTIAL]",
+            message_without_urls,
+            flags=re.IGNORECASE,
+        )
+        message_without_urls = re.sub(
+            self.PATTERNS["email"], "[MASKED_EMAIL]", message_without_urls
+        )
+
+        # Restore URLs
+        for i, url in enumerate(urls):
+            message_without_urls = message_without_urls.replace(
+                f"__URL_PLACEHOLDER_{i}__", url
+            )
+
+        record.msg = message_without_urls
         return True
 
 
@@ -150,6 +175,12 @@ def setup_logging(
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(log_level_value)
     console_handler.setFormatter(formatter)
+
+    # Apply sensitive data filter ONLY to console for security
+    # File logs remain unmasked for debugging
+    if mask_sensitive:
+        console_handler.addFilter(SensitiveDataFilter())
+
     root_logger.addHandler(console_handler)
 
     if log_file:
@@ -159,6 +190,7 @@ def setup_logging(
         file_handler = logging.FileHandler(log_path, encoding="utf-8")
         file_handler.setLevel(log_level_value)
         file_handler.setFormatter(logging.Formatter(fmt))
+        # NO masking filter for file handler - keep logs interpretable for debugging
         root_logger.addHandler(file_handler)
 
     if json_log_file:
@@ -168,6 +200,7 @@ def setup_logging(
         json_file_handler = logging.FileHandler(json_log_path, encoding="utf-8")
         json_file_handler.setLevel(log_level_value)
         json_file_handler.setFormatter(JsonFormatter())
+        # NO masking filter for JSON logs - needed for log analysis tools
         root_logger.addHandler(json_file_handler)
 
     # Add trace ID filter (should be first for all handlers)
@@ -175,11 +208,6 @@ def setup_logging(
         isinstance(existing, TraceIdFilter) for existing in root_logger.filters
     ):
         root_logger.addFilter(TraceIdFilter())
-
-    if mask_sensitive and not any(
-        isinstance(existing, SensitiveDataFilter) for existing in root_logger.filters
-    ):
-        root_logger.addFilter(SensitiveDataFilter())
 
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)

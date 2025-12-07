@@ -1,10 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&family=DM+Serif+Display&display=swap');
 
+/* Farsi/Persian Fonts - Vazirmatn (UI) and Mikhak (Display) */
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/mikhak@v1.2.0/Mikhak-font-face.css');
+
 /*
     ConfigStream - The "Perfect" UI/UX Redesign v4.0
     ------------------------------------------------
     - **UI/UX:** Neumorphic Glassmorphism, Liquid Animations, AR/VR-inspired Depth
     - **Typography:** DM Serif Display (Headlines), Be Vietnam Pro (UI)
+    - **Farsi Typography:** Mikhak (Headlines), Vazirmatn (UI)
     - **Layout:** 8px Grid, Fluid & Asymmetric
     - **Motion:** Fluid Transitions, Delightful Microinteractions
     - **Themeing:** Vibrant Light & Deep Dark Modes
@@ -3446,84 +3451,109 @@ body:not(.dark) .mission-card {
     }
 }
 
-/* Language Dropdown Modern */
+/* Language Dropdown - GitHub Style */
 .lang-dropdown {
     position: relative;
     display: inline-block;
 }
 
 .lang-btn {
-    display: flex;
+    /* GitHub-style minimal button - icon only */
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: var(--bg-glass);
-    border: 1px solid var(--border);
+    justify-content: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: var(--radius-md);
-    padding: 8px 16px;
-    color: var(--text-primary);
+    padding: 8px;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all var(--transition-fast);
-    font-weight: 600;
+    font-weight: 500;
+    font-size: 0.875rem;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .lang-btn:hover {
     background: var(--bg-secondary);
-    border-color: var(--brand-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+.lang-btn:focus {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
 }
 
 .lang-btn i {
     width: 18px;
     height: 18px;
+    flex-shrink: 0;
+}
+
+#current-lang-label {
+    font-size: 0.8125rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 600;
 }
 
 .lang-menu {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     right: 0;
-    margin-top: 8px;
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    padding: 8px;
-    min-width: 150px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 4px;
+    min-width: 160px;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(10px);
-    transition: all var(--transition-fast);
-    z-index: 100;
+    transform: translateY(-8px);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
 }
 
-.lang-dropdown:hover .lang-menu {
+.lang-dropdown:hover .lang-menu,
+.lang-dropdown:focus-within .lang-menu {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
 .lang-menu button {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
     text-align: left;
-    padding: 10px 16px;
+    padding: 8px 12px;
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     cursor: pointer;
     border-radius: var(--radius-sm);
-    transition: all 0.2s;
+    transition: background 0.15s ease;
     font-weight: 500;
+    font-size: 0.875rem;
 }
 
 .lang-menu button:hover {
+    background: var(--bg-secondary);
+}
+
+.lang-menu button.active {
     background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
     color: var(--brand-primary);
 }
 
-.lang-menu button.active {
-    background: var(--brand-gradient);
-    color: white;
+.lang-menu button.active::after {
+    content: "✓";
+    font-weight: bold;
+    margin-left: 8px;
 }
 
 /* BYOW Panel Modern */
@@ -3669,4 +3699,243 @@ body.dark .client-select {
     background: var(--bg-secondary);
     border-color: var(--border);
     color: var(--text-primary);
+}
+
+/* ===== RTL (Right-to-Left) Language Support ===== */
+/* Comprehensive RTL overrides for Farsi (fa) and Arabic (ar) */
+
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Header and Navigation RTL */
+[dir="rtl"] .header-logo-wrapper {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .header-actions {
+    flex-direction: row-reverse;
+}
+
+/* Proxies Table RTL Fixes */
+[dir="rtl"] .proxies-table th {
+    text-align: right;
+}
+
+[dir="rtl"] .proxies-table th .feather {
+    margin-left: 0;
+    margin-right: var(--space-unit);
+}
+
+/* Fix row hover animation direction */
+[dir="rtl"] .proxies-table tbody tr:hover td {
+    transform: translateX(-4px); /* Reverse direction for RTL */
+    box-shadow: 4px 0 8px -2px color-mix(in srgb, var(--brand-primary) 15%, transparent); /* Flip shadow to right */
+}
+
+/* Fix border highlight direction */
+[dir="rtl"] .proxies-table tbody tr:hover td:first-child {
+    border-left: none;
+    border-right: 3px solid var(--brand-primary);
+}
+
+/* Fix border radius for RTL */
+[dir="rtl"] .proxies-table tr:first-child td:first-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: var(--radius-lg);
+}
+
+[dir="rtl"] .proxies-table tr:first-child td:last-child {
+    border-top-right-radius: 0;
+    border-top-left-radius: var(--radius-lg);
+}
+
+[dir="rtl"] .proxies-table tr:last-child td:first-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+[dir="rtl"] .proxies-table tr:last-child td:last-child {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: var(--radius-lg);
+}
+
+/* Location Cell RTL */
+[dir="rtl"] .location-cell {
+    flex-direction: row-reverse;
+}
+
+/* Status Cell RTL */
+[dir="rtl"] .status-cell {
+    justify-content: flex-end;
+}
+
+/* Filter Controls RTL */
+[dir="rtl"] .filter-input-wrapper {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .filter-icon {
+    margin-left: calc(var(--space-unit) * 1.5);
+    margin-right: 0;
+}
+
+/* Action Buttons RTL */
+[dir="rtl"] .action-group {
+    flex-direction: row-reverse;
+}
+
+/* Pagination RTL */
+[dir="rtl"] .pagination-container {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .pagination-btn .feather {
+    transform: scaleX(-1); /* Flip chevron icons */
+}
+
+/* Dropdown Arrow RTL */
+[dir="rtl"] .dropdown-arrow {
+    right: auto;
+    left: calc(var(--space-unit) * 1.5);
+}
+
+/* Badge Spacing RTL - Fix for protocol type tags */
+[dir="rtl"] .badge + .badge {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+/* Copy Button RTL */
+[dir="rtl"] .copy-btn:hover {
+    transform: translateY(-2px) scaleX(1); /* Prevent mirror effect */
+}
+
+/* Stats Grid RTL */
+[dir="rtl"] .stats-grid {
+    direction: rtl;
+}
+
+[dir="rtl"] .stat-item {
+    text-align: right;
+}
+
+[dir="rtl"] .stat-icon {
+    margin-left: calc(var(--space-unit) * 2);
+    margin-right: 0;
+}
+
+/* Card Header RTL */
+[dir="rtl"] .card-header {
+    text-align: right;
+}
+
+/* Hero Section RTL */
+[dir="rtl"] .hero {
+    text-align: right;
+}
+
+[dir="rtl"] .hero-actions {
+    flex-direction: row-reverse;
+}
+
+/* Client Dropdown RTL */
+[dir="rtl"] .client-dropdown-wrapper select {
+    padding-left: calc(var(--space-unit) * 4);
+    padding-right: calc(var(--space-unit) * 2);
+}
+
+/* Mobile Card View RTL */
+@media (max-width: 768px) {
+    [dir="rtl"] .proxies-table td {
+        text-align: left;
+        flex-direction: row-reverse;
+    }
+
+    [dir="rtl"] .proxies-table td::before {
+        margin-right: 0;
+        margin-left: 1rem;
+        text-align: right;
+    }
+
+    [dir="rtl"] .location-cell,
+    [dir="rtl"] .status-cell {
+        justify-content: flex-start;
+    }
+}
+
+/* Chart Legends RTL */
+[dir="rtl"] .chart-container canvas {
+    direction: ltr; /* Keep charts LTR for consistency */
+}
+
+/* Footer RTL */
+[dir="rtl"] .footer {
+    text-align: right;
+}
+
+[dir="rtl"] .social-links {
+    flex-direction: row-reverse;
+}
+
+/* ===== Farsi and Arabic Font Support ===== */
+/* Apply Vazirmatn for Farsi UI text */
+[lang="fa"] body,
+[lang="fa"] * {
+    font-family: 'Vazirmatn', var(--font-sans) !important;
+}
+
+/* Apply Mikhak for Farsi headings */
+[lang="fa"] h1,
+[lang="fa"] h2,
+[lang="fa"] h3,
+[lang="fa"] h4,
+[lang="fa"] h5,
+[lang="fa"] h6,
+[lang="fa"] .hero-title,
+[lang="fa"] .card-header h2,
+[lang="fa"] .font-display {
+    font-family: 'Mikhak', var(--font-display) !important;
+}
+
+/* Apply Vazirmatn for Arabic UI text */
+[lang="ar"] body,
+[lang="ar"] * {
+    font-family: 'Vazirmatn', var(--font-sans) !important;
+}
+
+/* Apply Mikhak for Arabic headings */
+[lang="ar"] h1,
+[lang="ar"] h2,
+[lang="ar"] h3,
+[lang="ar"] h4,
+[lang="ar"] h5,
+[lang="ar"] h6,
+[lang="ar"] .hero-title,
+[lang="ar"] .card-header h2,
+[lang="ar"] .font-display {
+    font-family: 'Mikhak', var(--font-display) !important;
+}
+
+/* Better line-height for Persian/Arabic scripts */
+[lang="fa"], [lang="ar"] {
+    line-height: 1.8;
+}
+
+[lang="fa"] p, [lang="ar"] p {
+    line-height: 1.9;
+}
+
+/* Improved letter spacing for readability */
+[lang="fa"] h1, [lang="ar"] h1 {
+    letter-spacing: -0.02em;
+}
+
+[lang="fa"] .btn, [lang="ar"] .btn {
+    letter-spacing: 0;
 }
