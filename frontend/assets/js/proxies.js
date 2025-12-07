@@ -165,7 +165,8 @@ function renderTable() {
              if (p.typeTag === 'secure') { tagClass = 'badge-success'; tagText = 'Secure'; icon = '🛡️'; }
              if (p.typeTag === 'optimal') { tagClass = 'badge-warning'; tagText = 'Optimal'; icon = '⚡'; }
              if (p.typeTag === 'intranet') { tagClass = 'badge-primary'; tagText = 'Intranet'; icon = '🏢'; }
-             badgeHtml += ` <span class="badge ${tagClass}" style="font-size: 0.7em; margin-left:5px;">${icon} ${tagText}</span>`;
+             // Use margin-inline-start for RTL support (auto-adjusts based on text direction)
+             badgeHtml += ` <span class="badge ${tagClass}" style="font-size: 0.7em; margin-inline-start: 5px;">${icon} ${tagText}</span>`;
         }
         protoCell.innerHTML = badgeHtml;
         row.appendChild(protoCell);

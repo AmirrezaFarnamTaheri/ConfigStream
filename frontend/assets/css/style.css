@@ -3670,3 +3670,185 @@ body.dark .client-select {
     border-color: var(--border);
     color: var(--text-primary);
 }
+
+/* ===== RTL (Right-to-Left) Language Support ===== */
+/* Comprehensive RTL overrides for Farsi (fa) and Arabic (ar) */
+
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+/* Header and Navigation RTL */
+[dir="rtl"] .header-logo-wrapper {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .header-actions {
+    flex-direction: row-reverse;
+}
+
+/* Proxies Table RTL Fixes */
+[dir="rtl"] .proxies-table th {
+    text-align: right;
+}
+
+[dir="rtl"] .proxies-table th .feather {
+    margin-left: 0;
+    margin-right: var(--space-unit);
+}
+
+/* Fix row hover animation direction */
+[dir="rtl"] .proxies-table tbody tr:hover td {
+    transform: translateX(-4px); /* Reverse direction for RTL */
+    box-shadow: 4px 0 8px -2px color-mix(in srgb, var(--brand-primary) 15%, transparent); /* Flip shadow to right */
+}
+
+/* Fix border highlight direction */
+[dir="rtl"] .proxies-table tbody tr:hover td:first-child {
+    border-left: none;
+    border-right: 3px solid var(--brand-primary);
+}
+
+/* Fix border radius for RTL */
+[dir="rtl"] .proxies-table tr:first-child td:first-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: var(--radius-lg);
+}
+
+[dir="rtl"] .proxies-table tr:first-child td:last-child {
+    border-top-right-radius: 0;
+    border-top-left-radius: var(--radius-lg);
+}
+
+[dir="rtl"] .proxies-table tr:last-child td:first-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+[dir="rtl"] .proxies-table tr:last-child td:last-child {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: var(--radius-lg);
+}
+
+/* Location Cell RTL */
+[dir="rtl"] .location-cell {
+    flex-direction: row-reverse;
+}
+
+/* Status Cell RTL */
+[dir="rtl"] .status-cell {
+    justify-content: flex-end;
+}
+
+/* Filter Controls RTL */
+[dir="rtl"] .filter-input-wrapper {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .filter-icon {
+    margin-left: calc(var(--space-unit) * 1.5);
+    margin-right: 0;
+}
+
+/* Action Buttons RTL */
+[dir="rtl"] .action-group {
+    flex-direction: row-reverse;
+}
+
+/* Pagination RTL */
+[dir="rtl"] .pagination-container {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .pagination-btn .feather {
+    transform: scaleX(-1); /* Flip chevron icons */
+}
+
+/* Dropdown Arrow RTL */
+[dir="rtl"] .dropdown-arrow {
+    right: auto;
+    left: calc(var(--space-unit) * 1.5);
+}
+
+/* Badge Spacing RTL - Fix for protocol type tags */
+[dir="rtl"] .badge + .badge {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+/* Copy Button RTL */
+[dir="rtl"] .copy-btn:hover {
+    transform: translateY(-2px) scaleX(1); /* Prevent mirror effect */
+}
+
+/* Stats Grid RTL */
+[dir="rtl"] .stats-grid {
+    direction: rtl;
+}
+
+[dir="rtl"] .stat-item {
+    text-align: right;
+}
+
+[dir="rtl"] .stat-icon {
+    margin-left: calc(var(--space-unit) * 2);
+    margin-right: 0;
+}
+
+/* Card Header RTL */
+[dir="rtl"] .card-header {
+    text-align: right;
+}
+
+/* Hero Section RTL */
+[dir="rtl"] .hero {
+    text-align: right;
+}
+
+[dir="rtl"] .hero-actions {
+    flex-direction: row-reverse;
+}
+
+/* Client Dropdown RTL */
+[dir="rtl"] .client-dropdown-wrapper select {
+    padding-left: calc(var(--space-unit) * 4);
+    padding-right: calc(var(--space-unit) * 2);
+}
+
+/* Mobile Card View RTL */
+@media (max-width: 768px) {
+    [dir="rtl"] .proxies-table td {
+        text-align: left;
+        flex-direction: row-reverse;
+    }
+
+    [dir="rtl"] .proxies-table td::before {
+        margin-right: 0;
+        margin-left: 1rem;
+        text-align: right;
+    }
+
+    [dir="rtl"] .location-cell,
+    [dir="rtl"] .status-cell {
+        justify-content: flex-start;
+    }
+}
+
+/* Chart Legends RTL */
+[dir="rtl"] .chart-container canvas {
+    direction: ltr; /* Keep charts LTR for consistency */
+}
+
+/* Footer RTL */
+[dir="rtl"] .footer {
+    text-align: right;
+}
+
+[dir="rtl"] .social-links {
+    flex-direction: row-reverse;
+}
