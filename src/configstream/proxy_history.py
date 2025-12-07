@@ -8,7 +8,7 @@ Refactored to use submodules.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, cast
 from datetime import datetime, timezone, timedelta
 
 from .models import Proxy
@@ -78,7 +78,7 @@ class ProxyHistoryTracker:
 
     def get_proxy_history(self, config: str) -> Optional[Dict[str, Any]]:
         """Get history for a specific proxy."""
-        return self.history_data.get(config)
+        return cast(Optional[Dict[str, Any]], self.history_data.get(config))
 
     def get_reliability_score(self, config: str, lookback_days: int = 7) -> float:
         """Calculate reliability score."""
