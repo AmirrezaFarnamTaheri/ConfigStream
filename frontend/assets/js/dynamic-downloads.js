@@ -37,7 +37,7 @@ function initDynamicDownloads() {
             file: "sip008.json",
             icon: "code"
         },
-        hybrid: {
+        singbox: {
             desc: "Hybrid Go+Python optimized configuration.",
             file: "singbox.json",
             icon: "layers"

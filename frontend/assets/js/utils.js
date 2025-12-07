@@ -10,7 +10,8 @@ window.api = {
   fetchStatistics: typeof fetchStatistics !== 'undefined' ? fetchStatistics : null,
   clearCache: typeof clearCache !== 'undefined' ? clearCache : null,
   initMobileNav: typeof initMobileNav !== 'undefined' ? initMobileNav : null,
-  initTheme: typeof initTheme !== 'undefined' ? initTheme : null
+  initTheme: typeof initTheme !== 'undefined' ? initTheme : null,
+  updateFreshnessColor: typeof updateFreshnessColor !== 'undefined' ? updateFreshnessColor : null
 };
 
 // Export for testing if in Node.js environment
@@ -39,6 +40,7 @@ if (typeof window !== 'undefined') {
     if (typeof clearCache === 'function') window.api.clearCache = clearCache;
     if (typeof initMobileNav === 'function') window.api.initMobileNav = initMobileNav;
     if (typeof initTheme === 'function') window.api.initTheme = initTheme;
+    if (typeof updateFreshnessColor === 'function') window.api.updateFreshnessColor = updateFreshnessColor;
 
     console.log('✅ window.api initialized:', Object.keys(window.api));
 }

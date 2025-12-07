@@ -84,3 +84,16 @@ function initTheme() {
         window._themeListenerAdded = true;
     }
 }
+
+function updateFreshnessColor(date) {
+    const diffHours = (new Date() - date) / (1000 * 60 * 60);
+    const footerUpdate = document.getElementById('footerUpdate');
+    if (!footerUpdate) return;
+
+    let color = '#22c55e'; // Green
+    if (diffHours > 8) color = '#eab308'; // Yellow
+    if (diffHours > 24) color = '#ef4444'; // Red
+
+    footerUpdate.style.color = color;
+    footerUpdate.style.fontWeight = 'bold';
+}
