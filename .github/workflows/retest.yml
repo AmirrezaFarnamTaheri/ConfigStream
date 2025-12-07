@@ -2,7 +2,7 @@ name: Retest
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 */3 * * *"  # Every 3 hours
   workflow_dispatch:
 
 permissions:
@@ -26,6 +26,54 @@ jobs:
           cache-dependency-path: pyproject.toml
       - name: Install
         run: pip install -e .[dev]
+
+      - name: Check for concurrent pipeline run
+        id: check_pipeline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Checking for active pipeline runs..."
+
+          # Check if main pipeline workflow is running
+          ACTIVE_RUN=$(gh run list \
+            --workflow="pipeline.yml" \
+            --status="in_progress" \
+            --json databaseId,startedAt,status \
+            --limit 1 \
+            --jq '.[0] | select(.status == "in_progress")')
+
+          if [ -z "$ACTIVE_RUN" ]; then
+            echo "No active pipeline run found. Proceeding with retest."
+            echo "should_cancel=false" >> $GITHUB_OUTPUT
+          else
+            # Extract start time
+            START_TIME=$(echo "$ACTIVE_RUN" | jq -r '.startedAt')
+            START_EPOCH=$(date -d "$START_TIME" +%s)
+            NOW_EPOCH=$(date +%s)
+            ELAPSED=$((NOW_EPOCH - START_EPOCH))
+            ELAPSED_HOURS=$((ELAPSED / 3600))
+
+            echo "Active pipeline found. Started at: $START_TIME"
+            echo "Elapsed time: ${ELAPSED}s (${ELAPSED_HOURS}h)"
+
+            # Check if pipeline started less than 1.5 hours ago (5400 seconds)
+            if [ $ELAPSED -lt 5400 ]; then
+              echo "Pipeline started less than 1.5 hours ago. Cancelling retest to avoid conflicts."
+              echo "should_cancel=true" >> $GITHUB_OUTPUT
+            else
+              echo "Pipeline has been running for more than 1.5 hours. Proceeding with retest."
+              echo "should_cancel=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Exit if pipeline is running
+        if: steps.check_pipeline.outputs.should_cancel == 'true'
+        run: |
+          echo "⚠️ Retest cancelled: Main pipeline is currently running and started less than 1.5 hours ago."
+          echo "ℹ️ Note: Dynamic cron rescheduling is not supported by GitHub Actions."
+          echo "ℹ️ The next retest will run according to the standard 3-hour schedule."
+          exit 0
+
       - name: Check previous output existence
         id: check_output
         run: |
@@ -37,7 +85,7 @@ jobs:
           fi
       - name: Retest last export
         if: steps.check_output.outputs.skip != 'true'
-        run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 45 --max-workers 20 --leniency
+        run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 45 --max-workers 50 --leniency
       - name: Validate JSON (non-blocking)
         run: |
           pip install jsonschema || true

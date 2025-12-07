@@ -7,7 +7,7 @@ import sqlite3
 import logging
 import threading
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class QualityStorage:
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=NORMAL")
             self._thread_local.conn = conn
-        return conn
+        return cast(sqlite3.Connection, conn)
 
     def _init_db(self):
         """Initialize the SQLite schema."""

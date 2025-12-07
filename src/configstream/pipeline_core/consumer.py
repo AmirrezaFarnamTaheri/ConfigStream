@@ -175,7 +175,13 @@ async def processing_consumer(
         )
         with tracker.phase("security_validation"):
             validation_start = loop.time()
-            safe_batch = validate_batch_configs(unique_batch, policy)
+            # Offload security validation to executor for batches > 100 to avoid blocking
+            if len(unique_batch) > 100:
+                safe_batch = await loop.run_in_executor(
+                    None, validate_batch_configs, unique_batch, policy
+                )
+            else:
+                safe_batch = validate_batch_configs(unique_batch, policy)
             validation_dur = (loop.time() - validation_start) * 1000
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
@@ -295,8 +301,8 @@ async def processing_consumer(
                                     )
                             return res
 
-                    # Process in chunks
-                    chunk_size = 50
+                    # Process in chunks (increased from 50 to 100 for better throughput)
+                    chunk_size = 100
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])

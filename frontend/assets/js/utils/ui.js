@@ -48,8 +48,9 @@ function initTheme() {
 
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
     let currentTheme = localStorage.getItem('theme');
+    let userOverride = localStorage.getItem('theme-user-override') === 'true';
 
-    const setTheme = (theme, animate = false) => {
+    const setTheme = (theme, animate = false, isUserAction = false) => {
         if (animate) {
             document.body.style.transition = 'background-color var(--transition-base), color var(--transition-base)';
         } else {
@@ -57,6 +58,12 @@ function initTheme() {
         }
         document.body.classList.toggle('dark', theme === 'dark');
         localStorage.setItem('theme', theme);
+
+        // Track if user manually set the theme
+        if (isUserAction) {
+            localStorage.setItem('theme-user-override', 'true');
+            userOverride = true;
+        }
 
         window.dispatchEvent(new CustomEvent('themechanged', { detail: { theme } }));
 
@@ -66,7 +73,11 @@ function initTheme() {
         }
     };
 
-    if (!currentTheme) currentTheme = prefersDark.matches ? 'dark' : 'light';
+    // Default to system preference if no theme stored
+    if (!currentTheme) {
+        currentTheme = prefersDark.matches ? 'dark' : 'light';
+        userOverride = false; // Not a user override, system default
+    }
     setTheme(currentTheme);
 
     const newSwitcher = themeSwitcher.cloneNode(true);
@@ -74,12 +85,16 @@ function initTheme() {
 
     newSwitcher.addEventListener('click', () => {
         const newTheme = document.body.classList.contains('dark') ? 'light' : 'dark';
-        setTheme(newTheme, true);
+        setTheme(newTheme, true, true); // Mark as user action
     });
 
+    // Only auto-update with system preference if user hasn't manually overridden
     if (!window._themeListenerAdded) {
         prefersDark.addEventListener('change', (e) => {
-            setTheme(e.matches ? 'dark' : 'light', true);
+            if (!userOverride) {
+                // Only auto-update if user hasn't manually set a preference
+                setTheme(e.matches ? 'dark' : 'light', true, false);
+            }
         });
         window._themeListenerAdded = true;
     }

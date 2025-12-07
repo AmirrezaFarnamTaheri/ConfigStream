@@ -99,6 +99,7 @@ const translations = {
         "table.location": "Location",
         "table.latency": "Latency",
         "table.status": "Status",
+        "table.trend": "Trend",
         "table.copy": "Copy Link",
 
         "verify.local": "Turbo-Verify (Local)",
@@ -216,6 +217,7 @@ const translations = {
         "table.location": "位置",
         "table.latency": "延迟",
         "table.status": "状态",
+        "table.trend": "趋势",
         "table.copy": "复制链接",
         "verify.local": "本地极速验证",
         "verify.status": "WASM 组件就绪",
@@ -314,6 +316,7 @@ const translations = {
         "table.location": "موقعیت",
         "table.latency": "پینگ",
         "table.status": "وضعیت",
+        "table.trend": "روند",
         "table.copy": "کپی",
         "verify.local": "تست سرعت (محلی)",
         "verify.status": "آماده تست با WASM",
@@ -412,6 +415,7 @@ const translations = {
         "table.location": "Локация",
         "table.latency": "Пинг",
         "table.status": "Статус",
+        "table.trend": "Тренд",
         "table.copy": "Копировать",
         "verify.local": "Быстрая проверка (Local)",
         "verify.status": "WASM готов к работе",
@@ -510,6 +514,7 @@ const translations = {
         "table.location": "الموقع",
         "table.latency": "السرعة",
         "table.status": "الحالة",
+        "table.trend": "الاتجاه",
         "table.copy": "نسخ",
         "verify.local": "فحص محلي (WASM)",
         "verify.status": "جاهز للفحص",
@@ -557,12 +562,26 @@ class I18n {
         localStorage.setItem('lang', lang);
         this.updatePage();
 
+        // Set lang attribute for font selection
+        document.documentElement.setAttribute('lang', lang);
+
         // Set direction for RTL languages
         if (lang === 'fa' || lang === 'ar') {
             document.documentElement.setAttribute('dir', 'rtl');
         } else {
             document.documentElement.setAttribute('dir', 'ltr');
         }
+
+        // Update active state in language menu
+        const langButtons = document.querySelectorAll('.lang-menu button');
+        langButtons.forEach(btn => {
+            const btnLang = btn.getAttribute('onclick')?.match(/'([a-z]{2})'/)?.[1];
+            if (btnLang === lang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
 
         // Dispatch event for other components
         window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
