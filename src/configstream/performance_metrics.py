@@ -7,7 +7,7 @@ import logging
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, asdict
-from typing import Optional
+from typing import Optional, Any
 import json
 
 logger = logging.getLogger(__name__)
@@ -64,7 +64,7 @@ class PerformanceLogger:
 
     def __init__(self, output_file: Optional[str] = None):
         self.output_file = output_file
-        self.metrics_buffer = []
+        self.metrics_buffer: list[dict[str, Any]] = []
 
     @contextmanager
     def measure_batch(self, batch_number: int):
@@ -77,7 +77,7 @@ class PerformanceLogger:
                 metrics['proxies_fetched'] = 100
         """
         start_time = time.time()
-        metrics = {
+        metrics: dict[str, Any] = {
             "batch_number": batch_number,
             "sources_count": 0,
             "proxies_fetched": 0,
