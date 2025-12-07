@@ -7,7 +7,7 @@ import logging
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, asdict
-from typing import Dict, Optional, Any
+from typing import Optional
 import json
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class BatchMetrics:
     """Metrics for a single batch execution."""
+
     batch_number: int
     sources_count: int
     proxies_fetched: int
@@ -31,6 +32,7 @@ class BatchMetrics:
 @dataclass
 class ReshardingMetrics:
     """Metrics for source distribution optimization."""
+
     total_sources: int
     sources_from_logs: int
     sources_with_default_weight: int
@@ -44,6 +46,7 @@ class ReshardingMetrics:
 @dataclass
 class PipelineMetrics:
     """Overall pipeline execution metrics."""
+
     total_duration_seconds: float
     total_proxies_fetched: int
     total_proxies_working: int
@@ -75,35 +78,35 @@ class PerformanceLogger:
         """
         start_time = time.time()
         metrics = {
-            'batch_number': batch_number,
-            'sources_count': 0,
-            'proxies_fetched': 0,
-            'proxies_tested': 0,
-            'proxies_working': 0,
-            'fetch_failures': 0,
-            'test_failures': 0,
+            "batch_number": batch_number,
+            "sources_count": 0,
+            "proxies_fetched": 0,
+            "proxies_tested": 0,
+            "proxies_working": 0,
+            "fetch_failures": 0,
+            "test_failures": 0,
         }
 
         try:
             yield metrics
         finally:
             duration = time.time() - start_time
-            metrics['duration_seconds'] = round(duration, 2)
+            metrics["duration_seconds"] = round(duration, 2)
 
             # Calculate derived metrics
             if duration > 0:
-                metrics['throughput_proxies_per_sec'] = round(
-                    metrics['proxies_tested'] / duration, 2
+                metrics["throughput_proxies_per_sec"] = round(
+                    metrics["proxies_tested"] / duration, 2
                 )
             else:
-                metrics['throughput_proxies_per_sec'] = 0.0
+                metrics["throughput_proxies_per_sec"] = 0.0
 
-            if metrics['proxies_tested'] > 0:
-                metrics['success_rate'] = round(
-                    metrics['proxies_working'] / metrics['proxies_tested'], 4
+            if metrics["proxies_tested"] > 0:
+                metrics["success_rate"] = round(
+                    metrics["proxies_working"] / metrics["proxies_tested"], 4
                 )
             else:
-                metrics['success_rate'] = 0.0
+                metrics["success_rate"] = 0.0
 
             batch_metrics = BatchMetrics(**metrics)
             self.log_batch_metrics(batch_metrics)
@@ -119,11 +122,9 @@ class PerformanceLogger:
         )
 
         # Buffer for JSON export
-        self.metrics_buffer.append({
-            'type': 'batch',
-            'timestamp': time.time(),
-            'data': asdict(metrics)
-        })
+        self.metrics_buffer.append(
+            {"type": "batch", "timestamp": time.time(), "data": asdict(metrics)}
+        )
 
     def log_resharding_metrics(self, metrics: ReshardingMetrics):
         """Log resharding optimization results."""
@@ -134,11 +135,9 @@ class PerformanceLogger:
             f"std_dev={metrics.std_deviation:.1f}"
         )
 
-        self.metrics_buffer.append({
-            'type': 'resharding',
-            'timestamp': time.time(),
-            'data': asdict(metrics)
-        })
+        self.metrics_buffer.append(
+            {"type": "resharding", "timestamp": time.time(), "data": asdict(metrics)}
+        )
 
     def log_pipeline_metrics(self, metrics: PipelineMetrics):
         """Log overall pipeline execution summary."""
@@ -151,11 +150,9 @@ class PerformanceLogger:
             f"avg_batch={metrics.avg_batch_duration:.1f}s"
         )
 
-        self.metrics_buffer.append({
-            'type': 'pipeline',
-            'timestamp': time.time(),
-            'data': asdict(metrics)
-        })
+        self.metrics_buffer.append(
+            {"type": "pipeline", "timestamp": time.time(), "data": asdict(metrics)}
+        )
 
     def export_metrics(self, filepath: Optional[str] = None):
         """Export collected metrics to JSON file."""
@@ -165,7 +162,7 @@ class PerformanceLogger:
             return
 
         try:
-            with open(output, 'w') as f:
+            with open(output, "w") as f:
                 json.dump(self.metrics_buffer, f, indent=2)
             logger.info(f"Exported {len(self.metrics_buffer)} metrics to {output}")
         except Exception as e:
