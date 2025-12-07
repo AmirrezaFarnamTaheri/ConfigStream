@@ -1,75 +1,76 @@
-@ -1,68 +1,54 @@
+// Dynamic Downloads Handler - Fixed Version
 function initDynamicDownloads() {
-    const wrapper = document.getElementById('client-selector');
-    const dropdown = document.getElementById('client-selector-dropdown');
+    const dropdown = document.getElementById('client-selector-dropdown') ||
+                     document.getElementById('client-selector');
     const desc = document.getElementById('client-desc');
     const btn = document.getElementById('dynamic-copy-btn');
     const iconContainer = document.getElementById('dynamic-icon');
 
-    if (!wrapper || !desc || !btn || !iconContainer) return;
-
-    const chips = wrapper.querySelectorAll('.client-chip');
-    if (!dropdown || !desc || !btn || !iconContainer) return;
+    if (!dropdown || !desc || !btn) {
+        console.warn('Dynamic downloads: Required elements not found');
+        return;
+    }
 
     const clients = {
         shadowrocket: {
             desc: "Configuration format optimized for Shadowrocket on iOS.",
-            file: "subscribe/shadowrocket",
-            icon: "file-text"
+            file: "shadowrocket.txt",
+            icon: "send"
         },
         surge: {
-            desc: "Powerful rule-based utility.",
-            file: "subscribe/surge",
+            desc: "Powerful rule-based utility for iOS/macOS.",
+            file: "surge.conf",
             icon: "zap"
         },
         loon: {
-            desc: "Lightweight network toolbox.",
-            file: "subscribe/loon",
-            icon: "smartphone"
+            desc: "Lightweight network toolbox for iOS.",
+            file: "loon.conf",
+            icon: "moon"
         },
         quantumultx: {
-            desc: "Advanced network tool.",
-            file: "subscribe/quantumultx",
+            desc: "Advanced network debugging tool.",
+            file: "quantumult.conf",
             icon: "box"
         },
         sip008: {
-            desc: "Standard format.",
-            file: "subscribe/sip008",
+            desc: "Standard SIP008 JSON format for Shadowsocks.",
+            file: "sip008.json",
             icon: "code"
+        },
+        hybrid: {
+            desc: "Hybrid Go+Python optimized configuration.",
+            file: "singbox.json",
+            icon: "layers"
         }
     };
 
     const updateUI = (clientKey) => {
         const client = clients[clientKey];
-        if (client) {
-            desc.textContent = client.desc;
-            btn.dataset.file = client.file;
-            iconContainer.innerHTML = `<i data-feather="${client.icon}"></i>`;
-            if (window.feather) feather.replace();
-            if (window.inlineIcons) window.inlineIcons.replace();
+        if (!client) {
+            console.warn('Unknown client:', clientKey);
+            return;
+        }
 
-            // Update Active State
-            chips.forEach(chip => {
-                if (chip.dataset.value === clientKey) {
-                    chip.classList.add('active');
-                } else {
-                    chip.classList.remove('active');
-                }
-            });
+        desc.textContent = client.desc;
+        btn.dataset.file = client.file;
+
+        if (iconContainer) {
+            iconContainer.innerHTML = '<i data-feather="' + client.icon + '"></i>';
+            if (window.feather) {
+                feather.replace();
+            } else if (window.inlineIcons) {
+                window.inlineIcons.replace();
+            }
         }
     };
 
-    chips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            updateUI(chip.dataset.value);
-        });
-    dropdown.addEventListener('change', (e) => {
-        updateUI(e.target.value);
-    });
+    dropdown.addEventListener('change', (e) => updateUI(e.target.value));
+    updateUI(dropdown.value || 'shadowrocket');
+}
 
-    // Initialize with default (first chip or active)
-    const initial = wrapper.querySelector('.active') || chips[0];
-    if(initial) updateUI(initial.dataset.value);
-    // Initialize with default
-    updateUI(dropdown.value);
+// Auto-initialize
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initDynamicDownloads);
+} else {
+    initDynamicDownloads();
 }

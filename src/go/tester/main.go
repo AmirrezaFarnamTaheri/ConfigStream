@@ -15,6 +15,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"configstream-tester/scanner" // [INTEGRATION] Import the scanner package
@@ -28,10 +29,10 @@ import (
 // --- Configuration ---
 
 const (
-	MaxWorkers     = 20
-	HoneypotSecret = "HONEYPOT_SECRET" // Env var
-	// [OPTIMIZATION] Increased retries to handle port race conditions under load
-	MaxRetries     = 15
+	MaxWorkers        = 15               // Reduced to prevent port exhaustion
+	HoneypotSecret    = "HONEYPOT_SECRET" // Env var
+	MaxRetries        = 20               // Increased retries for port binding
+	HeartbeatInterval = 30 * time.Second // Send progress to stderr
 )
 
 var (
@@ -134,13 +135,34 @@ func main() {
 		}(i)
 	}
 
-	go writer(outputChan)
+	var processedCount int64 // Atomic counter
+
+	// Start Heartbeat
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go startHeartbeat(ctx, &processedCount, 0) // Total unknown for now
+
+	go writer(outputChan, &processedCount)
 	reader(inputChan)
 
 	wg.Wait()
 	close(outputChan)
 	time.Sleep(100 * time.Millisecond)
 	fmt.Fprintln(os.Stderr, "INFO: Go Tester shutting down")
+}
+
+func startHeartbeat(ctx context.Context, processed *int64, total int) {
+	ticker := time.NewTicker(HeartbeatInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			count := atomic.LoadInt64(processed)
+			fmt.Fprintf(os.Stderr, "INFO: HEARTBEAT progress=%d\n", count)
+		}
+	}
 }
 
 func runScanner(workers int, timeout time.Duration, limit int) {
@@ -185,7 +207,7 @@ func reader(inputChan chan<- ProxyInput) {
 	close(inputChan)
 }
 
-func writer(outputChan <-chan TestResult) {
+func writer(outputChan <-chan TestResult, processed *int64) {
 	encoder := json.NewEncoder(os.Stdout)
 	count := 0
 	for res := range outputChan {
@@ -193,13 +215,12 @@ func writer(outputChan <-chan TestResult) {
 			fmt.Fprintln(os.Stderr, "ERROR: Encode error:", err)
 		}
 		count++
+		atomic.AddInt64(processed, 1)
 	}
 	fmt.Fprintf(os.Stderr, "INFO: Wrote %d results\n", count)
 }
 
 func worker(id int, input <-chan ProxyInput, output chan<- TestResult) {
-	ctx := context.Background()
-
 	// Global worker panic handler
 	defer func() {
 		if r := recover(); r != nil {
@@ -213,40 +234,61 @@ func worker(id int, input <-chan ProxyInput, output chan<- TestResult) {
 			defer func() {
 				if r := recover(); r != nil {
 					output <- TestResult{
-						ID: p.ID,
+						ID:        p.ID,
 						IsWorking: false,
-						Error: fmt.Sprintf("PANIC: %v", r),
+						Error:     fmt.Sprintf("PANIC: %v", r),
 					}
 				}
 			}()
 
-			res := TestResult{ID: p.ID}
-			// Add random jitter before starting to desynchronize port binding
-			time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
+			// Add per-proxy timeout to prevent individual proxy from blocking worker
+			ctx, cancel := context.WithTimeout(context.Background(), TestTimeout+5*time.Second)
+			defer cancel()
 
-			latency, issues, err := testLatency(ctx, p)
-
-			if err == nil {
-				res.IsWorking = true
-				res.Latency = latency
-				if len(issues) > 0 {
-					res.Issues = append(res.Issues, issues...)
-				}
-
-				if p.CheckHoneypot && CanaryURL != "" {
-					if isHoneypot(ctx, p) {
-						res.Issues = append(res.Issues, "HONEYPOT_DETECTED")
-						res.IsWorking = false
-						res.Error = "HONEYPOT_DETECTED"
-					}
-				}
-			} else {
-				res.Error = err.Error()
-				// [LOG] Debug logging for failures (optional, maybe verbose)
-				// fmt.Fprintf(os.Stderr, "DEBUG: Proxy %s failed: %v\n", p.ID, err)
-			}
+			res := testProxyWithContext(ctx, p)
 			output <- res
 		}()
+	}
+}
+
+func testProxyWithContext(ctx context.Context, p ProxyInput) TestResult {
+	resultChan := make(chan TestResult, 1)
+	go func() {
+		res := TestResult{ID: p.ID}
+		// Add random jitter before starting to desynchronize port binding
+		time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
+
+		latency, issues, err := testLatency(context.Background(), p)
+
+		if err == nil {
+			res.IsWorking = true
+			res.Latency = latency
+			if len(issues) > 0 {
+				res.Issues = append(res.Issues, issues...)
+			}
+
+			if p.CheckHoneypot && CanaryURL != "" {
+				if isHoneypot(context.Background(), p) {
+					res.Issues = append(res.Issues, "HONEYPOT_DETECTED")
+					res.IsWorking = false
+					res.Error = "HONEYPOT_DETECTED"
+				}
+			}
+		} else {
+			res.Error = err.Error()
+		}
+		resultChan <- res
+	}()
+
+	select {
+	case result := <-resultChan:
+		return result
+	case <-ctx.Done():
+		return TestResult{
+			ID:        p.ID,
+			IsWorking: false,
+			Error:     "WORKER_TIMEOUT",
+		}
 	}
 }
 
