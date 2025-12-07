@@ -562,6 +562,9 @@ class I18n {
         localStorage.setItem('lang', lang);
         this.updatePage();
 
+        // Set lang attribute for font selection
+        document.documentElement.setAttribute('lang', lang);
+
         // Set direction for RTL languages
         if (lang === 'fa' || lang === 'ar') {
             document.documentElement.setAttribute('dir', 'rtl');
