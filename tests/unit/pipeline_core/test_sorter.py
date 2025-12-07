@@ -11,6 +11,28 @@ from configstream.models import Proxy
 class TestSortProxiesPareto:
     """Test suite for sort_proxies_pareto function."""
 
+    def _setup_history_mock(self, proxies, reliability_map=None, uptime_map=None):
+        history = MagicMock()
+        bulk_stats = {}
+        for p in proxies:
+            rel = 0.5
+            uptime = 50.0
+            if reliability_map and p.id in reliability_map:
+                rel = reliability_map[p.id]
+            elif (
+                reliability_map
+            ):  # Try looking up by config/address if map keys are not IDs
+                # Simple fallback for tests using simple matching logic
+                pass
+
+            if uptime_map and p.id in uptime_map:
+                uptime = uptime_map[p.id]
+
+            bulk_stats[p.id] = {"reliability": rel, "uptime": uptime}
+
+        history.get_bulk_stats.return_value = bulk_stats
+        return history
+
     def test_empty_list(self):
         """Test sorting an empty list doesn't crash."""
         proxies: list[Proxy] = []
@@ -28,9 +50,7 @@ class TestSortProxiesPareto:
             latency=100.0,
         )
         proxies = [proxy]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.9
-        history.get_summary_stats.return_value = {"uptime_percentage": 95.0}
+        history = self._setup_history_mock(proxies, {proxy.id: 0.9}, {proxy.id: 95.0})
 
         sort_proxies_pareto(proxies, history)
         assert len(proxies) == 1
@@ -54,9 +74,11 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_slow, proxy_fast]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies,
+            {proxy_fast.id: 0.8, proxy_slow.id: 0.8},
+            {proxy_fast.id: 80.0, proxy_slow.id: 80.0},
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -82,9 +104,11 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_without_latency, proxy_with_latency]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies,
+            {proxy_with_latency.id: 0.8, proxy_without_latency.id: 0.8},
+            {proxy_with_latency.id: 80.0, proxy_without_latency.id: 80.0},
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -117,9 +141,9 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_very_high, proxy_high, proxy_medium]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies, {p.id: 0.8 for p in proxies}, {p.id: 80.0 for p in proxies}
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -145,24 +169,15 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_unreliable, proxy_reliable]
-        history = MagicMock()
-
-        def get_reliability(proxy_id):
-            # Check the actual proxy id which is based on the full address
-            if proxy_reliable.id == proxy_id:
-                return 0.95  # 95% success rate
-            return 0.5  # 50% success rate
-
-        def get_stats(proxy_id):
-            # Return consistent stats for both
-            return {"uptime_percentage": 80.0}
-
-        history.get_reliability_score.side_effect = get_reliability
-        history.get_summary_stats.side_effect = get_stats
+        history = self._setup_history_mock(
+            proxies,
+            {proxy_reliable.id: 0.95, proxy_unreliable.id: 0.5},
+            {proxy_reliable.id: 80.0, proxy_unreliable.id: 80.0},
+        )
 
         sort_proxies_pareto(proxies, history)
 
-        # More reliable proxy should be first (lower score = 1 - 0.95 = 0.05 vs 1 - 0.5 = 0.5)
+        # More reliable proxy should be first
         assert proxies[0] == proxy_reliable
         assert proxies[1] == proxy_unreliable
 
@@ -184,15 +199,11 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_unstable, proxy_stable]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-
-        def get_stats(proxy_id):
-            if proxy_stable.id == proxy_id:
-                return {"uptime_percentage": 99.0}
-            return {"uptime_percentage": 30.0}
-
-        history.get_summary_stats.side_effect = get_stats
+        history = self._setup_history_mock(
+            proxies,
+            {p.id: 0.8 for p in proxies},
+            {proxy_stable.id: 99.0, proxy_unstable.id: 30.0},
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -218,11 +229,12 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_a, proxy_b]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
 
-        # Return empty dict (no uptime_percentage)
-        history.get_summary_stats.return_value = {}
+        # Manually create mock to handle missing key logic
+        history = MagicMock()
+        history.get_bulk_stats.return_value = {
+            # No data for these
+        }
 
         # Should not crash and should treat both equally
         sort_proxies_pareto(proxies, history)
@@ -230,7 +242,6 @@ class TestSortProxiesPareto:
 
     def test_combined_weighting(self):
         """Test that the combined weighting formula works correctly."""
-        # Create proxies with different characteristics
         proxy_best = Proxy(
             config="test://best.com:443",
             protocol="test",
@@ -254,24 +265,11 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_worst, proxy_balanced, proxy_best]
-        history = MagicMock()
-
-        def get_reliability(proxy_id):
-            if "best" in proxy_id:
-                return 0.95
-            elif "balanced" in proxy_id:
-                return 0.8
-            return 0.3
-
-        def get_stats(proxy_id):
-            if "best" in proxy_id:
-                return {"uptime_percentage": 99.0}
-            elif "balanced" in proxy_id:
-                return {"uptime_percentage": 85.0}
-            return {"uptime_percentage": 40.0}
-
-        history.get_reliability_score.side_effect = get_reliability
-        history.get_summary_stats.side_effect = get_stats
+        history = self._setup_history_mock(
+            proxies,
+            {proxy_best.id: 0.95, proxy_balanced.id: 0.8, proxy_worst.id: 0.3},
+            {proxy_best.id: 99.0, proxy_balanced.id: 85.0, proxy_worst.id: 40.0},
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -293,9 +291,9 @@ class TestSortProxiesPareto:
             )
             proxies.append(proxy)
 
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies, {p.id: 0.8 for p in proxies}, {p.id: 80.0 for p in proxies}
+        )
 
         # Should not crash
         sort_proxies_pareto(proxies, history)
@@ -319,9 +317,9 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_normal, proxy_zero]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies, {p.id: 0.8 for p in proxies}, {p.id: 80.0 for p in proxies}
+        )
 
         # Should not crash with zero latency
         sort_proxies_pareto(proxies, history)
@@ -349,20 +347,11 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_extreme_bad, proxy_extreme_good]
-        history = MagicMock()
-
-        def get_reliability(proxy_id):
-            if proxy_extreme_good.id == proxy_id:
-                return 1.0  # Perfect
-            return 0.0  # Complete failure
-
-        def get_stats(proxy_id):
-            if proxy_extreme_good.id == proxy_id:
-                return {"uptime_percentage": 100.0}
-            return {"uptime_percentage": 0.0}
-
-        history.get_reliability_score.side_effect = get_reliability
-        history.get_summary_stats.side_effect = get_stats
+        history = self._setup_history_mock(
+            proxies,
+            {proxy_extreme_good.id: 1.0, proxy_extreme_bad.id: 0.0},
+            {proxy_extreme_good.id: 100.0, proxy_extreme_bad.id: 0.0},
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -390,9 +379,9 @@ class TestSortProxiesPareto:
         proxies = [proxy1, proxy2]
         original_id = id(proxies)
 
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies, {p.id: 0.8 for p in proxies}, {p.id: 80.0 for p in proxies}
+        )
 
         result = sort_proxies_pareto(proxies, history)
 
@@ -417,9 +406,9 @@ class TestSortProxiesPareto:
             )
             proxies.append(proxy)
 
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.8
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies, {p.id: 0.8 for p in proxies}, {p.id: 80.0 for p in proxies}
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -449,15 +438,11 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy_failing, proxy_perfect]
-        history = MagicMock()
-
-        def get_reliability(proxy_id):
-            if proxy_perfect.id == proxy_id:
-                return 1.0
-            return 0.0
-
-        history.get_reliability_score.side_effect = get_reliability
-        history.get_summary_stats.return_value = {"uptime_percentage": 80.0}
+        history = self._setup_history_mock(
+            proxies,
+            {proxy_perfect.id: 1.0, proxy_failing.id: 0.0},
+            {p.id: 80.0 for p in proxies},
+        )
 
         sort_proxies_pareto(proxies, history)
 
@@ -476,16 +461,11 @@ class TestSortProxiesPareto:
         )
 
         proxies = [proxy]
-        history = MagicMock()
-        history.get_reliability_score.return_value = 0.6  # (1 - 0.6) * 0.3 = 0.12
-        history.get_summary_stats.return_value = {
-            "uptime_percentage": 70.0
-        }  # (1 - 0.7) * 0.2 = 0.06
+        history = self._setup_history_mock(proxies, {proxy.id: 0.6}, {proxy.id: 70.0})
 
         # Expected score: (0.5 * 0.5) + (0.4 * 0.3) + (0.3 * 0.2) = 0.25 + 0.12 + 0.06 = 0.43
 
         sort_proxies_pareto(proxies, history)
 
-        # Verify that the proxy ID was queried correctly
-        history.get_reliability_score.assert_called_with(proxy.id)
-        history.get_summary_stats.assert_called_with(proxy.id)
+        # Verify that bulk stats was called
+        history.get_bulk_stats.assert_called_with([proxy.id])

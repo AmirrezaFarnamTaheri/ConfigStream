@@ -1,10 +1,11 @@
 import asyncio
 import logging
 import os
-import json
+import orjson as json
 import shutil
+import uuid
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, cast
 
 from ..config import AppSettings
 from ..models import Proxy
@@ -52,11 +53,155 @@ class GoBatchTester:
 
         self.binary_path = resolved or binary_path
         self.available = resolved is not None
+
+        # Long-lived process state
+        self._proc: Optional[asyncio.subprocess.Process] = None
+        self._lock = asyncio.Lock()
+        self._pending_futures: Dict[str, asyncio.Future] = {}
+        self._read_task: Optional[asyncio.Task] = None
+        self._stderr_task: Optional[asyncio.Task] = None
+        self._stopping = False
+
         if not self.available:
             logger.error(
                 f"CRITICAL: Go batch tester binary not found (searched: {binary_path}, env: {env_path}, PATH). "
                 "No proxies will be tested via the high-performance path!"
             )
+
+    async def start(self):
+        """Start the long-lived tester process."""
+        if self.available:
+            await self._ensure_process()
+
+    async def close(self):
+        """Stop the tester process and cleanup resources."""
+        self._stopping = True
+        async with self._lock:
+            if self._proc:
+                try:
+                    if self._proc.stdin:
+                        self._proc.stdin.close()
+                        await asyncio.sleep(0.1)  # Give time to flush/close
+                    self._proc.terminate()
+                    try:
+                        await asyncio.wait_for(self._proc.wait(), timeout=2.0)
+                    except asyncio.TimeoutError:
+                        self._proc.kill()
+                except Exception as e:
+                    logger.debug(f"Error closing Go tester process: {e}")
+                finally:
+                    self._proc = None
+
+            # Cancel tasks
+            if self._read_task:
+                self._read_task.cancel()
+                try:
+                    await self._read_task
+                except asyncio.CancelledError:
+                    pass
+                self._read_task = None
+
+            if self._stderr_task:
+                self._stderr_task.cancel()
+                try:
+                    await self._stderr_task
+                except asyncio.CancelledError:
+                    pass
+                self._stderr_task = None
+
+            # Cancel pending futures
+            for f in self._pending_futures.values():
+                if not f.done():
+                    f.cancel()
+            self._pending_futures.clear()
+            logger.info("Go Batch Tester shutdown complete.")
+
+    async def _ensure_process(self):
+        """Ensure the Go process is running."""
+        if self._proc and self._proc.returncode is None:
+            return
+
+        async with self._lock:
+            if self._proc and self._proc.returncode is None:
+                return
+
+            if self._stopping:
+                return
+
+            cmd = [self.binary_path, "-workers", str(self.workers)]
+            cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
+            if AppSettings.TEST_URLS:
+                urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
+                cmd.extend(["-urls", urls])
+
+            logger.info(f"Starting Go Tester Daemon: {' '.join(cmd)}")
+
+            try:
+                self._proc = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+
+                # Start background readers
+                loop = asyncio.get_running_loop()
+                self._read_task = loop.create_task(self._read_loop())
+                self._stderr_task = loop.create_task(self._read_stderr_loop())
+            except Exception as e:
+                logger.error(f"Failed to start Go Tester Daemon: {e}")
+                self._proc = None
+
+    async def _read_loop(self):
+        """Background task to read results from stdout."""
+        try:
+            while self._proc and self._proc.stdout and not self._proc.stdout.at_eof():
+                line = await self._proc.stdout.readline()
+                if not line:
+                    break
+                try:
+                    # Line is bytes
+                    data = json.loads(line)
+                    req_id = data.get("id")
+                    if req_id and req_id in self._pending_futures:
+                        future = self._pending_futures[req_id]
+                        if not future.done():
+                            future.set_result(data)
+                        del self._pending_futures[req_id]
+                except json.JSONDecodeError:
+                    logger.debug(f"Go Tester output decode error: {line[:100]!r}")
+                except Exception as e:
+                    logger.error(f"Error processing Go Tester output: {e}")
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            if not self._stopping:
+                logger.error(f"Go Tester read loop fatal error: {e}")
+        finally:
+            if not self._stopping:
+                logger.warning("Go Tester stdout closed (process died?)")
+
+    async def _read_stderr_loop(self):
+        """Background task to read logs from stderr."""
+        try:
+            while self._proc and self._proc.stderr and not self._proc.stderr.at_eof():
+                line = await self._proc.stderr.readline()
+                if not line:
+                    break
+                text = line.decode().strip()
+                if text:
+                    lower = text.lower()
+                    if "panic" in lower or "fatal" in lower:
+                        logger.error(f"Go Tester Daemon: {text}")
+                    elif "info" in lower:
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug(f"Go Tester: {text}")
+                    elif "error" in lower:
+                        logger.warning(f"Go Tester: {text}")
+        except asyncio.CancelledError:
+            pass
+        except Exception:
+            pass
 
     async def test_batch(
         self, proxies: List[Proxy], check_honeypot: bool = False
@@ -64,247 +209,210 @@ class GoBatchTester:
         if not self.available or not proxies:
             return proxies
 
+        await self._ensure_process()
+        if not self._proc or not self._proc.stdin:
+            logger.error("Go Tester process unavailable, skipping batch")
+            return proxies
+
         inputs = []
-        proxy_map = {}
+        req_id_map: Dict[str, Proxy] = {} # Map req_id -> Proxy
+        futures = []
+        loop = asyncio.get_running_loop()
+
         for p in proxies:
             outbound = to_singbox_outbound(p)
             if outbound:
+                # Use unique request ID to handle duplicate proxies in different batches
+                req_id = f"{p.id}-{uuid.uuid4().hex[:8]}"
                 inputs.append(
                     {
-                        "config": json.dumps(outbound),
-                        "id": p.id,
+                        "config": json.dumps(outbound).decode(),
+                        "id": req_id,
                         "check_honeypot": check_honeypot,
                     }
                 )
-                proxy_map[p.id] = p
+                req_id_map[req_id] = p
+
+                fut = loop.create_future()
+                self._pending_futures[req_id] = fut
+                futures.append(fut)
             else:
-                # Log when converter fails - this is likely a major issue
-                logger.warning(
-                    f"Cannot convert proxy to singbox format: {p.protocol}://{p.address}:{p.port} - skipping test"
-                )
                 p.is_working = False
+                p.details["error"] = "CONVERSION_FAILED"
 
         if not inputs:
-            logger.warning(
-                f"No valid inputs for Go tester from {len(proxies)} proxies - all conversions failed. "
-                "Check protocol support and configuration validity."
-            )
             return proxies
 
-        return await self._run_tester(inputs, proxy_map)
+        if not self._proc.stdin:
+            logger.error("Go Tester stdin closed unexpectedly")
+            return proxies
+
+        # Send batch to daemon
+        try:
+            # Use NDJSON
+            payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
+            self._proc.stdin.write(payload.encode())
+            await self._proc.stdin.drain()
+        except Exception as e:
+            logger.error(f"Failed to write to Go Tester Daemon: {e}")
+            # Fail futures to unblock
+            for f in futures:
+                if not f.done():
+                    f.set_exception(e)
+            # Process might be dead, ensure restart next time
+            await self.close()
+            return proxies
+
+        # Wait for results
+        # Set a total timeout relative to batch size
+        total_timeout = min(300, len(inputs) * 2 + 10)
+
+        try:
+            completed_results = await asyncio.wait_for(
+                asyncio.gather(*futures, return_exceptions=True),
+                timeout=total_timeout
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"Timed out waiting for {len(inputs)} results from Go Tester Daemon")
+            # Cleanup
+            for f, req_id in zip(futures, req_id_map.keys()):
+                if not f.done():
+                    f.cancel()
+                    self._pending_futures.pop(req_id, None)
+            return proxies
+
+        # Process Results
+        working_count = 0
+        failure_reasons: Dict[str, int] = {}
+
+        for res in completed_results:
+            if isinstance(res, BaseException):
+                logger.debug(f"Go Tester result error: {res}")
+                continue
+
+            # res is the JSON dict
+            res_data = cast(Dict[str, Any], res)
+            req_id = str(res_data.get("id"))
+            proxy_obj: Optional[Proxy] = req_id_map.get(req_id)
+            if not proxy_obj:
+                continue
+
+            if res_data.get("is_working"):
+                proxy_obj.is_working = True
+                proxy_obj.latency = res_data.get("latency")
+                working_count += 1
+                if res_data.get("issues"):
+                    for issue in res_data["issues"]:
+                        proxy_obj.security_issues.setdefault("go_check", []).append(issue)
+                        if issue == "DIRTY_IP":
+                            proxy_obj.tags.append("dirty_ip")
+            else:
+                proxy_obj.is_working = False
+                error_msg = str(res_data.get("error", "unknown"))
+                proxy_obj.details["error"] = error_msg
+
+                # Categorize error
+                if "HONEYPOT" in error_msg:
+                    error_cat = "HONEYPOT"
+                elif "DIRTY_IP" in error_msg:
+                    error_cat = "DIRTY_IP"
+                elif "PANIC" in error_msg:
+                    error_cat = "PANIC"
+                elif "timeout" in error_msg.lower():
+                    error_cat = "TIMEOUT"
+                elif "bind" in error_msg.lower() and "in use" in error_msg.lower():
+                    error_cat = "BIND_ERROR"
+                elif "handshake" in error_msg.lower():
+                    error_cat = "HANDSHAKE_FAIL"
+                elif "connection refused" in error_msg.lower():
+                    error_cat = "CONN_REFUSED"
+                else:
+                    error_cat = "OTHER"
+
+                failure_reasons[error_cat] = failure_reasons.get(error_cat, 0) + 1
+                if error_cat not in ["TIMEOUT", "OTHER"]:
+                    p.details["failure_category"] = error_cat
+
+        # Log summary
+        failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])
+        logger.info(
+            f"Go Tester results (Batch): {working_count}/{len(inputs)} working. "
+            f"Failures: {failure_summary if failure_summary else 'None'}"
+        )
+
+        return proxies
 
     async def test_custom_configs(
         self, configs: List[Dict[str, Any]], check_honeypot: bool = False
     ) -> Dict[str, bool]:
-        """
-        Test raw Sing-box outbounds (or chains) directly.
-        Input: List of {'id': str, 'outbounds': List[Dict]}
-        Returns: Dict mapping ID to is_working boolean.
-        """
+        """Test custom configs using the daemon."""
         if not self.available or not configs:
             return {}
 
+        await self._ensure_process()
+        if not self._proc or not self._proc.stdin:
+            return {}
+
         inputs = []
+        req_id_map: Dict[str, str] = {}  # original_id -> req_id
+        reverse_map: Dict[str, str] = {}  # req_id -> original_id
+        futures = []
+        loop = asyncio.get_running_loop()
+
         for item in configs:
             chain_id = item.get("id")
             outbounds = item.get("outbounds")
             if not chain_id or not outbounds:
                 continue
 
-            # Serialize chain components as comma-separated JSON objects
-            # This format is compatible with the Go tester's string formatting template
-            config_str = ", ".join(json.dumps(o) for o in outbounds)
-            inputs.append(
-                {
-                    "config": config_str,
-                    "id": chain_id,
-                    "check_honeypot": check_honeypot,
-                }
-            )
+            config_str = ", ".join(json.dumps(o).decode() for o in outbounds)
+            # Unique request ID
+            req_id = f"{chain_id}-{uuid.uuid4().hex[:8]}"
+
+            inputs.append({
+                "config": config_str,
+                "id": req_id,
+                "check_honeypot": check_honeypot,
+            })
+            req_id_map[chain_id] = req_id
+            reverse_map[req_id] = chain_id
+
+            fut = loop.create_future()
+            self._pending_futures[req_id] = fut
+            futures.append(fut)
 
         if not inputs:
             return {}
 
-        results = await self._execute_go_binary(inputs)
-
-        status_map = {}
-        for res in results:
-            status_map[res["id"]] = res.get("is_working", False)
-
-        return status_map
-
-    async def _execute_go_binary(self, inputs: List[Dict]) -> List[Dict]:
-        """Core execution logic for the Go binary."""
-        # Split large batches to prevent freezes
-        MAX_BATCH_SIZE = 25
-
+        # Send
         try:
-            cmd = [self.binary_path, "-workers", str(self.workers)]
-            cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
-            if AppSettings.TEST_URLS:
-                urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
-                cmd.extend(["-urls", urls])
+            payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
+            self._proc.stdin.write(payload.encode())
+            await self._proc.stdin.drain()
+        except Exception:
+            return {}
 
-            # Process in smaller batches to prevent freezes
-            if len(inputs) > MAX_BATCH_SIZE:
-                logger.info(
-                    f"Splitting {len(inputs)} items into batches of {MAX_BATCH_SIZE}"
-                )
-                all_results = []
-                for i in range(0, len(inputs), MAX_BATCH_SIZE):
-                    batch = inputs[i : i + MAX_BATCH_SIZE]
-                    logger.info(
-                        f"Processing batch {i//MAX_BATCH_SIZE + 1}: {len(batch)} items"
-                    )
-                    batch_results = await self._execute_single_batch(cmd, batch)
-                    all_results.extend(batch_results)
-                    # Small delay between batches to allow port cleanup
-                    await asyncio.sleep(0.5)
-                return all_results
-            return await self._execute_single_batch(cmd, inputs)
-
-        except Exception as e:
-            logger.error(f"Go execution failed: {e}")
-            return []
-
-    async def _execute_single_batch(
-        self, cmd: List[str], inputs: List[Dict]
-    ) -> List[Dict]:
-        # [FIX] Use NDJSON (Newline Delimited JSON) for streaming compatibility with Go tester
-        payload_json = "\n".join(json.dumps(i) for i in inputs)
-        payload_kb = len(payload_json) / 1024.0
-
-        logger.info(
-            f"Invoking Go tester with {len(inputs)} items. Payload size: {payload_kb:.2f} KB."
-        )
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"Go tester command: {' '.join(cmd)}")
-
-        proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdin=asyncio.subprocess.PIPE,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
-
+        # Wait
         try:
-            # Reduced timeout per batch, with heartbeat monitoring
-            timeout_per_item = 15  # seconds
-            total_timeout = min(300, len(inputs) * timeout_per_item + 60)
-            stdout, stderr = await asyncio.wait_for(
-                proc.communicate(input=payload_json.encode("utf-8")),
-                timeout=total_timeout,
+            completed = await asyncio.wait_for(
+                asyncio.gather(*futures, return_exceptions=True),
+                timeout=120
             )
         except asyncio.TimeoutError:
-            try:
-                proc.kill()
-                await proc.wait()
-            except Exception:
-                pass
-            logger.error(f"Go Tester froze on batch of {len(inputs)}! Killing process.")
-            return []
-        except Exception:
-            # Ensure cleanup on any other exception
-            try:
-                proc.kill()
-                await proc.wait()
-            except Exception:
-                pass
-            raise
+            # Cleanup
+            for f, req_id in zip(futures, reverse_map.keys()):
+                if not f.done():
+                    f.cancel()
+                    self._pending_futures.pop(req_id, None)
+            return {}
 
-        if stderr:
-            stderr_text = stderr.decode().strip()
-            if stderr_text:
-                lower_text = stderr_text.lower()
+        results = {}
+        for res in completed:
+            if isinstance(res, dict):
+                req_id = res.get("id")
+                # Ensure req_id is string for lookup
+                orig_id_val = reverse_map.get(str(req_id))
+                if orig_id_val:
+                    results[orig_id_val] = bool(res.get("is_working", False))
 
-                if "panic" in lower_text or "fatal" in lower_text:
-                    logger.error(f"Go Tester CRASHED: {stderr_text[:4096]}")
-                elif "info:" in lower_text:
-                    logger.info(f"Go Tester: {stderr_text[:2048]}")
-                else:
-                    logger.warning(f"Go Tester stderr: {stderr_text[:2048]}")
-
-        if not stdout or not stdout.strip():
-            logger.error(
-                f"Go Tester produced NO OUTPUT! (Exit Code: {proc.returncode})"
-            )
-            return []
-
-        results = []
-        for line in stdout.decode().splitlines():
-            try:
-                results.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
         return results
-
-    async def _run_tester(
-        self, inputs: List[Dict], proxy_map: Dict[str, Proxy]
-    ) -> List[Proxy]:
-        results = await self._execute_go_binary(inputs)
-
-        result_count = 0
-        working_count = 0
-        failure_reasons: Dict[str, int] = {}
-
-        for res in results:
-            result_count += 1
-            p_id = res.get("id")
-            if p_id and p_id in proxy_map:
-                p = proxy_map[p_id]
-                if res.get("is_working"):
-                    p.is_working = True
-                    p.latency = res.get("latency")
-                    working_count += 1
-                    if res.get("issues"):
-                        for issue in res["issues"]:
-                            p.security_issues.setdefault("go_check", []).append(issue)
-                            if issue == "DIRTY_IP":
-                                p.tags.append("dirty_ip")
-                else:
-                    p.is_working = False
-                    error_msg = res.get("error", "unknown")
-                    p.details["error"] = error_msg
-
-                    if "HONEYPOT" in error_msg:
-                        error_cat = "HONEYPOT"
-                    elif "DIRTY_IP" in error_msg:
-                        error_cat = "DIRTY_IP"
-                    elif "PANIC" in error_msg:
-                        error_cat = "PANIC"
-                    elif "timeout" in error_msg.lower():
-                        error_cat = "TIMEOUT"
-                    elif "bind" in error_msg.lower() and "in use" in error_msg.lower():
-                        error_cat = "BIND_ERROR"
-                    elif "handshake" in error_msg.lower():
-                        error_cat = "HANDSHAKE_FAIL"
-                    elif "connection refused" in error_msg.lower():
-                        error_cat = "CONN_REFUSED"
-                    else:
-                        error_cat = "OTHER"
-
-                    failure_reasons[error_cat] = failure_reasons.get(error_cat, 0) + 1
-                    if error_cat not in ["TIMEOUT", "OTHER"]:
-                        p.details["failure_category"] = error_cat
-
-                    meta_str = f"[ASN:{p.asn or 'N/A'} Country:{p.country or 'N/A'}]"
-                    if error_cat not in ["TIMEOUT"]:
-                        logger.debug(
-                            f"Test failed {meta_str} for {p.protocol}://{p.address}:{p.port} -> {error_msg} (Category: {error_cat})"
-                        )
-                    else:
-                        logger.debug(f"Test timeout {meta_str}: {p.address}")
-
-        failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])
-        logger.info(
-            f"Go Tester results: {working_count}/{result_count} working "
-            f"(sent {len(inputs)}, parsed {result_count}). "
-            f"Failures breakdown: {failure_summary if failure_summary else 'None'}"
-        )
-
-        if result_count > 0 and working_count == 0:
-            logger.warning(
-                "Go Tester returned results but ALL tests failed (Check network or batch quality)."
-            )
-
-        return list(proxy_map.values())
