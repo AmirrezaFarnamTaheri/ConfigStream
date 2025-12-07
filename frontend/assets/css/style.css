@@ -1,10 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&family=DM+Serif+Display&display=swap');
 
+/* Farsi/Persian Fonts - Vazirmatn (UI) and Mikhak (Display) */
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css');
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/mikhak@v1.2.0/Mikhak-font-face.css');
+
 /*
     ConfigStream - The "Perfect" UI/UX Redesign v4.0
     ------------------------------------------------
     - **UI/UX:** Neumorphic Glassmorphism, Liquid Animations, AR/VR-inspired Depth
     - **Typography:** DM Serif Display (Headlines), Be Vietnam Pro (UI)
+    - **Farsi Typography:** Mikhak (Headlines), Vazirmatn (UI)
     - **Layout:** 8px Grid, Fluid & Asymmetric
     - **Motion:** Fluid Transitions, Delightful Microinteractions
     - **Themeing:** Vibrant Light & Deep Dark Modes
@@ -3876,4 +3881,61 @@ body.dark .client-select {
 
 [dir="rtl"] .social-links {
     flex-direction: row-reverse;
+}
+
+/* ===== Farsi and Arabic Font Support ===== */
+/* Apply Vazirmatn for Farsi UI text */
+[lang="fa"] body,
+[lang="fa"] * {
+    font-family: 'Vazirmatn', var(--font-sans) !important;
+}
+
+/* Apply Mikhak for Farsi headings */
+[lang="fa"] h1,
+[lang="fa"] h2,
+[lang="fa"] h3,
+[lang="fa"] h4,
+[lang="fa"] h5,
+[lang="fa"] h6,
+[lang="fa"] .hero-title,
+[lang="fa"] .card-header h2,
+[lang="fa"] .font-display {
+    font-family: 'Mikhak', var(--font-display) !important;
+}
+
+/* Apply Vazirmatn for Arabic UI text */
+[lang="ar"] body,
+[lang="ar"] * {
+    font-family: 'Vazirmatn', var(--font-sans) !important;
+}
+
+/* Apply Mikhak for Arabic headings */
+[lang="ar"] h1,
+[lang="ar"] h2,
+[lang="ar"] h3,
+[lang="ar"] h4,
+[lang="ar"] h5,
+[lang="ar"] h6,
+[lang="ar"] .hero-title,
+[lang="ar"] .card-header h2,
+[lang="ar"] .font-display {
+    font-family: 'Mikhak', var(--font-display) !important;
+}
+
+/* Better line-height for Persian/Arabic scripts */
+[lang="fa"], [lang="ar"] {
+    line-height: 1.8;
+}
+
+[lang="fa"] p, [lang="ar"] p {
+    line-height: 1.9;
+}
+
+/* Improved letter spacing for readability */
+[lang="fa"] h1, [lang="ar"] h1 {
+    letter-spacing: -0.02em;
+}
+
+[lang="fa"] .btn, [lang="ar"] .btn {
+    letter-spacing: 0;
 }
