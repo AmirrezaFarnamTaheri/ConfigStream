@@ -105,3 +105,8 @@ class SingBoxTester:
                 )
                 return
             self.cache.set(proxy)
+
+    async def close(self):
+        """Clean up resources."""
+        if self.go_tester:
+            await self.go_tester.close()

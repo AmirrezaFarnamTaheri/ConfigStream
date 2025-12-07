@@ -59,8 +59,27 @@ class GeoIPResolver:
             city_path = data_dir / "GeoLite2-City.mmdb"
             asn_path = data_dir / "GeoLite2-ASN.mmdb"
 
+            # [OPTIMIZATION] Check for C extension availability
+            db_mode = 0  # Default (Auto)
+            try:
+                import maxminddb
+
+                db_mode = maxminddb.MODE_MMAP_EXT
+            except (ImportError, AttributeError):
+                logger.warning(
+                    "⚠️  Running GeoIP in slow Pure-Python mode! Install 'maxminddb' C extension for performance."
+                )
+
             if city_path.exists():
-                self.reader_city = geoip2.database.Reader(city_path)
+                try:
+                    self.reader_city = geoip2.database.Reader(city_path, mode=db_mode)
+                except (ValueError, TypeError):
+                    # Fallback if extension fails or invalid mode
+                    logger.warning(
+                        "Failed to load GeoIP with C extension, falling back to pure Python."
+                    )
+                    self.reader_city = geoip2.database.Reader(city_path)
+
                 logger.info("Loaded GeoLite2 City database.")
             else:
                 logger.warning(
@@ -68,7 +87,11 @@ class GeoIPResolver:
                 )
 
             if asn_path.exists():
-                self.reader_asn = geoip2.database.Reader(asn_path)
+                try:
+                    self.reader_asn = geoip2.database.Reader(asn_path, mode=db_mode)
+                except (ValueError, TypeError):
+                    self.reader_asn = geoip2.database.Reader(asn_path)
+
                 logger.info("Loaded GeoLite2 ASN database.")
             else:
                 logger.warning(
