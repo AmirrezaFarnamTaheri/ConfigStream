@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Access the free, open internet with ConfigStream. We provide auto-updating, security-tested VPN configurations for everyone.">
     <title>ConfigStream - Your Gateway to the Open Internet</title>
+
+    <script>
+        window.ROOT_PATH = './';
+    </script>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/favicon-16x16.png">
@@ -240,11 +244,12 @@
                                             <!-- Redesigned Dropdown for Clients -->
                                             <div class="client-dropdown-wrapper">
                                                 <select id="client-selector-dropdown" class="client-select">
-                                                    <option value="shadowrocket">Shadowrocket</option>
-                                                    <option value="surge">Surge</option>
-                                                    <option value="loon">Loon</option>
-                                                    <option value="quantumultx">Quantumult X</option>
-                                                    <option value="sip008">SIP008</option>
+                                                <option value="shadowrocket" data-icon="send">🚀 Shadowrocket</option>
+                                                <option value="surge" data-icon="zap">⚡ Surge</option>
+                                                <option value="loon" data-icon="moon">🌙 Loon</option>
+                                                <option value="quantumultx" data-icon="box">📦 Quantumult X</option>
+                                                <option value="sip008" data-icon="code">📋 SIP008</option>
+                                                <option value="singbox" data-icon="layers">🔷 Sing-box (Universal)</option>
                                                 </select>
                                                 <i data-feather="chevron-down" class="dropdown-arrow"></i>
                                             </div>

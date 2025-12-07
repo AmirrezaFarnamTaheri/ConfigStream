@@ -10,6 +10,7 @@ from typing import List, Dict, Optional, Set, Any, Tuple
 from ...models import Proxy
 from ...converters import to_singbox_outbound
 from ...workers.scanner import WarpScannerWorker
+from .warp_scraper import scrape_warp_sources
 from ..chaining import find_optimal_relay, ProxyStub, COUNTRIES
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,19 @@ class ProxyWasher:
         2. Static Lists (Reliability Fallback)
         3. Hardcoded Defaults (Last Resort)
         """
+
+        # --- STRATEGY 0: WARP SCRAPER (NEW FIRST FALLBACK) ---
+        if not self.warp_keys:
+            logger.info("No WARP keys configured, trying community sources...")
+            try:
+                scraped_keys = await scrape_warp_sources()
+                if scraped_keys:
+                    self.warp_keys = scraped_keys
+                    logger.info(
+                        f"Loaded {len(scraped_keys)} WARP keys from community sources"
+                    )
+            except Exception as e:
+                logger.warning(f"WARP scraper failed: {e}")
 
         # --- STRATEGY 1: ACTIVE SCANNING ---
         # Only run if the binary is available

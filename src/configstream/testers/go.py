@@ -135,6 +135,9 @@ class GoBatchTester:
 
     async def _execute_go_binary(self, inputs: List[Dict]) -> List[Dict]:
         """Core execution logic for the Go binary."""
+        # Split large batches to prevent freezes
+        MAX_BATCH_SIZE = 25
+
         try:
             cmd = [self.binary_path, "-workers", str(self.workers)]
             cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
@@ -142,78 +145,98 @@ class GoBatchTester:
                 urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
 
-            # [FIX] Use NDJSON (Newline Delimited JSON) for streaming compatibility with Go tester
-            payload_json = "\n".join(json.dumps(i) for i in inputs)
-            payload_kb = len(payload_json) / 1024.0
-
-            logger.info(
-                f"Invoking Go tester with {len(inputs)} items. Payload size: {payload_kb:.2f} KB."
-            )
-            if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(f"Go tester command: {' '.join(cmd)}")
-
-            proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-
-            try:
-                # [FIX] Increased timeout to 600s to accommodate heavy batches/retries
-                stdout, stderr = await asyncio.wait_for(
-                    proc.communicate(input=payload_json.encode("utf-8")), timeout=600
+            # Process in smaller batches to prevent freezes
+            if len(inputs) > MAX_BATCH_SIZE:
+                logger.info(
+                    f"Splitting {len(inputs)} items into batches of {MAX_BATCH_SIZE}"
                 )
-            except asyncio.TimeoutError:
-                try:
-                    proc.kill()
-                    # CRITICAL FIX: Await process termination to prevent
-                    # "Event loop is closed" error during garbage collection.
-                    # Without this, the subprocess transport is orphaned and
-                    # its __del__ method tries to use the closed event loop.
-                    await proc.wait()
-                except Exception:
-                    pass
-                logger.error("Go Tester froze! Killing process to save pipeline.")
-                return []
-            except Exception:
-                # Ensure cleanup on any other exception
-                try:
-                    proc.kill()
-                    await proc.wait()
-                except Exception:
-                    pass
-                raise
-
-            if stderr:
-                stderr_text = stderr.decode().strip()
-                if stderr_text:
-                    lower_text = stderr_text.lower()
-
-                    if "panic" in lower_text or "fatal" in lower_text:
-                        logger.error(f"Go Tester CRASHED: {stderr_text[:4096]}")
-                    elif "info:" in lower_text:
-                        logger.info(f"Go Tester: {stderr_text[:2048]}")
-                    else:
-                        logger.warning(f"Go Tester stderr: {stderr_text[:2048]}")
-
-            if not stdout or not stdout.strip():
-                logger.error(
-                    f"Go Tester produced NO OUTPUT! (Exit Code: {proc.returncode})"
-                )
-                return []
-
-            results = []
-            for line in stdout.decode().splitlines():
-                try:
-                    results.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue
-            return results
+                all_results = []
+                for i in range(0, len(inputs), MAX_BATCH_SIZE):
+                    batch = inputs[i : i + MAX_BATCH_SIZE]
+                    logger.info(
+                        f"Processing batch {i//MAX_BATCH_SIZE + 1}: {len(batch)} items"
+                    )
+                    batch_results = await self._execute_single_batch(cmd, batch)
+                    all_results.extend(batch_results)
+                    # Small delay between batches to allow port cleanup
+                    await asyncio.sleep(0.5)
+                return all_results
+            return await self._execute_single_batch(cmd, inputs)
 
         except Exception as e:
             logger.error(f"Go execution failed: {e}")
             return []
+
+    async def _execute_single_batch(
+        self, cmd: List[str], inputs: List[Dict]
+    ) -> List[Dict]:
+        # [FIX] Use NDJSON (Newline Delimited JSON) for streaming compatibility with Go tester
+        payload_json = "\n".join(json.dumps(i) for i in inputs)
+        payload_kb = len(payload_json) / 1024.0
+
+        logger.info(
+            f"Invoking Go tester with {len(inputs)} items. Payload size: {payload_kb:.2f} KB."
+        )
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"Go tester command: {' '.join(cmd)}")
+
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        try:
+            # Reduced timeout per batch, with heartbeat monitoring
+            timeout_per_item = 15  # seconds
+            total_timeout = min(300, len(inputs) * timeout_per_item + 60)
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(input=payload_json.encode("utf-8")),
+                timeout=total_timeout,
+            )
+        except asyncio.TimeoutError:
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
+            logger.error(f"Go Tester froze on batch of {len(inputs)}! Killing process.")
+            return []
+        except Exception:
+            # Ensure cleanup on any other exception
+            try:
+                proc.kill()
+                await proc.wait()
+            except Exception:
+                pass
+            raise
+
+        if stderr:
+            stderr_text = stderr.decode().strip()
+            if stderr_text:
+                lower_text = stderr_text.lower()
+
+                if "panic" in lower_text or "fatal" in lower_text:
+                    logger.error(f"Go Tester CRASHED: {stderr_text[:4096]}")
+                elif "info:" in lower_text:
+                    logger.info(f"Go Tester: {stderr_text[:2048]}")
+                else:
+                    logger.warning(f"Go Tester stderr: {stderr_text[:2048]}")
+
+        if not stdout or not stdout.strip():
+            logger.error(
+                f"Go Tester produced NO OUTPUT! (Exit Code: {proc.returncode})"
+            )
+            return []
+
+        results = []
+        for line in stdout.decode().splitlines():
+            try:
+                results.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return results
 
     async def _run_tester(
         self, inputs: List[Dict], proxy_map: Dict[str, Proxy]
