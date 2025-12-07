@@ -229,35 +229,123 @@ function initCharts(data) {
         });
     }
 
-    // 4. Intelligence Distribution & Neutralized Threats (Doughnut)
+    // 4. Threat Breakdown - Actual Security Threats Only (Doughnut)
     const threatEl = document.getElementById('threatChart');
     if (threatEl) {
         const threatCtx = threatEl.getContext('2d');
 
-        // Combine "Intelligence Layers" (Washer, Smart) AND "Neutralized Threats" (Dirty, Honeypot)
-        // into a single "Security & Intelligence" breakdown
+        // Extract ALL threat categories from rejection_reasons
+        // These map to backend SECURITY_CATEGORIES
+        const threats = {
+            // Critical Security Threats
+            blockedIPs: 0,        // address_blocked (FireHol blocklist - dirty IPs)
+            honeypots: 0,         // honeypot_suspected
+            suspiciousNodes: 0,   // address_suspicious
+            privateIPs: 0,        // address_private_ip
 
-        const totalRevived = data.total_revived || 0;
-        const totalSmart = data.total_smart_chains || 0;
-        const smartBreakdown = data.smart_chains_breakdown || {};
+            // Configuration Issues
+            dangerousPorts: 0,    // port_security
+            invalidProtocols: 0,  // protocol_invalid
+            malformedConfigs: 0,  // suspicious_config_malformed (null bytes)
+            oversizedConfigs: 0,  // suspicious_config_format (too long)
+            invalidUUIDs: 0,      // config_uuid_invalid
 
-        // Breakdown Smart Chains
-        const standardChains = (smartBreakdown.intranet || 0) + (smartBreakdown.ipv6 || 0) + (smartBreakdown.streamer || 0) + (smartBreakdown.experimental || 0);
-        const washedChains = smartBreakdown.intranet_washed || 0;
+            // Filtering (not threats but rejections)
+            duplicates: 0,        // duplicate
+            invalidConfigs: 0,    // invalid (parsing failures)
+        };
 
-        // Calculate threats from rejection reasons if not explicit
-        let dirty = 0;
-        let honeypots = 0;
         if (data.rejection_reasons) {
-             dirty = data.rejection_reasons.dirty_ip || 0;
-             honeypots = data.rejection_reasons.honeypot || 0;
+            const reasons = data.rejection_reasons;
+
+            // Map backend category names to threat types
+            threats.blockedIPs = reasons.address_blocked || 0;
+            threats.honeypots = reasons.honeypot_suspected || 0;
+            threats.suspiciousNodes = reasons.address_suspicious || 0;
+            threats.privateIPs = reasons.address_private_ip || 0;
+            threats.dangerousPorts = reasons.port_security || 0;
+            threats.invalidProtocols = reasons.protocol_invalid || 0;
+            threats.malformedConfigs = reasons.suspicious_config_malformed || 0;
+            threats.oversizedConfigs = reasons.suspicious_config_format || 0;
+            threats.invalidUUIDs = reasons.config_uuid_invalid || 0;
+            threats.duplicates = reasons.duplicate || 0;
+            threats.invalidConfigs = reasons.invalid || 0;
         }
 
-        // If empty, use defaults to show *something* or hide
-        // Separation: Revived (Direct Wash), Washed Chains (Intranet+Washed), Standard Chains, Threats
-        const dataset = [totalRevived, washedChains, standardChains, dirty, honeypots];
-        const labels = ['Revived (Warp)', 'Washed Chains (Secure)', 'Standard Smart Chains', 'Dirty IPs Blocked', 'Honeypots Blocked'];
-        const colors = ['#9b59b6', '#8e44ad', '#2ecc71', '#f39c12', '#e74c3c'];
+        // Build dynamic dataset - only show categories with data
+        const dataset = [];
+        const labels = [];
+        const colors = [];
+
+        // Critical Threats (Red shades)
+        if (threats.blockedIPs > 0) {
+            dataset.push(threats.blockedIPs);
+            labels.push('Blocked IPs (FireHol)');
+            colors.push('#e74c3c');
+        }
+        if (threats.honeypots > 0) {
+            dataset.push(threats.honeypots);
+            labels.push('Honeypot Traps');
+            colors.push('#c0392b');
+        }
+        if (threats.suspiciousNodes > 0) {
+            dataset.push(threats.suspiciousNodes);
+            labels.push('Suspicious Domains');
+            colors.push('#e67e22');
+        }
+
+        // Security Issues (Orange/Purple shades)
+        if (threats.privateIPs > 0) {
+            dataset.push(threats.privateIPs);
+            labels.push('Private/Loopback IPs');
+            colors.push('#f39c12');
+        }
+        if (threats.dangerousPorts > 0) {
+            dataset.push(threats.dangerousPorts);
+            labels.push('Dangerous Ports');
+            colors.push('#d35400');
+        }
+
+        // Config Issues (Purple shades)
+        if (threats.malformedConfigs > 0) {
+            dataset.push(threats.malformedConfigs);
+            labels.push('Malformed Configs');
+            colors.push('#8e44ad');
+        }
+        if (threats.invalidProtocols > 0) {
+            dataset.push(threats.invalidProtocols);
+            labels.push('Invalid Protocols');
+            colors.push('#9b59b6');
+        }
+        if (threats.invalidUUIDs > 0) {
+            dataset.push(threats.invalidUUIDs);
+            labels.push('Invalid UUIDs');
+            colors.push('#a569bd');
+        }
+        if (threats.oversizedConfigs > 0) {
+            dataset.push(threats.oversizedConfigs);
+            labels.push('Oversized Configs');
+            colors.push('#bb8fce');
+        }
+
+        // Non-Threats (Gray shades) - just filtering
+        if (threats.duplicates > 0) {
+            dataset.push(threats.duplicates);
+            labels.push('Duplicates');
+            colors.push('#95a5a6');
+        }
+        if (threats.invalidConfigs > 0) {
+            dataset.push(threats.invalidConfigs);
+            labels.push('Parse Failures');
+            colors.push('#7f8c8d');
+        }
+
+        // Fallback if no data
+        if (dataset.length === 0) {
+            dataset.push(1);
+            labels.push('No Threats Detected');
+            colors.push('#2ecc71');
+        }
 
         new Chart(threatCtx, {
             type: 'doughnut',
@@ -274,7 +362,7 @@ function initCharts(data) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'right' },
-                    title: { display: true, text: 'Intelligence & Security' }
+                    title: { display: true, text: 'Security Threats & Rejections' }
                 }
             }
         });
