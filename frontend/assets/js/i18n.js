@@ -569,6 +569,17 @@ class I18n {
             document.documentElement.setAttribute('dir', 'ltr');
         }
 
+        // Update active state in language menu
+        const langButtons = document.querySelectorAll('.lang-menu button');
+        langButtons.forEach(btn => {
+            const btnLang = btn.getAttribute('onclick')?.match(/'([a-z]{2})'/)?.[1];
+            if (btnLang === lang) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
         // Dispatch event for other components
         window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang } }));
     }
