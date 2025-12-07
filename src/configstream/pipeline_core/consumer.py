@@ -175,7 +175,13 @@ async def processing_consumer(
         )
         with tracker.phase("security_validation"):
             validation_start = loop.time()
-            safe_batch = validate_batch_configs(unique_batch, policy)
+            # Offload security validation to executor for batches > 100 to avoid blocking
+            if len(unique_batch) > 100:
+                safe_batch = await loop.run_in_executor(
+                    None, validate_batch_configs, unique_batch, policy
+                )
+            else:
+                safe_batch = validate_batch_configs(unique_batch, policy)
             validation_dur = (loop.time() - validation_start) * 1000
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
