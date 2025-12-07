@@ -24,7 +24,13 @@ function updateStats(data) {
         }
     };
 
-    update('totalSourced', data.total_fetched || data.total_proxies || 0);
+    // Fix: Use correct field with fallbacks
+    // total_sourced = raw lines fetched from sources before dedup
+    // total_fetched = same as above (legacy name)
+    // total_proxies = after dedup, the actual tested count
+    const totalSourced = data.total_sourced || data.total_fetched || data.fetched_lines || 0;
+    update('totalSourced', totalSourced);
+
     update('totalConfigs', data.total_tested || data.total_proxies || 0);
     update('workingConfigs', data.total_working || 0);
 
