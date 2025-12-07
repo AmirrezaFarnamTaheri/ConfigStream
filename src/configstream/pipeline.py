@@ -126,11 +126,16 @@ async def run_full_pipeline(
 
     # Determine parallel consumers based on workers, but keep reasonable limits
     # to avoid overwhelming the system with too many heavy testing loops.
-    # A good heuristic is 2-4 consumers to prevent single-source blocking while
-    # keeping the main event loop responsive.
-    num_consumers = 2
-    if max_workers >= 100:
+    # Optimized scaling: 2 consumers for low workers, up to 8 for high workers
+    # to maximize throughput while keeping the event loop responsive.
+    if max_workers >= 200:
+        num_consumers = 8
+    elif max_workers >= 100:
+        num_consumers = 6
+    elif max_workers >= 50:
         num_consumers = 4
+    else:
+        num_consumers = 2
 
     # [FIX] Start Concurrency Tuner globally if fallback to Python tester is likely
     if not tester.go_tester.available:

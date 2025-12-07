@@ -92,7 +92,7 @@ async def source_producer(
         blocked_urls = []
 
         loop = asyncio.get_running_loop()
-        sem = asyncio.Semaphore(50)  # cap concurrent checks
+        sem = asyncio.Semaphore(100)  # Increased from 50 to 100 for better concurrency
 
         async def _check_url(url):
             async with sem:
@@ -128,9 +128,9 @@ async def source_producer(
         if active_urls:
             logger.info(
                 f"Starting fetch for {len(active_urls)} active sources "
-                f"(Batch Size: 50, Concurrent Limit: {settings.PER_HOST_MAX_CONCURRENCY})"
+                f"(Batch Size: 100, Concurrent Limit: {settings.PER_HOST_MAX_CONCURRENCY})"
             )
-            batch_size = 50
+            batch_size = 100  # Increased from 50 to 100 for better throughput
             for i in range(0, len(active_urls), batch_size):
                 batch = active_urls[i : i + batch_size]
                 logger.info(
