@@ -31,7 +31,7 @@ import (
 const (
 	MaxWorkers        = 15               // Reduced to prevent port exhaustion
 	HoneypotSecret    = "HONEYPOT_SECRET" // Env var
-	MaxRetries        = 20               // Increased retries for port binding
+	MaxRetries        = 5                // Reduced from 20 to 5 to prevent zombie goroutine buildup
 	HeartbeatInterval = 30 * time.Second // Send progress to stderr
 )
 
@@ -258,7 +258,8 @@ func testProxyWithContext(ctx context.Context, p ProxyInput) TestResult {
 		// Add random jitter before starting to desynchronize port binding
 		time.Sleep(time.Duration(getRandomInt(50)) * time.Millisecond)
 
-		latency, issues, err := testLatency(context.Background(), p)
+		// [FIX] Pass ctx instead of context.Background() to propagate timeout
+		latency, issues, err := testLatency(ctx, p)
 
 		if err == nil {
 			res.IsWorking = true
@@ -268,7 +269,8 @@ func testProxyWithContext(ctx context.Context, p ProxyInput) TestResult {
 			}
 
 			if p.CheckHoneypot && CanaryURL != "" {
-				if isHoneypot(context.Background(), p) {
+				// [FIX] Pass ctx for honeypot check as well
+				if isHoneypot(ctx, p) {
 					res.Issues = append(res.Issues, "HONEYPOT_DETECTED")
 					res.IsWorking = false
 					res.Error = "HONEYPOT_DETECTED"
@@ -296,6 +298,13 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 	var lastErr error
 
 	for i := 0; i < MaxRetries; i++ {
+		// [FIX] Check if context is cancelled (worker timeout) before retrying
+		select {
+		case <-ctx.Done():
+			return nil, 0, ctx.Err()
+		default:
+		}
+
 		// [FIX 2] Jitter Retry: Sleep randomly to avoid port collision storms
 		if i > 0 {
 			time.Sleep(time.Duration(getRandomInt(150)+50) * time.Millisecond)
@@ -387,7 +396,9 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	// [FIX] Random target selection to avoid rate limiting
 	target := getRandomTarget()
 	start := time.Now()
-	resp, err := client.Get(target)
+	// [FIX] Use NewRequestWithContext to respect worker timeout
+	req, _ := http.NewRequestWithContext(ctx, "GET", target, nil)
+	resp, err := client.Do(req)
 
 	success := false
 	if err == nil {
@@ -421,7 +432,9 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	}
 
 	start = time.Now()
-	resp, err = client.Get(target2)
+	// [FIX] Use NewRequestWithContext for retry target as well
+	req2, _ := http.NewRequestWithContext(ctx, "GET", target2, nil)
+	resp, err = client.Do(req2)
 
 	if err != nil {
 		return 0, nil, err
@@ -465,7 +478,9 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 	}
 
 	target := fmt.Sprintf("%s?token=%s", CanaryURL, token)
-	resp, err := client.Get(target)
+	// [FIX] Use NewRequestWithContext for honeypot check
+	req, _ := http.NewRequestWithContext(ctx, "GET", target, nil)
+	resp, err := client.Do(req)
 	if err != nil {
 		return false
 	}
