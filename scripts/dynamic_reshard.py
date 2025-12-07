@@ -90,21 +90,28 @@ def main() -> None:
     observed_metrics = parse_logs(log_files)
     all_urls = get_existing_sources()
 
-    # 4. Assign Weights Based on Fetch Duration
-    # Use fetch duration as weight for true time-based load balancing
-    # Multiply by 100 to get integer weights (2.5s -> 250)
+    # 4. Assign Weights Based on Fetch + Test Duration
+    # Total batch time = fetch_time + test_time
+    # Test time is proportional to proxy count (500 workers, ~0.03s per proxy)
+    TEST_TIME_PER_PROXY = 0.03  # seconds (empirical estimate with Go tester)
+
     final_sources: List[Tuple[str, int]] = []
     for url in all_urls:
         if url in observed_metrics:
             count, fetch_duration = observed_metrics[url]
-            # Use fetch duration as weight (in deciseconds for better granularity)
-            weight = int(fetch_duration * 10)
-            # Ensure minimum weight of 1 for very fast sources
+            # Calculate total time: fetch + testing
+            # Test time = count * time_per_proxy
+            test_duration = count * TEST_TIME_PER_PROXY
+            total_duration = fetch_duration + test_duration
+
+            # Convert to deciseconds for integer weights
+            weight = int(total_duration * 10)
+            # Ensure minimum weight of 1
             if weight == 0:
                 weight = 1
         else:
-            # Default weight for sources not in logs (assume 10 second fetch)
-            weight = 100
+            # Default: assume 10s fetch + 100 proxies * 0.03s = 10s + 3s = 13s
+            weight = 130
         final_sources.append((url, weight))
 
     # 5. Sort by Weight (Descending) - Critical for Bin Packing
@@ -125,7 +132,7 @@ def main() -> None:
     if batch_loads:
         max_load = max(batch_loads)
         min_load = min(batch_loads)
-        load_balance_ratio = max_load / min_load if min_load > 0 else float('inf')
+        load_balance_ratio = max_load / min_load if min_load > 0 else float("inf")
         std_dev = statistics.stdev(batch_loads) if len(batch_loads) > 1 else 0.0
     else:
         load_balance_ratio = 0.0

@@ -44,13 +44,14 @@ class SensitiveDataFilter(logging.Filter):
     }
 
     # URL pattern to detect and preserve URLs from masking
-    URL_PATTERN = re.compile(r'https?://\S+')
+    URL_PATTERN = re.compile(r"https?://\S+")
 
     def filter(self, record: logging.LogRecord) -> bool:
         message = record.getMessage()
 
         # Extract URLs and temporarily replace them with placeholders
         urls = []
+
         def url_replacer(match):
             urls.append(match.group(0))
             return f"__URL_PLACEHOLDER_{len(urls)-1}__"
@@ -60,12 +61,13 @@ class SensitiveDataFilter(logging.Filter):
 
         # Apply masking to non-URL content only
         message_without_urls = re.sub(
-            self.PATTERNS["uuid"], "[MASKED_CREDENTIAL]",
-            message_without_urls, flags=re.IGNORECASE
+            self.PATTERNS["uuid"],
+            "[MASKED_CREDENTIAL]",
+            message_without_urls,
+            flags=re.IGNORECASE,
         )
         message_without_urls = re.sub(
-            self.PATTERNS["email"], "[MASKED_EMAIL]",
-            message_without_urls
+            self.PATTERNS["email"], "[MASKED_EMAIL]", message_without_urls
         )
 
         # Restore URLs
