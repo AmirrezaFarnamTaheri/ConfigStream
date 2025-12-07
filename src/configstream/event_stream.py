@@ -23,8 +23,9 @@ class EventStream:
             logger.error(f"[{event_type}] {message}")
         elif event_type in ("warning",):
             logger.warning(f"[{event_type}] {message}")
-        elif event_type == "test_success":
-            # Demote high-volume success events to DEBUG
+        elif event_type in ("test_success", "fetch_success"):
+            # Demote high-volume success events to DEBUG to reduce log spam
+            # These events occur hundreds of times per pipeline run
             logger.debug(f"[{event_type}] {message}")
         else:
             logger.info(f"[{event_type}] {message}")
