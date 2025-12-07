@@ -37,7 +37,7 @@ class HistoryStorage:
                 data: Dict[str, Any] = json.loads(self.history_path.read_text())
                 return data
             except Exception as e:
-                logger.warning("Failed to load proxy history: %s", e)
+                logger.warning(f"Failed to load proxy history: {e}")
         return {}
 
     def save_history(self, history_data: Dict[str, Any]) -> None:
@@ -47,4 +47,4 @@ class HistoryStorage:
             content = json.dumps(history_data, option=json.OPT_INDENT_2).decode()
             AtomicFileWriter.write_text(self.history_path, content)
         except Exception as e:
-            logger.error("Failed to save proxy history: %s", e)
+            logger.error(f"Failed to save proxy history: {e}")

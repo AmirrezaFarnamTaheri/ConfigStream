@@ -98,9 +98,7 @@ class SmartRetestScheduler:
 
         if skipped > 0:
             logger.info(
-                "Smart Scheduler: Skipped %d/%d proxies (Healthy)",
-                skipped,
-                len(proxies),
+                f"Smart Scheduler: Skipped {skipped}/{len(proxies)} proxies (Healthy)"
             )
 
         return to_test

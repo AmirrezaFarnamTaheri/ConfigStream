@@ -48,7 +48,7 @@ def backup_databases(
     db_files = list(data_dir.glob("*.db"))
 
     if not db_files:
-        logger.warning("No database files found in %s", data_dir)
+        logger.warning(f"No database files found in {data_dir}")
         return []
 
     backups_created = []
@@ -67,7 +67,7 @@ def backup_databases(
         try:
             backup_path.resolve().relative_to(backup_dir.resolve())
         except ValueError:
-            logger.error("Skipping backup: path traversal detected for %s", db_file)
+            logger.error(f"Skipping backup: path traversal detected for {db_file}")
             continue
 
         try:
@@ -93,10 +93,7 @@ def backup_databases(
 
             backups_created.append(backup_path)
             logger.info(
-                "Backed up %s -> %s (%.2f MB)",
-                db_file.name,
-                backup_filename,
-                backup_path.stat().st_size / 1024 / 1024,
+                f"Backed up {db_file.name} -> {backup_filename} ({backup_path.stat().st_size / 1024 / 1024:.2f} MB)"
             )
 
         except Exception as e:
@@ -106,15 +103,15 @@ def backup_databases(
                     backup_path.unlink()
             except Exception:
                 pass
-            logger.error("Failed to backup %s: %s", db_file, e)
+            logger.error(f"Failed to backup {db_file}: {e}")
 
     # Cleanup old backups
     if retention_days > 0:
         cleaned = cleanup_old_backups(backup_dir, retention_days)
         if cleaned > 0:
-            logger.info("Cleaned up %d old backup files", cleaned)
+            logger.info(f"Cleaned up {cleaned} old backup files")
 
-    logger.info("Backup complete: %d databases backed up", len(backups_created))
+    logger.info(f"Backup complete: {len(backups_created)} databases backed up")
     return backups_created
 
 
@@ -145,14 +142,11 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
                 backup_file.unlink()
                 deleted += 1
                 logger.debug(
-                    "Deleted old backup: %s (%.2f MB, age: %d days)",
-                    backup_file.name,
-                    file_size,
-                    (datetime.now() - mtime).days,
+                    f"Deleted old backup: {backup_file.name} ({file_size:.2f} MB, age: {(datetime.now() - mtime).days} days)"
                 )
 
         except Exception as e:
-            logger.warning("Failed to delete old backup %s: %s", backup_file, e)
+            logger.warning(f"Failed to delete old backup {backup_file}: {e}")
 
     return deleted
 
@@ -169,7 +163,7 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
         True if successful, False otherwise
     """
     if not backup_file.exists():
-        logger.error("Backup file does not exist: %s", backup_file)
+        logger.error(f"Backup file does not exist: {backup_file}")
         return False
 
     try:
@@ -178,15 +172,15 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             pre_restore_backup = target_file.with_suffix(f".pre_restore_{timestamp}.db")
             shutil.copy2(target_file, pre_restore_backup)
-            logger.info("Created pre-restore backup: %s", pre_restore_backup.name)
+            logger.info(f"Created pre-restore backup: {pre_restore_backup.name}")
 
         # Restore from backup
         shutil.copy2(backup_file, target_file)
-        logger.info("Restored %s from %s", target_file.name, backup_file.name)
+        logger.info(f"Restored {target_file.name} from {backup_file.name}")
         return True
 
     except Exception as e:
-        logger.error("Failed to restore database: %s", e)
+        logger.error(f"Failed to restore database: {e}")
         return False
 
 
@@ -234,7 +228,7 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
                 }
             )
         except Exception as e:
-            logger.warning("Failed to get metadata for %s: %s", backup_file, e)
+            logger.warning(f"Failed to get metadata for {backup_file}: {e}")
 
     # Always return newest-first by actual creation time
     backups = sorted(items, key=lambda b: b["created"], reverse=True)

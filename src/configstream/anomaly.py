@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS history (
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_url ON history(url)")
                 conn.commit()
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error("Failed to init anomaly DB: %s", e)
+            logger.error(f"Failed to init anomaly DB: {e}")
 
     def is_safe(self, url: str, current_count: int) -> Tuple[bool, str]:
         """
@@ -108,17 +108,13 @@ CREATE TABLE IF NOT EXISTS history (
                             # failing source but is not a security risk (spike).
                             # We log it for monitoring but do not block the source.
                             logger.debug(
-                                "Significant volume drop for %s: %s vs avg %s. "
-                                "Treated as safe (not a spike).",
-                                url,
-                                current_count,
-                                avg,
+                                f"Significant volume drop for {url}: {current_count} vs avg {avg}. "
+                                "Treated as safe (not a spike)."
                             )
 
                 except Exception as ml_err:  # pylint: disable=broad-exception-caught
                     logger.warning(
-                        "ML Anomaly check failed, falling back to Z-Score: %s",
-                        ml_err,
+                        f"ML Anomaly check failed, falling back to Z-Score: {ml_err}"
                     )
                     # Fall through to Z-Score logic
 
@@ -188,10 +184,7 @@ CREATE TABLE IF NOT EXISTS history (
         # If one subnet accounts for > 90% of proxies
         if most_common[1] / len(proxies) > 0.9:
             logger.warning(
-                "Subnet Flood detected: %s.0/24 accounts for %s/%s proxies.",
-                most_common[0],
-                most_common[1],
-                len(proxies),
+                f"Subnet Flood detected: {most_common[0]}.0/24 accounts for {most_common[1]}/{len(proxies)} proxies."
             )
             return True
 
@@ -215,7 +208,7 @@ CREATE TABLE IF NOT EXISTS history (
                 )
                 conn.commit()
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.warning("Failed to record anomaly stats: %s", e)
+            logger.warning(f"Failed to record anomaly stats: {e}")
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get anomaly detection statistics for monitoring."""
@@ -241,15 +234,12 @@ CREATE TABLE IF NOT EXISTS history (
                     ),
                 }
                 logger.info(
-                    "Anomaly stats: %s sources tracked, "
-                    "%s total records, %s in last 24h",
-                    total_sources,
-                    total_records,
-                    recent_anomalies,
+                    f"Anomaly stats: {total_sources} sources tracked, "
+                    f"{total_records} total records, {recent_anomalies} in last 24h"
                 )
                 return stats
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error("Failed to get anomaly stats: %s", e)
+            logger.error(f"Failed to get anomaly stats: {e}")
             return {}
 
     def merge_from(self, other_db_path: Path):
@@ -291,6 +281,6 @@ CREATE TABLE IF NOT EXISTS history (
                         )
 
                 dst.commit()
-                logger.info("Merged anomaly stats from %s", other_db_path)
+                logger.info(f"Merged anomaly stats from {other_db_path}")
         except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.error("Failed to merge anomaly DB %s: %s", other_db_path, e)
+            logger.error(f"Failed to merge anomaly DB {other_db_path}: {e}")

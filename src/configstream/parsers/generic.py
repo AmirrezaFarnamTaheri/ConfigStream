@@ -52,7 +52,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
             remarks=unquote(parsed.fragment or ""),
         )
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse Generic config: %s", str(e)[:50])
+        logger.debug(f"Failed to parse Generic config: {str(e)[:50]}")
         return None
 
 
@@ -73,7 +73,7 @@ def parse_naive(config: str) -> Optional[Proxy]:
             remarks=unquote(parsed.fragment or ""),
         )
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse Naive config: %s", str(e)[:50])
+        logger.debug(f"Failed to parse Naive config: {str(e)[:50]}")
         return None
 
 
@@ -126,7 +126,7 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
     try:
         port_int = int(port)
     except (ValueError, TypeError):
-        logger.debug("Invalid port in v2ray config: %s", port)
+        logger.debug(f"Invalid port in v2ray config: {port}")
         return None
 
     return Proxy(

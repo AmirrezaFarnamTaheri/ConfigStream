@@ -61,7 +61,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         if plugin_result:
             return plugin_result
     except Exception as exc:
-        logger.debug("Plugin parsing failed: %s", exc)
+        logger.debug(f"Plugin parsing failed: {exc}")
 
     # Try OpenVPN first (content based)
     if "client" in config and ("dev tun" in config or "dev tap" in config):
@@ -108,7 +108,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 if result:
                     return result
             except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
-                logger.debug("Parser %s failed: %s", scheme, exc)
+                logger.debug(f"Parser {scheme} failed: {exc}")
 
     # Try JSON parsing (V2Ray JSON format)
     if config.startswith("{"):
@@ -119,7 +119,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             if result:
                 return result
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
-            logger.debug("v2ray json parser skipped: %s", exc)
+            logger.debug(f"v2ray json parser skipped: {exc}")
 
     # Port-based heuristics
     try:
@@ -142,9 +142,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                             return result
                     except (ValueError, KeyError) as exc:
                         logger.debug(
-                            "TLS candidate parser %s skipped: %s",
-                            parser.__name__,  # type: ignore[attr-defined]
-                            exc,
+                            f"TLS candidate parser {parser.__name__} skipped: {exc}"  # type: ignore[attr-defined]
                         )
                         continue
 
@@ -152,7 +150,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 try:
                     return _parse_generic_url_scheme(config)
                 except ValueError as exc:
-                    logger.debug("SOCKS candidate parser skipped: %s", exc)
+                    logger.debug(f"SOCKS candidate parser skipped: {exc}")
 
     except (ValueError, AttributeError):
         # Handles cases where urlparse fails or port is not present
@@ -201,19 +199,15 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                             # But Hysteria/Tuic/WireGuard parsers in this codebase are thin wrappers around urlparse
                             # so they will accept "http://google.com" as a valid config. This is WRONG.
                             logger.debug(
-                                "Rejected scheme mismatch: Protocol %s does not support scheme %s://",
-                                result.protocol,
-                                scheme,
+                                f"Rejected scheme mismatch: Protocol {result.protocol} does not support scheme {scheme}://"
                             )
                             continue
 
-                logger.info("Auto-detected protocol: %s", result.protocol)
+                logger.info(f"Auto-detected protocol: {result.protocol}")
                 return result
         except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
             logger.debug(
-                "Fallback parser %s skipped: %s",
-                parser.__name__,  # type: ignore[attr-defined]
-                exc,
+                f"Fallback parser {parser.__name__} skipped: {exc}"  # type: ignore[attr-defined]
             )
             continue
 

@@ -215,7 +215,7 @@ class GoBatchTester:
             return proxies
 
         inputs = []
-        req_id_map: Dict[str, Proxy] = {} # Map req_id -> Proxy
+        req_id_map: Dict[str, Proxy] = {}  # Map req_id -> Proxy
         futures = []
         loop = asyncio.get_running_loop()
 
@@ -269,11 +269,12 @@ class GoBatchTester:
 
         try:
             completed_results = await asyncio.wait_for(
-                asyncio.gather(*futures, return_exceptions=True),
-                timeout=total_timeout
+                asyncio.gather(*futures, return_exceptions=True), timeout=total_timeout
             )
         except asyncio.TimeoutError:
-            logger.error(f"Timed out waiting for {len(inputs)} results from Go Tester Daemon")
+            logger.error(
+                f"Timed out waiting for {len(inputs)} results from Go Tester Daemon"
+            )
             # Cleanup
             for f, req_id in zip(futures, req_id_map.keys()):
                 if not f.done():
@@ -303,7 +304,9 @@ class GoBatchTester:
                 working_count += 1
                 if res_data.get("issues"):
                     for issue in res_data["issues"]:
-                        proxy_obj.security_issues.setdefault("go_check", []).append(issue)
+                        proxy_obj.security_issues.setdefault("go_check", []).append(
+                            issue
+                        )
                         if issue == "DIRTY_IP":
                             proxy_obj.tags.append("dirty_ip")
             else:
@@ -369,11 +372,13 @@ class GoBatchTester:
             # Unique request ID
             req_id = f"{chain_id}-{uuid.uuid4().hex[:8]}"
 
-            inputs.append({
-                "config": config_str,
-                "id": req_id,
-                "check_honeypot": check_honeypot,
-            })
+            inputs.append(
+                {
+                    "config": config_str,
+                    "id": req_id,
+                    "check_honeypot": check_honeypot,
+                }
+            )
             req_id_map[chain_id] = req_id
             reverse_map[req_id] = chain_id
 
@@ -395,8 +400,7 @@ class GoBatchTester:
         # Wait
         try:
             completed = await asyncio.wait_for(
-                asyncio.gather(*futures, return_exceptions=True),
-                timeout=120
+                asyncio.gather(*futures, return_exceptions=True), timeout=120
             )
         except asyncio.TimeoutError:
             # Cleanup
@@ -409,10 +413,11 @@ class GoBatchTester:
         results = {}
         for res in completed:
             if isinstance(res, dict):
-                req_id = res.get("id")
+                req_id_raw = res.get("id")
                 # Ensure req_id is string for lookup
-                orig_id_val = reverse_map.get(str(req_id))
-                if orig_id_val:
-                    results[orig_id_val] = bool(res.get("is_working", False))
+                if req_id_raw is not None:
+                    orig_id_val = reverse_map.get(str(req_id_raw))
+                    if orig_id_val:
+                        results[orig_id_val] = bool(res.get("is_working", False))
 
         return results

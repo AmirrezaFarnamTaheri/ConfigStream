@@ -27,7 +27,7 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
         try:
             port = int(port_str)
         except (ValueError, TypeError):
-            logger.debug("Invalid port in openvpn config: %s", port_str)
+            logger.debug(f"Invalid port in openvpn config: {port_str}")
             return None
 
         # Extract Proto
@@ -47,5 +47,5 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
         )
 
     except Exception as e:
-        logger.debug("Failed to parse OpenVPN: %s", e)
+        logger.debug(f"Failed to parse OpenVPN: {e}")
         return None
