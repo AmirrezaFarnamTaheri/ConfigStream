@@ -76,6 +76,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loadingEl = document.getElementById('loadingContainer');
     const tableEl = document.getElementById('proxiesTable');
 
+    // Initialize Proxy History Chart
+    if (typeof ProxyHistoryChart !== 'undefined') {
+        window.proxyHistoryChart = new ProxyHistoryChart('history-container');
+        await window.proxyHistoryChart.loadHistoryData();
+    }
+
     try {
         if (!window.api) throw new Error("API module missing");
 
@@ -196,6 +202,14 @@ function renderTable() {
         statusCell.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
         row.appendChild(statusCell);
 
+        // Trend (History Chart Sparkline)
+        const trendCell = document.createElement('td');
+        trendCell.setAttribute('data-label', 'Trend');
+        trendCell.className = 'trend-cell';
+        const trendId = `trend-${start + index}`;
+        trendCell.innerHTML = `<div id="${trendId}" class="trend-sparkline"></div>`;
+        row.appendChild(trendCell);
+
         // Action
         const actionCell = document.createElement('td');
         actionCell.setAttribute('data-label', 'Action');
@@ -214,6 +228,23 @@ function renderTable() {
 
     tbody.appendChild(frag);
     if(window.feather) feather.replace();
+
+    // Render trend sparklines if history chart is available
+    if (window.ProxyHistoryChart && window.proxyHistoryChart) {
+        pageData.forEach((p, index) => {
+            const trendId = `trend-${start + index}`;
+            const configKey = p.config || `${p.protocol}://${p.address}:${p.port}`;
+            try {
+                window.proxyHistoryChart.renderMiniChart(configKey, trendId);
+            } catch (e) {
+                // If no history data, show placeholder
+                const container = document.getElementById(trendId);
+                if (container) {
+                    container.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.75rem;">N/A</span>';
+                }
+            }
+        });
+    }
 }
 
 function populateDropdowns(proxies) {
