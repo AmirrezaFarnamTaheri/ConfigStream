@@ -52,9 +52,9 @@ class HistoryExporter:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             AtomicFileWriter.write_text(output_path, json.dumps(viz_data, indent=2))
-            logger.info("Exported history visualization data to %s", output_path)
+            logger.info(f"Exported history visualization data to {output_path}")
         except Exception as e:
-            logger.error("Failed to export visualization data: %s", e)
+            logger.error(f"Failed to export visualization data: {e}")
 
     @staticmethod
     def export_active_proxy_trend(
@@ -106,7 +106,7 @@ class HistoryExporter:
             try:
                 AtomicFileWriter.write_text(output_path, json.dumps([], indent=2))
             except Exception as e:
-                logger.error("Failed to write empty trend data: %s", e)
+                logger.error(f"Failed to write empty trend data: {e}")
             return
 
         trend_data = [
@@ -120,6 +120,6 @@ class HistoryExporter:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             AtomicFileWriter.write_text(output_path, json.dumps(trend_data, indent=2))
-            logger.info("Exported active proxy trend data to %s", output_path)
+            logger.info(f"Exported active proxy trend data to {output_path}")
         except Exception as e:
-            logger.error("Failed to export trend data: %s", e)
+            logger.error(f"Failed to export trend data: {e}")

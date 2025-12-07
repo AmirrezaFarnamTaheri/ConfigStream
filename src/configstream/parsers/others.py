@@ -56,7 +56,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse %s: %s", protocol.upper(), e)
+        logger.debug(f"Failed to parse {protocol.upper()}: {e}")
         return None
 
 

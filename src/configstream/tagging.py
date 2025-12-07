@@ -87,10 +87,7 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
 
     except (ValueError, KeyError) as e:
         logger.warning(
-            "Could not format name template '%s' for proxy %s: %s",
-            template,
-            original_name,
-            e,
+            f"Could not format name template '{template}' for proxy {original_name}: {e}"
         )
         return original_name  # Return original name on any failure
 
@@ -122,7 +119,7 @@ class ProxyTagger:
             return proxies  # Do nothing if no template is set
 
         logger.info(
-            "Applying name template '%s' to %d proxies...", self.template, len(proxies)
+            f"Applying name template '{self.template}' to {len(proxies)} proxies..."
         )
 
         for proxy in proxies:
