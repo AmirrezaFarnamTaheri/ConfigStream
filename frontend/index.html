@@ -126,7 +126,7 @@
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
                 <p class="subtitle" style="--delay: 0.2s;" data-i18n="hero.subtitle">
-                    Access a world of information with our free, auto-updating VPN configurations. <br>
+                    Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from hundreds of public sources every 6 hours, ensuring you always have a reliable connection. <br>
                     Powered by the <strong>Resilient Core</strong> hybrid engine for maximum reliability.
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
@@ -143,11 +143,16 @@
 
             <!-- Chosen Top 1000 (Promoted) -->
             <section class="chosen-promoted" style="--delay: 0.35s; margin-bottom: 2rem;">
-                <div class="stats-card" style="background: linear-gradient(45deg, var(--bg-secondary) 0%, rgba(var(--brand-primary-rgb), 0.1) 100%); border: 1px solid var(--brand-primary);">
-                    <div class="text-center" style="padding: 1.5rem;">
-                        <h3 data-i18n="downloads.chosen.title" style="color: var(--brand-primary); margin-bottom: 0.5rem;">🏆 Chosen Top 1000</h3>
-                        <p class="subtitle-sm" data-i18n="downloads.chosen.desc" style="margin-bottom: 1rem;">Our best selection: top 50 from each protocol, ranked by latency. Perfect for most users!</p>
-                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt">
+                <div class="stats-card" style="background: linear-gradient(135deg, rgba(var(--brand-primary-rgb), 0.08) 0%, rgba(var(--brand-secondary-rgb), 0.08) 100%); border: 2px solid var(--brand-primary); position: relative; overflow: hidden;">
+                    <!-- Decorative accent -->
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(var(--brand-primary-rgb), 0.15) 0%, transparent 70%); border-radius: 50%;"></div>
+                    <div class="text-center" style="padding: 2rem; position: relative; z-index: 1;">
+                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <i data-feather="award" style="width: 28px; height: 28px; color: var(--brand-primary);"></i>
+                            <h3 data-i18n="downloads.chosen.title" style="color: var(--brand-primary); margin: 0; font-size: 1.5rem; font-weight: 700;">Chosen Top 1000</h3>
+                        </div>
+                        <p class="subtitle-sm" data-i18n="downloads.chosen.desc" style="margin-bottom: 1.25rem; line-height: 1.6; color: var(--text-primary);">Our premium selection: top 50 proxies from each protocol, ranked by lowest latency. The best choice for most users!</p>
+                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt" style="box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); font-weight: 600;">
                             <i data-feather="copy"></i>
                             <span data-i18n="downloads.chosen.btn">Copy Chosen Subscription</span>
                         </button>
@@ -165,24 +170,38 @@
                         </div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="bar-chart-2"></i></div>
+                        <div class="stat-icon"><i data-feather="check-circle"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="totalConfigs" class="stat-value loading">0</div>
-                            <div class="stat-label" data-i18n="stats.unique">Unique & Tested</div>
+                            <div class="stat-label" data-i18n="stats.unique">Unique & Verified</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="zap"></i></div>
+                        <div class="stat-icon" style="background: var(--success-color);"><i data-feather="zap"></i></div>
                         <div class="stat-value-wrapper">
                             <div id="workingConfigs" class="stat-value loading">0</div>
-                            <div class="stat-label" data-i18n="stats.online">Currently Online</div>
+                            <div class="stat-label" data-i18n="stats.online">Online Now</div>
                         </div>
                     </div>
                     <div class="stat-item">
-                        <div class="stat-icon"><i data-feather="cpu"></i></div>
+                        <div class="stat-icon" style="background: var(--brand-tertiary);"><i data-feather="refresh-cw"></i></div>
                         <div class="stat-value-wrapper">
-                            <div class="stat-value" data-i18n="stats.hybrid">Hybrid</div>
-                            <div class="stat-label" data-i18n="stats.hybrid.desc">Go + Python Engine</div>
+                            <div id="totalRevived" class="stat-value">0</div>
+                            <div class="stat-label" data-i18n="stats.revived">Revived (Washed)</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: var(--danger-color);"><i data-feather="shield"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="threatsBlocked" class="stat-value">0</div>
+                            <div class="stat-label" data-i18n="stats.threats">Threats Blocked</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: var(--brand-secondary);"><i data-feather="clock"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div class="stat-value">Every 6h</div>
+                            <div class="stat-label" data-i18n="stats.update">Update Frequency</div>
                         </div>
                     </div>
                 </div>
@@ -244,12 +263,12 @@
                                             <!-- Redesigned Dropdown for Clients -->
                                             <div class="client-dropdown-wrapper">
                                                 <select id="client-selector-dropdown" class="client-select">
-                                                <option value="shadowrocket" data-icon="send">🚀 Shadowrocket</option>
-                                                <option value="surge" data-icon="zap">⚡ Surge</option>
-                                                <option value="loon" data-icon="moon">🌙 Loon</option>
-                                                <option value="quantumultx" data-icon="box">📦 Quantumult X</option>
-                                                <option value="sip008" data-icon="code">📋 SIP008</option>
-                                                <option value="singbox" data-icon="layers">🔷 Sing-box (Universal)</option>
+                                                <option value="shadowrocket" data-icon="send">Shadowrocket</option>
+                                                <option value="surge" data-icon="zap">Surge</option>
+                                                <option value="loon" data-icon="moon">Loon</option>
+                                                <option value="quantumultx" data-icon="box">Quantumult X</option>
+                                                <option value="sip008" data-icon="code">SIP008</option>
+                                                <option value="singbox" data-icon="layers">Sing-box (Universal)</option>
                                                 </select>
                                                 <i data-feather="chevron-down" class="dropdown-arrow"></i>
                                             </div>
@@ -275,7 +294,15 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p data-i18n="info.start.text" data-i18n-html="true">Using ConfigStream is simple. Copy a subscription link above and import it into your VPN client.</p>
+                                <p data-i18n="info.start.text" data-i18n-html="true" style="margin-bottom: 1rem;">Getting started is easy! Follow these simple steps:</p>
+                                <ol style="margin-left: 1.5rem; line-height: 1.8;">
+                                    <li><strong>Choose a format</strong> from the subscription links above based on your VPN client (V2Ray, Clash, Sing-box, etc.)</li>
+                                    <li><strong>Copy the link</strong> by clicking the copy button</li>
+                                    <li><strong>Import</strong> the subscription into your VPN client's subscription manager</li>
+                                    <li><strong>Update</strong> the subscription to fetch the latest proxies</li>
+                                    <li><strong>Connect</strong> to any proxy from the list and enjoy!</li>
+                                </ol>
+                                <p style="margin-top: 1rem; font-size: 0.9em; color: var(--text-secondary);">💡 <em>Tip: Subscriptions auto-update, so you'll always have fresh, working proxies!</em></p>
                             </div>
                         </div>
                     </section>
@@ -286,10 +313,18 @@
                         </button>
                         <div class="accordion-content">
                             <div>
-                                <p data-i18n="info.how.text">Our system is fully automated using GitHub Actions. Every 6 hours, we fetch fresh proxies from public sources, deduplicate them, and test each one for security and performance.</p>
+                                <p data-i18n="info.how.text" style="margin-bottom: 1rem;">ConfigStream uses a fully automated, zero-cost pipeline running on GitHub Actions:</p>
+                                <ul style="margin-left: 1.5rem; line-height: 1.8; margin-bottom: 1rem;">
+                                    <li><strong>Collection:</strong> Every 6 hours, we aggregate proxies from 600+ public sources worldwide</li>
+                                    <li><strong>Deduplication:</strong> Advanced filtering removes duplicates and invalid entries</li>
+                                    <li><strong>Verification:</strong> Our hybrid Go + Python engine tests each proxy for connectivity and performance</li>
+                                    <li><strong>Security Scanning:</strong> Automated checks filter out honeypots, malware hosts, and unsafe nodes</li>
+                                    <li><strong>Optimization:</strong> Proxies are ranked by latency and reliability</li>
+                                    <li><strong>Publishing:</strong> Configs are auto-generated for all major VPN clients</li>
+                                </ul>
                                 <div class="feature-card-highlight">
-                                    <strong data-i18n="info.how.highlight.title">🧠 Network Intelligence</strong>
-                                    <p data-i18n="info.how.highlight.text">We optimize routes and revive blocked IPs using advanced washing techniques.</p>
+                                    <strong data-i18n="info.how.highlight.title"><i data-feather="zap" style="width: 16px; height: 16px; vertical-align: middle;"></i> Network Intelligence</strong>
+                                    <p data-i18n="info.how.highlight.text">Advanced "Proxy Washing" technology revives blocked IPs by tunneling through Cloudflare WARP, creating resilient "Smart Chains" that bypass censorship.</p>
                                 </div>
                             </div>
                         </div>

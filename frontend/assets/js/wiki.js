@@ -1,8 +1,8 @@
 // Wiki Loader Script
 
-const WIKI_BASE_URL = 'https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/docs/wiki/';
+const WIKI_BASE_URL = 'https://raw.githubusercontent.com/AmirrezaFarnamTaheri/ConfigStream/main/docs/wiki/project/';
 // Fallback for local dev or different repo structure
-const LOCAL_WIKI_BASE = '../docs/wiki/';
+const LOCAL_WIKI_BASE = '../docs/wiki/project/';
 
 const WIKI_PAGES = [
     { id: 'Home', title: 'wiki.nav.home', defaultTitle: 'Wiki Home', file: 'Home.md' },
@@ -113,10 +113,10 @@ async function renderPage(filename) {
         let lastError = null;
 
         const strategies = [
-            `wiki/${filename}`,
-            `${filename}`,
+            `../docs/wiki/project/${filename}`,
             WIKI_BASE_URL + filename,
-            `../docs/wiki/${filename}`
+            `wiki/${filename}`,
+            `${filename}`
         ];
 
         for (const url of strategies) {
