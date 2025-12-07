@@ -4275,3 +4275,59 @@ body.dark .byow-panel {
     }
 }
 }
+
+/* Client Selector Dropdown (Added for UI Fix) */
+.client-dropdown-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    width: 100%;
+    margin-bottom: calc(var(--space-unit) * 2);
+    transition: all var(--transition-fast);
+}
+
+.client-dropdown-wrapper:hover {
+    border-color: var(--brand-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--brand-primary) 20%, transparent);
+}
+
+.client-dropdown-wrapper:focus-within {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 15%, transparent);
+}
+
+.client-select {
+    width: 100%;
+    padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 5) calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2);
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.client-select:focus {
+    outline: none;
+}
+
+.dropdown-arrow {
+    position: absolute;
+    right: calc(var(--space-unit) * 2);
+    pointer-events: none;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+    width: 20px;
+    height: 20px;
+}
+
+.client-dropdown-wrapper:hover .dropdown-arrow {
+    color: var(--brand-primary);
+}

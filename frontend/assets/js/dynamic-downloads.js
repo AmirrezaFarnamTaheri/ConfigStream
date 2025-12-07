@@ -37,7 +37,7 @@ function initDynamicDownloads() {
             file: "sip008.json",
             icon: "code"
         },
-        hybrid: {
+        singbox: {
             desc: "Hybrid Go+Python optimized configuration.",
             file: "singbox.json",
             icon: "layers"
@@ -66,11 +66,4 @@ function initDynamicDownloads() {
 
     dropdown.addEventListener('change', (e) => updateUI(e.target.value));
     updateUI(dropdown.value || 'shadowrocket');
-}
-
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDynamicDownloads);
-} else {
-    initDynamicDownloads();
 }
