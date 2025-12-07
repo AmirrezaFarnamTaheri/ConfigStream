@@ -13,8 +13,8 @@ DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
 
 # Regex to parse the rich logger output
 # Matches: "[fetch_success] Fetched 129 proxies from https://..."
-# Updated to match across newlines for wrapped logs
-LOG_REGEX = re.compile(r"Fetched\s+(\d+)\s+proxies\s+from\s+[\s\n\r]+(https?://\S+)")
+# Updated to handle both single space and wrapped/multi-space logs
+LOG_REGEX = re.compile(r"Fetched\s+(\d+)\s+proxies\s+from\s+(https?://\S+)")
 
 
 def parse_logs(log_files: List[str]) -> Dict[str, int]:
