@@ -1,6 +1,6 @@
 import asyncio
 import logging
-import json
+import orjson as json
 from typing import List, Optional, Set, Dict
 
 from rich.progress import Progress, TaskID
@@ -145,7 +145,7 @@ async def processing_consumer(
         for p in parsed_batch:
             protocol_counts[p.protocol] = protocol_counts.get(p.protocol, 0) + 1
         logger.info(
-            f"Parsed breakdown for {safe_source}: {json.dumps(protocol_counts)}"
+            f"Parsed breakdown for {safe_source}: {json.dumps(protocol_counts).decode()}"
         )
 
         # [LOGGING] Trace parsing drop rate
@@ -400,7 +400,7 @@ async def processing_consumer(
             f"  Safe:          {len(safe_batch)} (Unsafe/Dropped: {dropped_unsafe})\n"
             f"  Tested:        {len(proxies_to_actually_test)} (Cached: {cache_hits})\n"
             f"  Working:       {working_count} (Success Rate: {(working_count/len(safe_batch)*100) if safe_batch else 0:.1f}%)\n"
-            f"  Countries:     {json.dumps(geoip_stats)}\n"
+            f"  Countries:     {json.dumps(geoip_stats).decode()}\n"
             f"  Duration:      {full_duration_ms:.0f}ms (Fetch: {fetch_duration:.0f}ms, Process: {total_duration:.0f}ms)"
         )
 
@@ -408,11 +408,11 @@ async def processing_consumer(
             # Log failure modes at INFO level if significant failures occurred, otherwise DEBUG
             if working_count < len(safe_batch) * 0.5:
                 logger.info(
-                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes)}"
+                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes).decode()}"
                 )
             else:
                 logger.debug(
-                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes)}"
+                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes).decode()}"
                 )
 
         if not source.startswith("supplied-proxies") and not source.startswith(
@@ -442,8 +442,8 @@ async def processing_consumer(
                         "duration_ms": full_duration_ms,
                         "fetched_count": fetched_count,
                         "working_count": working_count,
-                        "geoip_json": json.dumps(geoip_stats),
-                        "failure_modes_json": json.dumps(failure_modes),
+                        "geoip_json": json.dumps(geoip_stats).decode(),
+                        "failure_modes_json": json.dumps(failure_modes).decode(),
                         "batch_source": "pipeline",
                     },
                 )
