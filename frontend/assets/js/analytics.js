@@ -130,11 +130,23 @@ function initGlobe(data) {
         });
     }
 
+    // Detect current theme for texture selection
+    const isDarkMode = document.body.classList.contains('dark');
+
+    // Use different textures based on theme
+    const globeTexture = isDarkMode
+        ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
+        : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+
+    const backgroundTexture = isDarkMode
+        ? '//unpkg.com/three-globe/example/img/night-sky.png'
+        : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><rect fill="%23f0f4f8" width="100%" height="100%"/></svg>';
+
     const Globe = window.Globe()
       (container)
-      .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+      .globeImageUrl(globeTexture)
       .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-      .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+      .backgroundImageUrl(backgroundTexture)
       .pointsData(pointsData)
       .pointAltitude(0.01)
       .pointRadius('size')
@@ -147,13 +159,66 @@ function initGlobe(data) {
       .arcDashAnimateTime(1500)
       .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
 
-    Globe.controls().autoRotate = true;
-    Globe.controls().autoRotateSpeed = 0.5;
+    // Configure controls for better interactivity
+    const controls = Globe.controls();
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.35; // Slower, more elegant rotation
+    controls.enableZoom = true; // Enable mouse wheel zoom
+    controls.minDistance = 180; // Minimum zoom distance
+    controls.maxDistance = 500; // Maximum zoom distance
+    controls.enableDamping = true; // Smooth camera movements
+    controls.dampingFactor = 0.05;
 
+    // Auto-rotation cooldown logic
+    let rotationCooldownTimer = null;
+    const COOLDOWN_DURATION = 3000; // Resume rotation after 3 seconds of inactivity
+
+    // Pause rotation on user interaction, resume after cooldown
+    const pauseRotation = () => {
+        controls.autoRotate = false;
+
+        // Clear existing timer
+        if (rotationCooldownTimer) {
+            clearTimeout(rotationCooldownTimer);
+        }
+
+        // Set new cooldown timer
+        rotationCooldownTimer = setTimeout(() => {
+            controls.autoRotate = true;
+        }, COOLDOWN_DURATION);
+    };
+
+    // Attach interaction listeners
+    container.addEventListener('mousedown', pauseRotation);
+    container.addEventListener('wheel', pauseRotation);
+    container.addEventListener('touchstart', pauseRotation);
+
+    // Center globe on initial load with better positioning
+    // Point of View: Centered on prime meridian, slight tilt
+    Globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
+
+    // Handle window resize
     window.addEventListener('resize', () => {
         Globe.width(container.clientWidth);
         Globe.height(container.clientHeight);
     });
+
+    // Listen for theme changes and update globe textures
+    window.addEventListener('themechanged', (e) => {
+        const newIsDark = e.detail.theme === 'dark';
+        const newGlobeTexture = newIsDark
+            ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
+            : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
+        const newBackgroundTexture = newIsDark
+            ? '//unpkg.com/three-globe/example/img/night-sky.png'
+            : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><rect fill="%23f0f4f8" width="100%" height="100%"/></svg>';
+
+        Globe.globeImageUrl(newGlobeTexture);
+        Globe.backgroundImageUrl(newBackgroundTexture);
+    });
+
+    // Store globe instance globally for debugging/external control
+    window.globeInstance = Globe;
 }
 
 function initCharts(data) {
