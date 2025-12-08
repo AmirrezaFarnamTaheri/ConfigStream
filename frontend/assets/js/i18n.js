@@ -55,21 +55,39 @@ const translations = {
         "downloads.chosen.title": "Chosen Top 1000",
         "downloads.chosen.desc": "Our premium selection: Top 50 proxies per protocol, ranked by lowest latency. The best choice for most users!",
         "downloads.chosen.btn": "Copy Chosen Subscription",
+        "downloads.sniper": "Sniper",
+        "downloads.tank": "Tank",
+        "downloads.download": "Download",
 
         "info.start.title": "Getting Started",
         "info.start.text": "It's simple: 1. Choose your preferred format above. 2. Copy the subscription link. 3. Import it into your VPN client (V2Ray, Clash, Sing-box, etc.).",
+        "info.start.step1": "<strong>Choose a format</strong> from the subscription links above based on your VPN client (V2Ray, Clash, Sing-box, etc.)",
+        "info.start.step2": "<strong>Copy the link</strong> by clicking the copy button",
+        "info.start.step3": "<strong>Import</strong> the subscription into your VPN client's subscription manager",
+        "info.start.step4": "<strong>Update</strong> the subscription to fetch the latest proxies",
+        "info.start.step5": "<strong>Connect</strong> to any proxy from the list and enjoy!",
+        "info.start.tip": "💡 <em>Tip: Subscriptions auto-update, so you'll always have fresh, working proxies!</em>",
         "info.how.title": "How It Works",
         "info.how.text": "ConfigStream uses a fully automated, zero-cost pipeline running on GitHub Actions:",
         "info.how.collection": "Collection:",
         "info.how.collection.text": "Every",
         "info.how.collection.hours": "hours, we aggregate proxies from over",
         "info.how.collection.sources": "public sources worldwide",
+        "info.how.dedup": "<strong>Deduplication:</strong> Advanced filtering removes duplicates and invalid entries",
+        "info.how.verify": "<strong>Verification:</strong> Our hybrid Go + Python engine tests each proxy for connectivity and performance",
+        "info.how.security": "<strong>Security Scanning:</strong> Automated checks filter out honeypots, malware hosts, and unsafe nodes",
+        "info.how.optimize": "<strong>Optimization:</strong> Proxies are ranked by latency and reliability",
+        "info.how.publish": "<strong>Publishing:</strong> Configs are auto-generated for all major VPN clients",
         "info.how.highlight.title": "🧠 Network Intelligence",
         "info.how.highlight.text": "We optimize routes and revive blocked IPs using advanced washing techniques.",
         "info.security.title": "Security & Privacy",
         "info.community.title": "Open Source",
 
         "footer.love": "Empowering global access to information. Open Source & Forever Free. ✨",
+        "footer.lastupdated": "Last updated:",
+        "footer.checking": "checking...",
+
+        "stats.update.value": "Every 6h",
 
         "formats.title": "Format Guide",
         "formats.base64": "Universal (Base64): The standard subscription format. Compatible with V2RayNG, v2rayN, Streisand, and most clients. Best for general use.",
@@ -137,6 +155,8 @@ const translations = {
         "analytics.charts.rejection": "Rejection Logic",
         "analytics.charts.threats": "Threat Distribution",
         "analytics.charts.asns": "Top ISPs / ASNs",
+        "analytics.charts.latency_by_country": "Latency by Country",
+        "analytics.charts.latency_by_protocol": "Latency by Protocol",
 
         /* Proxies Page */
         "proxies.hero.title": "Live Proxy List",
@@ -266,6 +286,8 @@ const translations = {
         "analytics.charts.rejection": "拒绝逻辑",
         "analytics.charts.threats": "威胁分布",
         "analytics.charts.asns": "顶级互联网提供商",
+        "analytics.charts.latency_by_country": "按国家延迟",
+        "analytics.charts.latency_by_protocol": "按协议延迟",
 
         /* Proxies Page */
         "proxies.hero.title": "实时节点列表",
@@ -397,6 +419,8 @@ const translations = {
         "analytics.charts.rejection": "منطق رد",
         "analytics.charts.threats": "توزیع تهدیدات",
         "analytics.charts.asns": "ارائه‌دهندگان اینترنت برتر",
+        "analytics.charts.latency_by_country": "تاخیر بر اساس کشور",
+        "analytics.charts.latency_by_protocol": "تاخیر بر اساس پروتکل",
 
         /* Proxies Page */
         "proxies.hero.title": "لیست زنده پروکسی‌ها",
@@ -528,6 +552,8 @@ const translations = {
         "analytics.charts.rejection": "Логика отклонения",
         "analytics.charts.threats": "Распределение угроз",
         "analytics.charts.asns": "Топ провайдеры",
+        "analytics.charts.latency_by_country": "Задержка по странам",
+        "analytics.charts.latency_by_protocol": "Задержка по протоколам",
 
         /* Proxies Page */
         "proxies.hero.title": "Список прокси онлайн",
@@ -659,6 +685,8 @@ const translations = {
         "analytics.charts.rejection": "منطق الرفض",
         "analytics.charts.threats": "توزيع التهديدات",
         "analytics.charts.asns": "أفضل مزودي الإنترنت",
+        "analytics.charts.latency_by_country": "سرعة الاستجابة حسب البلد",
+        "analytics.charts.latency_by_protocol": "سرعة الاستجابة حسب البروتوكول",
 
         /* Proxies Page */
         "proxies.hero.title": "قائمة الخوادم الحية",
