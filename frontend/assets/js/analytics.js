@@ -142,15 +142,10 @@ function initGlobe(data) {
         ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
         : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
 
-    const backgroundTexture = isDarkMode
-        ? '//unpkg.com/three-globe/example/img/night-sky.png'
-        : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><rect fill="%23f0f4f8" width="100%" height="100%"/></svg>';
-
     const Globe = window.Globe()
       (container)
       .globeImageUrl(globeTexture)
       .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-      .backgroundImageUrl(backgroundTexture)
       .pointsData(pointsData)
       .pointAltitude(0.01)
       .pointRadius('size')
@@ -162,6 +157,17 @@ function initGlobe(data) {
       .arcDashGap(0.2)
       .arcDashAnimateTime(1500)
       .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
+
+    // Set background based on theme
+    if (isDarkMode) {
+        Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+    } else {
+        // For light mode, set scene background color directly
+        const scene = Globe.scene();
+        if (scene) {
+            scene.background = new THREE.Color(0xf0f4f8); // Light blue-gray background
+        }
+    }
 
     // Configure controls for better interactivity
     const controls = Globe.controls();
@@ -235,12 +241,21 @@ function initGlobe(data) {
         const newGlobeTexture = newIsDark
             ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
             : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
-        const newBackgroundTexture = newIsDark
-            ? '//unpkg.com/three-globe/example/img/night-sky.png'
-            : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><rect fill="%23f0f4f8" width="100%" height="100%"/></svg>';
 
         Globe.globeImageUrl(newGlobeTexture);
-        Globe.backgroundImageUrl(newBackgroundTexture);
+
+        // Update background based on theme
+        if (newIsDark) {
+            Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+        } else {
+            // For light mode, set scene background color
+            const scene = Globe.scene();
+            if (scene) {
+                scene.background = new THREE.Color(0xf0f4f8);
+            }
+            // Remove background image for light mode
+            Globe.backgroundImageUrl(null);
+        }
     });
 
     // Store globe instance globally for debugging/external control
