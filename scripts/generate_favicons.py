@@ -15,6 +15,7 @@ This script reads the logo SVG and generates favicons in multiple sizes:
 
 import sys
 from pathlib import Path
+from typing import List, Optional
 from PIL import Image
 import io
 
@@ -25,7 +26,7 @@ except ImportError:
     sys.exit(1)
 
 
-def svg_to_png(svg_path: Path, output_path: Path, size: int):
+def svg_to_png(svg_path: Path, output_path: Path, size: int) -> Optional[Image.Image]:
     """Convert SVG to PNG at specified size"""
     print(f"  Generating {output_path.name} ({size}x{size})...")
 
@@ -38,7 +39,7 @@ def svg_to_png(svg_path: Path, output_path: Path, size: int):
         )
 
         # Load PNG data into PIL Image
-        img = Image.open(io.BytesIO(png_data))
+        img: Image.Image = Image.open(io.BytesIO(png_data))
 
         # Ensure RGBA mode
         if img.mode != "RGBA":
@@ -55,17 +56,22 @@ def svg_to_png(svg_path: Path, output_path: Path, size: int):
         return None
 
 
-def create_ico(svg_path: Path, output_path: Path, sizes=[16, 32, 48]):
+def create_ico(
+    svg_path: Path, output_path: Path, sizes: Optional[List[int]] = None
+) -> None:
     """Create multi-size ICO file"""
+    if sizes is None:
+        sizes = [16, 32, 48]
+
     print(f"  Generating {output_path.name} (multi-size: {sizes})...")
 
-    images = []
+    images: List[Image.Image] = []
     for size in sizes:
         try:
             png_data = cairosvg.svg2png(
                 url=str(svg_path), output_width=size, output_height=size
             )
-            img = Image.open(io.BytesIO(png_data))
+            img: Image.Image = Image.open(io.BytesIO(png_data))
             if img.mode != "RGBA":
                 img = img.convert("RGBA")
             images.append(img)
@@ -86,10 +92,11 @@ def create_ico(svg_path: Path, output_path: Path, sizes=[16, 32, 48]):
         except Exception as e:
             print(f"    ✗ Failed to save ICO: {e}")
     else:
-        print(f"    ✗ No images generated for ICO")
+        print("    ✗ No images generated for ICO")
 
 
-def main():
+def main() -> None:
+    """Main function to generate all favicons from logo SVG"""
     # Paths
     project_root = Path(__file__).parent.parent
     svg_path = project_root / "frontend" / "assets" / "svg" / "favicon.svg"
