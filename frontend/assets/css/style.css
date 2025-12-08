@@ -144,6 +144,26 @@ body {
     position: relative;
 }
 
+/* Persian/RTL Font Support */
+html[dir="rtl"] body,
+html[lang="fa"] body,
+html[lang="ar"] body {
+    font-family: 'Vazirmatn', var(--font-sans);
+}
+
+html[dir="rtl"] h1, html[dir="rtl"] h2, html[dir="rtl"] h3,
+html[dir="rtl"] h4, html[dir="rtl"] h5, html[dir="rtl"] h6,
+html[dir="rtl"] .hero h1, html[dir="rtl"] .hero .subtitle,
+html[lang="fa"] h1, html[lang="fa"] h2, html[lang="fa"] h3,
+html[lang="fa"] h4, html[lang="fa"] h5, html[lang="fa"] h6,
+html[lang="fa"] .hero h1, html[lang="fa"] .hero .subtitle,
+html[lang="ar"] h1, html[lang="ar"] h2, html[lang="ar"] h3,
+html[lang="ar"] h4, html[lang="ar"] h5, html[lang="ar"] h6,
+html[lang="ar"] .hero h1, html[lang="ar"] .hero .subtitle {
+    font-family: 'Mikhak', 'Vazirmatn', var(--font-display);
+    font-weight: 700;
+}
+
 body::before {
     content: '';
     position: fixed;
