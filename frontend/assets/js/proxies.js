@@ -201,9 +201,9 @@ function renderTable() {
         statusCell.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
         row.appendChild(statusCell);
 
-        // Trend (History Chart Sparkline)
+        // History (History Chart Sparkline)
         const trendCell = document.createElement('td');
-        trendCell.setAttribute('data-label', 'Trend');
+        trendCell.setAttribute('data-label', 'History');
         trendCell.className = 'trend-cell';
         const trendId = `trend-${start + index}`;
         trendCell.innerHTML = `<div id="${trendId}" class="trend-sparkline"></div>`;
@@ -226,7 +226,7 @@ function renderTable() {
     });
 
     tbody.appendChild(frag);
-    if(window.feather) feather.replace();
+    if(window.inlineIcons) window.inlineIcons.replace();
 
     // Render trend sparklines if history chart is available
     if (window.ProxyHistoryChart && window.proxyHistoryChart) {
@@ -241,6 +241,15 @@ function renderTable() {
                 if (container) {
                     container.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.75rem;">N/A</span>';
                 }
+            }
+        });
+    } else {
+        // Fallback when ProxyHistoryChart is not available
+        pageData.forEach((p, index) => {
+            const trendId = `trend-${start + index}`;
+            const container = document.getElementById(trendId);
+            if (container) {
+                container.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.75rem;">—</span>';
             }
         });
     }
@@ -430,16 +439,16 @@ async function copyToClipboard(text, btn) {
         await navigator.clipboard.writeText(text);
         const originalHtml = btn.innerHTML;
         btn.innerHTML = `<i data-feather="check" style="color:var(--success-color)"></i>`;
-        if(window.feather) feather.replace();
+        if(window.inlineIcons) window.inlineIcons.replace();
         btn.classList.add('copied');
         setTimeout(() => {
             btn.innerHTML = originalHtml;
             btn.classList.remove('copied');
-            if(window.feather) feather.replace();
+            if(window.inlineIcons) window.inlineIcons.replace();
         }, 1500);
     } catch(e) {
         console.error(e);
         btn.innerHTML = `<i data-feather="x" style="color:var(--danger-color)"></i>`;
-        if(window.feather) feather.replace();
+        if(window.inlineIcons) window.inlineIcons.replace();
     }
 }

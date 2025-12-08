@@ -181,46 +181,41 @@ function initGlobe(data) {
 
     // Auto-rotation cooldown logic
     let rotationCooldownTimer = null;
-    const COOLDOWN_DURATION = 4000; // Resume rotation after 4 seconds of inactivity
+    const COOLDOWN_DURATION = 2000; // Resume rotation after 2 seconds of inactivity
     let zoomActive = false;
 
-    // Pause rotation on user interaction, resume after cooldown
-    const pauseRotation = () => {
+    // Pause rotation and enable zoom on user interaction, resume/disable after cooldown
+    const handleInteraction = () => {
+        // Pause rotation
         controls.autoRotate = false;
+
+        // Enable zoom
+        if (!zoomActive) {
+            zoomActive = true;
+            controls.enableZoom = true;
+            container.classList.add('zoom-active');
+            container.classList.remove('zoom-inactive');
+        }
 
         // Clear existing timer
         if (rotationCooldownTimer) {
             clearTimeout(rotationCooldownTimer);
         }
 
-        // Set new cooldown timer
+        // Set new cooldown timer to resume rotation and disable zoom
         rotationCooldownTimer = setTimeout(() => {
             controls.autoRotate = true;
+            zoomActive = false;
+            controls.enableZoom = false;
+            container.classList.remove('zoom-active');
+            container.classList.add('zoom-inactive');
         }, COOLDOWN_DURATION);
     };
 
-    // Activate zoom on container click, deactivate after cooldown
-    const activateZoom = () => {
-        if (!zoomActive) {
-            zoomActive = true;
-            controls.enableZoom = true;
-            container.classList.add('zoom-active');
-            container.classList.remove('zoom-inactive');
-
-            // Auto-deactivate zoom after inactivity
-            setTimeout(() => {
-                zoomActive = false;
-                controls.enableZoom = false;
-                container.classList.remove('zoom-active');
-                container.classList.add('zoom-inactive');
-            }, 8000); // Deactivate after 8 seconds
-        }
-    };
-
     // Attach interaction listeners
-    container.addEventListener('click', activateZoom);
-    container.addEventListener('mousedown', pauseRotation);
-    container.addEventListener('touchstart', pauseRotation);
+    container.addEventListener('mousedown', handleInteraction);
+    container.addEventListener('touchstart', handleInteraction);
+    container.addEventListener('wheel', handleInteraction);
 
     // Set initial state
     container.classList.add('zoom-inactive');

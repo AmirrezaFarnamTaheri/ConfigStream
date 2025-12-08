@@ -3902,10 +3902,13 @@ body.dark .client-select {
     font-family: 'Mikhak', var(--font-display);
 }
 
-/* Ensure Logo Text retains its font */
-[lang="fa"] .header-logo-text,
+/* Ensure Logo Text uses Mikhak for Farsi/Arabic */
+[lang="fa"] .header-logo-text {
+    font-family: 'Mikhak', var(--font-display) !important;
+}
+
 [lang="ar"] .header-logo-text {
-    font-family: var(--font-display) !important;
+    font-family: 'Mikhak', var(--font-display) !important;
 }
 
 /* Apply Vazirmatn for Arabic UI text */
