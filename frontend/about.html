@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="About ConfigStream: The mission, architecture, and technology behind the platform.">
     <title>About - ConfigStream</title>
-    <link rel="icon" type="image/svg+xml" href="../assets/svg/favicon.svg">
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .about-section {
             background: var(--surface-card);
@@ -58,16 +58,38 @@
                 <span class="header-logo-text">ConfigStream</span>
             </div>
             <nav class="nav" id="main-nav">
-                <a href="../index.html" class="nav-link">Home</a>
-                <a href="../proxies.html" class="nav-link">Proxy List</a>
-                <a href="../analytics.html" class="nav-link">Analytics</a>
-                <a href="../wiki/" class="nav-link">Wiki</a>
-                <a href="#" class="nav-link active">About</a>
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="proxies.html" class="nav-link">Proxy List</a>
+                <a href="analytics.html" class="nav-link">Analytics</a>
+                <a href="wiki.html" class="nav-link">Wiki</a>
+                <a href="about.html" class="nav-link active">About</a>
             </nav>
             <div class="header-actions">
-                <button id="theme-switcher" class="theme-btn"><i data-feather="moon"></i></button>
-                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank"><i data-feather="github"></i></a>
-                <button class="mobile-nav-toggle" id="mobile-nav-toggle"><i data-feather="menu"></i></button>
+                <!-- Modern Language Dropdown -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
+                    </button>
+                    <div class="lang-menu" id="lang-menu">
+                        <button onclick="window.i18n.setLanguage('en')">English</button>
+                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
+                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
+                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
+                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
+                    </div>
+                </div>
+
+                <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
+                    <div class="theme-btn-inner">
+                        <i data-feather="moon" class="moon-icon"></i>
+                        <i data-feather="sun" class="sun-icon"></i>
+                    </div>
+                </button>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub"><i data-feather="github"></i></a>
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
+                    <i data-feather="menu" class="menu-icon"></i>
+                    <i data-feather="x" class="close-icon"></i>
+                </button>
             </div>
         </div>
     </header>
@@ -206,14 +228,28 @@
     </footer>
 
     <script>
-        window.ROOT_PATH = '../';
+        window.ROOT_PATH = './';
     </script>
-    <script src="../assets/js/utils/ui.js" defer></script>
-    <script src="../assets/js/utils.js" defer></script>
-    <script src="../assets/js/common-ui.js" defer></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="assets/js/utils/ui.js" defer></script>
+    <script src="assets/js/utils.js" defer></script>
+    <script src="assets/js/common-ui.js" defer></script>
+    <script src="assets/js/inline-icons.js"></script>
+    <script src="assets/js/i18n.js" defer></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => feather.replace());
+        // Listen for language changes to update UI label
+        window.addEventListener('languageChanged', (e) => {
+             const lang = e.detail?.lang;
+             const label = document.getElementById('current-lang-label');
+             if(label && lang) {
+                label.textContent = lang.toUpperCase();
+             }
+        });
+
+        // Initial set label
+        document.addEventListener('DOMContentLoaded', () => {
+             const label = document.getElementById('current-lang-label');
+             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();
+        });
     </script>
 </body>
 </html>

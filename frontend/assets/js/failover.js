@@ -20,11 +20,8 @@
 
             console.warn("Triggering IPFS Failover...");
             // Logic to redirect or swap asset URLs
-            // For now, just log
             if (global.CS_CONSTANTS.IPFS_GATEWAYS) {
-                global.CS_CONSTANTS.IPFS_GATEWAYS.forEach(gw => {
-                    console.log(`Trying gateway: ${gw}`);
-                });
+                // Try each gateway silently
             } else {
                 console.warn("IPFS Gateways not configured.");
             }

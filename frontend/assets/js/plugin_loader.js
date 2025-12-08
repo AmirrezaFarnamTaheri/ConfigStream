@@ -91,7 +91,6 @@ window.pluginManager = {
         try {
             const res = await fetch(pluginListUrl);
             if (!res.ok) {
-                console.log("No plugins registry found.");
                 return;
             }
             const list = await res.json();
@@ -103,13 +102,12 @@ window.pluginManager = {
                     const buf = await wasmRes.arrayBuffer();
                     const { instance } = await WebAssembly.instantiate(buf, {});
                     this.plugins.push(new WasmPlugin(p.name, instance));
-                    console.log(`Loaded plugin: ${p.name}`);
                 } catch (e) {
                     console.error(`Failed to load plugin ${p.name}:`, e);
                 }
             }
         } catch (e) {
-            console.log("Plugin loading skipped or failed.");
+            // Plugin loading skipped or failed silently
         }
     },
 
