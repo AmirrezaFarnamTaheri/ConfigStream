@@ -55,7 +55,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
         try:
             port = int(port_str)
         except (ValueError, TypeError):
-            logger.debug("Invalid port in shadowsocks config: %s", port_str)
+            logger.debug(f"Invalid port in shadowsocks config: {port_str}")
             return None
         if not (1 <= port <= 65535) or not host:
             return None
@@ -119,5 +119,5 @@ def parse_ss2022(config: str) -> Optional[Proxy]:
 
         return proxy
     except Exception as e:
-        logger.debug("Failed to parse Shadowsocks 2022: %s", e)
+        logger.debug(f"Failed to parse Shadowsocks 2022: {e}")
         return None

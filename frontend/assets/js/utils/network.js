@@ -29,7 +29,6 @@ function clearCache() {
   Object.keys(internalCache).forEach(key => {
     internalCache[key] = { data: null, expiry: 0 };
   });
-  console.log('🗑️ Cache cleared');
 }
 
 async function fetchWithRetry(url, retries = 3, delay = 1000) {
@@ -55,7 +54,6 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
 
 async function fetchMetadata() {
   if (isCacheValid('metadata')) {
-    console.log('📦 Using cached metadata');
     return internalCache.metadata.data;
   }
   try {
@@ -113,7 +111,6 @@ async function fetchFallbackSnapshot() {
 
 async function fetchProxies() {
   if (isCacheValid('proxies')) {
-    console.log('📦 Using cached proxies');
     return internalCache.proxies.data;
   }
   let enrichedProxies;
@@ -138,13 +135,11 @@ async function fetchProxies() {
     }
   }
   internalCache.proxies = { data: enrichedProxies, expiry: Date.now() + CACHE_CONFIG.proxiesExpiry };
-  console.log(`✅ Loaded ${enrichedProxies.length} proxies`);
   return enrichedProxies;
 }
 
 async function fetchStatistics() {
   if (isCacheValid('statistics')) {
-    console.log('📦 Using cached statistics');
     return internalCache.statistics.data;
   }
   try {

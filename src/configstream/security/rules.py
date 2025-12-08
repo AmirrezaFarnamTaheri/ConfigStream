@@ -41,7 +41,7 @@ def validate_port(port: int) -> Optional[str]:
     if port in DANGEROUS_PORTS:
         # Sample log to avoid spam
         if logger.isEnabledFor(logging.DEBUG):
-            logger.warning("Dangerous port detected: %s", port)
+            logger.warning(f"Dangerous port detected: {port}")
         else:
             # We don't log individual dangerous ports at INFO/WARNING to avoid spam,
             # assuming the validator summary handles it.
@@ -81,7 +81,7 @@ def validate_address(
     # Check for suspicious patterns (exact or subdomain match)
     for suspicious in SUSPICIOUS_DOMAINS:
         if address_check == suspicious or address_check.endswith("." + suspicious):
-            logger.warning("Suspicious address pattern found: %s", address)
+            logger.warning(f"Suspicious address pattern found: {address}")
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                 f"Suspicious address pattern: {address}"
             )
@@ -100,7 +100,7 @@ def validate_address(
                 return issues
             else:
                 logger.warning(
-                    "Non-standard IP notation (possible DNS rebinding): %s", address
+                    f"Non-standard IP notation (possible DNS rebinding): {address}"
                 )
                 issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                     f"Non-standard notation: {address}"
@@ -108,14 +108,14 @@ def validate_address(
                 return issues
         else:
             logger.warning(
-                "Non-standard IP notation (possible DNS rebinding): %s", address
+                f"Non-standard IP notation (possible DNS rebinding): {address}"
             )
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                 f"Non-standard notation: {address}"
             )
             return issues
     elif re.match(r"^0[0-7]{1,11}\.", address_lower):
-        logger.warning("Non-standard IP notation (possible DNS rebinding): %s", address)
+        logger.warning(f"Non-standard IP notation (possible DNS rebinding): {address}")
         issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
             f"Non-standard notation: {address}"
         )
@@ -130,9 +130,7 @@ def validate_address(
             decoded = unquote(address_lower)
             if decoded.startswith("127.") or decoded in ("localhost", "::1"):
                 logger.warning(
-                    "URL-encoded localhost/loopback detected: %s -> %s",
-                    address,
-                    decoded,
+                    f"URL-encoded localhost/loopback detected: {address} -> {decoded}"
                 )
                 issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
                     f"Encoded loopback address: {decoded}"
@@ -146,7 +144,7 @@ def validate_address(
     if address_lower in ("::1", "0:0:0:0:0:0:0:1") or address_lower.startswith(
         "::ffff:127."
     ):
-        logger.warning("Loopback IPv6 or IPv4-mapped localhost detected: %s", address)
+        logger.warning(f"Loopback IPv6 or IPv4-mapped localhost detected: {address}")
         issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = f"Loopback address: {address}"
         return issues
 
@@ -176,7 +174,7 @@ def validate_address(
 
         for pattern in special_address_patterns:
             if re.match(pattern, address_lower):
-                logger.warning("Special or private address detected: %s", address)
+                logger.warning(f"Special or private address detected: {address}")
                 issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
                     f"Special address: {address}"
                 )
@@ -188,7 +186,7 @@ def validate_address(
 def validate_protocol(protocol: str) -> Optional[str]:
     """Validate protocol is recognized."""
     if protocol.lower() not in VALID_PROTOCOLS:
-        logger.warning("Unknown protocol detected: %s", protocol)
+        logger.warning(f"Unknown protocol detected: {protocol}")
         return f"Unknown protocol: {protocol}"
     return None
 
@@ -211,7 +209,7 @@ def validate_config_string(config: str) -> Dict[str, str]:
 
     # Check length
     if len(config) > MAX_CONFIG_LINE_LENGTH:
-        logger.warning("Config too long: %s chars", len(config))
+        logger.warning(f"Config too long: {len(config)} chars")
         issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = (
             f"Config exceeds max length: {len(config)} chars"
         )

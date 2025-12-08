@@ -45,7 +45,7 @@ def _rate_limited_warning(msg_type: str, message: str):
 def validate_b64_input(data: str) -> Optional[str]:
     """Validate base64 string before attempting decode."""
     if not isinstance(data, str):
-        logger.warning("Expected string, got %s", type(data).__name__)
+        logger.warning(f"Expected string, got {type(data).__name__}")
         return None
 
     # Handle comments starting with '#' or space-separated remarks
@@ -68,9 +68,7 @@ def validate_b64_input(data: str) -> Optional[str]:
 
     if len(trimmed) > MAX_B64_INPUT_SIZE:
         logger.error(
-            "Base64 input too large: %s bytes (max: %s)",
-            len(trimmed),
-            MAX_B64_INPUT_SIZE,
+            f"Base64 input too large: {len(trimmed)} bytes (max: {MAX_B64_INPUT_SIZE})"
         )
         return None
 
@@ -107,15 +105,11 @@ def validate_b64_input(data: str) -> Optional[str]:
         # Don't log warning if it's just a config line trying to be decoded as base64
         if len(trimmed) < 1000:
             logger.debug(
-                "Invalid base64 characters in short string: %s. Context: %s...",
-                invalid_chars,
-                trimmed[:50],
+                f"Invalid base64 characters in short string: {invalid_chars}. Context: {trimmed[:50]}..."
             )
         else:
             logger.warning(
-                "Invalid base64 characters: %s in payload starting with: %s...",
-                invalid_chars,
-                trimmed[:50],
+                f"Invalid base64 characters: {invalid_chars} in payload starting with: {trimmed[:50]}..."
             )
         return None
 
@@ -136,9 +130,7 @@ def safe_b64_decode(data: str) -> Optional[str]:
     # Fast path: reject obviously oversized input before validation/decoding.
     if isinstance(data, str) and len(data) > MAX_B64_INPUT_SIZE:
         logger.error(
-            "Base64 input too large: %s bytes (max: %s) – skipping decode",
-            len(data),
-            MAX_B64_INPUT_SIZE,
+            f"Base64 input too large: {len(data)} bytes (max: {MAX_B64_INPUT_SIZE}) – skipping decode"
         )
         return None
 
@@ -178,5 +170,5 @@ def safe_b64_decode(data: str) -> Optional[str]:
         logger.error("Out of memory decoding base64")
         return None
     except Exception as exc:
-        logger.error("Unexpected error decoding base64: %s", exc)
+        logger.error(f"Unexpected error decoding base64: {exc}")
         return None

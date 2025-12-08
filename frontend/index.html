@@ -84,16 +84,14 @@
                 <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
                 <a href="proxies.html" class="nav-link" data-i18n="nav.proxies">Proxy List</a>
                 <a href="analytics.html" class="nav-link" data-i18n="nav.analytics">Analytics</a>
-                <a href="wiki/" class="nav-link" data-i18n="nav.wiki">Wiki</a>
-                <a href="about/" class="nav-link" data-i18n="nav.about">About</a>
+                <a href="wiki.html" class="nav-link" data-i18n="nav.wiki">Wiki</a>
+                <a href="about.html" class="nav-link" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
-                <!-- Modern Language Dropdown (Redesigned to match theme switcher) -->
+                <!-- Modern Language Dropdown -->
                 <div class="lang-dropdown">
-                    <button class="lang-btn theme-btn" aria-label="Select Language">
-                        <div class="theme-btn-inner">
-                            <i data-feather="globe"></i>
-                        </div>
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
                     </button>
                     <div class="lang-menu" id="lang-menu">
                         <button onclick="window.i18n.setLanguage('en')">English</button>
@@ -125,9 +123,14 @@
         <div class="container">
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
-                <p class="subtitle" style="--delay: 0.2s;" data-i18n="hero.subtitle">
-                    Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from hundreds of public sources every 6 hours, ensuring you always have a reliable connection. <br>
-                    Powered by the <strong>Resilient Core</strong> hybrid engine for maximum reliability.
+                <p class="subtitle" style="--delay: 0.2s;">
+                    <span data-i18n="hero.subtitle.prefix">Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from over</span>
+                    <strong><span id="heroSourceCount">668</span></strong>
+                    <span data-i18n="hero.subtitle.middle">sources every</span>
+                    <strong><span id="heroUpdateFrequency">6</span></strong>
+                    <span data-i18n="hero.subtitle.suffix">hours, ensuring you always have a reliable connection.</span>
+                    <br>
+                    <span data-i18n="hero.subtitle.powered">Powered by the <strong>Resilient Core</strong> hybrid engine for maximum reliability.</span>
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
@@ -152,7 +155,7 @@
                             <h3 data-i18n="downloads.chosen.title" style="color: var(--brand-primary); margin: 0; font-size: 1.5rem; font-weight: 700;">Chosen Top 1000</h3>
                         </div>
                         <p class="subtitle-sm" data-i18n="downloads.chosen.desc" style="margin-bottom: 1.25rem; line-height: 1.6; color: var(--text-primary);">Our premium selection: top 50 proxies from each protocol, ranked by lowest latency. The best choice for most users!</p>
-                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt" style="box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); font-weight: 600;">
+                        <button class="btn btn-primary copy-btn" data-file="files/chosen/base64.txt" style="box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); font-weight: 600;">
                             <i data-feather="copy"></i>
                             <span data-i18n="downloads.chosen.btn">Copy Chosen Subscription</span>
                         </button>
@@ -315,7 +318,7 @@
                             <div>
                                 <p data-i18n="info.how.text" style="margin-bottom: 1rem;">ConfigStream uses a fully automated, zero-cost pipeline running on GitHub Actions:</p>
                                 <ul style="margin-left: 1.5rem; line-height: 1.8; margin-bottom: 1rem;">
-                                    <li><strong>Collection:</strong> Every 6 hours, we aggregate proxies from 600+ public sources worldwide</li>
+                                    <li><strong data-i18n="info.how.collection">Collection:</strong> <span data-i18n="info.how.collection.text">Every</span> <strong><span id="infoUpdateFrequency">6</span></strong> <span data-i18n="info.how.collection.hours">hours, we aggregate proxies from over</span> <strong><span id="infoSourceCount">668</span></strong> <span data-i18n="info.how.collection.sources">public sources worldwide</span></li>
                                     <li><strong>Deduplication:</strong> Advanced filtering removes duplicates and invalid entries</li>
                                     <li><strong>Verification:</strong> Our hybrid Go + Python engine tests each proxy for connectivity and performance</li>
                                     <li><strong>Security Scanning:</strong> Automated checks filter out honeypots, malware hosts, and unsafe nodes</li>
@@ -400,14 +403,18 @@
         }
 
         // Listen for language changes to update UI label
-        // Removed text update, now purely icon based for simplicity/design matching
         window.addEventListener('languageChanged', (e) => {
-             // Optional: visual feedback or tooltip update
+             const lang = e.detail?.lang;
+             const label = document.getElementById('current-lang-label');
+             if(label && lang) {
+                label.textContent = lang.toUpperCase();
+             }
         });
 
         // Initial set label
         document.addEventListener('DOMContentLoaded', () => {
-             // No text to set
+             const label = document.getElementById('current-lang-label');
+             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();
         });
     </script>
 </body>

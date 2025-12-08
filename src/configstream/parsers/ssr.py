@@ -34,9 +34,7 @@ def parse_ssr(config: str) -> Optional[Proxy]:
         parts = main.split(":", 5)
         if len(parts) != 6:
             logger.debug(
-                "Invalid SSR payload: expected 6 colon-separated parts, got %d (%r)",
-                len(parts),
-                main[:120],
+                f"Invalid SSR payload: expected 6 colon-separated parts, got {len(parts)} ({main[:120]!r})"
             )
             return None
 
@@ -47,7 +45,7 @@ def parse_ssr(config: str) -> Optional[Proxy]:
         try:
             port = int(port_str)
         except (ValueError, TypeError):
-            logger.debug("Invalid port in shadowsocksr config: %s", port_str)
+            logger.debug(f"Invalid port in shadowsocksr config: {port_str}")
             return None
         if not (1 <= port <= 65535):
             return None
@@ -76,7 +74,7 @@ def parse_ssr(config: str) -> Optional[Proxy]:
             # If it wasn't valid base64, don't fail hard—keep original.
             elif decoded_val == v_norm and validate_b64_input(v_norm) is None:
                 logger.debug(
-                    "SSR param '%s' not valid base64: %s; leaving as-is.", k, repr(val)
+                    f"SSR param '{k}' not valid base64: {repr(val)}; leaving as-is."
                 )
                 decoded_val = val
 
@@ -100,5 +98,5 @@ def parse_ssr(config: str) -> Optional[Proxy]:
             },
         )
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse SSR: %s", e)
+        logger.debug(f"Failed to parse SSR: {e}")
         return None

@@ -189,7 +189,7 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
     """
     if not js_file_path.exists():
         logger.warning(
-            "Frontend JS not found at %s, skipping key injection.", js_file_path
+            f"Frontend JS not found at {js_file_path}, skipping key injection."
         )
         return
 
@@ -209,7 +209,7 @@ def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
 
         # Atomic write to prevent corruption
         AtomicFileWriter.write_text(js_file_path, new_content)
-        logger.info("✅ Successfully injected new Stego Key into %s", js_file_path.name)
+        logger.info(f"✅ Successfully injected new Stego Key into {js_file_path.name}")
 
     except Exception as e:  # pylint: disable=broad-exception-caught
-        logger.error("Failed to inject Stego Key: %s", e)
+        logger.error(f"Failed to inject Stego Key: {e}")

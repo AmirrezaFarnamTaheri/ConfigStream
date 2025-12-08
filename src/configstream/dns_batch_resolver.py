@@ -43,7 +43,7 @@ class BatchDNSResolver:
             if result:
                 return cast(Optional[str], result[0].host)
         except (aiodns.error.DNSError, asyncio.TimeoutError, Exception) as e:
-            logger.debug("DNS resolution failed for %s: %s", hostname, e)
+            logger.debug(f"DNS resolution failed for {hostname}: {e}")
             return None
         return None
 

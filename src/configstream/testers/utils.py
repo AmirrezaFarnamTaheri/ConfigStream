@@ -46,7 +46,7 @@ def SecureConfigContext(content: str):
         except FileNotFoundError:
             pass
         except OSError as e:
-            logger.warning("Failed to unlink temp file %s: %s", path, e)
+            logger.warning(f"Failed to unlink temp file {path}: {e}")
         finally:
             with _TEMP_FILES_LOCK:
                 _TEMP_FILES.discard(path)

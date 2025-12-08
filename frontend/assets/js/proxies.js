@@ -1,5 +1,3 @@
-console.log('Proxies script loaded');
-
 // Global State
 let allProxies = [];
 let filteredProxies = [];

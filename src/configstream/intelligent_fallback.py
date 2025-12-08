@@ -46,9 +46,7 @@ class FallbackManager:
         new_count = len(proxies)
         if new_count < min_count_hard:
             logger.warning(
-                "Fallback NOT saved. Proxy count %d is below hard threshold of %d.",
-                new_count,
-                min_count_hard,
+                f"Fallback NOT saved. Proxy count {new_count} is below hard threshold of {min_count_hard}."
             )
             return
 
@@ -59,10 +57,7 @@ class FallbackManager:
                 previous_count = data.get("proxy_count", 0)
                 if new_count < previous_count * min_count_ratio:
                     logger.warning(
-                        "Fallback NOT saved. New count %d is less than %.0f%% of previous count %d.",
-                        new_count,
-                        min_count_ratio * 100,
-                        previous_count,
+                        f"Fallback NOT saved. New count {new_count} is less than {min_count_ratio * 100:.0f}% of previous count {previous_count}."
                     )
                     return
             except (json.JSONDecodeError, KeyError):
@@ -93,9 +88,9 @@ class FallbackManager:
         try:
             temp_path.write_text(json.dumps(fallback_data, indent=2))
             temp_path.rename(self.fallback_path)
-            logger.info("Successfully saved %d proxies for fallback use.", new_count)
+            logger.info(f"Successfully saved {new_count} proxies for fallback use.")
         except OSError as e:
-            logger.error("Failed to write fallback file: %s", e)
+            logger.error(f"Failed to write fallback file: {e}")
 
     def load_fallback(self) -> Optional[List[Proxy]]:
         """
@@ -126,14 +121,12 @@ class FallbackManager:
             ]
 
             logger.info(
-                "Loaded %d fallback proxies from %s",
-                len(proxies),
-                data["saved_at"],
+                f"Loaded {len(proxies)} fallback proxies from {data['saved_at']}"
             )
             return proxies
 
         except Exception as e:
-            logger.error("Failed to load fallback data: %s", e)
+            logger.error(f"Failed to load fallback data: {e}")
             return None
 
     def should_use_fallback(
