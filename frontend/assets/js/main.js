@@ -61,17 +61,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const updateFreq = metadata?.update_interval_hours || 6;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
-                // Update Hero Text - Dynamic source count
-                const heroCount = document.getElementById('heroSourceCount');
-                if (heroCount && stats.total_proxies) {
-                    heroCount.textContent = formatNum(stats.total_proxies);
+                // Update source count from metadata
+                const sourceCount = metadata?.sources_count || stats.total_sources || 668;
+
+                // Update hero subtitle dynamic values
+                const heroSourceCountElem = document.getElementById('heroSourceCount');
+                if (heroSourceCountElem) {
+                    heroSourceCountElem.textContent = formatNum(sourceCount);
                 }
 
-                // Update source count in hero subtitle if metadata has sources_count
-                const heroSourceCountSpan = document.getElementById('heroSourceCountInline');
-                if (heroSourceCountSpan) {
-                    const sourceCount = metadata?.sources_count || stats.total_sources || 668;
-                    heroSourceCountSpan.textContent = formatNum(sourceCount);
+                const heroUpdateFreqElem = document.getElementById('heroUpdateFrequency');
+                if (heroUpdateFreqElem) {
+                    heroUpdateFreqElem.textContent = formatNum(updateFreq);
+                }
+
+                // Update "How it works" section dynamic values
+                const infoSourceCountElem = document.getElementById('infoSourceCount');
+                if (infoSourceCountElem) {
+                    infoSourceCountElem.textContent = formatNum(sourceCount);
+                }
+
+                const infoUpdateFreqElem = document.getElementById('infoUpdateFrequency');
+                if (infoUpdateFreqElem) {
+                    infoUpdateFreqElem.textContent = formatNum(updateFreq);
                 }
             }
 
