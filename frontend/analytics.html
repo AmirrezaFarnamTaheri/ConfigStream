@@ -19,6 +19,7 @@
     <script src="https://unpkg.com/three"></script>
     <script src="https://unpkg.com/globe.gl"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/globe.gl" defer></script>
     <style>
         #globe-viz {
             width: 100%;
@@ -158,7 +159,7 @@
             </section>
 
             <!-- 3D Globe -->
-            <div id="globe-viz"></div>
+            <div id="world-map-widget" style="width: 100%; height: 600px; border-radius: 20px; overflow: hidden; margin-bottom: 2rem;"></div>
 
             <div class="analytics-grid">
                 <!-- Protocol Distribution -->
@@ -236,6 +237,7 @@
     <script src="assets/js/utils.js" defer></script>
     <script src="assets/js/inline-icons.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
+    <script src="assets/js/map.js" defer></script>
     <script src="https://unpkg.com/feather-icons" defer></script>
     <script>
         // Feather replace handled by common-ui.js or inline-icons.js if present

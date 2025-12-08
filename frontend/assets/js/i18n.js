@@ -23,7 +23,7 @@ const translations = {
         "wiki.nav.page_about": "Page: About",
 
         "hero.title": "Unlock the Internet",
-        "hero.subtitle.prefix": "Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from over",
+        "hero.subtitle.prefix": "Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from",
         "hero.subtitle.middle": "sources every",
         "hero.subtitle.suffix": "hours, ensuring you always have a reliable connection.",
         "hero.subtitle.powered": "Powered by the <strong>Resilient Core</strong> hybrid engine for maximum reliability.",

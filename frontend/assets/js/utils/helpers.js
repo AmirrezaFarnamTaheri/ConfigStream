@@ -43,11 +43,18 @@ function validateURL(url) {
 }
 
 function getFullUrl(file) {
-  const base = window.location.origin;
-  if (file.startsWith('http')) return file;
-  if (file.startsWith('/')) return base + file;
-  if (file.startsWith('output/')) return base + '/' + file;
-  return base + '/' + file;
+  if (!file) return '';
+  try {
+    // If it's already absolute, return it
+    if (file.startsWith('http://') || file.startsWith('https://')) {
+        return file;
+    }
+    // Resolve relative to current page (handles subdirectories like /repo/)
+    return new URL(file, window.location.href).href;
+  } catch (e) {
+    console.error('Error constructing URL:', e);
+    return file;
+  }
 }
 
 function exportJSON(data, filename = 'export.json') {

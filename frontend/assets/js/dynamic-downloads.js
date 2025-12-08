@@ -7,7 +7,8 @@ function initDynamicDownloads() {
     const iconContainer = document.getElementById('dynamic-icon');
 
     if (!dropdown || !desc || !btn) {
-        console.warn('Dynamic downloads: Required elements not found');
+        // console.warn('Dynamic downloads: Required elements not found');
+        // Silent fail as this might run on pages without the download section
         return;
     }
 
@@ -16,7 +17,6 @@ function initDynamicDownloads() {
     if (!dynamicClientIcon && dropdown.parentElement) {
         dynamicClientIcon = document.createElement('i');
         dynamicClientIcon.id = 'dynamic-client-icon';
-        dynamicClientIcon.setAttribute('data-feather', 'send');
         // Insert before the dropdown
         dropdown.parentElement.insertBefore(dynamicClientIcon, dropdown);
     }
@@ -66,26 +66,23 @@ function initDynamicDownloads() {
 
         // Update main icon container
         if (iconContainer) {
-            iconContainer.innerHTML = '<i data-feather="' + client.icon + '"></i>';
-            if (window.feather) {
-                feather.replace();
-            } else if (window.inlineIcons) {
-                window.inlineIcons.replace();
-            }
+            iconContainer.innerHTML = `<i data-feather="${client.icon}"></i>`;
         }
 
         // Update dynamic client icon next to dropdown
         if (dynamicClientIcon) {
-            dynamicClientIcon.setAttribute('data-feather', client.icon);
-            if (window.feather) {
-                feather.replace();
-            } else if (window.inlineIcons) {
-                window.inlineIcons.replace();
-            }
+            dynamicClientIcon.innerHTML = `<i data-feather="${client.icon}"></i>`;
+        }
+
+        // Re-render feather icons
+        if (window.feather) {
+            feather.replace();
         }
     };
 
     dropdown.addEventListener('change', (e) => updateUI(e.target.value));
+
+    // Initial update
     updateUI(dropdown.value || 'shadowrocket');
 }
 
