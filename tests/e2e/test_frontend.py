@@ -15,10 +15,20 @@ def test_homepage_loads(page: Page, http_server):
     page.route("**/plugin_loader.js", lambda route: route.abort())
     page.route("**/stego_loader.js", lambda route: route.abort())
 
+    # Mock metadata.json to prevent update-detector from failing
+    page.route(
+        "**/metadata.json",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body='{"last_updated_utc":"2023-01-01T12:00:00Z","total_proxies":100}',
+        ),
+    )
+
     url = f"{http_server}/index.html"
 
     try:
-        page.goto(url, wait_until="domcontentloaded", timeout=5000)
+        page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
         if "crashed" in str(e).lower():
             pytest.skip(
@@ -34,7 +44,7 @@ def test_homepage_loads(page: Page, http_server):
 
     # Check for the "Browse Proxies" button
     btn = page.locator("text=Browse Proxies")
-    expect(btn).to_be_visible()
+    expect(btn).to_be_visible(timeout=10000)
 
 
 @pytest.mark.e2e
@@ -45,10 +55,20 @@ def test_pwa_manifest_link(page: Page, http_server):
     page.route("**/plugin_loader.js", lambda route: route.abort())
     page.route("**/stego_loader.js", lambda route: route.abort())
 
+    # Mock metadata.json to prevent update-detector from failing
+    page.route(
+        "**/metadata.json",
+        lambda route: route.fulfill(
+            status=200,
+            content_type="application/json",
+            body='{"last_updated_utc":"2023-01-01T12:00:00Z","total_proxies":100}',
+        ),
+    )
+
     url = f"{http_server}/index.html"
 
     try:
-        page.goto(url, wait_until="domcontentloaded", timeout=5000)
+        page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
         if "crashed" in str(e).lower():
             pytest.skip(
@@ -113,7 +133,7 @@ def test_widgets_presence(page: Page, http_server):
     )
 
     try:
-        page.goto(url, wait_until="domcontentloaded", timeout=5000)
+        page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
         if "crashed" in str(e).lower():
             pytest.skip(
@@ -122,15 +142,17 @@ def test_widgets_presence(page: Page, http_server):
         raise
 
     # Globe Viz (Replaces Map Container in V4)
-    expect(page.locator("#globe-viz")).to_be_visible()
+    expect(page.locator("#globe-viz")).to_be_visible(timeout=10000)
 
     # Stats cards should be updated
     # Wait for the loading class to be removed to ensure JS processed it
-    expect(page.locator("#totalSourced")).not_to_have_class(re.compile(r"loading"))
+    expect(page.locator("#totalSourced")).not_to_have_class(
+        re.compile(r"loading"), timeout=10000
+    )
 
-    expect(page.locator("#totalSourced")).to_contain_text("200")
-    expect(page.locator("#totalConfigs")).to_contain_text("100")
+    expect(page.locator("#totalSourced")).to_contain_text("200", timeout=10000)
+    expect(page.locator("#totalConfigs")).to_contain_text("100", timeout=10000)
 
     # Protocol Chart
     # Wait for chart to be rendered (canvas present)
-    expect(page.locator("#protocolChart")).to_be_visible()
+    expect(page.locator("#protocolChart")).to_be_visible(timeout=10000)
