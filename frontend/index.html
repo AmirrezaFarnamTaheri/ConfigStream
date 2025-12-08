@@ -123,9 +123,14 @@
         <div class="container">
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
-                <p class="subtitle" style="--delay: 0.2s;" data-i18n="hero.subtitle">
-                    Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from hundreds of public sources every 6 hours, ensuring you always have a reliable connection. <br>
-                    Powered by the <strong>Resilient Core</strong> hybrid engine for maximum reliability.
+                <p class="subtitle" style="--delay: 0.2s;">
+                    <span data-i18n="hero.subtitle.prefix">Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from over</span>
+                    <strong><span id="heroSourceCount">668</span></strong>
+                    <span data-i18n="hero.subtitle.middle">sources every</span>
+                    <strong><span id="heroUpdateFrequency">6</span></strong>
+                    <span data-i18n="hero.subtitle.suffix">hours, ensuring you always have a reliable connection.</span>
+                    <br>
+                    <span data-i18n="hero.subtitle.powered">Powered by the <strong>Resilient Core</strong> hybrid engine for maximum reliability.</span>
                 </p>
                 <div class="hero-actions" style="--delay: 0.3s;">
                     <a href="proxies.html" class="btn btn-primary">
@@ -313,7 +318,7 @@
                             <div>
                                 <p data-i18n="info.how.text" style="margin-bottom: 1rem;">ConfigStream uses a fully automated, zero-cost pipeline running on GitHub Actions:</p>
                                 <ul style="margin-left: 1.5rem; line-height: 1.8; margin-bottom: 1rem;">
-                                    <li><strong>Collection:</strong> Every 6 hours, we aggregate proxies from 600+ public sources worldwide</li>
+                                    <li><strong data-i18n="info.how.collection">Collection:</strong> <span data-i18n="info.how.collection.text">Every</span> <strong><span id="infoUpdateFrequency">6</span></strong> <span data-i18n="info.how.collection.hours">hours, we aggregate proxies from over</span> <strong><span id="infoSourceCount">668</span></strong> <span data-i18n="info.how.collection.sources">public sources worldwide</span></li>
                                     <li><strong>Deduplication:</strong> Advanced filtering removes duplicates and invalid entries</li>
                                     <li><strong>Verification:</strong> Our hybrid Go + Python engine tests each proxy for connectivity and performance</li>
                                     <li><strong>Security Scanning:</strong> Automated checks filter out honeypots, malware hosts, and unsafe nodes</li>
