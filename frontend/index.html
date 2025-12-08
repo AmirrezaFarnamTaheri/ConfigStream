@@ -206,7 +206,7 @@
                     <div class="stat-item">
                         <div class="stat-icon" style="background: var(--brand-secondary);"><i data-feather="clock"></i></div>
                         <div class="stat-value-wrapper">
-                            <div class="stat-value">Every 6h</div>
+                            <div class="stat-value" data-i18n="stats.update.value">Every 6h</div>
                             <div class="stat-label" data-i18n="stats.update">Update Frequency</div>
                         </div>
                     </div>
@@ -244,10 +244,10 @@
                                             <p class="download-desc" data-i18n="downloads.singbox.desc">Optimized JSON configuration.</p>
                                             <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">
                                                 <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox.json">
-                                                    <i data-feather="target"></i> Sniper
+                                                    <i data-feather="target"></i> <span data-i18n="downloads.sniper">Sniper</span>
                                                 </button>
                                                 <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox-vpn.json">
-                                                    <i data-feather="shield"></i> Tank
+                                                    <i data-feather="shield"></i> <span data-i18n="downloads.tank">Tank</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -260,7 +260,7 @@
                                         </div>
                                         <a href="clash.yaml" class="btn btn-primary" download="clash.yaml">
                                             <i data-feather="download-cloud"></i>
-                                            <span data-i18n="filters.download_filtered">Download</span>
+                                            <span data-i18n="downloads.download">Download</span>
                                         </a>
                                     </div>
                                     <div class="download-card" style="--delay: 0.9s;">
@@ -301,13 +301,13 @@
                             <div>
                                 <p data-i18n="info.start.text" data-i18n-html="true" style="margin-bottom: 1rem;">Getting started is easy! Follow these simple steps:</p>
                                 <ol style="margin-left: 1.5rem; line-height: 1.8;">
-                                    <li><strong>Choose a format</strong> from the subscription links above based on your VPN client (V2Ray, Clash, Sing-box, etc.)</li>
-                                    <li><strong>Copy the link</strong> by clicking the copy button</li>
-                                    <li><strong>Import</strong> the subscription into your VPN client's subscription manager</li>
-                                    <li><strong>Update</strong> the subscription to fetch the latest proxies</li>
-                                    <li><strong>Connect</strong> to any proxy from the list and enjoy!</li>
+                                    <li data-i18n="info.start.step1" data-i18n-html="true"><strong>Choose a format</strong> from the subscription links above based on your VPN client (V2Ray, Clash, Sing-box, etc.)</li>
+                                    <li data-i18n="info.start.step2" data-i18n-html="true"><strong>Copy the link</strong> by clicking the copy button</li>
+                                    <li data-i18n="info.start.step3" data-i18n-html="true"><strong>Import</strong> the subscription into your VPN client's subscription manager</li>
+                                    <li data-i18n="info.start.step4" data-i18n-html="true"><strong>Update</strong> the subscription to fetch the latest proxies</li>
+                                    <li data-i18n="info.start.step5" data-i18n-html="true"><strong>Connect</strong> to any proxy from the list and enjoy!</li>
                                 </ol>
-                                <p style="margin-top: 1rem; font-size: 0.9em; color: var(--text-secondary);">💡 <em>Tip: Subscriptions auto-update, so you'll always have fresh, working proxies!</em></p>
+                                <p style="margin-top: 1rem; font-size: 0.9em; color: var(--text-secondary);" data-i18n="info.start.tip" data-i18n-html="true">💡 <em>Tip: Subscriptions auto-update, so you'll always have fresh, working proxies!</em></p>
                             </div>
                         </div>
                     </section>
@@ -321,11 +321,11 @@
                                 <p data-i18n="info.how.text" style="margin-bottom: 1rem;">ConfigStream uses a fully automated, zero-cost pipeline running on GitHub Actions:</p>
                                 <ul style="margin-left: 1.5rem; line-height: 1.8; margin-bottom: 1rem;">
                                     <li><strong data-i18n="info.how.collection">Collection:</strong> <span data-i18n="info.how.collection.text">Every</span> <strong><span id="infoUpdateFrequency">...</span></strong> <span data-i18n="info.how.collection.hours">hours, we aggregate proxies from over</span> <strong><span id="infoSourceCount">...</span></strong> <span data-i18n="info.how.collection.sources">public sources worldwide</span></li>
-                                    <li><strong>Deduplication:</strong> Advanced filtering removes duplicates and invalid entries</li>
-                                    <li><strong>Verification:</strong> Our hybrid Go + Python engine tests each proxy for connectivity and performance</li>
-                                    <li><strong>Security Scanning:</strong> Automated checks filter out honeypots, malware hosts, and unsafe nodes</li>
-                                    <li><strong>Optimization:</strong> Proxies are ranked by latency and reliability</li>
-                                    <li><strong>Publishing:</strong> Configs are auto-generated for all major VPN clients</li>
+                                    <li data-i18n="info.how.dedup" data-i18n-html="true"><strong>Deduplication:</strong> Advanced filtering removes duplicates and invalid entries</li>
+                                    <li data-i18n="info.how.verify" data-i18n-html="true"><strong>Verification:</strong> Our hybrid Go + Python engine tests each proxy for connectivity and performance</li>
+                                    <li data-i18n="info.how.security" data-i18n-html="true"><strong>Security Scanning:</strong> Automated checks filter out honeypots, malware hosts, and unsafe nodes</li>
+                                    <li data-i18n="info.how.optimize" data-i18n-html="true"><strong>Optimization:</strong> Proxies are ranked by latency and reliability</li>
+                                    <li data-i18n="info.how.publish" data-i18n-html="true"><strong>Publishing:</strong> Configs are auto-generated for all major VPN clients</li>
                                 </ul>
                                 <div class="feature-card-highlight">
                                     <strong data-i18n="info.how.highlight.title"><i data-feather="zap" style="width: 16px; height: 16px; vertical-align: middle;"></i> Network Intelligence</strong>
@@ -371,7 +371,7 @@
                 <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues" target="_blank" rel="noopener noreferrer" aria-label="Report an issue"><i data-feather="alert-circle"></i></a>
             </div>
             <p data-i18n="footer.love">A passion project for a free and open internet. ✨</p>
-            <p class="last-updated">Last updated: <span id="footerUpdate" class="loading">checking...</span></p>
+            <p class="last-updated"><span data-i18n="footer.lastupdated">Last updated:</span> <span id="footerUpdate" class="loading" data-i18n="footer.checking">checking...</span></p>
         </div>
     </footer>
 
