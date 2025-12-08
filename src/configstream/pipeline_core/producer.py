@@ -204,7 +204,7 @@ async def source_producer(
                             f"(Status: {res.status_code})"
                         )
     except Exception as e:
-        logger.error("Producer failed: %s", e)
+        logger.error(f"Producer failed: {e}")
     finally:
         # If absolutely nothing was provided, log a clear warning – this would
         # otherwise result in a silent zero-output run.

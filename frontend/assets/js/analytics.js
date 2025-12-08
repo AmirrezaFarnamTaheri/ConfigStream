@@ -24,24 +24,28 @@ function updateStats(data) {
         }
     };
 
+    // Helper function to format numbers with locale support
+    const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+
     // Fix: Use correct field with fallbacks
     // total_sourced = raw lines fetched from sources before dedup
     // total_fetched = same as above (legacy name)
     // total_proxies = after dedup, the actual tested count
     const totalSourced = data.total_sourced || data.total_fetched || data.fetched_lines || 0;
-    update('totalSourced', totalSourced);
+    update('totalSourced', formatNum(totalSourced));
 
-    update('totalConfigs', data.total_tested || data.total_proxies || 0);
-    update('workingConfigs', data.total_working || 0);
+    update('totalConfigs', formatNum(data.total_tested || data.total_proxies || 0));
+    update('workingConfigs', formatNum(data.total_working || 0));
 
     // New Stats if elements exist
     const totalWorking = data.total_working || 0;
     const totalRevived = data.total_revived || 0;
+    // Always calculate clean from working - revived (don't trust backend total_clean)
     const totalClean = Math.max(0, totalWorking - totalRevived);
 
-    update('totalClean', data.total_clean || totalClean);
-    update('totalRevived', totalRevived);
-    update('threatsNeutralized', data.total_dirty || 0);
+    update('totalClean', formatNum(totalClean));
+    update('totalRevived', formatNum(totalRevived));
+    update('threatsNeutralized', formatNum(data.total_dirty || 0));
 
     const date = new Date(data.last_updated_utc);
     update('lastUpdated', date.toLocaleString());
@@ -138,15 +142,10 @@ function initGlobe(data) {
         ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
         : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
 
-    const backgroundTexture = isDarkMode
-        ? '//unpkg.com/three-globe/example/img/night-sky.png'
-        : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><rect fill="%23f0f4f8" width="100%" height="100%"/></svg>';
-
     const Globe = window.Globe()
       (container)
       .globeImageUrl(globeTexture)
       .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-      .backgroundImageUrl(backgroundTexture)
       .pointsData(pointsData)
       .pointAltitude(0.01)
       .pointRadius('size')
@@ -159,11 +158,22 @@ function initGlobe(data) {
       .arcDashAnimateTime(1500)
       .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
 
+    // Set background based on theme
+    if (isDarkMode) {
+        Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+    } else {
+        // For light mode, set scene background color directly
+        const scene = Globe.scene();
+        if (scene) {
+            scene.background = new THREE.Color(0xf0f4f8); // Light blue-gray background
+        }
+    }
+
     // Configure controls for better interactivity
     const controls = Globe.controls();
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.35; // Slower, more elegant rotation
-    controls.enableZoom = true; // Enable mouse wheel zoom
+    controls.enableZoom = false; // Disable zoom by default to prevent scroll conflicts
     controls.minDistance = 180; // Minimum zoom distance
     controls.maxDistance = 500; // Maximum zoom distance
     controls.enableDamping = true; // Smooth camera movements
@@ -172,6 +182,7 @@ function initGlobe(data) {
     // Auto-rotation cooldown logic
     let rotationCooldownTimer = null;
     const COOLDOWN_DURATION = 4000; // Resume rotation after 4 seconds of inactivity
+    let zoomActive = false;
 
     // Pause rotation on user interaction, resume after cooldown
     const pauseRotation = () => {
@@ -188,10 +199,31 @@ function initGlobe(data) {
         }, COOLDOWN_DURATION);
     };
 
+    // Activate zoom on container click, deactivate after cooldown
+    const activateZoom = () => {
+        if (!zoomActive) {
+            zoomActive = true;
+            controls.enableZoom = true;
+            container.classList.add('zoom-active');
+            container.classList.remove('zoom-inactive');
+
+            // Auto-deactivate zoom after inactivity
+            setTimeout(() => {
+                zoomActive = false;
+                controls.enableZoom = false;
+                container.classList.remove('zoom-active');
+                container.classList.add('zoom-inactive');
+            }, 8000); // Deactivate after 8 seconds
+        }
+    };
+
     // Attach interaction listeners
+    container.addEventListener('click', activateZoom);
     container.addEventListener('mousedown', pauseRotation);
-    container.addEventListener('wheel', pauseRotation);
     container.addEventListener('touchstart', pauseRotation);
+
+    // Set initial state
+    container.classList.add('zoom-inactive');
 
     // Center globe on initial load with better positioning
     // Point of View: Centered on prime meridian, slight tilt
@@ -209,12 +241,21 @@ function initGlobe(data) {
         const newGlobeTexture = newIsDark
             ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
             : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
-        const newBackgroundTexture = newIsDark
-            ? '//unpkg.com/three-globe/example/img/night-sky.png'
-            : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"><rect fill="%23f0f4f8" width="100%" height="100%"/></svg>';
 
         Globe.globeImageUrl(newGlobeTexture);
-        Globe.backgroundImageUrl(newBackgroundTexture);
+
+        // Update background based on theme
+        if (newIsDark) {
+            Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+        } else {
+            // For light mode, set scene background color
+            const scene = Globe.scene();
+            if (scene) {
+                scene.background = new THREE.Color(0xf0f4f8);
+            }
+            // Remove background image for light mode
+            Globe.backgroundImageUrl(null);
+        }
     });
 
     // Store globe instance globally for debugging/external control

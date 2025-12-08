@@ -48,17 +48,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update stats card
             if (stats) {
-                updateElement('#totalSourced', stats.total_proxies || 0);
-                updateElement('#totalConfigs', stats.total_tested || 0);
-                updateElement('#workingConfigs', stats.total_working || 0);
-                updateElement('#totalRevived', stats.total_revived || 0);
-                updateElement('#threatsBlocked', stats.total_dirty || 0);
-                updateElement('#updateFrequency', '6 hrs');
+                // Use formatNumber for all numeric displays
+                const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
 
-                // Update Hero Text
-                const heroCount = document.getElementById('heroSourceCount');
-                if (heroCount && stats.total_proxies) {
-                    heroCount.textContent = stats.total_proxies;
+                updateElement('#totalSourced', formatNum(stats.total_proxies || 0));
+                updateElement('#totalConfigs', formatNum(stats.total_tested || 0));
+                updateElement('#workingConfigs', formatNum(stats.total_working || 0));
+                updateElement('#totalRevived', formatNum(stats.total_revived || 0));
+                updateElement('#threatsBlocked', formatNum(stats.total_dirty || 0));
+
+                // Dynamic update frequency from metadata or fallback to 6 hours
+                const updateFreq = metadata?.update_interval_hours || 6;
+                updateElement('#updateFrequency', `${updateFreq} hrs`);
+
+                // Update source count from metadata
+                const sourceCount = metadata?.sources_count || stats.total_sources || 668;
+
+                // Update hero subtitle dynamic values
+                const heroSourceCountElem = document.getElementById('heroSourceCount');
+                if (heroSourceCountElem) {
+                    heroSourceCountElem.textContent = formatNum(sourceCount);
+                }
+
+                const heroUpdateFreqElem = document.getElementById('heroUpdateFrequency');
+                if (heroUpdateFreqElem) {
+                    heroUpdateFreqElem.textContent = formatNum(updateFreq);
+                }
+
+                // Update "How it works" section dynamic values
+                const infoSourceCountElem = document.getElementById('infoSourceCount');
+                if (infoSourceCountElem) {
+                    infoSourceCountElem.textContent = formatNum(sourceCount);
+                }
+
+                const infoUpdateFreqElem = document.getElementById('infoUpdateFrequency');
+                if (infoUpdateFreqElem) {
+                    infoUpdateFreqElem.textContent = formatNum(updateFreq);
                 }
             }
 

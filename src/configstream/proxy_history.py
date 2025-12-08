@@ -189,6 +189,6 @@ class ProxyHistoryTracker:
 
         if removed > 0:
             self.save()
-            logger.info("Cleaned up history for %d proxies", removed)
+            logger.info(f"Cleaned up history for {removed} proxies")
 
         return removed

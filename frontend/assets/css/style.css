@@ -3939,3 +3939,97 @@ body.dark .client-select {
 [lang="fa"] .btn, [lang="ar"] .btn {
     letter-spacing: 0;
 }
+
+/* ===== RTL Centering Fixes ===== */
+/* Ensure centered elements stay centered even in RTL mode */
+[dir="rtl"] .text-center,
+[dir="rtl"] .hero.text-center,
+[dir="rtl"] .hero h1,
+[dir="rtl"] .hero .subtitle,
+[dir="rtl"] .analytics-hero-title {
+    text-align: center !important;
+}
+
+/* Specific fix for Analytics page hero title */
+[lang="fa"] .analytics-hero-title,
+[lang="ar"] .analytics-hero-title {
+    font-family: 'Mikhak', var(--font-display) !important;
+    text-align: center !important;
+}
+
+/* ===== Globe Visualization Fixes ===== */
+#globe-viz {
+    background: var(--bg-primary) !important;
+    transition: background 0.3s ease;
+}
+
+/* Fix globe container pointer events */
+#globe-viz {
+    pointer-events: auto;
+}
+
+/* Prevent zoom from affecting page scroll by default */
+#globe-viz.zoom-inactive {
+    pointer-events: none;
+}
+
+#globe-viz.zoom-active {
+    pointer-events: auto;
+}
+
+/* Fix for light/day mode globe background */
+body:not(.dark) #globe-viz {
+    background: linear-gradient(135deg, #f0f4f8 0%, #e6ebf1 100%) !important;
+}
+
+/* ===== Header Logo Text Fix ===== */
+/* Fix CONFIGSTREAM spacing/display */
+.header-logo-text {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+}
+
+/* ===== Client Dropdown with Dynamic Icon ===== */
+.client-dropdown-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+#dynamic-client-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--brand-primary);
+    flex-shrink: 0;
+}
+
+.client-select {
+    text-align: center;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.client-select:hover {
+    border-color: var(--brand-primary);
+}
+
+.client-select:focus {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+}

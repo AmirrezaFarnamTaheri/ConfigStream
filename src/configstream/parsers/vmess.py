@@ -25,7 +25,7 @@ def parse_vmess(config: str) -> Optional[Proxy]:
             return None
 
         if len(decoded) > MAX_CONFIG_LINE_LENGTH:
-            logger.warning("VMess decoded data too large: %s bytes", len(decoded))
+            logger.warning(f"VMess decoded data too large: {len(decoded)} bytes")
             return None
 
         vmess_data = json.loads(decoded)
@@ -58,5 +58,5 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (json.JSONDecodeError, binascii.Error, KeyError, ValueError) as e:
-        logger.debug("Failed to parse VMess: %s", str(e)[:100])
+        logger.debug(f"Failed to parse VMess: {str(e)[:100]}")
         return None

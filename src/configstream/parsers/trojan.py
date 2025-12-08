@@ -41,5 +41,5 @@ def parse_trojan(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:
-        logger.debug("Failed to parse Trojan: %s", e)
+        logger.debug(f"Failed to parse Trojan: {e}")
         return None

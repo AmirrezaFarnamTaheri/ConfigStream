@@ -8,7 +8,6 @@
                 // Assuming stego.js exposes a global 'stego' object
                 // If not, this is a placeholder logic
                 if (global.stego && global.stego.extract) {
-                    console.log(`Extracting config from ${imageUrl}...`);
                     const config = await global.stego.extract(imageUrl);
                     return config;
                 } else {
