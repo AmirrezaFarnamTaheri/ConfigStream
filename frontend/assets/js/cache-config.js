@@ -20,24 +20,34 @@
     CACHE_NAME: `${CACHE_PREFIX}-v${VERSION}`,
     
     // Cache duration settings (in milliseconds)
+    // Note: These are fallback durations. The UpdateDetector actively
+    // polls for changes every 4 minutes and invalidates cache when updates are detected.
     CACHE_CONFIG: {
-      // Metadata changes frequently as new proxies are added
-      metadataExpiry: 2 * 60 * 1000,        // 2 minutes
-      
-      // Proxy list updates every 3 hours via GitHub Actions
+      // Update status check (lightweight HEAD/timestamp check)
+      updateStatusExpiry: 4 * 60 * 1000,    // 4 minutes (polling interval)
+
+      // Metadata changes when pipeline runs or retest completes
+      metadataExpiry: 5 * 60 * 1000,        // 5 minutes
+
+      // Proxy list updates when pipeline/retest generates new data
       proxiesExpiry: 10 * 60 * 1000,        // 10 minutes
-      
-      // Statistics are derivative data, can be cached longer
+
+      // Statistics are derivative data, updated with metadata
       statsExpiry: 5 * 60 * 1000,           // 5 minutes
-      
+
       // Fallback for unspecified resources
       defaultExpiry: 5 * 60 * 1000,         // 5 minutes
-      
+
       // How long to wait for network before using cache
       networkTimeout: 5000,                 // 5 seconds
-      
+
       // Enable stale-while-revalidate pattern
-      staleWhileRevalidate: true
+      // Serves cached data immediately, fetches fresh data in background
+      staleWhileRevalidate: true,
+
+      // Smart update detection enabled
+      // UpdateDetector polls every 4 minutes and triggers cache invalidation
+      smartUpdateDetection: true
     },
     
     // URL-based caching strategies
