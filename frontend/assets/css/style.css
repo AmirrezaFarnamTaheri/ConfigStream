@@ -3885,9 +3885,8 @@ body.dark .client-select {
 
 /* ===== Farsi and Arabic Font Support ===== */
 /* Apply Vazirmatn for Farsi UI text */
-[lang="fa"] body,
-[lang="fa"] * {
-    font-family: 'Vazirmatn', var(--font-sans) !important;
+[lang="fa"] body {
+    font-family: 'Vazirmatn', var(--font-sans);
 }
 
 /* Apply Mikhak for Farsi headings */
@@ -3900,7 +3899,13 @@ body.dark .client-select {
 [lang="fa"] .hero-title,
 [lang="fa"] .card-header h2,
 [lang="fa"] .font-display {
-    font-family: 'Mikhak', var(--font-display) !important;
+    font-family: 'Mikhak', var(--font-display);
+}
+
+/* Ensure Logo Text retains its font */
+[lang="fa"] .header-logo-text,
+[lang="ar"] .header-logo-text {
+    font-family: var(--font-display) !important;
 }
 
 /* Apply Vazirmatn for Arabic UI text */

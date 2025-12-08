@@ -9,25 +9,46 @@ const CACHE_CONFIG = window.ConfigStreamCache?.CACHE_CONFIG || {
   statsExpiry: 5 * 60 * 1000,
 };
 
-// Rename internal cache to avoid conflicts
-const internalCache = {
-  metadata: { data: null, expiry: 0 },
-  proxies: { data: null, expiry: 0 },
-  statistics: { data: null, expiry: 0 },
-};
+const CACHE_PREFIX = 'configstream_cache_';
 
 function getCacheBust() {
   return `?cb=${Date.now()}`;
 }
 
-function isCacheValid(key) {
-  if (!internalCache[key] || !internalCache[key].data) return false;
-  return Date.now() < internalCache[key].expiry;
+function getFromStorage(key) {
+  try {
+    const item = localStorage.getItem(CACHE_PREFIX + key);
+    if (!item) return null;
+    const parsed = JSON.parse(item);
+    if (Date.now() < parsed.expiry) {
+      return parsed.data;
+    } else {
+      localStorage.removeItem(CACHE_PREFIX + key);
+      return null;
+    }
+  } catch (e) {
+    console.warn('Cache read error', e);
+    return null;
+  }
+}
+
+function saveToStorage(key, data, expiryDuration) {
+  try {
+    const payload = {
+      data: data,
+      expiry: Date.now() + expiryDuration
+    };
+    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload));
+  } catch (e) {
+    console.warn('Cache write error', e);
+  }
 }
 
 function clearCache() {
-  Object.keys(internalCache).forEach(key => {
-    internalCache[key] = { data: null, expiry: 0 };
+  Object.keys(localStorage).forEach(key => {
+    if (key.startsWith(CACHE_PREFIX)) {
+      localStorage.removeItem(key);
+    }
   });
 }
 
@@ -53,15 +74,15 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
 }
 
 async function fetchMetadata() {
-  if (isCacheValid('metadata')) {
-    return internalCache.metadata.data;
-  }
+  const cached = getFromStorage('metadata');
+  if (cached) return cached;
+
   try {
     let url = `/api/stats${getCacheBust()}`;
     try {
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
-      internalCache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
+      saveToStorage('metadata', data, CACHE_CONFIG.metadataExpiry);
       return data;
     } catch (apiError) {
       console.warn('API fetch failed, trying static fallback for metadata:', apiError);
@@ -69,12 +90,14 @@ async function fetchMetadata() {
       url = `${root}metadata.json${getCacheBust()}`;
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
-      internalCache.metadata = { data, expiry: Date.now() + CACHE_CONFIG.metadataExpiry };
+      saveToStorage('metadata', data, CACHE_CONFIG.metadataExpiry);
       return data;
     }
   } catch (error) {
     console.error('❌ Failed to fetch metadata:', error);
-    if (internalCache.metadata.data) return internalCache.metadata.data;
+    // Return stale cache if available as last resort
+    const stale = localStorage.getItem(CACHE_PREFIX + 'metadata');
+    if (stale) return JSON.parse(stale).data;
     throw error;
   }
 }
@@ -110,9 +133,9 @@ async function fetchFallbackSnapshot() {
 }
 
 async function fetchProxies() {
-  if (isCacheValid('proxies')) {
-    return internalCache.proxies.data;
-  }
+  const cached = getFromStorage('proxies');
+  if (cached) return cached;
+
   let enrichedProxies;
   try {
     const url = `/api/proxies${getCacheBust()}`;
@@ -130,18 +153,20 @@ async function fetchProxies() {
       enrichedProxies = await fetchFallbackSnapshot();
     } catch (fallbackError) {
       console.error('❌ Fallback snapshot also failed:', fallbackError);
-      if (internalCache.proxies.data) return internalCache.proxies.data;
+      // Return stale cache if available
+      const stale = localStorage.getItem(CACHE_PREFIX + 'proxies');
+      if (stale) return JSON.parse(stale).data;
       throw primaryError;
     }
   }
-  internalCache.proxies = { data: enrichedProxies, expiry: Date.now() + CACHE_CONFIG.proxiesExpiry };
+  saveToStorage('proxies', enrichedProxies, CACHE_CONFIG.proxiesExpiry);
   return enrichedProxies;
 }
 
 async function fetchStatistics() {
-  if (isCacheValid('statistics')) {
-    return internalCache.statistics.data;
-  }
+  const cached = getFromStorage('statistics');
+  if (cached) return cached;
+
   try {
     // Audit: /api/stats returns metadata.json which lacks detailed globe points.
     // We must fetch statistics.json directly for full analytics.
@@ -151,7 +176,7 @@ async function fetchStatistics() {
     try {
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
-        internalCache.statistics = { data, expiry: Date.now() + CACHE_CONFIG.statsExpiry };
+        saveToStorage('statistics', data, CACHE_CONFIG.statsExpiry);
         return data;
     } catch (error) {
         // Fallback to metadata if statistics.json is missing (graceful degradation)
@@ -161,7 +186,9 @@ async function fetchStatistics() {
     }
   } catch (error) {
     console.error('❌ Failed to fetch statistics:', error);
-    if (internalCache.statistics.data) return internalCache.statistics.data;
+    // Return stale cache if available
+    const stale = localStorage.getItem(CACHE_PREFIX + 'statistics');
+    if (stale) return JSON.parse(stale).data;
     throw error;
   }
 }
