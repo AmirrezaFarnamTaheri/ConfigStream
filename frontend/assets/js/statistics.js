@@ -70,41 +70,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSummaryStats(stats, proxies, metadata) {
-        // New mappings
+        // New mappings based on user request
         if (stats.total_fetched !== undefined) {
-            updateElement('#statTotalFetched', stats.total_fetched.toLocaleString());
-        }
-        // Handle potential key name variation (total_duplicates vs duplicates_skipped)
-        const duplicates = stats.total_duplicates || stats.duplicates_skipped || 0;
-        updateElement('#statDuplicates', duplicates.toLocaleString());
-
-        if (stats.total_insecure !== undefined) {
-            updateElement('#statInsecure', stats.total_insecure.toLocaleString());
+            updateElement('#totalSourced', stats.total_fetched.toLocaleString());
+        } else if (metadata && metadata.total_fetched !== undefined) {
+            updateElement('#totalSourced', metadata.total_fetched.toLocaleString());
         }
 
-        // Update summary statistics
+        // Total Configs (Unique & Verified/Tested) - usually mapped to 'total_proxies' (parsed) or 'unique'
         if (stats.total_proxies !== undefined) {
-            updateElement('#totalProxies', stats.total_proxies.toLocaleString());
+            updateElement('#totalConfigs', stats.total_proxies.toLocaleString());
         }
 
+        // Online Now (Working)
         if (stats.total_working !== undefined) {
-            updateElement('#workingProxies', stats.total_working.toLocaleString());
-
-            // Update percentage
-            const successRate = stats.total_proxies > 0
-                ? ((stats.total_working / stats.total_proxies) * 100).toFixed(1)
-                : 0;
-            updateElement('#workingProxiesPercent', `${successRate}% active`, { method: 'innerHTML' });
-            updateElement('#successRate', successRate);
+            updateElement('#workingConfigs', stats.total_working.toLocaleString());
         }
 
-        if (stats.countries !== undefined) {
-            const countryCount = Object.keys(stats.countries).length;
-            updateElement('#totalCountries', countryCount);
-        }
+        // Revived (Washed)
+        // Check stats.total_revived or metadata.revived_count
+        const revived = stats.total_revived || (metadata ? metadata.revived_count : 0) || 0;
+        updateElement('#totalRevived', revived.toLocaleString());
 
-        if (stats.protocols !== undefined) {
-            updateElement('#totalProtocols', Object.keys(stats.protocols).length);
+        // Threats Neutralized
+        // Check stats.threats_blocked or metadata.threats_blocked
+        const threats = stats.threats_blocked || (metadata ? metadata.threats_blocked : 0) || 0;
+        updateElement('#threatsBlocked', threats.toLocaleString());
+        updateElement('#threatsNeutralized', threats.toLocaleString()); // For analytics page
+
+        // Update last updated time and frequency label if needed
+        if (metadata && metadata.last_updated_utc) {
+             const date = new Date(metadata.last_updated_utc);
+             // Logic below handles date formatting
         }
 
         // Calculate and update additional metrics
@@ -370,7 +367,121 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Latency Distribution Chart
+            // Latency by Country Chart (New)
+            const latencyByCountryCanvas = document.getElementById('latencyByCountryChart');
+            if (latencyByCountryCanvas && proxies && proxies.length > 0) {
+                // Group latencies by country
+                const countryLatencies = {};
+                const countryCounts = {};
+
+                proxies.forEach(p => {
+                    if (p.country && p.latency && p.latency > 0 && p.latency < 5000) {
+                        const country = p.country.toUpperCase();
+                        if (!countryLatencies[country]) {
+                            countryLatencies[country] = 0;
+                            countryCounts[country] = 0;
+                        }
+                        countryLatencies[country] += p.latency;
+                        countryCounts[country]++;
+                    }
+                });
+
+                // Calculate averages
+                const countryAvgLatencies = Object.entries(countryLatencies)
+                    .map(([country, totalLatency]) => ({
+                        country,
+                        avgLatency: Math.round(totalLatency / countryCounts[country])
+                    }))
+                    .sort((a, b) => a.avgLatency - b.avgLatency) // Lowest latency first
+                    .slice(0, 15); // Top 15
+
+                if (countryAvgLatencies.length > 0) {
+                    new Chart(latencyByCountryCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: countryAvgLatencies.map(c => c.country),
+                            datasets: [{
+                                label: 'Avg Latency (ms)',
+                                data: countryAvgLatencies.map(c => c.avgLatency),
+                                backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            ...commonPluginOptions,
+                            ...commonScaleOptions,
+                            plugins: {
+                                ...commonPluginOptions.plugins,
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Latency by Protocol Chart (Fix ID mismatch)
+            // Was targeting protocolPerformanceCanvas which maps to 'protocolPerformanceChart'
+            // But HTML might have 'latencyByProtocolChart'
+            const latencyByProtocolCanvas = document.getElementById('latencyByProtocolChart') || document.getElementById('protocolPerformanceChart');
+
+            if (latencyByProtocolCanvas && proxies && proxies.length > 0) {
+                // Calculate average latency per protocol
+                const protocolLatencies = {};
+                const protocolCounts = {};
+
+                proxies.forEach(p => {
+                    if (p.protocol && p.latency && p.latency > 0 && p.latency < 10000) {
+                        if (!protocolLatencies[p.protocol]) {
+                            protocolLatencies[p.protocol] = 0;
+                            protocolCounts[p.protocol] = 0;
+                        }
+                        protocolLatencies[p.protocol] += p.latency;
+                        protocolCounts[p.protocol]++;
+                    }
+                });
+
+                const protocolAvgLatencies = Object.entries(protocolLatencies)
+                    .map(([protocol, totalLatency]) => ({
+                        protocol,
+                        avgLatency: Math.round(totalLatency / protocolCounts[protocol])
+                    }))
+                    .sort((a, b) => a.avgLatency - b.avgLatency)
+                    .slice(0, 10);
+
+                if (protocolAvgLatencies.length > 0) {
+                    // Destroy existing chart if any (to prevent canvas reuse issues)
+                    const existingChart = Chart.getChart(latencyByProtocolCanvas);
+                    if (existingChart) existingChart.destroy();
+
+                    new Chart(latencyByProtocolCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: protocolAvgLatencies.map(p => p.protocol.toUpperCase()),
+                            datasets: [{
+                                label: 'Avg Latency (ms)',
+                                data: protocolAvgLatencies.map(p => p.avgLatency),
+                                backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                                borderColor: 'rgba(255, 206, 86, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            ...commonPluginOptions,
+                            ...commonScaleOptions,
+                            indexAxis: 'y',
+                            plugins: {
+                                ...commonPluginOptions.plugins,
+                                legend: {
+                                    display: false
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Latency Distribution Chart (Keep original)
             const latencyChartCanvas = document.getElementById('latencyChart');
             if (proxies && proxies.length > 0) {
                 const validLatencies = proxies

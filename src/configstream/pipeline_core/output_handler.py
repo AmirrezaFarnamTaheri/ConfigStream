@@ -84,5 +84,15 @@ async def generate_pipeline_outputs(
 
     save_metadata(stats, optimized_proxies, output_path, cast(Any, history.storage))
 
+    # [FIX] Export history visualization data
+    # Ensure the history visualization JSON is generated for the frontend
+    viz_path = output_path / "data" / "proxy_history_viz.json"
+    viz_path.parent.mkdir(parents=True, exist_ok=True)
+    history.export_for_visualization(viz_path)
+
+    # Also export active trend for analytics chart
+    trend_path = output_path / "data" / "active_proxy_trend.json"
+    history.export_active_proxy_trend(trend_path)
+
     logger.info(f"Output generation complete. Files created in {output_path}")
     return generated_files

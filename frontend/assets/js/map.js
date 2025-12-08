@@ -35,6 +35,18 @@ class GlobeWidget {
         // Initial state: Zoom disabled until interaction
         this.globe.controls().enableZoom = false;
 
+        // Center horizontally
+        // Globe.gl centers itself in container, but we can ensure camera position
+        this.globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 });
+
+        // Apply theme-based background
+        this.updateTheme(document.body.classList.contains('dark'));
+
+        // Listen for theme changes
+        window.addEventListener('themechanged', (e) => {
+            this.updateTheme(e.detail.theme === 'dark');
+        });
+
         // Custom interaction handling
         this.setupInteraction();
 
@@ -46,35 +58,59 @@ class GlobeWidget {
         });
     }
 
-    setupInteraction() {
-        const enableInteraction = () => {
-            // Enable controls
-            this.globe.controls().enableZoom = true;
-            this.globe.controls().enableRotate = true;
-            this.globe.enablePointerInteraction(true);
+    updateTheme(isDark) {
+        if (!this.globe) return;
 
-            // Pause auto-rotation on interaction
+        if (isDark) {
+            // Night Sky for Dark Mode
+            this.globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+            this.globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg');
+        } else {
+            // Transparent/White or Abstract for Day Mode
+            // Using null removes the background image, letting the container background show through
+            // The container background is handled by CSS (linear gradient)
+            this.globe.backgroundImageUrl(null);
+            // Switch to Day Earth texture if available, or keep night if preferred style
+            this.globe.globeImageUrl('//unpkg.com/three-globe/example/img/earth-day.jpg');
+        }
+    }
+
+    setupInteraction() {
+        const startInteraction = () => {
+            // Enable Zoom on interaction
+            this.globe.controls().enableZoom = true;
+            // Stop Auto-Rotate
             this.globe.controls().autoRotate = false;
 
-            // Clear existing cooldown
+            if (this.cooldownTimer) clearTimeout(this.cooldownTimer);
+        };
+
+        const endInteraction = () => {
             if (this.cooldownTimer) clearTimeout(this.cooldownTimer);
 
-            // Set cooldown to resume rotation and disable zoom
+            // 2s Cooldown
             this.cooldownTimer = setTimeout(() => {
                 this.globe.controls().autoRotate = true;
-                this.globe.controls().enableZoom = false; // Disable zoom after cooldown
+                this.globe.controls().enableZoom = false;
             }, 2000);
         };
 
-        this.container.addEventListener('mousedown', enableInteraction);
-        this.container.addEventListener('touchstart', enableInteraction);
-        this.container.addEventListener('wheel', enableInteraction); // Also enable on scroll attempt
+        // Listeners
+        this.container.addEventListener('mousedown', startInteraction);
+        this.container.addEventListener('touchstart', startInteraction);
+        this.container.addEventListener('wheel', startInteraction);
 
-        // Resume rotation when mouse leaves
-        this.container.addEventListener('mouseleave', () => {
-            if (this.cooldownTimer) clearTimeout(this.cooldownTimer);
-            this.globe.controls().autoRotate = true;
-            this.globe.controls().enableZoom = false;
+        this.container.addEventListener('mouseup', endInteraction);
+        this.container.addEventListener('touchend', endInteraction);
+        this.container.addEventListener('mouseleave', endInteraction);
+
+        // Also catch if user stops scrolling/wheeling?
+        // Wheel events don't have "end", so we debounce endInteraction
+        let wheelTimeout;
+        this.container.addEventListener('wheel', () => {
+            startInteraction();
+            clearTimeout(wheelTimeout);
+            wheelTimeout = setTimeout(endInteraction, 2000); // slightly longer for wheel
         });
     }
 
