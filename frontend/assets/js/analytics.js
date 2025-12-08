@@ -516,6 +516,79 @@ function initCharts(data) {
             maintainAspectRatio: false
         }
     });
+
+    // 7. Latency by Country (Top 10 countries with avg latency)
+    const latencyByCountryEl = document.getElementById('latencyByCountryChart');
+    if (latencyByCountryEl && data.latency_by_country) {
+        const latencyByCountryCtx = latencyByCountryEl.getContext('2d');
+        const sortedLatencyCountries = Object.entries(data.latency_by_country)
+            .sort((a, b) => a[1] - b[1]) // Sort by latency (lowest first)
+            .slice(0, 15);
+
+        new Chart(latencyByCountryCtx, {
+            type: 'bar',
+            data: {
+                labels: sortedLatencyCountries.map(x => x[0]),
+                datasets: [{
+                    label: 'Avg Latency (ms)',
+                    data: sortedLatencyCountries.map(x => x[1]),
+                    backgroundColor: sortedLatencyCountries.map(x =>
+                        x[1] < 100 ? '#2ecc71' :  // Green for fast
+                        x[1] < 200 ? '#f39c12' :  // Orange for medium
+                        '#e74c3c'                  // Red for slow
+                    ),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Latency (ms)' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    // 8. Latency by Protocol
+    const latencyByProtocolEl = document.getElementById('latencyByProtocolChart');
+    if (latencyByProtocolEl && data.latency_by_protocol) {
+        const latencyByProtocolCtx = latencyByProtocolEl.getContext('2d');
+        const protocolLatencies = Object.entries(data.latency_by_protocol)
+            .sort((a, b) => a[1] - b[1]);
+
+        new Chart(latencyByProtocolCtx, {
+            type: 'bar',
+            data: {
+                labels: protocolLatencies.map(x => x[0].toUpperCase()),
+                datasets: [{
+                    label: 'Avg Latency (ms)',
+                    data: protocolLatencies.map(x => x[1]),
+                    backgroundColor: '#A855F7',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Latency (ms)' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
 }
 
 function getScoreColor(score) {

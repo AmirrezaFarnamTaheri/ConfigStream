@@ -263,6 +263,26 @@ def _generate_statistics(
         else:
             latency_dist["very_slow"] += 1
 
+    # Latency by Country & Protocol
+    latency_by_country: Dict[str, list] = defaultdict(list)
+    latency_by_protocol: Dict[str, list] = defaultdict(list)
+    for p in ranked:
+        if p.latency is not None and p.latency < 9000:  # Valid latency
+            latency_by_country[p.country].append(p.latency)
+            latency_by_protocol[p.protocol].append(p.latency)
+
+    # Calculate averages
+    avg_latency_by_country = {
+        country: round(sum(lats) / len(lats))
+        for country, lats in latency_by_country.items()
+        if lats
+    }
+    avg_latency_by_protocol = {
+        protocol: round(sum(lats) / len(lats))
+        for protocol, lats in latency_by_protocol.items()
+        if lats
+    }
+
     # Globe Sampling Logic
     globe_points = []
     try:
@@ -350,7 +370,7 @@ def _generate_statistics(
 
     meta_stats: Dict[str, Any] = {
         "working": working_proxies,
-        "fetched_lines": total_processed,
+        "total_fetched": total_processed,
         "duration": 0.0,
     }
     # Add washer stats if available in the log/environment (passed via washed_outbounds indirectly or we can infer)
@@ -377,12 +397,15 @@ def _generate_statistics(
     # Replicate logic from save_metadata but synchronous and compatible with dict stats
     meta = {
         "total_proxies": total_processed,
+        "total_sourced": total_processed,  # Alias for clarity
         "total_tested": len(ranked),
         "total_working": working_proxies,
         "success_rate": (working_proxies / len(ranked)) if ranked else 0,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "last_updated_utc": datetime.now(timezone.utc).isoformat(),
         "latency_distribution": latency_dist,
+        "latency_by_country": avg_latency_by_country,
+        "latency_by_protocol": avg_latency_by_protocol,
         "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
         "country_stats": dict(sorted(country_counts.items())),
         "rejection_reasons": dict(rejection_reasons),
