@@ -12,45 +12,31 @@ function initDynamicDownloads() {
         return;
     }
 
-    // Create dynamic icon element next to dropdown if it doesn't exist
-    let dynamicClientIcon = document.getElementById('dynamic-client-icon');
-    if (!dynamicClientIcon && dropdown.parentElement) {
-        dynamicClientIcon = document.createElement('i');
-        dynamicClientIcon.id = 'dynamic-client-icon';
-        // Insert before the dropdown
-        dropdown.parentElement.insertBefore(dynamicClientIcon, dropdown);
-    }
-
     const clients = {
         shadowrocket: {
             desc: "Configuration format optimized for Shadowrocket on iOS.",
-            file: "output/shadowrocket.txt",
+            file: "shadowrocket.txt",
             icon: "send"
         },
         surge: {
             desc: "Powerful rule-based utility for iOS/macOS.",
-            file: "output/surge.conf",
+            file: "surge.conf",
             icon: "zap"
         },
         loon: {
             desc: "Lightweight network toolbox for iOS.",
-            file: "output/loon.conf",
+            file: "loon.conf",
             icon: "moon"
         },
         quantumultx: {
             desc: "Advanced network debugging tool.",
-            file: "output/quantumult.conf",
+            file: "quantumult.conf",
             icon: "box"
         },
         sip008: {
             desc: "Standard SIP008 JSON format for Shadowsocks.",
-            file: "output/sip008.json",
+            file: "sip008.json",
             icon: "code"
-        },
-        singbox: {
-            desc: "Hybrid Go+Python optimized configuration.",
-            file: "output/singbox.json",
-            icon: "layers"
         }
     };
 
@@ -67,11 +53,6 @@ function initDynamicDownloads() {
         // Update main icon container
         if (iconContainer) {
             iconContainer.innerHTML = `<i data-feather="${client.icon}"></i>`;
-        }
-
-        // Update dynamic client icon next to dropdown
-        if (dynamicClientIcon) {
-            dynamicClientIcon.innerHTML = `<i data-feather="${client.icon}"></i>`;
         }
 
         // Re-render feather icons
