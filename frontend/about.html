@@ -58,11 +58,11 @@
                 <span class="header-logo-text">ConfigStream</span>
             </div>
             <nav class="nav" id="main-nav">
-                <a href="index.html" class="nav-link">Home</a>
-                <a href="proxies.html" class="nav-link">Proxy List</a>
-                <a href="analytics.html" class="nav-link">Analytics</a>
-                <a href="wiki.html" class="nav-link">Wiki</a>
-                <a href="about.html" class="nav-link active">About</a>
+                <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
+                <a href="proxies.html" class="nav-link" data-i18n="nav.proxies">Proxy List</a>
+                <a href="analytics.html" class="nav-link" data-i18n="nav.analytics">Analytics</a>
+                <a href="wiki.html" class="nav-link" data-i18n="nav.wiki">Wiki</a>
+                <a href="about.html" class="nav-link active" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
                 <!-- Modern Language Dropdown -->
@@ -137,84 +137,84 @@
             </section>
 
             <section class="about-section">
-                <h2><i data-feather="shield"></i> Security & Intelligence</h2>
-                <p>
+                <h2 data-i18n="about.security.title"><i data-feather="shield"></i> Security & Intelligence</h2>
+                <p data-i18n="about.security.text">
                     ConfigStream incorporates multi-layered security validation to ensure proxy safety and reliability.
                     Our intelligence pipeline filters out malicious nodes through comprehensive threat detection.
                 </p>
                 <div class="tech-grid">
                     <div class="tech-card">
-                        <h3>FireHol Blocklist Integration</h3>
-                        <p>Real-time validation against known malicious IP addresses from FireHol's community-maintained blocklists.</p>
+                        <h3 data-i18n="about.security.firehol">FireHol Blocklist Integration</h3>
+                        <p data-i18n="about.security.firehol_desc">Real-time validation against known malicious IP addresses from FireHol's community-maintained blocklists.</p>
                     </div>
                     <div class="tech-card">
-                        <h3>Honeypot Detection</h3>
-                        <p>Advanced heuristics identify and filter out honeypot traps designed to monitor user activity.</p>
+                        <h3 data-i18n="about.security.honeypot">Honeypot Detection</h3>
+                        <p data-i18n="about.security.honeypot_desc">Advanced heuristics identify and filter out honeypot traps designed to monitor user activity.</p>
                     </div>
                     <div class="tech-card">
-                        <h3>Configuration Validation</h3>
-                        <p>Strict parsing and validation ensures all configs are well-formed, non-malicious, and standards-compliant.</p>
+                        <h3 data-i18n="about.security.validation">Configuration Validation</h3>
+                        <p data-i18n="about.security.validation_desc">Strict parsing and validation ensures all configs are well-formed, non-malicious, and standards-compliant.</p>
                     </div>
                     <div class="tech-card">
-                        <h3>Dynamic Resharding</h3>
-                        <p>Intelligent load balancing based on actual fetch and test times ensures optimal pipeline performance.</p>
+                        <h3 data-i18n="about.security.resharding">Dynamic Resharding</h3>
+                        <p data-i18n="about.security.resharding_desc">Intelligent load balancing based on actual fetch and test times ensures optimal pipeline performance.</p>
                     </div>
                 </div>
             </section>
 
             <section class="about-section">
-                <h2><i data-feather="users"></i> Credits & Acknowledgements</h2>
-                <p style="margin-bottom: 1.5rem;">
+                <h2 data-i18n="about.credits.title"><i data-feather="users"></i> Credits & Acknowledgements</h2>
+                <p style="margin-bottom: 1.5rem;" data-i18n="about.credits.text">
                     ConfigStream is built on the shoulders of giants. We extend our gratitude to the following projects and communities:
                 </p>
                 <div class="tech-grid">
                     <div class="tech-card">
-                        <h3>Core Technologies</h3>
-                        <p>
+                        <h3 data-i18n="about.credits.core">Core Technologies</h3>
+                        <p data-i18n="about.credits.core_desc" data-i18n-html="true">
                             • <strong>Sing-box:</strong> Advanced routing engine<br>
                             • <strong>Python & Go:</strong> Hybrid pipeline architecture<br>
                             • <strong>WebAssembly:</strong> Client-side verification
                         </p>
                     </div>
                     <div class="tech-card">
-                        <h3>Data & Intelligence</h3>
-                        <p>
+                        <h3 data-i18n="about.credits.data">Data & Intelligence</h3>
+                        <p data-i18n="about.credits.data_desc" data-i18n-html="true">
                             • <strong>IRCF & MortezaBashsiz:</strong> Community WARP tools<br>
                             • <strong>FireHol:</strong> IP blocklist database<br>
                             • <strong>MaxMind GeoIP2:</strong> Geolocation services
                         </p>
                     </div>
                     <div class="tech-card">
-                        <h3>Frontend & Visualization</h3>
-                        <p>
+                        <h3 data-i18n="about.credits.frontend">Frontend & Visualization</h3>
+                        <p data-i18n="about.credits.frontend_desc" data-i18n-html="true">
                             • <strong>Globe.gl:</strong> 3D globe visualization<br>
                             • <strong>Chart.js:</strong> Analytics charts<br>
                             • <strong>Feather Icons:</strong> Modern icon system
                         </p>
                     </div>
                     <div class="tech-card">
-                        <h3>Fonts & Typography</h3>
-                        <p>
+                        <h3 data-i18n="about.credits.fonts">Fonts & Typography</h3>
+                        <p data-i18n="about.credits.fonts_desc" data-i18n-html="true">
                             • <strong>Be Vietnam Pro:</strong> Primary UI font<br>
                             • <strong>Vazirmatn:</strong> Farsi/Arabic UI font<br>
                             • <strong>Mikhak:</strong> Farsi/Arabic display font
                         </p>
                     </div>
                 </div>
-                <p style="margin-top: 1.5rem; text-align: center; color: var(--text-secondary);">
+                <p style="margin-top: 1.5rem; text-align: center; color: var(--text-secondary);" data-i18n="about.credits.thanks" data-i18n-html="true">
                     <strong>Special Thanks:</strong> To all the open-source proxy list maintainers and the community contributors who make this platform possible.
                 </p>
             </section>
 
             <section class="about-section">
-                <h2><i data-feather="code"></i> Open Source & License</h2>
-                <p>
+                <h2 data-i18n="about.opensource.title"><i data-feather="code"></i> Open Source & License</h2>
+                <p data-i18n="about.opensource.text" data-i18n-html="true">
                     ConfigStream is released under the <strong>AGPLv3 License</strong>, ensuring it remains free and open source forever.
                     We believe in transparency, community-driven development, and unrestricted access to information.
                 </p>
                 <p style="margin-top: 1rem;">
                     <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" class="btn btn-primary">
-                        <i data-feather="github"></i> View on GitHub
+                        <i data-feather="github"></i> <span data-i18n="about.opensource.btn">View on GitHub</span>
                     </a>
                 </p>
             </section>
@@ -223,7 +223,7 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 ConfigStream. Open Source (AGPLv3).</p>
+            <p data-i18n="about.footer" data-i18n-html="true">&copy; 2025 ConfigStream. Open Source (AGPLv3).</p>
         </div>
     </footer>
 
