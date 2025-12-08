@@ -25,8 +25,6 @@ async function verifyProxyBatch(proxies) {
         return proxies;
     }
 
-    console.log(`🚀 Starting WASM Verification for ${proxies.length} nodes...`);
-
     const CHUNK_SIZE = 10;
     const results = [];
 

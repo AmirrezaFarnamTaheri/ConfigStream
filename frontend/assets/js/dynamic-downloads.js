@@ -11,6 +11,16 @@ function initDynamicDownloads() {
         return;
     }
 
+    // Create dynamic icon element next to dropdown if it doesn't exist
+    let dynamicClientIcon = document.getElementById('dynamic-client-icon');
+    if (!dynamicClientIcon && dropdown.parentElement) {
+        dynamicClientIcon = document.createElement('i');
+        dynamicClientIcon.id = 'dynamic-client-icon';
+        dynamicClientIcon.setAttribute('data-feather', 'send');
+        // Insert before the dropdown
+        dropdown.parentElement.insertBefore(dynamicClientIcon, dropdown);
+    }
+
     const clients = {
         shadowrocket: {
             desc: "Configuration format optimized for Shadowrocket on iOS.",
@@ -54,8 +64,19 @@ function initDynamicDownloads() {
         desc.textContent = client.desc;
         btn.dataset.file = client.file;
 
+        // Update main icon container
         if (iconContainer) {
             iconContainer.innerHTML = '<i data-feather="' + client.icon + '"></i>';
+            if (window.feather) {
+                feather.replace();
+            } else if (window.inlineIcons) {
+                window.inlineIcons.replace();
+            }
+        }
+
+        // Update dynamic client icon next to dropdown
+        if (dynamicClientIcon) {
+            dynamicClientIcon.setAttribute('data-feather', client.icon);
             if (window.feather) {
                 feather.replace();
             } else if (window.inlineIcons) {

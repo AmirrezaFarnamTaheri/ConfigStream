@@ -60,3 +60,8 @@ function exportJSON(data, filename = 'export.json') {
   link.click();
   URL.revokeObjectURL(url);
 }
+
+// Expose globally for copy button functionality
+if (typeof window !== 'undefined') {
+    window.getFullUrl = getFullUrl;
+}

@@ -73,7 +73,6 @@
                 );
 
                 if (isValid) {
-                    console.log("✅ Config signature verified successfully.");
                     return JSON.parse(signedObj.content);
                 } else {
                     throw new Error("SECURITY ALERT: Config signature mismatch!");
@@ -88,7 +87,6 @@
 
         // Manual Trigger
         runLocalVerification: async function() {
-            console.log("Running Local Verification...");
             const statusEl = document.getElementById('wasm-status');
             if(statusEl) statusEl.textContent = "Verifying integrity...";
 
