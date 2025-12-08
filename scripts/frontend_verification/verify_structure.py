@@ -37,7 +37,7 @@ async def verify_ui_structure():
             title = await page.title()
             print(f"About Title: {title}")
             assert "ConfigStream" in title
-             # Check navigation link back to home
+            # Check navigation link back to home
             home_link = await page.get_attribute("a[data-i18n='nav.home']", "href")
             print(f"About -> Home Link: {home_link}")
             assert "../index.html" in home_link
