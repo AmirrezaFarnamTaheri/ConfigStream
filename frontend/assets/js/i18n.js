@@ -691,6 +691,19 @@ class I18n {
             document.documentElement.setAttribute('dir', 'ltr');
         }
 
+        // Update current language label in the language button
+        const langNames = {
+            'en': 'EN',
+            'zh': '中文',
+            'ru': 'RU',
+            'fa': 'فا',
+            'ar': 'ع'
+        };
+        const currentLangLabel = document.getElementById('current-lang-label');
+        if (currentLangLabel) {
+            currentLangLabel.textContent = langNames[lang] || lang.toUpperCase();
+        }
+
         // Update active state in language menu
         const langButtons = document.querySelectorAll('.lang-menu button');
         langButtons.forEach(btn => {

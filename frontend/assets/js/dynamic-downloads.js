@@ -24,32 +24,32 @@ function initDynamicDownloads() {
     const clients = {
         shadowrocket: {
             desc: "Configuration format optimized for Shadowrocket on iOS.",
-            file: "shadowrocket.txt",
+            file: "output/shadowrocket.txt",
             icon: "send"
         },
         surge: {
             desc: "Powerful rule-based utility for iOS/macOS.",
-            file: "surge.conf",
+            file: "output/surge.conf",
             icon: "zap"
         },
         loon: {
             desc: "Lightweight network toolbox for iOS.",
-            file: "loon.conf",
+            file: "output/loon.conf",
             icon: "moon"
         },
         quantumultx: {
             desc: "Advanced network debugging tool.",
-            file: "quantumult.conf",
+            file: "output/quantumult.conf",
             icon: "box"
         },
         sip008: {
             desc: "Standard SIP008 JSON format for Shadowsocks.",
-            file: "sip008.json",
+            file: "output/sip008.json",
             icon: "code"
         },
         singbox: {
             desc: "Hybrid Go+Python optimized configuration.",
-            file: "singbox.json",
+            file: "output/singbox.json",
             icon: "layers"
         }
     };
