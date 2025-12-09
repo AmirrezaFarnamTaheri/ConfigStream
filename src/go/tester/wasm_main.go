@@ -15,7 +15,18 @@ import (
 
 func main() {
 	c := make(chan struct{}, 0)
-	js.Global().Set("testProxyWasm", js.FuncOf(testProxy))
+
+	// Register test function and keep reference
+	testFunc := js.FuncOf(testProxy)
+	js.Global().Set("testProxyWasm", testFunc)
+
+	// Register cleanup function to prevent memory leaks
+	cleanupFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		testFunc.Release()
+		return nil
+	})
+	js.Global().Set("cleanupWasm", cleanupFunc)
+
 	fmt.Println("WASM Proxy Tester Initialized")
 	<-c
 }
@@ -31,8 +42,9 @@ func testProxy(this js.Value, args []js.Value) interface{} {
 	// In a browser environment, we can't make raw TCP connections.
 	if !strings.Contains(proxyUrl, "ws") && !strings.Contains(proxyUrl, "http") {
 		return map[string]interface{}{
-			"alive": false,
-			"error": "WASM Limitation: Browser can only test WebSocket/HTTP transports. TCP/UDP proxies require backend testing.",
+			"alive":  false,
+			"error":  "WASM Limitation: Browser can only test WebSocket/HTTP transports. TCP/UDP proxies require backend testing.",
+			"status": "unsupported",
 		}
 	}
 

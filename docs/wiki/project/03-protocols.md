@@ -92,6 +92,11 @@ Reality replaces standard TLS with a "steal" mechanism.
 
 **Validation Rule**: If `security=reality`, we check for `pbk` and `sid`. If missing, the proxy is invalid.
 
+**Transport Variations**:
+*   **GRPC**: Fully supported.
+*   **H2**: Supported.
+*   **Split-HTTP**: Experimental support.
+
 ### 4. Trojan
 
 **Schemes**: `trojan://`
@@ -146,4 +151,7 @@ Before a proxy enters the testing phase, it must pass the **Gatekeeper**:
     *   VMess: Must have `id` (UUID).
     *   Shadowsocks: Must have `method` and `password`.
     *   Trojan: Must have `password`.
-4.  **Scheme Enforcement**: We reject "naked" links (IP:Port) unless they are in a specific raw format file.
+4.  **Scheme Enforcement**:
+    *   Standard parsing requires valid schemes (`vmess://`, `ss://`).
+    *   **Naked IP Support**: We have limited support for `IP:PORT` lines. These are heuristically detected (e.g. port 80/443 -> HTTP, 1080 -> SOCKS) and parsed as generic proxies. This is disabled for strict sources to prevent false positives.
+    *   **Port Hopping**: Hysteria2 port hopping syntax (`ports=1000-2000`) is parsed, but complex hopping rules may be simplified for client compatibility.

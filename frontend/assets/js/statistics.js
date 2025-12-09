@@ -13,7 +13,7 @@ async function loadCountryData() {
 }
 
 // Page-specific logic for the statistics page
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     if (!document.getElementById('charts-card')) return;
 
     const chartsContainer = document.getElementById('chartsContainer');

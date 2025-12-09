@@ -10,6 +10,21 @@ logger = logging.getLogger(__name__)
 def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
     """Parse generic URL-based schemes like http, socks."""
     try:
+        # Support naked IP:PORT for SOCKS/HTTP
+        if "://" not in config and ":" in config and not config.startswith("{"):
+            parts = config.split(":")
+            if len(parts) == 2 and parts[1].isdigit():
+                # Assume HTTP if not specified
+                return Proxy(
+                    config=config,
+                    protocol="http",
+                    address=parts[0],
+                    port=int(parts[1]),
+                    uuid="",
+                    details={},
+                    remarks="naked_ip",
+                )
+
         parsed = urlparse(config)
         if not parsed.hostname:
             return None

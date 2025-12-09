@@ -56,6 +56,18 @@ Implemented in `src/configstream/`, this layer is the "brain."
     *   These files are hashed and stored in GitHub Actions Cache (`actions/cache`).
     *   On startup, the pipeline tries to restore the cache. If successful, it loads the "memory" of previous runs.
 *   **Concurrency Manager**: `concurrency_manager.py` dynamically adjusts the number of parallel tasks based on CPU load. If the runner is struggling, it backs off to prevent an OOM (Out Of Memory) kill.
+*   **AIMD Control**: We use Additive Increase / Multiplicative Decrease (AIMD) algorithm for throughput tuning. If success rate drops or latency spikes, we reduce concurrency. If stable, we probe for higher throughput.
+
+### The Intelligence Layer: Washing & Smart Chains
+
+A unique feature of ConfigStream is **"Proxy Washing"**.
+1.  **Problem**: Many high-quality proxies are blocked by services like Google, Netflix, or OpenAI due to "dirty" IP reputation (datacenter IPs).
+2.  **Solution**: We wrap these "dirty" proxies in a clean, reputable exit node (Cloudflare WARP).
+3.  **Smart Chaining**:
+    *   **Dirty Proxy (Relay)**: Handles the censorship circumvention (getting out of the user's country).
+    *   **Clean Exit (WARP)**: Handles the reputation check (accessing the target site).
+    *   **Result**: A "Smart Chain" that is both uncensored and clean.
+    *   **Verification**: The pipeline generates these chains and *re-tests* them end-to-end using the Go Tester to ensure connectivity.
 
 ## 2. The Data Plane (The Hybrid Engine)
 

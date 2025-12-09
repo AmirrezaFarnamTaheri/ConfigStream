@@ -136,6 +136,11 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
                     f"Invalid reserved bytes format for WireGuard: {reserved}. Removing invalid field."
                 )
                 del proxy.details["reserved"]
+            elif (
+                len(reserved) > 128
+            ):  # Enforce max length (standard key is 32 bytes/44 chars b64)
+                logger.warning(f"Reserved bytes too long: {len(reserved)}")
+                del proxy.details["reserved"]
         else:
             # If it's not a string (e.g. list from some internal process), assume valid if it's a list of ints
             if not (
@@ -181,6 +186,11 @@ def parse_ssh(config: str) -> Optional[Proxy]:
     # format: ssh://user:pass@host:port#remark
     proxy = _parse_url_scheme(config, "ssh", 22)
     if proxy:
+        # Validate host matches strict regex (IP or Domain) to avoid injection
+        if not re.match(r"^[a-zA-Z0-9\.\-\_]+$", proxy.address):
+            logger.warning(f"Invalid SSH hostname: {proxy.address}")
+            return None
+
         # SSH Tunnels: Parse credentials
         parsed = urlparse(config)
         if parsed.password:

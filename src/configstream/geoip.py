@@ -6,6 +6,7 @@ Uses local MMDB files instead of API calls for zero-latency, private lookups.
 import threading
 import ipaddress
 import logging
+import asyncio
 from pathlib import Path
 from typing import Optional
 
@@ -47,6 +48,8 @@ class GeoIPResolver:
         self.settings = AppSettings()
         self.reader_city: Optional[geoip2.database.Reader] = None
         self.reader_asn: Optional[geoip2.database.Reader] = None
+
+        self._lookup_lock = asyncio.Lock()
 
         # Load synchronously
         self._load_databases()
@@ -101,8 +104,8 @@ class GeoIPResolver:
         except Exception as e:
             logger.error(f"Failed to load GeoIP databases: {e}")
 
-    def lookup(self, ip: str) -> GeoData:
-        """Resolve IP to Country, City, ASN."""
+    async def lookup(self, ip: str) -> GeoData:
+        """Resolve IP to Country, City, ASN (Async with Lock)."""
         result = GeoData()
         if not ip:
             return result
@@ -114,25 +117,26 @@ class GeoIPResolver:
             logger.debug(f"Invalid IP address format: {ip}")
             return result
 
-        try:
-            if self.reader_city:
-                response = self.reader_city.city(ip)
-                result.country_code = response.country.iso_code
-                result.country_name = response.country.name
-                result.city = response.city.name
-                result.lat = response.location.latitude
-                result.lng = response.location.longitude
+        async with self._lookup_lock:
+            try:
+                if self.reader_city:
+                    response = self.reader_city.city(ip)
+                    result.country_code = response.country.iso_code
+                    result.country_name = response.country.name
+                    result.city = response.city.name
+                    result.lat = response.location.latitude
+                    result.lng = response.location.longitude
 
-            if self.reader_asn:
-                response_asn = self.reader_asn.asn(ip)
-                result.asn = str(response_asn.autonomous_system_number)
-                result.org = response_asn.autonomous_system_organization
+                if self.reader_asn:
+                    response_asn = self.reader_asn.asn(ip)
+                    result.asn = str(response_asn.autonomous_system_number)
+                    result.org = response_asn.autonomous_system_organization
 
-        except geoip2.errors.AddressNotFoundError:
-            # Expected for private IPs or missing data
-            pass
-        except Exception as e:
-            logger.debug(f"GeoIP lookup error for {ip}: {e}")
+            except geoip2.errors.AddressNotFoundError:
+                # Expected for private IPs or missing data
+                pass
+            except Exception as e:
+                logger.debug(f"GeoIP lookup error for {ip}: {e}")
 
         return result
 

@@ -70,8 +70,11 @@ async def processing_consumer(
     while True:
         try:
             # Add timeout to prevent indefinite blocking if producer dies
-            # 600 seconds (10 minutes) to allow for slow sources/retries
-            item = await asyncio.wait_for(work_queue.get(), timeout=600.0)
+            # Allow configuration via env, default to 600 seconds (10 minutes)
+            import os
+
+            timeout_val = float(os.getenv("CONSUMER_TIMEOUT", "600.0"))
+            item = await asyncio.wait_for(work_queue.get(), timeout=timeout_val)
         except asyncio.TimeoutError:
             logger.warning("Consumer timed out waiting for work. Exiting.")
             break
@@ -245,7 +248,7 @@ async def processing_consumer(
                         await tester.test_batch(chunk)
                         for res in chunk:
                             # Record history
-                            # history.record_test_result(res) # ProxyHistoryTracker lacks this method
+                            history.record_test_result(res)
 
                             if res.is_working:
                                 final_batch_for_this_source.append(res)
@@ -308,7 +311,7 @@ async def processing_consumer(
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
                         for res in results:
                             # Record history
-                            # history.record_test_result(res) # ProxyHistoryTracker lacks this method
+                            history.record_test_result(res)
 
                             if res.is_working:
                                 await concurrency.record(
@@ -331,7 +334,7 @@ async def processing_consumer(
                 continue
             if not p.country_code:
                 with tracker.phase("geo"):
-                    geo_data = geoip.lookup(p.resolved_ip or p.address)
+                    geo_data = await geoip.lookup(p.resolved_ip or p.address)
                     if geo_data and geo_data.country_code:
                         # Ensure country_code is a normalized ISO code.
                         cc = geo_data.country_code or ""
