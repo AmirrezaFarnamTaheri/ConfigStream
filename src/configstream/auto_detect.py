@@ -72,6 +72,12 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         except Exception:
             pass
 
+    # Try Naked IP:PORT
+    if "://" not in config and ":" in config and not config.startswith("{"):
+        res = _parse_generic_url_scheme(config)
+        if res:
+            return res
+
     # Try URL-based detection first
     if "://" in config:
         scheme = config.split("://")[0].lower()

@@ -2,6 +2,16 @@
 set -e
 
 echo "🏗️ Building WASM Module..."
+
+# Check Go version (ensure 1.21+)
+if command -v go &> /dev/null; then
+    GO_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
+    echo "Detected Go version: $GO_VERSION"
+else
+    echo "❌ Go is not installed."
+    exit 1
+fi
+
 cd src/go/tester
 
 # 1. Build .wasm binary
@@ -23,7 +33,7 @@ else
     WASM_EXEC_PATH=$(find "$GOROOT" -name wasm_exec.js | head -n 1)
 fi
 
-if [ -z "$WASM_EXEC_PATH" ]; then
+if [ -z "$WASM_EXEC_PATH" ] || [ ! -f "$WASM_EXEC_PATH" ]; then
     echo "❌ Error: Could not find wasm_exec.js in GOROOT: $GOROOT"
     exit 1
 fi

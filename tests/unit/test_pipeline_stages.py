@@ -43,8 +43,10 @@ def mock_dependencies():
     concurrency.get_semaphore.return_value = sem
 
     geoip = MagicMock()
-    geoip.lookup.return_value = MagicMock(
-        country_code="US", city="TestCity", asn="123", org="TestOrg"
+    geoip.lookup = AsyncMock(
+        return_value=MagicMock(
+            country_code="US", city="TestCity", asn="123", org="TestOrg"
+        )
     )
 
     tracker = MagicMock()
@@ -534,8 +536,8 @@ async def test_processing_consumer_country_filter(mock_dependencies):
     mock_dependencies["tester"].test.return_value = res
 
     # GeoIP returns US
-    mock_dependencies["geoip"].lookup.return_value = MagicMock(
-        country_code="US", city="", asn="", org=""
+    mock_dependencies["geoip"].lookup = AsyncMock(
+        return_value=MagicMock(country_code="US", city="", asn="", org="")
     )
 
     with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):

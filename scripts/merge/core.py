@@ -129,8 +129,12 @@ def merge_batches(
             # Though strictly, they should be paired (Relay + Exit)
             safe_limit = len(washed_outbounds) - (len(washed_outbounds) % 2)
             if len(washed_outbounds) % 2 != 0:
-                logger.warning(
-                    f"Washer produced odd number of outbounds ({len(washed_outbounds)}). Dropping last item."
+                # Log detailed info about the last item to aid debugging
+                last_item = washed_outbounds[-1]
+                logger.error(
+                    f"Washer produced odd number of outbounds ({len(washed_outbounds)}). "
+                    f"Dropping last item: {last_item.get('tag', 'unknown_tag')} - {last_item.get('type', 'unknown_type')}. "
+                    "This indicates a bug in the washer chain generation logic."
                 )
 
             for i in range(0, safe_limit, 2):

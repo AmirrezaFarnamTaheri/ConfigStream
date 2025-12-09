@@ -18,7 +18,16 @@ async function initWasm() {
     }
 }
 
-// 2. Test Function
+// 2. Cleanup Function
+function cleanup() {
+    if (window.cleanupWasm) {
+        window.cleanupWasm();
+        console.log("🧹 WASM Cleaned up");
+    }
+}
+window.addEventListener('beforeunload', cleanup);
+
+// 3. Test Function
 async function verifyProxyBatch(proxies) {
     if (!wasmReady) {
         console.warn("WASM not ready yet.");

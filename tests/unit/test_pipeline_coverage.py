@@ -65,7 +65,7 @@ async def test_processing_consumer_basic(
     test_cache.get = MagicMock(return_value=None)
 
     geoip = MagicMock()
-    geoip.lookup = MagicMock(
+    geoip.lookup = AsyncMock(
         return_value=MagicMock(
             country_code="US", city="Test City", asn="AS1234", org="Test Org"
         )
