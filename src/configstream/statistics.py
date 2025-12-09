@@ -4,7 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from statistics import mean, median, stdev
-from typing import Dict, List, Mapping, Sequence
+from typing import Dict, List, Mapping, Sequence, Any
 
 from .models import Proxy
 
@@ -58,13 +58,11 @@ class StatisticsEngine:
 
     def detailed_stats(self) -> Dict[str, Any]:
         """Calculate detailed aggregations for analytics charts."""
-        from typing import Any  # Import locally to avoid circular deps if any
-
-        lat_by_proto: Dict[str, List[int]] = {}
-        lat_by_country: Dict[str, List[int]] = {}
+        lat_by_proto: Dict[str, List[float]] = {}
+        lat_by_country: Dict[str, List[float]] = {}
 
         for p in self.proxies:
-            if not p.is_working or not p.latency:
+            if not p.is_working or p.latency is None:
                 continue
 
             # Protocol

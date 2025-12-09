@@ -67,8 +67,10 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **Dual Engine**:
     *   **Go Sidecar**: Preferred for performance/compatibility. It supports testing single proxies and **Chains** (lists of outbounds).
     *   **Python Fallback**: Minimal implementation for environments without the binary.
+    *   **WASM Tester**: Browser-based verification component (`src/go/tester/wasm_main.go`). Must communicate via JS interop (`syscall/js`) and not use native networking.
 *   **Washer Retesting**:
     *   Washed chains (Relay -> WARP) MUST be re-tested before inclusion in the final output to ensure end-to-end connectivity. This is handled in `scripts/merge/core.py`.
+    *   **Washer Security**: Use Epoch-based rotation for WARP keys and sequential IP generation to prevent collisions.
 *   **Cache**: Use `TestResultCache` to skip re-testing recently verified proxies. Ensure path persistence.
 
 ## 5. Testing & Verification
