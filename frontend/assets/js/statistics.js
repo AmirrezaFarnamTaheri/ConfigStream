@@ -70,21 +70,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateSummaryStats(stats, proxies, metadata) {
-        // New mappings based on user request
-        if (stats.total_fetched !== undefined) {
-            updateElement('#totalSourced', stats.total_fetched.toLocaleString());
-        } else if (metadata && metadata.total_fetched !== undefined) {
-            updateElement('#totalSourced', metadata.total_fetched.toLocaleString());
-        }
+        // Consolidated Stats Mappings (v2.0.4+)
 
-        // Total Configs (Unique & Verified/Tested)
-        // Prioritize 'unique' or 'total_unique' if available, otherwise fall back to 'total_proxies'
-        const uniqueCount = stats.unique || stats.total_unique || stats.total_proxies || 0;
+        // 1. Total Sourced (Raw Lines Fetched)
+        // Prioritize explicit new keys > legacy keys > fallbacks
+        const totalSourced =
+            (metadata && metadata.total_lines_sourced) ||
+            stats.fetched_lines ||
+            (metadata && metadata.fetched_lines) ||
+            stats.total_fetched ||
+            (metadata && metadata.total_fetched) ||
+            0;
+        updateElement('#totalSourced', totalSourced.toLocaleString());
+
+        // 2. Total Configs (Unique Candidates)
+        const uniqueCount =
+            (metadata && metadata.total_unique_candidates) ||
+            stats.parsed ||
+            (metadata && metadata.parsed) ||
+            stats.unique ||
+            stats.total_unique ||
+            stats.total_proxies ||
+            0;
         updateElement('#totalConfigs', uniqueCount.toLocaleString());
 
-        // Online Now (Working)
-        // Prioritize 'active' or 'alive' if 'total_working' is missing
-        const workingCount = stats.total_working || stats.active || stats.alive || 0;
+        // 3. Online Now (Working Proxies)
+        const workingCount =
+            (metadata && metadata.total_valid_proxies) ||
+            stats.working ||
+            (metadata && metadata.working) ||
+            stats.total_working ||
+            stats.active ||
+            stats.alive ||
+            0;
         updateElement('#workingConfigs', workingCount.toLocaleString());
 
         // Revived (Washed)

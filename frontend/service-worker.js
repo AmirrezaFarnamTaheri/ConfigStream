@@ -1,11 +1,11 @@
-const CACHE_NAME = 'configstream-v4';
+const CACHE_NAME = 'configstream-v2.0.5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './proxies.html',
   './analytics.html',
-  './about/',
-  './wiki/',
+  './about.html',
+  './wiki.html',
   './assets/css/style.css',
   './assets/css/loading.css',
   './assets/css/error-handler.css',
