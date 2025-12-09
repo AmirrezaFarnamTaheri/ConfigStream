@@ -124,7 +124,6 @@ def save_metadata(
     stats: Any,
     proxies: List[Proxy],
     output_dir: Path,
-    history: Optional[Any] = None,
 ):
     """
     Saves metadata.json and other stats files.
@@ -179,7 +178,9 @@ def save_metadata(
             smart_chain_count = sum(stats["smart_chains_breakdown"].values())
     else:
         # Stats is an object (PipelineStats)
-        if hasattr(stats, "total_sourced"):
+        if hasattr(stats, "fetched_lines"):
+            total_sourced = stats.fetched_lines
+        elif hasattr(stats, "total_sourced"):
             total_sourced = stats.total_sourced
         if hasattr(stats, "drop_reasons"):
             reasons = stats.drop_reasons

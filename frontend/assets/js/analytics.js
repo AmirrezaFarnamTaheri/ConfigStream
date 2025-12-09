@@ -27,23 +27,22 @@ function updateStats(data) {
     // Helper function to format numbers with locale support
     const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
 
-    // Fix: Use correct field with fallbacks
-    // total_sourced = raw lines fetched from sources before dedup
-    // total_fetched = same as above (legacy name)
-    // total_proxies = after dedup, the actual tested count
-    const totalSourced = data.total_sourced || data.total_fetched || data.fetched_lines || 0;
+    // Use canonical fields with legacy fallbacks
+    // PipelineStats canonical: fetched_lines, parsed, tested, working
+    const totalSourced = data.fetched_lines || data.fetched_sources || data.total_sourced || 0;
     update('totalSourced', formatNum(totalSourced));
 
     // Unique & Verified/Tested
-    const totalConfigs = data.unique || data.total_unique || data.total_proxies || data.total_tested || 0;
+    // 'parsed' is the number of valid proxies found.
+    const totalConfigs = data.parsed || data.unique || data.total_unique || data.total_proxies || data.total_tested || 0;
     update('totalConfigs', formatNum(totalConfigs));
 
     // Online Now (Working)
-    const workingCount = data.total_working || data.active || data.alive || 0;
+    const workingCount = data.total_working || data.working || data.active || data.alive || 0;
     update('workingConfigs', formatNum(workingCount));
 
     // New Stats if elements exist
-    const totalRevived = data.total_revived || 0;
+    const totalRevived = data.total_revived || data.washer_success_count || 0;
     // Use total_clean if present; otherwise derive from working proxies minus revived
     const totalClean = data.total_clean ?? Math.max(0, workingCount - totalRevived);
 
@@ -59,26 +58,257 @@ function initGlobe(data) {
     const container = document.getElementById('globe-viz');
     if (!container) return;
 
-    // Prepare data for globe
+    // Comprehensive list of country centroids
     const countryCentroids = {
-        "US": { lat: 37.0902, lng: -95.7129, name: "United States" },
-        "CN": { lat: 35.8617, lng: 104.1954, name: "China" },
-        "RU": { lat: 61.5240, lng: 105.3188, name: "Russia" },
-        "DE": { lat: 51.1657, lng: 10.4515, name: "Germany" },
-        "FR": { lat: 46.2276, lng: 2.2137, name: "France" },
-        "GB": { lat: 55.3781, lng: -3.4360, name: "United Kingdom" },
-        "CA": { lat: 56.1304, lng: -106.3468, name: "Canada" },
-        "JP": { lat: 36.2048, lng: 138.2529, name: "Japan" },
-        "KR": { lat: 35.9078, lng: 127.7669, name: "South Korea" },
-        "SG": { lat: 1.3521, lng: 103.8198, name: "Singapore" },
-        "NL": { lat: 52.1326, lng: 5.2913, name: "Netherlands" },
-        "IN": { lat: 20.5937, lng: 78.9629, name: "India" },
+        "AF": { lat: 33.9391, lng: 67.7100, name: "Afghanistan" },
+        "AL": { lat: 41.1533, lng: 20.1683, name: "Albania" },
+        "DZ": { lat: 28.0339, lng: 1.6596, name: "Algeria" },
+        "AS": { lat: -14.2710, lng: -170.1320, name: "American Samoa" },
+        "AD": { lat: 42.5462, lng: 1.6016, name: "Andorra" },
+        "AO": { lat: -11.2027, lng: 17.8739, name: "Angola" },
+        "AI": { lat: 18.2206, lng: -63.0686, name: "Anguilla" },
+        "AQ": { lat: -75.2509, lng: -0.0714, name: "Antarctica" },
+        "AG": { lat: 17.0608, lng: -61.7964, name: "Antigua and Barbuda" },
+        "AR": { lat: -38.4161, lng: -63.6167, name: "Argentina" },
+        "AM": { lat: 40.0691, lng: 45.0382, name: "Armenia" },
+        "AW": { lat: 12.5211, lng: -69.9683, name: "Aruba" },
+        "AU": { lat: -25.2744, lng: 133.7751, name: "Australia" },
+        "AT": { lat: 47.5162, lng: 14.5501, name: "Austria" },
+        "AZ": { lat: 40.1431, lng: 47.5769, name: "Azerbaijan" },
+        "BS": { lat: 25.0343, lng: -77.3963, name: "Bahamas" },
+        "BH": { lat: 26.0667, lng: 50.5577, name: "Bahrain" },
+        "BD": { lat: 23.6850, lng: 90.3563, name: "Bangladesh" },
+        "BB": { lat: 13.1939, lng: -59.5432, name: "Barbados" },
+        "BY": { lat: 53.7098, lng: 27.9534, name: "Belarus" },
+        "BE": { lat: 50.5039, lng: 4.4699, name: "Belgium" },
+        "BZ": { lat: 17.1899, lng: -88.4976, name: "Belize" },
+        "BJ": { lat: 9.3077, lng: 2.3158, name: "Benin" },
+        "BM": { lat: 32.3214, lng: -64.7574, name: "Bermuda" },
+        "BT": { lat: 27.5142, lng: 90.4336, name: "Bhutan" },
+        "BO": { lat: -16.2902, lng: -63.5887, name: "Bolivia" },
+        "BA": { lat: 43.9159, lng: 17.6791, name: "Bosnia and Herzegovina" },
+        "BW": { lat: -22.3285, lng: 24.6849, name: "Botswana" },
         "BR": { lat: -14.2350, lng: -51.9253, name: "Brazil" },
-        "IR": { lat: 32.4279, lng: 53.6880, name: "Iran" },
-        "TR": { lat: 38.9637, lng: 35.2433, name: "Turkey" },
-        "UA": { lat: 48.3794, lng: 31.1656, name: "Ukraine" },
+        "BN": { lat: 4.5353, lng: 114.7277, name: "Brunei" },
+        "BG": { lat: 42.7339, lng: 25.4858, name: "Bulgaria" },
+        "BF": { lat: 12.2383, lng: -1.5616, name: "Burkina Faso" },
+        "BI": { lat: -3.3731, lng: 29.9189, name: "Burundi" },
+        "KH": { lat: 12.5657, lng: 104.9910, name: "Cambodia" },
+        "CM": { lat: 7.3697, lng: 12.3547, name: "Cameroon" },
+        "CA": { lat: 56.1304, lng: -106.3468, name: "Canada" },
+        "CV": { lat: 16.0021, lng: -24.0131, name: "Cape Verde" },
+        "KY": { lat: 19.3133, lng: -81.2546, name: "Cayman Islands" },
+        "CF": { lat: 6.6111, lng: 20.9394, name: "Central African Republic" },
+        "TD": { lat: 15.4542, lng: 18.7322, name: "Chad" },
+        "CL": { lat: -35.6751, lng: -71.5430, name: "Chile" },
+        "CN": { lat: 35.8617, lng: 104.1954, name: "China" },
+        "CO": { lat: 4.5709, lng: -74.2973, name: "Colombia" },
+        "KM": { lat: -11.8750, lng: 43.8722, name: "Comoros" },
+        "CG": { lat: -0.2280, lng: 15.8277, name: "Congo" },
+        "CD": { lat: -4.0383, lng: 21.7587, name: "DR Congo" },
+        "CK": { lat: -21.2367, lng: -159.7777, name: "Cook Islands" },
+        "CR": { lat: 9.7489, lng: -83.7534, name: "Costa Rica" },
+        "CI": { lat: 7.5400, lng: -5.5471, name: "Côte d'Ivoire" },
+        "HR": { lat: 45.1000, lng: 15.2000, name: "Croatia" },
+        "CU": { lat: 21.5217, lng: -77.7812, name: "Cuba" },
+        "CY": { lat: 35.1264, lng: 33.4299, name: "Cyprus" },
+        "CZ": { lat: 49.8175, lng: 15.4730, name: "Czech Republic" },
+        "DK": { lat: 56.2639, lng: 9.5018, name: "Denmark" },
+        "DJ": { lat: 11.8251, lng: 42.5903, name: "Djibouti" },
+        "DM": { lat: 15.4150, lng: -61.3710, name: "Dominica" },
+        "DO": { lat: 18.7357, lng: -70.1627, name: "Dominican Republic" },
+        "EC": { lat: -1.8312, lng: -78.1834, name: "Ecuador" },
+        "EG": { lat: 26.8206, lng: 30.8025, name: "Egypt" },
+        "SV": { lat: 13.7942, lng: -88.8965, name: "El Salvador" },
+        "GQ": { lat: 1.6508, lng: 10.2679, name: "Equatorial Guinea" },
+        "ER": { lat: 15.1794, lng: 39.7823, name: "Eritrea" },
+        "EE": { lat: 58.5953, lng: 25.0136, name: "Estonia" },
+        "ET": { lat: 9.1450, lng: 40.4897, name: "Ethiopia" },
+        "FK": { lat: -51.7963, lng: -59.5236, name: "Falkland Islands" },
+        "FO": { lat: 61.8926, lng: -6.9118, name: "Faroe Islands" },
+        "FJ": { lat: -17.7134, lng: 178.0650, name: "Fiji" },
+        "FI": { lat: 61.9241, lng: 25.7482, name: "Finland" },
+        "FR": { lat: 46.2276, lng: 2.2137, name: "France" },
+        "GF": { lat: 3.9339, lng: -53.1258, name: "French Guiana" },
+        "PF": { lat: -17.6797, lng: -149.4068, name: "French Polynesia" },
+        "GA": { lat: -0.8037, lng: 11.6094, name: "Gabon" },
+        "GM": { lat: 13.4432, lng: -15.3101, name: "Gambia" },
+        "GE": { lat: 42.3154, lng: 43.3569, name: "Georgia" },
+        "DE": { lat: 51.1657, lng: 10.4515, name: "Germany" },
+        "GH": { lat: 7.9465, lng: -1.0232, name: "Ghana" },
+        "GI": { lat: 36.1408, lng: -5.3536, name: "Gibraltar" },
+        "GR": { lat: 39.0742, lng: 21.8243, name: "Greece" },
+        "GL": { lat: 71.7069, lng: -42.6043, name: "Greenland" },
+        "GD": { lat: 12.1165, lng: -61.6790, name: "Grenada" },
+        "GP": { lat: 16.2650, lng: -61.5510, name: "Guadeloupe" },
+        "GU": { lat: 13.4443, lng: 144.7937, name: "Guam" },
+        "GT": { lat: 15.7835, lng: -90.2308, name: "Guatemala" },
+        "GG": { lat: 49.4482, lng: -2.5895, name: "Guernsey" },
+        "GN": { lat: 9.9456, lng: -9.6966, name: "Guinea" },
+        "GW": { lat: 11.8037, lng: -15.1804, name: "Guinea-Bissau" },
+        "GY": { lat: 4.8604, lng: -58.9302, name: "Guyana" },
+        "HT": { lat: 18.9712, lng: -72.2852, name: "Haiti" },
+        "HN": { lat: 15.2000, lng: -86.2419, name: "Honduras" },
         "HK": { lat: 22.3193, lng: 114.1694, name: "Hong Kong" },
+        "HU": { lat: 47.1625, lng: 19.5033, name: "Hungary" },
+        "IS": { lat: 64.9631, lng: -19.0208, name: "Iceland" },
+        "IN": { lat: 20.5937, lng: 78.9629, name: "India" },
+        "ID": { lat: -0.7893, lng: 113.9213, name: "Indonesia" },
+        "IR": { lat: 32.4279, lng: 53.6880, name: "Iran" },
+        "IQ": { lat: 33.2232, lng: 43.6793, name: "Iraq" },
+        "IE": { lat: 53.1424, lng: -7.6921, name: "Ireland" },
+        "IM": { lat: 54.2361, lng: -4.5481, name: "Isle of Man" },
+        "IL": { lat: 31.0461, lng: 34.8516, name: "Israel" },
+        "IT": { lat: 41.8719, lng: 12.5674, name: "Italy" },
+        "JM": { lat: 18.1096, lng: -77.2975, name: "Jamaica" },
+        "JP": { lat: 36.2048, lng: 138.2529, name: "Japan" },
+        "JE": { lat: 49.2144, lng: -2.1313, name: "Jersey" },
+        "JO": { lat: 30.5852, lng: 36.2384, name: "Jordan" },
+        "KZ": { lat: 48.0196, lng: 66.9237, name: "Kazakhstan" },
+        "KE": { lat: -0.0236, lng: 37.9062, name: "Kenya" },
+        "KI": { lat: -3.3704, lng: -168.7340, name: "Kiribati" },
+        "KP": { lat: 40.3399, lng: 127.5101, name: "North Korea" },
+        "KR": { lat: 35.9078, lng: 127.7669, name: "South Korea" },
+        "KW": { lat: 29.3117, lng: 47.4818, name: "Kuwait" },
+        "KG": { lat: 41.2044, lng: 74.7661, name: "Kyrgyzstan" },
+        "LA": { lat: 19.8563, lng: 102.4955, name: "Laos" },
+        "LV": { lat: 56.8796, lng: 24.6032, name: "Latvia" },
+        "LB": { lat: 33.8547, lng: 35.8623, name: "Lebanon" },
+        "LS": { lat: -29.6099, lng: 28.2336, name: "Lesotho" },
+        "LR": { lat: 6.4281, lng: -9.4295, name: "Liberia" },
+        "LY": { lat: 26.3351, lng: 17.2283, name: "Libya" },
+        "LI": { lat: 47.1660, lng: 9.5554, name: "Liechtenstein" },
+        "LT": { lat: 55.1694, lng: 23.8813, name: "Lithuania" },
+        "LU": { lat: 49.8153, lng: 6.1296, name: "Luxembourg" },
+        "MO": { lat: 22.1987, lng: 113.5439, name: "Macau" },
+        "MK": { lat: 41.6086, lng: 21.7453, name: "North Macedonia" },
+        "MG": { lat: -18.7669, lng: 46.8691, name: "Madagascar" },
+        "MW": { lat: -13.2543, lng: 34.3015, name: "Malawi" },
+        "MY": { lat: 4.2105, lng: 101.9758, name: "Malaysia" },
+        "MV": { lat: 3.2028, lng: 73.2207, name: "Maldives" },
+        "ML": { lat: 17.5707, lng: -3.9962, name: "Mali" },
+        "MT": { lat: 35.9375, lng: 14.3754, name: "Malta" },
+        "MH": { lat: 7.1315, lng: 171.1845, name: "Marshall Islands" },
+        "MQ": { lat: 14.6415, lng: -61.0242, name: "Martinique" },
+        "MR": { lat: 21.0079, lng: -10.9408, name: "Mauritania" },
+        "MU": { lat: -20.3484, lng: 57.5522, name: "Mauritius" },
+        "YT": { lat: -12.8275, lng: 45.1662, name: "Mayotte" },
+        "MX": { lat: 23.6345, lng: -102.5528, name: "Mexico" },
+        "FM": { lat: 7.4256, lng: 150.5508, name: "Micronesia" },
+        "MD": { lat: 47.4116, lng: 28.3699, name: "Moldova" },
+        "MC": { lat: 43.7384, lng: 7.4246, name: "Monaco" },
+        "MN": { lat: 46.8625, lng: 103.8467, name: "Mongolia" },
+        "ME": { lat: 42.7087, lng: 19.3744, name: "Montenegro" },
+        "MS": { lat: 16.7425, lng: -62.1874, name: "Montserrat" },
+        "MA": { lat: 31.7917, lng: -7.0926, name: "Morocco" },
+        "MZ": { lat: -18.6657, lng: 35.5296, name: "Mozambique" },
+        "MM": { lat: 21.9162, lng: 95.9560, name: "Myanmar" },
+        "NA": { lat: -22.9576, lng: 18.4904, name: "Namibia" },
+        "NR": { lat: -0.5228, lng: 166.9315, name: "Nauru" },
+        "NP": { lat: 28.3949, lng: 84.1240, name: "Nepal" },
+        "NL": { lat: 52.1326, lng: 5.2913, name: "Netherlands" },
+        "NC": { lat: -20.9043, lng: 165.6180, name: "New Caledonia" },
+        "NZ": { lat: -40.9006, lng: 174.8860, name: "New Zealand" },
+        "NI": { lat: 12.8654, lng: -85.2072, name: "Nicaragua" },
+        "NE": { lat: 17.6078, lng: 8.0817, name: "Niger" },
+        "NG": { lat: 9.0820, lng: 8.6753, name: "Nigeria" },
+        "NU": { lat: -19.0544, lng: -169.8672, name: "Niue" },
+        "NF": { lat: -29.0408, lng: 167.9547, name: "Norfolk Island" },
+        "MP": { lat: 17.3308, lng: 145.3847, name: "Northern Mariana Islands" },
+        "NO": { lat: 60.4720, lng: 8.4689, name: "Norway" },
+        "OM": { lat: 21.5126, lng: 55.9233, name: "Oman" },
+        "PK": { lat: 30.3753, lng: 69.3451, name: "Pakistan" },
+        "PW": { lat: 7.5150, lng: 134.5825, name: "Palau" },
+        "PS": { lat: 31.9522, lng: 35.2332, name: "Palestine" },
+        "PA": { lat: 8.5380, lng: -80.7821, name: "Panama" },
+        "PG": { lat: -6.3150, lng: 143.9555, name: "Papua New Guinea" },
+        "PY": { lat: -23.4425, lng: -58.4438, name: "Paraguay" },
+        "PE": { lat: -9.1900, lng: -75.0152, name: "Peru" },
+        "PH": { lat: 12.8797, lng: 121.7740, name: "Philippines" },
+        "PN": { lat: -24.7036, lng: -127.4393, name: "Pitcairn" },
+        "PL": { lat: 51.9194, lng: 19.1451, name: "Poland" },
+        "PT": { lat: 39.3999, lng: -8.2245, name: "Portugal" },
+        "PR": { lat: 18.2208, lng: -66.5901, name: "Puerto Rico" },
+        "QA": { lat: 25.3548, lng: 51.1839, name: "Qatar" },
+        "RE": { lat: -21.1151, lng: 55.5364, name: "Réunion" },
+        "RO": { lat: 45.9432, lng: 24.9668, name: "Romania" },
+        "RU": { lat: 61.5240, lng: 105.3188, name: "Russia" },
+        "RW": { lat: -1.9403, lng: 29.8739, name: "Rwanda" },
+        "BL": { lat: 17.9000, lng: -62.8333, name: "Saint Barthélemy" },
+        "SH": { lat: -15.9650, lng: -5.7089, name: "Saint Helena" },
+        "KN": { lat: 17.3578, lng: -62.7830, name: "Saint Kitts and Nevis" },
+        "LC": { lat: 13.9094, lng: -60.9789, name: "Saint Lucia" },
+        "MF": { lat: 18.0708, lng: -63.0501, name: "Saint Martin" },
+        "PM": { lat: 46.9419, lng: -56.2711, name: "Saint Pierre and Miquelon" },
+        "VC": { lat: 12.9843, lng: -61.2872, name: "Saint Vincent and the Grenadines" },
+        "WS": { lat: -13.7590, lng: -172.1046, name: "Samoa" },
+        "SM": { lat: 43.9424, lng: 12.4578, name: "San Marino" },
+        "ST": { lat: 0.1864, lng: 6.6131, name: "Sao Tome and Principe" },
+        "SA": { lat: 23.8859, lng: 45.0792, name: "Saudi Arabia" },
+        "SN": { lat: 14.4974, lng: -14.4524, name: "Senegal" },
+        "RS": { lat: 44.0165, lng: 21.0059, name: "Serbia" },
+        "SC": { lat: -4.6796, lng: 55.4920, name: "Seychelles" },
+        "SL": { lat: 8.4606, lng: -11.7799, name: "Sierra Leone" },
+        "SG": { lat: 1.3521, lng: 103.8198, name: "Singapore" },
+        "SX": { lat: 18.0425, lng: -63.0548, name: "Sint Maarten" },
+        "SK": { lat: 48.6690, lng: 19.6990, name: "Slovakia" },
+        "SI": { lat: 46.1512, lng: 14.9955, name: "Slovenia" },
+        "SB": { lat: -9.6457, lng: 160.1562, name: "Solomon Islands" },
+        "SO": { lat: 5.1521, lng: 46.1996, name: "Somalia" },
+        "ZA": { lat: -30.5595, lng: 22.9375, name: "South Africa" },
+        "GS": { lat: -54.4296, lng: -36.5879, name: "South Georgia and the South Sandwich Islands" },
+        "SS": { lat: 6.8770, lng: 31.3070, name: "South Sudan" },
+        "ES": { lat: 40.4637, lng: -3.7492, name: "Spain" },
+        "LK": { lat: 7.8731, lng: 80.7718, name: "Sri Lanka" },
+        "SD": { lat: 12.8628, lng: 30.2176, name: "Sudan" },
+        "SR": { lat: 3.9193, lng: -56.0278, name: "Suriname" },
+        "SJ": { lat: 77.5536, lng: 23.6703, name: "Svalbard and Jan Mayen" },
+        "SZ": { lat: -26.5225, lng: 31.4659, name: "Eswatini" },
+        "SE": { lat: 60.1282, lng: 18.6435, name: "Sweden" },
+        "CH": { lat: 46.8182, lng: 8.2275, name: "Switzerland" },
+        "SY": { lat: 34.8021, lng: 38.9968, name: "Syria" },
+        "TW": { lat: 23.6978, lng: 120.9605, name: "Taiwan" },
+        "TJ": { lat: 38.8610, lng: 71.2761, name: "Tajikistan" },
+        "TZ": { lat: -6.3690, lng: 34.8888, name: "Tanzania" },
+        "TH": { lat: 15.8700, lng: 100.9925, name: "Thailand" },
+        "TL": { lat: -8.8742, lng: 125.7275, name: "Timor-Leste" },
+        "TG": { lat: 8.6195, lng: 0.8248, name: "Togo" },
+        "TK": { lat: -8.9673, lng: -171.8559, name: "Tokelau" },
+        "TO": { lat: -21.1790, lng: -175.1982, name: "Tonga" },
+        "TT": { lat: 10.6918, lng: -61.2225, name: "Trinidad and Tobago" },
+        "TN": { lat: 33.8869, lng: 9.5375, name: "Tunisia" },
+        "TR": { lat: 38.9637, lng: 35.2433, name: "Turkey" },
+        "TM": { lat: 38.9697, lng: 59.5563, name: "Turkmenistan" },
+        "TC": { lat: 21.6940, lng: -71.7979, name: "Turks and Caicos Islands" },
+        "TV": { lat: -7.1095, lng: 177.6493, name: "Tuvalu" },
+        "UG": { lat: 1.3733, lng: 32.2903, name: "Uganda" },
+        "UA": { lat: 48.3794, lng: 31.1656, name: "Ukraine" },
+        "AE": { lat: 23.4241, lng: 53.8478, name: "United Arab Emirates" },
+        "GB": { lat: 55.3781, lng: -3.4360, name: "United Kingdom" },
+        "US": { lat: 37.0902, lng: -95.7129, name: "United States" },
+        "UY": { lat: -32.5228, lng: -55.7658, name: "Uruguay" },
+        "UZ": { lat: 41.3775, lng: 64.5853, name: "Uzbekistan" },
+        "VU": { lat: -15.3767, lng: 166.9592, name: "Vanuatu" },
+        "VE": { lat: 6.4238, lng: -66.5897, name: "Venezuela" },
+        "VN": { lat: 14.0583, lng: 108.2772, name: "Vietnam" },
+        "WF": { lat: -13.7691, lng: -177.1561, name: "Wallis and Futuna" },
+        "EH": { lat: 24.2155, lng: -12.8858, name: "Western Sahara" },
+        "YE": { lat: 15.5527, lng: 48.5164, name: "Yemen" },
+        "ZM": { lat: -13.1339, lng: 27.8493, name: "Zambia" },
+        "ZW": { lat: -19.0154, lng: 29.1549, name: "Zimbabwe" }
     };
+
+    function getDeterministicLocation(cc) {
+        // Simple hash to map CC to a lat/lng on the map (stable)
+        let hash = 0;
+        for (let i = 0; i < cc.length; i++) {
+            hash = cc.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        // Map to lat (-60 to 80), lng (-180 to 180) to avoid poles
+        const lat = (Math.abs(hash) % 140) - 60;
+        const lng = (Math.abs(hash >> 8) % 360) - 180;
+        return { lat, lng, name: cc };
+    }
 
     const arcsData = [];
     const pointsData = [];
@@ -116,14 +346,14 @@ function initGlobe(data) {
         const maxCount = Math.max(...Object.values(countryStats));
 
         Object.entries(countryStats).forEach(([cc, count]) => {
-            const info = countryCentroids[cc] || { lat: (Math.random()*160)-80, lng: (Math.random()*360)-180 };
+            const info = countryCentroids[cc] || getDeterministicLocation(cc);
 
             pointsData.push({
                 lat: info.lat,
                 lng: info.lng,
                 size: Math.sqrt(count) / 5,
                 color: getScoreColor(count / maxCount),
-                name: `${cc}: ${count} proxies`
+                name: `${info.name || cc}: ${count} proxies`
             });
 
             if (count > 5) {
