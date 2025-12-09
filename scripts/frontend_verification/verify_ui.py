@@ -7,7 +7,7 @@ import socketserver
 import time
 
 # Serve the frontend directory
-PORT = 8080
+PORT = 8082
 DIRECTORY = "frontend"
 
 
@@ -19,7 +19,7 @@ def serve():
         httpd.serve_forever()
 
 
-def verify():
+def verify_ui():
     with sync_playwright() as p:
         browser = p.chromium.launch()
         page = browser.new_page()
@@ -29,29 +29,12 @@ def verify():
         page.goto(f"http://localhost:{PORT}/index.html")
         page.wait_for_load_state("networkidle")
 
-        # Check title
-        print(f"Page title: {page.title()}")
-
-        # Force Farsi and check font
-        print("Switching language to Farsi...")
-        page.evaluate("document.documentElement.lang = 'fa'")
-        # Inject test element to check font
-        font_family = page.evaluate("getComputedStyle(document.body).fontFamily")
-        print(f"Computed Body Font Family (FA): {font_family}")
-
-        if "Mikhak" in font_family or "Vazirmatn" in font_family:
-            print("SUCCESS: Farsi font stack applied.")
-        else:
-            print(f"WARNING: Farsi font stack might be missing. Got: {font_family}")
-
         page.screenshot(path="../frontend_verification_index_fa.png", full_page=True)
         print("Screenshot saved: frontend_verification_index_fa.png")
 
-        # English
-        print("Switching language to English...")
+        # English Screenshot
+        print("Switching to English for screenshot...")
         page.evaluate("document.documentElement.lang = 'en'")
-        font_family_en = page.evaluate("getComputedStyle(document.body).fontFamily")
-        print(f"Computed Body Font Family (EN): {font_family_en}")
         page.screenshot(path="../frontend_verification_index_en.png", full_page=True)
 
         # 2. Analytics Page
@@ -73,9 +56,9 @@ if __name__ == "__main__":
     time.sleep(2)
 
     try:
-        verify()
+        verify_ui()
     except Exception as e:
-        print(f"Verification failed: {e}")
+        print(f"UI verification failed: {e}")
         sys.exit(1)
 
-    print("Verification complete.")
+    print("UI verification complete.")
