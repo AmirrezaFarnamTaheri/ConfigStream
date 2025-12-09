@@ -99,9 +99,7 @@ async def merge_batches_async(
             # Audit Fix: Removed country-based bias (IR, CN, RU).
             # Only wash proxies that are explicitly flagged or have security issues.
             dirty_proxies = [
-                p
-                for p in ranked_proxies
-                if "dirty_ip" in p.tags or p.security_issues
+                p for p in ranked_proxies if "dirty_ip" in p.tags or p.security_issues
             ]
 
             total_washed_candidates = len(dirty_proxies)

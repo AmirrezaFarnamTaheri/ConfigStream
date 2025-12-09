@@ -51,9 +51,9 @@ def test_atomic_write_json(tmp_path, sample_proxies):
 
 def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
     """Verify metadata generation."""
-    stats = PipelineStats(total_sourced=10, scanner_ips_found=5)
+    stats = PipelineStats(fetched_lines=10, scanner_ips_found=5)
 
-    save_metadata(stats, sample_proxies, tmp_path, mock_storage)
+    save_metadata(stats, sample_proxies, tmp_path)
 
     meta_file = tmp_path / "metadata.json"
     assert meta_file.exists()
