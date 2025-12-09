@@ -163,6 +163,16 @@ async def processing_consumer(
         # Deduplication logic.
         # Uses explicit lock to ensure safety if multiple consumers run concurrently.
         async with seen_lock:
+            # Audit Fix: Eviction policy to prevent OOM
+            import os
+
+            max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
+            if len(seen_keys) > max_seen:
+                seen_keys.clear()
+                logger.warning(
+                    f"Cleared seen_keys cache (limit {max_seen} reached) to prevent memory exhaustion"
+                )
+
             for p in parsed_batch:
                 k = proxy_unique_key(p)
                 if k not in seen_keys:
@@ -240,9 +250,9 @@ async def processing_consumer(
                 pass
             else:
                 if tester.go_tester.available:
-                    chunk_size = (
-                        500  # Increased from 50 to reduce serialization overhead
-                    )
+                    import os
+
+                    chunk_size = int(os.getenv("GO_TESTER_BATCH_SIZE", "500"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         await tester.test_batch(chunk)
@@ -305,7 +315,9 @@ async def processing_consumer(
                             return res
 
                     # Process in chunks (increased from 50 to 100 for better throughput)
-                    chunk_size = 100
+                    import os
+
+                    chunk_size = int(os.getenv("PY_TESTER_BATCH_SIZE", "100"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])

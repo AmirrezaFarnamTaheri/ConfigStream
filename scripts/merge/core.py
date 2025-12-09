@@ -23,11 +23,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def merge_batches(
+async def merge_batches_async(
     batch_dir_glob: str = "output_batch_*", output_dir_str: str = "output"
 ):
     """
     Merges the outputs from the individual batch runs into a single, unified output.
+    Async version to properly handle washer and tester awaits.
     """
     from configstream.consolidation import (
         rank_and_rename_proxies,
@@ -92,21 +93,13 @@ def merge_batches(
         try:
             washer = ProxyWasher(warp_keys)
             # Fetch clean IPs asynchronously
-            asyncio.run(washer.fetch_clean_ips())
+            await washer.fetch_clean_ips()
 
             # Identify "Dirty" candidates
-            # We only wash proxies that are flagged as 'dirty_ip' or have security issues,
-            # OR if we want to be aggressive, we wash everything that isn't explicitly clean.
-            # User directive: "wash all dirties... not all proxies including workings".
-            # So we filter for dirty indicators.
+            # Audit Fix: Removed country-based bias (IR, CN, RU).
+            # Only wash proxies that are explicitly flagged or have security issues.
             dirty_proxies = [
-                p
-                for p in ranked_proxies
-                if "dirty_ip" in p.tags
-                or p.security_issues
-                or (
-                    p.country_code in ["IR", "CN", "RU"]
-                )  # Geo-based assumption of dirtiness/blocking
+                p for p in ranked_proxies if "dirty_ip" in p.tags or p.security_issues
             ]
 
             total_washed_candidates = len(dirty_proxies)
@@ -126,14 +119,12 @@ def merge_batches(
             chains_to_test = []
 
             # Handle potential odd number of outbounds by truncating the last one if unpaired
-            # Though strictly, they should be paired (Relay + Exit)
             safe_limit = len(washed_outbounds) - (len(washed_outbounds) % 2)
             if len(washed_outbounds) % 2 != 0:
-                # Log detailed info about the last item to aid debugging
                 last_item = washed_outbounds[-1]
                 logger.error(
                     f"Washer produced odd number of outbounds ({len(washed_outbounds)}). "
-                    f"Dropping last item: {last_item.get('tag', 'unknown_tag')} - {last_item.get('type', 'unknown_type')}. "
+                    f"Dropping last item: {last_item.get('tag', 'unknown_tag')}. "
                     "This indicates a bug in the washer chain generation logic."
                 )
 
@@ -150,16 +141,17 @@ def merge_batches(
                 tester = GoBatchTester(workers=50)
 
                 # CRITICAL: Reduced batch size to prevent Go Tester freezes
-                WASHER_RETEST_BATCH_SIZE = 50  # Down from 500
+                WASHER_RETEST_BATCH_SIZE = 50
 
-                # Process in smaller batches to prevent freezing
+                # Process in smaller batches
                 all_results = {}
                 for i in range(0, len(chains_to_test), WASHER_RETEST_BATCH_SIZE):
                     batch = chains_to_test[i : i + WASHER_RETEST_BATCH_SIZE]
                     logger.info(
                         f"Retesting washer batch {i//WASHER_RETEST_BATCH_SIZE + 1}: {len(batch)} chains"
                     )
-                    results = asyncio.run(tester.test_custom_configs(batch))
+                    # Audit Fix: Use await instead of nested asyncio.run
+                    results = await tester.test_custom_configs(batch)
                     all_results.update(results)
 
                 # Filter out failed chains
@@ -180,7 +172,7 @@ def merge_batches(
                 washed_outbounds = valid_washed_outbounds
 
         except Exception as e:
-            logger.error(f"Failed to wash proxies: {e}")
+            logger.error(f"Failed to wash proxies: {e}", exc_info=True)
 
     # --- Feature: Intelligence Vectors ---
     logger.info("\n=== Step 2.6: Generating Intelligence Vectors ===")
@@ -214,8 +206,6 @@ def merge_batches(
     # Use washer if available, otherwise just generate unwashed chains
     washer_instance = ProxyWasher(warp_keys) if warp_keys else None
     if washer_instance:
-        # If we didn't fetch fetching clean IPs yet, do it if possible (though we did it above if keys exist)
-        # Assuming washer_instance in local scope above is populated
         if (
             "washer" in locals() and washer
         ):  # reuse the one from Washing step if available
@@ -225,11 +215,6 @@ def merge_batches(
 
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
-
-    # Pass aggregated stats if generate_outputs supports it, or handle it via metadata injection
-    # For now, we update the metadata later or pass kwargs if supported.
-    # Looking at signature: generate_outputs(..., total_processed, ...)
-    # We might need to patch generate_outputs to accept extra stats or update the metadata manually after.
 
     proxies_by_proto = generate_outputs(
         ranked_proxies,
@@ -277,3 +262,12 @@ def merge_batches(
         f"✅ Successfully merged and processed {len(merged_proxies)} unique proxies"
     )
     logger.info(f"{'=' * 60}\n")
+
+
+def merge_batches(
+    batch_dir_glob: str = "output_batch_*", output_dir_str: str = "output"
+):
+    """
+    Synchronous wrapper for merge_batches_async.
+    """
+    asyncio.run(merge_batches_async(batch_dir_glob, output_dir_str))

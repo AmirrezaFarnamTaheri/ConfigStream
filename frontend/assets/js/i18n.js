@@ -848,29 +848,30 @@ class I18n {
     }
 
     sanitize(input) {
-        // Minimal sanitizer: remove script/style, on* attrs, and javascript: URLs
+        // Strict sanitizer: Whitelist-based approach
         const tmp = document.createElement('div');
         tmp.innerHTML = input;
 
         const walker = document.createTreeWalker(tmp, NodeFilter.SHOW_ELEMENT, null);
-        const disallowedTags = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'LINK', 'META']);
-        const allowedAttrs = new Set(['href', 'title', 'alt', 'src', 'class', 'id', 'role', 'aria-label', 'aria-hidden']);
+        const allowedTags = new Set(['STRONG', 'EM', 'B', 'I', 'U', 'BR', 'P', 'SPAN', 'DIV', 'A', 'UL', 'LI']);
+        const allowedAttrs = new Set(['href', 'title', 'alt', 'class', 'id', 'target', 'role', 'aria-label', 'aria-hidden']);
 
         const toRemove = [];
         while (walker.nextNode()) {
             const node = walker.currentNode;
-            if (disallowedTags.has(node.tagName)) {
+            if (!allowedTags.has(node.tagName)) {
                 toRemove.push(node);
                 continue;
             }
-            // Remove event handlers and disallowed attributes
+            // Remove disallowed attributes
             [...node.attributes].forEach(attr => {
                 const name = attr.name.toLowerCase();
                 const value = attr.value || '';
-                if (name.startsWith('on') || (!allowedAttrs.has(name) && !name.startsWith('data-'))) {
+                if (!allowedAttrs.has(name) && !name.startsWith('data-')) {
                     node.removeAttribute(attr.name);
                     return;
                 }
+                // Check for javascript: protocol
                 if ((name === 'href' || name === 'src') && value.trim().toLowerCase().startsWith('javascript:')) {
                     node.removeAttribute(attr.name);
                 }
