@@ -72,6 +72,29 @@ class GoBatchTester:
         """Start the long-lived tester process."""
         if self.available:
             await self._ensure_process()
+            # Start heartbeat loop
+            asyncio.create_task(self._heartbeat_loop())
+
+    async def _heartbeat_loop(self):
+        """Periodically check if process is alive and healthy."""
+        while not self._stopping:
+            try:
+                await asyncio.sleep(10)
+                needs_restart = False
+                async with self._lock:
+                    if self._proc and self._proc.returncode is not None:
+                        logger.warning(
+                            f"Go Tester exited unexpectedly with code {self._proc.returncode}. Restarting..."
+                        )
+                        self._proc = None
+                        needs_restart = True
+
+                if needs_restart:
+                    await self._ensure_process()
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.debug(f"Heartbeat error: {e}")
 
     async def close(self):
         """Stop the tester process and cleanup resources."""
