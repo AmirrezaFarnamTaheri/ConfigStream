@@ -181,7 +181,9 @@ async def processing_consumer(
                 else:
                     duplicates_count += 1
 
-        stats.parsed += len(unique_batch)
+        # Use atomic lock for stats update to prevent race conditions
+        async with seen_lock:
+            stats.parsed += len(unique_batch)
         safe_source = SecurityValidator.sanitize_log_message(str(source))
         logger.debug(
             f"Starting security validation for {len(unique_batch)} proxies from {safe_source}..."
@@ -199,6 +201,30 @@ async def processing_consumer(
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
+            # Update detailed drop stats
+            async with seen_lock:
+                if not hasattr(stats, "drop_reasons"):
+                    stats.drop_reasons = {}
+                stats.drop_reasons["security_validation"] = (
+                    stats.drop_reasons.get("security_validation", 0) + dropped_unsafe
+                )
+
+                # Attempt to infer more granular reasons if possible
+                for p in unique_batch:
+                    if p not in safe_batch:
+                        # Heuristic mapping based on common validation failures
+                        # (This assumes validators tag the proxy, or we infer from fields)
+                        reason = "unknown_security"
+                        if p.details.get("error"):
+                            reason = p.details["error"]
+                        elif (
+                            not p.is_working and p.latency == 9999
+                        ):  # often parsing or basic validation
+                            reason = "invalid_format"
+                        stats.drop_reasons[reason] = (
+                            stats.drop_reasons.get(reason, 0) + 1
+                        )
+
             logger.warning(
                 f"Security Filter [{safe_source}]: Dropped {dropped_unsafe} unsafe proxies in {validation_dur:.2f}ms. "
                 f"Valid: {len(safe_batch)}/{len(unique_batch)} "
