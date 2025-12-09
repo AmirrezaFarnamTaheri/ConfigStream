@@ -165,6 +165,7 @@ async def processing_consumer(
         async with seen_lock:
             # Audit Fix: Eviction policy to prevent OOM
             import os
+
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
             if len(seen_keys) > max_seen:
                 seen_keys.clear()
@@ -250,6 +251,7 @@ async def processing_consumer(
             else:
                 if tester.go_tester.available:
                     import os
+
                     chunk_size = int(os.getenv("GO_TESTER_BATCH_SIZE", "500"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
@@ -314,6 +316,7 @@ async def processing_consumer(
 
                     # Process in chunks (increased from 50 to 100 for better throughput)
                     import os
+
                     chunk_size = int(os.getenv("PY_TESTER_BATCH_SIZE", "100"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]

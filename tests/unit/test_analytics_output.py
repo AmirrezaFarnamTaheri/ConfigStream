@@ -71,19 +71,14 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
     from configstream.pipeline_core.stats import PipelineStats
 
     p_stats = PipelineStats()
-    p_stats.total_sourced = 100
+    p_stats.fetched_lines = 100
     # p_stats.end_time is usually set by pipeline context
-
-    # Mock history storage
-    from configstream.quality.storage import QualityStorage
-
-    storage = QualityStorage(tmp_path / "test.db")
 
     output_dir = tmp_path / "output"
     output_dir.mkdir()
 
     # This is now a sync function, and args order changed
-    save_metadata(p_stats, proxies, output_dir, storage)
+    save_metadata(p_stats, proxies, output_dir)
 
     metadata_file = output_dir / "metadata.json"
     assert metadata_file.exists()

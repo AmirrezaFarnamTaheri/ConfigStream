@@ -29,7 +29,7 @@ function updateStats(data) {
 
     // Use canonical fields with legacy fallbacks
     // PipelineStats canonical: fetched_lines, parsed, tested, working
-    const totalSourced = data.fetched_lines || data.fetched_sources || data.total_sourced || 0;
+    const totalSourced = data.fetched_lines || data.fetched_sources || data.total_fetched || data.total_sourced || 0;
     update('totalSourced', formatNum(totalSourced));
 
     // Unique & Verified/Tested

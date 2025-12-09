@@ -233,6 +233,13 @@ def save_metadata(
         "total_smart_chains": smart_chain_count,
         "smart_chains_breakdown": smart_chains_breakdown,
         "total_dirty": reasons.get("dirty_ip", 0) + reasons.get("honeypot", 0),
+        # Canonical Keys
+        "fetched_lines": total_sourced,
+        "parsed": total,
+        "tested": total,
+        "working": working,
+        "washed": washed_count,
+        "smart_chains": smart_chain_count,
     }
 
     with open(meta_path, "w", encoding="utf-8") as f:

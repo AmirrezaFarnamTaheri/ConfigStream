@@ -12,9 +12,9 @@ class PipelineStats:
     # Canonical Stats
     fetched_sources: int = 0
     fetched_lines: int = 0  # Raw lines fetched
-    parsed: int = 0         # Valid proxies parsed
-    tested: int = 0         # Proxies sent to testing
-    working: int = 0        # Proxies that passed testing
+    parsed: int = 0  # Valid proxies parsed
+    tested: int = 0  # Proxies sent to testing
+    working: int = 0  # Proxies that passed testing
     geo_resolved: int = 0
     duration: float = 0.0
     final_count: int = 0
