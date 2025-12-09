@@ -51,9 +51,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Use formatNumber for all numeric displays
                 const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
 
-                updateElement('#totalSourced', formatNum(stats.total_proxies || 0));
-                updateElement('#totalConfigs', formatNum(stats.total_tested || 0));
-                updateElement('#workingConfigs', formatNum(stats.total_working || 0));
+                // Use total_sourced for the number of sources scraped; fall back to total_proxies if missing
+                const totalSourced = stats.total_sourced || stats.total_proxies || 0;
+                updateElement('#totalSourced', formatNum(totalSourced));
+
+                // Unique & verified proxies correspond to total_proxies (unique) or total_tested on some back‑ends
+                const totalConfigs = stats.unique || stats.total_unique || stats.total_proxies || stats.total_tested || 0;
+                updateElement('#totalConfigs', formatNum(totalConfigs));
+
+                // Currently online proxies
+                const workingCount = stats.total_working || stats.active || stats.alive || 0;
+                updateElement('#workingConfigs', formatNum(workingCount));
+
                 updateElement('#totalRevived', formatNum(stats.total_revived || 0));
                 updateElement('#threatsBlocked', formatNum(stats.total_dirty || 0));
 
