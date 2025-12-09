@@ -1,5 +1,6 @@
 """Test GeoIP resolver robustness and edge cases."""
 
+import pytest
 from configstream.geoip import GeoIPResolver, GeoData
 
 
@@ -12,15 +13,17 @@ class TestGeoIPRobustness:
         resolver2 = GeoIPResolver()
         assert resolver1 is resolver2
 
-    def test_lookup_empty_ip(self):
+    @pytest.mark.asyncio
+    async def test_lookup_empty_ip(self):
         """Test lookup with empty IP string."""
         resolver = GeoIPResolver()
-        result = resolver.lookup("")
+        result = await resolver.lookup("")
         assert isinstance(result, GeoData)
         assert result.country_code is None
         assert result.city is None
 
-    def test_lookup_invalid_ip_format(self):
+    @pytest.mark.asyncio
+    async def test_lookup_invalid_ip_format(self):
         """Test lookup with invalid IP format."""
         resolver = GeoIPResolver()
 
@@ -37,12 +40,13 @@ class TestGeoIPRobustness:
         ]
 
         for ip in invalid_ips:
-            result = resolver.lookup(ip)
+            result = await resolver.lookup(ip)
             assert isinstance(result, GeoData)
             # Should not crash, just return empty data
             assert result.country_code is None or isinstance(result.country_code, str)
 
-    def test_lookup_private_ip(self):
+    @pytest.mark.asyncio
+    async def test_lookup_private_ip(self):
         """Test lookup with private IP addresses."""
         resolver = GeoIPResolver()
 
@@ -54,12 +58,13 @@ class TestGeoIPRobustness:
         ]
 
         for ip in private_ips:
-            result = resolver.lookup(ip)
+            result = await resolver.lookup(ip)
             assert isinstance(result, GeoData)
             # Private IPs might not be in GeoIP database
             # Should not crash
 
-    def test_lookup_ipv6(self):
+    @pytest.mark.asyncio
+    async def test_lookup_ipv6(self):
         """Test lookup with IPv6 addresses."""
         resolver = GeoIPResolver()
 
@@ -71,20 +76,22 @@ class TestGeoIPRobustness:
         ]
 
         for ip in ipv6_addresses:
-            result = resolver.lookup(ip)
+            result = await resolver.lookup(ip)
             assert isinstance(result, GeoData)
             # Should not crash
 
-    def test_lookup_with_none(self):
+    @pytest.mark.asyncio
+    async def test_lookup_with_none(self):
         """Test that None is handled gracefully."""
         resolver = GeoIPResolver()
 
         # lookup expects string, but let's ensure it doesn't crash
         # if someone passes None by mistake
-        result = resolver.lookup(None)  # type: ignore
+        result = await resolver.lookup(None)  # type: ignore
         assert isinstance(result, GeoData)
 
-    def test_lookup_special_addresses(self):
+    @pytest.mark.asyncio
+    async def test_lookup_special_addresses(self):
         """Test lookup with special IP addresses."""
         resolver = GeoIPResolver()
 
@@ -95,7 +102,7 @@ class TestGeoIPRobustness:
         ]
 
         for ip in special_ips:
-            result = resolver.lookup(ip)
+            result = await resolver.lookup(ip)
             assert isinstance(result, GeoData)
 
     def test_geodata_defaults(self):
@@ -121,11 +128,12 @@ class TestGeoIPRobustness:
         resolver = GeoIPResolver()
         resolver.close()  # Should not raise
 
-    def test_lookup_after_close(self):
+    @pytest.mark.asyncio
+    async def test_lookup_after_close(self):
         """Test lookup behavior after close (if databases were loaded)."""
         resolver = GeoIPResolver()
         resolver.close()
 
         # Should still return GeoData, just empty
-        result = resolver.lookup("8.8.8.8")
+        result = await resolver.lookup("8.8.8.8")
         assert isinstance(result, GeoData)

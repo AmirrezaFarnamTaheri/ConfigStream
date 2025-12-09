@@ -364,17 +364,17 @@ function initCharts(data) {
             const reasons = data.rejection_reasons;
 
             // Map backend category names to threat types
-            threats.blockedIPs = reasons.address_blocked || 0;
-            threats.honeypots = reasons.honeypot_suspected || 0;
+            threats.blockedIPs = reasons.address_blocked || reasons.dirty_ip || 0;
+            threats.honeypots = reasons.honeypot_suspected || reasons.honeypot || 0;
             threats.suspiciousNodes = reasons.address_suspicious || 0;
-            threats.privateIPs = reasons.address_private_ip || 0;
+            threats.privateIPs = reasons.address_private_ip || reasons.private_ip || 0;
             threats.dangerousPorts = reasons.port_security || 0;
-            threats.invalidProtocols = reasons.protocol_invalid || 0;
+            threats.invalidProtocols = reasons.protocol_invalid || reasons.unknown_protocol || 0;
             threats.malformedConfigs = reasons.suspicious_config_malformed || 0;
             threats.oversizedConfigs = reasons.suspicious_config_format || 0;
             threats.invalidUUIDs = reasons.config_uuid_invalid || 0;
             threats.duplicates = reasons.duplicate || 0;
-            threats.invalidConfigs = reasons.invalid || 0;
+            threats.invalidConfigs = reasons.invalid || reasons.parse_error || 0;
         }
 
         // Build dynamic dataset - only show categories with data

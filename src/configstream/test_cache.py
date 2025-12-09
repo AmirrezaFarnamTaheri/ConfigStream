@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import time
+import fcntl
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -58,14 +59,34 @@ class TestResultCache:
             self._cache = {}
 
     def save(self) -> None:
-        """Save the current in-memory cache to the JSON file."""
+        """Save the current in-memory cache to the JSON file with locking."""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            content = json.dumps(self._cache, indent=2)
-            AtomicFileWriter.write_text(self.db_path, content)
-            logger.info(
-                f"Saved {len(self._cache)} entries to cache file: {self.db_path}"
-            )
+            # Use a lock file alongside the cache file
+            lock_path = self.db_path.with_suffix(".lock")
+            with open(lock_path, "w") as lock_file:
+                # Acquire an exclusive lock (blocking to ensure safety)
+                fcntl.flock(lock_file, fcntl.LOCK_EX)
+                try:
+                    # Re-load to ensure we merge changes if another process wrote recently
+                    if self.db_path.exists():
+                        try:
+                            with open(self.db_path, "r", encoding="utf-8") as f:
+                                disk_cache = json.load(f)
+                                # Merge in-memory cache into disk cache (in-memory takes precedence for own tests)
+                                disk_cache.update(self._cache)
+                                self._cache = disk_cache
+                        except (json.JSONDecodeError, IOError):
+                            pass
+
+                    content = json.dumps(self._cache, indent=2)
+                    AtomicFileWriter.write_text(self.db_path, content)
+                    logger.info(
+                        f"Saved {len(self._cache)} entries to cache file: {self.db_path}"
+                    )
+                finally:
+                    fcntl.flock(lock_file, fcntl.LOCK_UN)
+
         except IOError as e:
             logger.error(f"Failed to save cache file {self.db_path}: {e}")
 

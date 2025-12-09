@@ -6,6 +6,8 @@ const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 // This is a PLACEHOLDER. The Python pipeline injects the real key from STEGO_KEY environment variable.
 // If deploying manually, set STEGO_KEY in your environment or this feature will not work.
 // The key below is rotated every 6 hours by GitHub Actions.
+// NOTE: This key provides OBFUSCATION ONLY, not strong confidentiality, as it is visible in client-side code.
+// Ideally, use per-session keys or public-key crypto if strict confidentiality is required.
 const SECRET_KEY = "MGq_ZkrhUxBp987Sv8UnILxoGkceXCmB3vy2yR3jjBM=";
 
 async function fetchStegoConfig(imageUrl) {

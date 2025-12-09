@@ -12,7 +12,6 @@ from .output_generators import (
     generate_base64_subscription,
     generate_split_outputs,
 )
-from .quality.storage import QualityStorage
 from .intelligence.washer.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
 
@@ -125,7 +124,7 @@ def save_metadata(
     stats: Any,
     proxies: List[Proxy],
     output_dir: Path,
-    history: Optional[QualityStorage] = None,
+    history: Optional[Any] = None,
 ):
     """
     Saves metadata.json and other stats files.

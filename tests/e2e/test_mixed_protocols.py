@@ -29,7 +29,7 @@ async def test_mixed_protocols_dry_run(tmp_path, monkeypatch):
     # Mock GeoIP to return deterministic data
     from configstream.geoip import GeoData
 
-    def fake_lookup(self, ip):
+    async def fake_lookup(self, ip):
         # We need self because we are mocking the instance method or class method?
         # Actually standard mock usually mocks the function on the class.
         if "2.2.2.2" in str(ip) or "1111" in str(

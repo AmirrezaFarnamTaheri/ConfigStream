@@ -79,10 +79,8 @@ async def generate_pipeline_outputs(
     # We will skip passing history storage to save_metadata for now to fix the type error,
     # assuming save_metadata handles None or we pass a compatible object if possible.
     # But save_metadata signature is (stats, proxies, output_dir, history).
-    # We will pass Any to bypass mypy for now as a hotfix since QualityStorage and HistoryStorage are different.
-    from typing import cast, Any
-
-    save_metadata(stats, optimized_proxies, output_path, cast(Any, history.storage))
+    # We pass history.storage (HistoryStorage) which is compatible with the Any type expected by save_metadata.
+    save_metadata(stats, optimized_proxies, output_path, history.storage)
 
     # [FIX] Export history visualization data
     # Ensure the history visualization JSON is generated for the frontend
