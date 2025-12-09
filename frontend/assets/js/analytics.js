@@ -34,18 +34,22 @@ function updateStats(data) {
     const totalSourced = data.total_sourced || data.total_fetched || data.fetched_lines || 0;
     update('totalSourced', formatNum(totalSourced));
 
-    update('totalConfigs', formatNum(data.total_tested || data.total_proxies || 0));
-    update('workingConfigs', formatNum(data.total_working || 0));
+    // Unique & Verified/Tested
+    const totalConfigs = data.unique || data.total_unique || data.total_proxies || data.total_tested || 0;
+    update('totalConfigs', formatNum(totalConfigs));
+
+    // Online Now (Working)
+    const workingCount = data.total_working || data.active || data.alive || 0;
+    update('workingConfigs', formatNum(workingCount));
 
     // New Stats if elements exist
-    const totalWorking = data.total_working || 0;
     const totalRevived = data.total_revived || 0;
-    // Always calculate clean from working - revived (don't trust backend total_clean)
-    const totalClean = Math.max(0, totalWorking - totalRevived);
+    // Use total_clean if present; otherwise derive from working proxies minus revived
+    const totalClean = data.total_clean ?? Math.max(0, workingCount - totalRevived);
 
     update('totalClean', formatNum(totalClean));
     update('totalRevived', formatNum(totalRevived));
-    update('threatsNeutralized', formatNum(data.total_dirty || 0));
+    update('threatsBlocked', formatNum(data.total_dirty || 0));
 
     const date = new Date(data.last_updated_utc);
     update('lastUpdated', date.toLocaleString());
