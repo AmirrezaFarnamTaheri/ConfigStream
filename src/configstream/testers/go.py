@@ -253,6 +253,15 @@ class GoBatchTester:
             payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
+        except (BrokenPipeError, ConnectionResetError) as e:
+            logger.error(f"Go Tester Daemon connection lost: {e}")
+            # Fail futures to unblock
+            for f in futures:
+                if not f.done():
+                    f.set_exception(e)
+            # Process might be dead, ensure restart next time
+            await self.close()
+            return proxies
         except Exception as e:
             logger.error(f"Failed to write to Go Tester Daemon: {e}")
             # Fail futures to unblock
@@ -394,7 +403,14 @@ class GoBatchTester:
             payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
-        except Exception:
+        except (BrokenPipeError, ConnectionResetError) as e:
+            logger.error(
+                f"Go Tester Daemon connection lost during custom config test: {e}"
+            )
+            await self.close()
+            return {}
+        except Exception as e:
+            logger.error(f"Failed to write to Go Tester Daemon (custom): {e}")
             return {}
 
         # Wait

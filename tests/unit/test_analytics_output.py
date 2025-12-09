@@ -87,8 +87,9 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
 
     # Check basic stats
     # Note: data["total_proxies"] comes from stats.total_sourced (100) or len(proxies) (5) depending on implementation
-    # Current implementation uses stats.total_sourced if available
-    assert data["total_proxies"] == 100
+    # Updated: total_proxies now means unique candidates (parsed), fetched_lines/total_lines_sourced is raw.
+    assert data["total_lines_sourced"] == 100
+    assert data["total_proxies"] == 5
     assert data["total_working"] == 5
     # assert data["total_fetched"] == 100 # Field might be named differently or not exist
     # assert data["duration_seconds"] == 10.5

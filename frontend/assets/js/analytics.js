@@ -27,18 +27,18 @@ function updateStats(data) {
     // Helper function to format numbers with locale support
     const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
 
-    // Use canonical fields with legacy fallbacks
-    // PipelineStats canonical: fetched_lines, parsed, tested, working
-    const totalSourced = data.fetched_lines || data.fetched_sources || data.total_fetched || data.total_sourced || 0;
+    // Use canonical fields with legacy fallbacks (Consolidated v2.0.4+)
+    // PipelineStats canonical: total_lines_sourced, total_unique_candidates, total_valid_proxies
+
+    const totalSourced = data.total_lines_sourced || data.fetched_lines || data.fetched_sources || data.total_fetched || data.total_sourced || 0;
     update('totalSourced', formatNum(totalSourced));
 
     // Unique & Verified/Tested
-    // 'parsed' is the number of valid proxies found.
-    const totalConfigs = data.parsed || data.unique || data.total_unique || data.total_proxies || data.total_tested || 0;
+    const totalConfigs = data.total_unique_candidates || data.parsed || data.unique || data.total_unique || data.total_proxies || data.total_tested || 0;
     update('totalConfigs', formatNum(totalConfigs));
 
     // Online Now (Working)
-    const workingCount = data.total_working || data.working || data.active || data.alive || 0;
+    const workingCount = data.total_valid_proxies || data.total_working || data.working || data.active || data.alive || 0;
     update('workingConfigs', formatNum(workingCount));
 
     // New Stats if elements exist
@@ -345,7 +345,8 @@ function initGlobe(data) {
         const countryStats = data.country_stats || {};
         const maxCount = Math.max(...Object.values(countryStats));
 
-        Object.entries(countryStats).forEach(([cc, count]) => {
+        Object.entries(countryStats).forEach(([ccRaw, count]) => {
+            const cc = ccRaw.toUpperCase();
             const info = countryCentroids[cc] || getDeterministicLocation(cc);
 
             pointsData.push({

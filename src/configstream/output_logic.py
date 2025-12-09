@@ -217,7 +217,7 @@ def save_metadata(
 
     meta = {
         "version": pkg_version,
-        "total_proxies": total_sourced,
+        "total_proxies": total,  # Changed to reflect actual proxies (parsed), not lines
         "total_tested": total,
         "total_working": working,
         "success_rate": (working / total) if total > 0 else 0,
@@ -233,7 +233,11 @@ def save_metadata(
         "total_smart_chains": smart_chain_count,
         "smart_chains_breakdown": smart_chains_breakdown,
         "total_dirty": reasons.get("dirty_ip", 0) + reasons.get("honeypot", 0),
-        # Canonical Keys
+        # Canonical Keys (Consolidated)
+        "total_lines_sourced": total_sourced,
+        "total_unique_candidates": total,
+        "total_valid_proxies": working,
+        # Legacy mappings for backward compatibility
         "fetched_lines": total_sourced,
         "parsed": total,
         "tested": total,
