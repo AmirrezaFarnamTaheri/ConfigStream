@@ -1,6 +1,13 @@
 """
 WARP Configuration Scraper
 First fallback source for WARP endpoints and keys.
+
+LEGAL & COMPLIANCE NOTICE:
+This module scrapes public repositories for WARP configurations.
+- Keys are sourced from public commits on GitHub.
+- ConfigStream does not generate or crack keys.
+- Use at your own risk. This feature is intended for censorship circumvention in restricted regions.
+- To opt-out your repository, please contact the maintainers or make your repo private.
 """
 
 import json

@@ -80,7 +80,7 @@ async def generate_pipeline_outputs(
     # assuming save_metadata handles None or we pass a compatible object if possible.
     # But save_metadata signature is (stats, proxies, output_dir, history).
     # We pass history.storage (HistoryStorage) which is compatible with the Any type expected by save_metadata.
-    save_metadata(stats, optimized_proxies, output_path, history.storage)
+    save_metadata(stats, optimized_proxies, output_path)
 
     # [FIX] Export history visualization data
     # Ensure the history visualization JSON is generated for the frontend

@@ -5,24 +5,22 @@ from datetime import datetime, timezone
 
 @dataclass
 class PipelineStats:
-    total_sourced: int = 0
-    total_proxies: int = 0  # To be deprecated or merged with total_sourced?
     start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     end_time: Optional[datetime] = None
     drop_reasons: Dict[str, int] = field(default_factory=dict)
 
-    # Compatible Fields for Models
+    # Canonical Stats
     fetched_sources: int = 0
-    fetched_lines: int = 0
-    parsed: int = 0
-    tested: int = 0
-    working: int = 0
+    fetched_lines: int = 0  # Raw lines fetched
+    parsed: int = 0  # Valid proxies parsed
+    tested: int = 0  # Proxies sent to testing
+    working: int = 0  # Proxies that passed testing
     geo_resolved: int = 0
     duration: float = 0.0
     final_count: int = 0
     cache_misses: int = 0
 
-    # New Stats for Intelligence Layer
+    # Intelligence Layer Stats
     scanner_ips_found: int = 0
     washer_success_count: int = 0
     smart_chain_count: int = 0
