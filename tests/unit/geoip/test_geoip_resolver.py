@@ -3,19 +3,21 @@ from unittest.mock import MagicMock, patch
 from configstream.geoip import GeoIPResolver, GeoData
 
 
-def test_geoip_lookup_invalid_ip():
+@pytest.mark.asyncio
+async def test_geoip_lookup_invalid_ip():
     """Test lookup with invalid IP format"""
     resolver = GeoIPResolver()
     # Mock readers to ensure we don't hit FS
     resolver.reader_city = MagicMock()
     resolver.reader_asn = MagicMock()
 
-    res = resolver.lookup("invalid-ip")
+    res = await resolver.lookup("invalid-ip")
     assert res.country_code is None
     assert res.asn is None
 
 
-def test_geoip_lookup_valid_mock():
+@pytest.mark.asyncio
+async def test_geoip_lookup_valid_mock():
     """Test lookup logic with mocked DB response"""
     resolver = GeoIPResolver()
 
@@ -32,7 +34,7 @@ def test_geoip_lookup_valid_mock():
     resolver.reader_asn = MagicMock()
     resolver.reader_asn.asn.return_value = mock_asn
 
-    res = resolver.lookup("8.8.8.8")
+    res = await resolver.lookup("8.8.8.8")
     assert res.country_code == "US"
     assert res.city == "New York"
     assert res.asn == "12345"

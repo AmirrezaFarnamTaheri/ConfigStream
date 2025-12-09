@@ -58,9 +58,12 @@ async def test_processing_consumer_flow():
 
     mock_concurrency.record.side_effect = mock_record
 
+    from unittest.mock import AsyncMock
     mock_geoip = MagicMock()
-    mock_geoip.lookup.return_value = MagicMock(
-        country_code="US", city="Test", asn="AS1", org="Org"
+    mock_geoip.lookup = AsyncMock(
+        return_value=MagicMock(
+            country_code="US", city="Test", asn="AS1", org="Org"
+        )
     )
 
     tracker = PerformanceTracker()

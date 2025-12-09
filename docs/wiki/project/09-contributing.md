@@ -67,6 +67,20 @@ We enforce strict code quality standards.
 
 **Coverage Requirement:** We aim for >90% test coverage. Please write tests for any new features or bug fixes.
 
+## Frontend Contributions
+
+The frontend is a critical security boundary.
+*   **Security (XSS)**:
+    *   NEVER use `innerHTML` with user-supplied data unless sanitized with `DOMPurify`.
+    *   Use `textContent` or `innerText` by default.
+    *   Respect the Content Security Policy (CSP).
+*   **Accessibility (a11y)**:
+    *   Ensure all interactive elements have keyboard support (`tabindex`, `Enter`/`Space` handlers).
+    *   Use ARIA roles (`role="menu"`, `aria-label`) where semantic HTML is insufficient.
+*   **Testing**:
+    *   Write tests for JS modules where possible.
+    *   Verify UI changes in multiple browsers.
+
 ## Pull Request Workflow
 
 1.  Create a new branch for your feature or fix.

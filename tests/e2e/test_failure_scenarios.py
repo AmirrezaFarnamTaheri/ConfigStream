@@ -59,10 +59,10 @@ async def test_anomaly_db_failure(tmp_path, monkeypatch, caplog):
     # Mock GeoIP
     from configstream.geoip import GeoData
 
-    monkeypatch.setattr(
-        "configstream.geoip.GeoIPResolver.lookup",
-        lambda self, ip: GeoData(country_code="US"),
-    )
+    async def fake_lookup(self, ip):
+        return GeoData(country_code="US")
+
+    monkeypatch.setattr("configstream.geoip.GeoIPResolver.lookup", fake_lookup)
 
     sources = ["https://example.com/subs"]
     output_dir = tmp_path / "out_anomaly"

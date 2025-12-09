@@ -14,7 +14,8 @@ def resolver():
         return GeoIPResolver()
 
 
-def test_lookup_valid_ip(resolver):
+@pytest.mark.asyncio
+async def test_lookup_valid_ip(resolver):
     resolver.reader_city = MagicMock()
     resolver.reader_city.city.return_value.country.iso_code = "US"
     resolver.reader_city.city.return_value.city.name = "New York"
@@ -23,7 +24,7 @@ def test_lookup_valid_ip(resolver):
     resolver.reader_asn.asn.return_value.autonomous_system_number = 12345
     resolver.reader_asn.asn.return_value.autonomous_system_organization = "ISP Inc."
 
-    data = resolver.lookup("1.1.1.1")
+    data = await resolver.lookup("1.1.1.1")
 
     assert data.country_code == "US"
     assert data.city == "New York"
@@ -31,13 +32,15 @@ def test_lookup_valid_ip(resolver):
     assert data.org == "ISP Inc."
 
 
-def test_lookup_invalid_ip(resolver):
-    data = resolver.lookup("invalid_ip")
+@pytest.mark.asyncio
+async def test_lookup_invalid_ip(resolver):
+    data = await resolver.lookup("invalid_ip")
     assert data.country_code is None
 
 
-def test_lookup_db_error(resolver):
+@pytest.mark.asyncio
+async def test_lookup_db_error(resolver):
     resolver.reader_city.city.side_effect = Exception("DB Error")
-    data = resolver.lookup("1.1.1.1")
+    data = await resolver.lookup("1.1.1.1")
     # Should handle gracefully
     assert data.country_code is None
