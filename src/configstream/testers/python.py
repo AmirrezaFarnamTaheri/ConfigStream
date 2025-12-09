@@ -190,8 +190,8 @@ class PythonTester:
         fallback_url = "http://cp.cloudflare.com/generate_204"
         latency = await _try_url(fallback_url)
         if latency is not None:
-            if proxy is not None:
-                proxy.tags.append("dirty_ip")
+            # Removed "dirty_ip" tag to prevent unfair washing/filtering of valid proxies
+            # from regions that block Google but allow Cloudflare.
             return round(latency, 2)
         return None
 
