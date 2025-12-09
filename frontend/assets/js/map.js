@@ -25,8 +25,7 @@ class GlobeWidget {
             .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
             .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-            .pointOfView({ altitude: 2.5 }) // Initial Zoom
-            .enablePointerInteraction(false); // Disable interaction initially
+            .pointOfView({ altitude: 2.5 }); // Initial Zoom
 
         // Enable auto-rotation
         this.globe.controls().autoRotate = true;

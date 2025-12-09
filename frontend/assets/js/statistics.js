@@ -77,15 +77,15 @@ document.addEventListener('DOMContentLoaded', () => {
             updateElement('#totalSourced', metadata.total_fetched.toLocaleString());
         }
 
-        // Total Configs (Unique & Verified/Tested) - usually mapped to 'total_proxies' (parsed) or 'unique'
-        if (stats.total_proxies !== undefined) {
-            updateElement('#totalConfigs', stats.total_proxies.toLocaleString());
-        }
+        // Total Configs (Unique & Verified/Tested)
+        // Prioritize 'unique' or 'total_unique' if available, otherwise fall back to 'total_proxies'
+        const uniqueCount = stats.unique || stats.total_unique || stats.total_proxies || 0;
+        updateElement('#totalConfigs', uniqueCount.toLocaleString());
 
         // Online Now (Working)
-        if (stats.total_working !== undefined) {
-            updateElement('#workingConfigs', stats.total_working.toLocaleString());
-        }
+        // Prioritize 'active' or 'alive' if 'total_working' is missing
+        const workingCount = stats.total_working || stats.active || stats.alive || 0;
+        updateElement('#workingConfigs', workingCount.toLocaleString());
 
         // Revived (Washed)
         // Check stats.total_revived or metadata.revived_count
