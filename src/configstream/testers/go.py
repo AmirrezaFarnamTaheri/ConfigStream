@@ -404,7 +404,9 @@ class GoBatchTester:
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
-            logger.error(f"Go Tester Daemon connection lost during custom config test: {e}")
+            logger.error(
+                f"Go Tester Daemon connection lost during custom config test: {e}"
+            )
             await self.close()
             return {}
         except Exception as e:

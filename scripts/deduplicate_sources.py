@@ -61,7 +61,34 @@ NEW_SOURCES = [
     "https://scys.org/proxy",
 ]
 
+# Extras to ensure coverage as per user feedback
+EXTRA_SOURCES = [
+    # Huibq missing vless (guessing path based on structure)
+    "https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/vless",
+    # Mohammadgb0078 missing others
+    "https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/vmess.txt",
+    "https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/trojan.txt",
+    "https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/ss.txt",
+    # freevpnspy - ensuring both are present
+    "https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_novless.yaml",
+    "https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_vless.yaml",
+    # barry-far/V2ray-Config (Splitted-By-Protocol)
+    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/vmess.txt",
+    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/trojan.txt",
+    "https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/ss.txt",
+    # yebekhe/TelegramV2rayCollector
+    "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/mix",
+    "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/vless",
+    "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/vmess",
+    "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/trojan",
+    # Argh94/V2RayAutoConfig
+    "https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Vless.txt",
+    "https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Trojan.txt",
+    "https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Shadowsocks.txt",
+]
+
 SOURCES_DIR = Path("sources")
+CONSOLIDATED_FILE = Path("consolidated_sources.txt")
 BATCH_PATTERN = "batch_*.txt"
 NUM_BATCHES = 10
 
@@ -74,77 +101,76 @@ def get_domain(url: str) -> str:
 
 
 def main():
-    print("🚀 Starting Source Optimization...")
+    print("🚀 Starting Source Deduplication & Restoration...")
 
-    # 1. Gather all existing sources
+    # 1. Gather all existing sources from consolidated file (Source of Truth)
     existing_urls: Set[str] = set()
-    if SOURCES_DIR.exists():
-        for f in SOURCES_DIR.glob(BATCH_PATTERN):
-            content = f.read_text(encoding="utf-8").splitlines()
-            for line in content:
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    existing_urls.add(line)
+    if CONSOLIDATED_FILE.exists():
+        content = CONSOLIDATED_FILE.read_text(encoding="utf-8").splitlines()
+        for line in content:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                existing_urls.add(line)
+    else:
+        print("⚠️ consolidated_sources.txt not found, falling back to batches.")
+        if SOURCES_DIR.exists():
+            for f in SOURCES_DIR.glob(BATCH_PATTERN):
+                content = f.read_text(encoding="utf-8").splitlines()
+                for line in content:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        existing_urls.add(line)
 
     print(f"📦 Loaded {len(existing_urls)} existing sources.")
 
     # 2. Identify Domains for New Sources
     new_source_domains = {get_domain(u): u for u in NEW_SOURCES}
 
-    # 3. Filter Existing Sources
-    # Strategy: If we have a new source for a domain, use ONLY that new source.
-    # Otherwise, keep the existing source.
-
+    # 3. Filter & Merge
     final_urls: Set[str] = set()
 
-    # Add all NEW sources first
+    # Add NEW sources
     for url in NEW_SOURCES:
+        final_urls.add(url)
+
+    # Add EXTRA sources
+    for url in EXTRA_SOURCES:
         final_urls.add(url)
 
     # Process existing
     dropped_count = 0
     kept_count = 0
+    blocked_count = 0
 
     for url in existing_urls:
+        # BLACKLIST: Remove SoroushMirzaei
+        if "soroushmirzaei" in url.lower():
+            blocked_count += 1
+            continue
+
         domain = get_domain(url)
 
-        # Special handling for raw.githubusercontent.com
-        # We can't treat all github as one domain, so we check the user/repo part?
-        # For now, let's treat github as a special case where we DON'T deduplicate by domain unless it matches exactly?
-        # Or better: The user's list has some github links (TheSpeedX, rootjazz).
-        # If the domain is github, we check if the path overlaps?
-        # Actually, the user's instruction "for each domain, keep only one link" is risky for GitHub.
-        # "ProxyScrape Github" -> raw.githubusercontent.com/proxyscrape...
-        # "JetKai" -> raw.githubusercontent.com/jetkai...
-        # These are different "providers" hosted on the same domain.
-
+        # GitHub Logic: Keep all unless explicitly replaced or blacklisted
         if domain == "raw.githubusercontent.com" or domain == "github.com":
-            # Keep existing github links unless exact duplicate
             if url not in final_urls:
                 final_urls.add(url)
                 kept_count += 1
-            else:
-                # It's already in (exact match)
-                pass
         elif domain in new_source_domains:
-            # We have a canonical link for this domain in NEW_SOURCES
-            # Check if this url is the canonical one
+            # Domain exists in NEW_SOURCES, use canonical
             if url == new_source_domains[domain]:
-                pass  # Already added
+                pass
             else:
-                # Drop it! It's likely a subset/duplicate
-                # print(f"  - Dropping {url} in favor of {new_source_domains[domain]}")
                 dropped_count += 1
         else:
-            # Domain not in new list, keep it
             final_urls.add(url)
             kept_count += 1
 
-    print(f"🧹 Deduplication complete. Dropped {dropped_count} subset/duplicate links.")
+    print(f"🧹 Deduplication complete.")
+    print(f"  - Dropped {dropped_count} subset/duplicate links.")
+    print(f"  - Blocked {blocked_count} dead/blacklisted links.")
     print(f"✨ Final source count: {len(final_urls)}")
 
     # 4. Redistribute into Batches
-    # Simple round-robin for now (Dynamic Resharding will optimize later based on timing)
     sorted_urls = sorted(list(final_urls))
     batches: List[List[str]] = [[] for _ in range(NUM_BATCHES)]
 
@@ -164,7 +190,12 @@ def main():
         content.extend(batch)
         file_path.write_text("\n".join(content), encoding="utf-8")
 
-    print(f"💾 Written {len(final_urls)} sources to {NUM_BATCHES} batch files.")
+    # 6. Update Consolidated File
+    CONSOLIDATED_FILE.write_text("\n".join(sorted_urls), encoding="utf-8")
+
+    print(
+        f"💾 Written {len(final_urls)} sources to {NUM_BATCHES} batch files and consolidated_sources.txt."
+    )
 
 
 if __name__ == "__main__":
