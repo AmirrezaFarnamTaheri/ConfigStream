@@ -846,13 +846,13 @@ body.dark .github-btn:hover {
     }
 
     .proxies-table {
-        min-width: 600px;
-        max-width: 100%;
+        min-width: 0; /* Allow table to shrink for card view */
+        width: 100%;
     }
 
     .proxies-table th,
     .proxies-table td {
-        padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2);
+        padding: calc(var(--space-unit) * 1) calc(var(--space-unit) * 1.5); /* Compact padding */
         font-size: 0.85rem;
     }
 
@@ -2621,6 +2621,18 @@ body.dark #preloader {
     gap: calc(var(--space-unit) * 1.5);
 }
 
+@media (max-width: 768px) {
+    .proxies-table .location-cell {
+        gap: calc(var(--space-unit) * 0.5);
+        flex-wrap: wrap;
+    }
+    .proxies-table .location-cell .country-flag {
+        width: 16px;
+        height: 12px;
+        margin-right: calc(var(--space-unit) * 0.25);
+    }
+}
+
 .country-flag {
     width: 20px;
     height: 14px;
@@ -2971,11 +2983,13 @@ body.dark #preloader {
         max-width: 100%;
     }
 
-    /* Ensure all filter inputs are touch-friendly */
+    /* Ensure all filter inputs are touch-friendly but compact */
     .filter-input-group select,
     .filter-input-group input {
         width: 100% !important;
-        min-height: 48px !important;
+        min-height: 32px !important; /* Reduced from 48px */
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
     }
 
     /* Better mobile table experience */
@@ -3216,10 +3230,10 @@ body:not(.dark) .mission-card {
     }
 
     .proxies-table tr {
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem; /* Reduced margin */
         border-radius: var(--radius-md);
         background: var(--bg-secondary);
-        padding: 1rem;
+        padding: 0.75rem; /* Reduced padding */
         border: 1px solid var(--border);
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
@@ -3228,10 +3242,11 @@ body:not(.dark) .mission-card {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.75rem 0;
+        padding: 0.5rem 0; /* More compact rows */
         border: none;
         border-bottom: 1px solid var(--border);
         text-align: right;
+        min-height: 32px;
     }
 
     .proxies-table td:last-child {
