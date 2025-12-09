@@ -165,7 +165,7 @@ def main():
             final_urls.add(url)
             kept_count += 1
 
-    print(f"🧹 Deduplication complete.")
+    print("🧹 Deduplication complete.")
     print(f"  - Dropped {dropped_count} subset/duplicate links.")
     print(f"  - Blocked {blocked_count} dead/blacklisted links.")
     print(f"✨ Final source count: {len(final_urls)}")
