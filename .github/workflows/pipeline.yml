@@ -285,6 +285,15 @@ jobs:
           # This restores frontend/assets/wasm/tester.wasm and frontend/assets/js/wasm_exec.js
           # The artifact contains files with full paths, so extract to root directory
 
+      - name: Prepare Documentation
+        run: |
+          mkdir -p output/docs
+          # Copy wiki markdown files
+          if [ -d docs/wiki ]; then
+             cp -r docs/wiki output/docs/
+          fi
+          # Ensure hierarchy matches what wiki.js expects (../docs/wiki/project/)
+
       - name: Restore previous outputs for merge
         run: |
           set -euxo pipefail
