@@ -55,3 +55,4 @@ data/
 !output/.gitkeep
 src/go/tester/configstream-tester
 *.wasm
+verification_build/
