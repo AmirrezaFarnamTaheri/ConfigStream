@@ -2,7 +2,7 @@ import logging
 import sys
 import os
 import json
-import time
+
 import asyncio
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -41,7 +41,6 @@ async def merge_batches_async(
     from .logs import consolidate_logs
     from configstream.intelligence.washer.core import ProxyWasher
     from configstream.intelligence.vectors import generate_vectors
-    from configstream.proxy_history import ProxyHistoryTracker
     from configstream.output_logic import save_metadata
 
     output_dir = root_dir / output_dir_str
