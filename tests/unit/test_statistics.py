@@ -13,6 +13,7 @@ class TestStatisticsEngine:
         p1 = MagicMock(spec=Proxy)
         p1.protocol = "vmess"
         p1.country = "US"
+        p1.country_code = "US"
         p1.latency = 50
         p1.is_working = True
         proxies.append(p1)
@@ -21,6 +22,7 @@ class TestStatisticsEngine:
         p2 = MagicMock(spec=Proxy)
         p2.protocol = "vless"
         p2.country = "DE"
+        p2.country_code = "DE"
         p2.latency = 200
         p2.is_working = True
         proxies.append(p2)
@@ -29,6 +31,7 @@ class TestStatisticsEngine:
         p3 = MagicMock(spec=Proxy)
         p3.protocol = "vmess"
         p3.country = "US"
+        p3.country_code = "US"
         p3.latency = None
         p3.is_working = False
         proxies.append(p3)
