@@ -152,5 +152,28 @@ def main() -> None:
         print(f"  - {file.name}")
 
 
+def generate_stealth_assets(output_dir):
+    # Create a 1x1 transparent pixel or generic grey circle for stealth
+    from PIL import Image, ImageDraw
+
+    stealth_dir = output_dir / "stealth"
+    stealth_dir.mkdir(exist_ok=True)
+
+    # 1. Stealth Favicon (Grey Circle)
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.ellipse((8, 8, 56, 56), fill="#808080")  # Generic grey dot
+    img.save(stealth_dir / "favicon.ico", format="ICO")
+    img.save(stealth_dir / "apple-touch-icon.png", format="PNG")
+
+    # 2. Stealth Background (Solid muted color)
+    bg = Image.new("RGB", (1920, 1080), "#f0f2f5")  # Generic office grey/white
+    bg.save(stealth_dir / "background.png")
+
+    print(f"    ✓ Generated Stealth Assets in {stealth_dir}")
+
+
 if __name__ == "__main__":
     main()
+    output_dir = Path(__file__).parent.parent / "frontend" / "assets" / "images"
+    generate_stealth_assets(output_dir)

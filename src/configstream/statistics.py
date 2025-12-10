@@ -4,7 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from statistics import mean, median, stdev
-from typing import Dict, List, Mapping, Sequence
+from typing import Dict, List, Mapping, Sequence, Any
 
 from .models import Proxy
 
@@ -56,9 +56,38 @@ class StatisticsEngine:
         working = sum(1 for proxy in self.proxies if proxy.is_working)
         return UptimeStats(total_tested=total, working=working)
 
-    def generate_report(self) -> Dict[str, object]:
-        uptime = self.uptime_stats()
+    def detailed_stats(self) -> Dict[str, Any]:
+        """Calculate detailed aggregations for analytics charts."""
+        lat_by_proto: Dict[str, List[float]] = {}
+        lat_by_country: Dict[str, List[float]] = {}
+
+        for p in self.proxies:
+            if not p.is_working or p.latency is None:
+                continue
+
+            # Protocol
+            if p.protocol not in lat_by_proto:
+                lat_by_proto[p.protocol] = []
+            lat_by_proto[p.protocol].append(p.latency)
+
+            # Country
+            cc = p.country_code or "XX"
+            if cc not in lat_by_country:
+                lat_by_country[cc] = []
+            lat_by_country[cc].append(p.latency)
+
         return {
+            "latency_by_protocol": {
+                k: int(sum(v) / len(v)) for k, v in lat_by_proto.items() if v
+            },
+            "latency_by_country": {
+                k: int(sum(v) / len(v)) for k, v in lat_by_country.items() if v
+            },
+        }
+
+    def generate_report(self, stats_obj=None) -> Dict[str, object]:
+        uptime = self.uptime_stats()
+        report: Dict[str, object] = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_proxies": len(self.proxies),
             "working_proxies": uptime.working,
@@ -67,3 +96,11 @@ class StatisticsEngine:
             "country_distribution": dict(self.country_distribution()),
             "latency": self.latency_stats(),
         }
+        # Inject detailed stats
+        report.update(self.detailed_stats())
+
+        # Inject Drop/Threat Reasons from PipelineStats if available
+        if stats_obj and hasattr(stats_obj, "drop_reasons"):
+            report["rejection_reasons"] = stats_obj.drop_reasons
+
+        return report

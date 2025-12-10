@@ -5,6 +5,7 @@ import threading
 import os
 import httpx
 import asyncio
+import time
 from typing import List, Dict, Optional, Set, Any, Tuple
 
 from ...models import Proxy
@@ -183,8 +184,13 @@ class ProxyWasher:
         if not exit_pool:
             return None
 
-        # Create a deterministic index from the Relay ID
-        hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
+        # Add Epoch (Current Week Number) to force rotation every week
+        # This prevents a bad key from permanently killing a proxy
+        current_epoch = int(time.time() / (7 * 86400))
+
+        # Create a deterministic index from the Relay ID + Epoch
+        hash_input = f"{relay_id}-{current_epoch}".encode()
+        hash_val = int(hashlib.sha256(hash_input).hexdigest(), 16)
         index = hash_val % len(exit_pool)
         return exit_pool[index]
 
@@ -261,6 +267,9 @@ class ProxyWasher:
         # --- NEW: Use Geodesic Optimization Target ---
         # Assume US target for checking optimal routing (as per audit snippet)
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
+
+        # Initialize a counter for IP generation to avoid collisions
+        ip_counter = 1
 
         for i, relay in enumerate(candidates):
             # 2. Select the "Soap" (Exit Node)
@@ -340,11 +349,13 @@ class ProxyWasher:
                 )
                 continue
 
-            # [FIX] Generate Unique Local IP
-            h = int(hashlib.sha256(chain_id.encode()).hexdigest(), 16)
-            octet_2 = (h >> 8) % 255
-            octet_3 = (h % 250) + 2
-            unique_ip = f"172.16.{octet_2}.{octet_3}/32"
+            # [FIX] Generate Unique Local IP using sequential counter
+            # range 172.16.x.x -> 65535 IPs max
+            # octet_3: 0-249, octet_4: 2-251 (avoid .0, .1, .255)
+            octet_3 = (ip_counter // 250) % 250
+            octet_4 = (ip_counter % 250) + 2
+            unique_ip = f"172.16.{octet_3}.{octet_4}/32"
+            ip_counter += 1
 
             # --- NEW: Geodesic Optimization Tagging ---
             is_optimal = False

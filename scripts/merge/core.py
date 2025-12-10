@@ -2,6 +2,7 @@ import logging
 import sys
 import os
 import json
+
 import asyncio
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -40,7 +41,6 @@ async def merge_batches_async(
     from .logs import consolidate_logs
     from configstream.intelligence.washer.core import ProxyWasher
     from configstream.intelligence.vectors import generate_vectors
-    from configstream.proxy_history import ProxyHistoryTracker
     from configstream.output_logic import save_metadata
 
     output_dir = root_dir / output_dir_str
@@ -51,6 +51,31 @@ async def merge_batches_async(
 
     # 2. Proxies
     merged_proxies, total_processed = load_and_merge_proxies(batch_dirs)
+
+    # --- Feature: Merge Proxy History ---
+    logger.info("\n=== Step 2.4: Merging History Data ===")
+    from configstream.proxy_history import ProxyHistoryTracker
+
+    # Initialize master tracker at output destination
+    master_history_path = output_dir / "data" / "proxy_history.json"
+    master_history_path.parent.mkdir(parents=True, exist_ok=True)
+    master_tracker = ProxyHistoryTracker(history_path=master_history_path)
+
+    # Iterate over all batch directories and merge their history
+    for b_dir in batch_dirs:
+        batch_history_file = b_dir / "data" / "proxy_history.json"
+        if batch_history_file.exists():
+            try:
+                # Load batch history
+                batch_tracker = ProxyHistoryTracker(history_path=batch_history_file)
+                # Merge into master
+                master_tracker.merge(batch_tracker)
+                logger.info(f"Merged history from {b_dir.name}")
+            except Exception as e:
+                logger.warning(f"Failed to merge history from {b_dir.name}: {e}")
+
+    # Save the consolidated history
+    master_tracker.save()
 
     # 2.1 Aggregate Stats from Batches
     total_tested = 0
