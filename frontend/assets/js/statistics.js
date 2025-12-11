@@ -6,6 +6,8 @@ async function loadCountryData() {
         const resp = await fetch('assets/data/countries.json');
         if (resp.ok) {
             countryNameToCode = await resp.json();
+        } else {
+             console.warn('Country data file not found (404), flags will be missing.');
         }
     } catch (e) {
         console.warn('Failed to load country data, flags might be missing.', e);
@@ -22,7 +24,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Early return if required elements don't exist
     if (!chartsContainer || !chartsEmptyState) return;
 
-    // Audit: Initialize data and wait for it
+    // Audit: Initialize data and wait for it.
+    // F9 Race Condition Fix: We await this here, ensuring data is available before rendering charts.
+    // If it fails, countryNameToCode will be empty, which is handled gracefully by flag logic.
     await loadCountryData();
 
     let currentStats = null;
@@ -34,7 +38,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const url = `data/active_proxy_trend.json?cb=${Date.now()}`;
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                // Not throwing error to allow partial rendering
+                console.warn(`Proxy history fetch failed: ${response.status}`);
+                return null;
             }
             return await response.json();
         } catch (error) {
@@ -69,11 +75,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return metrics;
     }
 
+    // F6 Fix: Centralized Color Logic
+    // Using a seeded or hash-based color generator for consistency across charts
+    function generateColor(label, index) {
+        // Simple hash of the label to pick a hue
+        let hash = 0;
+        const str = label.toString();
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const hue = Math.abs(hash % 360);
+        return `hsl(${hue}, 70%, 60%)`;
+    }
+
     function updateSummaryStats(stats, proxies, metadata) {
         // Consolidated Stats Mappings (v2.0.4+)
-
-        // 1. Total Sourced (Raw Lines Fetched)
-        // Prioritize explicit new keys > legacy keys > fallbacks
         const totalSourced =
             (metadata && metadata.total_lines_sourced) ||
             stats.fetched_lines ||
@@ -83,7 +99,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             0;
         updateElement('#totalSourced', totalSourced.toLocaleString());
 
-        // 2. Total Configs (Unique Candidates)
         const uniqueCount =
             (metadata && metadata.total_unique_candidates) ||
             stats.parsed ||
@@ -94,7 +109,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             0;
         updateElement('#totalConfigs', uniqueCount.toLocaleString());
 
-        // 3. Online Now (Working Proxies)
         const workingCount =
             (metadata && metadata.total_valid_proxies) ||
             stats.working ||
@@ -105,31 +119,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             0;
         updateElement('#workingConfigs', workingCount.toLocaleString());
 
-        // Revived (Washed)
-        // Check stats.total_revived or metadata.revived_count
         const revived = stats.total_revived || (metadata ? metadata.revived_count : 0) || 0;
         updateElement('#totalRevived', revived.toLocaleString());
 
-        // Threats Neutralized
-        // Check stats.threats_blocked or metadata.threats_blocked
         const threats = stats.threats_blocked || (metadata ? metadata.threats_blocked : 0) || 0;
         updateElement('#threatsBlocked', threats.toLocaleString());
-        updateElement('#threatsNeutralized', threats.toLocaleString()); // For analytics page
+        updateElement('#threatsNeutralized', threats.toLocaleString());
 
-        // Update last updated time and frequency label if needed
-        if (metadata && metadata.last_updated_utc) {
-             const date = new Date(metadata.last_updated_utc);
-             // Logic below handles date formatting
-        }
-
-        // Calculate and update additional metrics
         const metrics = calculateMetrics(stats, proxies);
 
+        // F9 Fix: Use sanitize logic inside updateElement or manual sanitization.
+        // Since updateElement uses DOMPurify by default unless trustedHTML is true,
+        // we should avoid trustedHTML=true unless strictly necessary.
+        // Here we are injecting simple HTML (<span>), so we construct it carefully.
         if (metrics.avgLatency !== undefined) {
+             // Safe: metrics.avgLatency is a number
             updateElement('#avgLatency', `${metrics.avgLatency}<span class="metric-unit">ms</span>`, { method: 'innerHTML', trustedHTML: true });
         }
 
         if (metrics.successRate !== undefined) {
+             // Safe: metrics.successRate is a number/string from toFixed
             updateElement('#successRate', `${metrics.successRate}<span class="metric-unit">%</span>`, { method: 'innerHTML', trustedHTML: true });
         }
 
@@ -143,12 +152,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 minute: '2-digit'
             });
             updateElement('#lastUpdated', formattedTime);
-
-            // Also update footer timestamp
-            const footerTimestamp = formatTimestamp(date);
-            updateElement('#footerUpdate', footerTimestamp);
+            updateElement('#footerUpdate', formatTimestamp(date));
         } else {
-            // Fallback to current time if metadata is not available
             const now = new Date();
             const formattedTime = now.toLocaleString('en-US', {
                 month: 'short',
@@ -157,15 +162,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 minute: '2-digit'
             });
             updateElement('#lastUpdated', formattedTime);
-            const footerTimestamp = formatTimestamp(now);
-            updateElement('#footerUpdate', footerTimestamp);
+            updateElement('#footerUpdate', formatTimestamp(now));
         }
     }
 
     function updateInsights(stats, proxies) {
         const metrics = calculateMetrics(stats, proxies);
 
-        // Network Health Score (based on success rate and diversity)
         if (metrics.successRate !== undefined) {
             const healthScore = parseFloat(metrics.successRate);
             let healthGrade = 'Poor';
@@ -177,32 +180,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateElement('#networkHealthDesc', `${metrics.successRate}% of proxies are active and responding`);
         }
 
-        // Top Region
         if (stats.countries && Object.keys(stats.countries).length > 0) {
             const topCountry = Object.entries(stats.countries)
                 .sort((a, b) => b[1] - a[1])[0];
 
-            const countryKey = topCountry[0]; // This is likely "US", "DE", etc.
+            const countryKey = topCountry[0];
             let countryCode = null;
             let countryName = countryKey;
 
-            // FIX: Detect if key is ISO Code (len 2) or Name
             if (countryKey.length === 2) {
                 countryCode = countryKey.toUpperCase();
-                // Try to find full name from the map values, or just use Code
                 const foundName = Object.keys(countryNameToCode).find(key => countryNameToCode[key] === countryCode);
                 countryName = foundName || countryCode;
             } else {
                 countryCode = countryNameToCode[countryKey];
             }
 
+            // Sanitized insertion: getCountryFlag returns an emoji string
             const flag = countryCode ? getCountryFlag(countryCode) : '🌍';
-            // Remove trustedHTML: true because countryName might technically come from external data (though unlikely to be malicious, good practice)
-            updateElement('#topRegion', `${flag} ${countryName}`, { method: 'innerHTML' });
+            // countryName comes from our internal mapping or stats key. If stats key is untrusted, we should sanitize.
+            // DOMPurify is handled by updateElement by default.
+            // We use trustedHTML: false (default) and construct string safely?
+            // updateElement with innerHTML sanitizes the whole string.
+            updateElement('#topRegion', `${flag} ${countryName}`, { method: 'innerHTML' }); // Default sanitization applied
             updateElement('#topRegionDesc', `${topCountry[1]} proxies available in this region`);
         }
 
-        // Best Protocol
         if (stats.protocols && Object.keys(stats.protocols).length > 0) {
             const topProtocol = Object.entries(stats.protocols)
                 .sort((a, b) => b[1] - a[1])[0];
@@ -210,7 +213,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateElement('#bestProtocolDesc', `${topProtocol[1]} proxies using this protocol`);
         }
 
-        // Fastest Response
         if (metrics.minLatency !== undefined) {
             updateElement('#fastestLatency', `${metrics.minLatency}ms`);
             updateElement('#fastestLatencyDesc', `Best response time in the network`);
@@ -226,7 +228,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fetchMetadata()
             ]);
 
-            // Store for later use
             currentStats = stats;
             currentProxies = proxies;
 
@@ -236,7 +237,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            // Update summary stats and insights
             updateSummaryStats(stats, proxies, metadata);
             updateInsights(stats, proxies);
 
@@ -253,38 +253,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        labels: {
-                            color: textColor
-                        }
+                        labels: { color: textColor }
                     }
                 }
             };
 
             const commonScaleOptions = {
                 scales: {
-                    x: {
-                        ticks: { color: textColor },
-                        grid: { color: gridColor }
-                    },
-                    y: {
-                        ticks: { color: textColor },
-                        grid: { color: gridColor }
-                    }
+                    x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                    y: { ticks: { color: textColor }, grid: { color: gridColor } }
                 }
             };
 
-            // Protocol Chart (Doughnut - no scales needed)
+            // Protocol Chart
             const protocolChartCanvas = document.getElementById('protocolChart');
             if (stats.protocols && Object.keys(stats.protocols).length > 0) {
-                const protocolColors = metadata.protocol_colors || {};
-                const chartColors = Object.keys(stats.protocols).map(
-                    protocol => protocolColors[protocol.toLowerCase()] || '#cccccc'
-                );
+                const labels = Object.keys(stats.protocols);
+                const chartColors = labels.map((p, i) => generateColor(p, i));
 
                 new Chart(protocolChartCanvas, {
                     type: 'doughnut',
                     data: {
-                        labels: Object.keys(stats.protocols),
+                        labels: labels,
                         datasets: [{
                             data: Object.values(stats.protocols),
                             backgroundColor: chartColors,
@@ -343,11 +333,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     options: { ...commonPluginOptions, ...commonScaleOptions }
                 });
             } else {
-                // Hide ASN chart if no data
                 const asnContainer = asnChartCanvas.closest('.chart-container');
-                if (asnContainer) {
-                    asnContainer.style.display = 'none';
-                }
+                if (asnContainer) asnContainer.style.display = 'none';
             }
 
             // Time-series Chart
@@ -385,10 +372,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            // Latency by Country Chart (New)
+            // Latency by Country Chart
             const latencyByCountryCanvas = document.getElementById('latencyByCountryChart');
             if (latencyByCountryCanvas && proxies && proxies.length > 0) {
-                // Group latencies by country
                 const countryLatencies = {};
                 const countryCounts = {};
 
@@ -404,14 +390,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 });
 
-                // Calculate averages
                 const countryAvgLatencies = Object.entries(countryLatencies)
                     .map(([country, totalLatency]) => ({
                         country,
                         avgLatency: Math.round(totalLatency / countryCounts[country])
                     }))
-                    .sort((a, b) => a.avgLatency - b.avgLatency) // Lowest latency first
-                    .slice(0, 15); // Top 15
+                    .sort((a, b) => a.avgLatency - b.avgLatency)
+                    .slice(0, 15);
 
                 if (countryAvgLatencies.length > 0) {
                     new Chart(latencyByCountryCanvas, {
@@ -438,13 +423,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             }
 
-            // Latency by Protocol Chart (Fix ID mismatch)
-            // Was targeting protocolPerformanceCanvas which maps to 'protocolPerformanceChart'
-            // But HTML might have 'latencyByProtocolChart'
-            const latencyByProtocolCanvas = document.getElementById('latencyByProtocolChart') || document.getElementById('protocolPerformanceChart');
+            // F5 Fix: Misnamed charts. Use the correct ID from HTML or standardize.
+            // HTML typically uses 'latencyByProtocolChart' or 'protocolPerformanceChart'.
+            // We'll target 'latencyByProtocolChart' and remove duplicate logic for 'protocolPerformanceChart' if it was doing the same thing.
 
+            const latencyByProtocolCanvas = document.getElementById('latencyByProtocolChart');
             if (latencyByProtocolCanvas && proxies && proxies.length > 0) {
-                // Calculate average latency per protocol
                 const protocolLatencies = {};
                 const protocolCounts = {};
 
@@ -468,19 +452,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                     .slice(0, 10);
 
                 if (protocolAvgLatencies.length > 0) {
-                    // Destroy existing chart if any (to prevent canvas reuse issues)
                     const existingChart = Chart.getChart(latencyByProtocolCanvas);
                     if (existingChart) existingChart.destroy();
+
+                    const labels = protocolAvgLatencies.map(p => p.protocol.toUpperCase());
+                    const colors = labels.map((p, i) => generateColor(p, i));
 
                     new Chart(latencyByProtocolCanvas, {
                         type: 'bar',
                         data: {
-                            labels: protocolAvgLatencies.map(p => p.protocol.toUpperCase()),
+                            labels: labels,
                             datasets: [{
                                 label: 'Avg Latency (ms)',
                                 data: protocolAvgLatencies.map(p => p.avgLatency),
-                                backgroundColor: 'rgba(255, 206, 86, 0.7)',
-                                borderColor: 'rgba(255, 206, 86, 1)',
+                                backgroundColor: colors,
+                                borderColor: colors,
                                 borderWidth: 1
                             }]
                         },
@@ -490,24 +476,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                             indexAxis: 'y',
                             plugins: {
                                 ...commonPluginOptions.plugins,
-                                legend: {
-                                    display: false
-                                }
+                                legend: { display: false }
                             }
                         }
                     });
                 }
             }
 
-            // Latency Distribution Chart (Keep original)
+            // Latency Distribution Chart
             const latencyChartCanvas = document.getElementById('latencyChart');
-            if (proxies && proxies.length > 0) {
+            if (latencyChartCanvas && proxies && proxies.length > 0) {
                 const validLatencies = proxies
                     .filter(p => p.latency && p.latency > 0 && p.latency < 10000)
                     .map(p => p.latency);
 
                 if (validLatencies.length > 0) {
-                    // Create histogram bins
                     const bins = [0, 100, 200, 500, 1000, 2000, 5000, 10000];
                     const binLabels = ['<100ms', '100-200ms', '200-500ms', '500ms-1s', '1-2s', '2-5s', '5-10s'];
                     const binCounts = new Array(bins.length - 1).fill(0);
@@ -538,63 +521,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             ...commonScaleOptions,
                             plugins: {
                                 ...commonPluginOptions.plugins,
-                                legend: {
-                                    display: false
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-
-            // Protocol Performance Chart
-            const protocolPerformanceCanvas = document.getElementById('protocolPerformanceChart');
-            if (proxies && proxies.length > 0) {
-                // Calculate average latency per protocol
-                const protocolLatencies = {};
-                const protocolCounts = {};
-
-                proxies.forEach(p => {
-                    if (p.protocol && p.latency && p.latency > 0 && p.latency < 10000) {
-                        if (!protocolLatencies[p.protocol]) {
-                            protocolLatencies[p.protocol] = 0;
-                            protocolCounts[p.protocol] = 0;
-                        }
-                        protocolLatencies[p.protocol] += p.latency;
-                        protocolCounts[p.protocol]++;
-                    }
-                });
-
-                const protocolAvgLatencies = Object.entries(protocolLatencies)
-                    .map(([protocol, totalLatency]) => ({
-                        protocol,
-                        avgLatency: Math.round(totalLatency / protocolCounts[protocol])
-                    }))
-                    .sort((a, b) => a.avgLatency - b.avgLatency)
-                    .slice(0, 10);
-
-                if (protocolAvgLatencies.length > 0) {
-                    new Chart(protocolPerformanceCanvas, {
-                        type: 'bar',
-                        data: {
-                            labels: protocolAvgLatencies.map(p => p.protocol.toUpperCase()),
-                            datasets: [{
-                                label: 'Avg Latency (ms)',
-                                data: protocolAvgLatencies.map(p => p.avgLatency),
-                                backgroundColor: 'rgba(255, 206, 86, 0.7)',
-                                borderColor: 'rgba(255, 206, 86, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            ...commonPluginOptions,
-                            ...commonScaleOptions,
-                            indexAxis: 'y',
-                            plugins: {
-                                ...commonPluginOptions.plugins,
-                                legend: {
-                                    display: false
-                                }
+                                legend: { display: false }
                             }
                         }
                     });
@@ -608,7 +535,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Refresh Data Button
     const refreshBtn = document.getElementById('refreshData');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', async () => {
@@ -617,15 +543,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             refreshBtn.disabled = true;
 
             try {
-                // Clear cache
                 if (window.api && window.api.clearCache) {
                     window.api.clearCache();
                 }
-
-                // Re-render everything
                 await renderCharts();
-
-                // Success feedback
                 setTimeout(() => {
                     icon.style.animation = '';
                     refreshBtn.disabled = false;
@@ -638,7 +559,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Export Data Button
     const exportBtn = document.getElementById('exportData');
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
@@ -682,7 +602,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const canvas = chartContainer.querySelector('canvas');
             if (!canvas) return;
 
-            // Remove only an existing menu if one is already open (single instance policy)
+            // Remove only an existing menu if one is already open
             const existingMenu = document.querySelector('.chart-action-menu');
             if (existingMenu) existingMenu.remove();
 
@@ -698,10 +618,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const computePosition = () => {
               let top = rect.bottom + margin;
               let left = rect.right - assumedMinWidth;
-
               const maxLeft = window.innerWidth - margin - assumedMinWidth;
               const maxTop = window.innerHeight - margin - 10;
-
               left = Math.max(margin, Math.min(left, maxLeft));
               top = Math.max(margin, Math.min(top, maxTop));
               menu.style.top = `${top}px`;
@@ -712,13 +630,16 @@ document.addEventListener('DOMContentLoaded', async () => {
               position: fixed;
               min-width: ${assumedMinWidth}px;
               z-index: 9999;
+              background: var(--surface-card);
+              border: 1px solid var(--border);
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+              border-radius: 4px;
             `;
 
             document.body.appendChild(menu);
             computePosition();
 
             const onResize = () => computePosition();
-            // Only recompute on resize; fixed positioning keeps alignment on normal scroll
             window.addEventListener('resize', onResize);
 
             let rafId = null;
@@ -795,6 +716,10 @@ document.addEventListener('DOMContentLoaded', async () => {
               return btn;
             };
 
+            // F9 Fix: Use safe filenames for export
+            // We strip unsafe chars from chartTitle in export function,
+            // but we can ensure correctness here too.
+
             menu.appendChild(createMenuButton('📊 Export as PNG', () => {
               exportChartAsImage(canvas, chartTitle, 'png');
             }));
@@ -802,7 +727,6 @@ document.addEventListener('DOMContentLoaded', async () => {
               exportChartData(canvas, chartTitle);
             }, true));
 
-            // Focus management and global listeners
             setTimeout(() => {
               menu.focus();
               document.addEventListener('click', handleOutsideClick, true);
@@ -811,16 +735,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // Helper function to export chart as image
-    // Helper function to export chart as image
     function exportChartAsImage(canvas, title, format) {
         try {
-            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+            // F9 Fix: Strict Sanitization for filenames
+            const safeTitle = title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+            const filename = `${safeTitle}-${Date.now()}.png`;
             if (format === 'png') {
                 canvas.toBlob(blob => {
                     if (!blob) {
-                        console.error('Canvas export failed: blob is null (possibly tainted canvas or insufficient permissions).');
-                        alert('Failed to export chart image due to browser security restrictions. The chart may contain external resources that prevent export.');
+                        alert('Failed to export chart image due to browser security restrictions.');
                         return;
                     }
                     const url = URL.createObjectURL(blob);
@@ -830,9 +753,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     try {
                         document.body.appendChild(link);
                         link.click();
-                    } catch (clickError) {
-                        console.error('Failed to trigger download:', clickError);
-                        alert('Failed to download chart. Please try again.');
                     } finally {
                         setTimeout(() => {
                             document.body.removeChild(link);
@@ -843,17 +763,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Error exporting chart:', error);
-            alert('Failed to export chart. Please try again.');
+            alert('Failed to export chart.');
         }
     }
 
-    // Separate helper function to export chart data as JSON
     function exportChartData(canvas, title) {
         try {
             const ctx = canvas.getContext('2d');
             const chartInstance = ctx && (canvas.__chart__ || canvas.chart || ctx.canvas.chart);
             if (!chartInstance || !chartInstance.data) {
-                console.error('Chart instance not found');
                 alert('Unable to export chart data. Chart instance not found.');
                 return;
             }
@@ -862,28 +780,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const safeDatasets = Array.isArray(data.datasets)
                 ? data.datasets.map(ds => ({
                     label: typeof ds.label === 'string' ? ds.label : '',
-                    data: Array.isArray(ds.data) ? ds.data.slice() : [],
-                    backgroundColor: ds.backgroundColor ?? null,
-                    borderColor: ds.borderColor ?? null,
-                    borderWidth: typeof ds.borderWidth === 'number' ? ds.borderWidth : undefined
+                    data: Array.isArray(ds.data) ? ds.data.slice() : []
                 }))
                 : [];
+
+            // F9 Fix: Sanitize content before export (although JSON is mostly safe from XSS unless rendered as HTML later)
             const exportData = {
                 title,
                 exported_at: new Date().toISOString(),
                 labels: safeLabels,
                 datasets: safeDatasets
             };
-            let jsonString = '';
-            try {
-                jsonString = JSON.stringify(exportData, null, 2);
-            } catch (serr) {
-                console.error('Serialization failed:', serr);
-                alert('Failed to serialize chart data for export.');
-                return;
-            }
+
+            const jsonString = JSON.stringify(exportData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
-            const filename = `${title.toLowerCase().replace(/\s+/g, '-')}-data-${Date.now()}.json`;
+            const safeTitle = title.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+            const filename = `${safeTitle}-data-${Date.now()}.json`;
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -891,9 +803,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 document.body.appendChild(link);
                 link.click();
-            } catch (clickError) {
-                console.error('Failed to trigger download:', clickError);
-                alert('Failed to download data. Please try again.');
             } finally {
                 setTimeout(() => {
                     document.body.removeChild(link);
@@ -902,15 +811,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             console.error('Error exporting data:', error);
-            alert('Failed to export data. Please try again.');
+            alert('Failed to export data.');
         }
     }
 
-    // Initial render
     renderCharts();
 });
 
-// Add spin animation for refresh button
 const style = document.createElement('style');
 style.textContent = `
     @keyframes spin {

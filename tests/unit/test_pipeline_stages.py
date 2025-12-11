@@ -567,4 +567,4 @@ async def test_processing_consumer_country_filter(mock_dependencies):
                 leniency=False,
             )
 
-    assert len(final_proxies) == 0  # Filtered by country
+    assert len(final_proxies) == 0  # Filtered by latency

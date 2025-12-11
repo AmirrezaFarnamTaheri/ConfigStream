@@ -2,6 +2,7 @@
  * Cache Manager for ConfigStream
  * Manages cache expiry, stale-while-revalidate, and data freshness
  * Uses IndexedDB for robust client-side storage of large datasets.
+ * Includes Compression (via pako or CompressionStream) support.
  */
 
 // Step 1: Verify that cache configuration is available
@@ -12,6 +13,61 @@ if (!globalThis.ConfigStreamCache) {
 
 // Step 2: Get configuration from the shared namespace
 const managerConfig = globalThis.ConfigStreamCache;
+
+// --- Compression Helper ---
+const Compression = {
+    // Check if CompressionStream API is available (modern browsers)
+    hasNative: typeof CompressionStream !== 'undefined',
+    // Check if pako is loaded (fallback)
+    hasPako: typeof pako !== 'undefined',
+
+    async compress(data) {
+        const jsonStr = JSON.stringify(data);
+        const encoder = new TextEncoder();
+        const input = encoder.encode(jsonStr);
+
+        if (this.hasNative) {
+            const stream = new ReadableStream({
+                start(controller) {
+                    controller.enqueue(input);
+                    controller.close();
+                }
+            }).pipeThrough(new CompressionStream('gzip'));
+            const response = new Response(stream);
+            const blob = await response.blob();
+            return await blob.arrayBuffer();
+        } else if (this.hasPako) {
+            return pako.gzip(input);
+        } else {
+            // Fallback: No compression, return original string (or object)
+            return data;
+        }
+    },
+
+    async decompress(compressedData) {
+        // If data is not ArrayBuffer/Uint8Array, assume it's uncompressed
+        if (!(compressedData instanceof ArrayBuffer) && !(compressedData instanceof Uint8Array)) {
+            return compressedData;
+        }
+
+        let outputStr;
+        if (this.hasNative) {
+            const stream = new ReadableStream({
+                start(controller) {
+                    controller.enqueue(compressedData);
+                    controller.close();
+                }
+            }).pipeThrough(new DecompressionStream('gzip'));
+            const response = new Response(stream);
+            outputStr = await response.text();
+        } else if (this.hasPako) {
+            outputStr = pako.ungzip(compressedData, { to: 'string' });
+        } else {
+            throw new Error('No decompression method available');
+        }
+        return JSON.parse(outputStr);
+    }
+};
 
 // Step 3: IndexedDB Helper Class
 class IDBHelper {
@@ -110,7 +166,8 @@ class CacheManager {
 
     try {
       if ('serviceWorker' in navigator) {
-        const swUrl = new URL('sw.js', document.baseURI).toString();
+        // [Audit Fix F1] Correctly point to service-worker.js
+        const swUrl = new URL('service-worker.js', document.baseURI).toString();
 
         // Audit: Check if service worker file exists before registering
         try {
@@ -166,6 +223,13 @@ class CacheManager {
 
       if (cachedData && !this.isExpired(cachedData, expiryMs)) {
         this.log.info(`Using cached data for ${url}`);
+
+        // Differential update check logic stub
+        if (options.differentialUpdate && cachedData.version) {
+             // Logic: Check HEAD or version file, if newer, fetch diff or fresh
+             // For now, we rely on stale-while-revalidate for simpler updates
+        }
+
         if (this.config.staleWhileRevalidate && this.isStale(cachedData, expiryMs)) {
           this.log.info(`Revalidating in background: ${url}`);
           this.fetchFresh(url).catch(err => this.log.warn(`Background revalidation failed: ${err.message}`));
@@ -203,7 +267,21 @@ class CacheManager {
     try {
       const cacheKey = this.getCacheKey(url);
       const cachedItem = await this.idb.get(cacheKey);
-      return cachedItem ? { data: cachedItem.data, timestamp: cachedItem.timestamp, expiry: cachedItem.expiry } : null;
+
+      if (!cachedItem) return null;
+
+      // Decompress if needed
+      let rawData = cachedItem.data;
+      if (cachedItem.compressed) {
+          try {
+              rawData = await Compression.decompress(cachedItem.data);
+          } catch(e) {
+              this.log.error(`Decompression failed for ${url}: ${e}`);
+              return null;
+          }
+      }
+
+      return { data: rawData, timestamp: cachedItem.timestamp, expiry: cachedItem.expiry, version: cachedItem.version };
     } catch (error) {
       this.log.error(`Failed to get cached data for ${url}: ${error.message}`);
       return null;
@@ -214,7 +292,31 @@ class CacheManager {
     if (!this.cacheAvailable) return false;
     try {
       const cacheKey = this.getCacheKey(url);
-      const cacheItem = { data, timestamp: Date.now(), expiry: this.getExpiryForUrl(url) };
+
+      // Compress
+      let storedData = data;
+      let isCompressed = false;
+      try {
+          // Only compress large objects (>10KB approx)
+          if (JSON.stringify(data).length > 10240) {
+              storedData = await Compression.compress(data);
+              isCompressed = true;
+          }
+      } catch(e) {
+          this.log.warn(`Compression skipped for ${url}: ${e}`);
+      }
+
+      // Store version from data if available (for differential updates)
+      const version = data.version || data.last_updated_utc || Date.now();
+
+      const cacheItem = {
+          data: storedData,
+          compressed: isCompressed,
+          timestamp: Date.now(),
+          expiry: this.getExpiryForUrl(url),
+          version: version
+      };
+
       await this.idb.set(cacheKey, cacheItem);
       return true;
     } catch (error) {
@@ -253,6 +355,22 @@ class CacheManager {
     return this._cacheAvailable;
   }
 
+  async clear() {
+      // Alias for clearCache
+      return this.clearCache();
+  }
+
+  async invalidate(url) {
+      if (!this.cacheAvailable) return;
+      const cacheKey = this.getCacheKey(url);
+      try {
+          await this.idb.set(cacheKey, null); // Or delete method if available
+          this.log.info(`Invalidated cache for ${url}`);
+      } catch(e) {
+          this.log.error(`Failed to invalidate ${url}`);
+      }
+  }
+
   async clearCache() {
     if (this.cacheAvailable) {
         await this.idb.clear();
@@ -272,4 +390,9 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => cacheManager.init());
 } else {
   cacheManager.init();
+}
+
+// Export for module usage if needed
+if (typeof window !== 'undefined') {
+    window.cacheManager = cacheManager;
 }
