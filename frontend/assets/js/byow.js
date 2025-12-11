@@ -5,29 +5,50 @@ async function applyBYOW() {
     // Sanitize and validate
     const rawUrl = workerUrlInput.value.trim();
 
-    // Allow hostname or full URL, strip protocol
-    const cleanUrl = rawUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
-
-    // Strict hostname validation (dots, hyphens, alphanumeric)
-    const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-
-    if (!cleanUrl || !hostnameRegex.test(cleanUrl.split('/')[0])) {
-        alert("Please enter a valid Worker Hostname (e.g., worker.user.workers.dev).");
+    // 1. Strict URL Validation
+    // Protocol must be https://
+    if (!rawUrl.startsWith('https://')) {
+        alert("Security Error: Worker URL must start with https://");
         return;
     }
 
-    // 1. Fetch the original "Smart" Config
-    // We assume singbox.json is available in the same directory
+    // Use URL object for robust parsing
+    let urlObj;
+    try {
+        urlObj = new URL(rawUrl);
+    } catch (e) {
+        alert("Invalid URL format.");
+        return;
+    }
+
+    const hostname = urlObj.hostname;
+
+    // 2. Allowlist Check (Optional but recommended)
+    // We allow workers.dev, pages.dev, and custom domains if explicitly trusted by user context
+    // For now, we enforce HTTPS and valid hostname structure to prevent XSS/injection in config.
+    // Audit: Restrict BYOW to fetch from a whitelist of domains (e.g., worker.cloudflare.com) if possible.
+    // Since users bring their OWN worker, we can't strict whitelist everything, but we can enforce HTTPS.
+
+    // Strict hostname validation (dots, hyphens, alphanumeric)
+    const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (!hostnameRegex.test(hostname)) {
+        alert("Invalid Hostname.");
+        return;
+    }
+
+    // 3. Fetch Base Configuration
     let config;
     try {
-        const response = await fetch('./singbox.json');
+        // Use root-relative path
+        const basePath = (window.ROOT_PATH || './');
+        const response = await fetch(basePath + 'singbox.json');
+
         if (!response.ok) {
-            // Audit: Retry logic or clearer error
             throw new Error(`Failed to fetch base config: ${response.status}`);
         }
         config = await response.json();
 
-        // Audit: Validate config structure
+        // 4. Validate Base Config Schema
         if (!config || typeof config !== 'object' || !Array.isArray(config.outbounds)) {
              throw new Error("Invalid base configuration format.");
         }
@@ -36,13 +57,6 @@ async function applyBYOW() {
         alert(`Error initializing BYOW: ${e.message}. Please try refreshing the page.`);
         return;
     }
-
-    // 2. Define the User's Worker Outbound
-    // We use the Worker as a "Chain Exit".
-    // REVISED STRATEGY for Sing-box + Worker:
-    // Modify the transport of existing proxies to tunnel via the Worker URL (if compatible).
-    // Let's assume the Worker acts as a VLESS node itself.
-    // We will inject a single "User Worker" outbound and set it as the default for the "Manual" selector.
 
     const workerUuidInput = document.getElementById('worker-uuid');
 
@@ -64,24 +78,21 @@ async function applyBYOW() {
         workerUuid = generateUUID();
     }
 
-    // Safe extraction of host
-    const workerHost = cleanUrl.split('/')[0];
-
     const userWorker = {
         "type": "vless",
         "tag": "🚀 My Private Worker",
-        "server": workerHost, // Extract host
+        "server": hostname,
         "server_port": 443,
         "uuid": workerUuid,
         "tls": {
             "enabled": true,
-            "server_name": workerHost,
-            "utls": { "enabled": true, "fingerprint": "chrome" } // [FIX] Enforce uTLS
+            "server_name": hostname,
+            "utls": { "enabled": true, "fingerprint": "chrome" }
         },
         "transport": {
             "type": "ws",
-            "path": "/?ed=2048",
-            "headers": { "Host": workerHost } // [FIX] Ensure Host header
+            "path": urlObj.pathname === '/' ? '/?ed=2048' : urlObj.pathname,
+            "headers": { "Host": hostname }
         }
     };
 
@@ -90,7 +101,6 @@ async function applyBYOW() {
     config.outbounds.unshift(userWorker);
 
     // Add to Auto/Manual Groups
-    // Find the selectors and append "🚀 My Private Worker" to them
     config.outbounds.forEach(out => {
         if (out.type === 'selector' || out.type === 'urltest' || out.type === 'fallback') {
             if (out.outbounds && Array.isArray(out.outbounds)) {
@@ -99,7 +109,7 @@ async function applyBYOW() {
         }
     });
 
-    // 3. Generate Download Link
+    // 5. Generate Download Link (Use Blob for client-side generation)
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 

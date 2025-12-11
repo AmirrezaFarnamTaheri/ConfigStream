@@ -191,8 +191,36 @@ class ProxyWasher:
         # Create a deterministic index from the Relay ID + Epoch
         hash_input = f"{relay_id}-{current_epoch}".encode()
         hash_val = int(hashlib.sha256(hash_input).hexdigest(), 16)
-        index = hash_val % len(exit_pool)
-        return exit_pool[index]
+
+        # We should find a valid key. If the picked one is invalid, we might want to search linear or try another hash
+        # But for simplicity and determinism, we assume the list is mostly valid or filter it beforehand.
+        # But wait, audit says B3: Unvalidated WARP keys.
+        # We can implement a check here to ensure the returned key is valid.
+
+        pool_len = len(exit_pool)
+        start_index = hash_val % pool_len
+
+        for i in range(pool_len):
+            idx = (start_index + i) % pool_len
+            key = exit_pool[idx]
+            if key.get("private_key") and key.get("peer_public_key"):
+                return key
+
+        # If no valid keys found
+        return None
+
+    def _generate_deterministic_ip(self, seed: str) -> str:
+        """Generate a stable 172.16.x.x IP from seed string."""
+        h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
+        # Map to 172.16.0.2 - 172.16.250.252 (Avoid .0, .1, .255)
+        # We want unique IPs, so we use a large range.
+        # The audit suggests 172.16.x.y.
+        # octet_3: 0-249 (to be safe? usually 0-255 is fine but 172.16-31 is private range)
+        # 172.16.0.0/12.
+        # Let's stick to the audit suggestion: octet_3 = (h // 250) % 250, octet_4 = (h % 250) + 2
+        octet_3 = (h // 250) % 250
+        octet_4 = (h % 250) + 2
+        return f"172.16.{octet_3}.{octet_4}/32"
 
     def get_warp_config(self, seed_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -222,14 +250,16 @@ class ProxyWasher:
             "server": endpoint,
             "server_port": port,
             "local_address": [
-                f"172.16.{hash(seed_id) % 250}.2/32"
-            ],  # Simplified unique IP generation
+                self._generate_deterministic_ip(seed_id)
+            ],  # Use deterministic unique IP generation
             "private_key": identity["private_key"],
             "peer_public_key": identity["peer_public_key"],
             "mtu": 1280,  # Important for chains to avoid fragmentation
         }
 
-    def wash_batch(self, proxies: List[Proxy]) -> Tuple[List[Dict[str, Any]], Set[str]]:
+    def wash_batch(
+        self, proxies: List[Proxy]
+    ) -> Tuple[List[Dict[str, Any]], Set[str], Dict[str, int]]:
         """
         Process a batch of proxies, identifying 'washable' candidates
         and generating unique chains.
@@ -237,21 +267,23 @@ class ProxyWasher:
         Returns:
             - List of Sing-box outbound objects (Relay + Exit)
             - Set of Proxy IDs that were successfully washed
+            - Dictionary of skip reasons
         """
         washed_outbounds: List[Dict[str, Any]] = []
         washed_ids: Set[str] = set()
+        skip_reasons: Dict[str, int] = {}
 
         # Early exit with clear logging
         if not self.warp_keys:
             logger.info("Washing skipped: WARP_KEY_POOL not configured")
-            return washed_outbounds, washed_ids
+            return washed_outbounds, washed_ids, skip_reasons
 
         working_count = sum(1 for p in proxies if p.is_working)
         if working_count == 0:
             logger.warning(
                 "Washing skipped: No working proxies available (upstream testing failed)"
             )
-            return washed_outbounds, washed_ids
+            return washed_outbounds, washed_ids, skip_reasons
 
         # 1. Identify Candidates
         candidates = [p for p in proxies if p.is_working and self.warp_keys]
@@ -262,14 +294,12 @@ class ProxyWasher:
         if len(candidates) > 0:
             logger.info(f"Washer: Attempting to revive {len(candidates)} proxies...")
 
-        skip_reasons: Dict[str, int] = {}
-
         # --- NEW: Use Geodesic Optimization Target ---
         # Assume US target for checking optimal routing (as per audit snippet)
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
 
-        # Initialize a counter for IP generation to avoid collisions
-        ip_counter = 1
+        # FIX: Allow origin configuration or default to generic, remove local counter
+        origin_country = os.environ.get("OPTIMAL_RELAY_ORIGIN", "IR")
 
         for i, relay in enumerate(candidates):
             # 2. Select the "Soap" (Exit Node)
@@ -296,16 +326,16 @@ class ProxyWasher:
 
             # Thread-safe check-then-act for deduplication
             with self._seen_chains_lock:
+                # [Audit Fix B4] Pruning happens inside the lock to ensure concurrency safety
+                if len(self.seen_chains) > self.max_seen_chains:
+                    self.seen_chains.clear()
+                    logger.warning("Flushed seen_chains cache (limit exceeded)")
+
                 if chain_id in self.seen_chains:
                     skip_reasons["duplicate_chain"] = (
                         skip_reasons.get("duplicate_chain", 0) + 1
                     )
                     continue  # Skip duplicates
-
-                # Prune if too large
-                if len(self.seen_chains) > self.max_seen_chains:
-                    self.seen_chains.clear()
-                    logger.warning("Flushed seen_chains cache (limit exceeded)")
 
                 self.seen_chains.add(chain_id)
 
@@ -349,13 +379,8 @@ class ProxyWasher:
                 )
                 continue
 
-            # [FIX] Generate Unique Local IP using sequential counter
-            # range 172.16.x.x -> 65535 IPs max
-            # octet_3: 0-249, octet_4: 2-251 (avoid .0, .1, .255)
-            octet_3 = (ip_counter // 250) % 250
-            octet_4 = (ip_counter % 250) + 2
-            unique_ip = f"172.16.{octet_3}.{octet_4}/32"
-            ip_counter += 1
+            # [FIX] Generate Unique Local IP using deterministic logic
+            unique_ip = self._generate_deterministic_ip(chain_id)
 
             # --- NEW: Geodesic Optimization Tagging ---
             is_optimal = False
@@ -364,8 +389,8 @@ class ProxyWasher:
                     relay_stub = ProxyStub(relay.country, 0.0, 0.0, relay.protocol)
                     relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country]
 
-                    # Check optimization for "IR" origin (example high censorship) to US
-                    res = find_optimal_relay("IR", target_exit, [relay_stub])
+                    # FIX: Use configured origin instead of hardcoded "IR"
+                    res = find_optimal_relay(origin_country, target_exit, [relay_stub])
                     if isinstance(res, dict) and "relay" in res:
                         # If the penalty wasn't high enough to exclude it (it returns best of list, so we check distance)
                         # Heuristic: < 15000km is decent for IR -> US via EU
@@ -435,4 +460,4 @@ class ProxyWasher:
                 f"Washing conversion failures details: {json.dumps(skip_reasons)}"
             )
 
-        return washed_outbounds, washed_ids
+        return washed_outbounds, washed_ids, skip_reasons

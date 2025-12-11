@@ -32,7 +32,7 @@ def generate_outputs(
     total_processed: int,
     root_dir: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
-    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
 ):
@@ -118,7 +118,8 @@ def generate_outputs(
         extra_outbounds.extend(washed_outbounds)
     if smart_chains:
         for chain_list in smart_chains.values():
-            extra_outbounds.extend(chain_list)
+            for chain in chain_list:
+                extra_outbounds.extend(chain)
 
     singbox_content = generate_singbox_config(
         ranked_proxies, extra_outbounds=extra_outbounds
@@ -208,7 +209,7 @@ def _generate_statistics(
     proxies_by_protocol: Dict,
     chosen_by_protocol: Dict,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
-    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
 ):
@@ -331,9 +332,11 @@ def _generate_statistics(
         logger.warning(f"Failed to generate globe points: {e}")
 
     stats = {
-        "total_fetched": total_processed,
-        "total_tested": len(ranked),
-        "total_working": working_proxies,
+        # Canonical Keys
+        "total_lines_sourced": total_processed,
+        "total_unique_candidates": len(ranked),
+        "total_valid_proxies": working_proxies,
+        # Additional Metrics
         "total_clean": working_proxies,  # Proxies that work natively
         "total_dirty": total_processed - working_proxies,  # Proxies that failed/blocked
         "total_washed": total_washed,  # Candidates for washing (attempted)
@@ -449,27 +452,20 @@ def _generate_statistics(
 
 
 def _copy_pages(root_dir: Path, output_dir: Path):
+    """
+    Copies documentation and ensures HTML pages are in the root.
+    Removes subdirectory index.html logic to simplify path resolution.
+    """
     wiki_src = root_dir / "docs" / "wiki"
     wiki_dest = output_dir / "wiki"
 
+    # Copy markdown files to wiki/ folder so they can be fetched
     if wiki_src.exists():
         wiki_dest.mkdir(exist_ok=True)
         for md_file in wiki_src.glob("*.md"):
             (wiki_dest / md_file.name).write_text(md_file.read_text())
 
-        if (root_dir / "frontend/wiki.html").exists():
-            (wiki_dest / "index.html").write_text(
-                (root_dir / "frontend/wiki.html").read_text()
-            )
-
-    about_dest = output_dir / "about"
-    about_dest.mkdir(exist_ok=True)
-    if (root_dir / "frontend/about.html").exists():
-        (about_dest / "index.html").write_text(
-            (root_dir / "frontend/about.html").read_text()
-        )
-
-    for filename in ["about.html", "wiki.html"]:
-        p = output_dir / filename
-        if p.exists():
-            p.unlink()
+    # Note: frontend/ files (including about.html, wiki.html) are already
+    # copied to output_dir root by _generate_stego -> shutil.copytree.
+    # We do NOT move them to subdirectories or delete them from root.
+    # This ensures window.ROOT_PATH = './' works everywhere.

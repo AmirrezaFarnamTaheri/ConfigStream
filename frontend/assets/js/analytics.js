@@ -15,6 +15,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+// F6 Fix: Centralized Color Logic
+function generateColor(label, index) {
+    // Consistent hashing color generation
+    let hash = 0;
+    const str = label.toString();
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    return `hsl(${hue}, 70%, 60%)`;
+}
+
 function updateStats(data) {
     const update = (id, val) => {
         const el = document.getElementById(id);
@@ -27,9 +39,7 @@ function updateStats(data) {
     // Helper function to format numbers with locale support
     const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
 
-    // Use canonical fields with legacy fallbacks (Consolidated v2.0.4+)
-    // PipelineStats canonical: total_lines_sourced, total_unique_candidates, total_valid_proxies
-
+    // Use canonical fields with legacy fallbacks
     const totalSourced = data.total_lines_sourced || data.fetched_lines || data.fetched_sources || data.total_fetched || data.total_sourced || 0;
     update('totalSourced', formatNum(totalSourced));
 
@@ -314,7 +324,6 @@ function initGlobe(data) {
     const pointsData = [];
 
     if (data.proxy_locations && data.proxy_locations.length > 0) {
-        // Use exact proxy locations if available in metadata
         data.proxy_locations.forEach(p => {
             const lat = p.lat;
             const lng = p.lng;
@@ -353,6 +362,7 @@ function initGlobe(data) {
                 lat: info.lat,
                 lng: info.lng,
                 size: Math.sqrt(count) / 5,
+                // F6 Fix: Use centralized or standard color logic if needed, but here getScoreColor is specific to heatmap
                 color: getScoreColor(count / maxCount),
                 name: `${info.name || cc}: ${count} proxies`
             });
@@ -369,10 +379,7 @@ function initGlobe(data) {
         });
     }
 
-    // Detect current theme for texture selection
     const isDarkMode = document.body.classList.contains('dark');
-
-    // Use different textures based on theme
     const globeTexture = isDarkMode
         ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
         : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
@@ -393,79 +400,68 @@ function initGlobe(data) {
       .arcDashAnimateTime(1500)
       .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
 
-    // Set background based on theme
     if (isDarkMode) {
         Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
     } else {
-        // For light mode, set scene background color directly
         const scene = Globe.scene();
         if (scene) {
-            scene.background = new THREE.Color(0xf0f4f8); // Light blue-gray background
+            scene.background = new THREE.Color(0xf0f4f8);
         }
     }
 
-    // Configure controls for better interactivity
     const controls = Globe.controls();
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.35; // Slower, more elegant rotation
-    controls.enableZoom = false; // Disable zoom by default to prevent scroll conflicts
-    controls.minDistance = 180; // Minimum zoom distance
-    controls.maxDistance = 500; // Maximum zoom distance
-    controls.enableDamping = true; // Smooth camera movements
+    controls.autoRotateSpeed = 0.35;
+    controls.enableZoom = false; // Default: No Zoom
+    controls.minDistance = 180;
+    controls.maxDistance = 500;
+    controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    // Auto-rotation cooldown logic
     let rotationCooldownTimer = null;
-    const COOLDOWN_DURATION = 2000; // Resume rotation after 2 seconds of inactivity
-    let zoomActive = false;
+    const COOLDOWN_DURATION = 2000;
+    let interactionActive = false;
 
-    // Pause rotation and enable zoom on user interaction, resume/disable after cooldown
+    // Handler for interaction
     const handleInteraction = () => {
-        // Pause rotation
+        // Stop auto rotation immediately
         controls.autoRotate = false;
 
-        // Enable zoom
-        if (!zoomActive) {
-            zoomActive = true;
-            controls.enableZoom = true;
+        // Enable zoom if not already enabled (cooldown active logic)
+        if (!interactionActive) {
+            interactionActive = true;
+            controls.enableZoom = true; // Enable zoom when interacting
             container.classList.add('zoom-active');
             container.classList.remove('zoom-inactive');
         }
 
-        // Clear existing timer
+        // Reset cooldown timer
         if (rotationCooldownTimer) {
             clearTimeout(rotationCooldownTimer);
         }
 
-        // Set new cooldown timer to resume rotation and disable zoom
+        // Set timer to resume auto-rotation and disable zoom after 2s of inactivity
         rotationCooldownTimer = setTimeout(() => {
-            controls.autoRotate = true;
-            zoomActive = false;
-            controls.enableZoom = false;
+            controls.autoRotate = true; // Auto spin on
+            interactionActive = false;
+            controls.enableZoom = false; // Zoom off
             container.classList.remove('zoom-active');
             container.classList.add('zoom-inactive');
         }, COOLDOWN_DURATION);
     };
 
-    // Attach interaction listeners
     container.addEventListener('mousedown', handleInteraction);
     container.addEventListener('touchstart', handleInteraction);
     container.addEventListener('wheel', handleInteraction);
 
-    // Set initial state
     container.classList.add('zoom-inactive');
-
-    // Center globe on initial load with better positioning
-    // Point of View: Centered on prime meridian, slight tilt
     Globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
 
-    // Handle window resize
     window.addEventListener('resize', () => {
         Globe.width(container.clientWidth);
         Globe.height(container.clientHeight);
     });
 
-    // Listen for theme changes and update globe textures
     window.addEventListener('themechanged', (e) => {
         const newIsDark = e.detail.theme === 'dark';
         const newGlobeTexture = newIsDark
@@ -474,21 +470,17 @@ function initGlobe(data) {
 
         Globe.globeImageUrl(newGlobeTexture);
 
-        // Update background based on theme
         if (newIsDark) {
             Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
         } else {
-            // For light mode, set scene background color
             const scene = Globe.scene();
             if (scene) {
                 scene.background = new THREE.Color(0xf0f4f8);
             }
-            // Remove background image for light mode
             Globe.backgroundImageUrl(null);
         }
     });
 
-    // Store globe instance globally for debugging/external control
     window.globeInstance = Globe;
 }
 
@@ -496,18 +488,19 @@ function initCharts(data) {
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = '#1e293b';
 
-    // 1. Protocol Distribution (Doughnut)
+    // 1. Protocol Distribution
     const protoCtx = document.getElementById('protocolChart').getContext('2d');
+    const protoLabels = Object.keys(data.protocols || {});
+    // F6 Fix: Use centralized color logic
+    const protoColors = protoLabels.map((p, i) => generateColor(p, i));
+
     new Chart(protoCtx, {
         type: 'doughnut',
         data: {
-            labels: Object.keys(data.protocols || {}),
+            labels: protoLabels,
             datasets: [{
                 data: Object.values(data.protocols || {}),
-                backgroundColor: [
-                    '#FF6B6B', '#4ECDC4', '#96CEB4', '#45B7D1',
-                    '#FFEAA7', '#DFE6E9', '#A29BFE', '#74B9FF'
-                ],
+                backgroundColor: protoColors,
                 borderWidth: 0
             }]
         },
@@ -518,7 +511,7 @@ function initCharts(data) {
         }
     });
 
-    // 2. Latency Distribution (Bar)
+    // 2. Latency Distribution
     const latencyCtx = document.getElementById('latencyChart').getContext('2d');
     const latData = data.latency_distribution || {};
     new Chart(latencyCtx, {
@@ -539,21 +532,21 @@ function initCharts(data) {
         }
     });
 
-    // 3. Rejection Reasons (Pie)
+    // 3. Rejection Reasons
     const rejEl = document.getElementById('rejectionChart');
     if (rejEl && data.rejection_reasons) {
         const rejCtx = rejEl.getContext('2d');
         const sortedRej = Object.entries(data.rejection_reasons).sort((a,b) => b[1]-a[1]).slice(0, 8);
+        // F6: Use colors?
+        const rejColors = sortedRej.map((r, i) => generateColor(r[0], i));
+
         new Chart(rejCtx, {
             type: 'pie',
             data: {
                 labels: sortedRej.map(x => x[0]),
                 datasets: [{
                     data: sortedRej.map(x => x[1]),
-                    backgroundColor: [
-                        '#e74c3c', '#e67e22', '#f1c40f', '#9b59b6',
-                        '#34495e', '#95a5a6', '#7f8c8d', '#bdc3c7'
-                    ],
+                    backgroundColor: rejColors,
                     borderWidth: 0
                 }]
             },
@@ -565,36 +558,18 @@ function initCharts(data) {
         });
     }
 
-    // 4. Threat Breakdown - Actual Security Threats Only (Doughnut)
+    // 4. Threat Breakdown
     const threatEl = document.getElementById('threatChart');
     if (threatEl) {
         const threatCtx = threatEl.getContext('2d');
-
-        // Extract ALL threat categories from rejection_reasons
-        // These map to backend SECURITY_CATEGORIES
         const threats = {
-            // Critical Security Threats
-            blockedIPs: 0,        // address_blocked (FireHol blocklist - dirty IPs)
-            honeypots: 0,         // honeypot_suspected
-            suspiciousNodes: 0,   // address_suspicious
-            privateIPs: 0,        // address_private_ip
-
-            // Configuration Issues
-            dangerousPorts: 0,    // port_security
-            invalidProtocols: 0,  // protocol_invalid
-            malformedConfigs: 0,  // suspicious_config_malformed (null bytes)
-            oversizedConfigs: 0,  // suspicious_config_format (too long)
-            invalidUUIDs: 0,      // config_uuid_invalid
-
-            // Filtering (not threats but rejections)
-            duplicates: 0,        // duplicate
-            invalidConfigs: 0,    // invalid (parsing failures)
+            blockedIPs: 0, honeypots: 0, suspiciousNodes: 0, privateIPs: 0,
+            dangerousPorts: 0, invalidProtocols: 0, malformedConfigs: 0,
+            oversizedConfigs: 0, invalidUUIDs: 0, duplicates: 0, invalidConfigs: 0,
         };
 
         if (data.rejection_reasons) {
             const reasons = data.rejection_reasons;
-
-            // Map backend category names to threat types
             threats.blockedIPs = reasons.address_blocked || reasons.dirty_ip || 0;
             threats.honeypots = reasons.honeypot_suspected || reasons.honeypot || 0;
             threats.suspiciousNodes = reasons.address_suspicious || 0;
@@ -608,80 +583,23 @@ function initCharts(data) {
             threats.invalidConfigs = reasons.invalid || reasons.parse_error || 0;
         }
 
-        // Build dynamic dataset - only show categories with data
         const dataset = [];
         const labels = [];
         const colors = [];
 
-        // Critical Threats (Red shades)
-        if (threats.blockedIPs > 0) {
-            dataset.push(threats.blockedIPs);
-            labels.push('Blocked IPs (FireHol)');
-            colors.push('#e74c3c');
-        }
-        if (threats.honeypots > 0) {
-            dataset.push(threats.honeypots);
-            labels.push('Honeypot Traps');
-            colors.push('#c0392b');
-        }
-        if (threats.suspiciousNodes > 0) {
-            dataset.push(threats.suspiciousNodes);
-            labels.push('Suspicious Domains');
-            colors.push('#e67e22');
-        }
+        if (threats.blockedIPs > 0) { dataset.push(threats.blockedIPs); labels.push('Blocked IPs'); colors.push('#e74c3c'); }
+        if (threats.honeypots > 0) { dataset.push(threats.honeypots); labels.push('Honeypots'); colors.push('#c0392b'); }
+        if (threats.suspiciousNodes > 0) { dataset.push(threats.suspiciousNodes); labels.push('Suspicious'); colors.push('#e67e22'); }
+        if (threats.privateIPs > 0) { dataset.push(threats.privateIPs); labels.push('Private IPs'); colors.push('#f39c12'); }
+        if (threats.dangerousPorts > 0) { dataset.push(threats.dangerousPorts); labels.push('Bad Ports'); colors.push('#d35400'); }
+        if (threats.malformedConfigs > 0) { dataset.push(threats.malformedConfigs); labels.push('Malformed'); colors.push('#8e44ad'); }
+        if (threats.invalidProtocols > 0) { dataset.push(threats.invalidProtocols); labels.push('Invalid Proto'); colors.push('#9b59b6'); }
+        if (threats.invalidUUIDs > 0) { dataset.push(threats.invalidUUIDs); labels.push('Invalid UUID'); colors.push('#a569bd'); }
+        if (threats.oversizedConfigs > 0) { dataset.push(threats.oversizedConfigs); labels.push('Oversized'); colors.push('#bb8fce'); }
+        if (threats.duplicates > 0) { dataset.push(threats.duplicates); labels.push('Duplicates'); colors.push('#95a5a6'); }
+        if (threats.invalidConfigs > 0) { dataset.push(threats.invalidConfigs); labels.push('Parse Fail'); colors.push('#7f8c8d'); }
 
-        // Security Issues (Orange/Purple shades)
-        if (threats.privateIPs > 0) {
-            dataset.push(threats.privateIPs);
-            labels.push('Private/Loopback IPs');
-            colors.push('#f39c12');
-        }
-        if (threats.dangerousPorts > 0) {
-            dataset.push(threats.dangerousPorts);
-            labels.push('Dangerous Ports');
-            colors.push('#d35400');
-        }
-
-        // Config Issues (Purple shades)
-        if (threats.malformedConfigs > 0) {
-            dataset.push(threats.malformedConfigs);
-            labels.push('Malformed Configs');
-            colors.push('#8e44ad');
-        }
-        if (threats.invalidProtocols > 0) {
-            dataset.push(threats.invalidProtocols);
-            labels.push('Invalid Protocols');
-            colors.push('#9b59b6');
-        }
-        if (threats.invalidUUIDs > 0) {
-            dataset.push(threats.invalidUUIDs);
-            labels.push('Invalid UUIDs');
-            colors.push('#a569bd');
-        }
-        if (threats.oversizedConfigs > 0) {
-            dataset.push(threats.oversizedConfigs);
-            labels.push('Oversized Configs');
-            colors.push('#bb8fce');
-        }
-
-        // Non-Threats (Gray shades) - just filtering
-        if (threats.duplicates > 0) {
-            dataset.push(threats.duplicates);
-            labels.push('Duplicates');
-            colors.push('#95a5a6');
-        }
-        if (threats.invalidConfigs > 0) {
-            dataset.push(threats.invalidConfigs);
-            labels.push('Parse Failures');
-            colors.push('#7f8c8d');
-        }
-
-        // Fallback if no data
-        if (dataset.length === 0) {
-            dataset.push(1);
-            labels.push('No Threats Detected');
-            colors.push('#2ecc71');
-        }
+        if (dataset.length === 0) { dataset.push(1); labels.push('No Threats'); colors.push('#2ecc71'); }
 
         new Chart(threatCtx, {
             type: 'doughnut',
@@ -698,13 +616,13 @@ function initCharts(data) {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { position: 'right' },
-                    title: { display: true, text: 'Security Threats & Rejections' }
+                    title: { display: true, text: 'Threats & Rejections' }
                 }
             }
         });
     }
 
-    // 5. Top ASNs (Bar)
+    // 5. Top ASNs
     const asnEl = document.getElementById('asnChart');
     if (asnEl && data.asns) {
         const asnCtx = asnEl.getContext('2d');
@@ -728,7 +646,7 @@ function initCharts(data) {
         });
     }
 
-    // 6. Top Countries (Horizontal Bar)
+    // 6. Top Countries
     const countryCtx = document.getElementById('countryChart').getContext('2d');
     const sortedCountries = Object.entries(data.country_stats || {})
         .sort((a, b) => b[1] - a[1])
@@ -752,12 +670,12 @@ function initCharts(data) {
         }
     });
 
-    // 7. Latency by Country (Top 10 countries with avg latency)
+    // 7. Latency by Country
     const latencyByCountryEl = document.getElementById('latencyByCountryChart');
     if (latencyByCountryEl && data.latency_by_country) {
         const latencyByCountryCtx = latencyByCountryEl.getContext('2d');
         const sortedLatencyCountries = Object.entries(data.latency_by_country)
-            .sort((a, b) => a[1] - b[1]) // Sort by latency (lowest first)
+            .sort((a, b) => a[1] - b[1])
             .slice(0, 15);
 
         new Chart(latencyByCountryCtx, {
@@ -768,9 +686,9 @@ function initCharts(data) {
                     label: 'Avg Latency (ms)',
                     data: sortedLatencyCountries.map(x => x[1]),
                     backgroundColor: sortedLatencyCountries.map(x =>
-                        x[1] < 100 ? '#2ecc71' :  // Green for fast
-                        x[1] < 200 ? '#f39c12' :  // Orange for medium
-                        '#e74c3c'                  // Red for slow
+                        x[1] < 100 ? '#2ecc71' :
+                        x[1] < 200 ? '#f39c12' :
+                        '#e74c3c'
                     ),
                     borderRadius: 4
                 }]
@@ -779,14 +697,9 @@ function initCharts(data) {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Latency (ms)' }
-                    }
+                    y: { beginAtZero: true, title: { display: true, text: 'Latency (ms)' } }
                 },
-                plugins: {
-                    legend: { display: false }
-                }
+                plugins: { legend: { display: false } }
             }
         });
     }
@@ -813,14 +726,9 @@ function initCharts(data) {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Latency (ms)' }
-                    }
+                    y: { beginAtZero: true, title: { display: true, text: 'Latency (ms)' } }
                 },
-                plugins: {
-                    legend: { display: false }
-                }
+                plugins: { legend: { display: false } }
             }
         });
     }

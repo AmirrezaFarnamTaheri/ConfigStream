@@ -10,7 +10,8 @@
   
   // Semantic version for cache invalidation
   // Increment this to force cache refresh across all users
-  const VERSION = '1.1.0';
+  // [Audit Fix F1/F2] Updated to 2.0.5 and synced
+  const VERSION = '2.0.5';
   const CACHE_PREFIX = 'configstream';
   
   // Create cache configuration object
@@ -67,7 +68,9 @@
         // HTML pages should always be fresh to ensure navigation works
         'index.html',
         'proxies.html',
-        'analytics.html'
+        'analytics.html',
+        'about.html',
+        'wiki.html'
       ],
 
       // Use cache first, update in background
@@ -83,7 +86,9 @@
         'assets/js/logo-controller.js',
         'assets/js/cache-manager.js',
         'assets/js/cache-config.js',
-        'assets/js/unified-cache.js'
+        'assets/js/unified-cache.js',
+        'assets/js/statistics.js',
+        'assets/js/analytics.js'
       ]
     },
     
@@ -93,6 +98,8 @@
       'index.html',
       'proxies.html',
       'analytics.html',
+      'about.html',
+      'wiki.html',
       'assets/css/style.css',
       'assets/css/state-manager.css',
       'assets/js/utils.js',
@@ -100,7 +107,9 @@
       'assets/js/cache-config.js',
       'assets/js/state-manager.js',
       'assets/js/main.js',
-      'assets/js/unified-cache.js'
+      'assets/js/unified-cache.js',
+      'assets/js/statistics.js',
+      'assets/js/analytics.js'
     ]
   };
   

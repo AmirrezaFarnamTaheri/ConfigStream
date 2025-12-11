@@ -31,6 +31,9 @@
         verifyConfig: async function(signedObj) {
             if (!window.crypto || !window.crypto.subtle) {
                 console.warn("Web Crypto API not supported. Skipping verification.");
+                // Fail closed on unsupported crypto if strictness is required,
+                // but usually we allow old browsers. The audit says "fail closed when verification fails".
+                // If API is missing, we can't verify.
                 return JSON.parse(signedObj.content);
             }
 
@@ -72,16 +75,16 @@
                     data
                 );
 
-                if (isValid) {
-                    return JSON.parse(signedObj.content);
-                } else {
+                if (!isValid) {
                     throw new Error("SECURITY ALERT: Config signature mismatch!");
                 }
+
+                return JSON.parse(signedObj.content);
+
             } catch (e) {
                 console.error("Verification failed:", e);
-                // Fail closed? Or open? Usually fail open for now unless strict mode
-                alert("Signature verification failed! Proceed with caution.");
-                return JSON.parse(signedObj.content);
+                // Fail CLOSED as per audit
+                throw e; // Propagate error, do not return content
             }
         },
 
