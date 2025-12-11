@@ -21,18 +21,14 @@ def event_loop():
     Custom event loop fixture for pytest-asyncio.
     Ensures nest_asyncio is applied to the loop.
     """
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-
+    loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     nest_asyncio.apply(loop)
 
     yield loop
 
-    # Do not close loop if it's the main thread loop?
-    # Actually, proper cleanup is good.
+    # Cleanup is handled by pytest-asyncio or here.
+    # To be safe and avoid "Cannot close running loop", we ensure it's closed if not running.
     try:
         if not loop.is_closed() and not loop.is_running():
             loop.close()
