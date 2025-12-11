@@ -1,21 +1,23 @@
 /**
  * Network and Caching utilities
+ * Integrates with CacheManager if available, otherwise falls back to LocalStorage
  */
 
-// Use centralized cache configuration from cache-config.js if available
-const CACHE_CONFIG = window.ConfigStreamCache?.CACHE_CONFIG || {
-  metadataExpiry: 2 * 60 * 1000,
-  proxiesExpiry: 10 * 60 * 1000,
-  statsExpiry: 5 * 60 * 1000,
-};
-
+// Centralized prefix
 const CACHE_PREFIX = 'configstream_cache_';
 
 function getCacheBust() {
   return `?cb=${Date.now()}`;
 }
 
-function getFromStorage(key) {
+async function getFromStorage(key) {
+  // Use CacheManager (IndexedDB) if available for better performance
+  if (window.cacheManager && window.cacheManager.cacheAvailable) {
+      const url = getUrlForKey(key);
+      const cached = await window.cacheManager.getCachedData(url);
+      return cached ? cached.data : null;
+  }
+  // Fallback to LocalStorage
   try {
     const item = localStorage.getItem(CACHE_PREFIX + key);
     if (!item) return null;
@@ -32,7 +34,15 @@ function getFromStorage(key) {
   }
 }
 
-function saveToStorage(key, data, expiryDuration) {
+async function saveToStorage(key, data, expiryDuration) {
+  // Use CacheManager if available
+  if (window.cacheManager && window.cacheManager.cacheAvailable) {
+      const url = getUrlForKey(key);
+      // CacheManager handles expiry internally via its own config
+      await window.cacheManager.cacheData(url, data);
+      return;
+  }
+  // Fallback
   try {
     const payload = {
       data: data,
@@ -44,7 +54,18 @@ function saveToStorage(key, data, expiryDuration) {
   }
 }
 
+function getUrlForKey(key) {
+    const root = window.ROOT_PATH || '';
+    if (key === 'metadata') return root + 'metadata.json';
+    if (key === 'proxies') return root + 'proxies.json';
+    if (key === 'statistics') return root + 'statistics.json';
+    return key;
+}
+
 function clearCache() {
+  if (window.cacheManager && window.cacheManager.clearCache) {
+      window.cacheManager.clearCache();
+  }
   Object.keys(localStorage).forEach(key => {
     if (key.startsWith(CACHE_PREFIX)) {
       localStorage.removeItem(key);
@@ -74,28 +95,31 @@ async function fetchWithRetry(url, retries = 3, delay = 1000) {
 }
 
 async function fetchMetadata() {
-  const cached = getFromStorage('metadata');
+  const cached = await getFromStorage('metadata');
   if (cached) return cached;
 
   try {
-    let url = `/api/stats${getCacheBust()}`;
+    const root = window.ROOT_PATH || '';
+    // Prefer static file first as this is a static site by default
+    // API fallback removed or secondary as per Zero Budget model
+    let url = `${root}metadata.json${getCacheBust()}`;
+
     try {
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
-      saveToStorage('metadata', data, CACHE_CONFIG.metadataExpiry);
+      await saveToStorage('metadata', data, 120000);
       return data;
-    } catch (apiError) {
-      console.warn('API fetch failed, trying static fallback for metadata:', apiError);
-      const root = window.ROOT_PATH || '';
-      url = `${root}metadata.json${getCacheBust()}`;
+    } catch (staticError) {
+      // Try API if static fails (e.g. running locally with backend server)
+      url = `/api/stats${getCacheBust()}`;
       const response = await fetchWithRetry(url, 3, 1000);
       const data = await response.json();
-      saveToStorage('metadata', data, CACHE_CONFIG.metadataExpiry);
+      await saveToStorage('metadata', data, 120000); // Default expiry if fallback
       return data;
     }
   } catch (error) {
     console.error('❌ Failed to fetch metadata:', error);
-    // Return stale cache if available as last resort
+    // Return stale cache if available as last resort (LocalStorage fallback check)
     const stale = localStorage.getItem(CACHE_PREFIX + 'metadata');
     if (stale) return JSON.parse(stale).data;
     throw error;
@@ -133,12 +157,14 @@ async function fetchFallbackSnapshot() {
 }
 
 async function fetchProxies() {
-  const cached = getFromStorage('proxies');
+  const cached = await getFromStorage('proxies');
   if (cached) return cached;
 
   let enrichedProxies;
   try {
-    const url = `/api/proxies${getCacheBust()}`;
+    const root = window.ROOT_PATH || '';
+    // Prefer static file first (proxies.json)
+    const url = `${root}proxies.json${getCacheBust()}`;
     const response = await fetchWithRetry(url, 2, 500);
     const data = await response.json();
     if (!Array.isArray(data)) throw new Error('Invalid proxy data format: expected array');
@@ -148,23 +174,32 @@ async function fetchProxies() {
       enrichedProxies = await fetchFallbackSnapshot();
     }
   } catch (primaryError) {
-    console.error(`❌ Failed to fetch primary proxies.json: ${primaryError.message}. Attempting fallback.`);
+    // Try API fallback
     try {
-      enrichedProxies = await fetchFallbackSnapshot();
-    } catch (fallbackError) {
-      console.error('❌ Fallback snapshot also failed:', fallbackError);
-      // Return stale cache if available
-      const stale = localStorage.getItem(CACHE_PREFIX + 'proxies');
-      if (stale) return JSON.parse(stale).data;
-      throw primaryError;
+        const url = `/api/proxies${getCacheBust()}`;
+        const response = await fetchWithRetry(url, 2, 500);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error('Invalid proxy data format');
+        enrichedProxies = enrichProxyList(data);
+    } catch(apiError) {
+        console.error(`❌ Failed to fetch primary proxies.json: ${primaryError.message}. Attempting fallback.`);
+        try {
+          enrichedProxies = await fetchFallbackSnapshot();
+        } catch (fallbackError) {
+          console.error('❌ Fallback snapshot also failed:', fallbackError);
+          // Return stale cache if available
+          const stale = localStorage.getItem(CACHE_PREFIX + 'proxies');
+          if (stale) return JSON.parse(stale).data;
+          throw primaryError;
+        }
     }
   }
-  saveToStorage('proxies', enrichedProxies, CACHE_CONFIG.proxiesExpiry);
+  await saveToStorage('proxies', enrichedProxies, 600000);
   return enrichedProxies;
 }
 
 async function fetchStatistics() {
-  const cached = getFromStorage('statistics');
+  const cached = await getFromStorage('statistics');
   if (cached) return cached;
 
   try {
@@ -176,7 +211,7 @@ async function fetchStatistics() {
     try {
         const response = await fetchWithRetry(url, 3, 1000);
         const data = await response.json();
-        saveToStorage('statistics', data, CACHE_CONFIG.statsExpiry);
+        await saveToStorage('statistics', data, 300000);
         return data;
     } catch (error) {
         // Fallback to metadata if statistics.json is missing (graceful degradation)
@@ -186,7 +221,6 @@ async function fetchStatistics() {
     }
   } catch (error) {
     console.error('❌ Failed to fetch statistics:', error);
-    // Return stale cache if available
     const stale = localStorage.getItem(CACHE_PREFIX + 'statistics');
     if (stale) return JSON.parse(stale).data;
     throw error;

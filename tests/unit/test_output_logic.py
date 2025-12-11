@@ -1,7 +1,8 @@
 import json
 from configstream.models import Proxy
 from configstream.output_logic import generate_categorized_outputs
-from configstream.intelligence.washer import ProxyWasher, generate_smart_chains
+from configstream.intelligence.washer import ProxyWasher
+from configstream.intelligence.chaining import generate_smart_chains
 import pytest
 
 
@@ -42,9 +43,10 @@ def warp_keys():
     return '[{"id": "key1", "private_key": "priv1", "peer_public_key": "pub1"}]'
 
 
+# Remove asyncio marker, as generate_categorized_outputs and wash_batch are sync
 def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
     washer = ProxyWasher(warp_keys)
-    washed_outbounds, washed_ids = washer.wash_batch(sample_proxies)
+    washed_outbounds, washed_ids, _ = washer.wash_batch(sample_proxies)
     smart = generate_smart_chains(sample_proxies)
 
     files = generate_categorized_outputs(

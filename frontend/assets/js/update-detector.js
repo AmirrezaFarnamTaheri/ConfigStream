@@ -5,6 +5,7 @@
  * 1. Polling a lightweight update status endpoint every 4 minutes
  * 2. Comparing timestamps to detect actual data changes
  * 3. Triggering selective data fetches only when updates are detected
+ * 4. F4 Fix: Resetting cached timestamps when version changes
  *
  * This avoids relying on GitHub Action schedules and ensures
  * data is always fresh without unnecessary network requests.
@@ -18,8 +19,33 @@ class UpdateDetector {
         this.updateCallbacks = new Map();
         this.isPolling = false;
 
+        // F4 Fix: Reset timestamps if version mismatch
+        this.checkVersionAndReset();
+
         // Initialize from localStorage if available
         this.loadLastKnownTimestamps();
+    }
+
+    /**
+     * Check version and reset timestamps if necessary
+     */
+    checkVersionAndReset() {
+        try {
+            const currentVersion = window.ConfigStreamCache ? window.ConfigStreamCache.VERSION : 'unknown';
+            const storedVersion = localStorage.getItem('configstream_version');
+
+            if (storedVersion !== currentVersion) {
+                console.log(`[UpdateDetector] Version change detected (${storedVersion} -> ${currentVersion}). Resetting update timestamps.`);
+                localStorage.removeItem('configstream_last_timestamps');
+                localStorage.setItem('configstream_version', currentVersion);
+                // Also clear detailed cache if cacheManager is available
+                if (window.cacheManager) {
+                    window.cacheManager.clear().catch(e => console.warn('Failed to clear cache on version bump', e));
+                }
+            }
+        } catch (error) {
+            console.warn('[UpdateDetector] Failed to check version:', error);
+        }
     }
 
     /**
@@ -83,9 +109,10 @@ class UpdateDetector {
      */
     async checkForUpdates() {
         try {
+            const basePath = (window.ROOT_PATH || '') + 'metadata.json';
             // Fetch metadata.json but only parse the timestamp
             // This is lightweight as we only need the header/timestamp field
-            const response = await fetch('metadata.json', {
+            const response = await fetch(basePath, {
                 method: 'HEAD',
                 cache: 'no-cache'
             });
@@ -95,7 +122,7 @@ class UpdateDetector {
 
             if (!lastModified) {
                 // Fallback: fetch metadata.json and extract timestamp
-                const dataResponse = await fetch('metadata.json', {
+                const dataResponse = await fetch(basePath, {
                     cache: 'no-cache'
                 });
 
@@ -167,15 +194,16 @@ class UpdateDetector {
         const fetchPromises = resources.map(async (resource) => {
             try {
                 let url;
+                const basePath = window.ROOT_PATH || '';
                 switch (resource) {
                     case 'metadata':
-                        url = 'metadata.json';
+                        url = basePath + 'metadata.json';
                         break;
                     case 'proxies':
-                        url = 'proxies.json';
+                        url = basePath + 'proxies.json';
                         break;
                     case 'statistics':
-                        url = 'statistics.json';
+                        url = basePath + 'statistics.json';
                         break;
                     default:
                         return null;

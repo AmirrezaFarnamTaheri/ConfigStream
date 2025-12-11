@@ -1,33 +1,32 @@
-const CACHE_NAME = 'configstream-v2.0.5';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './proxies.html',
-  './analytics.html',
-  './about.html',
-  './wiki.html',
-  './assets/css/style.css',
-  './assets/css/loading.css',
-  './assets/css/error-handler.css',
-  './assets/css/state-manager.css',
-  './assets/js/main.js',
-  './assets/js/utils.js',
-  './assets/js/i18n.js',
-  './assets/js/cache-config.js',
-  './assets/js/cache-manager.js',
-  './assets/js/error-handler.js',
-  './assets/js/loading-controller.js',
-  './assets/js/state-manager.js',
-  './assets/svg/favicon.svg',
-  './assets/images/favicon.ico'
+// Service Worker for ConfigStream
+// Uses configuration from cache-config.js
+
+// Import shared configuration
+importScripts('assets/js/cache-config.js');
+
+// Access config from global scope (set by cache-config.js)
+const config = self.ConfigStreamCache || {};
+const VERSION = config.VERSION || '2.0.5';
+const CACHE_NAME = config.CACHE_NAME || `configstream-v${VERSION}`;
+const ASSETS_TO_CACHE = config.PRECACHE_URLS || [
+  'index.html',
+  'proxies.html',
+  'analytics.html',
+  'about.html',
+  'wiki.html',
+  'assets/css/style.css',
+  'assets/js/main.js',
+  'assets/js/utils.js'
 ];
+
+console.log(`[ServiceWorker] Initializing v${VERSION} (${CACHE_NAME})`);
 
 // Install Event: Cache Core Assets
 self.addEventListener('install', (event) => {
   self.skipWaiting(); // Force activation
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Pre-caching offline assets');
+      console.log(`[ServiceWorker] Pre-caching ${ASSETS_TO_CACHE.length} assets`);
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
@@ -39,7 +38,9 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
+          // Check if cache name starts with prefix but doesn't match current version
+          // Assuming prefix "configstream-v" from cache-config.js logic
+          if (cacheName.startsWith('configstream-v') && cacheName !== CACHE_NAME) {
             console.log('[ServiceWorker] Removing old cache:', cacheName);
             return caches.delete(cacheName);
           }
@@ -52,9 +53,17 @@ self.addEventListener('activate', (event) => {
 // Fetch Event: Network First for Data, Cache First for Assets
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+  const strategy = config.CACHE_STRATEGY || {};
 
-  // Strategy 1: Network First (for fresh data like proxies.json, metadata.json)
-  if (url.pathname.endsWith('.json') || url.pathname.includes('/api/')) {
+  // Helper to check strategy lists
+  const matchStrategy = (list) => {
+      if (!list) return false;
+      return list.some(pattern => url.pathname.endsWith(pattern) || url.href.includes(pattern));
+  };
+
+  // Strategy 1: Network First (Fresh Data)
+  // Check explicit list or default logic (JSON/API)
+  if (matchStrategy(strategy.networkFirst) || url.pathname.endsWith('.json') || url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
@@ -73,20 +82,32 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy 2: Cache First, Revalidate (for static assets)
+  // Strategy 2: Cache First, Revalidate (Static Assets)
+  // Default fallback for everything else
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
         if (cachedResponse) {
-            // Return cached but fetch new version in background
-            fetch(event.request).then(response => {
-                if(response && response.status === 200) {
-                     caches.open(CACHE_NAME).then(cache => cache.put(event.request, response));
-                }
-            }).catch(err => {}); // Eat errors for background fetch
+            // Return cached response immediately
+            // Background update (Stale-While-Revalidate)
+            if (config.CACHE_CONFIG && config.CACHE_CONFIG.staleWhileRevalidate) {
+                fetch(event.request).then(response => {
+                    if(response && response.status === 200) {
+                         caches.open(CACHE_NAME).then(cache => cache.put(event.request, response));
+                    }
+                }).catch(err => {}); // Eat errors for background fetch
+            }
             return cachedResponse;
         }
-        return fetch(event.request);
+        // Cache miss -> Network
+        return fetch(event.request).then(response => {
+             // Cache new static assets
+             if (response && response.status === 200) {
+                 const responseClone = response.clone();
+                 caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+             }
+             return response;
+        });
       })
   );
 });

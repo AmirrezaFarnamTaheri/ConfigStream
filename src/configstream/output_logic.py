@@ -12,7 +12,7 @@ from .output_generators import (
     generate_base64_subscription,
     generate_split_outputs,
 )
-from .intelligence.washer.chaining import generate_smart_chains
+from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ def generate_categorized_outputs(
     output_dir: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     washed_ids: Optional[set] = None,
-    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     washer: Optional[ProxyWasher] = None,  # Pass existing washer instance
 ) -> Dict[str, Path]:
     """

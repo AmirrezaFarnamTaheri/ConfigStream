@@ -16,7 +16,7 @@ def generate_split_outputs(
     output_dir: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     washed_ids: Optional[Set[str]] = None,
-    smart_chains: Optional[Dict[str, List[Dict[str, Any]]]] = None,
+    smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
 ) -> Dict[str, Path]:
     """
     Generates split outputs (Tank/Sniper strategies) and Clash.
@@ -144,7 +144,11 @@ def generate_split_outputs(
 
     if smart_chains:
         for chain_list in smart_chains.values():
-            tank_outbounds.extend(copy.deepcopy(chain_list))
+            # Flatten chain list if needed, but it seems chain_list is List[List[Dict]]?
+            # Actually, `generate_smart_chains` returns Dict[str, List[List[Dict]]].
+            # So chain_list is List[List[Dict]]. We need to flatten it or iterate.
+            for chain in chain_list:
+                tank_outbounds.extend(copy.deepcopy(chain))
 
     # Add Groups to Tank
     tank_washed_tags = [

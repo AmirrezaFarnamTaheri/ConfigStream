@@ -132,8 +132,12 @@ async def merge_batches_async(
                 f"Identified {total_washed_candidates} dirty proxies for washing."
             )
 
-            washed_outbounds, washed_ids = washer.wash_batch(dirty_proxies)
-            logger.info(f"Generated {len(washed_outbounds)//2} washed chains")
+            washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(
+                dirty_proxies
+            )
+            logger.info(
+                f"Generated {len(washed_outbounds)//2} washed chains. Skip reasons: {skip_reasons}"
+            )
 
             # --- Feature: Washer Retest ---
             # Retest the generated chains to ensure they actually work.
@@ -226,7 +230,7 @@ async def merge_batches_async(
         logger.error(f"Failed to export history: {e}")
 
     # --- Feature: Smart Chains ---
-    from configstream.intelligence.washer.chaining import generate_smart_chains
+    from configstream.intelligence.chaining import generate_smart_chains
 
     # Use washer if available, otherwise just generate unwashed chains
     washer_instance = ProxyWasher(warp_keys) if warp_keys else None
