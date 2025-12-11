@@ -34,7 +34,7 @@ def event_loop():
     # Do not close loop if it's the main thread loop?
     # Actually, proper cleanup is good.
     try:
-        if not loop.is_closed():
+        if not loop.is_closed() and not loop.is_running():
             loop.close()
     except Exception:
         pass

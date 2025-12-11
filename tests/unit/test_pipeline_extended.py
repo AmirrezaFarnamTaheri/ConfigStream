@@ -87,7 +87,7 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
         # Mocking washer methods correctly
         washer_instance = MockWasher.return_value
         washer_instance.fetch_clean_ips = AsyncMock()
-        washer_instance.wash_batch = MagicMock(return_value=([], set()))
+        washer_instance.wash_batch = MagicMock(return_value=([], set(), {}))
 
         # Mock adapter to return proper strings
         mock_adapter = MagicMock()
@@ -179,7 +179,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
 
         washer_instance = MockWasher.return_value
         washer_instance.fetch_clean_ips = AsyncMock()
-        washer_instance.wash_batch = MagicMock(return_value=([], set()))
+        washer_instance.wash_batch = MagicMock(return_value=([], set(), {}))
 
         # Mock adapter to return proper strings
         mock_adapter = MagicMock()
@@ -286,7 +286,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
 
         washer_instance = MockWasher.return_value
         washer_instance.fetch_clean_ips = AsyncMock()
-        washer_instance.wash_batch = MagicMock(return_value=([], set()))
+        washer_instance.wash_batch = MagicMock(return_value=([], set(), {}))
 
         history = MagicMock()
         history.get_reliability_score.return_value = 0.5
