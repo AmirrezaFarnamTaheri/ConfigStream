@@ -60,3 +60,9 @@ urllib3==2.5.0
 uvicorn==0.38.0
 uvloop==0.21.0; sys_platform != "win32"
 yarl==1.22.0
+pycares<5.0.0
+aiodns
+aiohttp-socks
+aiohttp-proxy
+python-socks
+wasmtime>=39.0.0
