@@ -126,20 +126,6 @@ class SurgeAdapter(Adapter):
             psk = p.details.get("psk", "")
             return f"{name} = snell, {p.address}, {p.port}, psk={psk}"
 
-        elif p.protocol == "wireguard":
-            # Inline WireGuard support for Surge 5+
-            priv = p.details.get("private_key", "")
-            pub = p.details.get("peer_public_key", "")
-            # If local ip is present
-            local = p.details.get("local_address", "")
-            if isinstance(local, list) and local:
-                local = local[0]
-
-            line = f"{name} = wireguard, {p.address}, {p.port}, private-key={priv}, peer-public-key={pub}"
-            if local:
-                line += f", addresses={local}"
-            return line
-
         # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
         return ""
 
@@ -209,27 +195,6 @@ class LoonAdapter(Adapter):
             password = p.uuid
             return f'{name} = trojan, {p.address}, {p.port}, "{password}"'
 
-        elif p.protocol == "vless":
-            uuid = p.uuid
-            # Loon VLESS basic support
-            return f'{name} = vless, {p.address}, {p.port}, "{uuid}"'
-
-        elif p.protocol in ("hysteria2", "hy2"):
-            password = p.uuid or p.details.get("password", "")
-            return f'{name} = hysteria2, {p.address}, {p.port}, password="{password}"'
-
-        elif p.protocol == "http":
-            user = p.uuid
-            pwd = p.details.get("password", "")
-            auth = f', "{user}", "{pwd}"' if user and pwd else ""
-            return f"{name} = http, {p.address}, {p.port}{auth}"
-
-        elif p.protocol == "socks5":
-            user = p.uuid
-            pwd = p.details.get("password", "")
-            auth = f', "{user}", "{pwd}"' if user and pwd else ""
-            return f"{name} = socks5, {p.address}, {p.port}{auth}"
-
         # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
         return ""
 
@@ -283,18 +248,6 @@ class QuantumultXAdapter(Adapter):
         elif p.protocol == "trojan":
             password = p.uuid
             return f"trojan={name}: {p.address}, {p.port}, password={password}"
-
-        elif p.protocol == "http":
-            user = p.uuid
-            pwd = p.details.get("password", "")
-            auth = f", username={user}, password={pwd}" if user and pwd else ""
-            return f"http={name}: {p.address}, {p.port}{auth}"
-
-        elif p.protocol == "socks5":
-            user = p.uuid
-            pwd = p.details.get("password", "")
-            auth = f", username={user}, password={pwd}" if user and pwd else ""
-            return f"socks5={name}: {p.address}, {p.port}{auth}"
 
         # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
         return ""

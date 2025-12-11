@@ -113,10 +113,10 @@ async function renderPage(filename) {
         let lastError = null;
 
         const strategies = [
-            `wiki/${filename}`,
-            `${filename}`,
+            `../docs/wiki/project/${filename}`,
             WIKI_BASE_URL + filename,
-            `../docs/wiki/project/${filename}`
+            `wiki/${filename}`,
+            `${filename}`
         ];
 
         for (const url of strategies) {
