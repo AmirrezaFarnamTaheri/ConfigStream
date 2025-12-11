@@ -462,15 +462,8 @@ def _copy_pages(root_dir: Path, output_dir: Path):
     # Copy markdown files to wiki/ folder so they can be fetched
     if wiki_src.exists():
         wiki_dest.mkdir(exist_ok=True)
-        # Copy root wiki files
         for md_file in wiki_src.glob("*.md"):
             (wiki_dest / md_file.name).write_text(md_file.read_text())
-
-        # Copy project wiki files (where most content lives)
-        project_src = wiki_src / "project"
-        if project_src.exists():
-            for md_file in project_src.glob("*.md"):
-                (wiki_dest / md_file.name).write_text(md_file.read_text())
 
     # Note: frontend/ files (including about.html, wiki.html) are already
     # copied to output_dir root by _generate_stego -> shutil.copytree.
