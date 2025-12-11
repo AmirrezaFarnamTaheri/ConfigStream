@@ -38,7 +38,7 @@ def test_washer_wash_batch(washer):
     # We need to ensure conversion works, so p1 must be valid for to_singbox_outbound
     # vmess needs type/net in details usually or defaults
 
-    outbounds, ids = washer.wash_batch([p1])
+    outbounds, ids, reasons = washer.wash_batch([p1])
 
     # Expect 2 outbounds: Relay + WireGuard Exit
     assert len(outbounds) == 2
@@ -62,7 +62,7 @@ def test_washer_wash_batch_no_working(washer):
         details={"uuid": "u1"},
         is_working=False,
     )
-    outbounds, ids = washer.wash_batch([p1])
+    outbounds, ids, reasons = washer.wash_batch([p1])
     assert len(outbounds) == 0
     assert len(ids) == 0
 
