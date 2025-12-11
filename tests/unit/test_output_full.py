@@ -128,7 +128,8 @@ def test_generate_split_outputs(proxies, output_dir):
         assert len(auto_selector["outbounds"]) == 1
 
 
-def test_generate_categorized_outputs(proxies, output_dir):
+@pytest.mark.asyncio
+async def test_generate_categorized_outputs(proxies, output_dir):
     with (
         patch("configstream.output_logic.ProxyWasher") as MockWasher,
         patch(

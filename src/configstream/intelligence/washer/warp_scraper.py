@@ -14,6 +14,7 @@ import json
 import logging
 import base64
 import binascii
+import re
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -65,6 +66,38 @@ WARP_SOURCES: List[Dict[str, Any]] = [
         "kind": "singbox",
         "max_entries": 32,
     },
+    # New Sources
+    {
+        "name": "IRCF/WARP-Wireguard",
+        "url": "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/wireguard.json",
+        "kind": "singbox",
+        "max_entries": 64,
+    },
+    {
+        "name": "MortezaBashsiz/CFScanner",
+        "url": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/warp.json",
+        "kind": "singbox",
+        "max_entries": 32,
+    },
+    {
+        "name": "yebekhe/TVC/singbox",
+        "url": "https://raw.githubusercontent.com/yebekhe/TVC/main/subscriptions/xray/wireguard/normal.json",
+        "kind": "xray_wireguard",
+        "max_entries": 32,
+    },
+    # Updated List 2025 (More Robust Sources)
+    {
+        "name": "hiddify/hiddify-config",
+        "url": "https://raw.githubusercontent.com/hiddify/hiddify-config/main/config.json",
+        "kind": "singbox",
+        "max_entries": 50,
+    },
+    {
+        "name": "Gozargah/Marzban-examples",
+        "url": "https://raw.githubusercontent.com/Gozargah/Marzban-examples/master/examples/wireguard.json",
+        "kind": "singbox",
+        "max_entries": 20,
+    },
 ]
 
 TIMEOUT_SECONDS = 20
@@ -77,6 +110,7 @@ def looks_like_private_key(s: Any) -> bool:
     s = s.strip()
     if not s or " " in s or "\n" in s:
         return False
+    # Standard WG key is 44 chars (32 bytes base64 encoded)
     if len(s) < 40 or len(s) > 100:
         return False
     try:
@@ -89,14 +123,15 @@ def looks_like_private_key(s: Any) -> bool:
 def pick_local_address(addr_field: Any) -> Optional[str]:
     """Extract IPv4 local address from various formats."""
     if isinstance(addr_field, str):
-        return addr_field
+        # Clean CIDR
+        return addr_field.split("/")[0] if "/" in addr_field else addr_field
     if isinstance(addr_field, list):
         for a in addr_field:
             if isinstance(a, str) and "." in a:
-                return a
+                return a.split("/")[0] if "/" in a else a
         for a in addr_field:
             if isinstance(a, str):
-                return a
+                return a.split("/")[0] if "/" in a else a
     return None
 
 
@@ -155,12 +190,18 @@ def extract_from_outbounds(
             if obj.get("type") == "wireguard" and (
                 "local_address" in obj or "address" in obj
             ):
+                # Try to find reserved
+                reserved = obj.get("reserved")
+                if not reserved:
+                    # Check regex in structure if hidden
+                    pass
+
                 entry = make_entry(
                     obj.get("tag", "wg"),
                     obj.get("private_key"),
                     obj.get("local_address", obj.get("address")),
                     obj.get("peer_public_key"),
-                    obj.get("reserved", [0, 0, 0]),
+                    reserved or [0, 0, 0],
                 )
                 if entry:
                     results.append(entry)
@@ -181,12 +222,20 @@ def extract_from_xray_wireguard(
 ) -> List[Dict[str, Any]]:
     """Extract WireGuard entries from Xray format."""
     results: List[Dict[str, Any]] = []
+
+    # Xray JSON structure varies, usually in 'outbounds'
     outbounds = config.get("outbounds", [])
+    if not outbounds and isinstance(config, list):
+        outbounds = config
 
     for ob in outbounds:
         if len(results) >= max_entries:
             break
-        if ob.get("protocol") != "wireguard":
+        if not isinstance(ob, dict):
+            continue
+
+        protocol = ob.get("protocol")
+        if protocol != "wireguard":
             continue
 
         settings = ob.get("settings", {})
@@ -194,7 +243,12 @@ def extract_from_xray_wireguard(
         peer_key = None
         reserved = [0, 0, 0]
 
-        if peers and isinstance(peers[0], dict):
+        if (
+            peers
+            and isinstance(peers, list)
+            and len(peers) > 0
+            and isinstance(peers[0], dict)
+        ):
             peer_key = peers[0].get("publicKey")
             reserved = peers[0].get("reserved", [0, 0, 0])
 
@@ -215,7 +269,9 @@ async def scrape_warp_sources() -> List[Dict[str, Any]]:
     """Scrape all WARP sources and return deduplicated entries."""
     all_entries = []
 
-    async with httpx.AsyncClient(timeout=TIMEOUT_SECONDS) as client:
+    async with httpx.AsyncClient(
+        timeout=TIMEOUT_SECONDS, follow_redirects=True
+    ) as client:
         for src in WARP_SOURCES:
             try:
                 logger.debug(f"Fetching WARP source: {src['name']}")
@@ -229,19 +285,26 @@ async def scrape_warp_sources() -> List[Dict[str, Any]]:
                     continue
 
                 # Try to parse JSON
+                config = {}
                 try:
                     config = json.loads(text)
                 except json.JSONDecodeError:
-                    # Try extracting JSON from garbage
-                    start = text.find("{")
-                    end = text.rfind("}")
-                    if start != -1 and end > start:
+                    # Try extracting JSON from garbage (common in mixed files)
+                    match = re.search(r"(\{.*\})|(\[.*\])", text, re.DOTALL)
+                    if match:
                         try:
-                            config = json.loads(text[start : end + 1])
+                            config = json.loads(match.group(0))
                         except Exception:
-                            continue
-                    else:
-                        continue
+                            pass
+
+                # If config is empty, maybe it's not JSON but line-based or encoded?
+                # For now we rely on JSON sources primarily.
+
+                # If config is just a list, wrap it?
+                if isinstance(config, list):
+                    config = {
+                        "outbounds": config
+                    }  # dummy wrapper for consistent processing
 
                 if not isinstance(config, dict):
                     continue
@@ -250,17 +313,17 @@ async def scrape_warp_sources() -> List[Dict[str, Any]]:
                 kind = src["kind"]
                 max_entries = src.get("max_entries", 32)
 
-                if kind == "singbox":
-                    entries = extract_from_outbounds(config, max_entries)
-                elif kind == "singbox_endpoints":
+                entries = []
+                if kind in ("singbox", "singbox_endpoints"):
                     entries = extract_from_outbounds(config, max_entries)
                 elif kind == "xray_wireguard":
                     entries = extract_from_xray_wireguard(config, max_entries)
-                else:
-                    entries = []
 
-                logger.info(f"WARP source {src['name']}: found {len(entries)} entries")
-                all_entries.extend(entries)
+                if entries:
+                    logger.info(
+                        f"WARP source {src['name']}: found {len(entries)} entries"
+                    )
+                    all_entries.extend(entries)
 
             except Exception as e:
                 logger.debug(f"WARP source {src['name']} failed: {e}")
@@ -270,6 +333,7 @@ async def scrape_warp_sources() -> List[Dict[str, Any]]:
     seen = set()
     unique: List[Dict[str, Any]] = []
     for item in all_entries:
+        # Key on private key + local address
         key = (item["private_key"], item["local_address"])
         if key not in seen:
             seen.add(key)

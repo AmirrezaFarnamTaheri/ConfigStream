@@ -23,7 +23,7 @@ class Adapter(abc.ABC):
         washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
         """Export a list of proxies to the adapter's format."""
-        ...
+        pass
 
 
 class SurgeAdapter(Adapter):

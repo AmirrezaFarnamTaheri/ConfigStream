@@ -13,7 +13,6 @@ try {
         }, { once: true });
     }
 } catch (e) {
-    // Silently ignore to avoid breaking page initialization
     window.addEventListener('DOMContentLoaded', () => {
         try { document.documentElement.classList.remove('no-js'); } catch (_) {}
     }, { once: true });
@@ -60,7 +59,6 @@ function initHeaderScroll() {
     };
 
     window.addEventListener('scroll', onScroll);
-    // Initial check
     onScroll();
 }
 
@@ -68,10 +66,6 @@ function initCopyButtons() {
     document.addEventListener('click', async (e) => {
         const button = e.target.closest('.copy-btn');
         if (!button) return;
-
-        // Prevent default if it's a button, though mostly used on <button>
-        // If it's <a> with href, let it handle unless data-file/config is present?
-        // Actually the original logic was specific.
 
         const config = button.dataset.config;
         const file = button.dataset.file;
@@ -97,11 +91,8 @@ function initCopyButtons() {
             if (window.getFullUrl) {
                 textToCopy = window.getFullUrl(targetFile);
             } else if (window.api && window.api.getFullUrl) {
-                 // fallback if attached to api
-                 // But getFullUrl is usually global in utils.js
-            } else {
-                 // Utils might export it or global scope
-                 // Assuming utils.js is loaded
+                 textToCopy = window.api.getFullUrl(targetFile);
+            } else if (typeof getFullUrl === 'function') {
                  textToCopy = getFullUrl(targetFile);
             }
         } else {
@@ -109,12 +100,34 @@ function initCopyButtons() {
         }
 
         if (textToCopy) {
-             await copyToClipboard(textToCopy, button);
+             // Use global copyToClipboard utility
+             if (window.copyToClipboard) {
+                 await window.copyToClipboard(textToCopy, button);
+             } else {
+                 console.warn('copyToClipboard utility not found');
+             }
         }
     });
-}
 
-// Re-export utility needed if not global (utils.js handles this mostly)
+    // F8 Fix: Add ARIA labels to copy buttons if missing
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        if (!btn.hasAttribute('aria-label')) {
+            const label = btn.dataset.file ? `Copy link for ${btn.dataset.file}` : 'Copy to clipboard';
+            btn.setAttribute('aria-label', label);
+        }
+        // Ensure keyboard accessibility
+        if (!btn.hasAttribute('tabindex') && btn.tagName !== 'BUTTON') {
+            btn.setAttribute('tabindex', '0');
+        }
+        // Add keydown listener for Enter/Space
+        btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                btn.click();
+            }
+        });
+    });
+}
 
 function initAccordion() {
     const accordionContainers = document.querySelectorAll('.accordion-container');
@@ -126,20 +139,28 @@ function initAccordion() {
         const items = container.querySelectorAll('.accordion-item');
         if (items.length === 0) return;
 
-        // On mobile, all accordions start collapsed. On desktop, they start open.
         items.forEach((item, index) => {
             const header = item.querySelector('.accordion-header');
             const content = item.querySelector('.accordion-content');
 
-            // Mobile: all collapsed. Desktop: all expanded.
+            // F8 Fix: ID and ARIA attributes
+            const contentId = `accordion-content-${index}`;
+            content.id = contentId;
+            header.setAttribute('aria-controls', contentId);
+
+            // On mobile, all accordions start collapsed. On desktop, they start open.
             const isExpanded = !isMobile();
 
             header.setAttribute('aria-expanded', isExpanded);
             content.style.gridTemplateRows = isExpanded ? '1fr' : '0fr';
+            // Also hide/show content for screen readers
+            content.setAttribute('aria-hidden', !isExpanded);
         });
 
         items.forEach(item => {
             const header = item.querySelector('.accordion-header');
+            const content = item.querySelector('.accordion-content');
+
             if (!header.hasAttribute('data-accordion-initialized')) {
                 header.setAttribute('data-accordion-initialized', 'true');
                 header.addEventListener('click', () => {
@@ -150,15 +171,29 @@ function initAccordion() {
                         items.forEach(otherItem => {
                             if (otherItem !== item) {
                                 const otherHeader = otherItem.querySelector('.accordion-header');
+                                const otherContent = otherItem.querySelector('.accordion-content');
                                 otherHeader.setAttribute('aria-expanded', 'false');
-                                otherItem.querySelector('.accordion-content').style.gridTemplateRows = '0fr';
+                                otherContent.style.gridTemplateRows = '0fr';
+                                otherContent.setAttribute('aria-hidden', 'true');
                             }
                         });
                     }
 
                     // Toggle the clicked accordion
                     header.setAttribute('aria-expanded', !isExpanded);
-                    item.querySelector('.accordion-content').style.gridTemplateRows = !isExpanded ? '1fr' : '0fr';
+                    content.style.gridTemplateRows = !isExpanded ? '1fr' : '0fr';
+                    content.setAttribute('aria-hidden', isExpanded);
+                });
+
+                // Keyboard accessibility for header
+                if (!header.hasAttribute('tabindex')) {
+                    header.setAttribute('tabindex', '0');
+                }
+                header.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        header.click();
+                    }
                 });
             }
         });

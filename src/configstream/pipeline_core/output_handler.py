@@ -8,7 +8,7 @@ from ..proxy_history import ProxyHistoryTracker
 from ..output_logic import generate_categorized_outputs, save_metadata
 from ..output_transport import save_json
 from ..intelligence.washer.core import ProxyWasher
-from ..intelligence.washer.chaining import generate_smart_chains
+from ..intelligence.chaining import generate_smart_chains
 from ..pipeline_core.stats import PipelineStats
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ async def generate_pipeline_outputs(
     # 2. Wash Batch (The "Blanket" Wash)
     # Generates standard WARP wraps for all working proxies (fallback/legacy behavior)
     # Returns the list of outbound configs and the set of IDs that were washed.
-    washed_outbounds, washed_ids = washer.wash_batch(optimized_proxies)
+    washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(optimized_proxies)
 
     # Update stats with washing results
     stats.washer_success_count = len(washed_ids)
