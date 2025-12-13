@@ -8,6 +8,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import multiprocessing
+import os
+import shutil
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Set
@@ -96,9 +100,37 @@ async def run_full_pipeline(
 
     stats = PipelineStats()
 
-    # Work Queue – allow larger buffer between producer and consumer
-    # Increased from 500 to 1000 for better buffering and reduced blocking
-    work_queue: asyncio.Queue = asyncio.Queue(maxsize=1000)
+    # --- Start Vwarp Tunnel if available ---
+    vwarp_proc = None
+    vwarp_bin = shutil.which("vwarp") or "/usr/local/bin/vwarp"
+    if os.path.exists(vwarp_bin):
+        try:
+            logger.info("🚀 Starting Vwarp SOCKS5 Tunnel on port 10808...")
+            vwarp_proc = subprocess.Popen(
+                [vwarp_bin, "--bind", "127.0.0.1:10808"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            # Give it a second to bind
+            await asyncio.sleep(1)
+            # Signal Go Tester to use it
+            os.environ["USE_VWARP_TUNNEL"] = "true"
+        except Exception as e:
+            logger.warning(f"Failed to start Vwarp tunnel: {e}")
+
+    # Dynamic Worker Calculation based on CPU
+    cpu_count = multiprocessing.cpu_count()
+    # Use 1.5x cores for I/O bound tasks, clamped between 4 and 32 for stability
+    optimal_consumers = max(4, min(int(cpu_count * 1.5), 32))
+
+    # Allow override if max_workers is very high, implying user wants aggressive parallelism
+    if max_workers > 200:
+        optimal_consumers = max(optimal_consumers, 16)
+
+    logger.info(f"🚀 Auto-scaling to {optimal_consumers} consumers based on {cpu_count} cores.")
+
+    # Optimized Queue Size: Increase buffer to prevent producer blocking
+    work_queue: asyncio.Queue = asyncio.Queue(maxsize=5000)
 
     # Results Collection
     final_proxies: List[Proxy] = []
@@ -125,19 +157,6 @@ async def run_full_pipeline(
         max_workers=max_workers,
     )
 
-    # Determine parallel consumers based on workers, but keep reasonable limits
-    # to avoid overwhelming the system with too many heavy testing loops.
-    # Optimized scaling: 2 consumers for low workers, up to 8 for high workers
-    # to maximize throughput while keeping the event loop responsive.
-    if max_workers >= 200:
-        num_consumers = 8
-    elif max_workers >= 100:
-        num_consumers = 6
-    elif max_workers >= 50:
-        num_consumers = 4
-    else:
-        num_consumers = 2
-
     # [FIX] Start Concurrency Tuner globally if fallback to Python tester is likely
     if not tester.go_tester.available:
         logger.info(
@@ -145,7 +164,7 @@ async def run_full_pipeline(
         )
         concurrency.start_tuner()
 
-    logger.info(f"Starting pipeline with {num_consumers} parallel consumers")
+    logger.info(f"Starting pipeline with {optimal_consumers} parallel consumers")
 
     # Run Producer and Consumers concurrently
     producer_task = asyncio.create_task(
@@ -158,12 +177,12 @@ async def run_full_pipeline(
             event_stream,
             progress,
             task_fetch,
-            num_consumers=num_consumers,
+            num_consumers=optimal_consumers,
         )
     )
 
     consumer_tasks = []
-    for _ in range(num_consumers):
+    for _ in range(optimal_consumers):
         t = asyncio.create_task(
             processing_consumer(
                 work_queue,
@@ -230,6 +249,21 @@ async def run_full_pipeline(
         if timeout_tracker:
             timeout_tracker.save()
 
+        # Trigger Server Update Notification
+        # If API server is running on localhost, we notify it
+        try:
+            pass  # from .server import manager as ws_manager
+            # Only if running in same process, which is rare for pipeline vs server split.
+            # But we can try hitting the endpoint.
+            import httpx
+            async with httpx.AsyncClient(timeout=1.0) as client:
+                await client.post(
+                    "http://127.0.0.1:8000/api/admin/notify-update",
+                    json={"timestamp": stats.end_time or duration}
+                )
+        except Exception:
+            pass
+
         return PipelineResult(success=True, stats=stats, output_files=generated_files)
     finally:
         # [FIX] Stop tuner if running
@@ -238,6 +272,14 @@ async def run_full_pipeline(
         # Shutdown tester (Go process)
         if tester:
             await tester.close()
+
+        # Shutdown Vwarp tunnel
+        if vwarp_proc:
+            try:
+                vwarp_proc.terminate()
+                vwarp_proc.wait(timeout=2)
+            except Exception:
+                vwarp_proc.kill()
 
         # Ensure event stream is always closed to flush handles/buffers
         try:

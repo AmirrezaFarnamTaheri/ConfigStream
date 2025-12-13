@@ -160,11 +160,25 @@ class GoBatchTester:
             logger.info(f"Starting Go Tester Daemon: {' '.join(cmd)}")
 
             try:
+                # Prepare environment
+                env = os.environ.copy()
+                env["GOLOG_LOG_LEVEL"] = "error"
+                # Ensure temp dir is accessible
+                env["TMPDIR"] = os.environ.get("TMPDIR", "/tmp")
+                env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
+
+                # 🚀 FORCE TRAFFIC THROUGH VWARP TUNNEL IF AVAILABLE
+                if os.environ.get("USE_VWARP_TUNNEL") == "true":
+                    # Assuming Vwarp tunnel is running on 10808
+                    env["ALL_PROXY"] = "socks5://127.0.0.1:10808"
+                    logger.info("Go Tester using Vwarp tunnel at socks5://127.0.0.1:10808")
+
                 self._proc = await asyncio.create_subprocess_exec(
                     *cmd,
                     stdin=asyncio.subprocess.PIPE,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
+                    env=env
                 )
 
                 # Start background readers

@@ -1,11 +1,13 @@
 """
 Client Adapters for exporting proxies to various formats.
-Supports Surge, Loon, Quantumult X, and SIP008.
+Supports Surge, Loon, Quantumult X, Shadowrocket, and SIP008.
 """
 
 import abc
 import json
 import logging
+import base64
+import urllib.parse
 from typing import List, Optional, Dict, Any
 from .models import Proxy
 from .adapters_base import format_singbox_chain_for_surge, format_singbox_chain_for_loon
@@ -50,17 +52,15 @@ class SurgeAdapter(Adapter):
                 logger.debug(f"Failed to export {p.protocol} to Surge: {e}")
                 failed_count += 1
 
-        # 2. Export Washed Proxies (Converted from Sing-box Outbounds)
+        # 2. Export Washed Proxies
         if washed_outbounds:
             for out in washed_outbounds:
                 try:
-                    # We are looking for the WireGuard Exit nodes that detour to a Relay
                     if (
                         out.get("type") == "wireguard"
                         and out.get("tag", "").startswith("🛡️ Secure")
                         and out.get("detour")
                     ):
-                        # Mypy fix: format_singbox_chain_for_surge returns Optional[str], we append only if str
                         chain_line = format_singbox_chain_for_surge(
                             out, washed_outbounds
                         )
@@ -71,12 +71,6 @@ class SurgeAdapter(Adapter):
                     logger.debug(f"Failed to export chain to Surge: {e}")
                     failed_count += 1
 
-        if failed_count > 0:
-            logger.warning(
-                f"Surge export had {failed_count} failures during formatting. "
-                "Enable debug logs to see specific proxy details."
-            )
-
         logger.info(
             f"Surge export summary: {exported_count} proxies, {chain_count} chains "
             f"(Total Lines: {len(lines)}, Failures: {failed_count})"
@@ -84,7 +78,6 @@ class SurgeAdapter(Adapter):
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
-        # Format: Name = protocol, address, port, encrypt-method, password, ...
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
         name = name.replace(",", "_").strip()
 
@@ -98,17 +91,24 @@ class SurgeAdapter(Adapter):
             return f"{name} = vmess, {p.address}, {p.port}, username={uuid}"
 
         elif p.protocol == "vless":
+            # Surge 5 supports VLESS
             uuid = p.uuid
-            # Surge supports VLESS with similar syntax to VMess
             return f"{name} = vless, {p.address}, {p.port}, username={uuid}"
 
         elif p.protocol == "trojan":
-            password = p.uuid  # Trojan uses uuid field as password often in this model
+            password = p.uuid
             return f"{name} = trojan, {p.address}, {p.port}, password={password}"
 
         elif p.protocol in ("hysteria2", "hy2"):
             password = p.uuid or p.details.get("password", "")
-            return f"{name} = hysteria2, {p.address}, {p.port}, password={password}"
+            sni = p.details.get("sni", "")
+            return f"{name} = hysteria2, {p.address}, {p.port}, password={password}, sni={sni}"
+
+        elif p.protocol == "tuic":
+            # Surge 5.8+ supports TUIC v5
+            password = p.uuid or p.details.get("password", "")
+            sni = p.details.get("sni", "")
+            return f"{name} = tuic, {p.address}, {p.port}, password={password}, sni={sni}, version=5"
 
         elif p.protocol == "http":
             user = p.uuid
@@ -126,7 +126,6 @@ class SurgeAdapter(Adapter):
             psk = p.details.get("psk", "")
             return f"{name} = snell, {p.address}, {p.port}, psk={psk}"
 
-        # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
         return ""
 
 
@@ -149,7 +148,7 @@ class LoonAdapter(Adapter):
             except Exception as e:
                 logger.debug(f"Failed to export {p.protocol} to Loon: {e}")
 
-        # 2. Export Washed Proxies (Loon WireGuard-over-Proxy)
+        # 2. Export Washed Proxies
         chain_count = 0
         if washed_outbounds:
             for out in washed_outbounds:
@@ -159,7 +158,6 @@ class LoonAdapter(Adapter):
                         and out.get("tag", "").startswith("🛡️ Secure")
                         and out.get("detour")
                     ):
-                        # Mypy fix: format_singbox_chain_for_loon returns Optional[str]
                         chain_line = format_singbox_chain_for_loon(
                             out, washed_outbounds
                         )
@@ -175,16 +173,13 @@ class LoonAdapter(Adapter):
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
-        # Loon is very similar to Surge/Shadowrocket
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
         name = name.replace("=", "_").replace(",", "_").strip()
 
         if p.protocol == "shadowsocks":
             method = p.details.get("method", "chacha20-ietf-poly1305")
             password = p.details.get("password", "")
-            return (
-                f'{name} = shadowsocks, {p.address}, {p.port}, {method}, "{password}"'
-            )
+            return f'{name} = shadowsocks, {p.address}, {p.port}, {method}, "{password}"'
 
         elif p.protocol == "vmess":
             uuid = p.uuid
@@ -195,7 +190,27 @@ class LoonAdapter(Adapter):
             password = p.uuid
             return f'{name} = trojan, {p.address}, {p.port}, "{password}"'
 
-        # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
+        elif p.protocol == "vless":
+            # Loon VLESS format: name = vless, host, port, uuid
+            return f'{name} = vless, {p.address}, {p.port}, "{p.uuid}"'
+
+        elif p.protocol in ("hysteria2", "hy2"):
+            # Loon Hysteria2
+            sni = p.details.get("sni", "")
+            return f'{name} = hysteria2, {p.address}, {p.port}, password="{p.uuid}", sni={sni}'
+
+        elif p.protocol == "tuic":
+            # Loon TUIC
+            sni = p.details.get("sni", "")
+            return f'{name} = tuic, {p.address}, {p.port}, password="{p.uuid}", sni={sni}'
+
+        elif p.protocol == "wireguard":
+            # Loon WireGuard (standard)
+            # name = wireguard, ip, port, private-key=..., public-key=...
+            priv = p.details.get("private_key", "")
+            pub = p.details.get("peer_public_key", "")
+            return f'{name} = wireguard, {p.address}, {p.port}, private-key="{priv}", peer-public-key="{pub}"'
+
         return ""
 
 
@@ -218,20 +233,14 @@ class QuantumultXAdapter(Adapter):
                 logger.debug(f"Failed to export {p.protocol} to QuantumultX: {e}")
                 failed_count += 1
 
-        if failed_count > 0:
-            logger.warning(
-                f"Quantumult X export had {failed_count} failures. "
-                "Check for missing required fields (e.g. password, uuid)."
-            )
-
         logger.info(
             f"Quantumult X export summary: {len(lines)} proxies (Failures: {failed_count})"
         )
         return "\n".join(lines)
 
     def _format_proxy(self, p: Proxy) -> str:
-        # QX Format: protocol=name: host, port, ...
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
+        name = name.replace("=", "").replace(",", "").strip()
 
         if p.protocol == "shadowsocks":
             method = p.details.get("method", "chacha20-ietf-poly1305")
@@ -241,15 +250,108 @@ class QuantumultXAdapter(Adapter):
         elif p.protocol == "vmess":
             uuid = p.uuid
             method = p.details.get("method", "chacha20-poly1305")
-            return (
-                f"vmess={name}: {p.address}, {p.port}, method={method}, password={uuid}"
-            )
+            return f"vmess={name}: {p.address}, {p.port}, method={method}, password={uuid}"
 
         elif p.protocol == "trojan":
             password = p.uuid
-            return f"trojan={name}: {p.address}, {p.port}, password={password}"
+            return f"trojan={name}: {p.address}, {p.port}, password={password}, over-tls=true, tls-host={p.details.get('sni', '')}"
 
-        # Use str() to satisfy type checker if fall through, though logic implies we return formatted string or ""
+        elif p.protocol == "vless":
+            # QX VLESS format: vless=name: host, port, method=none, uuid=...
+            # Note: QX supports VLESS but it requires the 'vless' module/keyword
+            return f"vless={name}: {p.address}, {p.port}, method=none, uuid={p.uuid}"
+
+        elif p.protocol == "http":
+            user = p.uuid
+            pwd = p.details.get("password", "")
+            return f"http={name}: {p.address}, {p.port}, username={user}, password={pwd}"
+
+        return ""
+
+
+class ShadowrocketAdapter(Adapter):
+    """Export to Shadowrocket format (Base64 encoded links or plain URI list)."""
+
+    def export(
+        self,
+        proxies: List[Proxy],
+        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
+        lines = []
+        reconstructed_count = 0
+        for p in proxies:
+            # Shadowrocket supports standard URIs natively
+            if p.config and "://" in p.config:
+                lines.append(p.config)
+                continue
+
+            # Fallback to reconstruction
+            try:
+                uri = self._reconstruct_uri(p)
+                if uri:
+                    lines.append(uri)
+                    reconstructed_count += 1
+            except Exception as e:
+                logger.debug(f"Failed to reconstruct URI for {p.protocol}: {e}")
+
+        logger.info(
+            f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})"
+        )
+        return "\n".join(lines)
+
+    def _reconstruct_uri(self, p: Proxy) -> str:
+        """Reconstruct URI with full protocol support."""
+        name = urllib.parse.quote(p.remarks or "ConfigStream")
+
+        if p.protocol in ("ss", "shadowsocks"):
+            method = p.details.get("method", "chacha20-ietf-poly1305")
+            password = p.details.get("password", "")
+            userpass = f"{method}:{password}"
+            b64_auth = base64.urlsafe_b64encode(userpass.encode()).decode().rstrip("=")
+            return f"ss://{b64_auth}@{p.address}:{p.port}#{name}"
+
+        elif p.protocol == "trojan":
+            sni = p.details.get("sni", "")
+            return f"trojan://{p.uuid}@{p.address}:{p.port}?peer={sni}&sni={sni}#{name}"
+
+        elif p.protocol == "vmess":
+            # Simplified VMess reconstruction (often better to use original if available)
+            # This is a basic fallback
+            import json
+            v_obj = {
+                "v": "2",
+                "ps": p.remarks or "ConfigStream",
+                "add": p.address,
+                "port": str(p.port),
+                "id": p.uuid,
+                "aid": "0",
+                "net": p.details.get("net", "tcp"),
+                "type": "none",
+                "host": p.details.get("host", ""),
+                "tls": p.details.get("tls", ""),
+            }
+            return "vmess://" + base64.b64encode(json.dumps(v_obj).encode()).decode()
+
+        elif p.protocol == "vless":
+            # vless://uuid@host:port?params#name
+            security = p.details.get("security", "tls")
+            sni = p.details.get("sni", "")
+            net = p.details.get("net", "tcp")
+            params = f"security={security}&sni={sni}&type={net}"
+            return f"vless://{p.uuid}@{p.address}:{p.port}?{params}#{name}"
+
+        elif p.protocol in ("hysteria2", "hy2"):
+            # hysteria2://password@host:port?sni=...#name
+            sni = p.details.get("sni", "")
+            return f"hysteria2://{p.uuid}@{p.address}:{p.port}?sni={sni}#{name}"
+
+        elif p.protocol == "tuic":
+            # tuic://uuid:password@host:port?sni=...#name
+            # TUIC V5 usually just uses UUID as auth or uuid:pass
+            sni = p.details.get("sni", "")
+            password = p.details.get("password", "")
+            return f"tuic://{p.uuid}:{password}@{p.address}:{p.port}?sni={sni}#{name}"
+
         return ""
 
 
@@ -261,7 +363,6 @@ class SIP008Adapter(Adapter):
         proxies: List[Proxy],
         washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     ) -> str:
-        # SIP008 is a JSON format for Shadowsocks delivery
         servers = []
         for p in proxies:
             if p.protocol == "shadowsocks":
@@ -282,120 +383,16 @@ class SIP008Adapter(Adapter):
 
 
 def get_adapter(format_name: str) -> Adapter:
-    if format_name.lower() == "surge":
+    f = format_name.lower()
+    if f == "surge":
         return SurgeAdapter()
-    elif format_name.lower() == "loon":
+    elif f == "loon":
         return LoonAdapter()
-    elif format_name.lower() in ["qx", "quantumultx"]:
+    elif f in ["qx", "quantumultx"]:
         return QuantumultXAdapter()
-    elif format_name.lower() == "sip008":
+    elif f == "sip008":
         return SIP008Adapter()
-    elif format_name.lower() == "shadowrocket":
+    elif f == "shadowrocket":
         return ShadowrocketAdapter()
     else:
         raise ValueError(f"Unknown format: {format_name}")
-
-
-class ShadowrocketAdapter(Adapter):
-    """Export to Shadowrocket format (Base64 encoded links)."""
-
-    def _reconstruct_uri(self, p: Proxy) -> str:
-        """Attempt to reconstruct standard URI from proxy object."""
-        if p.protocol == "ss" or p.protocol == "shadowsocks":
-            # ss://base64(method:password)@server:port#remarks
-            import base64
-
-            method = p.details.get("method", "chacha20-ietf-poly1305")
-            password = p.details.get("password", "")
-            userpass = f"{method}:{password}"
-            b64_auth = base64.urlsafe_b64encode(userpass.encode()).decode().rstrip("=")
-            return f"ss://{b64_auth}@{p.address}:{p.port}#{p.remarks or 'ConfigStream'}"
-
-        elif p.protocol == "trojan":
-            # trojan://password@server:port#remarks
-            return (
-                f"trojan://{p.uuid}@{p.address}:{p.port}#{p.remarks or 'ConfigStream'}"
-            )
-
-        elif p.protocol == "vmess":
-            # vmess://base64(json)
-            import base64
-            import json
-
-            v_obj = {
-                "v": "2",
-                "ps": p.remarks or "ConfigStream",
-                "add": p.address,
-                "port": str(p.port),
-                "id": p.uuid,
-                "aid": str(p.details.get("aid", 0)),
-                "scy": p.details.get("scy", "auto"),
-                "net": p.details.get("net", "tcp"),
-                "type": p.details.get("type", "none"),
-                "host": p.details.get("host", ""),
-                "path": p.details.get("path", ""),
-                "tls": p.details.get("tls", ""),
-                "sni": p.details.get("sni", ""),
-                "alpn": p.details.get("alpn", ""),
-            }
-            return "vmess://" + base64.b64encode(json.dumps(v_obj).encode()).decode()
-
-        elif p.protocol == "ssr":
-            # ssr://base64(host:port:protocol:method:obfs:base64pass/?params)
-            import base64
-
-            def b64safe(s: str) -> str:
-                return base64.urlsafe_b64encode(s.encode()).decode().rstrip("=")
-
-            host = p.address
-            port = str(p.port)
-            protocol = p.details.get("protocol", "origin")
-            method = p.details.get("cipher", "none")
-            obfs = p.details.get("obfs", "plain")
-            password = b64safe(p.details.get("password", ""))
-
-            base_str = f"{host}:{port}:{protocol}:{method}:{obfs}:{password}"
-            params = {}
-            if p.remarks:
-                params["remarks"] = b64safe(p.remarks)
-            if "protoparam" in p.details:
-                params["protoparam"] = b64safe(p.details["protoparam"])
-            if "obfsparam" in p.details:
-                params["obfsparam"] = b64safe(p.details["obfsparam"])
-
-            param_str = "&".join([f"{k}={v}" for k, v in params.items()])
-            full_str = base_str + "/?" + param_str if param_str else base_str
-            return "ssr://" + b64safe(full_str)
-
-        return ""
-
-    def export(
-        self,
-        proxies: List[Proxy],
-        washed_outbounds: Optional[List[Dict[str, Any]]] = None,
-    ) -> str:
-        # Shadowrocket mainly uses standard subscription links (ss://, vmess://, etc.)
-        # but can also import Surge/Clash configs.
-        # The best "native" format is a list of URI schemes.
-        lines = []
-        reconstructed_count = 0
-        for p in proxies:
-            if p.config and "://" in p.config:
-                # Use the original config string if available and valid
-                lines.append(p.config)
-            else:
-                # Fallback to reconstruction
-                # We try to reconstruct standard URIs for common protocols
-                try:
-                    uri = self._reconstruct_uri(p)
-                    if uri:
-                        lines.append(uri)
-                        reconstructed_count += 1
-                except Exception as e:
-                    logger.debug(f"Failed to reconstruct URI for {p.protocol}: {e}")
-
-        logger.info(
-            f"Shadowrocket export summary: {len(lines)} links (Reconstructed: {reconstructed_count})"
-        )
-        # Return as plain text list (decoded subscription)
-        return "\n".join(lines)

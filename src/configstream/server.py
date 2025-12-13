@@ -4,12 +4,15 @@ import logging
 import re
 import importlib.metadata
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+
+from .config import VERSION as CFG_VERSION
+from .output import OUTPUT_DIR
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -17,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", BASE_DIR / "output"))
 FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", BASE_DIR / "frontend"))
 
 try:
@@ -28,7 +30,7 @@ except importlib.metadata.PackageNotFoundError:
 app = FastAPI(
     title="ConfigStream",
     description="High-Performance VPN Aggregator API",
-    version=VERSION,
+    version=CFG_VERSION,
     docs_url="/api/docs",
     redoc_url=None,
 )
@@ -45,9 +47,93 @@ app.add_middleware(
 # Pre-compile regex for path validation
 SAFE_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 
+# --- WebSocket Connection Manager ---
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception:
+                pass
+
+manager = ConnectionManager()
 
 # --- API Endpoints ---
 
+@app.websocket("/ws/updates")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive, wait for client messages if any
+            data = await websocket.receive_text()
+            # Optional: Client can request immediate sync
+            if data == "ping":
+                await websocket.send_text("pong")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+@app.post("/api/admin/notify-update")
+async def notify_update(payload: dict):
+    """Internal endpoint called by pipeline when a cycle finishes."""
+    await manager.broadcast({
+        "type": "UPDATE_AVAILABLE",
+        "version": payload.get("version", VERSION),
+        "timestamp": payload.get("timestamp")
+    })
+    return {"status": "broadcast_sent"}
+
+@app.get("/api/diff/proxies")
+async def get_proxy_diff(base_version: str):
+    """
+    Returns a JSON patch or delta between the client's version and current version.
+    Requires server to maintain 'proxies.json' and 'proxies.old.json'.
+    """
+    current_path = OUTPUT_DIR / "proxies.json"
+    old_path = OUTPUT_DIR / "proxies.old.json"
+
+    if not current_path.exists():
+        raise HTTPException(404, "Current data unavailable")
+
+    try:
+        current_data = json.loads(current_path.read_text())
+    except Exception as e:
+        logger.error(f"Failed to read current proxies: {e}")
+        raise HTTPException(500, "Internal Server Error")
+
+    # If client has specific version matching our backup
+    if old_path.exists():
+        try:
+            old_data = json.loads(old_path.read_text())
+
+            # Assuming proxies have 'id' field. If not, fallback to index
+            current_ids = {p.get('id', str(i)): p for i, p in enumerate(current_data)}
+            old_ids = {p.get('id', str(i)): p for i, p in enumerate(old_data)}
+
+            added = [p for pid, p in current_ids.items() if pid not in old_ids]
+            removed = [pid for pid in old_ids if pid not in current_ids]
+
+            return {
+                "type": "delta",
+                "base_version": base_version,
+                "added": added,
+                "removed": removed
+            }
+        except Exception as e:
+            logger.error(f"Diff generation failed: {e}")
+
+    # Fallback: Tell client to fetch full
+    return {"type": "full_reload_required"}
 
 @app.get("/api/stats")
 async def get_stats():
@@ -204,6 +290,7 @@ async def health_check():
         "status": "ok",
         "output_dir": str(OUTPUT_DIR),
         "files_present": files_count,
+        "version": VERSION
     }
 
 

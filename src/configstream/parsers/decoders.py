@@ -48,6 +48,15 @@ def validate_b64_input(data: str) -> Optional[str]:
         logger.warning(f"Expected string, got {type(data).__name__}")
         return None
 
+    # [OPTIMIZATION] Fail Fast on HTML/JSON inputs
+    # This prevents expensive iteration over 2MB error pages
+    if not data:
+        return None
+
+    s_stripped = data.strip()[:10]
+    if s_stripped.startswith(('<', '{', '[')):
+        return None
+
     # Handle comments starting with '#' or space-separated remarks
     # Split by '#' first (common comment delimiter)
     if "#" in data:
