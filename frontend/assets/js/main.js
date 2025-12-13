@@ -8,6 +8,121 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('initDynamicDownloads is not defined. dynamic-downloads.js might be missing.');
     }
 
+    // --- WebSocket & Differential Updates ---
+    function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        // Adjust port if running on different port, but usually relative to current host
+        const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
+        let ws;
+
+        try {
+            ws = new WebSocket(wsUrl);
+        } catch (e) {
+            console.log('WebSocket not supported or failed to connect:', e);
+            return;
+        }
+
+        ws.onopen = () => {
+            console.log('[WS] Connected');
+        };
+
+        ws.onmessage = async (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'UPDATE_AVAILABLE') {
+                    console.log('[WS] Update available:', msg.version);
+                    // Trigger differential update via cache manager if available, or reload
+                    if (window.performDifferentialUpdate) {
+                        await window.performDifferentialUpdate(msg.version);
+                    } else {
+                        // Reload page or re-fetch data
+                        location.reload();
+                    }
+                }
+            } catch (e) {
+                console.warn('[WS] Parse error', e);
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('[WS] Disconnected, retrying in 5s...');
+            setTimeout(connectWebSocket, 5000); // Auto-reconnect
+        };
+
+        ws.onerror = (err) => {
+            console.error('[WS] Error:', err);
+        };
+    }
+
+    // Expose Diff Update Logic globally so it can be used or extended
+    window.performDifferentialUpdate = async function(newVersion) {
+        if (!window.cacheManager) {
+            console.warn("CacheManager missing, full reload");
+            location.reload();
+            return;
+        }
+
+        const cached = await window.cacheManager.getCachedData('/api/proxies');
+        if (!cached || !cached.version) {
+            // No cache, fetch full
+            console.log('[Diff] No cache version, fetching full');
+            return window.cacheManager.fetchFresh('/api/proxies');
+        }
+
+        try {
+            // Try fetching diff
+            console.log(`[Diff] Requesting diff from ${cached.version} to ${newVersion}`);
+            const response = await fetch(`/api/diff/proxies?base_version=${cached.version}`);
+
+            if (!response.ok) {
+                 throw new Error("Diff endpoint returned " + response.status);
+            }
+
+            const update = await response.json();
+
+            if (update.type === 'delta') {
+                let proxies = cached.data;
+                // Apply deletions
+                if (update.removed && update.removed.length > 0) {
+                     const removeSet = new Set(update.removed);
+                     // Assuming proxies have 'id'
+                     proxies = proxies.filter(p => !removeSet.has(p.id));
+                }
+
+                // Apply additions
+                if (update.added && update.added.length > 0) {
+                    proxies = proxies.concat(update.added);
+                }
+
+                // Save new state
+                await window.cacheManager.cacheData('/api/proxies', proxies, newVersion);
+
+                // Dispatch event for UI updates
+                window.dispatchEvent(new CustomEvent('data-updated', { detail: { count: proxies.length } }));
+                console.log(`[Diff] Applied delta: +${update.added.length} -${update.removed.length}`);
+
+                // Optional: Refresh specific UI elements if needed immediately
+                // For now, we rely on the event or reload
+                alert(`Data updated! +${update.added.length} -${update.removed.length} proxies.`);
+            } else {
+                // Full reload required
+                console.log('[Diff] Server requested full reload');
+                await window.cacheManager.fetchFresh('/api/proxies');
+                window.dispatchEvent(new CustomEvent('data-updated'));
+            }
+        } catch (e) {
+            console.warn('[Diff] Failed, falling back to full fetch', e);
+            await window.cacheManager.fetchFresh('/api/proxies');
+            window.dispatchEvent(new CustomEvent('data-updated'));
+        }
+    };
+
+    // Start WebSocket listener if we are in a browser environment that supports it
+    if (typeof WebSocket !== 'undefined') {
+        connectWebSocket();
+    }
+
+
     // --- DATA FETCHING & INITIALIZATION ---
     (async () => {
         const preloader = document.getElementById('preloader');

@@ -1,63 +1,42 @@
 <!DOCTYPE html>
-<html lang="en" class="no-js">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="About ConfigStream: The mission, architecture, and technology behind the platform.">
+    <meta name="description" content="About ConfigStream - Our mission, technology, and zero-budget philosophy.">
+    <!-- CSP: Allow unpkg scripts/styles and local connection -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://unpkg.com; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://unpkg.com; connect-src 'self' ws: wss: https://raw.githubusercontent.com https://unpkg.com data:;">
     <title>About - ConfigStream</title>
+
+    <script>
+        window.ROOT_PATH = './';
+    </script>
+    <script src="https://unpkg.com/feather-icons"></script>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="stylesheet" href="assets/css/style.css">
-    <style>
-        .about-section {
-            background: var(--surface-card);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border-color);
-        }
-        .about-section h2 {
-            color: var(--brand-primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-        .tech-card {
-            background: var(--surface-bg);
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        .tech-card h3 {
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-        .tech-card p {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-    </style>
+    <link rel="stylesheet" href="assets/css/header-animation.css">
+    <link rel="stylesheet" href="assets/css/logo-animations.css">
 </head>
 <body>
     <div class="nav-overlay"></div>
     <header class="header">
         <div class="container">
             <div class="header-logo-wrapper">
-                <!-- SVG Logo Reuse -->
-                <svg width="40" height="40" viewBox="0 0 50 50" fill="none" class="header-logo">
-                     <path d="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" stroke="var(--brand-primary)" stroke-width="5" stroke-linecap="round"/>
-                     <path d="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 16 17 16H33" stroke="var(--brand-primary)" stroke-width="4" stroke-linecap="round"/>
+              <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 0.75rem;">
+                <svg width="40" height="40" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="header-logo" aria-label="ConfigStream Logo">
+                    <defs>
+                        <linearGradient id="logo-gradient-header" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="var(--brand-primary)"/>
+                            <stop offset="100%" stop-color="var(--brand-secondary)"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M33 8C40.1797 8 46 13.8203 46 21C46 28.1797 40.1797 34 33 34H17" stroke="url(#logo-gradient-header)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17 42C9.8203 42 4 36.1797 4 29C4 21.8203 9.8203 14 17 14H33" stroke="url(#logo-gradient-header)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <span class="header-logo-text">ConfigStream</span>
+              </a>
             </div>
-            <nav class="nav" id="main-nav">
+            <nav class="nav" id="main-nav" aria-label="Main navigation">
                 <a href="index.html" class="nav-link" data-i18n="nav.home">Home</a>
                 <a href="proxies.html" class="nav-link" data-i18n="nav.proxies">Proxy List</a>
                 <a href="analytics.html" class="nav-link" data-i18n="nav.analytics">Analytics</a>
@@ -65,28 +44,13 @@
                 <a href="about.html" class="nav-link active" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
-                <!-- Modern Language Dropdown -->
-                <div class="lang-dropdown">
-                    <button class="lang-btn" aria-label="Select Language">
-                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
-                    </button>
-                    <div class="lang-menu" id="lang-menu">
-                        <button onclick="window.i18n.setLanguage('en')">English</button>
-                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
-                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
-                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
-                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
-                    </div>
-                </div>
-
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
                         <i data-feather="moon" class="moon-icon"></i>
                         <i data-feather="sun" class="sun-icon"></i>
                     </div>
                 </button>
-                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="github-btn" target="_blank" rel="noopener noreferrer" aria-label="View on GitHub"><i data-feather="github"></i></a>
-                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="main-nav">
+                <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Open navigation menu">
                     <i data-feather="menu" class="menu-icon"></i>
                     <i data-feather="x" class="close-icon"></i>
                 </button>
@@ -95,161 +59,118 @@
     </header>
 
     <main>
-        <div class="container">
-            <section class="hero text-center">
-                <h1 data-i18n="about.title">About ConfigStream</h1>
-                <p class="subtitle" data-i18n="about.subtitle">Building the Resilient Internet Layer.</p>
-            </section>
-
-            <section class="about-section">
-                <h2 data-i18n="about.mission.title"><i data-feather="target"></i> Our Mission</h2>
-                <p data-i18n="about.mission.text">
-                    ConfigStream is an automated, open-source intelligence platform designed to aggregate, test, and distribute high-performance proxy configurations.
-                    In an era of increasing internet censorship and fragmentation, we provide the tools to maintain connectivity and bypass restrictions securely.
+        <div class="container" style="max-width: 900px; padding: 4rem 1rem;">
+            <!-- Mission Section -->
+            <section class="about-section text-center">
+                <h1 class="gradient-text" style="font-size: 3rem; margin-bottom: 1.5rem;" data-i18n="about.title">Our Mission</h1>
+                <p class="subtitle" style="max-width: 700px; margin: 0 auto 3rem;" data-i18n="about.subtitle">
+                    To provide free, uncensored, and secure internet access to everyone, everywhere. We believe information is a human right.
                 </p>
             </section>
 
-            <section class="about-section">
-                <h2 data-i18n="about.architecture.title"><i data-feather="layers"></i> Core Architecture</h2>
-                <p data-i18n="about.architecture.text">
-                    The platform operates on a "Zero Budget" philosophy, leveraging GitHub Actions for compute and GitHub Pages for distribution.
-                    Our hybrid engine combines the flexibility of Python with the raw performance of Go.
-                </p>
+            <!-- Core Pillars -->
+            <div class="main-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-bottom: 4rem;">
+                <div class="card" style="padding: 2rem; border-top: 4px solid var(--brand-primary);">
+                    <div style="width: 50px; height: 50px; background: rgba(var(--brand-primary-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--brand-primary);">
+                        <i data-feather="shield" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <h3 style="margin-bottom: 1rem;" data-i18n="about.pillar1.title">Zero Budget, Maximum Impact</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;" data-i18n="about.pillar1.text">
+                        We operate entirely on free infrastructure (GitHub Actions/Pages). This guarantees sustainability—we can't run out of funds because we don't spend any.
+                    </p>
+                </div>
+                <div class="card" style="padding: 2rem; border-top: 4px solid var(--brand-secondary);">
+                    <div style="width: 50px; height: 50px; background: rgba(var(--brand-secondary-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--brand-secondary);">
+                        <i data-feather="cpu" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <h3 style="margin-bottom: 1rem;" data-i18n="about.pillar2.title">Automated Intelligence</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;" data-i18n="about.pillar2.text">
+                        Our hybrid Python/Go engine ("Resilient Core") automatically scrapes, deduplicates, tests, and "washes" thousands of proxies every 6 hours.
+                    </p>
+                </div>
+                <div class="card" style="padding: 2rem; border-top: 4px solid var(--brand-tertiary);">
+                    <div style="width: 50px; height: 50px; background: rgba(var(--brand-tertiary-rgb), 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; color: var(--brand-tertiary);">
+                        <i data-feather="globe" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <h3 style="margin-bottom: 1rem;" data-i18n="about.pillar3.title">Radical Transparency</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.6;" data-i18n="about.pillar3.text">
+                        Open source from day one. Every line of code, every metric, and every configuration is public and auditable by the community.
+                    </p>
+                </div>
+            </div>
 
-                <div class="tech-grid">
-                    <div class="tech-card">
-                        <h3 data-i18n="about.tech.hybrid_engine">Hybrid Engine</h3>
-                        <p data-i18n="about.tech.hybrid_engine_desc">Python orchestrates the logic, while a custom Go binary handles high-concurrency network scanning and testing.</p>
+            <!-- Technology Stack (Updated) -->
+            <section class="card" style="padding: 3rem; margin-bottom: 4rem;">
+                <h2 style="margin-bottom: 2rem; text-align: center;" data-i18n="about.tech.title">Under the Hood</h2>
+                <div class="tech-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                    <div>
+                        <h4 style="color: var(--brand-primary); margin-bottom: 0.5rem;">Backend</h4>
+                        <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
+                            <li>Python 3.12 (Orchestration)</li>
+                            <li>Go 1.21 (High-Speed Testing)</li>
+                            <li>Sing-box (Core Engine)</li>
+                            <li><strong>Vwarp (Anti-Censorship)</strong></li>
+                        </ul>
                     </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.tech.washer">The Washer (Proxy Reviver)</h3>
-                        <p data-i18n="about.tech.washer_desc">Our intelligent "Washer" module wraps flagged or dirty proxies in Cloudflare WARP tunnels, reviving them for safe use.</p>
+                    <div>
+                        <h4 style="color: var(--brand-secondary); margin-bottom: 0.5rem;">Frontend</h4>
+                        <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
+                            <li>Vanilla JS (ES6+)</li>
+                            <li>Web Components</li>
+                            <li>Globe.gl (Visualization)</li>
+                            <li><strong>WebSockets (Real-time)</strong></li>
+                        </ul>
                     </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.tech.smart_routing">Smart Routing</h3>
-                        <p data-i18n="about.tech.smart_routing_desc">Topology-aware chaining connects domestic relays to foreign exit nodes, bypassing deep packet inspection (DPI).</p>
-                    </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.tech.scanner">Active Scanner</h3>
-                        <p data-i18n="about.tech.scanner_desc">A built-in Go scanner actively discovers fresh, low-latency Cloudflare endpoints to ensure maximum performance.</p>
+                    <div>
+                        <h4 style="color: var(--brand-tertiary); margin-bottom: 0.5rem;">Infrastructure</h4>
+                        <ul style="list-style: none; padding: 0; color: var(--text-secondary);">
+                            <li>GitHub Actions (CI/CD)</li>
+                            <li>GitHub Pages (Hosting)</li>
+                            <li>Docker (Containerization)</li>
+                        </ul>
                     </div>
                 </div>
             </section>
 
-            <section class="about-section">
-                <h2 data-i18n="about.security.title"><i data-feather="shield"></i> Security & Intelligence</h2>
-                <p data-i18n="about.security.text">
-                    ConfigStream incorporates multi-layered security validation to ensure proxy safety and reliability.
-                    Our intelligence pipeline filters out malicious nodes through comprehensive threat detection.
+            <!-- Protocols & Clients -->
+            <section class="card" style="padding: 3rem; margin-bottom: 4rem;">
+                <h2 style="margin-bottom: 2rem; text-align: center;" data-i18n="about.protocols.title">Supported Protocols & Clients</h2>
+                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 2rem;">
+                    We now support a wide range of modern protocols including <strong>VLESS</strong>, <strong>Hysteria2</strong>, <strong>TUIC</strong>, and <strong>WireGuard</strong> across major clients.
                 </p>
-                <div class="tech-grid">
-                    <div class="tech-card">
-                        <h3 data-i18n="about.security.firehol">FireHol Blocklist Integration</h3>
-                        <p data-i18n="about.security.firehol_desc">Real-time validation against known malicious IP addresses from FireHol's community-maintained blocklists.</p>
-                    </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.security.honeypot">Honeypot Detection</h3>
-                        <p data-i18n="about.security.honeypot_desc">Advanced heuristics identify and filter out honeypot traps designed to monitor user activity.</p>
-                    </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.security.validation">Configuration Validation</h3>
-                        <p data-i18n="about.security.validation_desc">Strict parsing and validation ensures all configs are well-formed, non-malicious, and standards-compliant.</p>
-                    </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.security.resharding">Dynamic Resharding</h3>
-                        <p data-i18n="about.security.resharding_desc">Intelligent load balancing based on actual fetch and test times ensures optimal pipeline performance.</p>
-                    </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+                    <span class="badge">Shadowrocket</span>
+                    <span class="badge">Surge</span>
+                    <span class="badge">Quantumult X</span>
+                    <span class="badge">Loon</span>
+                    <span class="badge">Sing-box</span>
+                    <span class="badge">Clash.Meta</span>
+                    <span class="badge">V2RayNG</span>
                 </div>
             </section>
 
-            <section class="about-section">
-                <h2 data-i18n="about.credits.title"><i data-feather="users"></i> Credits & Acknowledgements</h2>
-                <p style="margin-bottom: 1.5rem;" data-i18n="about.credits.text">
-                    ConfigStream is built on the shoulders of giants. We extend our gratitude to the following projects and communities:
+            <!-- Join Us -->
+            <section class="text-center" style="padding: 2rem;">
+                <h2 style="margin-bottom: 1rem;" data-i18n="about.join.title">Join the Movement</h2>
+                <p style="margin-bottom: 2rem; color: var(--text-secondary);" data-i18n="about.join.text">
+                    ConfigStream is built by the community, for the community.
                 </p>
-                <div class="tech-grid">
-                    <div class="tech-card">
-                        <h3 data-i18n="about.credits.core">Core Technologies</h3>
-                        <p data-i18n="about.credits.core_desc" data-i18n-html="true">
-                            • <strong>Sing-box:</strong> Advanced routing engine<br>
-                            • <strong>Python & Go:</strong> Hybrid pipeline architecture<br>
-                            • <strong>WebAssembly:</strong> Client-side verification
-                        </p>
-                    </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.credits.data">Data & Intelligence</h3>
-                        <p data-i18n="about.credits.data_desc" data-i18n-html="true">
-                            • <strong>IRCF & MortezaBashsiz:</strong> Community WARP tools<br>
-                            • <strong>FireHol:</strong> IP blocklist database<br>
-                            • <strong>MaxMind GeoIP2:</strong> Geolocation services
-                        </p>
-                    </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.credits.frontend">Frontend & Visualization</h3>
-                        <p data-i18n="about.credits.frontend_desc" data-i18n-html="true">
-                            • <strong>Globe.gl:</strong> 3D globe visualization<br>
-                            • <strong>Chart.js:</strong> Analytics charts<br>
-                            • <strong>Feather Icons:</strong> Modern icon system
-                        </p>
-                    </div>
-                    <div class="tech-card">
-                        <h3 data-i18n="about.credits.fonts">Fonts & Typography</h3>
-                        <p data-i18n="about.credits.fonts_desc" data-i18n-html="true">
-                            • <strong>Be Vietnam Pro:</strong> Primary UI font<br>
-                            • <strong>Vazirmatn:</strong> Farsi/Arabic UI font<br>
-                            • <strong>Mikhak:</strong> Farsi/Arabic display font
-                        </p>
-                    </div>
-                </div>
-                <p style="margin-top: 1.5rem; text-align: center; color: var(--text-secondary);" data-i18n="about.credits.thanks" data-i18n-html="true">
-                    <strong>Special Thanks:</strong> To all the open-source proxy list maintainers and the community contributors who make this platform possible.
-                </p>
-            </section>
-
-            <section class="about-section">
-                <h2 data-i18n="about.opensource.title"><i data-feather="code"></i> Open Source & License</h2>
-                <p data-i18n="about.opensource.text" data-i18n-html="true">
-                    ConfigStream is released under the <strong>AGPLv3 License</strong>, ensuring it remains free and open source forever.
-                    We believe in transparency, community-driven development, and unrestricted access to information.
-                </p>
-                <p style="margin-top: 1rem;">
-                    <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" target="_blank" class="btn btn-primary">
-                        <i data-feather="github"></i> <span data-i18n="about.opensource.btn">View on GitHub</span>
-                    </a>
-                </p>
+                <a href="https://github.com/AmirrezaFarnamTaheri/ConfigStream" class="btn btn-primary">
+                    <i data-feather="github"></i>
+                    <span data-i18n="about.join.btn">Contribute on GitHub</span>
+                </a>
             </section>
         </div>
     </main>
 
     <footer class="footer">
         <div class="container">
-            <p data-i18n="about.footer" data-i18n-html="true">&copy; 2025 ConfigStream. Open Source (AGPLv3).</p>
+            <p>&copy; 2024 ConfigStream. AGPL-3.0 License.</p>
         </div>
     </footer>
 
-    <script>
-        window.ROOT_PATH = './';
-    </script>
-    <script src="assets/js/utils/ui.js" defer></script>
-    <script src="assets/js/utils.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
-    <script src="assets/js/inline-icons.js"></script>
     <script src="assets/js/i18n.js" defer></script>
-    <script>
-        // Listen for language changes to update UI label
-        window.addEventListener('languageChanged', (e) => {
-             const lang = e.detail?.lang;
-             const label = document.getElementById('current-lang-label');
-             if(label && lang) {
-                label.textContent = lang.toUpperCase();
-             }
-        });
-
-        // Initial set label
-        document.addEventListener('DOMContentLoaded', () => {
-             const label = document.getElementById('current-lang-label');
-             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();
-        });
-    </script>
+    <script src="assets/js/inline-icons.js" defer></script>
 </body>
 </html>
