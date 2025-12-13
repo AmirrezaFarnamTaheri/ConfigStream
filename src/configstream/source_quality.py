@@ -15,7 +15,7 @@ class SourceHealth:
     last_failure: float = 0.0
     status: str = "active"  # active, probation, dead
 
-class SourceManager:
+class SourceQualityTracker:
     def __init__(self, db_path: Path = Path("data/source_health.json")):
         self.db_path = db_path
         self.sources: Dict[str, SourceHealth] = self._load_db()

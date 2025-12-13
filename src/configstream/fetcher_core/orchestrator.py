@@ -15,7 +15,7 @@ from .worker import fetch_single_source
 from ..security_validator import SecurityValidator
 from .constants import MAX_RESPONSE_SIZE
 # Integrate Source Manager
-from ..source_quality import SourceManager
+from ..source_quality import SourceQualityTracker
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ async def fetch_from_source(
         app_settings = AppSettings()
 
     # --- Source Health Check ---
-    source_manager = SourceManager()
+    source_manager = SourceQualityTracker()
     if not source_manager.should_fetch(source):
         logger.info(f"⏭️ Skipping unhealthy source: {SecurityValidator.sanitize_log_message(source)}")
         return FetchResult(False, source, error="Source Health Check Failed (Dead/Probation)")
