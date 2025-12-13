@@ -9,7 +9,7 @@ ConfigStream is a modular, sovereignty-grade anti-censorship platform. It aggreg
 
 We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
 
-> **🔒 Security & Stability Update (v2.0.6):** This release resolves critical backend logic flaws (determinism, chaining) and frontend architectural issues (caching, navigation, sanitization). See `CHANGELOG.md` for details.
+> **🔒 v2.0.7 Update:** Introducing **Vwarp Technology**, **VLESS/TUIC/Hysteria2** support, and **Differential Updates**.
 
 ---
 
@@ -18,7 +18,7 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 ### 🛡️ Resilient Core (Hybrid Engine)
 *   **Python Logic:** Orchestrates washing, chaining, and intelligence.
 *   **Go Speed:** High-concurrency raw socket testing via custom binary.
-*   **Wasm Verification:** Client-side verification in the browser for edge ground truth.
+*   **Vwarp Integration:** Uses MASQUE/QUIC scanning to find clean Cloudflare IPs, bypassing traditional blocks.
 
 ### 🌊 Smart Washing & Chaining
 *   **Proxy Washing:** Wraps flagged/dirty proxies in Cloudflare WARP tunnels using deterministic, stable key rotation.
@@ -26,28 +26,28 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 *   **Deterministic IPs:** Generates stable, non-colliding internal IPs for consistent routing tables.
 
 ### 🌐 Advanced Analytics & Globe
-*   **3D Globe Visualization:** Interactive real-time view of active proxy nodes with zoom and auto-spin controls.
-*   **Telemetry Dashboard:** Tracks network health, threats neutralized, and rejection reasons.
-*   **Feature Vectors:** Static vector search for finding "similar" high-quality proxies.
+*   **3D Globe Visualization:** Interactive real-time view of active proxy nodes.
+*   **Real-Time Sync:** WebSocket support for instant updates and differential data fetching.
+*   **Source Hygiene:** `SourceQualityTracker` automatically jails failing sources to prevent pipeline pollution.
 
 ### ⚡ Performance & Caching
-*   **PWA Architecture:** Fully offline-capable dashboard with Service Worker.
-*   **Smart Updates:** `UpdateDetector` polls for changes efficiently (4min interval) without wasting bandwidth.
-*   **Compressed Storage:** Client-side caching uses compression (Gzip/Brotli) to minimize storage footprint.
+*   **PWA Architecture:** Fully offline-capable dashboard.
+*   **Differential Updates:** Clients fetch only changes (deltas), reducing bandwidth by up to 90%.
+*   **Compressed Storage:** Client-side caching uses compression.
 *   **Zero-Cost Distribution:** Uses GitHub Pages with optimized caching strategies.
 
-### 🔌 Universal Adapters
-*   **Surge:** Native policy export.
-*   **Loon:** Native configuration export.
-*   **Quantumult X:** Server node export.
-*   **Shadowrocket:** Base64 subscription links.
+### 🔌 Universal Adapters (Expanded)
+*   **Surge:** Native policy export (supports VLESS, Hy2, TUIC).
+*   **Loon:** Native configuration export (supports VLESS, Hy2, TUIC, WireGuard).
+*   **Quantumult X:** Server node export (supports VLESS).
+*   **Shadowrocket:** Base64 subscription links (supports VLESS, Hy2, TUIC).
 *   **SIP008:** Standard JSON format for Shadowsocks.
 
 ---
 
 ## 📚 Documentation
 
-*   [**Architecture Deep Dive**](docs/wiki/project/02-architecture.md): System design and data flow.
+*   [**Architecture Deep Dive**](docs/wiki/Architecture.md): System design and data flow.
 *   [**Frontend Dashboard**](https://amirrezafarnamtaheri.github.io/ConfigStream/): Real-time analytics.
 
 ---
@@ -87,4 +87,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## 📜 License
 
-AGPL-3.0 License.
+AGPL-3.0
