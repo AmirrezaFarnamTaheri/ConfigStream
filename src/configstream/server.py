@@ -11,7 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 
-from .config import VERSION as CFG_VERSION
 from .output import OUTPUT_DIR
 
 # Configure logging
@@ -30,7 +29,7 @@ except importlib.metadata.PackageNotFoundError:
 app = FastAPI(
     title="ConfigStream",
     description="High-Performance VPN Aggregator API",
-    version=CFG_VERSION,
+    version=VERSION,
     docs_url="/api/docs",
     redoc_url=None,
 )
