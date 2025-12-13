@@ -41,7 +41,8 @@ async def generate_pipeline_outputs(
     # 2. Wash Batch (The "Blanket" Wash)
     # Generates standard WARP wraps for all working proxies (fallback/legacy behavior)
     # Returns the list of outbound configs and the set of IDs that were washed.
-    washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(optimized_proxies)
+    # [FIX] Pass stats object for metrics instrumentation
+    washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(optimized_proxies, stats=stats)
 
     # Update stats with washing results
     stats.washer_success_count = len(washed_ids)
@@ -59,8 +60,20 @@ async def generate_pipeline_outputs(
     # 4. Generate Files (The Assembler)
     # Writes everything to disk: Sing-box (with chains), Clash (raw), Subs, etc.
 
-    # Generate Master Proxies JSON
-    save_json(optimized_proxies, output_path / "proxies.json")
+    # Generate Master Proxies JSON with Rotation
+    proxies_path = output_path / "proxies.json"
+    old_proxies_path = output_path / "proxies.old.json"
+
+    if proxies_path.exists():
+        try:
+            # Perform rotation for differential updates
+            import shutil
+            shutil.copy2(proxies_path, old_proxies_path)
+            logger.info("Rotated proxies.json -> proxies.old.json for diff generation")
+        except Exception as e:
+            logger.warning(f"Failed to rotate proxies.json: {e}")
+
+    save_json(optimized_proxies, proxies_path)
 
     generated_files = generate_categorized_outputs(
         optimized_proxies,

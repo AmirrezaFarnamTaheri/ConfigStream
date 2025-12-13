@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from datetime import datetime, timezone
 
 
@@ -25,7 +25,16 @@ class PipelineStats:
     washer_success_count: int = 0
     smart_chain_count: int = 0
 
-    def to_dict(self) -> Dict[str, int | float]:
+    # Vwarp Stats
+    vwarp_attempts: int = 0
+    vwarp_success: int = 0
+
+    @property
+    def vwarp_win_rate(self) -> float:
+        if self.vwarp_attempts == 0: return 0.0
+        return (self.vwarp_success / self.vwarp_attempts) * 100
+
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "fetched_sources": self.fetched_sources,
             "fetched_lines": self.fetched_lines,
@@ -39,4 +48,5 @@ class PipelineStats:
             "scanner_ips_found": self.scanner_ips_found,
             "washer_success_count": self.washer_success_count,
             "smart_chain_count": self.smart_chain_count,
+            "vwarp_win_rate": self.vwarp_win_rate,
         }

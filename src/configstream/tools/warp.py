@@ -6,6 +6,7 @@ Registers a new device with Cloudflare and generates a WireGuard proxy config.
 import logging
 import random
 import datetime
+import asyncio
 from typing import Optional, Dict, Any
 import base64
 
@@ -34,6 +35,7 @@ def _generate_keys() -> tuple[str, str]:
     """
     Generate Curve25519 private and public keys.
     Returns (private_key_b64, public_key_b64).
+    This function blocks, so it should be run in an executor.
     """
     if not HAS_CRYPTO:
         raise ImportError("cryptography package is required for WARP key generation")
@@ -68,7 +70,9 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
 
         # 2. Generate Keys
         try:
-            private_key, public_key = _generate_keys()
+            # FIX: Run CPU-bound key generation in a separate thread
+            loop = asyncio.get_running_loop()
+            private_key, public_key = await loop.run_in_executor(None, _generate_keys)
         except ImportError:
             logger.error("Cannot generate WARP keys: cryptography module missing")
             return None
@@ -90,27 +94,18 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
 
         data = response.json()
 
+        # Safely extract peer data (list index out of range protection)
+        peers = data.get("config", {}).get("peers", [])
+        peer_data = peers[0] if peers else {}
+        endpoint_v4 = peer_data.get("endpoint", {}).get("v4", {})
+        interface_addresses = data.get("config", {}).get("interface", {}).get("addresses", {})
+
         return {
             "id": data.get("id"),
             "private_key": private_key,
-            "peer_public_key": (
-                data.get("config", {}).get("peers", [])[0].get("public_key")
-                if data.get("config", {}).get("peers")
-                else None
-            ),
-            "reserved": (
-                data.get("config", {})
-                .get("peers", [])[0]
-                .get("endpoint", {})
-                .get("v4", {})
-                .get("reserved")
-                if data.get("config", {}).get("peers")
-                else None
-            ),
-            "address": data.get("config", {})
-            .get("interface", {})
-            .get("addresses", {})
-            .get("v4"),
+            "peer_public_key": peer_data.get("public_key"),
+            "reserved": endpoint_v4.get("reserved"),
+            "address": interface_addresses.get("v4"),
         }
 
     except Exception as e:

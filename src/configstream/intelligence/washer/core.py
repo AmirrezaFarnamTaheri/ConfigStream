@@ -7,12 +7,15 @@ import httpx
 import asyncio
 import time
 from typing import List, Dict, Optional, Set, Any, Tuple
+from cachetools import LRUCache
 
 from ...models import Proxy
 from ...converters import to_singbox_outbound
 from ...workers.scanner import WarpScannerWorker
-from .warp_scraper import scrape_warp_sources
+from .warp_scraper import WarpScraper
+from ...tools.vwarp import VwarpTool
 from ..chaining import find_optimal_relay, ProxyStub, COUNTRIES
+from ...pipeline_core.stats import PipelineStats
 
 logger = logging.getLogger(__name__)
 
@@ -20,13 +23,9 @@ logger = logging.getLogger(__name__)
 DEFAULT_CLEAN_IPS = ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
 
 # Multiple fallback sources for Clean IP endpoints
-# Priority order: first working source wins
 CLEAN_IP_SOURCES = [
-    # Primary: ircfspace warpendpoint (new location)
     "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/result/warp-ip.txt",
-    # Fallback 1: Cloudflare official ranges (general CDN IPs)
     "https://www.cloudflare.com/ips-v4",
-    # Fallback 2: Alternative community-maintained list
     "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist",
 ]
 
@@ -35,7 +34,6 @@ class ProxyWasher:
     def __init__(self, warp_keys_json: str):
         try:
             parsed = json.loads(warp_keys_json) if warp_keys_json else []
-            # Validate that it's a list
             if not isinstance(parsed, list):
                 logger.warning(f"warp_keys_json is not a list, got {type(parsed)}")
                 self.warp_keys = []
@@ -48,70 +46,69 @@ class ProxyWasher:
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse warp_keys_json: {e}")
             self.warp_keys = []
-        self.seen_chains: Set[str] = set()
+
+        self.seen_chains = LRUCache(maxsize=50000)
         self._seen_chains_lock = threading.Lock()
         self.clean_ips: List[str] = []
-        # Audit: Limit seen chains memory usage
-        self.max_seen_chains = 100000
 
-        # Initialize the Active Scanner
         self.scanner = WarpScannerWorker()
 
     async def fetch_clean_ips(self) -> None:
         """
         Fetches the latest clean IPs for WARP endpoints.
-        Strategy:
-        1. Active Scanning (High Performance, Local Latency)
-        2. Static Lists (Reliability Fallback)
-        3. Hardcoded Defaults (Last Resort)
         """
 
-        # --- STRATEGY 0: WARP SCRAPER (NEW FIRST FALLBACK) ---
+        # --- STRATEGY 0: VWARP SCANNER ---
+        vwarp = VwarpTool()
+        scanned_ips = await vwarp.scan_endpoints()
+        if scanned_ips:
+            self.clean_ips = scanned_ips
+            logger.info(f"Loaded {len(self.clean_ips)} clean IPs from Vwarp")
+            return
+
+        # --- STRATEGY 0.5: WARP KEYS FROM SCRAPER ---
         if not self.warp_keys:
             logger.info("No WARP keys configured, trying community sources...")
             try:
-                scraped_keys = await scrape_warp_sources()
-                if scraped_keys:
-                    self.warp_keys = scraped_keys
-                    logger.info(
-                        f"Loaded {len(scraped_keys)} WARP keys from community sources"
-                    )
+                # [FIX] Use class method
+                scraper = WarpScraper()
+                scraped_keys = await scraper.scrape_warp_sources()
+
+                new_keys = []
+                for p in scraped_keys:
+                    key_dict = {
+                        "private_key": p.details.get("private_key"),
+                        "peer_public_key": p.details.get("peer_public_key"),
+                        "id": p.uuid
+                    }
+                    if key_dict["private_key"] and key_dict["peer_public_key"]:
+                        new_keys.append(key_dict)
+
+                if new_keys:
+                    self.warp_keys = new_keys
+                    logger.info(f"Loaded {len(new_keys)} WARP keys from community sources")
             except Exception as e:
                 logger.warning(f"WARP scraper failed: {e}")
 
-        # --- STRATEGY 1: ACTIVE SCANNING ---
-        # Only run if the binary is available
+        # --- STRATEGY 1: LEGACY ACTIVE SCANNING ---
         if self.scanner.available:
             try:
-                # Scan for 50 fresh IPs with a tight 5s timeout to keep pipeline fast
-                logger.info("Attempting active scan for fresh WARP endpoints...")
+                logger.info("Attempting legacy active scan...")
                 scanned_ips = await self.scanner.scan_endpoints(
                     limit=50, timeout=5, max_latency=800
                 )
 
-                # We need at least a few IPs to consider the scan "successful"
                 if scanned_ips and len(scanned_ips) >= 5:
                     self.clean_ips = scanned_ips
                     logger.info(
-                        f"Active Scan Success: Using {len(self.clean_ips)} fresh IPs "
-                        f"(Static sources skipped). Top: {self.clean_ips[:3]}"
+                        f"Legacy Scan Success: Using {len(self.clean_ips)} fresh IPs."
                     )
-                    return  # SUCCESS - Exit early, skip static lists
-                else:
-                    logger.warning(
-                        f"Active scan returned insufficient IPs ({len(scanned_ips)}). "
-                        "Falling back to static lists."
-                    )
+                    return
             except Exception as e:
-                logger.error(f"Active scan failed unexpectedly: {e}")
-        else:
-            logger.debug(
-                "Scanner binary not available/configured. Skipping active scan."
-            )
+                logger.error(f"Legacy scan failed: {e}")
 
         # --- STRATEGY 2: STATIC LISTS ---
         logger.info("Starting static list fetch sequence...")
-
         for source_url in CLEAN_IP_SOURCES:
             max_retries = 2
             backoff_factor = 2
@@ -122,80 +119,51 @@ class ProxyWasher:
                     async with httpx.AsyncClient(timeout=10) as client:
                         resp = await client.get(source_url)
                         if resp.status_code == 200:
-                            # Filter valid IPs (IPv4 only for now)
                             lines = [
                                 line.strip()
                                 for line in resp.text.splitlines()
                                 if line.strip() and not line.startswith("#")
                             ]
-                            # Basic validation: must look like IPv4
                             valid_ips = [
-                                ip.split("/")[0]  # Handle CIDR notation
+                                ip.split("/")[0]
                                 for ip in lines
                                 if ip.count(".") == 3 and ip[0].isdigit()
                             ]
                             if valid_ips:
-                                self.clean_ips = valid_ips[:100]  # Limit pool size
+                                self.clean_ips = valid_ips[:100]
                                 logger.info(
                                     "Fetched %d clean IPs from %s",
                                     len(self.clean_ips),
-                                    source_url.split("/")[2],  # Domain only
+                                    source_url.split("/")[2],
                                 )
-                                return  # Success - exit all loops
+                                return
                         else:
-                            logger.debug(
-                                f"Clean IPs fetch from {source_url} returned {resp.status_code}"
-                            )
-                except Exception as e:
+                            logger.debug(f"Fetch failed from {source_url}: {resp.status_code}")
+                except Exception:
                     if attempt < max_retries - 1:
-                        delay = base_delay * (backoff_factor**attempt)
-                        await asyncio.sleep(delay)
-                    else:
-                        logger.debug(
-                            f"Source {source_url} failed after {max_retries} attempts: {e}"
-                        )
+                        await asyncio.sleep(base_delay * (backoff_factor**attempt))
 
         # --- STRATEGY 3: DEFAULTS ---
-        logger.warning(
-            f"All Clean IP sources failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
-        )
+        logger.warning(f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs.")
         self.clean_ips = DEFAULT_CLEAN_IPS.copy()
 
     def _get_clean_endpoint(self, relay_id: str) -> str:
-        """Deterministically selects a clean IP based on proxy ID."""
         pool = self.clean_ips if self.clean_ips else DEFAULT_CLEAN_IPS
         if not pool:
-            logger.critical(
-                "Clean IP pool is empty, falling back to a single default IP."
-            )
             return DEFAULT_CLEAN_IPS[0] if DEFAULT_CLEAN_IPS else "162.159.192.1"
 
-        # Consistent hashing so the same proxy always gets the same endpoint (stability)
         hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
         return pool[hash_val % len(pool)]
 
     def _get_consistent_exit(
         self, relay_id: str, exit_pool: List[Dict]
     ) -> Optional[Dict]:
-        """
-        Selects an exit node deterministically based on the relay's ID.
-        Acts as a 'Stateless Cache'.
-        """
         if not exit_pool:
             return None
 
-        # Add Epoch (Current Week Number) to force rotation every week
-        # This prevents a bad key from permanently killing a proxy
         current_epoch = int(time.time() / (7 * 86400))
-
-        # Create a deterministic index from the Relay ID + Epoch
         hash_input = f"{relay_id}-{current_epoch}".encode()
         hash_val = int(hashlib.sha256(hash_input).hexdigest(), 16)
-
-        # We should find a valid key. If the picked one is invalid, we might want to search linear or try another hash
-        # But for simplicity and determinism, we assume the list is mostly valid or filter it beforehand.
-        # But wait, audit says B3: Unvalidated WARP keys.
-        # We can implement a check here to ensure the returned key is valid.
 
         pool_len = len(exit_pool)
         start_index = hash_val % pool_len
@@ -206,211 +174,122 @@ class ProxyWasher:
             if key.get("private_key") and key.get("peer_public_key"):
                 return key
 
-        # If no valid keys found
         return None
 
     def _generate_deterministic_ip(self, seed: str) -> str:
-        """Generate a stable 172.16.x.x IP from seed string."""
         h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
-        # Map to 172.16.0.2 - 172.16.250.252 (Avoid .0, .1, .255)
-        # We want unique IPs, so we use a large range.
-        # The audit suggests 172.16.x.y.
-        # octet_3: 0-249 (to be safe? usually 0-255 is fine but 172.16-31 is private range)
-        # 172.16.0.0/12.
-        # Let's stick to the audit suggestion: octet_3 = (h // 250) % 250, octet_4 = (h % 250) + 2
         octet_3 = (h // 250) % 250
         octet_4 = (h % 250) + 2
         return f"172.16.{octet_3}.{octet_4}/32"
 
     def get_warp_config(self, seed_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Returns a configuration dictionary for a WARP WireGuard outbound.
-        Used by external modules (like chaining) to wrap connections.
-        """
         if not self.warp_keys:
             return None
 
-        # 1. Get consistent credentials (reuse existing logic)
         identity = self._get_consistent_exit(seed_id, self.warp_keys)
         if not identity:
             return None
 
-        # 2. Get clean endpoint (reuse existing logic)
         endpoint = self._get_clean_endpoint(seed_id)
 
-        # 3. Get Port
         try:
             port = int(os.environ.get("WARP_PORT", "2408"))
         except (ValueError, TypeError):
             port = 2408
 
-        # 4. Return the specific config needed for Sing-box
         return {
             "type": "wireguard",
             "server": endpoint,
             "server_port": port,
-            "local_address": [
-                self._generate_deterministic_ip(seed_id)
-            ],  # Use deterministic unique IP generation
+            "local_address": [self._generate_deterministic_ip(seed_id)],
             "private_key": identity["private_key"],
             "peer_public_key": identity["peer_public_key"],
-            "mtu": 1280,  # Important for chains to avoid fragmentation
+            "mtu": 1280,
         }
 
     def wash_batch(
-        self, proxies: List[Proxy]
+        self, proxies: List[Proxy], stats: Optional[PipelineStats] = None
     ) -> Tuple[List[Dict[str, Any]], Set[str], Dict[str, int]]:
         """
         Process a batch of proxies, identifying 'washable' candidates
         and generating unique chains.
-
-        Returns:
-            - List of Sing-box outbound objects (Relay + Exit)
-            - Set of Proxy IDs that were successfully washed
-            - Dictionary of skip reasons
         """
         washed_outbounds: List[Dict[str, Any]] = []
         washed_ids: Set[str] = set()
         skip_reasons: Dict[str, int] = {}
 
-        # Early exit with clear logging
         if not self.warp_keys:
             logger.info("Washing skipped: WARP_KEY_POOL not configured")
             return washed_outbounds, washed_ids, skip_reasons
 
         working_count = sum(1 for p in proxies if p.is_working)
         if working_count == 0:
-            logger.warning(
-                "Washing skipped: No working proxies available (upstream testing failed)"
-            )
+            logger.warning("Washing skipped: No working proxies available")
             return washed_outbounds, washed_ids, skip_reasons
 
-        # 1. Identify Candidates
         candidates = [p for p in proxies if p.is_working and self.warp_keys]
-        logger.info(
-            f"Washing {len(candidates)} proxies through WARP "
-            f"(Total Working: {working_count}, Key Pool: {len(self.warp_keys)})"
-        )
-        if len(candidates) > 0:
-            logger.info(f"Washer: Attempting to revive {len(candidates)} proxies...")
+        logger.info(f"Washing {len(candidates)} proxies through WARP...")
 
-        # --- NEW: Use Geodesic Optimization Target ---
-        # Assume US target for checking optimal routing (as per audit snippet)
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
-
-        # FIX: Allow origin configuration or default to generic, remove local counter
         origin_country = os.environ.get("OPTIMAL_RELAY_ORIGIN", "IR")
 
         for i, relay in enumerate(candidates):
-            # 2. Select the "Soap" (Exit Node)
+            # [METRICS] Increment Attempts
+            if stats:
+                stats.vwarp_attempts += 1
+
             exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
-            if (
-                not exit_key
-                or not exit_key.get("private_key")
-                or not exit_key.get("peer_public_key")
-            ):
-                skip_reasons["invalid_warp_key"] = (
-                    skip_reasons.get("invalid_warp_key", 0) + 1
-                )
-                logger.debug(
-                    f"Skipping proxy {relay.id[:8]}: invalid WARP key (missing private or public key)"
-                )
+            if not exit_key:
+                skip_reasons["invalid_warp_key"] = skip_reasons.get("invalid_warp_key", 0) + 1
                 continue
 
-            # 3. Generate Deterministic Chain ID
             chain_id = "CHAIN-{cc}-{rid}-{eid}".format(
                 cc=relay.country_code,
                 rid=relay.id[:6],
                 eid=exit_key.get("id", "00")[:4],
             )
 
-            # Thread-safe check-then-act for deduplication
             with self._seen_chains_lock:
-                # [Audit Fix B4] Pruning happens inside the lock to ensure concurrency safety
-                if len(self.seen_chains) > self.max_seen_chains:
-                    self.seen_chains.clear()
-                    logger.warning("Flushed seen_chains cache (limit exceeded)")
-
                 if chain_id in self.seen_chains:
-                    skip_reasons["duplicate_chain"] = (
-                        skip_reasons.get("duplicate_chain", 0) + 1
-                    )
-                    continue  # Skip duplicates
+                    skip_reasons["duplicate_chain"] = skip_reasons.get("duplicate_chain", 0) + 1
+                    continue
+                self.seen_chains[chain_id] = True
 
-                self.seen_chains.add(chain_id)
-
-            # 4. Construct the Chain Objects
             relay_out = to_singbox_outbound(relay)
             if not relay_out:
-                skip_reasons["conversion_failed"] = (
-                    skip_reasons.get("conversion_failed", 0) + 1
-                )
-                logger.debug(
-                    f"Skipping proxy {relay.id[:8]}: conversion to singbox failed"
-                )
+                skip_reasons["conversion_failed"] = skip_reasons.get("conversion_failed", 0) + 1
                 continue
 
             relay_tag = f"RELAY-{chain_id}"
             relay_out["tag"] = relay_tag
 
-            # --- NEW: Use Clean IP ---
             clean_endpoint = self._get_clean_endpoint(relay.id)
             clean_port_str = os.environ.get("WARP_PORT", "2408")
 
-            # Validate endpoint/port before emitting outbound
-            if not isinstance(clean_endpoint, str) or not clean_endpoint:
-                skip_reasons["invalid_endpoint"] = (
-                    skip_reasons.get("invalid_endpoint", 0) + 1
-                )
-                logger.debug(
-                    f"Skipping proxy {relay.id[:8]}: invalid clean endpoint '{clean_endpoint}'"
-                )
-                continue
             try:
                 clean_port = int(clean_port_str)
                 if not (1 <= clean_port <= 65535):
-                    raise ValueError("port out of range")
+                    raise ValueError
             except Exception:
-                skip_reasons["invalid_endpoint"] = (
-                    skip_reasons.get("invalid_endpoint", 0) + 1
-                )
-                logger.debug(
-                    f"Skipping proxy {relay.id[:8]}: invalid clean port '{clean_port_str}'"
-                )
+                skip_reasons["invalid_endpoint"] = skip_reasons.get("invalid_endpoint", 0) + 1
                 continue
 
-            # [FIX] Generate Unique Local IP using deterministic logic
             unique_ip = self._generate_deterministic_ip(chain_id)
 
-            # --- NEW: Geodesic Optimization Tagging ---
             is_optimal = False
             try:
                 if relay.country in COUNTRIES:
                     relay_stub = ProxyStub(relay.country, 0.0, 0.0, relay.protocol)
                     relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country]
-
-                    # FIX: Use configured origin instead of hardcoded "IR"
                     res = find_optimal_relay(origin_country, target_exit, [relay_stub])
                     if isinstance(res, dict) and "relay" in res:
-                        # If the penalty wasn't high enough to exclude it (it returns best of list, so we check distance)
-                        # Heuristic: < 15000km is decent for IR -> US via EU
                         total_distance = res.get("total_distance", 99999)
-                        try:
-                            if float(total_distance) < 15000:
-                                is_optimal = True
-                        except (TypeError, ValueError):
-                            logger.debug(
-                                f"Non-numeric total_distance for relay {relay.id}: {total_distance}"
-                            )
-            except Exception as e:
-                logger.debug(
-                    f"Could not determine optimality for relay {relay.id}: {e}"
-                )
+                        if float(total_distance) < 15000:
+                            is_optimal = True
+            except Exception:
+                pass
 
-            exit_tag_prefix = "🛡️ Secure"
-            if is_optimal:
-                exit_tag_prefix = "🛡️⚡ Optimal"
-
+            exit_tag_prefix = "🛡️⚡ Optimal" if is_optimal else "🛡️ Secure"
             exit_tag = f"{exit_tag_prefix}-{relay.country_code}-{i+1}"
 
             warp_out = {
@@ -427,37 +306,17 @@ class ProxyWasher:
             washed_outbounds.append(relay_out)
             washed_outbounds.append(warp_out)
             washed_ids.add(relay.id)
-            logger.debug(
-                f"Created washed chain {chain_id}: {relay_tag} -> {exit_tag} "
-                f"(Clean IP: {clean_endpoint})"
-            )
-            # Log successful wash event
-            logger.debug(
-                f"Washer: Successfully revived proxy {relay.id[:8]} -> {exit_tag}"
-            )
 
-        # Calculate detailed washing statistics
+            # [METRICS] Increment Success
+            if stats:
+                stats.vwarp_success += 1
+
         conversion_failures = len(candidates) - len(washed_ids)
 
-        # Enhanced logging for clean IPs usage
-        clean_ip_usage: Dict[str, int] = {}
-        for out in washed_outbounds:
-            if out.get("type") == "wireguard" and "server" in out:
-                srv = out["server"]
-                clean_ip_usage[srv] = clean_ip_usage.get(srv, 0) + 1
-
         logger.info(
-            f"Washing complete: {len(washed_ids)}/{len(candidates)} proxies washed "
-            f"(conversion_failures={conversion_failures}, "
-            f"warp_pool_size={len(self.warp_keys)}, "
-            f"clean_ips={len(self.clean_ips)}). "
-            f"Clean IP Usage: {json.dumps(clean_ip_usage)}. "
-            f"Skip reasons: {json.dumps(skip_reasons)}"
+            f"Washing complete: {len(washed_ids)}/{len(candidates)} proxies washed. "
+            f"Conversion Failures: {conversion_failures}. "
+            f"Clean IPs: {len(self.clean_ips)}"
         )
-
-        if conversion_failures > 0:
-            logger.debug(
-                f"Washing conversion failures details: {json.dumps(skip_reasons)}"
-            )
 
         return washed_outbounds, washed_ids, skip_reasons

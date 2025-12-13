@@ -14,6 +14,8 @@ from .models import FetchResult, RateLimitError
 from .worker import fetch_single_source
 from ..security_validator import SecurityValidator
 from .constants import MAX_RESPONSE_SIZE
+# Integrate Source Manager
+from ..source_quality import SourceManager
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +40,12 @@ async def fetch_from_source(
     if app_settings is None:
         app_settings = AppSettings()
 
+    # --- Source Health Check ---
+    source_manager = SourceManager()
+    if not source_manager.should_fetch(source):
+        logger.info(f"⏭️ Skipping unhealthy source: {SecurityValidator.sanitize_log_message(source)}")
+        return FetchResult(False, source, error="Source Health Check Failed (Dead/Probation)")
+
     # 1. URL Validation
     sanitized_source = SecurityValidator.sanitize_log_message(source)
     try:
@@ -47,6 +55,7 @@ async def fetch_from_source(
         host = parsed.netloc
     except Exception as e:
         logger.debug(f"URL validation failed for {sanitized_source}: {e}")
+        source_manager.report_failure(source)
         return FetchResult(False, source, error=str(e))
 
     # 2. Adaptive Timeout Calculation
@@ -131,6 +140,8 @@ async def fetch_from_source(
                     logger.info(f"High Jitter detected for {source}: {jitter:.2f}s")
 
             if result.success:
+                source_manager.report_success(source)  # <--- Track Success
+
                 # [FIX] Handle bytes vs str for content preview
                 if isinstance(result.content, bytes):
                     preview_text = (
@@ -231,6 +242,8 @@ async def fetch_from_source(
                         await timeout_tracker.record_attempt(
                             host, float(per_attempt_timeout), success=False
                         )
+
+                    source_manager.report_failure(source)  # <--- Track Failure
                 except (asyncio.CancelledError, KeyboardInterrupt):
                     raise
                 except Exception:
@@ -270,6 +283,9 @@ async def fetch_from_source(
                 )
                 await asyncio.sleep(min(backoff, 30))
                 backoff = min(backoff * 2, 60)
+
+    # If we get here, all retries failed
+    source_manager.report_failure(source)  # <--- Track Failure
 
     return FetchResult(
         False,

@@ -1,123 +1,88 @@
-"""
-Source Quality Tracker.
-Refactored to use submodules.
-"""
-
+import json
 import logging
-from typing import Dict, Any
 from pathlib import Path
-from datetime import datetime, timedelta, timezone
-
-from .quality.storage import QualityStorage
-from .quality.scoring import (
-    calculate_diversity_score,
-    calculate_cooldown_hours,
-    calculate_trust_score,
-)
+from datetime import datetime, timezone
+from dataclasses import dataclass, asdict
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class SourceHealth:
+    url: str
+    failures: int = 0
+    last_success: float = 0.0
+    last_failure: float = 0.0
+    status: str = "active"  # active, probation, dead
 
-class SourceQualityTracker:
-    def __init__(self, db_path: Path = Path("data/source_quality.db")):
-        self.storage = QualityStorage(db_path)
+class SourceManager:
+    def __init__(self, db_path: Path = Path("data/source_health.json")):
+        self.db_path = db_path
+        self.sources: Dict[str, SourceHealth] = self._load_db()
+
+    def _load_db(self) -> Dict[str, SourceHealth]:
+        if not self.db_path.exists():
+            return {}
+        try:
+            data = json.loads(self.db_path.read_text())
+            return {url: SourceHealth(**props) for url, props in data.items()}
+        except Exception:
+            return {}
+
+    def save(self):
+        try:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            data = {url: asdict(health) for url, health in self.sources.items()}
+            self.db_path.write_text(json.dumps(data, indent=2))
+        except Exception as e:
+            logger.warning(f"Failed to save source health db: {e}")
+
+    def report_success(self, url: str):
+        if url not in self.sources:
+            self.sources[url] = SourceHealth(url=url)
+
+        record = self.sources[url]
+        record.failures = 0
+        record.last_success = datetime.now(timezone.utc).timestamp()
+        record.status = "active"
+        self.save()
+
+    def report_failure(self, url: str):
+        if url not in self.sources:
+            self.sources[url] = SourceHealth(url=url)
+
+        record = self.sources[url]
+        record.failures += 1
+        record.last_failure = datetime.now(timezone.utc).timestamp()
+
+        # LOGIC: 3 strikes = Probation, 10 strikes = Dead
+        if record.failures >= 10:
+            if record.status != "dead":
+                record.status = "dead"
+                logger.error(f"💀 Source marked DEAD: {url}")
+        elif record.failures >= 3:
+            if record.status != "probation":
+                record.status = "probation"
+                logger.warning(f"⚠️ Source on PROBATION: {url}")
+
+        self.save()
 
     def should_fetch(self, url: str) -> bool:
-        """
-        Decide if a source should be fetched based on its cooldown status.
-        """
-        row = self.storage.get_source_state(url)
-        if not row:
-            return True  # New source
+        """Decides if a source is worthy of bandwidth."""
+        if url not in self.sources:
+            return True  # New source, give it a chance
 
-        # Row: status, last_checked, consecutive_failures, reliability_score, total_fetched, total_working
-        status, last_ts, failures, _, _, _ = row
-
-        if status == "disabled":
+        record = self.sources[url]
+        if record.status == "dead":
+            # Optional: Allow resurrection check every week?
+            # For now, dead is dead.
             return False
 
-        cooldown_hours = calculate_cooldown_hours(failures)
-        # Ensure timezone-aware (UTC)
-        next_allowed = datetime.fromtimestamp(last_ts, tz=timezone.utc) + timedelta(
-            hours=cooldown_hours
-        )
-
-        if datetime.now(timezone.utc) < next_allowed:
-            if failures > 2:
-                logger.debug(
-                    f"Skipping {url} (Cooldown until {next_allowed.strftime('%H:%M')})"
-                )
-            return False
+        if record.status == "probation":
+            # Exponential backoff: Retry once every 6 hours
+            cooldown = 6 * 3600
+            # If time since last failure is less than cooldown, skip
+            if (datetime.now(timezone.utc).timestamp() - record.last_failure) < cooldown:
+                return False
 
         return True
-
-    def update(
-        self,
-        url: str,
-        fetched_count: int,
-        working_count: int,
-        diversity_score: float = 0.0,
-        avg_jitter: float = 0.0,
-    ):
-        """
-        Update the stats for a source after a pipeline run.
-        """
-        now = int(datetime.now(timezone.utc).timestamp())
-        is_failure = working_count == 0
-
-        row = self.storage.get_source_state(url)
-
-        if row:
-            # status, last_checked, consecutive_failures, reliability_score, total_fetched, total_working
-            _, _, cf, old_reliability, tf, tw = row
-
-            new_tf = tf + fetched_count
-            new_tw = tw + working_count
-            new_cf = cf + 1 if is_failure else 0
-
-            yield_rate = (working_count / fetched_count) if fetched_count > 0 else 0.0
-
-            # Weighted average
-            new_reliability = (old_reliability * 0.9) + (yield_rate * 100 * 0.1)
-        else:
-            # New
-            new_tf = fetched_count
-            new_tw = working_count
-            new_cf = 1 if is_failure else 0
-
-            yield_rate = (working_count / fetched_count) if fetched_count > 0 else 0.0
-            new_reliability = yield_rate * 100
-
-        trust_score = calculate_trust_score(
-            new_reliability, diversity_score, new_cf, avg_jitter
-        )
-
-        stats = {
-            "total_fetched": new_tf,
-            "total_working": new_tw,
-            "consecutive_failures": new_cf,
-            "last_checked": now,
-            "reliability_score": new_reliability,
-            "diversity_score": diversity_score,
-            "trust_score": trust_score,
-        }
-
-        self.storage.upsert_stats(url, stats)
-
-    def record_run(self, url: str, run_data: Dict[str, Any]):
-        """
-        Record detailed run metadata for historical analysis.
-        """
-        self.storage.record_run(url, run_data)
-
-    def get_source_score(self, url: str) -> float:
-        """Get the current trust score for a source."""
-        return self.storage.get_trust_score(url)
-
-    def merge_from(self, other_db_path: Path):
-        """Merge data from another SQLite database."""
-        self.storage.merge_from(other_db_path)
-
-
-# Helper function exposed for compatibility/imports
-calculate_diversity_score = calculate_diversity_score
