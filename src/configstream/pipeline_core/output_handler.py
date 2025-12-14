@@ -42,7 +42,9 @@ async def generate_pipeline_outputs(
     # Generates standard WARP wraps for all working proxies (fallback/legacy behavior)
     # Returns the list of outbound configs and the set of IDs that were washed.
     # [FIX] Pass stats object for metrics instrumentation
-    washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(optimized_proxies, stats=stats)
+    washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(
+        optimized_proxies, stats=stats
+    )
 
     # Update stats with washing results
     stats.washer_success_count = len(washed_ids)
@@ -68,6 +70,7 @@ async def generate_pipeline_outputs(
         try:
             # Perform rotation for differential updates
             import shutil
+
             shutil.copy2(proxies_path, old_proxies_path)
             logger.info("Rotated proxies.json -> proxies.old.json for diff generation")
         except Exception as e:

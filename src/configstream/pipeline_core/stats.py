@@ -31,7 +31,8 @@ class PipelineStats:
 
     @property
     def vwarp_win_rate(self) -> float:
-        if self.vwarp_attempts == 0: return 0.0
+        if self.vwarp_attempts == 0:
+            return 0.0
         return (self.vwarp_success / self.vwarp_attempts) * 100
 
     def to_dict(self) -> Dict[str, Any]:
