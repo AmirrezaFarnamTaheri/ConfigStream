@@ -45,8 +45,14 @@ class ConcurrencyManager:
     async def _tuner_loop(self):
         """Periodically adjust concurrency limit."""
         while self._running:
-            await asyncio.sleep(1.0)
-            await self._adjust()
+            try:
+                await asyncio.sleep(1.0)
+                await self._adjust()
+            except (asyncio.CancelledError, KeyboardInterrupt):
+                # Tuner loop cancelled
+                break
+            except Exception as e:
+                logger.error(f"Error in tuner loop: {e}")
 
     async def _adjust(self):
         async with self._stats_lock:
