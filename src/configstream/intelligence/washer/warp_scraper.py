@@ -82,7 +82,9 @@ class WarpScraper:
                                     addr = addr[0]
 
                                 # Use make_entry helper if available, or manual Proxy creation
-                                entry = make_entry("scraped-sb", priv, "auto", None, [0, 0, 0])
+                                entry = make_entry(
+                                    "scraped-sb", priv, "auto", None, [0, 0, 0]
+                                )
                                 if entry:
                                     entries.append(entry)
                     except json.JSONDecodeError:
@@ -94,7 +96,9 @@ class WarpScraper:
                         # Attempt Base64 decode first
                         decoded = ""
                         try:
-                            decoded = base64.b64decode(content).decode("utf-8", errors="ignore")
+                            decoded = base64.b64decode(content).decode(
+                                "utf-8", errors="ignore"
+                            )
                         except Exception:
                             decoded = content
 

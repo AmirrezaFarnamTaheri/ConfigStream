@@ -13,6 +13,7 @@ class VwarpTool:
     Controller for the voidr3aper-anon/Vwarp binary.
     Handles scanning, config generation, and transport tunneling.
     """
+
     def __init__(self):
         self.binary = shutil.which("vwarp")
         if not self.binary:
@@ -39,9 +40,7 @@ class VwarpTool:
         try:
             logger.info("📡 Starting Vwarp active scanner...")
             proc = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             # Give it 30 seconds max to find IPs
             try:
@@ -56,7 +55,7 @@ class VwarpTool:
             # Parse Output
             endpoints = []
             if stdout:
-                output_text = stdout.decode(errors='ignore')
+                output_text = stdout.decode(errors="ignore")
                 for line in output_text.splitlines():
                     # Regex or string splitting to find IP:PORT
                     # Expected format: "162.159.192.10:2408 - 150ms"
@@ -84,6 +83,6 @@ class VwarpTool:
                 *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, _ = await proc.communicate()
-            return json.loads(stdout.decode(errors='ignore'))
+            return json.loads(stdout.decode(errors="ignore"))
         except Exception:
             return {}
