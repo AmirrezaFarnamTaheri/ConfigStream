@@ -179,7 +179,9 @@ class LoonAdapter(Adapter):
         if p.protocol == "shadowsocks":
             method = p.details.get("method", "chacha20-ietf-poly1305")
             password = p.details.get("password", "")
-            return f'{name} = shadowsocks, {p.address}, {p.port}, {method}, "{password}"'
+            return (
+                f'{name} = shadowsocks, {p.address}, {p.port}, {method}, "{password}"'
+            )
 
         elif p.protocol == "vmess":
             uuid = p.uuid
@@ -202,7 +204,9 @@ class LoonAdapter(Adapter):
         elif p.protocol == "tuic":
             # Loon TUIC
             sni = p.details.get("sni", "")
-            return f'{name} = tuic, {p.address}, {p.port}, password="{p.uuid}", sni={sni}'
+            return (
+                f'{name} = tuic, {p.address}, {p.port}, password="{p.uuid}", sni={sni}'
+            )
 
         elif p.protocol == "wireguard":
             # Loon WireGuard (standard)
@@ -250,7 +254,9 @@ class QuantumultXAdapter(Adapter):
         elif p.protocol == "vmess":
             uuid = p.uuid
             method = p.details.get("method", "chacha20-poly1305")
-            return f"vmess={name}: {p.address}, {p.port}, method={method}, password={uuid}"
+            return (
+                f"vmess={name}: {p.address}, {p.port}, method={method}, password={uuid}"
+            )
 
         elif p.protocol == "trojan":
             password = p.uuid
@@ -264,7 +270,9 @@ class QuantumultXAdapter(Adapter):
         elif p.protocol == "http":
             user = p.uuid
             pwd = p.details.get("password", "")
-            return f"http={name}: {p.address}, {p.port}, username={user}, password={pwd}"
+            return (
+                f"http={name}: {p.address}, {p.port}, username={user}, password={pwd}"
+            )
 
         return ""
 
@@ -318,6 +326,7 @@ class ShadowrocketAdapter(Adapter):
             # Simplified VMess reconstruction (often better to use original if available)
             # This is a basic fallback
             import json
+
             v_obj = {
                 "v": "2",
                 "ps": p.remarks or "ConfigStream",

@@ -54,7 +54,7 @@ def validate_b64_input(data: str) -> Optional[str]:
         return None
 
     s_stripped = data.strip()[:10]
-    if s_stripped.startswith(('<', '{', '[')):
+    if s_stripped.startswith(("<", "{", "[")):
         return None
 
     # Handle comments starting with '#' or space-separated remarks

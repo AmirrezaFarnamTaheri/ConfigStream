@@ -46,6 +46,7 @@ app.add_middleware(
 # Pre-compile regex for path validation
 SAFE_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 
+
 # --- WebSocket Connection Manager ---
 class ConnectionManager:
     def __init__(self):
@@ -65,9 +66,11 @@ class ConnectionManager:
             except Exception:
                 pass
 
+
 manager = ConnectionManager()
 
 # --- API Endpoints ---
+
 
 @app.websocket("/ws/updates")
 async def websocket_endpoint(websocket: WebSocket):
@@ -82,15 +85,19 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
+
 @app.post("/api/admin/notify-update")
 async def notify_update(payload: dict):
     """Internal endpoint called by pipeline when a cycle finishes."""
-    await manager.broadcast({
-        "type": "UPDATE_AVAILABLE",
-        "version": payload.get("version", VERSION),
-        "timestamp": payload.get("timestamp")
-    })
+    await manager.broadcast(
+        {
+            "type": "UPDATE_AVAILABLE",
+            "version": payload.get("version", VERSION),
+            "timestamp": payload.get("timestamp"),
+        }
+    )
     return {"status": "broadcast_sent"}
+
 
 @app.get("/api/diff/proxies")
 async def get_proxy_diff(base_version: str):
@@ -116,8 +123,8 @@ async def get_proxy_diff(base_version: str):
             old_data = json.loads(old_path.read_text())
 
             # Assuming proxies have 'id' field. If not, fallback to index
-            current_ids = {p.get('id', str(i)): p for i, p in enumerate(current_data)}
-            old_ids = {p.get('id', str(i)): p for i, p in enumerate(old_data)}
+            current_ids = {p.get("id", str(i)): p for i, p in enumerate(current_data)}
+            old_ids = {p.get("id", str(i)): p for i, p in enumerate(old_data)}
 
             added = [p for pid, p in current_ids.items() if pid not in old_ids]
             removed = [pid for pid in old_ids if pid not in current_ids]
@@ -126,13 +133,14 @@ async def get_proxy_diff(base_version: str):
                 "type": "delta",
                 "base_version": base_version,
                 "added": added,
-                "removed": removed
+                "removed": removed,
             }
         except Exception as e:
             logger.error(f"Diff generation failed: {e}")
 
     # Fallback: Tell client to fetch full
     return {"type": "full_reload_required"}
+
 
 @app.get("/api/stats")
 async def get_stats():
@@ -289,7 +297,7 @@ async def health_check():
         "status": "ok",
         "output_dir": str(OUTPUT_DIR),
         "files_present": files_count,
-        "version": VERSION
+        "version": VERSION,
     }
 
 
