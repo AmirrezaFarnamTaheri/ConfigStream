@@ -171,14 +171,16 @@ class GoBatchTester:
                 if os.environ.get("USE_VWARP_TUNNEL") == "true":
                     # Assuming Vwarp tunnel is running on 10808
                     env["ALL_PROXY"] = "socks5://127.0.0.1:10808"
-                    logger.info("Go Tester using Vwarp tunnel at socks5://127.0.0.1:10808")
+                    logger.info(
+                        "Go Tester using Vwarp tunnel at socks5://127.0.0.1:10808"
+                    )
 
                 self._proc = await asyncio.create_subprocess_exec(
                     *cmd,
                     stdin=asyncio.subprocess.PIPE,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE,
-                    env=env
+                    env=env,
                 )
 
                 # Start background readers

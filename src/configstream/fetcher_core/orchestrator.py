@@ -14,6 +14,7 @@ from .models import FetchResult, RateLimitError
 from .worker import fetch_single_source
 from ..security_validator import SecurityValidator
 from .constants import MAX_RESPONSE_SIZE
+
 # Integrate Source Manager
 from ..source_quality import SourceQualityTracker
 
@@ -43,8 +44,12 @@ async def fetch_from_source(
     # --- Source Health Check ---
     source_manager = SourceQualityTracker()
     if not source_manager.should_fetch(source):
-        logger.info(f"⏭️ Skipping unhealthy source: {SecurityValidator.sanitize_log_message(source)}")
-        return FetchResult(False, source, error="Source Health Check Failed (Dead/Probation)")
+        logger.info(
+            f"⏭️ Skipping unhealthy source: {SecurityValidator.sanitize_log_message(source)}"
+        )
+        return FetchResult(
+            False, source, error="Source Health Check Failed (Dead/Probation)"
+        )
 
     # 1. URL Validation
     sanitized_source = SecurityValidator.sanitize_log_message(source)

@@ -79,14 +79,16 @@ class ProxyWasher:
                     key_dict = {
                         "private_key": p.details.get("private_key"),
                         "peer_public_key": p.details.get("peer_public_key"),
-                        "id": p.uuid
+                        "id": p.uuid,
                     }
                     if key_dict["private_key"] and key_dict["peer_public_key"]:
                         new_keys.append(key_dict)
 
                 if new_keys:
                     self.warp_keys = new_keys
-                    logger.info(f"Loaded {len(new_keys)} WARP keys from community sources")
+                    logger.info(
+                        f"Loaded {len(new_keys)} WARP keys from community sources"
+                    )
             except Exception as e:
                 logger.warning(f"WARP scraper failed: {e}")
 
@@ -138,13 +140,17 @@ class ProxyWasher:
                                 )
                                 return
                         else:
-                            logger.debug(f"Fetch failed from {source_url}: {resp.status_code}")
+                            logger.debug(
+                                f"Fetch failed from {source_url}: {resp.status_code}"
+                            )
                 except Exception:
                     if attempt < max_retries - 1:
                         await asyncio.sleep(base_delay * (backoff_factor**attempt))
 
         # --- STRATEGY 3: DEFAULTS ---
-        logger.warning(f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs.")
+        logger.warning(
+            f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
+        )
         self.clean_ips = DEFAULT_CLEAN_IPS.copy()
 
     def _get_clean_endpoint(self, relay_id: str) -> str:
@@ -240,7 +246,9 @@ class ProxyWasher:
 
             exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
             if not exit_key:
-                skip_reasons["invalid_warp_key"] = skip_reasons.get("invalid_warp_key", 0) + 1
+                skip_reasons["invalid_warp_key"] = (
+                    skip_reasons.get("invalid_warp_key", 0) + 1
+                )
                 continue
 
             chain_id = "CHAIN-{cc}-{rid}-{eid}".format(
@@ -251,13 +259,17 @@ class ProxyWasher:
 
             with self._seen_chains_lock:
                 if chain_id in self.seen_chains:
-                    skip_reasons["duplicate_chain"] = skip_reasons.get("duplicate_chain", 0) + 1
+                    skip_reasons["duplicate_chain"] = (
+                        skip_reasons.get("duplicate_chain", 0) + 1
+                    )
                     continue
                 self.seen_chains[chain_id] = True
 
             relay_out = to_singbox_outbound(relay)
             if not relay_out:
-                skip_reasons["conversion_failed"] = skip_reasons.get("conversion_failed", 0) + 1
+                skip_reasons["conversion_failed"] = (
+                    skip_reasons.get("conversion_failed", 0) + 1
+                )
                 continue
 
             relay_tag = f"RELAY-{chain_id}"
@@ -271,7 +283,9 @@ class ProxyWasher:
                 if not (1 <= clean_port <= 65535):
                     raise ValueError
             except Exception:
-                skip_reasons["invalid_endpoint"] = skip_reasons.get("invalid_endpoint", 0) + 1
+                skip_reasons["invalid_endpoint"] = (
+                    skip_reasons.get("invalid_endpoint", 0) + 1
+                )
                 continue
 
             unique_ip = self._generate_deterministic_ip(chain_id)

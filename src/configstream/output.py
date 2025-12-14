@@ -4,6 +4,8 @@ Exports functionality from `output_logic`, `output_transport`, and `output_gener
 Maintains backward compatibility.
 """
 
+from pathlib import Path
+
 from .intelligence.washer import ProxyWasher
 from .intelligence.chaining import generate_smart_chains
 from .output_logic import generate_categorized_outputs, save_metadata
@@ -13,6 +15,8 @@ from .output_transport import save_json
 # We alias it here for backward compatibility with older tests/scripts
 generate_split_outputs = generate_categorized_outputs
 
+# Global constant for output directory
+OUTPUT_DIR = Path("output")
 
 __all__ = [
     "generate_categorized_outputs",
@@ -21,4 +25,5 @@ __all__ = [
     "generate_split_outputs",
     "generate_smart_chains",
     "ProxyWasher",
+    "OUTPUT_DIR",
 ]

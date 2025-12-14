@@ -109,7 +109,7 @@ async def run_full_pipeline(
             vwarp_proc = subprocess.Popen(
                 [vwarp_bin, "--bind", "127.0.0.1:10808"],
                 stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
+                stderr=subprocess.DEVNULL,
             )
             # Give it a second to bind
             await asyncio.sleep(1)
@@ -127,7 +127,9 @@ async def run_full_pipeline(
     if max_workers > 200:
         optimal_consumers = max(optimal_consumers, 16)
 
-    logger.info(f"🚀 Auto-scaling to {optimal_consumers} consumers based on {cpu_count} cores.")
+    logger.info(
+        f"🚀 Auto-scaling to {optimal_consumers} consumers based on {cpu_count} cores."
+    )
 
     # Optimized Queue Size: Increase buffer to prevent producer blocking
     work_queue: asyncio.Queue = asyncio.Queue(maxsize=5000)
@@ -256,10 +258,11 @@ async def run_full_pipeline(
             # Only if running in same process, which is rare for pipeline vs server split.
             # But we can try hitting the endpoint.
             import httpx
+
             async with httpx.AsyncClient(timeout=1.0) as client:
                 await client.post(
                     "http://127.0.0.1:8000/api/admin/notify-update",
-                    json={"timestamp": stats.end_time or duration}
+                    json={"timestamp": stats.end_time or duration},
                 )
         except Exception:
             pass

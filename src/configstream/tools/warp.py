@@ -98,7 +98,9 @@ async def register_warp_account() -> Optional[Dict[str, Any]]:
         peers = data.get("config", {}).get("peers", [])
         peer_data = peers[0] if peers else {}
         endpoint_v4 = peer_data.get("endpoint", {}).get("v4", {})
-        interface_addresses = data.get("config", {}).get("interface", {}).get("addresses", {})
+        interface_addresses = (
+            data.get("config", {}).get("interface", {}).get("addresses", {})
+        )
 
         return {
             "id": data.get("id"),

@@ -97,3 +97,5 @@ class ConcurrencyManager:
                 await self.tuning_task
             except asyncio.CancelledError:
                 pass
+            except Exception as e:
+                logger.warning(f"Error while stopping tuner: {e}")
