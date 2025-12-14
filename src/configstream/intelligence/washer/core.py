@@ -134,9 +134,7 @@ class ProxyWasher:
                             if valid_ips:
                                 self.clean_ips = valid_ips[:100]
                                 logger.info(
-                                    "Fetched %d clean IPs from %s",
-                                    len(self.clean_ips),
-                                    source_url.split("/")[2],
+                                    f"Fetched {len(self.clean_ips)} clean IPs from {source_url.split('/')[2]}"
                                 )
                                 return
                         else:
