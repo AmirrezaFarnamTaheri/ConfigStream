@@ -200,7 +200,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch.object(
             configstream.pipeline,
             "generate_pipeline_outputs",
-            side_effect=Exception("Export Fail"),
+            new=AsyncMock(side_effect=Exception("Export Fail")),
         ),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
     ):
