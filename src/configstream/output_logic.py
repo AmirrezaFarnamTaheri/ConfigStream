@@ -130,35 +130,49 @@ def save_metadata(
     """
     meta_path = output_dir / "metadata.json"
 
-    # Calculate simple stats
+    # [OPTIMIZATION] Single-pass loop to collect all stats at once (O(N) instead of O(4N))
     total = len(proxies)
-    working = sum(1 for p in proxies if p.is_working)
-
-    # Calculate Latency Distribution
+    working = 0
     lat_dist = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
-    for p in proxies:
-        if p.is_working:
-            latency = p.latency or 9999
-            if latency < 200:
-                lat_dist["fast"] += 1
-            elif latency < 800:
-                lat_dist["medium"] += 1
-            elif latency < 2000:
-                lat_dist["slow"] += 1
-            else:
-                lat_dist["very_slow"] += 1
-
-    # Protocols
     protocols: Dict[str, int] = {}
-    for p in proxies:
-        if p.is_working:
-            protocols[p.protocol] = protocols.get(p.protocol, 0) + 1
-
-    # Countries
     countries: Dict[str, int] = {}
+    asns: Dict[str, int] = {}
+    warp_count_heuristic = 0
+    relay_count_heuristic = 0
+
     for p in proxies:
-        if p.is_working:
-            countries[p.country_code] = countries.get(p.country_code, 0) + 1
+        if not p.is_working:
+            continue
+
+        working += 1
+
+        # Latency distribution
+        latency = p.latency or 9999
+        if latency < 200:
+            lat_dist["fast"] += 1
+        elif latency < 800:
+            lat_dist["medium"] += 1
+        elif latency < 2000:
+            lat_dist["slow"] += 1
+        else:
+            lat_dist["very_slow"] += 1
+
+        # Protocol count
+        protocols[p.protocol] = protocols.get(p.protocol, 0) + 1
+
+        # Country count
+        countries[p.country_code] = countries.get(p.country_code, 0) + 1
+
+        # ASN count
+        if p.asn:
+            asns[p.asn] = asns.get(p.asn, 0) + 1
+
+        # Heuristic counts for WARP/RELAY tags
+        tags_str = str(p.tags)
+        if "WARP" in tags_str:
+            warp_count_heuristic += 1
+        if "RELAY" in tags_str:
+            relay_count_heuristic += 1
 
     # Extract info from stats (dict or object)
     total_sourced = total
@@ -191,24 +205,16 @@ def save_metadata(
         if hasattr(stats, "smart_chain_count"):
             smart_chain_count = stats.smart_chain_count
 
-    # Fallback heuristics if counts still 0
+    # Fallback heuristics if counts still 0 (use values from single-pass loop)
     if washed_count == 0:
-        washed_count = sum(1 for p in proxies if p.is_working and "WARP" in str(p.tags))
+        washed_count = warp_count_heuristic
     if smart_chain_count == 0:
-        smart_chain_count = sum(
-            1 for p in proxies if p.is_working and "RELAY" in str(p.tags)
-        )
+        smart_chain_count = relay_count_heuristic
 
     # Separation of Smart Chains
     smart_chains_breakdown = {}
     if isinstance(stats, dict) and "smart_chains_breakdown" in stats:
         smart_chains_breakdown = stats["smart_chains_breakdown"]
-
-    # ASNs
-    asns: Dict[str, int] = {}
-    for p in proxies:
-        if p.is_working and p.asn:
-            asns[p.asn] = asns.get(p.asn, 0) + 1
 
     try:
         pkg_version = version("configstream")

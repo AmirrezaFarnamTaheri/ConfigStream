@@ -15,8 +15,19 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         return None
 
     try:
+        # [FIX] Use formatted remarks as name when available (set by ProxyTagger)
+        # Fall back to generated name if remarks is empty/generic
+        if proxy.remarks and proxy.remarks.lower() not in [
+            "",
+            "defaultproxyname",
+            "none",
+        ]:
+            name = proxy.remarks
+        else:
+            name = f"{proxy.country_code}-{proxy.protocol}-{proxy.id[:6]}"
+
         common = {
-            "name": f"{proxy.country_code}-{proxy.protocol}-{proxy.id[:6]}",
+            "name": name,
             "server": proxy.address,
             "port": proxy.port,
             "type": proxy.protocol,
@@ -91,6 +102,13 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                     "path": proxy.details.get("path", "/"),
                     "headers": {"Host": proxy.details.get("host", "")},
                 }
+            # [FIX] Add VLESS gRPC support (was missing - only VMess had it)
+            elif net == "grpc":
+                common["grpc-opts"] = {
+                    "grpc-service-name": proxy.details.get("serviceName", "")
+                }
+
+            # TLS handling
             if proxy.details.get("security") == "tls":
                 common["tls"] = True
                 if proxy.details.get("sni"):

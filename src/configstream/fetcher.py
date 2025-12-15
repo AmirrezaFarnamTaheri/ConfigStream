@@ -5,7 +5,7 @@ This module now serves as a facade for backward compatibility.
 """
 
 import httpx
-from typing import Optional, Dict
+from typing import Optional
 
 from .fetcher_core.orchestrator import fetch_from_source
 from .fetcher_core.batch import fetch_multiple_sources

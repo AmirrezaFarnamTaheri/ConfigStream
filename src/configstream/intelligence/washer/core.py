@@ -36,22 +36,47 @@ class ProxyWasher:
             parsed = json.loads(warp_keys_json) if warp_keys_json else []
             if not isinstance(parsed, list):
                 logger.warning(f"warp_keys_json is not a list, got {type(parsed)}")
-                self.warp_keys = []
+                self._warp_keys: List[Dict[str, Any]] = []
             else:
-                self.warp_keys = parsed
-                if self.warp_keys:
-                    logger.info(f"Loaded {len(self.warp_keys)} WARP keys for washing")
+                self._warp_keys = parsed
+                if self._warp_keys:
+                    logger.info(f"Loaded {len(self._warp_keys)} WARP keys for washing")
                 else:
                     logger.warning("No WARP keys configured - washing will be disabled")
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse warp_keys_json: {e}")
-            self.warp_keys = []
+            self._warp_keys = []
 
-        self.seen_chains = LRUCache(maxsize=50000)
+        self.seen_chains: LRUCache[str, bool] = LRUCache(maxsize=50000)
         self._seen_chains_lock = threading.Lock()
-        self.clean_ips: List[str] = []
+        # [FIX] Add lock to protect state modifications for thread-safety
+        # Prevents race conditions between async fetch_clean_ips() and sync wash_batch()
+        self._state_lock = threading.Lock()
+        self._clean_ips: List[str] = []
 
         self.scanner = WarpScannerWorker()
+
+    @property
+    def warp_keys(self) -> List[Dict[str, Any]]:
+        """Thread-safe read of warp_keys."""
+        return self._warp_keys
+
+    @warp_keys.setter
+    def warp_keys(self, value: List[Dict[str, Any]]) -> None:
+        """Thread-safe write of warp_keys."""
+        with self._state_lock:
+            self._warp_keys = value
+
+    @property
+    def clean_ips(self) -> List[str]:
+        """Thread-safe read of clean_ips."""
+        return self._clean_ips
+
+    @clean_ips.setter
+    def clean_ips(self, value: List[str]) -> None:
+        """Thread-safe write of clean_ips."""
+        with self._state_lock:
+            self._clean_ips = value
 
     async def fetch_clean_ips(self) -> None:
         """
