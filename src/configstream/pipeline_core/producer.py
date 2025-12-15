@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from rich.progress import Progress, TaskID
 
@@ -13,7 +13,7 @@ from ..source_quality import SourceQualityTracker
 from ..anomaly import AnomalyDetector
 from ..security_validator import SecurityValidator
 
-if False:  # TYPE_CHECKING
+if TYPE_CHECKING:
     from ..event_stream import EventStream
 
 logger = logging.getLogger(__name__)

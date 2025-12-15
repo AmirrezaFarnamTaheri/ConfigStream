@@ -2867,40 +2867,50 @@ body.dark #preloader {
 }
 
 @media (max-width: 768px) {
-    /* Reduce filter controls padding in portrait mode - make more compact */
+    /* Reduce filter controls padding in portrait mode - SIGNIFICANTLY more compact (60% reduction) */
     .filter-controls-redesigned {
-        padding: calc(var(--space-unit) * 1.5);
-        gap: calc(var(--space-unit) * 1);
-        margin-bottom: calc(var(--space-unit) * 2);
+        padding: calc(var(--space-unit) * 0.75);
+        gap: calc(var(--space-unit) * 0.5);
+        margin-bottom: calc(var(--space-unit) * 1);
     }
 
     .filter-bar, .actions-bar {
         flex-direction: column;
         align-items: stretch;
-        gap: calc(var(--space-unit) * 1);
+        gap: calc(var(--space-unit) * 0.5);
     }
     .filter-group, .action-group {
         flex-direction: column;
         width: 100%;
-        gap: calc(var(--space-unit) * 0.75);
+        gap: calc(var(--space-unit) * 0.4);
     }
     .filter-input-wrapper {
         min-width: 100%;
+        padding: calc(var(--space-unit) * 0.5) calc(var(--space-unit) * 0.75);
+        min-height: 36px;
     }
 
-    /* Reduce filter input height on mobile - more compact */
+    /* Reduce filter input height on mobile - 60% more compact */
     .filter-controls-redesigned select,
     .filter-controls-redesigned input {
-        padding: calc(var(--space-unit) * 0.625) calc(var(--space-unit) * 1.25) calc(var(--space-unit) * 0.625) calc(var(--space-unit) * 4.5);
-        font-size: 0.85rem;
+        padding: calc(var(--space-unit) * 0.25) calc(var(--space-unit) * 0.5) calc(var(--space-unit) * 0.25) calc(var(--space-unit) * 2.5);
+        font-size: 0.8rem;
+        min-height: 32px;
     }
 
     .filter-controls-redesigned select {
-        padding-right: calc(var(--space-unit) * 4);
+        padding-right: calc(var(--space-unit) * 2);
     }
 
     .latency-wrapper input {
-        padding-left: calc(var(--space-unit) * 1.5);
+        padding-left: calc(var(--space-unit) * 0.75);
+    }
+
+    /* Compact filter icon positioning */
+    .filter-input-wrapper .filter-icon {
+        left: calc(var(--space-unit) * 0.75);
+        width: 14px;
+        height: 14px;
     }
 
     .actions-bar {
@@ -2977,7 +2987,7 @@ body.dark #preloader {
 @media (max-width: 768px) {
     /* Prevent all forms of horizontal scrolling */
     select, input, textarea, button {
-        min-height: 44px !important;
+        min-height: 36px !important;
         font-size: 16px !important; /* Prevent iOS zoom */
         max-width: 100%;
     }
@@ -2986,9 +2996,9 @@ body.dark #preloader {
     .filter-input-group select,
     .filter-input-group input {
         width: 100% !important;
-        min-height: 32px !important; /* Reduced from 48px */
-        padding-top: 8px !important;
-        padding-bottom: 8px !important;
+        min-height: 32px !important;
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
     }
 
     /* Better mobile table experience */
@@ -2999,15 +3009,17 @@ body.dark #preloader {
 
     /* Improve copy buttons on mobile */
     .copy-btn {
-        min-width: 44px;
-        min-height: 44px;
-        padding: calc(var(--space-unit) * 1.5);
+        min-width: 40px;
+        min-height: 40px;
+        padding: calc(var(--space-unit) * 1);
     }
 
-    /* Better mobile card spacing */
+    /* Better mobile card spacing - FIX: Restore rounded corners */
     .card {
         width: 100%;
-        border-radius: 0;
+        border-radius: var(--radius-lg);
+        margin: calc(var(--space-unit) * 1) 0;
+        overflow: hidden;
     }
     .main-grid {
         padding: 0;
@@ -3017,6 +3029,53 @@ body.dark #preloader {
         margin-right: 0;
         width: 100%;
         border-radius: var(--radius-lg);
+    }
+
+    /* FIX: Get Your Configs card - proper corners and text containment */
+    #downloads.card {
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    #downloads .card-header {
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        margin: calc(var(--space-unit) * -3) calc(var(--space-unit) * -3) calc(var(--space-unit) * 2);
+        padding: calc(var(--space-unit) * 2);
+    }
+
+    #downloads .card-header h2 {
+        font-size: 1.2rem;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
+
+    #downloads .card-header p {
+        font-size: 0.85rem;
+        word-break: break-word;
+    }
+
+    /* FIX: Download card proper horizontal line containment */
+    .downloads-grid {
+        margin-top: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
+    }
+
+    .download-card {
+        border-radius: var(--radius-md);
+        padding: calc(var(--space-unit) * 2);
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .download-card .download-info {
+        margin-bottom: calc(var(--space-unit) * 2);
+    }
+
+    .download-card .btn {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 
@@ -3666,14 +3725,26 @@ body.dark .byow-panel {
     .byow-panel {
         flex-direction: column;
         align-items: flex-start;
+        padding: calc(var(--space-unit) * 2);
+        gap: calc(var(--space-unit) * 1.5);
+        margin-bottom: calc(var(--space-unit) * 2);
+    }
+    .byow-header h3 {
+        font-size: 1rem;
+    }
+    .byow-header .hint {
+        font-size: 0.8rem;
     }
     .byow-actions {
         width: 100%;
         flex-direction: column;
+        gap: calc(var(--space-unit) * 0.75);
     }
     .input-modern, .input-short {
         width: 100%;
         min-width: 0;
+        padding: 8px 12px;
+        font-size: 0.85rem;
     }
 }
 
@@ -4003,11 +4074,23 @@ body.dark .client-select {
 #globe-viz {
     background: var(--bg-primary) !important;
     transition: background 0.3s ease;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
 }
 
 /* Fix globe container pointer events */
 #globe-viz {
     pointer-events: auto;
+}
+
+/* Fix globe canvas centering */
+#globe-viz canvas {
+    max-width: 100% !important;
+    max-height: 100% !important;
 }
 
 /* Prevent zoom from affecting page scroll by default */
@@ -4022,6 +4105,19 @@ body.dark .client-select {
 /* Fix for light/day mode globe background */
 body:not(.dark) #globe-viz {
     background: linear-gradient(135deg, #f0f4f8 0%, #e6ebf1 100%) !important;
+}
+
+/* Dark mode globe styling */
+body.dark #globe-viz {
+    background: linear-gradient(135deg, #0a101f 0%, #101a32 100%) !important;
+}
+
+/* Globe mobile responsiveness */
+@media (max-width: 768px) {
+    #globe-viz {
+        height: 350px !important;
+        min-height: 300px;
+    }
 }
 
 /* ===== Header Logo Text Fix ===== */

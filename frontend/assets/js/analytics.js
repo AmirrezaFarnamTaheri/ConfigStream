@@ -2,18 +2,42 @@
 // Uses globe.gl and Chart.js
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize Stats
-    if (window.api && window.api.fetchStatistics) {
-        try {
-            const stats = await window.api.fetchStatistics();
+    // Initialize Stats - with fallback for when API isn't available
+    let stats = null;
+
+    // Try multiple data sources
+    try {
+        if (window.api && window.api.fetchStatistics) {
+            stats = await window.api.fetchStatistics();
+        } else {
+            // Fallback: Try direct fetch from data files
+            const response = await fetch('data/statistics.json?cb=' + Date.now());
+            if (response.ok) {
+                stats = await response.json();
+            }
+        }
+
+        if (stats) {
             updateStats(stats);
             initCharts(stats);
             initGlobe(stats);
-        } catch (e) {
-            console.error("Failed to load analytics data:", e);
+        } else {
+            console.warn("No analytics data available");
+            // Show empty state or placeholder
+            showEmptyState();
         }
+    } catch (e) {
+        console.error("Failed to load analytics data:", e);
+        showEmptyState();
     }
 });
+
+function showEmptyState() {
+    const container = document.getElementById('globe-viz');
+    if (container) {
+        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;">Loading analytics data...</div>';
+    }
+}
 
 // F6 Fix: Centralized Color Logic
 function generateColor(label, index) {
@@ -37,31 +61,44 @@ function updateStats(data) {
     };
 
     // Helper function to format numbers with locale support
-    const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+    const formatNum = (num) => {
+        if (num === undefined || num === null) return '0';
+        if (window.i18n && window.i18n.formatNumber) {
+            return window.i18n.formatNumber(num);
+        }
+        return num.toLocaleString();
+    };
 
-    // Use canonical fields with legacy fallbacks
-    const totalSourced = data.total_lines_sourced || data.fetched_lines || data.fetched_sources || data.total_fetched || data.total_sourced || 0;
+    // Use canonical fields with comprehensive legacy fallbacks (consistent with main.js)
+    const totalSourced = data.total_lines_sourced || data.fetched_lines || data.fetched_sources ||
+                         data.total_fetched || data.total_sourced || data.total_proxies || 0;
     update('totalSourced', formatNum(totalSourced));
 
     // Unique & Verified/Tested
-    const totalConfigs = data.total_unique_candidates || data.parsed || data.unique || data.total_unique || data.total_proxies || data.total_tested || 0;
+    const totalConfigs = data.total_unique_candidates || data.parsed || data.unique ||
+                         data.total_unique || data.total_proxies || data.total_tested || 0;
     update('totalConfigs', formatNum(totalConfigs));
 
     // Online Now (Working)
-    const workingCount = data.total_valid_proxies || data.total_working || data.working || data.active || data.alive || 0;
+    const workingCount = data.total_valid_proxies || data.total_working || data.working ||
+                         data.active || data.alive || 0;
     update('workingConfigs', formatNum(workingCount));
 
-    // New Stats if elements exist
+    // Revived/Washed proxies
     const totalRevived = data.total_revived || data.washer_success_count || 0;
-    // Use total_clean if present; otherwise derive from working proxies minus revived
+
+    // Clean (native, non-washed) proxies - derive if not provided
     const totalClean = data.total_clean ?? Math.max(0, workingCount - totalRevived);
 
     update('totalClean', formatNum(totalClean));
     update('totalRevived', formatNum(totalRevived));
-    update('threatsBlocked', formatNum(data.total_dirty || 0));
+    update('threatsBlocked', formatNum(data.total_dirty || data.threats_blocked || 0));
 
-    const date = new Date(data.last_updated_utc);
-    update('lastUpdated', date.toLocaleString());
+    // Update timestamp if available
+    if (data.last_updated_utc) {
+        const date = new Date(data.last_updated_utc);
+        update('lastUpdated', date.toLocaleString());
+    }
 }
 
 function initGlobe(data) {

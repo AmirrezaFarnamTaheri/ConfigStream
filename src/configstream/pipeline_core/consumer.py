@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import orjson as json
-from typing import List, Optional, Set, Dict
+from typing import List, Optional, Set, Dict, TYPE_CHECKING
 
 from rich.progress import Progress, TaskID
 
@@ -24,7 +24,7 @@ from ..performance import PerformanceTracker
 from ..proxy_history import ProxyHistoryTracker
 from .models import PipelineStats
 
-if False:  # TYPE_CHECKING
+if TYPE_CHECKING:
     from ..event_stream import EventStream
 
 logger = logging.getLogger(__name__)
