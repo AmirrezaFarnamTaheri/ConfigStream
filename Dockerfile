@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     wget \
+    unzip \
     libmaxminddb0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -46,7 +47,10 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 # 3. Install Vwarp
 # Download the specific Vwarp release (v2.1.0)
 # Running as root before switching user
-RUN wget -q -O /usr/local/bin/vwarp https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp-linux-amd64 && \
+RUN wget -q -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp_linux-amd64.zip && \
+    unzip /tmp/vwarp.zip -d /tmp && \
+    mv /tmp/vwarp /usr/local/bin/vwarp && \
+    rm /tmp/vwarp.zip && \
     chmod +x /usr/local/bin/vwarp && \
     (vwarp --version || echo "Vwarp binary check failed")
 
