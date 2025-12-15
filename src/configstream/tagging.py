@@ -6,10 +6,25 @@ based on a user-defined template.
 
 import logging
 import re
-from typing import List, Optional
+from typing import List, Optional, Dict
 from .models import Proxy
 
 logger = logging.getLogger(__name__)
+
+
+def get_flag_emoji(country_code: str) -> str:
+    """
+    Convert a 2-letter ISO country code to its flag emoji.
+    Uses regional indicator symbols which combine to form flag emojis.
+    """
+    if not country_code or len(country_code) != 2:
+        return "🌐"  # Globe for unknown
+    try:
+        # Convert each letter to regional indicator symbol
+        # A = U+1F1E6, B = U+1F1E7, etc.
+        return "".join(chr(ord(c.upper()) + 127397) for c in country_code)
+    except (ValueError, TypeError):
+        return "🌐"
 
 
 class FmtWrapper(dict):
@@ -34,11 +49,14 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
     - {protocol}: e.g., 'vless', 'trojan'
     - {country}: e.g., 'US', 'NL'
     - {country_code}: e.g., 'US', 'NL'
+    - {country_flag}: e.g., '🇺🇸', '🇳🇱' (emoji flag)
     - {city}: e.g., 'New York' (if available)
     - {latency}: e.g., '120'
     - {asn}: e.g., 'AS15169'
     - {address}: The proxy address (IP or domain)
     - {port}: The proxy port
+    - {id}: The proxy ID (full)
+    - {id_short}: The proxy ID (first 6 chars)
     """
 
     # 1. Get the original name, falling back to address:port if empty/generic
@@ -47,16 +65,20 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
         original_name = f"{proxy.address}:{proxy.port}"
 
     # 2. Create a dictionary of all possible values
+    cc = proxy.country_code or ""
     proxy_data = {
         "remarks": original_name,
-        "protocol": proxy.protocol,
+        "protocol": proxy.protocol.upper() if proxy.protocol else "",
         "country": proxy.country_code or proxy.country,
-        "country_code": proxy.country_code,
+        "country_code": cc,
+        "country_flag": get_flag_emoji(cc),
         "city": proxy.city,
         "latency": str(int(proxy.latency)) if proxy.latency is not None else None,
         "asn": proxy.asn,
         "address": proxy.address,
         "port": str(proxy.port),
+        "id": proxy.id,
+        "id_short": proxy.id[:6] if proxy.id else "",
     }
 
     try:
@@ -95,7 +117,11 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
 class ProxyTagger:
     """
     Applies a naming template to a list of Proxy objects in-place.
+    Ensures unique names to avoid client conflicts (e.g., Sing-box tag collisions).
     """
+
+    # Default template when RENAME_TEMPLATE env var is not set
+    DEFAULT_TEMPLATE = "{country_flag} {protocol} {latency}ms {id_short}"
 
     def __init__(self, name_template: Optional[str] = None):
         """
@@ -104,12 +130,14 @@ class ProxyTagger:
         Args:
             name_template: A Python format string, e.g.,
                            "[{country}] {protocol} - {latency}ms"
+                           If None, uses DEFAULT_TEMPLATE.
         """
         self.template = name_template
 
     def apply(self, proxies: List[Proxy]) -> List[Proxy]:
         """
         Applies renaming to a list of proxies in place.
+        Ensures all names are unique by appending a counter for duplicates.
 
         Returns:
             The same list of proxies, with their 'remarks' field modified.
@@ -122,8 +150,24 @@ class ProxyTagger:
             f"Applying name template '{self.template}' to {len(proxies)} proxies..."
         )
 
-        for proxy in proxies:
-            # This is the key: we modify the 'remarks' field IN-PLACE
-            proxy.remarks = format_proxy_name(self.template, proxy)
+        # Track seen names to ensure uniqueness (vital for Sing-box/Clash clients)
+        seen_names: Dict[str, int] = {}
 
+        for proxy in proxies:
+            # Format the name using the template
+            new_name = format_proxy_name(self.template, proxy)
+
+            # Ensure uniqueness by appending counter for duplicates
+            if new_name in seen_names:
+                seen_names[new_name] += 1
+                new_name = f"{new_name} #{seen_names[new_name]}"
+            else:
+                seen_names[new_name] = 1
+
+            # Modify the 'remarks' field IN-PLACE
+            proxy.remarks = new_name
+
+        logger.info(
+            f"Tagged {len(proxies)} proxies with {len(seen_names)} unique names"
+        )
         return proxies

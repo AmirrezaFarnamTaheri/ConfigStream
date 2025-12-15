@@ -3,7 +3,7 @@ import shutil
 import logging
 import json
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List, cast
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class VwarpTool:
             logger.error(f"Vwarp scan failed: {e}")
             return []
 
-    async def generate_masque_config(self, preset: str = "gfw") -> dict:
+    async def generate_masque_config(self, preset: str = "gfw") -> Dict[str, Any]:
         """
         Exports a MASQUE-enabled Sing-box configuration.
         """
@@ -83,6 +83,7 @@ class VwarpTool:
                 *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, _ = await proc.communicate()
-            return json.loads(stdout.decode(errors="ignore"))
+            result = json.loads(stdout.decode(errors="ignore"))
+            return cast(Dict[str, Any], result)
         except Exception:
             return {}

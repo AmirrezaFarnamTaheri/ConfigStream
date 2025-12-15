@@ -6,7 +6,7 @@ import logging
 import json
 import re
 import base64
-from typing import List, Dict, Any, Optional
+from typing import List
 
 from ...models import Proxy
 from ...fetcher import Fetcher
@@ -59,7 +59,10 @@ class WarpScraper:
             name = source["name"]
             url = source["url"]
             kind = source["kind"]
-            max_entries = source.get("max_entries", 20)
+            max_entries_raw = source.get("max_entries", 20)
+            max_entries: int = (
+                max_entries_raw if isinstance(max_entries_raw, int) else 20
+            )
 
             try:
                 content = await self.fetcher.fetch_text(url)
@@ -124,9 +127,9 @@ class WarpScraper:
                 # If specialized parsers yielded nothing, try brute-force regex on raw content
                 if not entries:
                     matches = WIREGUARD_REGEX.findall(content)
-                    for priv_key, address in matches:
+                    for priv_key, _address in matches:
                         # Address usually comes as "172.16.0.2/32" or just IP
-                        clean_addr = address.split("/")[0].strip()
+                        # Note: _address is extracted but not used - make_entry uses auto endpoints
                         entry = make_entry(
                             "scraped-regex", priv_key, "auto", None, [0, 0, 0]
                         )
