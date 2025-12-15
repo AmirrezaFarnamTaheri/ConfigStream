@@ -197,8 +197,9 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
-        patch(
-            "configstream.pipeline.generate_pipeline_outputs",
+        patch.object(
+            configstream.pipeline,
+            "generate_pipeline_outputs",
             new=AsyncMock(side_effect=Exception("Export Fail")),
         ),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,

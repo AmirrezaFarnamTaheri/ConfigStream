@@ -44,3 +44,6 @@ https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_trojan.txt
 https://scys.org/proxy
 https://www.my-proxy.com/free-proxy-list.html
+https://raw.githubusercontent.com/AB-84-AB/WarpFree/refs/heads/main/WarpFree
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_2.txt
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/trojan_iran.txt
