@@ -44,3 +44,5 @@ https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_sha
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/speednodes.yaml
 https://www.bestfreeproxy.com/
 https://yip.su/proxy
+https://raw.githubusercontent.com/TelAB841Conf/AB_841-config-Free-X-ray/refs/heads/main/X-ray_Server-Free
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_3.txt

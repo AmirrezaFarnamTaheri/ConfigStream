@@ -44,3 +44,5 @@ https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_.tx
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/sing-box.json
 https://www.best-proxy-list.com/
 https://www.sslproxies.org/
+https://raw.githubusercontent.com/Created-By/Telegram-Eag1e_YT/main/%40Eag1e_YT
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_2.txt

@@ -9,7 +9,6 @@ https://proxyrack.com/free-proxy-list
 https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/sub.txt
 https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/main/githubmirror/1.txt
 https://raw.githubusercontent.com/BUTUbird/ClashPoint/main/application.yaml
-https://raw.githubusercontent.com/Created-By/Telegram-Eag1e_YT/main/%40Eag1e_YT
 https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/All_Configs_base64_Sub.txt
 https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Shadowrocket/Normal
 https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/trojan
@@ -44,3 +43,6 @@ https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_shadowsocks.txt
 https://raw.githubusercontent.com/zzz6839/SubCrawler/main/sub/share/all
 https://www.multi-proxy.com/proxylist.php
+https://raw.githubusercontent.com/AB-84-AB/Warp-WireGuard-v4-v6/refs/heads/main/Warp-WireGuard-v6
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_1.txt
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vless_iran.txt

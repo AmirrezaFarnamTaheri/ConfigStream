@@ -44,3 +44,5 @@ https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_tro
 https://raw.githubusercontent.com/zhlx2835/freefq/main/clash.yaml
 https://www.cool-proxy.net/proxies.json
 https://zhuanhuan.diga.workers.dev/sub?target=clash&url=https%3A%2F%2Fraw.githubusercontent.com%2FLewis-1217%2FFreeNodes%2Fmain%2Fbpjzx1&insert=false&emoji=true&list=false&tfo=false&scv=false&fdn=false&sort=false&new_name=true
+https://raw.githubusercontent.com/V2RET-V2RET-V2RET-V2RET-V2RET-V2RET/v2ret/main/sub.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_4.txt

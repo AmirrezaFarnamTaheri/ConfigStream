@@ -44,3 +44,6 @@ https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vmess.txt
 https://raw.githubusercontent.com/zjr13808836946/zjr_clash/main/V2_SSR_M
 https://www.freeproxyupdate.com/api/proxy
+https://raw.githubusercontent.com/4n0nymou3/multi-proxy-config-fetcher/refs/heads/main/configs/proxy_configs.txt
+https://raw.githubusercontent.com/hamedp-71/Trojan/refs/heads/main/hp.txt
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vmess_iran.txt
