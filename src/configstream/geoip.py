@@ -52,6 +52,9 @@ class GeoIPResolver:
         # FIX: Use threading.Lock for sync context - asyncio.Lock created lazily
         self._lookup_lock: Optional[asyncio.Lock] = None
 
+        # [FIX] Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
+        self._uses_c_extension: bool = False
+
         # Load synchronously
         self._load_databases()
         self._initialized = True
@@ -64,12 +67,18 @@ class GeoIPResolver:
             asn_path = data_dir / "GeoLite2-ASN.mmdb"
 
             # [OPTIMIZATION] Check for C extension availability
+            # C extension (MMAP_EXT mode) is thread-safe for reads, allowing lock-free lookups
             db_mode = 0  # Default (Auto)
             try:
                 import maxminddb
 
                 db_mode = maxminddb.MODE_MMAP_EXT
+                self._uses_c_extension = True
+                logger.info(
+                    "GeoIP C extension (MMAP_EXT) available - lock-free lookups enabled"
+                )
             except (ImportError, AttributeError):
+                self._uses_c_extension = False
                 logger.warning(
                     "⚠️  Running GeoIP in slow Pure-Python mode! Install 'maxminddb' C extension for performance."
                 )
@@ -83,6 +92,7 @@ class GeoIPResolver:
                         "Failed to load GeoIP with C extension, falling back to pure Python."
                     )
                     self.reader_city = geoip2.database.Reader(city_path)
+                    self._uses_c_extension = False  # Reset flag on fallback
 
                 logger.info("Loaded GeoLite2 City database.")
             else:
@@ -95,6 +105,7 @@ class GeoIPResolver:
                     self.reader_asn = geoip2.database.Reader(asn_path, mode=db_mode)
                 except (ValueError, TypeError):
                     self.reader_asn = geoip2.database.Reader(asn_path)
+                    self._uses_c_extension = False  # Reset flag on fallback
 
                 logger.info("Loaded GeoLite2 ASN database.")
             else:
@@ -112,7 +123,12 @@ class GeoIPResolver:
         return self._lookup_lock
 
     async def lookup(self, ip: str) -> GeoData:
-        """Resolve IP to Country, City, ASN (Async with Lock)."""
+        """Resolve IP to Country, City, ASN (Async with conditional Lock).
+
+        When using the C extension (MMAP_EXT mode), the reader is thread-safe
+        for concurrent reads, so we skip the lock for better performance.
+        In pure Python mode, we use a lock to ensure safety.
+        """
         result = GeoData()
         if not ip:
             return result
@@ -124,26 +140,36 @@ class GeoIPResolver:
             logger.debug(f"Invalid IP address format: {ip}")
             return result
 
+        # [OPTIMIZATION] Skip lock when C extension is used (thread-safe reads)
+        if self._uses_c_extension:
+            return self._do_lookup(ip)
+
+        # Pure Python mode - use lock for safety
         async with self._get_lookup_lock():
-            try:
-                if self.reader_city:
-                    response = self.reader_city.city(ip)
-                    result.country_code = response.country.iso_code
-                    result.country_name = response.country.name
-                    result.city = response.city.name
-                    result.lat = response.location.latitude
-                    result.lng = response.location.longitude
+            return self._do_lookup(ip)
 
-                if self.reader_asn:
-                    response_asn = self.reader_asn.asn(ip)
-                    result.asn = str(response_asn.autonomous_system_number)
-                    result.org = response_asn.autonomous_system_organization
+    def _do_lookup(self, ip: str) -> GeoData:
+        """Internal synchronous lookup implementation."""
+        result = GeoData()
+        try:
+            if self.reader_city:
+                response = self.reader_city.city(ip)
+                result.country_code = response.country.iso_code
+                result.country_name = response.country.name
+                result.city = response.city.name
+                result.lat = response.location.latitude
+                result.lng = response.location.longitude
 
-            except geoip2.errors.AddressNotFoundError:
-                # Expected for private IPs or missing data
-                pass
-            except Exception as e:
-                logger.debug(f"GeoIP lookup error for {ip}: {e}")
+            if self.reader_asn:
+                response_asn = self.reader_asn.asn(ip)
+                result.asn = str(response_asn.autonomous_system_number)
+                result.org = response_asn.autonomous_system_organization
+
+        except geoip2.errors.AddressNotFoundError:
+            # Expected for private IPs or missing data
+            pass
+        except Exception as e:
+            logger.debug(f"GeoIP lookup error for {ip}: {e}")
 
         return result
 

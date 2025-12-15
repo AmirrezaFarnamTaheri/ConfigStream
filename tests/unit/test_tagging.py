@@ -14,7 +14,7 @@ def test_proxy_tagger():
     )
 
     pt.apply([p])
-    assert p.remarks == "[US] vmess"
+    assert p.remarks == "[US] VMESS"
 
 
 def test_format_proxy_name_missing_data():
@@ -23,7 +23,7 @@ def test_format_proxy_name_missing_data():
     )  # No country
 
     name = format_proxy_name("[{country}] {protocol}", p)
-    assert "vmess" in name
+    assert "VMESS" in name  # Protocol is uppercased for display
     assert "[]" not in name
 
 

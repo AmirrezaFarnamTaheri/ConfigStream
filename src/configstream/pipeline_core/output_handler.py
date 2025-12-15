@@ -10,6 +10,8 @@ from ..output_transport import save_json
 from ..intelligence.washer.core import ProxyWasher
 from ..intelligence.chaining import generate_smart_chains
 from ..pipeline_core.stats import PipelineStats
+from ..tagging import ProxyTagger
+from ..config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +24,21 @@ async def generate_pipeline_outputs(
 ):
     """
     Orchestrates the generation of all pipeline outputs.
-    Integrates Washing, Smart Chaining, and File Generation.
+    Integrates Tagging, Washing, Smart Chaining, and File Generation.
     """
     logger.info("Starting final output generation phase...")
+
+    # 0. Apply Tagging Strategy (Name formatting)
+    # This applies user-defined or default naming templates to proxy remarks.
+    # Must run BEFORE output generation so converters can use the formatted names.
+    settings = AppSettings()
+    rename_template = settings.RENAME_TEMPLATE
+    if rename_template:
+        logger.info(f"Applying proxy tagging with template: {rename_template}")
+        tagger = ProxyTagger(rename_template)
+        tagger.apply(optimized_proxies)
+    else:
+        logger.debug("No RENAME_TEMPLATE configured, skipping proxy tagging")
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.

@@ -40,8 +40,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         )
         return None
 
-    # Generate a unique tag
-    tag = f"{proxy.protocol}-{proxy.country_code}-{proxy.id[:8]}"
+    # [FIX] Use formatted remarks as tag when available (set by ProxyTagger)
+    # Fall back to generated tag if remarks is empty/generic
+    if proxy.remarks and proxy.remarks.lower() not in ["", "defaultproxyname", "none"]:
+        tag = proxy.remarks
+    else:
+        tag = f"{proxy.protocol}-{proxy.country_code}-{proxy.id[:8]}"
 
     base: Dict[str, Any] = {
         "tag": tag,
@@ -170,24 +174,41 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": str(proxy.details.get("password", "")),
         }
     elif proxy.protocol == "wireguard":
-        # [FIX] Generate unique local IP to allow concurrent testing
-        # Using 2 bytes from hash to generate a /32 IP in 172.16.0.0/16 range
-        # to minimize collision probability during concurrent testing.
-        h = hashlib.sha256(f"{proxy.address}:{proxy.port}".encode()).digest()
-        octet3 = h[0]
-        octet4 = h[1]
-        # Ensure fourth octet is not .0 or .1 which can be special
-        if octet4 < 2:
-            octet4 = 2
-        unique_ip = f"172.16.{octet3}.{octet4}/32"
-
-        safe_addr = SecurityValidator.sanitize_address(
-            getattr(proxy, "address", "unknown")
+        # [FIX] Respect existing local_address from proxy config if present
+        # This preserves user-specified WireGuard IP assignments.
+        # Only generate unique IP if no local_address is configured.
+        existing_ip = proxy.details.get("local_address") or proxy.details.get(
+            "private_ipv4"
         )
 
-        logger.debug(
-            f"Generated unique local IP {unique_ip} for WireGuard proxy {safe_addr}"
-        )
+        if existing_ip:
+            # Use existing IP (could be string or list)
+            if isinstance(existing_ip, list):
+                local_addresses = existing_ip
+            else:
+                local_addresses = [str(existing_ip)]
+            logger.debug(
+                f"Using existing local_address for WireGuard proxy {proxy.address}: {local_addresses}"
+            )
+        else:
+            # Generate unique local IP to allow concurrent testing
+            # Using 2 bytes from hash to generate a /32 IP in 172.16.0.0/16 range
+            # to minimize collision probability during concurrent testing.
+            h = hashlib.sha256(f"{proxy.address}:{proxy.port}".encode()).digest()
+            octet3 = h[0]
+            octet4 = h[1]
+            # Ensure fourth octet is not .0 or .1 which can be special
+            if octet4 < 2:
+                octet4 = 2
+            unique_ip = f"172.16.{octet3}.{octet4}/32"
+            local_addresses = [unique_ip]
+
+            safe_addr = SecurityValidator.sanitize_address(
+                getattr(proxy, "address", "unknown")
+            )
+            logger.debug(
+                f"Generated unique local IP {unique_ip} for WireGuard proxy {safe_addr}"
+            )
 
         private_key = proxy.details.get("private_key") or proxy.uuid
         if not private_key:
@@ -200,7 +221,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = {
             "type": "wireguard",
             **base,
-            "local_address": [unique_ip],
+            "local_address": local_addresses,
             "private_key": str(private_key),
             "peer_public_key": str(proxy.details.get("peer_public_key", "")),
         }

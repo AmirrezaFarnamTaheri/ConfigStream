@@ -165,14 +165,24 @@ async def processing_consumer(
         # Deduplication logic.
         # Uses explicit lock to ensure safety if multiple consumers run concurrently.
         async with seen_lock:
-            # Audit Fix: Eviction policy to prevent OOM
+            # [FIX] LRU eviction policy to prevent OOM while preserving recent entries
+            # This prevents the "amnesia" problem where clearing the entire cache
+            # causes immediate duplicates to slip through.
             import os
 
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
+            eviction_batch_size = max(1000, max_seen // 10)  # Evict 10% at a time
+
+            # LRU eviction: remove oldest entries when limit exceeded
             if len(seen_keys) > max_seen:
-                seen_keys.clear()
-                logger.warning(
-                    f"Cleared seen_keys cache (limit {max_seen} reached) to prevent memory exhaustion"
+                # Convert to list to get oldest entries (set maintains insertion order in Python 3.7+)
+                keys_list = list(seen_keys)
+                # Remove oldest entries (first N in the set)
+                for old_key in keys_list[:eviction_batch_size]:
+                    seen_keys.discard(old_key)
+                logger.info(
+                    f"LRU eviction: removed {eviction_batch_size} oldest keys from seen_keys cache "
+                    f"(was {len(keys_list)}, now {len(seen_keys)})"
                 )
 
             for p in parsed_batch:

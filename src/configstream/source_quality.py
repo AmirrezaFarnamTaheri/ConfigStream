@@ -119,11 +119,42 @@ class SourceQualityTracker(QualityStorage):
     def report_success(self, url: str):
         """
         Legacy method called by orchestrator.py.
+        Records a successful fetch for a source, resetting failure count.
         """
-        pass
+        state = self.get_source_state(url)
+        if state:
+            # Reset consecutive failures on success
+            update_stats: Dict[str, Any] = {
+                "consecutive_failures": 0,
+                "last_checked": int(datetime.now(timezone.utc).timestamp()),
+            }
+            self.upsert_stats(url, update_stats)
+        else:
+            # New source - initialize with success
+            init_stats: Dict[str, Any] = {
+                "consecutive_failures": 0,
+                "last_checked": int(datetime.now(timezone.utc).timestamp()),
+                "total_fetched": 0,
+                "total_working": 0,
+                "reliability_score": 50.0,
+                "diversity_score": 0.0,
+                "trust_score": 50.0,
+            }
+            self.upsert_stats(url, init_stats)
 
     def report_failure(self, url: str):
         """
         Legacy method called by orchestrator.py.
+        Records a failed fetch for a source, incrementing failure count.
         """
-        pass
+        state = self.get_source_state(url)
+        current_failures = 0
+        if state:
+            # state: (status, last_checked, consecutive_failures, ...)
+            current_failures = state[2] if len(state) > 2 else 0
+
+        stats = {
+            "consecutive_failures": current_failures + 1,
+            "last_checked": int(datetime.now(timezone.utc).timestamp()),
+        }
+        self.upsert_stats(url, stats)
