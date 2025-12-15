@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import orjson as json
 from typing import List, Optional, Set, Dict, TYPE_CHECKING
 
@@ -71,8 +72,6 @@ async def processing_consumer(
         try:
             # Add timeout to prevent indefinite blocking if producer dies
             # Allow configuration via env, default to 600 seconds (10 minutes)
-            import os
-
             timeout_val = float(os.getenv("CONSUMER_TIMEOUT", "600.0"))
             item = await asyncio.wait_for(work_queue.get(), timeout=timeout_val)
         except asyncio.TimeoutError:
@@ -168,8 +167,6 @@ async def processing_consumer(
             # [FIX] LRU eviction policy to prevent OOM while preserving recent entries
             # This prevents the "amnesia" problem where clearing the entire cache
             # causes immediate duplicates to slip through.
-            import os
-
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
             eviction_batch_size = max(1000, max_seen // 10)  # Evict 10% at a time
 
@@ -215,8 +212,7 @@ async def processing_consumer(
         if dropped_unsafe > 0:
             # Update detailed drop stats
             async with seen_lock:
-                if not hasattr(stats, "drop_reasons"):
-                    stats.drop_reasons = {}
+                # drop_reasons is initialized in PipelineStats, no need for hasattr check
                 stats.drop_reasons["security_validation"] = (
                     stats.drop_reasons.get("security_validation", 0) + dropped_unsafe
                 )
@@ -290,8 +286,6 @@ async def processing_consumer(
                 pass
             else:
                 if tester.go_tester.available:
-                    import os
-
                     chunk_size = int(os.getenv("GO_TESTER_BATCH_SIZE", "500"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
@@ -357,8 +351,6 @@ async def processing_consumer(
                             return res
 
                     # Process in chunks (increased from 50 to 100 for better throughput)
-                    import os
-
                     chunk_size = int(os.getenv("PY_TESTER_BATCH_SIZE", "100"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
