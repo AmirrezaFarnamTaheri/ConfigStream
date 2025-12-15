@@ -259,11 +259,11 @@ def update_databases():
     license_key = os.environ.get("MAXMIND_LICENSE_KEY")
 
     # Prefer official MaxMind downloads when a license key is provided, fall back to public mirror otherwise.
-    base_url = "https://github.com/FyraLabs/geolite2/releases/latest/download"
-    mirror_urls = {
-        "GeoLite2-City.mmdb": f"{base_url}/GeoLite2-City.mmdb",
-        "GeoLite2-ASN.mmdb": f"{base_url}/GeoLite2-ASN.mmdb",
-    }
+    mirror_base_urls = [
+        "https://github.com/FyraLabs/geolite2/releases/latest/download",
+        "https://github.com/P3TERX/GeoLite.mmdb/raw/download",
+    ]
+
     maxmind_editions = {
         "GeoLite2-City.mmdb": "GeoLite2-City",
         "GeoLite2-ASN.mmdb": "GeoLite2-ASN",
@@ -331,7 +331,7 @@ def update_databases():
                 tar_path.unlink(missing_ok=True)
 
     success = True
-    for name, mirror_url in mirror_urls.items():
+    for name in maxmind_editions.keys():
         target = data_dir / name
 
         if target.exists() and target.stat().st_size > 0:
@@ -341,9 +341,14 @@ def update_databases():
 
         edition = maxmind_editions[name]
         downloaded = download_from_maxmind(edition, target)
+
         if not downloaded:
-            console.print(f"[cyan]Falling back to mirror for {name}...[/cyan]")
-            downloaded = stream_download(mirror_url, target)
+            for base_url in mirror_base_urls:
+                mirror_url = f"{base_url}/{name}"
+                console.print(f"[cyan]Trying mirror {base_url} for {name}...[/cyan]")
+                if stream_download(mirror_url, target):
+                    downloaded = True
+                    break
 
         if downloaded and target.stat().st_size > 0:
             size_mb = target.stat().st_size / (1024 * 1024)
