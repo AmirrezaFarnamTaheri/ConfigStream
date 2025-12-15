@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import orjson as json
 from typing import List, Optional, Set, Dict, TYPE_CHECKING
 
@@ -71,8 +72,6 @@ async def processing_consumer(
         try:
             # Add timeout to prevent indefinite blocking if producer dies
             # Allow configuration via env, default to 600 seconds (10 minutes)
-            import os
-
             timeout_val = float(os.getenv("CONSUMER_TIMEOUT", "600.0"))
             item = await asyncio.wait_for(work_queue.get(), timeout=timeout_val)
         except asyncio.TimeoutError:
@@ -165,14 +164,22 @@ async def processing_consumer(
         # Deduplication logic.
         # Uses explicit lock to ensure safety if multiple consumers run concurrently.
         async with seen_lock:
-            # Audit Fix: Eviction policy to prevent OOM
-            import os
-
+            # [FIX] LRU eviction policy to prevent OOM while preserving recent entries
+            # This prevents the "amnesia" problem where clearing the entire cache
+            # causes immediate duplicates to slip through.
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
+            eviction_batch_size = max(1000, max_seen // 10)  # Evict 10% at a time
+
+            # LRU eviction: remove oldest entries when limit exceeded
             if len(seen_keys) > max_seen:
-                seen_keys.clear()
-                logger.warning(
-                    f"Cleared seen_keys cache (limit {max_seen} reached) to prevent memory exhaustion"
+                # Convert to list to get oldest entries (set maintains insertion order in Python 3.7+)
+                keys_list = list(seen_keys)
+                # Remove oldest entries (first N in the set)
+                for old_key in keys_list[:eviction_batch_size]:
+                    seen_keys.discard(old_key)
+                logger.info(
+                    f"LRU eviction: removed {eviction_batch_size} oldest keys from seen_keys cache "
+                    f"(was {len(keys_list)}, now {len(seen_keys)})"
                 )
 
             for p in parsed_batch:
@@ -205,8 +212,7 @@ async def processing_consumer(
         if dropped_unsafe > 0:
             # Update detailed drop stats
             async with seen_lock:
-                if not hasattr(stats, "drop_reasons"):
-                    stats.drop_reasons = {}
+                # drop_reasons is initialized in PipelineStats, no need for hasattr check
                 stats.drop_reasons["security_validation"] = (
                     stats.drop_reasons.get("security_validation", 0) + dropped_unsafe
                 )
@@ -280,8 +286,6 @@ async def processing_consumer(
                 pass
             else:
                 if tester.go_tester.available:
-                    import os
-
                     chunk_size = int(os.getenv("GO_TESTER_BATCH_SIZE", "500"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
@@ -347,8 +351,6 @@ async def processing_consumer(
                             return res
 
                     # Process in chunks (increased from 50 to 100 for better throughput)
-                    import os
-
                     chunk_size = int(os.getenv("PY_TESTER_BATCH_SIZE", "100"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
