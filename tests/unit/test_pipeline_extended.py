@@ -154,7 +154,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
 
         # Setup producer/consumer to return proxies
         async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
-             # Put None for ALL consumers
+            # Put None for ALL consumers
             num_consumers = kwargs.get('num_consumers', 1)
             for _ in range(num_consumers):
                 await work_queue.put(None)
@@ -200,7 +200,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
             "configstream.pipeline_core.output_handler.generate_pipeline_outputs",
             new=AsyncMock(side_effect=Exception("Export Fail")),
         ),
-        patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
+        patch("configstream.pipeline.ProxyHistoryTracker"),
     ):
         MockTester.return_value.close = AsyncMock()
         MockTester.return_value.go_tester.available = False
@@ -209,7 +209,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         MockEventStream.return_value.aclose = AsyncMock()
 
         async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
-             # Put None for ALL consumers
+            # Put None for ALL consumers
             num_consumers = kwargs.get('num_consumers', 1)
             for _ in range(num_consumers):
                 await work_queue.put(None)
@@ -217,7 +217,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         async def fake_consumer(
             work_queue, stats, seen_keys, final_proxies, *args, **kwargs
         ):
-             while True:
+            while True:
                 item = await work_queue.get()
                 work_queue.task_done()
                 if item is None:
@@ -227,7 +227,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         mock_consumer.side_effect = fake_consumer
 
         with pytest.raises(Exception, match="Export Fail"):
-             await run_full_pipeline(
+            await run_full_pipeline(
                 sources=["http://test"],
                 output_dir=str(tmp_path),
                 dry_run=True
