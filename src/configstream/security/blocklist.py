@@ -168,7 +168,17 @@ class BlocklistManager:
         Detects potential honey pots using heuristics.
 
         NOTE: Passive VirusTotal checks should be used for definitive identification.
+
+        .. deprecated:: 2.0
+            Use :meth:`is_suspicious_port` for port-based checks or integrate VirusTotal for comprehensive detection.
         """
+        import warnings
+
+        warnings.warn(
+            "is_honeypot() is deprecated. Use is_suspicious_port() for port checks.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if self.is_suspicious_port(port):
             return True
 

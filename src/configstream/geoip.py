@@ -34,11 +34,11 @@ class GeoIPResolver:
     _lock: threading.Lock = threading.Lock()
 
     def __new__(cls):
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = super(GeoIPResolver, cls).__new__(cls)
-                    cls._instance._initialized = False
+        # FIX: Always acquire lock before checking to prevent race condition
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(GeoIPResolver, cls).__new__(cls)
+                cls._instance._initialized = False
         return cls._instance
 
     def __init__(self):
@@ -49,7 +49,8 @@ class GeoIPResolver:
         self.reader_city: Optional[geoip2.database.Reader] = None
         self.reader_asn: Optional[geoip2.database.Reader] = None
 
-        self._lookup_lock = asyncio.Lock()
+        # FIX: Use threading.Lock for sync context - asyncio.Lock created lazily
+        self._lookup_lock: Optional[asyncio.Lock] = None
 
         # Load synchronously
         self._load_databases()
@@ -104,6 +105,12 @@ class GeoIPResolver:
         except Exception as e:
             logger.error(f"Failed to load GeoIP databases: {e}")
 
+    def _get_lookup_lock(self) -> asyncio.Lock:
+        """Lazily create async lock when first needed (within event loop context)."""
+        if self._lookup_lock is None:
+            self._lookup_lock = asyncio.Lock()
+        return self._lookup_lock
+
     async def lookup(self, ip: str) -> GeoData:
         """Resolve IP to Country, City, ASN (Async with Lock)."""
         result = GeoData()
@@ -117,7 +124,7 @@ class GeoIPResolver:
             logger.debug(f"Invalid IP address format: {ip}")
             return result
 
-        async with self._lookup_lock:
+        async with self._get_lookup_lock():
             try:
                 if self.reader_city:
                     response = self.reader_city.city(ip)
