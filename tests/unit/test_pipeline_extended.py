@@ -139,7 +139,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
-        patch("configstream.pipeline.generate_pipeline_outputs", new=AsyncMock(return_value={})),
+        patch("configstream.pipeline_core.output_handler.generate_pipeline_outputs", new=AsyncMock(return_value={})),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
     ):
         MockTester.return_value.close = AsyncMock()
@@ -197,7 +197,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
         patch(
-            "configstream.pipeline.generate_pipeline_outputs",
+            "configstream.pipeline_core.output_handler.generate_pipeline_outputs",
             new=AsyncMock(side_effect=Exception("Export Fail")),
         ),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
