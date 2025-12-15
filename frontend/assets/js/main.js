@@ -99,11 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Dispatch event for UI updates
                 window.dispatchEvent(new CustomEvent('data-updated', { detail: { count: proxies.length } }));
-                console.log(`[Diff] Applied delta: +${update.added.length} -${update.removed.length}`);
 
-                // Optional: Refresh specific UI elements if needed immediately
-                // For now, we rely on the event or reload
-                alert(`Data updated! +${update.added.length} -${update.removed.length} proxies.`);
+                // Use state manager notification instead of alert() for better UX
+                if (window.stateManager && window.stateManager.showNotification) {
+                    window.stateManager.showNotification(`Data updated! +${update.added.length} -${update.removed.length} proxies.`, 'success');
+                }
             } else {
                 // Full reload required
                 console.log('[Diff] Server requested full reload');

@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["SourceQualityTracker", "calculate_diversity_score"]
 
+
 @dataclass
 class SourceHealth:
     url: str
@@ -23,6 +24,7 @@ class SourceHealth:
     last_success: float = 0.0
     last_failure: float = 0.0
     status: str = "active"  # active, probation, dead
+
 
 class SourceQualityTracker(QualityStorage):
     """
@@ -56,10 +58,14 @@ class SourceQualityTracker(QualityStorage):
         Maps arguments to the new dictionary-based upsert_stats.
         """
         # Map legacy kwargs to new args
-        if fetched is None: fetched = fetched_count or 0
-        if working is None: working = working_count or 0
-        if diversity is None: diversity = diversity_score or 0.0
-        if reliability is None: reliability = reliability_score
+        if fetched is None:
+            fetched = fetched_count or 0
+        if working is None:
+            working = working_count or 0
+        if diversity is None:
+            diversity = diversity_score or 0.0
+        if reliability is None:
+            reliability = reliability_score
 
         # Calculate reliability if not provided
         if reliability is None:
@@ -90,12 +96,12 @@ class SourceQualityTracker(QualityStorage):
         # state: (status, last_checked, consecutive_failures, reliability_score, total_fetched, total_working)
         status = state[0]
         if status == "dead":
-             return False
+            return False
         if status == "probation":
-             last_checked = state[1]
-             # Retry every 6 hours
-             if (datetime.now(timezone.utc).timestamp() - last_checked) < (6 * 3600):
-                 return False
+            last_checked = state[1]
+            # Retry every 6 hours
+            if (datetime.now(timezone.utc).timestamp() - last_checked) < (6 * 3600):
+                return False
         return True
 
     def get_source_score(self, url: str) -> float:
@@ -105,7 +111,7 @@ class SourceQualityTracker(QualityStorage):
         """
         state = self.get_source_state(url)
         if not state:
-            return 50.0 # Default
+            return 50.0  # Default
 
         # state[3] is reliability_score
         return float(state[3])
