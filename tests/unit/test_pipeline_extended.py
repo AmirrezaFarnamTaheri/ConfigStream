@@ -90,7 +90,7 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
                     await work_queue.put(("test-source", lines))
 
             # Put None for ALL consumers
-            num_consumers = kwargs.get('num_consumers', 1)
+            num_consumers = kwargs.get("num_consumers", 1)
             for _ in range(num_consumers):
                 await work_queue.put(None)
 
@@ -139,7 +139,10 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
-        patch("configstream.pipeline_core.output_handler.generate_pipeline_outputs", new=AsyncMock(return_value={})),
+        patch(
+            "configstream.pipeline_core.output_handler.generate_pipeline_outputs",
+            new=AsyncMock(return_value={}),
+        ),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
     ):
         MockTester.return_value.close = AsyncMock()
@@ -155,7 +158,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         # Setup producer/consumer to return proxies
         async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             # Put None for ALL consumers
-            num_consumers = kwargs.get('num_consumers', 1)
+            num_consumers = kwargs.get("num_consumers", 1)
             for _ in range(num_consumers):
                 await work_queue.put(None)
 
@@ -173,9 +176,7 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
         mock_consumer.side_effect = fake_consumer
 
         result = await run_full_pipeline(
-            sources=["http://test"],
-            output_dir=str(tmp_path),
-            dry_run=True
+            sources=["http://test"], output_dir=str(tmp_path), dry_run=True
         )
 
         assert result.success is True
@@ -210,7 +211,7 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
 
         async def fake_producer(sources, work_queue, proxies, *args, **kwargs):
             # Put None for ALL consumers
-            num_consumers = kwargs.get('num_consumers', 1)
+            num_consumers = kwargs.get("num_consumers", 1)
             for _ in range(num_consumers):
                 await work_queue.put(None)
 
@@ -228,7 +229,5 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
 
         with pytest.raises(Exception, match="Export Fail"):
             await run_full_pipeline(
-                sources=["http://test"],
-                output_dir=str(tmp_path),
-                dry_run=True
+                sources=["http://test"], output_dir=str(tmp_path), dry_run=True
             )
