@@ -39,7 +39,7 @@ from .pipeline_stages import (
     processing_consumer,
 )
 from .pipeline_core.sorter import sort_proxies_pareto
-from .pipeline_core.output_handler import generate_pipeline_outputs
+from .pipeline_core import output_handler
 from .event_stream import EventStream
 
 logger = logging.getLogger(__name__)
@@ -241,7 +241,7 @@ async def run_full_pipeline(
         duration = (datetime.now(timezone.utc) - start_time).total_seconds()
         stats.duration = float(duration)
 
-        generated_files = await generate_pipeline_outputs(
+        generated_files = await output_handler.generate_pipeline_outputs(
             optimized_proxies, output_path, stats, history
         )
 
