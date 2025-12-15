@@ -3,19 +3,26 @@ from unittest.mock import MagicMock, AsyncMock, patch
 from configstream.models import Proxy
 from configstream.intelligence.washer.core import ProxyWasher
 
+
 @pytest.fixture
 def mock_warp_keys():
     return '[{"private_key": "priv1", "peer_public_key": "pub1", "id": "key1"}, {"private_key": "priv2", "peer_public_key": "pub2", "id": "key2"}]'
+
 
 @pytest.fixture
 def washer(mock_warp_keys):
     return ProxyWasher(mock_warp_keys)
 
+
 @pytest.mark.asyncio
 async def test_washer_get_clean_endpoint(washer):
     # Test default
     washer.clean_ips = []
-    assert washer._get_clean_endpoint("test") in ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
+    assert washer._get_clean_endpoint("test") in [
+        "162.159.192.1",
+        "162.159.193.10",
+        "162.159.195.5",
+    ]
 
     # Test with IPs
     washer.clean_ips = ["1.1.1.1", "2.2.2.2"]
@@ -23,29 +30,59 @@ async def test_washer_get_clean_endpoint(washer):
     ip = washer._get_clean_endpoint("test")
     assert ip in washer.clean_ips
 
+
 @pytest.mark.asyncio
 async def test_washer_wash_batch(washer):
     proxies = [
-        Proxy(config="vless://1", protocol="vless", address="1.1.1.1", port=443, uuid="u1", country="US", latency=100),
-        Proxy(config="vless://2", protocol="vless", address="2.2.2.2", port=443, uuid="u2", country="DE", latency=50),
+        Proxy(
+            config="vless://1",
+            protocol="vless",
+            address="1.1.1.1",
+            port=443,
+            uuid="u1",
+            country="US",
+            latency=100,
+        ),
+        Proxy(
+            config="vless://2",
+            protocol="vless",
+            address="2.2.2.2",
+            port=443,
+            uuid="u2",
+            country="DE",
+            latency=50,
+        ),
     ]
     # Mark them working
     for p in proxies:
         p.is_working = True
 
-    with patch("configstream.intelligence.washer.core.to_singbox_outbound", return_value={"type": "vless"}):
+    with patch(
+        "configstream.intelligence.washer.core.to_singbox_outbound",
+        return_value={"type": "vless"},
+    ):
         outbounds, ids, skips = washer.wash_batch(proxies)
         assert len(ids) == 2
-        assert len(outbounds) == 4 # 2 relays + 2 wireguard exits
+        assert len(outbounds) == 4  # 2 relays + 2 wireguard exits
+
 
 @pytest.mark.asyncio
 async def test_washer_wash_batch_no_working(washer):
     proxies = [
-        Proxy(config="vless://1", protocol="vless", address="1.1.1.1", port=443, uuid="u1", country="US", latency=None),
+        Proxy(
+            config="vless://1",
+            protocol="vless",
+            address="1.1.1.1",
+            port=443,
+            uuid="u1",
+            country="US",
+            latency=None,
+        ),
     ]
     # Default is not working
     outbounds, ids, skips = washer.wash_batch(proxies)
     assert len(ids) == 0
+
 
 def test_washer_split_brain_protection(washer):
     # Verify max seen chains limit logic (indirectly)
@@ -60,12 +97,25 @@ def test_washer_split_brain_protection(washer):
     # Verify logic in wash_batch respects it
     # We can mock seen_chains
     washer.seen_chains = MagicMock()
-    washer.seen_chains.__contains__.return_value = True # Simulate duplicate
+    washer.seen_chains.__contains__.return_value = True  # Simulate duplicate
 
-    proxies = [Proxy(config="vless://1", protocol="vless", address="1.1.1.1", port=443, uuid="u1", country="US", latency=100)]
+    proxies = [
+        Proxy(
+            config="vless://1",
+            protocol="vless",
+            address="1.1.1.1",
+            port=443,
+            uuid="u1",
+            country="US",
+            latency=100,
+        )
+    ]
     proxies[0].is_working = True
 
-    with patch("configstream.intelligence.washer.core.to_singbox_outbound", return_value={"type": "vless"}):
+    with patch(
+        "configstream.intelligence.washer.core.to_singbox_outbound",
+        return_value={"type": "vless"},
+    ):
         outbounds, ids, skips = washer.wash_batch(proxies)
-        assert len(ids) == 0 # Should be skipped
+        assert len(ids) == 0  # Should be skipped
         assert skips.get("duplicate_chain") == 1
