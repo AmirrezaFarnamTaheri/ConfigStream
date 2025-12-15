@@ -85,6 +85,7 @@ dev = [
     "types-PyYAML",
     "types-requests",
     "types-psutil",
+    "types-cachetools",
     "flake8",
     "black",
     "mypy",
