@@ -43,3 +43,5 @@ https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vless.txt
 https://raw.githubusercontent.com/zjfb/SubCrawler/main/sub/share/all
 https://www.freeproxylist.net/
+https://raw.githubusercontent.com/go4sharing/sub/main/sub.yaml
+https://raw.githubusercontent.com/tkamirparsa/Javid-shah/refs/heads/main/Sub.text

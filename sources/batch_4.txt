@@ -44,3 +44,5 @@ https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_vless.txt
 https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpeasoft%2FNoMoreWalls%2Fmaster%2Fsnippets%2Fnodes.meta.yml&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&tls13=true&emoji=true&list=false&xudp=true&udp=true&tfo=false&expand=true&scv=false&fdn=false&singbox.ipv6=1
 https://www.proxy-list.download/api/v1/get?type=all
+https://raw.githubusercontent.com/AB841V0N/Warp-ON-Warp/main/AB_841-Warp-ON-Warp
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_3.txt

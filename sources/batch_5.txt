@@ -7,7 +7,6 @@ https://iproyal.com/free-proxy-list
 https://proxy-daily.com/
 https://publicproxyservers.com/api/proxy
 https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Germany.txt
-https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.txt
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/ndnode.yaml
 https://raw.githubusercontent.com/Danialsamadi/v2go/main/All_Configs_base64_Sub.txt
 https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Donate/Json
@@ -44,3 +43,5 @@ https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/mixed_iran.tx
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_vmess.txt
 https://sureproxy.com/free
 https://www.proxynova.com/proxy-server-list/
+https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_4.txt
