@@ -36,7 +36,8 @@ async def test_washer_wash_batch(washer):
     with patch("configstream.intelligence.washer.core.to_singbox_outbound", return_value={"type": "vless"}):
         outbounds, ids, skips = washer.wash_batch(proxies)
         assert len(ids) == 2
-        assert len(outbounds) == 4 # 2 relays + 2 wireguard exits
+        assert len(outbounds) == 4  # 2 relays + 2 wireguard exits
+
 
 @pytest.mark.asyncio
 async def test_washer_wash_batch_no_working(washer):
@@ -60,12 +61,12 @@ def test_washer_split_brain_protection(washer):
     # Verify logic in wash_batch respects it
     # We can mock seen_chains
     washer.seen_chains = MagicMock()
-    washer.seen_chains.__contains__.return_value = True # Simulate duplicate
+    washer.seen_chains.__contains__.return_value = True  # Simulate duplicate
 
     proxies = [Proxy(config="vless://1", protocol="vless", address="1.1.1.1", port=443, uuid="u1", country="US", latency=100)]
     proxies[0].is_working = True
 
     with patch("configstream.intelligence.washer.core.to_singbox_outbound", return_value={"type": "vless"}):
         outbounds, ids, skips = washer.wash_batch(proxies)
-        assert len(ids) == 0 # Should be skipped
+        assert len(ids) == 0  # Should be skipped
         assert skips.get("duplicate_chain") == 1
