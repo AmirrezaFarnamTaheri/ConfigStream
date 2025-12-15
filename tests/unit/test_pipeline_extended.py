@@ -188,7 +188,6 @@ async def test_pipeline_pareto_sort(tmp_path, mock_proxies):
 
 @pytest.mark.asyncio
 async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
-    import configstream.pipeline
     with (
         patch("configstream.pipeline.SingBoxTester") as MockTester,
         patch("configstream.pipeline.SourceQualityTracker"),
@@ -197,9 +196,8 @@ async def test_pipeline_adapter_export_fail(tmp_path, mock_proxies):
         patch("configstream.pipeline.DEFAULT_BLOCKLIST.update", new=AsyncMock()),
         patch("configstream.pipeline.source_producer") as mock_producer,
         patch("configstream.pipeline.processing_consumer") as mock_consumer,
-        patch.object(
-            configstream.pipeline,
-            "generate_pipeline_outputs",
+        patch(
+            "configstream.pipeline.generate_pipeline_outputs",
             new=AsyncMock(side_effect=Exception("Export Fail")),
         ),
         patch("configstream.pipeline.ProxyHistoryTracker") as MockHistory,
