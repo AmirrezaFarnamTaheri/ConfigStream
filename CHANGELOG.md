@@ -1,3 +1,31 @@
+## [2.0.5] - 2025-12-15
+
+### Critical Fixes (Backend & Concurrency)
+- **GeoIP Race Condition Fix**: Fixed singleton pattern race condition in `geoip.py` by always acquiring lock before checking instance. Added lazy initialization for asyncio.Lock to prevent "no running event loop" errors.
+- **TYPE_CHECKING Guard Fix**: Replaced `if False:` with proper `if TYPE_CHECKING:` in `consumer.py` and `producer.py` for correct type checking behavior.
+- **Stego Key Injection Security**: Added proper JSON escaping for secret key injection in `output_transport.py` to prevent JavaScript syntax errors from special characters.
+- **Deprecated Method Warning**: Added deprecation warning to `BlocklistManager.is_honeypot()` with proper `warnings.warn()` call.
+
+### Frontend Fixes
+- **Mobile UX Improvements**:
+    - Reduced filter controls whitespace by ~60% for compact mobile experience
+    - Fixed "Get Your Configs" card with proper rounded corners and text containment
+    - Improved BYOW panel mobile layout with reduced padding
+    - Restored rounded corners on mobile cards
+- **Globe Widget Enhancements**: Added proper centering, dark mode gradient background, and mobile responsiveness for globe visualization.
+- **Stats Card Consistency**: Unified stats field mappings between `main.js` and `analytics.js` with comprehensive fallback handling.
+- **Alert to Notification**: Replaced intrusive `alert()` with state manager notification system for data updates.
+- **Analytics Robustness**: Added fallback data loading and empty state handling for analytics page.
+
+### i18n Enhancements
+- Added missing translation keys (`footer.lastupdated`, `footer.checking`, `stats.update.value`) to Chinese, Persian, Russian, and Arabic languages.
+
+### Code Quality
+- Consistent TYPE_CHECKING imports across pipeline modules
+- Improved error handling patterns in analytics.js
+
+---
+
 ## [2.0.4] - 2025-12-07
 
 ### Critical Fixes (Frontend & Reliability)

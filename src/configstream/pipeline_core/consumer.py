@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import orjson as json
-from typing import List, Optional, Set, Dict
+from typing import List, Optional, Set, Dict, TYPE_CHECKING
 
 from rich.progress import Progress, TaskID
 
@@ -24,7 +24,7 @@ from ..performance import PerformanceTracker
 from ..proxy_history import ProxyHistoryTracker
 from .models import PipelineStats
 
-if False:  # TYPE_CHECKING
+if TYPE_CHECKING:
     from ..event_stream import EventStream
 
 logger = logging.getLogger(__name__)
@@ -90,8 +90,10 @@ async def processing_consumer(
             source, raw_lines = item
             metadata = {}
 
-        stats.fetched_sources += 1
-        stats.fetched_lines += len(raw_lines)
+        # [FIX] Protect stats updates with lock to prevent race conditions
+        async with seen_lock:
+            stats.fetched_sources += 1
+            stats.fetched_lines += len(raw_lines)
 
         # Log metadata from fetcher if available
         fetch_meta_str = ""
@@ -263,7 +265,9 @@ async def processing_consumer(
                 final_batch_for_this_source.append(cached)
                 cache_hits += 1
             else:
-                stats.cache_misses += 1
+                # [FIX] Protect stats updates with lock
+                async with seen_lock:
+                    stats.cache_misses += 1
                 proxies_to_actually_test.append(p)
 
         logger.info(
@@ -304,7 +308,9 @@ async def processing_consumer(
                                 logger.debug(
                                     f"Proxy test failed [{safe_source}]: {res.protocol}://{res.address}:{res.port} - {error_msg}"
                                 )
-                        stats.tested += len(chunk)
+                        # [FIX] Protect stats updates with lock
+                        async with seen_lock:
+                            stats.tested += len(chunk)
                         # Log batch test summary
                         working_in_chunk = sum(1 for r in chunk if r.is_working)
                         logger.info(
@@ -357,7 +363,9 @@ async def processing_consumer(
                                 )
                                 final_batch_for_this_source.append(res)
 
-                        stats.tested += len(chunk)
+                        # [FIX] Protect stats updates with lock
+                        async with seen_lock:
+                            stats.tested += len(chunk)
                         if progress and task_process:
                             progress.update(
                                 task_process,
@@ -387,12 +395,16 @@ async def processing_consumer(
                             p.details["lat"] = geo_data.lat
                         if geo_data.lng:
                             p.details["lng"] = geo_data.lng
-                        stats.geo_resolved += 1
+                        # [FIX] Protect stats updates with lock
+                        async with seen_lock:
+                            stats.geo_resolved += 1
             if country_filter:
                 if p.country_code != country_filter.upper():
                     continue
             final_proxies.append(p)
-            stats.working += 1
+            # [FIX] Protect stats updates with lock
+            async with seen_lock:
+                stats.working += 1
 
         working_count = sum(1 for p in final_batch_for_this_source if p.is_working)
         fetched_count = len(parsed_batch)
