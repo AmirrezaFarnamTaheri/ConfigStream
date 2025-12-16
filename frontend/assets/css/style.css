@@ -35,10 +35,10 @@
 
     /* Z-Indexes */
     --z-index-background: -1;
-    --z-index-nav-overlay: 1000;
-    --z-index-nav-panel: 1001;
+    --z-index-header: 1000;
+    --z-index-nav-overlay: 1001;
     --z-index-nav-toggle: 1002;
-    --z-index-header: 1003;
+    --z-index-nav-panel: 1005;
     --z-index-preloader: 9999;
     --z-index-content-low: 1;
     --z-index-content-high: 2;

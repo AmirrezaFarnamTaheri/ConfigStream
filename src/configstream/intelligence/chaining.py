@@ -281,10 +281,33 @@ def generate_smart_chains(
 
     # --- CHAIN 1: THE INTRANET BRIDGE (Standard & Washed) ---
     # Strategy: User (Intranet) -> Relay (IR) -> Exit (Foreign) [-> WARP]
-    # To avoid explosion (N*M), we select 1 deterministic exit per relay
+    # To avoid explosion (N*M), we select 1 exit per relay using geographical optimization
     for relay in relays_ir:
-        # Deterministically pick one exit for this relay
-        exit_node = _deterministic_select(foreign_exits, f"INTRANET-{relay.id}")
+        # [FIX] Use geographical optimization to find the best exit for this relay
+        # Pick the exit with minimum distance to the relay
+        best_exit = None
+        min_distance = float("inf")
+
+        if relay.country_code in COUNTRIES:
+            relay_lat, relay_lon = COUNTRIES[relay.country_code]
+
+            for exit_p in foreign_exits:
+                if exit_p.country_code in COUNTRIES:
+                    exit_lat, exit_lon = COUNTRIES[exit_p.country_code]
+                    # Calculate distance using haversine
+                    dist = haversine(relay_lat, relay_lon, exit_lat, exit_lon)
+                    if hasattr(dist, "km"):
+                        dist = dist.km
+                    if dist < min_distance:
+                        min_distance = dist
+                        best_exit = exit_p
+
+        # Fallback to deterministic if optimization fails
+        exit_node = (
+            best_exit
+            if best_exit
+            else _deterministic_select(foreign_exits, f"INTRANET-{relay.id}")
+        )
 
         if exit_node is not None:
             # 1. Standard Chain (Fallback)

@@ -99,6 +99,12 @@ class ProxyWasher:
                 scraper = WarpScraper()
                 scraped_keys = await scraper.scrape_warp_sources()
 
+                # [FIX] Capture scraped endpoints from the scraper
+                fresh_endpoints = scraper.get_scraped_endpoints()
+                if fresh_endpoints:
+                    self.clean_ips = fresh_endpoints
+                    logger.info(f"Loaded {len(fresh_endpoints)} clean IPs from Scraper")
+
                 new_keys = []
                 for p in scraped_keys:
                     key_dict = {

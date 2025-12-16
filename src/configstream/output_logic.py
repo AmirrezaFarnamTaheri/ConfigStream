@@ -176,26 +176,38 @@ def save_metadata(
 
     # Extract info from stats (dict or object)
     total_sourced = total
+    parsed_count = total
+    tested_count = total
     reasons = {}
     end_time_iso = datetime.now(timezone.utc).isoformat()
     washed_count = 0
     smart_chain_count = 0
+    vwarp_win_rate = 0.0
+    scanner_ips_found = 0
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
         total_sourced = stats.get("total_fetched", total)
+        parsed_count = stats.get("parsed", total)
+        tested_count = stats.get("tested", total)
         # reasons might be in stats['rejection_reasons'] if available, or empty
         reasons = stats.get("rejection_reasons", {})
         washed_count = stats.get("washed_chains", 0)
         smart_chain_count = 0
         if "smart_chains_breakdown" in stats:
             smart_chain_count = sum(stats["smart_chains_breakdown"].values())
+        vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
+        scanner_ips_found = stats.get("scanner_ips_found", 0)
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
             total_sourced = stats.fetched_lines
         elif hasattr(stats, "total_sourced"):
             total_sourced = stats.total_sourced
+        if hasattr(stats, "parsed"):
+            parsed_count = stats.parsed
+        if hasattr(stats, "tested"):
+            tested_count = stats.tested
         if hasattr(stats, "drop_reasons"):
             reasons = stats.drop_reasons
         if hasattr(stats, "end_time") and stats.end_time:
@@ -204,6 +216,10 @@ def save_metadata(
             washed_count = stats.washer_success_count
         if hasattr(stats, "smart_chain_count"):
             smart_chain_count = stats.smart_chain_count
+        if hasattr(stats, "vwarp_win_rate"):
+            vwarp_win_rate = stats.vwarp_win_rate
+        if hasattr(stats, "scanner_ips_found"):
+            scanner_ips_found = stats.scanner_ips_found
 
     # Fallback heuristics if counts still 0 (use values from single-pass loop)
     if washed_count == 0:
@@ -223,10 +239,10 @@ def save_metadata(
 
     meta = {
         "version": pkg_version,
-        "total_proxies": total,  # Changed to reflect actual proxies (parsed), not lines
-        "total_tested": total,
+        "total_proxies": total,  # Total working proxies (final count)
+        "total_tested": tested_count,  # Number of proxies actually tested
         "total_working": working,
-        "success_rate": (working / total) if total > 0 else 0,
+        "success_rate": (working / tested_count) if tested_count > 0 else 0,
         "generated_at": end_time_iso,
         "last_updated_utc": end_time_iso,
         "latency_distribution": lat_dist,
@@ -239,17 +255,20 @@ def save_metadata(
         "total_smart_chains": smart_chain_count,
         "smart_chains_breakdown": smart_chains_breakdown,
         "total_dirty": reasons.get("dirty_ip", 0) + reasons.get("honeypot", 0),
+        # Intelligence Layer Stats (canonical keys used by frontend)
+        "vwarp_win_rate": vwarp_win_rate,
+        "scanner_ips_found": scanner_ips_found,
+        "washer_success_count": washed_count,
+        "smart_chain_count": smart_chain_count,
         # Canonical Keys (Consolidated)
         "total_lines_sourced": total_sourced,
-        "total_unique_candidates": total,
+        "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
         "total_valid_proxies": working,
-        # Legacy mappings for backward compatibility
+        # Legacy mappings for backward compatibility (tests only)
         "fetched_lines": total_sourced,
-        "parsed": total,
-        "tested": total,
+        "parsed": parsed_count,
+        "tested": tested_count,
         "working": working,
-        "washed": washed_count,
-        "smart_chains": smart_chain_count,
     }
 
     with open(meta_path, "w", encoding="utf-8") as f:
