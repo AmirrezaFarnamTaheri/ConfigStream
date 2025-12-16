@@ -191,10 +191,17 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 f"Using existing local_address for WireGuard proxy {proxy.address}: {local_addresses}"
             )
         else:
-            # Generate unique local IP to allow concurrent testing
+            # [FIX] Generate unique local IP based on credentials, not endpoint
+            # For WARP proxies, many use the same Cloudflare endpoints but different keys
             # Using 2 bytes from hash to generate a /32 IP in 172.16.0.0/16 range
             # to minimize collision probability during concurrent testing.
-            h = hashlib.sha256(f"{proxy.address}:{proxy.port}".encode()).digest()
+            # Hash the private_key or UUID to ensure uniqueness per account
+            seed_key = (
+                proxy.details.get("private_key")
+                or proxy.uuid
+                or f"{proxy.address}:{proxy.port}"
+            )
+            h = hashlib.sha256(str(seed_key).encode()).digest()
             octet3 = h[0]
             octet4 = h[1]
             # Ensure fourth octet is not .0 or .1 which can be special

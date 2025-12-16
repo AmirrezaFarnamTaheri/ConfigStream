@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import re
+import mimetypes
 import importlib.metadata
 from pathlib import Path
 from typing import Optional, List
@@ -12,6 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 
 from .output import OUTPUT_DIR
+
+# Ensure WASM files are served with correct MIME type
+mimetypes.add_type("application/wasm", ".wasm")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

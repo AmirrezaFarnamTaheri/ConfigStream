@@ -26,13 +26,23 @@ def make_entry(
 
     proxy_id = hashlib.sha256(private_key.encode()).hexdigest()[:16]
 
+    # [FIX] Generate unique local IP based on private key to prevent collisions
+    # Hash the private key to generate unique IP address in 172.16.0.0/16 range
+    h = hashlib.sha256(private_key.encode()).digest()
+    octet3 = h[0]
+    octet4 = h[1]
+    # Ensure fourth octet is not .0 or .1 which can be special
+    if octet4 < 2:
+        octet4 = 2
+    unique_local_ip = f"172.16.{octet3}.{octet4}/32"
+
     details = {
         "private_key": private_key,
         "peer_public_key": peer_pub
         or "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=",  # Default Cloudflare Pub
         "reserved": reserved,
         "mtu": 1280,
-        "local_address": "172.16.0.2/32",  # Default, washer will rotate this
+        "local_address": unique_local_ip,  # Unique IP based on private key
     }
 
     return Proxy(

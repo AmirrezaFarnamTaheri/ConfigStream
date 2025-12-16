@@ -36,22 +36,23 @@ def test_singbox_trojan_conversion():
 
 
 def test_singbox_wireguard_unique_ip():
-    """Test WireGuard local IP generation"""
+    """Test WireGuard local IP generation based on private key"""
+    # Test 1: Different private keys should produce different IPs
     proxy1 = Proxy(
         config="wireguard://example.com:51820",
         protocol="wireguard",
         address="example.com",
         port=51820,
-        uuid="private_key",
-        details={"peer_public_key": "pub"},
+        uuid="private_key_1",
+        details={"private_key": "private_key_1", "peer_public_key": "pub"},
     )
     proxy2 = Proxy(
         config="wireguard://example.org:51820",
         protocol="wireguard",
         address="example.org",
         port=51820,
-        uuid="private_key",
-        details={"peer_public_key": "pub"},
+        uuid="private_key_2",
+        details={"private_key": "private_key_2", "peer_public_key": "pub"},
     )
 
     out1 = to_singbox_outbound(proxy1)
@@ -61,5 +62,19 @@ def test_singbox_wireguard_unique_ip():
     assert out2 is not None
     # Check IP format
     assert out1["local_address"][0].startswith("172.16.")
-    # Ensure they are different
+    # Different private keys should produce different IPs
     assert out1["local_address"][0] != out2["local_address"][0]
+
+    # Test 2: Same private key but different endpoints should produce SAME IP
+    proxy3 = Proxy(
+        config="wireguard://different-endpoint.com:51820",
+        protocol="wireguard",
+        address="different-endpoint.com",
+        port=51820,
+        uuid="private_key_1",
+        details={"private_key": "private_key_1", "peer_public_key": "pub"},
+    )
+    out3 = to_singbox_outbound(proxy3)
+    assert out3 is not None
+    # Same private key should produce same IP (collision prevention)
+    assert out1["local_address"][0] == out3["local_address"][0]
