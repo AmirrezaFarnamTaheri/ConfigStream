@@ -189,6 +189,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const threatsBlocked = stats.total_dirty || stats.threats_blocked || 0;
                 updateElement('#threatsBlocked', formatNum(threatsBlocked));
 
+                // Smart Chains count
+                const smartChains = stats.smart_chain_count || 0;
+                updateElement('#smartChains', formatNum(smartChains));
+
+                // Vwarp Win Rate (efficiency percentage)
+                const vwarpWinRate = stats.vwarp_win_rate || 0;
+                updateElement('#vwarpWinRate', `${Math.round(vwarpWinRate)}%`);
+
                 // Dynamic update frequency from metadata or fallback to 6 hours
                 const updateFreq = metadata?.update_interval_hours || 6;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);

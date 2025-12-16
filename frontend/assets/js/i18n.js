@@ -41,6 +41,8 @@ const translations = {
         "stats.hybrid.desc": "Go + Python Core",
         "stats.update": "Update Frequency",
         "stats.threats": "Threats Blocked",
+        "stats.chains": "Smart Chains",
+        "stats.vwarp": "Vwarp Efficiency",
 
         "downloads.title": "Get Your Configs",
         "downloads.subtitle": "Select your preferred format below. All files contain our latest verified proxies.",
