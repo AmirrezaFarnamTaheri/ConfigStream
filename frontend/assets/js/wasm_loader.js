@@ -12,9 +12,15 @@ async function initWasm() {
         );
         go.run(result.instance);
         wasmReady = true;
-        console.log("✅ ConfigStream WASM Core Loaded");
+
+        // Signal WASM is ready
+        window.wasmReady = true;
+        document.dispatchEvent(new Event('wasm-ready'));
+        console.log("✅ ConfigStream WASM Core Loaded and Event Dispatched");
     } catch (err) {
         console.error("❌ WASM Load Failed:", err);
+        // Dispatch event even on failure so app doesn't hang
+        document.dispatchEvent(new Event('wasm-ready'));
     }
 }
 

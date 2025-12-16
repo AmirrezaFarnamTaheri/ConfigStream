@@ -173,10 +173,12 @@ function renderTable() {
         const locCell = document.createElement('td');
         locCell.setAttribute('data-label', 'Location');
         locCell.className = 'location-cell';
+        // [SECURITY FIX] Escape country code to prevent XSS
+        const safeCountryCode = escapeHtml(p.country_code || 'Unknown');
         const flag = p.country_code && p.country_code !== 'XX'
-            ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" class="country-flag" alt="${p.country_code}">`
+            ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" class="country-flag" alt="${escapeHtml(p.country_code)}">`
             : `<i data-feather="globe" class="country-flag-icon"></i>`;
-        const locText = p.city ? `${escapeHtml(p.city)}, ${p.country_code}` : (p.country_code || 'Unknown');
+        const locText = p.city ? `${escapeHtml(p.city)}, ${safeCountryCode}` : safeCountryCode;
         locCell.innerHTML = `${flag} <span>${locText}</span>`;
         row.appendChild(locCell);
 
