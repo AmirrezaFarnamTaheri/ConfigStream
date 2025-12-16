@@ -2,17 +2,40 @@
 
 ## Recent Fixes (2025-12-16)
 
-### Fixed Issues:
+### First Pass - Critical Fixes:
 1. **Missing geopy dependency** - Added `geopy>=2.3.0` to requirements.txt and pyproject.toml
 2. **IP collision in washer/utils.py** - Fixed hardcoded 172.16.0.2/32 by generating unique IPs based on private key hash
 3. **WireGuard IP collision in converters** - Fixed to hash private key instead of endpoint address
 
-### Verified Working:
-- ✅ Stats tracking (vwarp_attempts, vwarp_success, smart_chain_count, washer_success_count)
-- ✅ Smart Chains and Vwarp Efficiency displays on dashboard
-- ✅ Geographical optimization in chaining
-- ✅ WASM MIME type configuration
-- ✅ All 724 unit tests passing
+### Second Pass - Deep Audit Fixes:
+4. **Missing stats in metadata.json** - Added `vwarp_win_rate` and `scanner_ips_found` to metadata export
+5. **Duplicate metadata keys** - Removed redundant legacy mappings, kept canonical versions only
+6. **Incorrect parsed/tested values** - Fixed to use actual stats values instead of total working count
+
+### Comprehensive Audit Results:
+✅ **Concurrency & Race Conditions** - All properly protected:
+  - `washer.seen_chains` with `_seen_chains_lock`
+  - `consumer.seen_keys` with `seen_lock`
+  - `dns_cache._cache` with asyncio.Lock
+  - All stats updates atomic with lock protection
+
+✅ **Split-Brain & Isolated Code** - No issues:
+  - ProxyWasher properly passed through pipeline
+  - No duplicate state management
+  - All integrations verified
+
+✅ **Stats Tracking** - Complete end-to-end:
+  - Backend tracking: vwarp_attempts, vwarp_success, smart_chain_count, washer_success_count, scanner_ips_found
+  - Metadata export: All intelligence stats properly exported
+  - Frontend display: All metrics rendering correctly
+
+✅ **Data Accuracy**:
+  - Division by zero handled (vwarp_win_rate)
+  - Success rate now correctly calculated as `working/tested` not `working/total`
+  - Parsed vs tested values properly distinguished
+  - No duplicate or redundant metadata keys
+
+✅ **All 724 Unit Tests Passing**
 
 ---
 
