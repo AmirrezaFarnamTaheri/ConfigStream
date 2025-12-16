@@ -1,5 +1,21 @@
 # Known Issues and Limitations
 
+## Recent Fixes (2025-12-16)
+
+### Fixed Issues:
+1. **Missing geopy dependency** - Added `geopy>=2.3.0` to requirements.txt and pyproject.toml
+2. **IP collision in washer/utils.py** - Fixed hardcoded 172.16.0.2/32 by generating unique IPs based on private key hash
+3. **WireGuard IP collision in converters** - Fixed to hash private key instead of endpoint address
+
+### Verified Working:
+- ✅ Stats tracking (vwarp_attempts, vwarp_success, smart_chain_count, washer_success_count)
+- ✅ Smart Chains and Vwarp Efficiency displays on dashboard
+- ✅ Geographical optimization in chaining
+- ✅ WASM MIME type configuration
+- ✅ All 724 unit tests passing
+
+---
+
 ## 1. Go WASM Networking Limitation (Critical Architectural Issue)
 
 ### Status: Known Limitation - Requires Architectural Redesign
