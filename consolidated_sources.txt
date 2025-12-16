@@ -19,3 +19,39 @@ https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml
 https://raw.githubusercontent.com/tbbatbb/Proxy/master/dist/v2ray.config.txt
 https://raw.githubusercontent.com/v2ray-links/v2ray-free/master/v2ray
 https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/V2RAY.txt
+# MatinGhanbari - High quality, updates every 15 minutes
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/super-sub.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/all_sub.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/vless.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/vmess.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/trojan.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/filtered/subs/hysteria2.txt
+# Sage-77 - Updates every 30 minutes
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/config.txt
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/vless.txt
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/vmess.txt
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/trojan.txt
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/hysteria2.txt
+https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/warp.txt
+# NiREvil - Warp & Sing-box specialist
+https://raw.githubusercontent.com/NiREvil/vless/main/sing-box.json
+https://raw.githubusercontent.com/NiREvil/vless/main/warp.json
+# R3ZARAHIMI - Updates every 2h
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.txt
+https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
+# Surfboardv2ray - Protocol-separated
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/mixed
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/vless
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/vmess
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/trojan
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/hysteria2
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/hy2
+# YouFoundAmin - Popular collector
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/mixed_iran.txt
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vless_iran.txt
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vmess_iran.txt
+https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/trojan_iran.txt
+# Epodonios - Splitted by protocol
+https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Protocol/hysteria2.txt
+# GFP - Hysteria2
+https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/dist/hysteria2.txt

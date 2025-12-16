@@ -87,8 +87,6 @@ const translations = {
         "footer.lastupdated": "Last updated:",
         "footer.checking": "checking...",
 
-        "stats.update.value": "Every 6h",
-
         "formats.title": "Format Guide",
         "formats.base64": "Universal (Base64): The standard subscription format. Compatible with V2RayNG, v2rayN, Streisand, and most clients. Best for general use.",
         "formats.singbox": "Sing-box JSON: Next-gen configuration. 'Sniper' mode auto-routes traffic based on latency. 'Tank' mode tunnels everything.",
@@ -133,8 +131,25 @@ const translations = {
 
         /* About Page */
         "about.hero.title": "About ConfigStream",
-        "about.title": "About ConfigStream",
-        "about.subtitle": "Building the Resilient Internet Layer.",
+        "about.title": "Our Mission",
+        "about.subtitle": "To provide free, uncensored, and secure internet access to everyone, everywhere. We believe information is a human right.",
+
+        /* Core Pillars */
+        "about.pillar1.title": "Zero Budget, Maximum Impact",
+        "about.pillar1.text": "We operate entirely on free infrastructure (GitHub Actions/Pages). This guarantees sustainability—we can't run out of funds because we don't spend any.",
+        "about.pillar2.title": "Automated Intelligence",
+        "about.pillar2.text": "Our hybrid Python/Go engine (\"Resilient Core\") automatically scrapes, deduplicates, tests, and \"washes\" thousands of proxies every 6 hours.",
+        "about.pillar3.title": "Radical Transparency",
+        "about.pillar3.text": "Open source from day one. Every line of code, every metric, and every configuration is public and auditable by the community.",
+
+        /* Technology & Protocols */
+        "about.tech.title": "Under the Hood",
+        "about.protocols.title": "Supported Protocols & Clients",
+
+        /* Join Us */
+        "about.join.title": "Join the Movement",
+        "about.join.text": "ConfigStream is built by the community, for the community.",
+        "about.join.btn": "Contribute on GitHub",
         "about.mission.title": "Our Mission",
         "about.mission.text": "ConfigStream is an automated, open-source intelligence platform designed to aggregate, test, and distribute high-performance proxy configurations. In an era of increasing internet censorship and fragmentation, we provide the tools to maintain connectivity and bypass restrictions securely.",
         "about.architecture.title": "Core Architecture",
@@ -273,7 +288,6 @@ const translations = {
         "footer.love": "为自由互联网而生的开源项目。✨",
         "footer.lastupdated": "最后更新：",
         "footer.checking": "检查中...",
-        "stats.update.value": "每6小时",
         "formats.title": "格式说明",
         "formats.base64": "Base64：通用订阅链接，适用于 V2Ray, Xray, NekoBox 等。",
         "formats.singbox": "Sing-box：包含 '狙击手' (智能分流) 和 '坦克' (全局代理) 模式。",
@@ -420,7 +434,6 @@ const translations = {
         "footer.love": "پروژه‌ای دلی برای آزادی اینترنت. ✨",
         "footer.lastupdated": "آخرین بروزرسانی:",
         "footer.checking": "در حال بررسی...",
-        "stats.update.value": "هر ۶ ساعت",
         "formats.title": "راهنمای فرمت‌ها",
         "formats.base64": "Base64: یک لینک ساده برای V2Ray, Xray و غیره.",
         "formats.singbox": "Sing-box: شامل حالت‌های 'اسنایپر' (هوشمند) و 'تانک' (تمام تانل).",
@@ -567,7 +580,6 @@ const translations = {
         "footer.love": "Сделано с любовью к свободному интернету. ✨",
         "footer.lastupdated": "Последнее обновление:",
         "footer.checking": "проверка...",
-        "stats.update.value": "Каждые 6ч",
         "formats.title": "О форматах",
         "formats.base64": "Base64: Единая ссылка для V2Ray, Xray, NekoBox.",
         "formats.singbox": "Sing-box: Режимы 'Снайпер' (Умный роутинг) и 'Танк' (Весь трафик).",
@@ -714,7 +726,6 @@ const translations = {
         "footer.love": "مشروع شغوف لإنترنت حر ومفتوح. ✨",
         "footer.lastupdated": "آخر تحديث:",
         "footer.checking": "جاري الفحص...",
-        "stats.update.value": "كل 6 ساعات",
         "formats.title": "دليل التنسيقات",
         "formats.base64": "Base64: رابط واحد لـ V2Ray, Xray, NekoBox.",
         "formats.singbox": "Sing-box: يشمل وضع 'القناص' (توجيه ذكي) و 'الدبابة' (VPN كامل).",
