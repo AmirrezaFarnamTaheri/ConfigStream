@@ -99,7 +99,9 @@ def validate_b64_input(data: str) -> Optional[str]:
     # [FIXED LOGIC] If there are too many invalid characters, it's likely not base64 at all.
     # Return None silently or with debug to avoid log spam.
     if invalid_chars:
-        error_rate = len(invalid_chars) / len(trimmed)
+        # FIX: Count actual occurrences of invalid characters, not just unique invalid chars
+        invalid_count = sum(1 for c in trimmed if c in invalid_chars)
+        error_rate = invalid_count / len(trimmed)
         if (
             error_rate > 0.05
         ):  # >5% invalid chars -> definitely not base64 (probably HTML or text)

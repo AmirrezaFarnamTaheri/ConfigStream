@@ -116,15 +116,40 @@ class QualityStorage:
                 return 50.0
 
     def upsert_stats(self, url: str, stats: Dict[str, Any]):
-        """Insert or Update source stats."""
+        """Insert or Update source stats. Supports partial updates by merging with existing/default values."""
+        # Default values for all fields
+        defaults = {
+            "total_fetched": 0,
+            "total_working": 0,
+            "consecutive_failures": 0,
+            "last_checked": 0,
+            "reliability_score": 100.0,
+            "diversity_score": 0.0,
+            "trust_score": 50.0,
+        }
+
         with self._lock:
             try:
                 conn = self._get_conn()
-                exists = conn.execute(
-                    "SELECT 1 FROM source_stats WHERE url = ?", (url,)
+                existing = conn.execute(
+                    """SELECT total_fetched, total_working, consecutive_failures,
+                              last_checked, reliability_score, diversity_score, trust_score
+                       FROM source_stats WHERE url = ?""",
+                    (url,),
                 ).fetchone()
 
-                if exists:
+                if existing:
+                    # Merge existing values with provided stats (stats takes precedence)
+                    current = {
+                        "total_fetched": existing[0],
+                        "total_working": existing[1],
+                        "consecutive_failures": existing[2],
+                        "last_checked": existing[3],
+                        "reliability_score": existing[4],
+                        "diversity_score": existing[5],
+                        "trust_score": existing[6],
+                    }
+                    merged = {**current, **stats}
                     conn.execute(
                         """
                         UPDATE source_stats
@@ -133,17 +158,19 @@ class QualityStorage:
                         WHERE url=?
                         """,
                         (
-                            stats["total_fetched"],
-                            stats["total_working"],
-                            stats["consecutive_failures"],
-                            stats["last_checked"],
-                            stats["reliability_score"],
-                            stats["diversity_score"],
-                            stats["trust_score"],
+                            merged["total_fetched"],
+                            merged["total_working"],
+                            merged["consecutive_failures"],
+                            merged["last_checked"],
+                            merged["reliability_score"],
+                            merged["diversity_score"],
+                            merged["trust_score"],
                             url,
                         ),
                     )
                 else:
+                    # Merge defaults with provided stats for new entries
+                    merged = {**defaults, **stats}
                     conn.execute(
                         """
                         INSERT INTO source_stats
@@ -152,13 +179,13 @@ class QualityStorage:
                         """,
                         (
                             url,
-                            stats["total_fetched"],
-                            stats["total_working"],
-                            stats["consecutive_failures"],
-                            stats["last_checked"],
-                            stats["reliability_score"],
-                            stats["diversity_score"],
-                            stats["trust_score"],
+                            merged["total_fetched"],
+                            merged["total_working"],
+                            merged["consecutive_failures"],
+                            merged["last_checked"],
+                            merged["reliability_score"],
+                            merged["diversity_score"],
+                            merged["trust_score"],
                         ),
                     )
                 conn.commit()
@@ -198,15 +225,14 @@ class QualityStorage:
 
         # Acquire lock to ensure we don't merge while other threads are writing
         with self._lock:
+            src = None
+            dst = None
             try:
-                # Note: We create new connections here, which is fine as long as we hold the lock
-                # preventing other threads from using self._conn to write.
-                with (
-                    sqlite3.connect(other_db_path) as src,
-                    sqlite3.connect(self.db_path) as dst,
-                ):
-                    src.execute("PRAGMA journal_mode=WAL")
-                    dst.execute("PRAGMA journal_mode=WAL")
+                # Create connections and keep them open for the entire merge operation
+                src = sqlite3.connect(other_db_path)
+                dst = sqlite3.connect(self.db_path)
+                src.execute("PRAGMA journal_mode=WAL")
+                dst.execute("PRAGMA journal_mode=WAL")
 
                 # Merge source_stats
                 rows = src.execute("SELECT * FROM source_stats").fetchall()
@@ -271,3 +297,8 @@ class QualityStorage:
                     logger.info(f"Merged source stats from {other_db_path}")
             except Exception as e:
                 logger.error(f"Failed to merge source quality DB {other_db_path}: {e}")
+            finally:
+                if src:
+                    src.close()
+                if dst:
+                    dst.close()
