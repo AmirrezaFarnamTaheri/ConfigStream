@@ -27,7 +27,7 @@ class VwarpTool:
     async def scan_endpoints(self, rtt_limit: str = "800ms") -> List[str]:
         """
         Runs 'vwarp --scan' to harvest unblocked Cloudflare IPs.
-        Returns a list of 'IP:PORT' strings.
+        Returns a list of IP addresses (without port).
         """
         if not await self.is_available():
             # Only log error if we expected it to be there, otherwise it might just be local env
@@ -61,7 +61,23 @@ class VwarpTool:
                     # Expected format: "162.159.192.10:2408 - 150ms"
                     if ":" in line and "ms" in line:
                         clean_ep = line.split()[0].strip()
-                        endpoints.append(clean_ep)
+                        # FIX: Extract only the IP part, not IP:PORT
+                        # The washer expects just the IP and will add the port separately
+                        if ":" in clean_ep:
+                            # Handle IPv6 addresses in brackets [ipv6]:port
+                            if clean_ep.startswith("["):
+                                # IPv6 format: [2001:db8::1]:2408
+                                bracket_end = clean_ep.find("]")
+                                if bracket_end > 0:
+                                    ip_part = clean_ep[1:bracket_end]
+                                else:
+                                    ip_part = clean_ep
+                            else:
+                                # IPv4 format: 162.159.192.10:2408
+                                ip_part = clean_ep.rsplit(":", 1)[0]
+                            endpoints.append(ip_part)
+                        else:
+                            endpoints.append(clean_ep)
 
             logger.info(f"✅ Vwarp found {len(endpoints)} healthy endpoints.")
             return endpoints

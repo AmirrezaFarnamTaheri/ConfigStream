@@ -235,13 +235,10 @@ async def fetch_from_source(
 
             # If it's a 404 (Not Found) or 410 (Gone), retrying is futile.
             if last_status_code in (404, 410):
-                # Record failure signals before aborting to keep controllers accurate
+                # FIX: Removed duplicate controller.record() and breaker.record_failure() calls
+                # These are already recorded above in lines 226-234 for the general error case.
+                # Only record source failure and timeout tracker here (not duplicated above).
                 try:
-                    if controller:
-                        await controller.record(host, float(per_attempt_timeout), False)
-                    if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-                        breaker = await breaker_manager.get_breaker(host)
-                        await breaker.record_failure()
                     # Inform adaptive timeout tracker of the failure for this attempt
                     if timeout_tracker is not None:
                         await timeout_tracker.record_attempt(
@@ -253,7 +250,7 @@ async def fetch_from_source(
                     raise
                 except Exception:
                     logger.debug(
-                        "Failed to record controller/circuit-breaker/timeout state on permanent error",
+                        "Failed to record timeout/source state on permanent error",
                         exc_info=True,
                     )
 

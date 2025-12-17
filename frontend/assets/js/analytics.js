@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             stats = await window.api.fetchStatistics();
         } else {
             // Fallback: Try direct fetch from data files
-            const response = await fetch('data/statistics.json?cb=' + Date.now());
+            const response = await fetch('statistics.json?cb=' + Date.now());
             if (response.ok) {
                 stats = await response.json();
             }
