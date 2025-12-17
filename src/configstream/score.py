@@ -18,7 +18,10 @@ def _latency_points(lat_ms: float | None, soft_cap: int, max_points: float) -> f
         return 0.0
     center = max(1.0, soft_cap * 0.6)
     slope = max(50.0, soft_cap * 0.2)
-    return max_points * (1.0 / (1.0 + math.exp((lat_ms - center) / slope)))
+    # FIX: Clamp exponent to prevent overflow (exp(709) is close to max float)
+    exponent = (lat_ms - center) / slope
+    exponent = max(-700.0, min(700.0, exponent))
+    return max_points * (1.0 / (1.0 + math.exp(exponent)))
 
 
 def calculate_health_score(
@@ -146,6 +149,11 @@ def score_stability(
     """Legacy scoring function prioritizing stability."""
     hist = history.get(proxy.id) or {}
     score = hist.get("success_rate", 0.0) * 50.0
-    score += hist.get("latency_ewma", 0.0) * 20.0
+    # FIX: Lower latency_ewma should give higher score, not the other way around
+    # Convert latency_ewma to a bonus: lower latency = higher bonus
+    # At 0ms latency_ewma, get full 20 points; at 1000ms+, get 0 points
+    latency_ewma = hist.get("latency_ewma", 500.0)  # Default to mid-range
+    latency_bonus = max(0.0, (1000.0 - latency_ewma) / 1000.0) * 20.0
+    score += latency_bonus
     score += _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, 30.0)
     return round(score, 2)

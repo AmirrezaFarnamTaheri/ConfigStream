@@ -382,7 +382,7 @@ class GoBatchTester:
 
                 failure_reasons[error_cat] = failure_reasons.get(error_cat, 0) + 1
                 if error_cat not in ["TIMEOUT", "OTHER"]:
-                    p.details["failure_category"] = error_cat
+                    proxy_obj.details["failure_category"] = error_cat
 
         # Log summary
         failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])

@@ -269,7 +269,10 @@ def _generate_statistics(
     latency_by_protocol: Dict[str, list] = defaultdict(list)
     for p in ranked:
         if p.latency is not None and p.latency < 9000:  # Valid latency
-            latency_by_country[p.country].append(p.latency)
+            # FIX: Use country_code (e.g., "US") not country (e.g., "United States")
+            # to match frontend expectations (analytics.js)
+            cc = p.country_code or "XX"
+            latency_by_country[cc].append(p.latency)
             latency_by_protocol[p.protocol].append(p.latency)
 
     # Calculate averages
@@ -366,6 +369,9 @@ def _generate_statistics(
         "top_10_countries": sorted(
             country_counts.items(), key=lambda item: item[1], reverse=True
         )[:10],
+        # FIX: Add latency by country and protocol for frontend analytics charts
+        "latency_by_country": avg_latency_by_country,
+        "latency_by_protocol": avg_latency_by_protocol,
     }
 
     with open(output_dir / "statistics.json", "w") as f:
@@ -422,7 +428,9 @@ def _generate_statistics(
 
     with open(output_dir / "metadata.json", "w") as f:
         json.dump(meta, f, indent=2)
-    save_metadata(meta_stats, ranked, output_dir)
+    # FIX: Removed save_metadata() call which was overwriting metadata.json
+    # with a different schema, causing zero values in frontend.
+    # The 'meta' dict above already contains all required fields.
 
     # Batch Stats
     batch_stats: Dict[str, Dict[str, int]] = defaultdict(
