@@ -125,6 +125,12 @@ def validate_b64_input(data: str) -> Optional[str]:
         return None
 
     cleaned = "".join(c for c in trimmed if c not in " \n\r\t")
+
+    # FIX: Normalize URL-safe base64 characters to standard base64
+    # URL-safe base64 uses '-' instead of '+' and '_' instead of '/'
+    # This must be done before b64decode(validate=True) which only accepts standard alphabet
+    cleaned = cleaned.replace("-", "+").replace("_", "/")
+
     padding_needed = (4 - len(cleaned) % 4) % 4
     if padding_needed > 0:
         cleaned += "=" * padding_needed

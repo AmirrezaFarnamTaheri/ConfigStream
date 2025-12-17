@@ -6,6 +6,14 @@ let wasmReady = false;
 // 1. Initialize WASM
 async function initWasm() {
     try {
+        if (!WebAssembly.instantiateStreaming) {
+            // Polyfill for Safari/Old Browsers
+            WebAssembly.instantiateStreaming = async (resp, importObject) => {
+                const source = await (await resp).arrayBuffer();
+                return await WebAssembly.instantiate(source, importObject);
+            };
+        }
+
         const result = await WebAssembly.instantiateStreaming(
             fetch("assets/wasm/tester.wasm"),
             go.importObject
