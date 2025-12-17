@@ -15,12 +15,21 @@ def generate_singbox_config(
     outbounds = []
     selector_tags = []
 
-    # 1. Convert proxies
+    # 1. Convert proxies with unique tags
+    seen_tags = set()
     for p in proxies:
         sb_proxy = to_singbox_outbound(p)
         if sb_proxy:
-            # Use 'tag' for reference
-            tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
+            # Enforce globally unique outbound tags
+            # Include hash of (protocol, host, port) or use ID which is stable hash
+            base_tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
+            tag = base_tag
+            counter = 1
+            while tag in seen_tags:
+                tag = f"{base_tag}-{counter}"
+                counter += 1
+
+            seen_tags.add(tag)
             sb_proxy["tag"] = tag
             outbounds.append(sb_proxy)
             selector_tags.append(tag)
@@ -60,6 +69,23 @@ def generate_singbox_config(
             }
         )
 
+    # Add explicit route section
+    route = {
+        "rules": [
+            {"protocol": "dns", "outbound": "dns-out"},
+            {"clash_mode": "Direct", "outbound": "DIRECT"},
+            {"clash_mode": "Global", "outbound": "🚀 Select Proxy"},
+        ],
+        "final": "🚀 Select Proxy",
+        "auto_detect_interface": True,
+    }
+
+    # Ensure DIRECT and dns-out exist
+    if not any(o["tag"] == "DIRECT" for o in outbounds):
+        outbounds.append({"type": "direct", "tag": "DIRECT"})
+    if not any(o["tag"] == "dns-out" for o in outbounds):
+        outbounds.append({"type": "dns", "tag": "dns-out"})
+
     config: dict[str, Any] = {
         "log": {"level": "info", "timestamp": True},
         "inbounds": [
@@ -71,6 +97,7 @@ def generate_singbox_config(
             }
         ],
         "outbounds": outbounds,
+        "route": route,
     }
 
     return json.dumps(config, indent=2)
