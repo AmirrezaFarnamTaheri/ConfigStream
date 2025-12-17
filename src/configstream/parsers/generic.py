@@ -45,6 +45,20 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
             # This prevents "garbage" being accepted if check above fails
             return None
 
+        scheme = parsed.scheme.lower()
+
+        # Protocol Normalization
+        protocol = scheme
+        tls = False
+
+        if scheme == "https":
+            protocol = "http"
+            tls = True
+        elif scheme == "socks":
+            protocol = "socks5"
+        elif scheme == "socks4":
+            protocol = "socks4"
+
         default_ports = {
             "http": 80,
             "https": 443,
@@ -53,17 +67,21 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
             "socks4": 1080,
             "socks5": 1080,
         }
-        port = parsed.port or default_ports.get(parsed.scheme, 80)
+        port = parsed.port or default_ports.get(scheme, 80)
         if not (1 <= port <= 65535):
             return None
 
+        details = {"password": parsed.password or ""}
+        if tls:
+            details["tls"] = "true"  # type: ignore
+
         return Proxy(
             config=config,
-            protocol=parsed.scheme,
+            protocol=protocol,
             address=parsed.hostname,
             port=port,
             uuid=parsed.username or "",
-            details={"password": parsed.password or ""},
+            details=details,
             remarks=unquote(parsed.fragment or ""),
         )
     except (ValueError, IndexError) as e:
