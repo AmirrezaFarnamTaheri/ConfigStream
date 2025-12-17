@@ -225,16 +225,17 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 **Responsibility**: Enhance proxy quality and security
 
 **Features**:
-1. **Proxy Washing**: Chains dirty/insecure proxies through Cloudflare WARP (WireGuard)
-2. **Smart Chaining**: Creates routing chains (e.g., Intranet Bridge, IPv6 Portal)
-3. **Consistent Hashing**: Deterministic exit node selection
+1. **Proxy Washing & Revival**: Wraps flagged/dirty proxies AND revives dead/non-working proxies by chaining them through Cloudflare WARP (WireGuard).
+2. **Washer Retest**: Ensures end-to-end connectivity of generated chains by feeding them back into the tester.
+3. **Smart Chaining**: Creates routing chains (e.g., Intranet Bridge, IPv6 Portal)
+4. **Consistent Hashing**: Deterministic exit node selection (Key Rotation).
 
 **Implementation**:
 ```python
 class ProxyWasher:
     def wash_batch(self, proxies: List[Proxy]) -> Tuple[List[Dict], Set[str]]:
         """
-        Identify dirty proxies and wrap them in WireGuard chains.
+        Identify candidates (working & non-working) and wrap them in WireGuard chains.
         Returns cleaned chains and IDs of washed proxies.
         """
 ```
@@ -1071,6 +1072,6 @@ Key architectural decisions:
 
 ---
 
-**Last Updated**: 2025-05-27
-**Version**: 1.3.2
+**Last Updated**: 2025-12-17
+**Version**: 2.1.0
 **Author**: ConfigStream Team
