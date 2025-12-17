@@ -435,22 +435,4 @@ function updatePaginationInfo() {
     container.appendChild(createBtn('&rsaquo;', currentPage + 1, currentPage === totalPages));
 }
 
-async function copyToClipboard(text, btn) {
-    if (!text) return;
-    try {
-        await navigator.clipboard.writeText(text);
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = `<i data-feather="check" style="color:var(--success-color)"></i>`;
-        if(window.inlineIcons) window.inlineIcons.replace();
-        btn.classList.add('copied');
-        setTimeout(() => {
-            btn.innerHTML = originalHtml;
-            btn.classList.remove('copied');
-            if(window.inlineIcons) window.inlineIcons.replace();
-        }, 1500);
-    } catch(e) {
-        console.error(e);
-        btn.innerHTML = `<i data-feather="x" style="color:var(--danger-color)"></i>`;
-        if(window.inlineIcons) window.inlineIcons.replace();
-    }
-}
+// Use global window.copyToClipboard from dom.js instead of local duplicate

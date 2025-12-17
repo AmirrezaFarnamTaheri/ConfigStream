@@ -9,7 +9,7 @@ ConfigStream is a modular, sovereignty-grade anti-censorship platform. It aggreg
 
 We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
 
-> **🔒 v2.0.7 Update:** Introducing **Vwarp Technology**, **VLESS/TUIC/Hysteria2** support, and **Differential Updates**.
+> **🔒 v2.1.0 Update:** Enhanced **Washer Revival** (reviving dirty/dead proxies via WARP), **Protocol Normalization**, and **Frontend Defensive Analytics**.
 
 ---
 
@@ -18,10 +18,11 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 ### 🛡️ Resilient Core (Hybrid Engine)
 *   **Python Logic:** Orchestrates washing, chaining, and intelligence.
 *   **Go Speed:** High-concurrency raw socket testing via custom binary.
-*   **Vwarp Integration:** Uses MASQUE/QUIC scanning to find clean Cloudflare IPs, bypassing traditional blocks.
+*   **Vwarp Integration:** Uses MASQUE/QUIC scanning to find clean Cloudflare IPs (host:port support), bypassing traditional blocks.
 
-### 🌊 Smart Washing & Chaining
-*   **Proxy Washing:** Wraps flagged/dirty proxies in Cloudflare WARP tunnels using deterministic, stable key rotation.
+### 🌊 Smart Washing & Revival
+*   **Proxy Revival:** Capable of "reviving" non-working or dirty proxies by wrapping them in clean WARP tunnels.
+*   **Washer Retest:** Washed chains are re-verified to ensure end-to-end connectivity.
 *   **Smart Chains:** Automatically builds topology-aware chains (e.g., Intranet -> Relay -> Exit) to bypass DPI.
 *   **Deterministic IPs:** Generates stable, non-colliding internal IPs for consistent routing tables.
 

@@ -525,6 +525,48 @@ function initCharts(data) {
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = '#1e293b';
 
+    // FIX: Defensive computation of latency_by_country and latency_by_protocol
+    // If these fields are missing but proxy_locations exists, compute them
+    if (!data.latency_by_country && data.proxy_locations && data.proxy_locations.length > 0) {
+        const latByCountry = {};
+        const countByCountry = {};
+        for (const p of data.proxy_locations) {
+            const cc = p.country || 'XX';
+            if (p.latency && p.latency < 9000) {
+                if (!latByCountry[cc]) {
+                    latByCountry[cc] = 0;
+                    countByCountry[cc] = 0;
+                }
+                latByCountry[cc] += p.latency;
+                countByCountry[cc]++;
+            }
+        }
+        data.latency_by_country = {};
+        for (const cc in latByCountry) {
+            data.latency_by_country[cc] = Math.round(latByCountry[cc] / countByCountry[cc]);
+        }
+    }
+
+    if (!data.latency_by_protocol && data.proxy_locations && data.proxy_locations.length > 0) {
+        const latByProto = {};
+        const countByProto = {};
+        for (const p of data.proxy_locations) {
+            const proto = p.protocol || 'unknown';
+            if (p.latency && p.latency < 9000) {
+                if (!latByProto[proto]) {
+                    latByProto[proto] = 0;
+                    countByProto[proto] = 0;
+                }
+                latByProto[proto] += p.latency;
+                countByProto[proto]++;
+            }
+        }
+        data.latency_by_protocol = {};
+        for (const proto in latByProto) {
+            data.latency_by_protocol[proto] = Math.round(latByProto[proto] / countByProto[proto]);
+        }
+    }
+
     // 1. Protocol Distribution
     const protoCtx = document.getElementById('protocolChart').getContext('2d');
     const protoLabels = Object.keys(data.protocols || {});

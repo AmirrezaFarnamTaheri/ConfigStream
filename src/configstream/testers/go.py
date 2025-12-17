@@ -289,7 +289,16 @@ class GoBatchTester:
         # Send batch to daemon
         try:
             # Use NDJSON
-            payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
+            # Ensure json.dumps(i) is decoded if it is bytes
+            lines = []
+            for i in inputs:
+                dumped = json.dumps(i)
+                if isinstance(dumped, bytes):
+                    lines.append(dumped.decode())
+                else:
+                    lines.append(dumped)
+
+            payload = "\n".join(lines) + "\n"
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
@@ -425,7 +434,12 @@ class GoBatchTester:
                 continue
 
             # FIX: Send as proper JSON array string
-            config_str = json.dumps(outbounds).decode()
+            config_val = json.dumps(outbounds)
+            if isinstance(config_val, bytes):
+                config_str = config_val.decode()
+            else:
+                config_str = config_val
+
             # Unique request ID
             req_id = f"{chain_id}-{uuid.uuid4().hex[:8]}"
 
@@ -448,7 +462,15 @@ class GoBatchTester:
 
         # Send
         try:
-            payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
+            lines = []
+            for i in inputs:
+                dumped = json.dumps(i)
+                if isinstance(dumped, bytes):
+                    lines.append(dumped.decode())
+                else:
+                    lines.append(dumped)
+
+            payload = "\n".join(lines) + "\n"
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
