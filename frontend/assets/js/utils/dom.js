@@ -51,7 +51,25 @@ function updateElement(selector, content, options = {}) {
 
 async function copyToClipboard(text, button) {
   try {
-    await navigator.clipboard.writeText(text);
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      // Fallback for non-secure contexts or older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      textArea.style.top = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    }
     const originalHTML = button.innerHTML;
     button.innerHTML = '<i data-feather="check"></i>';
     if (window.inlineIcons) window.inlineIcons.replace();
@@ -68,3 +86,6 @@ async function copyToClipboard(text, button) {
     if (window.inlineIcons) window.inlineIcons.replace();
   }
 }
+
+// Export to window for global access
+window.copyToClipboard = copyToClipboard;

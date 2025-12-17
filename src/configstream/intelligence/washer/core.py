@@ -321,9 +321,13 @@ class ProxyWasher:
 
             is_optimal = False
             try:
-                if relay.country in COUNTRIES:
-                    relay_stub = ProxyStub(relay.country, 0.0, 0.0, relay.protocol)
-                    relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country]
+                # FIX: Use country_code (e.g., "US") not country (e.g., "United States")
+                # COUNTRIES dict is keyed by ISO country codes
+                if relay.country_code and relay.country_code in COUNTRIES:
+                    relay_stub = ProxyStub(
+                        relay.country_code, 0.0, 0.0, relay.protocol
+                    )
+                    relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country_code]
                     res = find_optimal_relay(origin_country, target_exit, [relay_stub])
                     if isinstance(res, dict) and "relay" in res:
                         total_distance = res.get("total_distance", 99999)
