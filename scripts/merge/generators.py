@@ -16,7 +16,6 @@ from configstream.output_generators import (
     generate_singbox_config,
     generate_clash_config,
 )
-from configstream.output import save_metadata
 from configstream.adapters import get_adapter
 from configstream.crypto.signer import Signer
 from configstream.transport.stego import generate_stego_assets
