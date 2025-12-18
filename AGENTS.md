@@ -51,6 +51,10 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   **Mandatory Fields**: If credentials are still missing after fallback attempts, parser MUST return `None` (drop).
     *   **Method Check**: Shadowsocks method must be valid (not "ss", "shadowsocks").
 *   **Protocols**: Support for 20+ protocols (VLESS, VMess, Trojan, SS, SSR, Hysteria, Hysteria2, Tuic, WireGuard, SSH, SOCKS, HTTP, etc.) is required. Ensure correct mapping to the `Proxy` model.
+*   **Normalization**:
+    *   `https://` -> `http` protocol with `tls=True`.
+    *   `socks://` -> `socks5`.
+    *   `socks4://` -> `socks4` (supported).
 
 ### Fetcher (`src/configstream/fetcher.py`)
 *   **Resilience**:
@@ -66,10 +70,12 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 ### Testing (`src/configstream/testers.py`)
 *   **Dual Engine**:
     *   **Go Sidecar**: Preferred for performance/compatibility. It supports testing single proxies and **Chains** (lists of outbounds).
+        *   **Payload Format**: The Go tester expects a valid JSON array of config objects for batch or custom testing. Do NOT send concatenated JSON strings.
     *   **Python Fallback**: Minimal implementation for environments without the binary.
     *   **WASM Tester**: Browser-based verification component (`src/go/tester/wasm_main.go`). Must communicate via JS interop (`syscall/js`) and not use native networking.
-*   **Washer Retesting**:
-    *   Washed chains (Relay -> WARP) MUST be re-tested before inclusion in the final output to ensure end-to-end connectivity. This is handled in `scripts/merge/core.py`.
+*   **Washer & Revival**:
+    *   **Revival**: The Washer is capable of "reviving" non-working proxies by wrapping them in a WARP chain. It allows washing of dirty/failed proxies.
+    *   **Retesting**: Washed chains (Relay -> WARP) MUST be re-tested before inclusion in the final output to ensure end-to-end connectivity.
     *   **Washer Security**: Use Epoch-based rotation for WARP keys and sequential IP generation to prevent collisions.
 *   **Cache**: Use `TestResultCache` to skip re-testing recently verified proxies. Ensure path persistence.
 

@@ -92,7 +92,8 @@ dev = [
     "mypy",
     "respx",
     "hypothesis>=6.0.0",
-    "types-aiofiles"
+    "types-aiofiles",
+    "types-orjson"
 ]
 
 [project.scripts]

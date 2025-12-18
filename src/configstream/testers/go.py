@@ -289,7 +289,16 @@ class GoBatchTester:
         # Send batch to daemon
         try:
             # Use NDJSON
-            payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
+            # Ensure json.dumps(i) is decoded if it is bytes
+            lines = []
+            for i in inputs:
+                dumped = json.dumps(i)
+                if isinstance(dumped, bytes):
+                    lines.append(dumped.decode())
+                else:
+                    lines.append(dumped)
+
+            payload = "\n".join(lines) + "\n"
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
@@ -323,11 +332,16 @@ class GoBatchTester:
             logger.error(
                 f"Timed out waiting for {len(inputs)} results from Go Tester Daemon"
             )
-            # Cleanup
+            # Cleanup and mark incomplete proxies as unknown/failed
             for f, req_id in zip(futures, req_id_map.keys()):
                 if not f.done():
                     f.cancel()
                     self._pending_futures.pop(req_id, None)
+                    # Mark proxy as unknown/timeout
+                    if proxy_obj := req_id_map.get(req_id):
+                        proxy_obj.is_working = False
+                        proxy_obj.details["error"] = "BATCH_TIMEOUT"
+                        proxy_obj.details["failure_category"] = "TIMEOUT"
             return proxies
 
         # Process Results
@@ -342,25 +356,28 @@ class GoBatchTester:
             # res is the JSON dict
             res_data = cast(Dict[str, Any], res)
             req_id = str(res_data.get("id"))
-            proxy_obj: Optional[Proxy] = req_id_map.get(req_id)
-            if not proxy_obj:
+            # Rename to avoid shadowing the variable 'proxy_obj' from the cleanup loop (if it leaked)
+            # although python loop variables leak, but 'proxy_obj' in cleanup was inside the loop scope
+            # and this is outside. But to be safe and satisfy linter:
+            target_proxy: Optional[Proxy] = req_id_map.get(req_id)
+            if not target_proxy:
                 continue
 
             if res_data.get("is_working"):
-                proxy_obj.is_working = True
-                proxy_obj.latency = res_data.get("latency")
+                target_proxy.is_working = True
+                target_proxy.latency = res_data.get("latency")
                 working_count += 1
                 if res_data.get("issues"):
                     for issue in res_data["issues"]:
-                        proxy_obj.security_issues.setdefault("go_check", []).append(
+                        target_proxy.security_issues.setdefault("go_check", []).append(
                             issue
                         )
                         if issue == "DIRTY_IP":
-                            proxy_obj.tags.append("dirty_ip")
+                            target_proxy.tags.append("dirty_ip")
             else:
-                proxy_obj.is_working = False
+                target_proxy.is_working = False
                 error_msg = str(res_data.get("error", "unknown"))
-                proxy_obj.details["error"] = error_msg
+                target_proxy.details["error"] = error_msg
 
                 # Categorize error
                 if "HONEYPOT" in error_msg:
@@ -382,7 +399,7 @@ class GoBatchTester:
 
                 failure_reasons[error_cat] = failure_reasons.get(error_cat, 0) + 1
                 if error_cat not in ["TIMEOUT", "OTHER"]:
-                    proxy_obj.details["failure_category"] = error_cat
+                    target_proxy.details["failure_category"] = error_cat
 
         # Log summary
         failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])
@@ -416,7 +433,13 @@ class GoBatchTester:
             if not chain_id or not outbounds:
                 continue
 
-            config_str = ", ".join(json.dumps(o).decode() for o in outbounds)
+            # FIX: Send as proper JSON array string
+            config_val = json.dumps(outbounds)
+            if isinstance(config_val, bytes):
+                config_str = config_val.decode()
+            else:
+                config_str = config_val
+
             # Unique request ID
             req_id = f"{chain_id}-{uuid.uuid4().hex[:8]}"
 
@@ -439,7 +462,15 @@ class GoBatchTester:
 
         # Send
         try:
-            payload = "\n".join(json.dumps(i).decode() for i in inputs) + "\n"
+            lines = []
+            for i in inputs:
+                dumped = json.dumps(i)
+                if isinstance(dumped, bytes):
+                    lines.append(dumped.decode())
+                else:
+                    lines.append(dumped)
+
+            payload = "\n".join(lines) + "\n"
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:

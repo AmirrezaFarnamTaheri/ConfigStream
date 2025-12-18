@@ -85,9 +85,9 @@ class ProxyWasher:
 
         # --- STRATEGY 0: VWARP SCANNER ---
         vwarp = VwarpTool()
-        scanned_ips = await vwarp.scan_endpoints()
-        if scanned_ips:
-            self.clean_ips = scanned_ips
+        scanned_ips_vwarp = await vwarp.scan_endpoints()
+        if scanned_ips_vwarp:
+            self.clean_ips = scanned_ips_vwarp  # type: ignore[assignment]
             logger.info(f"Loaded {len(self.clean_ips)} clean IPs from Vwarp")
             return
 
@@ -127,12 +127,12 @@ class ProxyWasher:
         if self.scanner.available:
             try:
                 logger.info("Attempting legacy active scan...")
-                scanned_ips = await self.scanner.scan_endpoints(
+                scanned_ips_legacy = await self.scanner.scan_endpoints(
                     limit=50, timeout=5, max_latency=800
                 )
 
-                if scanned_ips and len(scanned_ips) >= 5:
-                    self.clean_ips = scanned_ips
+                if scanned_ips_legacy and len(scanned_ips_legacy) >= 5:
+                    self.clean_ips = [(ip, 2408) for ip in scanned_ips_legacy]  # type: ignore[misc]
                     logger.info(
                         f"Legacy Scan Success: Using {len(self.clean_ips)} fresh IPs."
                     )
@@ -180,7 +180,7 @@ class ProxyWasher:
         logger.warning(
             f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
         )
-        self.clean_ips = DEFAULT_CLEAN_IPS.copy()
+        self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]  # type: ignore[misc]
 
     def _get_clean_endpoint(self, relay_id: str) -> str:
         pool = self.clean_ips if self.clean_ips else DEFAULT_CLEAN_IPS
@@ -324,9 +324,7 @@ class ProxyWasher:
                 # FIX: Use country_code (e.g., "US") not country (e.g., "United States")
                 # COUNTRIES dict is keyed by ISO country codes
                 if relay.country_code and relay.country_code in COUNTRIES:
-                    relay_stub = ProxyStub(
-                        relay.country_code, 0.0, 0.0, relay.protocol
-                    )
+                    relay_stub = ProxyStub(relay.country_code, 0.0, 0.0, relay.protocol)
                     relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country_code]
                     res = find_optimal_relay(origin_country, target_exit, [relay_stub])
                     if isinstance(res, dict) and "relay" in res:
