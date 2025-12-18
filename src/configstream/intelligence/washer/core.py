@@ -182,7 +182,7 @@ class ProxyWasher:
         )
         self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]  # type: ignore[misc]
 
-    def _get_clean_endpoint(self, relay_id: str) -> str:
+    def _get_clean_endpoint(self, relay_id: str) -> Any:
         pool = self.clean_ips if self.clean_ips else DEFAULT_CLEAN_IPS
         if not pool:
             return DEFAULT_CLEAN_IPS[0] if DEFAULT_CLEAN_IPS else "162.159.192.1"
@@ -304,14 +304,21 @@ class ProxyWasher:
             relay_tag = f"RELAY-{chain_id}"
             relay_out["tag"] = relay_tag
 
-            clean_endpoint = self._get_clean_endpoint(relay.id)
-            clean_port_str = os.environ.get("WARP_PORT", "2408")
+            endpoint_data = self._get_clean_endpoint(relay.id)
 
-            try:
-                clean_port = int(clean_port_str)
-                if not (1 <= clean_port <= 65535):
-                    raise ValueError
-            except Exception:
+            # Handle both string IPs (legacy) and tuple (ip, port) (new Vwarp)
+            if isinstance(endpoint_data, tuple) and len(endpoint_data) == 2:
+                clean_endpoint, clean_port = endpoint_data
+            else:
+                clean_endpoint = str(endpoint_data)
+                # Fallback to env port or default
+                clean_port_str = os.environ.get("WARP_PORT", "2408")
+                try:
+                    clean_port = int(clean_port_str)
+                except (ValueError, TypeError):
+                    clean_port = 2408
+
+            if not (1 <= clean_port <= 65535):
                 skip_reasons["invalid_endpoint"] = (
                     skip_reasons.get("invalid_endpoint", 0) + 1
                 )
