@@ -154,6 +154,12 @@ CREATE TABLE IF NOT EXISTS history (
                 url,
                 e,
             )
+            # Re-raise runtime errors to test fail-open logic in tests if intended,
+            # but for production we return True.
+            # However, the test 'test_failure_mode_anomaly_db_crash' explicitly mocks this method
+            # to raise RuntimeError. If the real method catches it, the test mock is bypassed if we use spy.
+            # But the test replaces the method entirely.
+            # So this catch block is only for real usage.
             return True, "DB Error (Fail Open)"
 
     def check_subnet_flood(self, proxies: list[dict]) -> bool:
