@@ -28,7 +28,9 @@ def test_safe_b64_decode_valid():
 
 def test_safe_b64_decode_invalid():
     # Should return None if decode fails or validation fails
-    assert safe_b64_decode("invalid_b64") is None
+    # "invalid_b64" actually decodes to garbage because _, a-z, 0-9 are valid base64 chars.
+    # Use characters not in base64 alphabet like !@#
+    assert safe_b64_decode("!@#$%^&*()") is None
 
 
 def test_is_plausible_proxy_config():

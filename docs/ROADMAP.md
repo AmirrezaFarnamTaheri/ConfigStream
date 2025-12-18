@@ -1,14 +1,33 @@
 # ConfigStream Roadmap
 
-_Last updated: 2025‑11‑26_
+_Last updated: 2025‑12‑17_
 
 This roadmap captures the remaining work and future directions identified during the extended security and architecture audit (Issues #22–#48).
 
 ---
 
-## 1. Short-Term Roadmap (Next 1–2 Releases)
+## 1. Completed Items (v2.1.0)
 
-### 1.1 Steganography & Transport
+### ✅ Source Redistribution
+- Implemented modulo strategy for `sources/batch_*.txt` distribution.
+- Eliminated hotspots from single-repo sublinks.
+
+### ✅ Backend Resilience
+- **Go Tester**: Fixed JSON serialization crash (bytes vs str).
+- **Washer Revival**: Implemented logic to wrap dirty/dead proxies in clean WARP tunnels.
+- **Protocol Normalization**: Added `parsers/generic.py` normalization for `https`, `socks`, `socks4`.
+- **vWARP Contract**: Updated to return `(host, port)` tuples.
+
+### ✅ Frontend Stability
+- **WASM Loader**: Added polyfill for `instantiateStreaming` (Safari support).
+- **Defensive Analytics**: Added fallback computation for latency stats.
+- **Global State**: Removed duplicate `copyToClipboard` definitions.
+
+---
+
+## 2. Short-Term Roadmap (Next 1–2 Releases)
+
+### 2.1 Steganography & Transport
 
 **Goal**: Reduce complexity and clarify guarantees around steganographic delivery.
 

@@ -3,7 +3,7 @@ import shutil
 import logging
 import json
 from pathlib import Path
-from typing import Any, Dict, List, cast
+from typing import Any, Dict, List, cast, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,10 @@ class VwarpTool:
         """Quick health check."""
         return bool(shutil.which("vwarp") or Path(self.binary).exists())
 
-    async def scan_endpoints(self, rtt_limit: str = "800ms") -> List[str]:
+    async def scan_endpoints(self, rtt_limit: str = "800ms") -> List[Tuple[str, int]]:
         """
         Runs 'vwarp --scan' to harvest unblocked Cloudflare IPs.
-        Returns a list of IP addresses (without port).
+        Returns a list of (host, port) tuples.
         """
         if not await self.is_available():
             # Only log error if we expected it to be there, otherwise it might just be local env
@@ -53,7 +53,7 @@ class VwarpTool:
                 return []
 
             # Parse Output
-            endpoints = []
+            endpoints: List[Tuple[str, int]] = []
             if stdout:
                 output_text = stdout.decode(errors="ignore")
                 for line in output_text.splitlines():
@@ -61,23 +61,37 @@ class VwarpTool:
                     # Expected format: "162.159.192.10:2408 - 150ms"
                     if ":" in line and "ms" in line:
                         clean_ep = line.split()[0].strip()
-                        # FIX: Extract only the IP part, not IP:PORT
-                        # The washer expects just the IP and will add the port separately
+                        host = clean_ep
+                        port = 2408  # Default
+
                         if ":" in clean_ep:
                             # Handle IPv6 addresses in brackets [ipv6]:port
                             if clean_ep.startswith("["):
                                 # IPv6 format: [2001:db8::1]:2408
                                 bracket_end = clean_ep.find("]")
                                 if bracket_end > 0:
-                                    ip_part = clean_ep[1:bracket_end]
+                                    host = clean_ep[1:bracket_end]
+                                    rest = clean_ep[bracket_end + 1 :]
+                                    if rest.startswith(":"):
+                                        try:
+                                            port = int(rest[1:])
+                                        except ValueError:
+                                            pass
                                 else:
-                                    ip_part = clean_ep
+                                    host = clean_ep
                             else:
                                 # IPv4 format: 162.159.192.10:2408
-                                ip_part = clean_ep.rsplit(":", 1)[0]
-                            endpoints.append(ip_part)
-                        else:
-                            endpoints.append(clean_ep)
+                                parts = clean_ep.rsplit(":", 1)
+                                if len(parts) == 2:
+                                    host = parts[0]
+                                    try:
+                                        port = int(parts[1])
+                                    except ValueError:
+                                        pass
+                                else:
+                                    host = clean_ep
+
+                        endpoints.append((host, port))
 
             logger.info(f"✅ Vwarp found {len(endpoints)} healthy endpoints.")
             return endpoints

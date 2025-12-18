@@ -76,7 +76,8 @@ def generate_categorized_outputs(
 
     for p in proxies:
         if p.is_working:
-            by_country.setdefault(p.country_code, []).append(p)
+            cc = p.country_code if p.country_code else "XX"
+            by_country.setdefault(cc, []).append(p)
             by_protocol.setdefault(p.protocol, []).append(p)
 
     # Write Country files
@@ -87,8 +88,7 @@ def generate_categorized_outputs(
     by_country_dir.mkdir(exist_ok=True)
 
     for cc, plist in by_country.items():
-        if not cc or cc == "XX":
-            continue
+        # We generate files for all, including XX
         cpath = country_dir / f"{cc}.json"
         with open(cpath, "w", encoding="utf-8") as f:
             f.write(generate_singbox_config(plist))
@@ -161,7 +161,8 @@ def save_metadata(
         protocols[p.protocol] = protocols.get(p.protocol, 0) + 1
 
         # Country count
-        countries[p.country_code] = countries.get(p.country_code, 0) + 1
+        cc = p.country_code if p.country_code else "XX"
+        countries[cc] = countries.get(cc, 0) + 1
 
         # ASN count
         if p.asn:
@@ -238,6 +239,7 @@ def save_metadata(
         pkg_version = "unknown"
 
     meta = {
+        "schema_version": "2.1.0",
         "version": pkg_version,
         "total_proxies": total,  # Total working proxies (final count)
         "total_tested": tested_count,  # Number of proxies actually tested
