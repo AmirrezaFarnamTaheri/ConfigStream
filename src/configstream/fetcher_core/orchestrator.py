@@ -44,7 +44,7 @@ async def fetch_from_source(
     # --- Source Health Check ---
     source_manager = SourceQualityTracker()
     if not source_manager.should_fetch(source):
-        logger.info(
+        logger.debug(
             f"⏭️ Skipping unhealthy source: {SecurityValidator.sanitize_log_message(source)}"
         )
         return FetchResult(
@@ -160,7 +160,7 @@ async def fetch_from_source(
                 content_type = result.headers.get("Content-Type", "unknown")
                 content_len = result.headers.get("Content-Length", "unknown")
 
-                logger.info(
+                logger.debug(
                     f"Successfully fetched {len(result.content)} bytes from {sanitized_source} "
                     f"[Type: {content_type}, Len: {content_len}] "
                     f"(Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s). "
