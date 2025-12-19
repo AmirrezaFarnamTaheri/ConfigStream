@@ -1,3 +1,15 @@
+## [2.0.6] - 2025-12-19
+
+### Major Improvements
+- **Process Tracking**: Added explicit `process` field to Proxy model and Frontend to distinguish between Native, Washed, Revived, and Chained proxies.
+- **Frontend Upgrades**: Replaced sparkline history chart in proxies table with a clear "Process" badge indicating the proxy source/type.
+- **Source Expansion**: Added new high-quality proxy sources (Pawdroid, ErMaozi) for expanded coverage.
+
+### Code Quality & Security
+- **Strict Typing**: Resolved Mypy type errors in security rules (`re.match` handling).
+- **Log Hygiene**: Significantly reduced log spam in the pipeline consumer by moving high-frequency logs to DEBUG level.
+- **Serialization**: Updated serialization logic to support the new `process` field.
+
 ## [2.0.5] - 2025-12-15
 
 ### Critical Fixes (Backend & Concurrency)

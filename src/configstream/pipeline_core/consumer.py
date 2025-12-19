@@ -102,7 +102,7 @@ async def processing_consumer(
                 fetch_meta_str = f" [Fetch: {fetch_dur * 1000:.0f}ms]"
 
         safe_source = SecurityValidator.sanitize_log_message(str(source))
-        logger.info(
+        logger.debug(
             f"Processing source {safe_source}: {len(raw_lines)} raw lines{fetch_meta_str}"
         )
 
@@ -148,7 +148,7 @@ async def processing_consumer(
         protocol_counts: Dict[str, int] = {}
         for p in parsed_batch:
             protocol_counts[p.protocol] = protocol_counts.get(p.protocol, 0) + 1
-        logger.info(
+        logger.debug(
             f"Parsed breakdown for {safe_source}: {json.dumps(protocol_counts).decode()}"
         )
 
@@ -276,7 +276,7 @@ async def processing_consumer(
                     stats.cache_misses += 1
                 proxies_to_actually_test.append(p)
 
-        logger.info(
+        logger.debug(
             f"Cache Check [{safe_source}]: {cache_hits} hits, {len(proxies_to_actually_test)} misses "
             f"(Forced Retests: {forced_retests}, Total: {len(safe_batch)})"
         )
@@ -317,7 +317,7 @@ async def processing_consumer(
                             stats.tested += len(chunk)
                         # Log batch test summary
                         working_in_chunk = sum(1 for r in chunk if r.is_working)
-                        logger.info(
+                        logger.debug(
                             f"Batch test result for {safe_source}: {working_in_chunk}/{len(chunk)} working "
                             f"({(working_in_chunk/len(chunk)*100):.1f}%)"
                         )
