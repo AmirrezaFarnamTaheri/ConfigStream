@@ -115,11 +115,15 @@ def validate_address(
             )
             return issues
     elif re.match(r"^0[0-7]{1,11}\.", address_lower):
-        logger.warning(f"Non-standard IP notation (possible DNS rebinding): {address}")
-        issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
-            f"Non-standard notation: {address}"
-        )
-        return issues
+        # Only flag as octal/ambiguous if it looks like an IP structure (digits and dots),
+        # not a hostname starting with digits (e.g. 026.worker.dev).
+        is_ip_structure = re.match(r"^[\d\.]+$", address_lower)
+        if is_ip_structure:
+            logger.warning(f"Non-standard IP notation (possible DNS rebinding): {address}")
+            issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
+                f"Non-standard notation: {address}"
+            )
+            return issues
 
     # 2) URL-encoded localhost / 127.0.0.1 variants
     #    e.g. %31%32%37%2E%30%2E%30%2E%31
@@ -150,35 +154,40 @@ def validate_address(
 
     # Combined check for private, reserved, and special-use addresses
     if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
-        special_address_patterns = [
-            # Loopback
-            r"^127\.",
-            r"^::1$",
-            r"^localhost$",
-            # Private ranges
-            r"^10\.",
-            r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
-            r"^192\.168\.",
-            # Link-local
-            r"^169\.254\.",
-            r"^fe80:",
-            # Unique local
-            r"^fc00:",
-            r"^fd00:",
-            # Unspecified
-            r"^0\.0\.0\.0$",
-            r"^0\.",  # "This network"
-            # Broadcast
-            r"^255\.255\.255\.255$",
-        ]
+        # Check if address looks like an IP (IPv4 or IPv6) before applying IP rules
+        # This prevents blocking domains that start with numbers like 10.example.com
+        is_ip_structure = re.match(r"^[\d\.:]+$", address_lower) or address_lower == "localhost"
 
-        for pattern in special_address_patterns:
-            if re.match(pattern, address_lower):
-                logger.warning(f"Special or private address detected: {address}")
-                issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
-                    f"Special address: {address}"
-                )
-                return issues
+        if is_ip_structure:
+            special_address_patterns = [
+                # Loopback
+                r"^127\.",
+                r"^::1$",
+                r"^localhost$",
+                # Private ranges
+                r"^10\.",
+                r"^172\.(1[6-9]|2[0-9]|3[0-1])\.",
+                r"^192\.168\.",
+                # Link-local
+                r"^169\.254\.",
+                r"^fe80:",
+                # Unique local
+                r"^fc00:",
+                r"^fd00:",
+                # Unspecified
+                r"^0\.0\.0\.0$",
+                r"^0\.",  # "This network"
+                # Broadcast
+                r"^255\.255\.255\.255$",
+            ]
+
+            for pattern in special_address_patterns:
+                if re.match(pattern, address_lower):
+                    logger.warning(f"Special or private address detected: {address}")
+                    issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
+                        f"Special address: {address}"
+                    )
+                    return issues
 
     return issues
 
