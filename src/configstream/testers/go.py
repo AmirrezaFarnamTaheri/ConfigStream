@@ -58,9 +58,9 @@ class GoBatchTester:
         # Long-lived process state
         self._proc: Optional[asyncio.subprocess.Process] = None
         self._lock = asyncio.Lock()
-        self._pending_futures: Dict[str, asyncio.Future] = {}
-        self._read_task: Optional[asyncio.Task] = None
-        self._stderr_task: Optional[asyncio.Task] = None
+        self._pending_futures: Dict[str, asyncio.Future[Any]] = {}
+        self._read_task: Optional[asyncio.Task[None]] = None
+        self._stderr_task: Optional[asyncio.Task[None]] = None
         self._stopping = False
 
         if not self.available:
@@ -69,14 +69,14 @@ class GoBatchTester:
                 "No proxies will be tested via the high-performance path!"
             )
 
-    async def start(self):
+    async def start(self) -> None:
         """Start the long-lived tester process."""
         if self.available:
             await self._ensure_process()
             # Start heartbeat loop
             asyncio.create_task(self._heartbeat_loop())
 
-    async def _restart_daemon(self):
+    async def _restart_daemon(self) -> None:
         """Force restart of the daemon process."""
         logger.info("Restarting Go Tester Daemon...")
         await self.close()
@@ -84,7 +84,7 @@ class GoBatchTester:
         self._stopping = False
         await self._ensure_process()
 
-    async def _heartbeat_loop(self):
+    async def _heartbeat_loop(self) -> None:
         """Periodically check if process is alive and healthy."""
         while not self._stopping:
             try:
@@ -105,7 +105,7 @@ class GoBatchTester:
             except Exception as e:
                 logger.debug(f"Heartbeat error: {e}")
 
-    async def close(self):
+    async def close(self) -> None:
         """Stop the tester process and cleanup resources."""
         self._stopping = True
         async with self._lock:
@@ -148,7 +148,7 @@ class GoBatchTester:
             self._pending_futures.clear()
             logger.info("Go Batch Tester shutdown complete.")
 
-    async def _ensure_process(self):
+    async def _ensure_process(self) -> None:
         """Ensure the Go process is running."""
         if self._proc and self._proc.returncode is None:
             return
@@ -200,7 +200,7 @@ class GoBatchTester:
                 logger.error(f"Failed to start Go Tester Daemon: {e}")
                 self._proc = None
 
-    async def _read_loop(self):
+    async def _read_loop(self) -> None:
         """Background task to read results from stdout."""
         try:
             while self._proc and self._proc.stdout and not self._proc.stdout.at_eof():
@@ -208,7 +208,9 @@ class GoBatchTester:
                 if not line:
                     break
                 try:
-                    # Line is bytes
+                    # Line is bytes, orjson can handle bytes directly but strict typing might complain
+                    # if we pass it to json.loads. json.loads accepts str | bytes | bytearray
+                    # depending on type hints.
                     data = json.loads(line)
                     req_id = data.get("id")
                     if req_id and req_id in self._pending_futures:
@@ -229,7 +231,7 @@ class GoBatchTester:
             if not self._stopping:
                 logger.warning("Go Tester stdout closed (process died?)")
 
-    async def _read_stderr_loop(self):
+    async def _read_stderr_loop(self) -> None:
         """Background task to read logs from stderr."""
         try:
             while self._proc and self._proc.stderr and not self._proc.stderr.at_eof():
@@ -264,7 +266,7 @@ class GoBatchTester:
 
         inputs = []
         req_id_map: Dict[str, Proxy] = {}  # Map req_id -> Proxy
-        futures = []
+        futures: List[asyncio.Future[Any]] = []
         loop = asyncio.get_running_loop()
 
         for p in proxies:
@@ -436,7 +438,7 @@ class GoBatchTester:
         inputs = []
         req_id_map: Dict[str, str] = {}  # original_id -> req_id
         reverse_map: Dict[str, str] = {}  # req_id -> original_id
-        futures = []
+        futures: List[asyncio.Future[Any]] = []
         loop = asyncio.get_running_loop()
 
         for item in configs:

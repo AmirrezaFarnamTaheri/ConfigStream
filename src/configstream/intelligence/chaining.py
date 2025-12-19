@@ -1,17 +1,15 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, Tuple
 import logging
 import ipaddress
 import hashlib
+import math
 
-# Import to_singbox_outbound from converters
-# Note: Adjust relative import based on new location (intelligence/chaining.py)
-# src/configstream/intelligence/chaining.py -> src/configstream/converters/singbox.py (if facade is there)
-# ..converters -> src/configstream/converters
 from ..converters import to_singbox_outbound
 from ..models import Proxy
 
 logger = logging.getLogger(__name__)
 
+# --- Geodesic Logic ---
 try:
     from geopy.distance import geodesic  # type: ignore
 
@@ -23,10 +21,15 @@ except ImportError:
     GEOPY_AVAILABLE = False
 
     # Fallback haversine distance calculation
-    def geodesic(coord1, coord2):
-        """Fallback distance calculation using haversine formula."""
-        import math
+    # Define a stub class to mimic geopy's Distance object
+    class DistanceStub:
+        def __init__(self, km: float):
+            self.km = km
 
+    def geodesic(
+        coord1: Tuple[float, float], coord2: Tuple[float, float]
+    ) -> DistanceStub:
+        """Fallback distance calculation using haversine formula."""
         lat1, lon1 = coord1
         lat2, lon2 = coord2
         R = 6371  # Earth radius in km
@@ -40,12 +43,7 @@ except ImportError:
             * math.sin(dlon / 2) ** 2
         )
         c = 2 * math.asin(math.sqrt(a))
-
-        class Distance:
-            def __init__(self, km):
-                self.km = km
-
-        return Distance(R * c)
+        return DistanceStub(R * c)
 
 
 # Minimal Proxy definition for typing
@@ -58,7 +56,7 @@ class ProxyStub:
 
 
 # Expanded list of country coordinates (approximate center lat/lon)
-COUNTRIES = {
+COUNTRIES: Dict[str, Tuple[float, float]] = {
     # Censored Origins
     "IR": (32.4279, 53.6880),  # Iran
     "CN": (35.8617, 104.1954),  # China
@@ -95,12 +93,16 @@ COUNTRIES = {
     "UA": (48.3794, 31.1656),  # Ukraine
 }
 
-# --- Shared Logic from Washer/Chaining ---
-
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Wrapper for geodesic, returning km"""
-    return float(geodesic((lat1, lon1), (lat2, lon2)).km)  # type: ignore[no-any-return]
+    dist_obj = geodesic((lat1, lon1), (lat2, lon2))
+    # Ensure we extract float km value safely
+    if hasattr(dist_obj, "km"):
+        return float(dist_obj.km)
+    return float(
+        dist_obj
+    )  # Fallback if library returns raw float (unlikely for geopy but good for mocks)
 
 
 def is_likely_ipv4(address: str) -> bool:
@@ -172,19 +174,19 @@ def find_optimal_relay(
     Returns the best relay proxy and metadata.
     """
     if origin_cc not in COUNTRIES:
-        logger.warning(
-            f"Geodesic optimization skipped: Origin country '{origin_cc}' not in coordinate database."
-        )
+        # If origin not in DB, we can't optimize, return error
         return {"error": f"Unknown origin country: {origin_cc}"}
 
     origin_coords = COUNTRIES[origin_cc]
     exit_coords = (exit_node.lat, exit_node.lon)
 
-    best_relay = None
+    best_relay: Optional[ProxyStub] = None
     min_score = float("inf")
 
     # Direct distance for comparison
-    direct_dist = float(geodesic(origin_coords, exit_coords).km)
+    direct_dist = haversine(
+        origin_coords[0], origin_coords[1], exit_coords[0], exit_coords[1]
+    )
 
     for relay in candidates:
         if relay.country == origin_cc or relay.country == exit_node.country:
@@ -193,8 +195,10 @@ def find_optimal_relay(
         relay_coords = (relay.lat, relay.lon)
 
         # Calculate total path length
-        d1 = float(geodesic(origin_coords, relay_coords).km)
-        d2 = float(geodesic(relay_coords, exit_coords).km)
+        d1 = haversine(
+            origin_coords[0], origin_coords[1], relay_coords[0], relay_coords[1]
+        )
+        d2 = haversine(relay_coords[0], relay_coords[1], exit_coords[0], exit_coords[1])
         total_path = d1 + d2
 
         # Heuristic: Protocol penalty (prefer stealthier protocols for Relay)
@@ -281,28 +285,32 @@ def generate_smart_chains(
 
     # --- CHAIN 1: THE INTRANET BRIDGE (Standard & Washed) ---
     # Strategy: User (Intranet) -> Relay (IR) -> Exit (Foreign) [-> WARP]
-    # To avoid explosion (N*M), we select 1 exit per relay using geographical optimization
+
+    # [OPTIMIZATION] Pre-calculate Foreign Exit Coordinates to avoid repetitive lookups
+    # Only compute for exits in known countries
+    optimized_exits: List[Tuple[Proxy, float, float]] = []
+    for ep in foreign_exits:
+        if ep.country_code in COUNTRIES:
+            lat, lon = COUNTRIES[ep.country_code]
+            optimized_exits.append((ep, lat, lon))
+
     for relay in relays_ir:
         # [FIX] Use geographical optimization to find the best exit for this relay
         # Pick the exit with minimum distance to the relay
         best_exit = None
-        min_distance = float("inf")
 
         if relay.country_code in COUNTRIES:
             relay_lat, relay_lon = COUNTRIES[relay.country_code]
 
-            for exit_p in foreign_exits:
-                if exit_p.country_code in COUNTRIES:
-                    exit_lat, exit_lon = COUNTRIES[exit_p.country_code]
-                    # Calculate distance using haversine
-                    dist = haversine(relay_lat, relay_lon, exit_lat, exit_lon)
-                    if hasattr(dist, "km"):
-                        dist = dist.km
-                    if dist < min_distance:
-                        min_distance = dist
-                        best_exit = exit_p
+            # Use optimized list
+            min_distance = float("inf")
+            for exit_p, exit_lat, exit_lon in optimized_exits:
+                dist = haversine(relay_lat, relay_lon, exit_lat, exit_lon)
+                if dist < min_distance:
+                    min_distance = dist
+                    best_exit = exit_p
 
-        # Fallback to deterministic if optimization fails
+        # Fallback to deterministic if optimization fails or no coordinates
         exit_node = (
             best_exit
             if best_exit

@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import random
-from typing import Dict, Optional
+from typing import Dict, Optional, Any, Union
 from urllib.parse import urlparse
 import httpx
 
@@ -53,6 +53,7 @@ async def fetch_from_source(
 
     # 1. URL Validation
     sanitized_source = SecurityValidator.sanitize_log_message(source)
+    host: str = ""
     try:
         parsed = urlparse(source)
         if not parsed.scheme or not parsed.netloc:
@@ -98,7 +99,7 @@ async def fetch_from_source(
 
     # 4. Execution Loop
     backoff = retry_delay
-    last_error = None
+    last_error: Optional[str] = None
 
     # Standard headers (No ETag to force fresh content)
     headers = {
@@ -107,7 +108,7 @@ async def fetch_from_source(
         "Accept-Encoding": "gzip, deflate, br",
     }
 
-    last_status_code = None
+    last_status_code: Optional[int] = None
 
     logger.debug(
         f"Starting fetch for {sanitized_source} with effective timeout {effective_timeout}s "
@@ -148,6 +149,7 @@ async def fetch_from_source(
                 source_manager.report_success(source)  # <--- Track Success
 
                 # [FIX] Handle bytes vs str for content preview
+                preview_text = ""
                 if isinstance(result.content, bytes):
                     preview_text = (
                         result.content[:50]
@@ -160,10 +162,13 @@ async def fetch_from_source(
                 content_type = result.headers.get("Content-Type", "unknown")
                 content_len = result.headers.get("Content-Length", "unknown")
 
+                # Ensure result.response_time is treated as float for logging
+                resp_time = float(result.response_time) if result.response_time else 0.0
+
                 logger.debug(
-                    f"Successfully fetched {len(result.content)} bytes from {sanitized_source} "
+                    f"Successfully fetched {len(result.content or '')} bytes from {sanitized_source} "
                     f"[Type: {content_type}, Len: {content_len}] "
-                    f"(Time: {result.response_time:.2f}s, Timeout: {effective_timeout}s). "
+                    f"(Time: {resp_time:.2f}s, Timeout: {effective_timeout}s). "
                     f"Preview: {preview_text}..."
                 )
                 # Optional detailed headers at debug level only

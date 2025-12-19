@@ -129,6 +129,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
 
         try:
             from .parsers.clash_json import parse_clash_json
+
             result = parse_clash_json(config)
             if result:
                 return result

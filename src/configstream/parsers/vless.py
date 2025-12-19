@@ -13,11 +13,19 @@ def parse_vless(config: str) -> Optional[Proxy]:
         # [FIX] Aggressive pre-cleaning
         config = config.strip()
         parsed = urlparse(config)
-        if not parsed.hostname or len(parsed.hostname) > 255:
+
+        hostname = parsed.hostname
+        if not hostname or len(hostname) > 255:
             return None
-        port = parsed.port or 443
+
+        try:
+            port = parsed.port or 443
+        except ValueError:
+            return None
+
         if not (1 <= port <= 65535):
             return None
+
         # [FIX] Aggressive sanitization
         raw_details = parse_qs(parsed.query)
         details = {}
@@ -25,6 +33,7 @@ def parse_vless(config: str) -> Optional[Proxy]:
             # Strip whitespace and non-printable chars from keys and values
             clean_key = k.strip()
             # Values are lists in parse_qs
+            # Handle potential None values inside list (though uncommon from parse_qs)
             clean_val = "".join(c for c in v[0] if c.isprintable()).strip()
             details[clean_key] = clean_val
 
@@ -62,7 +71,7 @@ def parse_vless(config: str) -> Optional[Proxy]:
         proxy = Proxy(
             config=config,
             protocol="vless",
-            address=parsed.hostname,
+            address=str(hostname),
             port=port,
             uuid=uuid,
             remarks=unquote(parsed.fragment or "")[:200],
@@ -70,6 +79,6 @@ def parse_vless(config: str) -> Optional[Proxy]:
         )
         normalize_proxy_details(proxy)
         return proxy
-    except (ValueError, IndexError) as e:
+    except (ValueError, IndexError, AttributeError) as e:
         logger.debug(f"Failed to parse VLESS: {e}")
         return None

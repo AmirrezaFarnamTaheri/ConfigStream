@@ -49,6 +49,7 @@ def is_plausible_proxy_config(config: str) -> bool:
             "huggingface.co",  # [ADDED]
         ]
         if "@" not in config and any(d in config_lower for d in blocked_domains):
+            # Only treat as subscription if it DOESN'T have user info (no @)
             return False
 
     if "://" not in config:
@@ -58,10 +59,14 @@ def is_plausible_proxy_config(config: str) -> bool:
     if len(protocol) > 20 or len(rest) < 4:
         # logger.debug(f"Plausibility check failed: Invalid length for protocol or rest in {config[:50]}...")
         return False
+
+    # [FIX] Relax noise check
+    # Some URLs (especially complex VLESS/VMess with long query params) can have many special chars.
+    # We increase threshold to 70% and allow more special chars.
     special_char_count = sum(
-        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&="
+        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~"
     )
-    if special_char_count > len(rest) * 0.5:
+    if special_char_count > len(rest) * 0.7:
         # logger.debug(f"Plausibility check failed: High noise ratio in {config[:50]}...")
         return False
     return True
@@ -81,13 +86,14 @@ def extract_config_lines(
 
     # Try JSON (V2Ray JSON)
     if payload.strip().startswith("{"):
-         return [payload]
+        return [payload]
 
     # Try YAML (Clash) - Look for structural markers
     if "proxies:" in payload and ("- name:" in payload or "-name:" in payload):
         try:
             import yaml
             import json
+
             data = yaml.safe_load(payload)
             proxies = data.get("proxies", [])
             if isinstance(proxies, list):
@@ -176,10 +182,9 @@ def extract_config_lines(
                         candidate[:100],
                         reason,
                     )
-                if len(dropped_samples) < 5:
-                    dropped_samples.append(
-                        f"{candidate[:100]} [{reason}]"
-                    )  # Truncate for log safety
+                # [FIX] Keep more samples (20) and log them all if dropped count is high
+                if len(dropped_samples) < 20:
+                    dropped_samples.append(f"{candidate[:100]} [{reason}]")
 
     if dropped_count > 0:
         if len(configs) > 0:
@@ -194,9 +199,11 @@ def extract_config_lines(
             )
 
         if dropped_samples:
-            # Enhanced debug logging for better transparency
+            # Enhanced debug logging
+            # Log all captured samples
+            sample_text = "; ".join(dropped_samples)
             logger.debug(
-                f"Dropped lines analysis: Total={dropped_count}. Samples (first {len(dropped_samples)}): {dropped_samples}"
+                f"Dropped lines analysis: Total={dropped_count}. Samples: {sample_text}"
             )
     else:
         logger.info(f"Successfully extracted {len(configs)} configs (0 dropped).")

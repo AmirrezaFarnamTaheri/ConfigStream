@@ -119,7 +119,9 @@ def validate_address(
         # not a hostname starting with digits (e.g. 026.worker.dev).
         is_ip_structure = re.match(r"^[\d\.]+$", address_lower)
         if is_ip_structure:
-            logger.warning(f"Non-standard IP notation (possible DNS rebinding): {address}")
+            logger.warning(
+                f"Non-standard IP notation (possible DNS rebinding): {address}"
+            )
             issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
                 f"Non-standard notation: {address}"
             )
