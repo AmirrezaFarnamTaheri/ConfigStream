@@ -48,6 +48,7 @@ class Proxy(BaseModel):
     batch_source: Optional[str] = None
     source_line: Optional[int] = None
     history: Optional[List[float]] = None
+    process: str = "native"
 
     @property
     def latency_ms(self) -> Optional[float]:
