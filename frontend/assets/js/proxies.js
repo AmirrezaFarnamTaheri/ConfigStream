@@ -203,13 +203,19 @@ function renderTable() {
         statusCell.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
         row.appendChild(statusCell);
 
-        // History (History Chart Sparkline)
-        const trendCell = document.createElement('td');
-        trendCell.setAttribute('data-label', 'History');
-        trendCell.className = 'trend-cell';
-        const trendId = `trend-${start + index}`;
-        trendCell.innerHTML = `<div id="${trendId}" class="trend-sparkline"></div>`;
-        row.appendChild(trendCell);
+        // Process Type (Replaces History)
+        const processCell = document.createElement('td');
+        processCell.setAttribute('data-label', 'Process');
+        processCell.className = 'process-cell';
+        const processType = p.process || 'native';
+        let pBadge = 'badge-secondary';
+        if (processType === 'washed') pBadge = 'badge-success';
+        if (processType === 'revived') pBadge = 'badge-warning';
+        if (processType === 'chain') pBadge = 'badge-info';
+        if (processType === 'smart') pBadge = 'badge-primary';
+
+        processCell.innerHTML = `<span class="badge ${pBadge}" style="font-size:0.75em">${escapeHtml(processType.toUpperCase())}</span>`;
+        row.appendChild(processCell);
 
         // Action
         const actionCell = document.createElement('td');
@@ -230,31 +236,7 @@ function renderTable() {
     tbody.appendChild(frag);
     if(window.inlineIcons) window.inlineIcons.replace();
 
-    // Render trend sparklines if history chart is available
-    if (window.ProxyHistoryChart && window.proxyHistoryChart) {
-        pageData.forEach((p, index) => {
-            const trendId = `trend-${start + index}`;
-            const configKey = p.config || `${p.protocol}://${p.address}:${p.port}`;
-            try {
-                window.proxyHistoryChart.renderMiniChart(configKey, trendId);
-            } catch (e) {
-                // If no history data, show placeholder
-                const container = document.getElementById(trendId);
-                if (container) {
-                    container.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.75rem;">N/A</span>';
-                }
-            }
-        });
-    } else {
-        // Fallback when ProxyHistoryChart is not available
-        pageData.forEach((p, index) => {
-            const trendId = `trend-${start + index}`;
-            const container = document.getElementById(trendId);
-            if (container) {
-                container.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.75rem;">—</span>';
-            }
-        });
-    }
+    // History charts removed in favor of Process column
 }
 
 function populateDropdowns(proxies) {
