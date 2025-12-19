@@ -13,7 +13,12 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 
 ---
 
-## 🚀 Key Features
+## 🚀 Key Features (v2.0)
+
+### 🧩 Universal Parsing & Protocol Support
+*   **Structured Ingestion:** Natively parses **Clash YAML** and **V2Ray JSON** subscription blobs, recovering thousands of previously ignored proxies.
+*   **Protocol Aliases:** Support for `hy2://`, `wg://`, and password-protected TUIC URLs.
+*   **Hysteria2 Normalization:** Automatically fixes `insecure`/`obfs` parameter mismatches to ensure connectivity.
 
 ### 🛡️ Resilient Core (Hybrid Engine)
 *   **Python Logic:** Orchestrates washing, chaining, and intelligence.
