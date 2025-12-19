@@ -47,6 +47,7 @@ def serialize_proxy(
         "details": proxy.details,
         "config": proxy.config,
         "remarks": proxy.remarks,
+        "process": proxy.process,
     }
 
     # Inject history if provided or attached

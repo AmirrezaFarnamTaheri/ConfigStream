@@ -12,38 +12,51 @@ BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
 NUM_BATCHES = 10  # Target number of shards
 DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
 
-# Regex to parse the rich logger output with fetch duration
-# Matches: "Fetched 129 proxies from https://... (Fetch: 2.34s)"
-# Updated to extract both count AND fetch duration for time-based load balancing
-LOG_REGEX = re.compile(
-    r"Fetched\s+(\d+)\s+proxies\s+from\s+(https?://\S+)\s+\(Fetch:\s+([\d.]+)s\)"
-)
+# Regex for Source Summary block in consumer.py
+# Source Summary [URL]:
+#   Raw Lines:     123
+#   ...
+#   Duration:      1500ms (Fetch: 500ms, ...)
+RAW_LINES_REGEX = re.compile(r"Raw Lines:\s+(\d+)")
+FETCH_TIME_REGEX = re.compile(r"Fetch:\s+([\d.]+)ms")
 
 
 def parse_logs(log_files: List[str]) -> Dict[str, Tuple[int, float]]:
     """
     Scans log files to build a map of {source_url: (proxy_count, fetch_duration)}.
-    Uses fetch duration as the primary weight for load balancing since
-    execution time depends on network latency, not just proxy count.
     """
     source_metrics: Dict[str, Tuple[int, float]] = {}
     print(f"🔍 Scanning {len(log_files)} log files...")
 
     for log_file in log_files:
         try:
-            # Read full content instead of line-by-line
             text = Path(log_file).read_text(encoding="utf-8", errors="ignore")
+            # We need to parse blocks. Since it's multiline, we can iterate or use robust regex.
+            # Simplified: Split by "Source Summary ["
+            blocks = text.split("Source Summary [")
+            for block in blocks[1:]:  # Skip preamble
+                try:
+                    # Extract URL (up to closing ])
+                    url_end = block.find("]")
+                    if url_end == -1:
+                        continue
+                    url = block[:url_end].strip()
 
-            for match in LOG_REGEX.finditer(text):
-                count = int(match.group(1))
-                url = match.group(2).strip()
-                fetch_duration = float(match.group(3))
+                    # Extract Raw Lines
+                    lines_match = RAW_LINES_REGEX.search(block)
+                    count = int(lines_match.group(1)) if lines_match else 0
 
-                # Keep the record with the longest fetch time (worst case scenario)
-                # This ensures batches are balanced for slowest observed performance
-                existing = source_metrics.get(url, (0, 0.0))
-                if fetch_duration > existing[1]:
-                    source_metrics[url] = (count, fetch_duration)
+                    # Extract Fetch Time
+                    fetch_match = FETCH_TIME_REGEX.search(block)
+                    fetch_ms = float(fetch_match.group(1)) if fetch_match else 0.0
+                    fetch_duration = fetch_ms / 1000.0
+
+                    if count > 0:
+                        existing = source_metrics.get(url, (0, 0.0))
+                        if fetch_duration > existing[1]:
+                            source_metrics[url] = (count, fetch_duration)
+                except Exception:
+                    continue
         except Exception as e:
             print(f"⚠️  Could not read {log_file}: {e}")
 
@@ -144,6 +157,13 @@ def main() -> None:
     print("\n⚖️  Optimized Batch Distribution (Time-Based):")
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
+
+    # Delete existing batch files to ensure clean state and remove extras (e.g. batch_11)
+    for f in SOURCES_DIR.glob("batch_*.txt"):
+        try:
+            f.unlink()
+        except Exception as e:
+            print(f"⚠️ Failed to delete {f}: {e}")
 
     for i, batch in enumerate(batches):
         file_path = SOURCES_DIR / f"batch_{i+1}.txt"
