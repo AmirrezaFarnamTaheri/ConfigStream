@@ -18,14 +18,15 @@ class GoBatchTester:
     def __init__(
         self,
         binary_path: str = "configstream-tester",
-        workers: int = 50,
+        workers: int = 15,
     ):
         # Clamp workers to a safe range
         try:
             w = int(workers)
         except Exception:
-            w = 50
-        self.workers = max(1, min(w, 1000))
+            w = 15
+        # Lower default and cap to prevent port exhaustion
+        self.workers = max(1, min(w, 100))
         env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
 
         # Priority: Env Var > Absolute Path arg > PATH lookup
@@ -74,6 +75,14 @@ class GoBatchTester:
             await self._ensure_process()
             # Start heartbeat loop
             asyncio.create_task(self._heartbeat_loop())
+
+    async def _restart_daemon(self):
+        """Force restart of the daemon process."""
+        logger.info("Restarting Go Tester Daemon...")
+        await self.close()
+        # Ensure 'stopping' flag is cleared so we can start again
+        self._stopping = False
+        await self._ensure_process()
 
     async def _heartbeat_loop(self):
         """Periodically check if process is alive and healthy."""
@@ -330,7 +339,7 @@ class GoBatchTester:
             )
         except asyncio.TimeoutError:
             logger.error(
-                f"Timed out waiting for {len(inputs)} results from Go Tester Daemon"
+                f"Timed out waiting for {len(inputs)} results from Go Tester Daemon. Restarting daemon..."
             )
             # Cleanup and mark incomplete proxies as unknown/failed
             for f, req_id in zip(futures, req_id_map.keys()):
@@ -342,6 +351,9 @@ class GoBatchTester:
                         proxy_obj.is_working = False
                         proxy_obj.details["error"] = "BATCH_TIMEOUT"
                         proxy_obj.details["failure_category"] = "TIMEOUT"
+
+            # Restart daemon asynchronously to recover for next batch
+            asyncio.create_task(self._restart_daemon())
             return proxies
 
         # Process Results
