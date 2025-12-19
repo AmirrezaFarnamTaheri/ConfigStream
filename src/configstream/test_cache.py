@@ -10,10 +10,16 @@ import hashlib
 import json
 import logging
 import time
-import fcntl
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+# [FIX] Windows Compatibility for file locking
+if sys.platform != "win32":
+    import fcntl
+else:
+    fcntl = None  # type: ignore
 
 from .models import Proxy
 from .utils import AtomicFileWriter
@@ -64,31 +70,42 @@ class TestResultCache:
         try:
             # Use a lock file alongside the cache file
             lock_path = self.db_path.with_suffix(".lock")
-            with open(lock_path, "w") as lock_file:
-                # Acquire an exclusive lock (blocking to ensure safety)
-                fcntl.flock(lock_file, fcntl.LOCK_EX)
-                try:
-                    # Re-load to ensure we merge changes if another process wrote recently
-                    if self.db_path.exists():
-                        try:
-                            with open(self.db_path, "r", encoding="utf-8") as f:
-                                disk_cache = json.load(f)
-                                # Merge in-memory cache into disk cache (in-memory takes precedence for own tests)
-                                disk_cache.update(self._cache)
-                                self._cache = disk_cache
-                        except (json.JSONDecodeError, IOError):
-                            pass
 
-                    content = json.dumps(self._cache, indent=2)
-                    AtomicFileWriter.write_text(self.db_path, content)
-                    logger.info(
-                        f"Saved {len(self._cache)} entries to cache file: {self.db_path}"
-                    )
-                finally:
-                    fcntl.flock(lock_file, fcntl.LOCK_UN)
+            # [FIX] Handle Windows locking
+            if fcntl:
+                with open(lock_path, "w") as lock_file:
+                    # Acquire an exclusive lock (blocking to ensure safety)
+                    fcntl.flock(lock_file, fcntl.LOCK_EX)
+                    try:
+                        self._merge_and_write()
+                    finally:
+                        fcntl.flock(lock_file, fcntl.LOCK_UN)
+            else:
+                # Fallback for Windows (no atomic locking easily available without deps)
+                # Just write directly for now or could implement msvcrt locking if needed
+                self._merge_and_write()
 
         except IOError as e:
             logger.error(f"Failed to save cache file {self.db_path}: {e}")
+
+    def _merge_and_write(self):
+        # Re-load to ensure we merge changes if another process wrote recently
+        if self.db_path.exists():
+            try:
+                with open(self.db_path, "r", encoding="utf-8") as f:
+                    disk_cache = json.load(f)
+                    # Merge in-memory cache into disk cache (in-memory takes precedence for own tests)
+                    # [FIX] Merge with timestamp awareness could be added here
+                    disk_cache.update(self._cache)
+                    self._cache = disk_cache
+            except (json.JSONDecodeError, IOError):
+                pass
+
+        content = json.dumps(self._cache, indent=2)
+        AtomicFileWriter.write_text(self.db_path, content)
+        logger.info(
+            f"Saved {len(self._cache)} entries to cache file: {self.db_path}"
+        )
 
     def get(self, proxy: Proxy) -> Optional[Proxy]:
         """

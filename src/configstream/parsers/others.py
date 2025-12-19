@@ -41,6 +41,10 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
 
         details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
 
+        # Capture password if present (standard URL parsing)
+        if parsed.password:
+            details["password"] = parsed.password
+
         # Special handling for username as uuid or private_key
         uuid = parsed.username or ""
 
@@ -65,7 +69,13 @@ def parse_hysteria(c: str) -> Optional[Proxy]:
 
 
 def parse_hysteria2(c: str) -> Optional[Proxy]:
+    # Support both hysteria2:// and hy2://
     proxy = _parse_url_scheme(c, "hysteria2", 443)
+    if not proxy and c.lower().startswith("hy2://"):
+        proxy = _parse_url_scheme(c, "hy2", 443)
+        if proxy:
+            proxy.protocol = "hysteria2"  # Normalize protocol
+
     if proxy:
         # Hysteria 2 Obfuscation & Masquerading
         # 'obfs' -> type (e.g., 'salamander'), 'obfs-password' -> password
@@ -106,6 +116,11 @@ def parse_tuic(c: str) -> Optional[Proxy]:
 
 def parse_wireguard(c: str) -> Optional[Proxy]:
     proxy = _parse_url_scheme(c, "wireguard", 51820)
+    if not proxy and c.lower().startswith("wg://"):
+        proxy = _parse_url_scheme(c, "wg", 51820)
+        if proxy:
+            proxy.protocol = "wireguard"  # Normalize
+
     if not proxy:
         return None
 

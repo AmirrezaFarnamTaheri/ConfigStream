@@ -75,6 +75,31 @@ def extract_config_lines(
         logger.debug("extract_config_lines: Empty or invalid payload type.")
         return []
 
+    # [FIX] Check for Clash/YAML or V2Ray JSON
+    # If detected, we return the payload as a single "line" to be parsed by auto_detect
+    # which needs to support parsing the full blob.
+
+    # Try JSON (V2Ray JSON)
+    if payload.strip().startswith("{"):
+         return [payload]
+
+    # Try YAML (Clash) - Look for structural markers
+    if "proxies:" in payload and ("- name:" in payload or "-name:" in payload):
+        try:
+            import yaml
+            import json
+            data = yaml.safe_load(payload)
+            proxies = data.get("proxies", [])
+            if isinstance(proxies, list):
+                # Convert each proxy dict to a JSON string line
+                return [json.dumps(p) for p in proxies if isinstance(p, dict)]
+        except ImportError:
+            logger.warning("PyYAML not installed, skipping Clash YAML parsing")
+        except Exception as e:
+            logger.debug(f"Failed to parse Clash YAML: {e}")
+        # If parsing fails or yields no proxies, return payload for other parsers (fallback)
+        return [payload]
+
     # Check if it's an OpenVPN file
     if "client" in payload and ("dev tun" in payload or "dev tap" in payload):
         logger.debug("extract_config_lines: Detected OpenVPN configuration.")
