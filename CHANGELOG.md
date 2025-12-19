@@ -1,3 +1,16 @@
+## [2.0.6] - 2025-12-25
+
+### Core & Security
+- **Type Safety**: Resolved critical MyPy type assignment errors in `security/rules.py` logic, ensuring robust validation handling.
+- **Dependencies**: Fixed missing dependency issues (`aiohttp_socks`, `tenacity`, `nest_asyncio`) in test environments, ensuring reliable CI execution.
+- **Source Expansion**: Added high-quality sources for advanced protocols (Hysteria2, TUIC, VLESS, Trojan) from reputable repositories.
+
+### Frontend
+- **Status Visibility**: Replaced the ambiguous "History" column with a detailed "Status" column in the proxies table.
+    - Now displays distinct badges for: **Washed (Secure/Optimal)**, **Chain (Smart/Intranet)**, **Native**, and **Dead**.
+    - Removed legacy sparkline charts to declutter the UI and focus on actionable status.
+- **Single Source of Truth**: Verified and aligned frontend statistics generation with the backend `metadata.json` standard.
+
 ## [2.0.5] - 2025-12-15
 
 ### Critical Fixes (Backend & Concurrency)

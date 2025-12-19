@@ -156,9 +156,12 @@ def validate_address(
     if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
         # Check if address looks like an IP (IPv4 or IPv6) before applying IP rules
         # This prevents blocking domains that start with numbers like 10.example.com
-        is_ip_structure = re.match(r"^[\d\.:]+$", address_lower) or address_lower == "localhost"
+        # Rename variable to avoid type confusion with previous usage of is_ip_structure
+        should_apply_ip_rules = (
+            re.match(r"^[\d\.:]+$", address_lower) or address_lower == "localhost"
+        )
 
-        if is_ip_structure:
+        if should_apply_ip_rules:
             special_address_patterns = [
                 # Loopback
                 r"^127\.",
