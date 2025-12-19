@@ -103,9 +103,7 @@ class TestResultCache:
 
         content = json.dumps(self._cache, indent=2)
         AtomicFileWriter.write_text(self.db_path, content)
-        logger.info(
-            f"Saved {len(self._cache)} entries to cache file: {self.db_path}"
-        )
+        logger.info(f"Saved {len(self._cache)} entries to cache file: {self.db_path}")
 
     def get(self, proxy: Proxy) -> Optional[Proxy]:
         """
