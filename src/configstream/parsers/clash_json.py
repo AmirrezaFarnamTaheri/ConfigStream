@@ -5,6 +5,7 @@ from ..models import Proxy
 
 logger = logging.getLogger(__name__)
 
+
 def parse_clash_json(config: str) -> Optional[Proxy]:
     """Parse a single Clash proxy entry serialized as JSON."""
     try:
@@ -31,18 +32,18 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
             uuid = data.get("password", "")
         elif protocol == "ss" or protocol == "shadowsocks":
             protocol = "shadowsocks"
-            uuid = "" # SS uses password in details
+            uuid = ""  # SS uses password in details
             data["password"] = data.get("password", "")
             data["method"] = data.get("cipher", "")
 
         return Proxy(
-            config=config, # Store the JSON blob as config
+            config=config,  # Store the JSON blob as config
             protocol=protocol,
             address=address,
             port=port,
             uuid=uuid,
             details=data,
-            remarks=data.get("name", "")
+            remarks=data.get("name", ""),
         )
     except Exception as e:
         logger.debug(f"Failed to parse Clash JSON: {e}")

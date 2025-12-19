@@ -13,21 +13,23 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 
 ---
 
-## 🚀 Key Features (v2.0)
+## 🚀 Key Features (v2.1)
 
 ### 🧩 Universal Parsing & Protocol Support
 *   **Structured Ingestion:** Natively parses **Clash YAML** and **V2Ray JSON** subscription blobs, recovering thousands of previously ignored proxies.
 *   **Protocol Aliases:** Support for `hy2://`, `wg://`, and password-protected TUIC URLs.
 *   **Hysteria2 Normalization:** Automatically fixes `insecure`/`obfs` parameter mismatches to ensure connectivity.
+*   **Strict Validation:** Enhanced type safety and validation for VLESS/VMess protocols.
 
 ### 🛡️ Resilient Core (Hybrid Engine)
-*   **Python Logic:** Orchestrates washing, chaining, and intelligence.
+*   **Python Logic:** Orchestrates washing, chaining, and intelligence (Fully Type-Checked).
 *   **Go Speed:** High-concurrency raw socket testing via custom binary.
 *   **Vwarp Integration:** Uses MASQUE/QUIC scanning to find clean Cloudflare IPs (host:port support), bypassing traditional blocks.
+*   **Robust Fetching:** Adaptive timeouts and strict 404/410 handling to prevent wasted cycles.
 
 ### 🌊 Smart Washing & Revival
 *   **Proxy Revival:** Capable of "reviving" non-working or dirty proxies by wrapping them in clean WARP tunnels.
-*   **Washer Retest:** Washed chains are re-verified to ensure end-to-end connectivity.
+*   **Thread-Safe Washing:** Optimized locking mechanisms for concurrent washing operations.
 *   **Smart Chains:** Automatically builds topology-aware chains (e.g., Intranet -> Relay -> Exit) to bypass DPI.
 *   **Deterministic IPs:** Generates stable, non-colliding internal IPs for consistent routing tables.
 
@@ -46,7 +48,7 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 *   **Surge:** Native policy export (supports VLESS, Hy2, TUIC).
 *   **Loon:** Native configuration export (supports VLESS, Hy2, TUIC, WireGuard).
 *   **Quantumult X:** Server node export (supports VLESS).
-*   **Shadowrocket:** Base64 subscription links (supports VLESS, Hy2, TUIC).
+*   **Shadowrocket:** Base64 subscription links (supports VLESS, Hy2, TUIC, Plugins).
 *   **SIP008:** Standard JSON format for Shadowsocks.
 
 ---

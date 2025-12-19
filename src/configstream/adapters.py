@@ -58,7 +58,7 @@ class SurgeAdapter(Adapter):
                 try:
                     if (
                         out.get("type") == "wireguard"
-                        and out.get("tag", "").startswith("🛡️ Secure")
+                        and str(out.get("tag", "")).startswith("🛡️ Secure")
                         and out.get("detour")
                     ):
                         chain_line = format_singbox_chain_for_surge(
@@ -155,7 +155,7 @@ class LoonAdapter(Adapter):
                 try:
                     if (
                         out.get("type") == "wireguard"
-                        and out.get("tag", "").startswith("🛡️ Secure")
+                        and str(out.get("tag", "")).startswith("🛡️ Secure")
                         and out.get("detour")
                     ):
                         chain_line = format_singbox_chain_for_loon(
@@ -316,7 +316,16 @@ class ShadowrocketAdapter(Adapter):
             password = p.details.get("password", "")
             userpass = f"{method}:{password}"
             b64_auth = base64.urlsafe_b64encode(userpass.encode()).decode().rstrip("=")
-            return f"ss://{b64_auth}@{p.address}:{p.port}#{name}"
+
+            # [FIX] Add plugin support to URIs
+            plugin_part = ""
+            if "plugin" in p.details:
+                plugin = p.details["plugin"]
+                opts = p.details.get("plugin_opts", "")
+                plugin_str = urllib.parse.quote(f"{plugin};{opts}")
+                plugin_part = f"&plugin={plugin_str}"
+
+            return f"ss://{b64_auth}@{p.address}:{p.port}?#{name}{plugin_part}"
 
         elif p.protocol == "trojan":
             sni = p.details.get("sni", "")
