@@ -116,7 +116,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             except (ValueError, KeyError, binascii.Error, json.JSONDecodeError) as exc:
                 logger.debug(f"Parser {scheme} failed: {exc}")
 
-    # Try JSON parsing (V2Ray JSON format)
+    # Try JSON parsing (V2Ray JSON or Clash JSON format)
     if config.startswith("{"):
         try:
             from .parsers import _parse_v2ray_json
@@ -126,6 +126,14 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 return result
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
             logger.debug(f"v2ray json parser skipped: {exc}")
+
+        try:
+            from .parsers.clash_json import parse_clash_json
+            result = parse_clash_json(config)
+            if result:
+                return result
+        except Exception as exc:
+            logger.debug(f"clash json parser skipped: {exc}")
 
     # Port-based heuristics
     try:

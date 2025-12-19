@@ -491,7 +491,12 @@ function initGlobe(data) {
     container.addEventListener('touchstart', handleInteraction);
     container.addEventListener('wheel', handleInteraction);
 
-    container.classList.add('zoom-inactive');
+    // [FIX] Do NOT set zoom-inactive initially which set pointer-events: none
+    // container.classList.add('zoom-inactive');
+
+    // Instead just ensure zoom is disabled in controls initially (done above)
+    // and let CSS cursor indicate grabbable
+
     Globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
 
     window.addEventListener('resize', () => {
@@ -649,17 +654,18 @@ function initCharts(data) {
 
         if (data.rejection_reasons) {
             const reasons = data.rejection_reasons;
-            threats.blockedIPs = reasons.address_blocked || reasons.dirty_ip || 0;
-            threats.honeypots = reasons.honeypot_suspected || reasons.honeypot || 0;
-            threats.suspiciousNodes = reasons.address_suspicious || 0;
-            threats.privateIPs = reasons.address_private_ip || reasons.private_ip || 0;
-            threats.dangerousPorts = reasons.port_security || 0;
-            threats.invalidProtocols = reasons.protocol_invalid || reasons.unknown_protocol || 0;
-            threats.malformedConfigs = reasons.suspicious_config_malformed || 0;
-            threats.oversizedConfigs = reasons.suspicious_config_format || 0;
-            threats.invalidUUIDs = reasons.config_uuid_invalid || 0;
-            threats.duplicates = reasons.duplicate || 0;
-            threats.invalidConfigs = reasons.invalid || reasons.parse_error || 0;
+            // [FIX] Map all security-related rejection reasons
+            threats.blockedIPs = (reasons.address_blocked || 0) + (reasons.dirty_ip || 0);
+            threats.honeypots = (reasons.honeypot_suspected || 0) + (reasons.honeypot || 0);
+            threats.suspiciousNodes = (reasons.address_suspicious || 0);
+            threats.privateIPs = (reasons.address_private_ip || 0) + (reasons.private_ip || 0);
+            threats.dangerousPorts = (reasons.port_security || 0);
+            threats.invalidProtocols = (reasons.protocol_invalid || 0) + (reasons.unknown_protocol || 0);
+            threats.malformedConfigs = (reasons.suspicious_config_malformed || 0);
+            threats.oversizedConfigs = (reasons.suspicious_config_format || 0);
+            threats.invalidUUIDs = (reasons.config_uuid_invalid || 0) + (reasons.config_uuid_missing || 0);
+            threats.duplicates = (reasons.duplicate || 0);
+            threats.invalidConfigs = (reasons.invalid || 0) + (reasons.parse_error || 0) + (reasons.unknown_security || 0);
         }
 
         const dataset = [];

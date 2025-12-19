@@ -245,6 +245,7 @@ async def merge_batches_async(
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
 
+    # [FIX] Generate outputs and collect stats
     proxies_by_proto = generate_outputs(
         ranked_proxies,
         chosen_proxies,
@@ -257,19 +258,10 @@ async def merge_batches_async(
         total_revived,
     )
 
-    # 6. Metadata
-    save_metadata(
-        stats={
-            "total_processed": total_processed,
-            "total_unique": len(merged_proxies),
-            "total_working": sum(1 for p in ranked_proxies if p.is_working),
-            "total_fetched": total_fetched,
-            "total_proxies_tested": total_tested,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-        },
-        proxies=ranked_proxies,
-        output_dir=output_dir,
-    )
+    # Note: generate_outputs internally calls save_metadata with a RICH stats object
+    # including smart chain counts etc.
+    # The redundant call below was overwriting it with a minimal/incomplete schema.
+    # Removing the duplicate call fixes the metadata/statistics schema collision.
 
     # 5. Logs & Summary
     summary_lines = [

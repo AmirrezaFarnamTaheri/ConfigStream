@@ -674,7 +674,8 @@ body.dark .github-btn:hover {
         width: 100%;
         height: 100%;
         background: rgba(0,0,0,0.5);
-        z-index: var(--z-index-nav-overlay); /* Above header, below nav panel */
+    /* [FIX] Lower z-index below header (1000) so nav panel (in header) stays on top */
+    z-index: 990;
         opacity: 0;
         visibility: hidden;
         transition: opacity var(--transition-base), visibility var(--transition-base);
@@ -4095,7 +4096,8 @@ body.dark .client-select {
 
 /* Prevent zoom from affecting page scroll by default */
 #globe-viz.zoom-inactive {
-    pointer-events: none;
+    /* [FIX] Removed pointer-events: none to allow interaction activation */
+    cursor: grab;
 }
 
 #globe-viz.zoom-active {
