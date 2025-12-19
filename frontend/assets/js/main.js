@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateElement('#threatsBlocked', formatNum(threatsBlocked));
 
                 // Smart Chains count
-                const smartChains = stats.smart_chain_count || 0;
+                const smartChains = stats.total_smart_chains || stats.smart_chain_count || 0;
                 updateElement('#smartChains', formatNum(smartChains));
 
                 // Vwarp Win Rate (efficiency percentage)

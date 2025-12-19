@@ -344,6 +344,7 @@ def _generate_statistics(
         "total_washed": total_washed,  # Candidates for washing (attempted)
         "total_revived": total_revived,  # Successfully revived via Washing
         "total_smart_chains": total_smart_chains_count,  # Smart chains generated
+        "smart_chain_count": total_smart_chains_count,  # [FIX] Legacy alias for frontend
         "rejection_reasons": dict(rejection_reasons),
         "latency_distribution": latency_dist,
         "proxy_locations": globe_points,

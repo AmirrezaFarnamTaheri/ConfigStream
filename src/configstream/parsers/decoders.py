@@ -76,8 +76,9 @@ def validate_b64_input(data: str) -> Optional[str]:
         return None
 
     if len(trimmed) > MAX_B64_INPUT_SIZE:
-        logger.error(
-            f"Base64 input too large: {len(trimmed)} bytes (max: {MAX_B64_INPUT_SIZE})"
+        # [FIX] Reduce log severity for expected large payloads (e.g. huge lists)
+        logger.debug(
+            f"Base64 input too large: {len(trimmed)} bytes. treating as plain text."
         )
         return None
 
