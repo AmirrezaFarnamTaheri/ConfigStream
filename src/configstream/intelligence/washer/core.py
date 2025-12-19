@@ -59,7 +59,8 @@ class ProxyWasher:
     @property
     def warp_keys(self) -> List[Dict[str, Any]]:
         """Thread-safe read of warp_keys."""
-        return self._warp_keys
+        with self._state_lock:
+            return self._warp_keys[:]
 
     @warp_keys.setter
     def warp_keys(self, value: List[Dict[str, Any]]) -> None:
@@ -70,7 +71,8 @@ class ProxyWasher:
     @property
     def clean_ips(self) -> List[str]:
         """Thread-safe read of clean_ips."""
-        return self._clean_ips
+        with self._state_lock:
+            return self._clean_ips[:]
 
     @clean_ips.setter
     def clean_ips(self, value: List[str]) -> None:
@@ -84,12 +86,15 @@ class ProxyWasher:
         """
 
         # --- STRATEGY 0: VWARP SCANNER ---
-        vwarp = VwarpTool()
-        scanned_ips_vwarp = await vwarp.scan_endpoints()
-        if scanned_ips_vwarp:
-            self.clean_ips = scanned_ips_vwarp  # type: ignore[assignment]
-            logger.info(f"Loaded {len(self.clean_ips)} clean IPs from Vwarp")
-            return
+        try:
+            vwarp = VwarpTool()
+            scanned_ips_vwarp = await vwarp.scan_endpoints()
+            if scanned_ips_vwarp:
+                self.clean_ips = scanned_ips_vwarp  # type: ignore[assignment]
+                logger.info(f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp")
+                return
+        except Exception as e:
+            logger.warning(f"Vwarp scanner failed: {e}")
 
         # --- STRATEGY 0.5: WARP KEYS FROM SCRAPER ---
         if not self.warp_keys:
@@ -134,7 +139,7 @@ class ProxyWasher:
                 if scanned_ips_legacy and len(scanned_ips_legacy) >= 5:
                     self.clean_ips = [(ip, 2408) for ip in scanned_ips_legacy]  # type: ignore[misc]
                     logger.info(
-                        f"Legacy Scan Success: Using {len(self.clean_ips)} fresh IPs."
+                        f"Legacy Scan Success: Using {len(scanned_ips_legacy)} fresh IPs."
                     )
                     return
             except Exception as e:
@@ -165,7 +170,7 @@ class ProxyWasher:
                             if valid_ips:
                                 self.clean_ips = valid_ips[:100]
                                 logger.info(
-                                    f"Fetched {len(self.clean_ips)} clean IPs from {source_url.split('/')[2]}"
+                                    f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
                                 )
                                 return
                         else:
@@ -183,16 +188,21 @@ class ProxyWasher:
         self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]  # type: ignore[misc]
 
     def _get_clean_endpoint(self, relay_id: str) -> Any:
-        pool = self.clean_ips if self.clean_ips else DEFAULT_CLEAN_IPS
+        # Use property access for thread safety
+        pool = self.clean_ips
         if not pool:
-            return DEFAULT_CLEAN_IPS[0] if DEFAULT_CLEAN_IPS else "162.159.192.1"
+            # Revert to default
+            pool = DEFAULT_CLEAN_IPS
+
+        if not pool:
+            return "162.159.192.1"
 
         hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
         return pool[hash_val % len(pool)]
 
     def _get_consistent_exit(
-        self, relay_id: str, exit_pool: List[Dict]
-    ) -> Optional[Dict]:
+        self, relay_id: str, exit_pool: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
         if not exit_pool:
             return None
 
@@ -218,24 +228,31 @@ class ProxyWasher:
         return f"172.16.{octet_3}.{octet_4}/32"
 
     def get_warp_config(self, seed_id: str) -> Optional[Dict[str, Any]]:
-        if not self.warp_keys:
+        # Use property access for thread safety
+        keys = self.warp_keys
+        if not keys:
             return None
 
-        identity = self._get_consistent_exit(seed_id, self.warp_keys)
+        identity = self._get_consistent_exit(seed_id, keys)
         if not identity:
             return None
 
         endpoint = self._get_clean_endpoint(seed_id)
 
-        try:
-            port = int(os.environ.get("WARP_PORT", "2408"))
-        except (ValueError, TypeError):
-            port = 2408
+        # Handle tuple endpoint (IP, Port)
+        if isinstance(endpoint, tuple) and len(endpoint) == 2:
+            clean_endpoint, clean_port = endpoint
+        else:
+            clean_endpoint = str(endpoint)
+            try:
+                clean_port = int(os.environ.get("WARP_PORT", "2408"))
+            except (ValueError, TypeError):
+                clean_port = 2408
 
         return {
             "type": "wireguard",
-            "server": endpoint,
-            "server_port": port,
+            "server": clean_endpoint,
+            "server_port": clean_port,
             "local_address": [self._generate_deterministic_ip(seed_id)],
             "private_key": identity["private_key"],
             "peer_public_key": identity["peer_public_key"],
@@ -253,7 +270,8 @@ class ProxyWasher:
         washed_ids: Set[str] = set()
         skip_reasons: Dict[str, int] = {}
 
-        if not self.warp_keys:
+        keys = self.warp_keys
+        if not keys:
             logger.info("Washing skipped: WARP_KEY_POOL not configured")
             return washed_outbounds, washed_ids, skip_reasons
 
@@ -262,7 +280,7 @@ class ProxyWasher:
             logger.warning("Washing skipped: No working proxies available")
             return washed_outbounds, washed_ids, skip_reasons
 
-        candidates = [p for p in proxies if p.is_working and self.warp_keys]
+        candidates = [p for p in proxies if p.is_working]
         logger.info(f"Washing {len(candidates)} proxies through WARP...")
 
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
@@ -273,7 +291,7 @@ class ProxyWasher:
             if stats:
                 stats.vwarp_attempts += 1
 
-            exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
+            exit_key = self._get_consistent_exit(relay.id, keys)
             if not exit_key:
                 skip_reasons["invalid_warp_key"] = (
                     skip_reasons.get("invalid_warp_key", 0) + 1
@@ -336,6 +354,7 @@ class ProxyWasher:
                     res = find_optimal_relay(origin_country, target_exit, [relay_stub])
                     if isinstance(res, dict) and "relay" in res:
                         total_distance = res.get("total_distance", 99999)
+                        # Ensure float comparison
                         if float(total_distance) < 15000:
                             is_optimal = True
             except Exception:

@@ -30,33 +30,49 @@ def parse_vmess(config: str) -> Optional[Proxy]:
 
         vmess_data = json.loads(decoded)
 
+        # [FIX] Strict field validation
         if not all(k in vmess_data for k in ["add", "port", "id"]):
             return None
-        port = int(vmess_data["port"])
+
+        try:
+            port = int(vmess_data["port"])
+        except (ValueError, TypeError):
+            return None
+
         if not (1 <= port <= 65535):
             return None
+
         address = vmess_data["add"]
-        if not address or len(address) > 255:
+        if not address or len(str(address)) > 255:
             return None
+
         uuid = vmess_data["id"]
-        if not uuid or len(uuid) > 100:
+        # Basic UUID length check (standard is 36, but some implementations use different IDs)
+        if not uuid or len(str(uuid)) > 100:
             return None
 
         # Enforce AlterID deprecation: always normalize to 0 regardless of input.
         # Non-zero AlterID is considered insecure / legacy and is ignored here.
         vmess_data["aid"] = 0
 
+        # [FIX] Sanitize remarks/ps
+        ps = vmess_data.get("ps", "")
+        if isinstance(ps, str):
+            ps = ps[:200]
+        else:
+            ps = str(ps)[:200]
+
         proxy = Proxy(
             config=config,
             protocol="vmess",
-            address=address,
+            address=str(address),
             port=port,
-            uuid=uuid,
-            remarks=vmess_data.get("ps", "")[:200],
+            uuid=str(uuid),
+            remarks=ps,
             details=vmess_data,
         )
         normalize_proxy_details(proxy)
         return proxy
-    except (json.JSONDecodeError, binascii.Error, KeyError, ValueError) as e:
+    except (json.JSONDecodeError, binascii.Error, KeyError, ValueError, TypeError) as e:
         logger.debug(f"Failed to parse VMess: {str(e)[:100]}")
         return None
