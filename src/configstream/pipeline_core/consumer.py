@@ -447,17 +447,28 @@ async def processing_consumer(
                 geoip_stats[p.country_code] = geoip_stats.get(p.country_code, 0) + 1
 
         # LOG SUMMARY FOR THIS SOURCE
-        logger.info(
-            f"Source Summary [{safe_source}]:\n"
-            f"  Raw Lines:     {len(raw_lines)}\n"
-            f"  Parsed:        {len(parsed_batch)}\n"
-            f"  Unique:        {len(unique_batch)} (Dupes: {duplicates_count})\n"
-            f"  Safe:          {len(safe_batch)} (Unsafe/Dropped: {dropped_unsafe})\n"
-            f"  Tested:        {len(proxies_to_actually_test)} (Cached: {cache_hits})\n"
-            f"  Working:       {working_count} (Success Rate: {(working_count/len(safe_batch)*100) if safe_batch else 0:.1f}%)\n"
-            f"  Countries:     {json.dumps(geoip_stats).decode()}\n"
-            f"  Duration:      {full_duration_ms:.0f}ms (Fetch: {fetch_duration:.0f}ms, Process: {total_duration:.0f}ms)"
+        # [AUDIT] Compacted to single line to reduce log spam in large pipelines
+        success_rate = (working_count/len(safe_batch)*100) if safe_batch else 0.0
+        summary_msg = (
+            f"Source Summary [{safe_source}]: "
+            f"Raw={len(raw_lines)} "
+            f"Parsed={len(parsed_batch)} "
+            f"Unique={len(unique_batch)} "
+            f"Safe={len(safe_batch)} "
+            f"Tested={len(proxies_to_actually_test)} "
+            f"Working={working_count} ({success_rate:.1f}%) "
+            f"Fetch={fetch_duration:.0f}ms "
+            f"Dur={full_duration_ms:.0f}ms"
         )
+
+        # Only log full details if explicitly debugging or if result is interesting (working proxies found)
+        # Otherwise use DEBUG for sources that yielded nothing
+        if working_count > 0:
+            logger.info(summary_msg)
+            if geoip_stats:
+                logger.debug(f"  Countries [{safe_source}]: {json.dumps(geoip_stats).decode()}")
+        else:
+            logger.debug(summary_msg)
 
         if failure_modes:
             # Log failure modes at INFO level if significant failures occurred, otherwise DEBUG
