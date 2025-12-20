@@ -49,17 +49,17 @@ def is_plausible_proxy_config(config: str) -> bool:
 
     # [Check] Double protocol
     if "://" in rest:
-         # Found a second protocol separator, likely a contained URL (e.g., subscription link)
-         # causing false positive interpretation as a proxy
-         # Exception: 'ws' or 'grpc' paths might contain URLs, but usually URL encoded.
-         # If it's literally 'http://' inside, it's suspicious.
-         if "http://" in rest or "https://" in rest:
-             # Check if it is a query param value
-             if "?" in rest:
-                 _, query = rest.split("?", 1)
-                 if "://" in query and "=" not in query.split("://")[0][-10:]:
-                     # If :// appears but not preceded by =, it's likely not a param
-                     return False
+        # Found a second protocol separator, likely a contained URL (e.g., subscription link)
+        # causing false positive interpretation as a proxy
+        # Exception: 'ws' or 'grpc' paths might contain URLs, but usually URL encoded.
+        # If it's literally 'http://' inside, it's suspicious.
+        if "http://" in rest or "https://" in rest:
+            # Check if it is a query param value
+            if "?" in rest:
+                _, query = rest.split("?", 1)
+                if "://" in query and "=" not in query.split("://")[0][-10:]:
+                    # If :// appears but not preceded by =, it's likely not a param
+                    return False
 
     return True
 

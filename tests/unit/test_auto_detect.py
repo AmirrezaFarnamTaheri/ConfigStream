@@ -14,7 +14,7 @@ class TestAutoDetect(unittest.TestCase):
         self.assertEqual(proxy.address, "1.1.1.1")
 
     def test_detect_vless(self):
-        config = "vless://uuid@example.com:443?security=tls&type=ws#remark"
+        config = "vless://123e4567-e89b-12d3-a456-426614174000@example.com:443?security=tls&type=ws#remark"
         proxy = auto_detect_and_parse(config)
         self.assertIsNotNone(proxy)
         self.assertEqual(proxy.protocol, "vless")
