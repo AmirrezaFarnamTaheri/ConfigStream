@@ -61,6 +61,7 @@ class GoBatchTester:
         self._pending_futures: Dict[str, asyncio.Future[Any]] = {}
         self._read_task: Optional[asyncio.Task[None]] = None
         self._stderr_task: Optional[asyncio.Task[None]] = None
+        self._heartbeat_task: Optional[asyncio.Task[None]] = None
         self._stopping = False
 
         if not self.available:
@@ -74,7 +75,7 @@ class GoBatchTester:
         if self.available:
             await self._ensure_process()
             # Start heartbeat loop
-            asyncio.create_task(self._heartbeat_loop())
+            self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
 
     async def _restart_daemon(self) -> None:
         """Force restart of the daemon process."""
@@ -140,6 +141,14 @@ class GoBatchTester:
                 except asyncio.CancelledError:
                     pass
                 self._stderr_task = None
+
+            if self._heartbeat_task:
+                self._heartbeat_task.cancel()
+                try:
+                    await self._heartbeat_task
+                except asyncio.CancelledError:
+                    pass
+                self._heartbeat_task = None
 
             # Cancel pending futures
             for f in self._pending_futures.values():
@@ -313,7 +322,8 @@ class GoBatchTester:
             self._proc.stdin.write(payload.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
-            logger.error(f"Go Tester Daemon connection lost: {e}")
+            if not self._stopping:
+                logger.error(f"Go Tester Daemon connection lost: {e}")
             # Fail futures to unblock
             for f in futures:
                 if not f.done():
