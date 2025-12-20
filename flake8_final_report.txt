@@ -1,0 +1,11 @@
+./src/configstream/fetcher_core/orchestrator.py:4:1: F401 'typing.Any' imported but unused
+./src/configstream/fetcher_core/orchestrator.py:4:1: F401 'typing.Union' imported but unused
+./src/configstream/intelligence/chaining.py:1:1: F401 'typing.Union' imported but unused
+./src/configstream/parsers/clash_json.py:3:1: F401 'typing.Dict' imported but unused
+./src/configstream/parsers/clash_json.py:3:1: F401 'typing.Any' imported but unused
+./src/configstream/parsers/decoders.py:146:14: E111 indentation is not a multiple of 4
+./src/configstream/parsers/decoders.py:146:14: E117 over-indented
+./src/configstream/parsers/decoders.py:148:13: E122 continuation line missing indentation or outdented
+./src/configstream/parsers/decoders.py:150:14: E111 indentation is not a multiple of 4
+./src/configstream/parsers/decoders.py:150:14: E117 over-indented
+./src/configstream/parsers/decoders.py:152:13: E122 continuation line missing indentation or outdented

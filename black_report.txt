@@ -1,0 +1,7 @@
+would reformat /app/scripts/merge/core.py
+would reformat /app/scripts/merge/generators.py
+would reformat /app/src/configstream/parsers/decoders.py
+would reformat /app/tests/unit/test_parsers_json_yaml.py
+
+Oh no! 💥 💔 💥
+4 files would be reformatted, 278 files would be left unchanged.
