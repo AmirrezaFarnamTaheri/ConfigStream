@@ -175,6 +175,22 @@ def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
     print(f"✓ Average latency: {avg_latency:.0f}ms " f"(maximum: {max_avg_latency}ms)")
 
 
+def check_smart_chains(metadata: Dict[str, Any]) -> None:
+    """Check if smart chains are generated (if feature enabled)."""
+    # Use canonical keys
+    sc_count = metadata.get("total_smart_chains", metadata.get("smart_chain_count", 0))
+    washed_count = metadata.get("total_revived", metadata.get("washed_chains", 0))
+
+    if sc_count > 0:
+        print(f"✓ Smart Chains generated: {sc_count}")
+    else:
+        # Not fatal, as it depends on having Washer keys and specific proxies
+        print("ℹ️  No Smart Chains generated (optional feature)")
+
+    if washed_count > 0:
+        print(f"✓ Washed Proxies generated: {washed_count}")
+
+
 def run_health_checks(
     output_dir: Path,
     min_proxies: int,
@@ -225,6 +241,10 @@ def run_health_checks(
         # Check 7: Average latency
         print("\n⚡ Checking average latency...")
         check_average_latency(proxies, max_avg_latency)
+
+        # Check 8: Smart Chains & Washer (Info only)
+        print("\n🔗 Checking smart chains...")
+        check_smart_chains(metadata)
 
         # All checks passed
         print("\n" + "=" * 50)
