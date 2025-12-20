@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Union, Tuple
+from typing import List, Dict, Any, Optional, Tuple
 import logging
 import ipaddress
 import hashlib

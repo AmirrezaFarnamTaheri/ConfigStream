@@ -420,7 +420,10 @@ def _generate_statistics(
         "rejection_reasons": dict(rejection_reasons),
         "asns": dict(sorted(asn_counts.items())),
         "total_revived": total_revived,
-        "total_smart_chains": len(smart_chains) if smart_chains else 0,
+        "total_smart_chains": total_smart_chains_count,
+        "smart_chains_breakdown": (
+            {k: len(v) for k, v in smart_chains.items()} if smart_chains else {}
+        ),
         "total_dirty": total_processed - working_proxies,  # Approximation
         "washed_chains": meta_stats.get("washed_chains", 0),
         "total_clean": working_proxies,

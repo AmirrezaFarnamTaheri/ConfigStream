@@ -25,8 +25,8 @@ class GoBatchTester:
             w = int(workers)
         except Exception:
             w = 15
-        # Lower default and cap to prevent port exhaustion
-        self.workers = max(1, min(w, 100))
+        # Clamp between 1 and 1000 (Memory Directive: allow up to 1000)
+        self.workers = max(1, min(w, 1000))
         env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
 
         # Priority: Env Var > Absolute Path arg > PATH lookup
@@ -272,8 +272,8 @@ class GoBatchTester:
         for p in proxies:
             outbound = to_singbox_outbound(p)
             if outbound:
-                # Use unique request ID to handle duplicate proxies in different batches
-                req_id = f"{p.id}-{uuid.uuid4().hex[:8]}"
+                # Use unique request ID (Full UUID) to handle duplicate proxies collision-free
+                req_id = f"{p.id}-{uuid.uuid4().hex}"
                 inputs.append(
                     {
                         "config": json.dumps(outbound).decode(),
@@ -454,8 +454,8 @@ class GoBatchTester:
             else:
                 config_str = config_val
 
-            # Unique request ID
-            req_id = f"{chain_id}-{uuid.uuid4().hex[:8]}"
+            # Unique request ID (Full UUID)
+            req_id = f"{chain_id}-{uuid.uuid4().hex}"
 
             inputs.append(
                 {

@@ -94,3 +94,28 @@ PROTOCOL_COLORS = {
     "socks5": "#00B894",
     "openvpn": "#E84393",
 }
+
+# Domains that are typically subscription sources and should not be treated as proxy content
+BLOCKED_DOMAINS = [
+    "github.com",
+    "githubusercontent.com",
+    "githubrowcontent.com",
+    "raw.githubusercontent.com",
+    "gitlab.com",
+    "bitbucket.org",
+    "t.me",
+    "telegram",
+    "pastebin",
+    ".workers.dev",
+    "netlify.app",
+    "vercel.app",
+    "pages.dev",
+    "cloudflare.com",
+    "jsdelivr.net",
+    "fastgit.org",
+    "herokuapp.com",
+    "render.com",
+    "onrender.com",
+    "hf.space",
+    "huggingface.co",
+]

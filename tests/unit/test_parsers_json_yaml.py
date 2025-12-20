@@ -2,6 +2,7 @@ from configstream.parsers.extraction import extract_config_lines
 from configstream.parsers import _parse_v2ray_json
 import json
 
+
 class TestParsersExtended:
     def test_extract_json_blob(self):
         payload = '{"outbounds": [{"protocol": "vless", "settings": {"vnext": [{"address": "1.2.3.4", "port": 443, "users": [{"id": "uuid"}]}]}}]}'
@@ -24,4 +25,4 @@ proxies:
         lines = extract_config_lines(payload)
         assert len(lines) == 1
         # It should be converted to a JSON string representation of the proxy
-        assert json.loads(lines[0])['name'] == 'vless'
+        assert json.loads(lines[0])["name"] == "vless"
