@@ -448,7 +448,7 @@ async def processing_consumer(
 
         # LOG SUMMARY FOR THIS SOURCE
         # [AUDIT] Compacted to single line to reduce log spam in large pipelines
-        success_rate = (working_count/len(safe_batch)*100) if safe_batch else 0.0
+        success_rate = (working_count / len(safe_batch) * 100) if safe_batch else 0.0
         summary_msg = (
             f"Source Summary [{safe_source}]: "
             f"Raw={len(raw_lines)} "
@@ -466,7 +466,9 @@ async def processing_consumer(
         if working_count > 0:
             logger.info(summary_msg)
             if geoip_stats:
-                logger.debug(f"  Countries [{safe_source}]: {json.dumps(geoip_stats).decode()}")
+                logger.debug(
+                    f"  Countries [{safe_source}]: {json.dumps(geoip_stats).decode()}"
+                )
         else:
             logger.debug(summary_msg)
 
