@@ -60,8 +60,22 @@ def parse_ss(config: str) -> Optional[Proxy]:
         if not (1 <= port <= 65535) or not host:
             return None
 
-        # [FIX] Basic validation to reject garbage methods like "ss"
-        if method.lower() in ["ss", "shadowsocks", ""]:
+        # [FIX] Strict validation to reject garbage methods
+        # Common valid ciphers (including 2022 and AEAD)
+        # We don't want to maintain a perfect list, but we want to blacklist obvious garbage.
+        invalid_methods = {
+            "ss",
+            "shadowsocks",
+            "",
+            "none",
+            "null",
+            "default",
+            "cipher",
+            "aes",
+            "chacha20",  # incomplete names
+        }
+        if method.lower() in invalid_methods or len(method) < 3:
+            # Most ciphers are > 3 chars (rc4-md5 is 7). 'aes' is ambiguous.
             logger.debug(
                 f"Invalid Shadowsocks method detected: {method} in {config[:50]}..."
             )
@@ -95,8 +109,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError, binascii.Error) as e:
-        # [FIX] Elevated to WARNING for visibility on bad sources
-        logger.warning(
+        # [FIX] Downgrade to DEBUG to reduce log spam from mixed sources
+        logger.debug(
             f"Failed to parse Shadowsocks config: {str(e)[:100]} | Context: {config[:50]}..."
         )
         return None
