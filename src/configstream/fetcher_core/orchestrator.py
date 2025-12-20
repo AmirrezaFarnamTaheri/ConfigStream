@@ -272,9 +272,15 @@ async def fetch_from_source(
             # Don't sleep on the last attempt
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)
-                logger.info(
+                # [FIX] Downgrade retry logs to DEBUG to reduce spam, unless it's a 4xx/5xx error worth noting
+                log_level = logging.INFO
+                if last_status_code and 400 <= last_status_code < 500:
+                    log_level = logging.DEBUG  # Client errors on source side are common
+
+                logger.log(
+                    log_level,
                     f"Retrying {sanitized_source} in {wait}s due to error: {last_error} "
-                    f"(Attempt {attempt+1}/{max_retries}, Status: {last_status_code or 'N/A'})"
+                    f"(Attempt {attempt+1}/{max_retries}, Status: {last_status_code or 'N/A'})",
                 )
                 await asyncio.sleep(wait + random.uniform(0, 0.3))
                 backoff = min(backoff * 2, 60)

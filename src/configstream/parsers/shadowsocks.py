@@ -64,11 +64,18 @@ def parse_ss(config: str) -> Optional[Proxy]:
         # Common valid ciphers (including 2022 and AEAD)
         # We don't want to maintain a perfect list, but we want to blacklist obvious garbage.
         invalid_methods = {
-            "ss", "shadowsocks", "", "none", "null", "default", "cipher",
-            "aes", "chacha20", # incomplete names
+            "ss",
+            "shadowsocks",
+            "",
+            "none",
+            "null",
+            "default",
+            "cipher",
+            "aes",
+            "chacha20",  # incomplete names
         }
         if method.lower() in invalid_methods or len(method) < 3:
-             # Most ciphers are > 3 chars (rc4-md5 is 7). 'aes' is ambiguous.
+            # Most ciphers are > 3 chars (rc4-md5 is 7). 'aes' is ambiguous.
             logger.debug(
                 f"Invalid Shadowsocks method detected: {method} in {config[:50]}..."
             )
