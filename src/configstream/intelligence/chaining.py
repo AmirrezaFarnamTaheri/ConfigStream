@@ -152,8 +152,14 @@ def create_chain(
         warp_out = warp_config.copy()
         warp_out["tag"] = warp_tag
         warp_out["detour"] = exit_tag  # The magic: WARP goes through Exit
+        # [FIX] Inject metadata for process tracking
+        warp_out["_process"] = "chain"
 
         chain.append(warp_out)
+    else:
+        # [FIX] Inject metadata for standard chains (no warp)
+        # We attach it to the exit node's config as it's the final hop
+        exit_out["_process"] = "chain"
 
     return chain
 

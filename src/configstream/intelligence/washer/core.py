@@ -375,6 +375,8 @@ class ProxyWasher:
             }
 
             washed_outbounds.append(relay_out)
+            # Add metadata for process tracking
+            warp_out["_process"] = "washed"
             washed_outbounds.append(warp_out)
             washed_ids.add(relay.id)
 

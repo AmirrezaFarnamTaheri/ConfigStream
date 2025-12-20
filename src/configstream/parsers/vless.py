@@ -42,8 +42,15 @@ def parse_vless(config: str) -> Optional[Proxy]:
         if not uuid:
             uuid = details.get("uuid", "")
 
+        # Strict UUID validation
         if not uuid or len(uuid) > 100:
-            # Mandatory UUID for VLESS
+            return None
+
+        # Valid UUIDv4 is 36 chars. Allow some flexibility for other ID formats,
+        # but reject obviously invalid short strings or non-hex strings that look like noise.
+        # Standard UUID: 8-4-4-4-12 hex digits
+        if len(uuid) < 30 and not re.match(r"^[a-fA-F0-9-]{32,36}$", uuid):
+            # If it's short and not a hex string, it's likely a misparsed username
             return None
 
         # REALITY Verification
@@ -67,6 +74,10 @@ def parse_vless(config: str) -> Optional[Proxy]:
             if not sid and not details.get("sid"):
                 # if sid was invalid or empty originally, we allow it (empty sid is valid)
                 logger.debug("VLESS Reality with empty SID - allowing")
+
+        # Additional safety check for uuid as remark
+        if uuid.lower() in ["vless", "admin", "root"]:
+            return None
 
         proxy = Proxy(
             config=config,

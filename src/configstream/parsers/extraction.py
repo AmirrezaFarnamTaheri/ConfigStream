@@ -41,11 +41,26 @@ def is_plausible_proxy_config(config: str) -> bool:
     # Some URLs (especially complex VLESS/VMess with long query params) can have many special chars.
     # We increase threshold to 70% and allow more special chars.
     special_char_count = sum(
-        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~"
+        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]"
     )
     if special_char_count > len(rest) * 0.7:
         # logger.debug(f"Plausibility check failed: High noise ratio in {config[:50]}...")
         return False
+
+    # [Check] Double protocol
+    if "://" in rest:
+        # Found a second protocol separator, likely a contained URL (e.g., subscription link)
+        # causing false positive interpretation as a proxy
+        # Exception: 'ws' or 'grpc' paths might contain URLs, but usually URL encoded.
+        # If it's literally 'http://' inside, it's suspicious.
+        if "http://" in rest or "https://" in rest:
+            # Check if it is a query param value
+            if "?" in rest:
+                _, query = rest.split("?", 1)
+                if "://" in query and "=" not in query.split("://")[0][-10:]:
+                    # If :// appears but not preceded by =, it's likely not a param
+                    return False
+
     return True
 
 

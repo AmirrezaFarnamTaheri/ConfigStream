@@ -72,12 +72,12 @@ def test_parse_trojan():
 
 
 def test_parse_vless():
-    config = "vless://uuid@example.com:443?security=reality&sni=example.com&fp=chrome&pbk=publickey&sid=1234abcd#VLESS-Reality"
+    config = "vless://123e4567-e89b-12d3-a456-426614174000@example.com:443?security=reality&sni=example.com&fp=chrome&pbk=publickey&sid=1234abcd#VLESS-Reality"
     proxy = parse_vless(config)
     assert proxy is not None
     assert proxy.protocol == "vless"
     assert proxy.address == "example.com"
-    assert proxy.uuid == "uuid"
+    assert proxy.uuid == "123e4567-e89b-12d3-a456-426614174000"
     assert proxy.details["security"] == "reality"
     assert proxy.details["pbk"] == "publickey"
 
