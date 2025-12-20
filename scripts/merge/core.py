@@ -4,7 +4,6 @@ import os
 import json
 
 import asyncio
-from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from .setup_path import setup_python_path
@@ -41,7 +40,8 @@ async def merge_batches_async(
     from .logs import consolidate_logs
     from configstream.intelligence.washer.core import ProxyWasher
     from configstream.intelligence.vectors import generate_vectors
-    from configstream.output_logic import save_metadata
+
+    # save_metadata unused (handled internally by generate_outputs)
 
     output_dir = root_dir / output_dir_str
     batch_dirs = sorted(list(root_dir.glob(batch_dir_glob)))

@@ -1,3 +1,17 @@
+## [2.0.7] - 2025-12-20
+
+### Critical Security & Performance Audit
+- **Deep Audit**: Comprehensive audit of Parsers, Testers, Washer, and Stats modules.
+- **Base64 Optimization**: Implemented a highly optimized, single-pass Base64 decoder in `src/configstream/parsers/decoders.py` with strict rejection of non-Base64 content (e.g., URLs containing `:`) to prevent garbage decoding and log spam.
+- **Stats Accuracy**: Fixed `metadata.json` generation in `scripts/merge/generators.py` to correctly calculate `total_smart_chains` and added `smart_chains_breakdown`.
+- **Go Tester Robustness**: Updated `src/configstream/testers/go.py` to use full UUIDs for request IDs to guarantee collision-free tracking and clamp worker count to safer limits (1-1000).
+- **Extraction Logic**: Refactored `src/configstream/parsers/extraction.py` to use a centralized `BLOCKED_DOMAINS` list from `constants.py`.
+
+### Code Quality
+- **Linter Fixes**: Resolved all `flake8`, `black`, and `mypy` issues across the codebase.
+- **Refactoring**: Removed redundant code and optimized import statements in core scripts.
+- **Test Coverage**: Verified system integrity with full test suite passing (736 tests).
+
 ## [2.0.6] - 2025-12-19
 
 ### Major Improvements

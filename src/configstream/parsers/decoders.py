@@ -21,6 +21,10 @@ _WARNING_RESET_INTERVAL = 60  # Reset counters every 60 seconds
 VALID_B64_CHARS = set(
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t"
 )
+# Valid chars excluding whitespace for stricter checking during cleaning
+STRICT_B64_CHARS = set(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_"
+)
 
 
 def _rate_limited_warning(msg_type: str, message: str):
@@ -43,7 +47,9 @@ def _rate_limited_warning(msg_type: str, message: str):
 
 
 def validate_b64_input(data: str) -> Optional[str]:
-    """Validate base64 string before attempting decode."""
+    """Validate base64 string before attempting decode.
+    Optimized for single-pass processing to handle large payloads efficiently.
+    """
     if not isinstance(data, str):
         logger.warning(f"Expected string, got {type(data).__name__}")
         return None
@@ -53,7 +59,9 @@ def validate_b64_input(data: str) -> Optional[str]:
     if not data:
         return None
 
-    s_stripped = data.strip()[:10]
+    # Only check start/end on stripped data without creating full copy first if possible
+    # But stripping is fast enough for 10 chars check
+    s_stripped = data.lstrip()[:10]
     if s_stripped.startswith(("<", "{", "[")):
         return None
 
@@ -75,11 +83,10 @@ def validate_b64_input(data: str) -> Optional[str]:
         logger.debug("Empty base64 input")
         return None
 
-    if len(trimmed) > MAX_B64_INPUT_SIZE:
+    length = len(trimmed)
+    if length > MAX_B64_INPUT_SIZE:
         # [FIX] Reduce log severity for expected large payloads (e.g. huge lists)
-        logger.debug(
-            f"Base64 input too large: {len(trimmed)} bytes. treating as plain text."
-        )
+        logger.debug(f"Base64 input too large: {length} bytes. treating as plain text.")
         return None
 
     # Auto-fix URL-encoded base64 (e.g., %3D, %2F)
@@ -92,46 +99,59 @@ def validate_b64_input(data: str) -> Optional[str]:
             if unquoted != trimmed:
                 logger.debug("Auto-fixed URL-encoded base64 input")
                 trimmed = unquoted
+                length = len(trimmed)
         except Exception:
             pass
 
-    invalid_chars = set(trimmed) - VALID_B64_CHARS
+    # [FIX] Immediate rejection for structural markers that indicate NOT Base64
+    # Colon ':' is strict forbidden in Base64 but standard in URLs/Configs
+    if ":" in trimmed:
+        return None
 
-    # [FIXED LOGIC] If there are too many invalid characters, it's likely not base64 at all.
-    # Return None silently or with debug to avoid log spam.
-    if invalid_chars:
-        # FIX: Count actual occurrences of invalid characters, not just unique invalid chars
-        invalid_count = sum(1 for c in trimmed if c in invalid_chars)
-        error_rate = invalid_count / len(trimmed)
-        if (
-            error_rate > 0.05
-        ):  # >5% invalid chars -> definitely not base64 (probably HTML or text)
-            logger.debug(
-                "Skipping invalid base64 input (high noise ratio: %.2f%%): %d invalid chars. First 10: %s",
-                error_rate * 100,
-                len(invalid_chars),
-                list(invalid_chars)[:10],
-            )
-            return None
+    # Single-pass validation and cleaning
+    cleaned_chars = []
+    invalid_count = 0
+    threshold = int(length * 0.05)  # 5% threshold
 
-        # Don't log warning if it's just a config line trying to be decoded as base64
-        if len(trimmed) < 1000:
+    # Pre-allocate if possible? List append is efficient.
+
+    for c in trimmed:
+        if c in STRICT_B64_CHARS:
+            # Normalize URL-safe chars on the fly
+            if c == "-":
+                cleaned_chars.append("+")
+            elif c == "_":
+                cleaned_chars.append("/")
+            else:
+                cleaned_chars.append(c)
+        elif c in " \n\r\t":
+            continue
+        else:
+            invalid_count += 1
+            if invalid_count > threshold:
+                # Early exit if noise is too high
+                error_rate = invalid_count / length
+                logger.debug(
+                    "Skipping invalid base64 input (high noise ratio > %.2f%%): %d+ invalid chars.",
+                    error_rate * 100,
+                    invalid_count,
+                )
+                return None
+
+    # Final check if we didn't exit early
+    if invalid_count > 0:
+        if length < 1000:
             logger.debug(
-                f"Invalid base64 characters in short string: {invalid_chars}. Context: {trimmed[:50]}..."
+                f"Base64 input contained {invalid_count} invalid chars (cleaned). Context: {trimmed[:50]}..."
             )
         else:
             logger.warning(
-                f"Invalid base64 characters: {invalid_chars} in payload starting with: {trimmed[:50]}..."
+                f"Base64 input contained {invalid_count} invalid chars (cleaned). Context: {trimmed[:50]}..."
             )
-        return None
 
-    cleaned = "".join(c for c in trimmed if c not in " \n\r\t")
+    cleaned = "".join(cleaned_chars)
 
-    # FIX: Normalize URL-safe base64 characters to standard base64
-    # URL-safe base64 uses '-' instead of '+' and '_' instead of '/'
-    # This must be done before b64decode(validate=True) which only accepts standard alphabet
-    cleaned = cleaned.replace("-", "+").replace("_", "/")
-
+    # Padding fix
     padding_needed = (4 - len(cleaned) % 4) % 4
     if padding_needed > 0:
         cleaned += "=" * padding_needed

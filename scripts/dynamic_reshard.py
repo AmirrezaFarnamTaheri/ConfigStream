@@ -13,12 +13,9 @@ NUM_BATCHES = 10  # Target number of shards
 DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
 
 # Regex for Source Summary block in consumer.py
-# Source Summary [URL]:
-#   Raw Lines:     123
-#   ...
-#   Duration:      1500ms (Fetch: 500ms, ...)
-RAW_LINES_REGEX = re.compile(r"Raw Lines:\s+(\d+)")
-FETCH_TIME_REGEX = re.compile(r"Fetch:\s+([\d.]+)ms")
+# Source Summary [URL]: Raw=123 ... Fetch=500ms Dur=1500ms
+RAW_LINES_REGEX = re.compile(r"Raw=(\d+)")
+FETCH_TIME_REGEX = re.compile(r"Fetch=([\d.]+)ms")
 
 
 def parse_logs(log_files: List[str]) -> Dict[str, Tuple[int, float]]:

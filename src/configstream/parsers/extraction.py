@@ -7,6 +7,7 @@ from ..constants import (
     MAX_LINES_PER_SOURCE,
     VALID_PROTOCOLS,
     MAX_B64_OUTPUT_SIZE,
+    BLOCKED_DOMAINS,
 )
 
 logger = logging.getLogger(__name__)
@@ -24,31 +25,7 @@ def is_plausible_proxy_config(config: str) -> bool:
     # Filter subscription URLs (not proxy configs)
     config_lower = config.lower()
     if config_lower.startswith("https://") or config_lower.startswith("http://"):
-        # Blocked domains logic - these are typically subscription URLs
-        blocked_domains = [
-            "github.com",
-            "githubusercontent.com",
-            "githubrowcontent.com",  # [ADDED]
-            "raw.githubusercontent.com",  # [ADDED]
-            "gitlab.com",
-            "bitbucket.org",
-            "t.me",
-            "telegram",
-            "pastebin",
-            ".workers.dev",
-            "netlify.app",  # [UPDATED]
-            "vercel.app",  # [UPDATED]
-            "pages.dev",
-            "cloudflare.com",
-            "jsdelivr.net",
-            "fastgit.org",  # [ADDED]
-            "herokuapp.com",  # [ADDED]
-            "render.com",  # [ADDED]
-            "onrender.com",  # [ADDED]
-            "hf.space",  # [ADDED]
-            "huggingface.co",  # [ADDED]
-        ]
-        if "@" not in config and any(d in config_lower for d in blocked_domains):
+        if "@" not in config and any(d in config_lower for d in BLOCKED_DOMAINS):
             # Only treat as subscription if it DOESN'T have user info (no @)
             return False
 
@@ -91,7 +68,8 @@ def extract_config_lines(
     # Try YAML (Clash) - Look for structural markers
     if "proxies:" in payload and ("- name:" in payload or "-name:" in payload):
         try:
-            import yaml
+            # Type ignore for optional dependency
+            import yaml  # type: ignore
             import json
 
             data = yaml.safe_load(payload)
@@ -100,7 +78,9 @@ def extract_config_lines(
                 # Convert each proxy dict to a JSON string line
                 return [json.dumps(p) for p in proxies if isinstance(p, dict)]
         except ImportError:
-            logger.warning("PyYAML not installed, skipping Clash YAML parsing")
+            # Warn only once to avoid log spam? Or just debug since it's optional.
+            # Using debug as it is an optional dependency.
+            logger.debug("PyYAML not installed, skipping Clash YAML parsing")
         except Exception as e:
             logger.debug(f"Failed to parse Clash YAML: {e}")
         # If parsing fails or yields no proxies, return payload for other parsers (fallback)
