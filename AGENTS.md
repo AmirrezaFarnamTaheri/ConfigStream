@@ -15,10 +15,12 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **Consumer (`processing_consumer`)**: Pulls from the queue, parses, validates, tests, and aggregates proxies.
     *   *Parallelism*: Scalable via `num_consumers`.
     *   *Constraint*: CPU-intensive tasks (parsing, crypto) must run in `loop.run_in_executor`.
+    *   *Revival Loop*: Automatically attempts to revive failed proxies by wrapping them in Cloudflare WARP/Vwarp and re-testing them.
 *   **Intelligence Layer**:
     *   `AdaptiveTimeout`: Adjusts timeouts based on historical latency.
     *   `CircuitBreaker`: Fails fast for unstable hosts.
     *   `SecurityValidator`: Enforces protocol compliance and sanitization.
+    *   `ProxyWasher`: Handles WARP key management and chain generation.
 
 ## 3. Coding Standards
 
@@ -46,6 +48,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   Handle trailing garbage in Base64 strings.
     *   Gracefully skip invalid lines without crashing the pipeline.
     *   Log drop rates/reasons at `DEBUG` level (or `WARNING` if failure rate > 50%).
+    *   Return type: `extract_config_lines` returns `(List[str], Dict[str, int])` containing configs and drop statistics.
 *   **Robust Parsing**:
     *   **Credential Recovery**: For VLESS, Trojan, and Shadowsocks, if the primary credential field (e.g., username for UUID) is empty, the parser **MUST** check query parameters or other fields as a fallback before dropping the proxy.
     *   **Mandatory Fields**: If credentials are still missing after fallback attempts, parser MUST return `None` (drop).
@@ -61,6 +64,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   Use `AdaptiveTimeout` to prevent stalling.
     *   Respect `CircuitBreaker` states to avoid hammering dead hosts.
     *   **Do not use ETag caching** (ConfigStream is stateless in CI).
+    *   Binary Safety: Use `aiter_bytes()` and decode safely with fallbacks.
 
 ### Security (`src/configstream/security_validator.py`)
 *   **UUIDs**: For VMess/VLESS, a missing UUID is a fatal error. Drop the proxy.
@@ -74,16 +78,17 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   **Python Fallback**: Minimal implementation for environments without the binary.
     *   **WASM Tester**: Browser-based verification component (`src/go/tester/wasm_main.go`). Must communicate via JS interop (`syscall/js`) and not use native networking.
 *   **Washer & Revival**:
-    *   **Revival**: The Washer is capable of "reviving" non-working proxies by wrapping them in a WARP chain. It allows washing of dirty/failed proxies.
-    *   **Retesting**: Washed chains (Relay -> WARP) MUST be re-tested before inclusion in the final output to ensure end-to-end connectivity.
-    *   **Washer Security**: Use Epoch-based rotation for WARP keys and sequential IP generation to prevent collisions.
+    *   **Revival Loop**: The Washer attempts to "revive" failed proxies by wrapping them in both **Standard Warp** and **Vwarp** chains.
+    *   **Vwarp Fallback**: Prioritizes `WarpScraper` if the `vwarp` binary is missing.
+    *   **Retesting**: Washed chains (Relay -> WARP) are re-tested immediately. Successful revivals are tagged as `revived-warp` or `revived-vwarp`.
 *   **Cache**: Use `TestResultCache` to skip re-testing recently verified proxies. Ensure path persistence.
 
-## 5. Testing & Verification
-*   **Unit Tests**: Located in `tests/unit`. Run via `pytest`.
-*   **E2E Tests**: Located in `tests/e2e`. Verify the full pipeline flow.
-*   **Mocking**: Use `respx` for HTTP mocking and `unittest.mock` for internal components.
-*   **Frontend**: If modifying UI, use Playwright to verify visual integrity.
+## 5. Metrics & Analytics
+*   **Stats Tracking**:
+    *   `PipelineStats` tracks granular metrics: `revived_warp`, `revived_vwarp`, `smart_chain_count`, etc.
+    *   `total_proxies` in metadata includes Native + Revived + Smart Chains.
+*   **Frontend**:
+    *   Analytics dashboard displays split stats for Revived proxies (Warp vs Vwarp).
 
 ## 6. Git & Version Control
 *   **Diffs**: When generating patches, ensure context is accurate.

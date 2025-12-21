@@ -52,11 +52,12 @@ async def fetch_single_source(
                     f"Response too large (header): {content_len_header} bytes"
                 )
 
-            # Stream Content
+            # Stream Content (Binary)
             content_parts = []
             current_size = 0
-            async for chunk in response.aiter_text():
-                chunk_len = len(chunk.encode("utf-8"))  # Approximation
+            # [FIX] Use aiter_bytes for binary safety
+            async for chunk in response.aiter_bytes():
+                chunk_len = len(chunk)
                 current_size += chunk_len
                 if current_size > max_response_size:
                     raise ValueError(
@@ -64,12 +65,23 @@ async def fetch_single_source(
                     )
                 content_parts.append(chunk)
 
-            content = "".join(content_parts)
+            # Join binary parts
+            content_bytes = b"".join(content_parts)
+
+            # [FIX] Try to decode to string for compatibility, fallback to safe string if binary
+            try:
+                content_str = content_bytes.decode('utf-8')
+            except UnicodeDecodeError:
+                try:
+                    content_str = content_bytes.decode('latin-1')
+                except Exception:
+                    # Last resort fallback if it's purely binary garbage but we need a string
+                    content_str = content_bytes.decode('utf-8', errors='replace')
 
             return FetchResult(
                 True,
                 source,
-                content=content,
+                content=content_str,
                 response_time=response_time,
                 status_code=status,
                 headers=dict(response.headers),

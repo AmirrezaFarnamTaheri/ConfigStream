@@ -55,10 +55,11 @@ class TestParsers:
         vless://uuid@example.com:443#Two
         InvalidLine
         """
-        lines = _extract_config_lines(payload)
+        lines, stats = _extract_config_lines(payload)
         assert len(lines) == 2
         assert "ss://" in lines[0]
         assert "vless://" in lines[1]
+        assert stats is not None
 
     def test_parse_openvpn(self):
         config = """client

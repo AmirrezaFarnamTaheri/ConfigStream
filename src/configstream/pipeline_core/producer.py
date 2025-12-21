@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from typing import List, Optional, TYPE_CHECKING
-
 from rich.progress import Progress, TaskID
 
 from ..models import Proxy
@@ -34,9 +33,9 @@ async def source_producer(
     try:
         # A. Handle Pre-supplied Proxies
         if proxies:
-            lines = [p.config for p in proxies if p.config]
-            if lines:
-                await work_queue.put(("supplied-proxies", lines, {}))
+            supplied_lines = [p.config for p in proxies if p.config]
+            if supplied_lines:
+                await work_queue.put(("supplied-proxies", supplied_lines, {}))
 
         # B. Handle File Sources
         # Treat only real filesystem paths as local files; skip proxy URIs.
@@ -59,9 +58,10 @@ async def source_producer(
         if local_files:
             file_results = await read_multiple_files_async(local_files)
             for fpath, content in file_results:
-                lines = _extract_config_lines(content)
-                if lines:
-                    await work_queue.put((fpath, lines, {}))
+                # [FIX] Handle new tuple return signature
+                file_lines, _ = _extract_config_lines(content)
+                if file_lines:
+                    await work_queue.put((fpath, file_lines, {}))
                 if progress and task_fetch:
                     progress.advance(task_fetch)
 
@@ -145,20 +145,24 @@ async def source_producer(
 
                 for source, res in results.items():
                     if res.success and res.content:
-                        # [FIX] Offload parsing to executor
-                        lines = await loop.run_in_executor(
+                        # [FIX] Offload parsing to executor and handle stats
+                        lines, drop_stats = await loop.run_in_executor(
                             None, _extract_config_lines, res.content
                         )
                         count = len(lines)
                         safe_source = SecurityValidator.sanitize_log_message(source)
 
                         if count == 0:
+                            # Log that we got content but no proxies (useful for debugging invalid formats)
                             logger.warning(
-                                "Source %s returned content (size=%d) but no valid config lines found",
+                                "Source %s returned content (size=%d) but no valid config lines found. "
+                                "Drop Stats: %s",
                                 safe_source,
-                                len(res.content),
+                                len(res.content) if res.content else 0,
+                                drop_stats,
                             )
                             continue
+
                         # Offload anomaly check to executor to avoid blocking on DB/ML
                         is_safe, reason = await loop.run_in_executor(
                             None, anomaly_detector.is_safe, source, count
@@ -179,7 +183,10 @@ async def source_producer(
                                     if res.response_time is not None
                                     else "N/A"
                                 )
-                                metadata = {"fetch_duration": res.response_time or 0.0}
+                                metadata = {
+                                    "fetch_duration": res.response_time or 0.0,
+                                    "drop_stats": drop_stats,  # [FIX] Pass stats downstream
+                                }
                                 await work_queue.put((source, lines, metadata))
 
                                 # Single consolidated log via event stream (includes fetch metrics)
