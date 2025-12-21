@@ -4,7 +4,6 @@ import logging
 import threading
 import os
 import httpx
-import asyncio
 import time
 from typing import List, Dict, Optional, Set, Any, Tuple
 from cachetools import LRUCache
@@ -49,8 +48,6 @@ class ProxyWasher:
 
         self.seen_chains: LRUCache[str, bool] = LRUCache(maxsize=50000)
         self._seen_chains_lock = threading.Lock()
-        # [FIX] Add lock to protect state modifications for thread-safety
-        # Prevents race conditions between async fetch_clean_ips() and sync wash_batch()
         self._state_lock = threading.Lock()
         self._clean_ips: List[str] = []
 
@@ -84,27 +81,13 @@ class ProxyWasher:
         """
         Fetches the latest clean IPs for WARP endpoints.
         """
-
-        # --- STRATEGY 0: VWARP SCANNER ---
-        try:
-            vwarp = VwarpTool()
-            scanned_ips_vwarp = await vwarp.scan_endpoints()
-            if scanned_ips_vwarp:
-                self.clean_ips = scanned_ips_vwarp  # type: ignore[assignment]
-                logger.info(f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp")
-                return
-        except Exception as e:
-            logger.warning(f"Vwarp scanner failed: {e}")
-
-        # --- STRATEGY 0.5: WARP KEYS FROM SCRAPER ---
-        if not self.warp_keys:
-            logger.info("No WARP keys configured, trying community sources...")
+        # --- STRATEGY 0.5: WARP KEYS & IPs FROM SCRAPER (Priority 1) ---
+        # We prioritize scraping because it doesn't require a binary
+        if not self.warp_keys or not self.clean_ips:
             try:
-                # [FIX] Use class method
                 scraper = WarpScraper()
                 scraped_keys = await scraper.scrape_warp_sources()
 
-                # [FIX] Capture scraped endpoints from the scraper
                 fresh_endpoints = scraper.get_scraped_endpoints()
                 if fresh_endpoints:
                     self.clean_ips = fresh_endpoints
@@ -128,8 +111,23 @@ class ProxyWasher:
             except Exception as e:
                 logger.warning(f"WARP scraper failed: {e}")
 
+        # --- STRATEGY 0: VWARP SCANNER (Priority 2 if Scraper insufficient) ---
+        if not self.clean_ips:
+            try:
+                vwarp = VwarpTool()
+                if await vwarp.is_available():
+                    scanned_ips_vwarp = await vwarp.scan_endpoints()
+                    if scanned_ips_vwarp:
+                        self.clean_ips = scanned_ips_vwarp  # type: ignore[assignment]
+                        logger.info(f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp")
+                        return
+                else:
+                    logger.debug("Vwarp binary not found - skipping Vwarp scan.")
+            except Exception as e:
+                logger.warning(f"Vwarp scanner failed: {e}")
+
         # --- STRATEGY 1: LEGACY ACTIVE SCANNING ---
-        if self.scanner.available:
+        if self.scanner.available and not self.clean_ips:
             try:
                 logger.info("Attempting legacy active scan...")
                 scanned_ips_legacy = await self.scanner.scan_endpoints(
@@ -146,13 +144,9 @@ class ProxyWasher:
                 logger.error(f"Legacy scan failed: {e}")
 
         # --- STRATEGY 2: STATIC LISTS ---
-        logger.info("Starting static list fetch sequence...")
-        for source_url in CLEAN_IP_SOURCES:
-            max_retries = 2
-            backoff_factor = 2
-            base_delay = 1
-
-            for attempt in range(max_retries):
+        if not self.clean_ips:
+            logger.info("Starting static list fetch sequence...")
+            for source_url in CLEAN_IP_SOURCES:
                 try:
                     async with httpx.AsyncClient(timeout=10) as client:
                         resp = await client.get(source_url)
@@ -173,25 +167,19 @@ class ProxyWasher:
                                     f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
                                 )
                                 return
-                        else:
-                            logger.debug(
-                                f"Fetch failed from {source_url}: {resp.status_code}"
-                            )
                 except Exception:
-                    if attempt < max_retries - 1:
-                        await asyncio.sleep(base_delay * (backoff_factor**attempt))
+                    pass
 
         # --- STRATEGY 3: DEFAULTS ---
-        logger.warning(
-            f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
-        )
-        self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]  # type: ignore[misc]
+        if not self.clean_ips:
+            logger.warning(
+                f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
+            )
+            self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]  # type: ignore[misc]
 
     def _get_clean_endpoint(self, relay_id: str) -> Any:
-        # Use property access for thread safety
         pool = self.clean_ips
         if not pool:
-            # Revert to default
             pool = DEFAULT_CLEAN_IPS
 
         if not pool:
@@ -227,44 +215,87 @@ class ProxyWasher:
         octet_4 = (h % 250) + 2
         return f"172.16.{octet_3}.{octet_4}/32"
 
-    def get_warp_config(self, seed_id: str) -> Optional[Dict[str, Any]]:
-        # Use property access for thread safety
-        keys = self.warp_keys
-        if not keys:
-            return None
+    def wash_failed(
+        self,
+        failed_proxies: List[Proxy],
+        stats: Optional[PipelineStats] = None,
+        use_vwarp: bool = False
+    ) -> Tuple[List[Proxy], int]:
+        """
+        Attempts to REVIVE failed proxies by wrapping them in WARP.
+        Returns a list of NEW Proxy objects (the chains) ready for re-testing.
+        """
+        revived_candidates: List[Proxy] = []
+        revived_count = 0
 
-        identity = self._get_consistent_exit(seed_id, keys)
-        if not identity:
-            return None
+        if not self.warp_keys:
+            return [], 0
 
-        endpoint = self._get_clean_endpoint(seed_id)
+        # Limit revival candidates to prevent explosion (e.g. max 500)
+        candidates = failed_proxies[:500]
 
-        # Handle tuple endpoint (IP, Port)
-        if isinstance(endpoint, tuple) and len(endpoint) == 2:
-            clean_endpoint, clean_port = endpoint
-        else:
-            clean_endpoint = str(endpoint)
-            try:
-                clean_port = int(os.environ.get("WARP_PORT", "2408"))
-            except (ValueError, TypeError):
+        for relay in candidates:
+            # Basic plausibility check before reviving
+            if not relay.address or not relay.port:
+                continue
+
+            exit_key = self._get_consistent_exit(relay.id, self.warp_keys)
+            if not exit_key:
+                continue
+
+            chain_id = f"REVIVE-{relay.id[:8]}"
+            endpoint_data = self._get_clean_endpoint(relay.id)
+            if isinstance(endpoint_data, tuple):
+                clean_endpoint, clean_port = endpoint_data
+            else:
+                clean_endpoint = str(endpoint_data)
                 clean_port = 2408
 
-        return {
-            "type": "wireguard",
-            "server": clean_endpoint,
-            "server_port": clean_port,
-            "local_address": [self._generate_deterministic_ip(seed_id)],
-            "private_key": identity["private_key"],
-            "peer_public_key": identity["peer_public_key"],
-            "mtu": 1280,
-        }
+            unique_ip = self._generate_deterministic_ip(chain_id)
+
+            relay_out = to_singbox_outbound(relay)
+            if not relay_out:
+                continue
+
+            relay_out["tag"] = f"RELAY-{chain_id}"
+
+            warp_out = {
+                "type": "wireguard",
+                "tag": chain_id,
+                "local_address": [unique_ip],
+                "private_key": exit_key["private_key"],
+                "server": clean_endpoint,
+                "server_port": clean_port,
+                "peer_public_key": exit_key["peer_public_key"],
+                "detour": relay_out["tag"],
+            }
+
+            # We bundle BOTH outbounds into the proxy details for special handling
+            revived_proxy = Proxy(
+                config=f"revived://{relay.address}",  # Dummy config
+                protocol="revived",  # Special protocol
+                address=clean_endpoint,
+                port=clean_port,
+                uuid=chain_id,
+                remarks=f"Revived {relay.protocol.upper()}",
+                details={
+                    "chain_outbounds": [relay_out, warp_out],  # The full chain
+                    "is_revived": True,
+                    "use_vwarp": use_vwarp,
+                    "origin_proxy": relay
+                }
+            )
+
+            revived_candidates.append(revived_proxy)
+            revived_count += 1
+
+        return revived_candidates, revived_count
 
     def wash_batch(
         self, proxies: List[Proxy], stats: Optional[PipelineStats] = None
     ) -> Tuple[List[Dict[str, Any]], Set[str], Dict[str, int]]:
         """
-        Process a batch of proxies, identifying 'washable' candidates
-        and generating unique chains.
+        Legacy/Standard Washing: Process WORKING proxies to create chains.
         """
         washed_outbounds: List[Dict[str, Any]] = []
         washed_ids: Set[str] = set()
@@ -272,30 +303,20 @@ class ProxyWasher:
 
         keys = self.warp_keys
         if not keys:
-            logger.info("Washing skipped: WARP_KEY_POOL not configured")
-            return washed_outbounds, washed_ids, skip_reasons
-
-        working_count = sum(1 for p in proxies if p.is_working)
-        if working_count == 0:
-            logger.warning("Washing skipped: No working proxies available")
             return washed_outbounds, washed_ids, skip_reasons
 
         candidates = [p for p in proxies if p.is_working]
-        logger.info(f"Washing {len(candidates)} proxies through WARP...")
 
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
         origin_country = os.environ.get("OPTIMAL_RELAY_ORIGIN", "IR")
 
         for i, relay in enumerate(candidates):
-            # [METRICS] Increment Attempts
             if stats:
                 stats.vwarp_attempts += 1
 
             exit_key = self._get_consistent_exit(relay.id, keys)
             if not exit_key:
-                skip_reasons["invalid_warp_key"] = (
-                    skip_reasons.get("invalid_warp_key", 0) + 1
-                )
+                skip_reasons["invalid_warp_key"] = skip_reasons.get("invalid_warp_key", 0) + 1
                 continue
 
             chain_id = "CHAIN-{cc}-{rid}-{eid}".format(
@@ -306,56 +327,33 @@ class ProxyWasher:
 
             with self._seen_chains_lock:
                 if chain_id in self.seen_chains:
-                    skip_reasons["duplicate_chain"] = (
-                        skip_reasons.get("duplicate_chain", 0) + 1
-                    )
                     continue
                 self.seen_chains[chain_id] = True
 
             relay_out = to_singbox_outbound(relay)
             if not relay_out:
-                skip_reasons["conversion_failed"] = (
-                    skip_reasons.get("conversion_failed", 0) + 1
-                )
                 continue
 
             relay_tag = f"RELAY-{chain_id}"
             relay_out["tag"] = relay_tag
 
             endpoint_data = self._get_clean_endpoint(relay.id)
-
-            # Handle both string IPs (legacy) and tuple (ip, port) (new Vwarp)
-            if isinstance(endpoint_data, tuple) and len(endpoint_data) == 2:
+            if isinstance(endpoint_data, tuple):
                 clean_endpoint, clean_port = endpoint_data
             else:
                 clean_endpoint = str(endpoint_data)
-                # Fallback to env port or default
-                clean_port_str = os.environ.get("WARP_PORT", "2408")
-                try:
-                    clean_port = int(clean_port_str)
-                except (ValueError, TypeError):
-                    clean_port = 2408
-
-            if not (1 <= clean_port <= 65535):
-                skip_reasons["invalid_endpoint"] = (
-                    skip_reasons.get("invalid_endpoint", 0) + 1
-                )
-                continue
+                clean_port = 2408
 
             unique_ip = self._generate_deterministic_ip(chain_id)
 
             is_optimal = False
             try:
-                # FIX: Use country_code (e.g., "US") not country (e.g., "United States")
-                # COUNTRIES dict is keyed by ISO country codes
                 if relay.country_code and relay.country_code in COUNTRIES:
                     relay_stub = ProxyStub(relay.country_code, 0.0, 0.0, relay.protocol)
                     relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country_code]
                     res = find_optimal_relay(origin_country, target_exit, [relay_stub])
                     if isinstance(res, dict) and "relay" in res:
-                        total_distance = res.get("total_distance", 99999)
-                        # Ensure float comparison
-                        if float(total_distance) < 15000:
+                        if float(res.get("total_distance", 99999)) < 15000:
                             is_optimal = True
             except Exception:
                 pass
@@ -380,16 +378,7 @@ class ProxyWasher:
             washed_outbounds.append(warp_out)
             washed_ids.add(relay.id)
 
-            # [METRICS] Increment Success
             if stats:
                 stats.vwarp_success += 1
-
-        conversion_failures = len(candidates) - len(washed_ids)
-
-        logger.info(
-            f"Washing complete: {len(washed_ids)}/{len(candidates)} proxies washed. "
-            f"Conversion Failures: {conversion_failures}. "
-            f"Clean IPs: {len(self.clean_ips)}"
-        )
 
         return washed_outbounds, washed_ids, skip_reasons

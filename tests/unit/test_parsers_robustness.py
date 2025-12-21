@@ -214,9 +214,10 @@ dev tun
 remote example.com 1194
 proto udp
 """
-        result = _extract_config_lines(config)
+        result, stats = _extract_config_lines(config)
         assert len(result) == 1
         assert "client" in result[0]
+        assert stats == {}
 
     def test_extract_with_dev_tap(self):
         """Test OpenVPN with dev tap."""
@@ -225,20 +226,22 @@ client
 dev tap
 remote example.com 1194
 """
-        result = _extract_config_lines(config)
+        result, stats = _extract_config_lines(config)
         assert len(result) == 1
+        assert stats == {}
 
     def test_extract_max_lines_limit(self):
         """Test maximum lines limit."""
         lines = ["vmess://test" + str(i) for i in range(20000)]
         config = "\n".join(lines)
-        result = _extract_config_lines(config, max_lines=1000)
+        result, stats = _extract_config_lines(config, max_lines=1000)
         assert len(result) <= 1000
+        assert "truncated_lines" in stats
 
     def test_extract_oversized_line(self):
         """Test oversized config line is skipped."""
         config = "vmess://" + "A" * 100000  # Over MAX_CONFIG_LINE_LENGTH
-        result = _extract_config_lines(config)
+        result, stats = _extract_config_lines(config)
         assert len(result) == 0
 
     def test_extract_with_comments(self):
@@ -249,7 +252,7 @@ vmess://validconfig
 # Another comment
 vless://anotherconfig
 """
-        result = _extract_config_lines(config)
+        result, stats = _extract_config_lines(config)
         assert len(result) == 2
         assert all(not line.startswith("#") for line in result)
 
@@ -308,11 +311,15 @@ class TestErrorRecovery:
         """Test empty string handling."""
         assert _parse_vmess("") is None
         assert _parse_ss("") is None
-        assert _extract_config_lines("") == []
+        res, stats = _extract_config_lines("")
+        assert res == []
+        assert stats.get("empty_payload", 0) == 1
 
     def test_whitespace_only(self):
         """Test whitespace-only input."""
-        assert _extract_config_lines("   \n\n\t\t  ") == []
+        res, stats = _extract_config_lines("   \n\n\t\t  ")
+        assert res == []
+        assert stats.get("empty_payload", 0) == 1
 
     def test_unicode_handling(self):
         """Test Unicode character handling."""
