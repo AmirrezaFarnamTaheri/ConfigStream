@@ -1,4 +1,4 @@
-# ConfigStream v2.0.6
+# ConfigStream v2.0.8
 
 [![ConfigStream Pipeline](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
 [![Pipeline Health Check](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml)
@@ -9,7 +9,7 @@ ConfigStream is a modular, sovereignty-grade anti-censorship platform. It aggreg
 
 We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
 
-> **🔒 v2.1.0 Update:** Enhanced **Washer Revival** (reviving dirty/dead proxies via WARP), **Protocol Normalization**, and **Frontend Defensive Analytics**.
+> **🔒 v2.0.8 Update:** Fixed **Log Rotation** (prevents unbounded log growth), **Metadata Standardization** (canonical field names), and **Frontend Data Consistency** (eliminated redundant fallbacks).
 
 ---
 
