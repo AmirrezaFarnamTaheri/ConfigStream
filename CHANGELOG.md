@@ -1,3 +1,45 @@
+## [2.0.8] - 2025-12-21
+
+### Critical Fixes: Log Rotation, Metadata Standardization, and Frontend Consistency
+
+**Log Management**
+- **Log Rotation System**: Replaced `FileHandler` with `RotatingFileHandler` to prevent unbounded log growth (60MB+ issue fixed).
+  - Max file size: 10MB per log
+  - Backup count: 5 files (maintains last 50MB of logs)
+  - Applies to both regular and JSON log handlers
+  - Files: `src/configstream/logging_config.py:192-218`
+
+**Metadata & Data Consistency**
+- **Standardized Backend Fields**: Added canonical metadata fields with single source of truth principle:
+  - `sources_count`: Actual number of sources (no hardcoded 668 fallback)
+  - `update_interval_hours`: Dynamic update frequency from env (default: 6)
+  - All frontend metrics now use canonical field names from `metadata.json`
+  - Files: `src/configstream/output_logic.py:245-279`
+
+- **Frontend Variable Standardization**: Eliminated redundant fallback chains across all frontend files:
+  - Removed 50+ lines of confusing multi-level fallbacks
+  - Established 1:1 mapping between frontend and backend variables
+  - Standardized canonical field names: `total_lines_sourced`, `total_unique_candidates`, `total_valid_proxies`, `total_revived`, `total_dirty`, `total_smart_chains`
+  - Files: `frontend/assets/js/main.js`, `analytics.js`, `statistics.js`
+
+**Performance & UX**
+- **Globe Visualization Optimization**: Implemented lazy loading for globe to improve initial page load time:
+  - Added loading indicator during initialization
+  - Deferred globe render with setTimeout(100ms)
+  - Added error handling for missing Globe.gl library
+  - File: `frontend/assets/js/analytics.js:104-125`
+
+**Verification & Quality**
+- **Data Flow Verification**: Confirmed warp/vwarp/chain outputs correctly included in final configs
+- **Binary Files**: Verified dynamic binary resolution working correctly
+- **Code Quality**: All Python code formatted with Black, passes Flake8 and Mypy checks
+- **Documentation**: Updated CHANGELOG with comprehensive technical details
+
+### Breaking Changes
+None - All changes are backward compatible.
+
+---
+
 ## [2.0.7] - 2025-12-20
 
 ### Critical Security & Performance Audit

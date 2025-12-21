@@ -70,29 +70,22 @@ function updateStats(data) {
     };
 
     // Use canonical fields with comprehensive legacy fallbacks (consistent with main.js)
-    const totalSourced = data.total_lines_sourced || data.fetched_lines || data.fetched_sources ||
-                         data.total_fetched || data.total_sourced || data.total_proxies || 0;
+    // Use canonical backend field names only
+    const totalSourced = data.total_lines_sourced || 0;
     update('totalSourced', formatNum(totalSourced));
 
-    // Unique & Verified/Tested
-    const totalConfigs = data.total_unique_candidates || data.parsed || data.unique ||
-                         data.total_unique || data.total_proxies || data.total_tested || 0;
+    const totalConfigs = data.total_unique_candidates || 0;
     update('totalConfigs', formatNum(totalConfigs));
 
-    // Online Now (Working)
-    const workingCount = data.total_valid_proxies || data.total_working || data.working ||
-                         data.active || data.alive || 0;
+    const workingCount = data.total_valid_proxies || 0;
     update('workingConfigs', formatNum(workingCount));
 
-    // Revived/Washed proxies
-    const totalRevived = data.total_revived || data.washer_success_count || 0;
-
-    // Clean (native, non-washed) proxies - derive if not provided
+    const totalRevived = data.total_revived || 0;
     const totalClean = data.total_clean ?? Math.max(0, workingCount - totalRevived);
 
     update('totalClean', formatNum(totalClean));
     update('totalRevived', formatNum(totalRevived));
-    update('threatsBlocked', formatNum(data.total_dirty || data.threats_blocked || 0));
+    update('threatsBlocked', formatNum(data.total_dirty || 0));
 
     // Update timestamp if available
     if (data.last_updated_utc) {
@@ -104,6 +97,24 @@ function updateStats(data) {
 function initGlobe(data) {
     const container = document.getElementById('globe-viz');
     if (!container) return;
+
+    // Show loading indicator
+    container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;"><div class="spinner" style="border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;"></div>Loading globe...</div>';
+
+    // Lazy load globe to improve initial page load
+    setTimeout(() => _initGlobeInternal(data, container), 100);
+}
+
+function _initGlobeInternal(data, container) {
+    // Clear loading indicator
+    container.innerHTML = '';
+
+    // Check if Globe library is loaded
+    if (typeof Globe === 'undefined' || typeof window.Globe !== 'function') {
+        console.error('Globe.gl library not loaded');
+        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">Globe visualization unavailable</div>';
+        return;
+    }
 
     // Comprehensive list of country centroids
     const countryCentroids = {

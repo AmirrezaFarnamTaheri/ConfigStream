@@ -166,43 +166,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Use formatNumber for all numeric displays
                 const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
 
-                // Use comprehensive fallback chain to match analytics.js
-                const totalSourced = stats.total_lines_sourced || stats.fetched_lines || stats.fetched_sources ||
-                                     stats.total_fetched || stats.total_sourced || stats.total_proxies || 0;
+                // STANDARDIZED BACKEND-FRONTEND MAPPING
+                // Single source of truth: metadata.json canonical fields (from output_logic.py)
+                // All fields use canonical names from backend with minimal fallbacks
+
+                const totalSourced = stats.total_lines_sourced || 0;
                 updateElement('#totalSourced', formatNum(totalSourced));
 
-                // Unique & verified proxies with comprehensive fallback chain
-                const totalConfigs = stats.total_unique_candidates || stats.parsed || stats.unique ||
-                                     stats.total_unique || stats.total_proxies || stats.total_tested || 0;
+                const totalConfigs = stats.total_unique_candidates || 0;
                 updateElement('#totalConfigs', formatNum(totalConfigs));
 
-                // Currently online proxies with comprehensive fallback chain
-                const workingCount = stats.total_valid_proxies || stats.total_working || stats.working ||
-                                     stats.active || stats.alive || 0;
+                const workingCount = stats.total_valid_proxies || 0;
                 updateElement('#workingConfigs', formatNum(workingCount));
 
-                // Revived/Washed proxies with fallback
-                const totalRevived = stats.total_revived || stats.washer_success_count || 0;
+                const totalRevived = stats.total_revived || 0;
                 updateElement('#totalRevived', formatNum(totalRevived));
 
-                // Threats blocked with fallback
-                const threatsBlocked = stats.total_dirty || stats.threats_blocked || 0;
+                const threatsBlocked = stats.total_dirty || 0;
                 updateElement('#threatsBlocked', formatNum(threatsBlocked));
 
-                // Smart Chains count
-                const smartChains = stats.total_smart_chains || stats.smart_chain_count || 0;
+                const smartChains = stats.total_smart_chains || 0;
                 updateElement('#smartChains', formatNum(smartChains));
 
-                // Vwarp Win Rate (efficiency percentage)
                 const vwarpWinRate = stats.vwarp_win_rate || 0;
                 updateElement('#vwarpWinRate', `${Math.round(vwarpWinRate)}%`);
 
-                // Dynamic update frequency from metadata or fallback to 6 hours
-                const updateFreq = metadata?.update_interval_hours || 6;
+                // Configuration values from metadata (or stats as fallback)
+                const updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 6;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
-                // Update source count from metadata
-                const sourceCount = metadata?.sources_count || stats.total_sources || 668;
+                const sourceCount = metadata?.sources_count || stats.sources_count || 0;
 
                 // Update hero subtitle dynamic values
                 const heroSourceCountElem = document.getElementById('heroSourceCount');
