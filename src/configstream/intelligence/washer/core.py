@@ -119,7 +119,9 @@ class ProxyWasher:
                     scanned_ips_vwarp = await vwarp.scan_endpoints()
                     if scanned_ips_vwarp:
                         self.clean_ips = scanned_ips_vwarp  # type: ignore[assignment]
-                        logger.info(f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp")
+                        logger.info(
+                            f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp"
+                        )
                         return
                 else:
                     logger.debug("Vwarp binary not found - skipping Vwarp scan.")
@@ -219,7 +221,7 @@ class ProxyWasher:
         self,
         failed_proxies: List[Proxy],
         stats: Optional[PipelineStats] = None,
-        use_vwarp: bool = False
+        use_vwarp: bool = False,
     ) -> Tuple[List[Proxy], int]:
         """
         Attempts to REVIVE failed proxies by wrapping them in WARP.
@@ -282,8 +284,8 @@ class ProxyWasher:
                     "chain_outbounds": [relay_out, warp_out],  # The full chain
                     "is_revived": True,
                     "use_vwarp": use_vwarp,
-                    "origin_proxy": relay
-                }
+                    "origin_proxy": relay,
+                },
             )
 
             revived_candidates.append(revived_proxy)
@@ -316,7 +318,9 @@ class ProxyWasher:
 
             exit_key = self._get_consistent_exit(relay.id, keys)
             if not exit_key:
-                skip_reasons["invalid_warp_key"] = skip_reasons.get("invalid_warp_key", 0) + 1
+                skip_reasons["invalid_warp_key"] = (
+                    skip_reasons.get("invalid_warp_key", 0) + 1
+                )
                 continue
 
             chain_id = "CHAIN-{cc}-{rid}-{eid}".format(
@@ -327,6 +331,9 @@ class ProxyWasher:
 
             with self._seen_chains_lock:
                 if chain_id in self.seen_chains:
+                    skip_reasons["duplicate_chain"] = (
+                        skip_reasons.get("duplicate_chain", 0) + 1
+                    )
                     continue
                 self.seen_chains[chain_id] = True
 
