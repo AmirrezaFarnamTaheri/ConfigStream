@@ -93,12 +93,14 @@ def test_widgets_presence(page: Page, http_server):
 
     url = f"{http_server}/analytics.html"
 
-    # Mock the metadata request data
+    # Mock the metadata request data (using canonical field names from v2.0.8)
     mock_data = {
         "last_updated_utc": "2023-01-01T12:00:00Z",
         "total_proxies": 100,
         "total_working": 50,
-        "total_fetched": 200,
+        "total_lines_sourced": 200,  # Canonical field name
+        "total_unique_candidates": 100,  # Canonical field name
+        "total_valid_proxies": 50,  # Canonical field name
         "duration_seconds": 10.5,
         "protocols": {"vmess": 50, "vless": 50},
         "countries": {"US": 50, "DE": 50},
