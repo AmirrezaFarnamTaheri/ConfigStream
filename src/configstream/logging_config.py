@@ -6,6 +6,7 @@ import sys
 import uuid
 import json
 from contextvars import ContextVar
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
 
@@ -155,9 +156,15 @@ def setup_logging(
 
     if format_style == "detailed":
         if enable_trace_ids:
-            fmt = "%(asctime)s - %(name)s - %(levelname)s - [%(trace_id)s] - [%(filename)s:%(lineno)d] - %(message)s"
+            fmt = (
+                "%(asctime)s - %(name)s - %(levelname)s - [%(trace_id)s] - "
+                "[%(filename)s:%(lineno)d] - %(message)s"
+            )
         else:
-            fmt = "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+            fmt = (
+                "%(asctime)s - %(name)s - %(levelname)s - "
+                "[%(filename)s:%(lineno)d] - %(message)s"
+            )
     else:
         if enable_trace_ids:
             fmt = "%(levelname)s - [%(trace_id)s] - %(message)s"
@@ -187,7 +194,11 @@ def setup_logging(
         log_path = Path(log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        file_handler = logging.FileHandler(log_path, encoding="utf-8")
+        # Use RotatingFileHandler to prevent log files from growing too large
+        # Max size: 10MB, keep 5 backup files
+        file_handler = RotatingFileHandler(
+            log_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"  # 10MB
+        )
         file_handler.setLevel(log_level_value)
         file_handler.setFormatter(logging.Formatter(fmt))
         # NO masking filter for file handler - keep logs interpretable for debugging
@@ -197,7 +208,13 @@ def setup_logging(
         json_log_path = Path(json_log_file)
         json_log_path.parent.mkdir(parents=True, exist_ok=True)
 
-        json_file_handler = logging.FileHandler(json_log_path, encoding="utf-8")
+        # Use RotatingFileHandler for JSON logs as well
+        json_file_handler = RotatingFileHandler(
+            json_log_path,
+            maxBytes=10 * 1024 * 1024,  # 10MB
+            backupCount=5,
+            encoding="utf-8",
+        )
         json_file_handler.setLevel(log_level_value)
         json_file_handler.setFormatter(JsonFormatter())
         # NO masking filter for JSON logs - needed for log analysis tools

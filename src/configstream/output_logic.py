@@ -185,6 +185,7 @@ def save_metadata(
     smart_chain_count = 0
     vwarp_win_rate = 0.0
     scanner_ips_found = 0
+    fetched_sources = 0
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
@@ -199,6 +200,7 @@ def save_metadata(
             smart_chain_count = sum(stats["smart_chains_breakdown"].values())
         vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
         scanner_ips_found = stats.get("scanner_ips_found", 0)
+        fetched_sources = stats.get("fetched_sources", 0)
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
@@ -221,6 +223,8 @@ def save_metadata(
             vwarp_win_rate = stats.vwarp_win_rate
         if hasattr(stats, "scanner_ips_found"):
             scanner_ips_found = stats.scanner_ips_found
+        if hasattr(stats, "fetched_sources"):
+            fetched_sources = stats.fetched_sources
 
     # Fallback heuristics if counts still 0 (use values from single-pass loop)
     if washed_count == 0:
@@ -237,6 +241,9 @@ def save_metadata(
         pkg_version = version("configstream")
     except Exception:
         pkg_version = "unknown"
+
+    # Calculate update interval (default 6 hours for production)
+    update_interval_hours = int(os.getenv("UPDATE_INTERVAL_HOURS", "6"))
 
     meta = {
         "schema_version": "2.1.0",
@@ -266,6 +273,10 @@ def save_metadata(
         "total_lines_sourced": total_sourced,
         "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
         "total_valid_proxies": working,
+        # Frontend display values - provide actual values, frontend handles fallback
+        "sources_count": fetched_sources,
+        "total_sources": fetched_sources,
+        "update_interval_hours": update_interval_hours,
         # Legacy mappings for backward compatibility (tests only)
         "fetched_lines": total_sourced,
         "parsed": parsed_count,
