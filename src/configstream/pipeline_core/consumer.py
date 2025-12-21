@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 import orjson as json
-from typing import List, Optional, Set, Dict, TYPE_CHECKING
+from typing import List, Optional, Set, TYPE_CHECKING
 
 from rich.progress import Progress, TaskID
 
@@ -24,6 +24,7 @@ from ..source_quality import SourceQualityTracker, calculate_diversity_score
 from ..performance import PerformanceTracker
 from ..proxy_history import ProxyHistoryTracker
 from .models import PipelineStats
+from ..intelligence.washer.core import ProxyWasher
 
 if TYPE_CHECKING:
     from ..event_stream import EventStream
@@ -55,23 +56,21 @@ async def processing_consumer(
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
-    # Log tester status at start for debugging
     if tester.go_tester.available:
         logger.info("Using Go batch tester for proxy testing")
     else:
         logger.warning("Go batch tester unavailable - falling back to Python tester")
 
-    # Fallback if lock not provided
     if seen_lock is None:
         seen_lock = asyncio.Lock()
 
-    # [FIX] Do not start tuner here. It is managed by the orchestrator (pipeline.py)
-    # to prevent race conditions and redundant toggling per consumer/batch.
+    # Initialize Washer for Revival (using Env Keys)
+    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    # Pre-fetch clean IPs if not already done (though scraper usually handles it)
+    await washer.fetch_clean_ips()
 
     while True:
         try:
-            # Add timeout to prevent indefinite blocking if producer dies
-            # Allow configuration via env, default to 600 seconds (10 minutes)
             timeout_val = float(os.getenv("CONSUMER_TIMEOUT", "600.0"))
             item = await asyncio.wait_for(work_queue.get(), timeout=timeout_val)
         except asyncio.TimeoutError:
@@ -82,19 +81,19 @@ async def processing_consumer(
             work_queue.task_done()
             break
 
-        # Unpack queue item: (source, raw_lines, metadata)
         if len(item) == 3:
             source, raw_lines, metadata = item
         else:
             source, raw_lines = item
             metadata = {}
 
-        # [FIX] Protect stats updates with lock to prevent race conditions
         async with seen_lock:
             stats.fetched_sources += 1
             stats.fetched_lines += len(raw_lines)
+            if "drop_stats" in metadata and isinstance(metadata["drop_stats"], dict):
+                for reason, count in metadata["drop_stats"].items():
+                    stats.drop_reasons[reason] = stats.drop_reasons.get(reason, 0) + count
 
-        # Log metadata from fetcher if available
         fetch_meta_str = ""
         if metadata:
             fetch_dur = metadata.get("fetch_duration")
@@ -107,7 +106,6 @@ async def processing_consumer(
         )
 
         process_start_time = asyncio.get_running_loop().time()
-
         loop = asyncio.get_running_loop()
 
         def _parse_chunk(lines, src):
@@ -119,14 +117,10 @@ async def processing_consumer(
                         if p:
                             p.details["_source"] = src
                             result.append(p)
-                    except Exception as e:
-                        logger.debug(
-                            f"Parsing error for line {i} in {src}: {e}", exc_info=True
-                        )
-            except Exception as e:
-                logger.error(
-                    f"Fatal error in _parse_chunk for {src}: {e}", exc_info=True
-                )
+                    except Exception:
+                        pass
+            except Exception:
+                pass
             return result
 
         parsed_batch = []
@@ -136,51 +130,19 @@ async def processing_consumer(
             )
 
         if not parsed_batch:
-            logger.warning(
-                f"No valid proxies parsed from source {safe_source} "
-                f"(Raw lines: {len(raw_lines)}). "
-                f"Check parser logs/format compatibility."
-            )
             work_queue.task_done()
             continue
 
-        # Log protocol breakdown for parsed batch
-        protocol_counts: Dict[str, int] = {}
-        for p in parsed_batch:
-            protocol_counts[p.protocol] = protocol_counts.get(p.protocol, 0) + 1
-        logger.debug(
-            f"Parsed breakdown for {safe_source}: {json.dumps(protocol_counts).decode()}"
-        )
-
-        # [LOGGING] Trace parsing drop rate
-        if len(parsed_batch) < len(raw_lines) * 0.5:
-            logger.warning(
-                f"Low parsing success rate for {safe_source}: {len(parsed_batch)}/{len(raw_lines)} lines parsed. "
-                "Check for format changes or encoding issues."
-            )
-
         unique_batch = []
         duplicates_count = 0
-        # Deduplication logic.
-        # Uses explicit lock to ensure safety if multiple consumers run concurrently.
         async with seen_lock:
-            # [FIX] LRU eviction policy to prevent OOM while preserving recent entries
-            # This prevents the "amnesia" problem where clearing the entire cache
-            # causes immediate duplicates to slip through.
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
-            eviction_batch_size = max(1000, max_seen // 10)  # Evict 10% at a time
+            eviction_batch_size = max(1000, max_seen // 10)
 
-            # LRU eviction: remove oldest entries when limit exceeded
             if len(seen_keys) > max_seen:
-                # Convert to list to get oldest entries (set maintains insertion order in Python 3.7+)
                 keys_list = list(seen_keys)
-                # Remove oldest entries (first N in the set)
                 for old_key in keys_list[:eviction_batch_size]:
                     seen_keys.discard(old_key)
-                logger.info(
-                    f"LRU eviction: removed {eviction_batch_size} oldest keys from seen_keys cache "
-                    f"(was {len(keys_list)}, now {len(seen_keys)})"
-                )
 
             for p in parsed_batch:
                 k = proxy_unique_key(p)
@@ -189,97 +151,44 @@ async def processing_consumer(
                     unique_batch.append(p)
                 else:
                     duplicates_count += 1
+            stats.drop_reasons["duplicate"] = stats.drop_reasons.get("duplicate", 0) + duplicates_count
 
-        # Use atomic lock for stats update to prevent race conditions
         async with seen_lock:
             stats.parsed += len(unique_batch)
-        safe_source = SecurityValidator.sanitize_log_message(str(source))
-        logger.debug(
-            f"Starting security validation for {len(unique_batch)} proxies from {safe_source}..."
-        )
+
         with tracker.phase("security_validation"):
-            validation_start = loop.time()
-            # Offload security validation to executor for batches > 100 to avoid blocking
             if len(unique_batch) > 100:
                 safe_batch = await loop.run_in_executor(
                     None, validate_batch_configs, unique_batch, policy
                 )
             else:
                 safe_batch = validate_batch_configs(unique_batch, policy)
-            validation_dur = (loop.time() - validation_start) * 1000
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
-            # Update detailed drop stats
             async with seen_lock:
-                # drop_reasons is initialized in PipelineStats, no need for hasattr check
                 stats.drop_reasons["security_validation"] = (
                     stats.drop_reasons.get("security_validation", 0) + dropped_unsafe
                 )
 
-                # Attempt to infer more granular reasons if possible
-                for p in unique_batch:
-                    if p not in safe_batch:
-                        # Heuristic mapping based on common validation failures
-                        # (This assumes validators tag the proxy, or we infer from fields)
-                        reason = "unknown_security"
-                        if p.details.get("error"):
-                            reason = p.details["error"]
-                        elif (
-                            not p.is_working and p.latency == 9999
-                        ):  # often parsing or basic validation
-                            reason = "invalid_format"
-                        stats.drop_reasons[reason] = (
-                            stats.drop_reasons.get(reason, 0) + 1
-                        )
-
-            logger.warning(
-                f"Security Filter [{safe_source}]: Dropped {dropped_unsafe} unsafe proxies in {validation_dur:.2f}ms. "
-                f"Valid: {len(safe_batch)}/{len(unique_batch)} "
-                f"(Retention: {len(safe_batch)/len(unique_batch):.1%})"
-            )
-            # [LOGGING] Log details of dropped proxies if useful
-            if logger.isEnabledFor(logging.DEBUG):
-                dropped_details = [
-                    f"{p.protocol}://{p.address}"
-                    for p in unique_batch
-                    if p not in safe_batch
-                ][:5]
-                logger.debug(f"Sample dropped proxies: {dropped_details}...")
-        else:
-            safe_source = SecurityValidator.sanitize_log_message(str(source))
-            logger.info(
-                f"Security Filter [{safe_source}]: All {len(unique_batch)} proxies passed validation in {validation_dur:.2f}ms."
-            )
-
         final_batch_for_this_source = []
         proxies_to_actually_test = []
 
-        # Decide whether to reuse cached results or schedule a fresh test.
-        # We treat any path that leads to an actual test as a cache miss
-        # (including forced retests).
-        cache_hits = 0
-        forced_retests = 0
+        # Cache Check
         for p in safe_batch:
             cached = None
             if not scheduler.should_retest(p):
                 cached = test_cache.get(p)
-            else:
-                forced_retests += 1
 
             if cached:
                 final_batch_for_this_source.append(cached)
-                cache_hits += 1
             else:
-                # [FIX] Protect stats updates with lock
                 async with seen_lock:
                     stats.cache_misses += 1
                 proxies_to_actually_test.append(p)
 
-        logger.debug(
-            f"Cache Check [{safe_source}]: {cache_hits} hits, {len(proxies_to_actually_test)} misses "
-            f"(Forced Retests: {forced_retests}, Total: {len(safe_batch)})"
-        )
+        # Testing
+        failed_proxies = []  # Candidates for revival
 
         if proxies_to_actually_test:
             if max_proxies and stats.tested >= max_proxies:
@@ -291,90 +200,90 @@ async def processing_consumer(
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         await tester.test_batch(chunk)
                         for res in chunk:
-                            # Record history
                             history.record_test_result(res)
-
                             if res.is_working:
+                                res.process = "native"  # Explicitly mark as native
                                 final_batch_for_this_source.append(res)
-                                if event_stream:
-                                    # Log only to DEBUG to avoid spamming main log
-                                    logger.debug(
-                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)"
-                                    )
-                                    event_stream.emit(
-                                        "test_success",
-                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
-                                    )
                             else:
-                                # Log failure for debugging transparency
-                                # [LOGGING] Enhanced failure logging
-                                error_msg = res.details.get("error", "unknown")
-                                logger.debug(
-                                    f"Proxy test failed [{safe_source}]: {res.protocol}://{res.address}:{res.port} - {error_msg}"
-                                )
-                        # [FIX] Protect stats updates with lock
+                                # [REVIVAL] Collect failed proxies
+                                failed_proxies.append(res)
+
+                                failure_cat = res.details.get("failure_category", "TEST_FAILED")
+                                async with seen_lock:
+                                    stats.drop_reasons[failure_cat] = stats.drop_reasons.get(failure_cat, 0) + 1
+
                         async with seen_lock:
                             stats.tested += len(chunk)
-                        # Log batch test summary
-                        working_in_chunk = sum(1 for r in chunk if r.is_working)
-                        logger.debug(
-                            f"Batch test result for {safe_source}: {working_in_chunk}/{len(chunk)} working "
-                            f"({(working_in_chunk/len(chunk)*100):.1f}%)"
-                        )
-                        if working_in_chunk == 0 and len(chunk) > 0:
-                            logger.warning(
-                                f"Batch failure details for {safe_source}: All {len(chunk)} proxies failed in this chunk."
-                            )
 
                         if progress and task_process:
-                            progress.update(
-                                task_process,
-                                completed=stats.tested,
-                                description=f"[green]Testing... ({stats.working} working)",
-                            )
+                            progress.update(task_process, completed=stats.tested)
                 else:
                     # Python fallback testing
-                    async def _test_wrap(p: Proxy):
-                        sem = concurrency.get_semaphore()
-                        async with sem:
-                            res = await tester.test(p)
-                            if res.is_working:
-                                if event_stream:
-                                    # Log only to DEBUG to avoid spamming main log
-                                    logger.debug(
-                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)"
-                                    )
-                                    event_stream.emit(
-                                        "test_success",
-                                        f"Proxy working: {res.protocol}://{res.address}:{res.port} ({res.latency}ms)",
-                                    )
-                            return res
-
-                    # Process in chunks (increased from 50 to 100 for better throughput)
                     chunk_size = int(os.getenv("PY_TESTER_BATCH_SIZE", "100"))
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
+
+                        async def _test_wrap(p: Proxy):
+                            sem = concurrency.get_semaphore()
+                            async with sem:
+                                return await tester.test(p)
+
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
                         for res in results:
-                            # Record history
                             history.record_test_result(res)
-
                             if res.is_working:
-                                await concurrency.record(
-                                    "default", res.latency or 0, True
-                                )
+                                res.process = "native"
+                                await concurrency.record("default", res.latency or 0, True)
                                 final_batch_for_this_source.append(res)
+                            else:
+                                failed_proxies.append(res)  # Collect for revival
+                                error = res.details.get("error", "TEST_FAILED")
+                                async with seen_lock:
+                                    stats.drop_reasons[error] = stats.drop_reasons.get(error, 0) + 1
 
-                        # [FIX] Protect stats updates with lock
                         async with seen_lock:
                             stats.tested += len(chunk)
                         if progress and task_process:
-                            progress.update(
-                                task_process,
-                                completed=stats.tested,
-                                description=f"[green]Testing... ({stats.working} working)",
-                            )
+                            progress.update(task_process, completed=stats.tested)
 
+        # --- REVIVAL LOOP ---
+        if failed_proxies:
+            # 1. Attempt Vwarp Revival (Priority)
+            vwarp_candidates, _ = washer.wash_failed(failed_proxies, stats=stats, use_vwarp=True)
+            if vwarp_candidates:
+                # Test Vwarp Candidates
+                await tester.test_batch(vwarp_candidates)
+                for p in vwarp_candidates:
+                    if p.is_working:
+                        p.process = "revived-vwarp"
+                        # Recover origin info
+                        origin = p.details.get("origin_proxy")
+                        if origin:
+                            p.country_code = origin.country_code
+                            p.country = origin.country
+                        final_batch_for_this_source.append(p)
+                        async with seen_lock:
+                            stats.revived_vwarp += 1
+
+            # 2. Attempt Standard Warp Revival (Fallback/Parallel)
+            # Filter out those that already succeeded via Vwarp?
+            # Or just try everything? Let's try remaining failed ones or all.
+            # For simplicity and coverage, we can try both strategies on the original failed set.
+            warp_candidates, _ = washer.wash_failed(failed_proxies, stats=stats, use_vwarp=False)
+            if warp_candidates:
+                await tester.test_batch(warp_candidates)
+                for p in warp_candidates:
+                    if p.is_working:
+                        p.process = "revived-warp"
+                        origin = p.details.get("origin_proxy")
+                        if origin:
+                            p.country_code = origin.country_code
+                            p.country = origin.country
+                        final_batch_for_this_source.append(p)
+                        async with seen_lock:
+                            stats.revived_warp += 1
+
+        # Post-process final batch (GeoIP, Filter)
         for p in final_batch_for_this_source:
             if not p.is_working:
                 continue
@@ -384,11 +293,8 @@ async def processing_consumer(
                 with tracker.phase("geo"):
                     geo_data = await geoip.lookup(p.resolved_ip or p.address)
                     if geo_data and geo_data.country_code:
-                        # Ensure country_code is a normalized ISO code.
                         cc = geo_data.country_code or ""
                         p.country_code = cc
-                        # Use human-readable country name when available,
-                        # otherwise fall back to the ISO code.
                         p.country = geo_data.country_name or cc
                         p.city = geo_data.city or ""
                         p.asn = geo_data.asn or ""
@@ -397,14 +303,12 @@ async def processing_consumer(
                             p.details["lat"] = geo_data.lat
                         if geo_data.lng:
                             p.details["lng"] = geo_data.lng
-                        # [FIX] Protect stats updates with lock
                         async with seen_lock:
                             stats.geo_resolved += 1
             if country_filter:
                 if p.country_code != country_filter.upper():
                     continue
             final_proxies.append(p)
-            # [FIX] Protect stats updates with lock
             async with seen_lock:
                 stats.working += 1
 
@@ -413,79 +317,32 @@ async def processing_consumer(
         diversity_score = calculate_diversity_score(final_batch_for_this_source)
 
         process_end_time = asyncio.get_running_loop().time()
-        total_duration = (process_end_time - process_start_time) * 1000  # ms
-        fetch_duration = (
-            metadata.get("fetch_duration") or 0.0
-        ) * 1000  # convert s to ms
+        total_duration = (process_end_time - process_start_time) * 1000
+        fetch_duration = (metadata.get("fetch_duration") or 0.0) * 1000
         full_duration_ms = total_duration + fetch_duration
 
-        # Aggregate Failure Modes and GeoIP
-        failure_modes: Dict[str, int] = {}
-        geoip_stats: Dict[str, int] = {}
-
-        for p in proxies_to_actually_test:
-            if not p.is_working:
-                error = p.details.get("error", "unknown")
-                # Simplify error message
-                if "timeout" in error.lower():
-                    error_key = "timeout"
-                elif "connection" in error.lower():
-                    error_key = "connection_error"
-                elif "dirty_ip" in error.lower() or "dirty ip" in error.lower():
-                    error_key = "dirty_ip"
-                elif "honeypot" in error.lower():
-                    error_key = "honeypot"
-                elif "handshake" in error.lower():
-                    error_key = "handshake_fail"
-                else:
-                    error_key = "other"
-
-                failure_modes[error_key] = failure_modes.get(error_key, 0) + 1
-
+        # Aggregate Failure Modes & GeoIP for logging
+        failure_modes: dict = {}  # Already aggregated into stats, local dict for log
+        geoip_stats: dict = {}
         for p in final_batch_for_this_source:
             if p.country_code:
                 geoip_stats[p.country_code] = geoip_stats.get(p.country_code, 0) + 1
 
-        # LOG SUMMARY FOR THIS SOURCE
-        # [AUDIT] Compacted to single line to reduce log spam in large pipelines
-        success_rate = (working_count / len(safe_batch) * 100) if safe_batch else 0.0
         summary_msg = (
             f"Source Summary [{safe_source}]: "
             f"Raw={len(raw_lines)} "
             f"Parsed={len(parsed_batch)} "
-            f"Unique={len(unique_batch)} "
-            f"Safe={len(safe_batch)} "
             f"Tested={len(proxies_to_actually_test)} "
-            f"Working={working_count} ({success_rate:.1f}%) "
-            f"Fetch={fetch_duration:.0f}ms "
+            f"Working={working_count} "
             f"Dur={full_duration_ms:.0f}ms"
         )
 
-        # Only log full details if explicitly debugging or if result is interesting (working proxies found)
-        # Otherwise use DEBUG for sources that yielded nothing
         if working_count > 0:
             logger.info(summary_msg)
-            if geoip_stats:
-                logger.debug(
-                    f"  Countries [{safe_source}]: {json.dumps(geoip_stats).decode()}"
-                )
         else:
             logger.debug(summary_msg)
 
-        if failure_modes:
-            # Log failure modes at INFO level if significant failures occurred, otherwise DEBUG
-            if working_count < len(safe_batch) * 0.5:
-                logger.info(
-                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes).decode()}"
-                )
-            else:
-                logger.debug(
-                    f"Failure Breakdown [{safe_source}]: {json.dumps(failure_modes).decode()}"
-                )
-
-        if not source.startswith("supplied-proxies") and not source.startswith(
-            "sources/"
-        ):
+        if not source.startswith("supplied-proxies") and not source.startswith("sources/"):
             try:
                 await loop.run_in_executor(
                     None,
@@ -496,10 +353,8 @@ async def processing_consumer(
                     diversity_score,
                     0.0,
                 )
-            except Exception as e:
-                logger.warning(
-                    f"Quality update failed for {safe_source}: {e}", exc_info=True
-                )
+            except Exception:
+                pass
             try:
                 await loop.run_in_executor(
                     None,
@@ -515,24 +370,12 @@ async def processing_consumer(
                         "batch_source": "pipeline",
                     },
                 )
-            except Exception as e:
-                logger.warning(
-                    f"Quality record_run failed for {safe_source}: {e}", exc_info=True
-                )
-        else:
-            # [LOGGING] Log for local/manual sources too
-            logger.info(
-                f"Completed processing for local source {safe_source} - "
-                f"Fetch/Parse/Work: {len(raw_lines)}/{len(parsed_batch)}/{working_count}"
-            )
+            except Exception:
+                pass
 
         work_queue.task_done()
 
-    # After all processing (outside the loop)
     if stats.tested > 0 and stats.working == 0:
         logger.error(
-            f"CRITICAL: All {stats.tested} proxy tests failed across all sources! "
-            f"This likely indicates: 1) Go tester not available, "
-            f"2) Network connectivity issues to test URLs, or "
-            f"3) All proxy configurations are invalid/incompatible."
+            f"CRITICAL: All {stats.tested} proxy tests failed across all sources!"
         )

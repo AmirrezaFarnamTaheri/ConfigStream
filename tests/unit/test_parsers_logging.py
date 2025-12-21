@@ -11,20 +11,17 @@ def test_extract_config_lines_logging(caplog):
     http://github.com/sub
     """
 
-    configs = extract_config_lines(payload)
+    configs, stats = extract_config_lines(payload)
 
     assert len(configs) == 1
     assert "vmess://valid_config" in configs
 
-    # Check logs for drop reasons
-    # Note: exact log message depends on implementation details, checking substrings
-    assert "Dropping invalid config line" in caplog.text
-    assert "Invalid protocol 'invalid_protocol'" in caplog.text
-    # http://github.com is blocked
-    assert (
-        "Implausible format or blocked domain" in caplog.text
-        or "Reason: Implausible" in caplog.text
-    )
+    # Check stats presence instead of log messages for dropped lines
+    assert "invalid_protocol" in stats
+    assert "implausible_format" in stats
+
+    # Verify summary log
+    assert "Parsed 1 configs" in caplog.text
 
 
 def test_blocked_domains():

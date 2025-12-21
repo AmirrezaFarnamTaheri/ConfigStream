@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, timezone
 
 from ..config import AppSettings
@@ -56,14 +56,20 @@ class SingBoxTester:
             return proxies
 
         if self.go_tester.available:
-            to_test = []
+            to_test: List[Proxy] = []
+            revived_candidates: List[Proxy] = []
+
             for p in proxies:
-                if self.cache and (cached := self.cache.get(p)):
+                if p.protocol == "revived" and p.details.get("chain_outbounds"):
+                    # Special handling for Revived proxies (chains)
+                    revived_candidates.append(p)
+                elif self.cache and (cached := self.cache.get(p)):
                     p.is_working = cached.is_working
                     p.latency = cached.latency
                 else:
                     to_test.append(p)
 
+            # Test regular proxies
             if to_test:
                 await self.go_tester.test_batch(
                     to_test, check_honeypot=self.strict_security
@@ -71,6 +77,31 @@ class SingBoxTester:
                 if self.cache:
                     for p in to_test:
                         self._finalize_result(p)
+
+            # Test revived chains using custom config testing
+            if revived_candidates:
+                configs = []
+                for p in revived_candidates:
+                    configs.append({
+                        "id": p.id,
+                        "outbounds": p.details.get("chain_outbounds")
+                    })
+
+                custom_results: Dict[str, bool] = await self.go_tester.test_custom_configs(
+                    configs, check_honeypot=False
+                )
+
+                for p in revived_candidates:
+                    is_working = custom_results.get(p.id, False)
+                    p.is_working = is_working
+                    if is_working:
+                        # Fake low latency for revived/vwarp, or assume it's good enough
+                        # In reality, Go tester returns latency if we parse it,
+                        # but test_custom_configs returns bool map currently.
+                        p.latency = 500.0  # Default estimate for successful chain
+                    else:
+                        p.details["error"] = "REVIVAL_FAILED"
+
             return proxies
         else:
             logger.info(
@@ -80,11 +111,11 @@ class SingBoxTester:
             max_concurrent = 100
             sem = asyncio.Semaphore(max_concurrent)
 
-            async def _guarded_test(p: Proxy):
+            async def _guarded_test(p: Proxy) -> Proxy:
                 async with sem:
                     return await self.test(p)
 
-            results = []
+            results: List[Proxy] = []
             chunk_size = 200
             for i in range(0, len(proxies), chunk_size):
                 chunk = proxies[i : i + chunk_size]
