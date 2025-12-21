@@ -92,7 +92,9 @@ async def processing_consumer(
             stats.fetched_lines += len(raw_lines)
             if "drop_stats" in metadata and isinstance(metadata["drop_stats"], dict):
                 for reason, count in metadata["drop_stats"].items():
-                    stats.drop_reasons[reason] = stats.drop_reasons.get(reason, 0) + count
+                    stats.drop_reasons[reason] = (
+                        stats.drop_reasons.get(reason, 0) + count
+                    )
 
         fetch_meta_str = ""
         if metadata:
@@ -151,7 +153,9 @@ async def processing_consumer(
                     unique_batch.append(p)
                 else:
                     duplicates_count += 1
-            stats.drop_reasons["duplicate"] = stats.drop_reasons.get("duplicate", 0) + duplicates_count
+            stats.drop_reasons["duplicate"] = (
+                stats.drop_reasons.get("duplicate", 0) + duplicates_count
+            )
 
         async with seen_lock:
             stats.parsed += len(unique_batch)
@@ -208,9 +212,13 @@ async def processing_consumer(
                                 # [REVIVAL] Collect failed proxies
                                 failed_proxies.append(res)
 
-                                failure_cat = res.details.get("failure_category", "TEST_FAILED")
+                                failure_cat = res.details.get(
+                                    "failure_category", "TEST_FAILED"
+                                )
                                 async with seen_lock:
-                                    stats.drop_reasons[failure_cat] = stats.drop_reasons.get(failure_cat, 0) + 1
+                                    stats.drop_reasons[failure_cat] = (
+                                        stats.drop_reasons.get(failure_cat, 0) + 1
+                                    )
 
                         async with seen_lock:
                             stats.tested += len(chunk)
@@ -233,13 +241,17 @@ async def processing_consumer(
                             history.record_test_result(res)
                             if res.is_working:
                                 res.process = "native"
-                                await concurrency.record("default", res.latency or 0, True)
+                                await concurrency.record(
+                                    "default", res.latency or 0, True
+                                )
                                 final_batch_for_this_source.append(res)
                             else:
                                 failed_proxies.append(res)  # Collect for revival
                                 error = res.details.get("error", "TEST_FAILED")
                                 async with seen_lock:
-                                    stats.drop_reasons[error] = stats.drop_reasons.get(error, 0) + 1
+                                    stats.drop_reasons[error] = (
+                                        stats.drop_reasons.get(error, 0) + 1
+                                    )
 
                         async with seen_lock:
                             stats.tested += len(chunk)
@@ -249,7 +261,9 @@ async def processing_consumer(
         # --- REVIVAL LOOP ---
         if failed_proxies:
             # 1. Attempt Vwarp Revival (Priority)
-            vwarp_candidates, _ = washer.wash_failed(failed_proxies, stats=stats, use_vwarp=True)
+            vwarp_candidates, _ = washer.wash_failed(
+                failed_proxies, stats=stats, use_vwarp=True
+            )
             if vwarp_candidates:
                 # Test Vwarp Candidates
                 await tester.test_batch(vwarp_candidates)
@@ -269,7 +283,9 @@ async def processing_consumer(
             # Filter out those that already succeeded via Vwarp?
             # Or just try everything? Let's try remaining failed ones or all.
             # For simplicity and coverage, we can try both strategies on the original failed set.
-            warp_candidates, _ = washer.wash_failed(failed_proxies, stats=stats, use_vwarp=False)
+            warp_candidates, _ = washer.wash_failed(
+                failed_proxies, stats=stats, use_vwarp=False
+            )
             if warp_candidates:
                 await tester.test_batch(warp_candidates)
                 for p in warp_candidates:
@@ -342,7 +358,9 @@ async def processing_consumer(
         else:
             logger.debug(summary_msg)
 
-        if not source.startswith("supplied-proxies") and not source.startswith("sources/"):
+        if not source.startswith("supplied-proxies") and not source.startswith(
+            "sources/"
+        ):
             try:
                 await loop.run_in_executor(
                     None,
