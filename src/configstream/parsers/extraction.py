@@ -86,7 +86,9 @@ def extract_config_lines(
         return [payload_str], {}
 
     # Try YAML (Clash)
-    if "proxies:" in payload_str and ("- name:" in payload_str or "-name:" in payload_str):
+    if "proxies:" in payload_str and (
+        "- name:" in payload_str or "-name:" in payload_str
+    ):
         try:
             import yaml  # type: ignore
             import json
@@ -95,9 +97,7 @@ def extract_config_lines(
             proxies = data.get("proxies", [])
             if isinstance(proxies, list):
                 # Convert each proxy dict to a JSON string line
-                return [
-                    json.dumps(p) for p in proxies if isinstance(p, dict)
-                ], {}
+                return [json.dumps(p) for p in proxies if isinstance(p, dict)], {}
         except ImportError:
             logger.warning("PyYAML not installed, skipping Clash YAML parsing")
             drop_stats["missing_dependency_yaml"] = 1
@@ -131,9 +131,7 @@ def extract_config_lines(
         lines = payload_str.splitlines()
 
     if len(lines) > max_lines:
-        logger.warning(
-            f"Payload has {len(lines)} lines, truncating to {max_lines}."
-        )
+        logger.warning(f"Payload has {len(lines)} lines, truncating to {max_lines}.")
         lines = lines[:max_lines]
         drop_stats["truncated_lines"] = len(lines) - max_lines
 

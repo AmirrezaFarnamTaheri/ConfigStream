@@ -70,13 +70,13 @@ async def fetch_single_source(
 
             # [FIX] Try to decode to string for compatibility, fallback to safe string if binary
             try:
-                content_str = content_bytes.decode('utf-8')
+                content_str = content_bytes.decode("utf-8")
             except UnicodeDecodeError:
                 try:
-                    content_str = content_bytes.decode('latin-1')
+                    content_str = content_bytes.decode("latin-1")
                 except Exception:
                     # Last resort fallback if it's purely binary garbage but we need a string
-                    content_str = content_bytes.decode('utf-8', errors='replace')
+                    content_str = content_bytes.decode("utf-8", errors="replace")
 
             return FetchResult(
                 True,

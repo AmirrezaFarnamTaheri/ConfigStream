@@ -82,13 +82,14 @@ class SingBoxTester:
             if revived_candidates:
                 configs = []
                 for p in revived_candidates:
-                    configs.append({
-                        "id": p.id,
-                        "outbounds": p.details.get("chain_outbounds")
-                    })
+                    configs.append(
+                        {"id": p.id, "outbounds": p.details.get("chain_outbounds")}
+                    )
 
-                custom_results: Dict[str, bool] = await self.go_tester.test_custom_configs(
-                    configs, check_honeypot=False
+                custom_results: Dict[str, bool] = (
+                    await self.go_tester.test_custom_configs(
+                        configs, check_honeypot=False
+                    )
                 )
 
                 for p in revived_candidates:
