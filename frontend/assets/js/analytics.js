@@ -105,6 +105,24 @@ function initGlobe(data) {
     const container = document.getElementById('globe-viz');
     if (!container) return;
 
+    // Show loading indicator
+    container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;"><div class="spinner" style="border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;"></div>Loading globe...</div>';
+
+    // Lazy load globe to improve initial page load
+    setTimeout(() => _initGlobeInternal(data, container), 100);
+}
+
+function _initGlobeInternal(data, container) {
+    // Clear loading indicator
+    container.innerHTML = '';
+
+    // Check if Globe library is loaded
+    if (typeof Globe === 'undefined' || typeof window.Globe !== 'function') {
+        console.error('Globe.gl library not loaded');
+        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">Globe visualization unavailable</div>';
+        return;
+    }
+
     // Comprehensive list of country centroids
     const countryCentroids = {
         "AF": { lat: 33.9391, lng: 67.7100, name: "Afghanistan" },
