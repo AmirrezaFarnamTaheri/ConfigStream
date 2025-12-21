@@ -41,8 +41,9 @@ def test_extractor_resilience(raw_content):
     Property: _extract_config_lines should handle arbitrary text blobs without crashing.
     """
     try:
-        lines = _extract_config_lines(raw_content)
+        lines, stats = _extract_config_lines(raw_content)
         assert isinstance(lines, list)
+        assert isinstance(stats, dict)
     except Exception as e:
         raise AssertionError(
             f"Extractor crashed on input: {raw_content!r} with error: {e}"

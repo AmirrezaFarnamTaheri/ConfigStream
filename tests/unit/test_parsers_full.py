@@ -32,7 +32,7 @@ def test_parse_trojan_valid():
 
 def test_parse_vless_valid():
     p = parse_vless(
-            "vless://123e4567-e89b-12d3-a456-426614174000@1.1.1.1:443?encryption=none&security=tls&sni=example.com#Test"
+        "vless://123e4567-e89b-12d3-a456-426614174000@1.1.1.1:443?encryption=none&security=tls&sni=example.com#Test"
     )
     assert p is not None
     assert p.protocol == "vless"
