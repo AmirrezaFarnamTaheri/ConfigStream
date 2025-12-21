@@ -26,8 +26,11 @@ class MockStreamResponse:
                 f"Error {self.status_code}", request=None, response=self
             )
 
-    async def aiter_text(self):
-        yield self.text_content
+    async def aiter_bytes(self):
+        if isinstance(self.text_content, str):
+            yield self.text_content.encode("utf-8")
+        else:
+            yield self.text_content
 
 
 @pytest.mark.asyncio

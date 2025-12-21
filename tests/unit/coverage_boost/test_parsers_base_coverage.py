@@ -45,10 +45,11 @@ def test_is_plausible_proxy_config():
 def test_extract_config_lines():
     # Valid lines must be plausible
     payload = "vmess://abcdefg\n# comment\nss://abcdefg"
-    lines = extract_config_lines(payload)
+    lines, stats = extract_config_lines(payload)
     assert len(lines) == 2
     assert "vmess://abcdefg" in lines
     assert "ss://abcdefg" in lines
+    assert stats is not None
 
 
 def test_normalize_proxy_details():

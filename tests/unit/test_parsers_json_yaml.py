@@ -6,7 +6,7 @@ import json
 class TestParsersExtended:
     def test_extract_json_blob(self):
         payload = '{"outbounds": [{"protocol": "vless", "settings": {"vnext": [{"address": "1.2.3.4", "port": 443, "users": [{"id": "uuid"}]}]}}]}'
-        lines = extract_config_lines(payload)
+        lines, stats = extract_config_lines(payload)
         assert len(lines) == 1
         assert lines[0] == payload
 
@@ -22,7 +22,7 @@ proxies:
     port: 443
     uuid: uuid
 """
-        lines = extract_config_lines(payload)
+        lines, stats = extract_config_lines(payload)
         assert len(lines) == 1
         # It should be converted to a JSON string representation of the proxy
         assert json.loads(lines[0])["name"] == "vless"

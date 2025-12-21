@@ -45,11 +45,11 @@ async def test_fetch_from_source_success():
     mock_response.status_code = 200
     mock_response.headers = {}
 
-    # Setup async iterator for text
+    # Setup async iterator for bytes
     async def async_iter():
-        yield "data"
+        yield b"data"
 
-    mock_response.aiter_text = lambda: async_iter()
+    mock_response.aiter_bytes = lambda: async_iter()
 
     # Context manager for client.stream
     mock_stream_ctx = AsyncMock()
@@ -99,9 +99,9 @@ async def test_fetch_from_source_rate_limiter_precheck():
         mock_response.headers = {}
 
         async def async_iter():
-            yield "data"
+            yield b"data"
 
-        mock_response.aiter_text = lambda: async_iter()
+        mock_response.aiter_bytes = lambda: async_iter()
         mock_stream_ctx = AsyncMock()
         mock_stream_ctx.__aenter__.return_value = mock_response
         client.stream.return_value = mock_stream_ctx
@@ -162,9 +162,9 @@ async def test_fetch_from_source_too_large_stream():
 
     # Generate large chunks
     async def async_iter():
-        yield "a" * (MAX_RESPONSE_SIZE + 100)
+        yield b"a" * (MAX_RESPONSE_SIZE + 100)
 
-    mock_response.aiter_text = lambda: async_iter()
+    mock_response.aiter_bytes = lambda: async_iter()
 
     mock_stream_ctx = AsyncMock()
     mock_stream_ctx.__aenter__.return_value = mock_response
@@ -184,9 +184,9 @@ async def test_fetch_from_source_jitter_warning(caplog):
     mock_response.headers = {}
 
     async def async_gen():
-        yield "data"
+        yield b"data"
 
-    mock_response.aiter_text = lambda: async_gen()
+    mock_response.aiter_bytes = lambda: async_gen()
 
     mock_stream_ctx = AsyncMock()
     mock_stream_ctx.__aenter__.return_value = mock_response

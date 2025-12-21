@@ -25,7 +25,11 @@ class PipelineStats:
     washer_success_count: int = 0
     smart_chain_count: int = 0
 
-    # Vwarp Stats
+    # Revived Stats
+    revived_warp: int = 0
+    revived_vwarp: int = 0
+
+    # Vwarp Stats (Efficiency of Vwarp Tool specifically)
     vwarp_attempts: int = 0
     vwarp_success: int = 0
 
@@ -34,6 +38,10 @@ class PipelineStats:
         if self.vwarp_attempts == 0:
             return 0.0
         return (self.vwarp_success / self.vwarp_attempts) * 100
+
+    @property
+    def total_revived(self) -> int:
+        return self.revived_warp + self.revived_vwarp
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -49,5 +57,8 @@ class PipelineStats:
             "scanner_ips_found": self.scanner_ips_found,
             "washer_success_count": self.washer_success_count,
             "smart_chain_count": self.smart_chain_count,
+            "revived_warp": self.revived_warp,
+            "revived_vwarp": self.revived_vwarp,
+            "total_revived": self.total_revived,
             "vwarp_win_rate": self.vwarp_win_rate,
         }
