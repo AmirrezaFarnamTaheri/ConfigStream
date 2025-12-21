@@ -89,40 +89,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateSummaryStats(stats, proxies, metadata) {
-        // Consolidated Stats Mappings (v2.0.4+)
-        const totalSourced =
-            (metadata && metadata.total_lines_sourced) ||
-            stats.fetched_lines ||
-            (metadata && metadata.fetched_lines) ||
-            stats.total_fetched ||
-            (metadata && metadata.total_fetched) ||
-            0;
+        // STANDARDIZED - Use canonical backend field names only
+        const totalSourced = (metadata && metadata.total_lines_sourced) || 0;
         updateElement('#totalSourced', totalSourced.toLocaleString());
 
-        const uniqueCount =
-            (metadata && metadata.total_unique_candidates) ||
-            stats.parsed ||
-            (metadata && metadata.parsed) ||
-            stats.unique ||
-            stats.total_unique ||
-            stats.total_proxies ||
-            0;
+        const uniqueCount = (metadata && metadata.total_unique_candidates) || 0;
         updateElement('#totalConfigs', uniqueCount.toLocaleString());
 
-        const workingCount =
-            (metadata && metadata.total_valid_proxies) ||
-            stats.working ||
-            (metadata && metadata.working) ||
-            stats.total_working ||
-            stats.active ||
-            stats.alive ||
-            0;
+        const workingCount = (metadata && metadata.total_valid_proxies) || 0;
         updateElement('#workingConfigs', workingCount.toLocaleString());
 
-        const revived = stats.total_revived || (metadata ? metadata.revived_count : 0) || 0;
+        const revived = (metadata && metadata.total_revived) || 0;
         updateElement('#totalRevived', revived.toLocaleString());
 
-        const threats = stats.threats_blocked || (metadata ? metadata.threats_blocked : 0) || 0;
+        const threats = (metadata && metadata.total_dirty) || 0;
         updateElement('#threatsBlocked', threats.toLocaleString());
         updateElement('#threatsNeutralized', threats.toLocaleString());
 
