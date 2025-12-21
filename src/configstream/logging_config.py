@@ -156,9 +156,15 @@ def setup_logging(
 
     if format_style == "detailed":
         if enable_trace_ids:
-            fmt = "%(asctime)s - %(name)s - %(levelname)s - [%(trace_id)s] - [%(filename)s:%(lineno)d] - %(message)s"
+            fmt = (
+                "%(asctime)s - %(name)s - %(levelname)s - [%(trace_id)s] - "
+                "[%(filename)s:%(lineno)d] - %(message)s"
+            )
         else:
-            fmt = "%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s"
+            fmt = (
+                "%(asctime)s - %(name)s - %(levelname)s - "
+                "[%(filename)s:%(lineno)d] - %(message)s"
+            )
     else:
         if enable_trace_ids:
             fmt = "%(levelname)s - [%(trace_id)s] - %(message)s"
@@ -191,10 +197,7 @@ def setup_logging(
         # Use RotatingFileHandler to prevent log files from growing too large
         # Max size: 10MB, keep 5 backup files
         file_handler = RotatingFileHandler(
-            log_path,
-            maxBytes=10*1024*1024,  # 10MB
-            backupCount=5,
-            encoding="utf-8"
+            log_path, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8"  # 10MB
         )
         file_handler.setLevel(log_level_value)
         file_handler.setFormatter(logging.Formatter(fmt))
@@ -208,9 +211,9 @@ def setup_logging(
         # Use RotatingFileHandler for JSON logs as well
         json_file_handler = RotatingFileHandler(
             json_log_path,
-            maxBytes=10*1024*1024,  # 10MB
+            maxBytes=10 * 1024 * 1024,  # 10MB
             backupCount=5,
-            encoding="utf-8"
+            encoding="utf-8",
         )
         json_file_handler.setLevel(log_level_value)
         json_file_handler.setFormatter(JsonFormatter())
