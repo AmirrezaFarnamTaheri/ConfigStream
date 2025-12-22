@@ -217,6 +217,52 @@ function renderTable() {
         processCell.innerHTML = `<span class="badge ${pBadge}" style="font-size:0.75em">${escapeHtml(processType.toUpperCase())}</span>`;
         row.appendChild(processCell);
 
+        // Trend (Latency History Sparkline)
+        const trendCell = document.createElement('td');
+        trendCell.setAttribute('data-label', 'Trend');
+        trendCell.className = 'trend-cell';
+
+        // [FIX] Add trend visualization using history data
+        const history = p.history || [];
+        if (history.length >= 2) {
+            // Create mini sparkline SVG
+            const width = 80;
+            const height = 24;
+            const validHistory = history.filter(l => l > 0 && l < 9999);
+
+            if (validHistory.length >= 2) {
+                const maxLat = Math.max(...validHistory, 100);
+                const minLat = Math.min(...validHistory);
+                const range = maxLat - minLat || 1;
+
+                // Build path
+                const points = validHistory.map((lat, idx) => {
+                    const x = (idx / (validHistory.length - 1)) * width;
+                    const y = height - ((lat - minLat) / range) * (height - 4) - 2;
+                    return `${idx === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`;
+                }).join(' ');
+
+                // Determine trend direction
+                const firstVal = validHistory[0];
+                const lastVal = validHistory[validHistory.length - 1];
+                const trendColor = lastVal < firstVal ? '#10b981' : (lastVal > firstVal ? '#ef4444' : '#6366f1');
+                const trendIcon = lastVal < firstVal ? '↓' : (lastVal > firstVal ? '↑' : '→');
+
+                trendCell.innerHTML = `
+                    <div class="trend-sparkline" title="Latency trend: ${history.length} data points">
+                        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+                            <path d="${points}" fill="none" stroke="${trendColor}" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span style="color:${trendColor};font-size:0.8em;margin-left:4px">${trendIcon}</span>
+                    </div>`;
+            } else {
+                trendCell.innerHTML = '<span class="trend-no-data">-</span>';
+            }
+        } else {
+            trendCell.innerHTML = '<span class="trend-no-data">-</span>';
+        }
+        row.appendChild(trendCell);
+
         // Action
         const actionCell = document.createElement('td');
         actionCell.setAttribute('data-label', 'Action');

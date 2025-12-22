@@ -1,11 +1,20 @@
 // frontend/assets/js/wasm_loader.js
 
-const go = new Go(); // Defined in wasm_exec.js
+// [FIX] Guard against missing Go runtime (in case wasm_exec.js failed to load)
+let go = null;
 let wasmReady = false;
+let wasmError = null;
 
 // 1. Initialize WASM
 async function initWasm() {
     try {
+        // [FIX] Check if Go runtime is available
+        if (typeof Go === 'undefined') {
+            throw new Error('Go runtime (wasm_exec.js) not loaded');
+        }
+
+        go = new Go();
+
         if (!WebAssembly.instantiateStreaming) {
             // Polyfill for Safari/Old Browsers
             WebAssembly.instantiateStreaming = async (resp, importObject) => {
@@ -14,8 +23,11 @@ async function initWasm() {
             };
         }
 
+        // [FIX] Use correct path resolution with ROOT_PATH
+        const wasmPath = (window.ROOT_PATH || './') + 'assets/wasm/tester.wasm';
+
         const result = await WebAssembly.instantiateStreaming(
-            fetch("assets/wasm/tester.wasm"),
+            fetch(wasmPath),
             go.importObject
         );
         go.run(result.instance);
@@ -27,6 +39,10 @@ async function initWasm() {
         console.log("✅ ConfigStream WASM Core Loaded and Event Dispatched");
     } catch (err) {
         console.error("❌ WASM Load Failed:", err);
+        wasmError = err;
+        // [FIX] Set wasmReady to false explicitly and expose error
+        window.wasmReady = false;
+        window.wasmError = err.message;
         // Dispatch event even on failure so app doesn't hang
         document.dispatchEvent(new Event('wasm-ready'));
     }
@@ -43,8 +59,15 @@ window.addEventListener('beforeunload', cleanup);
 
 // 3. Test Function
 async function verifyProxyBatch(proxies) {
-    if (!wasmReady) {
-        console.warn("WASM not ready yet.");
+    // [FIX] Better error handling for WASM unavailability
+    if (!wasmReady || !window.wasmReady) {
+        console.warn("WASM not ready - skipping client-side verification");
+        return proxies;
+    }
+
+    // [FIX] Check if testProxyWasm function is available
+    if (typeof window.testProxyWasm !== 'function') {
+        console.warn("WASM testProxyWasm function not available - skipping client-side verification");
         return proxies;
     }
 
@@ -84,18 +107,21 @@ async function verifyProxyBatch(proxies) {
 
                 const res = await window.testProxyWasm(targetUrl);
 
-                if (res.alive) {
+                if (res && res.alive) {
                     p.latency = res.latency;
                     if (!p.tags) p.tags = [];
                     if (!p.tags.includes("verified-local")) {
                         p.tags.push("verified-local");
                     }
                 } else {
-                    p.latency = 9999;
+                    // [FIX] Only override latency if proxy doesn't already have one
+                    if (p.latency === null || p.latency === undefined) {
+                        p.latency = 9999;
+                    }
                 }
             } catch (e) {
                 console.warn(`WASM Test Error for ${p.address}:`, e);
-                p.latency = 9999;
+                // [FIX] Don't override latency on error - keep server-side value
             }
             return p;
         }));

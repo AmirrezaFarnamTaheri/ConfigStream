@@ -99,6 +99,8 @@ async def run_full_pipeline(
     event_stream = EventStream(output_path)
 
     stats = PipelineStats()
+    # [FIX] Track total configured sources for frontend display
+    stats.total_configured_sources = len(sources) if sources else 0
 
     # --- Start Vwarp Tunnel if available ---
     vwarp_proc = None
