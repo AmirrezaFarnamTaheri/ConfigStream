@@ -11,6 +11,20 @@ from ..converters import to_singbox_outbound
 logger = logging.getLogger(__name__)
 
 
+def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Strip internal metadata fields (starting with '_') from outbounds.
+    These fields are used for internal tracking but are not valid Sing-box fields.
+
+    Fixes: unmarshal error: [SingboxParser] outbounds[X]._process: json: "unknown field "_process"
+    """
+    cleaned = []
+    for ob in outbounds:
+        clean_ob = {k: v for k, v in ob.items() if not k.startswith("_")}
+        cleaned.append(clean_ob)
+    return cleaned
+
+
 def generate_split_outputs(
     proxies: List[Proxy],
     output_dir: Path,
@@ -105,6 +119,10 @@ def generate_split_outputs(
             }
         )
 
+    # [FIX] Strip internal metadata fields (like _process) before serializing
+    # These fields cause Sing-box parse errors: "unknown field "_process""
+    clean_outbounds = _strip_internal_metadata(outbounds)
+
     sniper_config = {
         "log": {"level": "info", "timestamp": True},
         "inbounds": [
@@ -115,7 +133,7 @@ def generate_split_outputs(
                 "listen_port": 2080,
             }
         ],
-        "outbounds": outbounds,
+        "outbounds": clean_outbounds,
     }
 
     sniper_path = output_dir / "singbox.json"
@@ -218,6 +236,9 @@ def generate_split_outputs(
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
 
+    # [FIX] Strip internal metadata fields from tank outbounds too
+    clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
+
     tank_config = {
         "log": {"level": "info"},
         "inbounds": [
@@ -230,7 +251,7 @@ def generate_split_outputs(
                 "strict_route": True,
             }
         ],
-        "outbounds": tank_outbounds,
+        "outbounds": clean_tank_outbounds,
         "route": {
             "rules": [
                 {"protocol": "dns", "outbound": "dns-out"},
