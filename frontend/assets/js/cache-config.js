@@ -60,10 +60,10 @@
 
       // Try network first, fall back to cache if offline
       // These update regularly but cache is acceptable if offline
+      // NOTE: statistics.json removed - metadata.json is now single source of truth
       networkFirst: [
         (window.ROOT_PATH || '') + 'metadata.json',
         (window.ROOT_PATH || '') + 'proxies.json',
-        (window.ROOT_PATH || '') + 'statistics.json',
         (window.ROOT_PATH || '') + 'vpn_subscription_base64.txt',
         // HTML pages should always be fresh to ensure navigation works
         'index.html',

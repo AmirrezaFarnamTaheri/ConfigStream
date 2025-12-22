@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Stats - with fallback for when API isn't available
     let stats = null;
 
-    // Try multiple data sources
+    // Try multiple data sources - metadata.json is single source of truth
     try {
         if (window.api && window.api.fetchStatistics) {
             stats = await window.api.fetchStatistics();
         } else {
-            // Fallback: Try direct fetch from data files
-            const response = await fetch('statistics.json?cb=' + Date.now());
+            // Fallback: Try direct fetch from metadata.json (unified stats file)
+            const response = await fetch('metadata.json?cb=' + Date.now());
             if (response.ok) {
                 stats = await response.json();
             }
