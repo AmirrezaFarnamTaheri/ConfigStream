@@ -14,6 +14,7 @@
 - **analytics.js**: Now fetches directly from `metadata.json` instead of `statistics.json`
 - **utils/network.js**: `fetchStatistics()` updated to use `metadata.json`, `getUrlForKey('statistics')` redirects to `metadata.json`
 - **cache-config.js**: Removed `statistics.json` from `networkFirst` cache strategy
+- **update-detector.js**: Updated `statistics` case to fetch from `metadata.json`
 
 **Test Updates**
 - **tests/e2e/test_frontend.py**: Updated mock to only intercept `metadata.json` (removed `statistics.json` mock)
