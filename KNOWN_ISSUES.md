@@ -2,6 +2,25 @@
 
 ## Recent Fixes
 
+### v2.0.10 Complete Protocol Implementation (2025-12-22)
+✅ **New Protocol Converters Added**
+- **Shadowsocks 2022 (SS2022)**: Full converter implementation, uses `2022-blake3-aes-128-gcm` default cipher
+- **SOCKS4**: Sing-box conversion via `version: "4"` parameter
+- **NaiveProxy**: Full converter with TLS and credential validation
+
+✅ **Critical Pipeline Fix**
+- **history.save() Restored**: History data now properly persists to disk (was incorrectly commented out)
+
+**Protocol Support Summary**
+| Status | Count | Protocols |
+|--------|-------|-----------|
+| ✅ Fully Supported | 14 | VLESS, VMess, Trojan, SS, SS2022, Hysteria, Hysteria2, TUIC, WireGuard, SOCKS5, SOCKS4, HTTP/HTTPS, SSH, Naive |
+| ⚠️ Parse-Only | 7 | SSR, Snell, Brook, Juicity, OpenVPN, XRay, V2Ray JSON |
+
+**All 733 Unit Tests Passing**
+
+---
+
 ### v2.0.9 Protocol & Technical Debt Fixes (2025-12-22)
 ✅ **Comprehensive Protocol and Pipeline Fixes**
 - **VLESS Flow Bug Fixed**: `str(None)` → `"None"` issue resolved, now correctly returns empty string
