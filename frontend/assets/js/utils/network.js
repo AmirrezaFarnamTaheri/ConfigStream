@@ -58,7 +58,8 @@ function getUrlForKey(key) {
     const root = window.ROOT_PATH || '';
     if (key === 'metadata') return root + 'metadata.json';
     if (key === 'proxies') return root + 'proxies.json';
-    if (key === 'statistics') return root + 'statistics.json';
+    // [UNIFIED] statistics now points to metadata.json - single source of truth
+    if (key === 'statistics') return root + 'metadata.json';
     return key;
 }
 
@@ -199,26 +200,19 @@ async function fetchProxies() {
 }
 
 async function fetchStatistics() {
+  // [UNIFIED] Statistics now fetches from metadata.json - single source of truth
+  // All analytics data including globe points are now in metadata.json
   const cached = await getFromStorage('statistics');
   if (cached) return cached;
 
   try {
-    // Audit: /api/stats returns metadata.json which lacks detailed globe points.
-    // We must fetch statistics.json directly for full analytics.
     const root = window.ROOT_PATH || '';
-    const url = `${root}statistics.json${getCacheBust()}`;
+    const url = `${root}metadata.json${getCacheBust()}`;
 
-    try {
-        const response = await fetchWithRetry(url, 3, 1000);
-        const data = await response.json();
-        await saveToStorage('statistics', data, 300000);
-        return data;
-    } catch (error) {
-        // Fallback to metadata if statistics.json is missing (graceful degradation)
-        console.warn('statistics.json failed, falling back to metadata:', error);
-        const meta = await fetchMetadata();
-        return meta;
-    }
+    const response = await fetchWithRetry(url, 3, 1000);
+    const data = await response.json();
+    await saveToStorage('statistics', data, 300000);
+    return data;
   } catch (error) {
     console.error('❌ Failed to fetch statistics:', error);
     const stale = localStorage.getItem(CACHE_PREFIX + 'statistics');

@@ -10,7 +10,10 @@ class PipelineStats:
     drop_reasons: Dict[str, int] = field(default_factory=dict)
 
     # Canonical Stats
-    fetched_sources: int = 0
+    total_configured_sources: int = (
+        0  # [FIX] Total sources from sources.yaml (for frontend display)
+    )
+    fetched_sources: int = 0  # Sources actually processed
     fetched_lines: int = 0  # Raw lines fetched
     parsed: int = 0  # Valid proxies parsed
     tested: int = 0  # Proxies sent to testing
@@ -45,6 +48,7 @@ class PipelineStats:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "total_configured_sources": self.total_configured_sources,
             "fetched_sources": self.fetched_sources,
             "fetched_lines": self.fetched_lines,
             "parsed": self.parsed,
@@ -60,5 +64,10 @@ class PipelineStats:
             "revived_warp": self.revived_warp,
             "revived_vwarp": self.revived_vwarp,
             "total_revived": self.total_revived,
+            # [FIX] Add missing vwarp stats for CLI/API export
+            "vwarp_attempts": self.vwarp_attempts,
+            "vwarp_success": self.vwarp_success,
             "vwarp_win_rate": self.vwarp_win_rate,
+            # [FIX] Add drop_reasons for debugging
+            "drop_reasons": self.drop_reasons,
         }

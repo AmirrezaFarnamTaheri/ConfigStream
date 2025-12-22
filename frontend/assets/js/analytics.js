@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Stats - with fallback for when API isn't available
     let stats = null;
 
-    // Try multiple data sources
+    // Try multiple data sources - metadata.json is single source of truth
     try {
         if (window.api && window.api.fetchStatistics) {
             stats = await window.api.fetchStatistics();
         } else {
-            // Fallback: Try direct fetch from data files
-            const response = await fetch('statistics.json?cb=' + Date.now());
+            // Fallback: Try direct fetch from metadata.json (unified stats file)
+            const response = await fetch('metadata.json?cb=' + Date.now());
             if (response.ok) {
                 stats = await response.json();
             }
@@ -432,7 +432,9 @@ function _initGlobeInternal(data, container) {
         ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
         : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
 
-    const Globe = window.Globe()
+    // [FIX] Renamed from 'Globe' to 'globe' to avoid shadowing window.Globe
+    // which causes "Cannot access 'Globe' before initialization" error
+    const globe = window.Globe()
       (container)
       .globeImageUrl(globeTexture)
       .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
@@ -449,15 +451,15 @@ function _initGlobeInternal(data, container) {
       .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
 
     if (isDarkMode) {
-        Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+        globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
     } else {
-        const scene = Globe.scene();
+        const scene = globe.scene();
         if (scene) {
             scene.background = new THREE.Color(0xf0f4f8);
         }
     }
 
-    const controls = Globe.controls();
+    const controls = globe.controls();
     controls.autoRotate = true;
     controls.autoRotateSpeed = 0.35;
     controls.enableZoom = false; // Default: No Zoom
@@ -508,11 +510,11 @@ function _initGlobeInternal(data, container) {
     // Instead just ensure zoom is disabled in controls initially (done above)
     // and let CSS cursor indicate grabbable
 
-    Globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
+    globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
 
     window.addEventListener('resize', () => {
-        Globe.width(container.clientWidth);
-        Globe.height(container.clientHeight);
+        globe.width(container.clientWidth);
+        globe.height(container.clientHeight);
     });
 
     window.addEventListener('themechanged', (e) => {
@@ -521,20 +523,20 @@ function _initGlobeInternal(data, container) {
             ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
             : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
 
-        Globe.globeImageUrl(newGlobeTexture);
+        globe.globeImageUrl(newGlobeTexture);
 
         if (newIsDark) {
-            Globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+            globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
         } else {
-            const scene = Globe.scene();
+            const scene = globe.scene();
             if (scene) {
                 scene.background = new THREE.Color(0xf0f4f8);
             }
-            Globe.backgroundImageUrl(null);
+            globe.backgroundImageUrl(null);
         }
     });
 
-    window.globeInstance = Globe;
+    window.globeInstance = globe;
 }
 
 function initCharts(data) {

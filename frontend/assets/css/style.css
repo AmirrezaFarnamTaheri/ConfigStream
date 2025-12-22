@@ -2205,6 +2205,37 @@ body.dark .proxies-table tbody tr:hover td {
     justify-content: flex-start;
 }
 
+/* Trend Cell with Sparkline */
+.trend-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.25rem;
+}
+
+.trend-sparkline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.trend-sparkline svg {
+    border-radius: 4px;
+    background: rgba(var(--brand-primary-rgb), 0.05);
+}
+
+.trend-no-data {
+    color: var(--text-secondary);
+    font-size: 0.85em;
+}
+
+/* Process Cell */
+.process-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
 .status-badge {
     display: inline-flex;
     align-items: center;

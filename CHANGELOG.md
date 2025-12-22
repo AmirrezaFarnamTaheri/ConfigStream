@@ -1,3 +1,75 @@
+## [2.0.11] - 2025-12-22
+
+### JSON Output Unification - Single Source of Truth
+
+**Unified Data Files**
+- **metadata.json is now the single source of truth**: Removed redundant `statistics.json` and `summary.json` files that contained identical/overlapping data with `metadata.json`. This simplifies the frontend data flow and eliminates potential consistency issues.
+
+**Backend Changes**
+- **output_logic.py**: Removed `statistics.json` creation - all stats now in `metadata.json`
+- **output_transport.py**: Removed `summary.json` creation (was identical to `metadata.json`)
+- **scripts/merge/generators.py**: Merged all statistics fields into single `metadata.json` output
+
+**Frontend Changes**
+- **analytics.js**: Now fetches directly from `metadata.json` instead of `statistics.json`
+- **utils/network.js**: `fetchStatistics()` updated to use `metadata.json`, `getUrlForKey('statistics')` redirects to `metadata.json`
+- **cache-config.js**: Removed `statistics.json` from `networkFirst` cache strategy
+- **update-detector.js**: Updated `statistics` case to fetch from `metadata.json`
+
+**Test Updates**
+- **tests/e2e/test_frontend.py**: Updated mock to only intercept `metadata.json` (removed `statistics.json` mock)
+
+**Quality Checks**
+- All 729 unit tests passing
+- All modified files pass mypy, black, and flake8
+
+---
+
+## [2.0.10] - 2025-12-22
+
+### Complete Protocol Implementation & Final Bug Fixes
+
+**New Protocol Converters (Sing-box)**
+- **Shadowsocks 2022 (SS2022)**: Full converter implementation using `2022-blake3-aes-128-gcm` as default cipher. Previously parsed but dropped during conversion. (singbox.py:95-126)
+- **SOCKS4**: Added support via sing-box's socks type with `version: "4"` parameter. (singbox.py:195-201)
+- **NaiveProxy**: Full converter with TLS support and credential validation. (singbox.py:203-224)
+
+**Critical Pipeline Fix**
+- **history.save() Restored**: Fixed commented-out `history.save()` call in pipeline.py - history data now properly persists to disk after each pipeline run. The comment incorrectly stated the method didn't exist, but it was always available at proxy_history.py:75-77. (pipeline.py:253)
+
+**Protocol Support Summary**
+- **Fully Supported (14 protocols)**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria v1, Hysteria2, TUIC, WireGuard, SOCKS5, SOCKS4, HTTP/HTTPS, SSH, NaiveProxy
+- **Parse-Only (7 protocols)**: SSR, Snell, Brook, Juicity, OpenVPN, XRay, V2Ray JSON (not supported by sing-box natively)
+
+**Quality Checks**
+- All 733 unit tests passing
+- All modified files pass mypy, black, and flake8
+
+---
+
+## [2.0.9] - 2025-12-22
+
+### Comprehensive Technical Debt Resolution & Protocol Fixes
+
+**CRITICAL Protocol Fixes**
+- **VLESS Flow Bug**: Fixed `str(proxy.details.get("flow", ""))` which converted `None` to literal `"None"` string instead of empty string. (singbox.py:90)
+- **Hysteria2 Obfuscation**: Fixed field name mismatch - parser stored `obfs`, converter looked for `obfs-type`. Now checks both fields. (singbox.py:254-257)
+- **Hysteria v1 Insecure TLS**: Removed hardcoded `insecure: True` - now respects `allowInsecure` and `skip_cert_verify` flags from config. (singbox.py:167-174)
+- **Hysteria v1 Speed Config**: Now parses `up_mbps`/`down_mbps` from config instead of hardcoding 100 Mbps. (singbox.py:157-165)
+
+**Pipeline & Stats Fixes**
+- **Missing get_warp_config()**: Added method to ProxyWasher class required by chaining.py for washed chain generation. (washer/core.py:220-245)
+- **stats.end_time**: Now properly set at pipeline completion for accurate duration tracking. (pipeline.py:243-244)
+- **Stats Export**: Added `vwarp_attempts`, `vwarp_success`, and `drop_reasons` to PipelineStats.to_dict() for complete CLI/API export. (stats.py:68-72)
+- **Metadata Export**: All PipelineStats metrics now exported to metadata.json including revived_warp, revived_vwarp, duration_seconds, geo_resolved, cache_misses. (output_logic.py)
+- **Sing-box _process Field**: Added `_strip_internal_metadata()` to remove internal `_` prefixed fields before JSON serialization, fixing mobile client parse errors.
+
+**Quality Checks**
+- All 720 unit tests passing
+- All modified files pass mypy, black, and flake8
+
+---
+
 ## [2.0.8] - 2025-12-21
 
 ### Critical Fixes: Log Rotation, Metadata Standardization, and Frontend Consistency

@@ -111,13 +111,14 @@ def test_widgets_presence(page: Page, http_server):
 
     mock_json = json.dumps(mock_data)
 
-    # Inject a mock fetch function that returns our data for metadata.json
+    # Inject a mock fetch function that returns our data for statistics endpoints
     # We do this before navigation so it's available when the page loads
-    # We mock /api/stats AND /files/metadata.json to cover both paths in utils.js
+    # [UNIFIED] metadata.json is now single source of truth for all analytics data
     page.add_init_script(
         f"""
         const originalFetch = window.fetch;
         window.fetch = async (url, options) => {{
+            // Mock metadata.json (unified stats) and api/stats endpoints
             if (url.includes('api/stats') || url.includes('metadata.json')) {{
                 return {{
                     ok: true,

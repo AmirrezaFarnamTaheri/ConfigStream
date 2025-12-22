@@ -39,12 +39,20 @@ async function applyBYOW() {
     // 3. Fetch Base Configuration
     let config;
     try {
-        // Use root-relative path
-        const basePath = (window.ROOT_PATH || './');
-        const response = await fetch(basePath + 'singbox.json');
+        // [FIX] Use root-relative path with proper fallback handling
+        const basePath = (window.ROOT_PATH || './').replace(/\/$/, '') + '/';
+
+        // Try fetching from base path first, then fallback to current directory
+        let response;
+        try {
+            response = await fetch(basePath + 'singbox.json');
+        } catch (fetchErr) {
+            console.warn('BYOW: Primary fetch failed, trying fallback path');
+            response = await fetch('./singbox.json');
+        }
 
         if (!response.ok) {
-            throw new Error(`Failed to fetch base config: ${response.status}`);
+            throw new Error(`Failed to fetch base config: ${response.status} ${response.statusText}`);
         }
         config = await response.json();
 

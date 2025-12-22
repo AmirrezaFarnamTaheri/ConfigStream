@@ -217,6 +217,33 @@ class ProxyWasher:
         octet_4 = (h % 250) + 2
         return f"172.16.{octet_3}.{octet_4}/32"
 
+    def get_warp_config(self, seed: str) -> Optional[Dict[str, Any]]:
+        """
+        [FIX] Generate a WARP WireGuard config for a given seed (used by chaining.py).
+        Returns None if no WARP keys are available.
+        """
+        exit_key = self._get_consistent_exit(seed, self.warp_keys)
+        if not exit_key:
+            return None
+
+        endpoint_data = self._get_clean_endpoint(seed)
+        if isinstance(endpoint_data, tuple):
+            clean_endpoint, clean_port = endpoint_data
+        else:
+            clean_endpoint = str(endpoint_data)
+            clean_port = 2408
+
+        unique_ip = self._generate_deterministic_ip(seed)
+
+        return {
+            "type": "wireguard",
+            "local_address": [unique_ip],
+            "private_key": exit_key["private_key"],
+            "server": clean_endpoint,
+            "server_port": clean_port,
+            "peer_public_key": exit_key["peer_public_key"],
+        }
+
     def wash_failed(
         self,
         failed_proxies: List[Proxy],

@@ -1,11 +1,25 @@
 import json
 import logging
-from typing import List, Any, Optional
+from typing import List, Any, Optional, Dict
 
 from ..models import Proxy
 from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
+
+
+def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Strip internal metadata fields (starting with '_') from outbounds.
+    These fields are used for internal tracking but are not valid Sing-box fields.
+
+    Fixes: unmarshal error: [SingboxParser] outbounds[X]._process: json: "unknown field "_process"
+    """
+    cleaned = []
+    for ob in outbounds:
+        clean_ob = {k: v for k, v in ob.items() if not k.startswith("_")}
+        cleaned.append(clean_ob)
+    return cleaned
 
 
 def generate_singbox_config(
@@ -86,6 +100,10 @@ def generate_singbox_config(
     if not any(o["tag"] == "dns-out" for o in outbounds):
         outbounds.append({"type": "dns", "tag": "dns-out"})
 
+    # [FIX] Strip internal metadata fields (like _process) before serializing
+    # These fields cause Sing-box parse errors: "unknown field "_process""
+    clean_outbounds = _strip_internal_metadata(outbounds)
+
     config: dict[str, Any] = {
         "log": {"level": "info", "timestamp": True},
         "inbounds": [
@@ -96,7 +114,7 @@ def generate_singbox_config(
                 "listen_port": 2080,
             }
         ],
-        "outbounds": outbounds,
+        "outbounds": clean_outbounds,
         "route": route,
     }
 

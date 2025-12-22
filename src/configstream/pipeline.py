@@ -99,6 +99,8 @@ async def run_full_pipeline(
     event_stream = EventStream(output_path)
 
     stats = PipelineStats()
+    # [FIX] Track total configured sources for frontend display
+    stats.total_configured_sources = len(sources) if sources else 0
 
     # --- Start Vwarp Tunnel if available ---
     vwarp_proc = None
@@ -238,7 +240,9 @@ async def run_full_pipeline(
         stats.final_count = len(optimized_proxies)
 
         # Generate Outputs
-        duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+        # [FIX] Set end_time for proper tracking
+        stats.end_time = datetime.now(timezone.utc)
+        duration = (stats.end_time - start_time).total_seconds()
         stats.duration = float(duration)
 
         generated_files = await output_handler.generate_pipeline_outputs(
@@ -246,7 +250,7 @@ async def run_full_pipeline(
         )
 
         # Save History & Cache
-        # history.save() # ProxyHistoryTracker doesn't have a save method exposed in top level, usually handled by storage close
+        history.save()  # [FIX] Persist history data - method exists at proxy_history.py:75-77
         test_cache.save()
         if timeout_tracker:
             timeout_tracker.save()

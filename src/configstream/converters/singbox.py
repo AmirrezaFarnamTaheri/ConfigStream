@@ -87,11 +87,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "vless",
             **base,
             "uuid": str(uuid),
-            "flow": str(proxy.details.get("flow", "")),
+            # [FIX] Don't use str() which converts None to "None" string
+            "flow": proxy.details.get("flow") or "",
         }
         add_transport_sb(out, proxy.details)
 
-    elif proxy.protocol == "shadowsocks":
+    elif proxy.protocol in ["shadowsocks", "ss2022"]:
+        # [FIX] Handle both Shadowsocks and Shadowsocks 2022
+        # SS2022 uses same sing-box type but with 2022-specific cipher methods
         # Validate required password
         if not proxy.details.get("password"):
             # [FIX] Elevated to WARNING
@@ -100,10 +103,17 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 f"Source: {proxy.details.get('_source', 'unknown')}"
             )
             return None
+
+        # SS2022 default method differs from classic SS
+        if proxy.protocol == "ss2022":
+            default_method = "2022-blake3-aes-128-gcm"
+        else:
+            default_method = "chacha20-ietf-poly1305"
+
         out = {
             "type": "shadowsocks",
             **base,
-            "method": str(proxy.details.get("method", "chacha20-ietf-poly1305")),
+            "method": str(proxy.details.get("method", default_method)),
             "password": str(proxy.details.get("password", "")),
         }
         # CRITICAL FIX: Map plugins (obfs-local, v2ray-plugin, etc.)
@@ -153,17 +163,24 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     elif proxy.protocol == "hysteria":
         # Map Hysteria v1
+        # [FIX] Parse up/down speeds from config instead of hardcoding
+        up_mbps = proxy.details.get("up_mbps") or proxy.details.get("up", 100)
+        down_mbps = proxy.details.get("down_mbps") or proxy.details.get("down", 100)
         out = {
             "type": "hysteria",
             **base,
             "auth_str": str(proxy.details.get("auth_str", "")),
-            "up_mbps": 100,
-            "down_mbps": 100,
+            "up_mbps": int(up_mbps) if str(up_mbps).isdigit() else 100,
+            "down_mbps": int(down_mbps) if str(down_mbps).isdigit() else 100,
         }
+        # [FIX] Respect allowInsecure flag instead of hardcoding True
+        is_insecure = False
+        if proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify"):
+            is_insecure = True
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni", "")),
-            "insecure": True,
+            "insecure": is_insecure,
         }
     elif proxy.protocol == "socks5":
         # Sing-box expects type "socks" for SOCKS5 outbounds.
@@ -172,7 +189,39 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "username": proxy.uuid if proxy.uuid else "",
             "password": str(proxy.details.get("password", "")),
+            "version": "5",
         }
+
+    elif proxy.protocol == "socks4":
+        # [FIX] Add SOCKS4 support - sing-box supports via version parameter
+        out = {
+            "type": "socks",
+            **base,
+            "version": "4",
+        }
+
+    elif proxy.protocol == "naive":
+        # [FIX] Add NaiveProxy support - sing-box has native "naive" type
+        username = proxy.uuid or proxy.details.get("username", "")
+        password = proxy.details.get("password", "")
+        if not username or not password:
+            logger.warning(
+                f"Dropping Naive proxy missing credentials: {proxy.address}:{proxy.port}. "
+                f"Source: {proxy.details.get('_source', 'unknown')}"
+            )
+            return None
+        out = {
+            "type": "naive",
+            **base,
+            "username": str(username),
+            "password": str(password),
+        }
+        # Naive uses HTTP/2 over TLS by default
+        if proxy.details.get("tls") or proxy.port == 443:
+            out["tls"] = {
+                "enabled": True,
+                "server_name": str(proxy.details.get("sni", proxy.address)),
+            }
     elif proxy.protocol == "wireguard":
         # [FIX] Respect existing local_address from proxy config if present
         # This preserves user-specified WireGuard IP assignments.
@@ -251,7 +300,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }
-        if proxy.details.get("obfs-type") == "salamander":
+        # [FIX] Check both "obfs-type" and "obfs" fields - parser stores as "obfs"
+        obfs_type = proxy.details.get("obfs-type") or proxy.details.get("obfs")
+        if obfs_type == "salamander":
             out["obfs"] = {
                 "type": "salamander",
                 "password": str(proxy.details.get("obfs-password", "")),
@@ -301,8 +352,23 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if "private_key" in details_to_log:
             details_to_log["private_key"] = "[MASKED]"
 
-        # Known unsupported protocols in Sing-box (native)
-        if proxy.protocol in ["ssr", "snell", "brook", "juicity", "xray"]:
+        # Known unsupported protocols in Sing-box (native) or require special handling
+        # - SSR: Sing-box dropped support for ShadowsocksR
+        # - Snell: Surge-proprietary protocol, not supported
+        # - Brook: Third-party protocol, not supported
+        # - Juicity: Separate project with custom client
+        # - XRay: Protocol name - actual proxies should be parsed as vless/vmess
+        # - OpenVPN: Sing-box supports it but requires extracted fields, not raw config
+        # - V2Ray JSON: Format, not protocol - should be extracted to specific types
+        if proxy.protocol in [
+            "ssr",
+            "snell",
+            "brook",
+            "juicity",
+            "xray",
+            "openvpn",
+            "v2ray",
+        ]:
             logger.debug(
                 f"Protocol {proxy.protocol} not supported in Sing-box conversion (skipped). "
                 f"Proxy: {proxy.address}"
