@@ -250,7 +250,7 @@ async def run_full_pipeline(
         )
 
         # Save History & Cache
-        # history.save() # ProxyHistoryTracker doesn't have a save method exposed in top level, usually handled by storage close
+        history.save()  # [FIX] Persist history data - method exists at proxy_history.py:75-77
         test_cache.save()
         if timeout_tracker:
             timeout_tracker.save()

@@ -1,3 +1,25 @@
+## [2.0.10] - 2025-12-22
+
+### Complete Protocol Implementation & Final Bug Fixes
+
+**New Protocol Converters (Sing-box)**
+- **Shadowsocks 2022 (SS2022)**: Full converter implementation using `2022-blake3-aes-128-gcm` as default cipher. Previously parsed but dropped during conversion. (singbox.py:95-126)
+- **SOCKS4**: Added support via sing-box's socks type with `version: "4"` parameter. (singbox.py:195-201)
+- **NaiveProxy**: Full converter with TLS support and credential validation. (singbox.py:203-224)
+
+**Critical Pipeline Fix**
+- **history.save() Restored**: Fixed commented-out `history.save()` call in pipeline.py - history data now properly persists to disk after each pipeline run. The comment incorrectly stated the method didn't exist, but it was always available at proxy_history.py:75-77. (pipeline.py:253)
+
+**Protocol Support Summary**
+- **Fully Supported (14 protocols)**: VLESS, VMess, Trojan, Shadowsocks, SS2022, Hysteria v1, Hysteria2, TUIC, WireGuard, SOCKS5, SOCKS4, HTTP/HTTPS, SSH, NaiveProxy
+- **Parse-Only (7 protocols)**: SSR, Snell, Brook, Juicity, OpenVPN, XRay, V2Ray JSON (not supported by sing-box natively)
+
+**Quality Checks**
+- All 733 unit tests passing
+- All modified files pass mypy, black, and flake8
+
+---
+
 ## [2.0.9] - 2025-12-22
 
 ### Comprehensive Technical Debt Resolution & Protocol Fixes
