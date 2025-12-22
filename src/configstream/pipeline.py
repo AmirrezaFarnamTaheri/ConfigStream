@@ -240,7 +240,9 @@ async def run_full_pipeline(
         stats.final_count = len(optimized_proxies)
 
         # Generate Outputs
-        duration = (datetime.now(timezone.utc) - start_time).total_seconds()
+        # [FIX] Set end_time for proper tracking
+        stats.end_time = datetime.now(timezone.utc)
+        duration = (stats.end_time - start_time).total_seconds()
         stats.duration = float(duration)
 
         generated_files = await output_handler.generate_pipeline_outputs(

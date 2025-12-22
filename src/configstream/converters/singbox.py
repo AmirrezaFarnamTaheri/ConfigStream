@@ -87,7 +87,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "type": "vless",
             **base,
             "uuid": str(uuid),
-            "flow": str(proxy.details.get("flow", "")),
+            # [FIX] Don't use str() which converts None to "None" string
+            "flow": proxy.details.get("flow") or "",
         }
         add_transport_sb(out, proxy.details)
 
@@ -153,17 +154,24 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     elif proxy.protocol == "hysteria":
         # Map Hysteria v1
+        # [FIX] Parse up/down speeds from config instead of hardcoding
+        up_mbps = proxy.details.get("up_mbps") or proxy.details.get("up", 100)
+        down_mbps = proxy.details.get("down_mbps") or proxy.details.get("down", 100)
         out = {
             "type": "hysteria",
             **base,
             "auth_str": str(proxy.details.get("auth_str", "")),
-            "up_mbps": 100,
-            "down_mbps": 100,
+            "up_mbps": int(up_mbps) if str(up_mbps).isdigit() else 100,
+            "down_mbps": int(down_mbps) if str(down_mbps).isdigit() else 100,
         }
+        # [FIX] Respect allowInsecure flag instead of hardcoding True
+        is_insecure = False
+        if proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify"):
+            is_insecure = True
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni", "")),
-            "insecure": True,
+            "insecure": is_insecure,
         }
     elif proxy.protocol == "socks5":
         # Sing-box expects type "socks" for SOCKS5 outbounds.
@@ -251,7 +259,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }
-        if proxy.details.get("obfs-type") == "salamander":
+        # [FIX] Check both "obfs-type" and "obfs" fields - parser stores as "obfs"
+        obfs_type = proxy.details.get("obfs-type") or proxy.details.get("obfs")
+        if obfs_type == "salamander":
             out["obfs"] = {
                 "type": "salamander",
                 "password": str(proxy.details.get("obfs-password", "")),

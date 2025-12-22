@@ -64,5 +64,10 @@ class PipelineStats:
             "revived_warp": self.revived_warp,
             "revived_vwarp": self.revived_vwarp,
             "total_revived": self.total_revived,
+            # [FIX] Add missing vwarp stats for CLI/API export
+            "vwarp_attempts": self.vwarp_attempts,
+            "vwarp_success": self.vwarp_success,
             "vwarp_win_rate": self.vwarp_win_rate,
+            # [FIX] Add drop_reasons for debugging
+            "drop_reasons": self.drop_reasons,
         }

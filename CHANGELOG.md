@@ -1,3 +1,26 @@
+## [2.0.9] - 2025-12-22
+
+### Comprehensive Technical Debt Resolution & Protocol Fixes
+
+**CRITICAL Protocol Fixes**
+- **VLESS Flow Bug**: Fixed `str(proxy.details.get("flow", ""))` which converted `None` to literal `"None"` string instead of empty string. (singbox.py:90)
+- **Hysteria2 Obfuscation**: Fixed field name mismatch - parser stored `obfs`, converter looked for `obfs-type`. Now checks both fields. (singbox.py:254-257)
+- **Hysteria v1 Insecure TLS**: Removed hardcoded `insecure: True` - now respects `allowInsecure` and `skip_cert_verify` flags from config. (singbox.py:167-174)
+- **Hysteria v1 Speed Config**: Now parses `up_mbps`/`down_mbps` from config instead of hardcoding 100 Mbps. (singbox.py:157-165)
+
+**Pipeline & Stats Fixes**
+- **Missing get_warp_config()**: Added method to ProxyWasher class required by chaining.py for washed chain generation. (washer/core.py:220-245)
+- **stats.end_time**: Now properly set at pipeline completion for accurate duration tracking. (pipeline.py:243-244)
+- **Stats Export**: Added `vwarp_attempts`, `vwarp_success`, and `drop_reasons` to PipelineStats.to_dict() for complete CLI/API export. (stats.py:68-72)
+- **Metadata Export**: All PipelineStats metrics now exported to metadata.json including revived_warp, revived_vwarp, duration_seconds, geo_resolved, cache_misses. (output_logic.py)
+- **Sing-box _process Field**: Added `_strip_internal_metadata()` to remove internal `_` prefixed fields before JSON serialization, fixing mobile client parse errors.
+
+**Quality Checks**
+- All 720 unit tests passing
+- All modified files pass mypy, black, and flake8
+
+---
+
 ## [2.0.8] - 2025-12-21
 
 ### Critical Fixes: Log Rotation, Metadata Standardization, and Frontend Consistency
