@@ -333,104 +333,79 @@ def _generate_statistics(
     except Exception as e:
         logger.warning(f"Failed to generate globe points: {e}")
 
-    stats = {
-        # Canonical Keys
+    # [UNIFIED] Single metadata.json - merged statistics.json into metadata.json
+    # This is now the single source of truth for all frontend stats
+    washed_chains_count = 0
+    if (output_dir / "singbox.json").exists():
+        try:
+            with open(output_dir / "singbox.json", "r") as f:
+                sb_config = json.load(f)
+                washed_chains_count = sum(
+                    1
+                    for out in sb_config.get("outbounds", [])
+                    if out.get("tag", "").startswith("🛡️ Secure")
+                )
+        except Exception:
+            pass
+
+    # Unified metadata.json - single source of truth
+    meta = {
+        # Schema version for frontend compatibility checks
+        "schema_version": "2.3.0",
+        # Timestamps
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "last_updated_utc": datetime.now(timezone.utc).isoformat(),
+        # Canonical Keys (used by frontend)
         "total_lines_sourced": total_processed,
         "total_unique_candidates": len(ranked),
         "total_valid_proxies": working_proxies,
-        # Additional Metrics
-        "total_clean": working_proxies,  # Proxies that work natively
-        "total_dirty": total_processed - working_proxies,  # Proxies that failed/blocked
-        "total_washed": total_washed,  # Candidates for washing (attempted)
-        "total_revived": total_revived,  # Successfully revived via Washing
-        "total_smart_chains": total_smart_chains_count,  # Smart chains generated
-        "smart_chain_count": total_smart_chains_count,  # [FIX] Legacy alias for frontend
-        "rejection_reasons": dict(rejection_reasons),
+        "total_proxies": total_processed,
+        "total_sourced": total_processed,
+        "total_tested": len(ranked),
+        "total_working": working_proxies,
+        "success_rate": (working_proxies / len(ranked)) if ranked else 0,
+        # Metrics
+        "total_clean": working_proxies,
+        "total_dirty": total_processed - working_proxies,
+        "total_washed": total_washed,
+        "total_revived": total_revived,
+        "total_smart_chains": total_smart_chains_count,
+        "smart_chain_count": total_smart_chains_count,
+        "washed_chains": washed_chains_count,
+        "smart_chains_breakdown": (
+            {k: len(v) for k, v in smart_chains.items()} if smart_chains else {}
+        ),
+        # Distribution data
         "latency_distribution": latency_dist,
-        "proxy_locations": globe_points,
+        "latency_by_country": avg_latency_by_country,
+        "latency_by_protocol": avg_latency_by_protocol,
         "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
+        "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
+        "country_stats": dict(sorted(country_counts.items())),
         "countries": dict(sorted(country_counts.items())),
-        "country_stats": dict(sorted(country_counts.items())),  # Alias for frontend
-        "asns": dict(
-            sorted(asn_counts.items(), key=lambda item: item[1], reverse=True)[:15]
-        ),  # Top 15 ASNs
+        "proxies_by_country": dict(sorted(country_counts.items())),
+        "top_10_countries": sorted(
+            country_counts.items(), key=lambda item: item[1], reverse=True
+        )[:10],
+        "rejection_reasons": dict(rejection_reasons),
+        "asns": dict(sorted(asn_counts.items())),
         "ports": dict(
             sorted(port_counts.items(), key=lambda item: item[1], reverse=True)[:10]
-        ),  # Top 10 Ports
+        ),
+        # Globe visualization data
+        "proxy_locations": globe_points,
+        # Chosen proxies breakdown
         "chosen": {
             "total": len(chosen),
             "working": working_chosen,
             "protocols": {k: len(v) for k, v in chosen_by_protocol.items()},
         },
-        # Legacy
-        "total_proxies": len(ranked),
-        "proxies_by_protocol": {k: len(v) for k, v in proxies_by_protocol.items()},
-        "proxies_by_country": dict(sorted(country_counts.items())),
-        "top_10_countries": sorted(
-            country_counts.items(), key=lambda item: item[1], reverse=True
-        )[:10],
-        # FIX: Add latency by country and protocol for frontend analytics charts
-        "latency_by_country": avg_latency_by_country,
-        "latency_by_protocol": avg_latency_by_protocol,
-    }
-
-    with open(output_dir / "statistics.json", "w") as f:
-        json.dump(stats, f, indent=2)
-
-    meta_stats: Dict[str, Any] = {
-        "working": working_proxies,
-        "total_fetched": total_processed,
-        "duration": 0.0,
-    }
-    # Add washer stats if available in the log/environment (passed via washed_outbounds indirectly or we can infer)
-    if (output_dir / "singbox.json").exists():
-        try:
-            with open(output_dir / "singbox.json", "r") as f:
-                sb_config = json.load(f)
-                washed_count = sum(
-                    1
-                    for out in sb_config.get("outbounds", [])
-                    if out.get("tag", "").startswith("🛡️ Secure")
-                )
-                if washed_count > 0:
-                    meta_stats["washed_chains"] = washed_count
-        except Exception:
-            pass
-
-    if smart_chains:
-        meta_stats["smart_chains_breakdown"] = {
-            k: len(v) for k, v in smart_chains.items()
-        }
-
-    # metadata.json (Legacy/Frontend Compat)
-    # Replicate logic from save_metadata but synchronous and compatible with dict stats
-    meta = {
-        "total_proxies": total_processed,
-        "total_sourced": total_processed,  # Alias for clarity
-        "total_tested": len(ranked),
-        "total_working": working_proxies,
-        "success_rate": (working_proxies / len(ranked)) if ranked else 0,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "last_updated_utc": datetime.now(timezone.utc).isoformat(),
-        "latency_distribution": latency_dist,
-        "latency_by_country": avg_latency_by_country,
-        "latency_by_protocol": avg_latency_by_protocol,
-        "protocols": {k: len(v) for k, v in proxies_by_protocol.items()},
-        "country_stats": dict(sorted(country_counts.items())),
-        "rejection_reasons": dict(rejection_reasons),
-        "asns": dict(sorted(asn_counts.items())),
-        "total_revived": total_revived,
-        "total_smart_chains": total_smart_chains_count,
-        "smart_chains_breakdown": (
-            {k: len(v) for k, v in smart_chains.items()} if smart_chains else {}
-        ),
-        "total_dirty": total_processed - working_proxies,  # Approximation
-        "washed_chains": meta_stats.get("washed_chains", 0),
-        "total_clean": working_proxies,
     }
 
     with open(output_dir / "metadata.json", "w") as f:
         json.dump(meta, f, indent=2)
+
+    # NOTE: statistics.json removed - metadata.json is now single source of truth
     # FIX: Removed save_metadata() call which was overwriting metadata.json
     # with a different schema, causing zero values in frontend.
     # The 'meta' dict above already contains all required fields.

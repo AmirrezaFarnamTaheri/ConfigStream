@@ -186,6 +186,16 @@ def save_metadata(
     vwarp_win_rate = 0.0
     scanner_ips_found = 0
     fetched_sources = 0
+    total_configured_sources = 0  # [FIX] Total sources from config for frontend display
+    # [FIX] Additional stats that were missing from export
+    revived_warp = 0
+    revived_vwarp = 0
+    vwarp_attempts = 0
+    vwarp_success = 0
+    duration_seconds = 0.0
+    geo_resolved = 0
+    cache_misses = 0
+    final_count = 0
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
@@ -201,6 +211,18 @@ def save_metadata(
         vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
         scanner_ips_found = stats.get("scanner_ips_found", 0)
         fetched_sources = stats.get("fetched_sources", 0)
+        total_configured_sources = (
+            stats.get("total_configured_sources", 0) or fetched_sources
+        )
+        # [FIX] Extract additional stats from dict
+        revived_warp = stats.get("revived_warp", 0)
+        revived_vwarp = stats.get("revived_vwarp", 0)
+        vwarp_attempts = stats.get("vwarp_attempts", 0)
+        vwarp_success = stats.get("vwarp_success", 0)
+        duration_seconds = stats.get("duration", 0.0)
+        geo_resolved = stats.get("geo_resolved", 0)
+        cache_misses = stats.get("cache_misses", 0)
+        final_count = stats.get("final_count", 0)
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
@@ -225,6 +247,26 @@ def save_metadata(
             scanner_ips_found = stats.scanner_ips_found
         if hasattr(stats, "fetched_sources"):
             fetched_sources = stats.fetched_sources
+        # [FIX] Extract total_configured_sources for frontend sources_count
+        if hasattr(stats, "total_configured_sources"):
+            total_configured_sources = stats.total_configured_sources or fetched_sources
+        # [FIX] Extract additional stats from PipelineStats object
+        if hasattr(stats, "revived_warp"):
+            revived_warp = stats.revived_warp
+        if hasattr(stats, "revived_vwarp"):
+            revived_vwarp = stats.revived_vwarp
+        if hasattr(stats, "vwarp_attempts"):
+            vwarp_attempts = stats.vwarp_attempts
+        if hasattr(stats, "vwarp_success"):
+            vwarp_success = stats.vwarp_success
+        if hasattr(stats, "duration"):
+            duration_seconds = stats.duration
+        if hasattr(stats, "geo_resolved"):
+            geo_resolved = stats.geo_resolved
+        if hasattr(stats, "cache_misses"):
+            cache_misses = stats.cache_misses
+        if hasattr(stats, "final_count"):
+            final_count = stats.final_count
 
     # Fallback heuristics if counts still 0 (use values from single-pass loop)
     if washed_count == 0:
@@ -245,8 +287,13 @@ def save_metadata(
     # Calculate update interval (default 6 hours for production)
     update_interval_hours = int(os.getenv("UPDATE_INTERVAL_HOURS", "6"))
 
+    # [FIX] Compute total_revived properly from both WARP and Vwarp
+    total_revived_count = revived_warp + revived_vwarp
+    if total_revived_count == 0:
+        total_revived_count = washed_count  # Fallback to heuristic
+
     meta = {
-        "schema_version": "2.1.0",
+        "schema_version": "2.2.0",  # Bumped for new stats fields
         "version": pkg_version,
         "total_proxies": total,  # Total working proxies (final count)
         "total_tested": tested_count,  # Number of proxies actually tested
@@ -260,7 +307,7 @@ def save_metadata(
         "rejection_reasons": reasons,
         "asns": asns,
         "isp_stats": asns,  # Alias for legacy tests
-        "total_revived": washed_count,
+        "total_revived": total_revived_count,
         "total_smart_chains": smart_chain_count,
         "smart_chains_breakdown": smart_chains_breakdown,
         "total_dirty": reasons.get("dirty_ip", 0) + reasons.get("honeypot", 0),
@@ -269,13 +316,25 @@ def save_metadata(
         "scanner_ips_found": scanner_ips_found,
         "washer_success_count": washed_count,
         "smart_chain_count": smart_chain_count,
+        # [FIX] Export all revive/vwarp stats for complete tracking
+        "revived_warp": revived_warp,
+        "revived_vwarp": revived_vwarp,
+        "vwarp_attempts": vwarp_attempts,
+        "vwarp_success": vwarp_success,
+        # [FIX] Export pipeline performance metrics
+        "duration_seconds": duration_seconds,
+        "geo_resolved": geo_resolved,
+        "cache_misses": cache_misses,
+        "final_count": final_count or working,
         # Canonical Keys (Consolidated)
         "total_lines_sourced": total_sourced,
         "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
         "total_valid_proxies": working,
-        # Frontend display values - provide actual values, frontend handles fallback
-        "sources_count": fetched_sources,
-        "total_sources": fetched_sources,
+        # Frontend display values - use total_configured_sources for proper display
+        # [FIX] sources_count should show total configured sources, not just processed ones
+        "sources_count": total_configured_sources or fetched_sources,
+        "total_sources": total_configured_sources or fetched_sources,
+        "fetched_sources": fetched_sources,  # Actual sources processed
         "update_interval_hours": update_interval_hours,
         # Legacy mappings for backward compatibility (tests only)
         "fetched_lines": total_sourced,
@@ -286,3 +345,6 @@ def save_metadata(
 
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
+
+    # NOTE: statistics.json removed - metadata.json is now single source of truth
+    # All frontend code updated to use metadata.json directly

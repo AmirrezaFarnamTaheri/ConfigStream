@@ -203,7 +203,8 @@ class UpdateDetector {
                         url = basePath + 'proxies.json';
                         break;
                     case 'statistics':
-                        url = basePath + 'statistics.json';
+                        // [UNIFIED] statistics now uses metadata.json - single source of truth
+                        url = basePath + 'metadata.json';
                         break;
                     default:
                         return null;
