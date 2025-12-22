@@ -434,29 +434,37 @@ function _initGlobeInternal(data, container) {
 
     // [FIX] Renamed from 'Globe' to 'globe' to avoid shadowing window.Globe
     // which causes "Cannot access 'Globe' before initialization" error
-    const globe = window.Globe()
-      (container)
-      .globeImageUrl(globeTexture)
-      .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-      .pointsData(pointsData)
-      .pointAltitude(0.01)
-      .pointRadius('size')
-      .pointColor('color')
-      .pointLabel('name')
-      .arcsData(arcsData)
-      .arcColor('color')
-      .arcDashLength(0.4)
-      .arcDashGap(0.2)
-      .arcDashAnimateTime(1500)
-      .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
+    let globe;
+    try {
+        globe = window.Globe()
+          (container)
+          .globeImageUrl(globeTexture)
+          .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+          .pointsData(pointsData)
+          .pointAltitude(0.01)
+          .pointRadius('size')
+          .pointColor('color')
+          .pointLabel('name')
+          .arcsData(arcsData)
+          .arcColor('color')
+          .arcDashLength(0.4)
+          .arcDashGap(0.2)
+          .arcDashAnimateTime(1500)
+          .onPointHover(point => container.style.cursor = point ? 'pointer' : 'default');
 
-    if (isDarkMode) {
-        globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
-    } else {
-        const scene = globe.scene();
-        if (scene) {
-            scene.background = new THREE.Color(0xf0f4f8);
+        if (isDarkMode) {
+            globe.backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png');
+        } else {
+            const scene = globe.scene();
+            if (scene) {
+                scene.background = new THREE.Color(0xf0f4f8);
+            }
         }
+    } catch (e) {
+        console.error("Failed to initialize Globe:", e);
+        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);"><i data-feather="globe" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i><span>3D Visualization Unavailable</span><span style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">WebGL is not supported in this environment</span></div>';
+        if (window.feather) window.feather.replace();
+        return;
     }
 
     const controls = globe.controls();
