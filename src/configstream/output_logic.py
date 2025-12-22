@@ -186,6 +186,7 @@ def save_metadata(
     vwarp_win_rate = 0.0
     scanner_ips_found = 0
     fetched_sources = 0
+    total_configured_sources = 0  # [FIX] Total sources from config for frontend display
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
@@ -201,6 +202,9 @@ def save_metadata(
         vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
         scanner_ips_found = stats.get("scanner_ips_found", 0)
         fetched_sources = stats.get("fetched_sources", 0)
+        total_configured_sources = (
+            stats.get("total_configured_sources", 0) or fetched_sources
+        )
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
@@ -225,6 +229,9 @@ def save_metadata(
             scanner_ips_found = stats.scanner_ips_found
         if hasattr(stats, "fetched_sources"):
             fetched_sources = stats.fetched_sources
+        # [FIX] Extract total_configured_sources for frontend sources_count
+        if hasattr(stats, "total_configured_sources"):
+            total_configured_sources = stats.total_configured_sources or fetched_sources
 
     # Fallback heuristics if counts still 0 (use values from single-pass loop)
     if washed_count == 0:
@@ -273,9 +280,11 @@ def save_metadata(
         "total_lines_sourced": total_sourced,
         "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
         "total_valid_proxies": working,
-        # Frontend display values - provide actual values, frontend handles fallback
-        "sources_count": fetched_sources,
-        "total_sources": fetched_sources,
+        # Frontend display values - use total_configured_sources for proper display
+        # [FIX] sources_count should show total configured sources, not just processed ones
+        "sources_count": total_configured_sources or fetched_sources,
+        "total_sources": total_configured_sources or fetched_sources,
+        "fetched_sources": fetched_sources,  # Actual sources processed
         "update_interval_hours": update_interval_hours,
         # Legacy mappings for backward compatibility (tests only)
         "fetched_lines": total_sourced,
