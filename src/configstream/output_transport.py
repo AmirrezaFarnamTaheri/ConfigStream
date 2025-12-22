@@ -176,9 +176,10 @@ def save_metadata(  # pylint: disable=too-many-locals,too-many-branches,too-many
     }
 
     metadata_content = json.dumps(metadata, indent=2)
-    for filename in ["metadata.json", "summary.json"]:
-        target_path = output_dir / filename
-        AtomicFileWriter.write_text(target_path, metadata_content)
+    # [UNIFIED] Only create metadata.json - single source of truth
+    # summary.json removed as it was identical content
+    target_path = output_dir / "metadata.json"
+    AtomicFileWriter.write_text(target_path, metadata_content)
 
 
 def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:

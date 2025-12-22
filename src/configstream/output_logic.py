@@ -346,8 +346,5 @@ def save_metadata(
     with open(meta_path, "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    # [FIX] Also save as statistics.json for frontend compatibility
-    # The frontend fetchStatistics() function tries statistics.json first before falling back
-    stats_path = output_dir / "statistics.json"
-    with open(stats_path, "w", encoding="utf-8") as f:
-        json.dump(meta, f, indent=2)
+    # NOTE: statistics.json removed - metadata.json is now single source of truth
+    # All frontend code updated to use metadata.json directly

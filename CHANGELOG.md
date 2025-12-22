@@ -1,3 +1,29 @@
+## [2.0.11] - 2025-12-22
+
+### JSON Output Unification - Single Source of Truth
+
+**Unified Data Files**
+- **metadata.json is now the single source of truth**: Removed redundant `statistics.json` and `summary.json` files that contained identical/overlapping data with `metadata.json`. This simplifies the frontend data flow and eliminates potential consistency issues.
+
+**Backend Changes**
+- **output_logic.py**: Removed `statistics.json` creation - all stats now in `metadata.json`
+- **output_transport.py**: Removed `summary.json` creation (was identical to `metadata.json`)
+- **scripts/merge/generators.py**: Merged all statistics fields into single `metadata.json` output
+
+**Frontend Changes**
+- **analytics.js**: Now fetches directly from `metadata.json` instead of `statistics.json`
+- **utils/network.js**: `fetchStatistics()` updated to use `metadata.json`, `getUrlForKey('statistics')` redirects to `metadata.json`
+- **cache-config.js**: Removed `statistics.json` from `networkFirst` cache strategy
+
+**Test Updates**
+- **tests/e2e/test_frontend.py**: Updated mock to only intercept `metadata.json` (removed `statistics.json` mock)
+
+**Quality Checks**
+- All 729 unit tests passing
+- All modified files pass mypy, black, and flake8
+
+---
+
 ## [2.0.10] - 2025-12-22
 
 ### Complete Protocol Implementation & Final Bug Fixes
