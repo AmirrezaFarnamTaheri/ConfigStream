@@ -2,6 +2,20 @@
 
 ## Recent Fixes
 
+### v2.0.9 Protocol & Technical Debt Fixes (2025-12-22)
+✅ **Comprehensive Protocol and Pipeline Fixes**
+- **VLESS Flow Bug Fixed**: `str(None)` → `"None"` issue resolved, now correctly returns empty string
+- **Hysteria2 Obfuscation Fixed**: Converter now checks both `obfs-type` and `obfs` fields (parser uses `obfs`)
+- **Hysteria v1 Security Fixed**: Removed hardcoded `insecure: True`, now respects config flags
+- **Missing get_warp_config()**: Added to ProxyWasher for washed chain generation
+- **Stats Export Complete**: `vwarp_attempts`, `vwarp_success`, `drop_reasons` now in to_dict()
+- **Pipeline Duration**: `stats.end_time` now properly set for accurate timing
+- **Sing-box Mobile Fix**: Internal `_process` metadata stripped before JSON output
+
+**All 720 Unit Tests Passing**
+
+---
+
 ### v2.0.8 Comprehensive Audit (2025-12-21)
 ✅ **Full Project Audit Completed**
 - **All 720 Unit Tests Passing**
