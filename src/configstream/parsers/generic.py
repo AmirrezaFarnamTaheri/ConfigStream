@@ -11,7 +11,9 @@ logger = logging.getLogger(__name__)
 _IPV4_PATTERN = re.compile(
     r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
 )
-_HOSTNAME_PATTERN = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$")
+_HOSTNAME_PATTERN = re.compile(
+    r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
+)
 
 
 def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
@@ -28,17 +30,26 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                 # Check for IPv4 address
                 is_valid_ipv4 = _IPV4_PATTERN.match(host) is not None
                 # Check for valid hostname (domain name)
-                is_valid_hostname = _HOSTNAME_PATTERN.match(host) is not None and len(host) <= 253
+                is_valid_hostname = (
+                    _HOSTNAME_PATTERN.match(host) is not None and len(host) <= 253
+                )
                 # Check for IPv6 (simple check: contains only hex digits and colons)
-                is_potential_ipv6 = all(c in "0123456789abcdefABCDEF:" for c in host) and host.count(":") >= 2
+                is_potential_ipv6 = (
+                    all(c in "0123456789abcdefABCDEF:" for c in host)
+                    and host.count(":") >= 2
+                )
 
                 if not (is_valid_ipv4 or is_valid_hostname or is_potential_ipv6):
-                    logger.debug(f"Naked IP:PORT rejected: invalid host format '{host}'")
+                    logger.debug(
+                        f"Naked IP:PORT rejected: invalid host format '{host}'"
+                    )
                     return None
 
                 # Validate port range
                 if not (1 <= port_val <= 65535):
-                    logger.debug(f"Naked IP:PORT rejected: port {port_val} out of range")
+                    logger.debug(
+                        f"Naked IP:PORT rejected: port {port_val} out of range"
+                    )
                     return None
 
                 # Assume HTTP if not specified

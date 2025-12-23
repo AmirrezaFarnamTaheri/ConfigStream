@@ -45,11 +45,12 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 *   **Zero-Cost Distribution:** Uses GitHub Pages with optimized caching strategies.
 
 ### 🔌 Universal Adapters (Expanded)
-*   **Surge:** Native policy export (supports VLESS, Hy2, TUIC).
-*   **Loon:** Native configuration export (supports VLESS, Hy2, TUIC, WireGuard).
-*   **Quantumult X:** Server node export (supports VLESS).
-*   **Shadowrocket:** Base64 subscription links (supports VLESS, Hy2, TUIC, Plugins).
+*   **Surge:** Native policy export (supports VLESS, Hy2, TUIC, Smart Chains).
+*   **Loon:** Native configuration export (supports VLESS, Hy2, TUIC, WireGuard, Smart Chains).
+*   **Quantumult X:** Server node export (supports VLESS, Smart Chains).
+*   **Shadowrocket:** Base64 subscription links (supports VLESS, Hy2, TUIC, Plugins, Smart Chains).
 *   **SIP008:** Standard JSON format for Shadowsocks.
+*   **Native Configs Pack:** ZIP archive with OpenVPN (.ovpn), WireGuard (.conf), and plain URIs for direct client import.
 
 ---
 
@@ -68,6 +69,7 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 *   **The Tank (VPN Mode):** `https://.../singbox-vpn.json` (Best for stability)
 *   **The Diplomat (Clash):** `https://.../clash.yaml` (Universal compatibility)
 *   **Universal Base64:** `https://.../base64.txt`
+*   **Native Configs Pack:** `https://.../side_products.zip` (OpenVPN, WireGuard, plain URIs)
 
 ### Running Locally
 
