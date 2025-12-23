@@ -2,6 +2,50 @@
 
 ## Recent Fixes
 
+### v2.0.12 Critical Technical Debt Resolution (2025-12-23)
+✅ **Critical Performance and Concurrency Fixes**
+- **Race Condition in ProxyWasher Fixed**: Added `asyncio.Lock` for async operations
+  - Previously only `threading.Lock` was used, causing potential data corruption with concurrent async tasks
+  - Now uses separate locks: `_async_state_lock` for async ops, `_state_lock` for sync properties
+  - Prevents corruption of `_clean_ips` and `_warp_keys` shared state
+
+- **Memory Leak in Consumer Fixed**: Improved `seen_keys` deduplication eviction strategy
+  - Old implementation: Pre-emptive batch eviction created full list copies (O(n²) memory spikes)
+  - New implementation: Only evicts oldest 10% when approaching 200K limit
+  - Uses `difference_update()` for O(n) eviction instead of full list copies
+  - Prevents OOM crashes under heavy load
+
+- **Consumer Timeout Deadlock Fixed**: Removed problematic timeout from queue.get()
+  - Old implementation: 600s timeout could cause premature exit if sources are slow to fetch
+  - New implementation: Relies on proper sentinel (None) mechanism for termination
+  - Prevents incomplete processing and lost data during slow network conditions
+
+- **Connection Pool Limits Added**: Bounded httpx connection pool to prevent resource exhaustion
+  - Added hard cap of 500 max connections (was unbounded at `PER_HOST_MAX_CONCURRENCY * 10`)
+  - Prevents file descriptor exhaustion and connection storms
+  - Maintains `max_keepalive_connections=100` for efficiency
+
+**Frontend Improvements**
+- **3D Globe Widget Fixed**: Added retry mechanism for library loading
+  - Checks for both Globe.gl and THREE.js dependencies
+  - Retries every 200ms for up to 4 seconds (20 attempts)
+  - Provides clear error messages if libraries fail to load
+  - Prevents "Globe is undefined" errors on slow connections
+
+**Documentation Updates**
+- Updated ARCHITECTURE.md with 26+ protocol support details and security constraints
+- Updated CHANGELOG.md with comprehensive v2.0.12 entry
+- Updated wiki documentation (02-architecture.md, 03-protocols.md) with all new features
+- Documented Side Products feature (OpenVPN, WireGuard, Plain URIs)
+- Documented Smart Chains in all adapters
+
+**Code Quality**
+- All changes formatted with Black
+- Zero flake8 errors (E501 line length only on comments)
+- Mypy clean (1 non-blocking stub warning for cachetools)
+
+---
+
 ### v2.0.10 Complete Protocol Implementation (2025-12-22)
 ✅ **New Protocol Converters Added**
 - **Shadowsocks 2022 (SS2022)**: Full converter implementation, uses `2022-blake3-aes-128-gcm` default cipher

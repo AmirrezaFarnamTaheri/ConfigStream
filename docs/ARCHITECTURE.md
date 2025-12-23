@@ -85,8 +85,10 @@ ConfigStream is an automated VPN configuration aggregator that collects, tests, 
 │                                                        │         │
 │  ┌────────────────────────────────────────────────────▼──────┐  │
 │  │                   OUTPUT GENERATION                        │  │
-│  │  • Base64  • Clash  • Sing-box  • Shadowrocket  • More    │  │
-│  │  • Washed Chains  • Smart Routing                         │  │
+│  │  • Base64  • Clash  • Sing-box  • Shadowrocket           │  │
+│  │  • Surge  • Loon  • Quantumult X  • SIP008               │  │
+│  │  • Side Products: OpenVPN, WireGuard, Plain URIs (ZIP)   │  │
+│  │  • Washed Chains  • Smart Routing  • Smart Chains        │  │
 │  └────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────┬────────────────────────────────┘
                                    │
@@ -139,9 +141,9 @@ async def fetch_multiple_sources(
 
 **Responsibility**: Parse and normalize proxy configurations
 
-**Supported Protocols** (25+):
-- VMess, VLESS, Shadowsocks, Trojan, Hysteria 2
-- TUIC, Wireguard, Juicity, SSH, SOCKS5, HTTP
+**Supported Protocols** (26+):
+- VMess, VLESS, Shadowsocks, SS2022, Trojan, Hysteria 2
+- TUIC, Wireguard, Juicity, SSH, SOCKS5, HTTP, OpenVPN, SSR
 - Auto-detection for unlabeled configs
 
 **Implementation**:
@@ -153,6 +155,7 @@ def parse_proxy(config_str: str) -> Optional[Proxy]:
     3. Parse JSON/URI format
     4. Normalize fields
     5. Generate stable ID
+    6. Validate security constraints
     """
 ```
 
@@ -161,7 +164,8 @@ def parse_proxy(config_str: str) -> Optional[Proxy]:
 - **Base64 Decoding**: Handles various padding
 - **JSON Parsing**: Nested config structures
 - **URI Parsing**: Query string extraction
-- **Validation**: Port ranges, cipher support
+- **Validation**: Port ranges (1-65535), cipher support, hostname format
+- **Security**: Input size limits (1MB for OpenVPN), injection prevention
 
 ---
 
@@ -311,24 +315,31 @@ def calculate_balanced_score(proxy: Proxy) -> float:
 
 ### 8. Output Generator (`output.py` & `adapters.py`)
 
-**Responsibility**: Generate subscription files
+**Responsibility**: Generate subscription files and native protocol exports
 
 **Output Formats**:
 - Base64 subscription URLs
 - Clash YAML
-- Sing-box JSON (including Washed chains)
-- Surge conf (supports WireGuard-over-Proxy)
-- Loon conf (supports WireGuard-over-Proxy)
-- Quantumult X
-- Shadowrocket
+- Sing-box JSON (including Washed chains & Smart chains)
+- Surge conf (supports WireGuard-over-Proxy & Smart chains)
+- Loon conf (supports WireGuard-over-Proxy & Smart chains)
+- Quantumult X (with Smart chains)
+- Shadowrocket (with Smart chains)
 - SIP008 JSON
+
+**Side Products** (Native Protocol Exports):
+- **OpenVPN**: Individual `.ovpn` files for direct import
+- **WireGuard**: Individual `.conf` files for WireGuard clients
+- **Plain URIs**: Protocol-grouped text files (VMess, VLess, etc.)
+- **ZIP Archive**: Complete package with README and all side products
 
 **Key Features**:
 - **Atomic Writes**: Temp file + rename
 - **Compression**: Gzipped variants
-- **Metadata**: JSON with statistics
+- **Metadata**: JSON with statistics (sources_count, vwarp efficiency)
 - **Split-Brain Prevention**: Centralized washing logic
 - **Country Splits**: Separate files per country
+- **Smart Chains**: Topology-aware chains in all adapters
 
 ---
 
@@ -530,13 +541,20 @@ async with concurrency.get_semaphore():
 
 ### Thread Safety
 
-All shared data structures use async locks:
+All shared data structures use appropriate locks:
 
 ```python
-async with self._stats_lock:
-    self.latencies.append(latency)
-    self.errors.append(not success)
+# For async operations: asyncio.Lock
+async with self._async_state_lock:
+    self._clean_ips = fresh_endpoints
+    self._warp_keys = new_keys
+
+# For sync operations: threading.Lock
+with self._state_lock:
+    return self._warp_keys[:]
 ```
+
+**Critical Fix (v2.0.12)**: Added separate `asyncio.Lock` for async operations in ProxyWasher to prevent race conditions when concurrent async tasks access shared state. Previously, only `threading.Lock` was used, which doesn't protect async operations.
 
 ---
 
@@ -844,7 +862,28 @@ for i in range(0, len(proxies), chunk_size):
     results = await asyncio.gather(*[test(p) for p in chunk])
 ```
 
-### 6. Memory Slots
+### 6. Smart Deduplication with Memory Management
+
+```python
+# [v2.0.12 FIX] Efficient deduplication with bounded memory
+max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
+
+for proxy in parsed_batch:
+    key = proxy_unique_key(proxy)
+    if key not in seen_keys:
+        # Only evict when approaching limit
+        if len(seen_keys) >= max_seen:
+            eviction_count = max(1000, max_seen // 10)
+            keys_to_remove = list(seen_keys)[:eviction_count]
+            seen_keys.difference_update(keys_to_remove)
+
+        seen_keys.add(key)
+        unique_batch.append(proxy)
+```
+
+**Improvement**: Previous implementation used crude batch eviction that created full list copies, causing memory spikes. New implementation only evicts when at capacity and uses `difference_update()` for efficiency.
+
+### 7. Memory Slots
 
 ```python
 @dataclass
@@ -1072,6 +1111,6 @@ Key architectural decisions:
 
 ---
 
-**Last Updated**: 2025-12-17
-**Version**: 2.1.0
+**Last Updated**: 2025-12-23
+**Version**: 2.0.12
 **Author**: ConfigStream Team

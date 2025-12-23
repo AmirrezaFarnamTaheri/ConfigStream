@@ -4,16 +4,23 @@ ConfigStream supports a vast array of censorship-circumvention protocols. This d
 
 ## Protocol Support Matrix
 
+ConfigStream supports **26+ protocols** with comprehensive parsing and validation.
+
 | Protocol | Parsing Module | Supported Transports | Notes |
 | :--- | :--- | :--- | :--- |
 | **Shadowsocks** | `parsers.shadowsocks` | TCP, UDP, Obfs | The standard. Supports modern AEAD ciphers. |
+| **SS2022** | `parsers.shadowsocks` | TCP, UDP | Modern Shadowsocks with improved security. |
 | **VMess** | `parsers.vmess` | TCP, WS, gRPC, H2 | The V2Ray workhorse. Require UUID + AlterID(0). |
 | **VLESS** | `parsers.vless` | TCP, WS, gRPC, Reality | Lightweight, unencrypted (TLS-native). |
 | **Trojan** | `parsers.trojan` | TCP (TLS) | Mimics HTTPS traffic. |
-| **Hysteria 2** | `parsers.others` | UDP | High-performance QUIC based. |
-| **Tuic** | `parsers.others` | UDP | QUIC based. |
-| **WireGuard** | `parsers.others` | UDP | Supported via Cloudflare WARP integration. |
+| **Hysteria 2** | `parsers.hysteria` | UDP | High-performance QUIC based. |
+| **Tuic** | `parsers.tuic` | UDP | QUIC based. |
+| **WireGuard** | `parsers.wireguard` | UDP | Native support + Cloudflare WARP integration. |
+| **OpenVPN** | `parsers.openvpn` | TCP, UDP | Industry standard VPN protocol. |
+| **ShadowsocksR** | `parsers.ssr` | TCP | Legacy SS fork with obfuscation. |
 | **SSH** | `parsers.others` | TCP | Legacy tunneling. |
+| **SOCKS5/HTTP** | `parsers.generic` | TCP | Standard proxy protocols. |
+| **Juicity** | `parsers.others` | UDP | QUIC-based protocol. |
 
 ## Parsing Logic Diagrams
 
@@ -143,15 +150,21 @@ This prevents duplicate entries where the only difference is the "Remark" or the
 
 Before a proxy enters the testing phase, it must pass the **Gatekeeper**:
 
-1.  **Port Range**: 1-65535.
+1.  **Port Range**: 1-65535 (strict validation).
 2.  **Host Validity**:
     *   Must not be a private IP (`192.168.x.x`, `10.x.x.x`, `127.0.0.1`) unless `allow_private` is set (dev mode).
     *   Must not be a broadcast or multicast address.
+    *   Hostname format validation (RFC-compliant, max 253 chars).
 3.  **Field Integrity**:
     *   VMess: Must have `id` (UUID).
     *   Shadowsocks: Must have `method` and `password`.
     *   Trojan: Must have `password`.
-4.  **Scheme Enforcement**:
+    *   SSR: Must call `normalize_proxy_details()` for consistency.
+4.  **Security Constraints** (v2.0.12):
+    *   **OpenVPN**: Max config size 1MB (DoS prevention), strict "client" directive matching (not in comments).
+    *   **Generic Parser**: IPv4/IPv6/hostname validation with regex patterns to prevent injection.
+    *   **All Parsers**: Input sanitization, blocklisting, and size limits applied.
+5.  **Scheme Enforcement**:
     *   Standard parsing requires valid schemes (`vmess://`, `ss://`).
-    *   **Naked IP Support**: We have limited support for `IP:PORT` lines. These are heuristically detected (e.g. port 80/443 -> HTTP, 1080 -> SOCKS) and parsed as generic proxies. This is disabled for strict sources to prevent false positives.
+    *   **Naked IP Support**: We have limited support for `IP:PORT` lines with strict validation. These are heuristically detected (e.g. port 80/443 -> HTTP, 1080 -> SOCKS) and parsed as generic proxies. This is disabled for strict sources to prevent false positives.
     *   **Port Hopping**: Hysteria2 port hopping syntax (`ports=1000-2000`) is parsed, but complex hopping rules may be simplified for client compatibility.

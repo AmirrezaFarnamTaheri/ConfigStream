@@ -101,18 +101,38 @@ function initGlobe(data) {
     // Show loading indicator
     container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;"><div class="spinner" style="border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;"></div>Loading globe...</div>';
 
-    // Lazy load globe to improve initial page load
-    setTimeout(() => _initGlobeInternal(data, container), 100);
+    // Wait for Globe.gl and THREE.js libraries to be available (retry mechanism)
+    const tryInitGlobe = (attempts = 0) => {
+        if (window.Globe && typeof window.Globe === 'function' && window.THREE) {
+            _initGlobeInternal(data, container);
+        } else if (attempts < 20) {
+            // Retry every 200ms for up to 4 seconds
+            setTimeout(() => tryInitGlobe(attempts + 1), 200);
+        } else {
+            const missingLib = !window.THREE ? 'THREE.js' : 'Globe.gl';
+            console.error(`${missingLib} library failed to load after 4 seconds`);
+            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);"><i data-feather="globe" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i><span>3D Globe Unavailable</span><span style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Library failed to load. Please refresh the page.</span></div>';
+            if (window.feather) window.feather.replace();
+        }
+    };
+
+    // Start trying to initialize the globe
+    tryInitGlobe();
 }
 
 function _initGlobeInternal(data, container) {
     // Clear loading indicator
     container.innerHTML = '';
 
-    // Check if Globe library is loaded
-    if (typeof Globe === 'undefined' || typeof window.Globe !== 'function') {
+    // Check if Globe and THREE libraries are loaded
+    if (!window.Globe || typeof window.Globe !== 'function') {
         console.error('Globe.gl library not loaded');
         container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">Globe visualization unavailable</div>';
+        return;
+    }
+    if (!window.THREE) {
+        console.error('THREE.js library not loaded');
+        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">3D rendering library unavailable</div>';
         return;
     }
 

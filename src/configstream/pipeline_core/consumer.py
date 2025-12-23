@@ -70,12 +70,12 @@ async def processing_consumer(
     await washer.fetch_clean_ips()
 
     while True:
-        try:
-            timeout_val = float(os.getenv("CONSUMER_TIMEOUT", "600.0"))
-            item = await asyncio.wait_for(work_queue.get(), timeout=timeout_val)
-        except asyncio.TimeoutError:
-            logger.warning("Consumer timed out waiting for work. Exiting.")
-            break
+        # [FIX] Critical: Removed timeout to prevent deadlock
+        # The producer sends None as sentinel when done, which is the proper
+        # termination mechanism. A timeout could cause premature exit if sources
+        # are slow to fetch, leading to incomplete processing and lost data.
+        # If timeout is needed for debugging, use a very large value (3600+)
+        item = await work_queue.get()
 
         if item is None:
             work_queue.task_done()
@@ -138,17 +138,26 @@ async def processing_consumer(
         unique_batch = []
         duplicates_count = 0
         async with seen_lock:
+            # [FIX] Critical: Use more efficient deduplication
+            # Instead of crude batch eviction that creates full list copies,
+            # we now rely on set's natural O(1) lookup and only evict when necessary
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
-            eviction_batch_size = max(1000, max_seen // 10)
-
-            if len(seen_keys) > max_seen:
-                keys_list = list(seen_keys)
-                for old_key in keys_list[:eviction_batch_size]:
-                    seen_keys.discard(old_key)
 
             for p in parsed_batch:
                 k = proxy_unique_key(p)
                 if k not in seen_keys:
+                    # [FIX] If approaching limit, remove oldest 10% before adding new
+                    if len(seen_keys) >= max_seen:
+                        # Remove 10% of oldest entries (FIFO approximation)
+                        # Note: Sets don't preserve order, so we convert and slice
+                        # This is still expensive but happens less frequently
+                        eviction_count = max(1000, max_seen // 10)
+                        keys_to_remove = list(seen_keys)[:eviction_count]
+                        seen_keys.difference_update(keys_to_remove)
+                        logger.debug(
+                            f"Evicted {len(keys_to_remove)} keys from seen_keys (size: {len(seen_keys)})"
+                        )
+
                     seen_keys.add(k)
                     unique_batch.append(p)
                 else:

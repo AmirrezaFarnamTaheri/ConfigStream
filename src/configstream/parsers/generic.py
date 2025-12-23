@@ -1,10 +1,19 @@
 import logging
 import json
+import re
 from typing import Optional
 from urllib.parse import urlparse, unquote
 from ..models import Proxy
 
 logger = logging.getLogger(__name__)
+
+# Regex patterns for IP validation
+_IPV4_PATTERN = re.compile(
+    r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+)
+_HOSTNAME_PATTERN = re.compile(
+    r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$"
+)
 
 
 def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
@@ -14,12 +23,41 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         if "://" not in config and ":" in config and not config.startswith("{"):
             parts = config.split(":")
             if len(parts) == 2 and parts[1].isdigit():
+                host = parts[0]
+                port_val = int(parts[1])
+
+                # [SECURITY FIX] Validate IP/hostname format
+                # Check for IPv4 address
+                is_valid_ipv4 = _IPV4_PATTERN.match(host) is not None
+                # Check for valid hostname (domain name)
+                is_valid_hostname = (
+                    _HOSTNAME_PATTERN.match(host) is not None and len(host) <= 253
+                )
+                # Check for IPv6 (simple check: contains only hex digits and colons)
+                is_potential_ipv6 = (
+                    all(c in "0123456789abcdefABCDEF:" for c in host)
+                    and host.count(":") >= 2
+                )
+
+                if not (is_valid_ipv4 or is_valid_hostname or is_potential_ipv6):
+                    logger.debug(
+                        f"Naked IP:PORT rejected: invalid host format '{host}'"
+                    )
+                    return None
+
+                # Validate port range
+                if not (1 <= port_val <= 65535):
+                    logger.debug(
+                        f"Naked IP:PORT rejected: port {port_val} out of range"
+                    )
+                    return None
+
                 # Assume HTTP if not specified
                 return Proxy(
                     config=config,
                     protocol="http",
-                    address=parts[0],
-                    port=int(parts[1]),
+                    address=host,
+                    port=port_val,
                     uuid="",
                     details={},
                     remarks="naked_ip",

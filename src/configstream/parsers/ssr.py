@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 from urllib.parse import parse_qs
 from ..models import Proxy
-from .base import safe_b64_decode, validate_b64_input
+from .base import safe_b64_decode, validate_b64_input, normalize_proxy_details
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +80,10 @@ def parse_ssr(config: str) -> Optional[Proxy]:
 
             params_decoded[k] = decoded_val
 
-        # remarks is already decoded in params_decoded; don’t decode twice
+        # remarks is already decoded in params_decoded; don't decode twice
         remarks = params_decoded.get("remarks", "")
 
-        return Proxy(
+        proxy = Proxy(
             config=config,
             protocol="ssr",
             address=server,
@@ -97,6 +97,9 @@ def parse_ssr(config: str) -> Optional[Proxy]:
                 "params": params_decoded,
             },
         )
+        # [FIX] Add missing normalize_proxy_details call (present in all other parsers)
+        normalize_proxy_details(proxy)
+        return proxy
     except (ValueError, IndexError) as e:
         logger.debug(f"Failed to parse SSR: {e}")
         return None
