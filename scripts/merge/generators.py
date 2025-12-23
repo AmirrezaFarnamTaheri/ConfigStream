@@ -137,8 +137,11 @@ def generate_outputs(
     # 6. Steganography
     _generate_stego(output_dir, root_dir)
 
-    # 7. Adapters
-    _generate_adapters(ranked_proxies, output_dir)
+    # 7. Adapters (including smart chains and revived proxies)
+    _generate_adapters(ranked_proxies, output_dir, washed_outbounds=washed_outbounds)
+
+    # 7.1 Non-Singbox Protocol Outputs (OpenVPN, etc.)
+    _generate_native_protocol_outputs(ranked_proxies, output_dir)
 
     # 8. Statistics & Metadata
     _generate_statistics(
@@ -187,15 +190,204 @@ def _generate_stego(output_dir: Path, root_dir: Path):
             logger.warning(f"⚠️ Failed to inject stego key: {e}")
 
 
-def _generate_adapters(proxies: List[Proxy], output_dir: Path):
+def _generate_native_protocol_outputs(proxies: List[Proxy], output_dir: Path):
+    """
+    Generate native protocol outputs for non-Singbox clients.
+    Supports: OpenVPN (.ovpn), WireGuard (.conf), plain URIs (.txt)
+    Creates a ZIP archive of all side products for easy download.
+    """
+    import zipfile
+    from datetime import datetime
+
+    side_products_dir = output_dir / "side_products"
+    side_products_dir.mkdir(exist_ok=True)
+    generated_count = 0
+
     try:
-        (output_dir / "surge.conf").write_text(get_adapter("surge").export(proxies))
-        (output_dir / "shadowrocket.txt").write_text(
-            get_adapter("shadowrocket").export(proxies)
+        # 1. OpenVPN Export (.ovpn files)
+        openvpn_proxies = [p for p in proxies if p.protocol == "openvpn"]
+        if openvpn_proxies:
+            ovpn_dir = side_products_dir / "openvpn"
+            ovpn_dir.mkdir(exist_ok=True)
+
+            for idx, proxy in enumerate(openvpn_proxies, start=1):
+                if proxy.config and len(proxy.config) > 50:
+                    country = proxy.country_code or "XX"
+                    filename = f"{country}_{idx}.ovpn"
+                    filepath = ovpn_dir / filename
+                    filepath.write_text(proxy.config, encoding="utf-8")
+                    generated_count += 1
+
+            # Concatenated file
+            all_ovpn_path = ovpn_dir / "all_configs.txt"
+            with open(all_ovpn_path, "w", encoding="utf-8") as f:
+                for idx, proxy in enumerate(openvpn_proxies, start=1):
+                    if proxy.config:
+                        f.write(f"# OpenVPN Config {idx}\n")
+                        f.write(f"# Country: {proxy.country_code or 'Unknown'}\n")
+                        f.write(f"# Address: {proxy.address}:{proxy.port}\n")
+                        f.write(proxy.config)
+                        f.write("\n\n" + "=" * 60 + "\n\n")
+
+            logger.info(f"✓ Generated {len(openvpn_proxies)} OpenVPN configs")
+
+        # 2. WireGuard Export (.conf files)
+        wireguard_proxies = [p for p in proxies if p.protocol == "wireguard"]
+        if wireguard_proxies:
+            wg_dir = side_products_dir / "wireguard"
+            wg_dir.mkdir(exist_ok=True)
+
+            for idx, proxy in enumerate(wireguard_proxies, start=1):
+                try:
+                    # Generate WireGuard config from proxy details
+                    country = proxy.country_code or "XX"
+                    filename = f"{country}_{idx}.conf"
+                    filepath = wg_dir / filename
+
+                    # Build WireGuard config
+                    private_key = proxy.details.get("private_key", "")
+                    address = proxy.details.get("local_address", ["10.0.0.2/32"])
+                    if isinstance(address, list):
+                        address = address[0]
+
+                    # Peer info
+                    public_key = proxy.details.get("peer_public_key", "")
+                    endpoint = f"{proxy.address}:{proxy.port}"
+                    reserved = proxy.details.get("reserved", [0, 0, 0])
+
+                    wg_config = f"""[Interface]
+PrivateKey = {private_key}
+Address = {address}
+DNS = 1.1.1.1, 1.0.0.1
+
+[Peer]
+PublicKey = {public_key}
+Endpoint = {endpoint}
+AllowedIPs = 0.0.0.0/0, ::/0
+PersistentKeepalive = 25
+"""
+                    if reserved and any(r != 0 for r in reserved):
+                        wg_config += f"# Reserved: {','.join(map(str, reserved))}\n"
+
+                    filepath.write_text(wg_config, encoding="utf-8")
+                    generated_count += 1
+                except Exception as e:
+                    logger.debug(f"Failed to generate WireGuard config {idx}: {e}")
+
+            logger.info(f"✓ Generated {len(wireguard_proxies)} WireGuard configs")
+
+        # 3. Plain URI Lists (for manual import)
+        uri_dir = side_products_dir / "plain_uris"
+        uri_dir.mkdir(exist_ok=True)
+
+        # Group by protocol
+        protocol_groups: Dict[str, List[str]] = {}
+        for proxy in proxies:
+            if proxy.protocol not in ["openvpn"]:  # Skip protocols already handled
+                if proxy.config:  # Has URI representation
+                    protocol_groups.setdefault(proxy.protocol, []).append(proxy.config)
+
+        for protocol, configs in protocol_groups.items():
+            if configs:
+                filepath = uri_dir / f"{protocol}_uris.txt"
+                filepath.write_text(
+                    "\n".join(configs[:500]), encoding="utf-8"
+                )  # Limit to 500
+                generated_count += len(configs[:500])
+
+        if protocol_groups:
+            logger.info(
+                f"✓ Generated plain URI files for {len(protocol_groups)} protocols"
+            )
+
+        # 4. Create README
+        readme_path = side_products_dir / "README.txt"
+        readme_content = f"""ConfigStream Side Products
+Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}
+
+This archive contains native protocol configurations that can be used
+with various VPN clients without requiring Sing-box or Clash.
+
+CONTENTS:
+=========
+
+1. openvpn/
+   - Individual .ovpn files (one per server)
+   - all_configs.txt (concatenated list)
+   - Compatible with: OpenVPN Connect, Tunnelblick, OpenVPN GUI
+
+2. wireguard/
+   - Individual .conf files (one per server)
+   - Compatible with: WireGuard official client, wireguard-tools
+
+3. plain_uris/
+   - Protocol-specific URI lists
+   - Can be imported into compatible clients manually
+
+USAGE:
+======
+
+OpenVPN:
+  Import .ovpn files directly into your OpenVPN client
+
+WireGuard:
+  - GUI: Import .conf files via "Import tunnel(s) from file"
+  - CLI: wg-quick up /path/to/config.conf
+
+Plain URIs:
+  Copy-paste URIs into your client's subscription/manual add dialog
+
+For more information, visit: https://github.com/AmirrezaFarnamTaheri/ConfigStream
+"""
+        readme_path.write_text(readme_content, encoding="utf-8")
+
+        # 5. Create ZIP archive
+        if generated_count > 0:
+            zip_path = output_dir / "side_products.zip"
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+                for file in side_products_dir.rglob("*"):
+                    if file.is_file():
+                        arcname = file.relative_to(side_products_dir)
+                        zipf.write(file, arcname)
+
+            zip_size_mb = zip_path.stat().st_size / (1024 * 1024)
+            logger.info(
+                f"✓ Created side_products.zip ({zip_size_mb:.2f} MB, {generated_count} configs)"
+            )
+        else:
+            logger.debug("No side products generated (no compatible protocols found)")
+
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to generate native protocol outputs: {e}")
+
+
+def _generate_adapters(
+    proxies: List[Proxy],
+    output_dir: Path,
+    washed_outbounds: Optional[List[Dict[str, Any]]] = None,
+):
+    """Generate adapter configs including smart chains and revived proxies."""
+    try:
+        (output_dir / "surge.conf").write_text(
+            get_adapter("surge").export(proxies, washed_outbounds=washed_outbounds)
         )
-        (output_dir / "loon.conf").write_text(get_adapter("loon").export(proxies))
-        (output_dir / "quantumult.conf").write_text(get_adapter("qx").export(proxies))
-        (output_dir / "sip008.json").write_text(get_adapter("sip008").export(proxies))
+        (output_dir / "shadowrocket.txt").write_text(
+            get_adapter("shadowrocket").export(
+                proxies, washed_outbounds=washed_outbounds
+            )
+        )
+        (output_dir / "loon.conf").write_text(
+            get_adapter("loon").export(proxies, washed_outbounds=washed_outbounds)
+        )
+        (output_dir / "quantumult.conf").write_text(
+            get_adapter("qx").export(proxies, washed_outbounds=washed_outbounds)
+        )
+        (output_dir / "sip008.json").write_text(
+            get_adapter("sip008").export(proxies, washed_outbounds=washed_outbounds)
+        )
+        logger.info(
+            f"✓ Generated adapter configs with {len(washed_outbounds) if washed_outbounds else 0} smart chains"
+        )
     except Exception as e:
         logger.warning(f"⚠️ Failed to generate adapter configs: {e}")
 
@@ -348,6 +540,56 @@ def _generate_statistics(
         except Exception:
             pass
 
+    # Calculate vwarp_win_rate from batch metadata if available
+    vwarp_attempts = 0
+    vwarp_success = 0
+    total_configured_sources = 0
+
+    # Aggregate vwarp stats from all batch metadata
+    batch_dirs = sorted(
+        list(
+            (
+                output_dir.parent
+                if output_dir.name == "frontend"
+                else output_dir.parent.parent
+            ).glob("batch_*")
+        )
+    )
+    for batch_dir in batch_dirs:
+        meta_path = batch_dir / "metadata.json"
+        if meta_path.exists():
+            try:
+                batch_meta = json.loads(meta_path.read_text())
+                vwarp_attempts += batch_meta.get("vwarp_attempts", 0)
+                vwarp_success += batch_meta.get("vwarp_success", 0)
+                # Get total_configured_sources from any batch (should be same across all batches)
+                if total_configured_sources == 0:
+                    total_configured_sources = batch_meta.get(
+                        "total_configured_sources", 0
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to read batch metadata from {batch_dir}: {e}")
+
+    # Calculate vwarp_win_rate percentage
+    vwarp_win_rate = (
+        (vwarp_success / vwarp_attempts * 100) if vwarp_attempts > 0 else 0.0
+    )
+
+    # Get update interval from environment or default to 6 hours
+    update_interval_hours = int(os.getenv("UPDATE_INTERVAL_HOURS", "6"))
+
+    # If we still don't have total_configured_sources, try to count from environment or use fallback
+    if total_configured_sources == 0:
+        # Fallback: try to estimate from SOURCES_URL env var or use reasonable default
+        sources_env = os.getenv("SOURCES_URL", "")
+        if sources_env:
+            total_configured_sources = len(
+                [s.strip() for s in sources_env.split(",") if s.strip()]
+            )
+        else:
+            # Ultimate fallback: use a reasonable default based on project configuration
+            total_configured_sources = 668  # Known approximate count from project docs
+
     # Unified metadata.json - single source of truth
     meta = {
         # Schema version for frontend compatibility checks
@@ -375,6 +617,14 @@ def _generate_statistics(
         "smart_chains_breakdown": (
             {k: len(v) for k, v in smart_chains.items()} if smart_chains else {}
         ),
+        # Vwarp efficiency stats
+        "vwarp_attempts": vwarp_attempts,
+        "vwarp_success": vwarp_success,
+        "vwarp_win_rate": round(vwarp_win_rate, 1),
+        # Frontend display values
+        "sources_count": total_configured_sources,
+        "total_sources": total_configured_sources,
+        "update_interval_hours": update_interval_hours,
         # Distribution data
         "latency_distribution": latency_dist,
         "latency_by_country": avg_latency_by_country,
