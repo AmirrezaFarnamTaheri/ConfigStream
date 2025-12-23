@@ -281,7 +281,7 @@ PersistentKeepalive = 25
         uri_dir.mkdir(exist_ok=True)
 
         # Group by protocol
-        protocol_groups = {}
+        protocol_groups: Dict[str, List[str]] = {}
         for proxy in proxies:
             if proxy.protocol not in ["openvpn"]:  # Skip protocols already handled
                 if proxy.config:  # Has URI representation
@@ -290,11 +290,15 @@ PersistentKeepalive = 25
         for protocol, configs in protocol_groups.items():
             if configs:
                 filepath = uri_dir / f"{protocol}_uris.txt"
-                filepath.write_text("\n".join(configs[:500]), encoding="utf-8")  # Limit to 500
+                filepath.write_text(
+                    "\n".join(configs[:500]), encoding="utf-8"
+                )  # Limit to 500
                 generated_count += len(configs[:500])
 
         if protocol_groups:
-            logger.info(f"✓ Generated plain URI files for {len(protocol_groups)} protocols")
+            logger.info(
+                f"✓ Generated plain URI files for {len(protocol_groups)} protocols"
+            )
 
         # 4. Create README
         readme_path = side_products_dir / "README.txt"
@@ -368,7 +372,9 @@ def _generate_adapters(
             get_adapter("surge").export(proxies, washed_outbounds=washed_outbounds)
         )
         (output_dir / "shadowrocket.txt").write_text(
-            get_adapter("shadowrocket").export(proxies, washed_outbounds=washed_outbounds)
+            get_adapter("shadowrocket").export(
+                proxies, washed_outbounds=washed_outbounds
+            )
         )
         (output_dir / "loon.conf").write_text(
             get_adapter("loon").export(proxies, washed_outbounds=washed_outbounds)
@@ -540,7 +546,15 @@ def _generate_statistics(
     total_configured_sources = 0
 
     # Aggregate vwarp stats from all batch metadata
-    batch_dirs = sorted(list((output_dir.parent if output_dir.name == "frontend" else output_dir.parent.parent).glob("batch_*")))
+    batch_dirs = sorted(
+        list(
+            (
+                output_dir.parent
+                if output_dir.name == "frontend"
+                else output_dir.parent.parent
+            ).glob("batch_*")
+        )
+    )
     for batch_dir in batch_dirs:
         meta_path = batch_dir / "metadata.json"
         if meta_path.exists():
@@ -550,12 +564,16 @@ def _generate_statistics(
                 vwarp_success += batch_meta.get("vwarp_success", 0)
                 # Get total_configured_sources from any batch (should be same across all batches)
                 if total_configured_sources == 0:
-                    total_configured_sources = batch_meta.get("total_configured_sources", 0)
+                    total_configured_sources = batch_meta.get(
+                        "total_configured_sources", 0
+                    )
             except Exception as e:
                 logger.warning(f"Failed to read batch metadata from {batch_dir}: {e}")
 
     # Calculate vwarp_win_rate percentage
-    vwarp_win_rate = (vwarp_success / vwarp_attempts * 100) if vwarp_attempts > 0 else 0.0
+    vwarp_win_rate = (
+        (vwarp_success / vwarp_attempts * 100) if vwarp_attempts > 0 else 0.0
+    )
 
     # Get update interval from environment or default to 6 hours
     update_interval_hours = int(os.getenv("UPDATE_INTERVAL_HOURS", "6"))
@@ -565,7 +583,9 @@ def _generate_statistics(
         # Fallback: try to estimate from SOURCES_URL env var or use reasonable default
         sources_env = os.getenv("SOURCES_URL", "")
         if sources_env:
-            total_configured_sources = len([s.strip() for s in sources_env.split(',') if s.strip()])
+            total_configured_sources = len(
+                [s.strip() for s in sources_env.split(",") if s.strip()]
+            )
         else:
             # Ultimate fallback: use a reasonable default based on project configuration
             total_configured_sources = 668  # Known approximate count from project docs
