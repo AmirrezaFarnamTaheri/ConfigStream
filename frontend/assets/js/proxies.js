@@ -243,9 +243,13 @@ function renderTable() {
                 }).join(' ');
 
                 // Determine trend direction
+                // Note: For latency, lower is better, but visually we show:
+                // - Red for downward trend (decreasing latency line)
+                // - Green for upward trend (increasing latency line)
+                // This matches user's visual expectation where trend direction color matches the arrow direction
                 const firstVal = validHistory[0];
                 const lastVal = validHistory[validHistory.length - 1];
-                const trendColor = lastVal < firstVal ? '#10b981' : (lastVal > firstVal ? '#ef4444' : '#6366f1');
+                const trendColor = lastVal < firstVal ? '#ef4444' : (lastVal > firstVal ? '#10b981' : '#6366f1');
                 const trendIcon = lastVal < firstVal ? '↓' : (lastVal > firstVal ? '↑' : '→');
 
                 trendCell.innerHTML = `
