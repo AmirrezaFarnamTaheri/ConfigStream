@@ -70,12 +70,12 @@ async def processing_consumer(
     await washer.fetch_clean_ips()
 
     while True:
-        try:
-            timeout_val = float(os.getenv("CONSUMER_TIMEOUT", "600.0"))
-            item = await asyncio.wait_for(work_queue.get(), timeout=timeout_val)
-        except asyncio.TimeoutError:
-            logger.warning("Consumer timed out waiting for work. Exiting.")
-            break
+        # [FIX] Critical: Removed timeout to prevent deadlock
+        # The producer sends None as sentinel when done, which is the proper
+        # termination mechanism. A timeout could cause premature exit if sources
+        # are slow to fetch, leading to incomplete processing and lost data.
+        # If timeout is needed for debugging, use a very large value (3600+)
+        item = await work_queue.get()
 
         if item is None:
             work_queue.task_done()
