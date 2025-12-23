@@ -68,6 +68,17 @@ A unique feature of ConfigStream is **"Proxy Washing"**.
     *   **Clean Exit (WARP)**: Handles the reputation check (accessing the target site).
     *   **Result**: A "Smart Chain" that is both uncensored and clean.
     *   **Verification**: The pipeline generates these chains and *re-tests* them end-to-end using the Go Tester to ensure connectivity.
+    *   **Thread Safety** (v2.0.12): Concurrent WARP key fetching is now protected by `asyncio.Lock` to prevent race conditions when multiple async tasks access shared state.
+
+### Output Generation & Side Products
+
+ConfigStream generates multiple output formats:
+*   **Standard Adapters**: Sing-box, Clash, Surge, Loon, Quantumult X, Shadowrocket, SIP008 (all include Smart Chains)
+*   **Side Products** (v2.0.12):
+    *   **OpenVPN**: Individual `.ovpn` files for direct import into OpenVPN clients
+    *   **WireGuard**: Individual `.conf` files for native WireGuard clients
+    *   **Plain URIs**: Protocol-grouped text files (VMess, VLess, Shadowsocks, etc.)
+    *   **ZIP Archive**: Complete package with README and all side products for easy download
 
 ## 2. The Data Plane (The Hybrid Engine)
 
@@ -109,6 +120,7 @@ Running on a 7GB RAM shared runner requires strict discipline.
 2.  **Generators**: We use Python generators (`yield`) to pass data between stages.
 3.  **Garbage Collection**: We explicitly delete large objects and call `gc.collect()` after heavy batch processing phases.
 4.  **Artifact Passing**: For the "Merge" job, we don't pass raw objects. We pass optimized SQLite files and compressed JSON, minimizing the I/O overhead between GitHub Actions jobs.
+5.  **Smart Deduplication** (v2.0.12): The `seen_keys` set now uses efficient eviction strategy, only removing oldest 10% when approaching the 200,000 key limit. Previous implementation created full list copies causing memory spikes. New implementation uses `difference_update()` for O(n) eviction instead of O(n²).
 
 ## Data Flow & Sharding
 

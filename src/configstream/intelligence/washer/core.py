@@ -1,3 +1,4 @@
+import asyncio
 import json
 import hashlib
 import logging
@@ -49,6 +50,8 @@ class ProxyWasher:
         self.seen_chains: LRUCache[str, bool] = LRUCache(maxsize=50000)
         self._seen_chains_lock = threading.Lock()
         self._state_lock = threading.Lock()
+        # [FIX] Critical: Add asyncio lock for async operations to prevent race conditions
+        self._async_state_lock = asyncio.Lock()
         self._clean_ips: List[str] = []
 
         self.scanner = WarpScannerWorker()
@@ -80,20 +83,24 @@ class ProxyWasher:
     async def fetch_clean_ips(self) -> None:
         """
         Fetches the latest clean IPs for WARP endpoints.
+        [FIX] Critical: Now uses async lock to prevent race conditions with concurrent fetches
         """
+        # [FIX] Use async lock for async operations instead of threading.Lock
+        async with self._async_state_lock:
+            # Check if we need to fetch (inside lock to prevent double-fetching)
+            current_keys = self._warp_keys[:]
+            current_ips = self._clean_ips[:]
+
         # --- STRATEGY 0.5: WARP KEYS & IPs FROM SCRAPER (Priority 1) ---
         # We prioritize scraping because it doesn't require a binary
-        if not self.warp_keys or not self.clean_ips:
+        if not current_keys or not current_ips:
             try:
                 scraper = WarpScraper()
                 scraped_keys = await scraper.scrape_warp_sources()
 
                 fresh_endpoints = scraper.get_scraped_endpoints()
-                if fresh_endpoints:
-                    self.clean_ips = fresh_endpoints
-                    logger.info(f"Loaded {len(fresh_endpoints)} clean IPs from Scraper")
-
                 new_keys = []
+
                 for p in scraped_keys:
                     key_dict = {
                         "private_key": p.details.get("private_key"),
@@ -103,11 +110,19 @@ class ProxyWasher:
                     if key_dict["private_key"] and key_dict["peer_public_key"]:
                         new_keys.append(key_dict)
 
-                if new_keys:
-                    self.warp_keys = new_keys
-                    logger.info(
-                        f"Loaded {len(new_keys)} WARP keys from community sources"
-                    )
+                # [FIX] Update state with async lock
+                async with self._async_state_lock:
+                    if fresh_endpoints:
+                        self._clean_ips = fresh_endpoints
+                        logger.info(
+                            f"Loaded {len(fresh_endpoints)} clean IPs from Scraper"
+                        )
+
+                    if new_keys:
+                        self._warp_keys = new_keys
+                        logger.info(
+                            f"Loaded {len(new_keys)} WARP keys from community sources"
+                        )
             except Exception as e:
                 logger.warning(f"WARP scraper failed: {e}")
 

@@ -1,3 +1,56 @@
+## [2.0.12] - 2025-12-23
+
+### Security Hardening, Side Products, and Code Quality Improvements
+
+**Critical Security Fixes**
+- **OpenVPN Parser Hardening** (CRITICAL):
+  - Added 1MB config size limit to prevent DoS/memory exhaustion attacks
+  - Implemented strict port range validation (1-65535)
+  - Added hostname length (255 chars) and format validation
+  - Strengthened "client" directive detection to prevent false positives
+  - Replaced generic exception handling with specific exception types
+  - Added transport protocol validation (tcp/udp/tcp-client/udp-client)
+- **SSR Parser Fix** (MEDIUM): Added missing `normalize_proxy_details()` call for consistent attribute normalization
+- **Generic Parser Validation** (MEDIUM): Added comprehensive IP/hostname validation for naked IP:PORT format with IPv4, IPv6, and hostname support
+
+**Native Protocol Exports - Side Products Feature**
+- **OpenVPN Support**: Individual .ovpn files + concatenated list for all OpenVPN configs
+- **WireGuard Support**: Individual .conf files with complete configuration (PrivateKey, Address, Peer, Reserved bytes)
+- **Plain URI Lists**: Protocol-grouped text files (500 limit per protocol) for manual import
+- **ZIP Archive**: All side products packaged in side_products.zip with comprehensive README
+- **Frontend Integration**: New download card with translations in 5 languages (EN, ZH, FA, RU, AR)
+
+**Frontend Display Fixes**
+- Fixed "0 sources" display by aggregating from batch metadata with environment fallback
+- Fixed "0% Vwarp Efficiency" by properly calculating from batch vwarp_attempts/vwarp_success
+- Fixed trend plot colors (red for downward, green for upward trends)
+- Smart chains now properly included in all adapter exports (Surge, Loon, Quantumult X, Shadowrocket, SIP008)
+
+**Code Quality & Linting**
+- **Black Formatting**: Ran on entire codebase, 2 files reformatted, 139 already compliant
+- **Flake8 Linting**: Zero errors across 141 source files
+- **Mypy Type Checking**: Fixed 2 type annotation errors, all 140 files pass type checking
+- **Technical Debt Analysis**: Identified and documented 20 issues (4 Critical, 6 High, 6 Medium, 4 Low) with prioritized remediation roadmap
+
+**Documentation Updates**
+- Updated README.md with Smart Chains and Native Configs Pack features
+- All adapter documentation now reflects smart chain support
+- Added side_products.zip to subscription links section
+
+**Verified Components**
+- **Vwarp Implementation**: Verified against official repo (voidr3aper-anon/Vwarp) - all commands and ports correct
+- **Go Core**: Analyzed Sing-box 1.8.14 integration, WASM support, worker pools - no issues found
+- **WARP Scraper**: Reviewed error handling, format support, IP validation - no issues found
+
+**Quality Metrics**
+- Linting errors: 0
+- Type errors: 0
+- Security vulnerabilities fixed: 3 critical, 1 medium
+- Protocols analyzed: 26+
+- Tests: All linting and type checking passes
+
+---
+
 ## [2.0.11] - 2025-12-22
 
 ### JSON Output Unification - Single Source of Truth
