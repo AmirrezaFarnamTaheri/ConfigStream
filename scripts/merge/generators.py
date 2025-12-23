@@ -140,6 +140,9 @@ def generate_outputs(
     # 7. Adapters (including smart chains and revived proxies)
     _generate_adapters(ranked_proxies, output_dir, washed_outbounds=washed_outbounds)
 
+    # 7.1 Non-Singbox Protocol Outputs (OpenVPN, etc.)
+    _generate_native_protocol_outputs(ranked_proxies, output_dir)
+
     # 8. Statistics & Metadata
     _generate_statistics(
         ranked_proxies,
@@ -185,6 +188,54 @@ def _generate_stego(output_dir: Path, root_dir: Path):
             inject_stego_key_into_frontend(dynamic_key, js_path)
         except Exception as e:
             logger.warning(f"⚠️ Failed to inject stego key: {e}")
+
+
+def _generate_native_protocol_outputs(proxies: List[Proxy], output_dir: Path):
+    """
+    Generate native protocol outputs for non-Singbox clients.
+    Currently supports: OpenVPN (.ovpn files)
+    """
+    try:
+        # Filter OpenVPN proxies
+        openvpn_proxies = [p for p in proxies if p.protocol == "openvpn"]
+
+        if openvpn_proxies:
+            # Create ovpn directory
+            ovpn_dir = output_dir / "openvpn"
+            ovpn_dir.mkdir(exist_ok=True)
+
+            # Generate individual .ovpn files
+            for idx, proxy in enumerate(openvpn_proxies, start=1):
+                # Use proxy config which should contain the full OpenVPN configuration
+                if proxy.config and len(proxy.config) > 50:  # Sanity check
+                    # Sanitize filename: use country_code and index
+                    country = proxy.country_code or "XX"
+                    filename = f"{country}_{idx}.ovpn"
+                    filepath = ovpn_dir / filename
+
+                    # Write config directly - it's already in OpenVPN format
+                    filepath.write_text(proxy.config, encoding="utf-8")
+
+            # Also create a concatenated file with all configs
+            if len(openvpn_proxies) > 0:
+                all_ovpn_path = output_dir / "openvpn_all.txt"
+                with open(all_ovpn_path, "w", encoding="utf-8") as f:
+                    for idx, proxy in enumerate(openvpn_proxies, start=1):
+                        if proxy.config:
+                            f.write(f"# OpenVPN Config {idx}\n")
+                            f.write(f"# Country: {proxy.country_code or 'Unknown'}\n")
+                            f.write(f"# Address: {proxy.address}:{proxy.port}\n")
+                            f.write(proxy.config)
+                            f.write("\n\n" + "=" * 60 + "\n\n")
+
+                logger.info(
+                    f"✓ Generated {len(openvpn_proxies)} OpenVPN configs in openvpn/ directory"
+                )
+        else:
+            logger.debug("No OpenVPN proxies found for native export")
+
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to generate native protocol outputs: {e}")
 
 
 def _generate_adapters(
