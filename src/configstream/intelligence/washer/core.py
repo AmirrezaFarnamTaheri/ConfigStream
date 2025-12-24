@@ -344,9 +344,9 @@ class ProxyWasher:
 
             if stats:
                 if use_vwarp:
-                    stats.revived_vwarp += 1
+                    stats.vwarp_attempts += 1
                 else:
-                    stats.revived_warp += 1
+                    stats.warp_attempts += 1
 
         return revived_candidates, revived_count
 
@@ -444,6 +444,5 @@ class ProxyWasher:
 
             if stats:
                 stats.vwarp_success += 1
-                stats.revived_warp += 1
 
         return washed_outbounds, washed_ids, skip_reasons

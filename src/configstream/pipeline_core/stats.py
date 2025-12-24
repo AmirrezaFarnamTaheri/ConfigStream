@@ -33,6 +33,7 @@ class PipelineStats:
     revived_vwarp: int = 0
 
     # Vwarp Stats (Efficiency of Vwarp Tool specifically)
+    warp_attempts: int = 0  # Standard WARP attempts
     vwarp_attempts: int = 0
     vwarp_success: int = 0
 
@@ -65,6 +66,7 @@ class PipelineStats:
             "revived_vwarp": self.revived_vwarp,
             "total_revived": self.total_revived,
             # [FIX] Add missing vwarp stats for CLI/API export
+            "warp_attempts": self.warp_attempts,
             "vwarp_attempts": self.vwarp_attempts,
             "vwarp_success": self.vwarp_success,
             "vwarp_win_rate": self.vwarp_win_rate,
