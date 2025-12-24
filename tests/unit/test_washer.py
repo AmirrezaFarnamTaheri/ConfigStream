@@ -65,9 +65,11 @@ def test_smart_chain_generation():
     assert len(chains["intranet"]) > 0
     assert isinstance(chains["intranet"][0], list)
 
+
 @pytest.fixture
 def stats():
     return PipelineStats()
+
 
 @pytest.fixture
 def washer_stats_fixture():
@@ -75,25 +77,35 @@ def washer_stats_fixture():
     fake_keys = '[{"private_key": "pk1", "peer_public_key": "pub1", "id": "k1"}]'
     return ProxyWasher(fake_keys)
 
+
 def test_wash_failed_stats_increment(washer_stats_fixture, stats):
     """Verify wash_failed increments attempts, not revived counts."""
     failed_proxy = Proxy(
-        source="test", address="1.1.1.1", port=80, protocol="vmess",
-        uuid="fail1", config="...", is_working=False
+        source="test",
+        address="1.1.1.1",
+        port=80,
+        protocol="vmess",
+        uuid="fail1",
+        config="...",
+        is_working=False,
     )
 
     # Mock _get_clean_endpoint and _get_consistent_exit to ensure success path
     washer_stats_fixture._get_clean_endpoint = MagicMock(return_value=("1.1.1.1", 2408))
 
     # 1. Use Vwarp
-    cands, count = washer_stats_fixture.wash_failed([failed_proxy], stats=stats, use_vwarp=True)
+    cands, count = washer_stats_fixture.wash_failed(
+        [failed_proxy], stats=stats, use_vwarp=True
+    )
     assert count == 1
     assert stats.vwarp_attempts == 1
     assert stats.revived_vwarp == 0  # Should NOT increment yet
     assert stats.revived_warp == 0
 
     # 2. Use Standard Warp
-    cands, count = washer_stats_fixture.wash_failed([failed_proxy], stats=stats, use_vwarp=False)
+    cands, count = washer_stats_fixture.wash_failed(
+        [failed_proxy], stats=stats, use_vwarp=False
+    )
     assert count == 1
     assert stats.warp_attempts == 1
     assert stats.revived_warp == 0  # Should NOT increment yet
@@ -103,14 +115,21 @@ def test_wash_failed_stats_increment(washer_stats_fixture, stats):
 def test_wash_batch_stats_increment(washer_stats_fixture, stats):
     """Verify wash_batch increments vwarp_attempts/success, but NOT revived_warp."""
     working_proxy = Proxy(
-        source="test", address="2.2.2.2", port=80, protocol="vmess",
-        uuid="work1", config="...", is_working=True
+        source="test",
+        address="2.2.2.2",
+        port=80,
+        protocol="vmess",
+        uuid="work1",
+        config="...",
+        is_working=True,
     )
 
     # Mock helpers
     washer_stats_fixture._get_clean_endpoint = MagicMock(return_value=("2.2.2.2", 2408))
 
-    outbounds, ids, skips = washer_stats_fixture.wash_batch([working_proxy], stats=stats)
+    outbounds, ids, skips = washer_stats_fixture.wash_batch(
+        [working_proxy], stats=stats
+    )
 
     assert len(outbounds) > 0
     assert stats.vwarp_attempts == 1

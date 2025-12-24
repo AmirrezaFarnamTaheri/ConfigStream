@@ -1,26 +1,37 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, AsyncMock, patch
-import configstream.pipeline
-from configstream.pipeline import run_full_pipeline
 from configstream.pipeline_core.models import PipelineResult
 
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
+    # Import here to avoid stale module reference if other tests reload modules
+    from configstream.pipeline import run_full_pipeline
+    import configstream.pipeline
+
     # Patch all possible locations where source_producer might be referenced
     with (
         # Primary target: The global name in the module under test
-        patch("configstream.pipeline.source_producer", new_callable=AsyncMock) as mock_prod_pipeline,
+        patch(
+            "configstream.pipeline.source_producer", new_callable=AsyncMock
+        ) as mock_prod_pipeline,
         # Secondary target: The module it imports from (in case of reload or other import quirks)
-        patch("configstream.pipeline_stages.source_producer", new_callable=AsyncMock) as mock_prod_stages,
+        patch(
+            "configstream.pipeline_stages.source_producer", new_callable=AsyncMock
+        ) as mock_prod_stages,
         # Tertiary target: The definition (in case direct import occurred somewhere)
-        patch("configstream.pipeline_core.producer.source_producer", new_callable=AsyncMock) as mock_prod_core,
-
+        patch(
+            "configstream.pipeline_core.producer.source_producer",
+            new_callable=AsyncMock,
+        ) as mock_prod_core,
         # Patch consumers similarly
-        patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock) as mock_cons,
-        patch("configstream.pipeline_stages.processing_consumer", new_callable=AsyncMock),
-
+        patch(
+            "configstream.pipeline.processing_consumer", new_callable=AsyncMock
+        ) as mock_cons,
+        patch(
+            "configstream.pipeline_stages.processing_consumer", new_callable=AsyncMock
+        ),
         patch(
             "configstream.pipeline.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
@@ -54,8 +65,14 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
         # Verify at least one of the mocks was called.
         # Ideally mock_prod_pipeline should be called, but we accept any to be robust.
-        was_called = mock_prod_pipeline.called or mock_prod_stages.called or mock_prod_core.called
-        assert was_called, "source_producer should have been called (checked pipeline, stages, and core mocks)"
+        was_called = (
+            mock_prod_pipeline.called
+            or mock_prod_stages.called
+            or mock_prod_core.called
+        )
+        assert (
+            was_called
+        ), "source_producer should have been called (checked pipeline, stages, and core mocks)"
 
         assert mock_cons.called, "processing_consumer should have been called"
         assert mock_gen.called, "generate_pipeline_outputs should have been called"
@@ -63,6 +80,9 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
 @pytest.mark.asyncio
 async def test_pipeline_auto_scaling(tmp_path):
+    # Import here to avoid stale module reference if other tests reload modules
+    from configstream.pipeline import run_full_pipeline
+
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
         patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
