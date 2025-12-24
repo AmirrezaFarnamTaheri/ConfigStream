@@ -8,7 +8,9 @@ from configstream.pipeline_core.models import PipelineResult
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
-    # Use string-based patches to ensure we hit the right namespace
+    # Patch the function where it is DEFINED to ensure all importers see the mock?
+    # No, run_full_pipeline imports it from pipeline_stages.
+    # Patching configstream.pipeline.source_producer targets the name in pipeline.py globals.
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock) as mock_prod,
         patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock) as mock_cons,
@@ -20,9 +22,6 @@ async def test_run_full_pipeline_dry_run(tmp_path):
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("configstream.pipeline.EventStream") as mock_event_stream,
-        # Also patch pipeline_stages just in case
-        patch("configstream.pipeline_stages.source_producer", new=AsyncMock()),
-        patch("configstream.pipeline_stages.processing_consumer", new=AsyncMock()),
     ):
 
         mock_tester = mock_tester_cls.return_value
