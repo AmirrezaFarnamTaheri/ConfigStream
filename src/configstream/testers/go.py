@@ -18,15 +18,15 @@ class GoBatchTester:
     def __init__(
         self,
         binary_path: str = "configstream-tester",
-        workers: int = 15,
+        workers: int = 20,
     ):
         # Clamp workers to a safe range
         try:
             w = int(workers)
         except Exception:
-            w = 15
-        # Clamp between 1 and 1000 (Memory Directive: allow up to 1000)
-        self.workers = max(1, min(w, 1000))
+            w = 20
+        # Clamp between 1 and 100 (reduced from 1000 for stability)
+        self.workers = max(1, min(w, 100))
         env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
 
         # Priority: Env Var > Absolute Path arg > PATH lookup
