@@ -292,6 +292,10 @@ def save_metadata(
     if total_revived_count == 0:
         total_revived_count = washed_count  # Fallback to heuristic
 
+    # Ensure total_revived is not zero if we have heuristics
+    if total_revived_count == 0 and warp_count_heuristic > 0:
+        total_revived_count = warp_count_heuristic
+
     meta = {
         "schema_version": "2.2.0",  # Bumped for new stats fields
         "version": pkg_version,

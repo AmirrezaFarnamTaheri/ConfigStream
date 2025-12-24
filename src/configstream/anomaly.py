@@ -13,8 +13,9 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
-import numpy as np
-from sklearn.ensemble import IsolationForest
+# Removed heavy sklearn/numpy dependency
+# import numpy as np
+# from sklearn.ensemble import IsolationForest
 
 logger = logging.getLogger(__name__)
 
@@ -79,42 +80,42 @@ CREATE TABLE IF NOT EXISTS history (
             n = len(counts)
             avg = statistics.mean(counts)
 
-            # Strategy: Use Isolation Forest if we have enough data points
-            if n >= 15:
+            # Strategy: Use Median Absolute Deviation (MAD) if we have enough data points
+            # Robust replacement for Isolation Forest that doesn't require sklearn
+            if n >= 10:
                 try:
-                    # Prepare data for Isolation Forest (needs 2D array)
-                    X = np.array(counts).reshape(-1, 1)  # pylint: disable=invalid-name
+                    median = statistics.median(counts)
+                    mad = statistics.median([abs(x - median) for x in counts])
 
-                    # Fit Isolation Forest
-                    # contamination='auto' lets it decide outlier proportion
-                    clf = IsolationForest(random_state=42, contamination=0.05)
-                    clf.fit(X)
+                    # If MAD is 0 (all values same), treat as small epsilon
+                    if mad == 0:
+                        mad = 1.0  # Avoid division by zero
 
-                    # Predict on current value
-                    prediction = clf.predict([[current_count]])
+                    # Modified Z-score
+                    # 0.6745 is the constant for normal distribution consistency
+                    modified_z = 0.6745 * (current_count - median) / mad
 
-                    # -1 is outlier, 1 is inlier
-                    if prediction[0] == -1:
-                        # Double check: If it's just a higher yield but within reason
-                        # (< 2x max historic), let it slide
+                    # Threshold of 3.5 is standard for outlier detection
+                    if (
+                        modified_z > 5.0
+                    ):  # Conservative threshold to avoid false positives
+                        # Double check: > 2x max historic
                         max_historic = max(counts)
                         if current_count > (max_historic * 2.0):
                             return (
                                 False,
-                                f"Isolation Forest Outlier (Count: {current_count})",
-                            )
-                        if current_count < (min(counts) * 0.5) and current_count > 20:
-                            # Significant drop detected. This typically indicates a
-                            # failing source but is not a security risk (spike).
-                            # We log it for monitoring but do not block the source.
-                            logger.debug(
-                                f"Significant volume drop for {url}: {current_count} vs avg {avg}. "
-                                "Treated as safe (not a spike)."
+                                f"Statistical Outlier (Modified Z: {modified_z:.2f})",
                             )
 
-                except Exception as ml_err:  # pylint: disable=broad-exception-caught
+                    if current_count < (median * 0.5) and current_count > 20:
+                        logger.debug(
+                            f"Significant volume drop for {url}: {current_count} vs median {median}. "
+                            "Treated as safe."
+                        )
+
+                except Exception as stat_err:
                     logger.warning(
-                        f"ML Anomaly check failed, falling back to Z-Score: {ml_err}"
+                        f"Anomaly check failed, falling back to Z-Score: {stat_err}"
                     )
                     # Fall through to Z-Score logic
 

@@ -175,8 +175,9 @@ function renderTable() {
         locCell.className = 'location-cell';
         // [SECURITY FIX] Escape country code to prevent XSS
         const safeCountryCode = escapeHtml(p.country_code || 'Unknown');
+        // Added onerror handler for flag loading failure (fallback to text)
         const flag = p.country_code && p.country_code !== 'XX'
-            ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" class="country-flag" alt="${escapeHtml(p.country_code)}">`
+            ? `<img src="https://flagcdn.com/w20/${p.country_code.toLowerCase()}.png" class="country-flag" alt="${escapeHtml(p.country_code)}" onerror="this.onerror=null;this.replaceWith(document.createTextNode('${escapeHtml(p.country_code)}'))">`
             : `<i data-feather="globe" class="country-flag-icon"></i>`;
         const locText = p.city ? `${escapeHtml(p.city)}, ${safeCountryCode}` : safeCountryCode;
         locCell.innerHTML = `${flag} <span>${locText}</span>`;
@@ -243,10 +244,6 @@ function renderTable() {
                 }).join(' ');
 
                 // Determine trend direction
-                // Note: For latency, lower is better, but visually we show:
-                // - Red for downward trend (decreasing latency line)
-                // - Green for upward trend (increasing latency line)
-                // This matches user's visual expectation where trend direction color matches the arrow direction
                 const firstVal = validHistory[0];
                 const lastVal = validHistory[validHistory.length - 1];
                 const trendColor = lastVal < firstVal ? '#ef4444' : (lastVal > firstVal ? '#10b981' : '#6366f1');

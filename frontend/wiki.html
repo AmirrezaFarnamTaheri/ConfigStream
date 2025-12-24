@@ -19,16 +19,14 @@
     <link rel="stylesheet" href="assets/css/logo-animations.css">
 
     <!-- Marked.js for Markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script>if(typeof marked === 'undefined') { document.write('<script src="https://unpkg.com/marked/marked.min.js"><\/script>'); }</script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" onerror="this.onerror=null;this.src='assets/libs/marked.min.js';"></script>
 
     <!-- DOMPurify for sanitization -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-    <script>if(typeof DOMPurify === 'undefined') { document.write('<script src="https://unpkg.com/dompurify@3.0.6/dist/purify.min.js"><\/script>'); }</script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js" onerror="this.onerror=null;this.src='assets/libs/purify.min.js';"></script>
 
     <!-- Highlight.js for syntax highlighting -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" onerror="this.onerror=null;this.href='assets/libs/atom-one-dark.min.css';">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" onerror="this.onerror=null;this.src='assets/libs/highlight.min.js';"></script>
 
     <style>
         /* Language Selector */
@@ -351,7 +349,6 @@
         // Set root path for scripts
         window.ROOT_PATH = './';
     </script>
-    <script src="assets/js/cache-config.js" defer></script>
     <script src="assets/js/i18n.js" defer></script>
     <script src="assets/js/error-handler.js" defer></script>
     <script src="assets/js/state-manager.js" defer></script>

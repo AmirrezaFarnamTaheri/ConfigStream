@@ -62,7 +62,7 @@ function updateStats(data) {
 
     // Helper function to format numbers with locale support
     const formatNum = (num) => {
-        if (num === undefined || num === null) return '0';
+        if (num === undefined || num === null) return 'N/A';
         if (window.i18n && window.i18n.formatNumber) {
             return window.i18n.formatNumber(num);
         }
@@ -71,21 +71,25 @@ function updateStats(data) {
 
     // Use canonical fields with comprehensive legacy fallbacks (consistent with main.js)
     // Use canonical backend field names only
-    const totalSourced = data.total_lines_sourced || 0;
+    const totalSourced = data.total_lines_sourced;
     update('totalSourced', formatNum(totalSourced));
 
-    const totalConfigs = data.total_unique_candidates || 0;
+    const totalConfigs = data.total_unique_candidates;
     update('totalConfigs', formatNum(totalConfigs));
 
-    const workingCount = data.total_valid_proxies || 0;
+    const workingCount = data.total_valid_proxies;
     update('workingConfigs', formatNum(workingCount));
 
-    const totalRevived = data.total_revived || 0;
-    const totalClean = data.total_clean ?? Math.max(0, workingCount - totalRevived);
+    const totalRevived = data.total_revived;
 
-    update('totalClean', formatNum(totalClean));
+    let cleanVal = data.total_clean;
+    if (cleanVal === undefined && workingCount !== undefined && totalRevived !== undefined) {
+        cleanVal = Math.max(0, workingCount - totalRevived);
+    }
+
+    update('totalClean', formatNum(cleanVal));
     update('totalRevived', formatNum(totalRevived));
-    update('threatsBlocked', formatNum(data.total_dirty || 0));
+    update('threatsBlocked', formatNum(data.total_dirty));
 
     // Update timestamp if available
     if (data.last_updated_utc) {
@@ -102,15 +106,16 @@ function initGlobe(data) {
     container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;"><div class="spinner" style="border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;"></div>Loading globe...</div>';
 
     // Wait for Globe.gl and THREE.js libraries to be available (retry mechanism)
+    // Increased attempts to 50 (approx 10s) to allow for fallback loading if CDN fails
     const tryInitGlobe = (attempts = 0) => {
         if (window.Globe && typeof window.Globe === 'function' && window.THREE) {
             _initGlobeInternal(data, container);
-        } else if (attempts < 20) {
-            // Retry every 200ms for up to 4 seconds
+        } else if (attempts < 50) {
+            // Retry every 200ms
             setTimeout(() => tryInitGlobe(attempts + 1), 200);
         } else {
             const missingLib = !window.THREE ? 'THREE.js' : 'Globe.gl';
-            console.error(`${missingLib} library failed to load after 4 seconds`);
+            console.error(`${missingLib} library failed to load after timeout`);
             container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);"><i data-feather="globe" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i><span>3D Globe Unavailable</span><span style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Library failed to load. Please refresh the page.</span></div>';
             if (window.feather) window.feather.replace();
         }
@@ -683,49 +688,61 @@ function initCharts(data) {
         });
     }
 
-    // 4. Threat Breakdown
+    // 4. Threat Breakdown (Updated Logic)
     const threatEl = document.getElementById('threatChart');
     if (threatEl) {
         const threatCtx = threatEl.getContext('2d');
-        const threats = {
-            blockedIPs: 0, honeypots: 0, suspiciousNodes: 0, privateIPs: 0,
-            dangerousPorts: 0, invalidProtocols: 0, malformedConfigs: 0,
-            oversizedConfigs: 0, invalidUUIDs: 0, duplicates: 0, invalidConfigs: 0,
-        };
+        const reasons = data.rejection_reasons || {};
 
-        if (data.rejection_reasons) {
-            const reasons = data.rejection_reasons;
-            // [FIX] Map all security-related rejection reasons
-            threats.blockedIPs = (reasons.address_blocked || 0) + (reasons.dirty_ip || 0);
-            threats.honeypots = (reasons.honeypot_suspected || 0) + (reasons.honeypot || 0);
-            threats.suspiciousNodes = (reasons.address_suspicious || 0);
-            threats.privateIPs = (reasons.address_private_ip || 0) + (reasons.private_ip || 0);
-            threats.dangerousPorts = (reasons.port_security || 0);
-            threats.invalidProtocols = (reasons.protocol_invalid || 0) + (reasons.unknown_protocol || 0);
-            threats.malformedConfigs = (reasons.suspicious_config_malformed || 0);
-            threats.oversizedConfigs = (reasons.suspicious_config_format || 0);
-            threats.invalidUUIDs = (reasons.config_uuid_invalid || 0) + (reasons.config_uuid_missing || 0);
-            threats.duplicates = (reasons.duplicate || 0);
-            threats.invalidConfigs = (reasons.invalid || 0) + (reasons.parse_error || 0) + (reasons.unknown_security || 0);
-        }
+        // Define standard categories for color mapping
+        const categoryColors = {
+            'dirty_ip': '#e74c3c', // Red
+            'honeypot': '#c0392b', // Dark Red
+            'address_blocked': '#d35400', // Pumpkin
+            'address_private_ip': '#f39c12', // Orange
+            'private_ip': '#f39c12',
+            'timeout': '#95a5a6', // Gray
+            'connection_error': '#7f8c8d',
+            'handshake_fail': '#bdc3c7',
+            'protocol_invalid': '#9b59b6', // Purple
+            'parse_error': '#8e44ad',
+            'unknown': '#34495e'
+        };
 
         const dataset = [];
         const labels = [];
         const colors = [];
 
-        if (threats.blockedIPs > 0) { dataset.push(threats.blockedIPs); labels.push('Blocked IPs'); colors.push('#e74c3c'); }
-        if (threats.honeypots > 0) { dataset.push(threats.honeypots); labels.push('Honeypots'); colors.push('#c0392b'); }
-        if (threats.suspiciousNodes > 0) { dataset.push(threats.suspiciousNodes); labels.push('Suspicious'); colors.push('#e67e22'); }
-        if (threats.privateIPs > 0) { dataset.push(threats.privateIPs); labels.push('Private IPs'); colors.push('#f39c12'); }
-        if (threats.dangerousPorts > 0) { dataset.push(threats.dangerousPorts); labels.push('Bad Ports'); colors.push('#d35400'); }
-        if (threats.malformedConfigs > 0) { dataset.push(threats.malformedConfigs); labels.push('Malformed'); colors.push('#8e44ad'); }
-        if (threats.invalidProtocols > 0) { dataset.push(threats.invalidProtocols); labels.push('Invalid Proto'); colors.push('#9b59b6'); }
-        if (threats.invalidUUIDs > 0) { dataset.push(threats.invalidUUIDs); labels.push('Invalid UUID'); colors.push('#a569bd'); }
-        if (threats.oversizedConfigs > 0) { dataset.push(threats.oversizedConfigs); labels.push('Oversized'); colors.push('#bb8fce'); }
-        if (threats.duplicates > 0) { dataset.push(threats.duplicates); labels.push('Duplicates'); colors.push('#95a5a6'); }
-        if (threats.invalidConfigs > 0) { dataset.push(threats.invalidConfigs); labels.push('Parse Fail'); colors.push('#7f8c8d'); }
+        // Collect all reasons
+        const allReasons = Object.entries(reasons);
 
-        if (dataset.length === 0) { dataset.push(1); labels.push('No Threats'); colors.push('#2ecc71'); }
+        // Sort by count descending
+        allReasons.sort((a, b) => b[1] - a[1]);
+
+        for (const [key, count] of allReasons) {
+            // Assuming all rejection reasons are worth showing if present
+            if (count > 0) {
+                let label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                let color = categoryColors[key] || generateColor(key, 0);
+
+                dataset.push(count);
+                labels.push(label);
+                colors.push(color);
+            }
+        }
+
+        // Fallback if empty but total_dirty > 0
+        if (dataset.length === 0 && (data.total_dirty > 0)) {
+             dataset.push(data.total_dirty);
+             labels.push("Blocked Threats");
+             colors.push('#e74c3c');
+        }
+
+        if (dataset.length === 0) {
+            dataset.push(1);
+            labels.push('No Threats');
+            colors.push('#2ecc71');
+        }
 
         new Chart(threatCtx, {
             type: 'doughnut',

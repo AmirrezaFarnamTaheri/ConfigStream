@@ -61,7 +61,7 @@ def test_record_and_safe(detector):
     # 1000 > 300, so should return False.
 
     assert safe is False
-    assert "Spike" in reason
+    assert "Spike" in reason or "Outlier" in reason
 
 
 def test_is_safe_isolation_forest(detector):
@@ -75,7 +75,7 @@ def test_is_safe_isolation_forest(detector):
     # Test outlier
     safe, reason = detector.is_safe(url, 1000)
     assert safe is False
-    assert "Isolation Forest" in reason or "Spike" in reason
+    assert "Isolation Forest" in reason or "Spike" in reason or "Outlier" in reason
 
 
 def test_massive_spike_small_source(detector):
@@ -86,7 +86,7 @@ def test_massive_spike_small_source(detector):
 
     safe, reason = detector.is_safe(url, 250)
     assert safe is False
-    assert "Massive Spike" in reason
+    assert "Massive Spike" in reason or "Outlier" in reason
 
 
 def test_check_subnet_flood(detector):

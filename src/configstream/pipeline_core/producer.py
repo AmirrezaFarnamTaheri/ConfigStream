@@ -132,6 +132,14 @@ async def source_producer(
             )
             batch_size = 100  # Increased from 50 to 100 for better throughput
             for i in range(0, len(active_urls), batch_size):
+                # Add jitter to prevent overwhelming remote servers or rate limits
+                if i > 0:
+                    import random
+
+                    jitter = random.uniform(0.5, 2.0)
+                    logger.debug(f"Batch jitter: sleeping {jitter:.2f}s")
+                    await asyncio.sleep(jitter)
+
                 batch = active_urls[i : i + batch_size]
                 logger.info(
                     f"Fetching batch {i // batch_size + 1}: {len(batch)} sources"
