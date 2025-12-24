@@ -279,7 +279,19 @@ def generate_smart_chains(
     ]
 
     # Streaming friendly locations
-    streaming_countries = ["US", "DE", "GB", "NL", "FR", "JP", "SG", "CA", "AU", "SE", "CH"]
+    streaming_countries = [
+        "US",
+        "DE",
+        "GB",
+        "NL",
+        "FR",
+        "JP",
+        "SG",
+        "CA",
+        "AU",
+        "SE",
+        "CH",
+    ]
     exits_streaming = [
         p for p in foreign_exits if p.country_code in streaming_countries
     ]
