@@ -52,7 +52,7 @@ class ProxyWasher:
         self._state_lock = threading.Lock()
         # [FIX] Critical: Add asyncio lock for async operations to prevent race conditions
         self._async_state_lock = asyncio.Lock()
-        self._clean_ips: List[str] = []
+        self._clean_ips: List[Tuple[str, int]] = []
 
         self.scanner = WarpScannerWorker()
 
@@ -69,13 +69,13 @@ class ProxyWasher:
             self._warp_keys = value
 
     @property
-    def clean_ips(self) -> List[str]:
+    def clean_ips(self) -> List[Tuple[str, int]]:
         """Thread-safe read of clean_ips."""
         with self._state_lock:
             return self._clean_ips[:]
 
     @clean_ips.setter
-    def clean_ips(self, value: List[str]) -> None:
+    def clean_ips(self, value: List[Tuple[str, int]]) -> None:
         """Thread-safe write of clean_ips."""
         with self._state_lock:
             self._clean_ips = value
@@ -113,7 +113,13 @@ class ProxyWasher:
                 # [FIX] Update state with async lock
                 async with self._async_state_lock:
                     if fresh_endpoints:
-                        self._clean_ips = fresh_endpoints
+                        # Normalize to tuples
+                        self._clean_ips = []
+                        for ep in fresh_endpoints:
+                            if isinstance(ep, str):
+                                self._clean_ips.append((ep, 2408))
+                            else:
+                                self._clean_ips.append(ep)
                         logger.info(
                             f"Loaded {len(fresh_endpoints)} clean IPs from Scraper"
                         )
@@ -179,7 +185,7 @@ class ProxyWasher:
                                 if ip.count(".") == 3 and ip[0].isdigit()
                             ]
                             if valid_ips:
-                                self.clean_ips = valid_ips[:100]
+                                self.clean_ips = [(ip, 2408) for ip in valid_ips[:100]]
                                 logger.info(
                                     f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
                                 )
@@ -192,18 +198,21 @@ class ProxyWasher:
             logger.warning(
                 f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
             )
-            self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]  # type: ignore[misc]
+            self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
 
-    def _get_clean_endpoint(self, relay_id: str) -> Any:
+    def _get_clean_endpoint(self, relay_id: str) -> Tuple[str, int]:
         pool = self.clean_ips
         if not pool:
-            pool = DEFAULT_CLEAN_IPS
+            pool = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
 
         if not pool:
-            return "162.159.192.1"
+            return ("162.159.192.1", 2408)
 
         hash_val = int(hashlib.sha256(relay_id.encode()).hexdigest(), 16)
-        return pool[hash_val % len(pool)]
+        endpoint = pool[hash_val % len(pool)]
+        if isinstance(endpoint, str):
+            return (endpoint, 2408)
+        return endpoint
 
     def _get_consistent_exit(
         self, relay_id: str, exit_pool: List[Dict[str, Any]]
@@ -332,6 +341,12 @@ class ProxyWasher:
 
             revived_candidates.append(revived_proxy)
             revived_count += 1
+
+            if stats:
+                if use_vwarp:
+                    stats.vwarp_attempts += 1
+                else:
+                    stats.warp_attempts += 1
 
         return revived_candidates, revived_count
 

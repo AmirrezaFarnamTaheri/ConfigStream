@@ -2899,35 +2899,35 @@ body.dark #preloader {
 }
 
 @media (max-width: 768px) {
-    /* Reduce filter controls padding in portrait mode - SIGNIFICANTLY more compact (60% reduction) */
+    /* Reduce filter controls padding in portrait mode - EXTREMELY compact */
     .filter-controls-redesigned {
-        padding: calc(var(--space-unit) * 0.75);
-        gap: calc(var(--space-unit) * 0.5);
-        margin-bottom: calc(var(--space-unit) * 1);
+        padding: calc(var(--space-unit) * 0.5);
+        gap: 2px;
+        margin-bottom: calc(var(--space-unit) * 0.5);
     }
 
     .filter-bar, .actions-bar {
         flex-direction: column;
         align-items: stretch;
-        gap: calc(var(--space-unit) * 0.5);
+        gap: 2px;
     }
     .filter-group, .action-group {
         flex-direction: column;
         width: 100%;
-        gap: calc(var(--space-unit) * 0.4);
+        gap: 2px;
     }
     .filter-input-wrapper {
         min-width: 100%;
-        padding: calc(var(--space-unit) * 0.5) calc(var(--space-unit) * 0.75);
-        min-height: 36px;
+        padding: 2px calc(var(--space-unit) * 0.5);
+        min-height: 28px; /* Reduced from 36px */
     }
 
     /* Reduce filter input height on mobile - 60% more compact */
     .filter-controls-redesigned select,
     .filter-controls-redesigned input {
-        padding: calc(var(--space-unit) * 0.25) calc(var(--space-unit) * 0.5) calc(var(--space-unit) * 0.25) calc(var(--space-unit) * 2.5);
+        padding: 2px 2px 2px calc(var(--space-unit) * 2.5);
         font-size: 0.8rem;
-        min-height: 32px;
+        min-height: 28px;
     }
 
     .filter-controls-redesigned select {

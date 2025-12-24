@@ -69,6 +69,7 @@ A unique feature of ConfigStream is **"Proxy Washing"**.
     *   **Result**: A "Smart Chain" that is both uncensored and clean.
     *   **Verification**: The pipeline generates these chains and *re-tests* them end-to-end using the Go Tester to ensure connectivity.
     *   **Thread Safety** (v2.0.12): Concurrent WARP key fetching is now protected by `asyncio.Lock` to prevent race conditions when multiple async tasks access shared state.
+    *   **Anomaly Detection** (v2.1.0): Moved from heavy machine learning (Isolation Forest/scikit-learn) to robust statistical heuristics (Median Absolute Deviation - MAD). This reduces Docker image size by ~300MB and improves startup time while maintaining high accuracy for outlier detection.
 
 ### Output Generation & Side Products
 
@@ -111,6 +112,14 @@ To decentralize testing and provide users with truth from *their* perspective, w
     *   Browsers cannot open raw TCP sockets.
     *   **Solution 1 (WebSocket)**: For `vmess+ws`, `vless+ws`, `trojan+ws`, the WASM module uses the browser's native WebSocket API to perform a real handshake and connectivity test.
     *   **Solution 2 (HTTP/Relay)**: For raw TCP protocols, we use standard HTTP latency checks where CORS permits.
+
+## 4. Frontend Architecture (Edge Plane)
+
+The frontend is a Progressive Web App (PWA) designed for resilience and offline capability.
+
+*   **Self-Hosted Dependencies** (v2.1.0): To ensure accessibility in restricted network environments (where CDNs like unpkg or jsdelivr might be blocked), all critical libraries (`Three.js`, `Globe.gl`, `Chart.js`, `Feather`) are self-hosted within the `assets/libs/` directory. The application attempts to load from CDN for performance but automatically falls back to local copies upon failure.
+*   **Real-Time Stats**: Connects to the `metadata.json` API to render live threat maps and performance graphs.
+*   **WASM Verifier**: Runs a subset of the Go tester logic in the browser for "Turbo-Verify", allowing users to verify config integrity locally without sending private keys to the server.
 
 ## Memory Management Strategy
 

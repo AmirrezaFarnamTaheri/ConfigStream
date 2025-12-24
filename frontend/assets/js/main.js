@@ -164,32 +164,35 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update stats card
             if (stats) {
                 // Use formatNumber for all numeric displays
-                const formatNum = (num) => window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+                const formatNum = (num) => {
+                    if (num === undefined || num === null) return 'N/A';
+                    return window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+                };
 
                 // STANDARDIZED BACKEND-FRONTEND MAPPING
                 // Single source of truth: metadata.json canonical fields (from output_logic.py)
                 // All fields use canonical names from backend with minimal fallbacks
 
-                const totalSourced = stats.total_lines_sourced || 0;
+                const totalSourced = stats.total_lines_sourced;
                 updateElement('#totalSourced', formatNum(totalSourced));
 
-                const totalConfigs = stats.total_unique_candidates || 0;
+                const totalConfigs = stats.total_unique_candidates;
                 updateElement('#totalConfigs', formatNum(totalConfigs));
 
-                const workingCount = stats.total_valid_proxies || 0;
+                const workingCount = stats.total_valid_proxies;
                 updateElement('#workingConfigs', formatNum(workingCount));
 
-                const totalRevived = stats.total_revived || 0;
+                const totalRevived = stats.total_revived;
                 updateElement('#totalRevived', formatNum(totalRevived));
 
-                const threatsBlocked = stats.total_dirty || 0;
+                const threatsBlocked = stats.total_dirty;
                 updateElement('#threatsBlocked', formatNum(threatsBlocked));
 
-                const smartChains = stats.total_smart_chains || 0;
+                const smartChains = stats.total_smart_chains;
                 updateElement('#smartChains', formatNum(smartChains));
 
-                const vwarpWinRate = stats.vwarp_win_rate || 0;
-                updateElement('#vwarpWinRate', `${Math.round(vwarpWinRate)}%`);
+                const vwarpWinRate = stats.vwarp_win_rate;
+                updateElement('#vwarpWinRate', vwarpWinRate !== undefined ? `${Math.round(vwarpWinRate)}%` : 'N/A');
 
                 // Configuration values from metadata (or stats as fallback)
                 const updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 6;
