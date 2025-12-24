@@ -13,7 +13,6 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
-import logging
 # Removed heavy sklearn/numpy dependency
 # import numpy as np
 # from sklearn.ensemble import IsolationForest
@@ -97,7 +96,9 @@ CREATE TABLE IF NOT EXISTS history (
                     modified_z = 0.6745 * (current_count - median) / mad
 
                     # Threshold of 3.5 is standard for outlier detection
-                    if modified_z > 5.0:  # Conservative threshold to avoid false positives
+                    if (
+                        modified_z > 5.0
+                    ):  # Conservative threshold to avoid false positives
                         # Double check: > 2x max historic
                         max_historic = max(counts)
                         if current_count > (max_historic * 2.0):
