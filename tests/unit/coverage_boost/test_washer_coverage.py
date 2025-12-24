@@ -18,7 +18,10 @@ def washer(mock_warp_keys):
 async def test_washer_get_clean_endpoint(washer):
     # Test default
     washer.clean_ips = []
-    assert washer._get_clean_endpoint("test") in [
+    ep = washer._get_clean_endpoint("test")
+    if isinstance(ep, tuple):
+        ep = ep[0]
+    assert ep in [
         "162.159.192.1",
         "162.159.193.10",
         "162.159.195.5",
@@ -27,7 +30,11 @@ async def test_washer_get_clean_endpoint(washer):
     # Test with IPs
     washer.clean_ips = ["1.1.1.1", "2.2.2.2"]
     # Deterministic check
-    ip = washer._get_clean_endpoint("test")
+    ep = washer._get_clean_endpoint("test")
+    if isinstance(ep, tuple):
+        ip = ep[0]
+    else:
+        ip = ep
     assert ip in washer.clean_ips
 
 
