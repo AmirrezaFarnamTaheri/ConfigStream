@@ -1,13 +1,15 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, AsyncMock, patch
-import configstream.pipeline
-from configstream.pipeline import run_full_pipeline
 from configstream.pipeline_core.models import PipelineResult
 
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
+    # Import here to avoid stale module reference if other tests reload modules
+    from configstream.pipeline import run_full_pipeline
+    import configstream.pipeline
+
     # Patch all possible locations where source_producer might be referenced
     with (
         # Primary target: The global name in the module under test
@@ -63,6 +65,9 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
 @pytest.mark.asyncio
 async def test_pipeline_auto_scaling(tmp_path):
+    # Import here to avoid stale module reference if other tests reload modules
+    from configstream.pipeline import run_full_pipeline
+
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
         patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
