@@ -1,20 +1,17 @@
 import pytest
 import asyncio
 from unittest.mock import MagicMock, AsyncMock, patch
+import configstream.pipeline
 from configstream.pipeline import run_full_pipeline
 from configstream.pipeline_core.models import PipelineResult
 
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
-    # Mock everything heavy
+    # Use string-based patches to ensure we hit the right namespace
     with (
-        patch(
-            "configstream.pipeline.source_producer", new_callable=AsyncMock
-        ) as mock_prod,
-        patch(
-            "configstream.pipeline.processing_consumer", new_callable=AsyncMock
-        ) as mock_cons,
+        patch("configstream.pipeline.source_producer", new_callable=AsyncMock) as mock_prod,
+        patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock) as mock_cons,
         patch(
             "configstream.pipeline.output_handler.generate_pipeline_outputs",
             new_callable=AsyncMock,
@@ -23,10 +20,12 @@ async def test_run_full_pipeline_dry_run(tmp_path):
         patch("configstream.pipeline.SingBoxTester") as mock_tester_cls,
         patch("configstream.pipeline.GeoIPResolver"),
         patch("configstream.pipeline.EventStream") as mock_event_stream,
+        # Also patch pipeline_stages just in case
+        patch("configstream.pipeline_stages.source_producer", new=AsyncMock()),
+        patch("configstream.pipeline_stages.processing_consumer", new=AsyncMock()),
     ):
 
         mock_tester = mock_tester_cls.return_value
-        # Mock go_tester attribute
         mock_tester.go_tester = MagicMock()
         mock_tester.go_tester.available = False
         mock_tester.close = AsyncMock()
@@ -36,6 +35,7 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
         output_dir = tmp_path / "output"
 
+        # Call the function
         res = await run_full_pipeline(
             sources=["http://test"],
             output_dir=str(output_dir),
@@ -45,9 +45,11 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
         assert isinstance(res, PipelineResult)
         assert res.success
-        assert mock_prod.called
-        assert mock_cons.called
-        assert mock_gen.called
+
+        # Verify mocks were called
+        assert mock_prod.called, "source_producer should have been called"
+        assert mock_cons.called, "processing_consumer should have been called"
+        assert mock_gen.called, "generate_pipeline_outputs should have been called"
 
 
 @pytest.mark.asyncio
