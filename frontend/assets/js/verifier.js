@@ -91,6 +91,16 @@
         // Manual Trigger
         runLocalVerification: async function() {
             const statusEl = document.getElementById('wasm-status');
+            const PUBLIC_KEY = global.CS_CONSTANTS ? global.CS_CONSTANTS.PUBLIC_KEY : null;
+
+            if (!PUBLIC_KEY || PUBLIC_KEY.includes("PLACEHOLDER") || PUBLIC_KEY.length < 20) {
+                if(statusEl) {
+                    statusEl.textContent = "⚠️ Verification unavailable (No Key)";
+                    statusEl.style.color = "var(--text-secondary)";
+                }
+                return;
+            }
+
             if(statusEl) statusEl.textContent = "Verifying integrity...";
 
             // Actual verification using WASM if available
