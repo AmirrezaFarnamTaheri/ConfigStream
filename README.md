@@ -1,4 +1,4 @@
-# ConfigStream v2.0.10
+# ConfigStream v2.0.11
 
 [![ConfigStream Pipeline](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
 [![Pipeline Health Check](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml)
@@ -9,7 +9,11 @@ ConfigStream is a modular, sovereignty-grade anti-censorship platform. It aggreg
 
 We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
 
-> **🚀 v2.0.10 Update:** Complete protocol implementation with **14 fully supported protocols** (added SS2022, SOCKS4, NaiveProxy converters). All 733 unit tests passing. Critical bug fix for history persistence.
+> **🚀 v2.0.11 Update:** Major stability and intelligence overhaul.
+> *   **Smart Key Generation:** Automatically generates WARP keys if pool is empty.
+> *   **Vwarp Fallback:** Graceful degradation if Vwarp binary is missing.
+> *   **Enhanced Security:** Strict validation for IPv6, private IPs, and malicious patterns.
+> *   **Stability:** Fixed concurrency race conditions and test suite reliability.
 
 ---
 
@@ -29,6 +33,7 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 
 ### 🌊 Smart Washing & Revival
 *   **Proxy Revival:** Capable of "reviving" non-working or dirty proxies by wrapping them in clean WARP tunnels.
+*   **Key Generator:** Built-in cryptographic key generator creates new WARP identities on the fly if scraped keys fail.
 *   **Thread-Safe Washing:** Optimized locking mechanisms for concurrent washing operations.
 *   **Smart Chains:** Automatically builds topology-aware chains (e.g., Intranet -> Relay -> Exit) to bypass DPI.
 *   **Deterministic IPs:** Generates stable, non-colliding internal IPs for consistent routing tables.

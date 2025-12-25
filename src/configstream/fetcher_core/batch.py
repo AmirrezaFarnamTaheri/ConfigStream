@@ -42,7 +42,7 @@ async def fetch_multiple_sources(
     # Setup Concurrency Control
     loop = asyncio.get_running_loop()
     controller = ConcurrencyManager(loop, initial_limit=per_host_limit)
-    controller.start_tuner()
+    await controller.start_tuner()
     global_sem = asyncio.Semaphore(max_concurrent)
 
     # Optimization: Pre-warm DNS (Best effort for HTTP sources)

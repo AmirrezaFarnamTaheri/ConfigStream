@@ -51,12 +51,24 @@ def generate_singbox_config(
     # 2. Append Extra Outbounds (e.g. Washed Chains)
     if extra_outbounds:
         for out in extra_outbounds:
+            # Ensure uniqueness for extra outbounds too
+            tag = out.get("tag", "")
+            if tag and tag in seen_tags:
+                base_tag = tag
+                counter = 1
+                while tag in seen_tags:
+                    tag = f"{base_tag}-{counter}"
+                    counter += 1
+                out["tag"] = tag  # Update the tag in the object
+
+            if tag:
+                seen_tags.add(tag)
+
             # Check if this outbound is meant to be user-selectable
             # Washed chains usually have a WireGuard outbound with tag "🛡️ Secure-..."
             # The Relay outbound is "RELAY-..." and should not be in the selector directly,
             # as it is only a detour for the WireGuard one.
             outbounds.append(out)
-            tag = out.get("tag", "")
             if tag and not tag.startswith("RELAY-"):
                 selector_tags.append(tag)
 
