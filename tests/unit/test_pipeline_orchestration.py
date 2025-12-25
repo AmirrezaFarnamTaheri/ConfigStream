@@ -2,10 +2,14 @@ import pytest
 import asyncio
 from unittest.mock import MagicMock, AsyncMock, patch
 from configstream.pipeline_core.models import PipelineResult
-import configstream.pipeline
+
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
+    # Import here to avoid stale module reference if other tests reload modules
+    from configstream.pipeline import run_full_pipeline
+    import configstream.pipeline
+
     # Patch all possible locations where source_producer might be referenced
     with (
         # Primary target: The global name in the module under test
@@ -48,8 +52,8 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
         output_dir = tmp_path / "output"
 
-        # Call the function directly from the module
-        res = await configstream.pipeline.run_full_pipeline(
+        # Call the function
+        res = await run_full_pipeline(
             sources=["http://test"],
             output_dir=str(output_dir),
             max_workers=5,
@@ -76,6 +80,9 @@ async def test_run_full_pipeline_dry_run(tmp_path):
 
 @pytest.mark.asyncio
 async def test_pipeline_auto_scaling(tmp_path):
+    # Import here to avoid stale module reference if other tests reload modules
+    from configstream.pipeline import run_full_pipeline
+
     with (
         patch("configstream.pipeline.source_producer", new_callable=AsyncMock),
         patch("configstream.pipeline.processing_consumer", new_callable=AsyncMock),
@@ -96,4 +103,4 @@ async def test_pipeline_auto_scaling(tmp_path):
         mock_tester.close = AsyncMock()
         mock_event_stream.return_value.aclose = AsyncMock()
 
-        await configstream.pipeline.run_full_pipeline(["s1"], str(tmp_path / "out"), max_workers=0)
+        await run_full_pipeline(["s1"], str(tmp_path / "out"), max_workers=0)
