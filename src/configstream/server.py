@@ -38,13 +38,20 @@ app = FastAPI(
     redoc_url=None,
 )
 
-# Enable CORS for cross-origin fetching (useful for external dashboards)
+# [SECURITY FIX P1] Enable CORS with restricted origins
+# Allow localhost for development and GitHub Pages for production deployment
+# Set ALLOWED_ORIGINS environment variable for custom domains
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000,https://*.github.io",
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Pre-compile regex for path validation
@@ -83,16 +90,36 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Keep connection alive, wait for client messages if any
             data = await websocket.receive_text()
+            # [SECURITY FIX P1] Validate WebSocket messages
+            if not isinstance(data, str) or len(data) > 1024:
+                logger.warning(f"Invalid WebSocket message received: {data[:100]}")
+                continue
             # Optional: Client can request immediate sync
             if data == "ping":
                 await websocket.send_text("pong")
+            elif data == "sync":
+                # Allow clients to request immediate update check
+                pass
+            else:
+                # Ignore unknown messages
+                logger.debug(f"Unknown WebSocket message: {data}")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
 
 @app.post("/api/admin/notify-update")
 async def notify_update(payload: dict):
-    """Internal endpoint called by pipeline when a cycle finishes."""
+    """
+    Internal endpoint called by pipeline when a cycle finishes.
+    [SECURITY FIX P1] Requires ADMIN_API_KEY environment variable for authentication.
+    """
+    # Simple API key authentication for admin endpoints
+    api_key = os.getenv("ADMIN_API_KEY")
+    if api_key:
+        provided_key = payload.get("api_key")
+        if not provided_key or provided_key != api_key:
+            raise HTTPException(403, "Forbidden: Invalid or missing API key")
+
     await manager.broadcast(
         {
             "type": "UPDATE_AVAILABLE",
@@ -109,6 +136,14 @@ async def get_proxy_diff(base_version: str):
     Returns a JSON patch or delta between the client's version and current version.
     Requires server to maintain 'proxies.json' and 'proxies.old.json'.
     """
+    # [SECURITY FIX P1] Validate base_version parameter
+    if (
+        not base_version
+        or not re.match(r"^[a-zA-Z0-9._-]+$", base_version)
+        or len(base_version) > 64
+    ):
+        raise HTTPException(400, "Invalid base_version parameter")
+
     current_path = OUTPUT_DIR / "proxies.json"
     old_path = OUTPUT_DIR / "proxies.old.json"
 

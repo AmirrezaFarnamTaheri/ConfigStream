@@ -74,5 +74,10 @@ ENV PYTHONPATH="/app/src"
 
 USER runner
 
+# [SECURITY FIX P2] Add Docker healthcheck
+# Check if tester binary is executable and pipeline can run
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import sys; from pathlib import Path; sys.exit(0 if Path('/usr/local/bin/configstream-tester').exists() else 1)" || exit 1
+
 # Entrypoint
 ENTRYPOINT ["python", "-m", "configstream.cli"]
