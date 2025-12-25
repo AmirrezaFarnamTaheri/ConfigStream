@@ -10,6 +10,7 @@ import asyncio
 # Disable uvloop for tests to ensure nest_asyncio works
 try:
     import uvloop
+
     # If uvloop is installed, we must ensure it's NOT the default policy for tests
     # because nest_asyncio doesn't support it fully.
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
@@ -25,6 +26,7 @@ def anyio_backend():
     """Configure anyio to use asyncio."""
     return "asyncio"
 
+
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args):
     """Override browser launch arguments for CI/container environments."""
@@ -32,6 +34,7 @@ def browser_context_args(browser_context_args):
         **browser_context_args,
         "ignore_https_errors": True,
     }
+
 
 @pytest.fixture(scope="session")
 def browser_type_launch_args(browser_type_launch_args):
@@ -50,6 +53,7 @@ def browser_type_launch_args(browser_type_launch_args):
             "--disable-features=IsolateOrigins,site-per-process",
         ],
     }
+
 
 @pytest.fixture(scope="session")
 def http_server():
