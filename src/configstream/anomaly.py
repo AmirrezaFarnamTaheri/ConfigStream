@@ -188,8 +188,9 @@ CREATE TABLE IF NOT EXISTS history (
         counts = Counter(subnets)
         most_common = counts.most_common(1)[0]
 
+        # [FIX] Add zero-length check to prevent division by zero
         # If one subnet accounts for > 90% of proxies
-        if most_common[1] / len(proxies) > 0.9:
+        if len(proxies) > 0 and most_common[1] / len(proxies) > 0.9:
             logger.warning(
                 f"Subnet Flood detected: {most_common[0]}.0/24 accounts for {most_common[1]}/{len(proxies)} proxies."
             )

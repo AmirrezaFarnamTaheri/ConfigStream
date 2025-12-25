@@ -644,10 +644,12 @@ function initCharts(data) {
     // 2. Latency Distribution
     const latencyCtx = document.getElementById('latencyChart').getContext('2d');
     const latData = data.latency_distribution || {};
+    // [FIX] Sync labels with backend thresholds (output_logic.py:150-158)
+    // Backend: fast<200ms, medium:200-800ms, slow:800-2000ms, very_slow>2000ms
     new Chart(latencyCtx, {
         type: 'bar',
         data: {
-            labels: ['Fast (<100ms)', 'Medium (100-500ms)', 'Slow (500-1000ms)', 'Laggy (>1s)'],
+            labels: ['Fast (<200ms)', 'Medium (200-800ms)', 'Slow (800-2000ms)', 'Very Slow (>2s)'],
             datasets: [{
                 label: 'Proxies',
                 data: [latData.fast, latData.medium, latData.slow, latData.very_slow],
