@@ -8,7 +8,8 @@ const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 // The key below is rotated every 6 hours by GitHub Actions.
 // NOTE: This key provides OBFUSCATION ONLY, not strong confidentiality, as it is visible in client-side code.
 // Ideally, use per-session keys or public-key crypto if strict confidentiality is required.
-const SECRET_KEY = "MGq_ZkrhUxBp987Sv8UnILxoGkceXCmB3vy2yR3jjBM=";
+// [SECURITY FIX] Use placeholder that will fail validation if not injected by CI/CD
+const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";
 
 async function fetchStegoConfig(imageUrl) {
     try {
