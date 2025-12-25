@@ -7,30 +7,23 @@ import os
 import time
 import asyncio
 
-# Apply nest_asyncio globally
+# Disable uvloop for tests to ensure nest_asyncio works
+try:
+    import uvloop
+    # If uvloop is installed, we must ensure it's NOT the default policy for tests
+    # because nest_asyncio doesn't support it fully.
+    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+except ImportError:
+    pass
+
+# Apply nest_asyncio globally to patch asyncio module immediately
 nest_asyncio.apply()
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """
-    Create an instance of the default event loop for the entire test session.
-    This prevents 'RuntimeError: Runner.run() was called from a running loop'
-    when mixing pytest-asyncio and internal asyncio.run() calls, provided
-    nest_asyncio is applied.
-    """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    nest_asyncio.apply(loop)
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="session")
 def anyio_backend():
     """Configure anyio to use asyncio."""
     return "asyncio"
-
 
 @pytest.fixture(scope="session")
 def browser_context_args(browser_context_args):
@@ -39,7 +32,6 @@ def browser_context_args(browser_context_args):
         **browser_context_args,
         "ignore_https_errors": True,
     }
-
 
 @pytest.fixture(scope="session")
 def browser_type_launch_args(browser_type_launch_args):
@@ -58,7 +50,6 @@ def browser_type_launch_args(browser_type_launch_args):
             "--disable-features=IsolateOrigins,site-per-process",
         ],
     }
-
 
 @pytest.fixture(scope="session")
 def http_server():
