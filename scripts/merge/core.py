@@ -78,8 +78,15 @@ async def merge_batches_async(
     master_tracker.save()
 
     # 2.1 Aggregate Stats from Batches
+    # [FIX] Add vwarp and revived stats aggregation
     total_tested = 0
     total_fetched = 0
+    total_revived_warp = 0
+    total_revived_vwarp = 0
+    total_vwarp_attempts = 0
+    total_vwarp_success = 0
+    total_configured_sources = 0
+
     for b_dir in batch_dirs:
         meta_path = b_dir / "metadata.json"
         if meta_path.exists():
@@ -95,8 +102,21 @@ async def merge_batches_async(
                 total_fetched += stats.get(
                     "fetched_lines", data.get("total_fetched", 0)
                 )
-            except Exception:
-                logger.warning(f"Failed to read stats from {meta_path}")
+
+                # [FIX] Aggregate vwarp and revived stats
+                total_revived_warp += data.get("revived_warp", 0)
+                total_revived_vwarp += data.get("revived_vwarp", 0)
+                total_vwarp_attempts += data.get("vwarp_attempts", 0)
+                total_vwarp_success += data.get("vwarp_success", 0)
+
+                # Get total_configured_sources (should be same across all batches)
+                if total_configured_sources == 0:
+                    total_configured_sources = data.get(
+                        "total_configured_sources", 0
+                    ) or data.get("sources_count", 0)
+
+            except Exception as e:
+                logger.warning(f"Failed to read stats from {meta_path}: {e}")
 
     # 3. Rankings
     logger.info("\n=== Step 1: Ranking and Renaming ===")
@@ -194,14 +214,24 @@ async def merge_batches_async(
                     else:
                         logger.debug(f"Washed chain failed retest: {cid}")
 
-                total_revived = passed_count
+                # [FIX] Combine washer revived count with batch aggregated stats
+                # total_revived should be sum of all revived (WARP + vwarp + washer)
                 logger.info(
                     f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working."
                 )
                 washed_outbounds = valid_washed_outbounds
+                total_revived_warp += (
+                    passed_count  # Add washer results to aggregated count
+                )
 
         except Exception as e:
             logger.error(f"Failed to wash proxies: {e}", exc_info=True)
+
+    # [FIX] Calculate total_revived properly from all sources
+    total_revived = total_revived_warp + total_revived_vwarp
+    logger.info(
+        f"Total Revived Stats: WARP={total_revived_warp}, Vwarp={total_revived_vwarp}, Total={total_revived}"
+    )
 
     # --- Feature: Intelligence Vectors ---
     logger.info("\n=== Step 2.6: Generating Intelligence Vectors ===")
@@ -245,7 +275,7 @@ async def merge_batches_async(
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
 
-    # [FIX] Generate outputs and collect stats
+    # [FIX] Generate outputs and collect stats with vwarp data
     proxies_by_proto = generate_outputs(
         ranked_proxies,
         chosen_proxies,
@@ -256,6 +286,11 @@ async def merge_batches_async(
         smart_chains,
         total_washed_candidates,
         total_revived,
+        revived_warp=total_revived_warp,
+        revived_vwarp=total_revived_vwarp,
+        vwarp_attempts=total_vwarp_attempts,
+        vwarp_success=total_vwarp_success,
+        total_configured_sources=total_configured_sources,
     )
 
     # Note: generate_outputs internally calls save_metadata with a RICH stats object

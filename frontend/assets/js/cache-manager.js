@@ -5,10 +5,23 @@
  * Includes Compression (via pako or CompressionStream) support.
  */
 
-// Step 1: Verify that cache configuration is available
+// Step 1: Verify that cache configuration is available with graceful fallback
 if (!globalThis.ConfigStreamCache) {
-  console.error('[CacheManager] FATAL: Cache configuration not loaded!');
-  throw new Error('Cache configuration unavailable');
+  console.warn('[CacheManager] WARNING: Cache configuration not loaded, using defaults');
+  // [FIX] Provide default configuration instead of throwing error
+  globalThis.ConfigStreamCache = {
+    VERSION: 'v1.0.0-fallback',
+    CACHE_NAME: 'configstream-cache-v1',
+    CACHE_STRATEGY: 'stale-while-revalidate',
+    CACHE_CONFIG: {
+      staleWhileRevalidate: true,
+      networkTimeout: 5000,
+      metadataExpiry: 2 * 60 * 1000,      // 2 minutes
+      proxiesExpiry: 10 * 60 * 1000,      // 10 minutes
+      statsExpiry: 5 * 60 * 1000,         // 5 minutes
+      defaultExpiry: 5 * 60 * 1000        // 5 minutes
+    }
+  };
 }
 
 // Step 2: Get configuration from the shared namespace
