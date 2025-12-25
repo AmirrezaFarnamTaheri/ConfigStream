@@ -10,30 +10,26 @@ import asyncio
 # Apply nest_asyncio globally
 nest_asyncio.apply()
 
-# Use Session scope for event loop to avoid overhead and conflicts?
-# No, function scope is safer for isolation.
-# But we need to ensure the loop used by pytest-asyncio is the one we patched.
 
-
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def event_loop():
     """
-    Custom event loop fixture for pytest-asyncio.
-    Ensures nest_asyncio is applied to the loop.
+    Create an instance of the default event loop for the entire test session.
+    This prevents 'RuntimeError: Runner.run() was called from a running loop'
+    when mixing pytest-asyncio and internal asyncio.run() calls, provided
+    nest_asyncio is applied.
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     nest_asyncio.apply(loop)
-
     yield loop
+    loop.close()
 
-    # Cleanup is handled by pytest-asyncio or here.
-    # To be safe and avoid "Cannot close running loop", we ensure it's closed if not running.
-    try:
-        if not loop.is_closed() and not loop.is_running():
-            loop.close()
-    except Exception:
-        pass
+
+@pytest.fixture(scope="session")
+def anyio_backend():
+    """Configure anyio to use asyncio."""
+    return "asyncio"
 
 
 @pytest.fixture(scope="session")
@@ -70,6 +66,7 @@ def http_server():
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     frontend_dir = os.path.join(project_root, "frontend")
 
+    # Use port 0 to let OS choose a free port
     import socket
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -82,13 +79,15 @@ def http_server():
             super().__init__(*args, directory=frontend_dir, **kwargs)
 
         def log_message(self, format, *args):
-            pass
+            pass  # Silence logs
 
     socketserver.TCPServer.allow_reuse_address = True
 
     with socketserver.TCPServer(("", port), Handler) as httpd:
         server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
         server_thread.start()
+        # Give server a moment to start
         time.sleep(0.5)
         yield f"http://localhost:{port}"
         httpd.shutdown()
+        server_thread.join()

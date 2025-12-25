@@ -35,26 +35,15 @@ IP_REGEX = re.compile(
     r"|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
 )
 
+# Updated Sources (Removed dead links, added more reliable ones if possible)
 WARP_SOURCES = [
     {
-        "name": "blue-music/blue-music-warp",
-        "url": "https://raw.githubusercontent.com/blue-music/blue-music-warp/master/warp.json",
-        "kind": "singbox",
-        "max_entries": 50,
-    },
-    {
-        "name": "yebekhe/TelegramV2rayCollector/warp",
-        "url": "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/warp",
-        "kind": "text_decode",  # New kind for encoded links
+        "name": "ircfspace/warpendpoint",
+        "url": "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/result/warp-ip.txt",
+        "kind": "endpoint_list",
         "max_entries": 100,
     },
-    {
-        "name": "vvb2060/warp-endpoint",
-        "url": "https://raw.githubusercontent.com/vvb2060/warp-endpoint/main/clean_ip.txt",
-        "kind": "endpoint_list",  # Just IPs
-        "max_entries": 50,
-    },
-    # Original sources can be kept here if they are still valid
+    # Many public WARP key repos are transient. We rely on KeyGenerator if these fail.
 ]
 
 
