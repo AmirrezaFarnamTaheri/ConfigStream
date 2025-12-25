@@ -6,7 +6,7 @@ import logging
 import json
 import re
 import base64
-from typing import List
+from typing import List, Dict, Any
 from urllib.parse import urlparse, parse_qs
 
 from ...models import Proxy
@@ -35,31 +35,20 @@ IP_REGEX = re.compile(
     r"|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
 )
 
-WARP_SOURCES = [
+# Updated Sources (Removed dead links, added more reliable ones if possible)
+WARP_SOURCES: List[Dict[str, Any]] = [
     {
-        "name": "blue-music/blue-music-warp",
-        "url": "https://raw.githubusercontent.com/blue-music/blue-music-warp/master/warp.json",
-        "kind": "singbox",
-        "max_entries": 50,
-    },
-    {
-        "name": "yebekhe/TelegramV2rayCollector/warp",
-        "url": "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/warp",
-        "kind": "text_decode",  # New kind for encoded links
+        "name": "ircfspace/warpendpoint",
+        "url": "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/result/warp-ip.txt",
+        "kind": "endpoint_list",
         "max_entries": 100,
     },
-    {
-        "name": "vvb2060/warp-endpoint",
-        "url": "https://raw.githubusercontent.com/vvb2060/warp-endpoint/main/clean_ip.txt",
-        "kind": "endpoint_list",  # Just IPs
-        "max_entries": 50,
-    },
-    # Original sources can be kept here if they are still valid
+    # Many public WARP key repos are transient. We rely on KeyGenerator if these fail.
 ]
 
 
 class WarpScraper:
-    def __init__(self):
+    def __init__(self) -> None:
         self.fetcher = Fetcher()
         # Collected clean endpoint IPs (can be used by ProxyWasher)
         self.scraped_endpoints: List[str] = []

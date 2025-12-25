@@ -1,0 +1,7 @@
+[allowlist]
+    paths = [
+        '''sources/.*''',
+        '''output/.*''',
+        '''data/.*''',
+        '''test_anomaly.db'''
+    ]

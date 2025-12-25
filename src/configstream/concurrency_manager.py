@@ -32,6 +32,8 @@ class ConcurrencyManager:
 
         self.tuning_task: Optional[asyncio.Task] = None
         self._running = False
+        # [FIX] Protect start/stop logic with a lock to prevent race conditions
+        self._lifecycle_lock = asyncio.Lock()
 
     def get_semaphore(self) -> ResizableSemaphore:
         return self.semaphore
@@ -87,21 +89,29 @@ class ConcurrencyManager:
         self.current_limit = new_limit
         await self.semaphore.set_limit(new_limit)
 
-    def start_tuner(self):
-        if not self._running:
-            # Check if loop is still running before creating task
-            if self.loop.is_closed():
-                return
-            self._running = True
-            self.tuning_task = self.loop.create_task(self._tuner_loop())
+    # [FIX] Made async to use await with lifecycle_lock
+    async def start_tuner(self):
+        async with self._lifecycle_lock:
+            if not self._running:
+                # Check if loop is still running before creating task
+                if self.loop.is_closed():
+                    return
+                self._running = True
+                self.tuning_task = self.loop.create_task(self._tuner_loop())
 
     async def stop_tuner(self):
-        self._running = False
-        if self.tuning_task:
-            self.tuning_task.cancel()
-            try:
-                await self.tuning_task
-            except (asyncio.CancelledError, KeyboardInterrupt):
-                pass
-            except Exception as e:
-                logger.warning(f"Error while stopping tuner: {e}")
+        async with self._lifecycle_lock:
+            if not self._running:
+                return
+            self._running = False
+
+            if self.tuning_task:
+                self.tuning_task.cancel()
+                try:
+                    await self.tuning_task
+                except (asyncio.CancelledError, KeyboardInterrupt):
+                    pass
+                except Exception as e:
+                    logger.warning(f"Error while stopping tuner: {e}")
+                finally:
+                    self.tuning_task = None

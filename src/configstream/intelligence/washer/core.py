@@ -13,6 +13,7 @@ from ...models import Proxy
 from ...converters import to_singbox_outbound
 from ...workers.scanner import WarpScannerWorker
 from .warp_scraper import WarpScraper
+from .key_generator import KeyGenerator  # [FIX] Import the new key generator
 from ...tools.vwarp import VwarpTool
 from ..chaining import find_optimal_relay, ProxyStub, COUNTRIES
 from ...pipeline_core.stats import PipelineStats
@@ -42,7 +43,8 @@ class ProxyWasher:
                 if self._warp_keys:
                     logger.info(f"Loaded {len(self._warp_keys)} WARP keys for washing")
                 else:
-                    logger.warning("No WARP keys configured - washing will be disabled")
+                    # [FIX] Don't log warning here, we will try to generate/fetch later
+                    logger.debug("No initial WARP keys configured")
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse warp_keys_json: {e}")
             self._warp_keys = []
@@ -55,6 +57,7 @@ class ProxyWasher:
         self._clean_ips: List[Tuple[str, int]] = []
 
         self.scanner = WarpScannerWorker()
+        self.key_gen = KeyGenerator()
 
     @property
     def warp_keys(self) -> List[Dict[str, Any]]:
@@ -143,7 +146,6 @@ class ProxyWasher:
                         logger.info(
                             f"Loaded {len(scanned_ips_vwarp)} clean IPs from Vwarp"
                         )
-                        return
                 else:
                     logger.debug("Vwarp binary not found - skipping Vwarp scan.")
             except Exception as e:
@@ -162,7 +164,6 @@ class ProxyWasher:
                     logger.info(
                         f"Legacy Scan Success: Using {len(scanned_ips_legacy)} fresh IPs."
                     )
-                    return
             except Exception as e:
                 logger.error(f"Legacy scan failed: {e}")
 
@@ -189,7 +190,7 @@ class ProxyWasher:
                                 logger.info(
                                     f"Fetched {len(valid_ips)} clean IPs from {source_url.split('/')[2]}"
                                 )
-                                return
+                                break  # Stop after one success
                 except Exception:
                     pass
 
@@ -199,6 +200,20 @@ class ProxyWasher:
                 f"All scanners failed. Using {len(DEFAULT_CLEAN_IPS)} default IPs."
             )
             self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
+
+        # --- KEY GENERATION FALLBACK (Last Resort) ---
+        # [FIX] If still no keys, try to generate one
+        if not self.warp_keys:
+            logger.info("No WARP keys found. Attempting to generate a new account...")
+            try:
+                new_account = await self.key_gen.generate_account()
+                if new_account:
+                    self.warp_keys = [new_account]
+                    logger.info("Successfully generated a new WARP account/key.")
+                else:
+                    logger.error("Failed to generate WARP account. Washing disabled.")
+            except Exception as e:
+                logger.error(f"Key generation failed: {e}")
 
     def _get_clean_endpoint(self, relay_id: str) -> Tuple[str, int]:
         pool = self.clean_ips

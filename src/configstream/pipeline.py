@@ -166,7 +166,7 @@ async def run_full_pipeline(
         logger.info(
             "Go tester unavailable - Starting global concurrency tuner for Python fallback"
         )
-        concurrency.start_tuner()
+        await concurrency.start_tuner()
 
     logger.info(f"Starting pipeline with {optimal_consumers} parallel consumers")
 
