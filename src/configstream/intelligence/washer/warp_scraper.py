@@ -35,8 +35,10 @@ IP_REGEX = re.compile(
     r"|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
 )
 
+from typing import List, Dict, Any
+
 # Updated Sources (Removed dead links, added more reliable ones if possible)
-WARP_SOURCES = [
+WARP_SOURCES: List[Dict[str, Any]] = [
     {
         "name": "ircfspace/warpendpoint",
         "url": "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/result/warp-ip.txt",
@@ -48,7 +50,7 @@ WARP_SOURCES = [
 
 
 class WarpScraper:
-    def __init__(self):
+    def __init__(self) -> None:
         self.fetcher = Fetcher()
         # Collected clean endpoint IPs (can be used by ProxyWasher)
         self.scraped_endpoints: List[str] = []

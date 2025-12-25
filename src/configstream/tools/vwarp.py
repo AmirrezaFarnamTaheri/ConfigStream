@@ -14,11 +14,12 @@ class VwarpTool:
     Handles scanning, config generation, and transport tunneling.
     """
 
-    def __init__(self):
-        self.binary = shutil.which("vwarp")
-        if not self.binary:
+    def __init__(self) -> None:
+        binary = shutil.which("vwarp")
+        if not binary:
             # Fallback for local testing if not in PATH
-            self.binary = "/usr/local/bin/vwarp"
+            binary = "/usr/local/bin/vwarp"
+        self.binary: str = binary
         self._tunnel_proc: Optional[asyncio.subprocess.Process] = None
 
     async def is_available(self) -> bool:
@@ -121,7 +122,9 @@ class VwarpTool:
         except Exception:
             return {}
 
-    async def start_tunnel(self, bind_addr: str = "127.0.0.1", port: int = 10808) -> bool:
+    async def start_tunnel(
+        self, bind_addr: str = "127.0.0.1", port: int = 10808
+    ) -> bool:
         """
         Starts the Vwarp SOCKS5 tunnel in the background.
         """
@@ -144,7 +147,9 @@ class VwarpTool:
             await asyncio.sleep(1)
 
             if self._tunnel_proc.returncode is not None:
-                logger.error(f"Vwarp tunnel exited immediately with code {self._tunnel_proc.returncode}")
+                logger.error(
+                    f"Vwarp tunnel exited immediately with code {self._tunnel_proc.returncode}"
+                )
                 self._tunnel_proc = None
                 return False
 
@@ -153,7 +158,7 @@ class VwarpTool:
             logger.warning(f"Failed to start Vwarp tunnel: {e}")
             return False
 
-    async def stop_tunnel(self):
+    async def stop_tunnel(self) -> None:
         """
         Stops the background tunnel process.
         """
