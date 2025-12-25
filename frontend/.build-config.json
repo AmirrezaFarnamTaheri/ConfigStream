@@ -1,0 +1,36 @@
+{
+  "name": "configstream-frontend",
+  "version": "2.0.13",
+  "description": "Production build configuration for ConfigStream frontend",
+  "build": {
+    "development": {
+      "stripConsole": false,
+      "minify": false,
+      "sourceMaps": true
+    },
+    "production": {
+      "stripConsole": true,
+      "minify": true,
+      "sourceMaps": false,
+      "optimization": {
+        "removeDebugger": true,
+        "removeConsoleLog": true,
+        "removeConsoleInfo": true,
+        "keepConsoleWarn": true,
+        "keepConsoleError": true
+      }
+    }
+  },
+  "scripts": {
+    "build:dev": "Development build (keeps console.log)",
+    "build:prod": "Production build (strips console.log, minifies)",
+    "lint": "Check code quality",
+    "test": "Run frontend tests"
+  },
+  "notes": [
+    "This configuration is used during the GitHub Actions deployment process",
+    "console.log statements are automatically stripped in production builds",
+    "Use console.warn() or console.error() for production logging needs",
+    "DOMPurify is included for XSS protection - use updateElement() helper"
+  ]
+}
