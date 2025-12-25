@@ -6,7 +6,7 @@ import logging
 import json
 import re
 import base64
-from typing import List
+from typing import List, Dict, Any
 from urllib.parse import urlparse, parse_qs
 
 from ...models import Proxy
@@ -34,8 +34,6 @@ IP_REGEX = re.compile(
     r"(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
     r"|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
 )
-
-from typing import List, Dict, Any
 
 # Updated Sources (Removed dead links, added more reliable ones if possible)
 WARP_SOURCES: List[Dict[str, Any]] = [
