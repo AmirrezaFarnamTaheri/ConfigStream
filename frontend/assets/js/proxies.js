@@ -448,20 +448,23 @@ function updatePaginationInfo() {
     const createBtn = (text, page, disabled) => {
         const b = document.createElement('button');
         b.className = 'pagination-btn';
-        b.innerHTML = text; // allow html for arrows
+        // [FIX P2-8] Use textContent instead of innerHTML to prevent XSS
+        // Unicode arrows instead of HTML entities for security
+        b.textContent = text;
         b.disabled = disabled;
         b.onclick = () => { currentPage = page; renderTable(); updatePaginationInfo(); };
         return b;
     };
 
-    container.appendChild(createBtn('&lsaquo;', currentPage - 1, currentPage === 1));
+    // [FIX P2-8] Use Unicode arrows (‹ U+2039, › U+203A) instead of HTML entities
+    container.appendChild(createBtn('‹', currentPage - 1, currentPage === 1));
 
     const span = document.createElement('span');
     span.className = 'pagination-info';
     span.textContent = `Page ${currentPage} of ${totalPages}`;
     container.appendChild(span);
 
-    container.appendChild(createBtn('&rsaquo;', currentPage + 1, currentPage === totalPages));
+    container.appendChild(createBtn('›', currentPage + 1, currentPage === totalPages));
 }
 
 // Use global window.copyToClipboard from dom.js instead of local duplicate
