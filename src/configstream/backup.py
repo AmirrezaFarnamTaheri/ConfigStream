@@ -91,9 +91,18 @@ def backup_databases(
 
             shutil.copystat(db_file, backup_path)
 
-            backups_created.append(backup_path)
+            # [FIX] Compress backup to save space
+            import gzip
+            compressed_path = backup_path.with_suffix(".db.gz")
+            with open(backup_path, 'rb') as f_in, gzip.open(compressed_path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+            # Remove uncompressed
+            backup_path.unlink()
+            backups_created.append(compressed_path)
+
             logger.info(
-                f"Backed up {db_file.name} -> {backup_filename} ({backup_path.stat().st_size / 1024 / 1024:.2f} MB)"
+                f"Backed up {db_file.name} -> {compressed_path.name} ({compressed_path.stat().st_size / 1024 / 1024:.2f} MB)"
             )
 
         except Exception as e:
@@ -101,6 +110,8 @@ def backup_databases(
             try:
                 if backup_path.exists():
                     backup_path.unlink()
+                if 'compressed_path' in locals() and compressed_path.exists():
+                    compressed_path.unlink()
             except Exception:
                 pass
             logger.error(f"Failed to backup {db_file}: {e}")
@@ -117,36 +128,73 @@ def backup_databases(
 
 def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
     """
-    Remove backup files older than retention_days.
-
-    Args:
-        backup_dir: Directory containing backups
-        retention_days: Age threshold in days
-
-    Returns:
-        Number of files deleted
+    Smart cleanup: Keep recent backups, and thinning for older ones.
+    Policy:
+    - Keep all backups from last `retention_days` (e.g., 7 days).
+    - For older than 7 days, keep 1 per day (daily snapshot).
+    - Remove backups older than 30 days entirely.
     """
     if not backup_dir.exists():
         return 0
 
-    cutoff = datetime.now() - timedelta(days=retention_days)
+    now = datetime.now()
+    cutoff_retention = now - timedelta(days=retention_days)
+    cutoff_absolute = now - timedelta(days=30) # Absolute max age
+
     deleted = 0
 
-    for backup_file in backup_dir.glob("*.db"):
+    # Group by database and date
+    backups = list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.db.gz"))
+    by_db_date = {}
+
+    for backup_file in backups:
         try:
-            # Get file modification time
             mtime = datetime.fromtimestamp(backup_file.stat().st_mtime)
 
-            if mtime < cutoff:
-                file_size = backup_file.stat().st_size / 1024 / 1024
+            # Absolute cutoff
+            if mtime < cutoff_absolute:
                 backup_file.unlink()
                 deleted += 1
-                logger.debug(
-                    f"Deleted old backup: {backup_file.name} ({file_size:.2f} MB, age: {(datetime.now() - mtime).days} days)"
-                )
+                continue
+
+            # If within retention window, keep
+            if mtime >= cutoff_retention:
+                continue
+
+            # Else (between 7 and 30 days), apply thinning
+            # Identify DB name (remove timestamp suffix)
+            # Filename format: name_YYYYMMDD_HHMMSS.db[.gz]
+            stem = backup_file.name.split('.')[0] # remove extensions
+            parts = stem.split('_')
+            if len(parts) >= 3 and len(parts[-1]) == 6 and len(parts[-2]) == 8:
+                db_name = "_".join(parts[:-2])
+            else:
+                db_name = "unknown"
+
+            date_key = mtime.strftime("%Y-%m-%d")
+            key = (db_name, date_key)
+            if key not in by_db_date:
+                by_db_date[key] = []
+            by_db_date[key].append((mtime, backup_file))
 
         except Exception as e:
-            logger.warning(f"Failed to delete old backup {backup_file}: {e}")
+            logger.warning(f"Failed to process backup {backup_file}: {e}")
+
+    # Process thinning groups
+    for key, file_list in by_db_date.items():
+        # Keep only the latest one for this day
+        file_list.sort(key=lambda x: x[0], reverse=True) # Newest first
+
+        # Keep index 0, delete others
+        for _, fpath in file_list[1:]:
+            try:
+                fpath.unlink()
+                deleted += 1
+            except Exception:
+                pass
+
+    if deleted > 0:
+        logger.info(f"Cleaned up {deleted} old backup files (smart retention)")
 
     return deleted
 
