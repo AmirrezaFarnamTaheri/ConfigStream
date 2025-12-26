@@ -7,6 +7,13 @@ echo "🏗️ Building WASM Module..."
 if command -v go &> /dev/null; then
     GO_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
     echo "Detected Go version: $GO_VERSION"
+
+    # Simple version check (major.minor)
+    IFS='.' read -r -a parts <<< "$GO_VERSION"
+    if [ "${parts[0]}" -lt 1 ] || ([ "${parts[0]}" -eq 1 ] && [ "${parts[1]}" -lt 21 ]); then
+        echo "❌ Go version 1.21+ required. Found $GO_VERSION"
+        exit 1
+    fi
 else
     echo "❌ Go is not installed."
     exit 1
