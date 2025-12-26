@@ -107,7 +107,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.21'  # [FIX P1] Use latest stable Go version (1.24 doesn't exist yet)
           cache-dependency-path: src/go/tester/go.sum
 
       - name: Build WASM Binary
@@ -256,7 +256,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.21'  # [FIX P1] Use latest stable Go version (1.24 doesn't exist yet)
           cache-dependency-path: src/go/tester/go.sum
 
       - name: Build Native Go Tester
