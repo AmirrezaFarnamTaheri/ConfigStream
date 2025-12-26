@@ -73,20 +73,44 @@ SAFE_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
+        self._failed_connections: set = set()  # Track failed connections for cleanup
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+        self._failed_connections.discard(websocket)
 
     async def broadcast(self, message: dict):
-        for connection in self.active_connections:
+        """Broadcast message to all connected clients.
+
+        [FIX P2] Specific exception handling instead of broad Exception catch.
+        """
+        for connection in self.active_connections[
+            :
+        ]:  # Copy to avoid modification during iteration
             try:
                 await connection.send_json(message)
-            except Exception:
-                pass
+            except (ConnectionError, RuntimeError) as e:
+                # WebSocket closed or connection lost
+                logger.debug(
+                    f"WebSocket send failed (connection {id(connection)}): {e}"
+                )
+                self._failed_connections.add(connection)
+            except Exception as e:
+                # Unexpected error - log and continue
+                logger.warning(f"Unexpected error in WebSocket broadcast: {e}")
+
+        # Cleanup failed connections
+        for failed in self._failed_connections:
+            try:
+                self.disconnect(failed)
+            except ValueError:
+                pass  # Already removed
+        self._failed_connections.clear()
 
 
 manager = ConnectionManager()

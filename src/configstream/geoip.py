@@ -8,7 +8,7 @@ import ipaddress
 import logging
 import asyncio
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 import geoip2.database
 import geoip2.errors
@@ -173,15 +173,32 @@ class GeoIPResolver:
 
         return result
 
-    def close(self):
+    def close(self) -> None:
+        """Close GeoIP database readers and release resources.
+
+        [FIX P2] Added return type annotation for type safety.
+        """
         if self.reader_city:
             self.reader_city.close()
         if self.reader_asn:
             self.reader_asn.close()
 
-    def log_enrichment_stats(self, proxies: list) -> dict:
-        """Log and return GeoIP enrichment statistics."""
-        stats = {
+    def log_enrichment_stats(self, proxies: List[Any]) -> Dict[str, int]:
+        """Log and return GeoIP enrichment statistics.
+
+        [FIX P2] Added specific type annotations (List[Any] -> Dict[str, int]).
+
+        Args:
+            proxies: List of proxy objects with optional geo attributes
+
+        Returns:
+            Dictionary containing enrichment statistics:
+            - total: Total number of proxies
+            - with_country: Count of proxies with country data
+            - with_city: Count of proxies with city data
+            - with_asn: Count of proxies with ASN data
+        """
+        stats: Dict[str, int] = {
             "total": len(proxies),
             "with_country": sum(
                 1 for p in proxies if p.country_code and p.country_code != "XX"

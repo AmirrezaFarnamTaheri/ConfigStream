@@ -153,25 +153,29 @@ async function renderPage(filename) {
 
             const html = marked.parse(content);
 
-            // Sanitize
+            // [FIX P2] Sanitize with strengthened fallback
             let sanitized;
             if (window.DOMPurify) {
                 sanitized = window.DOMPurify.sanitize(html, {
-                     ADD_TAGS: ['iframe'], // Allow iframes for youtube? maybe dangerous. keeping safe for now.
-                     ADD_ATTR: ['target']
+                     // [FIX P2] DO NOT allow iframes - XSS vector
+                     // ADD_TAGS: ['iframe'], // REMOVED - dangerous
+                     ADD_ATTR: ['target', 'rel'],
+                     FORBID_TAGS: ['script', 'object', 'embed', 'applet', 'iframe', 'form'],
+                     FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover']
                 });
+                container.innerHTML = sanitized;
             } else {
-                console.warn("[Wiki] DOMPurify not loaded, using basic sanitization");
-                // Basic fallback sanitization
-                const tmp = document.createElement('div');
-                tmp.textContent = html; // THIS ESCAPES EVERYTHING, disabling markdown rendering effectively
-                // So we trust marked output if DOMPurify missing? No, that's dangerous.
-                // We'll use the i18n sanitizer or similar if available, or just render as text.
-                sanitized = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gm, "")
-                                .replace(/on\w+="[^"]*"/g, "");
+                // [FIX P2] CRITICAL: If DOMPurify fails, render as plain text
+                console.error("[Wiki] DOMPurify not loaded - rendering as plain text for security");
+                container.innerHTML = `
+                    <div class="warning-state" style="padding: 20px; background: #fff3cd; color: #856404; border-radius: 8px; margin-bottom: 20px;">
+                        <strong>⚠️ Security Warning:</strong> DOMPurify library failed to load.
+                        Content is displayed as plain text to prevent XSS vulnerabilities.
+                    </div>
+                    <pre style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 4px;">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+                `;
+                return; // Exit early - do not process further
             }
-
-            container.innerHTML = sanitized;
 
             // Post-processing: Make links open in new tab if external
             container.querySelectorAll('a').forEach(link => {
