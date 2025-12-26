@@ -79,8 +79,27 @@ class QualityStorage:
             )
 
             conn.commit()
+        except sqlite3.OperationalError as e:
+            # [FIX P2-5] Database schema errors (locked, corrupted, etc.)
+            logger.error(f"SQLite operational error initializing DB: {e}")
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        except sqlite3.DatabaseError as e:
+            # [FIX P2-5] Database integrity errors
+            logger.error(f"SQLite database error during initialization: {e}")
+            try:
+                conn.rollback()
+            except Exception:
+                pass
         except Exception as e:
-            logger.error(f"Failed to init source quality DB: {e}")
+            # [FIX P2-5] Unexpected errors
+            logger.exception(f"Unexpected error initializing source quality DB: {e}")
+            try:
+                conn.rollback()
+            except Exception:
+                pass
 
     def close(self):
         # Close current thread's connection
@@ -99,8 +118,19 @@ class QualityStorage:
                     (url,),
                 ).fetchone()
                 return row  # type: ignore
+            except sqlite3.OperationalError as e:
+                # [FIX P2-5] Database locked or table doesn't exist
+                logger.error(f"SQLite operational error getting state for {url}: {e}")
+                return None
+            except sqlite3.DatabaseError as e:
+                # [FIX P2-5] Database integrity errors
+                logger.error(f"SQLite database error for {url}: {e}")
+                return None
             except Exception as e:
-                logger.error(f"Failed to get source state for {url}: {e}")
+                # [FIX P2-5] Unexpected errors
+                logger.exception(
+                    f"Unexpected error getting source state for {url}: {e}"
+                )
                 return None
 
     def get_trust_score(self, url: str) -> float:
@@ -112,7 +142,19 @@ class QualityStorage:
                     "SELECT trust_score FROM source_stats WHERE url = ?", (url,)
                 ).fetchone()
                 return row[0] if row else 50.0
-            except Exception:
+            except sqlite3.OperationalError as e:
+                # [FIX P2-5] Database locked or table doesn't exist - return default
+                logger.debug(
+                    f"SQLite operational error getting trust score for {url}: {e}"
+                )
+                return 50.0
+            except sqlite3.DatabaseError as e:
+                # [FIX P2-5] Database integrity errors - return default
+                logger.warning(f"SQLite database error for {url}: {e}")
+                return 50.0
+            except Exception as e:
+                # [FIX P2-5] Unexpected errors - return default
+                logger.debug(f"Unexpected error getting trust score for {url}: {e}")
                 return 50.0
 
     def upsert_stats(self, url: str, stats: Dict[str, Any]):

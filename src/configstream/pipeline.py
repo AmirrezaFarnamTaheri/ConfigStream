@@ -61,7 +61,61 @@ async def run_full_pipeline(
 ) -> PipelineResult:
     """
     Execute the streaming proxy aggregation pipeline.
+
+    Args:
+        sources: List of source URLs to fetch proxies from
+        output_dir: Output directory path for generated files
+        max_workers: Maximum concurrent workers (0 = auto-calculate)
+        max_proxies: Maximum number of proxies to process (None = unlimited)
+        timeout: Proxy test timeout in seconds
+        country_filter: ISO country code filter (e.g., "US", "GB")
+        max_latency: Maximum acceptable latency in milliseconds
+        leniency: Enable lenient testing mode
+        strict_security: Enable strict security checks
+        progress: Optional Rich progress bar instance
+        proxies: Pre-supplied proxy list (bypasses source fetching)
+        dry_run: Skip actual proxy testing (validation mode)
+
+    Returns:
+        PipelineResult with statistics and output file paths
+
+    Raises:
+        ValueError: If input parameters are invalid
+        RuntimeError: If pipeline execution fails
     """
+    # [FIX P2-6] Input validation - prevent invalid parameter combinations
+    if not sources and not proxies:
+        raise ValueError("Either 'sources' or 'proxies' must be provided")
+
+    if not output_dir or not output_dir.strip():
+        raise ValueError("'output_dir' must be a non-empty string")
+
+    if max_workers < 0:
+        raise ValueError(f"'max_workers' must be >= 0 (got {max_workers})")
+
+    if max_workers > 10000:
+        logger.warning(
+            f"max_workers={max_workers} is extremely high - clamping to 1000 for stability"
+        )
+        max_workers = 1000
+
+    if max_proxies is not None and max_proxies <= 0:
+        raise ValueError(f"'max_proxies' must be > 0 or None (got {max_proxies})")
+
+    if timeout <= 0 or timeout > 300:
+        raise ValueError(f"'timeout' must be between 1 and 300 seconds (got {timeout})")
+
+    if max_latency is not None and max_latency <= 0:
+        raise ValueError(f"'max_latency' must be > 0 or None (got {max_latency})")
+
+    if country_filter:
+        # Validate ISO country code format (2 letters, uppercase)
+        if not country_filter.isalpha() or len(country_filter) != 2:
+            raise ValueError(
+                f"'country_filter' must be a 2-letter ISO code (got '{country_filter}')"
+            )
+        country_filter = country_filter.upper()
+
     start_time = datetime.now(timezone.utc)
     tracker = PerformanceTracker()
 
@@ -216,12 +270,38 @@ async def run_full_pipeline(
     try:
         try:
             await asyncio.gather(producer_task, *consumer_tasks)
-        except Exception:
-            # Cancel all tasks on failure to avoid leaks/hangs
+        except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
+            # [FIX P2-1] Specific exception handling for graceful shutdown
+            logger.info(f"Pipeline interrupted: {type(e).__name__}")
+            # Cancel all tasks on interruption to avoid leaks/hangs
             for t in consumer_tasks:
                 t.cancel()
             producer_task.cancel()
             # Wait for cancellations to complete
+            await asyncio.gather(*consumer_tasks, return_exceptions=True)
+            try:
+                await producer_task
+            except asyncio.CancelledError:
+                pass
+            raise
+        except (RuntimeError, ValueError, TypeError) as e:
+            # [FIX P2-1] Catch common pipeline errors with proper logging
+            logger.error(f"Pipeline execution error: {e}")
+            for t in consumer_tasks:
+                t.cancel()
+            producer_task.cancel()
+            await asyncio.gather(*consumer_tasks, return_exceptions=True)
+            try:
+                await producer_task
+            except asyncio.CancelledError:
+                pass
+            raise
+        except Exception as e:
+            # [FIX P2-1] Unexpected errors - log with full context
+            logger.exception(f"Unexpected pipeline error: {e}")
+            for t in consumer_tasks:
+                t.cancel()
+            producer_task.cancel()
             await asyncio.gather(*consumer_tasks, return_exceptions=True)
             try:
                 await producer_task
@@ -268,8 +348,17 @@ async def run_full_pipeline(
                     "http://127.0.0.1:8000/api/admin/notify-update",
                     json={"timestamp": stats.end_time or duration},
                 )
-        except Exception:
-            pass
+        except (httpx.TimeoutException, httpx.ConnectError) as e:
+            # [FIX P2-1] Server not running or unreachable - expected in standalone mode
+            logger.debug(f"Server notification skipped (server not available): {e}")
+        except httpx.HTTPStatusError as e:
+            # [FIX P2-1] Server returned error status
+            logger.warning(
+                f"Server notification failed with HTTP {e.response.status_code}"
+            )
+        except Exception as e:
+            # [FIX P2-1] Unexpected notification error
+            logger.debug(f"Unexpected error during server notification: {e}")
 
         return PipelineResult(success=True, stats=stats, output_files=generated_files)
     finally:
@@ -285,11 +374,36 @@ async def run_full_pipeline(
             try:
                 vwarp_proc.terminate()
                 vwarp_proc.wait(timeout=2)
-            except Exception:
+            except subprocess.TimeoutExpired:
+                # [FIX P2-1] Process didn't terminate gracefully - force kill
+                logger.warning(
+                    "Vwarp process didn't terminate gracefully, forcing kill"
+                )
                 vwarp_proc.kill()
+                try:
+                    vwarp_proc.wait(timeout=1)
+                except subprocess.TimeoutExpired:
+                    logger.error("Failed to kill Vwarp process")
+            except ProcessLookupError:
+                # [FIX P2-1] Process already terminated
+                logger.debug("Vwarp process already terminated")
+            except Exception as e:
+                # [FIX P2-1] Unexpected error during Vwarp cleanup
+                logger.warning(f"Unexpected error during Vwarp cleanup: {e}")
+                try:
+                    vwarp_proc.kill()
+                except Exception:
+                    pass
 
         # Ensure event stream is always closed to flush handles/buffers
         try:
             await event_stream.aclose()
-        except Exception:
-            logger.exception("Failed to close EventStream cleanly")
+        except (OSError, IOError) as e:
+            # [FIX P2-1] File handle errors during stream closure
+            logger.error(f"I/O error closing EventStream: {e}")
+        except RuntimeError as e:
+            # [FIX P2-1] Runtime errors (e.g., event loop closed)
+            logger.warning(f"Runtime error closing EventStream: {e}")
+        except Exception as e:
+            # [FIX P2-1] Unexpected errors - log with full traceback
+            logger.exception(f"Unexpected error closing EventStream: {e}")

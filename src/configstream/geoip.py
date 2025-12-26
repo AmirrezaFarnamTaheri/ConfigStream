@@ -113,8 +113,15 @@ class GeoIPResolver:
                     "GeoLite2 ASN DB not found. ASN lookup disabled. Run 'configstream update-databases'."
                 )
 
+        except (OSError, IOError) as e:
+            # [FIX P2-3] File system errors (permissions, corrupted files, etc.)
+            logger.error(f"I/O error loading GeoIP databases: {e}")
+        except geoip2.errors.GeoIP2Error as e:
+            # [FIX P2-3] GeoIP2-specific errors (invalid database format, etc.)
+            logger.error(f"GeoIP2 database error: {e}")
         except Exception as e:
-            logger.error(f"Failed to load GeoIP databases: {e}")
+            # [FIX P2-3] Unexpected errors - log with full traceback
+            logger.exception(f"Unexpected error loading GeoIP databases: {e}")
 
     def _get_lookup_lock(self) -> asyncio.Lock:
         """Lazily create async lock when first needed (within event loop context)."""
@@ -168,8 +175,15 @@ class GeoIPResolver:
         except geoip2.errors.AddressNotFoundError:
             # Expected for private IPs or missing data
             pass
+        except (ValueError, TypeError) as e:
+            # [FIX P2-3] Invalid IP format or type errors
+            logger.debug(f"Invalid IP format during GeoIP lookup for {ip}: {e}")
+        except geoip2.errors.GeoIP2Error as e:
+            # [FIX P2-3] GeoIP2-specific errors (database errors, etc.)
+            logger.warning(f"GeoIP2 error during lookup for {ip}: {e}")
         except Exception as e:
-            logger.debug(f"GeoIP lookup error for {ip}: {e}")
+            # [FIX P2-3] Unexpected errors - log for debugging
+            logger.debug(f"Unexpected GeoIP lookup error for {ip}: {e}")
 
         return result
 
