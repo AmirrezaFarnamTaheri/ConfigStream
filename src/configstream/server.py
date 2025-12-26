@@ -325,6 +325,7 @@ async def download_subscription(format: str):
         "surge": "surge.conf",
         "loon": "loon.conf",
         "sip008": "sip008.json",
+        "singbox-vpn": "singbox-vpn.json",
     }
 
     if format not in file_map:
