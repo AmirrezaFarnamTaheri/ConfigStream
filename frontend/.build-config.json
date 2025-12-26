@@ -30,7 +30,9 @@
   "notes": [
     "This configuration is used during the GitHub Actions deployment process",
     "console.log statements are automatically stripped in production builds",
-    "Use console.warn() or console.error() for production logging needs",
+    "[FIX P1] Use logger from utils/logger.js instead of console.* directly",
+    "[FIX P1] Logger automatically disables verbose logging in production environments",
+    "Enable debug logging with ?debug=true or window.ConfigStreamLogger.enableDebug()",
     "DOMPurify is included for XSS protection - use updateElement() helper"
   ]
 }
