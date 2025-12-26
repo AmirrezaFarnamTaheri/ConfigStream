@@ -93,8 +93,12 @@ def backup_databases(
 
             # [FIX] Compress backup to save space
             import gzip
+
             compressed_path = backup_path.with_suffix(".db.gz")
-            with open(backup_path, 'rb') as f_in, gzip.open(compressed_path, 'wb') as f_out:
+            with (
+                open(backup_path, "rb") as f_in,
+                gzip.open(compressed_path, "wb") as f_out,
+            ):
                 shutil.copyfileobj(f_in, f_out)
 
             # Remove uncompressed
@@ -110,7 +114,7 @@ def backup_databases(
             try:
                 if backup_path.exists():
                     backup_path.unlink()
-                if 'compressed_path' in locals() and compressed_path.exists():
+                if "compressed_path" in locals() and compressed_path.exists():
                     compressed_path.unlink()
             except Exception:
                 pass
@@ -139,13 +143,13 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
 
     now = datetime.now()
     cutoff_retention = now - timedelta(days=retention_days)
-    cutoff_absolute = now - timedelta(days=30) # Absolute max age
+    cutoff_absolute = now - timedelta(days=30)  # Absolute max age
 
     deleted = 0
 
     # Group by database and date
     backups = list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.db.gz"))
-    by_db_date = {}
+    by_db_date: Dict[Tuple[str, str], List[Tuple[datetime, Path]]] = {}
 
     for backup_file in backups:
         try:
@@ -164,8 +168,8 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
             # Else (between 7 and 30 days), apply thinning
             # Identify DB name (remove timestamp suffix)
             # Filename format: name_YYYYMMDD_HHMMSS.db[.gz]
-            stem = backup_file.name.split('.')[0] # remove extensions
-            parts = stem.split('_')
+            stem = backup_file.name.split(".")[0]  # remove extensions
+            parts = stem.split("_")
             if len(parts) >= 3 and len(parts[-1]) == 6 and len(parts[-2]) == 8:
                 db_name = "_".join(parts[:-2])
             else:
@@ -183,7 +187,7 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
     # Process thinning groups
     for key, file_list in by_db_date.items():
         # Keep only the latest one for this day
-        file_list.sort(key=lambda x: x[0], reverse=True) # Newest first
+        file_list.sort(key=lambda x: x[0], reverse=True)  # Newest first
 
         # Keep index 0, delete others
         for _, fpath in file_list[1:]:

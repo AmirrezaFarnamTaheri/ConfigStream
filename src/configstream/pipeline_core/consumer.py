@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 async def processing_consumer(
     work_queue: asyncio.Queue,
     stats: PipelineStats,
-    seen_keys: Any, # Expects Dict or Set
+    seen_keys: Any,  # Expects Dict or Set
     final_proxies: List[Proxy],
     tester: SingBoxTester,
     scheduler: SmartRetestScheduler,
@@ -146,31 +146,31 @@ async def processing_consumer(
                 if k not in seen_keys:
                     # [FIX] If approaching limit, remove oldest entries
                     if len(seen_keys) >= max_seen:
-                        eviction_count = max(100, max_seen // 100) # Evict 1%
+                        eviction_count = max(100, max_seen // 100)  # Evict 1%
 
                         if isinstance(seen_keys, set):
-                             # Fallback for Set
-                             keys_to_remove = []
-                             it = iter(seen_keys)
-                             for _ in range(eviction_count):
-                                 try:
-                                     keys_to_remove.append(next(it))
-                                 except StopIteration:
-                                     break
-                             seen_keys.difference_update(keys_to_remove)
+                            # Fallback for Set
+                            keys_to_remove = []
+                            it = iter(seen_keys)
+                            for _ in range(eviction_count):
+                                try:
+                                    keys_to_remove.append(next(it))
+                                except StopIteration:
+                                    break
+                            seen_keys.difference_update(keys_to_remove)
                         else:
-                             # Dict: Iterating gives insertion order (oldest first)
-                             it = iter(seen_keys)
-                             for _ in range(eviction_count):
-                                 try:
-                                     del seen_keys[next(it)]
-                                 except (StopIteration, KeyError, RuntimeError):
-                                     break
+                            # Dict: Iterating gives insertion order (oldest first)
+                            it = iter(seen_keys)
+                            for _ in range(eviction_count):
+                                try:
+                                    del seen_keys[next(it)]
+                                except (StopIteration, KeyError, RuntimeError):
+                                    break
 
                     if isinstance(seen_keys, set):
                         seen_keys.add(k)
                     else:
-                        seen_keys[k] = None # Add to dict
+                        seen_keys[k] = None  # Add to dict
 
                     unique_batch.append(p)
                 else:

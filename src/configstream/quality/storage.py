@@ -97,8 +97,12 @@ class QualityStorage:
                 """
             )
             # Index for fast lookup
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_proxy_history_id ON proxy_history(proxy_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_proxy_history_ts ON proxy_history(timestamp)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_proxy_history_id ON proxy_history(proxy_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_proxy_history_ts ON proxy_history(timestamp)"
+            )
 
             conn.commit()
         except sqlite3.OperationalError as e:
@@ -359,7 +363,9 @@ class QualityStorage:
 
                     # Merge proxy_history if exists
                     try:
-                        history_rows = src.execute("SELECT * FROM proxy_history").fetchall()
+                        history_rows = src.execute(
+                            "SELECT * FROM proxy_history"
+                        ).fetchall()
                         if history_rows:
                             cursor = src.execute("SELECT * FROM proxy_history LIMIT 1")
                             columns = [d[0] for d in cursor.description]
@@ -367,7 +373,7 @@ class QualityStorage:
 
                             dst.executemany(
                                 f"INSERT INTO proxy_history VALUES ({placeholders})",
-                                history_rows
+                                history_rows,
                             )
                     except sqlite3.OperationalError:
                         pass
