@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
 
+from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
+
 logger = logging.getLogger(__name__)
 
 
@@ -123,7 +125,7 @@ class VwarpTool:
             return {}
 
     async def start_tunnel(
-        self, bind_addr: str = "127.0.0.1", port: int = 10808
+        self, bind_addr: str = VWARP_BIND_ADDRESS, port: int = VWARP_SOCKS5_PORT
     ) -> bool:
         """
         Starts the Vwarp SOCKS5 tunnel in the background.
