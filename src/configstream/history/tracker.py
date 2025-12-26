@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 
 from ..models import Proxy
 from ..quality.storage import QualityStorage
+from .export import HistoryExporter
 
 logger = logging.getLogger(__name__)
 
@@ -101,15 +102,58 @@ class ProxyHistoryTracker:
         if hasattr(self.storage, 'merge_from') and hasattr(other.storage, 'db_path'):
              self.storage.merge_from(other.storage.db_path)
 
+    def _load_all_history(self) -> Dict[str, Any]:
+        """Load all history from DB into dictionary format."""
+        if not self.storage:
+            return {}
+
+        history_data = {}
+        try:
+            conn = self.storage.get_connection()
+            # Fetch all rows. Optimizing with fetchmany if needed, but for export we need all.
+            cursor = conn.execute("SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history")
+
+            for row in cursor:
+                pid, ts, working, lat, cc, reason = row
+                if pid not in history_data:
+                    history_data[pid] = {
+                        "id": pid,
+                        "protocol": "unknown", # We don't store protocol in history table yet
+                        "entries": []
+                    }
+
+                ts_iso = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+
+                entry = {
+                    "timestamp": ts_iso,
+                    "is_working": bool(working),
+                    "latency": lat,
+                    "country": cc,
+                    "error": reason
+                }
+                history_data[pid]["entries"].append(entry)
+
+        except Exception as e:
+            logger.error(f"Failed to load history from DB: {e}")
+
+        return history_data
+
     def export_for_visualization(self, output_path: Any) -> None:
         """Export history data for visualization."""
-        # Placeholder for now
-        pass
+        data = self._load_all_history()
+        # Ensure path is Path object
+        from pathlib import Path
+        if not isinstance(output_path, Path):
+            output_path = Path(output_path)
+        HistoryExporter.export_for_visualization(data, output_path)
 
     def export_active_proxy_trend(self, output_path: Any) -> None:
         """Export active proxy trend."""
-        # Placeholder for now
-        pass
+        data = self._load_all_history()
+        from pathlib import Path
+        if not isinstance(output_path, Path):
+            output_path = Path(output_path)
+        HistoryExporter.export_active_proxy_trend(data, output_path)
 
     def close(self):
         """
