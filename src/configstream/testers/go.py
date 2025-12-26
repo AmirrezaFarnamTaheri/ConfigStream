@@ -10,6 +10,7 @@ from typing import List, Dict, Any, Optional, cast
 from ..config import AppSettings
 from ..models import Proxy
 from ..converters import to_singbox_outbound
+from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 
 logger = logging.getLogger(__name__)
 
@@ -187,10 +188,12 @@ class GoBatchTester:
 
                 # 🚀 FORCE TRAFFIC THROUGH VWARP TUNNEL IF AVAILABLE
                 if os.environ.get("USE_VWARP_TUNNEL") == "true":
-                    # Assuming Vwarp tunnel is running on 10808
-                    env["ALL_PROXY"] = "socks5://127.0.0.1:10808"
+                    # Using Vwarp tunnel configuration from constants
+                    env["ALL_PROXY"] = (
+                        f"socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"
+                    )
                     logger.info(
-                        "Go Tester using Vwarp tunnel at socks5://127.0.0.1:10808"
+                        f"Go Tester using Vwarp tunnel at socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"
                     )
 
                 self._proc = await asyncio.create_subprocess_exec(

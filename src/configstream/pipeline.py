@@ -31,6 +31,7 @@ from .security.blocklist import DEFAULT_BLOCKLIST
 from .performance import PerformanceTracker
 from .proxy_history import ProxyHistoryTracker
 from .filtering import filter_unique_endpoints
+from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 
 from .pipeline_core.stats import PipelineStats
 from .pipeline_core.models import PipelineResult
@@ -161,9 +162,11 @@ async def run_full_pipeline(
     vwarp_bin = shutil.which("vwarp") or "/usr/local/bin/vwarp"
     if os.path.exists(vwarp_bin):
         try:
-            logger.info("🚀 Starting Vwarp SOCKS5 Tunnel on port 10808...")
+            logger.info(
+                f"🚀 Starting Vwarp SOCKS5 Tunnel on port {VWARP_SOCKS5_PORT}..."
+            )
             vwarp_proc = subprocess.Popen(
-                [vwarp_bin, "--bind", "127.0.0.1:10808"],
+                [vwarp_bin, "--bind", f"{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
