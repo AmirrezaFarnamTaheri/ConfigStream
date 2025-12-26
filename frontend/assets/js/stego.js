@@ -1,5 +1,6 @@
 // frontend/assets/js/stego.js
 
+const logger = window.createLogger ? window.createLogger('Stego') : console;
 const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 
 // ⚠️ DO NOT CHANGE THIS LINE MANUALLY ⚠️
@@ -8,7 +9,8 @@ const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 // The key below is rotated every 6 hours by GitHub Actions.
 // NOTE: This key provides OBFUSCATION ONLY, not strong confidentiality, as it is visible in client-side code.
 // Ideally, use per-session keys or public-key crypto if strict confidentiality is required.
-const SECRET_KEY = "MGq_ZkrhUxBp987Sv8UnILxoGkceXCmB3vy2yR3jjBM=";
+// [SECURITY FIX] Use placeholder that will fail validation if not injected by CI/CD
+const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";
 
 async function fetchStegoConfig(imageUrl) {
     try {
@@ -29,7 +31,7 @@ async function fetchStegoConfig(imageUrl) {
 
         // Naive search (fast enough for 5MB images)
         // Prevent negative start index for small images
-        const searchStart = Math.max(0, buffer.byteLength - 500000);
+        const searchStart = Math.max(0, buffer.byteLength - window.CS_CONSTANTS.STEGO_SEARCH_WINDOW);
 
         for (let i = searchStart; i < buffer.byteLength; i++) {
             // Optimization: Scan last 500KB only
@@ -67,7 +69,7 @@ async function fetchStegoConfig(imageUrl) {
 
         // 4. Decompress (Zlib/Pako)
         // Audit: Limit payload size to avoid memory exhaustion
-        if (compressedString.length > 2 * 1024 * 1024) { // 2MB limit
+        if (compressedString.length > window.CS_CONSTANTS.STEGO_MAX_PAYLOAD_SIZE) {
              throw new Error("Decompressed payload too large (security limit)");
         }
 
@@ -76,7 +78,7 @@ async function fetchStegoConfig(imageUrl) {
         return JSON.parse(jsonString);
 
     } catch (e) {
-        console.error("Stego extraction failed:", e);
+        logger.error("Stego extraction failed:", e);
         alert("Failed to load stealth config. See console.");
         return null;
     }

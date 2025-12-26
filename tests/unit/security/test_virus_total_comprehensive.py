@@ -10,8 +10,8 @@ from configstream.security.virus_total import (
     check_ip_reputation,
     _IP_CACHE,
     CACHE_TTL,
-    CACHE_SIZE,
 )
+from configstream.constants import VIRUSTOTAL_CACHE_SIZE
 
 
 class MockResponse:
@@ -379,11 +379,11 @@ class TestCheckIPReputation:
 
             with patch("configstream.security.virus_total.VT_API_KEY", "test_key"):
                 # Fill cache beyond size limit
-                for i in range(CACHE_SIZE + 5):
+                for i in range(VIRUSTOTAL_CACHE_SIZE + 5):
                     await check_ip_reputation(f"192.168.1.{i}")
 
                 # Cache should not exceed size limit
-                assert len(_IP_CACHE) <= CACHE_SIZE
+                assert len(_IP_CACHE) <= VIRUSTOTAL_CACHE_SIZE
 
     @pytest.mark.asyncio
     async def test_check_ip_invalid_response_data(self):
@@ -503,7 +503,7 @@ class TestCacheManagement:
     def test_cache_constants(self):
         """Test that cache constants are defined correctly."""
         assert CACHE_TTL > 0
-        assert CACHE_SIZE > 0
+        assert VIRUSTOTAL_CACHE_SIZE > 0
         assert isinstance(_IP_CACHE, OrderedDict)
 
     @pytest.mark.asyncio
@@ -534,7 +534,7 @@ class TestCacheManagement:
 
             with patch("configstream.security.virus_total.VT_API_KEY", "test_key"):
                 # Fill cache to trigger eviction
-                for i in range(2, CACHE_SIZE + 2):
+                for i in range(2, VIRUSTOTAL_CACHE_SIZE + 2):
                     await check_ip_reputation(f"192.168.0.{i}")
 
                 # First IP should have been evicted

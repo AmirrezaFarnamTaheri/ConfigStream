@@ -6,6 +6,8 @@ import aiohttp
 import time
 from collections import OrderedDict
 
+from ..constants import VIRUSTOTAL_CACHE_SIZE
+
 logger = logging.getLogger(__name__)
 
 VT_API_KEY = os.getenv("VT_API_KEY", "")
@@ -16,7 +18,6 @@ VT_BASE_URL = "https://www.virustotal.com/api/v3"
 _IP_CACHE: OrderedDict[str, tuple[dict, float]] = OrderedDict()
 _CACHE_LOCK: asyncio.Lock = asyncio.Lock()
 CACHE_TTL = 3600  # 1 hour cache
-CACHE_SIZE = 1000
 
 
 async def scan_url(url: str) -> dict[str, int]:
@@ -105,7 +106,7 @@ async def check_ip_reputation(ip: str) -> dict[str, int]:
                     # Update Cache with lock
                     async with _CACHE_LOCK:
                         _IP_CACHE[ip] = (result, now)
-                        if len(_IP_CACHE) > CACHE_SIZE:
+                        if len(_IP_CACHE) > VIRUSTOTAL_CACHE_SIZE:
                             _IP_CACHE.popitem(last=False)
 
                     return result

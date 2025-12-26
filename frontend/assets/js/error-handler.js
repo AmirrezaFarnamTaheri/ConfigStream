@@ -6,19 +6,20 @@
 class ErrorBoundary {
   constructor() {
     this.errors = [];
+    this.logger = window.createLogger ? window.createLogger('ErrorBoundary') : console;
     this.setupGlobalHandlers();
   }
 
   setupGlobalHandlers() {
     // Catch synchronous errors
     window.addEventListener('error', (event) => {
-      console.error('Global error caught:', event.error);
+      this.logger.error('Global error caught:', event.error);
       this.handleError(event.error, 'global');
     });
 
     // Catch unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
-      console.error('Unhandled promise rejection:', event.reason);
+      this.logger.error('Unhandled promise rejection:', event.reason);
       this.handleError(event.reason, 'promise');
       event.preventDefault(); // Prevent browser from logging
     });
@@ -65,7 +66,7 @@ class ErrorBoundary {
     }
 
     // Log for debugging
-    console.error(`[${componentName}] ${error.message}`, error);
+    this.logger.error(`[${componentName}] ${error.message}`, error);
   }
 
   /**
@@ -144,4 +145,8 @@ class ErrorBoundary {
 // Create global instance
 window.errorBoundary = new ErrorBoundary();
 
-console.log('✅ Error Boundary initialized');
+// Log initialization using logger if available
+if (window.createLogger) {
+  const logger = window.createLogger('ErrorBoundary');
+  logger.info('Error Boundary initialized');
+}
