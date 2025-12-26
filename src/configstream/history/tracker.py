@@ -127,9 +127,9 @@ class ProxyHistoryTracker:
                         "timestamp": ts,
                         "is_working": bool(row[1]),
                         "latency": row[2],
-                    "failure_reason": row[3],
-                    "country": row[4],
-                    "country_code": row[4]
+                        "failure_reason": row[3],
+                        "country": row[4],
+                        "country_code": row[4]
                     }
                 )
             return entries
@@ -257,9 +257,12 @@ class ProxyHistoryTracker:
             for row in cursor:
                 pid, ts, working, lat, cc, reason = row
                 if pid not in history_data:
+                    # [FIX P1] Populate address/port with defaults to prevent KeyError in exporter
                     history_data[pid] = {
                         "id": pid,
-                        "protocol": "unknown",  # We don't store protocol in history table yet
+                        "protocol": "unknown",
+                        "address": "0.0.0.0",  # Fallback
+                        "port": 0,             # Fallback
                         "entries": [],
                     }
 

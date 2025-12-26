@@ -162,12 +162,17 @@ def main() -> None:
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
 
-    # Atomic Write: Write all to .tmp first, then delete original, then rename
+    # Atomic Write: Write all to .tmp first, then delete original/rename
+    # [FIX P2] Also identify stale batches to delete
+    existing_batches = set(SOURCES_DIR.glob("batch_*.txt"))
+    new_batches = set()
+
     temp_files = []
     try:
         for i, batch in enumerate(batches):
             file_name = f"batch_{i+1}.txt"
             file_path = SOURCES_DIR / file_name
+            new_batches.add(file_path)
             temp_path = SOURCES_DIR / (file_name + ".tmp")
 
             # Convert weight back to seconds for display
@@ -184,9 +189,18 @@ def main() -> None:
             temp_files.append((temp_path, file_path))
             print(f"Batch {i+1:<4} | {len(batch):<10} | {est_time:<15.1f}")
 
-        # If all writes successful, safely replace
+        # If all writes successful:
+        # 1. Delete stale batches (existing but not in new)
+        stale_batches = existing_batches - new_batches
+        for stale in stale_batches:
+            try:
+                stale.unlink()
+                print(f"🗑️ Deleted stale batch: {stale.name}")
+            except Exception as e:
+                print(f"⚠️ Failed to delete stale batch {stale}: {e}")
+
+        # 2. Rename temps to final
         for tmp_path, final_path in temp_files:
-            # Atomic replacement
             tmp_path.replace(final_path)
 
     except Exception as e:
