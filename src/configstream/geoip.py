@@ -55,6 +55,9 @@ class GeoIPResolver:
         # [FIX] Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
         self._uses_c_extension: bool = False
 
+        # [FIX] Fallback services for critical failures (optional integration point)
+        self.fallback_services = ["https://ipinfo.io/json", "https://ipapi.co/json"]
+
         # Load synchronously
         self._load_databases()
         self._initialized = True
@@ -161,19 +164,25 @@ class GeoIPResolver:
         try:
             if self.reader_city:
                 response = self.reader_city.city(ip)
-                result.country_code = response.country.iso_code
-                result.country_name = response.country.name
-                result.city = response.city.name
+                result.country_code = response.country.iso_code or "XX" # Fallback XX
+                result.country_name = response.country.name or "Unknown"
+                result.city = response.city.name or "Unknown"
                 result.lat = response.location.latitude
                 result.lng = response.location.longitude
+            else:
+                 # Explicit warning/fallback if DB missing
+                 result.country_code = "XX"
+                 result.country_name = "Unknown (DB Missing)"
 
             if self.reader_asn:
                 response_asn = self.reader_asn.asn(ip)
                 result.asn = str(response_asn.autonomous_system_number)
-                result.org = response_asn.autonomous_system_organization
+                result.org = response_asn.autonomous_system_organization or "Unknown Org"
 
         except geoip2.errors.AddressNotFoundError:
             # Expected for private IPs or missing data
+            result.country_code = "XX"
+            result.country_name = "Unknown"
             pass
         except (ValueError, TypeError) as e:
             # [FIX P2-3] Invalid IP format or type errors
@@ -217,7 +226,7 @@ class GeoIPResolver:
             "with_country": sum(
                 1 for p in proxies if p.country_code and p.country_code != "XX"
             ),
-            "with_city": sum(1 for p in proxies if p.city),
+            "with_city": sum(1 for p in proxies if p.city and p.city != "Unknown"),
             "with_asn": sum(1 for p in proxies if p.asn),
         }
         coverage = (

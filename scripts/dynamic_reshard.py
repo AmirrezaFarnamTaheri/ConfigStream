@@ -1,9 +1,10 @@
 import re
 import glob
 import shutil
+import statistics
 from pathlib import Path
 from typing import Dict, List, Tuple
-import statistics
+import os
 
 # --- Configuration ---
 LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
@@ -71,11 +72,14 @@ def get_existing_sources() -> List[str]:
         return []
 
     for f in SOURCES_DIR.glob("batch_*.txt"):
-        content = f.read_text(encoding="utf-8").splitlines()
-        for line in content:
-            line = line.strip()
-            if line and not line.startswith("#"):
-                urls.add(line)
+        try:
+            content = f.read_text(encoding="utf-8").splitlines()
+            for line in content:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    urls.add(line)
+        except Exception as e:
+            print(f"⚠️  Could not read source file {f}: {e}")
     return list(urls)
 
 
@@ -94,7 +98,10 @@ def main() -> None:
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     print(f"📦 Backing up sources to {BACKUP_DIR}...")
     for f in SOURCES_DIR.glob("batch_*.txt"):
-        shutil.copy2(f, BACKUP_DIR)
+        try:
+            shutil.copy2(f, BACKUP_DIR)
+        except Exception as e:
+            print(f"⚠️  Backup failed for {f}: {e}")
 
     # 3. Gather Data
     observed_metrics = parse_logs(log_files)
@@ -155,12 +162,13 @@ def main() -> None:
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
 
-    # Atomic Write: Write all to .tmp first
+    # Atomic Write: Write all to .tmp first, then delete original, then rename
     temp_files = []
     try:
         for i, batch in enumerate(batches):
-            file_path = SOURCES_DIR / f"batch_{i+1}.txt"
-            temp_path = file_path.with_suffix(".txt.tmp")
+            file_name = f"batch_{i+1}.txt"
+            file_path = SOURCES_DIR / file_name
+            temp_path = SOURCES_DIR / (file_name + ".tmp")
 
             # Convert weight back to seconds for display
             est_time = batch_loads[i] / 10.0
@@ -176,15 +184,10 @@ def main() -> None:
             temp_files.append((temp_path, file_path))
             print(f"Batch {i+1:<4} | {len(batch):<10} | {est_time:<15.1f}")
 
-        # If all writes successful, delete old and rename new
-        for f in SOURCES_DIR.glob("batch_*.txt"):
-            try:
-                f.unlink()
-            except Exception as e:
-                print(f"⚠️ Failed to delete old {f}: {e}")
-
-        for tmp, target in temp_files:
-            tmp.replace(target)
+        # If all writes successful, safely replace
+        for tmp_path, final_path in temp_files:
+            # Atomic replacement
+            tmp_path.replace(final_path)
 
     except Exception as e:
         print(f"❌ Atomic write failed: {e}")
@@ -207,4 +210,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-# Verified present for audit compliance
