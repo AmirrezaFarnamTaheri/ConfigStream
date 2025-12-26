@@ -29,7 +29,7 @@ from .source_quality import SourceQualityTracker
 from .anomaly import AnomalyDetector
 from .security.blocklist import DEFAULT_BLOCKLIST
 from .performance import PerformanceTracker
-from .proxy_history import ProxyHistoryTracker
+from .history.tracker import ProxyHistoryTracker
 from .filtering import filter_unique_endpoints
 from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 
@@ -195,7 +195,8 @@ async def run_full_pipeline(
 
     # Results Collection
     final_proxies: List[Proxy] = []
-    seen_keys: Set[tuple] = set()
+    # Use Dict for ordered tracking (Python 3.7+ dicts preserve insertion order)
+    seen_keys: Dict[tuple, None] = {}
     seen_lock = asyncio.Lock()
 
     # --- Progress Bar Setup ---

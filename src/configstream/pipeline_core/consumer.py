@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 import orjson as json
-from typing import List, Optional, Set, TYPE_CHECKING
+from typing import List, Optional, Set, Dict, Any, TYPE_CHECKING
 
 from rich.progress import Progress, TaskID
 
@@ -22,7 +22,7 @@ from ..concurrency_manager import ConcurrencyManager
 from ..geoip import GeoIPResolver
 from ..source_quality import SourceQualityTracker, calculate_diversity_score
 from ..performance import PerformanceTracker
-from ..proxy_history import ProxyHistoryTracker
+from ..history.tracker import ProxyHistoryTracker
 from .models import PipelineStats
 from ..intelligence.washer.core import ProxyWasher
 
@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 async def processing_consumer(
     work_queue: asyncio.Queue,
     stats: PipelineStats,
-    seen_keys: Set[tuple],
+    seen_keys: Any, # Expects Dict or Set
     final_proxies: List[Proxy],
     tester: SingBoxTester,
     scheduler: SmartRetestScheduler,
@@ -138,27 +138,40 @@ async def processing_consumer(
         unique_batch = []
         duplicates_count = 0
         async with seen_lock:
-            # [FIX] Critical: Use more efficient deduplication
-            # Instead of crude batch eviction that creates full list copies,
-            # we now rely on set's natural O(1) lookup and only evict when necessary
+            # [FIX] Critical: Use more efficient deduplication (LRU style)
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
 
             for p in parsed_batch:
                 k = proxy_unique_key(p)
                 if k not in seen_keys:
-                    # [FIX] If approaching limit, remove oldest 10% before adding new
+                    # [FIX] If approaching limit, remove oldest entries
                     if len(seen_keys) >= max_seen:
-                        # Remove 10% of oldest entries (FIFO approximation)
-                        # Note: Sets don't preserve order, so we convert and slice
-                        # This is still expensive but happens less frequently
-                        eviction_count = max(1000, max_seen // 10)
-                        keys_to_remove = list(seen_keys)[:eviction_count]
-                        seen_keys.difference_update(keys_to_remove)
-                        logger.debug(
-                            f"Evicted {len(keys_to_remove)} keys from seen_keys (size: {len(seen_keys)})"
-                        )
+                        eviction_count = max(100, max_seen // 100) # Evict 1%
 
-                    seen_keys.add(k)
+                        if isinstance(seen_keys, set):
+                             # Fallback for Set
+                             keys_to_remove = []
+                             it = iter(seen_keys)
+                             for _ in range(eviction_count):
+                                 try:
+                                     keys_to_remove.append(next(it))
+                                 except StopIteration:
+                                     break
+                             seen_keys.difference_update(keys_to_remove)
+                        else:
+                             # Dict: Iterating gives insertion order (oldest first)
+                             it = iter(seen_keys)
+                             for _ in range(eviction_count):
+                                 try:
+                                     del seen_keys[next(it)]
+                                 except (StopIteration, KeyError, RuntimeError):
+                                     break
+
+                    if isinstance(seen_keys, set):
+                        seen_keys.add(k)
+                    else:
+                        seen_keys[k] = None # Add to dict
+
                     unique_batch.append(p)
                 else:
                     duplicates_count += 1

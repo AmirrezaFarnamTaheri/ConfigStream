@@ -34,24 +34,82 @@ class ProxyHistoryTracker:
             logger.warning("History storage not initialized, skipping update.")
             return
 
-        # Note: ProxyHistoryTracker seems to be using QualityStorage incorrectly.
-        # QualityStorage.record_run expects url and run_data dict.
-        # This wrapper needs to adapt the call or ProxyHistoryTracker needs its own storage.
-        # Assuming we adapt to QualityStorage's schema for now, treating proxy.config as URL/ID.
-        # However, QualityStorage is for *Source* quality, not individual Proxy history.
-        # This seems to be a conceptual mismatch in the codebase.
-        # For now, we will log a warning and no-op to satisfy type checker,
-        # as implementing full proxy history storage is out of scope for this repair.
-        logger.warning(
-            "Proxy history tracking not fully implemented in QualityStorage adapter."
-        )
+        try:
+            # Access the internal connection of QualityStorage
+            conn = self.storage.get_connection()
 
-    def get_history(self, proxy_id: str) -> Dict[str, Any]:
+            timestamp = int(datetime.now(timezone.utc).timestamp())
+
+            data_to_insert = []
+            for p in proxies:
+                data_to_insert.append((
+                    p.id,
+                    timestamp,
+                    1 if p.is_working else 0,
+                    p.latency,
+                    p.country_code,
+                    self.session_id,
+                    p.details.get("error", "") if not p.is_working else None
+                ))
+
+            conn.executemany(
+                """
+                INSERT INTO proxy_history (proxy_id, timestamp, is_working, latency, country_code, session_id, failure_reason)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                data_to_insert
+            )
+            conn.commit()
+
+        except Exception as e:
+            logger.error(f"Failed to update proxy history: {e}")
+
+    def get_history(self, proxy_id: str) -> List[Dict[str, Any]]:
         """
         Retrieves the history for a specific proxy.
         """
-        # Placeholder
-        return {}
+        if not self.storage:
+            return []
+
+        try:
+            conn = self.storage.get_connection()
+            cursor = conn.execute(
+                "SELECT timestamp, is_working, latency, failure_reason FROM proxy_history WHERE proxy_id = ? ORDER BY timestamp DESC LIMIT 50",
+                (proxy_id,)
+            )
+            return [
+                {
+                    "timestamp": row[0],
+                    "is_working": bool(row[1]),
+                    "latency": row[2],
+                    "failure_reason": row[3]
+                }
+                for row in cursor.fetchall()
+            ]
+        except Exception as e:
+            logger.error(f"Failed to get history for {proxy_id}: {e}")
+            return []
+
+    def save(self) -> None:
+        """Save history. No-op for SQLite as it auto-commits."""
+        pass
+
+    def merge(self, other: "ProxyHistoryTracker") -> None:
+        """Merge another history tracker (DB) into this one."""
+        if not self.storage or not other.storage:
+            return
+        if hasattr(self.storage, 'merge_from') and hasattr(other.storage, 'db_path'):
+             self.storage.merge_from(other.storage.db_path)
+
+    def export_for_visualization(self, output_path: Any) -> None:
+        """Export history data for visualization."""
+        # Placeholder for now
+        pass
+
+    def export_active_proxy_trend(self, output_path: Any) -> None:
+        """Export active proxy trend."""
+        # Placeholder for now
+        pass
 
     def close(self):
         """

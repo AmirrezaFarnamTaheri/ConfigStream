@@ -323,9 +323,15 @@ class ShadowrocketAdapter(Adapter):
                 plugin = p.details["plugin"]
                 opts = p.details.get("plugin_opts", "")
                 plugin_str = urllib.parse.quote(f"{plugin};{opts}")
-                plugin_part = f"&plugin={plugin_str}"
+                # Plugin param must be part of the query string, before the fragment
+                plugin_part = f"plugin={plugin_str}"
 
-            return f"ss://{b64_auth}@{p.address}:{p.port}?#{name}{plugin_part}"
+            # Construct query
+            query = ""
+            if plugin_part:
+                query = f"?{plugin_part}"
+
+            return f"ss://{b64_auth}@{p.address}:{p.port}{query}#{name}"
 
         elif p.protocol == "trojan":
             sni = p.details.get("sni", "")
