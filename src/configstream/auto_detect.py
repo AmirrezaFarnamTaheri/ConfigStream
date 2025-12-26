@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 
 from .models import Proxy
 from .plugins.loader import PluginManager
+from .constants import VWARP_SOCKS5_PORT
 from .parsers import (
     _parse_generic_url_scheme,
     _parse_hysteria,
@@ -161,7 +162,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                         )
                         continue
 
-            elif port in [1080, 10808]:  # SOCKS ports
+            elif port in [1080, VWARP_SOCKS5_PORT]:  # SOCKS ports
                 try:
                     return _parse_generic_url_scheme(config)
                 except ValueError as exc:
