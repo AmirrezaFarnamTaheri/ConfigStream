@@ -1,4 +1,4 @@
-from configstream.proxy_history import ProxyHistoryTracker
+from configstream.history.tracker import ProxyHistoryTracker
 from tests.unit.conftest_helper import create_test_proxy
 
 

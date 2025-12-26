@@ -1,7 +1,7 @@
 from typing import List
 import logging
 from ..models import Proxy
-from ..proxy_history import ProxyHistoryTracker
+from ..history.tracker import ProxyHistoryTracker
 
 logger = logging.getLogger(__name__)
 
