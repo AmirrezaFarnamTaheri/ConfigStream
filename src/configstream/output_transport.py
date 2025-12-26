@@ -15,7 +15,7 @@ from typing import Dict, List, Union
 
 from .constants import PROTOCOL_COLORS
 from .models import Proxy
-from .proxy_history import ProxyHistoryTracker
+from .history.tracker import ProxyHistoryTracker
 from .serialize import serialize_proxy
 from .utils import AtomicFileWriter
 

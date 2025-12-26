@@ -34,6 +34,7 @@ async def fetch_from_source(
     app_settings: Optional[AppSettings] = None,
     # Legacy arg kept for compatibility, but unused effectively
     etag_cache: Optional[Dict[str, Dict[str, str]]] = None,
+    quality_tracker: Optional[SourceQualityTracker] = None,
 ) -> FetchResult:
     """
     Fetch configurations from a source with full resilience logic.

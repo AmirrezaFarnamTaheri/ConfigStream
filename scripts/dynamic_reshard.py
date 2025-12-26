@@ -155,28 +155,44 @@ def main() -> None:
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
 
-    # Delete existing batch files to ensure clean state and remove extras (e.g. batch_11)
-    for f in SOURCES_DIR.glob("batch_*.txt"):
-        try:
-            f.unlink()
-        except Exception as e:
-            print(f"⚠️ Failed to delete {f}: {e}")
+    # Atomic Write: Write all to .tmp first
+    temp_files = []
+    try:
+        for i, batch in enumerate(batches):
+            file_path = SOURCES_DIR / f"batch_{i+1}.txt"
+            temp_path = file_path.with_suffix(".txt.tmp")
 
-    for i, batch in enumerate(batches):
-        file_path = SOURCES_DIR / f"batch_{i+1}.txt"
+            # Convert weight back to seconds for display
+            est_time = batch_loads[i] / 10.0
+            content = [
+                f"# ConfigStream Batch {i+1}",
+                "# Optimized based on fetch duration for equal execution times",
+                f"# Est. Fetch Time: {est_time:.1f}s",
+                "",
+            ]
+            content.extend(batch)
 
-        # Convert weight back to seconds for display
-        est_time = batch_loads[i] / 10.0
-        content = [
-            f"# ConfigStream Batch {i+1}",
-            "# Optimized based on fetch duration for equal execution times",
-            f"# Est. Fetch Time: {est_time:.1f}s",
-            "",
-        ]
-        content.extend(batch)
+            temp_path.write_text("\n".join(content), encoding="utf-8")
+            temp_files.append((temp_path, file_path))
+            print(f"Batch {i+1:<4} | {len(batch):<10} | {est_time:<15.1f}")
 
-        file_path.write_text("\n".join(content), encoding="utf-8")
-        print(f"Batch {i+1:<4} | {len(batch):<10} | {est_time:<15.1f}")
+        # If all writes successful, delete old and rename new
+        for f in SOURCES_DIR.glob("batch_*.txt"):
+            try:
+                f.unlink()
+            except Exception as e:
+                print(f"⚠️ Failed to delete old {f}: {e}")
+
+        for tmp, target in temp_files:
+            tmp.replace(target)
+
+    except Exception as e:
+        print(f"❌ Atomic write failed: {e}")
+        # Cleanup temps
+        for tmp, _ in temp_files:
+            if tmp.exists():
+                tmp.unlink()
+        return
 
     # 9. Log Performance Metrics
     print("\n📊 Time-Based Load Balancing Metrics:")

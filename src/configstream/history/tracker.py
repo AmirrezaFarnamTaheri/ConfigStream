@@ -17,15 +17,51 @@ class ProxyHistoryTracker:
     - Reliability scoring
     """
 
-    def __init__(self, storage: Optional[QualityStorage] = None):
+    def __init__(
+        self,
+        storage_or_path: Optional[Any] = None,
+        history_path: Optional[Any] = None,
+        max_entries: int = 100,
+    ):
+        # Handle positional arg which could be storage or path
+        storage = None
+        path = None
+
+        if storage_or_path:
+            # Check if it looks like a path (str or Path)
+            from pathlib import Path
+            if isinstance(storage_or_path, (str, Path)):
+                path = storage_or_path
+            else:
+                # Assume it is QualityStorage
+                storage = storage_or_path
+
+        # history_path arg overrides positional path
+        if history_path:
+            path = history_path
+
         if storage:
             self.storage = storage
         else:
-            # We need a path. Assuming a default path if none provided.
             from pathlib import Path
+            if path is None:
+                path = Path("data/history.db")
 
-            self.storage = QualityStorage(Path("data/history.db"))
+            if not isinstance(path, Path):
+                path = Path(path)
+
+            if path.suffix == '.json':
+                path = path.with_suffix('.db')
+
+            self.storage = QualityStorage(path)
+
         self.session_id = datetime.now(timezone.utc).isoformat()
+        self.max_entries = max_entries
+        self.session_id = datetime.now(timezone.utc).isoformat()
+
+    def record_test_result(self, proxy: Proxy) -> None:
+        """Record a single test result (compatibility alias)."""
+        self.update_history([proxy])
 
     def update_history(self, proxies: List[Proxy]):
         """
@@ -65,31 +101,66 @@ class ProxyHistoryTracker:
         except Exception as e:
             logger.error(f"Failed to update proxy history: {e}")
 
-    def get_history(self, proxy_id: str) -> List[Dict[str, Any]]:
-        """
-        Retrieves the history for a specific proxy.
-        """
+    def _fetch_history_entries(self, proxy_id: str, limit: int = 50) -> List[Dict[str, Any]]:
         if not self.storage:
             return []
-
         try:
             conn = self.storage.get_connection()
             cursor = conn.execute(
-                "SELECT timestamp, is_working, latency, failure_reason FROM proxy_history WHERE proxy_id = ? ORDER BY timestamp DESC LIMIT 50",
-                (proxy_id,)
+                "SELECT timestamp, is_working, latency, failure_reason FROM proxy_history WHERE proxy_id = ? ORDER BY timestamp DESC LIMIT ?",
+                (proxy_id, limit)
             )
-            return [
-                {
-                    "timestamp": row[0],
+            entries = []
+            for row in cursor.fetchall():
+                ts = row[0]
+                if isinstance(ts, int):
+                    ts = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+                entries.append({
+                    "timestamp": ts,
                     "is_working": bool(row[1]),
                     "latency": row[2],
                     "failure_reason": row[3]
-                }
-                for row in cursor.fetchall()
-            ]
+                })
+            return entries
         except Exception as e:
             logger.error(f"Failed to get history for {proxy_id}: {e}")
             return []
+
+    def get_proxy_history(self, proxy_id: str) -> Optional[Dict[str, Any]]:
+        """Get history in legacy dict format {entries: [...]}."""
+        entries = self._fetch_history_entries(proxy_id, limit=self.max_entries)
+        if not entries:
+            return None
+        return {"id": proxy_id, "entries": entries}
+
+    def get_history(self, proxy_id: str) -> List[float]:
+        """Get sparkline (latency values)."""
+        entries = self._fetch_history_entries(proxy_id, limit=30)
+        points = []
+        for e in entries:
+            if e["is_working"] and e["latency"] is not None:
+                points.append(float(e["latency"]))
+            else:
+                points.append(0.0)
+        return points
+
+    def get_summary_stats(self, proxy_id: str) -> Dict[str, Any]:
+        """Get summary statistics for a proxy."""
+        entries = self._fetch_history_entries(proxy_id, limit=self.max_entries)
+        if not entries:
+            return {"total_tests": 0, "success_rate": 0.0}
+
+        total = len(entries)
+        working = sum(1 for e in entries if e["is_working"])
+        return {
+            "total_tests": total,
+            "success_rate": float(working) / total if total > 0 else 0.0,
+        }
+
+    def get_reliability_score(self, proxy_id: str, lookback_days: int = 7) -> float:
+        """Calculate reliability score."""
+        stats = self.get_summary_stats(proxy_id)
+        return stats.get("success_rate", 0.0) * 100.0
 
     def save(self) -> None:
         """Save history. No-op for SQLite as it auto-commits."""
@@ -101,6 +172,37 @@ class ProxyHistoryTracker:
             return
         if hasattr(self.storage, 'merge_from') and hasattr(other.storage, 'db_path'):
              self.storage.merge_from(other.storage.db_path)
+
+    def get_bulk_stats(self, proxy_ids: List[str]) -> Dict[str, Dict[str, float]]:
+        """
+        Get stats for multiple proxies efficiently.
+        Returns a dict mapping proxy_id to {'reliability': float, 'uptime': float}.
+        """
+        results = {}
+        if not self.storage:
+            return results
+
+        try:
+            conn = self.storage.get_connection()
+            # Aggregate stats directly in DB
+            query = """
+                SELECT proxy_id,
+                       AVG(is_working) as reliability
+                FROM proxy_history
+                GROUP BY proxy_id
+            """
+            cursor = conn.execute(query)
+            for row in cursor:
+                pid, rel = row
+                results[pid] = {
+                    "reliability": float(rel),
+                    "uptime": float(rel) * 100.0
+                }
+
+        except Exception as e:
+            logger.error(f"Failed to get bulk stats: {e}")
+
+        return results
 
     def _load_all_history(self) -> Dict[str, Any]:
         """Load all history from DB into dictionary format."""

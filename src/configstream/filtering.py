@@ -162,14 +162,30 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
                 fingerprint_map[fingerprint] = p
                 continue
 
-            # Preference 3: Has more metadata (e.g. correct Country Code)
+            # Preference 3: Metadata Merging & Enrichment
+            # If we keep existing (better/equal latency), try to enrich it with new metadata
             if (
                 p.country_code
                 and p.country_code != "XX"
                 and existing.country_code == "XX"
             ):
-                fingerprint_map[fingerprint] = p
-                continue
+                # If new proxy has better metadata but worse/equal latency:
+                # 1. If latency is comparable (diff < 100ms) or existing has no latency, take new (simple replace)
+                # 2. If existing is much faster, keep existing but update its metadata
+
+                latency_diff = new_latency - existing_latency
+                if existing_latency == float("inf") or latency_diff < 100:
+                     fingerprint_map[fingerprint] = p
+                     continue
+                else:
+                     # Keep existing (faster) but copy metadata
+                     existing.country_code = p.country_code
+                     existing.country = p.country
+                     existing.city = p.city or existing.city
+                     existing.asn = p.asn or existing.asn
+                     existing.org = p.org or existing.org
+                     # Don't replace in map, just modified object
+                     continue
 
     # Log endpoint filtering statistics
     removed_count = len(proxies) - len(fingerprint_map)
