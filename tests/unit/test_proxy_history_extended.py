@@ -21,11 +21,11 @@ def test_record_test_result(history_tracker):
     p.latency = 100.0
     p.country = "US"
     p.country_code = "US"
+    p.details = {}
 
     history_tracker.record_test_result(p)
 
     stats = history_tracker.get_history("vless://1")
-    # get_history returns a list of floats
     assert len(stats) == 1
     assert stats[0] == 100.0
 
@@ -39,6 +39,7 @@ def test_get_reliability_score(history_tracker):
     p.port = 443
     p.country = "US"
     p.country_code = "US"
+    p.details = {}
 
     p.is_working = True
     p.latency = 100.0
@@ -53,6 +54,7 @@ def test_get_reliability_score(history_tracker):
     history_tracker.record_test_result(p)
 
     score = history_tracker.get_reliability_score("vless://1")
+    # Score 0.66
     assert 0.6 < score < 0.7
 
 
@@ -65,6 +67,7 @@ def test_get_summary_stats(history_tracker):
     p.port = 443
     p.country = "US"
     p.country_code = "US"
+    p.details = {}
 
     p.is_working = True
     p.latency = 100.0
@@ -72,12 +75,28 @@ def test_get_summary_stats(history_tracker):
 
     summary = history_tracker.get_summary_stats("vless://1")
     assert summary["success_rate"] == 1.0
-    # assert summary["avg_latency"] == 100 # Not implemented in tracker.py yet
 
 
 def test_pruning(history_tracker):
-    # Pruning not yet implemented in SQLite backend or verified differently
-    pass
+    p = MagicMock(spec=Proxy)
+    p.config = "vless://1"
+    p.id = "vless://1"
+    p.protocol = "vless"
+    p.address = "1.1.1.1"
+    p.port = 443
+    p.country = "US"
+    p.country_code = "US"
+    p.details = {}
+    p.is_working = True
+    p.latency = 100.0
+
+    # Add 110 entries
+    for _ in range(110):
+        history_tracker.record_test_result(p)
+
+    # Check via public API
+    history = history_tracker.get_proxy_history(p.id)
+    assert len(history["entries"]) <= 100
 
 
 def test_persistence(tmp_path):
@@ -91,6 +110,7 @@ def test_persistence(tmp_path):
     p.port = 443
     p.country = "US"
     p.country_code = "US"
+    p.details = {}
     p.is_working = True
     p.latency = 100.0
 

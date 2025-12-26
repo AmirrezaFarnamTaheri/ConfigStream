@@ -604,12 +604,22 @@ def _generate_statistics(
             if source_dir.exists():
                 for batch_file in source_dir.glob("batch_*.txt"):
                     if batch_file.is_file():
-                        sources_list.extend([line.strip() for line in batch_file.read_text().splitlines() if line.strip()])
+                        sources_list.extend(
+                            [
+                                line.strip()
+                                for line in batch_file.read_text().splitlines()
+                                if line.strip()
+                            ]
+                        )
 
         if not sources_list:
-             consol_sources = Path("consolidated_sources.txt")
-             if consol_sources.exists():
-                 sources_list = [line.strip() for line in consol_sources.read_text().splitlines() if line.strip()]
+            consol_sources = Path("consolidated_sources.txt")
+            if consol_sources.exists():
+                sources_list = [
+                    line.strip()
+                    for line in consol_sources.read_text().splitlines()
+                    if line.strip()
+                ]
 
         total_configured_sources = len(sources_list)
 

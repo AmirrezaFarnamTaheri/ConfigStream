@@ -14,7 +14,7 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Dict
 
 from rich.progress import Progress, TaskID
 

@@ -1,10 +1,11 @@
 import logging
 from typing import List, Dict, Optional, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from ..models import Proxy
 from ..quality.storage import QualityStorage
 from .export import HistoryExporter
+from .analytics import HistoryAnalytics
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class ProxyHistoryTracker:
         if storage_or_path:
             # Check if it looks like a path (str or Path)
             from pathlib import Path
+
             if isinstance(storage_or_path, (str, Path)):
                 path = storage_or_path
             else:
@@ -44,14 +46,15 @@ class ProxyHistoryTracker:
             self.storage = storage
         else:
             from pathlib import Path
+
             if path is None:
                 path = Path("data/history.db")
 
             if not isinstance(path, Path):
                 path = Path(path)
 
-            if path.suffix == '.json':
-                path = path.with_suffix('.db')
+            if path.suffix == ".json":
+                path = path.with_suffix(".db")
 
             self.storage = QualityStorage(path)
 
@@ -79,48 +82,56 @@ class ProxyHistoryTracker:
 
             data_to_insert = []
             for p in proxies:
-                data_to_insert.append((
-                    p.id,
-                    timestamp,
-                    1 if p.is_working else 0,
-                    p.latency,
-                    p.country_code,
-                    self.session_id,
-                    p.details.get("error", "") if not p.is_working else None
-                ))
+                data_to_insert.append(
+                    (
+                        p.id,
+                        timestamp,
+                        1 if p.is_working else 0,
+                        p.latency,
+                        p.country_code,
+                        self.session_id,
+                        p.details.get("error", "") if not p.is_working else None,
+                    )
+                )
 
             conn.executemany(
                 """
                 INSERT INTO proxy_history (proxy_id, timestamp, is_working, latency, country_code, session_id, failure_reason)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                data_to_insert
+                data_to_insert,
             )
             conn.commit()
 
         except Exception as e:
             logger.error(f"Failed to update proxy history: {e}")
 
-    def _fetch_history_entries(self, proxy_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def _fetch_history_entries(
+        self, proxy_id: str, limit: int = 50
+    ) -> List[Dict[str, Any]]:
         if not self.storage:
             return []
         try:
             conn = self.storage.get_connection()
             cursor = conn.execute(
-                "SELECT timestamp, is_working, latency, failure_reason FROM proxy_history WHERE proxy_id = ? ORDER BY timestamp DESC LIMIT ?",
-                (proxy_id, limit)
+                "SELECT timestamp, is_working, latency, failure_reason, country_code FROM proxy_history WHERE proxy_id = ? ORDER BY timestamp DESC LIMIT ?",
+                (proxy_id, limit),
             )
             entries = []
             for row in cursor.fetchall():
                 ts = row[0]
                 if isinstance(ts, int):
                     ts = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-                entries.append({
-                    "timestamp": ts,
-                    "is_working": bool(row[1]),
-                    "latency": row[2],
-                    "failure_reason": row[3]
-                })
+                entries.append(
+                    {
+                        "timestamp": ts,
+                        "is_working": bool(row[1]),
+                        "latency": row[2],
+                    "failure_reason": row[3],
+                    "country": row[4],
+                    "country_code": row[4]
+                    }
+                )
             return entries
         except Exception as e:
             logger.error(f"Failed to get history for {proxy_id}: {e}")
@@ -160,7 +171,36 @@ class ProxyHistoryTracker:
     def get_reliability_score(self, proxy_id: str, lookback_days: int = 7) -> float:
         """Calculate reliability score."""
         stats = self.get_summary_stats(proxy_id)
-        return stats.get("success_rate", 0.0) * 100.0
+        return float(stats.get("success_rate", 0.0))
+
+    def get_trend_data(self, proxy_id: str, points: int = 30) -> Dict[str, Any]:
+        """Get trend data for charting."""
+        history = self.get_proxy_history(proxy_id)
+        return HistoryAnalytics.get_trend_data(history, points)
+
+    def cleanup_old_data(self, days: int = 30) -> int:
+        """
+        Remove history data older than specified days.
+        """
+        if not self.storage:
+            return 0
+
+        try:
+            conn = self.storage.get_connection()
+            cutoff = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp())
+
+            cursor = conn.execute(
+                "DELETE FROM proxy_history WHERE timestamp < ?",
+                (cutoff,)
+            )
+            conn.commit()
+            removed = int(cursor.rowcount)
+            if removed > 0:
+                logger.info(f"Cleaned up {removed} old history entries")
+            return removed
+        except Exception as e:
+            logger.error(f"Failed to cleanup history: {e}")
+            return 0
 
     def save(self) -> None:
         """Save history. No-op for SQLite as it auto-commits."""
@@ -170,15 +210,15 @@ class ProxyHistoryTracker:
         """Merge another history tracker (DB) into this one."""
         if not self.storage or not other.storage:
             return
-        if hasattr(self.storage, 'merge_from') and hasattr(other.storage, 'db_path'):
-             self.storage.merge_from(other.storage.db_path)
+        if hasattr(self.storage, "merge_from") and hasattr(other.storage, "db_path"):
+            self.storage.merge_from(other.storage.db_path)
 
     def get_bulk_stats(self, proxy_ids: List[str]) -> Dict[str, Dict[str, float]]:
         """
         Get stats for multiple proxies efficiently.
         Returns a dict mapping proxy_id to {'reliability': float, 'uptime': float}.
         """
-        results = {}
+        results: Dict[str, Dict[str, float]] = {}
         if not self.storage:
             return results
 
@@ -194,10 +234,7 @@ class ProxyHistoryTracker:
             cursor = conn.execute(query)
             for row in cursor:
                 pid, rel = row
-                results[pid] = {
-                    "reliability": float(rel),
-                    "uptime": float(rel) * 100.0
-                }
+                results[pid] = {"reliability": float(rel), "uptime": float(rel) * 100.0}
 
         except Exception as e:
             logger.error(f"Failed to get bulk stats: {e}")
@@ -213,15 +250,17 @@ class ProxyHistoryTracker:
         try:
             conn = self.storage.get_connection()
             # Fetch all rows. Optimizing with fetchmany if needed, but for export we need all.
-            cursor = conn.execute("SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history")
+            cursor = conn.execute(
+                "SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history"
+            )
 
             for row in cursor:
                 pid, ts, working, lat, cc, reason = row
                 if pid not in history_data:
                     history_data[pid] = {
                         "id": pid,
-                        "protocol": "unknown", # We don't store protocol in history table yet
-                        "entries": []
+                        "protocol": "unknown",  # We don't store protocol in history table yet
+                        "entries": [],
                     }
 
                 ts_iso = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
@@ -231,7 +270,7 @@ class ProxyHistoryTracker:
                     "is_working": bool(working),
                     "latency": lat,
                     "country": cc,
-                    "error": reason
+                    "error": reason,
                 }
                 history_data[pid]["entries"].append(entry)
 
@@ -245,6 +284,7 @@ class ProxyHistoryTracker:
         data = self._load_all_history()
         # Ensure path is Path object
         from pathlib import Path
+
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
         HistoryExporter.export_for_visualization(data, output_path)
@@ -253,6 +293,7 @@ class ProxyHistoryTracker:
         """Export active proxy trend."""
         data = self._load_all_history()
         from pathlib import Path
+
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
         HistoryExporter.export_active_proxy_trend(data, output_path)

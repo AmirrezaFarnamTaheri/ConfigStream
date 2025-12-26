@@ -175,17 +175,17 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
 
                 latency_diff = new_latency - existing_latency
                 if existing_latency == float("inf") or latency_diff < 100:
-                     fingerprint_map[fingerprint] = p
-                     continue
+                    fingerprint_map[fingerprint] = p
+                    continue
                 else:
-                     # Keep existing (faster) but copy metadata
-                     existing.country_code = p.country_code
-                     existing.country = p.country
-                     existing.city = p.city or existing.city
-                     existing.asn = p.asn or existing.asn
-                     existing.org = p.org or existing.org
-                     # Don't replace in map, just modified object
-                     continue
+                    # Keep existing (faster) but copy metadata
+                    existing.country_code = p.country_code
+                    existing.country = p.country
+                    existing.city = p.city or existing.city
+                    existing.asn = p.asn or existing.asn
+                    existing.org = p.org or existing.org
+                    # Don't replace in map, just modified object
+                    continue
 
     # Log endpoint filtering statistics
     removed_count = len(proxies) - len(fingerprint_map)
