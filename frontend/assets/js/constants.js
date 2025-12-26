@@ -19,7 +19,11 @@
             "https://ipfs.io/ipfs/",
             "https://cloudflare-ipfs.com/ipfs/",
             "https://dweb.link/ipfs/"
-        ]
+        ],
+
+        // Steganography Constants
+        STEGO_SEARCH_WINDOW: 500000,  // 500KB - Search window for payload marker
+        STEGO_MAX_PAYLOAD_SIZE: 2 * 1024 * 1024  // 2MB - Max decompressed payload size
     };
 
     // [FIX P2] Validation: Detect placeholder values in production
