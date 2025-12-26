@@ -9,9 +9,10 @@ import re
 import shutil
 import sqlite3
 import logging
+import gzip
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +61,17 @@ def backup_databases(
 
         # Sanitize filename to prevent path traversal
         safe_stem = db_file.stem.replace("..", "_").replace("/", "_").replace("\\", "_")
-        backup_filename = f"{safe_stem}_{timestamp}.db"
-        backup_path = backup_dir / backup_filename
+        # Temporary uncompressed name for backup processing
+        backup_filename_temp = f"{safe_stem}_{timestamp}.db"
+        backup_path_temp = backup_dir / backup_filename_temp
+
+        # Final compressed name
+        backup_filename_final = f"{safe_stem}_{timestamp}.db.gz"
+        backup_path_final = backup_dir / backup_filename_final
 
         # Additional safety check: ensure resolved path is within backup directory
         try:
-            backup_path.resolve().relative_to(backup_dir.resolve())
+            backup_path_temp.resolve().relative_to(backup_dir.resolve())
         except ValueError:
             logger.error(f"Skipping backup: path traversal detected for {db_file}")
             continue
@@ -81,7 +87,8 @@ def backup_databases(
                     f"file:{db_file}?mode=ro", uri=True, timeout=5.0
                 )
 
-            with src_conn as src, sqlite3.connect(backup_path, timeout=5.0) as dst:
+            # Perform backup to temp file
+            with src_conn as src, sqlite3.connect(backup_path_temp, timeout=5.0) as dst:
                 # Try incremental backup with small pages to reduce lock time
                 try:
                     src.backup(dst, pages=1000, progress=None)
@@ -89,33 +96,33 @@ def backup_databases(
                     # Older Python/SQLite without 'pages' kwarg
                     src.backup(dst)
 
-            shutil.copystat(db_file, backup_path)
+            src_conn.close()
 
-            # [FIX] Compress backup to save space
-            import gzip
-
-            compressed_path = backup_path.with_suffix(".db.gz")
+            # Compress the backup using gzip
             with (
-                open(backup_path, "rb") as f_in,
-                gzip.open(compressed_path, "wb") as f_out,
+                open(backup_path_temp, "rb") as f_in,
+                gzip.open(backup_path_final, "wb") as f_out,
             ):
                 shutil.copyfileobj(f_in, f_out)
 
-            # Remove uncompressed
-            backup_path.unlink()
-            backups_created.append(compressed_path)
+            # Remove uncompressed temp file
+            if backup_path_temp.exists():
+                backup_path_temp.unlink()
 
+            backups_created.append(backup_path_final)
+
+            size_mb = backup_path_final.stat().st_size / 1024 / 1024
             logger.info(
-                f"Backed up {db_file.name} -> {compressed_path.name} ({compressed_path.stat().st_size / 1024 / 1024:.2f} MB)"
+                f"Backed up {db_file.name} -> {backup_path_final.name} ({size_mb:.2f} MB)"
             )
 
         except Exception as e:
-            # Clean up any partial file
+            # Clean up any partial files
             try:
-                if backup_path.exists():
-                    backup_path.unlink()
-                if "compressed_path" in locals() and compressed_path.exists():
-                    compressed_path.unlink()
+                if backup_path_temp.exists():
+                    backup_path_temp.unlink()
+                if backup_path_final.exists():
+                    backup_path_final.unlink()
             except Exception:
                 pass
             logger.error(f"Failed to backup {db_file}: {e}")
@@ -135,7 +142,7 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
     Smart cleanup: Keep recent backups, and thinning for older ones.
     Policy:
     - Keep all backups from last `retention_days` (e.g., 7 days).
-    - For older than 7 days, keep 1 per day (daily snapshot).
+    - For older than `retention_days`, keep 1 per day (daily snapshot).
     - Remove backups older than 30 days entirely.
     """
     if not backup_dir.exists():
@@ -147,8 +154,10 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
 
     deleted = 0
 
-    # Group by database and date
+    # Gather all backups (.db and .db.gz)
     backups = list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.db.gz"))
+
+    # Group by (database_name, date_string)
     by_db_date: Dict[Tuple[str, str], List[Tuple[datetime, Path]]] = {}
 
     for backup_file in backups:
@@ -161,18 +170,25 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
                 deleted += 1
                 continue
 
-            # If within retention window, keep
+            # If within recent retention window, keep
             if mtime >= cutoff_retention:
                 continue
 
-            # Else (between 7 and 30 days), apply thinning
-            # Identify DB name (remove timestamp suffix)
+            # Identify DB name (remove timestamp suffix and extension)
             # Filename format: name_YYYYMMDD_HHMMSS.db[.gz]
-            stem = backup_file.name.split(".")[0]  # remove extensions
+            # Remove extensions
+            stem = backup_file.name
+            if stem.endswith(".db.gz"):
+                stem = stem[:-6]
+            elif stem.endswith(".db"):
+                stem = stem[:-3]
+
+            # Expect parts separated by underscores, last two are date and time
             parts = stem.split("_")
             if len(parts) >= 3 and len(parts[-1]) == 6 and len(parts[-2]) == 8:
                 db_name = "_".join(parts[:-2])
             else:
+                # Fallback if naming convention doesn't match
                 db_name = "unknown"
 
             date_key = mtime.strftime("%Y-%m-%d")
@@ -184,12 +200,12 @@ def cleanup_old_backups(backup_dir: Path, retention_days: int) -> int:
         except Exception as e:
             logger.warning(f"Failed to process backup {backup_file}: {e}")
 
-    # Process thinning groups
+    # Process thinning groups (keep only 1 per day per DB)
     for key, file_list in by_db_date.items():
-        # Keep only the latest one for this day
-        file_list.sort(key=lambda x: x[0], reverse=True)  # Newest first
+        # Sort by mtime descending (newest first)
+        file_list.sort(key=lambda x: x[0], reverse=True)
 
-        # Keep index 0, delete others
+        # Keep index 0 (newest for that day), delete others
         for _, fpath in file_list[1:]:
             try:
                 fpath.unlink()
@@ -208,8 +224,8 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
     Restore a database from backup.
 
     Args:
-        backup_file: Path to backup file
-        target_file: Path to restore to
+        backup_file: Path to backup file (.db or .db.gz)
+        target_file: Path to restore to (.db)
 
     Returns:
         True if successful, False otherwise
@@ -219,15 +235,26 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
         return False
 
     try:
-        # Create backup of current file if it exists
+        # Create pre-restore backup of current target if it exists
         if target_file.exists():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            # Preserve current state before overwriting
             pre_restore_backup = target_file.with_suffix(f".pre_restore_{timestamp}.db")
             shutil.copy2(target_file, pre_restore_backup)
             logger.info(f"Created pre-restore backup: {pre_restore_backup.name}")
 
         # Restore from backup
-        shutil.copy2(backup_file, target_file)
+        if backup_file.name.endswith(".gz"):
+            # Decompress
+            with (
+                gzip.open(backup_file, "rb") as f_in,
+                open(target_file, "wb") as f_out,
+            ):
+                shutil.copyfileobj(f_in, f_out)
+        else:
+            # Copy plain file
+            shutil.copy2(backup_file, target_file)
+
         logger.info(f"Restored {target_file.name} from {backup_file.name}")
         return True
 
@@ -238,8 +265,15 @@ def restore_database(backup_file: Path, target_file: Path) -> bool:
 
 def _parse_timestamp_from_name(name: str) -> datetime | None:
     """Parse timestamp from backup filename."""
-    # expect pattern: <stem>_YYYYMMDD_HHMMSS.db
-    m = re.search(r"_(\d{8})_(\d{6})\.db$", name)
+    # Pattern: <stem>_YYYYMMDD_HHMMSS.db[.gz]
+    # Remove extensions first
+    clean_name = name
+    if clean_name.endswith(".gz"):
+        clean_name = clean_name[:-3]
+    if clean_name.endswith(".db"):
+        clean_name = clean_name[:-3]
+
+    m = re.search(r"_(\d{8})_(\d{6})$", clean_name)
     if not m:
         return None
     try:
@@ -264,7 +298,8 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
 
     items: List[dict] = []
 
-    for backup_file in backup_dir.glob("*.db"):
+    # Match .db and .db.gz
+    for backup_file in list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.db.gz")):
         try:
             stat = backup_file.stat()
             created = _parse_timestamp_from_name(
@@ -277,6 +312,7 @@ def list_backups(backup_dir: Path | str = Path("data/backups")) -> List[dict]:
                     "size_mb": stat.st_size / 1024 / 1024,
                     "created": created,
                     "age_days": (datetime.now() - created).days,
+                    "compressed": backup_file.name.endswith(".gz"),
                 }
             )
         except Exception as e:
@@ -323,8 +359,15 @@ def _group_backups_by_database(backups: List[dict]) -> Dict[str, List[dict]]:
     timestamp_pattern = re.compile(r"_\d{8}_\d{6}$")
 
     for backup in backups:
-        # Extract database name from filename (remove timestamp and .db extension)
-        base_name = backup["filename"].removesuffix(".db")
+        # Extract database name from filename (remove extensions first)
+        fname = backup["filename"]
+        if fname.endswith(".db.gz"):
+            base_name = fname[:-6]
+        elif fname.endswith(".db"):
+            base_name = fname[:-3]
+        else:
+            base_name = fname
+
         db_name = timestamp_pattern.sub("", base_name)
 
         if db_name not in grouped:

@@ -1,7 +1,10 @@
 # src/configstream/transport/stego.py
 
+import os
 import zlib
 import logging
+import hmac
+import hashlib
 from pathlib import Path
 from typing import Optional
 from cryptography.fernet import Fernet
@@ -28,13 +31,20 @@ class StegoPacker:
     ) -> bool:
         """
         Embeds payload_data into cover_image_path.
+        Includes HMAC signature for integrity.
         """
         try:
             # 1. Prepare Payload
             # Compress first
-            compressed = zlib.compress(payload_data.encode("utf-8"))
-            # Encrypt
-            encrypted = self.cipher.encrypt(compressed)
+            compressed = zlib.compress(payload_data.encode("utf-8"), level=9)
+
+            # Sign the compressed data (HMAC-SHA256)
+            signature = hmac.new(self.key, compressed, hashlib.sha256).digest()
+
+            # Encrypt the compressed data + signature
+            # Payload = Encrypt(Signature + CompressedData)
+            payload_blob = signature + compressed
+            encrypted = self.cipher.encrypt(payload_blob)
 
             # 2. Read Cover Image
             if not cover_image_path.exists():
@@ -80,7 +90,23 @@ def generate_stego_assets(
     # Use a hardcoded key from secrets OR generate one (and print it for the frontend)
     # For Zero-Budget resilience, we usually want a STATIC key hardcoded in the frontend JS.
     # Ensure this key matches what is in frontend/assets/js/stego.js
-    key = secret_key.encode() if secret_key else Fernet.generate_key()
+
+    # Priority:
+    # 1. Passed arg
+    # 2. Env var CONFIG_STREAM_KEY
+    # 3. Generate new
+    if not secret_key:
+        secret_key = os.getenv("CONFIG_STREAM_KEY")
+
+    if secret_key:
+        try:
+            key = secret_key.encode()
+        except Exception:
+             key = Fernet.generate_key()
+    else:
+        key = Fernet.generate_key()
+        logger.warning("No CONFIG_STREAM_KEY set; using random key for this build.")
+
     packer = StegoPacker(key)
 
     content = config_file.read_text(encoding="utf-8")

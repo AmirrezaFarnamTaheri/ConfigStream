@@ -738,6 +738,16 @@ def _copy_pages(root_dir: Path, output_dir: Path):
         for md_file in wiki_src.glob("*.md"):
             (wiki_dest / md_file.name).write_text(md_file.read_text())
 
+    # Ensure generated files like singbox-vpn.json are at the root
+    # Note: frontend/ files are copied by _generate_stego
+    # We should ensure specific files generated in output_dir are preserved/copied if needed
+
+    # 2025-05-27 Update: Ensure singbox-vpn.json is available for download
+    # It is already generated in output_dir by generate_split_outputs
+
+    # If there are any other specific files that need to be moved to 'root' from a subfolder, do it here
+    pass
+
     # Note: frontend/ files (including about.html, wiki.html) are already
     # copied to output_dir root by _generate_stego -> shutil.copytree.
     # We do NOT move them to subdirectories or delete them from root.
