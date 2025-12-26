@@ -45,7 +45,9 @@ ALLOWED_ORIGINS_STR = os.getenv(
     "ALLOWED_ORIGINS",
     "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000",
 )
-ALLOWED_ORIGINS = [origin.strip() for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()]
+ALLOWED_ORIGINS = [
+    origin.strip() for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()
+]
 
 # Use regex pattern for GitHub Pages and other wildcard domains
 # [FIX P1] CORSMiddleware requires allow_origin_regex for wildcard patterns
@@ -135,7 +137,11 @@ async def notify_update(payload: dict):
         # In production, pipeline should include api_key in payload
         if not provided_key:
             # Check if this is an internal call (development/CI environment)
-            is_internal = os.getenv("ENVIRONMENT", "development") in ("development", "ci", "test")
+            is_internal = os.getenv("ENVIRONMENT", "development") in (
+                "development",
+                "ci",
+                "test",
+            )
             if not is_internal:
                 raise HTTPException(
                     403,
