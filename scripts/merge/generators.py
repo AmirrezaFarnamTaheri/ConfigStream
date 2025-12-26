@@ -13,8 +13,8 @@ from configstream.models import Proxy
 from datetime import datetime, timezone
 from configstream.output_generators import (
     generate_base64_subscription,
-    generate_singbox_config,
     generate_clash_config,
+    generate_split_outputs,
 )
 from configstream.adapters import get_adapter
 from configstream.crypto.signer import Signer
@@ -34,8 +34,14 @@ def generate_outputs(
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
+    # [FIX] Add vwarp and revived stats parameters
+    revived_warp: int = 0,
+    revived_vwarp: int = 0,
+    vwarp_attempts: int = 0,
+    vwarp_success: int = 0,
+    total_configured_sources: int = 0,
 ):
-    """Generates all output files."""
+    """Generates all output files with comprehensive stats."""
 
     # Clear existing outputs (except data/)
     output_dir.mkdir(exist_ok=True)
@@ -107,27 +113,35 @@ def generate_outputs(
         with open(chosen_dir / f"{protocol}.txt", "w") as f:
             f.write("\n".join(configs))
 
-    # 5. Client Configs
+    # 5. Client Configs - Generate both Sniper (singbox.json) and Tank (singbox-vpn.json)
+    # [FIX] Use generate_split_outputs to create both singbox variants
+    washed_ids = None
+    if washed_outbounds:
+        # Extract IDs from washed proxies to avoid duplicates
+        washed_ids = set()
+        for outbound in washed_outbounds:
+            tag = outbound.get("tag", "")
+            # Extract proxy ID from tag if possible
+            if tag.startswith("🛡️ Secure"):
+                washed_ids.add(tag)
+
+    split_files = generate_split_outputs(
+        ranked_proxies,
+        output_dir,
+        washed_outbounds=washed_outbounds,
+        washed_ids=washed_ids,
+        smart_chains=smart_chains,
+    )
+    logger.info(f"✓ Generated split outputs: {list(split_files.keys())}")
+
+    # Also generate Clash config
     with open(output_dir / "clash.yaml", "w") as f:
         f.write(generate_clash_config(ranked_proxies))
 
-    # Pass washed_outbounds to generate_singbox_config
-    extra_outbounds = []
-    if washed_outbounds:
-        extra_outbounds.extend(washed_outbounds)
-    if smart_chains:
-        for chain_list in smart_chains.values():
-            for chain in chain_list:
-                extra_outbounds.extend(chain)
-
-    singbox_content = generate_singbox_config(
-        ranked_proxies, extra_outbounds=extra_outbounds
-    )
-    with open(output_dir / "singbox.json", "w") as f:
-        f.write(singbox_content)
-
-    if signer:
+    # Sign singbox.json if signer available
+    if signer and (output_dir / "singbox.json").exists():
         try:
+            singbox_content = (output_dir / "singbox.json").read_text()
             signed_singbox = signer.sign_subscription(singbox_content)
             with open(output_dir / "singbox.signed.json", "w") as f:
                 json.dump(signed_singbox, f)
@@ -155,6 +169,11 @@ def generate_outputs(
         smart_chains,
         total_washed,
         total_revived,
+        revived_warp,
+        revived_vwarp,
+        vwarp_attempts,
+        vwarp_success,
+        total_configured_sources,
     )
 
     # 9. Wiki & Pages
@@ -403,6 +422,12 @@ def _generate_statistics(
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
+    # [FIX] Add vwarp and revived stats parameters
+    revived_warp: int = 0,
+    revived_vwarp: int = 0,
+    vwarp_attempts: int = 0,
+    vwarp_success: int = 0,
+    total_configured_sources: int = 0,
 ):
     working_proxies = sum(1 for p in ranked if p.is_working)
     working_chosen = sum(1 for p in chosen if p.is_working)
@@ -540,37 +565,8 @@ def _generate_statistics(
         except Exception:
             pass
 
-    # Calculate vwarp_win_rate from batch metadata if available
-    vwarp_attempts = 0
-    vwarp_success = 0
-    total_configured_sources = 0
-
-    # Aggregate vwarp stats from all batch metadata
-    batch_dirs = sorted(
-        list(
-            (
-                output_dir.parent
-                if output_dir.name == "frontend"
-                else output_dir.parent.parent
-            ).glob("batch_*")
-        )
-    )
-    for batch_dir in batch_dirs:
-        meta_path = batch_dir / "metadata.json"
-        if meta_path.exists():
-            try:
-                batch_meta = json.loads(meta_path.read_text())
-                vwarp_attempts += batch_meta.get("vwarp_attempts", 0)
-                vwarp_success += batch_meta.get("vwarp_success", 0)
-                # Get total_configured_sources from any batch (should be same across all batches)
-                if total_configured_sources == 0:
-                    total_configured_sources = batch_meta.get(
-                        "total_configured_sources", 0
-                    )
-            except Exception as e:
-                logger.warning(f"Failed to read batch metadata from {batch_dir}: {e}")
-
-    # Calculate vwarp_win_rate percentage
+    # [FIX] Use vwarp stats passed as parameters instead of recalculating
+    # These stats are already aggregated from all batches in merge/core.py
     vwarp_win_rate = (
         (vwarp_success / vwarp_attempts * 100) if vwarp_attempts > 0 else 0.0
     )
@@ -621,6 +617,9 @@ def _generate_statistics(
         "vwarp_attempts": vwarp_attempts,
         "vwarp_success": vwarp_success,
         "vwarp_win_rate": round(vwarp_win_rate, 1),
+        # Revived proxy stats (WARP and Vwarp breakdown)
+        "revived_warp": revived_warp,
+        "revived_vwarp": revived_vwarp,
         # Frontend display values
         "sources_count": total_configured_sources,
         "total_sources": total_configured_sources,

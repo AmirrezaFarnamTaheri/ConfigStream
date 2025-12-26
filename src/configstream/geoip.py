@@ -8,7 +8,7 @@ import ipaddress
 import logging
 import asyncio
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 import geoip2.database
 import geoip2.errors
@@ -113,8 +113,15 @@ class GeoIPResolver:
                     "GeoLite2 ASN DB not found. ASN lookup disabled. Run 'configstream update-databases'."
                 )
 
+        except (OSError, IOError) as e:
+            # [FIX P2-3] File system errors (permissions, corrupted files, etc.)
+            logger.error(f"I/O error loading GeoIP databases: {e}")
+        except geoip2.errors.GeoIP2Error as e:
+            # [FIX P2-3] GeoIP2-specific errors (invalid database format, etc.)
+            logger.error(f"GeoIP2 database error: {e}")
         except Exception as e:
-            logger.error(f"Failed to load GeoIP databases: {e}")
+            # [FIX P2-3] Unexpected errors - log with full traceback
+            logger.exception(f"Unexpected error loading GeoIP databases: {e}")
 
     def _get_lookup_lock(self) -> asyncio.Lock:
         """Lazily create async lock when first needed (within event loop context)."""
@@ -168,20 +175,44 @@ class GeoIPResolver:
         except geoip2.errors.AddressNotFoundError:
             # Expected for private IPs or missing data
             pass
+        except (ValueError, TypeError) as e:
+            # [FIX P2-3] Invalid IP format or type errors
+            logger.debug(f"Invalid IP format during GeoIP lookup for {ip}: {e}")
+        except geoip2.errors.GeoIP2Error as e:
+            # [FIX P2-3] GeoIP2-specific errors (database errors, etc.)
+            logger.warning(f"GeoIP2 error during lookup for {ip}: {e}")
         except Exception as e:
-            logger.debug(f"GeoIP lookup error for {ip}: {e}")
+            # [FIX P2-3] Unexpected errors - log for debugging
+            logger.debug(f"Unexpected GeoIP lookup error for {ip}: {e}")
 
         return result
 
-    def close(self):
+    def close(self) -> None:
+        """Close GeoIP database readers and release resources.
+
+        [FIX P2] Added return type annotation for type safety.
+        """
         if self.reader_city:
             self.reader_city.close()
         if self.reader_asn:
             self.reader_asn.close()
 
-    def log_enrichment_stats(self, proxies: list) -> dict:
-        """Log and return GeoIP enrichment statistics."""
-        stats = {
+    def log_enrichment_stats(self, proxies: List[Any]) -> Dict[str, int]:
+        """Log and return GeoIP enrichment statistics.
+
+        [FIX P2] Added specific type annotations (List[Any] -> Dict[str, int]).
+
+        Args:
+            proxies: List of proxy objects with optional geo attributes
+
+        Returns:
+            Dictionary containing enrichment statistics:
+            - total: Total number of proxies
+            - with_country: Count of proxies with country data
+            - with_city: Count of proxies with city data
+            - with_asn: Count of proxies with ASN data
+        """
+        stats: Dict[str, int] = {
             "total": len(proxies),
             "with_country": sum(
                 1 for p in proxies if p.country_code and p.country_code != "XX"

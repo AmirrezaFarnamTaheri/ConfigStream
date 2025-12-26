@@ -1,12 +1,27 @@
 """Centralized constants for all modules."""
 
+# [PHASE 5] Network & Tunnel Configuration
+VWARP_SOCKS5_PORT = 10808  # Default port for Vwarp SOCKS5 tunnel
+VWARP_BIND_ADDRESS = "127.0.0.1"  # Localhost binding for security
+
+# [PHASE 5] Anomaly Detection Constants
+Z_SCORE_NORMAL_CONSTANT = 0.6745  # Modified Z-score constant (0.6745 ≈ 0.75 * IQR)
+
+# [PHASE 5] Cache Warming Thresholds
+CACHE_WARMING_HIGH_SCORE_THRESHOLD = 1000  # Proxy count for high-score tier
+CACHE_WARMING_MID_SCORE_THRESHOLD = 100  # Proxy count for mid-score tier
+CACHE_WARMING_LOW_SCORE_THRESHOLD = 50  # Proxy count for low-score tier
+
+# [PHASE 5] VirusTotal Cache Size
+VIRUSTOTAL_CACHE_SIZE = 1000  # LRU cache size for VT lookups
+
 # Size Limits
 MAX_B64_INPUT_SIZE = 10 * 1024 * 1024  # 10 MB (Audit Recommendation: Reduced from 50MB)
 MAX_B64_OUTPUT_SIZE = (
     50 * 1024 * 1024
 )  # 50 MB (Audit Recommendation: Reduced from 100MB)
 MAX_CONFIG_LINE_LENGTH = 10000
-MAX_LINES_PER_SOURCE = 20000  # Reduced from 40000 to improve memory safety
+MAX_LINES_PER_SOURCE = 40000  # Maximum lines to process per source
 MAX_SOURCE_URL_LENGTH = 2048
 
 # Ports & Domains

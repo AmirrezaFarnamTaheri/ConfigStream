@@ -13,6 +13,8 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
+from .constants import Z_SCORE_NORMAL_CONSTANT
+
 # Removed heavy sklearn/numpy dependency
 # import numpy as np
 # from sklearn.ensemble import IsolationForest
@@ -91,9 +93,10 @@ CREATE TABLE IF NOT EXISTS history (
                     if mad == 0:
                         mad = 1.0  # Avoid division by zero
 
-                    # Modified Z-score
-                    # 0.6745 is the constant for normal distribution consistency
-                    modified_z = 0.6745 * (current_count - median) / mad
+                    # Modified Z-score using constant for normal distribution consistency
+                    modified_z = (
+                        Z_SCORE_NORMAL_CONSTANT * (current_count - median) / mad
+                    )
 
                     # Threshold of 3.5 is standard for outlier detection
                     if (
@@ -188,8 +191,9 @@ CREATE TABLE IF NOT EXISTS history (
         counts = Counter(subnets)
         most_common = counts.most_common(1)[0]
 
+        # [FIX] Add zero-length check to prevent division by zero
         # If one subnet accounts for > 90% of proxies
-        if most_common[1] / len(proxies) > 0.9:
+        if len(proxies) > 0 and most_common[1] / len(proxies) > 0.9:
             logger.warning(
                 f"Subnet Flood detected: {most_common[0]}.0/24 accounts for {most_common[1]}/{len(proxies)} proxies."
             )

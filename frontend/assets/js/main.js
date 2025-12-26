@@ -1,3 +1,6 @@
+// [FIX P1] Import production-safe logger (disables console.log in production)
+import logger from './utils/logger.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Note: Common UI (Theme, Header Scroll, Mobile Nav, Copy Buttons) is now handled by common-ui.js
 
@@ -5,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof initDynamicDownloads === 'function') {
         initDynamicDownloads();
     } else {
-        console.warn('initDynamicDownloads is not defined. dynamic-downloads.js might be missing.');
+        logger.warn('initDynamicDownloads is not defined. dynamic-downloads.js might be missing.');
     }
 
     // --- WebSocket & Differential Updates ---
@@ -18,19 +21,19 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             ws = new WebSocket(wsUrl);
         } catch (e) {
-            console.log('WebSocket not supported or failed to connect:', e);
+            logger.log('WebSocket not supported or failed to connect:', e);
             return;
         }
 
         ws.onopen = () => {
-            console.log('[WS] Connected');
+            logger.log('[WS] Connected');
         };
 
         ws.onmessage = async (event) => {
             try {
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'UPDATE_AVAILABLE') {
-                    console.log('[WS] Update available:', msg.version);
+                    logger.log('[WS] Update available:', msg.version);
                     // Trigger differential update via cache manager if available, or reload
                     if (window.performDifferentialUpdate) {
                         await window.performDifferentialUpdate(msg.version);
@@ -40,24 +43,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             } catch (e) {
-                console.warn('[WS] Parse error', e);
+                logger.warn('[WS] Parse error', e);
             }
         };
 
         ws.onclose = () => {
-            console.log('[WS] Disconnected, retrying in 5s...');
+            logger.log('[WS] Disconnected, retrying in 5s...');
             setTimeout(connectWebSocket, 5000); // Auto-reconnect
         };
 
         ws.onerror = (err) => {
-            console.error('[WS] Error:', err);
+            logger.error('[WS] Error:', err);
         };
     }
 
     // Expose Diff Update Logic globally so it can be used or extended
     window.performDifferentialUpdate = async function(newVersion) {
         if (!window.cacheManager) {
-            console.warn("CacheManager missing, full reload");
+            logger.warn("CacheManager missing, full reload");
             location.reload();
             return;
         }

@@ -8,6 +8,11 @@ to ensure the best proxies are always available quickly.
 from typing import Any, List
 from .models import Proxy
 from .test_cache import TestResultCache
+from .constants import (
+    CACHE_WARMING_HIGH_SCORE_THRESHOLD,
+    CACHE_WARMING_MID_SCORE_THRESHOLD,
+    CACHE_WARMING_LOW_SCORE_THRESHOLD,
+)
 
 
 def warm_cache(cache: TestResultCache, proxies: List[Proxy]) -> List[Proxy]:
@@ -50,9 +55,15 @@ def get_cache_warming_strategy(total_proxies: int) -> dict[str, Any]:
     Returns:
         Dictionary with warming strategy parameters
     """
-    if total_proxies < 100:
-        return {"priority_test_count": total_proxies, "batch_size": 50}
-    elif total_proxies < 1000:
-        return {"priority_test_count": 100, "batch_size": 100}
+    if total_proxies < CACHE_WARMING_MID_SCORE_THRESHOLD:
+        return {
+            "priority_test_count": total_proxies,
+            "batch_size": CACHE_WARMING_LOW_SCORE_THRESHOLD,
+        }
+    elif total_proxies < CACHE_WARMING_HIGH_SCORE_THRESHOLD:
+        return {
+            "priority_test_count": CACHE_WARMING_MID_SCORE_THRESHOLD,
+            "batch_size": CACHE_WARMING_MID_SCORE_THRESHOLD,
+        }
     else:
         return {"priority_test_count": 200, "batch_size": 200}

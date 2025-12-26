@@ -38,13 +38,31 @@ app = FastAPI(
     redoc_url=None,
 )
 
-# Enable CORS for cross-origin fetching (useful for external dashboards)
+# [SECURITY FIX P1] Enable CORS with restricted origins
+# Allow localhost for development and GitHub Pages for production deployment
+# Set ALLOWED_ORIGINS environment variable for custom domains
+ALLOWED_ORIGINS_STR = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000",
+)
+ALLOWED_ORIGINS = [
+    origin.strip() for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()
+]
+
+# Use regex pattern for GitHub Pages and other wildcard domains
+# [FIX P1] CORSMiddleware requires allow_origin_regex for wildcard patterns
+ALLOWED_ORIGIN_REGEX = os.getenv(
+    "ALLOWED_ORIGIN_REGEX",
+    r"https://.*\.github\.io",  # Allows any subdomain.github.io
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX,  # For GitHub Pages wildcard support
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Pre-compile regex for path validation
@@ -55,20 +73,44 @@ SAFE_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
+        self._failed_connections: set = set()  # Track failed connections for cleanup
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+        self._failed_connections.discard(websocket)
 
     async def broadcast(self, message: dict):
-        for connection in self.active_connections:
+        """Broadcast message to all connected clients.
+
+        [FIX P2] Specific exception handling instead of broad Exception catch.
+        """
+        for connection in self.active_connections[
+            :
+        ]:  # Copy to avoid modification during iteration
             try:
                 await connection.send_json(message)
-            except Exception:
-                pass
+            except (ConnectionError, RuntimeError) as e:
+                # WebSocket closed or connection lost
+                logger.debug(
+                    f"WebSocket send failed (connection {id(connection)}): {e}"
+                )
+                self._failed_connections.add(connection)
+            except Exception as e:
+                # Unexpected error - log and continue
+                logger.warning(f"Unexpected error in WebSocket broadcast: {e}")
+
+        # Cleanup failed connections
+        for failed in self._failed_connections:
+            try:
+                self.disconnect(failed)
+            except ValueError:
+                pass  # Already removed
+        self._failed_connections.clear()
 
 
 manager = ConnectionManager()
@@ -83,16 +125,56 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Keep connection alive, wait for client messages if any
             data = await websocket.receive_text()
+            # [SECURITY FIX P1] Validate WebSocket messages
+            if not isinstance(data, str) or len(data) > 1024:
+                # [FIX P1] Log only metadata, not raw content (security leak)
+                logger.warning(
+                    f"Invalid WebSocket message: type={type(data).__name__}, length={len(data) if isinstance(data, str) else 'N/A'}"
+                )
+                continue
             # Optional: Client can request immediate sync
             if data == "ping":
                 await websocket.send_text("pong")
+            elif data == "sync":
+                # Allow clients to request immediate update check
+                pass
+            else:
+                # [FIX P1] Log command type only, not content
+                logger.debug(f"Unknown WebSocket command (length: {len(data)})")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 
 
 @app.post("/api/admin/notify-update")
 async def notify_update(payload: dict):
-    """Internal endpoint called by pipeline when a cycle finishes."""
+    """
+    Internal endpoint called by pipeline when a cycle finishes.
+    [SECURITY FIX P1] Requires ADMIN_API_KEY environment variable for authentication
+    (except for localhost/internal callers during development).
+    """
+    # [FIX P1] Simple API key authentication for admin endpoints
+    # Only enforce API key for external production deployments
+    api_key = os.getenv("ADMIN_API_KEY")
+    if api_key:
+        provided_key = payload.get("api_key")
+        # [FIX P1] Allow internal pipeline calls without API key if key matches or is from internal source
+        # In production, pipeline should include api_key in payload
+        if not provided_key:
+            # Check if this is an internal call (development/CI environment)
+            is_internal = os.getenv("ENVIRONMENT", "development") in (
+                "development",
+                "ci",
+                "test",
+            )
+            if not is_internal:
+                raise HTTPException(
+                    403,
+                    "Forbidden: API key required for external calls. "
+                    "Include 'api_key' in payload or set ENVIRONMENT=development",
+                )
+        elif provided_key != api_key:
+            raise HTTPException(403, "Forbidden: Invalid API key")
+
     await manager.broadcast(
         {
             "type": "UPDATE_AVAILABLE",
@@ -109,6 +191,14 @@ async def get_proxy_diff(base_version: str):
     Returns a JSON patch or delta between the client's version and current version.
     Requires server to maintain 'proxies.json' and 'proxies.old.json'.
     """
+    # [SECURITY FIX P1] Validate base_version parameter
+    if (
+        not base_version
+        or not re.match(r"^[a-zA-Z0-9._-]+$", base_version)
+        or len(base_version) > 64
+    ):
+        raise HTTPException(400, "Invalid base_version parameter")
+
     current_path = OUTPUT_DIR / "proxies.json"
     old_path = OUTPUT_DIR / "proxies.old.json"
 

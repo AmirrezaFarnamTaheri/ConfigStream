@@ -18,9 +18,19 @@
   };
 
   /**
-   * Global log level (can be configured)
+   * Detect production environment
    */
-  let globalLogLevel = LogLevel.INFO;
+  const isProduction = typeof window !== 'undefined' &&
+                      window.location &&
+                      window.location.protocol === 'https:' &&
+                      !window.location.hostname.includes('localhost') &&
+                      !window.location.hostname.includes('127.0.0.1');
+
+  /**
+   * Global log level (can be configured)
+   * In production, default to WARN unless DEBUG flag is set
+   */
+  let globalLogLevel = isProduction && !window.DEBUG ? LogLevel.WARN : LogLevel.INFO;
 
   /**
    * Creates a namespaced logger with consistent formatting
@@ -120,5 +130,9 @@
 
   // Initialize global logger
   const logger = createLogger('Logger');
-  logger.info('Shared logging utility loaded');
+
+  // Only log initialization in development or with DEBUG flag
+  if (!isProduction || window.DEBUG) {
+    logger.info(`Shared logging utility loaded (level: ${isProduction ? 'WARN (production)' : 'INFO (development)'})`);
+  }
 })();
