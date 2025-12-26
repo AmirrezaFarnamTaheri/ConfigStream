@@ -37,6 +37,9 @@ class PipelineStats:
     vwarp_attempts: int = 0
     vwarp_success: int = 0
 
+    # Washing Enabled Flag
+    washing_enabled: bool = False
+
     @property
     def vwarp_win_rate(self) -> float:
         if self.vwarp_attempts == 0:
@@ -70,6 +73,7 @@ class PipelineStats:
             "vwarp_attempts": self.vwarp_attempts,
             "vwarp_success": self.vwarp_success,
             "vwarp_win_rate": self.vwarp_win_rate,
+            "washing_enabled": self.washing_enabled,
             # [FIX] Add drop_reasons for debugging
             "drop_reasons": self.drop_reasons,
         }

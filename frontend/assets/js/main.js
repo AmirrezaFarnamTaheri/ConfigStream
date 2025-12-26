@@ -195,7 +195,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateElement('#smartChains', formatNum(smartChains));
 
                 const vwarpWinRate = stats.vwarp_win_rate;
-                updateElement('#vwarpWinRate', vwarpWinRate !== undefined ? `${Math.round(vwarpWinRate)}%` : 'N/A');
+                const washingEnabled = stats.washing_enabled;
+                const winRateDisplay = (washingEnabled !== false && vwarpWinRate !== undefined) ? `${Math.round(vwarpWinRate)}%` : 'N/A';
+                updateElement('#vwarpWinRate', winRateDisplay);
+
+                // Add tooltip or visual indicator if washing is disabled
+                const winRateElem = document.querySelector('#vwarpWinRate');
+                if (winRateElem && washingEnabled === false) {
+                     winRateElem.setAttribute('title', 'Washing disabled (no keys provided)');
+                     winRateElem.style.opacity = '0.7';
+                }
 
                 // Configuration values from metadata (or stats as fallback)
                 const updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 6;
