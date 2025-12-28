@@ -1,5 +1,6 @@
 import pytest
-from configstream.parsers.others import parse_wireguard, parse_hysteria2
+
+from configstream.parsers.others import parse_hysteria2, parse_wireguard
 
 
 def test_wireguard_missing_keys():

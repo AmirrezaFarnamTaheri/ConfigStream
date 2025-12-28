@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
-from configstream.statistics import StatisticsEngine, UptimeStats
+
+import pytest
+
 from configstream.models import Proxy
+from configstream.statistics import StatisticsEngine, UptimeStats
 
 
 class TestStatisticsEngine:

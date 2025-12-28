@@ -1,4 +1,5 @@
 import logging
+
 from ..models import Proxy
 
 logger = logging.getLogger(__name__)

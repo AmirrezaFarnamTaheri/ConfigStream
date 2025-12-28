@@ -4,11 +4,11 @@ Redistribute sources among batch files based on historical runtime
 to ensure uniform execution time across parallel CI jobs.
 """
 
+import logging
 import sqlite3
 import statistics
-import logging
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 logging.basicConfig(

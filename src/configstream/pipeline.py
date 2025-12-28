@@ -14,34 +14,30 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Set, Dict
+from typing import Dict, List, Optional, Set
 
 from rich.progress import Progress, TaskID
 
-from .models import Proxy
-from .testers import SingBoxTester
-from .test_cache import TestResultCache
-from .scheduler import SmartRetestScheduler
-from .concurrency_manager import ConcurrencyManager
 from .adaptive_timeout import AdaptiveTimeout
-from .geoip import GeoIPResolver
-from .source_quality import SourceQualityTracker
 from .anomaly import AnomalyDetector
-from .security.blocklist import DEFAULT_BLOCKLIST
-from .performance import PerformanceTracker
-from .history.tracker import ProxyHistoryTracker
-from .filtering import filter_unique_endpoints
-from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
-
-from .pipeline_core.stats import PipelineStats
-from .pipeline_core.models import PipelineResult
-from .pipeline_stages import (
-    source_producer,
-    processing_consumer,
-)
-from .pipeline_core.sorter import sort_proxies_pareto
-from .pipeline_core import output_handler
+from .concurrency_manager import ConcurrencyManager
+from .constants import VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
 from .event_stream import EventStream
+from .filtering import filter_unique_endpoints
+from .geoip import GeoIPResolver
+from .history.tracker import ProxyHistoryTracker
+from .models import Proxy
+from .performance import PerformanceTracker
+from .pipeline_core import output_handler
+from .pipeline_core.models import PipelineResult
+from .pipeline_core.sorter import sort_proxies_pareto
+from .pipeline_core.stats import PipelineStats
+from .pipeline_stages import processing_consumer, source_producer
+from .scheduler import SmartRetestScheduler
+from .security.blocklist import DEFAULT_BLOCKLIST
+from .source_quality import SourceQualityTracker
+from .test_cache import TestResultCache
+from .testers import SingBoxTester
 
 logger = logging.getLogger(__name__)
 

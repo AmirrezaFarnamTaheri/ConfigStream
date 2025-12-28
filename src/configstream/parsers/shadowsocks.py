@@ -1,7 +1,8 @@
-import logging
 import binascii
+import logging
 from typing import Optional
 from urllib.parse import parse_qs, unquote
+
 from ..models import Proxy
 from .base import normalize_proxy_details, safe_b64_decode
 

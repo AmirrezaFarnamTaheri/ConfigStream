@@ -1,10 +1,12 @@
-import pytest
 import asyncio
 from pathlib import Path
-from unittest.mock import MagicMock, patch, AsyncMock
-from configstream.pipeline import run_full_pipeline
-from configstream.models import Proxy
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from configstream.intelligence.washer.core import ProxyWasher
+from configstream.models import Proxy
+from configstream.pipeline import run_full_pipeline
 
 
 @pytest.fixture

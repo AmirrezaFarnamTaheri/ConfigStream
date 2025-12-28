@@ -2,15 +2,15 @@
 Scrapes Warp configurations from public repositories and endpoints.
 """
 
-import logging
-import json
-import re
 import base64
-from typing import List, Dict, Any
-from urllib.parse import urlparse, parse_qs
+import json
+import logging
+import re
+from typing import Any, Dict, List
+from urllib.parse import parse_qs, urlparse
 
-from ...models import Proxy
 from ...fetcher import Fetcher
+from ...models import Proxy
 from .utils import make_entry
 
 logger = logging.getLogger(__name__)

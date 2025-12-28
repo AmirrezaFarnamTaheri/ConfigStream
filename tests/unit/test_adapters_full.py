@@ -1,12 +1,8 @@
 import pytest
-from configstream.adapters import (
-    get_adapter,
-    SurgeAdapter,
-    LoonAdapter,
-    QuantumultXAdapter,
-    SIP008Adapter,
-    ShadowrocketAdapter,
-)
+
+from configstream.adapters import (LoonAdapter, QuantumultXAdapter,
+                                   ShadowrocketAdapter, SIP008Adapter,
+                                   SurgeAdapter, get_adapter)
 from tests.unit.conftest_helper import create_test_proxy
 
 

@@ -1,10 +1,9 @@
-import pytest
 from pathlib import Path
-from scripts.healthcheck import (
-    check_success_rate,
-    check_minimum_proxies,
-    HealthCheckError,
-)
+
+import pytest
+
+from scripts.healthcheck import (HealthCheckError, check_minimum_proxies,
+                                 check_success_rate)
 
 
 def test_check_success_rate():

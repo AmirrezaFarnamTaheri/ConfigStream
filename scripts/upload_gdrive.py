@@ -6,15 +6,16 @@ Uses Service Account for zero-interaction auth.
 
 # pylint: disable=import-error
 
-import os
+import argparse
 import json
 import logging
-import argparse
+import os
 from pathlib import Path
+
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
+from googleapiclient.http import MediaFileUpload
 
 # Configure Logging
 logging.basicConfig(

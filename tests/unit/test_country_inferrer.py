@@ -1,8 +1,6 @@
-from configstream.country_inferrer import (
-    infer_country_from_remarks,
-    _flag_to_country_code,
-    _country_payload_from_code,
-)
+from configstream.country_inferrer import (_country_payload_from_code,
+                                           _flag_to_country_code,
+                                           infer_country_from_remarks)
 
 
 def test_infer_from_name():

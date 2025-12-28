@@ -1,5 +1,6 @@
 import pytest
-from configstream.cli_errors import handle_cli_errors, CLIError, ErrorContext
+
+from configstream.cli_errors import CLIError, ErrorContext, handle_cli_errors
 
 
 class CustomError(CLIError):

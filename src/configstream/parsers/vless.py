@@ -2,6 +2,7 @@ import logging
 import re
 from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
+
 from ..models import Proxy
 from .base import normalize_proxy_details
 

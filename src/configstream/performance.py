@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
 from contextlib import contextmanager
+from dataclasses import asdict, dataclass
 from time import perf_counter
 from typing import Dict, Iterator
 

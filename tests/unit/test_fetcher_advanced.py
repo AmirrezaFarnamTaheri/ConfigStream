@@ -1,9 +1,11 @@
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import httpx
-from configstream.fetcher import fetch_from_source
-from configstream.config import AppSettings
+import pytest
+
 from configstream.circuit_breaker import CircuitBreakerManager
+from configstream.config import AppSettings
+from configstream.fetcher import fetch_from_source
 
 
 # Helper to mock the stream context manager

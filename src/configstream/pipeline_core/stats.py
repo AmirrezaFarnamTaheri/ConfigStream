@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Any
 from datetime import datetime, timezone
+from typing import Any, Dict, Optional
 
 
 @dataclass

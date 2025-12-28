@@ -1,4 +1,4 @@
-from configstream.metrics_emitter import MetricsEmitter, HostMetrics
+from configstream.metrics_emitter import HostMetrics, MetricsEmitter
 
 
 def test_record_and_write(tmp_path):

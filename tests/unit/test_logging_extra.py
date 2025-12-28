@@ -1,11 +1,11 @@
 """Tests for logging config."""
 
 import logging
-from configstream.logging_config import (
-    setup_logging,
-    SensitiveDataFilter,  # Correct name based on file content
-    # configure_uvicorn_logging # Not in file
-)
+
+from configstream.logging_config import \
+    SensitiveDataFilter  # Correct name based on file content
+from configstream.logging_config import \
+    setup_logging  # configure_uvicorn_logging # Not in file
 
 
 def test_sensitive_filter():

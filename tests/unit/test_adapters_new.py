@@ -1,4 +1,4 @@
-from configstream.adapters import get_adapter, ShadowrocketAdapter
+from configstream.adapters import ShadowrocketAdapter, get_adapter
 from configstream.models import Proxy
 
 

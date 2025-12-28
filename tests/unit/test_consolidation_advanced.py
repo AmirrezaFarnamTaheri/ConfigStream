@@ -1,11 +1,9 @@
 """Advanced tests for consolidation and proxy ranking."""
 
-from configstream.consolidation import (
-    calculate_compound_score,
-    get_country_flag,
-    rank_and_rename_proxies,
-    select_top_configs,
-)
+from configstream.consolidation import (calculate_compound_score,
+                                        get_country_flag,
+                                        rank_and_rename_proxies,
+                                        select_top_configs)
 from configstream.models import Proxy
 
 

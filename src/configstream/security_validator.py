@@ -1,22 +1,18 @@
 """Enhanced security validation for proxy configurations."""
 
-import re
-import uuid
 import json
 import logging
+import re
+import uuid
 from dataclasses import dataclass, replace
-from typing import List, Tuple, Dict, FrozenSet, Optional
+from typing import Dict, FrozenSet, List, Optional, Tuple
 from urllib.parse import urlparse
 
 from .models import Proxy
 from .security.blocklist import DEFAULT_BLOCKLIST
-from .security.rules import (
-    SECURITY_CATEGORIES,
-    validate_port,
-    validate_address,
-    validate_protocol,
-    validate_config_string,
-)
+from .security.rules import (SECURITY_CATEGORIES, validate_address,
+                             validate_config_string, validate_port,
+                             validate_protocol)
 
 logger = logging.getLogger(__name__)
 

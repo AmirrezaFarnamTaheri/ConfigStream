@@ -1,16 +1,16 @@
-import os
+import importlib.metadata
 import json
 import logging
-import re
 import mimetypes
-import importlib.metadata
+import os
+import re
 from pathlib import Path
-from typing import Optional, List
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from .output import OUTPUT_DIR
 

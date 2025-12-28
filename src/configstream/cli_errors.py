@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Centralized error handling for CLI operations"""
 
-from typing import Optional, Callable, Any, TypeVar
-from functools import wraps
-import sys
-import logging
 import json
+import logging
+import sys
+from functools import wraps
+from typing import Any, Callable, Optional, TypeVar
 
 logger = logging.getLogger(__name__)
 

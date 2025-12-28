@@ -1,12 +1,12 @@
-import logging
-import json
 import copy
+import json
+import logging
 from pathlib import Path
-from typing import List, Dict, Any, Set, Optional
+from typing import Any, Dict, List, Optional, Set
 
+from ..converters import to_singbox_outbound
 from ..models import Proxy
 from .clash import generate_clash_config
-from ..converters import to_singbox_outbound
 
 logger = logging.getLogger(__name__)
 

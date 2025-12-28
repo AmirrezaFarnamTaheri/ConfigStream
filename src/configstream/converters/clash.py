@@ -1,5 +1,5 @@
-from typing import Dict, Any, Optional
 import logging
+from typing import Any, Dict, Optional
 
 from ..models import Proxy
 

@@ -6,9 +6,10 @@ Mirrors the 'output/' directory to a Hugging Face Dataset repository.
 
 # pylint: disable=import-error
 
-import os
-import logging
 import argparse
+import logging
+import os
+
 from huggingface_hub import HfApi
 
 # Configure logging

@@ -6,8 +6,8 @@ Maintains backward compatibility.
 
 from pathlib import Path
 
-from .intelligence.washer import ProxyWasher
 from .intelligence.chaining import generate_smart_chains
+from .intelligence.washer import ProxyWasher
 from .output_logic import generate_categorized_outputs, save_metadata
 from .output_transport import save_json
 

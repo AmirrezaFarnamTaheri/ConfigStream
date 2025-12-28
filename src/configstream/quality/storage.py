@@ -3,11 +3,11 @@ Storage module for Source Quality.
 Handles SQLite interactions.
 """
 
-import sqlite3
 import logging
+import sqlite3
 import threading
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any, cast
+from typing import Any, Dict, Optional, Tuple, cast
 
 logger = logging.getLogger(__name__)
 

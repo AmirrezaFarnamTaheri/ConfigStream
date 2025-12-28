@@ -1,8 +1,9 @@
-import pytest
-from playwright.sync_api import Page, expect
-from playwright._impl._errors import Error as PlaywrightError
-import re
 import json
+import re
+
+import pytest
+from playwright._impl._errors import Error as PlaywrightError
+from playwright.sync_api import Page, expect
 
 
 # Remove all asyncio markers, let pytest-playwright handle loop injection

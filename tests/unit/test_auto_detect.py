@@ -1,4 +1,5 @@
 import unittest
+
 from configstream.auto_detect import auto_detect_and_parse
 
 

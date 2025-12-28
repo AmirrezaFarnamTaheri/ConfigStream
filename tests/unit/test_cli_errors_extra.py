@@ -1,21 +1,15 @@
 """Tests for CLI errors module."""
 
-import pytest
 import json
-from unittest.mock import patch
 from io import StringIO
-from configstream.cli_errors import (
-    CLIError,
-    FileError,
-    ConfigError,
-    DataError,
-    NetworkError,
-    format_error_message,
-    handle_cli_error,
-    safe_operation,
-    handle_cli_errors,
-    ErrorContext,
-)
+from unittest.mock import patch
+
+import pytest
+
+from configstream.cli_errors import (CLIError, ConfigError, DataError,
+                                     ErrorContext, FileError, NetworkError,
+                                     format_error_message, handle_cli_error,
+                                     handle_cli_errors, safe_operation)
 
 
 def test_exception_types():

@@ -4,10 +4,9 @@ import json
 from pathlib import Path
 from unittest.mock import patch
 
-from configstream.history.storage import HistoryStorage
 from configstream.history.analytics import HistoryAnalytics
 from configstream.history.export import HistoryExporter
-
+from configstream.history.storage import HistoryStorage
 
 # --- Storage Tests ---
 

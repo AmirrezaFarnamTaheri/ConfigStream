@@ -1,13 +1,13 @@
 import logging
-from typing import List, Any
+from typing import Any, List
 
 try:
     import yaml  # type: ignore
 except ImportError:
     yaml = None  # type: ignore
 
-from ..models import Proxy
 from ..converters import to_clash_proxy
+from ..models import Proxy
 
 logger = logging.getLogger(__name__)
 

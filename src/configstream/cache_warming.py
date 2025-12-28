@@ -6,13 +6,12 @@ to ensure the best proxies are always available quickly.
 """
 
 from typing import Any, List
+
+from .constants import (CACHE_WARMING_HIGH_SCORE_THRESHOLD,
+                        CACHE_WARMING_LOW_SCORE_THRESHOLD,
+                        CACHE_WARMING_MID_SCORE_THRESHOLD)
 from .models import Proxy
 from .test_cache import TestResultCache
-from .constants import (
-    CACHE_WARMING_HIGH_SCORE_THRESHOLD,
-    CACHE_WARMING_MID_SCORE_THRESHOLD,
-    CACHE_WARMING_LOW_SCORE_THRESHOLD,
-)
 
 
 def warm_cache(cache: TestResultCache, proxies: List[Proxy]) -> List[Proxy]:

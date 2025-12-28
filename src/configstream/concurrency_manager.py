@@ -7,6 +7,7 @@ import asyncio
 import logging
 from collections import deque
 from typing import Deque, Optional
+
 from .utils import BoundedConcurrencyManager as ResizableSemaphore
 
 logger = logging.getLogger(__name__)

@@ -3,9 +3,9 @@ Output Converter Helpers.
 Exposes converters from submodules.
 """
 
-from .singbox import to_singbox_outbound
 from .clash import to_clash_proxy
 from .common import safe_int_conversion
+from .singbox import to_singbox_outbound
 
 # For backward compatibility with imports that used to import from converters.py
 _safe_int_conversion = safe_int_conversion

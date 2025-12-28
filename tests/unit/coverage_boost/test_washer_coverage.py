@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from configstream.models import Proxy
+
 from configstream.intelligence.washer.core import ProxyWasher
+from configstream.models import Proxy
 
 
 @pytest.fixture

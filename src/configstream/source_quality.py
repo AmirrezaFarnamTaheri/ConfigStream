@@ -3,14 +3,14 @@ Facade for Source Quality module.
 Provides backward compatibility for the pipeline.
 """
 
-from typing import Any, Optional, Dict
-from pathlib import Path
-from datetime import datetime, timezone
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, Optional
 
-from .quality.storage import QualityStorage
 from .quality.scoring import calculate_diversity_score
+from .quality.storage import QualityStorage
 
 logger = logging.getLogger(__name__)
 

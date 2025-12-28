@@ -1,12 +1,13 @@
 # src/configstream/transport/stego.py
 
+import hashlib
+import hmac
+import logging
 import os
 import zlib
-import logging
-import hmac
-import hashlib
 from pathlib import Path
 from typing import Optional
+
 from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)

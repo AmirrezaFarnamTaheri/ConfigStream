@@ -3,7 +3,9 @@ Fuzz Testing for Parsers.
 Uses Hypothesis to generate random, malformed inputs to ensure robustness.
 """
 
-from hypothesis import given, strategies as st, settings, HealthCheck
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
+
 from configstream.auto_detect import auto_detect_and_parse as parse_config
 from configstream.parsers import _extract_config_lines
 

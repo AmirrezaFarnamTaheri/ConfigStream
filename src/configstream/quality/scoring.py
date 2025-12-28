@@ -3,7 +3,8 @@ Scoring logic for source quality.
 """
 
 import math
-from typing import List, Dict
+from typing import Dict, List
+
 from ..models import Proxy
 
 

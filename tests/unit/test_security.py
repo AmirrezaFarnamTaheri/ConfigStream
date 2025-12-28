@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+
 from configstream.security.blocklist import BlocklistManager
-from configstream.security.virus_total import scan_url, check_ip_reputation
+from configstream.security.virus_total import check_ip_reputation, scan_url
 
 # --- Blocklist Tests ---
 

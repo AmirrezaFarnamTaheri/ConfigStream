@@ -1,5 +1,6 @@
-from configstream.logging_config import setup_logging
 import logging
+
+from configstream.logging_config import setup_logging
 
 
 def test_setup_logging():

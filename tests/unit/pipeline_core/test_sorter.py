@@ -4,8 +4,9 @@ Tests the Pareto-based proxy sorting algorithm.
 """
 
 from unittest.mock import MagicMock
-from configstream.pipeline_core.sorter import sort_proxies_pareto
+
 from configstream.models import Proxy
+from configstream.pipeline_core.sorter import sort_proxies_pareto
 
 
 class TestSortProxiesPareto:

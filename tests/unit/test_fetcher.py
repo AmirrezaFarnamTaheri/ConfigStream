@@ -1,16 +1,15 @@
-import pytest
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
-from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, MagicMock, AsyncMock
-from configstream.fetcher import (
-    fetch_from_source,
-    fetch_multiple_sources,
-    MAX_RESPONSE_SIZE,
-)
-from configstream.fetcher_core.models import FetchResult
-from configstream.fetcher_core.utils import parse_retry_after as _parse_retry_after
+import pytest
 
 from configstream.config import AppSettings
+from configstream.fetcher import (MAX_RESPONSE_SIZE, fetch_from_source,
+                                  fetch_multiple_sources)
+from configstream.fetcher_core.models import FetchResult
+from configstream.fetcher_core.utils import \
+    parse_retry_after as _parse_retry_after
 from configstream.security.rate_limiter import RateLimiter
 
 

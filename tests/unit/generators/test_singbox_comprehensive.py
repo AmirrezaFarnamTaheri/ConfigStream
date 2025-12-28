@@ -1,11 +1,11 @@
 import json
-import pytest
 from unittest.mock import patch
+
+import pytest
+
+from configstream.generators.singbox import (_strip_internal_metadata,
+                                             generate_singbox_config)
 from configstream.models import Proxy
-from configstream.generators.singbox import (
-    generate_singbox_config,
-    _strip_internal_metadata,
-)
 
 
 def test_strip_internal_metadata():

@@ -7,8 +7,9 @@ Zero-Cost implementation: Uses feature hashing instead of ML embeddings.
 import hashlib
 import json
 import logging
-from typing import List, Dict
 from pathlib import Path
+from typing import Dict, List
+
 from ..models import Proxy
 from ..utils import AtomicFileWriter
 

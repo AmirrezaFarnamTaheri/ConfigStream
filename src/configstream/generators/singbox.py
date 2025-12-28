@@ -1,9 +1,9 @@
 import json
 import logging
-from typing import List, Any, Optional, Dict
+from typing import Any, Dict, List, Optional
 
-from ..models import Proxy
 from ..converters import to_singbox_outbound
+from ..models import Proxy
 
 logger = logging.getLogger(__name__)
 

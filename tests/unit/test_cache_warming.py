@@ -1,6 +1,8 @@
-import pytest
 from unittest.mock import MagicMock
-from configstream.cache_warming import warm_cache, get_cache_warming_strategy
+
+import pytest
+
+from configstream.cache_warming import get_cache_warming_strategy, warm_cache
 from configstream.models import Proxy
 
 

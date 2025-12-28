@@ -2,6 +2,7 @@
 
 import json
 from unittest.mock import patch
+
 from configstream.intelligence.vectors import _compute_vector, generate_vectors
 from configstream.models import Proxy
 

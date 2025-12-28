@@ -1,6 +1,7 @@
-from configstream.parsers.extraction import extract_config_lines
-from configstream.parsers import _parse_v2ray_json
 import json
+
+from configstream.parsers import _parse_v2ray_json
+from configstream.parsers.extraction import extract_config_lines
 
 
 class TestParsersExtended:

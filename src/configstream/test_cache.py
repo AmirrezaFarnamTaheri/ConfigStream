@@ -9,8 +9,8 @@ It is designed to work with CI artifact passing rather than a persistent DB.
 import hashlib
 import json
 import logging
-import time
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional

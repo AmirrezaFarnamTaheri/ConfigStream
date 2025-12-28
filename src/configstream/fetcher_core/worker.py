@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
+
 import httpx
 
+from ..config import AppSettings
 from .models import FetchResult, RateLimitError
 from .utils import parse_retry_after
-from ..config import AppSettings
 
 logger = logging.getLogger(__name__)
 

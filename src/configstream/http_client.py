@@ -10,8 +10,8 @@ from typing import AsyncIterator
 
 import httpx
 
-from .dns_cache import DEFAULT_CACHE
 from .config import AppSettings
+from .dns_cache import DEFAULT_CACHE
 
 # Check for HTTP/2 support
 try:

@@ -1,5 +1,6 @@
-from configstream.performance import PerformanceTracker
 import time
+
+from configstream.performance import PerformanceTracker
 
 
 def test_performance_tracker():

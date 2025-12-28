@@ -1,5 +1,6 @@
+from unittest.mock import MagicMock, patch
+
 from configstream.adaptive_workers import calculate_optimal_workers
-from unittest.mock import patch, MagicMock
 
 
 def test_calculate_optimal_workers_requested():

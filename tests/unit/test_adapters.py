@@ -1,12 +1,8 @@
-from configstream.adapters import (
-    LoonAdapter,
-    QuantumultXAdapter,
-    SurgeAdapter,
-    SIP008Adapter,
-    get_adapter,
-)
-from configstream.models import Proxy
 import pytest
+
+from configstream.adapters import (LoonAdapter, QuantumultXAdapter,
+                                   SIP008Adapter, SurgeAdapter, get_adapter)
+from configstream.models import Proxy
 
 
 def test_loon_adapter():

@@ -1,12 +1,12 @@
-from configstream.parsers.generic import (
-    parse_generic_url_scheme as _parse_generic_url_scheme,
-)
+import base64
+import json
+
+from configstream.parsers.generic import \
+    parse_generic_url_scheme as _parse_generic_url_scheme
 from configstream.parsers.ssr import parse_ssr
 from configstream.parsers.trojan import parse_trojan
 from configstream.parsers.vless import parse_vless
 from configstream.parsers.vmess import parse_vmess
-import base64
-import json
 
 
 def test_parse_generic_fallback():

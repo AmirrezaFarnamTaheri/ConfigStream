@@ -6,16 +6,13 @@ This module now serves as a facade for backward compatibility.
 """
 
 import logging
-from .pipeline_core.models import PipelineStats, PipelineResult
-from .pipeline_core.producer import source_producer
-from .pipeline_core.consumer import processing_consumer
+
 from .auto_detect import auto_detect_and_parse as parse_config
-from .security_validator import (
-    validate_batch_configs,
-    STRICT_POLICY,
-    TEST_POLICY,
-    SecurityValidator,
-)
+from .pipeline_core.consumer import processing_consumer
+from .pipeline_core.models import PipelineResult, PipelineStats
+from .pipeline_core.producer import source_producer
+from .security_validator import (STRICT_POLICY, TEST_POLICY, SecurityValidator,
+                                 validate_batch_configs)
 
 logger = logging.getLogger(__name__)
 

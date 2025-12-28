@@ -6,10 +6,10 @@ from .setup_path import setup_python_path
 
 setup_python_path()
 
-from configstream.test_cache import TestResultCache  # noqa: E402
-from configstream.source_quality import SourceQualityTracker  # noqa: E402
 from configstream.anomaly import AnomalyDetector  # noqa: E402
 from configstream.proxy_history import ProxyHistoryTracker  # noqa: E402
+from configstream.source_quality import SourceQualityTracker  # noqa: E402
+from configstream.test_cache import TestResultCache  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

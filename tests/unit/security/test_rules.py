@@ -1,13 +1,10 @@
 """Tests for security rules."""
 
-from configstream.security.rules import (
-    validate_port,
-    validate_address,
-    validate_protocol,
-    validate_config_string,
-    SECURITY_CATEGORIES,
-)
 from unittest.mock import patch
+
+from configstream.security.rules import (SECURITY_CATEGORIES, validate_address,
+                                         validate_config_string, validate_port,
+                                         validate_protocol)
 
 
 def test_validate_port():

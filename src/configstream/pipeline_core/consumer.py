@@ -1,30 +1,26 @@
 import asyncio
 import logging
 import os
-import orjson as json
-from typing import List, Optional, Set, Dict, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set
 
+import orjson as json
 from rich.progress import Progress, TaskID
 
-from ..models import Proxy
 from ..auto_detect import auto_detect_and_parse as parse_config
-from ..security_validator import (
-    validate_batch_configs,
-    STRICT_POLICY,
-    TEST_POLICY,
-    SecurityValidator,
-)
-from ..filtering import proxy_unique_key
-from ..testers import SingBoxTester
-from ..test_cache import TestResultCache
-from ..scheduler import SmartRetestScheduler
 from ..concurrency_manager import ConcurrencyManager
+from ..filtering import proxy_unique_key
 from ..geoip import GeoIPResolver
-from ..source_quality import SourceQualityTracker, calculate_diversity_score
-from ..performance import PerformanceTracker
 from ..history.tracker import ProxyHistoryTracker
-from .models import PipelineStats
 from ..intelligence.washer.core import ProxyWasher
+from ..models import Proxy
+from ..performance import PerformanceTracker
+from ..scheduler import SmartRetestScheduler
+from ..security_validator import (STRICT_POLICY, TEST_POLICY,
+                                  SecurityValidator, validate_batch_configs)
+from ..source_quality import SourceQualityTracker, calculate_diversity_score
+from ..test_cache import TestResultCache
+from ..testers import SingBoxTester
+from .models import PipelineStats
 
 if TYPE_CHECKING:
     from ..event_stream import EventStream

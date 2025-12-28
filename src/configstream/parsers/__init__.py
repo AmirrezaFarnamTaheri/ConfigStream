@@ -3,24 +3,16 @@ Expose all parsers via a unified interface.
 """
 
 from .base import extract_config_lines
-from .vmess import parse_vmess
-from .vless import parse_vless
-from .shadowsocks import parse_ss, parse_ss2022
-from .trojan import parse_trojan
-from .ssr import parse_ssr
-from .others import (
-    parse_hysteria,
-    parse_hysteria2,
-    parse_tuic,
-    parse_wireguard,
-    parse_xray,
-    parse_snell,
-    parse_brook,
-    parse_juicity,
-    parse_ssh,
-)
 from .generic import parse_generic_url_scheme, parse_naive, parse_v2ray_json
 from .openvpn import parse_openvpn
+from .others import (parse_brook, parse_hysteria, parse_hysteria2,
+                     parse_juicity, parse_snell, parse_ssh, parse_tuic,
+                     parse_wireguard, parse_xray)
+from .shadowsocks import parse_ss, parse_ss2022
+from .ssr import parse_ssr
+from .trojan import parse_trojan
+from .vless import parse_vless
+from .vmess import parse_vmess
 
 # Alias internal names to public ones to maintain compatibility with imports
 # accessing via legacy `_parse_*` naming convention.

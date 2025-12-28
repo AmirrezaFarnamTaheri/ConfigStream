@@ -1,10 +1,11 @@
 import json
-import pytest
 from unittest.mock import patch
 
-from configstream.models import Proxy
-from configstream.intelligence.washer import ProxyWasher
+import pytest
+
 from configstream.intelligence.chaining import generate_smart_chains
+from configstream.intelligence.washer import ProxyWasher
+from configstream.models import Proxy
 from configstream.output import generate_split_outputs
 
 

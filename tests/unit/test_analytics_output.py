@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+
 from configstream.models import Proxy
 from configstream.output import save_metadata
 

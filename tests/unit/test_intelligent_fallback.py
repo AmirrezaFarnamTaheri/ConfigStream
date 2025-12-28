@@ -1,4 +1,5 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from configstream.intelligent_fallback import FallbackManager
 from configstream.models import Proxy
 

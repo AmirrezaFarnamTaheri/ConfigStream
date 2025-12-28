@@ -6,7 +6,8 @@ based on a user-defined template.
 
 import logging
 import re
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
+
 from .models import Proxy
 
 logger = logging.getLogger(__name__)

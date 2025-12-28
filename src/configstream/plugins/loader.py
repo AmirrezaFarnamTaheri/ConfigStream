@@ -2,7 +2,9 @@ import json
 import logging
 from pathlib import Path
 from typing import Dict, Optional
-from wasmtime import Engine, Store, Module, Instance, Memory, Func, Limits, Config
+
+from wasmtime import (Config, Engine, Func, Instance, Limits, Memory, Module,
+                      Store)
 
 from ..models import Proxy
 from ..parsers.base import normalize_proxy_details

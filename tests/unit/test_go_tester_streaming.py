@@ -1,9 +1,11 @@
-import pytest
 import asyncio
 import json
-from unittest.mock import MagicMock, AsyncMock, patch
-from configstream.testers.go import GoBatchTester
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from configstream.models import Proxy
+from configstream.testers.go import GoBatchTester
 
 
 @pytest.mark.asyncio

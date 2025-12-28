@@ -1,12 +1,8 @@
 import pytest
-from configstream.adapters import (
-    get_adapter,
-    SurgeAdapter,
-    QuantumultXAdapter,
-    LoonAdapter,
-    ShadowrocketAdapter,
-    SIP008Adapter,
-)
+
+from configstream.adapters import (LoonAdapter, QuantumultXAdapter,
+                                   ShadowrocketAdapter, SIP008Adapter,
+                                   SurgeAdapter, get_adapter)
 from configstream.models import Proxy
 
 

@@ -1,4 +1,5 @@
 import pytest
+
 from configstream.models import Proxy
 from configstream.parsers.normalization import normalize_proxy_details
 

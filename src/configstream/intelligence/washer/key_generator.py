@@ -1,8 +1,9 @@
-import logging
 import base64
-import httpx
+import logging
 from datetime import datetime
-from typing import Dict, Optional, Tuple, Any
+from typing import Any, Dict, Optional, Tuple
+
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,8 @@ class KeyGenerator:
         Generates a Curve25519 key pair.
         Returns (private_key_b64, public_key_b64).
         """
-        from cryptography.hazmat.primitives.asymmetric import x25519
         from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives.asymmetric import x25519
 
         private_key = x25519.X25519PrivateKey.generate()
         public_key = private_key.public_key()

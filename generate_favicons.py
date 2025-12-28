@@ -4,10 +4,11 @@ Generate favicons from the project logo SVG.
 Creates multiple sizes for different use cases.
 """
 
+import io
 from pathlib import Path
+
 import cairosvg
 from PIL import Image
-import io
 
 
 def generate_favicon_png(svg_path: str, output_path: str, size: int):

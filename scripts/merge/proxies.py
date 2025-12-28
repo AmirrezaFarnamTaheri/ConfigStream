@@ -8,8 +8,8 @@ from .setup_path import setup_python_path
 
 setup_python_path()
 
-from configstream.models import Proxy  # noqa: E402
 from configstream.consolidation import calculate_compound_score  # noqa: E402
+from configstream.models import Proxy  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

@@ -1,11 +1,6 @@
-from configstream.parsers import (
-    _parse_ss,
-    _parse_vless,
-    _parse_hysteria2,
-    _parse_wireguard,
-    _parse_openvpn,
-    _extract_config_lines,
-)
+from configstream.parsers import (_extract_config_lines, _parse_hysteria2,
+                                  _parse_openvpn, _parse_ss, _parse_vless,
+                                  _parse_wireguard)
 
 
 class TestParsers:

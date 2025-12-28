@@ -1,6 +1,5 @@
 from typing import Optional
 
-
 from .stats import PipelineStats
 
 

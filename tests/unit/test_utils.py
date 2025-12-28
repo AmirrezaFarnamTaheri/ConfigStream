@@ -1,6 +1,8 @@
-import pytest
 import asyncio
 from unittest.mock import patch
+
+import pytest
+
 from configstream.utils import AtomicFileWriter, BoundedConcurrencyManager
 
 

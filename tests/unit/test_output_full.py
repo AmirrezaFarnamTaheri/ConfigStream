@@ -1,12 +1,11 @@
-import pytest
 from unittest.mock import patch
-from configstream.output import (
-    save_json,
-    save_metadata,
-    generate_split_outputs,
-    generate_categorized_outputs,
-)
+
+import pytest
+
 from configstream.models import Proxy
+from configstream.output import (generate_categorized_outputs,
+                                 generate_split_outputs, save_json,
+                                 save_metadata)
 
 
 @pytest.fixture

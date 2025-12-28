@@ -1,11 +1,11 @@
-import os
-import logging
-import tempfile
-import stat
-import threading
 import atexit
-from typing import Set
+import logging
+import os
+import stat
+import tempfile
+import threading
 from contextlib import contextmanager
+from typing import Set
 
 logger = logging.getLogger(__name__)
 

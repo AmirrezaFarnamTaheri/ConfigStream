@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import os
-import random
 import hashlib
 import logging
-from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
+import os
+import random
+from typing import Any, Callable, Dict, Iterable, List, Sequence, Tuple
 
 from .models import Proxy
 

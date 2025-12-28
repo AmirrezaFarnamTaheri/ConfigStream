@@ -1,5 +1,7 @@
 import logging
+
 import pytest
+
 from configstream.converters import to_singbox_outbound
 from configstream.models import Proxy
 

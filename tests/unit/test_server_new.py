@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
-from configstream.server import app, OUTPUT_DIR
+
+from configstream.server import OUTPUT_DIR, app
 
 client = TestClient(app)
 

@@ -1,13 +1,11 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from configstream.intelligence.chaining import (
-    find_optimal_relay,
-    generate_smart_chains,
-    ProxyStub,
-    haversine,
-    create_chain,
-    is_likely_ipv4,
-)
+
+import pytest
+
+from configstream.intelligence.chaining import (ProxyStub, create_chain,
+                                                find_optimal_relay,
+                                                generate_smart_chains,
+                                                haversine, is_likely_ipv4)
 from configstream.models import Proxy
 
 

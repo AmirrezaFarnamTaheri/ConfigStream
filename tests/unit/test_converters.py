@@ -1,6 +1,7 @@
 import pytest
-from configstream.models import Proxy
+
 from configstream.converters import to_clash_proxy, to_singbox_outbound
+from configstream.models import Proxy
 
 
 @pytest.fixture

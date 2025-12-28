@@ -186,7 +186,8 @@ CREATE TABLE IF NOT EXISTS history (
         if not subnets:
             return False
 
-        from collections import Counter  # pylint: disable=import-outside-toplevel
+        from collections import \
+            Counter  # pylint: disable=import-outside-toplevel
 
         counts = Counter(subnets)
         most_common = counts.most_common(1)[0]

@@ -1,8 +1,9 @@
 """Comprehensive tests for configstream __init__.py module."""
 
-import pytest
 import sys
 from unittest.mock import patch
+
+import pytest
 
 
 class TestLazyLoading:
@@ -146,6 +147,7 @@ class TestWindowsEventLoopPolicy:
             with patch("asyncio.set_event_loop_policy"):  # noqa: F841
                 # Re-import to trigger the platform check
                 import importlib
+
                 import configstream
 
                 importlib.reload(configstream)
@@ -158,6 +160,7 @@ class TestWindowsEventLoopPolicy:
         with patch("sys.platform", "linux"):
             # Should not raise any errors
             import importlib
+
             import configstream
 
             importlib.reload(configstream)

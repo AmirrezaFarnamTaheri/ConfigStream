@@ -1,8 +1,8 @@
-from typing import List, Dict, Any, Optional, Tuple
-import logging
-import ipaddress
 import hashlib
+import ipaddress
+import logging
 import math
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..converters import to_singbox_outbound
 from ..models import Proxy

@@ -3,12 +3,9 @@ import binascii
 import logging
 import time
 from collections import defaultdict
-from typing import Optional, Dict
+from typing import Dict, Optional
 
-from ..constants import (
-    MAX_B64_INPUT_SIZE,
-    MAX_B64_OUTPUT_SIZE,
-)
+from ..constants import MAX_B64_INPUT_SIZE, MAX_B64_OUTPUT_SIZE
 
 logger = logging.getLogger(__name__)
 

@@ -1,4 +1,5 @@
 import pytest
+
 from configstream.models import Proxy
 
 

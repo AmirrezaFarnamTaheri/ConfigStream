@@ -1,6 +1,8 @@
-import pytest
 from unittest.mock import MagicMock, patch
-from configstream.geoip import GeoIPResolver, GeoData
+
+import pytest
+
+from configstream.geoip import GeoData, GeoIPResolver
 
 
 @pytest.mark.asyncio

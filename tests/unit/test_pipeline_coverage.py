@@ -1,8 +1,10 @@
 import asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from configstream.pipeline_stages import processing_consumer, PipelineStats
+
 from configstream.models import Proxy
+from configstream.pipeline_stages import PipelineStats, processing_consumer
 from configstream.testers_core import SingBoxTester
 
 

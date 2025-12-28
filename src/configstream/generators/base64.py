@@ -1,5 +1,6 @@
 import base64
 from typing import List
+
 from ..models import Proxy
 
 

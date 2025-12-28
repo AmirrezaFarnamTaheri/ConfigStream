@@ -1,6 +1,6 @@
-from collections import Counter
 import asyncio
 import logging
+from collections import Counter
 from urllib.parse import urlparse
 
 from .dns_cache import DEFAULT_CACHE

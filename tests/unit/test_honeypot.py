@@ -1,10 +1,10 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import patch, AsyncMock
-from configstream.security.honeypot import (
-    is_honeypot,
-    check_common_honeypot_ports,
-    check_traffic_interception,
-)
+
+from configstream.security.honeypot import (check_common_honeypot_ports,
+                                            check_traffic_interception,
+                                            is_honeypot)
 
 
 @pytest.mark.asyncio

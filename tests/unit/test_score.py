@@ -1,15 +1,12 @@
-import pytest
 from unittest.mock import MagicMock
-from configstream.score import (
-    _latency_points,
-    calculate_health_score,
-    score_speed,
-    score_balanced,
-    score_privacy,
-    score_stability,
-)
-from configstream.models import Proxy
+
+import pytest
+
 from configstream.config import AppSettings
+from configstream.models import Proxy
+from configstream.score import (_latency_points, calculate_health_score,
+                                score_balanced, score_privacy, score_speed,
+                                score_stability)
 
 
 class TestScore:

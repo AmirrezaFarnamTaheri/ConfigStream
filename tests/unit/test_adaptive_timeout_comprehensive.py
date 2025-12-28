@@ -1,7 +1,9 @@
-import pytest
 import asyncio
-from unittest.mock import patch, MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from configstream.adaptive_timeout import AdaptiveTimeout
 
 

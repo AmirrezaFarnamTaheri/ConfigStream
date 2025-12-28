@@ -1,5 +1,6 @@
-import pytest
 import httpx
+import pytest
+
 from configstream.fetcher import fetch_from_source
 
 

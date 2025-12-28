@@ -3,12 +3,12 @@ Performance Metrics Logger
 Provides structured logging for pipeline performance analysis and optimization.
 """
 
+import json
 import logging
 import time
 from contextlib import contextmanager
-from dataclasses import dataclass, asdict
-from typing import Optional, Any
-import json
+from dataclasses import asdict, dataclass
+from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
 

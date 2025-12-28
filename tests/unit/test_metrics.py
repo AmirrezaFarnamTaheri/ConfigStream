@@ -1,5 +1,6 @@
-from configstream.metrics import PipelineMetrics, export_metrics
 import json
+
+from configstream.metrics import PipelineMetrics, export_metrics
 
 
 def test_pipeline_metrics_init():

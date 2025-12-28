@@ -1,7 +1,9 @@
-import pytest
-from configstream.security.blocklist import BlocklistManager
 import ipaddress
 from unittest.mock import patch
+
+import pytest
+
+from configstream.security.blocklist import BlocklistManager
 
 
 @pytest.fixture

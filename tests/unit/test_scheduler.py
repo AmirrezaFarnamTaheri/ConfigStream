@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import unittest
-from unittest.mock import MagicMock
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
-from configstream.scheduler import SmartRetestScheduler
 from configstream.models import Proxy
+from configstream.scheduler import SmartRetestScheduler
 from configstream.test_cache import TestResultCache
 
 

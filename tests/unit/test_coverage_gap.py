@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from configstream.parsers.shadowsocks import parse_ss
 from configstream.security.rate_limiter import RateLimiter
 from configstream.security.virus_total import check_ip_reputation

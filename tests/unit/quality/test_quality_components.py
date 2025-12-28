@@ -2,13 +2,11 @@ import sqlite3
 from pathlib import Path
 from unittest.mock import patch
 
-from configstream.quality.storage import QualityStorage
-from configstream.quality.scoring import (
-    calculate_diversity_score,
-    calculate_cooldown_hours,
-    calculate_trust_score,
-)
 from configstream.models import Proxy
+from configstream.quality.scoring import (calculate_cooldown_hours,
+                                          calculate_diversity_score,
+                                          calculate_trust_score)
+from configstream.quality.storage import QualityStorage
 
 # --- Scoring Tests ---
 

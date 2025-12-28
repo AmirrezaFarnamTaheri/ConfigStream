@@ -1,10 +1,11 @@
 import asyncio
-import os
-import logging
 import base64
-import aiohttp
+import logging
+import os
 import time
 from collections import OrderedDict
+
+import aiohttp
 
 from ..constants import VIRUSTOTAL_CACHE_SIZE
 

@@ -4,7 +4,7 @@ from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from statistics import mean, median, stdev
-from typing import Dict, List, Mapping, Sequence, Any
+from typing import Any, Dict, List, Mapping, Sequence
 
 from .models import Proxy
 

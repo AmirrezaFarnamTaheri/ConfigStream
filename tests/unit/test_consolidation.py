@@ -1,11 +1,10 @@
 import pytest
+
+from configstream.consolidation import (calculate_compound_score,
+                                        get_country_flag,
+                                        rank_and_rename_proxies,
+                                        select_top_configs)
 from configstream.models import Proxy
-from configstream.consolidation import (
-    calculate_compound_score,
-    rank_and_rename_proxies,
-    select_top_configs,
-    get_country_flag,
-)
 
 
 @pytest.fixture

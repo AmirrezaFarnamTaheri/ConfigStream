@@ -7,7 +7,7 @@ import io
 import pstats
 import sys
 from pathlib import Path
-from typing import Callable, Coroutine, Any
+from typing import Any, Callable, Coroutine
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT / "src") not in sys.path:

@@ -1,9 +1,8 @@
-import logging
-import sys
-import os
-import json
-
 import asyncio
+import json
+import logging
+import os
+import sys
 from typing import Any, Dict, List
 
 from .setup_path import setup_python_path
@@ -30,16 +29,15 @@ async def merge_batches_async(
     Merges the outputs from the individual batch runs into a single, unified output.
     Async version to properly handle washer and tester awaits.
     """
-    from configstream.consolidation import (
-        rank_and_rename_proxies,
-        select_top_configs,
-    )
-    from .telemetry import merge_telemetry
-    from .proxies import load_and_merge_proxies
+    from configstream.consolidation import (rank_and_rename_proxies,
+                                            select_top_configs)
+    from configstream.intelligence.vectors import generate_vectors
+    from configstream.intelligence.washer.core import ProxyWasher
+
     from .generators import generate_outputs
     from .logs import consolidate_logs
-    from configstream.intelligence.washer.core import ProxyWasher
-    from configstream.intelligence.vectors import generate_vectors
+    from .proxies import load_and_merge_proxies
+    from .telemetry import merge_telemetry
 
     # save_metadata unused (handled internally by generate_outputs)
 

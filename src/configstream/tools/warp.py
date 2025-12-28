@@ -3,20 +3,21 @@ Cloudflare WARP Account Generator.
 Registers a new device with Cloudflare and generates a WireGuard proxy config.
 """
 
+import asyncio
+import base64
+import datetime
 import logging
 import random
-import datetime
-import asyncio
-from typing import Optional, Dict, Any
-import base64
+from typing import Any, Dict, Optional
 
 import httpx
+
 from ..models import Proxy
 
 # Import cryptography for key generation
 try:
-    from cryptography.hazmat.primitives.asymmetric import x25519
     from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import x25519
 
     HAS_CRYPTO = True
 except ImportError:

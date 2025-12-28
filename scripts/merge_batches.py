@@ -1,4 +1,5 @@
 import argparse
+
 from scripts.merge.core import merge_batches
 
 if __name__ == "__main__":

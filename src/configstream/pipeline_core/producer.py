@@ -1,16 +1,17 @@
 import asyncio
 import logging
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
+
 from rich.progress import Progress, TaskID
 
-from ..models import Proxy
+from ..anomaly import AnomalyDetector
+from ..async_file_ops import read_multiple_files_async
 from ..config import AppSettings
 from ..fetcher import fetch_multiple_sources
-from ..async_file_ops import read_multiple_files_async
+from ..models import Proxy
 from ..parsers import _extract_config_lines
-from ..source_quality import SourceQualityTracker
-from ..anomaly import AnomalyDetector
 from ..security_validator import SecurityValidator
+from ..source_quality import SourceQualityTracker
 
 if TYPE_CHECKING:
     from ..event_stream import EventStream

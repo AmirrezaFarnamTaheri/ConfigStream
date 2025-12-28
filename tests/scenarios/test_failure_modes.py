@@ -1,10 +1,12 @@
-import pytest
 import os
 from unittest.mock import MagicMock, patch
-from configstream.pipeline import run_full_pipeline
-from configstream.source_quality import SourceQualityTracker
+
+import pytest
+
 from configstream.anomaly import AnomalyDetector
 from configstream.config import AppSettings
+from configstream.pipeline import run_full_pipeline
+from configstream.source_quality import SourceQualityTracker
 
 
 @pytest.mark.asyncio

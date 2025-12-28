@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Dict, List, Union
 
 from .constants import PROTOCOL_COLORS
-from .models import Proxy
 from .history.tracker import ProxyHistoryTracker
+from .models import Proxy
 from .serialize import serialize_proxy
 from .utils import AtomicFileWriter
 

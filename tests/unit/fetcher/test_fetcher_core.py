@@ -1,9 +1,10 @@
 """Tests for fetcher models and utils."""
 
 from datetime import datetime, timedelta, timezone
-from configstream.fetcher_core.utils import parse_retry_after
-from configstream.fetcher_core.models import FetchResult, RateLimitError
 from unittest.mock import patch
+
+from configstream.fetcher_core.models import FetchResult, RateLimitError
+from configstream.fetcher_core.utils import parse_retry_after
 
 
 def test_fetch_result():

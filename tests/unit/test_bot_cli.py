@@ -1,8 +1,11 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from configstream.bot_cli import start, warp, mirror, main as bot_main
 from telegram import Update
 from telegram.ext import ContextTypes
+
+from configstream.bot_cli import main as bot_main
+from configstream.bot_cli import mirror, start, warp
 
 # Mock register_warp_account globally for this module if possible,
 # or use sys.modules patch if it's imported inside the function.

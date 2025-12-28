@@ -1,11 +1,8 @@
-from configstream.parsers.base import (
-    validate_b64_input,
-    safe_b64_decode,
-    extract_config_lines,
-    normalize_proxy_details,
-    is_plausible_proxy_config,
-)
 from configstream.models import Proxy
+from configstream.parsers.base import (extract_config_lines,
+                                       is_plausible_proxy_config,
+                                       normalize_proxy_details,
+                                       safe_b64_decode, validate_b64_input)
 
 
 def test_validate_b64_input_valid():

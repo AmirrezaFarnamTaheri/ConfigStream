@@ -1,8 +1,9 @@
-import logging
 import json
+import logging
 import re
 from typing import Optional
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote, urlparse
+
 from ..models import Proxy
 
 logger = logging.getLogger(__name__)

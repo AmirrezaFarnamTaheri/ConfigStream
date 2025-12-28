@@ -1,5 +1,6 @@
-from configstream.backup import backup_databases, cleanup_old_backups
 import sqlite3
+
+from configstream.backup import backup_databases, cleanup_old_backups
 
 
 def test_backup_manager(tmp_path):

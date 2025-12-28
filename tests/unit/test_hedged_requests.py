@@ -1,6 +1,8 @@
-import pytest
 import asyncio
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
 from configstream.hedged_requests import hedged_get
 
 

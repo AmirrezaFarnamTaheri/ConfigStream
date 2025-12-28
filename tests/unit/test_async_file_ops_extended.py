@@ -1,10 +1,8 @@
 import pytest
-from configstream.async_file_ops import (
-    read_file_async,
-    write_file_async,
-    read_multiple_files_async,
-    ensure_directory,
-)
+
+from configstream.async_file_ops import (ensure_directory, read_file_async,
+                                         read_multiple_files_async,
+                                         write_file_async)
 
 
 @pytest.mark.asyncio

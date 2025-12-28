@@ -3,17 +3,14 @@ Comprehensive robustness tests for parsers module.
 Tests edge cases, error handling, and security validations.
 """
 
-from configstream.parsers import (
-    parse_vmess as _parse_vmess,
-    parse_ss as _parse_ss,
-    parse_ssr as _parse_ssr,
-    parse_openvpn as _parse_openvpn,
-    extract_config_lines as _extract_config_lines,
-)
-from configstream.parsers.base import (
-    safe_b64_decode as _safe_b64_decode,
-    is_plausible_proxy_config as _is_plausible_proxy_config,
-)
+from configstream.parsers import extract_config_lines as _extract_config_lines
+from configstream.parsers import parse_openvpn as _parse_openvpn
+from configstream.parsers import parse_ss as _parse_ss
+from configstream.parsers import parse_ssr as _parse_ssr
+from configstream.parsers import parse_vmess as _parse_vmess
+from configstream.parsers.base import \
+    is_plausible_proxy_config as _is_plausible_proxy_config
+from configstream.parsers.base import safe_b64_decode as _safe_b64_decode
 
 
 class TestBase64Decoding:

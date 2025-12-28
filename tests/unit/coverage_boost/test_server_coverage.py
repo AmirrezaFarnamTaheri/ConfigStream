@@ -1,7 +1,9 @@
-import pytest
-from configstream.server import app
-from fastapi.testclient import TestClient
 import os
+
+import pytest
+from fastapi.testclient import TestClient
+
+from configstream.server import app
 
 
 @pytest.fixture

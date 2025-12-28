@@ -1,8 +1,11 @@
-import pytest
 import json
 from unittest.mock import MagicMock
-from configstream.output import save_json, save_metadata, generate_categorized_outputs
+
+import pytest
+
 from configstream.models import Proxy
+from configstream.output import (generate_categorized_outputs, save_json,
+                                 save_metadata)
 from configstream.pipeline_core.stats import PipelineStats
 from configstream.quality.storage import QualityStorage
 

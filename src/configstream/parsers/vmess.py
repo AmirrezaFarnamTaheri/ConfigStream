@@ -1,9 +1,10 @@
+import binascii
 import json
 import logging
-import binascii
 from typing import Optional
-from ..models import Proxy
+
 from ..constants import MAX_CONFIG_LINE_LENGTH
+from ..models import Proxy
 from .base import normalize_proxy_details, safe_b64_decode
 
 logger = logging.getLogger(__name__)

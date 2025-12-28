@@ -1,5 +1,7 @@
 import logging
-from configstream.parsers.base import extract_config_lines, is_plausible_proxy_config
+
+from configstream.parsers.base import (extract_config_lines,
+                                       is_plausible_proxy_config)
 
 
 def test_extract_config_lines_logging(caplog):

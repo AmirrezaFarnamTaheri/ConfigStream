@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+
 import requests  # type: ignore
 
 
@@ -27,8 +28,8 @@ def publish_ipns(cid: str, ipns_key: str) -> None:
     Publishes the new CID to IPNS.
     Requires a running IPFS node with the private key.
     """
-    import subprocess
     import shutil
+    import subprocess
 
     if not shutil.which("ipfs"):
         print("Warning: 'ipfs' command not found. Skipping IPNS publish.")

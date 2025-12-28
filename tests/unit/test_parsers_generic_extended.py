@@ -1,8 +1,5 @@
-from configstream.parsers.generic import (
-    parse_generic_url_scheme,
-    parse_naive,
-    parse_v2ray_json,
-)
+from configstream.parsers.generic import (parse_generic_url_scheme,
+                                          parse_naive, parse_v2ray_json)
 
 
 def test_parse_generic_http():

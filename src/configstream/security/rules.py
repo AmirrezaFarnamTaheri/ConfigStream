@@ -2,18 +2,13 @@
 Security validation rules for proxy configurations.
 """
 
-import re
 import logging
+import re
 from typing import Dict, FrozenSet, Optional
 
 from ..config import AppSettings
-from ..constants import (
-    DANGEROUS_PORTS,
-    SUSPICIOUS_DOMAINS,
-    MAX_PORT,
-    VALID_PROTOCOLS,
-    MAX_CONFIG_LINE_LENGTH,
-)
+from ..constants import (DANGEROUS_PORTS, MAX_CONFIG_LINE_LENGTH, MAX_PORT,
+                         SUSPICIOUS_DOMAINS, VALID_PROTOCOLS)
 
 logger = logging.getLogger(__name__)
 
@@ -69,8 +64,9 @@ def validate_address(
 
     # [FIX] Normalize IDN and unicode
     try:
-        import idna
         import unicodedata
+
+        import idna
 
         normalized = unicodedata.normalize("NFKC", address_lower)
         encoded = idna.encode(normalized).decode("ascii")

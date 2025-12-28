@@ -1,5 +1,7 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.models import Proxy
 

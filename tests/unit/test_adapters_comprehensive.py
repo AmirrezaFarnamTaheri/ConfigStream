@@ -3,17 +3,14 @@ Comprehensive tests for adapters.py module.
 Tests all adapter classes with edge cases and error handling.
 """
 
-import pytest
 import json
-from unittest.mock import Mock, MagicMock, patch
-from configstream.adapters import (
-    SurgeAdapter,
-    LoonAdapter,
-    QuantumultXAdapter,
-    SIP008Adapter,
-    ShadowrocketAdapter,
-    get_adapter,
-)
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+
+from configstream.adapters import (LoonAdapter, QuantumultXAdapter,
+                                   ShadowrocketAdapter, SIP008Adapter,
+                                   SurgeAdapter, get_adapter)
 from configstream.models import Proxy
 
 

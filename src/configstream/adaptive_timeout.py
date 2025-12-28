@@ -4,11 +4,11 @@ Dynamically adjusts socket timeouts based on network conditions.
 """
 
 import asyncio
+import json
 import logging
 import statistics
-import json
-from pathlib import Path
 from collections import defaultdict
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

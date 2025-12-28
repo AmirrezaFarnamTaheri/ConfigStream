@@ -4,15 +4,10 @@ Unit tests for the new parsers package.
 
 import base64
 import json
-from configstream.parsers import (
-    parse_vmess,
-    parse_ss,
-    parse_trojan,
-    parse_vless,
-    parse_generic_url_scheme,
-    parse_openvpn,
-    parse_wireguard,
-)
+
+from configstream.parsers import (parse_generic_url_scheme, parse_openvpn,
+                                  parse_ss, parse_trojan, parse_vless,
+                                  parse_vmess, parse_wireguard)
 
 
 def test_parse_vmess():

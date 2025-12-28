@@ -3,20 +3,20 @@ import logging
 import random
 from typing import Dict, Optional
 from urllib.parse import urlparse
+
 import httpx
 
-from ..security.rate_limiter import RateLimiter
+from ..adaptive_timeout import AdaptiveTimeout
+from ..circuit_breaker import CircuitBreakerManager
 from ..concurrency_manager import ConcurrencyManager
 from ..config import AppSettings
-from ..circuit_breaker import CircuitBreakerManager
-from ..adaptive_timeout import AdaptiveTimeout
-from .models import FetchResult, RateLimitError
-from .worker import fetch_single_source
+from ..security.rate_limiter import RateLimiter
 from ..security_validator import SecurityValidator
-from .constants import MAX_RESPONSE_SIZE
-
 # Integrate Source Manager
 from ..source_quality import SourceQualityTracker
+from .constants import MAX_RESPONSE_SIZE
+from .models import FetchResult, RateLimitError
+from .worker import fetch_single_source
 
 logger = logging.getLogger(__name__)
 

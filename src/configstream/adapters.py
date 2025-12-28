@@ -4,13 +4,15 @@ Supports Surge, Loon, Quantumult X, Shadowrocket, and SIP008.
 """
 
 import abc
+import base64
 import json
 import logging
-import base64
 import urllib.parse
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
+
+from .adapters_base import (format_singbox_chain_for_loon,
+                            format_singbox_chain_for_surge)
 from .models import Proxy
-from .adapters_base import format_singbox_chain_for_surge, format_singbox_chain_for_loon
 
 logger = logging.getLogger(__name__)
 

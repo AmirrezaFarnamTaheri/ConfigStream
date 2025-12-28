@@ -1,4 +1,5 @@
 import pytest
+
 from configstream.models import Proxy
 from configstream.serialize import serialize_proxy
 

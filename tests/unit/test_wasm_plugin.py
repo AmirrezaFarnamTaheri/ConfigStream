@@ -1,11 +1,11 @@
-import unittest
-from unittest.mock import MagicMock, patch
-from pathlib import Path
 import json
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-from configstream.plugins.loader import WasmParser
 from configstream.auto_detect import auto_detect_and_parse
 from configstream.models import Proxy
+from configstream.plugins.loader import WasmParser
 
 
 class TestWasmPlugin(unittest.TestCase):

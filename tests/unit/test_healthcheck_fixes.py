@@ -1,5 +1,6 @@
 import pytest
-from scripts.healthcheck import check_success_rate, HealthCheckError
+
+from scripts.healthcheck import HealthCheckError, check_success_rate
 
 
 def test_check_success_rate_missing_tested_count_but_working_proxies():

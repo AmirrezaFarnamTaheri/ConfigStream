@@ -1,17 +1,14 @@
 """Comprehensive tests for VirusTotal security module."""
 
-import pytest
-from unittest.mock import patch, MagicMock
 import time
 from collections import OrderedDict
+from unittest.mock import MagicMock, patch
 
-from configstream.security.virus_total import (
-    scan_url,
-    check_ip_reputation,
-    _IP_CACHE,
-    CACHE_TTL,
-)
+import pytest
+
 from configstream.constants import VIRUSTOTAL_CACHE_SIZE
+from configstream.security.virus_total import (_IP_CACHE, CACHE_TTL,
+                                               check_ip_reputation, scan_url)
 
 
 class MockResponse:

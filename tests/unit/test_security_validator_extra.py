@@ -46,8 +46,8 @@ def test_sanitize_log_message():
 
 
 def test_validate_batch_configs():
-    from configstream.security_validator import validate_batch_configs
     from configstream.models import Proxy
+    from configstream.security_validator import validate_batch_configs
 
     proxies = [
         Proxy(protocol="ss", address="1.1.1.1", port=443, config="safe"),

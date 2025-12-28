@@ -1,14 +1,10 @@
 import logging
-from typing import List, Tuple, Dict, Any
+from typing import Any, Dict, List, Tuple
 
+from ..constants import (BLOCKED_DOMAINS, MAX_B64_OUTPUT_SIZE,
+                         MAX_CONFIG_LINE_LENGTH, MAX_LINES_PER_SOURCE,
+                         VALID_PROTOCOLS)
 from .decoders import safe_b64_decode
-from ..constants import (
-    MAX_CONFIG_LINE_LENGTH,
-    MAX_LINES_PER_SOURCE,
-    VALID_PROTOCOLS,
-    MAX_B64_OUTPUT_SIZE,
-    BLOCKED_DOMAINS,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +86,9 @@ def extract_config_lines(
         "- name:" in payload_str or "-name:" in payload_str
     ):
         try:
-            import yaml  # type: ignore
             import json
+
+            import yaml  # type: ignore
 
             data = yaml.safe_load(payload_str)
             proxies = data.get("proxies", [])

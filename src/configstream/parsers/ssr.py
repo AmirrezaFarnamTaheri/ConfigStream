@@ -1,8 +1,9 @@
 import logging
 from typing import Optional
 from urllib.parse import parse_qs
+
 from ..models import Proxy
-from .base import safe_b64_decode, validate_b64_input, normalize_proxy_details
+from .base import normalize_proxy_details, safe_b64_decode, validate_b64_input
 
 logger = logging.getLogger(__name__)
 

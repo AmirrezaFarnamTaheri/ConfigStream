@@ -5,8 +5,9 @@ Uploads the latest proxy files to a Telegram Channel.
 
 import os
 import sys
-import requests  # type: ignore
 from pathlib import Path
+
+import requests  # type: ignore
 
 
 def upload_to_telegram(token, chat_id, file_path, caption=""):

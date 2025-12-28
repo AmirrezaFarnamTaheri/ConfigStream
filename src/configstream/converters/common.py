@@ -1,5 +1,6 @@
-from typing import Any, Optional
 import urllib.parse
+from typing import Any, Optional
+
 from ..models import Proxy
 
 

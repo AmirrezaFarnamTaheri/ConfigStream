@@ -3,10 +3,10 @@ Shadowsocks-Rust FFI Wrapper.
 """
 
 import ctypes
-import logging
 import json
-from pathlib import Path
+import logging
 import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

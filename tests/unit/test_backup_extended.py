@@ -1,17 +1,14 @@
-import pytest
-import sqlite3
 import shutil
+import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from configstream.backup import (
-    backup_databases,
-    cleanup_old_backups,
-    restore_database,
-    list_backups,
-    get_backup_statistics,
-    _parse_timestamp_from_name,
-)
+
+import pytest
+
+from configstream.backup import (_parse_timestamp_from_name, backup_databases,
+                                 cleanup_old_backups, get_backup_statistics,
+                                 list_backups, restore_database)
 
 
 @pytest.fixture

@@ -1,9 +1,11 @@
 import json
+
+import pytest
+
+from configstream.intelligence.chaining import generate_smart_chains
+from configstream.intelligence.washer import ProxyWasher
 from configstream.models import Proxy
 from configstream.output_logic import generate_categorized_outputs
-from configstream.intelligence.washer import ProxyWasher
-from configstream.intelligence.chaining import generate_smart_chains
-import pytest
 
 
 @pytest.fixture

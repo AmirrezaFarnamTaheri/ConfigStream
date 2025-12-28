@@ -5,13 +5,13 @@ Automatically backs up SQLite databases with timestamp-based naming and retentio
 
 from __future__ import annotations
 
+import gzip
+import logging
 import re
 import shutil
 import sqlite3
-import logging
-import gzip
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)

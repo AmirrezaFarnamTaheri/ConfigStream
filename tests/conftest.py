@@ -1,11 +1,12 @@
+import asyncio
+import http.server
+import os
+import socketserver
+import threading
+import time
+
 import nest_asyncio
 import pytest
-import threading
-import http.server
-import socketserver
-import os
-import time
-import asyncio
 
 # Disable uvloop for tests to ensure nest_asyncio works
 try:

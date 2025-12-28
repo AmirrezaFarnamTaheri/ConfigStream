@@ -4,14 +4,15 @@ Refactored into `src/configstream/fetcher_core/` for modularity.
 This module now serves as a facade for backward compatibility.
 """
 
-import httpx
 from typing import Optional
 
-from .fetcher_core.orchestrator import fetch_from_source
+import httpx
+
+from .config import AppSettings
 from .fetcher_core.batch import fetch_multiple_sources
 from .fetcher_core.constants import MAX_RESPONSE_SIZE
 from .fetcher_core.models import FetchResult, RateLimitError
-from .config import AppSettings
+from .fetcher_core.orchestrator import fetch_from_source
 
 __all__ = [
     "fetch_from_source",

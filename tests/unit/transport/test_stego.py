@@ -1,16 +1,14 @@
 """Comprehensive tests for steganography transport module."""
 
-from unittest.mock import patch
-from cryptography.fernet import Fernet
-import zlib
-import hmac
 import hashlib
+import hmac
+import zlib
+from unittest.mock import patch
 
-from configstream.transport.stego import (
-    StegoPacker,
-    generate_stego_assets,
-    MAGIC_MARKER,
-)
+from cryptography.fernet import Fernet
+
+from configstream.transport.stego import (MAGIC_MARKER, StegoPacker,
+                                          generate_stego_assets)
 
 
 class TestStegoPacker:

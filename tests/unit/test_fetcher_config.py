@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
+
 import httpx
-from configstream.fetcher import fetch_from_source, MAX_RESPONSE_SIZE
+import pytest
+
+from configstream.fetcher import MAX_RESPONSE_SIZE, fetch_from_source
 
 # We need to test that MAX_RESPONSE_SIZE is picked up from the environment
 # However, MAX_RESPONSE_SIZE is a constant imported at module level.

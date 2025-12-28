@@ -1,15 +1,16 @@
 import asyncio
 import logging
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, List, Optional, Tuple
+
 import httpx
 
-from ..security.rate_limiter import RateLimiter
+from ..adaptive_timeout import AdaptiveTimeout
+from ..circuit_breaker import CircuitBreakerManager
 from ..concurrency_manager import ConcurrencyManager
 from ..config import AppSettings
-from ..circuit_breaker import CircuitBreakerManager
 from ..dns_prewarm import prewarm_dns_cache
-from ..adaptive_timeout import AdaptiveTimeout
 from ..http_client import get_client
+from ..security.rate_limiter import RateLimiter
 from ..source_quality import SourceQualityTracker
 from .models import FetchResult
 from .orchestrator import fetch_from_source

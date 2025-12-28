@@ -4,9 +4,9 @@ Command Line Interface for ConfigStream.
 
 import asyncio
 import logging
-import sys
 import os
 import shutil
+import sys
 import tarfile
 from pathlib import Path
 
@@ -14,16 +14,11 @@ import click
 import requests  # type: ignore
 from rich.console import Console
 from rich.logging import RichHandler
-from rich.progress import (
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-)
+from rich.progress import (BarColumn, Progress, SpinnerColumn,
+                           TaskProgressColumn, TextColumn)
 
-from .pipeline import run_full_pipeline
 from .geoip import DEFAULT_RESOLVER
+from .pipeline import run_full_pipeline
 from .tools.warp import generate_warp_proxy
 
 # Initialize Rich Console
@@ -74,8 +69,8 @@ def main():
 def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
     """Retest proxies from a JSON file."""
     setup_logging(verbose)
-    from .models import Proxy
     from .async_file_ops import read_file_async
+    from .models import Proxy
 
     async def _run_retest():
         input_path = Path(input)

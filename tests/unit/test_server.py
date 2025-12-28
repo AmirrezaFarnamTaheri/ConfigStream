@@ -1,7 +1,9 @@
-import pytest
-from fastapi.testclient import TestClient
 import json
 from unittest.mock import patch
+
+import pytest
+from fastapi.testclient import TestClient
+
 from configstream.server import app
 
 client = TestClient(app)

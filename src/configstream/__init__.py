@@ -2,8 +2,8 @@
 ConfigStream: High-Performance VPN Aggregator & Tester
 """
 
-import sys
 import importlib.metadata
+import sys
 
 try:
     __version__ = importlib.metadata.version("configstream")

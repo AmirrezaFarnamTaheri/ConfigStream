@@ -3,11 +3,8 @@ Base parsing utilities and constants.
 Refactored into specific modules for better maintainability.
 """
 
-from .decoders import (
-    validate_b64_input,
-    safe_b64_decode,
-)  # noqa: F401
-from .extraction import is_plausible_proxy_config, extract_config_lines
+from .decoders import safe_b64_decode, validate_b64_input  # noqa: F401
+from .extraction import extract_config_lines, is_plausible_proxy_config
 from .normalization import normalize_proxy_details
 
 # Constants are now in ..constants but re-exported implicitly if used (but they are not exported in original code explicitly, just imported)

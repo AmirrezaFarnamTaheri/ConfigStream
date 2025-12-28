@@ -1,14 +1,12 @@
-import pytest
 import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock
-from configstream.pipeline_stages import (
-    source_producer,
-    processing_consumer,
-    PipelineStats,
-    PipelineResult,
-)
-from configstream.models import Proxy
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from configstream.fetcher import FetchResult
+from configstream.models import Proxy
+from configstream.pipeline_stages import (PipelineResult, PipelineStats,
+                                          processing_consumer, source_producer)
 
 
 @pytest.fixture

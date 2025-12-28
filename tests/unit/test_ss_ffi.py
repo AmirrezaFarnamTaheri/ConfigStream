@@ -1,6 +1,8 @@
-from unittest.mock import patch, MagicMock
-from configstream.security.ss_ffi import verify_ss_rust, ensure_library, LIB_PATH
 import sys
+from unittest.mock import MagicMock, patch
+
+from configstream.security.ss_ffi import (LIB_PATH, ensure_library,
+                                          verify_ss_rust)
 
 
 def test_ss_ffi_graceful_degradation():

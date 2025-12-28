@@ -5,9 +5,9 @@ Command line interface for the Telegram Bot.
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
-import logging
 from typing import TYPE_CHECKING
 
 # Configure logging
@@ -22,10 +22,7 @@ if TYPE_CHECKING:
 
 try:
     from telegram import Update  # noqa: F811
-    from telegram.ext import (
-        ApplicationBuilder,
-        CommandHandler,
-    )
+    from telegram.ext import ApplicationBuilder, CommandHandler
 
     if not TYPE_CHECKING:
         from telegram.ext import ContextTypes  # noqa: F811

@@ -2,7 +2,7 @@
 Shared logic for Proxy Adapters.
 """
 
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 
 def convert_singbox_outbound_to_surge_string(outbound: Dict[str, Any]) -> Optional[str]:

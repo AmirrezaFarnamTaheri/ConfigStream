@@ -7,21 +7,13 @@ from pathlib import Path
 from typing import Optional, Protocol, cast
 from urllib.parse import urlparse
 
-from .models import Proxy
-from .plugins.loader import PluginManager
 from .constants import VWARP_SOCKS5_PORT
-from .parsers import (
-    _parse_generic_url_scheme,
-    _parse_hysteria,
-    _parse_hysteria2,
-    _parse_ss,
-    _parse_trojan,
-    _parse_tuic,
-    _parse_vmess,
-    _parse_vless,
-    _parse_wireguard,
-    _parse_openvpn,
-)
+from .models import Proxy
+from .parsers import (_parse_generic_url_scheme, _parse_hysteria,
+                      _parse_hysteria2, _parse_openvpn, _parse_ss,
+                      _parse_trojan, _parse_tuic, _parse_vless, _parse_vmess,
+                      _parse_wireguard)
+from .plugins.loader import PluginManager
 
 
 class ParserCallable(Protocol):

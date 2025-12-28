@@ -1,5 +1,7 @@
-import pytest
 import asyncio
+
+import pytest
+
 from configstream.utils import AtomicFileWriter, BoundedConcurrencyManager
 
 

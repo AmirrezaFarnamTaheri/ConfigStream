@@ -1,8 +1,5 @@
-from configstream.security_validator import (
-    validate_batch_configs,
-    STRICT_POLICY,
-    TEST_POLICY,
-)
+from configstream.security_validator import (STRICT_POLICY, TEST_POLICY,
+                                             validate_batch_configs)
 from tests.unit.conftest_helper import create_test_proxy
 
 

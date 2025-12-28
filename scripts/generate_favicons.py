@@ -13,11 +13,12 @@ This script reads the logo SVG and generates favicons in multiple sizes:
 - apple-touch-icon-180x180.png (180x180)
 """
 
+import io
 import sys
 from pathlib import Path
 from typing import List, Optional
+
 from PIL import Image
-import io
 
 try:
     import cairosvg

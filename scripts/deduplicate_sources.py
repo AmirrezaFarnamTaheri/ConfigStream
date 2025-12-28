@@ -1,6 +1,6 @@
 from pathlib import Path
+from typing import List, Set
 from urllib.parse import urlparse
-from typing import Set, List
 
 # List of new sources provided by the user (Universal/Canonical)
 NEW_SOURCES = [

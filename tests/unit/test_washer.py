@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
-from configstream.intelligence.washer import ProxyWasher
+
+import pytest
+
 from configstream.intelligence.chaining import generate_smart_chains
+from configstream.intelligence.washer import ProxyWasher
 from configstream.models import Proxy
 from configstream.pipeline_core.stats import PipelineStats
 

@@ -1,13 +1,15 @@
-import pytest
 import asyncio
 from unittest.mock import MagicMock, patch
-from configstream.pipeline_stages import processing_consumer, PipelineStats
-from configstream.models import Proxy
-from configstream.test_cache import TestResultCache
-from configstream.scheduler import SmartRetestScheduler
+
+import pytest
+
 from configstream.concurrency_manager import ConcurrencyManager
+from configstream.models import Proxy
 from configstream.performance import PerformanceTracker
+from configstream.pipeline_stages import PipelineStats, processing_consumer
+from configstream.scheduler import SmartRetestScheduler
 from configstream.source_quality import SourceQualityTracker
+from configstream.test_cache import TestResultCache
 
 
 @pytest.mark.asyncio

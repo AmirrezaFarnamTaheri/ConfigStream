@@ -5,13 +5,13 @@ Also detects potential honey pots based on traffic patterns.
 """
 
 import asyncio
-import logging
 import ipaddress
+import logging
 from pathlib import Path
-from typing import Set, Optional
+from typing import Optional, Set
 
-import httpx
 import aiofiles  # type: ignore[import-untyped]
+import httpx
 
 logger = logging.getLogger(__name__)
 

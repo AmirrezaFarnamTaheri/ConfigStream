@@ -3,7 +3,8 @@ Serialization Helpers.
 Converts Proxy objects to dictionary/JSON-safe formats.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 from .models import Proxy
 
 # Proxy object serialization.

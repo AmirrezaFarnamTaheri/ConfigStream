@@ -3,10 +3,11 @@ Storage module for Proxy History.
 Handles loading and saving of history data.
 """
 
-import orjson as json
 import logging
 from pathlib import Path
 from typing import Any, Dict
+
+import orjson as json
 
 from ..utils import AtomicFileWriter
 

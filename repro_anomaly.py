@@ -1,5 +1,6 @@
-from configstream.anomaly import AnomalyDetector
 from pathlib import Path
+
+from configstream.anomaly import AnomalyDetector
 
 
 def test():

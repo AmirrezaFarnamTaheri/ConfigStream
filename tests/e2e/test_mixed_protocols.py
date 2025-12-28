@@ -1,4 +1,5 @@
 import pytest
+
 from configstream.pipeline import run_full_pipeline
 
 

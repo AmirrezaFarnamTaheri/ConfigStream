@@ -1,6 +1,8 @@
-import pytest
 import asyncio
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from configstream.dns_batch_resolver import BatchDNSResolver
 
 

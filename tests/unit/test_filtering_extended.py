@@ -1,10 +1,7 @@
 from unittest.mock import MagicMock, patch
-from configstream.filtering import (
-    proxy_unique_key,
-    dedupe_and_shuffle,
-    filter_unique_endpoints,
-    ProxyFilter,
-)
+
+from configstream.filtering import (ProxyFilter, dedupe_and_shuffle,
+                                    filter_unique_endpoints, proxy_unique_key)
 from configstream.models import Proxy
 
 

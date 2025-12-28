@@ -1,6 +1,7 @@
 import pytest
-from configstream.models import Proxy
+
 from configstream.converters.singbox import to_singbox_outbound
+from configstream.models import Proxy
 
 
 def test_singbox_vless_missing_uuid():

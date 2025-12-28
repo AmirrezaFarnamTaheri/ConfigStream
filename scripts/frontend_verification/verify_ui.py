@@ -1,10 +1,11 @@
-from playwright.sync_api import sync_playwright
+import http.server
 import os
+import socketserver
 import sys
 import threading
-import http.server
-import socketserver
 import time
+
+from playwright.sync_api import sync_playwright
 
 # Serve the frontend directory
 PORT = 8082

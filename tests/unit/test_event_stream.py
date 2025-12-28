@@ -4,6 +4,7 @@ Tests the EventStream class for real-time event emission.
 """
 
 from unittest.mock import patch
+
 from configstream.event_stream import EventStream
 
 

@@ -1,14 +1,16 @@
-import pytest
 import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from configstream.pipeline_core.models import PipelineResult
 
 
 @pytest.mark.asyncio
 async def test_run_full_pipeline_dry_run(tmp_path):
     # Import here to avoid stale module reference if other tests reload modules
-    from configstream.pipeline import run_full_pipeline
     import configstream.pipeline
+    from configstream.pipeline import run_full_pipeline
 
     # Patch all possible locations where source_producer might be referenced
     with (

@@ -5,6 +5,7 @@ Combines passive verification (VirusTotal) to identify malicious nodes.
 
 import logging
 from typing import List, Optional
+
 from configstream.security.virus_total import check_ip_reputation
 
 logger = logging.getLogger(__name__)
