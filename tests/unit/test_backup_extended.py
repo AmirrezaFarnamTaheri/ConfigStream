@@ -45,7 +45,8 @@ def test_backup_databases(data_dir, backup_dir):
     assert len(backups) == 1
     assert backups[0].exists()
     assert "test_" in backups[0].name
-    assert backups[0].name.endswith(".db")
+    # Expect compression
+    assert backups[0].name.endswith(".db.gz")
 
 
 def test_backup_databases_no_files(data_dir, backup_dir):
@@ -54,16 +55,32 @@ def test_backup_databases_no_files(data_dir, backup_dir):
 
 
 def test_backup_retention(backup_dir):
-    # Create old backups
-    old_date = datetime.now() - timedelta(days=10)
-    old_file = backup_dir / "old_backup.db"
-    old_file.touch()
+    # Create old backups (older than 30 days absolute cutoff)
+    very_old_date = datetime.now() - timedelta(days=31)
+    very_old_file = backup_dir / "very_old.db"
+    very_old_file.touch()
 
-    # Touch updates mtime, so we need to explicitly set it
     import os
+    ts_old = very_old_date.timestamp()
+    os.utime(very_old_file, (ts_old, ts_old))
 
-    ts = old_date.timestamp()
-    os.utime(old_file, (ts, ts))
+    # Create backups in thinning window (10 days old).
+    # Create TWO for same day to test thinning.
+    thin_date = datetime.now() - timedelta(days=10)
+
+    db_name = "testdb"
+
+    # File 1: 10 days ago 12:00
+    f1 = backup_dir / f"{db_name}_20230101_120000.db"
+    f1.touch()
+    ts1 = thin_date.replace(hour=12).timestamp()
+    os.utime(f1, (ts1, ts1))
+
+    # File 2: 10 days ago 13:00 (Newer)
+    f2 = backup_dir / f"{db_name}_20230101_130000.db"
+    f2.touch()
+    ts2 = thin_date.replace(hour=13).timestamp()
+    os.utime(f2, (ts2, ts2))
 
     # Create new backup
     new_file = backup_dir / "new_backup.db"
@@ -71,7 +88,13 @@ def test_backup_retention(backup_dir):
 
     cleanup_old_backups(backup_dir, retention_days=7)
 
-    assert not old_file.exists()
+    # 1. Very old (>30d) should be gone
+    assert not very_old_file.exists()
+
+    # 2. In thinning window (10d), keep only newest (f2)
+    assert not f1.exists()
+    assert f2.exists()
+
     assert new_file.exists()
 
 

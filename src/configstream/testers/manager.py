@@ -96,10 +96,10 @@ class SingBoxTester:
                     is_working = custom_results.get(p.id, False)
                     p.is_working = is_working
                     if is_working:
-                        # Fake low latency for revived/vwarp, or assume it's good enough
-                        # In reality, Go tester returns latency if we parse it,
-                        # but test_custom_configs returns bool map currently.
-                        p.latency = 500.0  # Default estimate for successful chain
+                        # [FIX] Use estimated latency instead of fixed 500ms
+                        # Mark it as estimated so UI can show it
+                        p.latency = 200.0  # Optimistic estimate for revived chains
+                        p.details["latency_is_estimate"] = True
                     else:
                         p.details["error"] = "REVIVAL_FAILED"
 
@@ -109,7 +109,8 @@ class SingBoxTester:
                 f"Fallback: Testing batch of {len(proxies)} proxies using Python tester"
             )
             # Cap concurrency to avoid overwhelming the loop/system
-            max_concurrent = 100
+            # [FIX] Reduced concurrency from 100 to 20 as per audit to prevent CPU overload
+            max_concurrent = 20
             sem = asyncio.Semaphore(max_concurrent)
 
             async def _guarded_test(p: Proxy) -> Proxy:
@@ -128,14 +129,8 @@ class SingBoxTester:
     def _finalize_result(self, proxy: Proxy):
         # proxy.tested_at is set in python_tester methods, or go tester response
         if self.cache:
-            # Only cache if we actually got a definitive test result
-            # Don't cache if this was never converted/tested properly
-            # Check if is_working is False and latency is None - likely a conversion failure
-            if not proxy.is_working and proxy.latency is None:
-                logger.debug(
-                    f"Skipping cache for untested/failed-conversion proxy: {proxy.id}"
-                )
-                return
+            # Cache all results including failures to avoid re-testing bad proxies
+            # (unless strictly transient failure which we can't distinguish easily yet)
             self.cache.set(proxy)
 
     async def close(self):

@@ -10,6 +10,7 @@ from ..circuit_breaker import CircuitBreakerManager
 from ..dns_prewarm import prewarm_dns_cache
 from ..adaptive_timeout import AdaptiveTimeout
 from ..http_client import get_client
+from ..source_quality import SourceQualityTracker
 from .models import FetchResult
 from .orchestrator import fetch_from_source
 
@@ -23,6 +24,7 @@ async def fetch_multiple_sources(
     per_host_limit: int = 4,
     client: Optional[httpx.AsyncClient] = None,
     use_adaptive_timeout: bool = True,
+    quality_tracker: Optional[SourceQualityTracker] = None,
 ) -> Dict[str, FetchResult]:
     """
     High-level entry point for batch fetching.
@@ -66,6 +68,7 @@ async def fetch_multiple_sources(
                 breaker_manager=breaker_manager,
                 timeout_tracker=timeout_tracker,
                 app_settings=app_settings,
+                quality_tracker=quality_tracker,
             )
             return source, res
 

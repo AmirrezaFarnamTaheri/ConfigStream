@@ -3,6 +3,7 @@ package scanner
 import (
 	"crypto/rand"
 	"fmt"
+	mrand "math/rand"
 	"net"
 	"sync"
 	"time"
@@ -167,7 +168,11 @@ func generateIPList(cidrs []string) []string {
 			ips = append(ips, ip.String())
 		}
 	}
-	// TODO: Shuffle IPs here for better distribution
+	// Shuffle IPs here for better distribution
+	mrand.Seed(time.Now().UnixNano())
+	mrand.Shuffle(len(ips), func(i, j int) {
+		ips[i], ips[j] = ips[j], ips[i]
+	})
 	return ips
 }
 

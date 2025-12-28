@@ -296,8 +296,11 @@ def save_metadata(
     if total_revived_count == 0 and warp_count_heuristic > 0:
         total_revived_count = warp_count_heuristic
 
+    # Washing Enabled Logic (Best effort inference for Shards)
+    washing_enabled = bool(os.environ.get("WARP_KEY_POOL")) or vwarp_attempts > 0
+
     meta = {
-        "schema_version": "2.2.0",  # Bumped for new stats fields
+        "schema_version": "2.3.0",  # Updated to match generators.py
         "version": pkg_version,
         "total_proxies": total,  # Total working proxies (final count)
         "total_tested": tested_count,  # Number of proxies actually tested
@@ -325,6 +328,7 @@ def save_metadata(
         "revived_vwarp": revived_vwarp,
         "vwarp_attempts": vwarp_attempts,
         "vwarp_success": vwarp_success,
+        "washing_enabled": washing_enabled,
         # [FIX] Export pipeline performance metrics
         "duration_seconds": duration_seconds,
         "geo_resolved": geo_resolved,

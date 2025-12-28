@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List
 
 from ..models import Proxy
-from ..proxy_history import ProxyHistoryTracker
+from ..history.tracker import ProxyHistoryTracker
 from ..output_logic import generate_categorized_outputs, save_metadata
 from ..output_transport import save_json
 from ..intelligence.washer.core import ProxyWasher

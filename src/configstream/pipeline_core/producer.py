@@ -149,6 +149,7 @@ async def source_producer(
                     max_concurrent=settings.PER_HOST_MAX_CONCURRENCY,
                     timeout=settings.FETCH_TIMEOUT,
                     use_adaptive_timeout=True,
+                    quality_tracker=quality_tracker,
                 )
 
                 for source, res in results.items():
