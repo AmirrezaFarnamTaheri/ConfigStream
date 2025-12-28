@@ -225,11 +225,12 @@ class GoBatchTester:
                     # depending on type hints.
                     data = json.loads(line)
                     req_id = data.get("id")
-                    if req_id and req_id in self._pending_futures:
-                        future = self._pending_futures[req_id]
-                        if not future.done():
+                    if req_id:
+                        # Thread-safe access to _pending_futures using lock
+                        async with self._lock:
+                            future = self._pending_futures.pop(req_id, None)
+                        if future and not future.done():
                             future.set_result(data)
-                        del self._pending_futures[req_id]
                 except json.JSONDecodeError:
                     logger.debug(f"Go Tester output decode error: {line[:100]!r}")
                 except Exception as e:
@@ -296,6 +297,8 @@ class GoBatchTester:
                 req_id_map[req_id] = p
 
                 fut = loop.create_future()
+                # Note: We don't use lock here because _ensure_process holds lock
+                # and we haven't started reading yet. Lock is used in _read_loop.
                 self._pending_futures[req_id] = fut
                 futures.append(fut)
             else:
@@ -357,15 +360,20 @@ class GoBatchTester:
                 f"Timed out waiting for {len(inputs)} results from Go Tester Daemon. Restarting daemon..."
             )
             # Cleanup and mark incomplete proxies as unknown/failed
-            for f, req_id in zip(futures, req_id_map.keys()):
+            # Collect keys to remove under lock, then mark proxies outside lock
+            async with self._lock:
+                keys_to_remove = [req_id for f, req_id in zip(futures, req_id_map.keys()) if not f.done()]
+                for req_id in keys_to_remove:
+                    self._pending_futures.pop(req_id, None)
+            for req_id in keys_to_remove:
+                if proxy_obj := req_id_map.get(req_id):
+                    proxy_obj.is_working = False
+                    proxy_obj.details["error"] = "BATCH_TIMEOUT"
+                    proxy_obj.details["failure_category"] = "TIMEOUT"
+            # Cancel futures after cleanup
+            for f in futures:
                 if not f.done():
                     f.cancel()
-                    self._pending_futures.pop(req_id, None)
-                    # Mark proxy as unknown/timeout
-                    if proxy_obj := req_id_map.get(req_id):
-                        proxy_obj.is_working = False
-                        proxy_obj.details["error"] = "BATCH_TIMEOUT"
-                        proxy_obj.details["failure_category"] = "TIMEOUT"
 
             # Restart daemon asynchronously to recover for next batch
             asyncio.create_task(self._restart_daemon())
@@ -516,11 +524,13 @@ class GoBatchTester:
                 asyncio.gather(*futures, return_exceptions=True), timeout=120
             )
         except asyncio.TimeoutError:
-            # Cleanup
-            for f, req_id in zip(futures, reverse_map.keys()):
+            # Cleanup under lock to prevent race with _read_loop
+            async with self._lock:
+                for req_id in reverse_map.keys():
+                    self._pending_futures.pop(req_id, None)
+            for f in futures:
                 if not f.done():
                     f.cancel()
-                    self._pending_futures.pop(req_id, None)
             return {}
 
         results = {}
