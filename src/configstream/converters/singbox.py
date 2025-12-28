@@ -136,8 +136,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return None
         out = {"type": "trojan", **base, "password": str(password)}
         # [FIX] Trojan requires TLS. Force it if not present.
-        proxy.details["tls"] = "tls"
-        add_transport_sb(out, proxy.details)
+        # Create a copy to avoid mutating the input proxy object
+        details_with_tls = {**proxy.details, "tls": "tls"}
+        add_transport_sb(out, details_with_tls)
 
     elif proxy.protocol == "http":
         out = {
@@ -289,10 +290,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
-        # [FIX] Default insecure to True for Hysteria2 to improve test yield
-        is_insecure = False
-        if "allowInsecure" in proxy.details:
-            is_insecure = bool(proxy.details["allowInsecure"])
+        # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
+        is_insecure = bool(
+            proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
+        )
 
         out["tls"] = {
             "enabled": True,
@@ -310,20 +311,27 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         return out
 
     elif proxy.protocol == "tuic":
+        # Validate UUID like VMess/VLESS
+        uuid = proxy.uuid or proxy.details.get("uuid")
+        if not uuid:
+            logger.warning(
+                f"Dropping TUIC proxy missing UUID: {proxy.address}:{proxy.port}"
+            )
+            return None
         out = {
             "type": "tuic",
             **base,
-            "uuid": proxy.uuid,
+            "uuid": str(uuid),
             "password": str(proxy.details.get("password", "")),
             # [FIX] Changed 'congestion_controller' to 'congestion_control' for sing-box standard
             "congestion_control": str(
                 proxy.details.get("congestion_controller", "bbr")
             ),
         }
-        # [FIX] Default insecure to True for TUIC
-        is_insecure = False
-        if "allowInsecure" in proxy.details:
-            is_insecure = bool(proxy.details["allowInsecure"])
+        # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
+        is_insecure = bool(
+            proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
+        )
 
         out["tls"] = {
             "enabled": True,
@@ -349,8 +357,11 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         )
     else:
         details_to_log = proxy.details.copy()
-        if "private_key" in details_to_log:
-            details_to_log["private_key"] = "[MASKED]"
+        # Mask all sensitive credential fields
+        sensitive_fields = {"private_key", "password", "auth_str", "obfs-password", "pbk", "uuid", "id"}
+        for field in sensitive_fields:
+            if field in details_to_log:
+                details_to_log[field] = "[MASKED]"
 
         # Known unsupported protocols in Sing-box (native) or require special handling
         # - SSR: Sing-box dropped support for ShadowsocksR
