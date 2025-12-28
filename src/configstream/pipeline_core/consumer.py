@@ -346,8 +346,9 @@ async def processing_consumer(
             if country_filter:
                 if p.country_code != country_filter.upper():
                     continue
-            final_proxies.append(p)
+            # Fix: Acquire lock before appending to prevent race condition
             async with seen_lock:
+                final_proxies.append(p)
                 stats.working += 1
 
         working_count = sum(1 for p in final_batch_for_this_source if p.is_working)
