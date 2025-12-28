@@ -11,9 +11,10 @@ def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[st
         if "path" in details:
             ws_opts["path"] = str(details["path"])
         if "host" in details or "sni" in details:
-            ws_opts["headers"] = {
-                "Host": str(details.get("host") or details.get("sni"))
-            }
+            host_val = details.get("host") or details.get("sni")
+            # Prevent str(None) → "None" string corruption
+            if host_val and str(host_val).lower() != "none":
+                ws_opts["headers"] = {"Host": str(host_val)}
         if ws_opts:
             base["ws-opts"] = ws_opts
 
@@ -42,9 +43,12 @@ def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[st
             base["client-fingerprint"] = str(details["fp"])
         if details.get("security") == "reality":
             base["client-fingerprint"] = str(details.get("fp", "chrome"))
-            base["reality-opts"] = {
-                "public-key": str(details.get("pbk")),
-                "short-id": str(details.get("sid", "")),
-            }
+            # Validate pbk exists - str(None) would create "None" string (data corruption)
+            pbk = details.get("pbk")
+            if pbk and str(pbk).lower() != "none":
+                base["reality-opts"] = {
+                    "public-key": str(pbk),
+                    "short-id": str(details.get("sid", "") or ""),
+                }
 
     return base
