@@ -2,6 +2,7 @@ import base64
 import binascii
 import logging
 import time
+import threading
 from collections import defaultdict
 from typing import Optional, Dict
 
@@ -12,7 +13,8 @@ from ..constants import (
 
 logger = logging.getLogger(__name__)
 
-# Rate limit tracking for warnings
+# Rate limit tracking for warnings (thread-safe)
+_warning_lock = threading.Lock()
 _warning_counts: Dict[str, int] = defaultdict(int)
 _last_warning_reset = time.time()
 _WARNING_THRESHOLD = 10  # Max warnings per type before suppression
@@ -28,19 +30,23 @@ STRICT_B64_CHARS = set(
 
 
 def _rate_limited_warning(msg_type: str, message: str):
-    """Log a warning with rate limiting to avoid log spam."""
+    """Log a warning with rate limiting to avoid log spam (thread-safe)."""
     global _last_warning_reset
 
-    # Reset counters periodically
-    now = time.time()
-    if now - _last_warning_reset > _WARNING_RESET_INTERVAL:
-        _warning_counts.clear()
-        _last_warning_reset = now
+    with _warning_lock:
+        # Reset counters periodically
+        now = time.time()
+        if now - _last_warning_reset > _WARNING_RESET_INTERVAL:
+            _warning_counts.clear()
+            _last_warning_reset = now
 
-    _warning_counts[msg_type] += 1
-    if _warning_counts[msg_type] <= _WARNING_THRESHOLD:
+        _warning_counts[msg_type] += 1
+        count = _warning_counts[msg_type]
+
+    # Log outside the lock to avoid blocking
+    if count <= _WARNING_THRESHOLD:
         logger.warning(message)
-    elif _warning_counts[msg_type] == _WARNING_THRESHOLD + 1:
+    elif count == _WARNING_THRESHOLD + 1:
         logger.warning(
             f"{msg_type}: Further warnings suppressed (threshold: {_WARNING_THRESHOLD})"
         )

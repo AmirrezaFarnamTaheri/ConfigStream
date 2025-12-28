@@ -20,14 +20,27 @@ def generate_clash_config(proxies: List[Proxy]) -> str:
 
     proxies_list = []
     proxy_names = []
+    seen_names: set[str] = set()  # Track used names to prevent duplicates
 
     for p in proxies:
         clash_proxy = to_clash_proxy(p)
         if clash_proxy:
-            # Add name
-            clash_proxy["name"] = p.remarks or f"Proxy-{p.id[:8]}"
+            # Generate unique name - avoid tag collisions
+            base_name = p.remarks or f"Proxy-{p.id[:8]}"
+            unique_name = base_name
+            counter = 1
+            while unique_name in seen_names:
+                unique_name = f"{base_name}-{counter}"
+                counter += 1
+            seen_names.add(unique_name)
+            clash_proxy["name"] = unique_name
             proxies_list.append(clash_proxy)
             proxy_names.append(clash_proxy["name"])
+
+    # Guard against empty proxy groups which creates invalid Clash config
+    if not proxy_names:
+        logger.warning("No valid proxies for Clash config generation")
+        return ""
 
     config: dict[str, Any] = {
         "port": 7890,

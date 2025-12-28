@@ -28,7 +28,7 @@ async def scan_url(url: str) -> dict[str, int]:
     """
     if not VT_API_KEY:
         logger.warning("VirusTotal API key not found.")
-        return {"malicious": 0}
+        return {"malicious": 0, "api_key_missing": True}
 
     # Encode URL to base64 without padding as per VT API requirement for retrieval
     url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
@@ -70,7 +70,7 @@ async def check_ip_reputation(ip: str) -> dict[str, int]:
     Checks IP reputation with in-memory caching.
     """
     if not VT_API_KEY:
-        return {"malicious": 0}
+        return {"malicious": 0, "api_key_missing": True}
 
     # Check Cache with lock
     now = time.time()
@@ -79,7 +79,7 @@ async def check_ip_reputation(ip: str) -> dict[str, int]:
             result, timestamp = _IP_CACHE[ip]
             if now - timestamp < CACHE_TTL:
                 _IP_CACHE.move_to_end(ip)
-                return result
+                return result.copy()  # Return copy to prevent cache mutation
             else:
                 del _IP_CACHE[ip]
 
