@@ -14,13 +14,17 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
         if "path" in details:
             transport["path"] = str(details["path"])
         if "host" in details or "sni" in details:
-            transport["headers"] = {
-                "Host": str(details.get("host") or details.get("sni"))
-            }
+            host_val = details.get("host") or details.get("sni")
+            # Prevent str(None) → "None" string corruption
+            if host_val and str(host_val).lower() != "none":
+                transport["headers"] = {"Host": str(host_val)}
     elif net == "grpc":
         transport["type"] = "grpc"
         if "serviceName" in details:
-            transport["service_name"] = str(details["serviceName"])
+            service_name = details["serviceName"]
+            # Prevent str(None) → "None" string corruption
+            if service_name and str(service_name).lower() != "none":
+                transport["service_name"] = str(service_name)
     elif net == "http" or net == "h2":
         transport["type"] = "http"
         if "path" in details:
@@ -64,11 +68,16 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
             logger.debug(f"Enabled insecure TLS for {out.get('server')}")
 
         if security == "reality":
-            tls["reality"] = {
-                "enabled": True,
-                "public_key": str(details.get("pbk")),
-                "short_id": str(details.get("sid", "")),
-            }
+            # Validate pbk exists - str(None) would create "None" string (data corruption)
+            pbk = details.get("pbk")
+            if pbk and str(pbk).lower() != "none":
+                tls["reality"] = {
+                    "enabled": True,
+                    "public_key": str(pbk),
+                    "short_id": str(details.get("sid", "") or ""),
+                }
+            else:
+                logger.warning(f"Skipping Reality TLS for {out.get('server')}: missing or invalid pbk")
 
         out["tls"] = tls
 

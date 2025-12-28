@@ -1,6 +1,9 @@
+import logging
 from typing import Any, Optional
 import urllib.parse
 from ..models import Proxy
+
+logger = logging.getLogger(__name__)
 
 
 def safe_int_conversion(value: Any, default: int = 0) -> int:
@@ -68,7 +71,11 @@ def to_uri(proxy: Proxy) -> Optional[str]:
             # For now, if we don't have the original URI, we skip reconstruction to avoid bad configs
             return None
 
-    except Exception:
-        pass
+    except (UnicodeDecodeError, ValueError, AttributeError, KeyError) as e:
+        # Expected errors from malformed proxy details
+        logger.debug(f"URI reconstruction failed for {proxy.address}: {e}")
+    except Exception as e:
+        # Unexpected errors - log as warning for debugging
+        logger.warning(f"Unexpected error in URI reconstruction for {proxy.address}: {e}")
 
     return None
