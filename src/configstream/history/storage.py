@@ -34,7 +34,7 @@ class HistoryStorage:
                         MAX_HISTORY_FILE_SIZE,
                     )
                     return {}
-                data: Dict[str, Any] = json.loads(self.history_path.read_text())
+                data: Dict[str, Any] = json.loads(self.history_path.read_bytes())
                 return data
             except Exception as e:
                 logger.warning(f"Failed to load proxy history: {e}")
