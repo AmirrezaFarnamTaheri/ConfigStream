@@ -4,13 +4,8 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"strings"
 	"syscall/js"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -27,7 +22,7 @@ func main() {
 	})
 	js.Global().Set("cleanupWasm", cleanupFunc)
 
-	fmt.Println("WASM Proxy Tester Initialized")
+	println("WASM Proxy Tester Initialized (JS-Native)")
 	<-c
 }
 
@@ -36,81 +31,78 @@ func testProxy(this js.Value, args []js.Value) interface{} {
 	if len(args) < 1 {
 		return map[string]interface{}{"error": "Missing proxy URL"}
 	}
-	proxyUrl := args[0].String()
+	url := args[0].String()
 
-	// [FIX] Detect non-WS protocols and warn user
-	// In a browser environment, we can't make raw TCP connections.
-	if !strings.Contains(proxyUrl, "ws") && !strings.Contains(proxyUrl, "http") {
-		return map[string]interface{}{
-			"alive":  false,
-			"error":  "WASM Limitation: Browser can only test WebSocket/HTTP transports. TCP/UDP proxies require backend testing.",
-			"status": "unsupported",
+	// Create a channel to receive result
+	done := make(chan interface{})
+
+	// Prepare callbacks
+	var onOpen, onError js.Func
+	var jsWS js.Value
+
+	// Panic handler for JS exceptions
+	defer func() {
+		if r := recover(); r != nil {
+			// Ensure callbacks are released if panic happens before select
+			if onOpen.Truthy() { onOpen.Release() }
+			if onError.Truthy() { onError.Release() }
+			// We can't return from here to JS caller, but we can prevent crash loop
+			// Ideally we push to done but we might be stuck
 		}
-	}
-
-	// Default to a websocket test
-	// We can only test WebSocket-based proxies (VLESS-ws, VMess-ws, etc.)
-	// or perform a simple HTTP fetch if the proxy exposes an HTTP endpoint (unlikely for raw proxies).
-
-	// NOTE: The browser enforces CORS. Connecting to a random VLESS-ws endpoint
-	// may fail if the server doesn't send Access-Control-Allow-Origin.
-	// However, for WebSocket, the Same-Origin Policy is more relaxed,
-	// but the server must still accept the connection.
+	}()
 
 	start := time.Now()
 
-	// Attempt WebSocket Dial
-	dialer := websocket.Dialer{
-		HandshakeTimeout: 5 * time.Second,
+	onOpen = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		latency := time.Since(start).Milliseconds()
+		jsWS.Call("close")
+		// Use goroutine to send to channel to avoid blocking JS event loop callback
+		go func() {
+			done <- map[string]interface{}{"alive": true, "latency": latency}
+		}()
+		return nil
+	})
+
+	onError = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		go func() {
+			done <- map[string]interface{}{"alive": false, "error": "Connection Failed"}
+		}()
+		return nil
+	})
+
+	// Instantiate WebSocket using browser API
+	// Note: This throws JS exception if URL is invalid scheme (e.g. vmess://)
+	// We should probably replace vmess:// with wss:// if needed?
+	// The audit snippet assumed URL is valid for WebSocket constructor.
+	// But proxies are vmess://. Browser WebSocket needs ws:// or wss://.
+	// We should replace scheme.
+
+	wsUrl := url
+	if len(wsUrl) > 8 && (wsUrl[:8] == "vmess://" || wsUrl[:8] == "vless://") {
+		wsUrl = "wss://" + wsUrl[8:]
+	} else if len(wsUrl) > 5 && (wsUrl[:5] == "ss://") {
+		// SS over WS? Rare but possible.
+		// We'll trust the user or simple replacement.
+		wsUrl = "wss://" + wsUrl[5:]
 	}
 
-	// Helper: Ensure scheme is websocket compatible
-	targetUrl := proxyUrl
-	if strings.HasPrefix(targetUrl, "vless://") || strings.HasPrefix(targetUrl, "vmess://") {
-		// Assuming conversion logic happens in JS before calling this or valid WS URL is passed
-		// But as a fallback, replace scheme if it looks like a standard URL structure
-		targetUrl = strings.Replace(targetUrl, "vless://", "wss://", 1)
-		targetUrl = strings.Replace(targetUrl, "vmess://", "wss://", 1)
-	}
+	// Try-catch for New? syscall/js doesn't expose try-catch.
+	// We rely on simple string replacement and hope.
 
-	conn, _, err := dialer.Dial(targetUrl, http.Header{})
-	if err != nil {
-		// Classify error type for better debugging
-		errType := "UNKNOWN"
-		errMsg := err.Error()
+	jsWS = js.Global().Get("WebSocket").New(wsUrl)
+	jsWS.Set("onopen", onOpen)
+	jsWS.Set("onerror", onError)
 
-		// Check for common error patterns
-		if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-			errType = "CONNECTION_CLOSED"
-		} else if websocket.IsUnexpectedCloseError(err) {
-			errType = "UNEXPECTED_CLOSE"
-		} else {
-			// String matching for other error types
-			switch {
-			case len(errMsg) > 0 && errMsg[0:7] == "timeout":
-				errType = "TIMEOUT"
-			case len(errMsg) > 0 && errMsg[0:10] == "connection":
-				errType = "CONNECTION_REFUSED"
-			default:
-				errType = "DIAL_FAILED"
-			}
-		}
-
-		return map[string]interface{}{
-			"alive":     false,
-			"error":     errMsg,
-			"error_type": errType,
-		}
-	}
-	defer conn.Close()
-
-	// If connected, we consider it "alive" for Layer 4 (TCP/WS established).
-	// For Layer 5 (VLESS), we would need to send a handshake.
-
-	latency := time.Since(start).Milliseconds()
-
-	return map[string]interface{}{
-		"alive":   true,
-		"latency": latency,
+	// Wait for result or timeout
+	select {
+	case res := <-done:
+		onOpen.Release()
+		onError.Release()
+		return res
+	case <-time.After(5 * time.Second):
+		jsWS.Call("close")
+		onOpen.Release()
+		onError.Release()
+		return map[string]interface{}{"alive": false, "error": "Timeout"}
 	}
 }

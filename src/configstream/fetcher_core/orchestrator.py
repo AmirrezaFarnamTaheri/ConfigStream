@@ -34,6 +34,7 @@ async def fetch_from_source(
     app_settings: Optional[AppSettings] = None,
     # Legacy arg kept for compatibility, but unused effectively
     etag_cache: Optional[Dict[str, Dict[str, str]]] = None,
+    quality_tracker: Optional[SourceQualityTracker] = None,
 ) -> FetchResult:
     """
     Fetch configurations from a source with full resilience logic.
@@ -42,14 +43,8 @@ async def fetch_from_source(
         app_settings = AppSettings()
 
     # --- Source Health Check ---
-    source_manager = SourceQualityTracker()
-    if not source_manager.should_fetch(source):
-        logger.debug(
-            f"⏭️ Skipping unhealthy source: {SecurityValidator.sanitize_log_message(source)}"
-        )
-        return FetchResult(
-            False, source, error="Source Health Check Failed (Dead/Probation)"
-        )
+    # Audit Fix: Use passed tracker and rely on producer's check to avoid double-counting
+    source_manager = quality_tracker or SourceQualityTracker()
 
     # 1. URL Validation
     sanitized_source = SecurityValidator.sanitize_log_message(source)

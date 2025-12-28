@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import os
 from typing import Mapping, Optional, TYPE_CHECKING
 
 from .config import AppSettings
@@ -12,12 +13,28 @@ if TYPE_CHECKING:
     from .test_cache import TestResultCache
 
 
+def _get_env_float(key: str, default: float) -> float:
+    try:
+        val = os.getenv(key)
+        return float(val) if val else default
+    except ValueError:
+        return default
+
+
 def _latency_points(lat_ms: float | None, soft_cap: int, max_points: float) -> float:
     """Calculate score points based on latency using sigmoid function."""
     if lat_ms is None or soft_cap <= 0:
         return 0.0
-    center = max(1.0, soft_cap * 0.6)
-    slope = max(50.0, soft_cap * 0.2)
+
+    # Allow tuning of sigmoid parameters via env
+    # CENTER_RATIO (default 0.6) controls where the dropoff starts relative to soft_cap
+    # SLOPE_RATIO (default 0.2) controls how steep the dropoff is
+    center_ratio = _get_env_float("SCORE_SIGMOID_CENTER_RATIO", 0.6)
+    slope_ratio = _get_env_float("SCORE_SIGMOID_SLOPE_RATIO", 0.2)
+
+    center = max(1.0, soft_cap * center_ratio)
+    slope = max(50.0, soft_cap * slope_ratio)
+
     # FIX: Clamp exponent to prevent overflow (exp(709) is close to max float)
     exponent = (lat_ms - center) / slope
     exponent = max(-700.0, min(700.0, exponent))
@@ -32,7 +49,7 @@ def calculate_health_score(
     """
     Calculate comprehensive health score for a proxy.
 
-    Scoring factors:
+    Scoring factors (defaults):
     - Historical success rate (40 points): How often the proxy works
     - Latency (30 points): Lower latency = higher score
     - Security features (20 points): TLS, AEAD encryption
@@ -52,8 +69,14 @@ def calculate_health_score(
     score = 0.0
     weights = settings.SCORE_WEIGHTS
 
+    # Load weights from config or Env (priority: Config object > Env > Defaults)
+    # This allows external tuning without code changes
+    w_hist = weights.get("historical_success", _get_env_float("SCORE_WEIGHT_HISTORY", 40.0))
+    w_lat = weights.get("latency", _get_env_float("SCORE_WEIGHT_LATENCY", 30.0))
+    w_sec = weights.get("security", _get_env_float("SCORE_WEIGHT_SECURITY", 20.0))
+    w_stat = weights.get("current_status", _get_env_float("SCORE_WEIGHT_STATUS", 10.0))
+
     # Historical success rate
-    w_hist = weights.get("historical_success", 40.0)
     if cache:
         historical_score = cache.get_health_score(proxy)
         score += historical_score * w_hist
@@ -62,7 +85,6 @@ def calculate_health_score(
         score += 0.5 * w_hist
 
     # Latency score
-    w_lat = weights.get("latency", 30.0)
     if proxy.latency is not None:
         score += _latency_points(proxy.latency, settings.LAT_SOFT_CAP_MS, w_lat)
     else:
@@ -70,7 +92,6 @@ def calculate_health_score(
         score += 0.5 * w_lat
 
     # Security features
-    w_sec = weights.get("security", 20.0)
     security_score = 0.0
     if proxy.details:
         # Each feature contributes a fraction of the total security points
@@ -85,7 +106,6 @@ def calculate_health_score(
     score += min(security_score, w_sec)
 
     # Current working status
-    w_stat = weights.get("current_status", 10.0)
     if proxy.is_working:
         score += w_stat
 

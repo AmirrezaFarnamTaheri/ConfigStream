@@ -39,14 +39,25 @@ async def main():
     print(f"🚀 Running pipeline with {len(sources)} sources from {sources_file}...")
     print("   Limiting to 100 proxies for performance testing\n")
 
-    # Run pipeline
-    result = await run_full_pipeline(
-        sources=sources,
-        output_dir="benchmark_output",
-        max_proxies=100,
-        max_workers=20,
-        timeout=10,
-    )
+    # Environment Isolation
+    import os
+    original_warp = os.environ.get("WARP_KEY_POOL")
+    if original_warp is not None:
+        del os.environ["WARP_KEY_POOL"]
+
+    try:
+        # Run pipeline
+        result = await run_full_pipeline(
+            sources=sources,
+            output_dir="benchmark_output",
+            max_proxies=100,
+            max_workers=20,
+            timeout=10,
+        )
+    finally:
+        # Restore Environment
+        if original_warp is not None:
+            os.environ["WARP_KEY_POOL"] = original_warp
 
     # Extract metrics
     stats = result.stats

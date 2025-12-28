@@ -54,7 +54,7 @@ async def merge_batches_async(
 
     # --- Feature: Merge Proxy History ---
     logger.info("\n=== Step 2.4: Merging History Data ===")
-    from configstream.proxy_history import ProxyHistoryTracker
+    from configstream.history.tracker import ProxyHistoryTracker
 
     # Initialize master tracker at output destination
     master_history_path = output_dir / "data" / "proxy_history.json"
@@ -229,9 +229,14 @@ async def merge_batches_async(
 
     # [FIX] Calculate total_revived properly from all sources
     total_revived = total_revived_warp + total_revived_vwarp
+
+    # Determine washing_enabled status
+    washing_enabled = bool(os.environ.get("WARP_KEY_POOL")) or total_vwarp_attempts > 0
+
     logger.info(
         f"Total Revived Stats: WARP={total_revived_warp}, Vwarp={total_revived_vwarp}, Total={total_revived}"
     )
+    logger.info(f"Washing Enabled: {washing_enabled}")
 
     # --- Feature: Intelligence Vectors ---
     logger.info("\n=== Step 2.6: Generating Intelligence Vectors ===")
@@ -291,6 +296,7 @@ async def merge_batches_async(
         vwarp_attempts=total_vwarp_attempts,
         vwarp_success=total_vwarp_success,
         total_configured_sources=total_configured_sources,
+        washing_enabled=washing_enabled,
     )
 
     # Note: generate_outputs internally calls save_metadata with a RICH stats object

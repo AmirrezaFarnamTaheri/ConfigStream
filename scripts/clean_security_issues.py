@@ -44,6 +44,7 @@ def load_json(path: Path) -> tuple[str, list[dict[str, Any]]]:
 
 
 def main() -> int:
+    print("WARNING: This script is deprecated. Security filtering is now handled by the pipeline stages.", file=sys.stderr)
     args = parse_args()
     input_path: Path = args.input_path
 

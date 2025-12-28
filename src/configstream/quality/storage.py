@@ -21,6 +21,10 @@ class QualityStorage:
         with self._lock:
             self._init_db()
 
+    def get_connection(self) -> sqlite3.Connection:
+        """Public accessor for DB connection (thread-safe)."""
+        return self._get_conn()
+
     def _get_conn(self) -> sqlite3.Connection:
         # Each thread uses its own connection to avoid cross-thread contention.
         conn = getattr(self._thread_local, "conn", None)
@@ -76,6 +80,28 @@ class QualityStorage:
                     FOREIGN KEY(url) REFERENCES source_stats(url)
                 )
                 """
+            )
+
+            # Proxy History Table (Individual Proxy Reliability)
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS proxy_history (
+                    proxy_id TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL,
+                    is_working INTEGER NOT NULL,
+                    latency REAL,
+                    country_code TEXT,
+                    session_id TEXT,
+                    failure_reason TEXT
+                )
+                """
+            )
+            # Index for fast lookup
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_proxy_history_id ON proxy_history(proxy_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_proxy_history_ts ON proxy_history(timestamp)"
             )
 
             conn.commit()
@@ -333,6 +359,23 @@ class QualityStorage:
                     except sqlite3.OperationalError:
                         # 'source_runs' table missing in legacy schema versions.
                         # Ignore during merging; schema migration is handled in init.
+                        pass
+
+                    # Merge proxy_history if exists
+                    try:
+                        history_rows = src.execute(
+                            "SELECT * FROM proxy_history"
+                        ).fetchall()
+                        if history_rows:
+                            cursor = src.execute("SELECT * FROM proxy_history LIMIT 1")
+                            columns = [d[0] for d in cursor.description]
+                            placeholders = ",".join(["?"] * len(columns))
+
+                            dst.executemany(
+                                f"INSERT INTO proxy_history VALUES ({placeholders})",
+                                history_rows,
+                            )
+                    except sqlite3.OperationalError:
                         pass
 
                     dst.commit()

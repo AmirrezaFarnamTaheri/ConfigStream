@@ -40,13 +40,29 @@ def generate_outputs(
     vwarp_attempts: int = 0,
     vwarp_success: int = 0,
     total_configured_sources: int = 0,
+    washing_enabled: bool = False,
 ):
     """Generates all output files with comprehensive stats."""
 
     # Clear existing outputs (except data/)
     output_dir.mkdir(exist_ok=True)
-    for file_path in output_dir.glob("*.*"):
-        if file_path.is_file():
+    removable = {
+        "proxies.json",
+        "base64.txt",
+        "all.txt",
+        "base64.signed.json",
+        "singbox.json",
+        "singbox-vpn.json",
+        "clash.yaml",
+        "side_products.zip",
+        "surge.conf",
+        "shadowrocket.txt",
+        "loon.conf",
+        "quantumult.conf",
+        "sip008.json",
+    }
+    for file_path in output_dir.iterdir():
+        if file_path.is_file() and file_path.name in removable:
             file_path.unlink()
 
     # 1. proxies.json
@@ -174,6 +190,7 @@ def generate_outputs(
         vwarp_attempts,
         vwarp_success,
         total_configured_sources,
+        washing_enabled,
     )
 
     # 9. Wiki & Pages
@@ -428,6 +445,7 @@ def _generate_statistics(
     vwarp_attempts: int = 0,
     vwarp_success: int = 0,
     total_configured_sources: int = 0,
+    washing_enabled: bool = False,
 ):
     working_proxies = sum(1 for p in ranked if p.is_working)
     working_chosen = sum(1 for p in chosen if p.is_working)
@@ -576,15 +594,34 @@ def _generate_statistics(
 
     # If we still don't have total_configured_sources, try to count from environment or use fallback
     if total_configured_sources == 0:
-        # Fallback: try to estimate from SOURCES_URL env var or use reasonable default
+        sources_list = []
         sources_env = os.getenv("SOURCES_URL", "")
         if sources_env:
-            total_configured_sources = len(
-                [s.strip() for s in sources_env.split(",") if s.strip()]
-            )
-        else:
-            # Ultimate fallback: use a reasonable default based on project configuration
-            total_configured_sources = 668  # Known approximate count from project docs
+            sources_list = [s.strip() for s in sources_env.split(",") if s.strip()]
+
+        if not sources_list:
+            source_dir = Path("sources")
+            if source_dir.exists():
+                for batch_file in source_dir.glob("batch_*.txt"):
+                    if batch_file.is_file():
+                        sources_list.extend(
+                            [
+                                line.strip()
+                                for line in batch_file.read_text().splitlines()
+                                if line.strip()
+                            ]
+                        )
+
+        if not sources_list:
+            consol_sources = Path("consolidated_sources.txt")
+            if consol_sources.exists():
+                sources_list = [
+                    line.strip()
+                    for line in consol_sources.read_text().splitlines()
+                    if line.strip()
+                ]
+
+        total_configured_sources = len(sources_list)
 
     # Unified metadata.json - single source of truth
     meta = {
@@ -617,6 +654,7 @@ def _generate_statistics(
         "vwarp_attempts": vwarp_attempts,
         "vwarp_success": vwarp_success,
         "vwarp_win_rate": round(vwarp_win_rate, 1),
+        "washing_enabled": washing_enabled,
         # Revived proxy stats (WARP and Vwarp breakdown)
         "revived_warp": revived_warp,
         "revived_vwarp": revived_vwarp,
@@ -699,6 +737,16 @@ def _copy_pages(root_dir: Path, output_dir: Path):
         wiki_dest.mkdir(exist_ok=True)
         for md_file in wiki_src.glob("*.md"):
             (wiki_dest / md_file.name).write_text(md_file.read_text())
+
+    # Ensure generated files like singbox-vpn.json are at the root
+    # Note: frontend/ files are copied by _generate_stego
+    # We should ensure specific files generated in output_dir are preserved/copied if needed
+
+    # 2025-05-27 Update: Ensure singbox-vpn.json is available for download
+    # It is already generated in output_dir by generate_split_outputs
+
+    # If there are any other specific files that need to be moved to 'root' from a subfolder, do it here
+    pass
 
     # Note: frontend/ files (including about.html, wiki.html) are already
     # copied to output_dir root by _generate_stego -> shutil.copytree.

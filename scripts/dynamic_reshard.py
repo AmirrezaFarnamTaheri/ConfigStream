@@ -1,9 +1,10 @@
 import re
 import glob
 import shutil
+import statistics
 from pathlib import Path
 from typing import Dict, List, Tuple
-import statistics
+import os
 
 # --- Configuration ---
 LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
@@ -71,11 +72,14 @@ def get_existing_sources() -> List[str]:
         return []
 
     for f in SOURCES_DIR.glob("batch_*.txt"):
-        content = f.read_text(encoding="utf-8").splitlines()
-        for line in content:
-            line = line.strip()
-            if line and not line.startswith("#"):
-                urls.add(line)
+        try:
+            content = f.read_text(encoding="utf-8").splitlines()
+            for line in content:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    urls.add(line)
+        except Exception as e:
+            print(f"⚠️  Could not read source file {f}: {e}")
     return list(urls)
 
 
@@ -94,7 +98,10 @@ def main() -> None:
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     print(f"📦 Backing up sources to {BACKUP_DIR}...")
     for f in SOURCES_DIR.glob("batch_*.txt"):
-        shutil.copy2(f, BACKUP_DIR)
+        try:
+            shutil.copy2(f, BACKUP_DIR)
+        except Exception as e:
+            print(f"⚠️  Backup failed for {f}: {e}")
 
     # 3. Gather Data
     observed_metrics = parse_logs(log_files)
@@ -155,28 +162,54 @@ def main() -> None:
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
 
-    # Delete existing batch files to ensure clean state and remove extras (e.g. batch_11)
-    for f in SOURCES_DIR.glob("batch_*.txt"):
-        try:
-            f.unlink()
-        except Exception as e:
-            print(f"⚠️ Failed to delete {f}: {e}")
+    # Atomic Write: Write all to .tmp first, then delete original/rename
+    # [FIX P2] Also identify stale batches to delete
+    existing_batches = set(SOURCES_DIR.glob("batch_*.txt"))
+    new_batches = set()
 
-    for i, batch in enumerate(batches):
-        file_path = SOURCES_DIR / f"batch_{i+1}.txt"
+    temp_files = []
+    try:
+        for i, batch in enumerate(batches):
+            file_name = f"batch_{i+1}.txt"
+            file_path = SOURCES_DIR / file_name
+            new_batches.add(file_path)
+            temp_path = SOURCES_DIR / (file_name + ".tmp")
 
-        # Convert weight back to seconds for display
-        est_time = batch_loads[i] / 10.0
-        content = [
-            f"# ConfigStream Batch {i+1}",
-            "# Optimized based on fetch duration for equal execution times",
-            f"# Est. Fetch Time: {est_time:.1f}s",
-            "",
-        ]
-        content.extend(batch)
+            # Convert weight back to seconds for display
+            est_time = batch_loads[i] / 10.0
+            content = [
+                f"# ConfigStream Batch {i+1}",
+                "# Optimized based on fetch duration for equal execution times",
+                f"# Est. Fetch Time: {est_time:.1f}s",
+                "",
+            ]
+            content.extend(batch)
 
-        file_path.write_text("\n".join(content), encoding="utf-8")
-        print(f"Batch {i+1:<4} | {len(batch):<10} | {est_time:<15.1f}")
+            temp_path.write_text("\n".join(content), encoding="utf-8")
+            temp_files.append((temp_path, file_path))
+            print(f"Batch {i+1:<4} | {len(batch):<10} | {est_time:<15.1f}")
+
+        # If all writes successful:
+        # 1. Delete stale batches (existing but not in new)
+        stale_batches = existing_batches - new_batches
+        for stale in stale_batches:
+            try:
+                stale.unlink()
+                print(f"🗑️ Deleted stale batch: {stale.name}")
+            except Exception as e:
+                print(f"⚠️ Failed to delete stale batch {stale}: {e}")
+
+        # 2. Rename temps to final
+        for tmp_path, final_path in temp_files:
+            tmp_path.replace(final_path)
+
+    except Exception as e:
+        print(f"❌ Atomic write failed: {e}")
+        # Cleanup temps
+        for tmp, _ in temp_files:
+            if tmp.exists():
+                tmp.unlink()
+        return
 
     # 9. Log Performance Metrics
     print("\n📊 Time-Based Load Balancing Metrics:")
@@ -191,4 +224,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-# Verified present for audit compliance

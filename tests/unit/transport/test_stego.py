@@ -3,6 +3,8 @@
 from unittest.mock import patch
 from cryptography.fernet import Fernet
 import zlib
+import hmac
+import hashlib
 
 from configstream.transport.stego import (
     StegoPacker,
@@ -91,10 +93,21 @@ class TestStegoPacker:
 
         encrypted_payload = output_data[marker_pos + len(MAGIC_MARKER) :]
 
-        # Decrypt and decompress
-        decrypted = packer.cipher.decrypt(encrypted_payload)
-        decompressed = zlib.decompress(decrypted).decode("utf-8")
+        # Decrypt payload_blob which is signature + compressed
+        payload_blob = packer.cipher.decrypt(encrypted_payload)
 
+        # Verify length of signature (HMAC-SHA256 is 32 bytes)
+        assert len(payload_blob) > 32
+
+        signature = payload_blob[:32]
+        compressed = payload_blob[32:]
+
+        # Verify signature
+        expected_signature = hmac.new(packer.key, compressed, hashlib.sha256).digest()
+        assert signature == expected_signature
+
+        # Decompress
+        decompressed = zlib.decompress(compressed).decode("utf-8")
         assert decompressed == payload
 
     def test_pack_with_write_error(self, tmp_path):
@@ -169,8 +182,16 @@ class TestStegoPacker:
         output_data = output_image.read_bytes()
         marker_pos = output_data.find(MAGIC_MARKER)
         encrypted = output_data[marker_pos + len(MAGIC_MARKER) :]
-        decrypted = packer.cipher.decrypt(encrypted)
-        decompressed = zlib.decompress(decrypted).decode("utf-8")
+
+        payload_blob = packer.cipher.decrypt(encrypted)
+        signature = payload_blob[:32]
+        compressed = payload_blob[32:]
+
+        # Verify signature
+        expected_signature = hmac.new(packer.key, compressed, hashlib.sha256).digest()
+        assert signature == expected_signature
+
+        decompressed = zlib.decompress(compressed).decode("utf-8")
         assert decompressed == payload
 
 
