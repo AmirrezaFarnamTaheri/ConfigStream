@@ -132,6 +132,11 @@
   // Initialize global logger
   const logger = createLogger('Logger');
 
+  // [AUDIT FIX] Expose global logger instance for compatibility with other modules
+  if (typeof window !== 'undefined') {
+      window.ConfigStreamLogger = logger;
+  }
+
   // Only log initialization in development or with DEBUG flag
   if (!isProduction || window.DEBUG) {
     logger.info(`Shared logging utility loaded (level: ${isProduction ? 'WARN (production)' : 'INFO (development)'})`);

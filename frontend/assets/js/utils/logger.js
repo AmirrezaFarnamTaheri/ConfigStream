@@ -75,6 +75,13 @@ class Logger {
     }
 
     /**
+     * Debug logging alias (for compatibility)
+     */
+    debug(...args) {
+        this.log(...args);
+    }
+
+    /**
      * Info logging - only in development or with ?debug=true
      */
     info(...args) {
