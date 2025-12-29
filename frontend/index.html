@@ -17,6 +17,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="assets/images/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/apple-touch-icon.png">
     <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Logger -->
+    <script src="assets/js/logger.js"></script>
     <link rel="stylesheet" href="assets/css/state-manager.css">
     <link rel="stylesheet" href="assets/css/error-handler.css">
     <link rel="stylesheet" href="assets/css/loading.css">
@@ -422,10 +424,15 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
+                const logger = window.createLogger ? window.createLogger('ServiceWorker') : console;
                 // Fixed path to sw.js
                 navigator.serviceWorker.register('service-worker.js')
-                    .then(reg => console.log('SW registered: ', reg))
-                    .catch(err => console.log('SW registration failed: ', err));
+                    .then(reg => {
+                        logger.info('SW registered: ', reg);
+                    })
+                    .catch(err => {
+                        logger.error('SW registration failed: ', err);
+                    });
             });
         }
 

@@ -247,7 +247,10 @@ async def fetch_from_source(
                         )
 
                     source_manager.report_failure(source)  # <--- Track Failure
-                except (asyncio.CancelledError, KeyboardInterrupt):  # pylint: disable=try-except-raise
+                except (
+                    asyncio.CancelledError,
+                    KeyboardInterrupt,
+                ):  # pylint: disable=try-except-raise
                     raise
                 except Exception:
                     logger.debug(

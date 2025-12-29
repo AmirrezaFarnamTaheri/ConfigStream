@@ -61,6 +61,7 @@ def test_backup_retention(backup_dir):
     very_old_file.touch()
 
     import os
+
     ts_old = very_old_date.timestamp()
     os.utime(very_old_file, (ts_old, ts_old))
 

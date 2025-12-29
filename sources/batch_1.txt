@@ -71,3 +71,5 @@ https://raw.githubusercontent.com/JieErJingFu/FreeNodesV2RayorTrojan_20210113-/m
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/ServerLess_1-1_Fragment_xray_config.json
 https://raw.githubusercontent.com/xhmotor/V2rayn/main/v2rayn
 https://free.proxynova.com/proxy-list/
+https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/sub.txt
+https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/server.txt

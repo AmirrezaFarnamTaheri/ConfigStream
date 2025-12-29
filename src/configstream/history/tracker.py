@@ -128,7 +128,7 @@ class ProxyHistoryTracker:
                         "latency": row[2],
                         "failure_reason": row[3],
                         "country": row[4],
-                        "country_code": row[4]
+                        "country_code": row[4],
                     }
                 )
             return entries
@@ -186,11 +186,12 @@ class ProxyHistoryTracker:
 
         try:
             conn = self.storage.get_connection()
-            cutoff = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp())
+            cutoff = int(
+                (datetime.now(timezone.utc) - timedelta(days=days)).timestamp()
+            )
 
             cursor = conn.execute(
-                "DELETE FROM proxy_history WHERE timestamp < ?",
-                (cutoff,)
+                "DELETE FROM proxy_history WHERE timestamp < ?", (cutoff,)
             )
             conn.commit()
             removed = int(cursor.rowcount)
@@ -260,7 +261,7 @@ class ProxyHistoryTracker:
                         "id": pid,
                         "protocol": "unknown",
                         "address": "0.0.0.0",  # Fallback
-                        "port": 0,             # Fallback
+                        "port": 0,  # Fallback
                         "entries": [],
                     }
 

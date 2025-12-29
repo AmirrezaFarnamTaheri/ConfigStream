@@ -5,7 +5,6 @@ go 1.24.0
 toolchain go1.24.3
 
 require (
-	github.com/gorilla/websocket v1.5.3
 	github.com/sagernet/sing-box v1.8.14
 	golang.org/x/crypto v0.45.0
 )

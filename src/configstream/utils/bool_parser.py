@@ -1,5 +1,6 @@
 from typing import Any
 
+
 def parse_bool(value: Any) -> bool:
     """
     Safely parse boolean values from various types (str, int, bool).

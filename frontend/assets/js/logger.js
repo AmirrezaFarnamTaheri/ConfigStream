@@ -1,6 +1,7 @@
 /**
  * Shared logging utility for consistent logging across all JavaScript modules
  * Provides colored console output and log level filtering
+ * [AUDIT] Verified for production use
  */
 
 (function() {
@@ -130,6 +131,11 @@
 
   // Initialize global logger
   const logger = createLogger('Logger');
+
+  // [AUDIT FIX] Expose global logger instance for compatibility with other modules
+  if (typeof window !== 'undefined') {
+      window.ConfigStreamLogger = logger;
+  }
 
   // Only log initialization in development or with DEBUG flag
   if (!isProduction || window.DEBUG) {

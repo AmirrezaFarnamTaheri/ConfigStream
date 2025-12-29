@@ -60,7 +60,9 @@ class RateLimiter:
             sorted_buckets = sorted(
                 self.buckets.items(), key=lambda x: x[1]["last_update"]
             )
-            to_remove = len(self.buckets) - self.MAX_BUCKETS + 100  # Remove extra buffer
+            to_remove = (
+                len(self.buckets) - self.MAX_BUCKETS + 100
+            )  # Remove extra buffer
             for key, _ in sorted_buckets[:to_remove]:
                 del self.buckets[key]
 

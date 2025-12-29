@@ -42,7 +42,9 @@ if (typeof window !== 'undefined') {
     if (typeof initTheme === 'function') window.api.initTheme = initTheme;
     if (typeof updateFreshnessColor === 'function') window.api.updateFreshnessColor = updateFreshnessColor;
 
-    console.log('✅ window.api initialized:', Object.keys(window.api));
+    // [AUDIT] Use production-safe logger or remove
+    // console.log('✅ window.api initialized:', Object.keys(window.api));
 }
 
-console.log('✅ Enhanced utils.js (Facade) loaded');
+// [AUDIT] Removed direct console log
+// console.log('✅ Enhanced utils.js (Facade) loaded');

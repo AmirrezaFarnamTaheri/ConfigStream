@@ -76,6 +76,8 @@ def to_uri(proxy: Proxy) -> Optional[str]:
         logger.debug(f"URI reconstruction failed for {proxy.address}: {e}")
     except Exception as e:
         # Unexpected errors - log as warning for debugging
-        logger.warning(f"Unexpected error in URI reconstruction for {proxy.address}: {e}")
+        logger.warning(
+            f"Unexpected error in URI reconstruction for {proxy.address}: {e}"
+        )
 
     return None
