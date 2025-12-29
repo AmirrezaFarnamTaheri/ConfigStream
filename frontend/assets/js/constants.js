@@ -33,17 +33,25 @@
                         !global.location.hostname.includes('127.0.0.1');
 
     if (isProduction) {
+        // [AUDIT] Errors here are critical config issues, keeping console.error is appropriate
+        // but wrapping in logger if available is better practice
+        const logError = (window.ConfigStreamLogger && window.ConfigStreamLogger.error)
+                         ? window.ConfigStreamLogger.error
+                         : console.error;
+
         if (global.CS_CONSTANTS.PUBLIC_KEY.includes("79e/79e/")) {
-            console.error("❌ CRITICAL: Production deployment using placeholder PUBLIC_KEY!");
-            console.error("   Set CS_PUBLIC_KEY environment variable during build.");
-            console.error("   Subscription verification will NOT work!");
+            logError("❌ CRITICAL: Production deployment using placeholder PUBLIC_KEY!");
+            logError("   Set CS_PUBLIC_KEY environment variable during build.");
+            logError("   Subscription verification will NOT work!");
         }
         if (global.CS_CONSTANTS.IPNS_KEY.includes("...")) {
-            console.error("❌ CRITICAL: Production deployment using placeholder IPNS_KEY!");
-            console.error("   Set CS_IPNS_KEY environment variable during build.");
-            console.error("   IPFS failover will NOT work!");
+            logError("❌ CRITICAL: Production deployment using placeholder IPNS_KEY!");
+            logError("   Set CS_IPNS_KEY environment variable during build.");
+            logError("   IPFS failover will NOT work!");
         }
     }
 
-    console.log("✅ ConfigStream Constants Loaded");
+    if (window.ConfigStreamLogger) {
+        window.ConfigStreamLogger.info("✅ ConfigStream Constants Loaded");
+    }
 })(typeof window !== 'undefined' ? window : self);

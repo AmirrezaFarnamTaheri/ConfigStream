@@ -7,7 +7,9 @@
 
         checkStatus: async function() {
             // Mock status check
-            console.log("Washer Client: Ready");
+            if (global.ConfigStreamLogger) {
+                global.ConfigStreamLogger.info("Washer Client: Ready");
+            }
             return true;
         }
     };
