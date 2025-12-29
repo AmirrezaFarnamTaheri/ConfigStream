@@ -1,11 +1,11 @@
 import asyncio
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.security.utls_wrapper import ensure_binary_async, test_tls_fingerprint as verify_tls_fingerprint
 
 @pytest.mark.asyncio
 async def test_ensure_binary_async_success():
-    with patch("shutil.which", return_value="/usr/bin/go"),          patch("pathlib.Path.exists", side_effect=[False, True]),          patch("configstream.security.utls_wrapper._run_cmd", return_value=True):
+    with patch("shutil.which", return_value="/usr/bin/go"),          patch("pathlib.Path.exists", side_effect=[False, True]),          patch("configstream.security.utls_wrapper._run_cmd", new_callable=AsyncMock, return_value=True):
         result = await ensure_binary_async()
         assert result is True
 
@@ -17,7 +17,7 @@ async def test_ensure_binary_async_fail_no_go():
 
 @pytest.mark.asyncio
 async def test_verify_tls_fingerprint_success():
-    with patch("configstream.security.utls_wrapper.ensure_binary_async", return_value=True),          patch("configstream.security.utls_wrapper._verify_binary_checksum", return_value=True),          patch("asyncio.create_subprocess_exec") as mock_exec:
+    with patch("configstream.security.utls_wrapper.ensure_binary_async", new_callable=AsyncMock, return_value=True),          patch("configstream.security.utls_wrapper._verify_binary_checksum", return_value=True),          patch("asyncio.create_subprocess_exec") as mock_exec:
 
         mock_proc = MagicMock()
         mock_proc.communicate = AsyncMock(return_value=(b"Success", b""))
@@ -29,7 +29,7 @@ async def test_verify_tls_fingerprint_success():
 
 @pytest.mark.asyncio
 async def test_verify_tls_fingerprint_fail():
-    with patch("configstream.security.utls_wrapper.ensure_binary_async", return_value=True),          patch("configstream.security.utls_wrapper._verify_binary_checksum", return_value=True),          patch("asyncio.create_subprocess_exec") as mock_exec:
+    with patch("configstream.security.utls_wrapper.ensure_binary_async", new_callable=AsyncMock, return_value=True),          patch("configstream.security.utls_wrapper._verify_binary_checksum", return_value=True),          patch("asyncio.create_subprocess_exec") as mock_exec:
 
         mock_proc = MagicMock()
         mock_proc.communicate = AsyncMock(return_value=(b"", b"Error"))
@@ -38,7 +38,3 @@ async def test_verify_tls_fingerprint_fail():
 
         result = await verify_tls_fingerprint("https://example.com", "1.2.3.4:443")
         assert result is False
-
-class AsyncMock(MagicMock):
-    async def __call__(self, *args, **kwargs):
-        return super(AsyncMock, self).__call__(*args, **kwargs)
