@@ -68,13 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const cached = await window.cacheManager.getCachedData('/api/proxies');
         if (!cached || !cached.version) {
             // No cache, fetch full
-            console.log('[Diff] No cache version, fetching full');
+            logger.log('[Diff] No cache version, fetching full');
             return window.cacheManager.fetchFresh('/api/proxies');
         }
 
         try {
             // Try fetching diff
-            console.log(`[Diff] Requesting diff from ${cached.version} to ${newVersion}`);
+            logger.log(`[Diff] Requesting diff from ${cached.version} to ${newVersion}`);
             const response = await fetch(`/api/diff/proxies?base_version=${cached.version}`);
 
             if (!response.ok) {
@@ -109,12 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 // Full reload required
-                console.log('[Diff] Server requested full reload');
+                logger.log('[Diff] Server requested full reload');
                 await window.cacheManager.fetchFresh('/api/proxies');
                 window.dispatchEvent(new CustomEvent('data-updated'));
             }
         } catch (e) {
-            console.warn('[Diff] Failed, falling back to full fetch', e);
+            logger.warn('[Diff] Failed, falling back to full fetch', e);
             await window.cacheManager.fetchFresh('/api/proxies');
             window.dispatchEvent(new CustomEvent('data-updated'));
         }
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const logo = document.querySelector('.logo-svg');
 
         if (!window.stateManager) {
-            console.error("StateManager not found!");
+            logger.error("StateManager not found!");
             if (preloader) {
                 preloader.classList.add('hidden');
                 document.body.classList.add('loaded');
