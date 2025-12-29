@@ -74,12 +74,13 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
         if not current.is_working and proxy.is_working:
             best[key] = proxy
             continue
-        elif current.is_working == proxy.is_working:
+
+        if current.is_working == proxy.is_working:
             # Prefer lower latency
             if current.latency is None and proxy.latency is not None:
                 best[key] = proxy
                 continue
-            elif current.latency is not None and proxy.latency is not None:
+            if current.latency is not None and proxy.latency is not None:
                 if proxy.latency < current.latency:
                     best[key] = proxy
                     continue
@@ -177,15 +178,15 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
                 if existing_latency == float("inf") or latency_diff < 100:
                     fingerprint_map[fingerprint] = p
                     continue
-                else:
-                    # Keep existing (faster) but copy metadata
-                    existing.country_code = p.country_code
-                    existing.country = p.country
-                    existing.city = p.city or existing.city
-                    existing.asn = p.asn or existing.asn
-                    existing.org = p.org or existing.org
-                    # Don't replace in map, just modified object
-                    continue
+
+                # Keep existing (faster) but copy metadata
+                existing.country_code = p.country_code
+                existing.country = p.country
+                existing.city = p.city or existing.city
+                existing.asn = p.asn or existing.asn
+                existing.org = p.org or existing.org
+                # Don't replace in map, just modified object
+                continue
 
     # Log endpoint filtering statistics
     removed_count = len(proxies) - len(fingerprint_map)

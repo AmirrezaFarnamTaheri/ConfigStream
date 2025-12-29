@@ -19,7 +19,7 @@ def pin_to_ipfs(filepath: str, jwt: str) -> str:
     if response.status_code == 200:
         return str(response.json()["IpfsHash"])
     else:
-        raise Exception(f"Failed to pin to IPFS: {response.text}")
+        raise RuntimeError(f"Failed to pin to IPFS: {response.text}")
 
 
 def publish_ipns(cid: str, ipns_key: str) -> None:
@@ -79,7 +79,7 @@ def update_dnslink(cid: str, domain: str, cf_token: str, zone_id: str):
     if update_resp.status_code == 200:
         print(f"Successfully updated DNSLink for {domain} to {cid}")
     else:
-        raise Exception(f"Failed to update DNSLink: {update_resp.text}")
+        raise RuntimeError(f"Failed to update DNSLink: {update_resp.text}")
 
 
 def _clean_secret(v: str) -> str:

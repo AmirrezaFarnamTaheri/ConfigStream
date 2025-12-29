@@ -6,7 +6,7 @@ import aiohttp
 import time
 from collections import OrderedDict
 
-from ..constants import VIRUSTOTAL_CACHE_SIZE
+from configstream.constants import VIRUSTOTAL_CACHE_SIZE
 
 logger = logging.getLogger(__name__)
 

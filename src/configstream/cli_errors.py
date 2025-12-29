@@ -167,6 +167,7 @@ def safe_operation(
         handle_cli_error(
             e, context=context or "Unexpected error", exit_code=1, verbose=verbose
         )
+    return None
 
 
 def handle_cli_errors(

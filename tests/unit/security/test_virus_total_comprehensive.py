@@ -40,7 +40,7 @@ class TestScanURL:
         with patch("configstream.security.virus_total.VT_API_KEY", ""):
             result = await scan_url("https://example.com")
 
-            assert result == {"malicious": 0}
+            assert result == {"api_key_missing": True, "malicious": 0}
             assert any(
                 "api key not found" in record.message.lower()
                 for record in caplog.records
@@ -229,7 +229,7 @@ class TestCheckIPReputation:
         with patch("configstream.security.virus_total.VT_API_KEY", ""):
             result = await check_ip_reputation("1.1.1.1")
 
-            assert result == {"malicious": 0}
+            assert result == {"api_key_missing": True, "malicious": 0}
 
     @pytest.mark.asyncio
     async def test_check_ip_success_clean(self):

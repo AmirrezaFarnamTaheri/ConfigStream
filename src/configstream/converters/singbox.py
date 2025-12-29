@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 from ..models import Proxy
 from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
+from ..utils.bool_parser import parse_bool
 
 logger = logging.getLogger(__name__)
 
@@ -255,8 +256,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             octet3 = h[0]
             octet4 = h[1]
             # Ensure fourth octet is not .0 or .1 which can be special
-            if octet4 < 2:
-                octet4 = 2
+            octet4 = max(octet4, 2)
             unique_ip = f"172.16.{octet3}.{octet4}/32"
             local_addresses = [unique_ip]
 
@@ -291,8 +291,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
         # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
-        is_insecure = bool(
-            proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
+        is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
+            proxy.details.get("skip_cert_verify")
         )
 
         out["tls"] = {
@@ -329,8 +329,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             ),
         }
         # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
-        is_insecure = bool(
-            proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
+        is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
+            proxy.details.get("skip_cert_verify")
         )
 
         out["tls"] = {

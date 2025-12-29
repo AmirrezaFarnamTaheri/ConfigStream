@@ -164,15 +164,15 @@ class GeoIPResolver:
         try:
             if self.reader_city:
                 response = self.reader_city.city(ip)
-                result.country_code = response.country.iso_code or "XX" # Fallback XX
+                result.country_code = response.country.iso_code or "XX"  # Fallback XX
                 result.country_name = response.country.name or "Unknown"
                 result.city = response.city.name or "Unknown"
                 result.lat = response.location.latitude
                 result.lng = response.location.longitude
             else:
-                 # Explicit warning/fallback if DB missing
-                 result.country_code = "XX"
-                 result.country_name = "Unknown (DB Missing)"
+                # Explicit warning/fallback if DB missing
+                result.country_code = "XX"
+                result.country_name = "Unknown (DB Missing)"
 
             if self.reader_asn:
                 response_asn = self.reader_asn.asn(ip)
@@ -183,7 +183,6 @@ class GeoIPResolver:
             # Expected for private IPs or missing data
             result.country_code = "XX"
             result.country_name = "Unknown"
-            pass
         except (ValueError, TypeError) as e:
             # [FIX P2-3] Invalid IP format or type errors
             logger.debug(f"Invalid IP format during GeoIP lookup for {ip}: {e}")

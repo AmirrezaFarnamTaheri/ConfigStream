@@ -4,8 +4,8 @@ import ipaddress
 import hashlib
 import math
 
-from ..converters import to_singbox_outbound
-from ..models import Proxy
+from configstream.converters import to_singbox_outbound
+from configstream.models import Proxy
 
 logger = logging.getLogger(__name__)
 

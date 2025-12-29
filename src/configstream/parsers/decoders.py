@@ -13,13 +13,6 @@ from ..constants import (
 
 logger = logging.getLogger(__name__)
 
-# Rate limit tracking for warnings (thread-safe)
-_warning_lock = threading.Lock()
-_warning_counts: Dict[str, int] = defaultdict(int)
-_last_warning_reset = time.time()
-_WARNING_THRESHOLD = 10  # Max warnings per type before suppression
-_WARNING_RESET_INTERVAL = 60  # Reset counters every 60 seconds
-
 VALID_B64_CHARS = set(
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t"
 )
@@ -29,27 +22,39 @@ STRICT_B64_CHARS = set(
 )
 
 
-def _rate_limited_warning(msg_type: str, message: str):
-    """Log a warning with rate limiting to avoid log spam (thread-safe)."""
-    global _last_warning_reset
+class RateLimitedLogger:
+    """Helper to log warnings with rate limiting."""
 
-    with _warning_lock:
-        # Reset counters periodically
-        now = time.time()
-        if now - _last_warning_reset > _WARNING_RESET_INTERVAL:
-            _warning_counts.clear()
-            _last_warning_reset = now
+    def __init__(self, threshold: int = 10, reset_interval: int = 60):
+        self.threshold = threshold
+        self.reset_interval = reset_interval
+        self._lock = threading.Lock()
+        self._counts: Dict[str, int] = defaultdict(int)
+        self._last_reset = time.time()
 
-        _warning_counts[msg_type] += 1
-        count = _warning_counts[msg_type]
+    def warning(self, msg_type: str, message: str):
+        """Log a warning if threshold not exceeded."""
+        with self._lock:
+            now = time.time()
+            if now - self._last_reset > self.reset_interval:
+                self._counts.clear()
+                self._last_reset = now
 
-    # Log outside the lock to avoid blocking
-    if count <= _WARNING_THRESHOLD:
-        logger.warning(message)
-    elif count == _WARNING_THRESHOLD + 1:
-        logger.warning(
-            f"{msg_type}: Further warnings suppressed (threshold: {_WARNING_THRESHOLD})"
-        )
+            self._counts[msg_type] += 1
+            count = self._counts[msg_type]
+
+        if count <= self.threshold:
+            logger.warning(message)
+        elif count == self.threshold + 1:
+            logger.warning(
+                "%s: Further warnings suppressed (threshold: %d)",
+                msg_type,
+                self.threshold,
+            )
+
+
+# Global instance
+_logger_limiter = RateLimitedLogger()
 
 
 def validate_b64_input(data: str) -> Optional[str]:
@@ -206,7 +211,7 @@ def safe_b64_decode(data: str) -> Optional[str]:
         ):
             logger.debug(f"Base64 decode failed (expected for non-b64 content): {exc}")
         else:
-            _rate_limited_warning("base64_decode", f"Base64 decode failed: {exc}")
+            _logger_limiter.warning("base64_decode", f"Base64 decode failed: {exc}")
 
         # If decode fails, return None to signal it is not a valid base64 string
         return None

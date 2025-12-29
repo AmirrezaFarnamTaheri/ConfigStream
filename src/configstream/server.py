@@ -209,7 +209,7 @@ async def get_proxy_diff(base_version: str):
         current_data = json.loads(current_path.read_text())
     except Exception as e:
         logger.error(f"Failed to read current proxies: {e}")
-        raise HTTPException(500, "Internal Server Error")
+        raise HTTPException(500, "Internal Server Error") from e
 
     # If client has specific version matching our backup
     if old_path.exists():

@@ -9,9 +9,9 @@ import base64
 from typing import List, Dict, Any
 from urllib.parse import urlparse, parse_qs
 
-from ...models import Proxy
-from ...fetcher import Fetcher
-from .utils import make_entry
+from configstream.models import Proxy
+from configstream.fetcher import Fetcher
+from configstream.intelligence.washer.utils import make_entry
 
 logger = logging.getLogger(__name__)
 

@@ -6,8 +6,8 @@ import re
 import logging
 from typing import Dict, FrozenSet, Optional
 
-from ..config import AppSettings
-from ..constants import (
+from configstream.config import AppSettings
+from configstream.constants import (
     DANGEROUS_PORTS,
     SUSPICIOUS_DOMAINS,
     MAX_PORT,

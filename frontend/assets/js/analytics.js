@@ -1,3 +1,5 @@
+import logger from './utils/logger.js';
+
 // ConfigStream Analytics - Globe & Charts
 // Uses globe.gl and Chart.js
 
@@ -22,12 +24,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             initCharts(stats);
             initGlobe(stats);
         } else {
-            console.warn("No analytics data available");
+            logger.warn("No analytics data available");
             // Show empty state or placeholder
             showEmptyState();
         }
     } catch (e) {
-        console.error("Failed to load analytics data:", e);
+        logger.error("Failed to load analytics data:", e);
         showEmptyState();
     }
 });
@@ -115,7 +117,7 @@ function initGlobe(data) {
             setTimeout(() => tryInitGlobe(attempts + 1), 200);
         } else {
             const missingLib = !window.THREE ? 'THREE.js' : 'Globe.gl';
-            console.error(`${missingLib} library failed to load after timeout`);
+            logger.error(`${missingLib} library failed to load after timeout`);
             container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);"><i data-feather="globe" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i><span>3D Globe Unavailable</span><span style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Library failed to load. Please refresh the page.</span></div>';
             if (window.feather) window.feather.replace();
         }
@@ -131,12 +133,12 @@ function _initGlobeInternal(data, container) {
 
     // Check if Globe and THREE libraries are loaded
     if (!window.Globe || typeof window.Globe !== 'function') {
-        console.error('Globe.gl library not loaded');
+        logger.error('Globe.gl library not loaded');
         container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">Globe visualization unavailable</div>';
         return;
     }
     if (!window.THREE) {
-        console.error('THREE.js library not loaded');
+        logger.error('THREE.js library not loaded');
         container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--danger-color);">3D rendering library unavailable</div>';
         return;
     }
@@ -486,7 +488,7 @@ function _initGlobeInternal(data, container) {
             }
         }
     } catch (e) {
-        console.error("Failed to initialize Globe:", e);
+        logger.error("Failed to initialize Globe:", e);
         container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);"><i data-feather="globe" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i><span>3D Visualization Unavailable</span><span style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">WebGL is not supported in this environment</span></div>';
         if (window.feather) window.feather.replace();
         return;
