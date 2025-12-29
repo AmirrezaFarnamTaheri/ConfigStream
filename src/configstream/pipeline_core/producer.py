@@ -3,17 +3,17 @@ import logging
 from typing import List, Optional, TYPE_CHECKING
 from rich.progress import Progress, TaskID
 
-from ..models import Proxy
-from ..config import AppSettings
-from ..fetcher import fetch_multiple_sources
-from ..async_file_ops import read_multiple_files_async
-from ..parsers import _extract_config_lines
-from ..source_quality import SourceQualityTracker
-from ..anomaly import AnomalyDetector
-from ..security_validator import SecurityValidator
+from configstream.models import Proxy
+from configstream.config import AppSettings
+from configstream.fetcher import fetch_multiple_sources
+from configstream.async_file_ops import read_multiple_files_async
+from configstream.parsers import _extract_config_lines
+from configstream.source_quality import SourceQualityTracker
+from configstream.anomaly import AnomalyDetector
+from configstream.security_validator import SecurityValidator
 
 if TYPE_CHECKING:
-    from ..event_stream import EventStream
+    from configstream.event_stream import EventStream
 
 logger = logging.getLogger(__name__)
 

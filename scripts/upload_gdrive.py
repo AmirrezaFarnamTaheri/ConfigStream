@@ -6,6 +6,7 @@ Uses Service Account for zero-interaction auth.
 
 # pylint: disable=import-error
 
+import sys
 import os
 import json
 import logging
@@ -121,7 +122,7 @@ def main():
 
     except Exception as e:
         logger.error("Critical Error: %s", e)
-        exit(1)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
