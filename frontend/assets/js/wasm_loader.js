@@ -36,9 +36,15 @@ async function initWasm() {
         // Signal WASM is ready
         window.wasmReady = true;
         document.dispatchEvent(new Event('wasm-ready'));
-        console.log("✅ ConfigStream WASM Core Loaded and Event Dispatched");
+        if (window.ConfigStreamLogger) {
+            window.ConfigStreamLogger.info("✅ ConfigStream WASM Core Loaded and Event Dispatched");
+        }
     } catch (err) {
-        console.error("❌ WASM Load Failed:", err);
+        if (window.ConfigStreamLogger) {
+            window.ConfigStreamLogger.error("❌ WASM Load Failed:", err);
+        } else {
+            console.error("❌ WASM Load Failed:", err);
+        }
         wasmError = err;
         // [FIX] Set wasmReady to false explicitly and expose error
         window.wasmReady = false;
@@ -52,7 +58,9 @@ async function initWasm() {
 function cleanup() {
     if (window.cleanupWasm) {
         window.cleanupWasm();
-        console.log("🧹 WASM Cleaned up");
+        if (window.ConfigStreamLogger) {
+            window.ConfigStreamLogger.info("🧹 WASM Cleaned up");
+        }
     }
 }
 window.addEventListener('beforeunload', cleanup);
@@ -61,13 +69,13 @@ window.addEventListener('beforeunload', cleanup);
 async function verifyProxyBatch(proxies) {
     // [FIX] Better error handling for WASM unavailability
     if (!wasmReady || !window.wasmReady) {
-        console.warn("WASM not ready - skipping client-side verification");
+        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn("WASM not ready - skipping client-side verification");
         return proxies;
     }
 
     // [FIX] Check if testProxyWasm function is available
     if (typeof window.testProxyWasm !== 'function') {
-        console.warn("WASM testProxyWasm function not available - skipping client-side verification");
+        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn("WASM testProxyWasm function not available - skipping client-side verification");
         return proxies;
     }
 

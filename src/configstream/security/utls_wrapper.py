@@ -25,8 +25,27 @@ def _verify_binary_checksum(path: Path) -> bool:
     return True
 
 
-def ensure_binary():
-    """Ensure the Go binary exists, building it if necessary."""
+async def _run_cmd(cmd: list[str], cwd: Path) -> bool:
+    """Helper to run async subprocess commands."""
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            cwd=cwd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        _, stderr = await proc.communicate()
+        if proc.returncode != 0:
+            logger.debug(f"Command failed: {cmd} -> {stderr.decode().strip()}")
+            return False
+        return True
+    except Exception as e:
+        logger.debug(f"Command execution error: {cmd} -> {e}")
+        return False
+
+
+async def ensure_binary_async() -> bool:
+    """Ensure the Go binary exists, building it if necessary (Async)."""
     if BINARY_PATH.exists():
         return True
 
@@ -38,38 +57,29 @@ def ensure_binary():
     src_dir = Path(__file__).parent.parent.parent.parent / "src" / "go" / "utls_client"
     if not src_dir.exists():
         # Source directory missing (e.g., in packaged distribution).
-        # Cannot build binary; functionality gracefully degraded.
         return False
 
     output_dir = BINARY_PATH.parent
+    # mkdir is sync but fast for FS ops; acceptable here or could run in executor
     output_dir.mkdir(exist_ok=True)
 
     logger.info("Building uTLS client...")
-    try:
-        # We need to initialize a module first if not present
-        subprocess.run(
-            ["go", "mod", "init", "utls-client"],
-            cwd=src_dir,
-            capture_output=True,
-            check=False,
-        )
-        subprocess.run(
-            ["go", "get", "github.com/refraction-networking/utls"],
-            cwd=src_dir,
-            capture_output=True,
-            check=False,
-        )
 
-        subprocess.run(
-            ["go", "build", "-o", str(BINARY_PATH), "main.go"],
-            cwd=src_dir,
-            check=True,
-            capture_output=True,
-        )
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to build uTLS client: {e}")
+    # We need to initialize a module first if not present
+    # These steps are sequential
+    await _run_cmd(["go", "mod", "init", "utls-client"], cwd=src_dir)
+    await _run_cmd(["go", "get", "github.com/refraction-networking/utls"], cwd=src_dir)
+
+    success = await _run_cmd(
+        ["go", "build", "-o", str(BINARY_PATH), "main.go"],
+        cwd=src_dir,
+    )
+
+    if not success:
+        logger.error("Failed to build uTLS client binary.")
         return False
+
+    return True
 
 
 async def test_tls_fingerprint(
@@ -88,7 +98,7 @@ async def test_tls_fingerprint(
         False if fingerprint test explicitly failed.
     """
     global _warned_missing
-    if not ensure_binary():
+    if not await ensure_binary_async():
         # Graceful degradation: Skip this enhanced security check if binary unavailable
         # This is an optional advanced feature - core functionality should not be blocked
         if not _warned_missing:

@@ -56,10 +56,10 @@ class UIStateManager {
     
     // Logging utility
     this.log = {
-      info: (msg) => console.log(`[StateManager] ${msg}`),
-      warn: (msg) => console.warn(`[StateManager] ${msg}`),
-      error: (msg) => console.error(`[StateManager] ${msg}`),
-      debug: (msg) => console.debug(`[StateManager] ${msg}`)
+      info: (msg) => { if (window.ConfigStreamLogger) window.ConfigStreamLogger.info(`[StateManager] ${msg}`); },
+      warn: (msg) => { if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn(`[StateManager] ${msg}`); },
+      error: (msg) => { if (window.ConfigStreamLogger) window.ConfigStreamLogger.error(`[StateManager] ${msg}`); },
+      debug: (msg) => { if (window.ConfigStreamLogger) window.ConfigStreamLogger.debug(`[StateManager] ${msg}`); }
     };
     
     // Initialize event listeners
@@ -525,9 +525,13 @@ window.stateManager = new UIStateManager();
 // Expose for debugging in development
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
   window.debugState = () => {
-    console.log('Current State:', window.stateManager.getState());
-    console.log('Listeners:', window.stateManager.listeners);
+    if (window.ConfigStreamLogger) {
+        window.ConfigStreamLogger.debug('Current State:', window.stateManager.getState());
+        window.ConfigStreamLogger.debug('Listeners:', window.stateManager.listeners);
+    }
   };
 }
 
-console.log('✅ UIStateManager initialized');
+if (window.ConfigStreamLogger) {
+    window.ConfigStreamLogger.info('✅ UIStateManager initialized');
+}

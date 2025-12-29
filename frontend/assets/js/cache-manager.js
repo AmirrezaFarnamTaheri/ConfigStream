@@ -167,10 +167,17 @@ class CacheManager {
   }
 
   createLogger() {
+    // [AUDIT] Use production-safe logger wrapper
     return {
-      info: (msg) => console.log(`[CacheManager] ${msg}`),
-      warn: (msg) => console.warn(`[CacheManager] ${msg}`),
-      error: (msg) => console.error(`[CacheManager] ${msg}`),
+      info: (msg) => {
+          if (window.ConfigStreamLogger) window.ConfigStreamLogger.info(`[CacheManager] ${msg}`);
+      },
+      warn: (msg) => {
+          if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn(`[CacheManager] ${msg}`);
+      },
+      error: (msg) => {
+          if (window.ConfigStreamLogger) window.ConfigStreamLogger.error(`[CacheManager] ${msg}`);
+      }
     };
   }
 

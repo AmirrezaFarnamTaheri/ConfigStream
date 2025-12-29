@@ -21,5 +21,7 @@
             defaultExpiry: 5 * 60 * 1000        // 5 minutes default
         }
     };
-    console.log("✅ ConfigStream Cache Config Loaded");
+    if (global.ConfigStreamLogger) {
+        global.ConfigStreamLogger.info("✅ ConfigStream Cache Config Loaded");
+    }
 })(typeof window !== 'undefined' ? window : self);
