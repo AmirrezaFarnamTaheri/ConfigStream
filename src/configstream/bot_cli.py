@@ -88,7 +88,7 @@ async def mirror(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.effective_chat:
         return
 
-    release_url = "https://github.com/YOUR_USER/configstream/releases/latest"
+    release_url = "https://github.com/AmirrezaFarnamTaheri/ConfigStream/releases/latest"
     await context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f"Latest configs are available here: {release_url}",

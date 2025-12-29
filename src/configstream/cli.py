@@ -331,7 +331,7 @@ def update_databases():
                 tar_path.unlink(missing_ok=True)
 
     success = True
-    for name in maxmind_editions.keys():
+    for name, edition in maxmind_editions.items():
         target = data_dir / name
 
         if target.exists() and target.stat().st_size > 0:
@@ -339,7 +339,6 @@ def update_databases():
             console.print(f"[green]OK {name} already exists ({size_mb:.1f} MB)[/green]")
             continue
 
-        edition = maxmind_editions[name]
         downloaded = download_from_maxmind(edition, target)
 
         if not downloaded:
