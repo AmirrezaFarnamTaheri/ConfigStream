@@ -199,6 +199,7 @@ async def fetch_from_source(
         except (httpx.HTTPError, asyncio.TimeoutError, ValueError) as e:
             # Capture status code if available in exception
             if isinstance(e, httpx.HTTPStatusError):
+                # pylint: disable=no-member
                 last_status_code = e.response.status_code
                 logger.warning(
                     f"HTTP Error {last_status_code} for {sanitized_source}: {e}"
@@ -246,8 +247,6 @@ async def fetch_from_source(
                         )
 
                     source_manager.report_failure(source)  # <--- Track Failure
-                except (asyncio.CancelledError, KeyboardInterrupt):
-                    raise
                 except Exception:
                     logger.debug(
                         "Failed to record timeout/source state on permanent error",
@@ -281,7 +280,10 @@ async def fetch_from_source(
                 backoff = min(backoff * 2, 60)
 
         except Exception as e:
-            logger.exception("Unexpected error fetching %s: %s", sanitized_source, e)
+            # Log exception but handle retry logic gracefully
+            logger.error(
+                "Unexpected error fetching %s: %s", sanitized_source, e, exc_info=True
+            )
             last_error = f"Unexpected error: {str(e)}"
             if attempt < max_retries - 1:
                 wait = min(backoff, 30)

@@ -9,14 +9,16 @@ import time
 from typing import List, Dict, Optional, Set, Any, Tuple
 from cachetools import LRUCache
 
-from ...models import Proxy
-from ...converters import to_singbox_outbound
-from ...workers.scanner import WarpScannerWorker
-from .warp_scraper import WarpScraper
-from .key_generator import KeyGenerator  # [FIX] Import the new key generator
-from ...tools.vwarp import VwarpTool
-from ..chaining import find_optimal_relay, ProxyStub, COUNTRIES
-from ...pipeline_core.stats import PipelineStats
+from configstream.models import Proxy
+from configstream.converters import to_singbox_outbound
+from configstream.workers.scanner import WarpScannerWorker
+from configstream.intelligence.washer.warp_scraper import WarpScraper
+from configstream.intelligence.washer.key_generator import (
+    KeyGenerator,
+)  # [FIX] Import the new key generator
+from configstream.tools.vwarp import VwarpTool
+from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
+from configstream.pipeline_core.stats import PipelineStats
 
 logger = logging.getLogger(__name__)
 
@@ -395,11 +397,7 @@ class ProxyWasher:
                 )
                 continue
 
-            chain_id = "CHAIN-{cc}-{rid}-{eid}".format(
-                cc=relay.country_code,
-                rid=relay.id[:6],
-                eid=exit_key.get("id", "00")[:4],
-            )
+            chain_id = f"CHAIN-{relay.country_code}-{relay.id[:6]}-{exit_key.get('id', '00')[:4]}"
 
             with self._seen_chains_lock:
                 if chain_id in self.seen_chains:

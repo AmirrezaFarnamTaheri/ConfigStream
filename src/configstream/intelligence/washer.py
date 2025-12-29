@@ -4,8 +4,12 @@ Refactored into `src/configstream/intelligence/washer/` for modularity.
 This module now serves as a facade for backward compatibility.
 """
 
-from .washer.core import ProxyWasher, CLEAN_IP_SOURCES, DEFAULT_CLEAN_IPS
-from .chaining import generate_smart_chains, create_chain
+from configstream.intelligence.washer.core import (
+    ProxyWasher,
+    CLEAN_IP_SOURCES,
+    DEFAULT_CLEAN_IPS,
+)
+from configstream.intelligence.chaining import generate_smart_chains, create_chain
 
 __all__ = [
     "ProxyWasher",

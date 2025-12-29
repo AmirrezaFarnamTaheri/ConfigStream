@@ -1,5 +1,5 @@
 from typing import Optional, List
-from ...models import Proxy
+from configstream.models import Proxy
 
 
 def make_entry(
@@ -32,8 +32,7 @@ def make_entry(
     octet3 = h[0]
     octet4 = h[1]
     # Ensure fourth octet is not .0 or .1 which can be special
-    if octet4 < 2:
-        octet4 = 2
+    octet4 = max(octet4, 2)
     unique_local_ip = f"172.16.{octet3}.{octet4}/32"
 
     details = {
