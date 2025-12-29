@@ -291,8 +291,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
         # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
-        is_insecure = parse_bool(
-            proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
+        is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
+            proxy.details.get("skip_cert_verify")
         )
 
         out["tls"] = {
@@ -329,8 +329,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             ),
         }
         # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
-        is_insecure = parse_bool(
-            proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
+        is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
+            proxy.details.get("skip_cert_verify")
         )
 
         out["tls"] = {
