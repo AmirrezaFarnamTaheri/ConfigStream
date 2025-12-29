@@ -77,7 +77,11 @@ class LoadingController {
       this.handleDataLoaded();
 
     } catch (error) {
-      console.error('Failed to fetch data:', error);
+      if (window.ConfigStreamLogger) {
+          window.ConfigStreamLogger.error('Failed to fetch data:', error);
+      } else {
+          console.error('Failed to fetch data:', error);
+      }
       this.handleLoadError();
     }
   }
@@ -238,7 +242,7 @@ if ('PerformanceObserver' in window) {
     for (const entry of list.getEntries()) {
       // Log slow animations
       if (entry.duration > 16.67) { // 60fps threshold
-        console.warn('Slow animation detected:', entry.name, entry.duration);
+        if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn('Slow animation detected:', entry.name, entry.duration);
       }
     }
   });

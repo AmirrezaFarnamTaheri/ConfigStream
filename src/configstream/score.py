@@ -71,7 +71,9 @@ def calculate_health_score(
 
     # Load weights from config or Env (priority: Config object > Env > Defaults)
     # This allows external tuning without code changes
-    w_hist = weights.get("historical_success", _get_env_float("SCORE_WEIGHT_HISTORY", 40.0))
+    w_hist = weights.get(
+        "historical_success", _get_env_float("SCORE_WEIGHT_HISTORY", 40.0)
+    )
     w_lat = weights.get("latency", _get_env_float("SCORE_WEIGHT_LATENCY", 30.0))
     w_sec = weights.get("security", _get_env_float("SCORE_WEIGHT_SECURITY", 20.0))
     w_stat = weights.get("current_status", _get_env_float("SCORE_WEIGHT_STATUS", 10.0))

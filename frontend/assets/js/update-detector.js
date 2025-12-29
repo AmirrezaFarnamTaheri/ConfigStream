@@ -35,7 +35,9 @@ class UpdateDetector {
             const storedVersion = localStorage.getItem('configstream_version');
 
             if (storedVersion !== currentVersion) {
-                console.log(`[UpdateDetector] Version change detected (${storedVersion} -> ${currentVersion}). Resetting update timestamps.`);
+                if (window.ConfigStreamLogger) {
+                    window.ConfigStreamLogger.info(`[UpdateDetector] Version change detected (${storedVersion} -> ${currentVersion}). Resetting update timestamps.`);
+                }
                 localStorage.removeItem('configstream_last_timestamps');
                 localStorage.setItem('configstream_version', currentVersion);
                 // Also clear detailed cache if cacheManager is available
@@ -169,10 +171,12 @@ class UpdateDetector {
                 updated.push(resource);
                 this.lastKnownTimestamps[resource] = newTimestamp;
 
-                console.log(`[UpdateDetector] Update detected for ${resource}:`, {
-                    old: oldTimestamp,
-                    new: newTimestamp
-                });
+                if (window.ConfigStreamLogger) {
+                    window.ConfigStreamLogger.info(`[UpdateDetector] Update detected for ${resource}:`, {
+                        old: oldTimestamp,
+                        new: newTimestamp
+                    });
+                }
             }
         }
 
@@ -243,7 +247,7 @@ class UpdateDetector {
         }
 
         this.isPolling = true;
-        console.log('[UpdateDetector] Starting polling (interval: 4 minutes)');
+        if (window.ConfigStreamLogger) window.ConfigStreamLogger.info('[UpdateDetector] Starting polling (interval: 4 minutes)');
 
         // Initial check
         this.poll();
@@ -262,7 +266,7 @@ class UpdateDetector {
             clearInterval(this.pollTimer);
             this.pollTimer = null;
             this.isPolling = false;
-            console.log('[UpdateDetector] Polling stopped');
+            if (window.ConfigStreamLogger) window.ConfigStreamLogger.info('[UpdateDetector] Polling stopped');
         }
     }
 
@@ -270,12 +274,12 @@ class UpdateDetector {
      * Perform a single poll operation
      */
     async poll() {
-        console.log('[UpdateDetector] Polling for updates...');
+        if (window.ConfigStreamLogger) window.ConfigStreamLogger.debug('[UpdateDetector] Polling for updates...');
 
         const result = await this.checkForUpdates();
 
         if (result.hasUpdates) {
-            console.log('[UpdateDetector] Updates found:', result.updated);
+            if (window.ConfigStreamLogger) window.ConfigStreamLogger.info('[UpdateDetector] Updates found:', result.updated);
 
             // Fetch updated resources
             const updatedData = await this.fetchUpdatedResources(result.updated);
@@ -288,7 +292,7 @@ class UpdateDetector {
                 }
             }));
         } else {
-            console.log('[UpdateDetector] No updates detected');
+            if (window.ConfigStreamLogger) window.ConfigStreamLogger.debug('[UpdateDetector] No updates detected');
         }
     }
 
@@ -321,4 +325,4 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-console.log('✅ UpdateDetector loaded successfully');
+// console.log('✅ UpdateDetector loaded successfully');
