@@ -183,7 +183,6 @@ class GeoIPResolver:
             # Expected for private IPs or missing data
             result.country_code = "XX"
             result.country_name = "Unknown"
-            pass
         except (ValueError, TypeError) as e:
             # [FIX P2-3] Invalid IP format or type errors
             logger.debug(f"Invalid IP format during GeoIP lookup for {ip}: {e}")

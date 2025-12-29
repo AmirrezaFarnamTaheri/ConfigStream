@@ -203,7 +203,6 @@ class ProxyHistoryTracker:
 
     def save(self) -> None:
         """Save history. No-op for SQLite as it auto-commits."""
-        pass
 
     def merge(self, other: "ProxyHistoryTracker") -> None:
         """Merge another history tracker (DB) into this one."""

@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Dict, Optional
-from wasmtime import Engine, Store, Module, Instance, Memory, Func, Limits, Config
+from wasmtime import Engine, Store, Module, Instance, Memory, Func, Config
 
 from ..models import Proxy
 from ..parsers.base import normalize_proxy_details
@@ -125,15 +125,15 @@ class WasmParser:
                     except Exception as e:
                         logger.error(f"Failed to free string in {self.name}: {e}")
                 elif self.dealloc:
-                     # Fallback to dealloc if free_string is missing but dealloc exists
-                     # Assuming the result pointer is also allocated with the same allocator
-                     # We might not know the length, so this is risky if dealloc requires correct length.
-                     # Most WASM deallocators need ptr + len.
-                     # If we don't know the length of the result string allocation, we probably shouldn't guess.
-                     # However, the audit explicitly asked for "dealloc" calls.
-                     # The code already has a dedicated `if self.free_string` block.
-                     # We will stick to `free_string` for result_ptr as it is standard in this project.
-                     pass
+                    # Fallback to dealloc if free_string is missing but dealloc exists
+                    # Assuming the result pointer is also allocated with the same allocator
+                    # We might not know the length, so this is risky if dealloc requires correct length.
+                    # Most WASM deallocators need ptr + len.
+                    # If we don't know the length of the result string allocation, we probably shouldn't guess.
+                    # However, the audit explicitly asked for "dealloc" calls.
+                    # The code already has a dedicated `if self.free_string` block.
+                    # We will stick to `free_string` for result_ptr as it is standard in this project.
+                    pass
 
             # Cleanup input ptr if not done (e.g. if exception occurred before dealloc)
             if ptr != 0 and self.dealloc:
