@@ -21,7 +21,9 @@ class WasmParser:
 
         # Configure resource limits
         wasm_config = Config()
-        wasm_config.consume_fuel = True  # Enable fuel consumption to limit execution time/ops
+        wasm_config.consume_fuel = (
+            True  # Enable fuel consumption to limit execution time/ops
+        )
 
         self.engine = Engine(wasm_config)
         self.store = Store(self.engine)

@@ -177,7 +177,9 @@ class GeoIPResolver:
             if self.reader_asn:
                 response_asn = self.reader_asn.asn(ip)
                 result.asn = str(response_asn.autonomous_system_number)
-                result.org = response_asn.autonomous_system_organization or "Unknown Org"
+                result.org = (
+                    response_asn.autonomous_system_organization or "Unknown Org"
+                )
 
         except geoip2.errors.AddressNotFoundError:
             # Expected for private IPs or missing data

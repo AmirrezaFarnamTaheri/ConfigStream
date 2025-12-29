@@ -370,7 +370,11 @@ class GoBatchTester:
             # Cleanup and mark incomplete proxies as unknown/failed
             # Collect keys to remove under lock, then mark proxies outside lock
             async with self._lock:
-                keys_to_remove = [req_id for f, req_id in zip(futures, req_id_map.keys()) if not f.done()]
+                keys_to_remove = [
+                    req_id
+                    for f, req_id in zip(futures, req_id_map.keys())
+                    if not f.done()
+                ]
                 for req_id in keys_to_remove:
                     self._pending_futures.pop(req_id, None)
             for req_id in keys_to_remove:
