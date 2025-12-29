@@ -1,3 +1,5 @@
+import logger from './utils/logger.js';
+
 // Global State
 let allProxies = [];
 let filteredProxies = [];
@@ -89,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const meta = await window.api.fetchStatistics();
                 stats.revived = meta.total_revived || 0;
                 stats.smartChains = meta.total_smart_chains || 0;
-            } catch(e) { console.warn("Metadata load failed", e); }
+            } catch(e) { logger.warn("Metadata load failed", e); }
         }
 
         // Fetch Proxies
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
     } catch (e) {
-        console.error("Failed to load proxies:", e);
+        logger.error("Failed to load proxies:", e);
         if(loadingEl) loadingEl.innerHTML = `<p style="color:var(--danger-color)">Error loading proxies. Please check console.</p>`;
     }
 });

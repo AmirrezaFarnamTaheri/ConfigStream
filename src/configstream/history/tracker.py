@@ -58,7 +58,6 @@ class ProxyHistoryTracker:
 
             self.storage = QualityStorage(path)
 
-        self.session_id = datetime.now(timezone.utc).isoformat()
         self.max_entries = max_entries
         self.session_id = datetime.now(timezone.utc).isoformat()
 
@@ -204,7 +203,6 @@ class ProxyHistoryTracker:
 
     def save(self) -> None:
         """Save history. No-op for SQLite as it auto-commits."""
-        pass
 
     def merge(self, other: "ProxyHistoryTracker") -> None:
         """Merge another history tracker (DB) into this one."""

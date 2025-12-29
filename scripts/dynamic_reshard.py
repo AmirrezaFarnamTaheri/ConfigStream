@@ -4,7 +4,6 @@ import shutil
 import statistics
 from pathlib import Path
 from typing import Dict, List, Tuple
-import os
 
 # --- Configuration ---
 LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs

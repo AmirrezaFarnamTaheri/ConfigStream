@@ -1,7 +1,7 @@
 from typing import Optional
 
 
-from .stats import PipelineStats
+from configstream.pipeline_core.stats import PipelineStats
 
 
 class PipelineResult:
