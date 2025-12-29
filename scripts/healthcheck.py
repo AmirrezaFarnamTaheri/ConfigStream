@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import json
+import math
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -157,7 +158,7 @@ def check_average_latency(proxies: List[Dict], max_avg_latency: int) -> None:
             num = float(val)
         except (TypeError, ValueError):
             continue
-        if num < 0 or not (num == num):  # exclude negatives and NaN
+        if num < 0 or math.isnan(num):  # exclude negatives and NaN
             continue
         latencies.append(num)
 

@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 from ..models import Proxy
 from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
+from ..utils.bool_parser import parse_bool
 
 logger = logging.getLogger(__name__)
 
@@ -290,7 +291,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "password": proxy.uuid or str(proxy.details.get("password", "")),
         }
         # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
-        is_insecure = bool(
+        is_insecure = parse_bool(
             proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
         )
 
@@ -328,7 +329,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             ),
         }
         # [FIX] Check both allowInsecure and skip_cert_verify for consistency with Hysteria
-        is_insecure = bool(
+        is_insecure = parse_bool(
             proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify")
         )
 
