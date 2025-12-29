@@ -5,18 +5,18 @@ from typing import Dict, Optional
 from urllib.parse import urlparse
 import httpx
 
-from ..security.rate_limiter import RateLimiter
-from ..concurrency_manager import ConcurrencyManager
-from ..config import AppSettings
-from ..circuit_breaker import CircuitBreakerManager
-from ..adaptive_timeout import AdaptiveTimeout
-from .models import FetchResult, RateLimitError
-from .worker import fetch_single_source
-from ..security_validator import SecurityValidator
-from .constants import MAX_RESPONSE_SIZE
+from configstream.security.rate_limiter import RateLimiter
+from configstream.concurrency_manager import ConcurrencyManager
+from configstream.config import AppSettings
+from configstream.circuit_breaker import CircuitBreakerManager
+from configstream.adaptive_timeout import AdaptiveTimeout
+from configstream.fetcher_core.models import FetchResult, RateLimitError
+from configstream.fetcher_core.worker import fetch_single_source
+from configstream.security_validator import SecurityValidator
+from configstream.fetcher_core.constants import MAX_RESPONSE_SIZE
 
 # Integrate Source Manager
-from ..source_quality import SourceQualityTracker
+from configstream.source_quality import SourceQualityTracker
 
 logger = logging.getLogger(__name__)
 

@@ -58,7 +58,6 @@ class ProxyHistoryTracker:
 
             self.storage = QualityStorage(path)
 
-        self.session_id = datetime.now(timezone.utc).isoformat()
         self.max_entries = max_entries
         self.session_id = datetime.now(timezone.utc).isoformat()
 

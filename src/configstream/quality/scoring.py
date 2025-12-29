@@ -4,7 +4,7 @@ Scoring logic for source quality.
 
 import math
 from typing import List, Dict
-from ..models import Proxy
+from configstream.models import Proxy
 
 
 def calculate_diversity_score(proxies: List[Proxy]) -> float:

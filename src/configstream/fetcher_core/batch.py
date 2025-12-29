@@ -3,16 +3,16 @@ import logging
 from typing import Dict, Optional, Tuple, List
 import httpx
 
-from ..security.rate_limiter import RateLimiter
-from ..concurrency_manager import ConcurrencyManager
-from ..config import AppSettings
-from ..circuit_breaker import CircuitBreakerManager
-from ..dns_prewarm import prewarm_dns_cache
-from ..adaptive_timeout import AdaptiveTimeout
-from ..http_client import get_client
-from ..source_quality import SourceQualityTracker
-from .models import FetchResult
-from .orchestrator import fetch_from_source
+from configstream.security.rate_limiter import RateLimiter
+from configstream.concurrency_manager import ConcurrencyManager
+from configstream.config import AppSettings
+from configstream.circuit_breaker import CircuitBreakerManager
+from configstream.dns_prewarm import prewarm_dns_cache
+from configstream.adaptive_timeout import AdaptiveTimeout
+from configstream.http_client import get_client
+from configstream.source_quality import SourceQualityTracker
+from configstream.fetcher_core.models import FetchResult
+from configstream.fetcher_core.orchestrator import fetch_from_source
 
 logger = logging.getLogger(__name__)
 
