@@ -28,6 +28,19 @@ def test_homepage_loads(page: Page, http_server):
     url = f"{http_server}/index.html"
 
     try:
+        # Disable animations to prevent visibility issues
+        page.add_init_script("""
+            const style = document.createElement('style');
+            style.innerHTML = `
+                *, *::before, *::after {
+                    animation: none !important;
+                    transition: none !important;
+                    opacity: 1 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        """)
+
         page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
         if "crashed" in str(e).lower():
@@ -38,13 +51,22 @@ def test_homepage_loads(page: Page, http_server):
 
     expect(page).to_have_title("ConfigStream - Your Gateway to the Open Internet")
 
+    # Wait for loading screen to disappear
+    # This is critical as it overlays the entire page
+    page.locator("#loading-screen").wait_for(state="hidden", timeout=15000)
+
     # Check for the Logo
     logo = page.locator(".header-logo-text")
     expect(logo).to_be_visible()
 
     # Check for the "Browse Proxies" button
-    btn = page.locator("text=Browse Proxies")
-    expect(btn).to_be_visible(timeout=10000)
+    # Using more robust locator strategy
+    btn = page.locator("a.btn-primary:has-text('Browse Proxies')")
+    try:
+        expect(btn).to_be_visible(timeout=5000)
+    except AssertionError:
+        print(f"DEBUG: Page Content: {page.content()}")
+        raise
 
 
 @pytest.mark.e2e
