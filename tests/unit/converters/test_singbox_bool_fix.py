@@ -29,7 +29,7 @@ def test_singbox_converter_bool_fix():
         port=443,
         details={
             "password": "pass",
-            "skip_cert_verify": "false" # String "false"
+            "skip_cert_verify": "false"  # String "false"
         }
     )
     out = to_singbox_outbound(p)

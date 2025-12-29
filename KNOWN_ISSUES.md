@@ -2,6 +2,13 @@
 
 ## Recent Fixes
 
+### v2.1.0 Deep Audit & Security Fixes (2025-12-25)
+✅ **Security & Logic**
+- **Fixed**: Boolean parsing regression in Sing-box converter (Hysteria2/TUIC flags)
+- **Fixed**: Unsafe `console.log` usage in frontend (replaced with secure logger)
+- **Fixed**: Concurrency race condition in `GoBatchTester` initialization
+- **Fixed**: Missing cancellation handling in Orchestrator
+
 ### v2.0.12 Critical Technical Debt Resolution (2025-12-23)
 ✅ **Critical Performance and Concurrency Fixes**
 - **Race Condition in ProxyWasher Fixed**: Added `asyncio.Lock` for async operations

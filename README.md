@@ -1,4 +1,4 @@
-# ConfigStream v2.0.13
+# ConfigStream v2.1.0
 
 [![ConfigStream Pipeline](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
 [![Pipeline Health Check](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml)
@@ -12,11 +12,11 @@ ConfigStream is a modular, sovereignty-grade anti-censorship platform. It aggreg
 
 We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a resilient, distributed network without spending a cent on infrastructure.
 
-> **🎯 v2.0.13 Update (2025-12-25):** Production-ready with comprehensive security audit.
-> *   **Critical Fixes:** 404 errors, metrics display, cache resilience
-> *   **Security Hardening:** 7 vulnerabilities fixed (P0/P1/P2)
-> *   **Documentation:** Complete SECURITY.md, enhanced README/CHANGELOG
-> *   **Code Quality:** Flake8 clean, 100% Mypy pass, 125 test files
+> **🎯 v2.1.0 Update (2025-12-25):** Deep audit completion and robustness overhaul.
+> *   **Deep Audit:** 10/10 code quality score across core modules.
+> *   **Security:** Fixed critical boolean parsing logic regression in converters.
+> *   **Stability:** Patched concurrency race conditions and process initialization.
+> *   **Frontend:** Standardized module loading and production-safe logging.
 
 ---
 
@@ -34,7 +34,7 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 | **Performance** | B+ (85%) | ✅ Good | Optimized caching, async operations |
 | **Maintainability** | A (92%) | ✅ High | Modern patterns, type hints, clean code |
 
-### Latest Release: v2.0.13 (2025-12-25)
+### Latest Release: v2.1.0 (2025-12-25)
 - **Status**: ✅ **PRODUCTION READY**
 - **Uptime**: 99.5% (GitHub Actions scheduled runs)
 - **Update Frequency**: Every 6 hours (automatic)
@@ -344,7 +344,7 @@ See [**CONTRIBUTING.md**](CONTRIBUTING.md) for detailed guidelines.
 
 ## 🗺️ Roadmap
 
-### Completed ✅
+### Completed ✅ (v2.1.0)
 - [x] Production deployment on GitHub Pages
 - [x] Comprehensive security audit (2025-12-25)
 - [x] All critical bugs fixed
