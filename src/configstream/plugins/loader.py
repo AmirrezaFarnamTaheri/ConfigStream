@@ -27,7 +27,7 @@ class WasmParser:
         self.store = Store(self.engine)
 
         # Set fuel limit (e.g., 1 billion operations)
-        self.store.add_fuel(1_000_000_000)
+        self.store.add_fuel(1_000_000_000)  # type: ignore[attr-defined]
 
         try:
             self.module = Module.from_file(self.engine, str(wasm_path))
@@ -55,7 +55,7 @@ class WasmParser:
             length = len(config_bytes)
 
             # Replenish fuel before execution
-            self.store.add_fuel(1_000_000)
+            self.store.add_fuel(1_000_000)  # type: ignore[attr-defined]
 
             # Allocate memory in WASM
             ptr = self.alloc(self.store, length)
