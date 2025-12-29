@@ -102,7 +102,7 @@ def generate_stego_assets(
         try:
             key = secret_key.encode()
         except Exception:
-             key = Fernet.generate_key()
+            key = Fernet.generate_key()
     else:
         key = Fernet.generate_key()
         logger.warning("No CONFIG_STREAM_KEY set; using random key for this build.")

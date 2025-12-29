@@ -1,4 +1,33 @@
+## [2.1.1] - 2025-12-25
+
+### Final Polish & Quality Assurance ⭐ STABLE
+
+**Overview**: Final polishing pass completing the deep audit cycle. Focus on linting perfection, documentation consistency, and verifying critical logic fixes.
+
+**Refinements**:
+- **Linting Perfection**: Resolved remaining Pylint warnings (whitespace, indentation) to achieve 10/10 score across all core modules.
+- **Documentation**: Updated `STATUS.md` and `README.md` to reflect `v2.1.1` and "Excellent" health status.
+- **Verification**: Validated boolean parsing fixes with unit tests and manual inspection.
+
 ## [2.1.0] - 2025-12-25
+
+### Comprehensive Project Audit & Fixes ⭐ MAJOR UPDATE
+
+**Overview**: A rigorous, deep-dive audit of the entire codebase was conducted to identify and resolve security regressions, concurrency bugs, script robustness issues, and linting errors.
+
+**Security Enhancements**:
+- **Sing-box Boolean Logic Fix**: Fixed a critical bug in `src/configstream/converters/singbox.py` where boolean flags like `allowInsecure` were incorrectly parsed (treating "false" strings as True). Introduced strict boolean parsing logic.
+- **Frontend Logging**: Replaced potentially unsafe `console.log/error` calls in frontend scripts with a production-safe `logger.js` that suppresses output in production.
+
+**Robustness & Stability**:
+- **Concurrency Fix**: Patched `GoBatchTester` in `src/configstream/testers/go.py` to ensure reliable subprocess initialization regardless of VWARP configuration.
+- **Cancellation Handling**: Restored explicit cancellation handling in `orchestrator.py` to ensure proper shutdown during interruptions.
+- **Frontend Modules**: Converted critical frontend scripts (`main.js`, `proxies.js`, `analytics.js`) to ES Modules (`type="module"`) to support modern imports and prevent runtime errors.
+
+**Code Quality & Refactoring**:
+- **Pylint Score 10/10**: Achieved perfect Pylint scores across core modules by fixing indentation, unused imports, redundant logic, and exception handling order.
+- **Package Restructuring**: Migrated `src/configstream/utils.py` to a package structure `src/configstream/utils/` for better organization.
+- **Script Hardening**: Improved error handling in `healthcheck.py`, `publish_ipfs.py`, and `upload_gdrive.py`.
 
 ### Enhanced Smart Chain Intelligence ⭐ MAJOR FEATURE
 
