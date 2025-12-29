@@ -9,8 +9,8 @@ import json
 import logging
 from typing import List, Dict
 from pathlib import Path
-from ..models import Proxy
-from ..utils import AtomicFileWriter
+from configstream.models import Proxy
+from configstream.utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
