@@ -14,7 +14,7 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, Set, Dict
+from typing import List, Optional, Dict
 
 from rich.progress import Progress, TaskID
 
@@ -33,14 +33,14 @@ from .history.tracker import ProxyHistoryTracker
 from .filtering import filter_unique_endpoints
 from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 
-from .pipeline_core.stats import PipelineStats
-from .pipeline_core.models import PipelineResult
-from .pipeline_stages import (
+from configstream.pipeline_core.stats import PipelineStats
+from configstream.pipeline_core.models import PipelineResult
+from configstream.pipeline_stages import (
     source_producer,
     processing_consumer,
 )
-from .pipeline_core.sorter import sort_proxies_pareto
-from .pipeline_core import output_handler
+from configstream.pipeline_core.sorter import sort_proxies_pareto
+from configstream.pipeline_core import output_handler
 from .event_stream import EventStream
 
 logger = logging.getLogger(__name__)
@@ -342,7 +342,7 @@ async def run_full_pipeline(
         # Trigger Server Update Notification
         # If API server is running on localhost, we notify it
         try:
-            pass  # from .server import manager as ws_manager
+            # from .server import manager as ws_manager
             # Only if running in same process, which is rare for pipeline vs server split.
             # But we can try hitting the endpoint.
             import httpx
