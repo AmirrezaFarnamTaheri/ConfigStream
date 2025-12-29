@@ -255,8 +255,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             octet3 = h[0]
             octet4 = h[1]
             # Ensure fourth octet is not .0 or .1 which can be special
-            if octet4 < 2:
-                octet4 = 2
+            octet4 = max(octet4, 2)
             unique_ip = f"172.16.{octet3}.{octet4}/32"
             local_addresses = [unique_ip]
 

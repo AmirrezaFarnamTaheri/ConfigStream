@@ -48,12 +48,16 @@ def ensure_binary():
     try:
         # We need to initialize a module first if not present
         subprocess.run(
-            ["go", "mod", "init", "utls-client"], cwd=src_dir, capture_output=True
+            ["go", "mod", "init", "utls-client"],
+            cwd=src_dir,
+            capture_output=True,
+            check=False,
         )
         subprocess.run(
             ["go", "get", "github.com/refraction-networking/utls"],
             cwd=src_dir,
             capture_output=True,
+            check=False,
         )
 
         subprocess.run(

@@ -57,7 +57,7 @@ class GoBatchTester:
         self.available = resolved is not None
 
         # Long-lived process state
-        self._proc: Optional[asyncio.subprocess.Process] = None
+        self._proc: Optional[asyncio.subprocess.Process] = None  # type: ignore
         self._lock = asyncio.Lock()
         self._pending_futures: Dict[str, asyncio.Future[Any]] = {}
         self._read_task: Optional[asyncio.Task[None]] = None
@@ -196,13 +196,21 @@ class GoBatchTester:
                         f"Go Tester using Vwarp tunnel at socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"
                     )
 
-                self._proc = await asyncio.create_subprocess_exec(
-                    *cmd,
-                    stdin=asyncio.subprocess.PIPE,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                    env=env,
-                )
+                    self._proc = await asyncio.create_subprocess_exec(  # type: ignore
+                        *cmd,
+                        stdin=asyncio.subprocess.PIPE,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
+                        env=env,
+                    )
+                else:
+                    self._proc = await asyncio.create_subprocess_exec(  # type: ignore
+                        *cmd,
+                        stdin=asyncio.subprocess.PIPE,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE,
+                        env=env,
+                    )
 
                 # Start background readers
                 loop = asyncio.get_running_loop()
