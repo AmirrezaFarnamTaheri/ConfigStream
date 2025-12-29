@@ -358,7 +358,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     else:
         details_to_log = proxy.details.copy()
         # Mask all sensitive credential fields
-        sensitive_fields = {"private_key", "password", "auth_str", "obfs-password", "pbk", "uuid", "id"}
+        sensitive_fields = {
+            "private_key",
+            "password",
+            "auth_str",
+            "obfs-password",
+            "pbk",
+            "uuid",
+            "id",
+        }
         for field in sensitive_fields:
             if field in details_to_log:
                 details_to_log[field] = "[MASKED]"

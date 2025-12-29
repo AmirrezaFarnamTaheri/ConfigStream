@@ -29,7 +29,8 @@ def test_homepage_loads(page: Page, http_server):
 
     try:
         # Disable animations to prevent visibility issues
-        page.add_init_script("""
+        page.add_init_script(
+            """
             const style = document.createElement('style');
             style.innerHTML = `
                 *, *::before, *::after {
@@ -39,7 +40,8 @@ def test_homepage_loads(page: Page, http_server):
                 }
             `;
             document.head.appendChild(style);
-        """)
+        """
+        )
 
         page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
