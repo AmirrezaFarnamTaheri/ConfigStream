@@ -254,9 +254,12 @@ class ProxyWasher:
 
     def _generate_deterministic_ip(self, seed: str) -> str:
         h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
-        octet_3 = (h // 250) % 250
-        octet_4 = (h % 250) + 2
-        return f"172.16.{octet_3}.{octet_4}/32"
+        # [FIX] Use 10.x.x.x range for 16M+ unique IPs
+        # Bit shift to utilize more of the hash entropy
+        octet_2 = (h >> 16) % 255
+        octet_3 = (h >> 8) % 255
+        octet_4 = (h % 254) + 1  # 1-254
+        return f"10.{octet_2}.{octet_3}.{octet_4}/32"
 
     def get_warp_config(self, seed: str) -> Optional[Dict[str, Any]]:
         """

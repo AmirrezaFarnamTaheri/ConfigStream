@@ -518,6 +518,13 @@ def generate_smart_chains(
     # --- CHAIN 1: THE INTRANET BRIDGE (Standard & Washed) ---
     # Strategy: User (Intranet) -> Relay (IR) -> Exit (Foreign) [-> WARP]
 
+    # [FIX] Configurable intranet origin, defaulting to IR
+    import os
+    intranet_origin = os.getenv("INTRANET_ORIGIN", "IR")
+    relays_intranet = [
+        p for p in proxies if p.country_code == intranet_origin and p.is_working
+    ]
+
     # [OPTIMIZATION] Pre-calculate Foreign Exit Coordinates to avoid repetitive lookups
     # Only compute for exits in known countries
     optimized_exits: List[Tuple[Proxy, float, float]] = []
@@ -526,7 +533,7 @@ def generate_smart_chains(
             lat, lon = COUNTRIES[ep.country_code]
             optimized_exits.append((ep, lat, lon))
 
-    for relay in relays_ir:
+    for relay in relays_intranet:
         # [FIX] Use geographical optimization to find the best exit for this relay
         # Pick the exit with minimum distance to the relay
         best_exit = None

@@ -19,11 +19,15 @@ class ConcurrencyManager:
         initial_limit: int = 50,
         min_limit: int = 10,
         max_limit: int = 500,
+        error_threshold: float = 0.1,
+        backoff_factor: float = 0.7,
     ):
         self.loop = loop
         self.current_limit = initial_limit
         self.min_limit = min_limit
         self.max_limit = max_limit
+        self.error_threshold = error_threshold
+        self.backoff_factor = backoff_factor
 
         self.semaphore = ResizableSemaphore(initial_limit)
         self.latencies: Deque[float] = deque(maxlen=100)
@@ -67,9 +71,9 @@ class ConcurrencyManager:
 
         # Perform adjustment outside lock (doesn't need lock)
 
-        if error_rate > 0.1:
+        if error_rate > self.error_threshold:
             # High errors -> Multiplicative Decrease
-            new_limit = max(self.min_limit, int(self.current_limit * 0.7))
+            new_limit = max(self.min_limit, int(self.current_limit * self.backoff_factor))
             if new_limit != self.current_limit:
                 logger.debug(
                     f"High error rate ({error_rate:.2f}). Decreasing concurrency to {new_limit}"

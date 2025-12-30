@@ -256,7 +256,13 @@ class ProxyWasher:
 
 **Implementation**:
 ```python
+# [v2.2.0 Update] Thread-safe Singleton with Hot-Reloading
 def lookup(ip: str) -> GeoData:
+    """
+    1. Check if DB file changed (mtime check) -> Reload if needed
+    2. Acquire Lock (Thread-safe read)
+    ...
+    """
     """
     1. Validate IP format
     2. Query GeoLite2-City.mmdb

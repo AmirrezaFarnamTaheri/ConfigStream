@@ -78,7 +78,9 @@ class SurgeAdapter(Adapter):
 
     def _format_proxy(self, p: Proxy) -> str:
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
-        name = name.replace(",", "_").strip()
+        # [FIX] Sanitize name: Replace commas with underscores, allow dots
+        name = name.replace(",", "_").replace("\n", " ").strip()
+        name = "".join(c for c in name if c.isalnum() or c in " -_[]().")
 
         if p.protocol in ("ss", "shadowsocks"):
             method = p.details.get("method", "chacha20-ietf-poly1305")

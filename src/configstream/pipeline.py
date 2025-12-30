@@ -42,6 +42,7 @@ from configstream.pipeline_stages import (
 from configstream.pipeline_core.sorter import sort_proxies_pareto
 from configstream.pipeline_core import output_handler
 from .event_stream import EventStream
+from configstream.intelligence.washer.core import ProxyWasher # [FIX] Import here
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +151,10 @@ async def run_full_pipeline(
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
 
+    # [FIX] Initialize Shared Washer Singleton
+    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    await washer.fetch_clean_ips() # Pre-fetch once
+
     # Initialize Event Stream
     event_stream = EventStream(output_path)
 
@@ -170,10 +175,22 @@ async def run_full_pipeline(
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
-            # Give it a second to bind
-            await asyncio.sleep(1)
-            # Signal Go Tester to use it
-            os.environ["USE_VWARP_TUNNEL"] = "true"
+
+            # [FIX] Robust startup check instead of sleep(1)
+            import socket
+            for _ in range(20): # Try for 2 seconds (20 * 0.1)
+                await asyncio.sleep(0.1)
+                try:
+                    with socket.create_connection((VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT), timeout=0.1):
+                        logger.info("✅ Vwarp Tunnel established.")
+                        # Signal Go Tester to use it
+                        os.environ["USE_VWARP_TUNNEL"] = "true"
+                        break
+                except (OSError, ConnectionRefusedError):
+                    continue
+            else:
+                logger.warning("⚠️ Vwarp Tunnel started but port check timed out. Proceeding anyway.")
+
         except Exception as e:
             logger.warning(f"Failed to start Vwarp tunnel: {e}")
 
@@ -267,6 +284,7 @@ async def run_full_pipeline(
                 country_filter,
                 leniency,
                 seen_lock=seen_lock,
+                washer=washer, # [FIX] Pass shared washer
             )
         )
         consumer_tasks.append(t)
@@ -373,21 +391,22 @@ async def run_full_pipeline(
         if tester:
             await tester.close()
 
-        # Shutdown Vwarp tunnel
+        # Shutdown Vwarp tunnel (Robust cleanup)
         if vwarp_proc:
             try:
                 vwarp_proc.terminate()
-                vwarp_proc.wait(timeout=2)
-            except subprocess.TimeoutExpired:
-                # [FIX P2-1] Process didn't terminate gracefully - force kill
-                logger.warning(
-                    "Vwarp process didn't terminate gracefully, forcing kill"
-                )
-                vwarp_proc.kill()
                 try:
-                    vwarp_proc.wait(timeout=1)
+                    vwarp_proc.wait(timeout=2)
                 except subprocess.TimeoutExpired:
-                    logger.error("Failed to kill Vwarp process")
+                    # [FIX P2-1] Process didn't terminate gracefully - force kill
+                    logger.warning(
+                        "Vwarp process didn't terminate gracefully, forcing kill"
+                    )
+                    vwarp_proc.kill()
+                    try:
+                        vwarp_proc.wait(timeout=1)
+                    except subprocess.TimeoutExpired:
+                         logger.error("Failed to kill Vwarp process")
             except ProcessLookupError:
                 # [FIX P2-1] Process already terminated
                 logger.debug("Vwarp process already terminated")

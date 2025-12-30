@@ -1,6 +1,7 @@
 [allowlist]
     paths = [
-        '''sources/.*''',
+        '''sources/.*\.txt$''',
+        '''sources/.*\.yaml$''',
         '''output/.*''',
         '''data/.*''',
         '''test_anomaly.db'''
