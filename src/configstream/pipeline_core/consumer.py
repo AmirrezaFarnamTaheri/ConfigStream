@@ -53,6 +53,7 @@ async def processing_consumer(
     country_filter: Optional[str],
     leniency: bool,
     seen_lock: Optional[asyncio.Lock] = None,
+    washer: Optional[ProxyWasher] = None,  # [FIX] Receive shared washer
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
@@ -64,10 +65,10 @@ async def processing_consumer(
     if seen_lock is None:
         seen_lock = asyncio.Lock()
 
-    # Initialize Washer for Revival (using Env Keys)
-    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
-    # Pre-fetch clean IPs if not already done (though scraper usually handles it)
-    await washer.fetch_clean_ips()
+    # [FIX] Use passed shared washer or fallback (legacy support)
+    if washer is None:
+        washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+        await washer.fetch_clean_ips()
 
     while True:
         # The producer sends None as sentinel when done, which is the proper

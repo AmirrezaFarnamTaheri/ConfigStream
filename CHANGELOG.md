@@ -1,3 +1,14 @@
+## [2.2.0] - 2025-12-30
+
+### 🛡️ Ironclad Audit & Hardening
+
+**Critical Fixes (Phases 1-5 Audit)**
+- **Versioning**: Resolved split-brain versioning between Backend (v2.1), Frontend (v1.0), and Docs.
+- **Frontend**: Fixed `cache_config.js` caching issue that prevented clients from updating.
+- **Security**: Added 50MB limit to parsers to prevent OOM attacks; Fixed IP collision in Washer.
+- **Concurrency**: Fixed race condition in `GoBatchTester` future handling.
+- **Infrastructure**: Optimized Docker build and fixed Release pipeline gaps.
+
 ## [2.1.1] - 2025-12-25
 
 ### Final Polish & Quality Assurance ⭐ STABLE

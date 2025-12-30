@@ -20,7 +20,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
         remark_part = parts[1] if len(parts) > 1 else ""
         remark_str, _, query_str = remark_part.partition("?")
         remark = unquote(remark_str)
-        details = {k: v[0] for k, v in parse_qs(query_str).items()}
+        # [FIX] Safety check for empty lists
+        details = {k: v[0] for k, v in parse_qs(query_str).items() if v}
 
         # The part before the @ is either plain text or base64 encoded
         if "@" in main_part:

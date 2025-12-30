@@ -5,12 +5,13 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "0 0,7,14,21 * * *"  # Every 7 hours
+    - cron: "0 */6 * * *"  # [FIX] Truly every 6 hours (0, 6, 12, 18)
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: false
+  # [FIX] Cancel redundant runs on PRs to save resources
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: write

@@ -140,7 +140,8 @@ async def fetch_from_source(
                 if jitter > 2.0:
                     logger.info(f"High Jitter detected for {source}: {jitter:.2f}s")
 
-            if result.success:
+            # Success (at least partial)
+            if result.success and result.content:
                 source_manager.report_success(source)  # <--- Track Success
 
                 # [FIX] Handle bytes vs str for content preview

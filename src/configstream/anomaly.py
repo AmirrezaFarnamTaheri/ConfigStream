@@ -27,12 +27,16 @@ class AnomalyDetector:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
+        self._conn = None  # [FIX] Persistent connection
         with self._lock:
             self._init_db()
 
     def _init_db(self):
         try:
-            with sqlite3.connect(self.db_path) as conn:
+            # [FIX] Keep connection open, disable check_same_thread as we use a lock
+            self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn = self._conn
+            if True: # Indent preservation
                 # Enable WAL mode for better concurrency and crash recovery
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA synchronous=NORMAL")
@@ -66,8 +70,27 @@ CREATE TABLE IF NOT EXISTS history (
         try:
             # Fetch rows under lock (short critical section), then release for computation
             with self._lock:
-                with sqlite3.connect(self.db_path) as conn:
-                    rows = conn.execute(
+                # [FIX] Robustness: Check connection state
+                if self._conn is None:
+                    try:
+                        self._init_db()
+                    except Exception as e:
+                        return True, f"DB Init Error (Fail Open): {e}"
+
+                try:
+                    rows = self._conn.execute(
+                        "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
+                        (url,),
+                    ).fetchall()
+                except (sqlite3.Error, AttributeError) as e:
+                    # Attempt reconnection once
+                    logger.warning(f"Anomaly DB connection lost ({e}), reconnecting...")
+                    try:
+                        self._conn.close()
+                    except Exception:
+                        pass
+                    self._init_db()
+                    rows = self._conn.execute(
                         "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
                         (url,),
                     ).fetchall()
@@ -206,7 +229,8 @@ CREATE TABLE IF NOT EXISTS history (
         Record a successful fetch count for future baselines.
         """
         try:
-            with self._lock, sqlite3.connect(self.db_path) as conn:
+            with self._lock:
+                conn = self._conn
                 conn.execute(
                     "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
                     (url, count, int(time.time())),

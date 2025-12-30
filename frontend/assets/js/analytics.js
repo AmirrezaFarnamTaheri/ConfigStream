@@ -108,23 +108,19 @@ function initGlobe(data) {
     container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;"><div class="spinner" style="border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;"></div>Loading globe...</div>';
 
     // Wait for Globe.gl and THREE.js libraries to be available (retry mechanism)
-    // Increased attempts to 50 (approx 10s) to allow for fallback loading if CDN fails
-    const tryInitGlobe = (attempts = 0) => {
-        if (window.Globe && typeof window.Globe === 'function' && window.THREE) {
-            _initGlobeInternal(data, container);
-        } else if (attempts < 50) {
-            // Retry every 200ms
-            setTimeout(() => tryInitGlobe(attempts + 1), 200);
-        } else {
-            const missingLib = !window.THREE ? 'THREE.js' : 'Globe.gl';
-            logger.error(`${missingLib} library failed to load after timeout`);
-            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; flex-direction: column; color: var(--text-secondary);"><i data-feather="globe" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i><span>3D Globe Unavailable</span><span style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Library failed to load. Please refresh the page.</span></div>';
-            if (window.feather) window.feather.replace();
-        }
-    };
-
-    // Start trying to initialize the globe
-    tryInitGlobe();
+    // [FIX] Removed polling loop. Rely on standard load event.
+    if (window.Globe && window.THREE) {
+        _initGlobeInternal(data, container);
+    } else {
+        window.addEventListener('load', () => {
+             if (window.Globe && window.THREE) _initGlobeInternal(data, container);
+             else {
+                 const missingLib = !window.THREE ? 'THREE.js' : 'Globe.gl';
+                 logger.error(`${missingLib} library failed to load`);
+                 container.innerHTML = '<div class="error-placeholder">Visualization Unavailable (Network Error)</div>';
+             }
+        });
+    }
 }
 
 function _initGlobeInternal(data, container) {
