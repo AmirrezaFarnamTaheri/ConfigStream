@@ -38,7 +38,7 @@ app = FastAPI(
     redoc_url=None,
 )
 
-# [SECURITY FIX P1] Enable CORS with restricted origins
+# Enable CORS with restricted origins
 # Allow localhost for development and GitHub Pages for production deployment
 # Set ALLOWED_ORIGINS environment variable for custom domains
 ALLOWED_ORIGINS_STR = os.getenv(
@@ -59,7 +59,7 @@ ALLOWED_ORIGIN_REGEX = os.getenv(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=ALLOWED_ORIGIN_REGEX,  # For GitHub Pages wildcard support
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
@@ -85,10 +85,7 @@ class ConnectionManager:
         self._failed_connections.discard(websocket)
 
     async def broadcast(self, message: dict):
-        """Broadcast message to all connected clients.
-
-        [FIX P2] Specific exception handling instead of broad Exception catch.
-        """
+        """Broadcast message to all connected clients."""
         for connection in self.active_connections[
             :
         ]:  # Copy to avoid modification during iteration
@@ -125,9 +122,8 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Keep connection alive, wait for client messages if any
             data = await websocket.receive_text()
-            # [SECURITY FIX P1] Validate WebSocket messages
+            # Validate WebSocket messages
             if not isinstance(data, str) or len(data) > 1024:
-                # [FIX P1] Log only metadata, not raw content (security leak)
                 logger.warning(
                     f"Invalid WebSocket message: type={type(data).__name__}, length={len(data) if isinstance(data, str) else 'N/A'}"
                 )
@@ -139,7 +135,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 # Allow clients to request immediate update check
                 pass
             else:
-                # [FIX P1] Log command type only, not content
                 logger.debug(f"Unknown WebSocket command (length: {len(data)})")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
@@ -149,15 +144,15 @@ async def websocket_endpoint(websocket: WebSocket):
 async def notify_update(payload: dict):
     """
     Internal endpoint called by pipeline when a cycle finishes.
-    [SECURITY FIX P1] Requires ADMIN_API_KEY environment variable for authentication
+    Requires ADMIN_API_KEY environment variable for authentication
     (except for localhost/internal callers during development).
     """
-    # [FIX P1] Simple API key authentication for admin endpoints
+    # Simple API key authentication for admin endpoints
     # Only enforce API key for external production deployments
     api_key = os.getenv("ADMIN_API_KEY")
     if api_key:
         provided_key = payload.get("api_key")
-        # [FIX P1] Allow internal pipeline calls without API key if key matches or is from internal source
+        # Allow internal pipeline calls without API key if key matches or is from internal source
         # In production, pipeline should include api_key in payload
         if not provided_key:
             # Check if this is an internal call (development/CI environment)
@@ -191,7 +186,6 @@ async def get_proxy_diff(base_version: str):
     Returns a JSON patch or delta between the client's version and current version.
     Requires server to maintain 'proxies.json' and 'proxies.old.json'.
     """
-    # [SECURITY FIX P1] Validate base_version parameter
     if (
         not base_version
         or not re.match(r"^[a-zA-Z0-9._-]+$", base_version)

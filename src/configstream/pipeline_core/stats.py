@@ -11,7 +11,7 @@ class PipelineStats:
 
     # Canonical Stats
     total_configured_sources: int = (
-        0  # [FIX] Total sources from sources.yaml (for frontend display)
+        0  # Total sources from sources.yaml (for frontend display)
     )
     fetched_sources: int = 0  # Sources actually processed
     fetched_lines: int = 0  # Raw lines fetched
@@ -68,12 +68,10 @@ class PipelineStats:
             "revived_warp": self.revived_warp,
             "revived_vwarp": self.revived_vwarp,
             "total_revived": self.total_revived,
-            # [FIX] Add missing vwarp stats for CLI/API export
             "warp_attempts": self.warp_attempts,
             "vwarp_attempts": self.vwarp_attempts,
             "vwarp_success": self.vwarp_success,
             "vwarp_win_rate": self.vwarp_win_rate,
             "washing_enabled": self.washing_enabled,
-            # [FIX] Add drop_reasons for debugging
             "drop_reasons": self.drop_reasons,
         }
