@@ -102,14 +102,6 @@ async def generate_pipeline_outputs(
     )
 
     # 5. Metadata & Stats
-    # Note: save_metadata expects QualityStorage but ProxyHistoryTracker has HistoryStorage.
-    # This indicates an architectural mismatch. However, to resolve the error, we can pass None or fix the type.
-    # save_metadata in output_logic.py is typed to accept QualityStorage.
-    # ProxyHistoryTracker.storage is HistoryStorage.
-    # We will skip passing history storage to save_metadata for now to fix the type error,
-    # assuming save_metadata handles None or we pass a compatible object if possible.
-    # But save_metadata signature is (stats, proxies, output_dir, history).
-    # We pass history.storage (HistoryStorage) which is compatible with the Any type expected by save_metadata.
     save_metadata(stats, optimized_proxies, output_path)
 
     # [FIX] Export history visualization data
