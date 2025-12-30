@@ -150,6 +150,11 @@ async def run_full_pipeline(
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
 
+    # [FIX] Initialize Shared Washer Singleton
+    from configstream.intelligence.washer.core import ProxyWasher
+    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    await washer.fetch_clean_ips()
+
     # Initialize Event Stream
     event_stream = EventStream(output_path)
 
@@ -267,6 +272,7 @@ async def run_full_pipeline(
                 country_filter,
                 leniency,
                 seen_lock=seen_lock,
+                washer=washer,  # [FIX] Pass shared washer
             )
         )
         consumer_tasks.append(t)

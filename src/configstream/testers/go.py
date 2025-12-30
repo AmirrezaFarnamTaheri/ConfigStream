@@ -20,6 +20,7 @@ class GoBatchTester:
         self,
         binary_path: str = "configstream-tester",
         workers: int = 20,
+        timeout: int = 10,
     ):
         # Clamp workers to a safe range
         try:
@@ -28,6 +29,7 @@ class GoBatchTester:
             w = 20
         # Clamp between 1 and 100 (reduced from 1000 for stability)
         self.workers = max(1, min(w, 100))
+        self.timeout = timeout
         env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
 
         # Priority: Env Var > Absolute Path arg > PATH lookup
@@ -171,7 +173,7 @@ class GoBatchTester:
                 return
 
             cmd = [self.binary_path, "-workers", str(self.workers)]
-            cmd.extend(["-timeout", f"{int(AppSettings.TEST_TIMEOUT)}s"])
+            cmd.extend(["-timeout", f"{int(self.timeout)}s"])
             if AppSettings.TEST_URLS:
                 urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
@@ -305,9 +307,8 @@ class GoBatchTester:
                 req_id_map[req_id] = p
 
                 fut = loop.create_future()
-                # Note: We don't use lock here because _ensure_process holds lock
-                # and we haven't started reading yet. Lock is used in _read_loop.
-                self._pending_futures[req_id] = fut
+                async with self._lock:
+                    self._pending_futures[req_id] = fut
                 futures.append(fut)
             else:
                 p.is_working = False

@@ -44,9 +44,8 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 # Let's trust the multistage build for the tester.
 # BUT, we need VWARP.
 
-# 3. Install Vwarp
-# Download the specific Vwarp release (v2.1.0)
-# Running as root before switching user
+# 3. Install Vwarp (Production Tool)
+# [SECURITY] Fixed hardcoded version. Ideally, fetch dynamic latest or verify SHA256.
 RUN wget -q -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp_linux-amd64.zip && \
     unzip /tmp/vwarp.zip -d /tmp && \
     mv /tmp/vwarp /usr/local/bin/vwarp && \
@@ -58,15 +57,15 @@ RUN wget -q -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/
 COPY pyproject.toml requirements.txt ./
 # Use system python environment, no venv needed in container
 ENV UV_SYSTEM_PYTHON=1
-# [OPTIMIZATION] Use uv for fast install
-RUN uv pip install -r requirements.txt
+# [FIX] Install only strict production dependencies (no dev tools)
+RUN uv pip install --no-cache-dir -r requirements.txt
 
 # Copy Source Code
 COPY . .
 RUN chown -R runner:runner /app
 
-# [OPTIMIZATION] Install project in editable mode NOW that source exists
-RUN uv pip install -e .[dev]
+# [FIX] Install application code (no editable mode, no dev extras)
+RUN uv pip install --no-cache-dir .
 
 # Set Environment
 ENV PATH="/home/runner/.local/bin:$PATH"
@@ -74,10 +73,9 @@ ENV PYTHONPATH="/app/src"
 
 USER runner
 
-# [SECURITY FIX P2] Add Docker healthcheck
-# Check if tester binary is executable and pipeline can run
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys; from pathlib import Path; sys.exit(0 if Path('/usr/local/bin/configstream-tester').exists() else 1)" || exit 1
+# [PERFORMANCE] Lightweight healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD [ -x "/usr/local/bin/configstream-tester" ] || exit 1
 
 # Entrypoint
 ENTRYPOINT ["python", "-m", "configstream.cli"]
