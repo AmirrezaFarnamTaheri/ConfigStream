@@ -70,11 +70,9 @@ async def processing_consumer(
     await washer.fetch_clean_ips()
 
     while True:
-        # [FIX] Critical: Removed timeout to prevent deadlock
         # The producer sends None as sentinel when done, which is the proper
         # termination mechanism. A timeout could cause premature exit if sources
         # are slow to fetch, leading to incomplete processing and lost data.
-        # If timeout is needed for debugging, use a very large value (3600+)
         item = await work_queue.get()
 
         if item is None:
@@ -138,13 +136,13 @@ async def processing_consumer(
         unique_batch = []
         duplicates_count = 0
         async with seen_lock:
-            # [FIX] Critical: Use more efficient deduplication (LRU style)
+            # Use more efficient deduplication (LRU style)
             max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
 
             for p in parsed_batch:
                 k = proxy_unique_key(p)
                 if k not in seen_keys:
-                    # [FIX] If approaching limit, remove oldest entries
+                    # If approaching limit, remove oldest entries
                     if len(seen_keys) >= max_seen:
                         eviction_count = max(100, max_seen // 100)  # Evict 1%
 
