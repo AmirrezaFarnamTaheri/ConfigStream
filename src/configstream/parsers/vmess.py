@@ -30,7 +30,6 @@ def parse_vmess(config: str) -> Optional[Proxy]:
 
         vmess_data = json.loads(decoded)
 
-        # [FIX] Strict field validation
         if not all(k in vmess_data for k in ["add", "port", "id"]):
             return None
 
@@ -55,7 +54,6 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         # Non-zero AlterID is considered insecure / legacy and is ignored here.
         vmess_data["aid"] = 0
 
-        # [FIX] Sanitize remarks/ps
         ps = vmess_data.get("ps", "")
         if isinstance(ps, str):
             ps = ps[:200]

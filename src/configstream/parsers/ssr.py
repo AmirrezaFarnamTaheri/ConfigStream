@@ -97,7 +97,6 @@ def parse_ssr(config: str) -> Optional[Proxy]:
                 "params": params_decoded,
             },
         )
-        # [FIX] Add missing normalize_proxy_details call (present in all other parsers)
         normalize_proxy_details(proxy)
         return proxy
     except (ValueError, IndexError) as e:

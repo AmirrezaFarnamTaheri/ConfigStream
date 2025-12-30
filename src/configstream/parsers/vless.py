@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 def parse_vless(config: str) -> Optional[Proxy]:
     try:
-        # [FIX] Aggressive pre-cleaning
         config = config.strip()
         parsed = urlparse(config)
 
@@ -26,7 +25,6 @@ def parse_vless(config: str) -> Optional[Proxy]:
         if not (1 <= port <= 65535):
             return None
 
-        # [FIX] Aggressive sanitization
         raw_details = parse_qs(parsed.query)
         details = {}
         for k, v in raw_details.items():
@@ -60,7 +58,6 @@ def parse_vless(config: str) -> Optional[Proxy]:
                 return None
 
             sid = details.get("sid", "")
-            # [FIX] Validate HEX for sid
             try:
                 if sid:
                     int(sid, 16)
