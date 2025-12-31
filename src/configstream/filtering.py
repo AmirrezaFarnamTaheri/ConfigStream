@@ -22,7 +22,8 @@ def proxy_unique_key(
     """
     proto = p.protocol.lower().strip()
     # Use address (hostname) for stable deduplication before testing
-    addr = p.address.lower().strip()
+    # [FIX] Normalize address by removing trailing dot (DNS root)
+    addr = p.address.lower().strip().rstrip(".")
     port = int(p.port)
     uuid = (p.uuid or "").lower().strip()
 

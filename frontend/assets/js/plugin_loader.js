@@ -31,7 +31,12 @@ class WasmPlugin {
 
             // Deallocate input if possible
             if (this.dealloc) {
-                this.dealloc(ptr, len);
+                // [FIX] Try-catch block for dealloc as signatures vary
+                try {
+                    this.dealloc(ptr, len);
+                } catch (e) {
+                    // Ignore signature mismatch errors on free
+                }
                 ptr = 0;
             }
 
@@ -77,8 +82,7 @@ class WasmPlugin {
             }
             // Free input if not already freed (e.g. exception)
             if (ptr !== 0 && this.dealloc) {
-                // [FIX] Use captured len
-                this.dealloc(ptr, len);
+                try { this.dealloc(ptr, len); } catch(e){}
             }
         }
     }

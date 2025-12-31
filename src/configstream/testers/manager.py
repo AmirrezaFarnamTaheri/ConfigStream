@@ -26,7 +26,7 @@ class SingBoxTester:
         self.strict_security = strict_security
         self.settings = AppSettings()
         self.dry_run = dry_run
-        self.go_tester = GoBatchTester(workers=max_workers)
+        self.go_tester = GoBatchTester(workers=max_workers, timeout=int(timeout))
         self.python_tester = PythonTester(self.settings, timeout, strict_security)
 
     async def test(self, proxy: Proxy) -> Proxy:

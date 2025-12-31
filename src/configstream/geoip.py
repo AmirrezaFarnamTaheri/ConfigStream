@@ -51,6 +51,7 @@ class GeoIPResolver:
 
         # FIX: Use threading.Lock for sync context - asyncio.Lock created lazily
         self._lookup_lock: Optional[asyncio.Lock] = None
+        self._last_mtime: float = 0.0
 
         # [FIX] Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
         self._uses_c_extension: bool = False
@@ -98,10 +99,12 @@ class GeoIPResolver:
                     self._uses_c_extension = False  # Reset flag on fallback
 
                 logger.info("Loaded GeoLite2 City database.")
+                self._last_mtime = city_path.stat().st_mtime
             else:
                 logger.warning(
                     "GeoLite2 City DB not found. Geolocation disabled. Run 'configstream update-databases'."
                 )
+                self._last_mtime = 0
 
             if asn_path.exists():
                 try:
@@ -132,6 +135,19 @@ class GeoIPResolver:
             self._lookup_lock = asyncio.Lock()
         return self._lookup_lock
 
+    def _check_reload_needed(self):
+        """Check if DB file has changed on disk."""
+        try:
+            p = Path("data/GeoLite2-City.mmdb")
+            if p.exists():
+                mtime = p.stat().st_mtime
+                if mtime > self._last_mtime:
+                    logger.info("GeoIP database changed. Reloading...")
+                    self.close()
+                    self._load_databases()
+        except Exception:
+            pass
+
     async def lookup(self, ip: str) -> GeoData:
         """Resolve IP to Country, City, ASN (Async with conditional Lock).
 
@@ -149,6 +165,10 @@ class GeoIPResolver:
         except ValueError:
             logger.debug(f"Invalid IP address format: {ip}")
             return result
+
+        # [FIX] Check for updates (only in pure python mode or before lock)
+        if self._initialized and not self._uses_c_extension:
+            self._check_reload_needed()
 
         # [OPTIMIZATION] Skip lock when C extension is used (thread-safe reads)
         if self._uses_c_extension:

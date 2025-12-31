@@ -3,8 +3,8 @@
 
 (function(global) {
     global.ConfigStreamCache = {
-        VERSION: 'v1.0.0', // Increment this to bust cache
-        CACHE_NAME: 'configstream-cache-v1',
+        VERSION: 'v2.2.0', // [FIX] Synced with pyproject.toml
+        CACHE_NAME: 'configstream-cache-v2.2.0',
 
         // Cache Strategies
         CACHE_STRATEGY: 'stale-while-revalidate', // or 'network-first'

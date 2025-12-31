@@ -14,7 +14,11 @@ def calculate_compound_score(proxy: Proxy) -> float:
     Lower is better.
     Score = Latency * ReliabilityPenalty
     """
-    latency = proxy.latency if proxy.latency is not None else 5000
+    # [FIX] Treat 0 as invalid (measurement error), fallback to 5000
+    latency = (
+        proxy.latency if (proxy.latency is not None and proxy.latency > 0) else 5000
+    )
+
     # Infer reliability from available metadata or default
     reliability_penalty = 1.0
     if hasattr(proxy, "stale") and proxy.stale:
