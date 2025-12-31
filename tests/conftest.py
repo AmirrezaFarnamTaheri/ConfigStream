@@ -3,6 +3,11 @@ import http.server
 import socketserver
 import threading
 import os
+import asyncio
+import nest_asyncio
+
+# Apply nest_asyncio to allow nested event loops (critical for testing asyncio.run calls)
+nest_asyncio.apply()
 
 @pytest.fixture(scope="session")
 def http_server(request):
