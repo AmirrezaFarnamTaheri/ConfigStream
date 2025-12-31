@@ -145,6 +145,7 @@ def test_fail_open_on_error(detector):
     # We replace the connection object entirely because we can't patch read-only 'execute'
     from unittest.mock import MagicMock
     import sqlite3
+
     mock_conn = MagicMock()
     # Mock specific sqlite3.Error which is caught by the logic
     mock_conn.execute.side_effect = sqlite3.OperationalError("DB Execution Error")
@@ -152,7 +153,9 @@ def test_fail_open_on_error(detector):
     detector._conn = mock_conn
 
     # Also mock reconnection attempt failing
-    with patch.object(detector, "_init_db", side_effect=RuntimeError("Reconnection Failed")):
+    with patch.object(
+        detector, "_init_db", side_effect=RuntimeError("Reconnection Failed")
+    ):
         safe, reason = detector.is_safe("http://test", 100)
         assert safe is True
         assert "Fail Open" in reason

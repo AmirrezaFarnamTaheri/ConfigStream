@@ -16,6 +16,8 @@ VT_BASE_URL = "https://www.virustotal.com/api/v3"
 # Simple LRU Cache for IP reputation to respect API limits
 # Format: {ip: (result, timestamp)}
 _IP_CACHE: OrderedDict[str, tuple[dict, float]] = OrderedDict()
+# Format: {url: (result, timestamp)}
+_URL_CACHE: OrderedDict[str, tuple[dict, float]] = OrderedDict()
 _CACHE_LOCK: asyncio.Lock = asyncio.Lock()
 CACHE_TTL = 3600  # 1 hour cache
 
@@ -27,8 +29,19 @@ async def scan_url(url: str) -> dict[str, int]:
     Returns a dict with malicious count.
     """
     if not VT_API_KEY:
-        logger.warning("VirusTotal API key not found.")
+        # Don't spam warnings if key is missing, just return clean
         return {"malicious": 0, "api_key_missing": True}
+
+    # Check Cache
+    now = time.time()
+    async with _CACHE_LOCK:
+        if url in _URL_CACHE:
+            result, timestamp = _URL_CACHE[url]
+            if now - timestamp < CACHE_TTL:
+                _URL_CACHE.move_to_end(url)
+                return result.copy()
+            else:
+                del _URL_CACHE[url]
 
     # Encode URL to base64 without padding as per VT API requirement for retrieval
     url_id = base64.urlsafe_b64encode(url.encode()).decode().strip("=")
@@ -52,11 +65,24 @@ async def scan_url(url: str) -> dict[str, int]:
                         stats = {}
 
                     malicious_count: int = int(stats.get("malicious", 0))
-                    return {"malicious": malicious_count}
+                    result = {"malicious": malicious_count}
+
+                    # Update Cache
+                    async with _CACHE_LOCK:
+                        _URL_CACHE[url] = (result, now)
+                        if len(_URL_CACHE) > VIRUSTOTAL_CACHE_SIZE:
+                            _URL_CACHE.popitem(last=False)
+
+                    return result
                 elif resp.status == 404:
                     # URL not found, could submit it but for now just return clean
                     # Submitting requires POST to /urls
-                    return {"malicious": 0}
+                    # We can cache the "not found" as clean to avoid repeated 404 lookups
+                    result = {"malicious": 0}
+                    async with _CACHE_LOCK:
+                        _URL_CACHE[url] = (result, now)
+
+                    return result
                 else:
                     logger.error(f"VirusTotal API error scanning URL: {resp.status}")
                     return {"malicious": 0}

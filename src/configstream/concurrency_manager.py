@@ -73,7 +73,9 @@ class ConcurrencyManager:
 
         if error_rate > self.error_threshold:
             # High errors -> Multiplicative Decrease
-            new_limit = max(self.min_limit, int(self.current_limit * self.backoff_factor))
+            new_limit = max(
+                self.min_limit, int(self.current_limit * self.backoff_factor)
+            )
             if new_limit != self.current_limit:
                 logger.debug(
                     f"High error rate ({error_rate:.2f}). Decreasing concurrency to {new_limit}"

@@ -175,18 +175,38 @@ async def fetch_from_source(
                         f"Response headers (sanitized) for {sanitized_source}: "
                         f"Server={server_header}, Date={date_header}"
                     )
+
+                # [FIX] Only record success if we actually succeeded
+                if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
+                    breaker = await breaker_manager.get_breaker(host)
+                    await breaker.record_success()
+
+                return result
+
             else:
+                # [FIX] "Optimistic Failure" Bug:
+                # Previously, we returned the failed result immediately.
+                # Now, we force a retry by treating this as a non-exception failure
+                # unless it's the last attempt.
                 logger.warning(
                     f"Fetch succeeded at network level but returned no valid content/success flag for {sanitized_source}. "
                     f"Status Code: {result.status_code if result.status_code else 'Unknown'}. "
                     f"Error: {result.error}"
                 )
-
-            if app_settings.CIRCUIT_BREAKER_ENABLED and breaker_manager:
-                breaker = await breaker_manager.get_breaker(host)
-                await breaker.record_success()
-
-            return result
+                last_error = f"Invalid Content: {result.error}"
+                # Fall through to retry logic
+                if attempt < max_retries - 1:
+                    wait = min(backoff, 30)
+                    logger.info(
+                        f"Retrying {sanitized_source} in {wait}s due to invalid content "
+                        f"(Attempt {attempt+1}/{max_retries})"
+                    )
+                    await asyncio.sleep(wait + random.uniform(0, 0.3))
+                    backoff = min(backoff * 2, 60)
+                    continue
+                else:
+                    # Last attempt failed
+                    break
 
         except RateLimitError as e:
             last_error = str(e)

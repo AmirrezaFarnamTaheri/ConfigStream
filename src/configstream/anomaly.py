@@ -35,8 +35,8 @@ class AnomalyDetector:
         try:
             # [FIX] Keep connection open, disable check_same_thread as we use a lock
             self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
-            conn = self._conn
-            if True: # Indent preservation
+            if self._conn:
+                conn = self._conn
                 # Enable WAL mode for better concurrency and crash recovery
                 conn.execute("PRAGMA journal_mode=WAL")
                 conn.execute("PRAGMA synchronous=NORMAL")
@@ -77,6 +77,10 @@ CREATE TABLE IF NOT EXISTS history (
                     except Exception as e:
                         return True, f"DB Init Error (Fail Open): {e}"
 
+                # Mypy safety: ensure _conn is not None before usage
+                if self._conn is None:
+                    return True, "DB Connection Failed (Fail Open)"
+
                 try:
                     rows = self._conn.execute(
                         "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
@@ -86,14 +90,18 @@ CREATE TABLE IF NOT EXISTS history (
                     # Attempt reconnection once
                     logger.warning(f"Anomaly DB connection lost ({e}), reconnecting...")
                     try:
-                        self._conn.close()
+                        if self._conn:
+                            self._conn.close()
                     except Exception:
                         pass
                     self._init_db()
-                    rows = self._conn.execute(
-                        "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
-                        (url,),
-                    ).fetchall()
+                    if self._conn:
+                        rows = self._conn.execute(
+                            "SELECT count FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 50",
+                            (url,),
+                        ).fetchall()
+                    else:
+                        return True, "DB Reconnection Failed"
 
             if not rows:
                 return True, "New Source"
@@ -231,17 +239,18 @@ CREATE TABLE IF NOT EXISTS history (
         try:
             with self._lock:
                 conn = self._conn
-                conn.execute(
-                    "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
-                    (url, count, int(time.time())),
-                )
-                # Prune old history (keep last 100)
-                conn.execute(
-                    """DELETE FROM history WHERE url = ? AND timestamp NOT IN
-                    (SELECT timestamp FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 100)""",
-                    (url, url),
-                )
-                conn.commit()
+                if conn:
+                    conn.execute(
+                        "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
+                        (url, count, int(time.time())),
+                    )
+                    # Prune old history (keep last 100)
+                    conn.execute(
+                        """DELETE FROM history WHERE url = ? AND timestamp NOT IN
+                        (SELECT timestamp FROM history WHERE url = ? ORDER BY timestamp DESC LIMIT 100)""",
+                        (url, url),
+                    )
+                    conn.commit()
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.warning(f"Failed to record anomaly stats: {e}")
 

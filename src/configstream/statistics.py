@@ -35,8 +35,10 @@ class StatisticsEngine:
 
     def latency_stats(self) -> Dict[str, float]:
         latencies = [
-            proxy.latency for proxy in self.proxies
-            if proxy.latency is not None and 0 < proxy.latency < 5000  # [FIX] Exclude timeouts/outliers
+            proxy.latency
+            for proxy in self.proxies
+            if proxy.latency is not None
+            and 0 < proxy.latency < 5000  # [FIX] Exclude timeouts/outliers
         ]
         if not latencies:
             return {}

@@ -520,6 +520,7 @@ def generate_smart_chains(
 
     # [FIX] Configurable intranet origin, defaulting to IR
     import os
+
     intranet_origin = os.getenv("INTRANET_ORIGIN", "IR")
     relays_intranet = [
         p for p in proxies if p.country_code == intranet_origin and p.is_working
