@@ -11,16 +11,16 @@ from .models import Proxy
 from .plugins.loader import PluginManager
 from .constants import VWARP_SOCKS5_PORT
 from .parsers import (
-    _parse_generic_url_scheme,
-    _parse_hysteria,
-    _parse_hysteria2,
-    _parse_ss,
-    _parse_trojan,
-    _parse_tuic,
-    _parse_vmess,
-    _parse_vless,
-    _parse_wireguard,
-    _parse_openvpn,
+    parse_generic_url_scheme,
+    parse_hysteria,
+    parse_hysteria2,
+    parse_ss,
+    parse_trojan,
+    parse_tuic,
+    parse_vmess,
+    parse_vless,
+    parse_wireguard,
+    parse_openvpn,
 )
 
 
@@ -67,7 +67,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
     # Try OpenVPN first (content based)
     if "client" in config and ("dev tun" in config or "dev tap" in config):
         try:
-            result = _parse_openvpn(config)
+            result = parse_openvpn(config)
             if result:
                 return result
         except Exception:
@@ -75,7 +75,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
 
     # Try Naked IP:PORT
     if "://" not in config and ":" in config and not config.startswith("{"):
-        res = _parse_generic_url_scheme(config)
+        res = parse_generic_url_scheme(config)
         if res:
             return res
 
@@ -87,23 +87,23 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         parser_map = cast(
             dict[str, ParserCallable],
             {
-                "vmess": _parse_vmess,
-                "vless": _parse_vless,
-                "ss": _parse_ss,
-                "shadowsocks": _parse_ss,
-                "trojan": _parse_trojan,
-                "hysteria": _parse_hysteria,
-                "hy2": _parse_hysteria2,
-                "hysteria2": _parse_hysteria2,
-                "tuic": _parse_tuic,
-                "wg": _parse_wireguard,
-                "wireguard": _parse_wireguard,
-                "http": _parse_generic_url_scheme,
-                "https": _parse_generic_url_scheme,
-                "socks": _parse_generic_url_scheme,
-                "socks4": _parse_generic_url_scheme,
-                "socks5": _parse_generic_url_scheme,
-                "ssh": lambda x: _parse_generic_url_scheme(
+                "vmess": parse_vmess,
+                "vless": parse_vless,
+                "ss": parse_ss,
+                "shadowsocks": parse_ss,
+                "trojan": parse_trojan,
+                "hysteria": parse_hysteria,
+                "hy2": parse_hysteria2,
+                "hysteria2": parse_hysteria2,
+                "tuic": parse_tuic,
+                "wg": parse_wireguard,
+                "wireguard": parse_wireguard,
+                "http": parse_generic_url_scheme,
+                "https": parse_generic_url_scheme,
+                "socks": parse_generic_url_scheme,
+                "socks4": parse_generic_url_scheme,
+                "socks5": parse_generic_url_scheme,
+                "ssh": lambda x: parse_generic_url_scheme(
                     x
                 ),  # SSH often works with generic
             },
@@ -120,9 +120,9 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
     # Try JSON parsing (V2Ray JSON or Clash JSON format)
     if config.startswith("{"):
         try:
-            from .parsers import _parse_v2ray_json
+            from .parsers import parse_v2ray_json
 
-            result = _parse_v2ray_json(config)
+            result = parse_v2ray_json(config)
             if result:
                 return result
         except (ValueError, KeyError, json.JSONDecodeError) as exc:
@@ -147,8 +147,8 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
             if port in [443, 8443]:  # HTTPS/TLS ports
                 # Likely Trojan or VLESS with TLS
                 tls_candidate_parsers: tuple[ParserCallable, ...] = (
-                    _parse_trojan,
-                    _parse_vless,
+                    parse_trojan,
+                    parse_vless,
                 )
 
                 for parser in tls_candidate_parsers:
@@ -164,7 +164,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
 
             elif port in [1080, VWARP_SOCKS5_PORT]:  # SOCKS ports
                 try:
-                    return _parse_generic_url_scheme(config)
+                    return parse_generic_url_scheme(config)
                 except ValueError as exc:
                     logger.debug(f"SOCKS candidate parser skipped: {exc}")
 
@@ -174,14 +174,14 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
 
     # Fallback: try all parsers
     fallback_parsers: tuple[ParserCallable, ...] = (
-        _parse_vmess,
-        _parse_vless,
-        _parse_ss,
-        _parse_trojan,
-        _parse_hysteria2,
-        _parse_hysteria,
-        _parse_tuic,
-        _parse_wireguard,
+        parse_vmess,
+        parse_vless,
+        parse_ss,
+        parse_trojan,
+        parse_hysteria2,
+        parse_hysteria,
+        parse_tuic,
+        parse_wireguard,
     )
 
     for parser in fallback_parsers:
