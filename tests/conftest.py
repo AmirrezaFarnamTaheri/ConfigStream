@@ -9,9 +9,11 @@ import nest_asyncio
 # Apply nest_asyncio to allow nested event loops (critical for testing asyncio.run calls)
 nest_asyncio.apply()
 
+
 @pytest.fixture(autouse=True)
 def apply_nest_asyncio_fixture():
     nest_asyncio.apply()
+
 
 @pytest.fixture(scope="session")
 def http_server(request):
@@ -29,7 +31,7 @@ def http_server(request):
     def serve():
         os.chdir(frontend_dir)
         httpd.serve_forever()
-        os.chdir(os.path.dirname(os.getcwd())) # Restore cwd? unsafe in thread
+        os.chdir(os.path.dirname(os.getcwd()))  # Restore cwd? unsafe in thread
 
     # Better way: Custom handler with directory
     class Handler(http.server.SimpleHTTPRequestHandler):
