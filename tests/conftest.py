@@ -10,7 +10,7 @@ import nest_asyncio
 nest_asyncio.apply()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def apply_nest_asyncio_fixture():
     nest_asyncio.apply()
 
