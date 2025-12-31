@@ -43,6 +43,7 @@ from configstream.pipeline_core.sorter import sort_proxies_pareto
 from configstream.pipeline_core import output_handler
 from .event_stream import EventStream
 from configstream.intelligence.washer.core import ProxyWasher  # [FIX] Import here
+from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -161,6 +162,9 @@ async def run_full_pipeline(
     stats = PipelineStats()
     # [FIX] Track total configured sources for frontend display
     stats.total_configured_sources = len(sources) if sources else 0
+
+    # Validate App Settings
+    AppSettings().validate()
 
     # --- Start Vwarp Tunnel if available ---
     vwarp_proc = None
@@ -359,6 +363,13 @@ async def run_full_pipeline(
 
         # Save History & Cache
         history.save()  # [FIX] Persist history data - method exists at proxy_history.py:75-77
+
+        # Cleanup old history to prevent database bloat
+        try:
+            history.cleanup_old_data(days=30)
+        except Exception as e:
+            logger.warning(f"History cleanup failed: {e}")
+
         test_cache.save()
         if timeout_tracker:
             timeout_tracker.save()

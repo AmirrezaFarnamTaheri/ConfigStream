@@ -104,3 +104,14 @@ class AppSettings:
 
     # Security Validator Settings
     ALLOW_PRIVATE_IPS: bool = os.getenv("ALLOW_PRIVATE_IPS", "False").lower() == "true"
+
+    def validate(self) -> None:
+        """Validate configuration settings."""
+        if self.TEST_TIMEOUT <= 0:
+            raise ValueError("TEST_TIMEOUT must be positive")
+        if self.FETCH_TIMEOUT <= 0:
+            raise ValueError("FETCH_TIMEOUT must be positive")
+        if self.BATCH_SIZE <= 0 or self.BATCH_SIZE > 1000:
+            raise ValueError("BATCH_SIZE must be between 1 and 1000")
+        if self.RATE_LIMIT_REQUESTS <= 0:
+            raise ValueError("RATE_LIMIT_REQUESTS must be positive")

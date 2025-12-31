@@ -147,16 +147,26 @@ async def processing_consumer(
                     if len(seen_keys) >= max_seen:
                         eviction_count = max(100, max_seen // 100)  # Evict 1%
 
-                        # Dict: Iterating gives insertion order (oldest first)
-                        # We enforce seen_keys to be a Dict in pipeline.py
-                        it = iter(seen_keys)
-                        for _ in range(eviction_count):
-                            try:
-                                del seen_keys[next(it)]
-                            except (StopIteration, KeyError, RuntimeError):
-                                break
+                        if isinstance(seen_keys, dict):
+                            # Dict: Iterating gives insertion order (oldest first)
+                            it = iter(seen_keys)
+                            for _ in range(eviction_count):
+                                try:
+                                    del seen_keys[next(it)]
+                                except (StopIteration, KeyError, RuntimeError):
+                                    break
+                        elif isinstance(seen_keys, set):
+                            # Fallback for set (should generally not happen if initialized correctly)
+                            for _ in range(eviction_count):
+                                try:
+                                    seen_keys.pop()
+                                except KeyError:
+                                    break
 
-                    seen_keys[k] = None  # Add to dict
+                    if isinstance(seen_keys, dict):
+                        seen_keys[k] = None  # Add to dict
+                    elif isinstance(seen_keys, set):
+                        seen_keys.add(k)
                     unique_batch.append(p)
                 else:
                     duplicates_count += 1

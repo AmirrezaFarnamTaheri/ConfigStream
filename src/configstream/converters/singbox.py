@@ -285,6 +285,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "private_key": str(private_key),
             "peer_public_key": str(proxy.details.get("peer_public_key", "")),
         }
+        # [FIX] Support 'reserved' field for WARP
+        if "reserved" in proxy.details:
+            reserved_val = proxy.details["reserved"]
+            # Ensure it is a list of integers
+            if isinstance(reserved_val, list) and all(isinstance(x, int) for x in reserved_val):
+                out["reserved"] = reserved_val
         return out
 
     elif proxy.protocol == "hysteria2":
