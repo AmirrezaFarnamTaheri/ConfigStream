@@ -32,8 +32,6 @@ async def fetch_from_source(
     breaker_manager: Optional[CircuitBreakerManager] = None,
     timeout_tracker: Optional[AdaptiveTimeout] = None,
     app_settings: Optional[AppSettings] = None,
-    # Legacy arg kept for compatibility, but unused effectively
-    etag_cache: Optional[Dict[str, Dict[str, str]]] = None,
     quality_tracker: Optional[SourceQualityTracker] = None,
 ) -> FetchResult:
     """
@@ -43,7 +41,6 @@ async def fetch_from_source(
         app_settings = AppSettings()
 
     # --- Source Health Check ---
-    # Audit Fix: Use passed tracker and rely on producer's check to avoid double-counting
     source_manager = quality_tracker or SourceQualityTracker()
 
     # 1. URL Validation
