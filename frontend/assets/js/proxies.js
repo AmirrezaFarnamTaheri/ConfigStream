@@ -194,7 +194,11 @@ function renderTable() {
         if(p.latencyVal < 200) latColor = 'var(--success-color)';
         else if(p.latencyVal > 800) latColor = 'var(--danger-color)';
 
-        latCell.innerHTML = `<span style="color:${latColor}; font-weight:bold;">${latVal}</span>`;
+        const latSpan = document.createElement('span');
+        latSpan.style.color = latColor;
+        latSpan.style.fontWeight = 'bold';
+        latSpan.textContent = latVal;
+        latCell.appendChild(latSpan);
         row.appendChild(latCell);
 
         // Status
@@ -203,7 +207,11 @@ function renderTable() {
         statusCell.className = 'status-cell';
         const statusClass = p.is_working ? 'status-online' : 'status-offline';
         const statusText = p.is_working ? 'Online' : 'Offline';
-        statusCell.innerHTML = `<span class="status-badge ${statusClass}">${statusText}</span>`;
+
+        const statusBadge = document.createElement('span');
+        statusBadge.className = `status-badge ${statusClass}`;
+        statusBadge.textContent = statusText;
+        statusCell.appendChild(statusBadge);
         row.appendChild(statusCell);
 
         // Process Type (Replaces History)

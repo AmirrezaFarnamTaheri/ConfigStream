@@ -41,7 +41,7 @@ class TestScanURL:
             result = await scan_url("https://example.com")
 
             assert result == {"api_key_missing": True, "malicious": 0}
-            assert any(
+            print([r.message for r in caplog.records]); assert any(
                 "api key not found" in record.message.lower()
                 for record in caplog.records
             )
@@ -138,7 +138,7 @@ class TestScanURL:
                 result = await scan_url("https://example.com")
 
                 assert result["malicious"] == 0
-                assert any(
+                print([r.message for r in caplog.records]); assert any(
                     "api error" in record.message.lower() for record in caplog.records
                 )
 
@@ -190,7 +190,7 @@ class TestScanURL:
                 result = await scan_url("https://example.com")
 
                 assert result["malicious"] == 0
-                assert any(
+                print([r.message for r in caplog.records]); assert any(
                     "scan failed" in record.message.lower() for record in caplog.records
                 )
 
@@ -418,7 +418,7 @@ class TestCheckIPReputation:
                 result = await check_ip_reputation("1.2.3.4")
 
                 assert result["malicious"] == 0
-                assert any(
+                print([r.message for r in caplog.records]); assert any(
                     "api error" in record.message.lower() for record in caplog.records
                 )
 
@@ -436,7 +436,7 @@ class TestCheckIPReputation:
                 result = await check_ip_reputation("1.2.3.4")
 
                 assert result["malicious"] == 0
-                assert any(
+                print([r.message for r in caplog.records]); assert any(
                     "check failed" in record.message.lower()
                     for record in caplog.records
                 )

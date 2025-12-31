@@ -14,6 +14,7 @@ from .output_generators import (
 )
 from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
+from .utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -65,8 +66,7 @@ def generate_categorized_outputs(
     # 3. Standard Subscription (Base64)
     sub_path = output_dir / "sub.txt"
     sub_content = generate_base64_subscription(proxies)
-    with open(sub_path, "w", encoding="utf-8") as f:
-        f.write(sub_content)
+    AtomicFileWriter.write_text(sub_path, sub_content)
     generated_files["sub_full"] = sub_path
 
     # 4. Categorized Sub-files (By Country & Protocol)
@@ -90,13 +90,11 @@ def generate_categorized_outputs(
     for cc, plist in by_country.items():
         # We generate files for all, including XX
         cpath = country_dir / f"{cc}.json"
-        with open(cpath, "w", encoding="utf-8") as f:
-            f.write(generate_singbox_config(plist))
+        AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
 
         # Write to by_country as well for tests
         bcpath = by_country_dir / f"{cc}.json"
-        with open(bcpath, "w", encoding="utf-8") as f:
-            f.write(generate_singbox_config(plist))
+        AtomicFileWriter.write_text(bcpath, generate_singbox_config(plist))
         generated_files[f"country_{cc}"] = bcpath
 
     # Write Protocol files
@@ -108,12 +106,10 @@ def generate_categorized_outputs(
 
     for proto, plist in by_protocol.items():
         ppath = proto_dir / f"{proto}.json"
-        with open(ppath, "w", encoding="utf-8") as f:
-            f.write(generate_singbox_config(plist))
+        AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
 
         bppath = by_proto_dir / f"{proto}.json"
-        with open(bppath, "w", encoding="utf-8") as f:
-            f.write(generate_singbox_config(plist))
+        AtomicFileWriter.write_text(bppath, generate_singbox_config(plist))
         generated_files[f"proto_{proto}"] = bppath
 
     logger.info(f"Generated {len(generated_files)} output files.")
@@ -351,8 +347,7 @@ def save_metadata(
         "working": working,
     }
 
-    with open(meta_path, "w", encoding="utf-8") as f:
-        json.dump(meta, f, indent=2)
+    AtomicFileWriter.write_text(meta_path, json.dumps(meta, indent=2))
 
     # NOTE: statistics.json removed - metadata.json is now single source of truth
     # All frontend code updated to use metadata.json directly

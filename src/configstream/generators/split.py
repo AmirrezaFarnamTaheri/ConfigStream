@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Set, Optional
 from ..models import Proxy
 from .clash import generate_clash_config
 from ..converters import to_singbox_outbound
+from ..utils import AtomicFileWriter
 
 logger = logging.getLogger(__name__)
 
@@ -137,8 +138,7 @@ def generate_split_outputs(
     }
 
     sniper_path = output_dir / "singbox.json"
-    with open(sniper_path, "w") as f:
-        json.dump(sniper_config, f, indent=2)
+    AtomicFileWriter.write_text(sniper_path, json.dumps(sniper_config, indent=2))
     files["singbox"] = sniper_path
 
     # 2. Tank (singbox-vpn.json) - Full VPN/TUN - No Fragmentation (usually)
@@ -262,16 +262,14 @@ def generate_split_outputs(
     }
 
     tank_path = output_dir / "singbox-vpn.json"
-    with open(tank_path, "w") as f:
-        json.dump(tank_config, f, indent=2)
+    AtomicFileWriter.write_text(tank_path, json.dumps(tank_config, indent=2))
     files["singbox_vpn"] = tank_path
 
     # Clash
     clash_content = generate_clash_config(proxies)
     if clash_content:
         clash_path = output_dir / "clash.yaml"
-        with open(clash_path, "w") as f:
-            f.write(clash_content)
+        AtomicFileWriter.write_text(clash_path, clash_content)
         files["clash"] = clash_path
 
     return files
