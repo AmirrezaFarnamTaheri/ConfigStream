@@ -9,9 +9,10 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 logger = logging.getLogger(__name__)
+DEFAULT_BUCKETS = 256
 
 
-def shard_for(identifier: str, buckets: int = 256) -> int:
+def shard_for(identifier: str, buckets: int = DEFAULT_BUCKETS) -> int:
     """Return a shard index for *identifier* in range ``0..buckets-1``."""
 
     digest = hashlib.blake2b(identifier.encode("utf-8"), digest_size=2).digest()

@@ -29,7 +29,8 @@ class QualityStorage:
         # Each thread uses its own connection to avoid cross-thread contention.
         conn = getattr(self._thread_local, "conn", None)
         if conn is None:
-            conn = sqlite3.connect(self.db_path, check_same_thread=True, timeout=10)
+            # [FIX] Allow multi-threaded access (e.g. from executors)
+            conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=10)
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=NORMAL")
             self._thread_local.conn = conn

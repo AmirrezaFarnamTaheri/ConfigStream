@@ -35,7 +35,12 @@ const Compression = {
     hasPako: typeof pako !== 'undefined',
 
     async compress(data) {
+        // [FIX] Performance guard: Don't block main thread for huge files
+        // Estimation: 1 char ~= 1 byte.
         const jsonStr = JSON.stringify(data);
+        if (jsonStr.length > 3 * 1024 * 1024) { // 3MB limit for main thread compression
+            return data; // Return raw data (store uncompressed)
+        }
         const encoder = new TextEncoder();
         const input = encoder.encode(jsonStr);
 
@@ -93,7 +98,7 @@ class IDBHelper {
 
   createLogger() {
     return {
-      info: (msg) => console.log(`[IDBHelper] ${msg}`),
+      info: (msg) => { if (location.hostname === 'localhost') console.log(`[IDBHelper] ${msg}`) },
       warn: (msg) => console.warn(`[IDBHelper] ${msg}`),
       error: (msg) => console.error(`[IDBHelper] ${msg}`),
     };

@@ -62,6 +62,14 @@ def extract_config_lines(
     """
     drop_stats: Dict[str, int] = {}
 
+    # [FIX] CRITICAL: Pre-check size to prevent OOM on massive files
+    # Limit to 50MB (plenty for any legitimate config list)
+    if hasattr(payload, "__len__") and len(payload) > 50 * 1024 * 1024:
+        logger.warning(
+            "extract_config_lines: Payload exceeds 50MB limit. Dropping to prevent OOM."
+        )
+        return [], {"size_limit_exceeded": 1}
+
     # Handle input type (bytes or str)
     if isinstance(payload, bytes):
         try:

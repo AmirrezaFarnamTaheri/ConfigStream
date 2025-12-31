@@ -21,9 +21,11 @@ try:
     from singbox2proxy import SingBoxProxy as singbox_factory
 except ImportError:
     singbox_factory = None
-    logger.warning(
-        "singbox2proxy not installed - Python fallback testing will be limited. "
-        "Install with: pip install singbox2proxy"
+    # [FIX] Suppress this warning if we are in an environment where it's known to be optional
+    # or just log it as debug/info to reduce noise unless debug mode is on.
+    logger.info(
+        "singbox2proxy not installed - Python fallback testing for complex protocols (VLESS/VMess) unavailable. "
+        "Direct protocols (SOCKS/HTTP) will still be tested."
     )
 
 

@@ -12,7 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- WebSocket & Differential Updates ---
+    let reconnectDelay = 5000;
     function connectWebSocket() {
+        // [FIX] Disable on static hosting to prevent console noise
+        if (['github.io', 'pages.dev', 'netlify.app'].some(d => location.hostname.includes(d))) return;
+
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         // Adjust port if running on different port, but usually relative to current host
         const wsUrl = `${protocol}//${window.location.host}/ws/updates`;
@@ -48,8 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         ws.onclose = () => {
-            logger.log('[WS] Disconnected, retrying in 5s...');
-            setTimeout(connectWebSocket, 5000); // Auto-reconnect
+            logger.log(`[WS] Disconnected, retrying in ${reconnectDelay/1000}s...`);
+            setTimeout(connectWebSocket, reconnectDelay);
+            // [FIX] Exponential backoff cap at 60s
+            reconnectDelay = Math.min(reconnectDelay * 1.5, 60000);
         };
 
         ws.onerror = (err) => {
