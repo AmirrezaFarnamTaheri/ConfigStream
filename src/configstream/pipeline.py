@@ -185,8 +185,9 @@ async def run_full_pipeline(
             for _ in range(20):  # Try for 2 seconds (20 * 0.1)
                 await asyncio.sleep(0.1)
                 try:
-                    _, writer = await asyncio.open_connection(
-                        VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
+                    _, writer = await asyncio.wait_for(
+                        asyncio.open_connection(VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT),
+                        timeout=0.2,
                     )
                     writer.close()
                     await writer.wait_closed()
@@ -366,7 +367,9 @@ async def run_full_pipeline(
 
         # Cleanup old history to prevent database bloat
         try:
-            history.cleanup_old_data(days=30)
+            await asyncio.get_running_loop().run_in_executor(
+                None, lambda: history.cleanup_old_data(days=30)
+            )
         except Exception as e:
             logger.warning(f"History cleanup failed: {e}")
 
