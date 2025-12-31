@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/http"
 	"os"
 	"time"
 
@@ -18,7 +17,8 @@ import (
 
 func main() {
 	targetUrl := flag.String("url", "https://www.google.com", "Target URL to fetch")
-	proxyAddr := flag.String("proxy", "", "Proxy address (host:port) - currently supports direct connection for testing")
+	// Proxy address flag is deprecated/unused in this PoC but kept for interface compatibility
+	_ = flag.String("proxy", "", "Proxy address (host:port) - currently supports direct connection for testing")
 	fingerprint := flag.String("fp", "chrome", "Fingerprint ID (chrome, firefox, ios, random)")
 	flag.Parse()
 

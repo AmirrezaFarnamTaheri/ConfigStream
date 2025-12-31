@@ -29,6 +29,7 @@ async def scan_url(url: str) -> dict[str, int]:
     Returns a dict with malicious count.
     """
     if not VT_API_KEY:
+        logger.info("VirusTotal scan skipped: api key not found")
         # Don't spam warnings if key is missing, just return clean
         return {"malicious": 0, "api_key_missing": True}
 
@@ -88,6 +89,7 @@ async def scan_url(url: str) -> dict[str, int]:
                     return {"malicious": 0}
     except Exception as e:
         logger.error(f"VirusTotal scan failed: {e}")
+        logger.info(f"scan failed details: {str(e)}")
         return {"malicious": 0}
 
 
