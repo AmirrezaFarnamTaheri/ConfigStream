@@ -177,18 +177,19 @@ async def run_full_pipeline(
             )
 
             # [FIX] Robust startup check instead of sleep(1)
-            import socket
-
+            # Use non-blocking asyncio check
             for _ in range(20):  # Try for 2 seconds (20 * 0.1)
                 await asyncio.sleep(0.1)
                 try:
-                    with socket.create_connection(
-                        (VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT), timeout=0.1
-                    ):
-                        logger.info("✅ Vwarp Tunnel established.")
-                        # Signal Go Tester to use it
-                        os.environ["USE_VWARP_TUNNEL"] = "true"
-                        break
+                    _, writer = await asyncio.open_connection(
+                        VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
+                    )
+                    writer.close()
+                    await writer.wait_closed()
+                    logger.info("✅ Vwarp Tunnel established.")
+                    # Signal Go Tester to use it
+                    os.environ["USE_VWARP_TUNNEL"] = "true"
+                    break
                 except (OSError, ConnectionRefusedError):
                     continue
             else:
