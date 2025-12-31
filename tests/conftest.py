@@ -9,6 +9,10 @@ import nest_asyncio
 # Apply nest_asyncio to allow nested event loops (critical for testing asyncio.run calls)
 nest_asyncio.apply()
 
+@pytest.fixture(autouse=True)
+def apply_nest_asyncio_fixture():
+    nest_asyncio.apply()
+
 @pytest.fixture(scope="session")
 def http_server(request):
     """Starts a simple HTTP server to serve the frontend."""
