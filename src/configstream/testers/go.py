@@ -297,9 +297,17 @@ class GoBatchTester:
             if outbound:
                 # Use unique request ID (Full UUID) to handle duplicate proxies collision-free
                 req_id = f"{p.id}-{uuid.uuid4().hex}"
+
+                # [FIX] Handle json.dumps returning bytes or str
+                config_json = json.dumps(outbound)
+                if isinstance(config_json, bytes):
+                    config_str = config_json.decode()
+                else:
+                    config_str = config_json
+
                 inputs.append(
                     {
-                        "config": json.dumps(outbound).decode(),
+                        "config": config_str,
                         "id": req_id,
                         "check_honeypot": check_honeypot,
                     }

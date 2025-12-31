@@ -43,6 +43,7 @@ from configstream.pipeline_core.sorter import sort_proxies_pareto
 from configstream.pipeline_core import output_handler
 from .event_stream import EventStream
 from configstream.intelligence.washer.core import ProxyWasher  # [FIX] Import here
+from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +163,9 @@ async def run_full_pipeline(
     # [FIX] Track total configured sources for frontend display
     stats.total_configured_sources = len(sources) if sources else 0
 
+    # Validate App Settings
+    AppSettings().validate()
+
     # --- Start Vwarp Tunnel if available ---
     vwarp_proc = None
     vwarp_bin = shutil.which("vwarp") or "/usr/local/bin/vwarp"
@@ -177,18 +181,19 @@ async def run_full_pipeline(
             )
 
             # [FIX] Robust startup check instead of sleep(1)
-            import socket
-
+            # Use non-blocking asyncio check
             for _ in range(20):  # Try for 2 seconds (20 * 0.1)
                 await asyncio.sleep(0.1)
                 try:
-                    with socket.create_connection(
-                        (VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT), timeout=0.1
-                    ):
-                        logger.info("✅ Vwarp Tunnel established.")
-                        # Signal Go Tester to use it
-                        os.environ["USE_VWARP_TUNNEL"] = "true"
-                        break
+                    _, writer = await asyncio.open_connection(
+                        VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT
+                    )
+                    writer.close()
+                    await writer.wait_closed()
+                    logger.info("✅ Vwarp Tunnel established.")
+                    # Signal Go Tester to use it
+                    os.environ["USE_VWARP_TUNNEL"] = "true"
+                    break
                 except (OSError, ConnectionRefusedError):
                     continue
             else:
@@ -358,6 +363,13 @@ async def run_full_pipeline(
 
         # Save History & Cache
         history.save()  # [FIX] Persist history data - method exists at proxy_history.py:75-77
+
+        # Cleanup old history to prevent database bloat
+        try:
+            history.cleanup_old_data(days=30)
+        except Exception as e:
+            logger.warning(f"History cleanup failed: {e}")
+
         test_cache.save()
         if timeout_tracker:
             timeout_tracker.save()

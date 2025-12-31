@@ -147,30 +147,31 @@ async def processing_consumer(
                     if len(seen_keys) >= max_seen:
                         eviction_count = max(100, max_seen // 100)  # Evict 1%
 
-                        if isinstance(seen_keys, set):
-                            # Fallback for Set
+                        if isinstance(seen_keys, dict):
+                            # Dict: Iterating gives insertion order (oldest first)
+                            # Safe eviction: Collect keys first, then delete
                             keys_to_remove = []
                             it = iter(seen_keys)
-                            for _ in range(eviction_count):
-                                try:
+                            try:
+                                for _ in range(eviction_count):
                                     keys_to_remove.append(next(it))
-                                except StopIteration:
-                                    break
-                            seen_keys.difference_update(keys_to_remove)
-                        else:
-                            # Dict: Iterating gives insertion order (oldest first)
-                            it = iter(seen_keys)
+                            except StopIteration:
+                                pass
+
+                            for k_rm in keys_to_remove:
+                                seen_keys.pop(k_rm, None)
+                        elif isinstance(seen_keys, set):
+                            # Fallback for set (should generally not happen if initialized correctly)
                             for _ in range(eviction_count):
                                 try:
-                                    del seen_keys[next(it)]
-                                except (StopIteration, KeyError, RuntimeError):
+                                    seen_keys.pop()
+                                except KeyError:
                                     break
 
-                    if isinstance(seen_keys, set):
-                        seen_keys.add(k)
-                    else:
+                    if isinstance(seen_keys, dict):
                         seen_keys[k] = None  # Add to dict
-
+                    elif isinstance(seen_keys, set):
+                        seen_keys.add(k)
                     unique_batch.append(p)
                 else:
                     duplicates_count += 1
