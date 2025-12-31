@@ -27,10 +27,16 @@ def patch_runner_for_nest_asyncio():
 
         def patched_run(self, coro, *, context=None):
             loop = None
-            if hasattr(self, 'get_loop'):
-                loop = self.get_loop()
-            elif hasattr(self, '_loop'):
-                loop = self._loop
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                pass
+
+            if loop is None:
+                if hasattr(self, 'get_loop'):
+                    loop = self.get_loop()
+                elif hasattr(self, '_loop'):
+                    loop = self._loop
 
             # If we can't find the loop, fallback to standard behavior which will likely raise
             # if we are in a loop, or work if not.
