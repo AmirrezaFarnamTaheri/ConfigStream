@@ -44,12 +44,17 @@ def parse_vless(config: str) -> Optional[Proxy]:
         if not uuid or len(uuid) > 100:
             return None
 
-        # Valid UUIDv4 is 36 chars. Allow some flexibility for other ID formats,
-        # but reject obviously invalid short strings or non-hex strings that look like noise.
-        # Standard UUID: 8-4-4-4-12 hex digits
-        if len(uuid) < 30 and not re.match(r"^[a-fA-F0-9-]{32,36}$", uuid):
-            # If it's short and not a hex string, it's likely a misparsed username
+        # [FIX] Enhanced UUID validation
+        # Valid UUIDv4 is 36 chars. We also allow non-standard IDs used by some proxies.
+        # However, we must filter out junk.
+        if len(uuid) < 20:
+            # Too short to be a valid high-entropy ID
             return None
+
+        # If it looks like a standard UUID but is malformed, drop it
+        if "-" in uuid and len(uuid) == 36:
+            if not re.match(r"^[a-fA-F0-9-]{36}$", uuid):
+                return None
 
         # REALITY Verification
         if details.get("security") == "reality":

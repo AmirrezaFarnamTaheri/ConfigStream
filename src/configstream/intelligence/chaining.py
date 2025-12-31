@@ -642,9 +642,20 @@ def generate_smart_chains(
         if not origin_coords:
             continue
 
+        # [OPTIMIZATION] Sort nearby stealth relays by approximate distance first
+        # This acts as a heuristic to limit the detailed check to top 50 candidates
+        def heuristic_dist(r):
+            rc = COUNTRIES.get(r.country_code)
+            if not rc:
+                return 99999
+            return abs(rc[0] - origin_coords[0]) + abs(rc[1] - origin_coords[1])
+
+        nearby_stealth.sort(key=heuristic_dist)
+
         best_stealth = None
         min_dist = float("inf")
-        for relay in nearby_stealth[:20]:
+        # Check only top 50 candidates to scale with large lists
+        for relay in nearby_stealth[:50]:
             relay_coords = COUNTRIES.get(relay.country_code)
             if relay_coords:
                 dist = haversine(

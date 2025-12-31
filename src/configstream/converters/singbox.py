@@ -111,10 +111,13 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         else:
             default_method = "chacha20-ietf-poly1305"
 
+        # [FIX] Normalize method name (sing-box expects lowercase, no spaces)
+        method = str(proxy.details.get("method", default_method)).lower().strip()
+
         out = {
             "type": "shadowsocks",
             **base,
-            "method": str(proxy.details.get("method", default_method)),
+            "method": method,
             "password": str(proxy.details.get("password", "")),
         }
         # CRITICAL FIX: Map plugins (obfs-local, v2ray-plugin, etc.)
@@ -282,6 +285,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "private_key": str(private_key),
             "peer_public_key": str(proxy.details.get("peer_public_key", "")),
         }
+        # [FIX] Support 'reserved' field for WARP
+        if "reserved" in proxy.details:
+            reserved_val = proxy.details["reserved"]
+            # Ensure it is a list of integers
+            if isinstance(reserved_val, list) and all(
+                isinstance(x, int) for x in reserved_val
+            ):
+                out["reserved"] = reserved_val
         return out
 
     elif proxy.protocol == "hysteria2":
