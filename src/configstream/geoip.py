@@ -168,7 +168,7 @@ class GeoIPResolver:
 
         # [FIX] Check for updates (only in pure python mode or before lock)
         if self._initialized and not self._uses_c_extension:
-             self._check_reload_needed()
+            self._check_reload_needed()
 
         # [OPTIMIZATION] Skip lock when C extension is used (thread-safe reads)
         if self._uses_c_extension:

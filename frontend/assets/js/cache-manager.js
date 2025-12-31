@@ -98,7 +98,7 @@ class IDBHelper {
 
   createLogger() {
     return {
-      info: (msg) => console.log(`[IDBHelper] ${msg}`),
+      info: (msg) => { if (location.hostname === 'localhost') console.log(`[IDBHelper] ${msg}`) },
       warn: (msg) => console.warn(`[IDBHelper] ${msg}`),
       error: (msg) => console.error(`[IDBHelper] ${msg}`),
     };

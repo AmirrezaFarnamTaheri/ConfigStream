@@ -2,6 +2,7 @@ import sys
 import re
 from pathlib import Path
 
+
 def main():
     root = Path(".")
 
@@ -24,7 +25,9 @@ def main():
     # 3. Check Frontend Config
     js_config = (root / "frontend/assets/js/cache_config.js").read_text()
     if f"VERSION: 'v{truth_version}'" not in js_config:
-        errors.append(f"frontend/assets/js/cache_config.js version mismatch. Expected 'v{truth_version}'")
+        errors.append(
+            f"frontend/assets/js/cache_config.js version mismatch. Expected 'v{truth_version}'"
+        )
 
     # 4. Check Init
     # init_py = (root / "src/configstream/__init__.py").read_text()
@@ -38,6 +41,7 @@ def main():
         sys.exit(1)
 
     print("✅ All versions synchronized.")
+
 
 if __name__ == "__main__":
     main()
