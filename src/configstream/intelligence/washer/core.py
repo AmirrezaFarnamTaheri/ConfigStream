@@ -60,14 +60,15 @@ class ProxyWasher:
 
         # [FIX] Initialize defaults immediately if not provided
         if not self._warp_keys:
-             # Try to load from default env if empty json was passed
-             env_keys = os.getenv("WARP_KEY_POOL", "[]")
-             if env_keys and env_keys != "[]":
-                 try:
-                     parsed = json.loads(env_keys)
-                     if isinstance(parsed, list):
-                         self._warp_keys = parsed
-                 except: pass
+            # Try to load from default env if empty json was passed
+            env_keys = os.getenv("WARP_KEY_POOL", "[]")
+            if env_keys and env_keys != "[]":
+                try:
+                    parsed = json.loads(env_keys)
+                    if isinstance(parsed, list):
+                        self._warp_keys = parsed
+                except (json.JSONDecodeError, TypeError):
+                    pass
 
         self.scanner = WarpScannerWorker()
         self.key_gen = KeyGenerator()

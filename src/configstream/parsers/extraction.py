@@ -81,7 +81,9 @@ def extract_config_lines(
             except Exception:
                 # Last resort: ignore errors to salvage printable chars
                 payload_str = payload.decode("utf-8", errors="ignore")
-                logger.debug("extract_config_lines: Binary payload decoded with errors ignored.")
+                logger.debug(
+                    "extract_config_lines: Binary payload decoded with errors ignored."
+                )
     elif isinstance(payload, str):
         payload_str = payload
     else:

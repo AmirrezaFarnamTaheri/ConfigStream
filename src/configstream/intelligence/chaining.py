@@ -646,7 +646,8 @@ def generate_smart_chains(
         # This acts as a heuristic to limit the detailed check to top 50 candidates
         def heuristic_dist(r):
             rc = COUNTRIES.get(r.country_code)
-            if not rc: return 99999
+            if not rc:
+                return 99999
             return abs(rc[0] - origin_coords[0]) + abs(rc[1] - origin_coords[1])
 
         nearby_stealth.sort(key=heuristic_dist)

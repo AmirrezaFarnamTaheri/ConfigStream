@@ -149,12 +149,17 @@ async def processing_consumer(
 
                         if isinstance(seen_keys, dict):
                             # Dict: Iterating gives insertion order (oldest first)
+                            # Safe eviction: Collect keys first, then delete
+                            keys_to_remove = []
                             it = iter(seen_keys)
-                            for _ in range(eviction_count):
-                                try:
-                                    del seen_keys[next(it)]
-                                except (StopIteration, KeyError, RuntimeError):
-                                    break
+                            try:
+                                for _ in range(eviction_count):
+                                    keys_to_remove.append(next(it))
+                            except StopIteration:
+                                pass
+
+                            for k_rm in keys_to_remove:
+                                seen_keys.pop(k_rm, None)
                         elif isinstance(seen_keys, set):
                             # Fallback for set (should generally not happen if initialized correctly)
                             for _ in range(eviction_count):
