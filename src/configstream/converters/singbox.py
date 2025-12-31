@@ -111,10 +111,13 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         else:
             default_method = "chacha20-ietf-poly1305"
 
+        # [FIX] Normalize method name (sing-box expects lowercase, no spaces)
+        method = str(proxy.details.get("method", default_method)).lower().strip()
+
         out = {
             "type": "shadowsocks",
             **base,
-            "method": str(proxy.details.get("method", default_method)),
+            "method": method,
             "password": str(proxy.details.get("password", "")),
         }
         # CRITICAL FIX: Map plugins (obfs-local, v2ray-plugin, etc.)

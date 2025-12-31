@@ -73,13 +73,15 @@ def extract_config_lines(
     # Handle input type (bytes or str)
     if isinstance(payload, bytes):
         try:
+            # Fallback strategy: utf-8 -> latin-1 (covers most cases)
             payload_str = payload.decode("utf-8")
         except UnicodeDecodeError:
             try:
                 payload_str = payload.decode("latin-1")
             except Exception:
-                logger.debug("extract_config_lines: Failed to decode binary payload.")
-                return [], {"decode_error": 1}
+                # Last resort: ignore errors to salvage printable chars
+                payload_str = payload.decode("utf-8", errors="ignore")
+                logger.debug("extract_config_lines: Binary payload decoded with errors ignored.")
     elif isinstance(payload, str):
         payload_str = payload
     else:

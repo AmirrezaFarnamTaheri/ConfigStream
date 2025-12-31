@@ -58,6 +58,17 @@ class ProxyWasher:
         self._async_state_lock = asyncio.Lock()
         self._clean_ips: List[Tuple[str, int]] = []
 
+        # [FIX] Initialize defaults immediately if not provided
+        if not self._warp_keys:
+             # Try to load from default env if empty json was passed
+             env_keys = os.getenv("WARP_KEY_POOL", "[]")
+             if env_keys and env_keys != "[]":
+                 try:
+                     parsed = json.loads(env_keys)
+                     if isinstance(parsed, list):
+                         self._warp_keys = parsed
+                 except: pass
+
         self.scanner = WarpScannerWorker()
         self.key_gen = KeyGenerator()
 
