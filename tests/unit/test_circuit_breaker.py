@@ -1,6 +1,11 @@
 import pytest
 import asyncio
-from configstream.circuit_breaker import CircuitBreaker, CircuitBreakerState, CircuitBreakerManager
+from configstream.circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerState,
+    CircuitBreakerManager,
+)
+
 
 class TestCircuitBreaker:
     @pytest.mark.asyncio
@@ -45,12 +50,13 @@ class TestCircuitBreaker:
         await cb.record_failure()
         await asyncio.sleep(0.15)
 
-        assert not await cb.is_open() # Transitions to HALF_OPEN
+        assert not await cb.is_open()  # Transitions to HALF_OPEN
 
         # Failure in HALF_OPEN should immediately trip back to OPEN
         await cb.record_failure()
         assert cb.state == CircuitBreakerState.OPEN
         assert await cb.is_open()
+
 
 class TestCircuitBreakerManager:
     @pytest.mark.asyncio
