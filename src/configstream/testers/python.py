@@ -170,7 +170,9 @@ class PythonTester:
                 try:
                     start = time.monotonic()
                     async with session.get(
-                        url, timeout=self.timeout, allow_redirects=False
+                        url,
+                        timeout=aiohttp.ClientTimeout(total=self.timeout),
+                        allow_redirects=False,
                     ) as resp:
                         if 200 <= resp.status < 300:
                             latencies.append((time.monotonic() - start) * 1000)
