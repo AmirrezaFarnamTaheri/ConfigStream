@@ -4,7 +4,13 @@ import socketserver
 import threading
 import os
 import asyncio
+import sys
 import nest_asyncio
+
+try:
+    import asyncio.runners
+except ImportError:
+    pass
 
 # Apply nest_asyncio to allow nested event loops (critical for testing asyncio.run calls)
 nest_asyncio.apply()
@@ -14,6 +20,9 @@ nest_asyncio.apply()
 # and pytest-asyncio uses it directly.
 def patch_runner_for_nest_asyncio():
     def _patch(runner_cls):
+        if getattr(runner_cls, "_nest_patched", False):
+            return
+
         original_run = runner_cls.run
 
         def patched_run(self, coro, *, context=None):
@@ -22,6 +31,9 @@ def patch_runner_for_nest_asyncio():
                 loop = self.get_loop()
             elif hasattr(self, '_loop'):
                 loop = self._loop
+
+            # If we can't find the loop, fallback to standard behavior which will likely raise
+            # if we are in a loop, or work if not.
 
             if loop and loop.is_running():
                  # Nested execution!
@@ -35,10 +47,17 @@ def patch_runner_for_nest_asyncio():
             return original_run(self, coro, context=context)
 
         runner_cls.run = patched_run
+        runner_cls._nest_patched = True
 
     # Patch asyncio.Runner (3.11+)
     if hasattr(asyncio, 'Runner'):
         _patch(asyncio.Runner)
+
+    # Explicitly check asyncio.runners if available (Python 3.11+)
+    if "asyncio.runners" in sys.modules:
+        runners_mod = sys.modules["asyncio.runners"]
+        if hasattr(runners_mod, 'Runner'):
+            _patch(runners_mod.Runner)
 
     # Patch backports.asyncio.runner.Runner (3.10 and below)
     try:
