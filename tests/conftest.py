@@ -9,10 +9,52 @@ import nest_asyncio
 # Apply nest_asyncio to allow nested event loops (critical for testing asyncio.run calls)
 nest_asyncio.apply()
 
+# [FIX] Manually patch Runner.run to support nested loops with nest_asyncio
+# This is required because nest_asyncio does not patch asyncio.Runner.run (or backports)
+# and pytest-asyncio uses it directly.
+def patch_runner_for_nest_asyncio():
+    def _patch(runner_cls):
+        original_run = runner_cls.run
+
+        def patched_run(self, coro, *, context=None):
+            loop = None
+            if hasattr(self, 'get_loop'):
+                loop = self.get_loop()
+            elif hasattr(self, '_loop'):
+                loop = self._loop
+
+            if loop and loop.is_running():
+                 # Nested execution!
+                 # Use ensure_future to schedule on the running loop
+                 task = asyncio.ensure_future(coro, loop=loop)
+
+                 # nest_asyncio patched loop.run_until_complete handles reentrancy
+                 loop.run_until_complete(task)
+                 return task.result()
+
+            return original_run(self, coro, context=context)
+
+        runner_cls.run = patched_run
+
+    # Patch asyncio.Runner (3.11+)
+    if hasattr(asyncio, 'Runner'):
+        _patch(asyncio.Runner)
+
+    # Patch backports.asyncio.runner.Runner (3.10 and below)
+    try:
+        import backports.asyncio.runner.runner as backports_runner
+        if hasattr(backports_runner, 'Runner'):
+            _patch(backports_runner.Runner)
+    except ImportError:
+        pass
+
+patch_runner_for_nest_asyncio()
+
 
 @pytest.fixture(scope="session", autouse=True)
 def apply_nest_asyncio_fixture():
     nest_asyncio.apply()
+    patch_runner_for_nest_asyncio()
 
 
 @pytest.fixture(scope="session")
