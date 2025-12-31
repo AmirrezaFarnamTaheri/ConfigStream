@@ -27,22 +27,28 @@ def patch_runner_for_nest_asyncio():
 
         def patched_run(self, coro, *, context=None):
             loop = None
-            if hasattr(self, 'get_loop'):
-                loop = self.get_loop()
-            elif hasattr(self, '_loop'):
-                loop = self._loop
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                pass
+
+            if loop is None:
+                if hasattr(self, 'get_loop'):
+                    loop = self.get_loop()
+                elif hasattr(self, '_loop'):
+                    loop = self._loop
 
             # If we can't find the loop, fallback to standard behavior which will likely raise
             # if we are in a loop, or work if not.
 
             if loop and loop.is_running():
-                 # Nested execution!
-                 # Use ensure_future to schedule on the running loop
-                 task = asyncio.ensure_future(coro, loop=loop)
+                # Nested execution!
+                # Use ensure_future to schedule on the running loop
+                task = asyncio.ensure_future(coro, loop=loop)
 
-                 # nest_asyncio patched loop.run_until_complete handles reentrancy
-                 loop.run_until_complete(task)
-                 return task.result()
+                # nest_asyncio patched loop.run_until_complete handles reentrancy
+                loop.run_until_complete(task)
+                return task.result()
 
             return original_run(self, coro, context=context)
 
