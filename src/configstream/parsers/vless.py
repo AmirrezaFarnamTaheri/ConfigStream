@@ -53,8 +53,8 @@ def parse_vless(config: str) -> Optional[Proxy]:
 
         # If it looks like a standard UUID but is malformed, drop it
         if "-" in uuid and len(uuid) == 36:
-             if not re.match(r"^[a-fA-F0-9-]{36}$", uuid):
-                 return None
+            if not re.match(r"^[a-fA-F0-9-]{36}$", uuid):
+                return None
 
         # REALITY Verification
         if details.get("security") == "reality":

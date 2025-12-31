@@ -289,7 +289,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if "reserved" in proxy.details:
             reserved_val = proxy.details["reserved"]
             # Ensure it is a list of integers
-            if isinstance(reserved_val, list) and all(isinstance(x, int) for x in reserved_val):
+            if isinstance(reserved_val, list) and all(
+                isinstance(x, int) for x in reserved_val
+            ):
                 out["reserved"] = reserved_val
         return out
 
