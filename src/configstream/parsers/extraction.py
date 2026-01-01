@@ -7,6 +7,7 @@ from ..constants import (
     MAX_LINES_PER_SOURCE,
     VALID_PROTOCOLS,
     MAX_B64_OUTPUT_SIZE,
+    MAX_B64_INPUT_SIZE,
     BLOCKED_DOMAINS,
 )
 
@@ -33,11 +34,11 @@ def is_plausible_proxy_config(config: str) -> bool:
     if len(protocol) > 20 or len(rest) < 4:
         return False
 
-    # [FIX] Relax noise check
+    # [FIX] Relax noise check (allowed up to 85% special chars for base64 heavy VLESS)
     special_char_count = sum(
         1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]"
     )
-    if special_char_count > len(rest) * 0.7:
+    if special_char_count > len(rest) * 0.85:
         return False
 
     # [Check] Double protocol
@@ -63,10 +64,10 @@ def extract_config_lines(
     drop_stats: Dict[str, int] = {}
 
     # [FIX] CRITICAL: Pre-check size to prevent OOM on massive files
-    # Limit to 50MB (plenty for any legitimate config list)
-    if hasattr(payload, "__len__") and len(payload) > 50 * 1024 * 1024:
+    # Limit to MAX_B64_INPUT_SIZE (200MB)
+    if hasattr(payload, "__len__") and len(payload) > MAX_B64_INPUT_SIZE:
         logger.warning(
-            "extract_config_lines: Payload exceeds 50MB limit. Dropping to prevent OOM."
+            f"extract_config_lines: Payload exceeds {MAX_B64_INPUT_SIZE} bytes limit. Dropping to prevent OOM."
         )
         return [], {"size_limit_exceeded": 1}
 
