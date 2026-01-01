@@ -10,11 +10,13 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Check `requirements.txt` for consistency with `pyproject.toml`.
     - [ ] Audit `package.json` (frontend) for deprecated npm packages.
     - [ ] Verify `setup.py` (if exists) doesn't conflict with `pyproject.toml`.
+    - [ ] **Python 3.12 Readiness**: Check for removed stdlib modules (e.g., `distutils`).
 - [ ] **Docker Security**:
     - [ ] Audit `Dockerfile` for non-root user enforcement (`USER appuser`).
     - [ ] Verify multi-stage builds are used to reduce image size.
     - [ ] Check for sensitive args/envs baked into layers (e.g., `ARG GITHUB_TOKEN`).
     - [ ] Validate `docker-compose.yml` network isolation rules.
+    - [ ] Check `pip install --no-cache-dir` usage.
 - [ ] **Env Var Handling**:
     - [ ] Verify `src/configstream/config.py` uses `pydantic-settings` correctly.
     - [ ] Check validation logic for all vars in `.env.example`.
@@ -22,6 +24,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Pre-commit Hooks**:
     - [ ] Review `.pre-commit-config.yaml` for `gitleaks` (secret scanning).
     - [ ] Ensure `black`, `isort`, and `flake8` config matches project standards.
+    - [ ] Verify `mypy` is running in strict mode (`no_implicit_optional`, `check_untyped_defs`).
 - [ ] **CI/CD Workflow**:
     - [ ] Audit `.github/workflows/` for secure secret injection.
     - [ ] Check for unlimited timeouts in jobs (cost risk).
@@ -42,6 +45,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Dead Code Detection**:
     - [ ] Run `vulture` or similar to find unused code.
     - [ ] Check `src/configstream/utils/` for orphaned helper functions.
+    - [ ] Audit `src/configstream/plugins/` (e.g., `scoring.py`, `validation.py`): Are they loaded dynamically or unused?
     - [ ] Review `scripts/` for obsolete maintenance scripts.
 - [ ] **Split Brain & Redundancies**:
     - [ ] **Protocol Parsing**: Compare `src/configstream/converters/singbox.py` vs Go sidecar. Are all protocols in Sync?
@@ -79,6 +83,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Audit `seen_keys` usage:
         - [ ] Is it a `set` or `dict`?
         - [ ] Is memory usage bounded (LRU)?
+    - [ ] **Lock Safety**: Verify `seen_lock` is used consistently across all consumers.
 
 ### 2.2. Error Handling & Resilience
 - [ ] **Exception Swallowing**:
@@ -125,7 +130,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Fuzzing Resistance**:
     - [ ] Test parsers with random byte strings.
     - [ ] Test with "recursive" base64 strings.
-    - [ ] Check RegEx for ReDoS vulnerabilities.
+    - [ ] Check RegEx for ReDoS vulnerabilities (e.g. `(a+)+`).
 - [ ] **Specific Protocol Audits**:
     - [ ] **VLESS**:
         - [ ] Verify UUID validation (hex only).
@@ -173,9 +178,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Regex Safety**: Audit `format_proxy_name` cleanup regex.
     - [ ] **Unquote**: Check `unquote` usage for crash on invalid inputs.
     - [ ] **Template Injection**: Ensure `str.format` doesn't access internal attributes.
-- [ ] **Magic Numbers**:
-    - [ ] Identify `len(hostname) > 255`.
-    - [ ] Identify port `1-65535` checks.
+- [ ] **Country Inference (`src/configstream/country_inferrer.py`)**:
+    - [ ] **Excluded Codes**: Verify `_EXCLUDED_CODES` list covers common false positives (e.g., `ID`, `AI`, `NO`).
+    - [ ] **Regex Efficiency**: Check `_CODE_PATTERN` for ReDoS.
 
 ## Phase 4: Testing Engine (`src/configstream/testers/`)
 
@@ -218,7 +223,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Check `TTL` logic.
     - [ ] Does `retest_scheduler` respect "dead" vs "alive" intervals?
 
-## Phase 5: Intelligence & "Smart" Features
+## Phase 5: Intelligence & Advanced Features
 
 ### 5.1. Proxy Washer & Revival (`src/configstream/intelligence/washer/`)
 - [ ] **Infinite Loops**:
@@ -228,8 +233,6 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Check `key_generator.py`:
         - [ ] Algorithm correctness.
         - [ ] Key rotation policy.
-- [ ] **Scanner Logic**:
-    - [ ] Audit `fetch_clean_ips`: does it block?
 
 ### 5.2. Scoring & Ranking
 - [ ] **Scorer Logic**:
@@ -252,7 +255,22 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Verify `blake2b` bucketing determinism (`buckets=256`).
     - [ ] Check `save_shard_metadata` logic.
 
-### 5.4. Advanced Chaining & Routing (`src/configstream/intelligence/chaining.py`)
+### 5.4. Vwarp Ecosystem (Feature 1)
+- [ ] **Vwarp Standalone**:
+    - [ ] Verify integration with the official Vwarp project (MASQUE tunneling).
+    - [ ] Check `vwarp` binary execution flags and environment variables.
+- [ ] **Endpoint Scraper**:
+    - [ ] Audit `warp_scraper.py`.
+    - [ ] Verify `WIREGUARD_REGEX` robustness.
+    - [ ] Check `warp://` URI parsing compliance.
+- [ ] **Upstream Compatibility**:
+    - [ ] Verify `Psiphon` integration points (if any).
+    - [ ] Audit `Warp-in-Warp` chaining logic against official Vwarp specs.
+- [ ] **Warp Tools (`src/configstream/tools/warp/`)**:
+    - [ ] Audit `register_warp_account` logic.
+    - [ ] Check `extract_proxies.py` for correct output format.
+
+### 5.5. Advanced Chaining & Routing (Feature 2) (`src/configstream/intelligence/chaining.py`)
 - [ ] **Geodesic Logic**:
     - [ ] Audit `haversine` implementation vs `geopy`.
     - [ ] Check `COUNTRIES` coordinate accuracy (80+ entries).
@@ -266,26 +284,12 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Review `PROTOCOL_SCORES` weights (Stealth vs Speed).
     - [ ] Is `CENSORSHIP_LEVELS` map up-to-date?
 
-### 5.5. Vwarp Ecosystem & Scanner (`src/configstream/intelligence/washer/`)
-- [ ] **Vwarp Standalone**:
-    - [ ] Verify integration with the official Vwarp project (MASQUE tunneling).
-    - [ ] Check `vwarp` binary execution flags and environment variables.
-- [ ] **Endpoint Scraper**:
-    - [ ] Audit `warp_scraper.py`.
-    - [ ] Verify `WIREGUARD_REGEX` robustness.
-    - [ ] Check `warp://` URI parsing compliance.
-- [ ] **Upstream Compatibility**:
-    - [ ] Verify `Psiphon` integration points (if any).
-    - [ ] Audit `Warp-in-Warp` chaining logic against official Vwarp specs.
-
 ## Phase 6: Cross-Cutting Concerns
 
 ### 6.1. Security (`src/configstream/security*`)
-- [ ] **Log Sanitization**:
-    - [ ] **CRITICAL**: Verify `SecurityValidator.sanitize_log_message` applied to:
-        - [ ] Source URLs.
-        - [ ] Proxy Config strings.
-        - [ ] Error messages containing configs.
+- [ ] **Log Sanitization (`src/configstream/logging_config.py`)**:
+    - [ ] **CRITICAL**: Verify `SecurityValidator.sanitize_log_message` applied to all console outputs.
+    - [ ] **Audit Findings**: File/JSON handlers are currently **UNMASKED**. Verify if this is intended behavior for debuggability vs security risk.
 - [ ] **Injection Prevention**:
     - [ ] Ensure configs are treated as data, not code.
     - [ ] Check `yaml.safe_load` vs `yaml.load`.
@@ -297,6 +301,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
         - [ ] Is `ed25519` implementation standard?
         - [ ] Is private key loaded from secure Env/File?
         - [ ] Are signatures deterministic?
+- [ ] **Secret Rotation**:
+    - [ ] Check how `WARP_KEY_POOL` handles stale keys.
+    - [ ] Verify `FERNET_KEY` rotation in `stego.py`.
 
 ### 6.2. Logging & Metrics
 - [ ] **Log Noise**:
@@ -328,6 +335,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Escaping of `details` object keys/values.
 - [ ] **Performance**:
     - [ ] Test `proxies.html` with 10k items (Virtual Scrolling?).
+- [ ] **Accessibility (a11y)**:
+    - [ ] Check ARIA labels on dynamic elements.
+    - [ ] Verify keyboard navigation in tables.
 - [ ] **Artifacts**:
     - [ ] Check `.gitignore` for `output/`.
     - [ ] Verify `clean` step before build.
@@ -335,7 +345,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 
 ### 7.2. Output Generation (`src/configstream/output.py`)
 - [ ] **Atomic Writes**:
-    - [ ] Ensure `write -> flush -> fsync -> rename` pattern.
+    - [ ] Ensure `write -> flush -> fsync -> rename` pattern (see `async_file_ops.py`).
 - [ ] **Format Validity**:
     - [ ] Validate generated JSON against schema.
     - [ ] Validate YAML syntax.
@@ -344,7 +354,11 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
         - [ ] Audit `to_singbox_outbound` in `singbox.py`.
         - [ ] Check `WireGuard` IP generation (collision risk?).
         - [ ] Check `Hysteria2` obsoleted fields.
-        - [ ] Verify "Stealth Profile" application.
+        - [ ] **Transport Mapping**: Audit `singbox_utils.add_transport_sb`.
+            - [ ] Verify `ws`, `grpc`, `http` type mapping.
+            - [ ] Check for `str(None) -> "None"` string corruption.
+        - [ ] **Stealth Profile**: Audit `singbox_utils.apply_stealth_profile`.
+            - [ ] Does User-Agent injection break WAFs?
     - [ ] **Clash**:
         - [ ] Audit `to_clash_proxy` in `clash.py`.
         - [ ] Verify `Reality` support (Clash Meta).
@@ -386,6 +400,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Tools Audit**:
     - [ ] `blocklist_manager/`: Source validation.
     - [ ] `latency_tester/`: Concurrency conflicts.
+- [ ] **Bot CLI (`src/configstream/bot_cli.py`)**:
+    - [ ] **Token Security**: Verify `TELEGRAM_BOT_TOKEN` is not logged.
+    - [ ] **Error Handling**: Check if bot crashes pipeline on network error.
 
 ### 9.2. Policy & Schema
 - [ ] **Schema Validation**:
@@ -407,6 +424,8 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Eliminate `type: ignore`.
 - [ ] **Utility Audit**:
     - [ ] Review `src/configstream/utils/`.
+    - [ ] **`bool_parser.py`**: Check edge cases ("on", "off", "yes", "no").
+    - [ ] **`async_file_ops.py`**: Verify `aiofiles` usage.
     - [ ] Deprecate `bool_parser` if standard exists.
 
 ## Phase 11: Transport & Vectors (Deep Internals)
@@ -453,9 +472,60 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Regression Testing**:
     - [ ] Add `tests/test_converters.py` (round-trip tests).
     - [ ] Add `tests/test_pipeline_resilience.py`.
+    - [ ] **Test Gaps**: Verify `test_hedged_requests.py` actually tests concurrency (not just mocks).
 - [ ] **Linting**:
     - [ ] Enforce `flake8` max-complexity.
     - [ ] Enforce `black` formatting.
 - [ ] **Documentation**:
     - [ ] Update `README.md` architecture diagram.
     - [ ] Update `AGENTS.md` with new findings.
+
+## Phase 15: Edge Case & Anomaly Handling
+
+- [ ] **Hedged Requests (`src/configstream/hedged_requests.py`)**:
+    - [ ] **Zombie Tasks**: Verify that canceled tasks in `queue` are properly awaited/cleaned up.
+    - [ ] **Race Conditions**: Check logic when `hedge_after` is very small.
+- [ ] **DNS Prewarming (`src/configstream/dns_prewarm.py`)**:
+    - [ ] **Cache Poisoning**: Verify that `top_hosts` cannot be manipulated by malicious sources.
+    - [ ] **Exception Silencing**: Ensure `return_exceptions=True` doesn't mask systemic DNS failures.
+- [ ] **Freshness Logic (`src/configstream/freshness.py`)**:
+    - [ ] **Timezone Safety**: Audit `replace("Z", "+00:00")` for robustness against non-ISO formats.
+    - [ ] **Integer Overflow**: Check `age_seconds` calculation for very old proxies.
+
+## Phase 16: Future Proofing & Scalability
+
+- [ ] **Horizontal Scaling**:
+    - [ ] Can multiple pipeline instances write to the same `history` DB? (Locking issue?).
+    - [ ] Is `output/` directory shared or local?
+- [ ] **Database Migration**:
+    - [ ] Is there a schema version in `ProxyHistoryTracker`?
+    - [ ] Plan for migration to PostgreSQL if SQLite hits limits.
+
+## Phase 17: Legal & Compliance
+
+- [ ] **License Headers**:
+    - [ ] Verify all source files contain AGPLv3 header.
+- [ ] **GDPR/Privacy**:
+    - [ ] Verify `history.db` doesn't log user IPs accessing the API.
+    - [ ] Check if `GeoIPResolver` uses a local DB (privacy safe) or external API.
+
+## Phase 18: Disaster Recovery (`src/configstream/backup.py`)
+
+- [ ] **Backup Logic**:
+    - [ ] Audit `backup_databases` for `sqlite3` locking (use `immutable=1`?).
+    - [ ] Verify `cleanup_old_backups` sorts correctly by date.
+- [ ] **Restoration**:
+    - [ ] Test `restore_database` function. Does it handle corrupt gzip files?
+    - [ ] Verify `pre_restore_backup` creation prevents data loss on failed restore.
+
+## Phase 19: Configuration & Constants (`src/configstream/constants.py`)
+
+- [ ] **Security Constants**:
+    - [ ] Verify `DANGEROUS_PORTS` list completeness.
+    - [ ] Check `SUSPICIOUS_DOMAINS` (is `127.0.0.1` blocked?).
+- [ ] **Limits & Thresholds**:
+    - [ ] Audit `MAX_B64_INPUT_SIZE` (10MB sufficient?).
+    - [ ] Check `MAX_CONFIG_LINE_LENGTH` (10k chars).
+- [ ] **Protocol Support**:
+    - [ ] Ensure `VALID_PROTOCOLS` matches `parsers/` capabilities.
+    - [ ] Verify `PROTOCOL_COLORS` covers all supported protocols (for UI).
