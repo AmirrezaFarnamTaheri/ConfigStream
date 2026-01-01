@@ -107,7 +107,7 @@ This phase analyzes the testing engine, which determines if a proxy is alive, me
 **Analysis**:
 *   `go.mod` uses `sing-box v1.8.14`. This is reasonably recent but Sing-box moves fast.
 *   **Security**: Uses `golang.org/x/crypto v0.45.0`.
-*   **Fix**: `go 1.24.0` specified. Excellent.
+*   **Fix**: `go 1.24.3` specified. Confirm this matches the CI toolchain.
 
 ### 4.7.2. Concurrency & Resource Safety
 **Analysis**:
