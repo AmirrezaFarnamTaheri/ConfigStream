@@ -11,6 +11,9 @@ class PipelineStats:
     end_time: Optional[datetime] = None
     drop_reasons: Dict[str, int] = field(default_factory=dict)
 
+    # [FIX] Internal lock for thread-safe access to dictionary fields
+    _lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
+
     # Canonical Stats
     total_configured_sources: int = (
         0  # Total sources from sources.yaml (for frontend display)
@@ -52,12 +55,17 @@ class PipelineStats:
     def total_revived(self) -> int:
         return self.revived_warp + self.revived_vwarp
 
+    async def get_snapshot(self) -> Dict[str, Any]:
+        """
+        Thread-safe method to get a snapshot of stats.
+        """
+        async with self._lock:
+            return self.to_dict()
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Return a dictionary representation of stats.
-        Note: The 'drop_reasons' dictionary is copied defensively to avoid
-        'dictionary changed size during iteration' errors if accessed concurrently
-        without external locking.
+        Uses defensive copies for complex types.
         """
         return {
             "total_configured_sources": self.total_configured_sources,
