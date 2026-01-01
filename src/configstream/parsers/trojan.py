@@ -3,12 +3,17 @@ from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
+from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
 
 
 def parse_trojan(config: str) -> Optional[Proxy]:
     try:
+        config = config.strip()
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         parsed = urlparse(config)
         # Strict scheme check to prevent false positives in auto-detect
         if parsed.scheme and parsed.scheme.lower() not in ("trojan", "trojan-go"):

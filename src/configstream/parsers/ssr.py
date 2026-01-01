@@ -3,6 +3,7 @@ from typing import Optional
 from urllib.parse import parse_qs
 from ..models import Proxy
 from .base import safe_b64_decode, validate_b64_input, normalize_proxy_details
+from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,10 @@ def _b64_normalize(s: str) -> str:
 
 def parse_ssr(config: str) -> Optional[Proxy]:
     try:
+        config = config.strip()
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         if not config.startswith("ssr://"):
             return None
 

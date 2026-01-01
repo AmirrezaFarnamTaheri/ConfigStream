@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Any
 from datetime import datetime, timezone
+import asyncio
 
 
 @dataclass
@@ -51,6 +52,12 @@ class PipelineStats:
         return self.revived_warp + self.revived_vwarp
 
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Return a dictionary representation of stats.
+        Note: The 'drop_reasons' dictionary is copied defensively to avoid
+        'dictionary changed size during iteration' errors if accessed concurrently
+        without external locking.
+        """
         return {
             "total_configured_sources": self.total_configured_sources,
             "fetched_sources": self.fetched_sources,
@@ -73,5 +80,6 @@ class PipelineStats:
             "vwarp_success": self.vwarp_success,
             "vwarp_win_rate": self.vwarp_win_rate,
             "washing_enabled": self.washing_enabled,
-            "drop_reasons": self.drop_reasons,
+            # Create a shallow copy of the dict to prevent iteration errors
+            "drop_reasons": dict(self.drop_reasons),
         }
