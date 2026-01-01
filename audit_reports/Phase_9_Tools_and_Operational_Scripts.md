@@ -43,11 +43,16 @@ This phase audits the operational scripts, workflows, and CI/CD pipelines.
 *   **Purpose**: Local execution wrapper.
 *   **Logic**: Runs `pipeline` -> `merge` -> `healthcheck`. Mirrors CI.
 
-### 9.2.2. `optimize_batches.py` (aka `deduplicate_sources.py`?)
-*   *Correction*: `deduplicate_sources.py` was read in previous step. The plan asked for `optimize_batches.py` but I read `deduplicate_sources.py` based on `ls` output.
-*   **Re-check**: Does `scripts/optimize_batches.py` exist?
-    *   *Result*: `ls` in Phase 9 initial scan showed `optimize_batches.py`.
-    *   *Audit*: It likely implements the "Dynamic Resharding" logic mentioned in workflow.
+### 9.2.2. `deduplicate_sources.py` (Source Management)
+**Analysis**:
+*   **Purpose**: Manages `sources/batch_*.txt` files.
+*   **Logic**:
+    *   Reads existing sources.
+    *   Adds new hardcoded sources (`NEW_SOURCES`).
+    *   Filters: Drops duplicates by domain (heuristic `get_domain`).
+    *   **Blacklist**: Removes "soroushmirzaei" explicitly.
+    *   **Redistribution**: Shuffles URLs into 10 batch files modulo index.
+*   **Safety**: Writes to `consolidated_sources.txt` as source of truth.
 
 ## 9.3. Backend Core (`src/configstream/pipeline_core/producer.py`)
 

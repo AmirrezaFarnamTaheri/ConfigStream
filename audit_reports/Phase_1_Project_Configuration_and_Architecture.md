@@ -1,4 +1,4 @@
-# Phase 1: Project Configuration & Architecture Validity - Analysis Report
+# Phase 1: Project Configuration & Architecture Validity - Analysis Report (Deep Scan)
 
 ## 1. Overview
 This phase audits the project's foundation: dependencies, environment configuration, build processes, and high-level architecture. The goal is to ensure a secure, reproducible, and compliant environment.
@@ -83,7 +83,26 @@ This phase audits the project's foundation: dependencies, environment configurat
 ### 1.2.3. Dead Code
 *   Roadmap mentions `src/configstream/utils/`.
 *   `package.json` suggests a JS frontend, but `frontend/` folder analysis (Phase 7) will confirm if it's used.
-*   **`src/configstream/plugins/`**: Contains `loader.py` and `README.md`. If no actual plugins exist here, it might be over-engineering or reserved for future use.
+*   **`src/configstream/plugins/`**: Contains `loader.py` and `README.md`. It seems unused in the main pipeline. `pipeline_core` does not import it.
+    *   **Recommendation**: Remove `plugins/` if not planned for immediate use, to reduce noise.
+
+## 1.3. Extensibility & Adapters (`src/configstream/adapters.py`)
+
+### 1.3.1. Adapter Design
+**Analysis**:
+*   **Pattern**: Abstract Base Class `Adapter` with `export()` method.
+*   **Implementations**: `SurgeAdapter`, `QuantumultXAdapter`, `ShadowrocketAdapter`, `SIP008Adapter`.
+*   **Features**:
+    *   **Surge/Loon**: Uses `format_singbox_chain_for_surge` helper. This is excellent reuse.
+    *   **Shadowrocket**: Has logic to *reconstruct* URIs (`ss://`, `vmess://`).
+        *   **Validation**: It reconstructs correctly (Base64 padding, URL encoding).
+*   **Legacy**: `get_adapter` factory function.
+*   **Missing**: Clashes with `converters/clash.py`? No, Clash is a separate converter/generator path. Adapters seem to be for *legacy/mobile* clients.
+
+### 1.3.2. Base Helpers (`src/configstream/adapters_base.py`)
+**Analysis**:
+*   `convert_singbox_outbound_to_surge_string`: Maps `shadowsocks`, `vmess` fields.
+    *   **Maintenance**: If Sing-box schema changes, this file needs updates. It is coupled to Sing-box structure.
 
 ## Recommendations
 1.  **Split Requirements**: Create `requirements.in` (prod) and `requirements-dev.in`, then compile to `requirements.txt` (prod) and `requirements-dev.txt`. Update Dockerfile to use only `requirements.txt`.
