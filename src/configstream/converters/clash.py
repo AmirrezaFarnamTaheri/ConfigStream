@@ -151,13 +151,22 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         elif proxy.protocol == "wireguard":
             common["type"] = "wireguard"
-            common["ip"] = proxy.details.get("local_address", ["172.16.0.2"])[0]
+            # Safely get the first IP or fall back to a default
+            local_addresses = proxy.details.get("local_address")
+            if local_addresses and isinstance(local_addresses, list) and local_addresses:
+                common["ip"] = local_addresses[0]
+            else:
+                common["ip"] = "172.16.0.2"
+
             common["private-key"] = proxy.details.get("private_key", "")
             common["public-key"] = proxy.details.get("peer_public_key", "")
             if "reserved" in proxy.details:
                 common["reserved"] = proxy.details["reserved"]
             if "mtu" in proxy.details:
-                common["mtu"] = int(proxy.details["mtu"])
+                try:
+                    common["mtu"] = int(proxy.details["mtu"])
+                except (TypeError, ValueError):
+                    pass
             common["udp"] = True
             return common
 

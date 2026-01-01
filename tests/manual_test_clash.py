@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath("src"))
 from configstream.models import Proxy
 from configstream.converters.clash import to_clash_proxy
 
-def test_clash_modern():
+def run_clash_modern_manual():
     # Hysteria2
     hy2 = Proxy(
         config="hy2://",
@@ -74,7 +74,7 @@ def test_clash_modern():
 
 if __name__ == "__main__":
     try:
-        test_clash_modern()
+        run_clash_modern_manual()
         print("All manual tests passed!")
     except Exception as e:
         print(f"Test failed: {e}")
