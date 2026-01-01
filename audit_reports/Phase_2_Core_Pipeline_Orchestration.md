@@ -89,7 +89,14 @@ Phase 2 analyzes `src/configstream/pipeline.py` and its supporting modules. This
 *   `optimal_consumers` calculation looks reasonable (`cpu_count * 1.5`).
 *   Upper bound clamping (32 or 16) prevents thrashing.
 
+### 2.3.3. Stats Locking (Race Condition)
+**Analysis**:
+*   In `consumer.py`, updates to `stats.drop_reasons` inside loops are NOT always protected by `seen_lock`.
+    *   `stats.tested += len(chunk)` IS protected.
+    *   **Fix Required**: Wrap `stats.drop_reasons[...] += 1` in `async with seen_lock`.
+
 ## Recommendations
 1.  **Async Subprocess**: Switch Vwarp `subprocess.Popen` to `asyncio.create_subprocess_exec`. This allows `await process.wait()` which doesn't block the loop.
 2.  **Server Notification**: Use `aiohttp` instead of `httpx` (since `aiohttp` is already a dep and often lighter) or ensure `httpx` client is closed properly (context manager is used, so it's fine).
 3.  **Type Hints**: `seen_keys` is `Dict[tuple, None]`. It works as a set but carries value overhead. `Set[tuple]` would be cleaner if consumers support it.
+4.  **Stats Safety**: Apply `seen_lock` to ALL dictionary mutations in `PipelineStats`.

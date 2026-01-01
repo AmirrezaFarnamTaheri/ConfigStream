@@ -1,82 +1,81 @@
-# Phase 4: Testing Engine - Analysis Report
+# Phase 4: Testing Engine - Analysis Report (Deep Scan)
 
 ## 4. Overview
-This phase analyzes the testing engine, which determines if a proxy is alive, measures its latency, and checks its security. It consists of a high-performance Go-based sidecar (`GoBatchTester`) and a Python fallback (`PythonTester`).
+This phase analyzes the testing engine, focusing on the Go-based sidecar (`GoBatchTester`) and the auxiliary tools (`scanner`, `utls_client`).
 
-## 4.1. Go Sidecar Integration (`src/configstream/testers/go.py`)
+## 4.1. Go Sidecar Integration (`src/go/tester/main.go`)
 
-### 4.1.1. Communication Protocol (NDJSON)
+### 4.1.1. Core Logic & Concurrency
 **Analysis**:
-*   Uses `orjson` for fast JSON handling.
-*   **Input**: Writes newline-delimited JSON (NDJSON) to `proc.stdin`.
-    *   `payload = "\n".join(lines) + "\n"`. Correct.
-*   **Output**: Reads line-by-line from `proc.stdout`.
-    *   `data = json.loads(line)`.
-*   **Encoding**: Handles `bytes` vs `str` explicitly when dumping/loading.
-*   **Buffering**: Uses `stdin.write` and `drain`. Uses `stdout.readline`.
-    *   **Risk**: If the Go process produces massive output on a single line (not NDJSON), `readline` might buffer too much. But since it controls the Go binary, this is likely safe.
+*   **JSON Decoder**: Use of `json.NewDecoder` is correct and robust against 64KB token limits of `bufio.Scanner`.
+*   **Panic Recovery**: Implements global and per-worker panic recovery. This prevents a single malformed proxy from crashing the daemon.
+    *   **Logging**: Logs panics to stderr. `GoBatchTester` (Python) monitors stderr.
+*   **Port Binding**:
+    *   `port := 10000 + getRandomInt(50000)`.
+    *   **Race Condition**: Uses random ports. While statistical collision probability is low with 50k ports, it's non-zero.
+    *   **Retry Logic**: `MaxRetries` loop handles binding failures gracefully.
+    *   **Safety**: Explicitly avoids `net.Listen` check (which is a TOC/TOU race). Just attempts to start Sing-box.
+*   **Context Propagation**:
+    *   `testProxyWithContext` creates a child context with timeout.
+    *   Passes `ctx` to `setupSingbox` and `testLatency`.
+    *   **Leak Prevention**: `defer cancel()` ensures context cleanup.
 
-### 4.1.2. Process Lifecycle
+### 4.1.2. Networking & Transport
 **Analysis**:
-*   **Startup**: `_ensure_process` spawns the binary.
-    *   **Vwarp Integration**: If `USE_VWARP_TUNNEL` is set, it injects `ALL_PROXY` env var pointing to Vwarp SOCKS5. This allows the tester itself to go through a tunnel (maybe for anonymity or bypassing local blocks?).
-*   **Heartbeat**: `_heartbeat_loop` checks `proc.returncode` every 10s.
-*   **Restart**: `_restart_daemon` kills and respawns.
-*   **Panic Handling**: `_read_stderr_loop` watches for "panic" or "fatal" and logs them. The heartbeat will catch the exit.
+*   `http.Transport`:
+    *   `DisableKeepAlives: true`: Critical for avoiding file descriptor exhaustion when testing thousands of proxies (ephemeral ports).
+    *   `MaxIdleConns: -1`: Ensures no pooling.
+*   **SOCKS5**: Forces `socks5://127.0.0.1:%d`.
+*   **Honeypot Logic**:
+    *   Generates HMAC-SHA256 signature of `timestamp-id`.
+    *   Verifies signature in response.
+    *   **Robustness**: Handles non-200 status codes (fails safe, returns false).
 
-### 4.1.3. SingBox Integration
+### 4.1.3. SingBox Configuration
 **Analysis**:
-*   Uses `to_singbox_outbound(p)` to generate config.
-*   Sends this config to the Go binary. The Go binary likely uses `sing-box` library to test.
+*   Uses `box.New(boxOpts)` directly.
+*   **Registry**: Implicitly uses the global registry via `box.New`. Since Sing-box v1.9, this is thread-safe for *execution*, but configuration parsing (`json.Unmarshal` into `option.Options`) relies on the global registry being populated.
+    *   **Risk**: If multiple tests run in parallel goroutines, `box.New` might race if it modifies global state? No, `box.New` creates a new instance. The registry is static.
+*   **Inbound**: Changed from "mixed" to "socks" to fix `missing endpoint registry` errors in newer Sing-box versions.
 
-### 4.1.4. Honeypot Detection
+## 4.2. Go Scanner (`src/go/tester/scanner/scanner.go`)
+
+### 4.2.1. WireGuard Handshake
 **Analysis**:
-*   Passes `check_honeypot=True` flag in the JSON request. The logic is in the Go binary (source not visible here, but invoked correctly).
-*   Handles result: `if "HONEYPOT" in error_msg`.
+*   **Packet Construction**:
+    *   Builds a valid-looking Initiation packet (Type 1).
+    *   Generates random Ephemeral key (`curve25519.ScalarBaseMult`).
+    *   **Optimization**: Fills Encrypted Static/Timestamp with random noise.
+    *   **Validity**: This is technically invalid crypto (MACs are wrong), but sufficient to trigger a "Cookie Reply" (Type 4) or "Under Load" response from Cloudflare servers, which proves liveness and RTT.
+*   **Concurrency**:
+    *   Uses `sync.WaitGroup` and semaphore channel `sem` to limit workers.
+    *   **Safety**: Correctly waits for all goroutines.
 
-## 4.2. Python Fallback (`src/configstream/testers/python.py`)
-
-### 4.2.1. TCPing
+### 4.2.2. IP Generation
 **Analysis**:
-*   **Method**: `test_direct` uses `aiohttp_socks` and `ProxyConnector`. This performs a real HTTP request (not just TCP connect), which is better for verifying actual throughput/validity.
-*   **Latency**: `_measure_latency_robust` tries 2 times and averages.
-    *   **Timeout**: Uses `aiohttp.ClientTimeout`.
+*   `generateIPList`: Iterates CIDRs.
+*   **Memory**: Generates *all* IPs in memory slice `[]string`.
+    *   **Risk**: `/24` is small (256 IPs). Cloudflare ranges are small. If user adds a `/16`, this slice becomes huge (65k strings).
+    *   **Recommendation**: Use a generator/iterator instead of pre-allocating the full list if larger ranges are expected.
 
-### 4.2.2. Performance Bottlenecks
-**Analysis**:
-*   `singbox2proxy` (optional lib) usage involves `loop.run_in_executor`. This spawns a thread/process per proxy test if used.
-    *   **Risk**: High overhead if testing thousands of proxies via Python fallback. The Go tester is much preferred.
+## 4.3. uTLS Client (`src/go/utls_client/main.go`)
 
-### 4.2.3. Protocol Parity
+### 4.3.1. Purpose
 **Analysis**:
-*   `test_direct` supports `socks5`, `http`.
-*   `test_via_singbox` supports complex protocols (VLESS, VMess) *IF* `singbox2proxy` is installed.
-    *   **Warning**: The code logs if `singbox2proxy` is missing.
+*   **Status**: Proof-of-Concept (PoC).
+*   **Limitations**: Hardcoded to `www.google.com`. Does not support proxy routing (SOCKS5 dialing).
+*   **Usage**: Not currently used by the main pipeline? (Pipeline uses `GoBatchTester` / `SingBoxTester`).
+    *   **Action**: Mark as experimental or integrate into the main tester if fingerprinting checks are needed.
 
-## 4.3. Caching & State
-**Analysis**:
-*   `TestResultCache` is passed to `processing_consumer` (in pipeline analysis).
-*   In `go.py`, `req_id` maps request to proxy object.
-*   **Locking**: `_lock` in `GoBatchTester` protects process state and futures map. This is thread-safe for asyncio.
+## 4.4. Rust FFI (`src/rust/ss_checker`)
 
-## 4.4. Manager Logic (`src/configstream/testers/manager.py`)
+### 4.4.1. Implementation
 **Analysis**:
-*   **Dry Run**: Skips testing if `dry_run=True`. Useful for debugging pipelines.
-*   **Chain Testing**:
-    *   If `protocol == "revived"`, it constructs a `custom_config` payload for the Go tester (`outbounds` list).
-    *   It does NOT try to test chains in Python fallback (too complex).
-*   **Fallback Concurrency**:
-    *   Caps concurrency at 20 (`asyncio.Semaphore(20)`) for Python fallback to prevent CPU overload. This is a critical safety valve.
-
-## 4.5. Utils (`src/configstream/testers/utils.py`)
-**Analysis**:
-*   `SecureConfigContext`: Creates temp files (`mkstemp`) for `singbox2proxy`.
-*   **Permissions**: `os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)`. Ensures only owner can read.
-*   **Cleanup**: Uses `try...finally` and `atexit` to ensure cleanup.
-*   **Thread Safety**: Uses `_TEMP_FILES_LOCK` to track active files.
+*   **Logic**: String checking (`contains("method")`).
+*   **Validation**: Weak. It confirms JSON structure but doesn't validate cryptographic parameters.
+*   **Utility**: Likely unused in favor of Python's `parse_ss`.
 
 ## Recommendations
-1.  **Go Binary Dependency**: The system heavily relies on `configstream-tester`. The build process (Phase 1) creates it.
-2.  **Vwarp Logic**: The `ALL_PROXY` injection in `_ensure_process` forces *all* tests through Vwarp if enabled. Ensure this is intended (testing proxies *through* a proxy?). Usually you want to test proxies directly from the local interface to measure *their* performance, not the tunnel's. Unless Vwarp is used to bypass censorship *to reach* the proxy server?
-    *   *Self-Correction*: Yes, if the testing machine is in a censored region (e.g. Iran/China), it might need a tunnel to even reach the proxy server to test it. This seems to be the "Vwarp" feature purpose.
-3.  **Python Tester**: It's clearly a second-class citizen. Ensure users know they need the Go binary for performance.
+1.  **Scanner Optimization**: Refactor `generateIPList` to be an iterator/channel generator to support large CIDRs without OOM.
+2.  **uTLS Integration**: The `utls_client` is isolated. Consider merging its logic into the main `tester` binary to allow fingerprint verification of proxies.
+3.  **Honeypot Secret**: Ensure `HoneypotSecret` env var is documented and set in CI/Prod.
