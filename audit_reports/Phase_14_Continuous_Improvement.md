@@ -39,6 +39,7 @@ This report serves as the consolidation point for all improvement initiatives.
 4.  **History**: Stream large history exports. (Phase 12)
 5.  **Frontend**: Tighten CSP in `index.html` (remove unsafe-inline). (Phase 7)
 6.  **Scripts**: Atomic write fix for `clean_security_issues.py`. (Phase 9)
+7.  **Frontend**: Move `calculateSimilarity` (fuzzy search) to Web Worker for large datasets. (Phase 7)
 
 ## 14.4. Linting
 *   `flake8`, `black`, `mypy` are configured.
