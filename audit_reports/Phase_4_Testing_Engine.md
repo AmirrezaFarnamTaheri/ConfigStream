@@ -84,8 +84,55 @@ This phase analyzes the testing engine, which determines if a proxy is alive, me
 *   **Panic Recovery**: Implements `defer recover()` in worker loops. Prevents daemon crash on malformed inputs.
 *   **Honeypot**: Uses HMAC-SHA256 signature verification. Robust.
 
+### 4.6.1. Thread Safety in `go.py`
+**Analysis**:
+*   `_pending_futures` map is accessed by both `test_batch` (writes) and `_read_loop` (pops).
+*   **Fix Verification**: The code uses `async with self._lock` when popping in `_read_loop` and when adding in `test_batch`. This is correct.
+*   **Timeout Cleanup**: `test_batch` also accesses `_pending_futures` to clean up on timeout. It correctly acquires `self._lock` before popping.
+*   **Custom Configs**: `test_custom_configs` logic mirrors `test_batch` but does NOT lock when adding to `_pending_futures`?
+    *   *Check*: `self._pending_futures[req_id] = fut` in `test_custom_configs` is **NOT** protected by `async with self._lock:`.
+    *   **Bug**: This is a race condition if `_read_loop` tries to pop a different ID at the same time (dict mutation during iteration? No, dict operations are atomic in GIL, but logic might be flawed). However, since `_read_loop` iterates or modifies keys, and `test_custom_configs` adds keys, `RuntimeError: dictionary changed size during iteration` is unlikely unless `_pending_futures.values()` or similar is being iterated.
+    *   In `close()`, `self._pending_futures.values()` is iterated. If `test_custom_configs` adds a key during `close()`, it crashes.
+    *   **Action**: Wrap `self._pending_futures[req_id] = fut` in `test_custom_configs` with `async with self._lock:`.
+
 ## Recommendations
 1.  **Go Binary Dependency**: The system heavily relies on `configstream-tester`. The build process (Phase 1) creates it.
-2.  **Vwarp Logic**: The `ALL_PROXY` injection in `_ensure_process` forces *all* tests through Vwarp if enabled. Ensure this is intended (testing proxies *through* a proxy?). Usually you want to test proxies directly from the local interface to measure *their* performance, not the tunnel's. Unless Vwarp is used to bypass censorship *to reach* the proxy server?
-    *   *Self-Correction*: Yes, if the testing machine is in a censored region (e.g. Iran/China), it might need a tunnel to even reach the proxy server to test it. This seems to be the "Vwarp" feature purpose.
-3.  **Python Tester**: It's clearly a second-class citizen. Ensure users know they need the Go binary for performance.
+2.  **Vwarp Logic**: The `ALL_PROXY` injection in `_ensure_process` forces *all* tests through Vwarp if enabled. This is intended for environments (e.g., Iran/China) where direct access to proxy servers is blocked.
+3.  **Race Condition**: Fix the missing lock in `test_custom_configs` when adding futures to `_pending_futures`.
+4.  **Python Tester**: It's clearly a second-class citizen. Ensure users know they need the Go binary for performance.
+
+## 4.7. Go Code Quality & Security (`src/go/tester/`)
+
+### 4.7.1. Dependency Management
+**Analysis**:
+*   `go.mod` uses `sing-box v1.8.14`. This is reasonably recent but Sing-box moves fast.
+*   **Security**: Uses `golang.org/x/crypto v0.45.0`.
+*   **Fix**: `go 1.24.0` specified. Excellent.
+
+### 4.7.2. Concurrency & Resource Safety
+**Analysis**:
+*   **Panic Recovery**: `worker` function has a global `defer recover()`, AND `testProxyWithContext` is wrapped in an anonymous function with `defer recover()`. This double-safety prevents one bad proxy from crashing a worker thread.
+*   **Context Leak**: `testProxyWithContext` uses `ctx` correctly. `setupSingbox` uses `ctx` to check cancellation but does NOT pass it to `box.New` (which is correct per code comments to avoid registry issues).
+*   **Port Exhaustion**:
+    *   `MaxWorkers = 15`. Conservative.
+    *   `MaxRetries = 5` with Jitter.
+    *   **Issue**: `testLatency` creates a `http.Client` with `MaxIdleConns: -1` (disable pooling).
+    *   **Risk**: High socket churn (TIME_WAIT state). If scanning thousands of proxies rapidly, this might hit OS limits.
+    *   **Mitigation**: The loop interval and limited workers mitigate this, but it's a potential bottleneck on Windows/macOS. On Linux, `tcp_tw_reuse` helps.
+
+### 4.7.3. Race Conditions
+**Analysis**:
+*   `rngMu` mutex protects `rand.Intn`. Correct.
+*   `processedCount` uses `atomic.LoadInt64`. Correct.
+*   **Port Binding**: `setupSingbox` picks a random port and tries `box.New`. It does NOT use `net.Listen` to check availability first (TOC/TOU fix). This is the correct approach for avoiding race conditions.
+
+### 4.7.4. Input Safety
+**Analysis**:
+*   `reader` uses `json.NewDecoder`. This handles stream input safely.
+*   **Honeypot**: `isHoneypot` verifies HMAC signature.
+    *   **Flaw**: `body, err := io.ReadAll(resp.Body)`. If a honeypot returns 1GB body, this OOMs the worker.
+    *   **Fix**: Use `io.LimitReader(resp.Body, 1024*1024)` to cap payload size.
+
+## Recommendations
+1.  **Honeypot Safety**: Cap the response body size in `isHoneypot` to prevent OOM attacks.
+2.  **Socket Reuse**: Consider enabling `SO_REUSEADDR` or persistent connections if `TIME_WAIT` becomes an issue, though disabling keep-alives is safer for isolation.

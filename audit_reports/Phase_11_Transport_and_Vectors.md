@@ -22,6 +22,8 @@ This phase analyzes deep internal mechanisms: Steganography transport (hiding co
 
 ### 11.1.2. Usage
 *   `generate_stego_assets` function iterates over `*.png` in assets folder and creates `stealth_*.png`.
+*   **Integration**: It is NOT called by the main pipeline (`src/configstream/pipeline.py` or `output_handler.py`). It is imported by `scripts/merge/generators.py`.
+    *   **Implication**: Steganography is an optional post-processing step triggered by separate scripts, not the core pipeline. This separates concerns but means a standard `configstream` run won't produce stego assets unless configured to run the script.
 *   Frontend needs the matching KEY to decrypt.
 
 ## 11.2. Vector Intelligence (`src/configstream/intelligence/vectors.py`)
@@ -40,7 +42,10 @@ This phase analyzes deep internal mechanisms: Steganography transport (hiding co
     7.  Reliability (Fixed 5)
 *   **Utility**: This allows a JS frontend to compute cosine similarity or Euclidean distance between proxies without needing a backend query.
 *   **Determinism**: SHA-256 ensures consistent hashing across runs.
+*   **Implementation**: `AtomicFileWriter.write_text` handles output safely.
+*   **Optimization**: Hash calculations use `sha256(....hexdigest())` which creates an intermediate string. `sha256(b"...")` and accessing bytes directly or `int.from_bytes` would be slightly faster, but negligible for this scale.
 
 ## Recommendations
-1.  **Stego Robustness**: Verify if Cloudflare Pages or GitHub Pages gzip compression strips the trailing bytes. Usually they compress the *transfer*, not the file, so it should be safe. However, image optimization plugins *will* strip it.
-2.  **Vector Expansion**: Add real data for Stability/Reliability if `ProxyHistoryTracker` is available in the vector generator context.
+1.  **Stego Integration**: Consider adding a hook in `output_handler.py` to optionally trigger `generate_stego_assets` if a flag is set, ensuring it's part of the main build loop.
+2.  **Stego Robustness**: Verify if Cloudflare Pages or GitHub Pages gzip compression strips the trailing bytes. Usually they compress the *transfer*, not the file, so it should be safe. However, image optimization plugins *will* strip it.
+3.  **Vector Expansion**: Pass `ProxyHistoryTracker` to `generate_vectors` to populate the currently placeholder "Stability" and "Reliability" dimensions (indices 6 and 7).

@@ -79,3 +79,34 @@ This phase audits the operational scripts, workflows, and CI/CD pipelines.
 ## Recommendations
 1.  **DB Merging**: Verify `scripts/merge_batches.py` actually calls `history.merge()`. If it just copies the last shard's DB, data is lost.
 2.  **Workflow Resilience**: The `git push` in `merge_results` should use `rebase` strategy or retry logic to handle contention.
+
+## 9.4. Operational Scripts Deep Dive (`scripts/`)
+
+### 9.4.1. `clean_security_issues.py`
+**Analysis**:
+*   **Deprecation**: Prints "WARNING: This script is deprecated" to stderr.
+*   **Safety**: If used, it loads JSON, filters list, and atomic writes (`open("w")`).
+*   **Issue**: `open("w")` is NOT atomic. It truncates before writing. If `json.dump` fails (disk full), file is corrupted.
+    *   **Recommendation**: Use `AtomicFileWriter` or write-to-temp-then-rename pattern if this script is kept.
+
+### 9.4.2. `upload_telegram.py`
+**Analysis**:
+*   **Timeout**: `timeout=60`. Good.
+*   **Error Handling**: Catches `Exception`, prints error, and `sys.exit(1)`.
+*   **Hardcoded Files**: Uploads specific filenames (`singbox.json`, etc.). If pipeline output names change, this breaks.
+
+### 9.4.3. `upload_hf.py` (Hugging Face)
+**Analysis**:
+*   **Repo Creation**: Tries to create repo. Handles `exist_ok`.
+*   **Upload**: Uses `api.upload_folder`. Efficient.
+*   **Failure**: Logs error but does NOT `sys.exit(1)` (commented out).
+    *   **Logic**: "We generally don't want to fail the CI pipeline if the mirror fails". This is a valid operational choice for a mirror.
+
+### 9.4.4. `upload_gdrive.py`
+**Analysis**:
+*   **Auth**: Expects `GDRIVE_SA_JSON` (Service Account).
+*   **Sync Logic**: Checks `get_folder_files` first. If file exists -> `update`. If not -> `create`.
+    *   **Benefit**: Preserves File IDs (important for shared links).
+*   **Iteration**: `for item in local_path.glob("*")`. Only uploads root files, not recursive.
+    *   **Limitation**: If `output/` has subfolders (`data/`, `country/`), they are ignored.
+    *   **Action**: Ensure `output_dir` structure matches expectation or implement recursive upload. Currently, the main artifacts are in root, so it's acceptable.

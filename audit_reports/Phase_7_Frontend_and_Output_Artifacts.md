@@ -25,10 +25,29 @@ This phase analyzes how the system generates output artifacts (JSON configs, bas
 *   **Parsing**:
     *   Uses `fetch(imageUrl, { cache: "no-store" })`. Good for freshness.
     *   Uses `fernet` JS library (global).
-    *   **Memory Safety**: `buffer` can be large (5MB image). `Uint8Array` slice creates copies? `slice()` on TypedArray creates a copy. `subarray()` creates a view. It uses `slice`. Optimization opportunity.
+    *   **Memory Safety**: `buffer` can be large (5MB image). `Uint8Array` (or DataView) `slice()` creates a deep copy of the memory region. `subarray()` creates a view sharing the underlying buffer. The code uses `dataView.slice(payloadStart)`.
+        *   **Impact**: For a 5MB image with a 1MB payload, this allocates another 1MB. On low-memory devices, frequent heavy allocations trigger GC pauses.
+        *   **Action**: Change `slice` to `subarray` if the API consuming it supports views (TextDecoder does).
     *   **Payload Limit**: Checks `CS_CONSTANTS.STEGO_MAX_PAYLOAD_SIZE` (implied global) before decompression. Good security check (Zip bomb protection).
 
-### 7.1.3. `washer_client.js`
+### 7.1.3. Service Worker (`service-worker.js`)
+**Analysis**:
+*   **Strategy**: Network First for Data (`.json`, API), Cache First for Assets (HTML, CSS).
+    *   **Stale-While-Revalidate**: Logic exists for background updates of cached assets.
+*   **Version Check**: `config.VERSION || 'ERR_NO_VERSION'`.
+    *   **Risk**: `importScripts` busts cache with `?v=timestamp`. This forces SW update check on every page load (browser rule: 24h max for SW, but importScripts bypasses if URL changes). Good for rapid updates.
+*   **Scope**: `navigator.serviceWorker.register('service-worker.js')` in `index.html`.
+    *   **Path**: `service-worker.js` is in root. This gives it scope over `/`. Correct.
+
+### 7.1.4. Security Headers (`index.html`)
+**Analysis**:
+*   **CSP**: `default-src 'self' https://unpkg.com; script-src 'self' 'unsafe-inline' https://unpkg.com; ...`.
+    *   **Unsafe Inline**: `script-src 'unsafe-inline'` is present.
+    *   **Risk**: XSS vulnerability. If an attacker can inject script tags (unlikely in static site, but possible via reflected parameters if JS reads URL), they execute.
+    *   **Mitigation**: Move inline scripts to external files or use a Nonce/Hash. Given it's a GitHub Pages static site, the risk is lower (no backend session to steal), but still bad practice.
+*   **Manifest**: `manifest.json` exists. PWA support confirmed.
+
+### 7.1.5. `washer_client.js`
 **Analysis**:
 *   **Stub**: Currently a mock ("Washer Client: Ready").
 *   **Purpose**: Future feature to allow client-side washing (using WASM or API)?

@@ -26,7 +26,11 @@ This phase analyzes the toolchain components, specifically the `pip-audit` wrapp
     *   **Test**: Does Cloudflare allow public query of account status by ID only? Unlikely. Usually requires the token.
     *   **Bug**: This validation likely fails (403/401) unless the ID alone is public (doubtful). It returns "Account suspended or disabled" on 403.
     *   **Action**: Verify Cloudflare API requirements. It likely needs the token returned during registration.
+    *   **Logic Check**: `validate_account_active` simply calls `response.json()`. If auth fails, it probably returns 4xx, which is handled.
+    *   **Hardcoded IP Check**: `WARP_ENDPOINTS` constant in `warp_validator.py` is hardcoded. `validate_endpoint_reachable` uses `warp_prefixes` list (162.159.192. etc.) which is also hardcoded inside the method.
+    *   **Discrepancy**: The constant `WARP_ENDPOINTS` is defined but seemingly unused inside the class (the class uses a local list `warp_prefixes`).
+    *   **Action**: Refactor to use a single source of truth for WARP IPs, ideally in `constants.py` or injected config.
 
 ## Recommendations
-1.  **Warp API Auth**: `validate_account_active` almost certainly needs a Bearer token. Add `token` param to the validator.
-2.  **Endpoint Prefixes**: Move the hardcoded list to `constants.py` or allow override.
+1.  **Warp API Auth**: `validate_account_active` needs a Bearer token. Add `token` param to the validator.
+2.  **Endpoint Prefixes**: Refactor `warp_validator.py` to use a single `WARP_PREFIXES` constant, preferably imported from `src/configstream/constants.py` or allowing injection, to prevent drift.
