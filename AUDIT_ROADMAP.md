@@ -42,6 +42,10 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Reproducibility**: Ensure `-trimpath` and `-ldflags "-w -s"` are used.
     - [ ] **Integrity**: Compare `wasm_exec.js` checksum against the Go compiler version.
     - [ ] **Version Lock**: Verify script fails if Go version != `1.21.x` (strict check).
+- [ ] **CI/CD Workflow**:
+    - [ ] Audit `.github/workflows/` for secure secret injection. Avoid `env: ${{ secrets.ALL }}`.
+    - [ ] Check for unlimited timeouts in jobs (cost risk). Set `timeout-minutes`.
+    - [ ] Verify 3rd party actions are pinned by commit hash, not tag (immutable refs).
 
 ### Phase 2: Configuration & Constants
 - [ ] **Configuration Logic (`src/configstream/config.py`)**
@@ -56,7 +60,8 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Protocol Colors**: Verify `PROTOCOL_COLORS` covers all 28+ supported protocols.
 - [ ] **Pre-commit Hooks**:
     - [ ] Review `.pre-commit-config.yaml` for `gitleaks`. Is the regex pattern up to date?
-    - [ ] Ensure `black`, `isort`, and `flake8` config matches project standards.
+    - [ ] Ensure `black`, `isort`, and `flake8` config matches project standards. Check for conflicting line lengths.
+    - [ ] Verify `mypy` is running in strict mode (`no_implicit_optional`, `check_untyped_defs`, `disallow_any_generics`).
 
 ### Phase 2b: Architecture & Codebase Health
 - [ ] **`AGENTS.md` Alignment**:
@@ -97,17 +102,42 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Fuzzing**: Test with random byte strings, recursive Base64, and huge JSONs.
     - [ ] **ReDoS**: Audit all Regex patterns (e.g., `(a+)+`). Use `re.compile` or `google-re2` wrapper.
 - [ ] **Protocol-Specific Deep Dive**:
-    - [ ] **VLESS**: UUID (Hex, 32/36 chars). Reality (`pbk`, `sid`). Fallback for missing `flow`.
-    - [ ] **VMess**: AEAD (`alterId=0`). `scy` vs `cipher`.
-    - [ ] **Trojan**: TLS compulsion. `sni` extraction from `peer` or `sni`.
-    - [ ] **Shadowsocks**: SIP002 (Base64 padding). Legacy (`ss://method:pass@host:port`). Plugins (`obfs-local`, `v2ray-plugin` decoding).
-    - [ ] **Shadowsocks 2022**: Method (`2022-blake3...`). Key length validation.
-    - [ ] **Hysteria / Hysteria2**: Bandwidth units ("Mbps"). `obfs` vs `obfs-type`.
-    - [ ] **Tuic**: UUID check. Congestion control (`bbr` mapping).
-    - [ ] **WireGuard**: Keys (Base64 44 chars). Reserved bytes (int list). MTU defaults.
-    - [ ] **SSH**: `private_key` vs `password`. Host key validation.
-    - [ ] **NaiveProxy**: Padding support. HTTPS wrapping logic.
-    - [ ] **Base64**: Padding fix (`=` vs `==`). URL-safe vs standard characters.
+    - [ ] **VLESS**:
+        - [ ] Verify UUID validation (hex only, 32/36 chars).
+        - [ ] Audit `Reality` flow: `pbk` and `sid` extraction. Validate hex/base64 format.
+        - [ ] Check fallback for missing `flow`.
+    - [ ] **VMess**:
+        - [ ] Verify AEAD check (is `alterId` 0?).
+        - [ ] Check `alterId` logic (force 0 if missing? Legacy support?).
+        - [ ] Verify `scy` vs `cipher` priority.
+    - [ ] **Trojan**:
+        - [ ] Check TLS compulsion (Trojan is TLS-only).
+        - [ ] Verify `sni` extraction from `peer` or `sni` field.
+    - [ ] **Shadowsocks (SS/SIP002)**:
+        - [ ] Validate Base64 padding for `user:pass`.
+        - [ ] Check plugin param parsing (`obfs-local`, `v2ray-plugin`). Handle URL-encoding.
+    - [ ] **Shadowsocks 2022**:
+        - [ ] Verify `method` format (e.g., `2022-blake3-aes-128-gcm`).
+        - [ ] Check key length validation (16/32 bytes base64).
+    - [ ] **Hysteria / Hysteria2**:
+        - [ ] Check `up_mbps`/`down_mbps` parsing (string vs int). Handle "100 Mbps" units.
+        - [ ] Verify `obfs` vs `obfs-type` field handling.
+    - [ ] **Tuic**:
+        - [ ] Verify `uuid` requirement.
+        - [ ] Check `congestion_control` mapping (standard `bbr` vs custom).
+    - [ ] **WireGuard**:
+        - [ ] Verify `private_key` length (Base64, 44 chars).
+        - [ ] Check `reserved` bytes parsing (list of 3 ints, not strings).
+        - [ ] Audit IP generation for WARP (collision risk in `to_singbox_outbound`). Use deterministic hashing.
+    - [ ] **SSH**:
+        - [ ] Check `private_key` vs `password` precedence.
+        - [ ] Verify `host_key` validation. Parse known_hosts format?
+    - [ ] **NaiveProxy**:
+        - [ ] Check `padding` support.
+        - [ ] Verify `https` wrapping logic (Chrome probe resistance).
+    - [ ] **Base64**:
+        - [ ] Verify padding fix logic (`=` vs `==`).
+        - [ ] Check handling of URL-safe (`-_`) vs standard (`+/`) base64.
 - [ ] **Metadata Extraction (`src/configstream/tagging.py`, `country_inferrer.py`)**
     - [ ] **Tagging**: Audit `format_proxy_name` regex for catastrophic backtracking. Check `unquote` usage.
     - [ ] **Inference**: Verify `_EXCLUDED_CODES` list (e.g., "ID", "NO", "ON"). Check for false positives in complex remarks.
@@ -136,6 +166,8 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Concurrency Safety**:
     - [ ] **Race Conditions**: Audit `seen_keys` and `stats` updates.
     - [ ] **Shared Singletons**: Verify `GeoIPResolver` and `AnomalyDetector` instance sharing and thread-safety.
+- [ ] **uvloop Integration**:
+    - [ ] Check if `uvloop` is installed and activated (`uvloop.install()`) for performance boost.
 
 ### Phase 6: Resilience & State
 - [ ] **Error Handling**:
@@ -153,6 +185,8 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Log Noise**: Debounce repetitive logs.
     - [ ] **Stats**: Verify `PipelineStats` atomic updates.
     - [ ] **Metric Cardinality**: Check `protocol_counts` for DoS via infinite keys.
+- [ ] **Resource Management**:
+    - [ ] **File Descriptors**: Check `EventStream` and `output_handler`. Ensure `ulimit` is respected. Handle `EMFILE` errors gracefully.
 
 ## Group E: Intelligence & Advanced Features
 
@@ -182,6 +216,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Scoring System**:
     - [ ] **Weights**: Review `PROTOCOL_SCORES` (Stealth vs Speed).
     - [ ] **Pareto Math**: Check formula `(norm_latency * 0.5) + ...`.
+    - [ ] **Ranker**: Verify sorting stability. Handle proxies with `latency=None`.
     - [ ] **Censorship Map**: Is `CENSORSHIP_LEVELS` map current?
 - [ ] **Vector Intelligence (`src/configstream/intelligence/vectors.py`)**
     - [ ] **Feature Hashing**: Audit `_compute_vector` logic and hash collisions. Verify dimensions capture variance.
@@ -190,6 +225,8 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Washer Core (`src/configstream/intelligence/washer/core.py`)**
     - [ ] **Loop Prevention**: Check for infinite revival cycles (Dead -> Revive -> Fail -> Dead).
     - [ ] **Scanner Integration**: Does `fetch_clean_ips` block the main loop?
+- [ ] **Key Management**:
+    - [ ] Check `key_generator.py` for rotation policy and expiration.
 - [ ] **Circuit Breaker (`src/configstream/intelligence/circuit_breaker.py`)**
     - [ ] **State Machine**: Verify Open -> Half-Open -> Closed transitions.
     - [ ] **Leakage**: How many requests pass in Half-Open state?
@@ -235,9 +272,11 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Process**: Verify `_ensure_process` locking logic (avoid double spawn).
     - [ ] **Panic**: Ensure Python handles Go panics gracefully (restart).
     - [ ] **Honeypot**: Verify `check_honeypot` logic and false positives.
+    - [ ] **SingBox Integration**: Verify config structure (1.8+ vs 1.9+) and `route` object generation.
 - [ ] **Python Fallback (`src/configstream/testers/python.py`)**
     - [ ] **TCPing**: Audit `asyncio.open_connection` usage. Handle `ConnectionRefused` vs `Timeout`.
     - [ ] **Jitter**: Verify randomization to prevent thundering herds.
+    - [ ] **Performance**: Check for heavy crypto loops and excessive object creation.
     - [ ] **Protocol Parity**: Document gaps compared to Go tester (e.g., VLESS Reality).
 - [ ] **Caching & State**:
     - [ ] **TestResultCache**: Audit `save()` atomicity and thread-safety.
@@ -262,12 +301,14 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **CSP**: Verify `Content-Security-Policy` and SRI headers.
     - [ ] **Performance**: Test with 10k items (Virtual Scrolling?).
     - [ ] **Accessibility**: Check ARIA labels and keyboard navigation.
+    - [ ] **Artifacts**: Check `.gitignore` for `output/`, `clean` step, and `generate_favicons.py`.
 - [ ] **API (`src/configstream/server.py`)**:
     - [ ] **Input Validation**: Validate `country` (2-char), `protocol`.
     - [ ] **Path Traversal**: Audit `SAFE_PATH_PATTERN` (`^[a-zA-Z0-9_-]+$`).
     - [ ] **Rate Limiting**: Is middleware configured? Check `admin/notify-update` auth.
     - [ ] **CORS**: Check `ALLOWED_ORIGIN_REGEX`. Is it too permissive?
     - [ ] **WebSocket**: Check max message size and connection limits.
+    - [ ] **Error Leakage**: Ensure 500 errors don't expose stack traces.
 
 ## Group H: Maintenance & Future Proofing
 
@@ -279,8 +320,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 ### Phase 16: Scalability & Compliance
 - [ ] **Horizontal Scaling**: Can multiple instances share `history.db`? (SQLite Locking).
 - [ ] **Migration**: Plan for PostgreSQL.
-- [ ] **Legal**: Verify License Headers (AGPLv3).
-- [ ] **GDPR**: Verify `history.db` anonymizes user IPs.
+- [ ] **Legal & Compliance**:
+    - [ ] **License Headers**: Verify all source files contain AGPLv3 header.
+    - [ ] **GDPR/Privacy**: Verify `history.db` doesn't log user IPs accessing the API. Check if `GeoIPResolver` uses a local DB (privacy safe) or external API (leaks source IP).
 
 ### Phase 17: Disaster Recovery
 - [ ] **Backup**: Audit `src/configstream/backup.py`.
@@ -288,7 +330,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Restoration**: Test `restore_database` against corrupt files. Verify pre-restore backups.
 
 ### Phase 18: Refactoring Strategy
-- [ ] **Split Brain**: Map Python vs Go logic divergence. Consolidate scoring/parsing.
+- [ ] **Split Brain**: Map Python vs Go logic divergence. specifically: `src/configstream/converters/singbox.py` vs Go sidecar (Protocol Parsing), `src/configstream/score.py` vs `sort_proxies_pareto` (Scoring), and `vectors.py` vs frontend (Vector Generation).
 - [ ] **Code Duplication**: Merge `adapters.py` / `adapters_base.py`.
 - [ ] **Type Hints**: Enforce `mypy --strict`.
 - [ ] **Utility Audit**: Review `src/configstream/utils/`. Deprecate `bool_parser` if standard exists.
@@ -310,4 +352,5 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Documentation**:
     - [ ] Update `README.md` and `AGENTS.md`.
     - [ ] Document Split Brain map.
+    - [ ] Create decision log for Protocol choices.
     - [ ] Ensure `KNOWN_ISSUES.md` is current.
