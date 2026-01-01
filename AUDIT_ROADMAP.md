@@ -224,18 +224,12 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Infinite Loops**:
     - [ ] Analyze `ProxyWasher.wash_failed` in `core.py`.
     - [ ] Prevent: Dead -> Revive -> Fail -> Dead loop.
-- [ ] **WARP Integration**:
-    - [ ] Audit `warp_scraper.py`:
-        - [ ] Is it using legitimate endpoints (`ircfspace/warpendpoint`)?
-        - [ ] Rate limit compliance.
+- [ ] **Key Management**:
     - [ ] Check `key_generator.py`:
         - [ ] Algorithm correctness.
+        - [ ] Key rotation policy.
 - [ ] **Scanner Logic**:
     - [ ] Audit `fetch_clean_ips`: does it block?
-    - [ ] Verify integration with `vwarp` official project (e.g., MASQUE support).
-- [ ] **Vwarp Chaining**:
-    - [ ] Verify chain construction in `chaining.py`: `Client -> WARP -> Proxy`.
-    - [ ] Check handling of chain failure (blame WARP or Proxy?).
 
 ### 5.2. Scoring & Ranking
 - [ ] **Scorer Logic**:
@@ -272,14 +266,17 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Review `PROTOCOL_SCORES` weights (Stealth vs Speed).
     - [ ] Is `CENSORSHIP_LEVELS` map up-to-date?
 
-### 5.5. Scanner & Vwarp (Upstream Alignment)
-- [ ] **Upstream Compatibility**:
-    - [ ] Check if `src/go/tester` implements MASQUE tunneling (Vwarp feature).
-    - [ ] Verify `Psiphon` integration points (if any).
-    - [ ] Audit `Warp-in-Warp` chaining logic against official Vwarp specs.
+### 5.5. Vwarp Ecosystem & Scanner (`src/configstream/intelligence/washer/`)
+- [ ] **Vwarp Standalone**:
+    - [ ] Verify integration with the official Vwarp project (MASQUE tunneling).
+    - [ ] Check `vwarp` binary execution flags and environment variables.
 - [ ] **Endpoint Scraper**:
+    - [ ] Audit `warp_scraper.py`.
     - [ ] Verify `WIREGUARD_REGEX` robustness.
     - [ ] Check `warp://` URI parsing compliance.
+- [ ] **Upstream Compatibility**:
+    - [ ] Verify `Psiphon` integration points (if any).
+    - [ ] Audit `Warp-in-Warp` chaining logic against official Vwarp specs.
 
 ## Phase 6: Cross-Cutting Concerns
 
