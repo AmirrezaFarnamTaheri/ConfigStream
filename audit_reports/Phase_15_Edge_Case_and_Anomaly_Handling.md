@@ -39,4 +39,4 @@ This phase audits mechanisms for handling edge cases: slow requests (hedging), D
     *   **Recommendation**: Fall back to "stale" or "drop" for invalid dates? Or just log warning.
 
 ## Recommendations
-1.  **Freshness Default**: If date parsing fails, assume STALE (`age_seconds = 999999`) rather than FRESH (`0`). It forces a re-test, which is safer.
+1.  **Freshness Default**: If date parsing fails, assume STALE (`age_seconds = 999999`) rather than FRESH (`0`). It forces a re-test, which is safer. The current implementation in `src/configstream/freshness.py` defaults to `age=0` (fresh), which is unsafe.

@@ -23,6 +23,8 @@ Phase 2 analyzes `src/configstream/pipeline.py` and its supporting modules. This
 *   **Shutdown**: `vwarp_proc.terminate()` and `vwarp_proc.wait()` (synchronous version of `wait` on Popen object).
     *   **Issue**: `subprocess.Popen.wait` is BLOCKING. It will block the event loop.
     *   **Recommendation**: Use `asyncio.create_subprocess_exec` instead of `subprocess.Popen` to get an awaitable process object, or use `await loop.run_in_executor(None, vwarp_proc.wait)`.
+*   **Output Handler Blocking**: `output_handler.py` uses `shutil.copy2` for log rotation and `history.export_*` methods synchronously. These can block the loop significantly when files are large.
+    *   **Action**: Wrap these calls in `loop.run_in_executor`.
 
 ### 2.1.2. Task Management
 **Analysis**:
@@ -91,12 +93,19 @@ Phase 2 analyzes `src/configstream/pipeline.py` and its supporting modules. This
 
 ### 2.3.3. Stats Locking (Race Condition)
 **Analysis**:
-*   In `consumer.py`, updates to `stats.drop_reasons` inside loops are NOT always protected by `seen_lock`.
-    *   `stats.tested += len(chunk)` IS protected.
-    *   **Fix Required**: Wrap `stats.drop_reasons[...] += 1` in `async with seen_lock`.
+*   In `consumer.py`, updates to `stats.drop_reasons` inside loops are NOW protected by `seen_lock` (verified in deep scan).
+*   **New Issue**: `PipelineStats.to_dict()` reads fields without locking. If this is called by an external observer (API) while consumers are running, it may yield inconsistent states (e.g., `drop_reasons` dictionary changing size during iteration).
+    *   **Fix**: `PipelineStats` should encapsulate the lock or be accessed only when the pipeline is paused/finished.
+
+### 2.3.4. Producer Throttling
+**Analysis**:
+*   `src/configstream/pipeline_core/producer.py` uses a hardcoded `asyncio.Semaphore(100)` for URL checking.
+*   **Constraint**: This might be a bottleneck on high-bandwidth systems where `max_workers` (consumers) is scaled up to >100.
+*   **Recommendation**: Make the producer semaphore dynamic, scaling with `max_workers` or a config setting.
 
 ## Recommendations
 1.  **Async Subprocess**: Switch Vwarp `subprocess.Popen` to `asyncio.create_subprocess_exec`. This allows `await process.wait()` which doesn't block the loop.
-2.  **Server Notification**: Use `aiohttp` instead of `httpx` (since `aiohttp` is already a dep and often lighter) or ensure `httpx` client is closed properly (context manager is used, so it's fine).
-3.  **Type Hints**: `seen_keys` is `Dict[tuple, None]`. It works as a set but carries value overhead. `Set[tuple]` would be cleaner if consumers support it.
-4.  **Stats Safety**: Apply `seen_lock` to ALL dictionary mutations in `PipelineStats`.
+2.  **Offload I/O**: Wrap `shutil.copy2` and history export calls in `output_handler.py` with `run_in_executor`.
+3.  **Server Notification**: Use `aiohttp` instead of `httpx` (since `aiohttp` is already a dep and often lighter) or ensure `httpx` client is closed properly (context manager is used, so it's fine).
+4.  **Type Hints**: `seen_keys` is `Dict[tuple, None]`. It works as a set but carries value overhead. `Set[tuple]` would be cleaner if consumers support it.
+5.  **Stats Safety**: Apply `seen_lock` to ALL dictionary mutations in `PipelineStats`.

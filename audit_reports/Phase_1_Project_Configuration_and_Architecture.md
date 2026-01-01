@@ -86,6 +86,12 @@ This phase audits the project's foundation: dependencies, environment configurat
 *   **`src/configstream/plugins/`**: Contains `loader.py` and `README.md`. It seems unused in the main pipeline. `pipeline_core` does not import it.
     *   **Recommendation**: Remove `plugins/` if not planned for immediate use, to reduce noise.
 
+### 1.2.4. Utility Functions (`src/configstream/utils/`)
+*   **Analysis**: Contains `bool_parser.py` which provides `parse_bool`.
+*   **Usage**: Used in `logging_config.py` (`parse_bool(os.getenv(...))`).
+*   **Duplication**: `config.py` performs manual casting `lower() == "true"` for boolean env vars, ignoring this utility.
+*   **Action**: Standardize on `parse_bool` everywhere or move it to `config.py`.
+
 ## 1.3. Extensibility & Adapters (`src/configstream/adapters.py`)
 
 ### 1.3.1. Adapter Design

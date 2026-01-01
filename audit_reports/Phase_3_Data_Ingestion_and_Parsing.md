@@ -77,6 +77,10 @@ This phase audits the data ingestion (Fetcher) and parsing (Parsers) subsystems.
 *   **Clash/YAML**: Attempts `yaml.safe_load` if `proxies:` key found. Converts to JSON lines.
 *   **Line Processing**: Iterates lines, splits by `://`.
     *   **Logging**: Logs dropped line reasons summary.
+    *   **Consistency Check**: `MAX_CONFIG_LINE_LENGTH` (10,000) is enforced here.
+    *   **Inconsistency**: `vmess.py` ALSO checks `MAX_CONFIG_LINE_LENGTH` on the *decoded* payload. However, other protocol parsers (e.g., `vless.py`, `shadowsocks.py`) do NOT check length internally, relying on `extraction.py` to filter long lines first.
+        *   **Risk**: If a parser is called directly (bypassing `extraction.py`), it might process huge inputs.
+        *   **Action**: Enforce `MAX_CONFIG_LINE_LENGTH` in `base.py` or individually in all parsers.
 
 ### 3.2.8. Generic (`src/configstream/parsers/generic.py`)
 **Analysis**:
@@ -105,4 +109,4 @@ This phase audits the data ingestion (Fetcher) and parsing (Parsers) subsystems.
 ## Recommendations
 1.  **VLESS UUID**: Verify if `len(uuid) < 20` is too strict for all VLESS implementations. Standard is UUID (36 chars), so 20 is safe for standard, but verify "Xray" or "V2Ray" doesn't allow short arbitrary strings.
 2.  **Parser Error Logging**: `logger.debug` is used for parser failures. This is good to avoid log spam.
-3.  **Fuzzing**: The parsers perform basic validation but could be vulnerable to deeply nested structures or massive strings before validation checks. `MAX_CONFIG_LINE_LENGTH` (checked in `vmess.py`) should be enforced in ALL parsers before processing.
+3.  **Parser Safety**: Ensure all protocol parsers enforce `MAX_CONFIG_LINE_LENGTH` or rely on a centralized validator that is GUARANTEED to run. Currently, `extraction.py` does this for bulk processing, but direct calls might bypass it.
