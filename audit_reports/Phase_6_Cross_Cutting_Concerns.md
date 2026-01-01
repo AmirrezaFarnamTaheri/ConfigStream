@@ -68,6 +68,14 @@ This phase audits cross-cutting concerns like security (blocklists, sanitization
     *   Checks length (64 bytes or 32 bytes).
     *   **Security**: Does not zero out memory (Python limitation), but key lifetime is short (per execution).
 
+### 6.2.1. FFI Security (`src/configstream/security/ss_ffi.py`)
+**Analysis**:
+*   **Safety**: `ensure_library` prevents crashes if binary is missing.
+*   **Checksum**: `_verify_binary_checksum` is currently a placeholder (`return True`).
+    *   **Risk**: If a malicious `libss_checker.so` is placed in `bin/`, it could execute arbitrary code.
+    *   **Action**: Implement real SHA256 verification against a known hash list.
+*   **Type Safety**: `argtypes` and `restype` are set.
+
 ## 6.3. Background Workers (`src/configstream/workers/scanner.py`)
 **Analysis**:
 *   **CI Detection**: `is_ci = os.environ.get("CI") == "true"`.

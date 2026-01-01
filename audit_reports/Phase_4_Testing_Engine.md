@@ -100,3 +100,39 @@ This phase analyzes the testing engine, which determines if a proxy is alive, me
 2.  **Vwarp Logic**: The `ALL_PROXY` injection in `_ensure_process` forces *all* tests through Vwarp if enabled. This is intended for environments (e.g., Iran/China) where direct access to proxy servers is blocked.
 3.  **Race Condition**: Fix the missing lock in `test_custom_configs` when adding futures to `_pending_futures`.
 4.  **Python Tester**: It's clearly a second-class citizen. Ensure users know they need the Go binary for performance.
+
+## 4.7. Go Code Quality & Security (`src/go/tester/`)
+
+### 4.7.1. Dependency Management
+**Analysis**:
+*   `go.mod` uses `sing-box v1.8.14`. This is reasonably recent but Sing-box moves fast.
+*   **Security**: Uses `golang.org/x/crypto v0.45.0`.
+*   **Fix**: `go 1.24.0` specified. Excellent.
+
+### 4.7.2. Concurrency & Resource Safety
+**Analysis**:
+*   **Panic Recovery**: `worker` function has a global `defer recover()`, AND `testProxyWithContext` is wrapped in an anonymous function with `defer recover()`. This double-safety prevents one bad proxy from crashing a worker thread.
+*   **Context Leak**: `testProxyWithContext` uses `ctx` correctly. `setupSingbox` uses `ctx` to check cancellation but does NOT pass it to `box.New` (which is correct per code comments to avoid registry issues).
+*   **Port Exhaustion**:
+    *   `MaxWorkers = 15`. Conservative.
+    *   `MaxRetries = 5` with Jitter.
+    *   **Issue**: `testLatency` creates a `http.Client` with `MaxIdleConns: -1` (disable pooling).
+    *   **Risk**: High socket churn (TIME_WAIT state). If scanning thousands of proxies rapidly, this might hit OS limits.
+    *   **Mitigation**: The loop interval and limited workers mitigate this, but it's a potential bottleneck on Windows/macOS. On Linux, `tcp_tw_reuse` helps.
+
+### 4.7.3. Race Conditions
+**Analysis**:
+*   `rngMu` mutex protects `rand.Intn`. Correct.
+*   `processedCount` uses `atomic.LoadInt64`. Correct.
+*   **Port Binding**: `setupSingbox` picks a random port and tries `box.New`. It does NOT use `net.Listen` to check availability first (TOC/TOU fix). This is the correct approach for avoiding race conditions.
+
+### 4.7.4. Input Safety
+**Analysis**:
+*   `reader` uses `json.NewDecoder`. This handles stream input safely.
+*   **Honeypot**: `isHoneypot` verifies HMAC signature.
+    *   **Flaw**: `body, err := io.ReadAll(resp.Body)`. If a honeypot returns 1GB body, this OOMs the worker.
+    *   **Fix**: Use `io.LimitReader(resp.Body, 1024*1024)` to cap payload size.
+
+## Recommendations
+1.  **Honeypot Safety**: Cap the response body size in `isHoneypot` to prevent OOM attacks.
+2.  **Socket Reuse**: Consider enabling `SO_REUSEADDR` or persistent connections if `TIME_WAIT` becomes an issue, though disabling keep-alives is safer for isolation.
