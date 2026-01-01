@@ -38,5 +38,14 @@ This phase audits mechanisms for handling edge cases: slow requests (hedging), D
     *   **Issue**: Falling back to "fresh" (`age_seconds=0`) for invalid dates might keep invalid/old proxies alive forever if their date format is corrupted.
     *   **Recommendation**: Fall back to "stale" or "drop" for invalid dates? Or just log warning.
 
+## 15.4. DNS Caching Limitations (`src/configstream/http_client.py`)
+**Analysis**:
+*   **Mechanism**: `CachedDNS_AsyncHTTPTransport` intercepts requests and replaces the hostname with a cached IP.
+*   **Limitation**: The code explicitly checks `if request.url.scheme == "http"`. It does **NOT** apply to HTTPS.
+    *   **Reasoning**: "Forcing an IP connection with HTTPS requires manual Host header manipulation and a custom SSLContext... which adds significant complexity and security risk (MITM)."
+    *   **Impact**: Since 99% of proxy sources use HTTPS, `DNS_CACHE_ENABLED` is effectively a no-op for the majority of traffic. The custom DNS resolver is unused for secure fetching.
+    *   **Recommendation**: Document this limitation clearly. If DNS resolution is a bottleneck for HTTPS, `httpx` allows passing a custom `resolver` in newer versions, or one must use the `Host` header + `verify=False` (insecure) or a custom SSLContext (complex). Given "Zero-Budget" constraints, sticking to standard HTTPS resolution is safer, but the "DNS Cache" feature is misleadingly named if it only affects HTTP.
+
 ## Recommendations
 1.  **Freshness Default**: If date parsing fails, assume STALE (`age_seconds = 999999`) rather than FRESH (`0`). It forces a re-test, which is safer. The current implementation in `src/configstream/freshness.py` defaults to `age=0` (fresh), which is unsafe.
+2.  **DNS Cache Documentation**: Clarify in `AGENTS.md` and docs that DNS Caching only applies to plain HTTP sources.
