@@ -6,6 +6,7 @@ from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
+from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,11 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
     try:
         # Clean config
         config = config.strip()
+
+        # Enforce MAX_CONFIG_LINE_LENGTH
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         parsed = urlparse(config)
 
         # Handle scheme mismatch or missing scheme
