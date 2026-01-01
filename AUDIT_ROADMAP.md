@@ -122,12 +122,12 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
         - [ ] Does it support DoH/DoT?
         - [ ] Is caching strictly respected (TTL)?
 
-### 3.2. Parsers (`src/configstream/parsers/`)
+### 3.2. Parsers & Protocol Compliance (`src/configstream/parsers/`)
 - [ ] **Fuzzing Resistance**:
     - [ ] Test parsers with random byte strings.
     - [ ] Test with "recursive" base64 strings.
     - [ ] Check RegEx for ReDoS vulnerabilities.
-- [ ] **Protocol Compliance**:
+- [ ] **Specific Protocol Audits**:
     - [ ] **VLESS**:
         - [ ] Verify UUID validation (hex only).
         - [ ] Audit `Reality` flow: `pbk` and `sid` extraction.
@@ -135,9 +135,38 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **VMess**:
         - [ ] Verify AEAD check.
         - [ ] Check `alterId` logic (force 0?).
-    - [ ] **Shadowsocks**:
-        - [ ] Validate SIP002 vs legacy URI format.
+        - [ ] Verify `scy` vs `cipher` priority.
+    - [ ] **Trojan**:
+        - [ ] Check TLS compulsion.
+        - [ ] Verify `sni` extraction.
+    - [ ] **Shadowsocks (SS/SIP002)**:
+        - [ ] Validate Base64 padding for `user:pass`.
         - [ ] Check plugin param parsing (`obfs-local`, `v2ray-plugin`).
+    - [ ] **Shadowsocks 2022**:
+        - [ ] Verify `method` format (e.g., `2022-blake3-aes-128-gcm`).
+        - [ ] Check key length validation.
+    - [ ] **Hysteria / Hysteria2**:
+        - [ ] Check `up_mbps`/`down_mbps` parsing (string vs int).
+        - [ ] Verify `obfs` vs `obfs-type` field handling.
+    - [ ] **Tuic**:
+        - [ ] Verify `uuid` requirement.
+        - [ ] Check `congestion_control` mapping (standard vs custom).
+    - [ ] **WireGuard**:
+        - [ ] Verify `private_key` length (Base64).
+        - [ ] Check `reserved` bytes parsing (list of 3 ints).
+        - [ ] Audit IP generation for WARP (collision risk).
+    - [ ] **SSH**:
+        - [ ] Check `private_key` vs `password` precedence.
+        - [ ] Verify `host_key` validation.
+    - [ ] **SOCKS5 / SOCKS4**:
+        - [ ] Verify `version` field inference.
+        - [ ] Check auth (user/pass) extraction.
+    - [ ] **HTTP / HTTPS**:
+        - [ ] Check `tls` flag logic.
+        - [ ] Verify basic auth extraction.
+    - [ ] **NaiveProxy**:
+        - [ ] Check `padding` support.
+        - [ ] Verify `https` wrapping logic.
     - [ ] **Base64**:
         - [ ] Verify padding fix logic.
         - [ ] Check handling of URL-safe vs standard base64.
@@ -197,15 +226,16 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Prevent: Dead -> Revive -> Fail -> Dead loop.
 - [ ] **WARP Integration**:
     - [ ] Audit `warp_scraper.py`:
-        - [ ] Is it using legitimate endpoints?
+        - [ ] Is it using legitimate endpoints (`ircfspace/warpendpoint`)?
         - [ ] Rate limit compliance.
     - [ ] Check `key_generator.py`:
         - [ ] Algorithm correctness.
+- [ ] **Scanner Logic**:
+    - [ ] Audit `fetch_clean_ips`: does it block?
+    - [ ] Verify integration with `vwarp` official project (e.g., MASQUE support).
 - [ ] **Vwarp Chaining**:
     - [ ] Verify chain construction in `chaining.py`: `Client -> WARP -> Proxy`.
     - [ ] Check handling of chain failure (blame WARP or Proxy?).
-- [ ] **Scanner Logic**:
-    - [ ] Audit `fetch_clean_ips`: does it block?
 
 ### 5.2. Scoring & Ranking
 - [ ] **Scorer Logic**:
@@ -226,6 +256,29 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Reshard Dynamic**:
     - [ ] Analyze `src/configstream/sharding.py` (if exists).
     - [ ] Verify sharding key distribution (consistent hashing?).
+
+### 5.4. Advanced Chaining & Routing (`src/configstream/intelligence/chaining.py`)
+- [ ] **Geodesic Logic**:
+    - [ ] Audit `haversine` implementation vs `geopy`.
+    - [ ] Check `COUNTRIES` coordinate accuracy (80+ entries).
+- [ ] **Chain Strategies**:
+    - [ ] **Intranet**: Verify "IR -> Relay -> Exit" logic.
+    - [ ] **IPv6**: Audit "Dual Stack -> IPv6 Only" selection.
+    - [ ] **Streamer**: Check "Fast Protocol -> Streaming Region" selection.
+    - [ ] **Censorship Resistant**: Verify multi-hop stealth routing logic.
+    - [ ] **High Anonymity**: Audit 3-hop chain construction.
+- [ ] **Protocol Scoring**:
+    - [ ] Review `PROTOCOL_SCORES` weights (Stealth vs Speed).
+    - [ ] Is `CENSORSHIP_LEVELS` map up-to-date?
+
+### 5.5. Scanner & Vwarp (Upstream Alignment)
+- [ ] **Upstream Compatibility**:
+    - [ ] Check if `src/go/tester` implements MASQUE tunneling (Vwarp feature).
+    - [ ] Verify `Psiphon` integration points (if any).
+    - [ ] Audit `Warp-in-Warp` chaining logic against official Vwarp specs.
+- [ ] **Endpoint Scraper**:
+    - [ ] Verify `WIREGUARD_REGEX` robustness.
+    - [ ] Check `warp://` URI parsing compliance.
 
 ## Phase 6: Cross-Cutting Concerns
 
