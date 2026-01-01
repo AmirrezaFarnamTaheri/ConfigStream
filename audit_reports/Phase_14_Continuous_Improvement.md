@@ -16,7 +16,27 @@ This phase audits tools for ongoing quality assurance.
     *   **Mocking**: Mocks `DEFAULT_BLOCKLIST.update` and `generate_pipeline_outputs`. This makes it fast and stable.
 *   **Fixtures**: `tests/conftest.py` (implied) likely sets up async loop scope.
 
-## 14.3. Linting
+## 14.3. Master Roadmap
+This report serves as the consolidation point for all improvement initiatives.
+
+### High Priority
+1.  **Architecture**: Split `requirements.txt` into dev/prod. Secure Vwarp download checksum. (Phase 1)
+2.  **Pipeline**: Fix blocking I/O in `output_handler.py`. Fix race condition in `PipelineStats`. Make producer throttling dynamic. (Phase 2)
+3.  **Parsing**: Enforce `MAX_CONFIG_LINE_LENGTH` in all parsers. (Phase 3)
+4.  **Testing**: Fix race condition in `GoBatchTester.test_custom_configs`. (Phase 4)
+5.  **Intelligence**: Prevent infinite recursion in Proxy Washer. (Phase 5)
+6.  **Security**: Apply log sanitization to file handlers. (Phase 6)
+7.  **Frontend**: Optimize `stego.js` memory usage. (Phase 7)
+8.  **Edge Cases**: Fix unsafe `age=0` default in `freshness.py`. (Phase 15)
+9.  **Tools**: Clean up dead code (`etag_cache.py`, `metrics.py`). (Phase 12, 10)
+
+### Medium Priority
+1.  **Docs**: Document DNS Caching limitation (HTTP-only). (Phase 15)
+2.  **Transport**: Decouple `stego.py` clearly or integrate via flag. (Phase 11)
+3.  **Tools**: Hardcoded WARP IPs in validator. (Phase 21)
+4.  **History**: Stream large history exports. (Phase 12)
+
+## 14.4. Linting
 *   `flake8`, `black`, `mypy` are configured.
 *   **Action**: Enforce them in CI (Phase 1).
 

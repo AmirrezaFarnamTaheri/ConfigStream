@@ -14,14 +14,22 @@ This phase audits mechanisms that ensure data consistency, specifically sharding
     *   **Benefit**: If you have 100k proxies, downloading one big JSON is slow. Sharding allows clients to fetch `shard_0.json`, `shard_1.json` or subscribe to a subset.
 *   **Metadata**: `save_shard_metadata` saves stats.
 
-## 12.2. Artifact Management
+## 12.2. Dead Code: ETag Cache
+**Analysis**:
+*   `src/configstream/etag_cache.py` implements ETag caching.
+*   `AGENTS.md` explicitly forbids using ETag caching (stateless CI).
+*   **Grep Search**: `grep -r "etag_cache" src/configstream` returns NO matches (other than the file definition itself).
+*   **Conclusion**: This is dead code. It is defined but never imported or used.
+*   **Action**: Delete `src/configstream/etag_cache.py`.
+
+## 12.3. Artifact Management
 *   **Cleanup**: Pipeline logic handles `history` cleanup.
 *   **Versioning**: `server.py` logic relies on `proxies.old.json`. Need to verify if `output.py` or pipeline actually rotates this file.
     *   *Check*: `AtomicFileWriter` usually overwrites. Rotation logic might be in `pipeline.py` or `output_logic.py`.
     *   *Result*: I didn't see explicit rotation logic (rename current to old) in `output_logic.py`. It just writes `proxies.json`.
     *   **Gap**: If `server.py` expects `proxies.old.json` for diffs, but nothing creates it, the diff endpoint will always return "full reload required".
 
-## 12.3. History Tracking (`src/configstream/history/tracker.py`)
+## 12.4. History Tracking (`src/configstream/history/tracker.py`)
 **Analysis**:
 *   **Storage**: Uses `QualityStorage` (SQLite wrapper).
 *   **Schema**: `proxy_history` table (timestamp, is_working, latency, country, failure_reason).
@@ -35,14 +43,14 @@ This phase audits mechanisms that ensure data consistency, specifically sharding
     *   **Mitigation**: This function is only used for `export_for_visualization`, which is likely an occasional report, not the hot path. However, it will OOM on large datasets.
     *   **Recommendation**: Stream the export or paginate.
 
-## 12.4. Storage Module (`src/configstream/history/storage.py`)
+## 12.5. Storage Module (`src/configstream/history/storage.py`)
 **Analysis**:
 *   **Conflict**: This module seems to implement `HistoryStorage` which loads/saves JSON files (`load_history`, `save_history`).
     *   However, `tracker.py` uses `QualityStorage` (SQLite) if no path is provided or if path ends in `.db`.
     *   **Redundancy**: `HistoryStorage` (JSON) vs `QualityStorage` (SQLite). The project seems to have migrated to SQLite but kept the JSON loader for legacy or specific export tasks.
     *   **Safety**: Checks `MAX_HISTORY_FILE_SIZE` (100MB) before loading JSON. This is good OOM protection for the legacy path.
 
-## 12.5. Analytics & Scoring (`src/configstream/history/analytics.py` & `quality/scoring.py`)
+## 12.6. Analytics & Scoring (`src/configstream/history/analytics.py` & `quality/scoring.py`)
 **Analysis**:
 *   **Diversity Score**: Gini-Simpson Index (`1 - sum(p^2)`). Standard ecological diversity metric. Correct.
 *   **Trust Score**: Weighted average of reliability (50%), diversity (30%), consistency (20%) minus jitter penalty.
