@@ -226,8 +226,12 @@ async def processing_consumer(
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         await tester.test_batch(chunk)
+
+                        # [OPTIMIZATION] Batch history update in executor to prevent blocking loop
+                        if chunk:
+                            await loop.run_in_executor(None, history.update_history, chunk)
+
                         for res in chunk:
-                            history.record_test_result(res)
                             if res.is_working:
                                 res.process = "native"  # Explicitly mark as native
                                 final_batch_for_this_source.append(res)
@@ -260,8 +264,12 @@ async def processing_consumer(
                                 return await tester.test(p)
 
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
+
+                        # [OPTIMIZATION] Batch history update in executor
+                        if results:
+                            await loop.run_in_executor(None, history.update_history, list(results))
+
                         for res in results:
-                            history.record_test_result(res)
                             if res.is_working:
                                 res.process = "native"
                                 await concurrency.record(
