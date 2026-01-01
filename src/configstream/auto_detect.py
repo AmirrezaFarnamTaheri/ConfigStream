@@ -22,6 +22,7 @@ from .parsers import (
     parse_wireguard,
     parse_openvpn,
 )
+from .plugins.loader import PluginManager
 
 
 class ParserCallable(Protocol):
@@ -30,6 +31,8 @@ class ParserCallable(Protocol):
 
 
 logger = logging.getLogger(__name__)
+PLUGIN_MANAGER = PluginManager(Path("plugins"))
+PLUGIN_MANAGER.load_plugins()
 
 
 def auto_detect_and_parse(config: str) -> Optional[Proxy]:
@@ -47,6 +50,12 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
     config = config.strip()
     if not config:
         return None
+
+    # Try WASM Plugins
+    if PLUGIN_MANAGER:
+        plugin_result = PLUGIN_MANAGER.parse_all(config)
+        if plugin_result:
+            return plugin_result
 
     # Try OpenVPN first (content based)
     if "client" in config and ("dev tun" in config or "dev tap" in config):
