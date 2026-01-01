@@ -17,7 +17,7 @@ def main() -> None:
 
     completed = subprocess.run(
         [sys.executable, "-m", "pip_audit", *passthrough_args, *extra_args],
-        check=False,
+        check=True,
     )
     raise SystemExit(completed.returncode)
 

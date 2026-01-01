@@ -27,8 +27,9 @@ def apply_ttl(
         try:
             tested = datetime.fromisoformat(proxy.tested_at.replace("Z", "+00:00"))
         except ValueError:
-            proxy.age_seconds = 0
-            proxy.stale = False
+            # [FIX] Default to STALE if date is invalid, forcing re-test
+            proxy.age_seconds = 999999
+            proxy.stale = True
             return True
     else:
         tested = proxy.tested_at
