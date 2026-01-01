@@ -10,6 +10,10 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Env Var Handling**: Verify `src/configstream/config.py` correctly loads and validates all environment variables defined in `.env.example`.
 - [ ] **Pre-commit Hooks**: Review `.pre-commit-config.yaml` to ensure lints and security checks (e.g., `gitleaks`) are comprehensive.
 - [ ] **CI/CD Workflow**: Audit `.github/workflows/` for insecure secrets usage, unlimited timeouts, or unpinned 3rd party actions.
+- [ ] **Build Scripts**: Verify `scripts/build_wasm.sh` specifically:
+    - Checks for exact Go version (not just minimum).
+    - Verifies integrity of `wasm_exec.js` copy operation.
+    - Uses reproducible build flags (trimpath).
 
 ### 1.2. Architecture & Documentation Compliance
 - [ ] **`AGENTS.md` Alignment**: Verify that the codebase strictly follows the directives in `AGENTS.md` (e.g., "No blocking I/O", "Sanitized Logging").
@@ -50,7 +54,10 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - **VLESS**: Check UUID validation logic and "Reality" flow coverage.
     - **Shadowsocks**: Validate method and password extraction logic.
     - **Base64**: Verify handling of unpadded or corrupt Base64 strings.
-- [ ] **Renaming & Remarks**: Audit logic for extracting and cleaning remarks (e.g., `unquote(parsed.fragment)`). Ensure "Renaming Remark" features don't introduce XSS or formatting breaks.
+- [ ] **Renaming & Remarks**: Audit `src/configstream/tagging.py`.
+    - Check regex performance in `format_proxy_name` (ReDoS).
+    - Ensure `unquote` handles invalid percent encodings safely.
+    - Verify template injection risks (e.g., using `str.format` with unchecked user input).
 - [ ] **Magic Numbers**: Identify and document/refactor magic constants (e.g., `len(hostname) > 255`).
 
 ## Phase 4: Testing Engine (`src/configstream/testers/`)
@@ -98,6 +105,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 ### 6.2. Logging & Metrics
 - [ ] **Log Noise**: Identify overly verbose logs in the critical path (e.g., per-proxy debug logs).
 - [ ] **Stats & Tracking**: Check `PipelineStats` and `ProxyHistoryTracker` (`src/configstream/history/tracker.py`) for data consistency and concurrency safety.
+- [ ] **Metric Cardinality**: Check `src/configstream/metrics.py` (specifically `protocol_counts`) for potential memory explosion if protocol strings are unbounded.
 - [ ] **History Database**: Audit `src/configstream/history/db.py` for SQL injection and connection pooling.
 
 ### 6.3. Concurrency Safety
@@ -115,6 +123,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Atomic Writes**: Ensure output files are written to a temp file and renamed to prevent partial reads by consumers.
 - [ ] **Format Validity**: Verify JSON/YAML/Subscription formats align with standard client requirements (v2ray, SingBox, etc.).
 - [ ] **Converters**: Audit `src/configstream/converters/` for data loss during conversion (e.g., SingBox to Clash).
+- [ ] **Generators**: Deep dive into `src/configstream/generators/`. Verify that `generate_clash_config` produces valid YAML that strictly adheres to the Clash schema.
 
 ## Phase 8: Server & API (`src/configstream/server.py`)
 
@@ -128,15 +137,30 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **CORS Policy**: Review `ALLOWED_ORIGINS` and regex usage. Is it too permissive?
 - [ ] **Error Leakage**: Ensure exceptions don't leak stack traces to the client.
 
-## Phase 9: Refactoring & Cleanup Targets
+## Phase 9: Tools & Operational Scripts
+
+### 9.1. Maintenance Scripts
+- [ ] **Scripts**: Audit `scripts/` folder.
+    - `clean_security_issues.py`: Does it accidentally delete valid data?
+    - `publish_ipfs.py`: Are credentials handled securely?
+- [ ] **Tools**: Audit `tools/` folder.
+    - `blocklist_manager/`: Does it validate the blocklist source URL?
+    - `latency_tester/`: Does it interfere with the main pipeline if run concurrently?
+
+### 9.2. Policy & Schema
+- [ ] **Schema Validation**: Verify `schema/` contains valid JSON schemas. Are they enforcing strict types?
+- [ ] **Policy Enforcement**: Check `policy/` (if any). Is the policy code reachable and active?
+
+## Phase 10: Refactoring & Cleanup Targets
 
 - [ ] **Split Brain**: Identify logic duplicated between Python and Go (e.g., scoring logic).
 - [ ] **Code Duplication**: Merge `adapters.py` and `adapters_base.py` if redundant.
 - [ ] **Type Hints**: Run `mypy` check to find missing or `Any` types in strict modules.
 - [ ] **Utility Audit**: Review `src/configstream/utils/`. Are there unsafe or inefficient utility functions?
 
-## Phase 10: Final Verification & QA
+## Phase 11: Continuous Improvement
 
+- [ ] **Profiling**: Review `scripts/profile_performance.py`. Is it using `cProfile` or `yappi`? Does it capture async loops correctly?
 - [ ] **Regression Testing**: Ensure no new regressions are introduced during fixes.
 - [ ] **Linting**: Run `flake8` and `black` to ensure code style compliance.
 - [ ] **Documentation**: Update `README.md` and `AGENTS.md` to reflect any architectural changes.
