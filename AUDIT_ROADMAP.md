@@ -29,6 +29,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Audit `.github/workflows/` for secure secret injection.
     - [ ] Check for unlimited timeouts in jobs (cost risk).
     - [ ] Verify 3rd party actions are pinned by commit hash, not tag.
+    - [ ] **Pip Audit**: Check `src/configstream/tools/pip_audit_wrapper.py`. Does it enforce failure (`check=True`) on vulnerabilities?
 - [ ] **Build Scripts**:
     - [ ] **`scripts/build_wasm.sh`**:
         - [ ] Verify strict Go version check (e.g., `1.21.0` vs `1.21`).
@@ -83,7 +84,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Audit `seen_keys` usage:
         - [ ] Is it a `set` or `dict`?
         - [ ] Is memory usage bounded (LRU)?
-    - [ ] **Lock Safety**: Verify `seen_lock` is used consistently across all consumers to protect `seen_keys` and `PipelineStats`.
+    - [ ] **Lock Safety**: Verify `seen_lock` is used consistently across all consumers.
 
 ### 2.2. Error Handling & Resilience
 - [ ] **Exception Swallowing**:
@@ -255,7 +256,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Verify `blake2b` bucketing determinism (`buckets=256`).
     - [ ] Check `save_shard_metadata` logic.
 
-### 5.4. Vwarp Ecosystem (Feature 1: `src/configstream/tools/vwarp.py`, `warp.py`)
+### 5.4. Vwarp Ecosystem (Feature 1: `src/configstream/tools/vwarp.py`, `warp.py`, `warp_validator.py`)
 - [ ] **VwarpTool Controller**:
     - [ ] **Binary Path**: Verify fallback logic if `vwarp` is not in PATH.
     - [ ] **Timeout Handling**: Check `scan_endpoints` timeout (default 30s) - is it sufficient?
@@ -264,6 +265,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Cryptography**: Verify `_generate_keys` uses `cryptography.hazmat` correctly.
     - [ ] **Blocking Calls**: Ensure `_generate_keys` runs in `loop.run_in_executor`.
     - [ ] **Registration**: Audit `register_warp_account` HTTP request structure against current Cloudflare API.
+- [ ] **Warp Key Validator**:
+    - [ ] **Key Length**: Audit `validate_key_format` (32 bytes).
+    - [ ] **Endpoint Check**: Review `validate_endpoint_reachable` - is hardcoded IP list (`162.159...`) up to date?
 - [ ] **Scanner Integration**:
     - [ ] Check integration of `VwarpTool.scan_endpoints` with `ProxyWasher`.
 
@@ -533,3 +537,11 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Verify if `app_settings` is passed down or instantiated globally (tight coupling).
 - [ ] **Error Handling Strategy**:
     - [ ] Audit usage of custom exceptions in `cli_errors.py` vs standard `ValueError`.
+
+## Phase 21: Toolchain & Utilities Deep Dive
+
+- [ ] **Pip Audit Wrapper (`src/configstream/tools/pip_audit_wrapper.py`)**:
+    - [ ] **Security Flaw**: Verify `subprocess.run(..., check=False)` usage. This allows build to pass even if vulnerabilities are found.
+- [ ] **Warp Validator (`src/configstream/tools/warp_validator.py`)**:
+    - [ ] **Fragility**: Audit `validate_endpoint_reachable` reliance on hardcoded IPs (`162.159...`).
+    - [ ] **Coverage**: Add check for WARP+ License Key validation (currently missing).
