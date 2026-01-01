@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Redistribute sources among batch files based on historical runtime
 to ensure uniform execution time across parallel CI jobs.

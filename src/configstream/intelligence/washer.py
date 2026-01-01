@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Proxy Washing and Chaining Intelligence.
 Refactored into `src/configstream/intelligence/washer/` for modularity.

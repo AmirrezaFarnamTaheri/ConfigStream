@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """ISO 3166-1 alpha-2 country codes mapped to display names."""
 
 COUNTRY_NAMES = {

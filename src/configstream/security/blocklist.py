@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 IP Blocklist Manager and Honey Pot Detection.
 Downloads and enforces IP reputation checks using FireHol Level 1.

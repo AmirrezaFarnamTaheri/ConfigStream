@@ -1,6 +1,8 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import os
 
 # Allow override via env for low-memory environments
+# Default 200MB to support large repositories (e.g. ircfspace)
 MAX_RESPONSE_SIZE = int(
-    os.getenv("MAX_RESPONSE_SIZE", str(50 * 1024 * 1024))
-)  # Default 50 MB
+    os.getenv("MAX_RESPONSE_SIZE", str(200 * 1024 * 1024))
+)

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 The Core Pipeline Orchestrator.
 Integrates fetching, parsing, testing, and output generation into a

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Output Generation Module (Facade).
 Exports functionality from `output_logic`, `output_transport`, and `output_generators`.

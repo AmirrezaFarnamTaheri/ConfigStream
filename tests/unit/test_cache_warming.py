@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from unittest.mock import MagicMock
 from configstream.cache_warming import warm_cache, get_cache_warming_strategy

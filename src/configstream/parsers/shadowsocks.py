@@ -1,9 +1,11 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import binascii
 from typing import Optional
 from urllib.parse import parse_qs, unquote
 from ..models import Proxy
 from .base import normalize_proxy_details, safe_b64_decode
+from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +13,10 @@ logger = logging.getLogger(__name__)
 def parse_ss(config: str) -> Optional[Proxy]:
     """Parse a Shadowsocks (ss://) URL."""
     try:
+        config = config.strip()
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         if not config.startswith("ss://"):
             return None
 
@@ -118,6 +124,10 @@ def parse_ss(config: str) -> Optional[Proxy]:
 def parse_ss2022(config: str) -> Optional[Proxy]:
     """Parse a Shadowsocks 2022 (ss2022://) URL - uses same format as SS."""
     try:
+        config = config.strip()
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         if not config.startswith("ss2022://"):
             return None
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Storage module for Proxy History.
 Handles loading and saving of history data.

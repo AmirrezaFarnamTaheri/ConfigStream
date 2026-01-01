@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from typing import List
 import logging
 from configstream.models import Proxy

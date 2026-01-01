@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Comprehensive robustness tests for parsers module.
 Tests edge cases, error handling, and security validations.

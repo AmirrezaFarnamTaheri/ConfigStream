@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Generate favicons from the project logo SVG.
 Creates multiple sizes for different use cases.

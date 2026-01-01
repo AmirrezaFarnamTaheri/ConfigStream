@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 WARP Key Validation System.
 Validates Cloudflare WARP private keys and account credentials.
@@ -14,13 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Cloudflare WARP API endpoints
 API_BASE = "https://api.cloudflareclient.com/v0a2404"
-WARP_ENDPOINTS = [
-    "162.159.192.1",
-    "162.159.193.1",
-    "162.159.195.1",
-    "188.114.96.1",
-    "188.114.97.1",
-]
+from ..constants import WARP_PREFIXES
 
 
 class WARPKeyValidator:
@@ -81,12 +76,13 @@ class WARPKeyValidator:
 
         return True, "Valid"
 
-    async def validate_account_active(self, account_id: str) -> Tuple[bool, str]:
+    async def validate_account_active(self, account_id: str, token: Optional[str] = None) -> Tuple[bool, str]:
         """
         Check if a WARP account ID is active by querying Cloudflare API.
 
         Args:
             account_id: WARP account ID
+            token: Bearer token (optional, but recommended for auth)
 
         Returns:
             (is_active, status_message)
@@ -94,15 +90,19 @@ class WARPKeyValidator:
         if not account_id:
             return False, "Account ID is empty"
 
+        headers = {
+            "User-Agent": "okhttp/3.12.1",
+            "Content-Type": "application/json; charset=UTF-8",
+        }
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
                 # Try to fetch account info
                 response = await client.get(
                     f"{API_BASE}/reg/{account_id}",
-                    headers={
-                        "User-Agent": "okhttp/3.12.1",
-                        "Content-Type": "application/json; charset=UTF-8",
-                    },
+                    headers=headers,
                 )
 
                 if response.status_code == 200:
@@ -157,15 +157,8 @@ class WARPKeyValidator:
         # Check if it's in known WARP ranges
         # 162.159.192.0/24, 162.159.193.0/24, 162.159.195.0/24
         # 188.114.96.0/24, 188.114.97.0/24
-        warp_prefixes = [
-            "162.159.192.",
-            "162.159.193.",
-            "162.159.195.",
-            "188.114.96.",
-            "188.114.97.",
-        ]
-
-        if any(endpoint.startswith(prefix) for prefix in warp_prefixes):
+        # [PHASE 19] Use centralized constant
+        if any(endpoint.startswith(prefix) for prefix in WARP_PREFIXES):
             return True, "Known WARP endpoint range"
 
         return False, "Not a known Cloudflare WARP endpoint"

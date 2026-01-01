@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import json
 import hashlib
@@ -317,7 +318,12 @@ class ProxyWasher:
             return [], 0
 
         # Limit revival candidates to prevent explosion (e.g. max 500)
-        candidates = failed_proxies[:500]
+        # [FIX] Prevent infinite recursion: Filter out proxies that are already revived
+        candidates = [
+            p
+            for p in failed_proxies
+            if p.protocol != "revived" and not p.details.get("is_revived")
+        ][:500]
 
         for relay in candidates:
             # Basic plausibility check before reviving

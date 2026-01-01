@@ -1,7 +1,9 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import logging
 from typing import Optional
 from ..models import Proxy
+from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
 
@@ -9,6 +11,11 @@ logger = logging.getLogger(__name__)
 def parse_clash_json(config: str) -> Optional[Proxy]:
     """Parse a single Clash proxy entry serialized as JSON."""
     try:
+        config = config.strip()
+        # Enforce MAX_CONFIG_LINE_LENGTH
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         data = json.loads(config)
         if not isinstance(data, dict):
             return None

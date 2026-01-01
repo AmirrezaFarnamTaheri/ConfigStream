@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import logging
 import os
@@ -511,7 +512,8 @@ class GoBatchTester:
             reverse_map[req_id] = chain_id
 
             fut = loop.create_future()
-            self._pending_futures[req_id] = fut
+            async with self._lock:
+                self._pending_futures[req_id] = fut
             futures.append(fut)
 
         if not inputs:

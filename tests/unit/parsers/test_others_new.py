@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from configstream.parsers.others import parse_wireguard, parse_hysteria2
 

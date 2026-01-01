@@ -1,6 +1,8 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Any
 from datetime import datetime, timezone
+import asyncio
 
 
 @dataclass
@@ -8,6 +10,9 @@ class PipelineStats:
     start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     end_time: Optional[datetime] = None
     drop_reasons: Dict[str, int] = field(default_factory=dict)
+
+    # [FIX] Internal lock for thread-safe access to dictionary fields
+    _lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
 
     # Canonical Stats
     total_configured_sources: int = (
@@ -50,7 +55,18 @@ class PipelineStats:
     def total_revived(self) -> int:
         return self.revived_warp + self.revived_vwarp
 
+    async def get_snapshot(self) -> Dict[str, Any]:
+        """
+        Thread-safe method to get a snapshot of stats.
+        """
+        async with self._lock:
+            return self.to_dict()
+
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Return a dictionary representation of stats.
+        Uses defensive copies for complex types.
+        """
         return {
             "total_configured_sources": self.total_configured_sources,
             "fetched_sources": self.fetched_sources,
@@ -73,5 +89,6 @@ class PipelineStats:
             "vwarp_success": self.vwarp_success,
             "vwarp_win_rate": self.vwarp_win_rate,
             "washing_enabled": self.washing_enabled,
-            "drop_reasons": self.drop_reasons,
+            # Create a shallow copy of the dict to prevent iteration errors
+            "drop_reasons": dict(self.drop_reasons),
         }

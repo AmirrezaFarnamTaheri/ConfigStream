@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Simple asynchronous DNS resolver cache with size limits and TTL cleanup."""
 
 from __future__ import annotations

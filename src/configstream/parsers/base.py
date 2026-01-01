@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Base parsing utilities and constants.
 Refactored into specific modules for better maintainability.

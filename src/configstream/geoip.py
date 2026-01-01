@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Offline GeoIP Resolver (MaxMind GeoLite2).
 Uses local MMDB files instead of API calls for zero-latency, private lookups.
