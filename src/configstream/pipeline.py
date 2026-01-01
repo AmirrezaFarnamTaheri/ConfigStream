@@ -416,7 +416,8 @@ async def run_full_pipeline(
             try:
                 vwarp_proc.terminate()
                 try:
-                    vwarp_proc.wait(timeout=2)
+                    loop = asyncio.get_running_loop()
+                    await loop.run_in_executor(None, lambda: vwarp_proc.wait(timeout=2))
                 except subprocess.TimeoutExpired:
                     # [FIX P2-1] Process didn't terminate gracefully - force kill
                     logger.warning(
@@ -424,7 +425,7 @@ async def run_full_pipeline(
                     )
                     vwarp_proc.kill()
                     try:
-                        vwarp_proc.wait(timeout=1)
+                        await loop.run_in_executor(None, lambda: vwarp_proc.wait(timeout=1))
                     except subprocess.TimeoutExpired:
                         logger.error("Failed to kill Vwarp process")
             except ProcessLookupError:
