@@ -14,13 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Cloudflare WARP API endpoints
 API_BASE = "https://api.cloudflareclient.com/v0a2404"
-WARP_ENDPOINTS = [
-    "162.159.192.1",
-    "162.159.193.1",
-    "162.159.195.1",
-    "188.114.96.1",
-    "188.114.97.1",
-]
+from ..constants import WARP_PREFIXES
 
 
 class WARPKeyValidator:
@@ -157,15 +151,8 @@ class WARPKeyValidator:
         # Check if it's in known WARP ranges
         # 162.159.192.0/24, 162.159.193.0/24, 162.159.195.0/24
         # 188.114.96.0/24, 188.114.97.0/24
-        warp_prefixes = [
-            "162.159.192.",
-            "162.159.193.",
-            "162.159.195.",
-            "188.114.96.",
-            "188.114.97.",
-        ]
-
-        if any(endpoint.startswith(prefix) for prefix in warp_prefixes):
+        # [PHASE 19] Use centralized constant
+        if any(endpoint.startswith(prefix) for prefix in WARP_PREFIXES):
             return True, "Known WARP endpoint range"
 
         return False, "Not a known Cloudflare WARP endpoint"
