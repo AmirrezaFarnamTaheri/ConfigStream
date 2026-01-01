@@ -25,7 +25,9 @@ This phase analyzes how the system generates output artifacts (JSON configs, bas
 *   **Parsing**:
     *   Uses `fetch(imageUrl, { cache: "no-store" })`. Good for freshness.
     *   Uses `fernet` JS library (global).
-    *   **Memory Safety**: `buffer` can be large (5MB image). `Uint8Array` slice creates copies? `slice()` on TypedArray creates a copy. `subarray()` creates a view. It uses `slice`. Optimization opportunity.
+    *   **Memory Safety**: `buffer` can be large (5MB image). `Uint8Array` (or DataView) `slice()` creates a deep copy of the memory region. `subarray()` creates a view sharing the underlying buffer. The code uses `dataView.slice(payloadStart)`.
+        *   **Impact**: For a 5MB image with a 1MB payload, this allocates another 1MB. On low-memory devices, frequent heavy allocations trigger GC pauses.
+        *   **Action**: Change `slice` to `subarray` if the API consuming it supports views (TextDecoder does).
     *   **Payload Limit**: Checks `CS_CONSTANTS.STEGO_MAX_PAYLOAD_SIZE` (implied global) before decompression. Good security check (Zip bomb protection).
 
 ### 7.1.3. `washer_client.js`

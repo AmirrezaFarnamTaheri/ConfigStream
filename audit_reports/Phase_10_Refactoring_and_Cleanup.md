@@ -22,7 +22,11 @@ This phase identifies technical debt, code duplication, and opportunities for cl
     *   **Check**: Is `tools.warp` (Python API) duplicate of `tools.vwarp` (Binary wrapper)?
     *   **Action**: Unify or clearly distinguish (e.g. `warp_api.py` vs `warp_cli.py`).
 
-## 10.3. Type Hints
+## 10.3. Unused Modules
+*   `src/configstream/metrics.py`: Defines `PipelineMetrics` which is NOT used by the main pipeline (which uses `PipelineStats`).
+    *   **Action**: Remove or merge into `PipelineStats`.
+
+## 10.4. Type Hints
 *   **Status**: Most code has type hints.
 *   **Strictness**: `mypy.ini` exists.
 *   **Action**: Enforce `strict=True` in critical modules (`pipeline.py`, `parsers/`).

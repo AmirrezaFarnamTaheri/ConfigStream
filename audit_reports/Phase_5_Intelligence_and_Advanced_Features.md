@@ -20,6 +20,7 @@ This phase audits the "Intelligence" features, primarily the `ProxyWasher`, whic
     *   The pipeline (Phase 2) needs to ensure these "revived" proxies are tested but NOT fed back into `wash_failed` if they fail again.
     *   **Check**: In `processing_consumer` (not fully visible here, but inferred), does it check `proxy.protocol != "revived"` before washing?
     *   **Recursion**: `revived_proxy` has `origin_proxy` in details.
+    *   **Safeguard**: `ProxyWasher.wash_batch` (in `core.py`) iterates proxies. It needs to check if `proxy.protocol` is already "revived" or "warp" to prevent double-wrapping.
 *   **Locking**:
     *   Uses `threading.Lock` (`_state_lock`) for property access.
     *   Uses `asyncio.Lock` (`_async_state_lock`) for async fetch operations. **This is a fix mentioned in code comments.**
@@ -71,3 +72,4 @@ This phase audits the "Intelligence" features, primarily the `ProxyWasher`, whic
 2.  **Key Rotation**: `ProxyWasher` loads keys but doesn't seem to retire bad keys automatically in `core.py`. If a key is invalid, the chain fails.
 3.  **Vwarp Binary**: As noted in Phase 1, ensure the binary is secure.
 4.  **Clean IP Persistence**: `_clean_ips` are in memory. Persisting them to disk (cache) would speed up cold starts.
+5.  **Infinite Loop Prevention**: Add explicit check in `processing_consumer` (or `washer.wash_failed`) to ignore proxies that are already revived (protocol starts with `revived-` or `warp`).

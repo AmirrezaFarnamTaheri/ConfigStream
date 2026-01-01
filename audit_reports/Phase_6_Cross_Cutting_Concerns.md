@@ -7,6 +7,23 @@ This phase audits cross-cutting concerns like security (blocklists, sanitization
 
 ### 6.1.1. Log Sanitization (`logging_config.py`)
 *   **Audit**: Analyzed in Phase 0. Found gap where file logs are not sanitized.
+*   **Trace ID**: `logging_config.py` implements Trace ID injection via `ContextVar`. This is excellent for correlating async logs.
+    *   **Implementation**: `_record_factory` ensures `trace_id` attribute exists on every record.
+    *   **Filter**: `TraceIdFilter` is deprecated (comment says so) but still present. The logic moved to factory, which is robust.
+    *   **Sensitive Data**: `SensitiveDataFilter` masks emails and UUIDs.
+        *   **Gap**: It only applies to `console_handler`. `file_handler` and `json_file_handler` do NOT have this filter added.
+        *   **Risk**: Secrets might be written to `configstream.log` or JSON logs.
+        *   **Action**: Apply `SensitiveDataFilter` to file handlers too, or clearly document why they are exempt (e.g. for debugging in secure env).
+
+### 6.1.6. Metrics (`src/configstream/metrics.py`)
+*   **Analysis**: `PipelineMetrics` dataclass.
+*   **Usage**: Tracks duration, rates, cache hits.
+*   **Export**: `save_to_file` writes JSON.
+*   **Performance**: `to_dict` is fast.
+*   **Thread Safety**: It is a simple dataclass. If updated from multiple threads (e.g. `quality_tracker`), it needs locking. Currently `PipelineStats` (in `pipeline_core/stats.py`) is used for live stats, and `PipelineMetrics` seems to be a separate, simpler summary?
+    *   **Confusion**: `PipelineStats` (Phase 2) vs `PipelineMetrics` (Phase 6). `PipelineStats` is the main one used in `pipeline.py`. `PipelineMetrics` seems unused or legacy?
+    *   **Search**: `grep` shows `PipelineMetrics` is NOT used in `pipeline.py`. `pipeline.py` uses `PerformanceTracker` and `PipelineStats`.
+    *   **Action**: Deprecate `metrics.py` if unused, or consolidate.
 
 ### 6.1.2. Blocklists (`blocklist.py`)
 **Analysis**:

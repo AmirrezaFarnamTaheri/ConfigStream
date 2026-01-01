@@ -19,6 +19,7 @@ The system employs a **Hybrid Python-Go Architecture**.
 *   **Singleton**: `GeoIPResolver`, `BlocklistManager`, `ProxyWasher` (shared instance).
 *   **Facade**: `Fetcher` (wraps `fetcher_core`), `Output` (wraps `output_logic`).
 *   **Strategy**: `parsers/` (different strategies for different protocols).
+*   **Adapter**: `src/configstream/adapters.py` implements the Adapter pattern for legacy/mobile clients (Surge, Shadowrocket).
 *   **Sidecar**: `GoBatchTester` runs as a daemon subprocess, communicating via NDJSON over Stdin/Stdout.
 
 ## 20.3. Strengths
