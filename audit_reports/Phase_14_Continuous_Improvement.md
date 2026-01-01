@@ -30,6 +30,7 @@ This report serves as the consolidation point for all improvement initiatives.
 8.  **Edge Cases**: Fix unsafe `age=0` default in `freshness.py`. (Phase 15)
 9.  **Tools**: Clean up dead code (`etag_cache.py`, `metrics.py`). (Phase 12, 10)
 10. **Security**: Implement SHA256 verification for FFI binary in `ss_ffi.py`. (Phase 6)
+11. **Testing**: Mitigate OOM risk in Go Scanner by capping CIDR range or using iterators. (Phase 4)
 
 ### Medium Priority
 1.  **Docs**: Document DNS Caching limitation (HTTP-only). (Phase 15)
