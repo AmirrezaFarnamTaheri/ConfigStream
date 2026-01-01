@@ -92,7 +92,9 @@ async def source_producer(
         blocked_urls = []
 
         loop = asyncio.get_running_loop()
-        sem = asyncio.Semaphore(100)  # Increased from 50 to 100 for better concurrency
+        # [FIX] Use dynamic semaphore limit from settings
+        sem_limit = getattr(settings, "PRODUCER_MAX_CONCURRENCY", 100)
+        sem = asyncio.Semaphore(sem_limit)
 
         async def _check_url(url):
             async with sem:
