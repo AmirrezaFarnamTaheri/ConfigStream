@@ -29,12 +29,15 @@ This report serves as the consolidation point for all improvement initiatives.
 7.  **Frontend**: Optimize `stego.js` memory usage. (Phase 7)
 8.  **Edge Cases**: Fix unsafe `age=0` default in `freshness.py`. (Phase 15)
 9.  **Tools**: Clean up dead code (`etag_cache.py`, `metrics.py`). (Phase 12, 10)
+10. **Security**: Implement SHA256 verification for FFI binary in `ss_ffi.py`. (Phase 6)
 
 ### Medium Priority
 1.  **Docs**: Document DNS Caching limitation (HTTP-only). (Phase 15)
 2.  **Transport**: Decouple `stego.py` clearly or integrate via flag. (Phase 11)
 3.  **Tools**: Hardcoded WARP IPs in validator. (Phase 21)
 4.  **History**: Stream large history exports. (Phase 12)
+5.  **Frontend**: Tighten CSP in `index.html` (remove unsafe-inline). (Phase 7)
+6.  **Scripts**: Atomic write fix for `clean_security_issues.py`. (Phase 9)
 
 ## 14.4. Linting
 *   `flake8`, `black`, `mypy` are configured.
