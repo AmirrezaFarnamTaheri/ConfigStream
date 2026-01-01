@@ -44,13 +44,12 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Check `src/configstream/utils/` for orphaned helper functions.
     - [ ] Review `scripts/` for obsolete maintenance scripts.
 - [ ] **Split Brain & Redundancies**:
-    - [ ] Compare `src/configstream/converters/singbox.py` vs Go sidecar config generation.
-    - [ ] Compare `src/configstream/score.py` vs `sort_proxies_pareto` (Pareto scoring logic).
-    - [ ] Identify duplicate protocol parsing logic in Python vs Go.
+    - [ ] **Protocol Parsing**: Compare `src/configstream/converters/singbox.py` vs Go sidecar. Are all protocols in Sync?
+    - [ ] **Scoring Logic**: Compare `src/configstream/score.py` (if exists) vs `sort_proxies_pareto`.
+    - [ ] **Vector Generation**: Compare `vectors.py` feature hashing vs any frontend logic.
 - [ ] **Legacy Cleanups**:
     - [ ] Audit `src/configstream/adapters.py` vs `adapters_base.py`.
     - [ ] Check for deprecated "v1" implementations in `parsers/`.
-    - [ ] Review `src/configstream/intelligence/washer/legacy.py` (if exists).
 
 ## Phase 2: Core Pipeline Orchestration (`src/configstream/pipeline.py`)
 
@@ -154,7 +153,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **WireGuard**:
         - [ ] Verify `private_key` length (Base64).
         - [ ] Check `reserved` bytes parsing (list of 3 ints).
-        - [ ] Audit IP generation for WARP (collision risk).
+        - [ ] Audit IP generation for WARP (collision risk in `to_singbox_outbound`).
     - [ ] **SSH**:
         - [ ] Check `private_key` vs `password` precedence.
         - [ ] Verify `host_key` validation.
@@ -204,6 +203,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Is it `asyncio.open_connection` based?
     - [ ] Does it measure "Connect" or "Handshake" time?
     - [ ] Does it handle `ConnectionRefused` vs `Timeout` differently?
+    - [ ] Check for timeout jitter implementation.
 - [ ] **Performance Bottlenecks**:
     - [ ] Check for heavy crypto loops.
     - [ ] Check for excessive object creation.
@@ -254,8 +254,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Verify "Open" state logic in `src/configstream/intelligence/circuit_breaker.py`.
     - [ ] Check "Half-Open" probe logic.
 - [ ] **Reshard Dynamic**:
-    - [ ] Analyze `src/configstream/sharding.py` (if exists).
-    - [ ] Verify sharding key distribution (consistent hashing?).
+    - [ ] Analyze `src/configstream/sharding.py`.
+    - [ ] Verify `blake2b` bucketing determinism (`buckets=256`).
+    - [ ] Check `save_shard_metadata` logic.
 
 ### 5.4. Advanced Chaining & Routing (`src/configstream/intelligence/chaining.py`)
 - [ ] **Geodesic Logic**:
@@ -333,6 +334,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Artifacts**:
     - [ ] Check `.gitignore` for `output/`.
     - [ ] Verify `clean` step before build.
+    - [ ] Audit `generate_favicons.py` logic.
 
 ### 7.2. Output Generation (`src/configstream/output.py`)
 - [ ] **Atomic Writes**:
@@ -410,7 +412,43 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Review `src/configstream/utils/`.
     - [ ] Deprecate `bool_parser` if standard exists.
 
-## Phase 11: Continuous Improvement
+## Phase 11: Transport & Vectors (Deep Internals)
+
+### 11.1. Steganography Transport (`src/configstream/transport/stego.py`)
+- [ ] **Magic Marker Safety**:
+    - [ ] Ensure `MAGIC_MARKER` bytes don't collide with PNG format.
+    - [ ] Verify image validity is preserved (append-only).
+- [ ] **Encryption**:
+    - [ ] Audit `Fernet` usage. Is key rotation possible?
+    - [ ] Verify `HMAC` implementation.
+
+### 11.2. Vector Intelligence (`src/configstream/intelligence/vectors.py`)
+- [ ] **Feature Hashing**:
+    - [ ] Audit `_compute_vector` logic.
+    - [ ] Check for hash collisions reducing vector utility.
+    - [ ] Verify dimensions (0-7) capture meaningful variance.
+
+## Phase 12: Data Integrity & Artifacts
+
+- [ ] **Artifact Management**:
+    - [ ] Audit cleanup of `output/` directory.
+    - [ ] Verify versioning of `proxies.json` (`proxies.old.json`).
+    - [ ] Check `history` DB integrity checks.
+- [ ] **Reshard Dynamic**:
+    - [ ] Verify `sharding.py` logic under load.
+    - [ ] Check `buckets` configuration (default 256).
+
+## Phase 13: Documentation & Knowledge Base
+
+- [ ] **Documentation Audit**:
+    - [ ] Review `docs/` folder for outdated info.
+    - [ ] Ensure `KNOWN_ISSUES.md` is current.
+    - [ ] Verify `CONTRIBUTING.md` matches `AGENTS.md`.
+- [ ] **Knowledge Preservation**:
+    - [ ] Document "Split Brain" map in `docs/architecture.md`.
+    - [ ] Create decision log for Protocol choices.
+
+## Phase 14: Continuous Improvement & Final Polish
 
 - [ ] **Profiling**:
     - [ ] Review `scripts/profile_performance.py`.
