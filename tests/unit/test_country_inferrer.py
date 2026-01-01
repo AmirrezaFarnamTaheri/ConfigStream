@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.country_inferrer import (
     infer_country_from_remarks,
     _flag_to_country_code,

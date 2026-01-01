@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Intelligent fallback system for serving cached proxies when tests fail.
 

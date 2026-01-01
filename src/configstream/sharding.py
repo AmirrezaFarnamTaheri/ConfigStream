@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Utilities for deterministically sharding proxy identifiers."""
 
 from __future__ import annotations

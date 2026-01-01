@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Export module for Proxy History.
 Handles exporting history data for visualization and external consumption.

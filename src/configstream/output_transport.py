@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Output Transport Module.
 Handles serialization and file I/O for proxy data.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Analytics module for Proxy History.
 Calculates stats, trends, and reliability scores.

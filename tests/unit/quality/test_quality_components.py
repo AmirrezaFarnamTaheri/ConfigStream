@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import sqlite3
 from pathlib import Path
 from unittest.mock import patch

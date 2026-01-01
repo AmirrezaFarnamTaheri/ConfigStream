@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 import asyncio
 from configstream.utils import AtomicFileWriter, BoundedConcurrencyManager

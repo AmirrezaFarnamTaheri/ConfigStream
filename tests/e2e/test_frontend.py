@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from playwright.sync_api import Page, expect
 from playwright._impl._errors import Error as PlaywrightError

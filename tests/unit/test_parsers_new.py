@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.parsers import (
     _parse_ss,
     _parse_vless,

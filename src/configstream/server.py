@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import os
 import json
 import logging
@@ -7,10 +8,13 @@ import importlib.metadata
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from .output import OUTPUT_DIR
 
@@ -30,6 +34,9 @@ try:
 except importlib.metadata.PackageNotFoundError:
     VERSION = "0.0.0"
 
+# [SECURITY] Rate Limiting
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="ConfigStream",
     description="High-Performance VPN Aggregator API",
@@ -37,6 +44,10 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url=None,
 )
+
+# [SECURITY] Register Rate Limit Handler
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Enable CORS with restricted origins
 # Allow localhost for development and GitHub Pages for production deployment
@@ -156,7 +167,8 @@ async def notify_update(payload: dict):
         # In production, pipeline should include api_key in payload
         if not provided_key:
             # Check if this is an internal call (development/CI environment)
-            is_internal = os.getenv("ENVIRONMENT", "development") in (
+            # [SECURITY] Secure default: PRODUCTION
+            is_internal = os.getenv("ENVIRONMENT", "production") in (
                 "development",
                 "ci",
                 "test",
@@ -253,7 +265,8 @@ async def get_stats():
 
 
 @app.get("/api/proxies")
-async def get_proxies(country: Optional[str] = None, protocol: Optional[str] = None):
+@limiter.limit("10/minute")
+async def get_proxies(request: Request, country: Optional[str] = None, protocol: Optional[str] = None):
     """
     Get the full proxy list, optionally filtered.
     Note: Real-time filtering of large JSONs is memory intensive.

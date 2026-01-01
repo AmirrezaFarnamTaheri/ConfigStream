@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Comprehensive tests for event_stream.py module.
 Tests the EventStream class for real-time event emission.

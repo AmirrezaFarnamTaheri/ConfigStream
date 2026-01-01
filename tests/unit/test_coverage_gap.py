@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from unittest.mock import MagicMock, patch
 from configstream.parsers.shadowsocks import parse_ss

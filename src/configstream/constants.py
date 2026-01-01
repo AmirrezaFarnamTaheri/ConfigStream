@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Centralized constants for all modules."""
 
 # [PHASE 5] Network & Tunnel Configuration

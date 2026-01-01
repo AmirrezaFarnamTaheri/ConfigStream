@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Tests for fetcher models and utils."""
 
 from datetime import datetime, timedelta, timezone

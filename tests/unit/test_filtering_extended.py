@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from unittest.mock import MagicMock, patch
 from configstream.filtering import (
     proxy_unique_key,

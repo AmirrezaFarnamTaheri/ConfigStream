@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import nest_asyncio
 
 # Apply nest_asyncio globally for all tests to support nested event loops

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from configstream.models import Proxy
 from configstream.serialize import serialize_proxy

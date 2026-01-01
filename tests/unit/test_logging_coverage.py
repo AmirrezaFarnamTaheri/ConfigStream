@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import pytest
 from configstream.converters import to_singbox_outbound

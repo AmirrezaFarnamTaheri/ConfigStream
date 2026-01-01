@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Static Vector Generation.
 Generates lightweight feature vectors for proxies to enable client-side similarity search.
