@@ -495,7 +495,11 @@ func isHoneypot(ctx context.Context, p ProxyInput) bool {
 	}
 
 	// [FIX] Cap response body size to prevent OOM
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 1024*1024))
+	const maxBodySize = 1024 * 1024
+	if resp.ContentLength > maxBodySize {
+		return false // Or true if you consider huge responses suspicious, but false avoids OOM
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxBodySize))
 	if err != nil {
 		// If we can't read the body, we can't verify the signature.
 		// Assume it's not a honeypot to avoid a false positive.

@@ -95,6 +95,7 @@ async def source_producer(
         loop = asyncio.get_running_loop()
         # [FIX] Use dynamic semaphore limit from settings
         sem_limit = getattr(settings, "PRODUCER_MAX_CONCURRENCY", 100)
+        sem_limit = max(1, int(sem_limit))
         sem = asyncio.Semaphore(sem_limit)
 
         async def _check_url(url):

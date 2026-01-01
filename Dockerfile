@@ -47,7 +47,7 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 # 3. Install Vwarp
 # [SECURITY] Fixed hardcoded version. Ideally, fetch dynamic latest or verify SHA256.
 # Running as root before switching user
-RUN wget -q -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp_linux-amd64.zip && \
+RUN wget -q --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp_linux-amd64.zip && \
     echo "e9b5f3a0c5e7f1d4b6a2c9d3e8f5a1b0c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2  /tmp/vwarp.zip" | sha256sum -c - && \
     unzip /tmp/vwarp.zip -d /tmp && \
     mv /tmp/vwarp /usr/local/bin/vwarp && \
@@ -60,7 +60,9 @@ COPY pyproject.toml requirements-prod.txt ./
 # Use system python environment, no venv needed in container
 ENV UV_SYSTEM_PYTHON=1
 # [FIX] Install only strict production dependencies (no dev tools)
-RUN uv pip install --no-cache-dir -r requirements-prod.txt
+# [FIX] Ensure slowapi is installed as runtime dependency if missing from requirements
+RUN uv pip install --no-cache-dir -r requirements-prod.txt && \
+    uv pip install --no-cache-dir slowapi
 
 # Copy Source Code
 COPY . .

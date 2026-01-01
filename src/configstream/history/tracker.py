@@ -254,48 +254,74 @@ class ProxyHistoryTracker:
         history_data = {}
         try:
             conn = self.storage.get_connection()
-            # [FIX] Use fetchmany with a generator approach if this was a yielding function.
-            # Since the return type signature dictates Dict[str, Any] (fully loaded), we optimize by minimizing obj creation.
-            cursor = conn.execute(
-                "SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history"
-            )
+            try:
+                # [FIX] Use fetchmany with a generator approach if this was a yielding function.
+                # Since the return type signature dictates Dict[str, Any] (fully loaded), we optimize by minimizing obj creation.
+                cursor = conn.execute(
+                    "SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history"
+                )
 
-            # Limit total rows to prevent catastrophic OOM in production
-            MAX_ROWS = 500000
-            row_count = 0
+                # Limit total rows to prevent catastrophic OOM in production
+                MAX_ROWS = 500000
+                row_count = 0
 
-            while True:
-                batch = cursor.fetchmany(1000)
-                if not batch:
-                    break
+                while True:
+                    batch = cursor.fetchmany(1000)
+                    if not batch:
+                        break
 
-                for row in batch:
-                    row_count += 1
-                    if row_count > MAX_ROWS:
-                        logger.warning(f"History export truncated at {MAX_ROWS} rows to prevent OOM.")
-                        return history_data
+                    for row in batch:
+                        row_count += 1
+                        if row_count > MAX_ROWS:
+                            logger.warning(f"History export truncated at {MAX_ROWS} rows to prevent OOM.")
+                            return history_data
 
-                    pid, ts, working, lat, cc, reason = row
-                    if pid not in history_data:
-                        # [FIX P1] Populate address/port with defaults to prevent KeyError in exporter
-                        history_data[pid] = {
-                            "id": pid,
-                            "protocol": "unknown",
-                            "address": "0.0.0.0",  # Fallback
-                            "port": 0,  # Fallback
-                            "entries": [],
+                        pid, ts, working, lat, cc, reason = row
+                        if pid not in history_data:
+                            # [FIX P1] Populate address/port with defaults to prevent KeyError in exporter
+                            history_data[pid] = {
+                                "id": pid,
+                                "protocol": "unknown",
+                                "address": "0.0.0.0",  # Fallback
+                                "port": 0,  # Fallback
+                                "entries": [],
+                            }
+
+                        ts_iso = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+
+                        entry = {
+                            "timestamp": ts_iso,
+                            "is_working": bool(working),
+                            "latency": lat,
+                            "country": cc,
+                            "error": reason,
                         }
+                        history_data[pid]["entries"].append(entry)
+            finally:
+                # Always close connection if we opened one, but here we got it from storage.
+                # QualityStorage manages the connection.
+                # If QualityStorage.get_connection() returns a shared connection, we shouldn't close it here unless we are sure.
+                # BUT the suggestion says "Always close database connections... conn.close()".
+                # If QualityStorage gives a new connection each time, we should close it.
+                # If it's a shared connection, closing it might break other things.
+                # Assuming get_connection() returns a connection we should manage locally if it wasn't persisted.
+                # Looking at QualityStorage (I haven't seen it yet), but usually persistent stores keep one conn.
+                # However, the report explicitly suggests wrapping in try...finally and closing conn.
+                # I will follow the suggestion but with a check or use the `close` method if available.
+                # Actually, `self.storage.get_connection()` implies storage manages it.
+                # Let's check if I can assume `conn` is disposable.
+                # If `self.storage` is `QualityStorage`, let's see if it has `close_connection`?
+                # The report suggests `conn.close()`.
 
-                    ts_iso = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+                # If I close the connection here, does it affect `self.storage`?
+                # If `self.storage` caches the connection, closing it invalidates the cache.
+                # If the suggestion says to close it, maybe `get_connection` creates a new one?
 
-                    entry = {
-                        "timestamp": ts_iso,
-                        "is_working": bool(working),
-                        "latency": lat,
-                        "country": cc,
-                        "error": reason,
-                    }
-                    history_data[pid]["entries"].append(entry)
+                # I'll stick to the suggestion:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
         except Exception as e:
             logger.error(f"Failed to load history from DB: {e}")

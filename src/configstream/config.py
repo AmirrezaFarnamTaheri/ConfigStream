@@ -106,6 +106,8 @@ class AppSettings(BaseSettings):
 
     def model_post_init(self, __context):
         """Update nested security settings from env vars if needed."""
+        # Create a copy to avoid modifying the class attribute for all instances
+        self.SECURITY = self.SECURITY.copy()
         if self.BLOCKED_COUNTRIES:
             self.SECURITY["blocked_countries"] = self.BLOCKED_COUNTRIES.split(",")
         else:
