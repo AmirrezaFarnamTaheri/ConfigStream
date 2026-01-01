@@ -54,3 +54,46 @@ async def test_hedged_request_second_succeeds():
     )
     assert success is True
     assert result.text == "Fast"
+
+
+@pytest.mark.asyncio
+async def test_hedged_request_cancellation_check():
+    """Verify that the slow task is cancelled when another succeeds."""
+    mock_client = AsyncMock()
+
+    # We will use an Event to track if the slow task was cancelled
+    slow_task_cancelled = asyncio.Event()
+
+    async def side_effect(*args, **kwargs):
+        if not hasattr(side_effect, "calls"):
+            side_effect.calls = 0
+        side_effect.calls += 1
+
+        if side_effect.calls == 1:
+            # First call is slow
+            try:
+                await asyncio.sleep(2.0)
+                return MagicMock(status_code=200, text="Slow")
+            except asyncio.CancelledError:
+                slow_task_cancelled.set()
+                raise
+        else:
+            # Second call is fast
+            return MagicMock(status_code=200, text="Fast")
+
+    mock_client.get.side_effect = side_effect
+
+    # Hedge after 0.05s, first task sleeps 2.0s
+    success, result = await hedged_get(
+        mock_client, "http://example.com", timeout=1.0, hedge_after=0.05, headers={}
+    )
+
+    assert success is True
+    assert result.text == "Fast"
+
+    # Check if the slow task was cancelled
+    # We might need to wait a tiny bit for the callback to fire
+    try:
+        await asyncio.wait_for(slow_task_cancelled.wait(), timeout=0.5)
+    except asyncio.TimeoutError:
+        pytest.fail("The slow task was not cancelled properly!")
