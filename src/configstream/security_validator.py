@@ -136,15 +136,16 @@ class SecurityValidator:
                     categorized_issues[category] = []
                 categorized_issues[category].append("Missing mandatory UUID")
             else:
-                try:
-                    # Raises ValueError for invalid UUID formats
-                    uuid.UUID(str(proxy.uuid))
-                except (ValueError, AttributeError, TypeError):
+                # [FIX] Relax UUID validation to minimize false positives.
+                # Standard VLESS/VMess requires UUID, but many implementations accept simple passwords.
+                # We enforce minimum length (8 chars) and basic charset to filter noise/spam.
+                # Regex: Alphanumeric + hyphens, min 8 chars.
+                if len(str(proxy.uuid)) < 8 or not re.match(r"^[a-zA-Z0-9-]+$", str(proxy.uuid)):
                     category = SECURITY_CATEGORIES["UUID_INVALID"]
                     if category not in categorized_issues:
                         categorized_issues[category] = []
                     categorized_issues[category].append(
-                        f"Invalid UUID format: {proxy.uuid!r}"
+                        f"Invalid UUID format (too short or invalid chars): {proxy.uuid!r}"
                     )
 
         is_secure = len(categorized_issues) == 0
