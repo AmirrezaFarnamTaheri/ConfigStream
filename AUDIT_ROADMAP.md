@@ -5,162 +5,362 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 ## Phase 1: Project Configuration & Architecture Validity
 
 ### 1.1. Dependency & Environment Analysis
-- [ ] **Dependency Compatibility**: Analyze `pyproject.toml`, `requirements.txt`, and `package.json` for version conflicts or deprecated packages.
-- [ ] **Docker Security**: Audit `Dockerfile` for best practices (non-root user, multi-stage builds, minimal base images, cached layers).
-- [ ] **Env Var Handling**: Verify `src/configstream/config.py` correctly loads and validates all environment variables defined in `.env.example`.
-- [ ] **Pre-commit Hooks**: Review `.pre-commit-config.yaml` to ensure lints and security checks (e.g., `gitleaks`) are comprehensive.
-- [ ] **CI/CD Workflow**: Audit `.github/workflows/` for insecure secrets usage, unlimited timeouts, or unpinned 3rd party actions.
-- [ ] **Build Scripts**: Verify `scripts/build_wasm.sh` specifically:
-    - Checks for exact Go version (not just minimum).
-    - Verifies integrity of `wasm_exec.js` copy operation.
-    - Uses reproducible build flags (trimpath).
+- [ ] **Dependency Compatibility**:
+    - [ ] Analyze `pyproject.toml` for strict vs loose version pinning (e.g., `^` vs `~=`).
+    - [ ] Check `requirements.txt` for consistency with `pyproject.toml`.
+    - [ ] Audit `package.json` (frontend) for deprecated npm packages.
+    - [ ] Verify `setup.py` (if exists) doesn't conflict with `pyproject.toml`.
+- [ ] **Docker Security**:
+    - [ ] Audit `Dockerfile` for non-root user enforcement (`USER appuser`).
+    - [ ] Verify multi-stage builds are used to reduce image size.
+    - [ ] Check for sensitive args/envs baked into layers (e.g., `ARG GITHUB_TOKEN`).
+    - [ ] Validate `docker-compose.yml` network isolation rules.
+- [ ] **Env Var Handling**:
+    - [ ] Verify `src/configstream/config.py` uses `pydantic-settings` correctly.
+    - [ ] Check validation logic for all vars in `.env.example`.
+    - [ ] Ensure sensitive vars (keys, tokens) are marked `SecretStr`.
+- [ ] **Pre-commit Hooks**:
+    - [ ] Review `.pre-commit-config.yaml` for `gitleaks` (secret scanning).
+    - [ ] Ensure `black`, `isort`, and `flake8` config matches project standards.
+- [ ] **CI/CD Workflow**:
+    - [ ] Audit `.github/workflows/` for secure secret injection.
+    - [ ] Check for unlimited timeouts in jobs (cost risk).
+    - [ ] Verify 3rd party actions are pinned by commit hash, not tag.
+- [ ] **Build Scripts**:
+    - [ ] **`scripts/build_wasm.sh`**:
+        - [ ] Verify strict Go version check (e.g., `1.21.0` vs `1.21`).
+        - [ ] Validate integrity of `wasm_exec.js` copy (checksum?).
+        - [ ] Ensure `-trimpath` is used for reproducible builds.
 
 ### 1.2. Architecture & Documentation Compliance
-- [ ] **`AGENTS.md` Alignment**: Verify that the codebase strictly follows the directives in `AGENTS.md` (e.g., "No blocking I/O", "Sanitized Logging").
-- [ ] **Module Boundaries**: Check for circular imports or violations of the clean architecture (e.g., core logic depending on CLI tools).
-- [ ] **Dead Code Detection**: Identify unused files, classes, and functions (e.g., potential leftovers in `src/configstream/utils/` or root scripts).
-- [ ] **Split Brain & Redundancies**: Identify logic duplicated between Python and Go (e.g., scoring logic, protocol parsing).
-- [ ] **Legacy Cleanups**: Check for deprecated "v1" implementations or unused adapters in `src/configstream/adapters.py` vs `adapters_base.py`.
+- [ ] **`AGENTS.md` Alignment**:
+    - [ ] Scan codebase for "Blocking I/O" violations (e.g., `requests.get` inside async).
+    - [ ] Verify "Sanitized Logging" directive is respected in all new modules.
+- [ ] **Module Boundaries**:
+    - [ ] Check for circular imports using `pylint --check-graph`.
+    - [ ] Verify core logic (`src/configstream/pipeline_core`) doesn't import CLI/UI layers.
+- [ ] **Dead Code Detection**:
+    - [ ] Run `vulture` or similar to find unused code.
+    - [ ] Check `src/configstream/utils/` for orphaned helper functions.
+    - [ ] Review `scripts/` for obsolete maintenance scripts.
+- [ ] **Split Brain & Redundancies**:
+    - [ ] Compare `src/configstream/converters/singbox.py` vs Go sidecar config generation.
+    - [ ] Compare `src/configstream/score.py` vs `sort_proxies_pareto`.
+    - [ ] Identify duplicate protocol parsing logic in Python vs Go.
+- [ ] **Legacy Cleanups**:
+    - [ ] Audit `src/configstream/adapters.py` vs `adapters_base.py`.
+    - [ ] Check for deprecated "v1" implementations in `parsers/`.
 
 ## Phase 2: Core Pipeline Orchestration (`src/configstream/pipeline.py`)
 
 ### 2.1. Concurrency & Event Loop Management
-- [ ] **Blocking Calls**: Scan `run_full_pipeline` and consumers for blocking calls (`subprocess.Popen`, `shutil.which`, file I/O) running directly on the event loop.
-- [ ] **Task Management**: Specific checks for `asyncio.create_task` usage. Are references held to prevent garbage collection? Are exceptions retrieved?
-- [ ] **Graceful Shutdown**: Simulate `SIGINT` and `SIGTERM`. Ensure `processing_consumer` and `source_producer` tasks cancel cleanly without orphaned resources (zombie Go processes).
-- [ ] **Queue Bounding**: Verify `asyncio.Queue(maxsize=...)` usage to prevent OOM under backpressure.
-- [ ] **Deduplication Logic**: Audit `filter_unique_endpoints` and `seen_keys` usage to ensure precise deduplication without false positives.
+- [ ] **Blocking Calls**:
+    - [ ] Scan `run_full_pipeline` for synchronous file I/O.
+    - [ ] Audit `processing_consumer` for CPU-bound tasks not wrapped in `run_in_executor`.
+    - [ ] Check `subprocess.Popen` usage: is it truly non-blocking?
+- [ ] **Task Management**:
+    - [ ] Audit `asyncio.create_task` usage:
+        - [ ] Are references held (`background_tasks` set)?
+        - [ ] Are exceptions retrieved/handled via `add_done_callback` or `gather`?
+    - [ ] Check for "fire-and-forget" tasks that might swallow errors.
+- [ ] **Graceful Shutdown**:
+    - [ ] Simulate `SIGINT` (Ctrl+C).
+    - [ ] Verify `processing_consumer` cancels immediately.
+    - [ ] Ensure `source_producer` stops fetching.
+    - [ ] Verify `Vwarp` tunnel process receives `SIGTERM`.
+    - [ ] Check `EventStream` flush on exit.
+- [ ] **Queue Bounding**:
+    - [ ] Verify `work_queue = asyncio.Queue(maxsize=...)`.
+    - [ ] Test behavior when queue is full (does producer pause?).
+- [ ] **Deduplication Logic**:
+    - [ ] Audit `filter_unique_endpoints`:
+        - [ ] Does it handle IP vs Domain duplicates correctly?
+        - [ ] Does it handle port differences?
+    - [ ] Audit `seen_keys` usage:
+        - [ ] Is it a `set` or `dict`?
+        - [ ] Is memory usage bounded (LRU)?
 
 ### 2.2. Error Handling & Resilience
-- [ ] **Exception Swallowing**: Audit `try...except` blocks in `processing_consumer`. Ensure no critical errors are silently ignored.
-- [ ] **Global Error Propagation**: If a critical component (e.g., `GeoIPResolver`) fails, does the pipeline fail safely or continue in a degraded state?
-- [ ] **Timeout Management**: Audit `AdaptiveTimeout` logic. Ensure it doesn't cause the pipeline to stall or timeout prematurely on slow networks.
+- [ ] **Exception Swallowing**:
+    - [ ] Search for `except Exception:` (bare excepts).
+    - [ ] Ensure critical errors (OOM, Disk Full) are re-raised.
+- [ ] **Global Error Propagation**:
+    - [ ] If `GeoIPResolver` fails init, does pipeline continue?
+    - [ ] If `SourceQualityTracker` DB is locked, does pipeline stall?
+- [ ] **Timeout Management**:
+    - [ ] Audit `AdaptiveTimeout`:
+        - [ ] Can timeout drop below 0?
+        - [ ] Does it oscillate wildly?
+    - [ ] Verify `httpx` timeouts are enforced.
 
 ### 2.3. Resource Management
-- [ ] **File Descriptors**: Check `EventStream` and `output_handler` for proper file closing patterns (e.g., `async with`, `aiofiles`).
-- [ ] **Subprocess Leaks**: Deep review of `Vwarp` tunnel startup/shutdown logic. Can the process survive a parent crash?
+- [ ] **File Descriptors**:
+    - [ ] Check `EventStream` file handling.
+    - [ ] Check `output_handler` file usage.
+    - [ ] Ensure `ulimit` is respected or handled.
+- [ ] **Subprocess Leaks**:
+    - [ ] Deep review of `Vwarp` tunnel lifecycle.
+    - [ ] Verify orphan cleanup if parent crashes (`atexit`?).
 
 ## Phase 3: Data Ingestion & Parsing Layer
 
 ### 3.1. Fetcher Module (`src/configstream/fetcher*`)
-- [ ] **Facade Integrity**: Verify `fetcher.py` correctly delegates to `fetcher_core/` without losing context or error details.
-- [ ] **Streaming Safety**: Ensure `httpx` streaming response handling limits memory usage (`MAX_RESPONSE_SIZE` enforcement).
-- [ ] **Encoding Handling**: Verify robust decoding (utf-8, latin-1 fallbacks) for random source content.
-- [ ] **DNS Leaks**: Audit `dns_batch_resolver.py`. Does it leak queries? Does it respect system DNS settings?
+- [ ] **Facade Integrity**:
+    - [ ] Verify `fetcher.py` API matches `fetcher_core/` implementation.
+    - [ ] Ensure deprecation warnings are present.
+- [ ] **Streaming Safety**:
+    - [ ] Verify `httpx` streaming logic.
+    - [ ] Check `MAX_RESPONSE_SIZE` (prevent memory bomb).
+    - [ ] Verify `iter_bytes` usage.
+- [ ] **Encoding Handling**:
+    - [ ] Test with `utf-8`, `latin-1`, `gbk` (common in proxies).
+    - [ ] Verify fallback strategy.
+- [ ] **DNS Leaks**:
+    - [ ] Audit `dns_batch_resolver.py`:
+        - [ ] Does it leak DNS queries to system resolver?
+        - [ ] Does it support DoH/DoT?
+        - [ ] Is caching strictly respected (TTL)?
 
 ### 3.2. Parsers (`src/configstream/parsers/`)
-- [ ] **Fuzzing Resistance**: Analyze parsers (VLESS, VMess, SS, etc.) for resilience against malformed inputs (DoS via RegEx, infinite loops).
+- [ ] **Fuzzing Resistance**:
+    - [ ] Test parsers with random byte strings.
+    - [ ] Test with "recursive" base64 strings.
+    - [ ] Check RegEx for ReDoS vulnerabilities.
 - [ ] **Protocol Compliance**:
-    - **VLESS**: Check UUID validation logic and "Reality" flow coverage.
-    - **Shadowsocks**: Validate method and password extraction logic.
-    - **Base64**: Verify handling of unpadded or corrupt Base64 strings.
-- [ ] **Renaming & Remarks**: Audit `src/configstream/tagging.py`.
-    - Check regex performance in `format_proxy_name` (ReDoS).
-    - Ensure `unquote` handles invalid percent encodings safely.
-    - Verify template injection risks (e.g., using `str.format` with unchecked user input).
-- [ ] **Magic Numbers**: Identify and document/refactor magic constants (e.g., `len(hostname) > 255`).
+    - [ ] **VLESS**:
+        - [ ] Verify UUID validation (hex only).
+        - [ ] Audit `Reality` flow: `pbk` and `sid` extraction.
+        - [ ] Check fallback for missing `flow`.
+    - [ ] **VMess**:
+        - [ ] Verify AEAD check.
+        - [ ] Check `alterId` logic (force 0?).
+    - [ ] **Shadowsocks**:
+        - [ ] Validate SIP002 vs legacy URI format.
+        - [ ] Check plugin param parsing (`obfs-local`, `v2ray-plugin`).
+    - [ ] **Base64**:
+        - [ ] Verify padding fix logic.
+        - [ ] Check handling of URL-safe vs standard base64.
+- [ ] **Renaming & Remarks (`src/configstream/tagging.py`)**:
+    - [ ] **Regex Safety**: Audit `format_proxy_name` cleanup regex.
+    - [ ] **Unquote**: Check `unquote` usage for crash on invalid inputs.
+    - [ ] **Template Injection**: Ensure `str.format` doesn't access internal attributes.
+- [ ] **Magic Numbers**:
+    - [ ] Identify `len(hostname) > 255`.
+    - [ ] Identify port `1-65535` checks.
 
 ## Phase 4: Testing Engine (`src/configstream/testers/`)
 
 ### 4.1. Go Sidecar Integration (`src/configstream/testers/go.py`)
-- [ ] **Communication Protocol**: Audit the NDJSON (Newline Delimited JSON) protocol over stdin/stdout. Check handling of partial writes or buffer overflows.
-- [ ] **Process Lifecycle**: Review `_heartbeat_loop` and `_ensure_process`. Is there a race condition where multiple processes could be spawned?
-- [ ] **Panic Handling**: Ensure the Python side detects Go panics via stderr and recovers cleanly.
-- [ ] **SingBox Integration**: Verify that `singbox` configuration generation (in Go sidecar) correctly maps all protocol nuances.
-- [ ] **Honeypot Detection**: Verify `check_honeypot` logic in Go sidecar. Is it robust against false positives?
+- [ ] **Communication Protocol (NDJSON)**:
+    - [ ] Audit stdin/stdout handling.
+    - [ ] Check buffering: does it deadlock if buffer fills?
+    - [ ] Handle partial JSON lines.
+- [ ] **Process Lifecycle**:
+    - [ ] Audit `_heartbeat_loop`: frequency vs load.
+    - [ ] Audit `_ensure_process`: locking logic (avoid double spawn).
+- [ ] **Panic Handling**:
+    - [ ] Check stderr reader logic.
+    - [ ] Verify auto-restart on panic code 2.
+- [ ] **SingBox Integration**:
+    - [ ] Verify generated config structure matches `sing-box` schema.
+    - [ ] Check `route` object generation (geo-site/ip rules).
+- [ ] **Honeypot Detection**:
+    - [ ] Verify `check_honeypot` logic in Go.
+    - [ ] Is it checking strictly (port 80/443 vs any port)?
+    - [ ] Are false positives minimized?
 
 ### 4.2. Python Fallback (`src/configstream/testers/python.py`)
-- [ ] **TCPing**: Audit the `tcping` implementation. Is it truly non-blocking? Does it handle timeout jitter correctly?
-- [ ] **Performance Bottlenecks**: Check for CPU-bound operations in the Python tester (e.g., heavy crypto or SSL handshakes) blocking the loop.
-- [ ] **Protocol Parity**: Ensure Python tester supports the same subset of protocols/checks as the Go tester where claimed.
+- [ ] **TCPing**:
+    - [ ] Is it `asyncio.open_connection` based?
+    - [ ] Does it measure "Connect" or "Handshake" time?
+    - [ ] Does it handle `ConnectionRefused` vs `Timeout` differently?
+- [ ] **Performance Bottlenecks**:
+    - [ ] Check for heavy crypto loops.
+    - [ ] Check for excessive object creation.
+- [ ] **Protocol Parity**:
+    - [ ] Does Python tester verify VLESS/Reality? (Likely not, verify limitation).
 
 ### 4.3. Caching & State
-- [ ] **TestResultCache**: Verify thread/async-safety of the cache. Is `save()` blocking?
-- [ ] **Cache Invalidation**: Check logic for expiring old results.
+- [ ] **TestResultCache**:
+    - [ ] Audit `save()`: is it atomic?
+    - [ ] Verify `get/set` thread safety.
+- [ ] **Cache Invalidation**:
+    - [ ] Check `TTL` logic.
+    - [ ] Does `retest_scheduler` respect "dead" vs "alive" intervals?
 
 ## Phase 5: Intelligence & "Smart" Features
 
 ### 5.1. Proxy Washer & Revival
-- [ ] **Infinite Loops**: Analyze `ProxyWasher` to ensure a proxy isn't indefinitely cycled between "dead" and "revival attempt".
-- [ ] **WARP Integration**: Verify key management and `vwarp` binary dependencies.
-- [ ] **Vwarp Chaining**: Audit the logic for chaining `Vwarp` with other proxies. Are the chains constructed correctly?
+- [ ] **Infinite Loops**:
+    - [ ] Analyze `ProxyWasher.wash_failed`.
+    - [ ] Prevent: Dead -> Revive -> Fail -> Dead loop.
+- [ ] **WARP Integration**:
+    - [ ] Audit `vwarp` binary execution.
+    - [ ] Check `WARP_KEY_POOL` loading/rotation.
+- [ ] **Vwarp Chaining**:
+    - [ ] Verify chain construction: `Client -> WARP -> Proxy`.
+    - [ ] Check handling of chain failure (blame WARP or Proxy?).
 
 ### 5.2. Scoring & Ranking
-- [ ] **Scorer Logic**: Audit `src/configstream/score.py` (if exists) or ranking functions. Are the weights for latency vs. stability balanced?
-- [ ] **Ranker**: Review `sort_proxies_pareto` in `src/configstream/pipeline_core/sorter.py`. Ensure it handles edge cases (e.g., missing latency data) gracefully.
+- [ ] **Scorer Logic**:
+    - [ ] Audit `src/configstream/score.py` (or equivalent).
+    - [ ] Check weights: Latency vs Uptime vs Speed.
+- [ ] **Ranker**:
+    - [ ] Audit `sort_proxies_pareto`.
+    - [ ] Handle proxies with `latency=None`.
+    - [ ] Verify stability of sort (preserve order for equals).
 
 ### 5.3. Adaptive Logic
-- [ ] **AdaptiveTimeout**: Review the math behind timeout adjustments. Can it oscillate or grow unboundedly?
-- [ ] **CircuitBreaker**: Ensure it opens/closes correctly and doesn't permanently block valid hosts due to transient errors.
-- [ ] **Reshard Dynamic**: Analyze `src/configstream/sharding.py` (if applicable) for dynamic sharding logic correctness under load.
+- [ ] **AdaptiveTimeout**:
+    - [ ] Review AIMD algorithm (Additive Increase/Multiplicative Decrease).
+    - [ ] Check boundaries (Min/Max timeout).
+- [ ] **CircuitBreaker**:
+    - [ ] Verify "Open" state logic.
+    - [ ] Check "Half-Open" probe logic.
+- [ ] **Reshard Dynamic**:
+    - [ ] Analyze `src/configstream/sharding.py` (if exists).
+    - [ ] Verify sharding key distribution (consistent hashing?).
 
 ## Phase 6: Cross-Cutting Concerns
 
 ### 6.1. Security (`src/configstream/security*`)
-- [ ] **Log Sanitization**: **CRITICAL**. Verify `SecurityValidator.sanitize_log_message` is applied to *every* log statement involving external data.
-- [ ] **Injection Prevention**: Ensure proxy configs (often user-supplied strings) are not executed or evaluated unsafely.
-- [ ] **Blocklists**: Verify `DEFAULT_BLOCKLIST` update mechanism and lookup performance.
-- [ ] **Crypto**: Audit `src/configstream/crypto/`. Are weak ciphers used? Is key management secure?
+- [ ] **Log Sanitization**:
+    - [ ] **CRITICAL**: Verify `SecurityValidator.sanitize_log_message` applied to:
+        - [ ] Source URLs.
+        - [ ] Proxy Config strings.
+        - [ ] Error messages containing configs.
+- [ ] **Injection Prevention**:
+    - [ ] Ensure configs are treated as data, not code.
+    - [ ] Check `yaml.safe_load` vs `yaml.load`.
+- [ ] **Blocklists**:
+    - [ ] Verify `DEFAULT_BLOCKLIST` update source (FireHol?).
+    - [ ] Check IP range lookup efficiency (Trie vs List).
+- [ ] **Crypto (`src/configstream/crypto/`)**:
+    - [ ] Audit `signer.py`:
+        - [ ] Is `ed25519` implementation standard?
+        - [ ] Is private key loaded from secure Env/File?
+        - [ ] Are signatures deterministic?
 
 ### 6.2. Logging & Metrics
-- [ ] **Log Noise**: Identify overly verbose logs in the critical path (e.g., per-proxy debug logs).
-- [ ] **Stats & Tracking**: Check `PipelineStats` and `ProxyHistoryTracker` (`src/configstream/history/tracker.py`) for data consistency and concurrency safety.
-- [ ] **Metric Cardinality**: Check `src/configstream/metrics.py` (specifically `protocol_counts`) for potential memory explosion if protocol strings are unbounded.
-- [ ] **History Database**: Audit `src/configstream/history/db.py` for SQL injection and connection pooling.
+- [ ] **Log Noise**:
+    - [ ] Check `DEBUG` vs `INFO` levels.
+    - [ ] Debounce repetitive logs (e.g., "Connection refused").
+- [ ] **Stats & Tracking**:
+    - [ ] Audit `PipelineStats` counters (atomic increments?).
+    - [ ] Check `ProxyHistoryTracker`:
+        - [ ] Data retention policy (prune old records).
+        - [ ] Concurrency safety (sqlite lock?).
+- [ ] **Metric Cardinality (`src/configstream/metrics.py`)**:
+    - [ ] Check `protocol_counts`: can user input create infinite keys?
+    - [ ] Verify `save_to_file` atomic write.
 
 ### 6.3. Concurrency Safety
-- [ ] **Race Conditions**: Audit `seen_keys` usage. Is the `seen_lock` used consistently?
-- [ ] **Shared Singletons**: Verify `GeoIPResolver`, `AnomalyDetector`, `SourceQualityTracker` are strictly thread/async-safe.
+- [ ] **Race Conditions**:
+    - [ ] Audit `seen_keys` access.
+    - [ ] Audit `stats` updates.
+- [ ] **Shared Singletons**:
+    - [ ] Verify `GeoIPResolver` instance sharing.
+    - [ ] Verify `AnomalyDetector` internal state lock.
 
 ## Phase 7: Frontend & Output Artifacts
 
 ### 7.1. Frontend (`frontend/`)
-- [ ] **XSS Audit**: Check how `proxies.json` data is rendered. Are `remarks` or `details` HTML-escaped?
-- [ ] **Performance**: Analyze `proxies.html` rendering performance with large datasets (10k+ proxies).
-- [ ] **Artifacts**: Check that no build artifacts (`__pycache__`, `.DS_Store`, temporary test files) are included in the final output or commit.
+- [ ] **XSS Audit**:
+    - [ ] Check `proxies.json` rendering in JS.
+    - [ ] Escaping of `remarks` field.
+    - [ ] Escaping of `details` object keys/values.
+- [ ] **Performance**:
+    - [ ] Test `proxies.html` with 10k items (Virtual Scrolling?).
+- [ ] **Artifacts**:
+    - [ ] Check `.gitignore` for `output/`.
+    - [ ] Verify `clean` step before build.
 
 ### 7.2. Output Generation (`src/configstream/output.py`)
-- [ ] **Atomic Writes**: Ensure output files are written to a temp file and renamed to prevent partial reads by consumers.
-- [ ] **Format Validity**: Verify JSON/YAML/Subscription formats align with standard client requirements (v2ray, SingBox, etc.).
-- [ ] **Converters**: Audit `src/configstream/converters/` for data loss during conversion (e.g., SingBox to Clash).
-- [ ] **Generators**: Deep dive into `src/configstream/generators/`. Verify that `generate_clash_config` produces valid YAML that strictly adheres to the Clash schema.
+- [ ] **Atomic Writes**:
+    - [ ] Ensure `write -> flush -> fsync -> rename` pattern.
+- [ ] **Format Validity**:
+    - [ ] Validate generated JSON against schema.
+    - [ ] Validate YAML syntax.
+- [ ] **Converters (`src/configstream/converters/`)**:
+    - [ ] **SingBox**:
+        - [ ] Audit `to_singbox_outbound`.
+        - [ ] Check `WireGuard` IP generation (collision risk?).
+        - [ ] Check `Hysteria2` obsoleted fields.
+    - [ ] **Clash**:
+        - [ ] Audit `to_clash_proxy`.
+        - [ ] Verify `Reality` support (Clash Meta).
+- [ ] **Generators (`src/configstream/generators/`)**:
+    - [ ] Check `generate_split_outputs` logic.
+    - [ ] Verify "Subscription" base64 padding.
 
 ## Phase 8: Server & API (`src/configstream/server.py`)
 
 ### 8.1. API Security
-- [ ] **Input Validation**: Verify that all API endpoints validate input types and ranges (e.g., `country` code length).
-- [ ] **Path Traversal**: Check `get_proxies` for robust path traversal prevention (e.g., `..`, `/`).
-- [ ] **Rate Limiting**: Is there any rate limiting on the API?
-- [ ] **WebSocket Security**: Audit WebSocket handling for DoS via large messages.
+- [ ] **Input Validation**:
+    - [ ] Validate `country` param (2 chars, alpha).
+    - [ ] Validate `protocol` param (alphanumeric).
+- [ ] **Path Traversal**:
+    - [ ] Check `SAFE_PATH_PATTERN` regex.
+    - [ ] Verify `os.path.commonpath` checks are robust.
+- [ ] **Rate Limiting**:
+    - [ ] Is there middleware for rate limiting?
+    - [ ] Check `admin/notify-update` auth.
+- [ ] **WebSocket Security**:
+    - [ ] Check max message size (DoS).
+    - [ ] Check open connection limits.
 
 ### 8.2. Operational Safety
-- [ ] **CORS Policy**: Review `ALLOWED_ORIGINS` and regex usage. Is it too permissive?
-- [ ] **Error Leakage**: Ensure exceptions don't leak stack traces to the client.
+- [ ] **CORS Policy**:
+    - [ ] Review `ALLOWED_ORIGIN_REGEX`.
+    - [ ] Is it allowing `*` implicitly?
+- [ ] **Error Leakage**:
+    - [ ] Check `HTTPException` details.
+    - [ ] Ensure 500 errors don't expose stack trace.
 
 ## Phase 9: Tools & Operational Scripts
 
 ### 9.1. Maintenance Scripts
-- [ ] **Scripts**: Audit `scripts/` folder.
-    - `clean_security_issues.py`: Does it accidentally delete valid data?
-    - `publish_ipfs.py`: Are credentials handled securely?
-- [ ] **Tools**: Audit `tools/` folder.
-    - `blocklist_manager/`: Does it validate the blocklist source URL?
-    - `latency_tester/`: Does it interfere with the main pipeline if run concurrently?
+- [ ] **Scripts Audit**:
+    - [ ] `clean_security_issues.py`: Logic check.
+    - [ ] `publish_ipfs.py`: Secret handling.
+    - [ ] `upload_*.py`: Token permissions scope.
+- [ ] **Tools Audit**:
+    - [ ] `blocklist_manager/`: Source validation.
+    - [ ] `latency_tester/`: Concurrency conflicts.
 
 ### 9.2. Policy & Schema
-- [ ] **Schema Validation**: Verify `schema/` contains valid JSON schemas. Are they enforcing strict types?
-- [ ] **Policy Enforcement**: Check `policy/` (if any). Is the policy code reachable and active?
+- [ ] **Schema Validation**:
+    - [ ] Verify `schema/proxy_schema.json` covers all protocols.
+    - [ ] Verify `schema/source_schema.json`.
+- [ ] **Policy Enforcement**:
+    - [ ] Check `policy/` directory usage.
 
 ## Phase 10: Refactoring & Cleanup Targets
 
-- [ ] **Split Brain**: Identify logic duplicated between Python and Go (e.g., scoring logic).
-- [ ] **Code Duplication**: Merge `adapters.py` and `adapters_base.py` if redundant.
-- [ ] **Type Hints**: Run `mypy` check to find missing or `Any` types in strict modules.
-- [ ] **Utility Audit**: Review `src/configstream/utils/`. Are there unsafe or inefficient utility functions?
+- [ ] **Split Brain**:
+    - [ ] Map all Python-Go duplications.
+    - [ ] Plan consolidation (move more to Go?).
+- [ ] **Code Duplication**:
+    - [ ] Merge `adapters.py` / `adapters_base.py`.
+    - [ ] Refactor `converters` common logic (TLS struct).
+- [ ] **Type Hints**:
+    - [ ] Enforce `mypy --strict`.
+    - [ ] Eliminate `type: ignore`.
+- [ ] **Utility Audit**:
+    - [ ] Review `src/configstream/utils/`.
+    - [ ] Deprecate `bool_parser` if standard exists.
 
 ## Phase 11: Continuous Improvement
 
-- [ ] **Profiling**: Review `scripts/profile_performance.py`. Is it using `cProfile` or `yappi`? Does it capture async loops correctly?
-- [ ] **Regression Testing**: Ensure no new regressions are introduced during fixes.
-- [ ] **Linting**: Run `flake8` and `black` to ensure code style compliance.
-- [ ] **Documentation**: Update `README.md` and `AGENTS.md` to reflect any architectural changes.
+- [ ] **Profiling**:
+    - [ ] Review `scripts/profile_performance.py`.
+    - [ ] Add `yappi` for async profiling.
+- [ ] **Regression Testing**:
+    - [ ] Add `tests/test_converters.py` (round-trip tests).
+    - [ ] Add `tests/test_pipeline_resilience.py`.
+- [ ] **Linting**:
+    - [ ] Enforce `flake8` max-complexity.
+    - [ ] Enforce `black` formatting.
+- [ ] **Documentation**:
+    - [ ] Update `README.md` architecture diagram.
+    - [ ] Update `AGENTS.md` with new findings.
