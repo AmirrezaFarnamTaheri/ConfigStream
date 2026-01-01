@@ -45,11 +45,12 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Review `scripts/` for obsolete maintenance scripts.
 - [ ] **Split Brain & Redundancies**:
     - [ ] Compare `src/configstream/converters/singbox.py` vs Go sidecar config generation.
-    - [ ] Compare `src/configstream/score.py` vs `sort_proxies_pareto`.
+    - [ ] Compare `src/configstream/score.py` vs `sort_proxies_pareto` (Pareto scoring logic).
     - [ ] Identify duplicate protocol parsing logic in Python vs Go.
 - [ ] **Legacy Cleanups**:
     - [ ] Audit `src/configstream/adapters.py` vs `adapters_base.py`.
     - [ ] Check for deprecated "v1" implementations in `parsers/`.
+    - [ ] Review `src/configstream/intelligence/washer/legacy.py` (if exists).
 
 ## Phase 2: Core Pipeline Orchestration (`src/configstream/pipeline.py`)
 
@@ -88,7 +89,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] If `GeoIPResolver` fails init, does pipeline continue?
     - [ ] If `SourceQualityTracker` DB is locked, does pipeline stall?
 - [ ] **Timeout Management**:
-    - [ ] Audit `AdaptiveTimeout`:
+    - [ ] Audit `AdaptiveTimeout` logic in `src/configstream/intelligence/adaptive_timeout.py`.
         - [ ] Can timeout drop below 0?
         - [ ] Does it oscillate wildly?
     - [ ] Verify `httpx` timeouts are enforced.
@@ -190,32 +191,37 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 
 ## Phase 5: Intelligence & "Smart" Features
 
-### 5.1. Proxy Washer & Revival
+### 5.1. Proxy Washer & Revival (`src/configstream/intelligence/washer/`)
 - [ ] **Infinite Loops**:
-    - [ ] Analyze `ProxyWasher.wash_failed`.
+    - [ ] Analyze `ProxyWasher.wash_failed` in `core.py`.
     - [ ] Prevent: Dead -> Revive -> Fail -> Dead loop.
 - [ ] **WARP Integration**:
-    - [ ] Audit `vwarp` binary execution.
-    - [ ] Check `WARP_KEY_POOL` loading/rotation.
+    - [ ] Audit `warp_scraper.py`:
+        - [ ] Is it using legitimate endpoints?
+        - [ ] Rate limit compliance.
+    - [ ] Check `key_generator.py`:
+        - [ ] Algorithm correctness.
 - [ ] **Vwarp Chaining**:
-    - [ ] Verify chain construction: `Client -> WARP -> Proxy`.
+    - [ ] Verify chain construction in `chaining.py`: `Client -> WARP -> Proxy`.
     - [ ] Check handling of chain failure (blame WARP or Proxy?).
+- [ ] **Scanner Logic**:
+    - [ ] Audit `fetch_clean_ips`: does it block?
 
 ### 5.2. Scoring & Ranking
 - [ ] **Scorer Logic**:
-    - [ ] Audit `src/configstream/score.py` (or equivalent).
-    - [ ] Check weights: Latency vs Uptime vs Speed.
+    - [ ] Audit `src/configstream/pipeline_core/sorter.py`.
+    - [ ] Check Pareto scoring math: `(norm_latency * 0.5) + ((1.0 - reliability) * 0.3) + ((1.0 - uptime) * 0.2)`.
+    - [ ] Is pre-calculation of stats efficient (bulk fetch)?
 - [ ] **Ranker**:
-    - [ ] Audit `sort_proxies_pareto`.
-    - [ ] Handle proxies with `latency=None`.
-    - [ ] Verify stability of sort (preserve order for equals).
+    - [ ] Verify sorting stability (Python `sort` is stable, but are keys unique?).
+    - [ ] Handle proxies with `latency=None` (assigned 9999).
 
 ### 5.3. Adaptive Logic
 - [ ] **AdaptiveTimeout**:
     - [ ] Review AIMD algorithm (Additive Increase/Multiplicative Decrease).
     - [ ] Check boundaries (Min/Max timeout).
 - [ ] **CircuitBreaker**:
-    - [ ] Verify "Open" state logic.
+    - [ ] Verify "Open" state logic in `src/configstream/intelligence/circuit_breaker.py`.
     - [ ] Check "Half-Open" probe logic.
 - [ ] **Reshard Dynamic**:
     - [ ] Analyze `src/configstream/sharding.py` (if exists).
@@ -283,11 +289,12 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Validate YAML syntax.
 - [ ] **Converters (`src/configstream/converters/`)**:
     - [ ] **SingBox**:
-        - [ ] Audit `to_singbox_outbound`.
+        - [ ] Audit `to_singbox_outbound` in `singbox.py`.
         - [ ] Check `WireGuard` IP generation (collision risk?).
         - [ ] Check `Hysteria2` obsoleted fields.
+        - [ ] Verify "Stealth Profile" application.
     - [ ] **Clash**:
-        - [ ] Audit `to_clash_proxy`.
+        - [ ] Audit `to_clash_proxy` in `clash.py`.
         - [ ] Verify `Reality` support (Clash Meta).
 - [ ] **Generators (`src/configstream/generators/`)**:
     - [ ] Check `generate_split_outputs` logic.
