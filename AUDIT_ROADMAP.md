@@ -16,7 +16,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Target**: `src/configstream/logging_config.py`
     - [ ] **Check**: File (`RotatingFileHandler`) and JSON (`JsonFormatter`) handlers currently bypass `SensitiveDataFilter`.
     - [ ] **Risk**: Secrets (UUIDs, Tokens) logged to disk in plain text.
-    - [ ] **Action**: Apply `SensitiveDataFilter` to all handlers or implement a specific `RedactingFormatter` for file outputs.
+    - [ ] **Action**: Assess risk. If intended for debugging, restrict file permissions (`chmod 600`). If not, apply `SensitiveDataFilter`.
 - [ ] **Concurrency Testing Gap**
     - [ ] **Target**: `tests/unit/test_hedged_requests.py`
     - [ ] **Check**: Does the test actually run concurrent coroutines or just mock them sequentially?
@@ -31,11 +31,13 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Conflict Analysis**: Cross-check `setup.py` (if exists) vs `pyproject.toml` for `install_requires` drift.
     - [ ] **Frontend Deps**: Audit `package.json` for deprecated packages (`npm audit`). Check license compliance (AGPL compat).
     - [ ] **Python 3.12+**: Check for removed stdlib modules (`distutils`, `imp`, `cgi`). Run `pylint --py3k`.
+    - [ ] **Dev vs Prod**: Verify separation of `dev-dependencies` (e.g., `pytest`, `mypy`) from production requirements.
 - [ ] **Container Security (`Dockerfile`)**
     - [ ] **Privilege Escalation**: Verify `USER appuser` is enforced. Check for `sudo` usage.
     - [ ] **Attack Surface**: Verify multi-stage builds (`COPY --from=builder`). Are build tools (gcc, git) removed in final image?
     - [ ] **Secret Leaks**: Check `ARG` instructions for baked-in secrets. Use `RUN --mount=type=secret`.
     - [ ] **Network Isolation**: Validate `docker-compose.yml` networks. Is the database isolated from the public interface?
+    - [ ] **Optimization**: Check `pip install --no-cache-dir`. Evaluate distroless base images.
 - [ ] **Build System (`scripts/build_wasm.sh`)**
     - [ ] **Reproducibility**: Ensure `-trimpath` and `-ldflags "-w -s"` are used.
     - [ ] **Integrity**: Compare `wasm_exec.js` checksum against the Go compiler version.
@@ -52,14 +54,32 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Limits**: Audit `MAX_B64_INPUT_SIZE` (10MB). Is it sufficient for large subs? Is `MAX_CONFIG_LINE_LENGTH` (10k) safe against DoS?
     - [ ] **Protocol Colors**: Verify `PROTOCOL_COLORS` covers all 28+ supported protocols.
 
+### Phase 2.1: Architecture & Codebase Health
+- [ ] **`AGENTS.md` Alignment**:
+    - [ ] Scan codebase for "Blocking I/O" violations (e.g., `requests.get`, `time.sleep` inside async functions).
+    - [ ] Verify "Sanitized Logging" directive is respected in all new modules.
+- [ ] **Module Boundaries**:
+    - [ ] Check for circular imports using `pylint --check-graph` or `import-linter`.
+    - [ ] Verify core logic (`src/configstream/pipeline_core`) doesn't import CLI/UI layers.
+- [ ] **Dead Code Detection**:
+    - [ ] Run `vulture` to find unused code.
+    - [ ] Check `src/configstream/utils/` for orphaned helper functions.
+    - [ ] Audit `src/configstream/plugins/` (e.g., `scoring.py`, `validation.py`).
+- [ ] **Data Classes**:
+    - [ ] Check `__slots__` usage in `Proxy` models to reduce memory footprint.
+    - [ ] Verify immutability (`frozen=True`) where appropriate.
+
 ## Group C: Core Data Plane (Ingestion & Parsing)
 
 ### Phase 3: Fetcher & Networking
 - [ ] **Fetcher Module (`src/configstream/fetcher*`)**
-    - [ ] **Facade Integrity**: Verify `fetcher.py` API parity with `fetcher_core/`.
+    - [ ] **Facade Integrity**: Verify `fetcher.py` API parity with `fetcher_core/`. Ensure deprecation warnings for old API.
     - [ ] **Streaming Safety**:
         - [ ] Verify `httpx.stream()` usage.
         - [ ] **Memory Bomb**: Check `MAX_RESPONSE_SIZE` logic. Does it `raise` immediately if accumulated bytes > limit?
+    - [ ] **Encoding Handling**:
+        - [ ] Test with `utf-8`, `latin-1`, `gbk`.
+        - [ ] Verify fallback strategy (`chardet`).
     - [ ] **Protocol Support**:
         - [ ] **HTTP/2**: Verify `http2=True` in `httpx.AsyncClient`.
         - [ ] **IPv6**: Check connectivity fallback strategy (`Happy Eyeballs` equivalent).
@@ -104,8 +124,11 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **NaiveProxy**:
         - [ ] Padding: Verify support.
         - [ ] HTTPS: Check wrapping logic.
+    - [ ] **Base64**:
+        - [ ] Verify padding fix logic (`=` vs `==`).
+        - [ ] Check URL-safe (`-_`) vs standard (`+/`).
 - [ ] **Metadata Extraction (`src/configstream/tagging.py`, `country_inferrer.py`)**
-    - [ ] **Tagging**: Audit `format_proxy_name` regex for catastrophic backtracking.
+    - [ ] **Tagging**: Audit `format_proxy_name` regex for catastrophic backtracking. Ensure it doesn't strip essential chars.
     - [ ] **Inference**: Verify `_EXCLUDED_CODES` list (e.g., "ID", "NO", "ON"). Check for false positives in complex remarks.
 
 ## Group D: Core Control Plane (Orchestration)
@@ -114,6 +137,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Orchestrator (`src/configstream/pipeline.py`)**
     - [ ] **Blocking Calls**: Scan for `shutil.copy`, `open()`, `time.sleep`.
     - [ ] **Subprocess**: Check `subprocess.Popen` (blocking) vs `asyncio.create_subprocess_exec`.
+    - [ ] **uvloop**: Check if `uvloop` is installed/activated.
 - [ ] **Task Lifecycle**:
     - [ ] **Reference Holding**: Verify `asyncio.create_task` references are stored (`background_tasks`) to prevent GC.
     - [ ] **Exception Retrieval**: Ensure all tasks have `add_done_callback` or are `await`ed in `gather`.
@@ -136,6 +160,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Logic**: Audit `filter_unique_endpoints` (IP vs Domain).
     - [ ] **State**: Check `seen_keys` size management (LRU or bloom filter?).
     - [ ] **Locking**: Verify `seen_lock` usage in `processing_consumer`.
+- [ ] **Concurrency Safety**:
+    - [ ] **Race Conditions**: Audit `seen_keys` access and `stats` updates.
+    - [ ] **Shared Singletons**: Verify `GeoIPResolver` and `AnomalyDetector` internal state locks.
 
 ## Group E: Intelligence & Advanced Features
 
@@ -144,6 +171,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Binary Resolution**: Verify `shutil.which` vs fallback paths (`/usr/local/bin`).
     - [ ] **Output Parsing**: Audit `scan_endpoints` stdout parsing. Does it handle IPv6 `[brackets]`?
     - [ ] **Timeout**: Is scan timeout (30s) sufficient?
+    - [ ] **Scanner Integration**: Check integration with `ProxyWasher`. Does it persist results?
 - [ ] **Warp Key Generator (`src/configstream/tools/warp.py`)**
     - [ ] **Crypto**: Verify `x25519` key generation uses `cryptography` properly.
     - [ ] **Concurrency**: Ensure CPU-bound key gen runs in `loop.run_in_executor`.
@@ -162,7 +190,11 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
         - [ ] **Anonymity**: 3-hop construction.
 - [ ] **Scoring System**:
     - [ ] **Weights**: Review `PROTOCOL_SCORES` (Stealth vs Speed).
+    - [ ] **Pareto Scoring**: Check math: `(norm_latency * 0.5) + ((1.0 - reliability) * 0.3) + ((1.0 - uptime) * 0.2)`.
     - [ ] **Censorship Map**: Is `CENSORSHIP_LEVELS` map current?
+- [ ] **Vector Intelligence (`src/configstream/intelligence/vectors.py`)**
+    - [ ] **Feature Hashing**: Audit `_compute_vector` logic.
+    - [ ] **Collisions**: Check for hash collisions reducing vector utility.
 
 ### Phase 9: Washer & Revival Logic
 - [ ] **Washer Core (`src/configstream/intelligence/washer/core.py`)**
@@ -171,6 +203,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Circuit Breaker (`src/configstream/intelligence/circuit_breaker.py`)**
     - [ ] **State Machine**: Verify Open -> Half-Open -> Closed transitions.
     - [ ] **Leakage**: How many requests pass in Half-Open state?
+- [ ] **Reshard Dynamic (`src/configstream/sharding.py`)**
+    - [ ] **Bucketing**: Verify `blake2b` bucketing determinism (`buckets=256`).
+    - [ ] **Atomicity**: Check `save_shard_metadata` logic.
 
 ## Group F: Operations, Security, & Tools
 
@@ -183,7 +218,11 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Crypto Module (`src/configstream/crypto/`)**:
     - [ ] **Signer**: Audit `ed25519` signature implementation.
     - [ ] **Stego**: Audit `Fernet` (AES-128-CBC) usage. Is the key rotated?
+    - [ ] **Transport**: Ensure `MAGIC_MARKER` bytes don't collide with PNG format.
     - [ ] **HMAC**: Verify integrity checks on steganography payloads.
+- [ ] **Blocklists**:
+    - [ ] **Source**: Verify `DEFAULT_BLOCKLIST` source validation.
+    - [ ] **Efficiency**: Check IP range lookup efficiency (Trie vs List).
 
 ### Phase 11: Operational Tools & CLI
 - [ ] **Bot CLI (`src/configstream/bot_cli.py`)**
@@ -193,6 +232,9 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] `clean_security_issues.py`: Logic check (safe deletion?).
     - [ ] `publish_ipfs.py`: API Secret handling.
     - [ ] `pip_audit_wrapper.py`: **Fix the `check=False` bug**.
+- [ ] **Policy & Schema**:
+    - [ ] **Validation**: Verify `schema/proxy_schema.json` covers all protocols.
+    - [ ] **Enforcement**: Check `policy/` directory usage.
 
 ## Group G: Verification & Artifacts
 
@@ -201,35 +243,45 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **IPC**: Audit NDJSON stream handling (buffering, encoding).
     - [ ] **Process**: Verify `_ensure_process` locking logic (avoid double spawn).
     - [ ] **Panic**: Ensure Python handles Go panics gracefully (restart).
+    - [ ] **Honeypot**: Verify `check_honeypot` logic (strictness, false positives).
 - [ ] **Python Fallback (`src/configstream/testers/python.py`)**
     - [ ] **TCPing**: Audit `asyncio.open_connection` usage. Handle `ConnectionRefused` vs `Timeout`.
     - [ ] **Jitter**: Verify randomization to prevent thundering herds.
+- [ ] **Caching & State**:
+    - [ ] **Atomic Save**: Audit `TestResultCache.save()` (write temp + rename).
+    - [ ] **Thread Safety**: Verify `get/set` locking.
 
 ### Phase 13: Output & Converters
 - [ ] **File Operations (`src/configstream/async_file_ops.py`)**
-    - [ ] **Atomicity**: Verify `write -> flush -> sync -> rename` pattern.
+    - [ ] **Atomicity**: Verify `write -> flush -> fsync -> rename` pattern.
 - [ ] **Converters (`src/configstream/converters/`)**:
-    - [ ] **SingBox**: Audit `to_singbox_outbound`. Check `singbox_utils` for string corruption (`str(None)` -> `"None"`).
-    - [ ] **Clash**: Verify `to_clash_proxy` mappings.
+    - [ ] **SingBox**: Audit `to_singbox_outbound`. Check `singbox_utils` for string corruption (`str(None)` -> `"None"`). Verify Transport Mapping.
+    - [ ] **Clash**: Verify `to_clash_proxy` mappings. Verify Reality support.
 - [ ] **Artifacts**:
     - [ ] **Cleanup**: Verify `output/` pruning logic.
     - [ ] **Versioning**: Check `proxies.json` vs `proxies.old.json` rotation.
+    - [ ] **Data Integrity**: Check `history` DB integrity checks (`PRAGMA integrity_check`).
+- [ ] **Performance**:
+    - [ ] **JSON**: Evaluate `orjson` usage.
 
 ### Phase 14: Frontend & API
 - [ ] **Frontend (`frontend/`)**:
     - [ ] **XSS**: Check `proxies.json` rendering (`textContent` vs `innerHTML`).
     - [ ] **CSP**: Verify `Content-Security-Policy` headers.
+    - [ ] **Performance**: Test `proxies.html` with 10k items (Virtual Scrolling).
+    - [ ] **Accessibility**: Check ARIA labels and keyboard navigation.
 - [ ] **API (`src/configstream/server.py`)**:
     - [ ] **Input Validation**: Validate `country` (2-char), `protocol`.
     - [ ] **Path Traversal**: Audit `SAFE_PATH_PATTERN` (`^[a-zA-Z0-9_-]+$`).
     - [ ] **Rate Limiting**: Is middleware configured?
     - [ ] **CORS**: Check `ALLOWED_ORIGIN_REGEX`. Is it too permissive?
+    - [ ] **WebSocket**: Check max message size.
 
 ## Group H: Maintenance & Future Proofing
 
 ### Phase 15: Edge Case Handling
 - [ ] **Hedged Requests**: Audit `src/configstream/hedged_requests.py` for zombie tasks.
-- [ ] **DNS Prewarming**: Verify `src/configstream/dns_prewarm.py` error masking (`return_exceptions=True`).
+- [ ] **DNS Prewarming**: Verify `src/configstream/dns_prewarm.py` error masking (`return_exceptions=True`) and cache poisoning risks.
 - [ ] **Freshness**: Audit `src/configstream/freshness.py` timezone logic (`replace("Z", ...)`).
 
 ### Phase 16: Scalability & Compliance
@@ -244,20 +296,26 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **Restoration**: Test `restore_database` against corrupt files.
 
 ### Phase 18: Refactoring Strategy
-- [ ] **Split Brain**: Map Python vs Go logic divergence.
-- [ ] **Code Duplication**: Merge `adapters.py` / `adapters_base.py`.
+- [ ] **Split Brain**: Map Python vs Go logic divergence (Protocol Parsing, Scoring).
+- [ ] **Code Duplication**: Merge `adapters.py` / `adapters_base.py`. Refactor converters common logic.
 - [ ] **Type Hints**: Enforce `mypy --strict`.
+- [ ] **Utility Audit**: Review `src/configstream/utils/` (`bool_parser`, `async_file_ops`).
 
 ### Phase 19: Toolchain & Utilities Deep Dive
 - [ ] **Wrapper Audits**:
     - [ ] `pip_audit_wrapper.py`: **Critical Fix** needed.
-    - [ ] `warp_validator.py`: Review hardcoded IPs.
+    - [ ] `warp_validator.py`: Review hardcoded IPs. Add WARP+ license check.
 
 ### Phase 20: Architecture & Patterns
 - [ ] **Singleton**: Audit `GeoIPResolver` instantiation.
 - [ ] **DI**: Review `app_settings` passing.
+- [ ] **Error Handling**: Audit usage of custom exceptions vs standard `ValueError`.
 
 ## Phase 21: Final Verification & QA Strategy
-- [ ] **Profiling**: `scripts/profile_performance.py`.
-- [ ] **Regression**: `tests/test_converters.py`.
+- [ ] **Profiling**: `scripts/profile_performance.py`. Use `yappi`.
+- [ ] **Regression**: `tests/test_converters.py`. `tests/test_pipeline_resilience.py`.
 - [ ] **Linting**: `flake8`, `black`.
+- [ ] **Documentation**:
+    - [ ] Update `README.md` and `AGENTS.md`.
+    - [ ] Verify `CONTRIBUTING.md`.
+    - [ ] Document "Split Brain" map.
