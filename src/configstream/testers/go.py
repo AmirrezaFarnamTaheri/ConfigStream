@@ -174,8 +174,11 @@ class GoBatchTester:
 
             cmd = [self.binary_path, "-workers", str(self.workers)]
             cmd.extend(["-timeout", f"{int(self.timeout)}s"])
-            if AppSettings.TEST_URLS:
-                urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
+
+            # [FIX] Instantiate settings to access fields
+            settings = AppSettings()
+            if settings.TEST_URLS:
+                urls = ",".join(str(u) for u in settings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
 
             logger.info(f"Starting Go Tester Daemon: {' '.join(cmd)}")
@@ -511,7 +514,9 @@ class GoBatchTester:
             reverse_map[req_id] = chain_id
 
             fut = loop.create_future()
-            self._pending_futures[req_id] = fut
+            # [AUDIT FIX] Use lock for thread-safety consistency in test_custom_configs too
+            async with self._lock:
+                self._pending_futures[req_id] = fut
             futures.append(fut)
 
         if not inputs:

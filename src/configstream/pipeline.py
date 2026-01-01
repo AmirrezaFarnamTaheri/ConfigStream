@@ -164,7 +164,8 @@ async def run_full_pipeline(
     stats.total_configured_sources = len(sources) if sources else 0
 
     # Validate App Settings
-    AppSettings().validate()
+    # Pydantic validates on instantiation automatically
+    AppSettings()
 
     # --- Start Vwarp Tunnel if available ---
     vwarp_proc = None

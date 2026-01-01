@@ -1,15 +1,19 @@
 import os
-from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List, Dict
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 from .constants import PROTOCOL_COLORS
 
 
-@dataclass
-class AppSettings:
+class AppSettings(BaseSettings):
     """Centralized configuration for all proxy operations"""
 
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
+
     # Test URLs and timeouts (CENTRALIZED)
-    TEST_URLS = {
+    TEST_URLS: Dict[str, str] = {
         "google": "https://www.google.com/generate_204",
         "cloudflare": "https://www.cloudflare.com/cdn-cgi/trace",
         "gstatic": "https://www.gstatic.com/generate_204",
@@ -20,98 +24,76 @@ class AppSettings:
         "apple": "https://www.apple.com/robots.txt",
     }
 
-    TEST_TIMEOUT = int(
-        os.getenv("TEST_TIMEOUT", "15")
-    )  # Increased to 15s to ensure Go tester (10s timeout) has enough time
-    FETCH_TIMEOUT = int(
-        os.getenv("FETCH_TIMEOUT", "15")
-    )  # Timeout for fetching remote sources
-    SECURITY_CHECK_TIMEOUT = int(os.getenv("SECURITY_CHECK_TIMEOUT", "8"))
-    RETEST_TIMEOUT = int(os.getenv("RETEST_TIMEOUT", "6"))  # Reduced from 8 to 6
-    GEOIP_TIMEOUT = int(os.getenv("GEOIP_TIMEOUT", "5"))
+    TEST_TIMEOUT: int = Field(default=15, gt=0)
+    FETCH_TIMEOUT: int = Field(default=15, gt=0)
+    SECURITY_CHECK_TIMEOUT: int = Field(default=8, gt=0)
+    RETEST_TIMEOUT: int = Field(default=6, gt=0)
+    GEOIP_TIMEOUT: int = Field(default=5, gt=0)
 
-    # Latency thresholds
-    MIN_LATENCY = int(os.getenv("MIN_LATENCY", "10"))  # milliseconds
-    MAX_LATENCY = int(os.getenv("MAX_LATENCY", "10000"))  # milliseconds
-    LAT_CONNECT_TIMEOUT_MS = int(os.getenv("LAT_CONNECT_TIMEOUT_MS", "3500"))
-    LAT_HTTP_TIMEOUT_MS = int(os.getenv("LAT_HTTP_TIMEOUT_MS", "3500"))
-    LAT_PER_PROXY_BUDGET_MS = int(os.getenv("LAT_PER_PROXY_BUDGET_MS", "6000"))
-    LAT_SOFT_CAP_MS = int(os.getenv("LAT_SOFT_CAP_MS", "1800"))
+    # Latency thresholds (milliseconds)
+    MIN_LATENCY: int = 10
+    MAX_LATENCY: int = 10000
+    LAT_CONNECT_TIMEOUT_MS: int = 3500
+    LAT_HTTP_TIMEOUT_MS: int = 3500
+    LAT_PER_PROXY_BUDGET_MS: int = 6000
+    LAT_SOFT_CAP_MS: int = 1800
 
     # Rate limiting
-    RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
-    RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))  # seconds
+    RATE_LIMIT_REQUESTS: int = Field(default=100, gt=0)
+    RATE_LIMIT_WINDOW: int = Field(default=60, gt=0)  # seconds
 
     # Memory management
-    BATCH_SIZE = int(os.getenv("BATCH_SIZE", "50"))
-    CACHE_TTL = int(os.getenv("CACHE_TTL", "1800"))  # 30 minutes
+    BATCH_SIZE: int = Field(default=50, ge=1, le=1000)
+    CACHE_TTL: int = 1800  # 30 minutes
 
     # Scoring weights for health calculation
-    SCORE_WEIGHTS = {
+    SCORE_WEIGHTS: Dict[str, float] = {
         "historical_success": 40.0,
         "latency": 30.0,
         "security": 20.0,
         "current_status": 10.0,
     }
 
-    # Protocol colors for UI (imported from constants)
-    PROTOCOL_COLORS = PROTOCOL_COLORS
+    # Protocol colors for UI
+    PROTOCOL_COLORS: Dict[str, str] = PROTOCOL_COLORS
 
     # Malicious node detection thresholds
-    SECURITY = {
+    SECURITY: Dict = {
         "content_injection_threshold": 5,  # bytes difference
         "header_strip_threshold": 2,  # headers
         "redirect_follow_limit": 3,
         "suspicious_port_range": [(0, 1024), (5000, 5999), (8000, 8999)],
-        "blocked_countries": os.getenv("BLOCKED_COUNTRIES", "").split(","),
-        "malicious_asn_list": [
-            # REMOVED Cloudflare (AS13335) and Amazon (AS16509)
-            # Blocking them kills valid CDN/Cloud proxies.
-            # Only block ASNs known exclusively for abuse/spam.
-        ],
+        "blocked_countries": os.getenv("BLOCKED_COUNTRIES", "").split(",") if os.getenv("BLOCKED_COUNTRIES") else [],
+        "malicious_asn_list": [],
     }
 
     # Logging
-    MASK_SENSITIVE_DATA = True
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-    CANARY_URL = os.getenv("CANARY_URL", "https://httpbin.org")
+    MASK_SENSITIVE_DATA: bool = True
+    LOG_LEVEL: str = "INFO"
+    CANARY_URL: str = "https://httpbin.org"
 
-    # Feature flags and knobs for performance and stability
-    DNS_CACHE_ENABLED: bool = os.getenv("DNS_CACHE_ENABLED", "True").lower() == "true"
-    CIRCUIT_BREAKER_ENABLED: bool = (
-        os.getenv("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
-    )
-    HEDGING_ENABLED: bool = os.getenv("HEDGING_ENABLED", "True").lower() == "true"
-    AIMD_ENABLED: bool = os.getenv("AIMD_ENABLED", "True").lower() == "true"
-    AIMD_P50_MS: int = int(os.getenv("AIMD_P50_MS", "400"))
-    AIMD_P95_MS: int = int(os.getenv("AIMD_P95_MS", "1500"))
-    PER_HOST_MAX_CONCURRENCY: int = int(os.getenv("PER_HOST_MAX_CONCURRENCY", "32"))
-    HEDGE_AFTER_MS: Optional[int] = int(os.getenv("HEDGE_AFTER_MS", "800"))
-    HEDGE_MAX_EXTRA: int = int(os.getenv("HEDGE_MAX_EXTRA", "1"))
-    CIRCUIT_TRIP_CONN_ERRORS: int = int(os.getenv("CIRCUIT_TRIP_CONN_ERRORS", "5"))
-    CIRCUIT_TRIP_5XX_RATE: float = float(os.getenv("CIRCUIT_TRIP_5XX_RATE", "0.2"))
-    CIRCUIT_OPEN_SEC: int = int(os.getenv("CIRCUIT_OPEN_SEC", "120"))
-    QUEUE_MAX_TRIES: int = int(os.getenv("QUEUE_MAX_TRIES", "5"))
-    TLS_TESTS_ALLOW_INSECURE: bool = (
-        os.getenv("TLS_TESTS_ALLOW_INSECURE", "False").lower() == "true"
-    )
-    TLS_TESTS_ENABLED: bool = os.getenv("TLS_TESTS_ENABLED", "True").lower() == "true"
+    # Feature flags
+    DNS_CACHE_ENABLED: bool = True
+    CIRCUIT_BREAKER_ENABLED: bool = True
+    HEDGING_ENABLED: bool = True
+    AIMD_ENABLED: bool = True
+    AIMD_P50_MS: int = 400
+    AIMD_P95_MS: int = 1500
+    PER_HOST_MAX_CONCURRENCY: int = 32
+    HEDGE_AFTER_MS: Optional[int] = 800
+    HEDGE_MAX_EXTRA: int = 1
+    CIRCUIT_TRIP_CONN_ERRORS: int = 5
+    CIRCUIT_TRIP_5XX_RATE: float = 0.2
+    CIRCUIT_OPEN_SEC: int = 120
+    QUEUE_MAX_TRIES: int = 5
+    TLS_TESTS_ALLOW_INSECURE: bool = False
+    TLS_TESTS_ENABLED: bool = True
 
     # Proxy renaming/tagging template
-    # Available variables: {remarks}, {protocol}, {country}, {country_code}, {city}, {latency}, {asn}, {address}, {port}
-    # Example: "[{country}] {protocol} - {latency}ms"
-    RENAME_TEMPLATE: Optional[str] = os.getenv("RENAME_TEMPLATE")
+    RENAME_TEMPLATE: Optional[str] = None
 
     # Security Validator Settings
-    ALLOW_PRIVATE_IPS: bool = os.getenv("ALLOW_PRIVATE_IPS", "False").lower() == "true"
+    ALLOW_PRIVATE_IPS: bool = False
 
-    def validate(self) -> None:
-        """Validate configuration settings."""
-        if self.TEST_TIMEOUT <= 0:
-            raise ValueError("TEST_TIMEOUT must be positive")
-        if self.FETCH_TIMEOUT <= 0:
-            raise ValueError("FETCH_TIMEOUT must be positive")
-        if self.BATCH_SIZE <= 0 or self.BATCH_SIZE > 1000:
-            raise ValueError("BATCH_SIZE must be between 1 and 1000")
-        if self.RATE_LIMIT_REQUESTS <= 0:
-            raise ValueError("RATE_LIMIT_REQUESTS must be positive")
+    # Explicit validation logic is handled by Pydantic's validators automatically
+    # but we can add custom ones if needed.

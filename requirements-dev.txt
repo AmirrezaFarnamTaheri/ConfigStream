@@ -1,0 +1,15 @@
+playwright==1.55.0
+pytest==9.0.2
+pytest-asyncio>=0.23.0
+flake8==7.3.0
+black
+mypy
+respx==0.22.0
+hypothesis>=6.0.0
+pyfakefs
+types-PyYAML
+types-requests
+types-psutil
+types-cachetools
+types-aiofiles
+types-orjson

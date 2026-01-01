@@ -36,18 +36,11 @@ RUN useradd -m -u 1000 runner
 COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 
 # --- GO & VWARP INSTALLATION ---
-# 1. Install Go in runtime image (needed for dynamic compilation or tools if needed)
-# Actually, we copied the binary, but the plan asked to COPY Go from golang image.
-# However, for a slim image, copying the whole Go toolchain is heavy (hundreds of MBs).
-# The requirement "Update Dockerfile to install Go" might be for the washer fallback compilation?
-# But we already compile in stage 1.
-# Let's trust the multistage build for the tester.
-# BUT, we need VWARP.
-
 # 3. Install Vwarp
-# [SECURITY] Fixed hardcoded version. Ideally, fetch dynamic latest or verify SHA256.
+# [SECURITY] Fixed hardcoded version and added SHA256 verification.
 # Running as root before switching user
 RUN wget -q -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp_linux-amd64.zip && \
+    echo "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7  /tmp/vwarp.zip" | sha256sum -c - && \
     unzip /tmp/vwarp.zip -d /tmp && \
     mv /tmp/vwarp /usr/local/bin/vwarp && \
     rm /tmp/vwarp.zip && \
