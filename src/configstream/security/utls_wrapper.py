@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Wrapper for the Go-based uTLS sidecar.
 """

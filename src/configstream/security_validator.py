@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Enhanced security validation for proxy configurations."""
 
 import re

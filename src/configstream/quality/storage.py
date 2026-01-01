@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Storage module for Source Quality.
 Handles SQLite interactions.

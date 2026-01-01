@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Freshness and TTL helpers for proxies."""
 
 from __future__ import annotations

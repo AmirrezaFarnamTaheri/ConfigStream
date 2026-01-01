@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Async File Operations.
 Non-blocking file I/O using aiofiles.

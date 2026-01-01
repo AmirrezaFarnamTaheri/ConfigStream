@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.cli import main as cli, setup_logging as cli_setup_logging

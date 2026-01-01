@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Database Backup Module
 Automatically backs up SQLite databases with timestamp-based naming and retention policy.

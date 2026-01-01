@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from fastapi.testclient import TestClient
 from configstream.server import app, OUTPUT_DIR

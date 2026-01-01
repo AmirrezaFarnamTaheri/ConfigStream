@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Performance Metrics Logger
 Provides structured logging for pipeline performance analysis and optimization.

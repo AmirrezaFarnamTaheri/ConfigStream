@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Fuzz Testing for Parsers.
 Uses Hypothesis to generate random, malformed inputs to ensure robustness.

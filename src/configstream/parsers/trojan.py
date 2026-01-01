@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse

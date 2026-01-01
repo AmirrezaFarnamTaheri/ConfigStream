@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Smart Retest Scheduling System.
 Dynamically adjusts proxy retest frequency based on reliability history.

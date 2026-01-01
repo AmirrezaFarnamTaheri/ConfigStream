@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
 //go:build js && wasm
 // +build js,wasm
 

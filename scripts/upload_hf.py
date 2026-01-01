@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Hugging Face Dataset Uploader for ConfigStream.
 Mirrors the 'output/' directory to a Hugging Face Dataset repository.

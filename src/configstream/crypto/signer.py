@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import time
 from typing import Dict, Any, Optional
 from cryptography.hazmat.primitives.asymmetric import ed25519

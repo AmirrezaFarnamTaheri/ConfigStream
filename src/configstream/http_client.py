@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Shared HTTP client utilities for ConfigStream.
 Provides a centralized, optimized AsyncClient with connection pooling and HTTP/2 support.

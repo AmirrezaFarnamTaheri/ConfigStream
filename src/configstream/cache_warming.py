@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Cache warming functionality to pre-test high-quality proxies.
 

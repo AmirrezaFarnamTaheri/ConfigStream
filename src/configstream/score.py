@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Scoring helpers for ranking proxies across multiple dimensions."""
 
 from __future__ import annotations

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 WARP Key Validation System.
 Validates Cloudflare WARP private keys and account credentials.
@@ -75,12 +76,13 @@ class WARPKeyValidator:
 
         return True, "Valid"
 
-    async def validate_account_active(self, account_id: str) -> Tuple[bool, str]:
+    async def validate_account_active(self, account_id: str, token: Optional[str] = None) -> Tuple[bool, str]:
         """
         Check if a WARP account ID is active by querying Cloudflare API.
 
         Args:
             account_id: WARP account ID
+            token: Bearer token (optional, but recommended for auth)
 
         Returns:
             (is_active, status_message)
@@ -88,15 +90,19 @@ class WARPKeyValidator:
         if not account_id:
             return False, "Account ID is empty"
 
+        headers = {
+            "User-Agent": "okhttp/3.12.1",
+            "Content-Type": "application/json; charset=UTF-8",
+        }
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
                 # Try to fetch account info
                 response = await client.get(
                     f"{API_BASE}/reg/{account_id}",
-                    headers={
-                        "User-Agent": "okhttp/3.12.1",
-                        "Content-Type": "application/json; charset=UTF-8",
-                    },
+                    headers=headers,
                 )
 
                 if response.status_code == 200:
