@@ -1,17 +1,37 @@
-# Phase 7: Frontend & Output Artifacts - Analysis Report
+# Phase 7: Frontend & Output Artifacts - Analysis Report (Deep Scan)
 
 ## 7. Overview
 This phase analyzes how the system generates output artifacts (JSON configs, base64 subscriptions, etc.) and the structure of the frontend (HTML/JS/WASM).
 
-## 7.1. Frontend (`frontend/`)
+## 7.1. Frontend Code (`frontend/assets/js/`)
+
+### 7.1.1. `proxies.js`
 **Analysis**:
-*   The `frontend/` directory contains:
-    *   `index.html`, `proxies.html`, `about.html`: Static HTML.
-    *   `service-worker.js`: PWA support.
-    *   `assets/`: Likely contains CSS/JS/WASM.
-    *   `manifest.json`: Web App Manifest.
-*   **WASM**: `scripts/build_wasm.sh` (Phase 1) builds `tester.wasm` into `frontend/assets/wasm/`. This confirms the frontend performs *client-side testing* using Go compiled to WASM. This is a powerful feature (distributed testing by users).
-*   **Security (XSS)**: Need to inspect `proxies.html` or the JS that renders it (likely in `assets/`) to ensure `textContent` is used instead of `innerHTML` for user-supplied data like remarks. (Note: I can't see `assets/` content deeply here without listing it, but will assume standard practices or note it as a blind spot).
+*   **XSS Safety**:
+    *   Uses `textContent` for dynamic text (e.g., pagination buttons).
+    *   Uses `innerHTML` for SVG charts and icons. This is generally safe if the content is static or carefully constructed.
+    *   **Risk**: `trendCell.innerHTML` constructs an SVG string. The values come from `validHistory` (numbers). Safe.
+    *   **Risk**: `trendColor` is derived from comparison. Safe.
+*   **Virtualization**: Does NOT use virtual scrolling. Renders `itemsPerPage` (default 50) rows. This is fine for moderate lists but might lag if user sets page size to 5000.
+*   **Features**:
+    *   Sparklines for latency trend (Nice UI touch).
+    *   Pagination with Unicode arrows (‹, ›).
+    *   Vector-based search (`calculateSimilarity` - not visible but referenced).
+
+### 7.1.2. `stego.js`
+**Analysis**:
+*   **Key Injection**: `const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";`.
+    *   **Critical**: The frontend logic *throws* if this key is not replaced. This confirms the requirement for a CI/CD build step to inject the key.
+*   **Parsing**:
+    *   Uses `fetch(imageUrl, { cache: "no-store" })`. Good for freshness.
+    *   Uses `fernet` JS library (global).
+    *   **Memory Safety**: `buffer` can be large (5MB image). `Uint8Array` slice creates copies? `slice()` on TypedArray creates a copy. `subarray()` creates a view. It uses `slice`. Optimization opportunity.
+    *   **Payload Limit**: Checks `CS_CONSTANTS.STEGO_MAX_PAYLOAD_SIZE` (implied global) before decompression. Good security check (Zip bomb protection).
+
+### 7.1.3. `washer_client.js`
+**Analysis**:
+*   **Stub**: Currently a mock ("Washer Client: Ready").
+*   **Purpose**: Future feature to allow client-side washing (using WASM or API)?
 
 ## 7.2. Output Generation (`src/configstream/output.py`, `output_logic.py`)
 
@@ -52,6 +72,6 @@ This phase analyzes how the system generates output artifacts (JSON configs, bas
 *   **Clash**: Calls `generate_clash_config`.
 
 ## Recommendations
-1.  **Frontend XSS**: Verify JS code (not visible here) uses safe DOM manipulation.
-2.  **Atomic Writes**: `AtomicFileWriter` is good. Ensure it syncs directory metadata (fsync) on critical systems, though Python's `os.rename` is usually atomic on POSIX.
-3.  **WASM Security**: The WASM blob is served to clients. Ensure it doesn't contain baked-in secrets (API keys) if it's built from the same codebase. The `build_wasm.sh` uses `-ldflags "-w -s"`, which strips debug info, but string constants remain. Check `src/go/tester/main.go` (not visible here) for baked secrets.
+1.  **Frontend Build**: Ensure the `sed` replacement for `SECRET_KEY` is robust (handles quotes, escapes).
+2.  **JS Optimization**: Use `subarray` instead of `slice` in `stego.js` to avoid memory churn on mobile devices.
+3.  **WASM**: Document how `wasm_exec.js` is kept in sync with the Go version used to build the binary.
