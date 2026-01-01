@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Honey Pot Detection Module.
 Combines passive verification (VirusTotal) to identify malicious nodes.

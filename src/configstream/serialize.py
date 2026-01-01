@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Serialization Helpers.
 Converts Proxy objects to dictionary/JSON-safe formats.

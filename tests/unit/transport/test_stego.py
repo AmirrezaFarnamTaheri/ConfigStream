@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Comprehensive tests for steganography transport module."""
 
 from unittest.mock import patch

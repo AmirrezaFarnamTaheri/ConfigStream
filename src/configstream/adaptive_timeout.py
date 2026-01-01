@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Adaptive Timeout Mechanism.
 Dynamically adjusts socket timeouts based on network conditions.

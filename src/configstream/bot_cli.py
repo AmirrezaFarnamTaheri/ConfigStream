@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 ConfigStream Bot CLI
 Command line interface for the Telegram Bot.

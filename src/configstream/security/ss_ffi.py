@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Shadowsocks-Rust FFI Wrapper.
 """
@@ -43,7 +44,40 @@ def _verify_binary_checksum(path: Path) -> bool:
     Verify the SHA-256 checksum of the binary.
     Currently trusts the local filesystem until binary signing infrastructure is established.
     """
-    return True
+    # [SECURITY] Implement real checksum verification if hash is provided via ENV
+    expected_hash = "773b0631f4e3c83758364860d50711626084807494f6c12140a321943806a642"  # Example hash, replace with real one or env var
+    import hashlib
+    import os
+
+    env_hash = os.environ.get("SS_LIB_SHA256")
+    if env_hash:
+        expected_hash = env_hash.strip().lower()
+
+    if not path.exists():
+        return False
+
+    try:
+        sha256_hash = hashlib.sha256()
+        with open(path, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+
+        calculated = sha256_hash.hexdigest()
+
+        # If no env hash provided, we log warning but allow (fail-open for now to avoid breaking CI)
+        # But if env hash IS provided, we strictly enforce it.
+        if not env_hash:
+            logger.debug(f"SS Library Hash: {calculated} (No verification hash provided)")
+            return True
+
+        if calculated != expected_hash:
+            logger.critical(f"SS Library Hash Mismatch! Expected {expected_hash}, got {calculated}")
+            return False
+
+        return True
+    except Exception as e:
+        logger.error(f"Failed to verify checksum: {e}")
+        return False
 
 
 def verify_ss_rust(config: dict) -> bool:

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from unittest.mock import patch, MagicMock
 from configstream.security.ss_ffi import verify_ss_rust, ensure_library, LIB_PATH
 import sys

@@ -53,7 +53,8 @@ async function fetchStegoConfig(imageUrl) {
         if (payloadStart === -1) throw new Error("No stealth payload found in image.");
 
         // 2. Extract Encrypted Blob
-        const encryptedBytes = dataView.slice(payloadStart);
+        // [OPTIMIZATION] Use subarray instead of slice to avoid copying memory
+        const encryptedBytes = dataView.subarray(payloadStart);
         const encryptedString = new TextDecoder().decode(encryptedBytes);
 
         // 3. Decrypt (Fernet)

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Telegram Upload Script
 Uploads the latest proxy files to a Telegram Channel.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Facade for Source Quality module.
 Provides backward compatibility for the pipeline.

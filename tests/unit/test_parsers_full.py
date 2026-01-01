@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.parsers.generic import (
     parse_generic_url_scheme as _parse_generic_url_scheme,
 )

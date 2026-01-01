@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 import asyncio
 from unittest.mock import MagicMock, AsyncMock
@@ -35,17 +36,25 @@ async def test_hedged_request_all_fail():
 async def test_hedged_request_second_succeeds():
     mock_client = AsyncMock()
 
-    async def side_effect(*args, **kwargs):
-        # We need to delay the first call, but let second pass?
-        # Since it's the same client, we need state.
-        if not hasattr(side_effect, "calls"):
-            side_effect.calls = 0
-        side_effect.calls += 1
+    # We use a task tracker to ensure tasks are properly cancelled
+    active_tasks = set()
 
-        if side_effect.calls == 1:
-            await asyncio.sleep(0.2)  # Longer than hedge_after (0.05)
-            return MagicMock(status_code=500)
-        return MagicMock(status_code=200, text="Fast")
+    async def side_effect(*args, **kwargs):
+        task = asyncio.current_task()
+        active_tasks.add(task)
+        try:
+            if not hasattr(side_effect, "calls"):
+                side_effect.calls = 0
+            side_effect.calls += 1
+
+            if side_effect.calls == 1:
+                # First request hangs/sleeps
+                await asyncio.sleep(0.5)
+                return MagicMock(status_code=500)
+            # Second request returns fast
+            return MagicMock(status_code=200, text="Fast")
+        finally:
+            active_tasks.discard(task)
 
     mock_client.get.side_effect = side_effect
 
@@ -54,3 +63,12 @@ async def test_hedged_request_second_succeeds():
     )
     assert success is True
     assert result.text == "Fast"
+
+    # Allow a small moment for cancellation callbacks to fire
+    await asyncio.sleep(0.01)
+
+    # Verify that the slow first task was cancelled (not in active_tasks)
+    # Note: hedged_get uses asyncio.gather(return_exceptions=True) which waits for tasks to finish/cancel.
+    # If the task was cancelled, it should exit.
+    # Our side_effect 'finally' block discards the task.
+    assert len(active_tasks) == 0

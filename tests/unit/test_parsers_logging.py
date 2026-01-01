@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 from configstream.parsers.base import extract_config_lines, is_plausible_proxy_config
 

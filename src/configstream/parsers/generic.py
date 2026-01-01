@@ -1,9 +1,11 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import json
 import re
 from typing import Optional
 from urllib.parse import urlparse, unquote
 from ..models import Proxy
+from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,10 @@ _HOSTNAME_PATTERN = re.compile(
 def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
     """Parse generic URL-based schemes like http, socks."""
     try:
+        config = config.strip()
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         # Support naked IP:PORT for SOCKS/HTTP
         if "://" not in config and ":" in config and not config.startswith("{"):
             parts = config.split(":")
@@ -129,6 +135,10 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
 
 def parse_naive(config: str) -> Optional[Proxy]:
     try:
+        config = config.strip()
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         parsed = urlparse(config.replace("naive+", ""))
         if not parsed.hostname:
             return None
@@ -150,6 +160,9 @@ def parse_naive(config: str) -> Optional[Proxy]:
 
 def parse_v2ray_json(config: str) -> Optional[Proxy]:
     stripped = config.strip()
+    if len(stripped) > MAX_CONFIG_LINE_LENGTH:
+        return None
+
     if not stripped.startswith("{"):
         return None
     try:

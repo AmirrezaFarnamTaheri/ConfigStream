@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Consolidated Proxy Ranking and Selection Logic.
 Centralizes the logic previously scattered between merge_batches.py and output.py.

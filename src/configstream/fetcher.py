@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Production Fetcher Module.
 Refactored into `src/configstream/fetcher_core/` for modularity.

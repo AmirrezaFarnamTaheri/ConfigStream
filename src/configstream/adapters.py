@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Client Adapters for exporting proxies to various formats.
 Supports Surge, Loon, Quantumult X, Shadowrocket, and SIP008.

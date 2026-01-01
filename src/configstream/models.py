@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 ConfigStream Data Models.
 Defines the core Proxy object and Pydantic schemas.

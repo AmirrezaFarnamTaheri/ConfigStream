@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Project-specific pip-audit wrapper utilities."""
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ def main() -> None:
 
     completed = subprocess.run(
         [sys.executable, "-m", "pip_audit", *passthrough_args, *extra_args],
-        check=False,
+        check=True,
     )
     raise SystemExit(completed.returncode)
 

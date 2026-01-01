@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Test GeoIP resolver robustness and edge cases."""
 
 import pytest

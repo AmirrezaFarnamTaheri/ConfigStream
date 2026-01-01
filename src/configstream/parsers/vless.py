@@ -1,9 +1,11 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import re
 from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
+from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +13,10 @@ logger = logging.getLogger(__name__)
 def parse_vless(config: str) -> Optional[Proxy]:
     try:
         config = config.strip()
+        # Enforce MAX_CONFIG_LINE_LENGTH
+        if len(config) > MAX_CONFIG_LINE_LENGTH:
+            return None
+
         parsed = urlparse(config)
 
         hostname = parsed.hostname
@@ -45,9 +51,8 @@ def parse_vless(config: str) -> Optional[Proxy]:
             return None
 
         # [FIX] Enhanced UUID validation
-        # Valid UUIDv4 is 36 chars. We also allow non-standard IDs used by some proxies.
-        # However, we must filter out junk.
-        if len(uuid) < 20:
+        # Relaxed check: Allow shorter IDs (e.g. passwords) down to 8 chars
+        if len(uuid) < 8:
             # Too short to be a valid high-entropy ID
             return None
 

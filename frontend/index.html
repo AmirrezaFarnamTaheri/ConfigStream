@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Access the free, open internet with ConfigStream. We provide auto-updating, security-tested VPN configurations for everyone.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://unpkg.com; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://unpkg.com; connect-src 'self' ws: wss: https://raw.githubusercontent.com https://unpkg.com data:;">
+    <!-- [SECURITY] CSP: Removed unsafe-inline for scripts where possible. If strictly needed for some libs, consider using nonces. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://unpkg.com; script-src 'self' https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://unpkg.com; connect-src 'self' ws: wss: https://raw.githubusercontent.com https://unpkg.com data:;">
     <title>ConfigStream - Your Gateway to the Open Internet</title>
 
-    <script>
-        window.ROOT_PATH = './';
-    </script>
+    <script src="assets/js/init.js"></script>
     <script src="https://unpkg.com/feather-icons@4.29.1/dist/feather.min.js" defer onerror="this.onerror=null;this.src='assets/libs/feather.min.js';"></script>
     <link rel="icon" type="image/svg+xml" href="assets/svg/favicon.svg">
     <link rel="alternate icon" href="assets/images/favicon.ico">
@@ -421,35 +420,6 @@
     <script src="assets/js/common-ui.js" defer></script>
     <script type="module" src="assets/js/main.js" defer></script>
     <script src="assets/js/inline-icons.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const logger = window.createLogger ? window.createLogger('ServiceWorker') : console;
-                // Fixed path to sw.js
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(reg => {
-                        logger.info('SW registered: ', reg);
-                    })
-                    .catch(err => {
-                        logger.error('SW registration failed: ', err);
-                    });
-            });
-        }
-
-        // Listen for language changes to update UI label
-        window.addEventListener('languageChanged', (e) => {
-             const lang = e.detail?.lang;
-             const label = document.getElementById('current-lang-label');
-             if(label && lang) {
-                label.textContent = lang.toUpperCase();
-             }
-        });
-
-        // Initial set label
-        document.addEventListener('DOMContentLoaded', () => {
-             const label = document.getElementById('current-lang-label');
-             if(label && window.i18n) label.textContent = window.i18n.currentLang.toUpperCase();
-        });
-    </script>
+    <script src="assets/js/sw-init.js"></script>
 </body>
 </html>

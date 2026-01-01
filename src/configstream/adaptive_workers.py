@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Adaptive Worker Calculation.
 Determines optimal worker count based on CPU cores and memory.

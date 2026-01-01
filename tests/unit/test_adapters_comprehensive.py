@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Comprehensive tests for adapters.py module.
 Tests all adapter classes with edge cases and error handling.

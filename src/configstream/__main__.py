@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Main entry point for running configstream as a module."""
 
 from .cli import main

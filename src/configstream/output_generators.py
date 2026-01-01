@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Output Generators.
 Refactored into `src/configstream/generators/` for modularity.

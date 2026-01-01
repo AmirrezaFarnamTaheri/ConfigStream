@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Utility to remove configs with specific security issues from the output/full/all.json file.
 """
@@ -76,9 +77,18 @@ def main() -> int:
         backup_path.write_text(original_text, encoding="utf-8")
         print(f"Backup written to {backup_path}")
 
-    with input_path.open("w", encoding="utf-8", newline="\n") as handle:
-        json.dump(filtered, handle, ensure_ascii=True, indent=2)
-        handle.write("\n")
+    # [FIX] Atomic Write: Write to temp file first, then rename
+    temp_path = input_path.with_name(f".{input_path.name}.tmp")
+    try:
+        with temp_path.open("w", encoding="utf-8", newline="\n") as handle:
+            json.dump(filtered, handle, ensure_ascii=True, indent=2)
+            handle.write("\n")
+        temp_path.replace(input_path)
+    except Exception as e:
+        print(f"Failed to write filtered file: {e}", file=sys.stderr)
+        if temp_path.exists():
+            temp_path.unlink()
+        return 1
 
     print(
         f"Removed {removed} entries containing '{phrase}'. "

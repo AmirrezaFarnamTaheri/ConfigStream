@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.converters import to_clash_proxy, to_singbox_outbound
 from configstream.models import Proxy
 

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 import os
 import logging
 from pathlib import Path
@@ -90,29 +91,36 @@ async def generate_pipeline_outputs(
         except Exception as e:
             logger.warning(f"Failed to rotate proxies.json: {e}")
 
-    save_json(optimized_proxies, proxies_path)
+    # [FIX P2] Run blocking file I/O in executor
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, save_json, optimized_proxies, proxies_path)
 
-    generated_files = generate_categorized_outputs(
-        optimized_proxies,
-        output_path,
-        washed_outbounds=washed_outbounds,
-        washed_ids=washed_ids,
-        smart_chains=smart_chains,
-        washer=washer,  # Pass washer context if needed by generators
+    generated_files = await loop.run_in_executor(
+        None,
+        lambda: generate_categorized_outputs(
+            optimized_proxies,
+            output_path,
+            washed_outbounds=washed_outbounds,
+            washed_ids=washed_ids,
+            smart_chains=smart_chains,
+            washer=washer,
+        ),
     )
 
     # 5. Metadata & Stats
-    save_metadata(stats, optimized_proxies, output_path)
+    await loop.run_in_executor(
+        None, save_metadata, stats, optimized_proxies, output_path
+    )
 
     # [FIX] Export history visualization data
     # Ensure the history visualization JSON is generated for the frontend
     viz_path = output_path / "data" / "proxy_history_viz.json"
     viz_path.parent.mkdir(parents=True, exist_ok=True)
-    history.export_for_visualization(viz_path)
+    await loop.run_in_executor(None, history.export_for_visualization, viz_path)
 
     # Also export active trend for analytics chart
     trend_path = output_path / "data" / "active_proxy_trend.json"
-    history.export_active_proxy_trend(trend_path)
+    await loop.run_in_executor(None, history.export_active_proxy_trend, trend_path)
 
     logger.info(f"Output generation complete. Files created in {output_path}")
     return generated_files

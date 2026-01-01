@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Cloudflare WARP Account Generator.
 Registers a new device with Cloudflare and generates a WireGuard proxy config.

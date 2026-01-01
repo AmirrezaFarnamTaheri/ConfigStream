@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """
 Core utilities for ConfigStream.
 Includes atomic file operations and advanced concurrency primitives.
