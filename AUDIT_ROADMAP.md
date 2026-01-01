@@ -83,7 +83,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Audit `seen_keys` usage:
         - [ ] Is it a `set` or `dict`?
         - [ ] Is memory usage bounded (LRU)?
-    - [ ] **Lock Safety**: Verify `seen_lock` is used consistently across all consumers.
+    - [ ] **Lock Safety**: Verify `seen_lock` is used consistently across all consumers to protect `seen_keys` and `PipelineStats`.
 
 ### 2.2. Error Handling & Resilience
 - [ ] **Exception Swallowing**:
@@ -255,22 +255,19 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] Verify `blake2b` bucketing determinism (`buckets=256`).
     - [ ] Check `save_shard_metadata` logic.
 
-### 5.4. Vwarp Ecosystem (Feature 1)
-- [ ] **Vwarp Standalone**:
-    - [ ] Verify integration with the official Vwarp project (MASQUE tunneling).
-    - [ ] Check `vwarp` binary execution flags and environment variables.
-- [ ] **Endpoint Scraper**:
-    - [ ] Audit `warp_scraper.py`.
-    - [ ] Verify `WIREGUARD_REGEX` robustness.
-    - [ ] Check `warp://` URI parsing compliance.
-- [ ] **Upstream Compatibility**:
-    - [ ] Verify `Psiphon` integration points (if any).
-    - [ ] Audit `Warp-in-Warp` chaining logic against official Vwarp specs.
-- [ ] **Warp Tools (`src/configstream/tools/warp/`)**:
-    - [ ] Audit `register_warp_account` logic.
-    - [ ] Check `extract_proxies.py` for correct output format.
+### 5.4. Vwarp Ecosystem (Feature 1: `src/configstream/tools/vwarp.py`, `warp.py`)
+- [ ] **VwarpTool Controller**:
+    - [ ] **Binary Path**: Verify fallback logic if `vwarp` is not in PATH.
+    - [ ] **Timeout Handling**: Check `scan_endpoints` timeout (default 30s) - is it sufficient?
+    - [ ] **Parsing**: Audit stdout parsing logic for `scan_endpoints` (IPv4 vs [IPv6]).
+- [ ] **Warp Key Generator**:
+    - [ ] **Cryptography**: Verify `_generate_keys` uses `cryptography.hazmat` correctly.
+    - [ ] **Blocking Calls**: Ensure `_generate_keys` runs in `loop.run_in_executor`.
+    - [ ] **Registration**: Audit `register_warp_account` HTTP request structure against current Cloudflare API.
+- [ ] **Scanner Integration**:
+    - [ ] Check integration of `VwarpTool.scan_endpoints` with `ProxyWasher`.
 
-### 5.5. Advanced Chaining & Routing (Feature 2) (`src/configstream/intelligence/chaining.py`)
+### 5.5. Advanced Chaining & Routing (Feature 2: `src/configstream/intelligence/chaining.py`)
 - [ ] **Geodesic Logic**:
     - [ ] Audit `haversine` implementation vs `geopy`.
     - [ ] Check `COUNTRIES` coordinate accuracy (80+ entries).
@@ -309,11 +306,10 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Log Noise**:
     - [ ] Check `DEBUG` vs `INFO` levels.
     - [ ] Debounce repetitive logs (e.g., "Connection refused").
-- [ ] **Stats & Tracking**:
-    - [ ] Audit `PipelineStats` counters (atomic increments?).
-    - [ ] Check `ProxyHistoryTracker`:
-        - [ ] Data retention policy (prune old records).
-        - [ ] Concurrency safety (sqlite lock?).
+- [ ] **Stats & Tracking (`src/configstream/pipeline_core/stats.py`)**:
+    - [ ] **Concurrency**: Verify `PipelineStats` updates are guarded by `seen_lock` in `consumer.py`.
+    - [ ] **Atomic Operations**: Check if integer increments are thread-safe (GIL usually handles this, but `asyncio` context switch matters).
+    - [ ] **Serialization**: Audit `to_dict` for unserializable types.
 - [ ] **Metric Cardinality (`src/configstream/metrics.py`)**:
     - [ ] Check `protocol_counts`: can user input create infinite keys?
     - [ ] Verify `save_to_file` atomic write.
@@ -353,7 +349,6 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
     - [ ] **SingBox**:
         - [ ] Audit `to_singbox_outbound` in `singbox.py`.
         - [ ] Check `WireGuard` IP generation (collision risk?).
-        - [ ] Check `Hysteria2` obsoleted fields.
         - [ ] **Transport Mapping**: Audit `singbox_utils.add_transport_sb`.
             - [ ] Verify `ws`, `grpc`, `http` type mapping.
             - [ ] Check for `str(None) -> "None"` string corruption.
@@ -521,7 +516,7 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 ## Phase 19: Configuration & Constants (`src/configstream/constants.py`)
 
 - [ ] **Security Constants**:
-    - [ ] Verify `DANGEROUS_PORTS` list completeness.
+    - [ ] Verify `DANGEROUS_PORTS` list completeness (missing MongoDB 27017?).
     - [ ] Check `SUSPICIOUS_DOMAINS` (is `127.0.0.1` blocked?).
 - [ ] **Limits & Thresholds**:
     - [ ] Audit `MAX_B64_INPUT_SIZE` (10MB sufficient?).
@@ -529,3 +524,12 @@ This document outlines a deep, extensive, end-to-end audit plan for the ConfigSt
 - [ ] **Protocol Support**:
     - [ ] Ensure `VALID_PROTOCOLS` matches `parsers/` capabilities.
     - [ ] Verify `PROTOCOL_COLORS` covers all supported protocols (for UI).
+
+## Phase 20: Architecture & Design Patterns
+
+- [ ] **Singleton Pattern**:
+    - [ ] Audit `GeoIPResolver`, `ProxyWasher`, `VwarpTool` usage. Are they truly singletons or instantiated multiple times?
+- [ ] **Dependency Injection**:
+    - [ ] Verify if `app_settings` is passed down or instantiated globally (tight coupling).
+- [ ] **Error Handling Strategy**:
+    - [ ] Audit usage of custom exceptions in `cli_errors.py` vs standard `ValueError`.
