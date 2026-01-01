@@ -129,6 +129,38 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
             return common
 
+        # [FIX] Clash Meta (Mihomo) Support for modern protocols
+        elif proxy.protocol == "hysteria2":
+            common["type"] = "hysteria2"
+            common["password"] = proxy.uuid or proxy.details.get("password", "")
+            common["sni"] = proxy.details.get("sni", "")
+            common["skip-cert-verify"] = proxy.details.get("allowInsecure", False)
+            if proxy.details.get("obfs") == "salamander":
+                common["obfs"] = "salamander"
+                common["obfs-password"] = proxy.details.get("obfs-password", "")
+            return common
+
+        elif proxy.protocol == "tuic":
+            common["type"] = "tuic"
+            common["uuid"] = proxy.uuid
+            common["password"] = proxy.details.get("password", "")
+            common["sni"] = proxy.details.get("sni", "")
+            common["congestion-controller"] = proxy.details.get("congestion_controller", "bbr")
+            common["skip-cert-verify"] = proxy.details.get("allowInsecure", False)
+            return common
+
+        elif proxy.protocol == "wireguard":
+            common["type"] = "wireguard"
+            common["ip"] = proxy.details.get("local_address", ["172.16.0.2"])[0]
+            common["private-key"] = proxy.details.get("private_key", "")
+            common["public-key"] = proxy.details.get("peer_public_key", "")
+            if "reserved" in proxy.details:
+                common["reserved"] = proxy.details["reserved"]
+            if "mtu" in proxy.details:
+                common["mtu"] = int(proxy.details["mtu"])
+            common["udp"] = True
+            return common
+
         # Fallback or unknown
         return None
 

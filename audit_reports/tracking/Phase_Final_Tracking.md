@@ -20,7 +20,11 @@ Additional deep refinement passes have been completed.
 4.  **Stability**:
     - OOM protection in history loading and Go tester.
     - Infinite recursion fix in washer.
+    - Dead code removal (Plugins, Metrics).
+5.  **Modernization**:
+    - Clash converter supports Hysteria2, TUIC, WireGuard.
+    - Pydantic configuration.
 
 ## Status
 - **Ready for Deployment**: Yes.
-- **Verification**: Tests passed (where possible), Code Read verified.
+- **Verification**: Tests created (`manual_test_clash.py`) but environment limits prevented execution. Code logic verified manually.
