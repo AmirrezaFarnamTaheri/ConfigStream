@@ -1,7 +1,7 @@
-# Phase 12: Data Integrity & Artifacts - Analysis Report
+# Phase 12: Data Integrity & Artifacts - Analysis Report (Deep Scan)
 
 ## 12. Overview
-This phase audits mechanisms that ensure data consistency, specifically sharding and history tracking.
+This phase audits mechanisms that ensure data consistency, specifically sharding, history tracking, and quality scoring.
 
 ## 12.1. Reshard Dynamic (`src/configstream/sharding.py`)
 **Analysis**:
@@ -35,6 +35,23 @@ This phase audits mechanisms that ensure data consistency, specifically sharding
     *   **Mitigation**: This function is only used for `export_for_visualization`, which is likely an occasional report, not the hot path. However, it will OOM on large datasets.
     *   **Recommendation**: Stream the export or paginate.
 
+## 12.4. Storage Module (`src/configstream/history/storage.py`)
+**Analysis**:
+*   **Conflict**: This module seems to implement `HistoryStorage` which loads/saves JSON files (`load_history`, `save_history`).
+    *   However, `tracker.py` uses `QualityStorage` (SQLite) if no path is provided or if path ends in `.db`.
+    *   **Redundancy**: `HistoryStorage` (JSON) vs `QualityStorage` (SQLite). The project seems to have migrated to SQLite but kept the JSON loader for legacy or specific export tasks.
+    *   **Safety**: Checks `MAX_HISTORY_FILE_SIZE` (100MB) before loading JSON. This is good OOM protection for the legacy path.
+
+## 12.5. Analytics & Scoring (`src/configstream/history/analytics.py` & `quality/scoring.py`)
+**Analysis**:
+*   **Diversity Score**: Gini-Simpson Index (`1 - sum(p^2)`). Standard ecological diversity metric. Correct.
+*   **Trust Score**: Weighted average of reliability (50%), diversity (30%), consistency (20%) minus jitter penalty.
+    *   **Jitter Penalty**: `avg_jitter * 10` (max 20). If jitter is high, score drops. Good for punishing unstable proxies.
+*   **Analytics**:
+    *   `get_trend_data` returns simple arrays for charting.
+    *   **Efficiency**: Slices list `[-points:]`. Fast in Python.
+
 ## Recommendations
 1.  **Implement Rotation**: Modify `generate_categorized_outputs` to rename `proxies.json` to `proxies.old.json` before writing the new one.
 2.  **History Export**: Refactor `_load_all_history` to yield generators or write to file incrementally to avoid OOM.
+3.  **Storage Consolidation**: Deprecate `HistoryStorage` (JSON) if it's no longer the primary storage, or clarify its role (e.g. for backup/export).

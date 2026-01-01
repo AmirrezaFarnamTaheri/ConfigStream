@@ -1,4 +1,4 @@
-# Phase 6: Cross-Cutting Concerns - Analysis Report
+# Phase 6: Cross-Cutting Concerns - Analysis Report (Deep Scan)
 
 ## 6. Overview
 This phase audits cross-cutting concerns like security (blocklists, sanitization, rules), logging, stats tracking, and metrics.
@@ -41,42 +41,29 @@ This phase audits cross-cutting concerns like security (blocklists, sanitization
     *   **Bypass**: `ALLOW_PRIVATE_IPS` setting allows disabling this (e.g. for testing).
 *   **Config Check**: `validate_config_string` checks for null bytes (`\x00`) and length limits.
 
-## 6.2. Logging & Metrics
-
-### 6.2.1. Log Noise
+## 6.2. Crypto Safety (`src/configstream/crypto/signer.py`)
 **Analysis**:
-*   `fetcher_core` uses `logger.debug` for repetitive tasks.
-*   `pipeline.py` logs start/stop.
-*   **Recommendation**: Ensure `logging_config.py` default level is INFO in prod.
+*   **Algorithm**: `ed25519`.
+*   **Library**: `cryptography` (standard, safe).
+*   **Usage**: Signs subscription content.
+*   **Key Handling**:
+    *   `bytes.fromhex`.
+    *   Checks length (64 bytes or 32 bytes).
+    *   **Security**: Does not zero out memory (Python limitation), but key lifetime is short (per execution).
 
-### 6.2.2. Stats & Tracking (`pipeline_core/stats.py`)
+## 6.3. Background Workers (`src/configstream/workers/scanner.py`)
 **Analysis**:
-*   `PipelineStats` is a dataclass.
-*   **Concurrency**: It is passed to `processing_consumer`.
-    *   **Risk**: Updates like `stats.working += 1` are NOT atomic in `asyncio` if `await` happens in between (not the case for simple `+=`), but multiple consumers running in *parallel threads* (if `run_in_executor`) would race.
-    *   **Check**: `processing_consumer` is an `async def`. In `asyncio`, only one task runs at a time on the loop. So `stats.working += 1` is safe *unless* there are threads.
-    *   **Pipeline**: The pipeline uses `asyncio.gather`. Everything is single-threaded (mostly). The `GoTester` is a subprocess. `PythonTester` (singbox fallback) uses `run_in_executor`.
-    *   **However**: `processing_consumer` updates stats *after* awaiting results. Since `processing_consumer` runs on the main loop, incrementing an integer is safe.
-
-### 6.2.3. Metric Cardinality (`metrics.py`)
-**Analysis**:
-*   `protocol_counts: Dict[str, int]`.
-*   **Risk**: If `proxy.protocol` is user-controlled (it comes from the parser), can a malicious source send random protocols?
-    *   Parsers (VMess, VLESS, etc.) hardcode the protocol string (e.g., `protocol="vmess"`).
-    *   Generic parsers (if any) might extract scheme. `urlparse(config).scheme`.
-    *   **Check**: `trojan.py` checks `scheme` against whitelist. `vmess` is hardcoded. `shadowsocks` is hardcoded.
-    *   **Conclusion**: Protocol cardinality is bounded by the parsers.
-
-## 6.3. Concurrency Safety
-
-### 6.3.1. Race Conditions
-*   **Seen Keys**: `seen_lock` is used in `pipeline.py` (passed to consumer).
-*   **Stats**: Discussed above. Safe in single-threaded event loop.
-
-### 6.3.2. Shared Singletons
-*   `BlocklistManager`: Singleton. Thread-safe updates.
-*   `GeoIPResolver`: Shared. `maxminddb` reader is usually thread-safe (file read).
+*   **CI Detection**: `is_ci = os.environ.get("CI") == "true"`.
+    *   **Logic**: Disables scanner in CI unless `FORCE_SCANNER` is set.
+    *   **Reason**: GitHub Actions blocks UDP and active scanning can be flagged as abuse. This is a critical safety feature.
+*   **Binary Resolution**: Follows robust fallback chain (arg -> env -> path -> common locations).
+*   **Execution**:
+    *   `asyncio.create_subprocess_exec`.
+    *   **Concurrency**: Passes `-workers 100` to binary.
+    *   **Output Parsing**: Reads JSON lines from stdout.
+    *   **Error Handling**: Catches `json.JSONDecodeError` and logs debug info. This makes it resilient to garbage output.
 
 ## Recommendations
 1.  **Blocklist Security**: `BLOCKLIST_URL` is HTTPs. Verification of content (e.g., header check or minimal size check) is done in `load()` (via `ip_network` parsing).
 2.  **Stats Safety**: Confirm no threads modify `PipelineStats` directly. `run_in_executor` calls should return values, and the main loop should update stats.
+3.  **Key Rotation**: Document how `private_key_hex` is rotated in `signer.py` (via env var).

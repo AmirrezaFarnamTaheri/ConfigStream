@@ -29,19 +29,16 @@ Detailed analysis reports for each phase have been generated and are stored in t
 21. [Phase 20: Architecture & Design Patterns](Phase_20_Architecture_and_Design_Patterns.md)
 22. [Phase 21: Toolchain & Utilities Deep Dive](Phase_21_Toolchain_and_Utilities.md)
 
-## Key Findings from Deep Scan
+## Key Findings from Final Deep Scan
 
-*   **Hybrid Architecture**: The project successfully integrates Python (orchestration), Go (testing/tunneling), and Rust (validation), with WASM for the frontend.
-*   **Security**: Critical gaps in log sanitization (file logs) and `pip-audit` enforcement have been identified.
-*   **Concurrency**: The pipeline uses advanced patterns (AIMD, Hedging), but `stats` tracking in consumers has a race condition.
-*   **Intelligence**: The "Washer" (Revival) logic is robust against recursion but needs Vwarp/Warp optimization.
-*   **Frontend**: `stego.js` enforces CI key injection, ensuring security by default.
+*   **Integrity**: History tracking uses optimized batch inserts and SQLite. JSON storage is redundant but safe.
+*   **Security**: `WarpScannerWorker` correctly disables itself in CI environments to prevent bans. `Signer` uses safe Ed25519 crypto.
+*   **Pipeline**: The "Tank" vs "Sniper" output strategy is well-implemented but needs doc alignment.
+*   **Extensibility**: `Adapter` pattern allows easy addition of legacy formats, though logic is duplicated for Surge/Loon strings.
 
 ## Action Plan
 
-The immediate next steps for the engineering team are:
-
-1.  **Apply Phase 0 Fixes**: Secure the build and logs.
-2.  **Fix Concurrency**: Wrap `stats` updates in `consumer.py` with `seen_lock`.
-3.  **Optimize Go Scanner**: Refactor `generateIPList` to use iterators.
-4.  **Rotate Keys**: Ensure CI/CD rotation for Steganography and Warp keys works as documented.
+1.  **Phase 0 Fixes**: Immediate security patches.
+2.  **Concurrency Fixes**: Locking in `consumer.py`.
+3.  **Cleanup**: Remove `src/configstream/plugins` if unused.
+4.  **Rotation**: Implement log/artifact rotation.
