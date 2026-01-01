@@ -183,10 +183,11 @@ def setup_logging(
     console_handler.setLevel(log_level_value)
     console_handler.setFormatter(formatter)
 
-    # Apply sensitive data filter ONLY to console for security
-    # File logs remain unmasked for debugging
+    # Apply sensitive data filter to all handlers for security.
+    # File logs will be masked by default.
     if mask_sensitive:
-        console_handler.addFilter(SensitiveDataFilter())
+        data_filter = SensitiveDataFilter()
+        console_handler.addFilter(data_filter)
 
     root_logger.addHandler(console_handler)
 
@@ -201,7 +202,9 @@ def setup_logging(
         )
         file_handler.setLevel(log_level_value)
         file_handler.setFormatter(logging.Formatter(fmt))
-        # NO masking filter for file handler - keep logs interpretable for debugging
+        # Apply masking filter to file handler
+        if mask_sensitive:
+            file_handler.addFilter(data_filter)
         root_logger.addHandler(file_handler)
 
     if json_log_file:
@@ -217,7 +220,9 @@ def setup_logging(
         )
         json_file_handler.setLevel(log_level_value)
         json_file_handler.setFormatter(JsonFormatter())
-        # NO masking filter for JSON logs - needed for log analysis tools
+        # Apply masking filter to JSON logs
+        if mask_sensitive:
+            json_file_handler.addFilter(data_filter)
         root_logger.addHandler(json_file_handler)
 
     # Add trace ID filter (should be first for all handlers)
