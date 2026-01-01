@@ -4,6 +4,7 @@ Security validation rules for proxy configurations.
 
 import re
 import logging
+import ipaddress
 from typing import Dict, FrozenSet, Optional
 
 from configstream.config import AppSettings
@@ -78,14 +79,25 @@ def validate_address(
     except Exception:
         address_check = address_lower
 
-    # Check for suspicious patterns (exact or subdomain match)
-    for suspicious in SUSPICIOUS_DOMAINS:
-        if address_check == suspicious or address_check.endswith("." + suspicious):
-            logger.warning(f"Suspicious address pattern found: {address}")
-            issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
-                f"Suspicious address pattern: {address}"
-            )
-            return issues
+    try:
+        ip = ipaddress.ip_address(address_check)
+        if not _APP_SETTINGS_CACHE.ALLOW_PRIVATE_IPS:
+            if ip.is_private or ip.is_loopback or ip.is_link_local:
+                logger.warning(f"Private IP detected: {address}")
+                issues[SECURITY_CATEGORIES["ADDRESS_PRIVATE"]] = (
+                    f"Private address: {address}"
+                )
+                return issues
+    except ValueError:
+        # Not an IP address, check against domain list
+        # Check for suspicious patterns (exact or subdomain match)
+        for suspicious in SUSPICIOUS_DOMAINS:
+            if address_check == suspicious or address_check.endswith("." + suspicious):
+                logger.warning(f"Suspicious address pattern found: {address}")
+                issues[SECURITY_CATEGORIES["ADDRESS_SUSPICIOUS"]] = (
+                    f"Suspicious address pattern: {address}"
+                )
+                return issues
 
     # DNS rebinding / localhost evasion protection
     # 1) Hex or octal IPv4 notations that can map to localhost or private ranges.

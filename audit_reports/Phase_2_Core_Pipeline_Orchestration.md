@@ -105,7 +105,6 @@ Phase 2 analyzes `src/configstream/pipeline.py` and its supporting modules. This
 
 ## Recommendations
 1.  **Async Subprocess**: Switch Vwarp `subprocess.Popen` to `asyncio.create_subprocess_exec`. This allows `await process.wait()` which doesn't block the loop.
-2.  **Offload I/O**: Wrap `shutil.copy2` and history export calls in `output_handler.py` with `run_in_executor`.
-3.  **Server Notification**: Use `aiohttp` instead of `httpx` (since `aiohttp` is already a dep and often lighter) or ensure `httpx` client is closed properly (context manager is used, so it's fine).
-4.  **Type Hints**: `seen_keys` is `Dict[tuple, None]`. It works as a set but carries value overhead. `Set[tuple]` would be cleaner if consumers support it.
-5.  **Stats Safety**: Apply `seen_lock` to ALL dictionary mutations in `PipelineStats`.
+2.  **Server Notification**: Use `aiohttp` instead of `httpx` (since `aiohttp` is already a dep and often lighter) or ensure `httpx` client is closed properly (context manager is used, so it's fine).
+3.  **Type Hints**: `seen_keys` is `Dict[tuple, None]`. It works as a set but carries value overhead. `Set[tuple]` would be cleaner if consumers support it.
+4.  **Stats Safety**: Apply `seen_lock` to ALL dictionary mutations in `PipelineStats`.
