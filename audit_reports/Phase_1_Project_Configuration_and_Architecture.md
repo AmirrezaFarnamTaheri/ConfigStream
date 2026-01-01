@@ -73,17 +73,21 @@ This phase audits the project's foundation: dependencies, environment configurat
 ### 1.2.1. `AGENTS.md` Alignment
 *   **Blocking I/O**: `config.py` is just a data class. `fetcher.py` needs to be checked (Phase 3).
 *   **Sanitized Logging**: `logging_config.py` was analyzed in Phase 0 (it missed file logs).
+*   **Compliance**: `AGENTS.md` explicitly forbids `requests` and `time.sleep` in async paths. This aligns with Phase 2 findings.
 
 ### 1.2.2. Module Boundaries
 *   `src/configstream` is the root package.
-*   Needs to check if `pipeline_core` imports from `cli` (circular dependency).
+*   **Circular Dependencies**: `src/configstream/cli.py` imports `pipeline.py`, which imports `output_handler.py`. This seems acyclic. However, `cli` should not be imported by `pipeline_core`.
+*   **Directory Structure**: The structure is deep (`src/configstream/pipeline_core/`). `CONTRIBUTING.md` enforces this modularity.
 
 ### 1.2.3. Dead Code
 *   Roadmap mentions `src/configstream/utils/`.
 *   `package.json` suggests a JS frontend, but `frontend/` folder analysis (Phase 7) will confirm if it's used.
+*   **`src/configstream/plugins/`**: Contains `loader.py` and `README.md`. If no actual plugins exist here, it might be over-engineering or reserved for future use.
 
 ## Recommendations
 1.  **Split Requirements**: Create `requirements.in` (prod) and `requirements-dev.in`, then compile to `requirements.txt` (prod) and `requirements-dev.txt`. Update Dockerfile to use only `requirements.txt`.
 2.  **Secure Vwarp Download**: Add SHA256 verification in Dockerfile.
 3.  **Refactor Config**: Move `AppSettings` to `pydantic-settings` for robust validation.
 4.  **Frontend Deps**: Clarify `package.json` role. If `frontend/` has JS, it should have its own `package.json` or be documented.
+5.  **Plugin Cleanup**: If `src/configstream/plugins/` is empty, consider removing or documenting its status.

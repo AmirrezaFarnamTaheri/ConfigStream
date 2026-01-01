@@ -59,6 +59,22 @@ This phase analyzes the testing engine, which determines if a proxy is alive, me
 *   In `go.py`, `req_id` maps request to proxy object.
 *   **Locking**: `_lock` in `GoBatchTester` protects process state and futures map. This is thread-safe for asyncio.
 
+## 4.4. Manager Logic (`src/configstream/testers/manager.py`)
+**Analysis**:
+*   **Dry Run**: Skips testing if `dry_run=True`. Useful for debugging pipelines.
+*   **Chain Testing**:
+    *   If `protocol == "revived"`, it constructs a `custom_config` payload for the Go tester (`outbounds` list).
+    *   It does NOT try to test chains in Python fallback (too complex).
+*   **Fallback Concurrency**:
+    *   Caps concurrency at 20 (`asyncio.Semaphore(20)`) for Python fallback to prevent CPU overload. This is a critical safety valve.
+
+## 4.5. Utils (`src/configstream/testers/utils.py`)
+**Analysis**:
+*   `SecureConfigContext`: Creates temp files (`mkstemp`) for `singbox2proxy`.
+*   **Permissions**: `os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)`. Ensures only owner can read.
+*   **Cleanup**: Uses `try...finally` and `atexit` to ensure cleanup.
+*   **Thread Safety**: Uses `_TEMP_FILES_LOCK` to track active files.
+
 ## Recommendations
 1.  **Go Binary Dependency**: The system heavily relies on `configstream-tester`. The build process (Phase 1) creates it.
 2.  **Vwarp Logic**: The `ALL_PROXY` injection in `_ensure_process` forces *all* tests through Vwarp if enabled. Ensure this is intended (testing proxies *through* a proxy?). Usually you want to test proxies directly from the local interface to measure *their* performance, not the tunnel's. Unless Vwarp is used to bypass censorship *to reach* the proxy server?

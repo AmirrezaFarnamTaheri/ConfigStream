@@ -58,6 +58,33 @@ This phase audits the data ingestion (Fetcher) and parsing (Parsers) subsystems.
 *   **Method Validation**: Blacklists "aes", "default", "none".
 *   **Plugin**: Parse `plugin` and `plugin_opts` from query params.
 
+### 3.2.6. Decoding (`src/configstream/parsers/decoders.py`)
+**Analysis**:
+*   **Rate Limiting**: `RateLimitedLogger` prevents log spam from decoding failures. Good for noise reduction.
+*   **Validation**: `validate_b64_input` performs a single-pass check.
+    *   **Optimization**: Checks `len > MAX_B64_INPUT_SIZE` first.
+    *   **Heuristics**: Rejects inputs starting with `<` (HTML), `{`, `[` (JSON).
+    *   **Cleaning**: Fixes URL-safe chars (`-` -> `+`, `_` -> `/`) and URL-encoding (`%3D`).
+    *   **Padding**: Fixes padding automatically.
+    *   **Noise Check**: Rejects if > 5% invalid chars. This is a good heuristic to avoid wasting CPU on binary garbage.
+
+### 3.2.7. Extraction (`src/configstream/parsers/extraction.py`)
+**Analysis**:
+*   **Plausibility**: `is_plausible_proxy_config`
+    *   **Checks**: Protocol length < 20, rest length > 4.
+    *   **Noise**: Rejects if > 70% special chars (relaxed from 50%?).
+    *   **Blocked Domains**: Checks `BLOCKED_DOMAINS` for http/https lines. This prevents recursion (fetching a subscription URL as a proxy config).
+*   **Clash/YAML**: Attempts `yaml.safe_load` if `proxies:` key found. Converts to JSON lines.
+*   **Line Processing**: Iterates lines, splits by `://`.
+    *   **Logging**: Logs dropped line reasons summary.
+
+### 3.2.8. Generic (`src/configstream/parsers/generic.py`)
+**Analysis**:
+*   **Naked IP:PORT**: Supports `1.2.3.4:8080`.
+    *   **Validation**: Regex `_IPV4_PATTERN` and `_HOSTNAME_PATTERN` strictly verify the host part. This prevents parsing random text "foo:bar" as a proxy.
+*   **V2Ray JSON**: Parses full V2Ray JSON configuration objects.
+*   **NaiveProxy**: Specialized parser for `naive+https`.
+
 ## 3.3. Renaming & Remarks (`src/configstream/tagging.py`)
 
 ### 3.3.1. Regex Safety

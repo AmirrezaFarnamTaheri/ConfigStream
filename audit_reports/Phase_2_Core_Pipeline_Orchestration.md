@@ -1,7 +1,7 @@
 # Phase 2: Core Pipeline Orchestration - Analysis Report
 
 ## 2. Overview
-Phase 2 analyzes `src/configstream/pipeline.py`, the heart of the system. This file orchestrates data ingestion (sources), processing (cleaning, deduplication), testing (via `SingBoxTester`), and output generation.
+Phase 2 analyzes `src/configstream/pipeline.py` and its supporting modules. This ecosystem orchestrates data ingestion (sources), processing (cleaning, deduplication), testing (via `SingBoxTester`), and output generation.
 
 ## 2.1. Concurrency & Event Loop Management
 
@@ -46,6 +46,23 @@ Phase 2 analyzes `src/configstream/pipeline.py`, the heart of the system. This f
 *   `seen_keys` and `seen_lock` are passed to consumers.
 *   The actual deduplication logic resides in `processing_consumer` (not shown here, but referenced).
 *   `filter_unique_endpoints` is called at the end.
+
+### 2.1.5. Dynamic Concurrency (`concurrency_manager.py`)
+**Analysis**:
+*   **AIMD**: Implements Additive Increase/Multiplicative Decrease based on error rates.
+    *   `error_threshold = 0.1` (10% errors triggers backoff).
+    *   `backoff_factor = 0.7`.
+*   **Safety**:
+    *   Uses `_stats_lock` (AsyncLock) to protect deque updates (`record`, `_adjust`).
+    *   Uses `_lifecycle_lock` (AsyncLock) to protect `start_tuner`/`stop_tuner`. This prevents race conditions if start/stop are called rapidly.
+*   **Resizable Semaphore**: `utils.BoundedConcurrencyManager` (not read, but inferred) allows resizing via `set_limit`.
+
+### 2.1.6. Adaptive Workers (`adaptive_workers.py`)
+**Analysis**:
+*   **Logic**: `optimal = cpu_count * 15`.
+*   **Memory Check**: Uses `psutil` (if available) to cap workers based on RAM (`available_mb / 20`).
+    *   Assumes 20MB per worker. This is a reasonable heuristic for Python async tasks + parsing overhead.
+*   **Limits**: Clamps between 10 and 200.
 
 ## 2.2. Error Handling & Resilience
 

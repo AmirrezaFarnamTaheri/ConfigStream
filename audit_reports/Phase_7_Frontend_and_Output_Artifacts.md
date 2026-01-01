@@ -33,18 +33,23 @@ This phase analyzes how the system generates output artifacts (JSON configs, bas
     *   `vwarp_win_rate`, `smart_chain_count`.
     *   `latency_distribution`.
 
-## 7.3. Converters (`src/configstream/converters/`)
+## 7.3. Converters (`src/configstream/converters/clash.py`)
+**Analysis**:
+*   **Coverage**: Support for `ss`, `vmess`, `trojan`, `vless`.
+*   **Fallback**: If protocol unknown, returns `None`.
+*   **Naming**: Uses `proxy.remarks` if valid, else generic name.
+*   **Reality Support**: Supports `vless` Reality (`reality-opts`).
+*   **Transport**: Mappings for `ws` (with headers) and `grpc` (service name).
 
-### 7.3.1. SingBox
-*   `to_singbox_outbound` is the core function.
-*   Used by Go Tester, Python Tester, and Output Generators.
-*   **Risk**: If this function is buggy, *everything* breaks.
-    *   Phase 3 analyzed parsers; converters are the reverse.
-    *   Need to ensure it handles `WireGuard` (WARP) and `Shadowsocks` correctly.
-
-## 7.4. Generators (`src/configstream/generators/`)
-*   `generate_base64_subscription`: Standard base64 encoding of `protocol://...` lines.
-*   `generate_singbox_config`: Wraps outbounds in a SingBox JSON structure (`outbounds`, `route`, etc.).
+## 7.4. Generators (`src/configstream/generators/split.py`)
+**Analysis**:
+*   **Tank (VPN)**: `singbox-vpn.json`. Uses `tun` inbound.
+    *   `auto_route`: True. `strict_route`: True. This is a full VPN config.
+    *   **Selectors**: "🌍 Proxy Select", "🚀 Auto", "🛡️ Washed".
+*   **Sniper (Proxy)**: `singbox.json`. Uses `mixed` inbound (SOCKS/HTTP).
+    *   **Fragmentation**: Injects `tls_fragment` into valid proxies. This is an anti-censorship feature (Client Hello Fragmentation).
+    *   **Strip Metadata**: `_strip_internal_metadata` removes internal keys (`_process`) to prevent Sing-box parsing errors.
+*   **Clash**: Calls `generate_clash_config`.
 
 ## Recommendations
 1.  **Frontend XSS**: Verify JS code (not visible here) uses safe DOM manipulation.
