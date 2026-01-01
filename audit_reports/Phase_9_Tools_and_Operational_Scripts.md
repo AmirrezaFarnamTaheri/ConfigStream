@@ -26,6 +26,24 @@ This phase audits the operational scripts and the Telegram bot CLI.
     *   **DoS Risk**: `register_warp_account` hits Cloudflare API. If many users spam `/warp`, it could hit rate limits or block the bot IP.
     *   **Recommendation**: Add rate limiting (per user/chat) to the bot commands.
 
+## 9.3. Source Management (`scripts/deduplicate_sources.py`)
+**Analysis**:
+*   **Purpose**: Manages `sources/batch_*.txt` files.
+*   **Logic**:
+    *   Reads existing sources.
+    *   Adds new hardcoded sources (`NEW_SOURCES`).
+    *   Filters: Drops duplicates by domain (heuristic `get_domain`).
+    *   **Blacklist**: Removes "soroushmirzaei" explicitly.
+    *   **Redistribution**: Shuffles URLs into 10 batch files modulo index.
+*   **Safety**: Writes to `consolidated_sources.txt` as source of truth.
+
+## 9.4. Security Cleaning (`scripts/clean_security_issues.py`)
+**Analysis**:
+*   **Deprecated**: Prints warning to stderr. Logic is now in pipeline.
+*   **Function**: Loads JSON, filters entries with specific security phrases ("All test URLs failed"), saves back.
+*   **Status**: Should be removed if deprecated, or kept as manual tool.
+
 ## Recommendations
 1.  **Bot Rate Limiting**: Implement a simple decorator to limit `/warp` usage.
 2.  **Script Secrets**: Review `upload_*.py` scripts to ensuring they use `os.getenv` and don't echo secrets in logs.
+3.  **Cleanup**: Delete `clean_security_issues.py` if truly unused.

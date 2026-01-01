@@ -36,6 +36,14 @@ This phase audits the "Intelligence" features, primarily the `ProxyWasher`, whic
 *   **Use Case**: This logic works if the proxy is *reachable* but the *target* (Google/Test URL) is blocked by the proxy or the proxy IP is dirty. Wrapping in WARP gives a clean exit IP.
     *   This is "Washing" dirty IPs.
 
+### 5.1.4. Warp Scraper (`warp_scraper.py`)
+**Analysis**:
+*   **Sources**: `WARP_SOURCES` list. Removed dead links.
+*   **Regex**: `WIREGUARD_REGEX` scans raw text for `PrivateKey = ...`.
+*   **SingBox**: Can parse JSON `outbounds` from remote sources.
+*   **Endpoint Lists**: Can parse simple IP/CIDR lists for clean IPs.
+*   **URI Parsing**: Supports `warp://` scheme parsing (converts to `http` to use `urlparse`).
+
 ## 5.2. Scoring & Ranking (`src/configstream/pipeline_core/sorter.py`)
 *(File not read, but referenced in pipeline)*
 *   **Pareto Sort**: The pipeline calls `sort_proxies_pareto`.

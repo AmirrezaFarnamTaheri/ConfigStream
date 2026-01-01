@@ -1,7 +1,7 @@
 # Phase 6: Cross-Cutting Concerns - Analysis Report
 
 ## 6. Overview
-This phase audits cross-cutting concerns like security (blocklists, sanitization), logging, stats tracking, and metrics.
+This phase audits cross-cutting concerns like security (blocklists, sanitization, rules), logging, stats tracking, and metrics.
 
 ## 6.1. Security (`src/configstream/security/`)
 
@@ -17,10 +17,29 @@ This phase audits cross-cutting concerns like security (blocklists, sanitization
     *   **Race Condition**: `is_blocked` reads `self._v4_index`. In Python, dictionary reads are atomic (GIL), but replacing `self._v4_index` in `load()` is also atomic (assignment). So `with_index = self._v4_index` is thread-safe without an explicit lock in the reader path, which is good for performance.
 *   **Honeypot**: `is_honeypot` is deprecated. `is_suspicious_port` checks ports 23, 2323.
 
-### 6.1.3. Injection Prevention
-*   **Configs**: Parsers use regex/struct parsing, not `eval`. `json.loads` is safe.
-*   **YAML**: Need to check where `yaml` is used (Roadmap mentions `yaml.safe_load`). `requirements.txt` has `PyYAML`.
-    *   **Search**: I haven't seen YAML usage in parsed code yet, but `output.py` likely uses it.
+### 6.1.3. Honeypot Detection (`security/honeypot.py`)
+**Analysis**:
+*   **Active Scanning**: `check_common_honeypot_ports` is explicitly DISABLED ("Zero-Budget / No-Abuse policy"). This is excellent for compliance with Cloudflare/GitHub TOS.
+*   **Passive Check**: `is_honeypot` calls `virus_total.check_ip_reputation`.
+*   **Error Handling**: Fails OPEN (returns `False`) on API errors to avoid blocking good proxies.
+
+### 6.1.4. VirusTotal Integration (`security/virus_total.py`)
+**Analysis**:
+*   **API Key**: Checks `VT_API_KEY`. Returns `api_key_missing` status if absent.
+*   **Caching**: `_IP_CACHE` and `_URL_CACHE` (OrderedDict LRU).
+    *   **Locking**: Uses `_CACHE_LOCK` (AsyncLock) for thread-safe access.
+    *   **TTL**: 1 hour.
+*   **Privacy**: Does NOT send the full URL for IP checks. Sends hash for URL checks (standard VT API usage).
+
+### 6.1.5. Rules (`security/rules.py`)
+**Analysis**:
+*   **Port Check**: `validate_port` checks range 1-65535 and `DANGEROUS_PORTS`.
+*   **Address Check**: `validate_address`
+    *   **Normalization**: Uses `idna` and `unicodedata` to prevent homograph attacks.
+    *   **DNS Rebinding**: checks for `0x` hex IPs or octal IPs.
+    *   **Private IPs**: Checks `127.`, `10.`, `192.168.`, `169.254.`, `fc00:`, etc.
+    *   **Bypass**: `ALLOW_PRIVATE_IPS` setting allows disabling this (e.g. for testing).
+*   **Config Check**: `validate_config_string` checks for null bytes (`\x00`) and length limits.
 
 ## 6.2. Logging & Metrics
 
