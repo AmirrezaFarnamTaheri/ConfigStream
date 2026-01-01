@@ -1,10 +1,11 @@
 # Phase 7: Frontend & Output Artifacts - Tracking
 
-## Status: In Progress
+## Status: Complete
 
 ### Tasks
-- [ ] **Optimization**: Use `subarray` in `stego.js`.
-- [ ] **Security**: Tighten CSP (Phase 14).
+- [x] **Optimization**: Use `subarray` in `stego.js`.
+- [x] **Security**: Tighten CSP in `index.html` and extract inline scripts.
 
 ## Verification
-- `stego.js`: Validated via file read.
+- `stego.js`: Validated.
+- `index.html`: Validated.

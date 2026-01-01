@@ -1,14 +1,16 @@
 # Phase 3: Data Ingestion & Parsing - Tracking
 
-## Status: In Progress
+## Status: Complete
 
 ### Tasks
-- [x] **VLESS**: Fix UUID check and enforce `MAX_CONFIG_LINE_LENGTH`. (Partially done, need to apply to all).
-- [ ] **VMess**: Enforce `MAX_CONFIG_LINE_LENGTH` (already present, need to verify).
-- [ ] **Trojan**: Enforce `MAX_CONFIG_LINE_LENGTH`.
-- [ ] **Shadowsocks**: Enforce `MAX_CONFIG_LINE_LENGTH`.
-- [ ] **SSR**: Enforce `MAX_CONFIG_LINE_LENGTH`.
-- [ ] **Generic**: Enforce `MAX_CONFIG_LINE_LENGTH`.
+- [x] **VLESS**: Fix UUID check and enforce `MAX_CONFIG_LINE_LENGTH`.
+- [x] **VMess**: Enforce `MAX_CONFIG_LINE_LENGTH`.
+- [x] **Trojan**: Enforce `MAX_CONFIG_LINE_LENGTH`.
+- [x] **Shadowsocks**: Enforce `MAX_CONFIG_LINE_LENGTH`.
+- [x] **SSR**: Enforce `MAX_CONFIG_LINE_LENGTH`.
+- [x] **Generic**: Enforce `MAX_CONFIG_LINE_LENGTH`.
+- [x] **Others**: Enforce `MAX_CONFIG_LINE_LENGTH` in `others.py`.
+- [x] **Clash**: Enforce `MAX_CONFIG_LINE_LENGTH` in `clash_json.py`.
 
 ## Verification
-- Pending full implementation.
+- All parsers updated.

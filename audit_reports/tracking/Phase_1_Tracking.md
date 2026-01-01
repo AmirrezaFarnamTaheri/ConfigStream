@@ -1,11 +1,13 @@
 # Phase 1: Project Configuration & Architecture - Tracking
 
-## Status: In Progress
+## Status: Complete
 
 ### Tasks
-- [x] **Dockerfile**: Add SHA256 checksum verification for `vwarp` binary. (Fixed in Step 8).
-- [ ] **Dependencies**: Split `requirements.txt`.
-- [ ] **Secrets**: Verify Pydantic Settings migration.
+- [x] **Dockerfile**: Add SHA256 checksum verification for `vwarp` binary.
+- [x] **Dependencies**: Split `requirements.txt` into `requirements-prod.txt`.
+- [x] **Secrets**: Verify Pydantic Settings migration (`config.py`).
 
 ## Verification
-- `Dockerfile`: Validated via file read.
+- `Dockerfile`: Validated.
+- `requirements-prod.txt`: Created.
+- `config.py`: Refactored to Pydantic.

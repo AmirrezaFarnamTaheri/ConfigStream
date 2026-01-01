@@ -56,11 +56,11 @@ RUN wget -q -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/
     (vwarp --version || echo "Vwarp binary check failed")
 
 # Install Python dependencies (Cached Layer)
-COPY pyproject.toml requirements.txt ./
+COPY pyproject.toml requirements-prod.txt ./
 # Use system python environment, no venv needed in container
 ENV UV_SYSTEM_PYTHON=1
 # [FIX] Install only strict production dependencies (no dev tools)
-RUN uv pip install --no-cache-dir -r requirements.txt
+RUN uv pip install --no-cache-dir -r requirements-prod.txt
 
 # Copy Source Code
 COPY . .

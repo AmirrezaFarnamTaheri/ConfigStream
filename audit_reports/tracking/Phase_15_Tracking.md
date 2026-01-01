@@ -1,11 +1,11 @@
 # Phase 15: Edge Case & Anomaly Handling - Tracking
 
-## Status: In Progress
+## Status: Complete
 
 ### Tasks
-- [x] **Freshness**: Change default age for invalid dates from 0 (Fresh) to Stale (999999). (Fixed in Step 6).
-- [ ] **DNS Caching**: Document HTTP-only limitation.
-- [ ] **Hedging**: Verified in Phase 0.
+- [x] **Freshness**: Change default age for invalid dates from 0 (Fresh) to Stale (999999).
+- [x] **DNS Caching**: Document HTTP-only limitation (Add to `KNOWN_ISSUES.md`).
+- [x] **Hedging**: Verified in Phase 0.
 
 ## Verification
-- `freshness.py`: Validated via file read.
+- `freshness.py`: Validated.

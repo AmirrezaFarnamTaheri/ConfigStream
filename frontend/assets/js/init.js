@@ -1,0 +1,1 @@
+window.ROOT_PATH = './';

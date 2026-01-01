@@ -1,15 +1,19 @@
 import os
-from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List, Tuple
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from .constants import PROTOCOL_COLORS
 
 
-@dataclass
-class AppSettings:
+class AppSettings(BaseSettings):
     """Centralized configuration for all proxy operations"""
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore"  # Allow extra env vars
+    )
 
-    # Test URLs and timeouts (CENTRALIZED)
-    TEST_URLS = {
+    # Test URLs and timeouts
+    TEST_URLS: dict[str, str] = {
         "google": "https://www.google.com/generate_204",
         "cloudflare": "https://www.cloudflare.com/cdn-cgi/trace",
         "gstatic": "https://www.gstatic.com/generate_204",
@@ -20,90 +24,91 @@ class AppSettings:
         "apple": "https://www.apple.com/robots.txt",
     }
 
-    TEST_TIMEOUT = int(
-        os.getenv("TEST_TIMEOUT", "15")
-    )  # Increased to 15s to ensure Go tester (10s timeout) has enough time
-    FETCH_TIMEOUT = int(
-        os.getenv("FETCH_TIMEOUT", "15")
-    )  # Timeout for fetching remote sources
-    SECURITY_CHECK_TIMEOUT = int(os.getenv("SECURITY_CHECK_TIMEOUT", "8"))
-    RETEST_TIMEOUT = int(os.getenv("RETEST_TIMEOUT", "6"))  # Reduced from 8 to 6
-    GEOIP_TIMEOUT = int(os.getenv("GEOIP_TIMEOUT", "5"))
+    TEST_TIMEOUT: int = 15
+    FETCH_TIMEOUT: int = 15
+    SECURITY_CHECK_TIMEOUT: int = 8
+    RETEST_TIMEOUT: int = 6
+    GEOIP_TIMEOUT: int = 5
 
     # Latency thresholds
-    MIN_LATENCY = int(os.getenv("MIN_LATENCY", "10"))  # milliseconds
-    MAX_LATENCY = int(os.getenv("MAX_LATENCY", "10000"))  # milliseconds
-    LAT_CONNECT_TIMEOUT_MS = int(os.getenv("LAT_CONNECT_TIMEOUT_MS", "3500"))
-    LAT_HTTP_TIMEOUT_MS = int(os.getenv("LAT_HTTP_TIMEOUT_MS", "3500"))
-    LAT_PER_PROXY_BUDGET_MS = int(os.getenv("LAT_PER_PROXY_BUDGET_MS", "6000"))
-    LAT_SOFT_CAP_MS = int(os.getenv("LAT_SOFT_CAP_MS", "1800"))
+    MIN_LATENCY: int = 10
+    MAX_LATENCY: int = 10000
+    LAT_CONNECT_TIMEOUT_MS: int = 3500
+    LAT_HTTP_TIMEOUT_MS: int = 3500
+    LAT_PER_PROXY_BUDGET_MS: int = 6000
+    LAT_SOFT_CAP_MS: int = 1800
 
     # Rate limiting
-    RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
-    RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))  # seconds
+    RATE_LIMIT_REQUESTS: int = 100
+    RATE_LIMIT_WINDOW: int = 60
+
+    # [PHASE 2] Producer Concurrency
+    PRODUCER_MAX_CONCURRENCY: int = 100
 
     # Memory management
-    BATCH_SIZE = int(os.getenv("BATCH_SIZE", "50"))
-    CACHE_TTL = int(os.getenv("CACHE_TTL", "1800"))  # 30 minutes
+    BATCH_SIZE: int = 50
+    CACHE_TTL: int = 1800
 
-    # Scoring weights for health calculation
-    SCORE_WEIGHTS = {
+    # Scoring weights
+    SCORE_WEIGHTS: dict[str, float] = {
         "historical_success": 40.0,
         "latency": 30.0,
         "security": 20.0,
         "current_status": 10.0,
     }
 
-    # Protocol colors for UI (imported from constants)
-    PROTOCOL_COLORS = PROTOCOL_COLORS
+    # Protocol colors (Not loaded from env, but kept for compat)
+    PROTOCOL_COLORS: dict[str, str] = PROTOCOL_COLORS
 
-    # Malicious node detection thresholds
-    SECURITY = {
-        "content_injection_threshold": 5,  # bytes difference
-        "header_strip_threshold": 2,  # headers
+    # Security
+    BLOCKED_COUNTRIES: str = ""
+
+    # Malicious node detection
+    # Pydantic doesn't easily map nested dicts with defaults from env unless using JSON
+    # We'll define the complex dict as a property or field with default factory
+    # For now, we keep it as a class attribute since it's rarely env-overridden in detail
+    SECURITY: dict = {
+        "content_injection_threshold": 5,
+        "header_strip_threshold": 2,
         "redirect_follow_limit": 3,
         "suspicious_port_range": [(0, 1024), (5000, 5999), (8000, 8999)],
-        "blocked_countries": os.getenv("BLOCKED_COUNTRIES", "").split(","),
-        "malicious_asn_list": [
-            # REMOVED Cloudflare (AS13335) and Amazon (AS16509)
-            # Blocking them kills valid CDN/Cloud proxies.
-            # Only block ASNs known exclusively for abuse/spam.
-        ],
+        "malicious_asn_list": [],
     }
 
     # Logging
-    MASK_SENSITIVE_DATA = True
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-    CANARY_URL = os.getenv("CANARY_URL", "https://httpbin.org")
+    MASK_SENSITIVE_DATA: bool = True
+    LOG_LEVEL: str = "INFO"
+    CANARY_URL: str = "https://httpbin.org"
 
-    # Feature flags and knobs for performance and stability
-    DNS_CACHE_ENABLED: bool = os.getenv("DNS_CACHE_ENABLED", "True").lower() == "true"
-    CIRCUIT_BREAKER_ENABLED: bool = (
-        os.getenv("CIRCUIT_BREAKER_ENABLED", "True").lower() == "true"
-    )
-    HEDGING_ENABLED: bool = os.getenv("HEDGING_ENABLED", "True").lower() == "true"
-    AIMD_ENABLED: bool = os.getenv("AIMD_ENABLED", "True").lower() == "true"
-    AIMD_P50_MS: int = int(os.getenv("AIMD_P50_MS", "400"))
-    AIMD_P95_MS: int = int(os.getenv("AIMD_P95_MS", "1500"))
-    PER_HOST_MAX_CONCURRENCY: int = int(os.getenv("PER_HOST_MAX_CONCURRENCY", "32"))
-    HEDGE_AFTER_MS: Optional[int] = int(os.getenv("HEDGE_AFTER_MS", "800"))
-    HEDGE_MAX_EXTRA: int = int(os.getenv("HEDGE_MAX_EXTRA", "1"))
-    CIRCUIT_TRIP_CONN_ERRORS: int = int(os.getenv("CIRCUIT_TRIP_CONN_ERRORS", "5"))
-    CIRCUIT_TRIP_5XX_RATE: float = float(os.getenv("CIRCUIT_TRIP_5XX_RATE", "0.2"))
-    CIRCUIT_OPEN_SEC: int = int(os.getenv("CIRCUIT_OPEN_SEC", "120"))
-    QUEUE_MAX_TRIES: int = int(os.getenv("QUEUE_MAX_TRIES", "5"))
-    TLS_TESTS_ALLOW_INSECURE: bool = (
-        os.getenv("TLS_TESTS_ALLOW_INSECURE", "False").lower() == "true"
-    )
-    TLS_TESTS_ENABLED: bool = os.getenv("TLS_TESTS_ENABLED", "True").lower() == "true"
+    # Feature flags
+    DNS_CACHE_ENABLED: bool = True
+    CIRCUIT_BREAKER_ENABLED: bool = True
+    HEDGING_ENABLED: bool = True
+    AIMD_ENABLED: bool = True
+    AIMD_P50_MS: int = 400
+    AIMD_P95_MS: int = 1500
+    PER_HOST_MAX_CONCURRENCY: int = 32
+    HEDGE_AFTER_MS: int = 800
+    HEDGE_MAX_EXTRA: int = 1
+    CIRCUIT_TRIP_CONN_ERRORS: int = 5
+    CIRCUIT_TRIP_5XX_RATE: float = 0.2
+    CIRCUIT_OPEN_SEC: int = 120
+    QUEUE_MAX_TRIES: int = 5
+    TLS_TESTS_ALLOW_INSECURE: bool = False
+    TLS_TESTS_ENABLED: bool = True
 
-    # Proxy renaming/tagging template
-    # Available variables: {remarks}, {protocol}, {country}, {country_code}, {city}, {latency}, {asn}, {address}, {port}
-    # Example: "[{country}] {protocol} - {latency}ms"
-    RENAME_TEMPLATE: Optional[str] = os.getenv("RENAME_TEMPLATE")
+    # Proxy renaming
+    RENAME_TEMPLATE: Optional[str] = None
 
-    # Security Validator Settings
-    ALLOW_PRIVATE_IPS: bool = os.getenv("ALLOW_PRIVATE_IPS", "False").lower() == "true"
+    # Security Validator
+    ALLOW_PRIVATE_IPS: bool = False
+
+    def model_post_init(self, __context):
+        """Update nested security settings from env vars if needed."""
+        if self.BLOCKED_COUNTRIES:
+            self.SECURITY["blocked_countries"] = self.BLOCKED_COUNTRIES.split(",")
+        else:
+            self.SECURITY["blocked_countries"] = []
 
     def validate(self) -> None:
         """Validate configuration settings."""
