@@ -4,8 +4,8 @@ Metrics collection for ConfigStream.
 """
 import json
 import time
-from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, Optional
+from dataclasses import dataclass, field
+from typing import Dict, Any
 from pathlib import Path
 
 @dataclass
@@ -65,8 +65,8 @@ class PipelineMetrics:
 
     def _calculate_throughput(self) -> float:
         if self.test_duration > 0:
-             # proxies per minute
-             return round((self.total_tested / self.test_duration) * 60, 1)
+            # proxies per minute
+            return round((self.total_tested / self.test_duration) * 60, 1)
         return 0.0
 
     def save_to_file(self, output_path: Path):

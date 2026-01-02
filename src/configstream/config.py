@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import os
-from typing import Optional, List, Tuple
+from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from .constants import PROTOCOL_COLORS
 

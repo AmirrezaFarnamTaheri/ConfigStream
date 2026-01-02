@@ -5,7 +5,7 @@ WASM Plugin Loader for ConfigStream.
 import logging
 import json
 from pathlib import Path
-from typing import Dict, Optional, Any, List
+from typing import Dict, Optional
 from wasmtime import Engine, Store, Module, Instance
 
 from configstream.models import Proxy
@@ -68,11 +68,11 @@ class WasmParser:
 
             # Write to memory
             if hasattr(self.memory, "write"):
-                 self.memory.write(self.store, ptr, encoded_str)
+                self.memory.write(self.store, ptr, encoded_str)
             else:
-                 # Fallback if write is not available (should be available in wasmtime 40.0.0)
-                 logger.error("WASM Memory object does not have 'write' method")
-                 return None
+                # Fallback if write is not available (should be available in wasmtime 40.0.0)
+                logger.error("WASM Memory object does not have 'write' method")
+                return None
 
             # Invoke parse
             result_ptr = self.parse_func(self.store, ptr)
@@ -105,14 +105,14 @@ class WasmParser:
                     else:
                         read_buffer.extend(chunk)
                         offset += chunk_size
-                        if offset > 1024 * 1024: # 1MB limit safety
-                             break
+                        if offset > 1024 * 1024:  # 1MB limit safety
+                            break
 
                 json_str = read_buffer.decode("utf-8")
 
             else:
-                 logger.error("WASM Memory object does not have 'read' method")
-                 return None
+                logger.error("WASM Memory object does not have 'read' method")
+                return None
 
             return self._parse_json(json_str)
 
