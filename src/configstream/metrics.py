@@ -71,11 +71,23 @@ class PipelineMetrics:
 
     def save_to_file(self, output_path: Path):
         """Save metrics to a file."""
-        output_path.mkdir(parents=True, exist_ok=True)
         data = self.to_dict()
         file_path = output_path / "metrics.json"
-        with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+
+        # Atomic write: write to temp file then rename
+        tmp_path = file_path.with_suffix(".json.tmp")
+        try:
+            with open(tmp_path, "w") as f:
+                json.dump(data, f, indent=2)
+            tmp_path.replace(file_path)
+        except Exception:
+            # If replacement fails, try to cleanup tmp file
+            try:
+                if tmp_path.exists():
+                    tmp_path.unlink()
+            except Exception:
+                pass
+            raise
 
 def export_metrics(metrics: PipelineMetrics, output_path: Path) -> str:
     """Export metrics to a file and return the path."""

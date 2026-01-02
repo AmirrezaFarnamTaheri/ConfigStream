@@ -31,8 +31,8 @@ class ParserCallable(Protocol):
 
 
 logger = logging.getLogger(__name__)
-PLUGIN_MANAGER = PluginManager(Path("plugins"))
-PLUGIN_MANAGER.load_plugins()
+# Lazy load plugins to prevent crash on import and use safe path
+PLUGIN_MANAGER: Optional[PluginManager] = None
 
 
 def auto_detect_and_parse(config: str) -> Optional[Proxy]:
@@ -52,6 +52,21 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         return None
 
     # Try WASM Plugins
+    global PLUGIN_MANAGER
+    if PLUGIN_MANAGER is None:
+        try:
+            # Use path relative to this file
+            plugins_path = Path(__file__).parent / "plugins"
+            if plugins_path.exists():
+                PLUGIN_MANAGER = PluginManager(plugins_path)
+                PLUGIN_MANAGER.load_plugins()
+        except Exception as e:
+            logger.error(f"Failed to initialize PluginManager: {e}")
+            # Ensure we don't retry failed initialization repeatedly if we want;
+            # or we can leave it None to retry. Assuming retry is okay or we set a dummy.
+            # For now, let's keep it None if it fails so we try again? Or maybe set a flag.
+            # But let's just log.
+
     if PLUGIN_MANAGER:
         plugin_result = PLUGIN_MANAGER.parse_all(config)
         if plugin_result:

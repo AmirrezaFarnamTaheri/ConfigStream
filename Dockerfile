@@ -60,9 +60,7 @@ COPY pyproject.toml requirements-prod.txt ./
 # Use system python environment, no venv needed in container
 ENV UV_SYSTEM_PYTHON=1
 # [FIX] Install only strict production dependencies (no dev tools)
-# [FIX] Ensure slowapi is installed as runtime dependency if missing from requirements
-RUN uv pip install --no-cache-dir -r requirements-prod.txt && \
-    uv pip install --no-cache-dir slowapi
+RUN uv pip install --no-cache-dir -r requirements-prod.txt
 
 # Copy Source Code
 COPY . .

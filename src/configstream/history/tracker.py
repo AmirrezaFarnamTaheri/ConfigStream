@@ -254,9 +254,8 @@ class ProxyHistoryTracker:
         history_data = {}
         try:
             conn = self.storage.get_connection()
+            cursor = None
             try:
-                # [FIX] Use fetchmany with a generator approach if this was a yielding function.
-                # Since the return type signature dictates Dict[str, Any] (fully loaded), we optimize by minimizing obj creation.
                 cursor = conn.execute(
                     "SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history"
                 )
@@ -278,7 +277,7 @@ class ProxyHistoryTracker:
 
                         pid, ts, working, lat, cc, reason = row
                         if pid not in history_data:
-                            # [FIX P1] Populate address/port with defaults to prevent KeyError in exporter
+                            # Populate address/port with defaults to prevent KeyError in exporter
                             history_data[pid] = {
                                 "id": pid,
                                 "protocol": "unknown",
@@ -298,30 +297,11 @@ class ProxyHistoryTracker:
                         }
                         history_data[pid]["entries"].append(entry)
             finally:
-                # Always close connection if we opened one, but here we got it from storage.
-                # QualityStorage manages the connection.
-                # If QualityStorage.get_connection() returns a shared connection, we shouldn't close it here unless we are sure.
-                # BUT the suggestion says "Always close database connections... conn.close()".
-                # If QualityStorage gives a new connection each time, we should close it.
-                # If it's a shared connection, closing it might break other things.
-                # Assuming get_connection() returns a connection we should manage locally if it wasn't persisted.
-                # Looking at QualityStorage (I haven't seen it yet), but usually persistent stores keep one conn.
-                # However, the report explicitly suggests wrapping in try...finally and closing conn.
-                # I will follow the suggestion but with a check or use the `close` method if available.
-                # Actually, `self.storage.get_connection()` implies storage manages it.
-                # Let's check if I can assume `conn` is disposable.
-                # If `self.storage` is `QualityStorage`, let's see if it has `close_connection`?
-                # The report suggests `conn.close()`.
-
-                # If I close the connection here, does it affect `self.storage`?
-                # If `self.storage` caches the connection, closing it invalidates the cache.
-                # If the suggestion says to close it, maybe `get_connection` creates a new one?
-
-                # I'll stick to the suggestion:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
+                if cursor:
+                    try:
+                        cursor.close()
+                    except Exception:
+                        pass
 
         except Exception as e:
             logger.error(f"Failed to load history from DB: {e}")
