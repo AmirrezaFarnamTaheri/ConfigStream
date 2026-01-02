@@ -39,7 +39,9 @@ class StatisticsEngine:
             proxy.latency
             for proxy in self.proxies
             if proxy.latency is not None
-            and 0 < proxy.latency <= 60_000  # keep high-latency, drop extreme outliers/timeouts
+            and 0
+            < proxy.latency
+            <= 60_000  # keep high-latency, drop extreme outliers/timeouts
         ]
         if not latencies:
             return {}
