@@ -71,9 +71,10 @@ class PipelineMetrics:
 
     def save_to_file(self, output_path: Path):
         """Save metrics to a file."""
+        output_path.mkdir(parents=True, exist_ok=True)
         data = self.to_dict()
         file_path = output_path / "metrics.json"
-        with open(file_path, "w") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
 def export_metrics(metrics: PipelineMetrics, output_path: Path) -> str:
