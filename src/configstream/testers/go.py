@@ -315,6 +315,8 @@ class GoBatchTester:
                 # We must strip the outer brackets so the template becomes [[{...}], direct] -> INVALID
                 # Wait, if we strip: [{...}] -> {...}
                 # Template: [%s, direct] -> [{...}, direct] -> CORRECT (List of objects)
+                # NOTE: to_singbox_outbound returns Dict, so this check is technically dead code
+                # but kept for safety if converter logic changes to return List.
                 if isinstance(outbound, list):
                     config_str = config_str.strip()[1:-1]
 
@@ -367,7 +369,7 @@ class GoBatchTester:
                     f.set_exception(e)
 
             # [FIX] Mark all proxies in this batch as failed due to daemon crash
-            for p in proxies:
+            for p in req_id_map.values():
                 if p.is_working is None:  # Only if not already processed
                     p.is_working = False
                     p.details["error"] = "DAEMON_CRASHED"
@@ -382,6 +384,14 @@ class GoBatchTester:
             for f in futures:
                 if not f.done():
                     f.set_exception(e)
+
+            # [FIX] Mark queued proxies as failed (write/IPC failure)
+            for p in req_id_map.values():
+                if p.is_working is None:
+                    p.is_working = False
+                    p.details["error"] = "DAEMON_WRITE_FAILED"
+                    p.details["failure_category"] = "CRASH"
+
             # Process might be dead, ensure restart next time
             await self.close()
             return proxies
