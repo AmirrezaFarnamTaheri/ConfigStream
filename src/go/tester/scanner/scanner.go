@@ -117,12 +117,19 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	go func() {
 		defer close(done)
 		buf := make([]byte, 1024)
+		// Set a single absolute deadline to ensure receiver eventually exits
+		end := time.Now().Add(timeout)
 		for {
-			// Respect caller timeout budget when waiting for stragglers
-			conn.SetReadDeadline(time.Now().Add(timeout))
+			// Use absolute deadline instead of relative to avoid infinite extension by stragglers
+			conn.SetReadDeadline(end)
 			n, addr, err := conn.ReadFrom(buf)
 			if err != nil {
+				// Exit cleanly on timeout (no more stragglers)
 				if ne, ok := err.(net.Error); ok && ne.Timeout() {
+					return
+				}
+				// Exit on non-temporary errors (e.g., socket closed)
+				if ne, ok := err.(net.Error); !ok || !ne.Temporary() {
 					return
 				}
 				continue
@@ -149,10 +156,15 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 				startTime := val.(time.Time)
 				latency := recvTime.Sub(startTime).Milliseconds()
 
-				resultsChan <- ScanResult{
+				// Avoid deadlock if results consumer is slow/unbuffered
+				select {
+				case resultsChan <- ScanResult{
 					IP:      ipStr,
 					Port:    2408, // Assuming standard port
 					Latency: latency,
+				}:
+				default:
+					// Drop result under backpressure
 				}
 			}
 		}
