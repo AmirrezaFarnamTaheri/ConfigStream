@@ -45,15 +45,24 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 # BUT, we need VWARP.
 
 # 3. Install Vwarp
-# [SECURITY] Fixed hardcoded version. Ideally, fetch dynamic latest or verify SHA256.
+ARG VWARP_VERSION=v2.1.0
+# [SECURITY] Checksum for v2.1.0 updated on 2026-01-02.
+# The upstream asset was replaced. New checksum verified from: https://github.com/voidr3aper-anon/Vwarp/releases/tag/v2.1.0#checksums
+ARG VWARP_SHA256=4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7
+
 # Running as root before switching user
-RUN wget -q --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp_linux-amd64.zip && \
-    echo "e9b5f3a0c5e7f1d4b6a2c9d3e8f5a1b0c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2  /tmp/vwarp.zip" | sha256sum -c - && \
-    unzip /tmp/vwarp.zip -d /tmp && \
-    mv /tmp/vwarp /usr/local/bin/vwarp && \
-    rm /tmp/vwarp.zip && \
-    chmod +x /usr/local/bin/vwarp && \
-    (vwarp --version || echo "Vwarp binary check failed")
+RUN wget -q --show-error --fail --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-amd64.zip && \
+    echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
+    unzip -tq /tmp/vwarp.zip && \
+    mkdir -p /tmp/vwarp-extract && \
+    unzip -Z1 /tmp/vwarp.zip > /tmp/vwarp-filelist && \
+    grep -Eq '^(|.*/)?vwarp$' /tmp/vwarp-filelist && \
+    ! grep -Eq '(^|/)\.\.(/|$)' /tmp/vwarp-filelist && \
+    VWARP_ENTRY="$(grep -E '^(|.*/)?vwarp$' /tmp/vwarp-filelist | head -n1)" && \
+    unzip -j /tmp/vwarp.zip "$VWARP_ENTRY" -d /tmp/vwarp-extract && \
+    install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \
+    rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \
+    (vwarp --version || (echo "Vwarp binary check failed" >&2; exit 1))
 
 # Install Python dependencies (Cached Layer)
 COPY pyproject.toml requirements-prod.txt ./
