@@ -56,8 +56,10 @@ RUN wget -q --show-error --fail --https-only --tries=3 --timeout=30 -O /tmp/vwar
     unzip -tq /tmp/vwarp.zip && \
     mkdir -p /tmp/vwarp-extract && \
     unzip -Z1 /tmp/vwarp.zip > /tmp/vwarp-filelist && \
-    grep -qx "vwarp" /tmp/vwarp-filelist && \
-    unzip -j /tmp/vwarp.zip "vwarp" -d /tmp/vwarp-extract && \
+    grep -Eq '^(|.*/)?vwarp$' /tmp/vwarp-filelist && \
+    ! grep -Eq '(^|/)\.\.(/|$)' /tmp/vwarp-filelist && \
+    VWARP_ENTRY="$(grep -E '^(|.*/)?vwarp$' /tmp/vwarp-filelist | head -n1)" && \
+    unzip -j /tmp/vwarp.zip "$VWARP_ENTRY" -d /tmp/vwarp-extract && \
     install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \
     rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \
     (vwarp --version || (echo "Vwarp binary check failed" >&2; exit 1))
