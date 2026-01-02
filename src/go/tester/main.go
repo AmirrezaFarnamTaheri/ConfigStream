@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,6 +26,7 @@ import (
 	// [CRITICAL FIX 1] Register protocol modules so "mixed", "vless", etc. are recognized
 	_ "github.com/sagernet/sing-box/include"
 	"github.com/sagernet/sing-box/option"
+	"golang.org/x/net/proxy"
 )
 
 // --- Configuration ---
@@ -380,13 +382,19 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	// [OPTIMIZATION] Increased sleep time to ensure SOCKS listener is ready
 	time.Sleep(50 * time.Millisecond)
 
-	// [CRITICAL] Ensure the transport forces resolution via the proxy if needed.
+	// [CRITICAL] Use a SOCKS5 dialer (http.Transport.Proxy is for HTTP proxies).
 	proxyURL, _ := url.Parse(fmt.Sprintf("socks5://127.0.0.1:%d", port))
+	dialer, err := proxy.FromURL(proxyURL, proxy.Direct)
+	if err != nil {
+		return 0, nil, err
+	}
 
 	client := &http.Client{
 		Timeout: TestTimeout,
 		Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return dialer.Dial(network, addr)
+			},
 			// [OPTIMIZATION] Disable keep-alives to prevent FD exhaustion on localhost
 			DisableKeepAlives: true,
 			MaxIdleConns:      -1, // Force disable pooling
@@ -413,8 +421,6 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 		"https://www.google.com/generate_204",
 		"https://www.youtube.com",
 	}
-
-	var issues []string
 
 	// 1. Primary Check (Neutral)
 	// Pick random neutral to distribute load
