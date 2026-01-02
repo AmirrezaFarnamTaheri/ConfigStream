@@ -15,15 +15,29 @@ MAX_CONCURRENT_CHECKS = 20
 
 
 async def check_url(client, url):
+    def _redact(u: str) -> str:
+        # Minimal log redaction: drop query string to avoid leaking tokens
+        return u.split("?", 1)[0]
+
     try:
         response = await client.head(url, timeout=TIMEOUT, follow_redirects=True)
+
+        # HEAD is often blocked; retry with a lightweight GET before declaring dead.
+        if response.status_code in (403, 405, 501):
+            response = await client.get(
+                url,
+                timeout=TIMEOUT,
+                follow_redirects=True,
+                headers={"Range": "bytes=0-0"},
+            )
+
         if response.status_code in (404, 403, 410):
-            logger.warning(f"Dead URL found ({response.status_code}): {url}")
+            logger.warning(f"Dead URL found ({response.status_code}): {_redact(url)}")
             return url, response.status_code
         return url, 200
     except Exception as e:
-        logger.warning(f"Error checking {url}: {e}")
-        # Treat connection errors as potentially temporary, but 404/403 are definitive
+        logger.warning(f"Error checking {_redact(url)}: {e}")
+        # Treat connection errors as potentially temporary
         return url, 0
 
 
@@ -66,18 +80,24 @@ async def prune_sources():
     logger.info(f"Found {len(all_urls)} unique URLs to check.")
 
     # 2. Check URLs
-    async with httpx.AsyncClient() as client:
-        tasks = []
+    async with httpx.AsyncClient(
+        limits=httpx.Limits(
+            max_connections=MAX_CONCURRENT_CHECKS,
+            max_keepalive_connections=MAX_CONCURRENT_CHECKS,
+        ),
+        headers={"User-Agent": "ConfigStream/PruneSources"},
+    ) as client:
         sem = asyncio.Semaphore(MAX_CONCURRENT_CHECKS)
 
         async def bounded_check(url):
             async with sem:
                 return await check_url(client, url)
 
-        for url in all_urls:
-            tasks.append(bounded_check(url))
+        tasks = [asyncio.create_task(bounded_check(url)) for url in all_urls]
 
-        results = await asyncio.gather(*tasks)
+        results = []
+        for fut in asyncio.as_completed(tasks):
+            results.append(await fut)
 
         for url, status in results:
             if status in (404, 403, 410):
