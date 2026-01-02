@@ -189,6 +189,21 @@ def safe_b64_decode(data: str) -> Optional[str]:
         # If validation fails, it's not base64. Return None to signal failure.
         return None
 
+    # [FIX] Additional padding cleanup:
+    # Some invalid base64 might have trailing garbage or already have padding that validate_b64_input didn't catch perfectly
+    # if it mixed with other chars. Or sometimes existing padding is insufficient.
+    # validate_b64_input adds padding, but let's double check before sending to b64decode
+    # which is strict with validate=True.
+
+    # Actually, validate_b64_input constructs 'cleaned' string which SHOULD be valid B64 chars only + padding.
+    # However, sometimes excessive padding exists (e.g. '===') which b64decode hates.
+    # Let's normalize padding: strip all '=' then add correct amount.
+
+    validated = validated.rstrip("=")
+    pad = len(validated) % 4
+    if pad:
+        validated += "=" * (4 - pad)
+
     try:
         decoded_bytes = base64.b64decode(validated, validate=True)
 

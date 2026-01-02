@@ -337,8 +337,8 @@ async def get_proxies(
     # FileResponse automatically streams the file in chunks, avoiding memory overload.
     master_path = OUTPUT_DIR / "proxies.json"
     if not master_path.exists():
-         # Fallback if master list not ready
-         return JSONResponse([])
+        # Fallback if master list not ready
+        return JSONResponse([])
 
     return FileResponse(master_path, media_type="application/json")
 

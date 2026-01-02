@@ -394,68 +394,85 @@ func testLatency(ctx context.Context, p ProxyInput) (float64, []string, error) {
 	}
 
 	var issues []string
-	// [FIX] Random target selection to avoid rate limiting
-	target := getRandomTarget()
+	// [LOGIC UPDATE] Differential Testing Strategy
+	// Instead of random roulette, we perform structured testing to classify proxies:
+	// 1. Primary Check: Neutral target (e.g., Cloudflare/Firefox). If this fails, the proxy is dead.
+	// 2. Secondary Check: Sanctioned target (e.g., Google).
+	//    - Pass: Global/Freedom proxy.
+	//    - Fail: Ingress/Domestic proxy (useful for chains).
+
+	// Neutral Targets (Accessible globally)
+	neutralTargets := []string{
+		"http://detectportal.firefox.com/success.txt",
+		"http://cp.cloudflare.com/generate_204",
+		"http://www.gstatic.com/generate_204", // Usually accessible even if main google is blocked? No, stick to CF/Firefox
+	}
+
+	// Sanctioned/Blocked Targets (Blocked in Iran/China/Russia)
+	sanctionedTargets := []string{
+		"https://www.google.com/generate_204",
+		"https://www.youtube.com",
+	}
+
+	var issues []string
+
+	// 1. Primary Check (Neutral)
+	// Pick random neutral to distribute load
+	neutralTarget := neutralTargets[getRandomInt(len(neutralTargets))]
+
 	start := time.Now()
-	// [FIX] Use NewRequestWithContext to respect worker timeout
-	req, _ := http.NewRequestWithContext(ctx, "GET", target, nil)
+	req, _ := http.NewRequestWithContext(ctx, "GET", neutralTarget, nil)
 	resp, err := client.Do(req)
 
-	success := false
-	if err == nil {
-		defer resp.Body.Close()
-		io.Copy(io.Discard, resp.Body)
-		if resp.StatusCode == 204 || resp.StatusCode == 200 {
-			success = true
-		} else {
-			// [LOG] Info about status code failure
-			// fmt.Fprintf(os.Stderr, "DEBUG: Target %s returned status %d\n", target, resp.StatusCode)
-		}
-	} else {
-		// [LOG] Info about connection error
-		// fmt.Fprintf(os.Stderr, "DEBUG: Target %s failed: %v\n", target, err)
-	}
-
-	if success {
-		return float64(time.Since(start).Milliseconds()), nil, nil
-	}
-
-	// Fallback to a different target (simple retries with random selection again or fixed fallback)
-	target2 := getRandomTarget()
-	if target2 == target && len(TestTargets) > 1 {
-		// Try to pick a different one
-		for {
-			target2 = getRandomTarget()
-			if target2 != target {
-				break
-			}
-		}
-	}
-
-	start = time.Now()
-	// [FIX] Use NewRequestWithContext for retry target as well
-	req2, _ := http.NewRequestWithContext(ctx, "GET", target2, nil)
-	resp, err = client.Do(req2)
-
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, err // Dead proxy
 	}
 	defer resp.Body.Close()
-	io.Copy(io.Discard, resp.Body)
+	io.Copy(io.Discard, resp.Body) // Drain body
 
-	if resp.StatusCode == 204 || resp.StatusCode == 200 {
-		return float64(time.Since(start).Milliseconds()), issues, nil
+	if resp.StatusCode != 204 && resp.StatusCode != 200 {
+		return 0, nil, fmt.Errorf("neutral target returned status %d", resp.StatusCode)
 	}
 
-	return 0, nil, fmt.Errorf("all targets failed")
+	// If we are here, proxy is ALIVE (Working).
+	latency := float64(time.Since(start).Milliseconds())
+
+	// 2. Secondary Check (Sanctioned)
+	// Only needed if we want to TAG it. For now, we assume if it passes neutral, it's "Working".
+	// But to support "Smart Chains", we should tag ingress proxies.
+
+	sanctionedTarget := sanctionedTargets[getRandomInt(len(sanctionedTargets))]
+	req2, _ := http.NewRequestWithContext(ctx, "GET", sanctionedTarget, nil)
+	resp2, err2 := client.Do(req2)
+
+	isGlobal := false
+	if err2 == nil {
+		defer resp2.Body.Close()
+		io.Copy(io.Discard, resp2.Body)
+		if resp2.StatusCode == 204 || resp2.StatusCode == 200 {
+			isGlobal = true
+		}
+	}
+
+	if isGlobal {
+		issues = append(issues, "access_global")
+	} else {
+		// It works on neutral but fails on sanctioned -> Likely Domestic/Ingress
+		issues = append(issues, "access_domestic")
+	}
+
+	return latency, issues, nil
 }
 
 func isHoneypot(ctx context.Context, p ProxyInput) bool {
-	token := fmt.Sprintf("%d-%s", time.Now().UnixNano(), p.ID)
 	secret := os.Getenv(HoneypotSecret)
+	// [FAIL-SAFE] If no secret is configured, disable honeypot checks safely
+	// rather than returning false positives or crashing.
 	if secret == "" {
 		return false
 	}
+
+	token := fmt.Sprintf("%d-%s", time.Now().UnixNano(), p.ID)
 
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(token))
