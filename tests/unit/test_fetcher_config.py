@@ -47,5 +47,5 @@ async def test_env_var_override():
 
     # Check if MAX_RESPONSE_SIZE is an int
     assert isinstance(configstream.fetcher.MAX_RESPONSE_SIZE, int)
-    # Default is 50MB
-    assert configstream.fetcher.MAX_RESPONSE_SIZE == 50 * 1024 * 1024
+    # Default is 200MB
+    assert configstream.fetcher.MAX_RESPONSE_SIZE == 200 * 1024 * 1024

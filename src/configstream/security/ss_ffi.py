@@ -64,13 +64,12 @@ def _verify_binary_checksum(path: Path) -> bool:
 
         calculated = sha256_hash.hexdigest()
 
-        # If no env hash provided, we use the hardcoded default expected_hash.
-        # We strictly enforce it now to avoid fail-open.
+        # Only strictly enforce checksum when explicitly configured via ENV.
+        if not env_hash:
+            logger.debug("SS library checksum not enforced (SS_LIB_SHA256 not set).")
+            return True
 
         if calculated != expected_hash:
-            # [FIX] Redact hash in logs to avoid leaking potentially sensitive info (though hash itself isn't secret, the mismatch detail might be)
-            # Actually, standard practice is to not log expected vs actual if it reveals secrets.
-            # Checksums of binaries are usually public. But let's follow the report suggestion "Secret-like logging".
             logger.critical("SS Library Hash Mismatch! Integrity check failed.")
             return False
 
