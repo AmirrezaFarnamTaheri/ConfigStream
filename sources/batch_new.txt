@@ -1,4 +1,0 @@
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/vless.txt
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/vmess.txt
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/trojan.txt
-https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks5.txt

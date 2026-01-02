@@ -36,3 +36,7 @@ https://raw.githubusercontent.com/mahdibland/SSAggregator/mast
 https://github.com/sinavm/Hiddify/raw/refs/heads/main/@sinavm#@sinavmhttps://github.com/sinavm/Hiddify/raw/refs/heads/main/@sinavm#@sinavm
 https://raw.githubusercontent.com/mahdibland/SSAggregator/master/sub/sub_merge_yaml.yml
 https://raw.githubusercontent.com/ImMyron/V2ray/main/Web
+https://raw.githubusercontent.com/rango-cfs/NewCollector/refs/heads/main/v2ray_links.txt
+https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/refs/heads/master/collected-proxies/xray-json-full/actives_all.json
+https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Raw
+https://sub.amiralter.com/config-lite

@@ -63,3 +63,7 @@ https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks4.txt
 https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/shadowsocks
 https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/splitted/trojan.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/vmess.txt
+https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Frag
+https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/refs/heads/main/configs/Hysteria2.txt
+https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector_Py/refs/heads/main/sub/Mix/mix.txt

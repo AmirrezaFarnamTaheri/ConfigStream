@@ -63,3 +63,7 @@ https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
 https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/main/githubmirror/1.txt
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/husi-wg.txt
 https://raw.githubusercontent.com/bamdad23/JavidnamanIran/main/WS%2BHysteria2
+https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/xray/base64/xhttp
+https://vpny.net/Home
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/speed.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sing-box.json

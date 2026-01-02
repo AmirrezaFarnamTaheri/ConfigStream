@@ -61,3 +61,7 @@ https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions
 https://raw.githubusercontent.com/arshiacomplus/WoW-fix/main/sing-box.json
 https://raw.githubusercontent.com/Anaer/Sub/main/clash.yaml
 https://raw.githubusercontent.com/SoliSpirit/v2ray-configs/main/Protocols/vless.txt
+https://raw.githubusercontent.com/Pawdroid/Free-servers/main/static/sub_en
+https://raw.githubusercontent.com/LalatinaHub/Mineral/refs/heads/master/result/nodes
+https://raw.githubusercontent.com/Danialsamadi/v2go/refs/heads/main/AllConfigsSub.txt
+https://raw.githubusercontent.com/Firmfox/Proxify/refs/heads/main/v2ray_configs/seperated_by_protocol/shadowsocks.txt

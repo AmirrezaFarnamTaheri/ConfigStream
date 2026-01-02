@@ -64,3 +64,7 @@ https://proxy-daily.com/
 http://gatherproxy.com/
 https://raw.githubusercontent.com/liketolivefree/kobabi/main/sub_all.txt
 https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY_RAW.txt
+https://raw.githubusercontent.com/lagzian/IranConfigCollector/main/Base64.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/fragment
+https://raw.githubusercontent.com/Farid-Karimi/Config-Collector/refs/heads/main/mixed_iran.txt
+https://raw.githubusercontent.com/10ium/free-config/refs/heads/main/HighSpeed.txt
