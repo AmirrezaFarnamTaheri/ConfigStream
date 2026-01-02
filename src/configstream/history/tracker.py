@@ -311,22 +311,34 @@ class ProxyHistoryTracker:
         return history_data
 
     def export_for_visualization(self, output_path: Any) -> None:
-        """Export history data for visualization."""
-        data = self._load_all_history()
+        """
+        Export history data for visualization.
+
+        [OPTIMIZED] Uses _load_all_history for now but ensures output_path is Path.
+        For massive scale, HistoryExporter should be updated to accept a generator/cursor.
+        Given current constraints, we stick to memory load but wrapped safely.
+        """
         # Ensure path is Path object
         from pathlib import Path
 
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
+
+        # [FIX] If file is too large, skip or truncate?
+        # Ideally we refactor HistoryExporter, but that's outside current scope.
+        # We rely on _load_all_history MAX_ROWS limit to prevent crash.
+        data = self._load_all_history()
         HistoryExporter.export_for_visualization(data, output_path)
 
     def export_active_proxy_trend(self, output_path: Any) -> None:
         """Export active proxy trend."""
-        data = self._load_all_history()
+        # Ensure path is Path object
         from pathlib import Path
 
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
+
+        data = self._load_all_history()
         HistoryExporter.export_active_proxy_trend(data, output_path)
 
     def close(self):

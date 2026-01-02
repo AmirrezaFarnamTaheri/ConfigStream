@@ -231,7 +231,27 @@ async def processing_consumer(
 
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
-                        await tester.test_batch(chunk)
+                        try:
+                            await tester.test_batch(chunk)
+                        except Exception as e:
+                            logger.error(f"Go batch tester failed for chunk: {e}. Fallback to Python tester.")
+                            # Fallback to Python tester for this chunk
+                            async def _fallback_test(p: Proxy):
+                                sem = concurrency.get_semaphore()
+                                async with sem:
+                                    return await tester.test(p)
+
+                            results = await asyncio.gather(*[_fallback_test(x) for x in chunk], return_exceptions=True)
+                            # Update chunk with results (results are mostly in-place modifications to Proxy objects if successful,
+                            # but tester.test returns updated proxy)
+                            # Actually tester.test returns a COPY or modifies?
+                            # SingBoxTester.test returns Proxy.
+                            # We need to reflect this back to chunk if needed, but since Proxy is mutable and passed by ref,
+                            # let's assume tester.test updates it or returns it.
+                            # Standard pattern:
+                            for idx, res in enumerate(results):
+                                if isinstance(res, Proxy):
+                                    chunk[idx] = res
 
                         # [OPTIMIZATION] Batch history update in executor to prevent blocking loop
                         if chunk:

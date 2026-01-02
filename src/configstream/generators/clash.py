@@ -13,8 +13,14 @@ from ..converters import to_clash_proxy
 logger = logging.getLogger(__name__)
 
 
-def generate_clash_config(proxies: List[Proxy]) -> str:
-    """Generates a Clash YAML configuration."""
+def generate_clash_config(proxies: List[Proxy], extra_outbounds: Any = None) -> str:
+    """
+    Generates a Clash YAML configuration.
+
+    [FIX] Added `extra_outbounds` argument to prevent crash when pipeline passes it.
+    However, Clash generator currently only supports standard proxies.
+    Future work: Convert Sing-box chains to Clash relay groups.
+    """
     if not yaml:
         logger.warning("PyYAML not installed, skipping Clash generation")
         return ""

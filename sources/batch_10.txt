@@ -4,7 +4,6 @@
 
 https://raw.githubusercontent.com/jetkai/proxy-list/main/online-proxies/txt/proxies.txt
 https://raw.githubusercontent.com/MahsaNetConfigTopic/config/main/xray_final.txt
-https://raw.githubusercontent.com/darknessm427/WoW/main/subwarp/warp
 https://tt.vg/freeclash
 https://raw.githubusercontent.com/NiceVPN123/NiceVPN/main/Clash.yaml
 https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet_iOS.txt
@@ -15,7 +14,6 @@ https://raw.githubusercontent.com/SnapdragonLee/SystemProxy/master/dist/clash_co
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/ss.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-3.txt
 https://raw.githubusercontent.com/ssrsub/ssr/master/v2ray
-https://raw.githubusercontent.com/TheSpeedX/PROXY-List/main/http.txt
 https://raw.githubusercontent.com/webdao/v2ray/refs/heads/master/nodes.txt
 https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/ss_iran.txt
 https://raw.githubusercontent.com/hkaa0/permalink/main/proxy/clash.yaml
@@ -40,7 +38,6 @@ https://raw.githubusercontent.com/Flik6/getNode/main/v2ray.txt
 https://ch.owokkvsxks.store/api/v1/client/subscribe?token=ad180e3b9514176a8cb26bf2962d5f1e
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/reality
 https://raw.githubusercontent.com/hamedp-71/Trojan/refs/heads/main/hp.txt
-https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet_META_IRAN-Direct.yml
 https://raw.githubusercontent.com/itxve/fetch-clash-node/main/node/ClashNode.yaml
 https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/sub_merge.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub25.txt
@@ -48,18 +45,14 @@ https://Rayan-Config.github.io/NG
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/wenode.yaml
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/vl.txt
 https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/ss
-https://raw.githubusercontent.com/rxsweet/proxies/main/sub/rx.yaml
 https://raw.githubusercontent.com/zjr13808836946/zjr_clash/main/V2_SSR_M
 https://raw.githubusercontent.com/learnhard-cn/free_proxy_ss/main/config.yaml
 https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/vless.txt
 https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpeasoft%2FNoMoreWalls%2Fmaster%2Fsnippets%2Fnodes.meta.yml&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&tls13=true&emoji=true&list=false&xudp=true&udp=true&tfo=false&expand=true&scv=false&fdn=false&singbox.ipv6=1
-https://raw.githubusercontent.com/mermeroo/Clash-V2ray/main/v2ray
 https://raw.githubusercontent.com/mermeroo/Loon/refs/heads/main/all.nodes.txt
 https://bitbucket.org/huwo1/proxy_nodes/raw/f31ca9ec67b84071515729ff45b011b6b09c10f2/proxy.md
 https://raw.githubusercontent.com/baipiao0/baipiao02/main/v2ray
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_4.txt
-https://raw.githubusercontent.com/coldwater-10/Vpnclashfa/main/V2Hub5.yaml
-https://raw.githubusercontent.com/vveg26/chromego_merge/main/sub/merged_proxies.yaml
 https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/vless.txt
 https://raw.githubusercontent.com/mohamadfg-dev/telegram-v2ray-configs-collector/main/category/httpupgrade.txt
 https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Base64
@@ -68,5 +61,4 @@ https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-17.txt
 https://www.proxynova.com/proxy-server-list/
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/vless
 https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/temporary
-https://raw.githubusercontent.com/AzadNetCH/Clash/main/V2Ray.txt
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/ndnode.yaml
