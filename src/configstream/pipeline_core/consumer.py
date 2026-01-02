@@ -246,10 +246,16 @@ async def processing_consumer(
                                 async with sem:
                                     try:
                                         return await tester.test(p)
+                                    except asyncio.CancelledError:
+                                        raise
                                     except Exception as e:
-                                        logger.error(f"Fallback test failed for proxy {p.id}: {e}")
+                                        logger.error(
+                                            SecurityValidator.sanitize_log_message(
+                                                f"Fallback test failed for proxy {p.id}: {e}"
+                                            )
+                                        )
                                         p.is_working = False
-                                        p.details["error"] = str(e)
+                                        p.details["error"] = "FALLBACK_TEST_FAILED"
                                         return p
 
                             results = await asyncio.gather(
@@ -266,6 +272,19 @@ async def processing_consumer(
                             for idx, res in enumerate(results):
                                 if isinstance(res, Proxy):
                                     chunk[idx] = res
+                                else:
+                                    # `res` is an Exception due to return_exceptions=True
+                                    if isinstance(res, asyncio.CancelledError):
+                                        raise res
+
+                                    p = chunk[idx]
+                                    p.is_working = False
+                                    p.details["error"] = "FALLBACK_TEST_EXCEPTION"
+                                    logger.error(
+                                        SecurityValidator.sanitize_log_message(
+                                            f"Fallback test for proxy {p.id} raised an exception: {res}"
+                                        )
+                                    )
 
                         # [OPTIMIZATION] Batch history update in executor to prevent blocking loop
                         if chunk:

@@ -204,6 +204,9 @@ def safe_b64_decode(data: str) -> Optional[str]:
     if pad:
         validated += "=" * (4 - pad)
 
+    if not validated:
+        return None
+
     try:
         decoded_bytes = base64.b64decode(validated, altchars=b"-_", validate=True)
 
