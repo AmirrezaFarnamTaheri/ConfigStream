@@ -46,6 +46,7 @@ dependencies = [
     "orjson>=3.9.0",
     "nest-asyncio",
     "wasmtime>=39.0.0",
+    "slowapi>=0.1.9",
 
     # CLI & UI
     "click",

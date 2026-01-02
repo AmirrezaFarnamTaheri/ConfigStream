@@ -127,8 +127,7 @@ class SecurityValidator:
                 categorized_issues[category].append(issue)
 
         # UUID format validation for UUID-based protocols
-        # Only validate UUID for protocols that strictly require it (VMess, VLESS).
-        # Protocols like Trojan use passwords (any string) which are stored in proxy.uuid.
+        # Enforce strict UUID formats for UUID-mandatory protocols (e.g., VMess/VLESS).
         if proxy.protocol in ("vmess", "vless"):
             if not proxy.uuid:
                 category = SECURITY_CATEGORIES["UUID_INVALID"]
@@ -136,17 +135,19 @@ class SecurityValidator:
                     categorized_issues[category] = []
                 categorized_issues[category].append("Missing mandatory UUID")
             else:
-                # [FIX] Relax UUID validation to minimize false positives.
-                # Standard VLESS/VMess requires UUID, but many implementations accept simple passwords.
-                # We enforce minimum length (8 chars) and basic charset to filter noise/spam.
-                # Regex: Alphanumeric + hyphens, min 8 chars.
-                if len(str(proxy.uuid)) < 8 or not re.match(r"^[a-zA-Z0-9-]+$", str(proxy.uuid)):
+                try:
+                    uuid.UUID(str(proxy.uuid))
+                except (ValueError, AttributeError, TypeError):
                     category = SECURITY_CATEGORIES["UUID_INVALID"]
                     if category not in categorized_issues:
                         categorized_issues[category] = []
                     categorized_issues[category].append(
-                        f"Invalid UUID format (too short or invalid chars): {proxy.uuid!r}"
+                        f"Invalid UUID format: {SecurityValidator.sanitize_log_message(str(proxy.uuid))}"
                     )
+        else:
+            # Non-UUID protocols may store password-like credentials in `proxy.uuid`;
+            # do not apply UUID/format validation to avoid false rejections.
+            pass
 
         is_secure = len(categorized_issues) == 0
 
