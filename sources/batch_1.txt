@@ -66,3 +66,7 @@ https://raw.githubusercontent.com/xhmotor/V2rayn/main/v2rayn
 https://free.proxynova.com/proxy-list/
 https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/sub.txt
 https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/server.txt
+https://vpny.net/Mobile
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/proton-wire.json
+https://raw.githubusercontent.com/V2RAYCONFIGSPOOL/V2RAY_SUB/refs/heads/main/v2ray_configs.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_patterniha.json
