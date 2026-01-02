@@ -38,6 +38,8 @@ async def check_url(client, url):
             logger.info(f"Blocked/forbidden (kept): {_redact(url)}")
             return url, 0
         return url, 200
+    except asyncio.CancelledError:
+        raise
     except Exception as e:
         logger.warning(f"Error checking {_redact(url)}: {e}")
         # Treat connection errors as potentially temporary
@@ -105,6 +107,9 @@ async def prune_sources():
                     if status in (404, 403, 410):
                         dead_urls.add(url)
                 except Exception as e:
+                    # Propagate cancellations
+                    if isinstance(e, asyncio.CancelledError):
+                        raise
                     # Log exception but continue processing other tasks
                     # We can't identify which URL failed here easily unless we wrap tasks deeper,
                     # but bounded_check already catches exceptions and returns (url, 0).
@@ -115,6 +120,8 @@ async def prune_sources():
             for t in tasks:
                 if not t.done():
                     t.cancel()
+            # Ensure all tasks finish or are suppressed
+            await asyncio.gather(*tasks, return_exceptions=True)
 
     logger.info(f"Found {len(dead_urls)} dead URLs to remove.")
 
