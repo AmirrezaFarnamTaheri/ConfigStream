@@ -389,8 +389,10 @@ class GoBatchTester:
             for p in req_id_map.values():
                 if p.is_working is None:
                     p.is_working = False
-                    p.details["error"] = "DAEMON_WRITE_FAILED"
-                    p.details["failure_category"] = "CRASH"
+                    if not isinstance(p.details, dict):
+                        p.details = {}
+                    p.details.setdefault("error", "DAEMON_WRITE_FAILED")
+                    p.details.setdefault("failure_category", "CRASH")
 
             # Process might be dead, ensure restart next time
             await self.close()
