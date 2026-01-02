@@ -11,11 +11,12 @@ import asyncio
 
 import httpx
 
+from ..constants import WARP_PREFIXES
+
 logger = logging.getLogger(__name__)
 
 # Cloudflare WARP API endpoints
 API_BASE = "https://api.cloudflareclient.com/v0a2404"
-from ..constants import WARP_PREFIXES
 
 
 class WARPKeyValidator:
