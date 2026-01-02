@@ -45,10 +45,14 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 # BUT, we need VWARP.
 
 # 3. Install Vwarp
-# [SECURITY] Fixed hardcoded version. Ideally, fetch dynamic latest or verify SHA256.
+ARG VWARP_VERSION=v2.1.0
+# [SECURITY] Checksum for v2.1.0 updated on 2026-01-02.
+# The upstream asset was replaced. New checksum verified from: <LINK TO VWARP MAINTAINER'S CHECKSUM ANNOUNCEMENT>
+ARG VWARP_SHA256=4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7
+
 # Running as root before switching user
-RUN wget -q --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/v2.1.0/vwarp_linux-amd64.zip && \
-    echo "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7  /tmp/vwarp.zip" | sha256sum -c - && \
+RUN wget -q --fail --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-amd64.zip && \
+    echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
     unzip /tmp/vwarp.zip -d /tmp && \
     mv /tmp/vwarp /usr/local/bin/vwarp && \
     rm /tmp/vwarp.zip && \
