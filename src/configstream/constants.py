@@ -16,13 +16,13 @@ CACHE_WARMING_LOW_SCORE_THRESHOLD = 50  # Proxy count for low-score tier
 # [PHASE 5] VirusTotal Cache Size
 VIRUSTOTAL_CACHE_SIZE = 1000  # LRU cache size for VT lookups
 
-# Size Limits (Kept low to prevent DoS/OOM. Use streaming for large sources.)
-MAX_B64_INPUT_SIZE = 10 * 1024 * 1024  # 10 MB
+# Size Limits (Loosened for large repo support)
+MAX_B64_INPUT_SIZE = 200 * 1024 * 1024  # 200 MB
 MAX_B64_OUTPUT_SIZE = (
-    50 * 1024 * 1024
-)  # 50 MB
+    250 * 1024 * 1024
+)  # 250 MB
 MAX_CONFIG_LINE_LENGTH = 10000
-MAX_LINES_PER_SOURCE = 40000  # Maximum lines to process per source
+MAX_LINES_PER_SOURCE = 200000  # Maximum lines to process per source
 MAX_SOURCE_URL_LENGTH = 2048
 
 # Ports & Domains

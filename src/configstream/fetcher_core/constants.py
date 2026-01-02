@@ -2,7 +2,7 @@
 import os
 
 # Allow override via env for low-memory environments
-# Default 50MB. Large sources should be processed via streaming.
+# Default 200MB to support large repositories (e.g. ircfspace)
 MAX_RESPONSE_SIZE = int(
-    os.getenv("MAX_RESPONSE_SIZE", str(50 * 1024 * 1024))
+    os.getenv("MAX_RESPONSE_SIZE", str(200 * 1024 * 1024))
 )
