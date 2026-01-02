@@ -52,26 +52,35 @@ def generate_singbox_config(
     # 2. Append Extra Outbounds (e.g. Washed Chains)
     if extra_outbounds:
         for out in extra_outbounds:
-            # Ensure uniqueness for extra outbounds too
-            tag = out.get("tag", "")
-            if tag and tag in seen_tags:
-                base_tag = tag
-                counter = 1
-                while tag in seen_tags:
-                    tag = f"{base_tag}-{counter}"
-                    counter += 1
-                out["tag"] = tag  # Update the tag in the object
+            # [FIX] Flatten list of lists if encountered (common with chains)
+            # The 'washer' logic returns [[Relay, Exit], [Relay, Exit]], but this generator expects flat list.
+            # If 'out' is a list, we must iterate it.
+            if isinstance(out, list):
+                sub_outbounds = out
+            else:
+                sub_outbounds = [out]
 
-            if tag:
-                seen_tags.add(tag)
+            for item in sub_outbounds:
+                if not isinstance(item, dict):
+                    continue
 
-            # Check if this outbound is meant to be user-selectable
-            # Washed chains usually have a WireGuard outbound with tag "🛡️ Secure-..."
-            # The Relay outbound is "RELAY-..." and should not be in the selector directly,
-            # as it is only a detour for the WireGuard one.
-            outbounds.append(out)
-            if tag and not tag.startswith("RELAY-"):
-                selector_tags.append(tag)
+                # Ensure uniqueness for extra outbounds too
+                tag = item.get("tag", "")
+                if tag and tag in seen_tags:
+                    base_tag = tag
+                    counter = 1
+                    while tag in seen_tags:
+                        tag = f"{base_tag}-{counter}"
+                        counter += 1
+                    item["tag"] = tag  # Update the tag in the object
+
+                if tag:
+                    seen_tags.add(tag)
+
+                # Check if this outbound is meant to be user-selectable
+                outbounds.append(item)
+                if tag and not tag.startswith("RELAY-"):
+                    selector_tags.append(tag)
 
     # 3. Add Selectors/URLTest
     if selector_tags:
