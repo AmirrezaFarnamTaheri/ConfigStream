@@ -15,9 +15,6 @@ from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 
 logger = logging.getLogger(__name__)
 
-# Reusable settings instance
-SETTINGS = AppSettings()
-
 
 class GoBatchTester:
     def __init__(
@@ -179,8 +176,11 @@ class GoBatchTester:
             cmd = [self.binary_path, "-workers", str(self.workers)]
             cmd.extend(["-timeout", f"{int(self.timeout)}s"])
 
-            if SETTINGS.TEST_URLS:
-                urls = ",".join(str(u) for u in SETTINGS.TEST_URLS.values())
+            # NOTE: Avoid module-level AppSettings() instances; settings should be created
+            # lazily to respect runtime env changes (important for tests).
+            settings = AppSettings()
+            if settings.TEST_URLS:
+                urls = ",".join(str(u) for u in settings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
 
             logger.info(f"Starting Go Tester Daemon: {' '.join(cmd)}")
