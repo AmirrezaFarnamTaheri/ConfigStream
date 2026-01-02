@@ -1,11 +1,12 @@
-
 import sys
 import os
+
 # Ensure src is in path
 sys.path.insert(0, os.path.abspath("src"))
 
 from configstream.models import Proxy
 from configstream.converters.clash import to_clash_proxy
+
 
 def run_clash_modern_manual():
     # Hysteria2
@@ -21,7 +22,7 @@ def run_clash_modern_manual():
             "obfs": "salamander",
             "obfs-password": "secret",
         },
-        is_working=True
+        is_working=True,
     )
     clash_hy2 = to_clash_proxy(hy2)
     assert clash_hy2["type"] == "hysteria2"
@@ -41,9 +42,9 @@ def run_clash_modern_manual():
         details={
             "password": "pass",
             "congestion_controller": "bbr",
-            "allowInsecure": False
+            "allowInsecure": False,
         },
-        is_working=True
+        is_working=True,
     )
     clash_tuic = to_clash_proxy(tuic)
     assert clash_tuic["type"] == "tuic"
@@ -61,9 +62,9 @@ def run_clash_modern_manual():
             "private_key": "priv",
             "peer_public_key": "pub",
             "local_address": ["10.0.0.1"],
-            "mtu": 1280
+            "mtu": 1280,
         },
-        is_working=True
+        is_working=True,
     )
     clash_wg = to_clash_proxy(wg)
     assert clash_wg["type"] == "wireguard"
@@ -71,6 +72,7 @@ def run_clash_modern_manual():
     assert clash_wg["private-key"] == "priv"
     assert clash_wg["mtu"] == 1280
     print("WireGuard passed")
+
 
 if __name__ == "__main__":
     try:

@@ -6,10 +6,11 @@ from .constants import PROTOCOL_COLORS
 
 class AppSettings(BaseSettings):
     """Centralized configuration for all proxy operations"""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        extra="ignore"  # Allow extra env vars
+        extra="ignore",  # Allow extra env vars
     )
 
     # Test URLs and timeouts
@@ -112,7 +113,7 @@ class AppSettings(BaseSettings):
         else:
             self.SECURITY["blocked_countries"] = []
 
-    def validate(self) -> None:
+    def validate_settings(self) -> None:
         """Validate configuration settings."""
         if self.TEST_TIMEOUT <= 0:
             raise ValueError("TEST_TIMEOUT must be positive")

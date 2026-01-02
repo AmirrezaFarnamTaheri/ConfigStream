@@ -77,7 +77,9 @@ class WARPKeyValidator:
 
         return True, "Valid"
 
-    async def validate_account_active(self, account_id: str, token: Optional[str] = None) -> Tuple[bool, str]:
+    async def validate_account_active(
+        self, account_id: str, token: Optional[str] = None
+    ) -> Tuple[bool, str]:
         """
         Check if a WARP account ID is active by querying Cloudflare API.
 

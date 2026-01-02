@@ -18,9 +18,7 @@ VIRUSTOTAL_CACHE_SIZE = 1000  # LRU cache size for VT lookups
 
 # Size Limits (Kept low to prevent DoS/OOM. Use streaming for large sources.)
 MAX_B64_INPUT_SIZE = 10 * 1024 * 1024  # 10 MB
-MAX_B64_OUTPUT_SIZE = (
-    50 * 1024 * 1024
-)  # 50 MB
+MAX_B64_OUTPUT_SIZE = 50 * 1024 * 1024  # 50 MB
 MAX_CONFIG_LINE_LENGTH = 10000
 MAX_LINES_PER_SOURCE = 40000  # Maximum lines to process per source
 MAX_SOURCE_URL_LENGTH = 2048
@@ -34,17 +32,32 @@ DANGEROUS_PORTS = [21, 22, 23, 25, 110, 143, 445, 3389]
 # [SECURITY] Private IP ranges that should NOT be accessed via public proxies
 SUSPICIOUS_DOMAINS = [
     "localhost",
-    "127.",         # Loopback
-    "0.0.0.0",      # Zero
-    "10.",          # Private Class A
-    "192.168.",     # Private Class C
-    "169.254.",     # Link-local
-    "100.64.",      # Carrier Grade NAT
+    "127.",  # Loopback
+    "0.0.0.0",  # Zero
+    "10.",  # Private Class A
+    "192.168.",  # Private Class C
+    "169.254.",  # Link-local
+    "100.64.",  # Carrier Grade NAT
     # Class B Private: 172.16.0.0 - 172.31.255.255
     # Regex matching would be better, but prefix list covers most
-    "172.16.", "172.17.", "172.18.", "172.19.", "172.20.", "172.21.", "172.22.", "172.23.",
-    "172.24.", "172.25.", "172.26.", "172.27.", "172.28.", "172.29.", "172.30.", "172.31.",
-    "fc00:", "fd00:",  # IPv6 ULA
+    "172.16.",
+    "172.17.",
+    "172.18.",
+    "172.19.",
+    "172.20.",
+    "172.21.",
+    "172.22.",
+    "172.23.",
+    "172.24.",
+    "172.25.",
+    "172.26.",
+    "172.27.",
+    "172.28.",
+    "172.29.",
+    "172.30.",
+    "172.31.",
+    "fc00:",
+    "fd00:",  # IPv6 ULA
 ]
 
 # [PHASE 19] WARP Endpoint Prefixes for Validator
