@@ -39,7 +39,7 @@ class StatisticsEngine:
             proxy.latency
             for proxy in self.proxies
             if proxy.latency is not None
-            and 0 < proxy.latency < 5000  # [FIX] Exclude timeouts/outliers
+            and proxy.latency > 0  # [FIX] Removed < 5000 hardcap to include high latency valid proxies
         ]
         if not latencies:
             return {}

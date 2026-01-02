@@ -19,7 +19,6 @@ https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/blues.yaml
 https://raw.githubusercontent.com/du5/free/master/file/0906/surge.conf
 https://Rayan-Config.github.io/NB
 https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge_yaml.yml
-http://www.freeproxy.win/api/proxy
 https://www.proxyscan.io/download?type=http,https,socks4,socks5
 https://raw.githubusercontent.com/Firmfox/Proxify/main/v2ray_configs/mixed/subscription-2.txt
 https://raw.githubusercontent.com/bingoYB/node_processing/main/dist/all.yaml
@@ -28,9 +27,7 @@ https://raw.githubusercontent.com/IranianCypherpunks/Xray/main/Sub
 https://raw.githubusercontent.com/SoliSpirit/v2ray-configs/main/Protocols/ss.txt
 https://noopsproxy.com/api/all
 https://raw.githubusercontent.com/wrfree/free/refs/heads/main/v2
-https://raw.githubusercontent.com/freev2rayconfig/V2RAY_SUBSCRIPTION_LINK/main/v2rayconfigs.txt
 https://raw.githubusercontent.com/moneyfly1/sublist/main/clash.yml
-https://raw.githubusercontent.com/tbbatbb/Proxy/master/dist/clash.config.yaml
 https://raw.githubusercontent.com/pojiezhiyuanjun/freev2/master/20200808.txt
 https://raw.githubusercontent.com/webdao/v2ray/master/nodes.txt
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/v2rayshare.yaml
@@ -40,7 +37,6 @@ https://raw.githubusercontent.com/SnapdragonLee/SystemProxy/master/dist/clash_co
 https://raw.githubusercontent.com/freefq/free/master/v2
 https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mci/sub_1.txt
-https://www.freeproxyupdate.com/api/proxy
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/SSTime
 https://raw.githubusercontent.com/Ashkan-m/v2ray/refs/heads/main/VIP.txt
 https://publicproxyservers.com/api/proxy
@@ -62,12 +58,8 @@ https://raw.githubusercontent.com/sh3d0ww02f/sh3d0ww02f.github.io/main/ssr.confi
 https://proxyspeedy.com/api/all
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_1.txt
 https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-7.txt
-https://raw.githubusercontent.com/rxsweet/CM_Vmess/refs/heads/main/test.txt
-https://raw.githubusercontent.com/aiboboxx/clashfree/main/clash.yml
 https://raw.githubusercontent.com/Mahdi0024/ProxyCollector/master/sub/proxies.txt
-https://raw.githubusercontent.com/hamedp-71/test_clash_warp/main/test.yaml
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks4.txt
 https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/shadowsocks
-https://yy.filmtoday.top/api/v1/client/subscribe?token=390eb972a4070dd91ad8cb8a11e9aff8
 https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/splitted/trojan.txt

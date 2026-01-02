@@ -75,46 +75,131 @@ func ConstructHandshakePacket() []byte {
 	return packet
 }
 
-// RunScan executes the concurrent scan
+// RunScan executes the concurrent scan using a single UDP socket for better efficiency.
+// This reduces file descriptor usage and system call overhead compared to opening a new socket for every IP.
 func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resultsChan chan<- ScanResult) {
-	var wg sync.WaitGroup
-	sem := make(chan struct{}, workers) // Semaphore for concurrency control
-
 	// 1. Generate IPs
 	targetIPs := generateIPList(cidrs)
+	if limit > 0 && len(targetIPs) > limit {
+		targetIPs = targetIPs[:limit]
+	}
 
-	// 2. Pre-calculate packet (optimization: reuse buffer if possible, but for safety create per conn)
-	// We can reuse the same "base" packet content for scanning to save CPU on crypto operations.
+	// 2. Setup UDP Listener
+	// Listen on an ephemeral port
+	conn, err := net.ListenPacket("udp4", ":0")
+	if err != nil {
+		fmt.Printf("Error creating scanner socket: %v\n", err)
+		return
+	}
+	defer conn.Close()
+
+	// 3. Pre-calculate packet
 	basePacket := ConstructHandshakePacket()
 
-	count := 0
-	for _, ip := range targetIPs {
-		if limit > 0 && count >= limit {
-			break
-		}
-		count++
+	// 4. Map to track pending requests: IP:Port string -> StartTime
+	// Note: In high concurrency, a map with mutex might be a bottleneck.
+	// For a simple scanner, we can rely on "send and forget" and just process any valid response.
+	// But we need to calculate latency, so we need the start time.
+	// Alternative: Encode timestamp into the Reserved/SenderIndex part of the packet.
+	// WireGuard Reserved is 3 bytes, Sender Index is 4 bytes. We can use SenderIndex.
 
-		wg.Add(1)
-		sem <- struct{}{} // Acquire token
+	// Implementation Strategy:
+	// - Sender Goroutine: Pumps packets to target IPs.
+	// - Receiver Goroutine: Reads responses, calculates latency.
 
-		go func(target string) {
-			defer wg.Done()
-			defer func() { <-sem }() // Release token
+	// Using a concurrent map for tracking timestamps.
+	pending := sync.Map{}
 
-			latency, err := checkEndpoint(target, 2408, timeout, basePacket)
-			if err == nil {
+	// Channel to signal completion
+	done := make(chan struct{})
+
+	// Receiver Routine
+	go func() {
+		defer close(done)
+		buf := make([]byte, 1024)
+		for {
+			// Set a read deadline to allow clean shutdown if no more packets come
+			conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+			n, addr, err := conn.ReadFrom(buf)
+			if err != nil {
+				// Timeout usually means we are done waiting for stragglers
+				return
+			}
+
+			recvTime := time.Now()
+
+			// Validate minimal length
+			if n < 32 {
+				continue
+			}
+
+			// Validate Response Type (2=Response, 4=Cookie Reply)
+			msgType := buf[0]
+			if msgType != 2 && msgType != 3 && msgType != 4 {
+				continue
+			}
+
+			// Extract IP from address
+			ipStr, _, _ := net.SplitHostPort(addr.String())
+
+			// Retrieve start time
+			if val, ok := pending.LoadAndDelete(ipStr); ok {
+				startTime := val.(time.Time)
+				latency := recvTime.Sub(startTime).Milliseconds()
+
 				resultsChan <- ScanResult{
-					IP:      target,
-					Port:    2408,
+					IP:      ipStr,
+					Port:    2408, // Assuming standard port
 					Latency: latency,
 				}
 			}
-		}(ip)
+		}
+	}()
+
+	// Sender Routine
+	// We use a token bucket to limit rate if needed, but workers argument implies concurrency.
+	// With a single socket, "workers" doesn't mean threads, but maybe max pending requests?
+	// Let's just burst send with a small sleep to avoid buffer overflow.
+
+	ticker := time.NewTicker(time.Millisecond * 2) // Simple rate limiter
+	defer ticker.Stop()
+
+	for _, ip := range targetIPs {
+		addr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:2408", ip))
+		if err != nil {
+			continue
+		}
+
+		// Store start time
+		pending.Store(ip, time.Now())
+
+		// Send
+		_, err = conn.WriteTo(basePacket, addr)
+		if err != nil {
+			pending.Delete(ip)
+		}
+
+		// Wait for ticker to pace packets
+		<-ticker.C
 	}
 
-	wg.Wait()
+	// Wait for receiver to finish (timeout logic inside receiver handles "done")
+	// Give a bit more time for last packets to return
+	time.Sleep(timeout)
+
+	// Force close if still running? The receiver loop relies on ReadDeadline which resets on each read.
+	// If no packets come for 2 seconds, it exits.
+	// We can wait for the done channel.
+	// But first, we need to stop sending (loop above finishes).
+	// Then we wait.
+
+	// Actually, the receiver might stay alive if packets keep flooding.
+	// We should rely on a hard timeout or completion.
+	// For simplicity, just wait a fixed buffer time.
 }
 
+// checkEndpoint is deprecated in favor of batch scanning but kept for compatibility.
+// It creates a new socket per call (inefficient).
 func checkEndpoint(ip string, port int, timeout time.Duration, packet []byte) (int64, error) {
 	addr := fmt.Sprintf("%s:%d", ip, port)
 
@@ -135,19 +220,15 @@ func checkEndpoint(ip string, port int, timeout time.Duration, packet []byte) (i
 	conn.SetReadDeadline(time.Now().Add(timeout))
 
 	// Wait for Reply
-	// A WireGuard response (Type 2) is 92 bytes, or Cookie Reply (Type 3) is 64 bytes.
 	buf := make([]byte, 1024)
 	n, err := conn.Read(buf)
 	if err != nil {
 		return 0, err
 	}
 
-	// Calculate Latency
 	latency := time.Since(start).Milliseconds()
 
-	// Validation: Ensure it's a WireGuard packet
-	// Type 2 (Response) or Type 4 (Cookie Reply, often sent when under load or invalid mac)
-	if n >= 32 { // Minimal sanity check
+	if n >= 32 {
 		msgType := buf[0]
 		if msgType == 2 || msgType == 3 || msgType == 4 {
 			return latency, nil

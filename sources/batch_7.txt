@@ -2,7 +2,6 @@
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 897.0s
 
-https://raw.githubusercontent.com/hamedp-71/Clash_New/main/hp.yaml
 https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eternity.yml
 https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/main/sub/mix
 https://qishuijc.top/api/v1/client/subscribe?token=391afb46752d77774f9848f1b0e30b14
@@ -16,13 +15,10 @@ https://raw.githubusercontent.com/Jason05211211/Freerocket/main/freessr
 https://raw.githubusercontent.com/NiREvil/vless/main/Cloudflare-IPs.json
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-10.txt
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/clash-meta.yml
-https://raw.githubusercontent.com/shirkerboy/scp/main/sub
 https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/refs/heads/main/sub/mix
 https://raw.githubusercontent.com/xiaoji235/airport-free/master/v2ray.txt
 https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-6.txt
 https://raw.githubusercontent.com/go4sharing/sub/main/sub.yaml
-https://raw.githubusercontent.com/oslook/clash-freenode/main/clash.yaml
-https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet.yml
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/hys-tuic.txt
 https://raw.githubusercontent.com/vxiaov/free_proxies/main/links.txt
 https://cdn.jsdelivr.net/gh/cry0ice/genode@main/public/all.txt
@@ -40,25 +36,20 @@ https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/main/Clash_Reality
 https://raw.githubusercontent.com/chengaopan/AutoMergePublicNodes/master/list.yml
 https://www.my-proxy.com/free-proxy-list.html
 https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-2.txt
-https://proxy11.com/api/proxy
 https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/vmess.txt
 https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY.txt
-https://github.com/mermeroo/V2RAY-FREE/raw/main/Base64/Sub1_base64.txt
 https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vmess.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub3.txt
 https://raw.githubusercontent.com/AzadNetCH/Clash/refs/heads/main/AzadNet_iOS.txt
-https://raw.githubusercontent.com/Danialsamadi/v2go/main/All_Configs_base64_Sub.txt
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/yudou66.yaml
 https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub3.txt
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/shadowsocks
 https://raw.githubusercontent.com/gtang8/SubCrawler/main/sub/share/all
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/mobile.txt
 https://raw.githubusercontent.com/TelAB841Conf/AB_841-config-Free-X-ray/refs/heads/main/X-ray_Server-Free
-https://raw.githubusercontent.com/aiboboxx/v2rayfree/main/v2
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub17.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub19.txt
-https://raw.githubusercontent.com/9Fork/openit/main/Clash.yaml
 https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Shadowrocket/Normal
 https://raw.githubusercontent.com/Firmfox/Proxify/main/v2ray_configs/mixed/subscription-1.txt
 https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/Latest_base64.txt

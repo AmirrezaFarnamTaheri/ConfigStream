@@ -4,23 +4,18 @@
 
 https://raw.githubusercontent.com/lcx12901/v2ray-/master/v2ray.txt
 https://raw.githubusercontent.com/jetkai/proxy-list/main/archive/yaml/proxies.yaml
-https://raw.githubusercontent.com/vpnclashfa-backup/ScrapeAndCategorize/main/output_base64_countries/MarshallIslands.txt
 https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/refs/heads/main/sub/vmess
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_3.txt
-https://raw.githubusercontent.com/budamu/clashconfig/main/v2ray.txt
-https://raw.githubusercontent.com/V2RAYCONFIGSPOOL/V2RAY_SUB/main/V2RAY_SUB.txt
 https://raw.githubusercontent.com/misersun/config003/main/config_all.yaml
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-9.txt
 https://raw.githubusercontent.com/vxiaov/free_proxies/refs/heads/main/links.txt
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_4.txt
 https://raw.githubusercontent.com/ripaojiedian/freenode/main/sub
-https://raw.githubusercontent.com/AzadNetCH/Clash/main/AzadNet_IRAN-Direct1.yml
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/ss.txt
 https://raw.githubusercontent.com/AB-84-AB/WarpFree/refs/heads/main/WarpFree
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub27.txt
 https://raw.githubusercontent.com/jetkai/proxy-list/main/archive/txt/proxies.txt
 https://raw.githubusercontent.com/imboys/proxyForClash/refs/heads/master/free%20proxy.yml
-https://raw.githubusercontent.com/vpnclashfa-backup/ScrapeAndCategorize/main/output_configs/MarshallIslands.txt
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-16.txt
 https://fresh-proxy-list.net/
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-12.txt
@@ -58,9 +53,7 @@ https://raw.githubusercontent.com/amirparsaxs/V2rayy/refs/heads/main/Sub.text555
 https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-8.txt
 https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/All_Configs_Sub.txt
 http://free-proxy.cz/en/proxylist/main
-https://pqjc.site/api/v1/client/subscribe?token=0d41f5bd237d1ab92b907e1e7d5e5cb3&flag=meta
 https://raw.githubusercontent.com/LalatinaHub/Mineral/master/result/nodes
-https://raw.githubusercontent.com/lcx12901/v2ray-/master/sspool.herokuapp.com/yzcloud.yaml
 https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/v2rayng-wg.txt
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_vmess.txt
 https://raw.githubusercontent.com/moneyfly1/sublist/main/config.yaml
@@ -70,4 +63,3 @@ https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
 https://raw.githubusercontent.com/AvenCores/goida-vpn-configs/main/githubmirror/1.txt
 https://raw.githubusercontent.com/NiREvil/vless/main/sub/husi-wg.txt
 https://raw.githubusercontent.com/bamdad23/JavidnamanIran/main/WS%2BHysteria2
-https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/sub/sub.txt
