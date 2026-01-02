@@ -246,6 +246,8 @@ async def processing_consumer(
                                 async with sem:
                                     try:
                                         return await tester.test(p)
+                                    except asyncio.CancelledError:
+                                        raise
                                     except Exception as e:
                                         logger.error(
                                             SecurityValidator.sanitize_log_message(
@@ -275,6 +277,11 @@ async def processing_consumer(
                                     p = chunk[idx]
                                     p.is_working = False
                                     p.details["error"] = "FALLBACK_TEST_EXCEPTION"
+                                    logger.error(
+                                        SecurityValidator.sanitize_log_message(
+                                            f"Fallback test for proxy {p.id} raised an exception: {res}"
+                                        )
+                                    )
 
                         # [OPTIMIZATION] Batch history update in executor to prevent blocking loop
                         if chunk:

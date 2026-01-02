@@ -113,10 +113,18 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	// Channel to signal completion
 	done := make(chan struct{})
 
+	// WaitGroup to track senders
+	var wg sync.WaitGroup
+
 	// Receiver Routine
 	go func() {
 		defer close(done)
 		buf := make([]byte, 1024)
+
+		// Wait for all senders to finish before setting a final read deadline.
+		// This ensures we don't time out while packets are still being sent.
+		wg.Wait()
+
 		// Set a single absolute deadline to ensure receiver eventually exits
 		end := time.Now().Add(timeout)
 		for {
@@ -156,22 +164,21 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 				startTime := val.(time.Time)
 				latency := recvTime.Sub(startTime).Milliseconds()
 
-				// Avoid deadlock if results consumer is slow/unbuffered
+				// Avoid deadlock if results consumer is slow/unbuffered, but don't silently lose all results.
 				select {
 				case resultsChan <- ScanResult{
 					IP:      ipStr,
 					Port:    2408, // Assuming standard port
 					Latency: latency,
 				}:
-				default:
-					// Drop result under backpressure
+				case <-time.After(50 * time.Millisecond):
+					// Timed out delivering result under backpressure
 				}
 			}
 		}
 	}()
 
 	// Sender Goroutines
-	var wg sync.WaitGroup
 	ipChan := make(chan string, len(targetIPs))
 	for _, ip := range targetIPs {
 		ipChan <- ip
@@ -200,13 +207,15 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 		}()
 	}
 
-	wg.Wait() // Wait for all senders to finish
+	// We don't wg.Wait() here anymore because the receiver waits for it.
+	// But we need to ensure we don't return from RunScan until both senders AND receiver are done.
+	// The original code did: wg.Wait(), then wait for receiver.
+	// Now receiver does wg.Wait().
+	// So we can just wait for 'done' channel, which is closed when receiver exits.
+	// Receiver exits after timeout, which starts AFTER wg.Wait().
+	// So this logic is sound: Senders run -> Receiver waits for senders -> Receiver waits for timeout -> Receiver exits -> done closed -> RunScan returns.
 
-	// After sending, wait for receiver to drain up to timeout budget
-	select {
-	case <-done:
-	case <-time.After(timeout):
-	}
+	<-done
 }
 
 // checkEndpoint is deprecated in favor of batch scanning but kept for compatibility.
