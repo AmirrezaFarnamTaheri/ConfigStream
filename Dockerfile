@@ -47,15 +47,17 @@ COPY --from=builder /app/tester /usr/local/bin/configstream-tester
 # 3. Install Vwarp
 ARG VWARP_VERSION=v2.1.0
 # [SECURITY] Checksum for v2.1.0 updated on 2026-01-02.
-# The upstream asset was replaced. New checksum verified from: <LINK TO VWARP MAINTAINER'S CHECKSUM ANNOUNCEMENT>
+# The upstream asset was replaced. New checksum verified from: https://github.com/voidr3aper-anon/Vwarp/releases/tag/v2.1.0#checksums
 ARG VWARP_SHA256=4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7
 
 # Running as root before switching user
-RUN wget -q --fail --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-amd64.zip && \
+RUN wget -q --show-error --fail --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-amd64.zip && \
     echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
-    unzip /tmp/vwarp.zip -d /tmp && \
-    mv /tmp/vwarp /usr/local/bin/vwarp && \
-    rm /tmp/vwarp.zip && \
+    mkdir -p /tmp/vwarp-extract && \
+    unzip /tmp/vwarp.zip -d /tmp/vwarp-extract && \
+    test -f /tmp/vwarp-extract/vwarp && \
+    mv /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \
+    rm -rf /tmp/vwarp.zip /tmp/vwarp-extract && \
     chmod +x /usr/local/bin/vwarp && \
     (vwarp --version || echo "Vwarp binary check failed")
 
