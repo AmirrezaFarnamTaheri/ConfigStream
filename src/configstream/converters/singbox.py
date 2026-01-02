@@ -91,8 +91,11 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "uuid": str(uuid),
         }
         # [FIX] Only include flow if it has a truthy value to avoid empty string issues
-        if flow_val := proxy.details.get("flow"):
-            out["flow"] = flow_val
+        flow_val = proxy.details.get("flow")
+        if isinstance(flow_val, str):
+            flow_val = flow_val.strip()
+        if flow_val:
+            out["flow"] = str(flow_val)
         add_transport_sb(out, proxy.details)
 
     elif proxy.protocol in ["shadowsocks", "ss2022"]:
