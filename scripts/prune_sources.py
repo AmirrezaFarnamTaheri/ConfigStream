@@ -1,4 +1,3 @@
-
 import os
 import re
 import logging
@@ -8,14 +7,14 @@ from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 SOURCES_DIR = Path("sources")
 TIMEOUT = 10.0
 MAX_CONCURRENT_CHECKS = 20
+
 
 async def check_url(client, url):
     try:
@@ -29,6 +28,7 @@ async def check_url(client, url):
         # Treat connection errors as potentially temporary, but 404/403 are definitive
         return url, 0
 
+
 async def prune_sources():
     if not SOURCES_DIR.exists():
         logger.error(f"Sources directory {SOURCES_DIR} not found.")
@@ -36,7 +36,9 @@ async def prune_sources():
 
     dead_urls = set()
     all_urls = set()
-    files_to_process = list(SOURCES_DIR.glob("*.txt")) or list(SOURCES_DIR.glob("**/*.txt"))
+    # [FIX] Use recursive glob to capture all .txt files in root and subdirectories
+    # The 'or' operator previously short-circuited if root had files, ignoring subdirs.
+    files_to_process = list(SOURCES_DIR.rglob("*.txt"))
 
     if not files_to_process:
         logger.info("No source files found.")
@@ -45,12 +47,16 @@ async def prune_sources():
     logger.info(f"Scanning {len(files_to_process)} source files...")
 
     # 1. Collect all URLs
-    file_map = {} # url -> list of files containing it
+    file_map = {}  # url -> list of files containing it
 
     for file_path in files_to_process:
         try:
             content = file_path.read_text(encoding="utf-8")
-            urls = [line.strip() for line in content.splitlines() if line.strip().startswith("http")]
+            urls = [
+                line.strip()
+                for line in content.splitlines()
+                if line.strip().startswith("http")
+            ]
             for url in urls:
                 all_urls.add(url)
                 if url not in file_map:
@@ -106,6 +112,7 @@ async def prune_sources():
 
         except Exception as e:
             logger.error(f"Failed to update {file_path}: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(prune_sources())
