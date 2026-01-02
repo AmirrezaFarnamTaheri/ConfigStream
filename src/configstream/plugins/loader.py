@@ -12,6 +12,7 @@ from configstream.models import Proxy
 
 logger = logging.getLogger(__name__)
 
+
 class WasmParser:
     def __init__(self, name: str, wasm_path: Path):
         self.name = name
@@ -100,7 +101,7 @@ class WasmParser:
 
                     if 0 in chunk:
                         # Found null terminator
-                        read_buffer.extend(chunk[:chunk.index(0)])
+                        read_buffer.extend(chunk[: chunk.index(0)])
                         break
                     else:
                         read_buffer.extend(chunk)
@@ -144,6 +145,7 @@ class WasmParser:
         except Exception as e:
             logger.error(f"Failed to parse Proxy object from WASM output: {e}")
             return None
+
 
 class PluginManager:
     def __init__(self, plugin_dir: Path):

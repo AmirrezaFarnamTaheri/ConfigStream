@@ -8,9 +8,11 @@ from dataclasses import dataclass, field
 from typing import Dict, Any
 from pathlib import Path
 
+
 @dataclass
 class PipelineMetrics:
     """Dataclass to hold pipeline execution metrics."""
+
     total_sources: int = 0
     total_fetched: int = 0
     total_parsed: int = 0
@@ -88,6 +90,7 @@ class PipelineMetrics:
             except Exception:
                 pass
             raise
+
 
 def export_metrics(metrics: PipelineMetrics, output_path: Path) -> str:
     """Export metrics to a file and return the path."""

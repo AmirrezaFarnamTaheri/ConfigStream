@@ -64,13 +64,12 @@ def _verify_binary_checksum(path: Path) -> bool:
 
         calculated = sha256_hash.hexdigest()
 
-        # Only strictly enforce checksum when explicitly configured via ENV.
-        if not env_hash:
-            logger.debug("SS library checksum not enforced (SS_LIB_SHA256 not set).")
-            return True
-
+        # Always enforce checksum. Use ENV var if present, otherwise fallback to hardcoded.
         if calculated != expected_hash:
-            logger.critical("SS Library Hash Mismatch! Integrity check failed.")
+            logger.critical(
+                "SS Library Hash Mismatch! Integrity check failed. "
+                f"Expected: {expected_hash}, Got: {calculated}"
+            )
             return False
 
         return True

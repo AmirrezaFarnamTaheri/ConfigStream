@@ -235,7 +235,9 @@ async def processing_consumer(
 
                         # [OPTIMIZATION] Batch history update in executor to prevent blocking loop
                         if chunk:
-                            await loop.run_in_executor(None, history.update_history, chunk)
+                            await loop.run_in_executor(
+                                None, history.update_history, chunk
+                            )
 
                         for res in chunk:
                             if res.is_working:
@@ -273,7 +275,9 @@ async def processing_consumer(
 
                         # [OPTIMIZATION] Batch history update in executor
                         if results:
-                            await loop.run_in_executor(None, history.update_history, list(results))
+                            await loop.run_in_executor(
+                                None, history.update_history, list(results)
+                            )
 
                         for res in results:
                             if res.is_working:
