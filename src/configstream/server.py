@@ -290,55 +290,40 @@ async def get_proxies(
     Note: Real-time filtering of large JSONs is memory intensive.
     For high-performance, we serve pre-generated files via FileResponse which handles streaming.
     """
+    base_path_str = str(OUTPUT_DIR.resolve())
+
+    def is_safe_path(requested_path: Path) -> bool:
+        # Normalize the path to resolve '..' components
+        normalized_path = os.path.normpath(requested_path)
+        # Check if the normalized path is within the intended directory
+        return os.path.commonpath([base_path_str, normalized_path]) == base_path_str
+
     if country:
-        if not SAFE_PATH_PATTERN.match(country):
-            raise HTTPException(400, "Invalid country parameter")
-        # Early reject any sneaky traversal components even if regex passes
-        if ".." in country or "/" in country or "\\" in country:
+        if not SAFE_PATH_PATTERN.match(country) or ".." in country or "/" in country or "\\" in country:
             raise HTTPException(400, "Invalid country parameter")
         fpath = OUTPUT_DIR / "by_country" / f"{country.lower()}.json"
-        # Verify the resolved path is within OUTPUT_DIR using robust commonpath check
-        try:
-            base = os.path.realpath(os.path.abspath(str(OUTPUT_DIR)))
-            target = os.path.realpath(os.path.abspath(str(fpath)))
-            # Ensure OUTPUT_DIR exists and is a directory
-            if not os.path.isdir(base):
-                # If dir doesn't exist yet, we can't serve files.
-                # Just return empty list or 404? 404 is safer.
-                raise HTTPException(404, "Data not generated yet")
-
-            if os.path.commonpath([base, target]) != base:
-                raise HTTPException(400, "Invalid country parameter")
-        except (ValueError, OSError) as e:
-            raise HTTPException(400, "Invalid path") from e
+        if not is_safe_path(fpath):
+            raise HTTPException(400, "Invalid country parameter")
 
         if fpath.exists():
             return FileResponse(fpath, media_type="application/json")
         raise HTTPException(404, "Country not found")
 
     if protocol:
-        if not SAFE_PATH_PATTERN.match(protocol):
+        if not SAFE_PATH_PATTERN.match(protocol) or ".." in protocol or "/" in protocol or "\\" in protocol:
             raise HTTPException(400, "Invalid protocol parameter")
         fpath = OUTPUT_DIR / "by_protocol" / f"{protocol.lower()}.json"
-        # Verify the resolved path is within OUTPUT_DIR
-        try:
-            base = os.path.realpath(str(OUTPUT_DIR))
-            target = os.path.realpath(str(fpath))
-            if os.path.isdir(base) and os.path.commonpath([base, target]) != base:
-                raise HTTPException(400, "Invalid protocol parameter")
-        except (ValueError, OSError) as e:
-            raise HTTPException(400, "Invalid path") from e
+        if not is_safe_path(fpath):
+            raise HTTPException(400, "Invalid protocol parameter")
 
         if fpath.exists():
             return FileResponse(fpath, media_type="application/json")
         raise HTTPException(404, "Protocol not found")
 
     # Default: return the master list
-    # FileResponse automatically streams the file in chunks, avoiding memory overload.
     master_path = OUTPUT_DIR / "proxies.json"
     if not master_path.exists():
-        # Fallback if master list not ready
-        return JSONResponse([])
+        raise HTTPException(503, "Proxies data not available yet")
 
     return FileResponse(master_path, media_type="application/json")
 

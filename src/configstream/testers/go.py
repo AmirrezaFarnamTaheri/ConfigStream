@@ -502,11 +502,6 @@ class GoBatchTester:
             else:
                 config_str = config_val
 
-            # The Go template expects a list of objects but wraps it in [], so we must strip the outer brackets
-            # if we are sending a list.
-            if config_str.startswith("[") and config_str.endswith("]"):
-                config_str = config_str[1:-1]
-
             # Unique request ID (Full UUID)
             req_id = f"{chain_id}-{uuid.uuid4().hex}"
 

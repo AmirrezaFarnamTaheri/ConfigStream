@@ -118,12 +118,14 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 		defer close(done)
 		buf := make([]byte, 1024)
 		for {
-			// Set a read deadline to allow clean shutdown if no more packets come
-			conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+			// Respect caller timeout budget when waiting for stragglers
+			conn.SetReadDeadline(time.Now().Add(timeout))
 			n, addr, err := conn.ReadFrom(buf)
 			if err != nil {
-				// Timeout usually means we are done waiting for stragglers
-				return
+				if ne, ok := err.(net.Error); ok && ne.Timeout() {
+					return
+				}
+				continue
 			}
 
 			recvTime := time.Now()
@@ -156,46 +158,43 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 		}
 	}()
 
-	// Sender Routine
-	// We use a token bucket to limit rate if needed, but workers argument implies concurrency.
-	// With a single socket, "workers" doesn't mean threads, but maybe max pending requests?
-	// Let's just burst send with a small sleep to avoid buffer overflow.
-
-	ticker := time.NewTicker(time.Millisecond * 2) // Simple rate limiter
-	defer ticker.Stop()
-
+	// Sender Goroutines
+	var wg sync.WaitGroup
+	ipChan := make(chan string, len(targetIPs))
 	for _, ip := range targetIPs {
-		addr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:2408", ip))
-		if err != nil {
-			continue
-		}
+		ipChan <- ip
+	}
+	close(ipChan)
 
-		// Store start time
-		pending.Store(ip, time.Now())
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for ip := range ipChan {
+				addr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:2408", ip))
+				if err != nil {
+					continue
+				}
 
-		// Send
-		_, err = conn.WriteTo(basePacket, addr)
-		if err != nil {
-			pending.Delete(ip)
-		}
+				// Store start time
+				pending.Store(ip, time.Now())
 
-		// Wait for ticker to pace packets
-		<-ticker.C
+				// Send
+				_, err = conn.WriteTo(basePacket, addr)
+				if err != nil {
+					pending.Delete(ip)
+				}
+			}
+		}()
 	}
 
-	// Wait for receiver to finish (timeout logic inside receiver handles "done")
-	// Give a bit more time for last packets to return
-	time.Sleep(timeout)
+	wg.Wait() // Wait for all senders to finish
 
-	// Force close if still running? The receiver loop relies on ReadDeadline which resets on each read.
-	// If no packets come for 2 seconds, it exits.
-	// We can wait for the done channel.
-	// But first, we need to stop sending (loop above finishes).
-	// Then we wait.
-
-	// Actually, the receiver might stay alive if packets keep flooding.
-	// We should rely on a hard timeout or completion.
-	// For simplicity, just wait a fixed buffer time.
+	// After sending, wait for receiver to drain up to timeout budget
+	select {
+	case <-done:
+	case <-time.After(timeout):
+	}
 }
 
 // checkEndpoint is deprecated in favor of batch scanning but kept for compatibility.
