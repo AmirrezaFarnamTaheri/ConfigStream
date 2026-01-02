@@ -2,12 +2,9 @@
 # Optimized based on fetch duration for equal execution times
 # Est. Fetch Time: 897.0s
 
-https://raw.githubusercontent.com/vveg26/get_proxy/main/dist/clash.config.yaml
-https://raw.githubusercontent.com/Vauth/node/main/Main
 https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/hysteria
 https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-1.txt
 https://raw.githubusercontent.com/Mahdi0024/ProxyCollector/master/sub/singbox.json
-https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/list/ss.txt
 https://raw.githubusercontent.com/ssrsub/ssr/master/clash.yaml
 https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/main/Clash_T%2CH
 https://raw.githubusercontent.com/ebrasha/free-v2ray-public-list/main/all_extracted_configs.txt
@@ -21,11 +18,9 @@ https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-8.txt
 https://raw.githubusercontent.com/amirparsaxs/-BegzarVPN/refs/heads/main/Begzar_sub_text
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_1.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub5.txt
-https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Donate/base64
 https://raw.githubusercontent.com/mermeroo/Loon/main/node
 https://openproxy.space/list/http
 https://raw.githubusercontent.com/mermeroo/QuantumultX/refs/heads/main/Trojan.nodes
-https://proxyway.com/free-proxy
 https://proxylist.to/api/proxy?all=true
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/nodev2ray.yaml
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/mix
@@ -34,7 +29,6 @@ https://www.freeproxylist.net/
 https://raw.githubusercontent.com/ronghuaxueleng/get_v2/main/pub/combine.yaml
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/nodefree.txt
 https://raw.githubusercontent.com/nasheep/FreeNode/main/clash/PlayLab
-https://raw.githubusercontent.com/rootjazz/proxylist/master/proxylist.txt
 https://www.proxy-list.download/api/v1/get?type=all
 https://raw.githubusercontent.com/vpei/free-node-1/main/o/proxies.txt
 https://raw.githubusercontent.com/freebaipiao/freebaipiao/main/jiassweetoy3.yaml
@@ -47,7 +41,6 @@ https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/main/mix/sub.html
 https://github.com/ebrasha/free-v2ray-public-list/raw/main/all_extracted_configs.txt
 https://raw.githubusercontent.com/DarknessShade/WoW/main/clash-wg.yml
 https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-0.txt
-https://raw.githubusercontent.com/FNET00bot/FNET00/Config/Donate/Json
 https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/vmess.txt
 https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/shadowsocks.txt
 https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_2.txt
@@ -73,3 +66,7 @@ https://raw.githubusercontent.com/xhmotor/V2rayn/main/v2rayn
 https://free.proxynova.com/proxy-list/
 https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/sub.txt
 https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/server.txt
+https://vpny.net/Mobile
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/hiddify/proton-wire.json
+https://raw.githubusercontent.com/V2RAYCONFIGSPOOL/V2RAY_SUB/refs/heads/main/v2ray_configs.txt
+https://raw.githubusercontent.com/NiREvil/vless/refs/heads/main/sub/ServerLess_patterniha.json

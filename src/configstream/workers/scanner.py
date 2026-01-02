@@ -37,9 +37,15 @@ class WarpScannerWorker:
                 f"WarpScannerWorker initialized using binary: {self.binary_path}"
             )
         else:
-            logger.warning(
-                "WarpScannerWorker: Go binary not found. Active scanning will be disabled."
-            )
+            # Check if disabled by CI policy before warning about missing binary
+            is_ci = os.environ.get("CI") == "true"
+            force_scanner = os.environ.get("FORCE_SCANNER") == "true"
+            if is_ci and not force_scanner:
+                logger.info("WarpScannerWorker: Scanner disabled by CI policy.")
+            else:
+                logger.warning(
+                    "WarpScannerWorker: Go binary not found. Active scanning will be disabled."
+                )
 
     def _resolve_binary(self, explicit_path: Optional[str]) -> Optional[str]:
         """Helper to find the executable."""
