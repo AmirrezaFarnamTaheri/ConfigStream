@@ -145,7 +145,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             common["uuid"] = proxy.uuid
             common["password"] = proxy.details.get("password", "")
             common["sni"] = proxy.details.get("sni", "")
-            common["congestion-controller"] = proxy.details.get("congestion_controller", "bbr")
+            common["congestion-controller"] = proxy.details.get(
+                "congestion_controller", "bbr"
+            )
             common["skip-cert-verify"] = proxy.details.get("allowInsecure", False)
             return common
 
@@ -153,7 +155,11 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             common["type"] = "wireguard"
             # Safely get the first IP or fall back to a default
             local_addresses = proxy.details.get("local_address")
-            if local_addresses and isinstance(local_addresses, list) and local_addresses:
+            if (
+                local_addresses
+                and isinstance(local_addresses, list)
+                and local_addresses
+            ):
                 common["ip"] = local_addresses[0]
             else:
                 common["ip"] = "172.16.0.2"
