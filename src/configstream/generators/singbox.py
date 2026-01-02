@@ -64,22 +64,23 @@ def generate_singbox_config(
                 if not isinstance(item, dict):
                     continue
 
+                # Ensure every outbound has a tag (required by sing-box)
+                tag = item.get("tag") or f"extra-{len(seen_tags) + 1}"
+
                 # Ensure uniqueness for extra outbounds too
-                tag = item.get("tag", "")
-                if tag and tag in seen_tags:
+                if tag in seen_tags:
                     base_tag = tag
                     counter = 1
                     while tag in seen_tags:
                         tag = f"{base_tag}-{counter}"
                         counter += 1
-                    item["tag"] = tag  # Update the tag in the object
+                item["tag"] = tag
 
-                if tag:
-                    seen_tags.add(tag)
+                seen_tags.add(tag)
 
                 # Check if this outbound is meant to be user-selectable
                 outbounds.append(item)
-                if tag and not tag.startswith("RELAY-"):
+                if not tag.startswith("RELAY-"):
                     selector_tags.append(tag)
 
     # 3. Add Selectors/URLTest

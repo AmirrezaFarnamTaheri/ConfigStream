@@ -31,10 +31,15 @@ async def check_url(client, url):
                 headers={"Range": "bytes=0-0"},
             )
 
-        if response.status_code in (404, 403, 410):
+        if response.status_code in (404, 410):
             logger.warning(f"Dead URL found ({response.status_code}): {_redact(url)}")
             return url, response.status_code
+        if response.status_code == 403:
+            logger.info(f"Blocked/forbidden (kept): {_redact(url)}")
+            return url, 0
         return url, 200
+    except asyncio.CancelledError:
+        raise
     except Exception as e:
         logger.warning(f"Error checking {_redact(url)}: {e}")
         # Treat connection errors as potentially temporary
@@ -95,13 +100,31 @@ async def prune_sources():
 
         tasks = [asyncio.create_task(bounded_check(url)) for url in all_urls]
 
-        results = []
-        for fut in asyncio.as_completed(tasks):
-            results.append(await fut)
-
-        for url, status in results:
-            if status in (404, 403, 410):
-                dead_urls.add(url)
+        try:
+            for fut in asyncio.as_completed(tasks):
+                try:
+                    url, status = await fut
+                    if status in (404, 410):
+                        dead_urls.add(url)
+                except Exception as e:
+                    # Propagate cancellations
+                    if isinstance(e, asyncio.CancelledError):
+                        raise
+                    # Log exception but continue processing other tasks
+                    # We can't identify which URL failed here easily unless we wrap tasks deeper,
+                    # but bounded_check already catches exceptions and returns (url, 0).
+                    # So this except block catches unexpected errors in the loop itself or task scheduling.
+                    logger.warning(f"Error processing URL check task: {e}")
+                    continue
+        finally:
+            for t in tasks:
+                if not t.done():
+                    t.cancel()
+            # Ensure all tasks finish even under cancellation, then re-raise.
+            try:
+                await asyncio.shield(asyncio.gather(*tasks, return_exceptions=True))
+            except asyncio.CancelledError:
+                raise
 
     logger.info(f"Found {len(dead_urls)} dead URLs to remove.")
 

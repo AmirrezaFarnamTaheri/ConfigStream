@@ -290,16 +290,23 @@ async def get_proxies(
     Note: Real-time filtering of large JSONs is memory intensive.
     For high-performance, we serve pre-generated files via FileResponse which handles streaming.
     """
-    base_path_str = str(OUTPUT_DIR.resolve())
+    base_path = OUTPUT_DIR.resolve()
 
     def is_safe_path(requested_path: Path) -> bool:
-        # Normalize the path to resolve '..' components
-        normalized_path = os.path.normpath(requested_path)
-        # Check if the normalized path is within the intended directory
-        return os.path.commonpath([base_path_str, normalized_path]) == base_path_str
+        try:
+            target = requested_path.resolve(strict=False)
+            target.relative_to(base_path)
+            return True
+        except Exception:
+            return False
 
     if country:
-        if not SAFE_PATH_PATTERN.match(country) or ".." in country or "/" in country or "\\" in country:
+        if (
+            not SAFE_PATH_PATTERN.match(country)
+            or ".." in country
+            or "/" in country
+            or "\\" in country
+        ):
             raise HTTPException(400, "Invalid country parameter")
         fpath = OUTPUT_DIR / "by_country" / f"{country.lower()}.json"
         if not is_safe_path(fpath):
@@ -310,7 +317,12 @@ async def get_proxies(
         raise HTTPException(404, "Country not found")
 
     if protocol:
-        if not SAFE_PATH_PATTERN.match(protocol) or ".." in protocol or "/" in protocol or "\\" in protocol:
+        if (
+            not SAFE_PATH_PATTERN.match(protocol)
+            or ".." in protocol
+            or "/" in protocol
+            or "\\" in protocol
+        ):
             raise HTTPException(400, "Invalid protocol parameter")
         fpath = OUTPUT_DIR / "by_protocol" / f"{protocol.lower()}.json"
         if not is_safe_path(fpath):

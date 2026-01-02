@@ -70,6 +70,4 @@ def merge_telemetry(batch_dirs: List[Path], output_dir: Path):
 
     if total_history_merged > 0:
         main_history.save()
-        logger.info(
-            f"✅ Merged {total_history_merged} history files."
-        )
+        logger.info(f"✅ Merged {total_history_merged} history files.")
