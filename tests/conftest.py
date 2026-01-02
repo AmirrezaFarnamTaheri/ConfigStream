@@ -45,8 +45,8 @@ def patch_runner_for_nest_asyncio():
 
             if loop and loop.is_running():
                 # Nested execution!
-                # Use ensure_future to schedule on the running loop
-                task = asyncio.ensure_future(coro, loop=loop)
+                # Schedule directly on the running loop (avoid deprecated ensure_future(loop=...))
+                task = loop.create_task(coro)
 
                 # nest_asyncio patched loop.run_until_complete handles reentrancy
                 loop.run_until_complete(task)

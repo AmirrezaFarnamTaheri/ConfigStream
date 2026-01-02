@@ -67,8 +67,20 @@ class WasmParser:
             # Allocate memory in WASM
             ptr = self.alloc(self.store, str_len)
 
+            if not isinstance(ptr, int) or ptr <= 0:
+                logger.error("WASM alloc returned invalid pointer")
+                return None
+
             # Write to memory
             if hasattr(self.memory, "write"):
+                try:
+                    mem_size = self.memory.data_len(self.store)
+                    if ptr + str_len > mem_size:
+                        logger.error("WASM write would exceed linear memory bounds")
+                        return None
+                except Exception:
+                    # If size inspection isn't available, rely on wasmtime to raise on OOB writes
+                    pass
                 self.memory.write(self.store, ptr, encoded_str)
             else:
                 # Fallback if write is not available (should be available in wasmtime 40.0.0)
@@ -80,6 +92,9 @@ class WasmParser:
 
             if result_ptr == 0:
                 # Dealloc input will be handled in finally
+                return None
+
+            if not isinstance(result_ptr, int) or result_ptr <= 0:
                 return None
 
             # Read result from memory
@@ -95,6 +110,15 @@ class WasmParser:
                     # result_ptr + offset
                     start = result_ptr + offset
                     end = start + chunk_size
+
+                    try:
+                        mem_len = self.memory.data_len(self.store)
+                        if start >= mem_len:
+                            break
+                        end = min(end, mem_len)
+                    except Exception:
+                        pass
+
                     chunk = self.memory.read(self.store, start, end)
                     if not chunk:
                         break
@@ -103,11 +127,11 @@ class WasmParser:
                         # Found null terminator
                         read_buffer.extend(chunk[: chunk.index(0)])
                         break
-                    else:
-                        read_buffer.extend(chunk)
-                        offset += chunk_size
-                        if offset > 1024 * 1024:  # 1MB limit safety
-                            break
+
+                    read_buffer.extend(chunk)
+                    offset += chunk_size
+                    if offset > 1024 * 1024:  # 1MB limit safety
+                        break
 
                 json_str = read_buffer.decode("utf-8")
 
