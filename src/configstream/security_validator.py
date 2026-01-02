@@ -142,21 +142,12 @@ class SecurityValidator:
                     if category not in categorized_issues:
                         categorized_issues[category] = []
                     categorized_issues[category].append(
-                        f"Invalid UUID format: {proxy.uuid!r}"
+                        f"Invalid UUID format: {SecurityValidator.sanitize_log_message(str(proxy.uuid))}"
                     )
         else:
-            # Relaxed validation for password-like IDs used by some non-UUID protocols (e.g. Trojan, SS).
-            if proxy.uuid and (len(str(proxy.uuid)) < 8 or not re.match(r"^[a-zA-Z0-9-]+$", str(proxy.uuid))):
-                 # Wait, for Trojan, passwords can be anything. 8 chars is arbitrary restriction?
-                 # But the report suggests re-introducing this.
-                 # "Relaxed validation for other protocols that may use password-like IDs."
-                 # The previous code enforced min length 8.
-                 category = SECURITY_CATEGORIES["UUID_INVALID"]
-                 if category not in categorized_issues:
-                     categorized_issues[category] = []
-                 categorized_issues[category].append(
-                     f"Invalid credential format (too short or invalid chars): {proxy.uuid!r}"
-                 )
+            # Non-UUID protocols may store password-like credentials in `proxy.uuid`;
+            # do not apply UUID/format validation to avoid false rejections.
+            pass
 
         is_secure = len(categorized_issues) == 0
 

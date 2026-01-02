@@ -53,6 +53,11 @@ class WasmParser:
         if not self.parse_func or not self.alloc:
             return None
 
+        ptr: Optional[int] = None
+        result_ptr: Optional[int] = None
+        encoded_str = b""
+        str_len = 0
+
         try:
             # Write input string to WASM memory
             encoded_str = config_str.encode("utf-8")
@@ -63,7 +68,7 @@ class WasmParser:
 
             # Write to memory
             if hasattr(self.memory, "write"):
-                 self.memory.write(self.store, encoded_str, ptr)
+                 self.memory.write(self.store, ptr, encoded_str)
             else:
                  # Fallback if write is not available (should be available in wasmtime 40.0.0)
                  logger.error("WASM Memory object does not have 'write' method")
@@ -73,22 +78,12 @@ class WasmParser:
             result_ptr = self.parse_func(self.store, ptr)
 
             if result_ptr == 0:
-                # Dealloc input
-                if self.dealloc:
-                    self.dealloc(self.store, ptr, str_len)
+                # Dealloc input will be handled in finally
                 return None
 
             # Read result from memory
             json_str = ""
             if hasattr(self.memory, "read"):
-                # We need to read the string. Since we don't know the length, we might need to read until null terminator
-                # or maybe the plugin returns length? The test doesn't show returning length.
-                # It shows read(store, start, end).
-                # The test mock implementation suggests it supports slicing or explicit length.
-                # If we don't know the length, we have to guess or read byte by byte?
-                # Reading byte by byte is slow.
-                # Maybe we can read a chunk?
-
                 # In C/Rust wasm plugins, usually strings are null-terminated or length-prefixed.
                 # If null-terminated:
                 read_buffer = bytearray()
@@ -97,7 +92,9 @@ class WasmParser:
                 while True:
                     # Read a chunk
                     # result_ptr + offset
-                    chunk = self.memory.read(self.store, result_ptr + offset, result_ptr + offset + chunk_size)
+                    start = result_ptr + offset
+                    end = start + chunk_size
+                    chunk = self.memory.read(self.store, start, end)
                     if not chunk:
                         break
 
@@ -117,18 +114,23 @@ class WasmParser:
                  logger.error("WASM Memory object does not have 'read' method")
                  return None
 
-            # Cleanup
-            if self.dealloc:
-                self.dealloc(self.store, ptr, str_len)
-
-            if self.free_string:
-                self.free_string(self.store, result_ptr)
-
             return self._parse_json(json_str)
 
         except Exception as e:
             logger.error(f"Error parsing config with plugin {self.name}: {e}")
             return None
+
+        finally:
+            if ptr is not None and self.dealloc and str_len:
+                try:
+                    self.dealloc(self.store, ptr, str_len)
+                except Exception:
+                    pass
+            if result_ptr is not None and result_ptr != 0 and self.free_string:
+                try:
+                    self.free_string(self.store, result_ptr)
+                except Exception:
+                    pass
 
     def _parse_json(self, json_str: str) -> Optional[Proxy]:
         try:
@@ -136,7 +138,11 @@ class WasmParser:
                 return None
             data = json.loads(json_str)
             return Proxy(**data)
-        except Exception:
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to decode JSON from WASM plugin: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Failed to parse Proxy object from WASM output: {e}")
             return None
 
 class PluginManager:

@@ -115,11 +115,11 @@ class TestWasmPlugin(unittest.TestCase):
         mock_alloc.assert_called()
 
         # Verify write was called
-        # args: (store, bytes, ptr)
+        # args: (store, ptr, bytes)
         mock_memory.write.assert_called()
         call_args = mock_memory.write.call_args
-        self.assertEqual(call_args[0][1], config_str.encode("utf-8"))
-        self.assertEqual(call_args[0][2], 100)  # ptr
+        self.assertEqual(call_args[0][1], 100)  # ptr
+        self.assertEqual(call_args[0][2], config_str.encode("utf-8"))
 
         # Verify parse called
         mock_parse.assert_called()
