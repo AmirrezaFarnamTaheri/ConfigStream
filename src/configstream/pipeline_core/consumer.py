@@ -235,14 +235,22 @@ async def processing_consumer(
                             await tester.test_batch(chunk)
                         except Exception as e:
                             logger.error(
-                                f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
+                                SecurityValidator.sanitize_log_message(
+                                    f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
+                                )
                             )
 
                             # Fallback to Python tester for this chunk
                             async def _fallback_test(p: Proxy):
                                 sem = concurrency.get_semaphore()
                                 async with sem:
-                                    return await tester.test(p)
+                                    try:
+                                        return await tester.test(p)
+                                    except Exception as e:
+                                        logger.error(f"Fallback test failed for proxy {p.id}: {e}")
+                                        p.is_working = False
+                                        p.details["error"] = str(e)
+                                        return p
 
                             results = await asyncio.gather(
                                 *[_fallback_test(x) for x in chunk],

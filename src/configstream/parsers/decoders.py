@@ -205,7 +205,7 @@ def safe_b64_decode(data: str) -> Optional[str]:
         validated += "=" * (4 - pad)
 
     try:
-        decoded_bytes = base64.b64decode(validated, validate=True)
+        decoded_bytes = base64.b64decode(validated, altchars=b"-_", validate=True)
 
         if len(decoded_bytes) > MAX_B64_OUTPUT_SIZE:
             logger.error(
