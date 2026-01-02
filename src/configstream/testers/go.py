@@ -529,9 +529,13 @@ class GoBatchTester:
             else:
                 config_str = raw_json
 
-            # FIX: Strip brackets if outbounds is a list to match Go template
+            # FIX: Strip brackets only when the JSON is actually an array; keep safe for empty lists.
             if isinstance(outbounds, list):
-                config_str = config_str.strip()[1:-1]
+                s = config_str.strip()
+                if not outbounds:
+                    continue
+                if s.startswith("[") and s.endswith("]") and len(s) >= 2:
+                    config_str = s[1:-1]
 
             # Unique request ID (Full UUID)
             req_id = f"{chain_id}-{uuid.uuid4().hex}"
