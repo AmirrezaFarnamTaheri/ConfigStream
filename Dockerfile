@@ -51,7 +51,7 @@ ARG VWARP_VERSION=v2.1.0
 ARG VWARP_SHA256=4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7
 
 # Running as root before switching user
-RUN wget -q --show-error --fail --https-only --tries=3 --timeout=30 -O /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-amd64.zip && \
+RUN curl -fSsL --retry 3 --max-time 30 --proto =https -o /tmp/vwarp.zip https://github.com/voidr3aper-anon/Vwarp/releases/download/${VWARP_VERSION}/vwarp_linux-amd64.zip && \
     echo "${VWARP_SHA256}  /tmp/vwarp.zip" | sha256sum -c - && \
     unzip -tq /tmp/vwarp.zip && \
     mkdir -p /tmp/vwarp-extract && \
@@ -62,7 +62,7 @@ RUN wget -q --show-error --fail --https-only --tries=3 --timeout=30 -O /tmp/vwar
     unzip -j /tmp/vwarp.zip "$VWARP_ENTRY" -d /tmp/vwarp-extract && \
     install -m 0755 /tmp/vwarp-extract/vwarp /usr/local/bin/vwarp && \
     rm -rf /tmp/vwarp.zip /tmp/vwarp-extract /tmp/vwarp-filelist && \
-    (vwarp --version || (echo "Vwarp binary check failed" >&2; exit 1))
+    (vwarp version || (echo "Vwarp binary check failed" >&2; exit 1))
 
 # Install Python dependencies (Cached Layer)
 COPY pyproject.toml requirements-prod.txt ./
