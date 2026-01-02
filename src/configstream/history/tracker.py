@@ -251,7 +251,7 @@ class ProxyHistoryTracker:
         if not self.storage:
             return {}
 
-        history_data = {}
+        history_data: Dict[str, Any] = {}
         try:
             conn = self.storage.get_connection()
             cursor = None
@@ -272,7 +272,9 @@ class ProxyHistoryTracker:
                     for row in batch:
                         row_count += 1
                         if row_count > MAX_ROWS:
-                            logger.warning(f"History export truncated at {MAX_ROWS} rows to prevent OOM.")
+                            logger.warning(
+                                f"History export truncated at {MAX_ROWS} rows to prevent OOM."
+                            )
                             return history_data
 
                         pid, ts, working, lat, cc, reason = row

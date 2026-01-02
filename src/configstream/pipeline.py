@@ -165,7 +165,7 @@ async def run_full_pipeline(
     stats.total_configured_sources = len(sources) if sources else 0
 
     # Validate App Settings
-    AppSettings().validate()
+    AppSettings().validate_settings()
 
     # --- Start Vwarp Tunnel if available ---
     vwarp_proc = None
@@ -426,7 +426,9 @@ async def run_full_pipeline(
                     )
                     vwarp_proc.kill()
                     try:
-                        await loop.run_in_executor(None, lambda: vwarp_proc.wait(timeout=1))
+                        await loop.run_in_executor(
+                            None, lambda: vwarp_proc.wait(timeout=1)
+                        )
                     except subprocess.TimeoutExpired:
                         logger.error("Failed to kill Vwarp process")
             except ProcessLookupError:

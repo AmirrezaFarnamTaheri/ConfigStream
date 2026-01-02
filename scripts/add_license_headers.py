@@ -2,7 +2,6 @@
 """
 Adds SPDX license headers to source files.
 """
-import os
 from pathlib import Path
 
 SPDX_HEADER = """# SPDX-License-Identifier: AGPL-3.0-or-later
@@ -10,6 +9,7 @@ SPDX_HEADER = """# SPDX-License-Identifier: AGPL-3.0-or-later
 
 GO_HEADER = """// SPDX-License-Identifier: AGPL-3.0-or-later
 """
+
 
 def add_header(path: Path, header: str):
     try:
@@ -33,6 +33,7 @@ def add_header(path: Path, header: str):
     except Exception as e:
         print(f"Failed to process {path}: {e}")
 
+
 def main():
     root = Path(".")
 
@@ -47,6 +48,7 @@ def main():
         if "vendor" in str(path):
             continue
         add_header(path, GO_HEADER)
+
 
 if __name__ == "__main__":
     main()

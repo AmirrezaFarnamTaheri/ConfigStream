@@ -5,12 +5,13 @@ WASM Plugin Loader for ConfigStream.
 import logging
 import json
 from pathlib import Path
-from typing import Dict, Optional, Any, List
+from typing import Dict, Optional
 from wasmtime import Engine, Store, Module, Instance
 
 from configstream.models import Proxy
 
 logger = logging.getLogger(__name__)
+
 
 class WasmParser:
     def __init__(self, name: str, wasm_path: Path):
@@ -66,19 +67,34 @@ class WasmParser:
             # Allocate memory in WASM
             ptr = self.alloc(self.store, str_len)
 
+            if not isinstance(ptr, int) or ptr <= 0:
+                logger.error("WASM alloc returned invalid pointer")
+                return None
+
             # Write to memory
             if hasattr(self.memory, "write"):
-                 self.memory.write(self.store, ptr, encoded_str)
+                try:
+                    mem_size = self.memory.data_len(self.store)
+                    if ptr + str_len > mem_size:
+                        logger.error("WASM write would exceed linear memory bounds")
+                        return None
+                except Exception:
+                    # If size inspection isn't available, rely on wasmtime to raise on OOB writes
+                    pass
+                self.memory.write(self.store, ptr, encoded_str)
             else:
-                 # Fallback if write is not available (should be available in wasmtime 40.0.0)
-                 logger.error("WASM Memory object does not have 'write' method")
-                 return None
+                # Fallback if write is not available (should be available in wasmtime 40.0.0)
+                logger.error("WASM Memory object does not have 'write' method")
+                return None
 
             # Invoke parse
             result_ptr = self.parse_func(self.store, ptr)
 
             if result_ptr == 0:
                 # Dealloc input will be handled in finally
+                return None
+
+            if not isinstance(result_ptr, int) or result_ptr <= 0:
                 return None
 
             # Read result from memory
@@ -94,25 +110,34 @@ class WasmParser:
                     # result_ptr + offset
                     start = result_ptr + offset
                     end = start + chunk_size
+
+                    try:
+                        mem_len = self.memory.data_len(self.store)
+                        if start >= mem_len:
+                            break
+                        end = min(end, mem_len)
+                    except Exception:
+                        pass
+
                     chunk = self.memory.read(self.store, start, end)
                     if not chunk:
                         break
 
                     if 0 in chunk:
                         # Found null terminator
-                        read_buffer.extend(chunk[:chunk.index(0)])
+                        read_buffer.extend(chunk[: chunk.index(0)])
                         break
-                    else:
-                        read_buffer.extend(chunk)
-                        offset += chunk_size
-                        if offset > 1024 * 1024: # 1MB limit safety
-                             break
+
+                    read_buffer.extend(chunk)
+                    offset += chunk_size
+                    if offset > 1024 * 1024:  # 1MB limit safety
+                        break
 
                 json_str = read_buffer.decode("utf-8")
 
             else:
-                 logger.error("WASM Memory object does not have 'read' method")
-                 return None
+                logger.error("WASM Memory object does not have 'read' method")
+                return None
 
             return self._parse_json(json_str)
 
@@ -144,6 +169,7 @@ class WasmParser:
         except Exception as e:
             logger.error(f"Failed to parse Proxy object from WASM output: {e}")
             return None
+
 
 class PluginManager:
     def __init__(self, plugin_dir: Path):

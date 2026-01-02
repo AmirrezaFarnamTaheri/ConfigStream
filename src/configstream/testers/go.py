@@ -175,8 +175,12 @@ class GoBatchTester:
 
             cmd = [self.binary_path, "-workers", str(self.workers)]
             cmd.extend(["-timeout", f"{int(self.timeout)}s"])
-            if AppSettings.TEST_URLS:
-                urls = ",".join(str(u) for u in AppSettings.TEST_URLS.values())
+
+            # NOTE: Avoid module-level AppSettings() instances; settings should be created
+            # lazily to respect runtime env changes (important for tests).
+            settings = AppSettings()
+            if settings.TEST_URLS:
+                urls = ",".join(str(u) for u in settings.TEST_URLS.values())
                 cmd.extend(["-urls", urls])
 
             logger.info(f"Starting Go Tester Daemon: {' '.join(cmd)}")

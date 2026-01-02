@@ -8,7 +8,14 @@ import importlib.metadata
 from pathlib import Path
 from typing import Optional, List
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    WebSocket,
+    WebSocketDisconnect,
+    Request,
+    Response,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
@@ -47,7 +54,16 @@ app = FastAPI(
 
 # [SECURITY] Register Rate Limit Handler
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+async def rate_limit_handler(request: Request, exc: Exception) -> Response:
+    """Wrapper for type-safe rate limit handling."""
+    if isinstance(exc, RateLimitExceeded):
+        return _rate_limit_exceeded_handler(request, exc)
+    return JSONResponse({"error": "Rate limit exceeded"}, status_code=429)
+
+
+app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 
 # Enable CORS with restricted origins
 # Allow localhost for development and GitHub Pages for production deployment
@@ -266,7 +282,9 @@ async def get_stats():
 
 @app.get("/api/proxies")
 @limiter.limit("10/minute")
-async def get_proxies(request: Request, country: Optional[str] = None, protocol: Optional[str] = None):
+async def get_proxies(
+    request: Request, country: Optional[str] = None, protocol: Optional[str] = None
+):
     """
     Get the full proxy list, optionally filtered.
     Note: Real-time filtering of large JSONs is memory intensive.
