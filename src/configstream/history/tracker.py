@@ -254,48 +254,54 @@ class ProxyHistoryTracker:
         history_data = {}
         try:
             conn = self.storage.get_connection()
-            # [FIX] Use fetchmany with a generator approach if this was a yielding function.
-            # Since the return type signature dictates Dict[str, Any] (fully loaded), we optimize by minimizing obj creation.
-            cursor = conn.execute(
-                "SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history"
-            )
+            cursor = None
+            try:
+                cursor = conn.execute(
+                    "SELECT proxy_id, timestamp, is_working, latency, country_code, failure_reason FROM proxy_history"
+                )
 
-            # Limit total rows to prevent catastrophic OOM in production
-            MAX_ROWS = 500000
-            row_count = 0
+                # Limit total rows to prevent catastrophic OOM in production
+                MAX_ROWS = 500000
+                row_count = 0
 
-            while True:
-                batch = cursor.fetchmany(1000)
-                if not batch:
-                    break
+                while True:
+                    batch = cursor.fetchmany(1000)
+                    if not batch:
+                        break
 
-                for row in batch:
-                    row_count += 1
-                    if row_count > MAX_ROWS:
-                        logger.warning(f"History export truncated at {MAX_ROWS} rows to prevent OOM.")
-                        return history_data
+                    for row in batch:
+                        row_count += 1
+                        if row_count > MAX_ROWS:
+                            logger.warning(f"History export truncated at {MAX_ROWS} rows to prevent OOM.")
+                            return history_data
 
-                    pid, ts, working, lat, cc, reason = row
-                    if pid not in history_data:
-                        # [FIX P1] Populate address/port with defaults to prevent KeyError in exporter
-                        history_data[pid] = {
-                            "id": pid,
-                            "protocol": "unknown",
-                            "address": "0.0.0.0",  # Fallback
-                            "port": 0,  # Fallback
-                            "entries": [],
+                        pid, ts, working, lat, cc, reason = row
+                        if pid not in history_data:
+                            # Populate address/port with defaults to prevent KeyError in exporter
+                            history_data[pid] = {
+                                "id": pid,
+                                "protocol": "unknown",
+                                "address": "0.0.0.0",  # Fallback
+                                "port": 0,  # Fallback
+                                "entries": [],
+                            }
+
+                        ts_iso = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+
+                        entry = {
+                            "timestamp": ts_iso,
+                            "is_working": bool(working),
+                            "latency": lat,
+                            "country": cc,
+                            "error": reason,
                         }
-
-                    ts_iso = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
-
-                    entry = {
-                        "timestamp": ts_iso,
-                        "is_working": bool(working),
-                        "latency": lat,
-                        "country": cc,
-                        "error": reason,
-                    }
-                    history_data[pid]["entries"].append(entry)
+                        history_data[pid]["entries"].append(entry)
+            finally:
+                if cursor:
+                    try:
+                        cursor.close()
+                    except Exception:
+                        pass
 
         except Exception as e:
             logger.error(f"Failed to load history from DB: {e}")

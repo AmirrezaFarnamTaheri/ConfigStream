@@ -222,7 +222,13 @@ async def processing_consumer(
                 pass
             else:
                 if tester.go_tester.available:
-                    chunk_size = int(os.getenv("GO_TESTER_BATCH_SIZE", "200"))
+                    # [OPTIMIZATION] Clamp chunk size to avoid overwhelming Go tester
+                    try:
+                        env_batch = int(os.getenv("GO_TESTER_BATCH_SIZE", "200"))
+                    except ValueError:
+                        env_batch = 200
+                    chunk_size = min(500, max(1, env_batch))
+
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
                         await tester.test_batch(chunk)
