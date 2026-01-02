@@ -104,7 +104,7 @@ async def prune_sources():
             for fut in asyncio.as_completed(tasks):
                 try:
                     url, status = await fut
-                    if status in (404, 403, 410):
+                    if status in (404, 410):
                         dead_urls.add(url)
                 except Exception as e:
                     # Propagate cancellations
@@ -120,8 +120,11 @@ async def prune_sources():
             for t in tasks:
                 if not t.done():
                     t.cancel()
-            # Ensure all tasks finish or are suppressed
-            await asyncio.gather(*tasks, return_exceptions=True)
+            # Ensure all tasks finish even under cancellation, then re-raise.
+            try:
+                await asyncio.shield(asyncio.gather(*tasks, return_exceptions=True))
+            except asyncio.CancelledError:
+                raise
 
     logger.info(f"Found {len(dead_urls)} dead URLs to remove.")
 

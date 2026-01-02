@@ -116,25 +116,42 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	// WaitGroup to track senders
 	var wg sync.WaitGroup
 
+	// Signal when sending is complete
+	sendDone := make(chan struct{})
+
 	// Receiver Routine
 	go func() {
 		defer close(done)
 		buf := make([]byte, 1024)
 
-		// Wait for all senders to finish before setting a final read deadline.
-		// This ensures we don't time out while packets are still being sent.
-		wg.Wait()
+		// No deadline while sending; once sending completes, start the grace-period timer.
+		var end time.Time
+		sending := true
 
-		// Set a single absolute deadline to ensure receiver eventually exits
-		end := time.Now().Add(timeout)
 		for {
-			// Use absolute deadline instead of relative to avoid infinite extension by stragglers
-			conn.SetReadDeadline(end)
+			if sending {
+				select {
+				case <-sendDone:
+					sending = false
+					end = time.Now().Add(timeout)
+				default:
+					// Avoid blocking indefinitely; poll until sending finishes.
+					// We set a short deadline to allow checking sendDone periodically.
+					conn.SetReadDeadline(time.Now().Add(200 * time.Millisecond))
+				}
+			} else {
+				conn.SetReadDeadline(end)
+			}
+
 			n, addr, err := conn.ReadFrom(buf)
 			if err != nil {
-				// Exit cleanly on timeout (no more stragglers)
 				if ne, ok := err.(net.Error); ok && ne.Timeout() {
-					return
+					// If we are still sending, a timeout is just a poll tick
+					if !sending {
+						// Sending done + timeout reached = we are finished
+						return
+					}
+					continue
 				}
 				// Exit on non-temporary errors (e.g., socket closed)
 				if ne, ok := err.(net.Error); !ok || !ne.Temporary() {
@@ -207,14 +224,13 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 		}()
 	}
 
-	// We don't wg.Wait() here anymore because the receiver waits for it.
-	// But we need to ensure we don't return from RunScan until both senders AND receiver are done.
-	// The original code did: wg.Wait(), then wait for receiver.
-	// Now receiver does wg.Wait().
-	// So we can just wait for 'done' channel, which is closed when receiver exits.
-	// Receiver exits after timeout, which starts AFTER wg.Wait().
-	// So this logic is sound: Senders run -> Receiver waits for senders -> Receiver waits for timeout -> Receiver exits -> done closed -> RunScan returns.
+	// Monitor senders completion
+	go func() {
+		wg.Wait()
+		close(sendDone)
+	}()
 
+	// Wait for receiver to finish (which implies sending finished + timeout expired)
 	<-done
 }
 

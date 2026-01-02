@@ -274,6 +274,9 @@ async def processing_consumer(
                                     chunk[idx] = res
                                 else:
                                     # `res` is an Exception due to return_exceptions=True
+                                    if isinstance(res, asyncio.CancelledError):
+                                        raise res
+
                                     p = chunk[idx]
                                     p.is_working = False
                                     p.details["error"] = "FALLBACK_TEST_EXCEPTION"
