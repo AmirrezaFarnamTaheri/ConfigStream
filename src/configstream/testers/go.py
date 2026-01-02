@@ -304,11 +304,19 @@ class GoBatchTester:
                 req_id = f"{p.id}-{uuid.uuid4().hex}"
 
                 # [FIX] Handle json.dumps returning bytes or str
-                config_json = json.dumps(outbound)
-                if isinstance(config_json, bytes):
-                    config_str = config_json.decode()
+                raw_json = json.dumps(outbound)
+                if isinstance(raw_json, bytes):
+                    config_str = raw_json.decode()
                 else:
-                    config_str = config_json
+                    config_str = raw_json
+
+                # FIX: Go Tester template expects "outbounds": [%s, direct]
+                # If outbound is a list (e.g., [vless]), json.dumps produces "[{...}]".
+                # We must strip the outer brackets so the template becomes [[{...}], direct] -> INVALID
+                # Wait, if we strip: [{...}] -> {...}
+                # Template: [%s, direct] -> [{...}, direct] -> CORRECT (List of objects)
+                if isinstance(outbound, list):
+                    config_str = config_str.strip()[1:-1]
 
                 inputs.append(
                     {
@@ -357,6 +365,14 @@ class GoBatchTester:
             for f in futures:
                 if not f.done():
                     f.set_exception(e)
+
+            # [FIX] Mark all proxies in this batch as failed due to daemon crash
+            for p in proxies:
+                if p.is_working is None:  # Only if not already processed
+                    p.is_working = False
+                    p.details["error"] = "DAEMON_CRASHED"
+                    p.details["failure_category"] = "CRASH"
+
             # Process might be dead, ensure restart next time
             await self.close()
             return proxies
@@ -372,7 +388,8 @@ class GoBatchTester:
 
         # Wait for results
         # Set a total timeout relative to batch size
-        total_timeout = min(300, len(inputs) * 2 + 10)
+        # FIX: Increase base buffer to 20s to ensure it exceeds Go worker's 15s timeout
+        total_timeout = min(300, len(inputs) * 2 + 20)
 
         try:
             completed_results = await asyncio.wait_for(
@@ -496,11 +513,15 @@ class GoBatchTester:
                 continue
 
             # FIX: Send as proper JSON array string
-            config_val = json.dumps(outbounds)
-            if isinstance(config_val, bytes):
-                config_str = config_val.decode()
+            raw_json = json.dumps(outbounds)
+            if isinstance(raw_json, bytes):
+                config_str = raw_json.decode()
             else:
-                config_str = config_val
+                config_str = raw_json
+
+            # FIX: Strip brackets if outbounds is a list to match Go template
+            if isinstance(outbounds, list):
+                config_str = config_str.strip()[1:-1]
 
             # Unique request ID (Full UUID)
             req_id = f"{chain_id}-{uuid.uuid4().hex}"
