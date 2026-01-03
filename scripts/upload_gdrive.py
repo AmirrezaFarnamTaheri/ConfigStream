@@ -7,7 +7,6 @@ Uses Service Account for zero-interaction auth.
 
 # pylint: disable=import-error
 
-import sys
 import os
 import json
 import logging
