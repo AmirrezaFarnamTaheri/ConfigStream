@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # src/configstream/transport/stego.py
 
-import os
 import zlib
 import logging
 import hmac

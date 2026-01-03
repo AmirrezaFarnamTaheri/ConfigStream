@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import math
-import os
 from typing import Mapping, Optional, TYPE_CHECKING
 
 from .config import AppSettings

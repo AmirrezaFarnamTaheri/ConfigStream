@@ -6,7 +6,6 @@ Command line interface for the Telegram Bot.
 
 from __future__ import annotations
 
-import os
 import sys
 import logging
 from typing import TYPE_CHECKING

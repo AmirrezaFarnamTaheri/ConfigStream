@@ -4,7 +4,6 @@
 import binascii
 import json
 import logging
-from pathlib import Path
 from typing import Optional, Protocol, cast
 from urllib.parse import urlparse
 
