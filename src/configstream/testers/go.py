@@ -400,8 +400,8 @@ class GoBatchTester:
 
         # Wait for results
         # Set a total timeout relative to batch size
-        # FIX: Increase base buffer to 20s to ensure it exceeds Go worker's 15s timeout
-        total_timeout = min(300, len(inputs) * 2 + 20)
+        # FIX: Increase base buffer to 30s to ensure it exceeds Go worker's timeout and gives Python breathing room
+        total_timeout = min(300, len(inputs) * 2 + 30)
 
         try:
             completed_results = await asyncio.wait_for(

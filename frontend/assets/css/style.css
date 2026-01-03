@@ -55,6 +55,7 @@
     --brand-primary: #5E55F1;
     --brand-secondary: #D83A8D;
     --brand-tertiary: #A855F7;
+    --brand-text-contrast: #FFFFFF; /* Default contrast text color */
     --brand-gradient: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-tertiary) 45%, var(--brand-secondary) 100%);
     --success-color: #00bfa5;
     --danger-color: #f50057;
@@ -1656,7 +1657,7 @@ body.dark .download-desc {
 }
 .btn-primary {
     background: var(--brand-gradient);
-    color: white;
+    color: var(--brand-text-contrast); /* Use dynamic contrast color */
     box-shadow: 0 4px 15px -5px var(--brand-primary);
 }
 .btn-primary:hover {

@@ -43,7 +43,7 @@ class PipelineStats:
     vwarp_success: int = 0
 
     # Washing Enabled Flag
-    washing_enabled: bool = False
+    washing_enabled: bool = True
 
     @property
     def vwarp_win_rate(self) -> float:
