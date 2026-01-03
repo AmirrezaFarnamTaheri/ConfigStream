@@ -21,7 +21,6 @@ def upload_to_telegram(token, chat_id, file_path, caption=""):
             print(f"Successfully uploaded {file_path.name}")
     except Exception as e:
         print(f"Failed to upload {file_path.name}: {e}")
-        sys.exit(1)
 
 
 def main():
@@ -31,7 +30,7 @@ def main():
 
     if not token or not chat_id:
         print("Missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID")
-        sys.exit(1)
+        return
 
     # Files to upload
     files = [
