@@ -257,7 +257,9 @@ def update_databases():
 
     console.print("[yellow]Downloading GeoIP databases...[/yellow]")
 
-    license_key = os.environ.get("MAXMIND_LICENSE_KEY")
+    from .config import AppSettings
+
+    license_key = AppSettings().MAXMIND_LICENSE_KEY
 
     # Prefer official MaxMind downloads when a license key is provided, fall back to public mirror otherwise.
     mirror_base_urls = [

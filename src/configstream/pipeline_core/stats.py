@@ -59,8 +59,7 @@ class PipelineStats:
         """
         Thread-safe method to get a snapshot of stats.
         """
-        async with self._lock:
-            return self.to_dict()
+        return await self.to_dict()
 
     async def to_dict(self) -> Dict[str, Any]:
         """

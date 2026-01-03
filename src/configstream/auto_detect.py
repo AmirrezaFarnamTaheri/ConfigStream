@@ -48,7 +48,6 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
     if not config:
         return None
 
-
     # Try OpenVPN first (content based)
     if "client" in config and ("dev tun" in config or "dev tap" in config):
         try:

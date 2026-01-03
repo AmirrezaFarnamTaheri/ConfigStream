@@ -140,7 +140,7 @@ async def processing_consumer(
         duplicates_count = 0
         async with seen_lock:
             # Use more efficient deduplication (LRU style)
-            max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
+            max_seen = AppSettings().MAX_SEEN_KEYS
 
             for p in parsed_batch:
                 k = proxy_unique_key(p)
@@ -222,6 +222,11 @@ async def processing_consumer(
             if max_proxies and stats.tested >= max_proxies:
                 # Stop processing further proxies once limit is reached
                 await work_queue.put(None)  # signal termination to consumer(s)
+                # DO NOT call task_done() here; it will be called at the end of the loop
+                # or when we break out if we consumed an item.
+                # However, we haven't consumed an item from the queue that corresponds to this check?
+                # Actually, `item` was popped at the start of loop.
+                # So we must call task_done() for the current `item` before breaking.
                 work_queue.task_done()
                 break  # exit the consumer loop early
             else:
@@ -356,7 +361,9 @@ async def processing_consumer(
         # --- REVIVAL LOOP ---
         if failed_proxies:
             if not tester.go_tester.available:
-                logger.info("Skipping proxy revival (WARP) because Go tester is unavailable.")
+                logger.info(
+                    "Skipping proxy revival (WARP) because Go tester is unavailable."
+                )
             else:
                 # 1. Attempt Vwarp Revival (Priority)
                 vwarp_candidates, _ = washer.wash_failed(

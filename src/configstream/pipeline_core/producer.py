@@ -126,7 +126,9 @@ async def source_producer(
             )
             # Log all blocked sources in one summary to avoid spam
             blocked_count = len(blocked_urls)
-            logger.info(f"{blocked_count} source(s) were skipped due to cooldown/disabled status.")
+            logger.info(
+                f"{blocked_count} source(s) were skipped due to cooldown/disabled status."
+            )
             logger.debug(
                 "Blocked sources: %s",
                 [SecurityValidator.sanitize_log_message(u) for u in blocked_urls],

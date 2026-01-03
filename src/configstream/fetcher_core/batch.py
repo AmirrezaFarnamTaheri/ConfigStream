@@ -4,7 +4,6 @@ import logging
 from typing import Dict, Optional, Tuple, List
 import httpx
 
-from configstream.security.rate_limiter import RateLimiter
 from configstream.concurrency_manager import ConcurrencyManager
 from configstream.config import AppSettings
 from configstream.circuit_breaker import CircuitBreakerManager
@@ -36,7 +35,7 @@ async def fetch_multiple_sources(
 
     # Initialize Components
     timeout_tracker = AdaptiveTimeout() if use_adaptive_timeout else None
-    rate_limiter = RateLimiter(requests_per_second=50.0)
+    rate_limiter = None
     breaker_manager = CircuitBreakerManager(
         failure_threshold=app_settings.CIRCUIT_TRIP_CONN_ERRORS,
         recovery_timeout=app_settings.CIRCUIT_OPEN_SEC,

@@ -39,7 +39,11 @@ class WarpScannerWorker:
         else:
             # Check if disabled by CI policy before warning about missing binary
             is_ci = os.environ.get("CI") == "true"
-            force_scanner = os.environ.get("FORCE_SCANNER") == "true"
+
+            from configstream.config import AppSettings
+
+            force_scanner = AppSettings().FORCE_SCANNER
+
             if is_ci and not force_scanner:
                 logger.info("WarpScannerWorker: Scanner disabled by CI policy.")
             else:
@@ -58,7 +62,12 @@ class WarpScannerWorker:
         #
         # To enable in CI, set FORCE_SCANNER=true (use with caution)
         is_ci = os.environ.get("CI") == "true"
-        force_scanner = os.environ.get("FORCE_SCANNER") == "true"
+
+        from configstream.config import AppSettings
+
+        settings = AppSettings()
+
+        force_scanner = settings.FORCE_SCANNER
 
         if is_ci and not force_scanner:
             logger.info(
@@ -78,7 +87,7 @@ class WarpScannerWorker:
             return explicit_path
 
         # 2. Check Environment Variable
-        env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
+        env_path = settings.CONFIGSTREAM_TESTER_BIN
         if env_path and os.path.exists(env_path):
             return env_path
 

@@ -44,7 +44,7 @@ async def generate_pipeline_outputs(
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
-    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
 
     # [CRITICAL] Run the Go Scanner (Phase 2 Component)
     # This populates self.clean_ips in the washer with fresh, low-latency endpoints.

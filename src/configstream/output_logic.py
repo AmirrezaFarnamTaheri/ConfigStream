@@ -16,6 +16,7 @@ from .output_generators import (
 from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
 from .utils import AtomicFileWriter
+from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def generate_categorized_outputs(
 
     # Initialize washer if not provided (fallback)
     if washer is None:
-        washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+        washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
 
     # 1. Generate Smart Chains if not provided
     if smart_chains is None:
@@ -282,7 +283,7 @@ def save_metadata(
         pkg_version = "unknown"
 
     # Calculate update interval (default 6 hours for production)
-    update_interval_hours = int(os.getenv("UPDATE_INTERVAL_HOURS", "6"))
+    update_interval_hours = AppSettings().UPDATE_INTERVAL_HOURS
 
     # [FIX] Compute total_revived properly from both WARP and Vwarp
     total_revived_count = revived_warp + revived_vwarp
@@ -294,7 +295,7 @@ def save_metadata(
         total_revived_count = warp_count_heuristic
 
     # Washing Enabled Logic (Best effort inference for Shards)
-    washing_enabled = bool(os.environ.get("WARP_KEY_POOL")) or vwarp_attempts > 0
+    washing_enabled = bool(AppSettings().WARP_KEY_POOL) or vwarp_attempts > 0
 
     meta = {
         "schema_version": "2.3.0",  # Updated to match generators.py

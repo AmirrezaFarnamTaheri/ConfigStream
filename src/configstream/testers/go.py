@@ -31,7 +31,7 @@ class GoBatchTester:
         # Clamp between 1 and 100 (reduced from 1000 for stability)
         self.workers = max(1, min(w, 100))
         self.timeout = timeout
-        env_path = os.environ.get("CONFIGSTREAM_TESTER_BIN")
+        env_path = AppSettings().CONFIGSTREAM_TESTER_BIN
 
         # Priority: Env Var > Absolute Path arg > PATH lookup
         resolved = None
@@ -195,7 +195,14 @@ class GoBatchTester:
                 env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
 
                 # 🚀 FORCE TRAFFIC THROUGH VWARP TUNNEL IF AVAILABLE
-                if os.environ.get("USE_VWARP_TUNNEL") == "true":
+                # Check environment directly as it might be set dynamically by pipeline.py
+                # or fallback to AppSettings if set globally
+                use_vwarp = (
+                    os.environ.get("USE_VWARP_TUNNEL") == "true"
+                    or settings.USE_VWARP_TUNNEL
+                )
+
+                if use_vwarp:
                     # Using Vwarp tunnel configuration from constants
                     env["ALL_PROXY"] = (
                         f"socks5://{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"

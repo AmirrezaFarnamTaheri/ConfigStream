@@ -52,9 +52,12 @@ class AppSettings(BaseSettings):
 
     # Intelligence Layer
     WARP_KEY_POOL: str = "[]"
+    INTRANET_ORIGIN: str = "IR"
+    OPTIMAL_RELAY_ORIGIN: str = "IR"
 
     # Memory management
     BATCH_SIZE: int = 50
+    MAX_SEEN_KEYS: int = 200000
     CACHE_TTL: int = 1800
 
     # Scoring weights
@@ -108,8 +111,44 @@ class AppSettings(BaseSettings):
     # Proxy renaming
     RENAME_TEMPLATE: Optional[str] = None
 
+    # Update Interval
+    UPDATE_INTERVAL_HOURS: int = 6
+
     # Security Validator
     ALLOW_PRIVATE_IPS: bool = False
+
+    # Shuffle
+    CONFIGSTREAM_SHUFFLE_SEED: Optional[str] = None
+
+    # Secrets (Optional)
+    TELEGRAM_BOT_TOKEN: Optional[str] = None
+    VT_API_KEY: Optional[str] = None
+    ADMIN_API_KEY: Optional[str] = None
+    CONFIG_STREAM_KEY: Optional[str] = None
+    MAXMIND_LICENSE_KEY: Optional[str] = None
+
+    # Binary Paths
+    CONFIGSTREAM_TESTER_BIN: Optional[str] = None
+    SS_LIB_SHA256: Optional[str] = None
+
+    # Flags
+    USE_VWARP_TUNNEL: bool = False
+    FORCE_SCANNER: bool = False
+
+    # Server Config
+    FRONTEND_DIR: Optional[str] = None
+    ALLOWED_ORIGINS: str = (
+        "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000"
+    )
+    ALLOWED_ORIGIN_REGEX: str = r"https://.*\.github\.io"
+    ENVIRONMENT: str = "production"
+
+    # Fetcher
+    MAX_RESPONSE_SIZE: int = 200 * 1024 * 1024
+
+    # Score Tuning (Advanced)
+    SCORE_SIGMOID_CENTER_RATIO: float = 0.6
+    SCORE_SIGMOID_SLOPE_RATIO: float = 0.2
 
     def model_post_init(self, __context):
         """Update nested security settings from env vars if needed."""

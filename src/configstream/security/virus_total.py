@@ -8,10 +8,11 @@ import time
 from collections import OrderedDict
 
 from configstream.constants import VIRUSTOTAL_CACHE_SIZE
+from configstream.config import AppSettings
 
 logger = logging.getLogger(__name__)
 
-VT_API_KEY = os.getenv("VT_API_KEY", "")
+VT_API_KEY = AppSettings().VT_API_KEY or ""
 VT_BASE_URL = "https://www.virustotal.com/api/v3"
 
 # Simple LRU Cache for IP reputation to respect API limits
