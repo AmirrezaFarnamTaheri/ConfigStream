@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import os
 import json
 import logging
 from typing import List, Dict, Optional, Any
