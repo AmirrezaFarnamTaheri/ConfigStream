@@ -49,7 +49,9 @@ def _verify_binary_checksum(path: Path) -> bool:
     import hashlib
     import os
 
-    env_hash = os.environ.get("SS_LIB_SHA256")
+    from configstream.config import AppSettings
+
+    env_hash = AppSettings().SS_LIB_SHA256
     if env_hash:
         expected_hash = env_hash.strip().lower()
 

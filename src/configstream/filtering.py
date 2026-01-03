@@ -8,6 +8,7 @@ import logging
 from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 
 from .models import Proxy
+from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ def dedupe_and_shuffle(proxies: List[Proxy]) -> List[Proxy]:
 
     unique = list(best.values())
 
-    seed_env = os.getenv("CONFIGSTREAM_SHUFFLE_SEED")
+    seed_env = AppSettings().CONFIGSTREAM_SHUFFLE_SEED
     rng_seed: int | str | None = None
     if seed_env:
         try:

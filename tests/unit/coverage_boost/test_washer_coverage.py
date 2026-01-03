@@ -25,7 +25,7 @@ async def test_washer_get_clean_endpoint(washer):
     # Fallback to checking if it's a valid IP string format or in the expected set
     # Since we added many fallback IPs, strict equality to the default 3 is no longer valid
     assert isinstance(ep, str)
-    assert len(ep.split('.')) == 4
+    assert len(ep.split(".")) == 4
 
     # Test with IPs
     washer.clean_ips = ["1.1.1.1", "2.2.2.2"]

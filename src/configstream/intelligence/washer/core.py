@@ -20,6 +20,7 @@ from configstream.intelligence.washer.key_generator import (
 from configstream.tools.vwarp import VwarpTool
 from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
 from configstream.pipeline_core.stats import PipelineStats
+from configstream.config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ FALLBACK_CLEAN_IPS = [
     "162.159.192.1:4500",
     "162.159.192.1:2408",
     "162.159.192.1:1701",
-    "162.159.192.1:500"
+    "162.159.192.1:500",
 ]
 
 # Multiple fallback sources for Clean IP endpoints
@@ -102,7 +103,7 @@ OPTIMIZED_RESERVED = [
     [22, 18, 221],
     [210, 106, 14],
     [155, 40, 24],
-    [60, 173, 68]
+    [60, 173, 68],
 ]
 
 
@@ -133,8 +134,10 @@ class ProxyWasher:
 
         # [FIX] Initialize defaults immediately if not provided
         if not self._warp_keys:
-            # Try to load from default env if empty json was passed
-            env_keys = os.getenv("WARP_KEY_POOL", "[]")
+            from configstream.config import AppSettings
+
+            env_keys = AppSettings().WARP_KEY_POOL
+
             if env_keys and env_keys != "[]":
                 try:
                     parsed = json.loads(env_keys)
@@ -377,7 +380,7 @@ class ProxyWasher:
         Selects a reserved bytes array from OPTIMIZED_RESERVED deterministically based on seed.
         """
         if not OPTIMIZED_RESERVED:
-            return [0, 0, 0] # Default fallback
+            return [0, 0, 0]  # Default fallback
 
         h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
         return OPTIMIZED_RESERVED[h % len(OPTIMIZED_RESERVED)]
@@ -530,7 +533,7 @@ class ProxyWasher:
         candidates = [p for p in proxies if p.is_working]
 
         target_exit = ProxyStub("US", 37.09, -95.71, "wireguard")
-        origin_country = os.environ.get("OPTIMAL_RELAY_ORIGIN", "IR")
+        origin_country = AppSettings().OPTIMAL_RELAY_ORIGIN
 
         for i, relay in enumerate(candidates):
             if stats:
