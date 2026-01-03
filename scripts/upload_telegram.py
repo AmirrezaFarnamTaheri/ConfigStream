@@ -5,7 +5,6 @@ Uploads the latest proxy files to a Telegram Channel.
 """
 
 import os
-import sys
 import requests  # type: ignore
 from pathlib import Path
 
