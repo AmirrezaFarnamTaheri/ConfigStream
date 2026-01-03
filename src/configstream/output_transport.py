@@ -29,6 +29,7 @@ def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
     """
     history = ProxyHistoryTracker()  # Singleton access
     data = [serialize_proxy(p, history.get_history(p.id)) for p in proxies]
+    # Ensure proper JSON formatting (single JSON array, not concatenated objects)
     json_content = json.dumps(data, indent=2, ensure_ascii=False)
 
     AtomicFileWriter.write_text(path, json_content)
