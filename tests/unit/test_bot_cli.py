@@ -93,7 +93,15 @@ async def test_mirror_command():
 
 
 def test_main_no_token():
-    with patch("os.getenv", return_value=None):
+    # Mock AppSettings to return None for TELEGRAM_BOT_TOKEN
+    # Since AppSettings is imported inside main(), we patch configstream.config.AppSettings
+    # effectively, or wherever it is resolved. But main() does "from configstream.config import AppSettings"
+    # Actually, main() doesn't import AppSettings, run_bot does? No, I added imports in main() in previous patch?
+    # Let's check bot_cli.py content. I added it to `main` and `run_bot`.
+    # Wait, `main` calls `run_bot`.
+    # Let's patch `configstream.config.AppSettings`.
+    with patch("configstream.config.AppSettings") as mock_settings:
+        mock_settings.return_value.TELEGRAM_BOT_TOKEN = None
         with patch("configstream.bot_cli.logger") as mock_logger:
             bot_main()
             mock_logger.error.assert_called_with("TELEGRAM_BOT_TOKEN not set")
@@ -101,9 +109,11 @@ def test_main_no_token():
 
 def test_main_with_token():
     with (
-        patch("os.getenv", return_value="fake_token"),
+        patch("configstream.config.AppSettings") as mock_settings,
         patch("configstream.bot_cli.ApplicationBuilder") as mock_builder,
     ):
+        mock_settings.return_value.TELEGRAM_BOT_TOKEN = "fake_token"
+
         mock_app = MagicMock()
         mock_builder.return_value.token.return_value.build.return_value = mock_app
 
