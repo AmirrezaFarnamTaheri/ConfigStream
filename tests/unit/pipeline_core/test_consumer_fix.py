@@ -12,7 +12,7 @@ def mock_dependencies_fix():
 
     # Mocks
     tester = MagicMock()
-    tester.go_tester.available = True # Enable Go tester to trigger revival logic
+    tester.go_tester.available = True  # Enable Go tester to trigger revival logic
     tester.test = AsyncMock()
     tester.test_batch = AsyncMock()
 
@@ -66,7 +66,7 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
 
     # 1. Setup Input: A proxy that will fail initially
     await queue.put(("test-source", ["vmess://test"]))
-    await queue.put(None) # Sentinel
+    await queue.put(None)  # Sentinel
 
     original_proxy = Proxy(protocol="vmess", address="1.2.3.4", port=443, config="vmess://test", uuid="orig1")
 
