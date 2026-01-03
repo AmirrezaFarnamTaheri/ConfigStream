@@ -137,7 +137,7 @@ def main():
     # Validate file existence
     if not os.path.isfile(args.file) or not os.access(args.file, os.R_OK):
         print(f"Error: File not found or not readable: {args.file}")
-        sys.exit(1)
+        return
 
     # Sanitize secrets
     args.pinata_jwt = (
@@ -152,7 +152,7 @@ def main():
         print(
             "Error: Missing required Pinata JWT. Provide via --pinata-jwt or PINATA_JWT env."
         )
-        sys.exit(1)
+        return
 
     try:
         print(f"Pinning {args.file} to IPFS...")
@@ -162,7 +162,7 @@ def main():
         if args.publish_ipns:
             if not args.ipns_key:
                 print("Error: --publish-ipns requires --ipns-key or IPNS_KEY env")
-                sys.exit(1)
+                return
             publish_ipns(cid, args.ipns_key)
 
         if args.update_dnslink:
@@ -170,12 +170,11 @@ def main():
                 print(
                     "Error: --update-dnslink requires --cf-token, --cf-zone, and --domain"
                 )
-                sys.exit(1)
+                return
             update_dnslink(cid, args.domain, args.cf_token, args.cf_zone)
 
     except Exception as e:
         print(f"Error: {e}")
-        sys.exit(1)
 
 
 if __name__ == "__main__":
