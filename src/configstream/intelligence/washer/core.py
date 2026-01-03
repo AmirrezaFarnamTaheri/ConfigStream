@@ -26,11 +26,83 @@ logger = logging.getLogger(__name__)
 # Static fallback if fetch fails
 DEFAULT_CLEAN_IPS = ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
 
+# Fallback Clean IPs from user reports
+FALLBACK_CLEAN_IPS = [
+    "188.114.97.204:7103",
+    "188.114.99.73:2506",
+    "162.159.192.166:5956",
+    "188.114.99.120:1074",
+    "162.159.192.253:7103",
+    "188.114.99.153:5956",
+    "188.114.99.73:955",
+    "188.114.96.101:2506",
+    "188.114.97.204:1002",
+    "188.114.98.201:7103",
+    "162.159.192.253:890",
+    "162.159.192.83:890",
+    "188.114.98.224:3476",
+    "188.114.98.224:500",
+    "188.114.98.224:2371",
+    "188.114.98.224:1070",
+    "188.114.98.224:854",
+    "188.114.98.224:864",
+    "188.114.98.224:939",
+    "188.114.98.224:2408",
+    "188.114.98.224:908",
+    "188.114.96.145:1074",
+    "162.159.192.4:3854",
+    "162.159.192.13:859",
+    "162.159.192.5:3581",
+    "162.159.195.2:8742",
+    "162.159.192.10:934",
+    "162.159.192.14:943",
+    "162.159.192.17:1387",
+    "162.159.192.3:7103",
+    "162.159.192.5:854",
+    "162.159.192.17:8742",
+    "162.159.192.13:7156",
+    "162.159.192.9:4198",
+    "162.159.192.5:2408",
+    "162.159.192.10:2371",
+    "162.159.192.9:1010",
+    "162.159.192.6:943",
+    "162.159.195.4:8742",
+    "162.159.192.14:8742",
+    "162.159.192.20:1387",
+    "162.159.192.15:3138",
+    "162.159.195.2:864",
+    "162.159.192.11:4233",
+    "162.159.195.6:854",
+    "162.159.195.9:1014",
+    "162.159.198.2:443",
+    "162.159.198.1:443",
+    "162.159.198.0:443",
+    "162.159.192.1:4500",
+    "162.159.192.1:2408",
+    "162.159.192.1:1701",
+    "162.159.192.1:500"
+]
+
 # Multiple fallback sources for Clean IP endpoints
 CLEAN_IP_SOURCES = [
-    "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/result/warp-ip.txt",
+    # "https://raw.githubusercontent.com/ircfspace/warpendpoint/main/result/warp-ip.txt", # Dead
+    "https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/warp.txt",
     "https://www.cloudflare.com/ips-v4",
     "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist",
+]
+
+# Optimized reserved bytes for resistant regions
+OPTIMIZED_RESERVED = [
+    [84, 146, 56],
+    [87, 96, 242],
+    [100, 206, 89],
+    [98, 157, 152],
+    [54, 207, 87],
+    [226, 124, 93],
+    [22, 18, 221],
+    [210, 106, 14],
+    [155, 40, 24],
+    [60, 173, 68]
 ]
 
 
@@ -233,7 +305,16 @@ class ProxyWasher:
     def _get_clean_endpoint(self, relay_id: str) -> Tuple[str, int]:
         pool = self.clean_ips
         if not pool:
-            pool = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
+            # Parse fallback IPs
+            pool = []
+            for item in FALLBACK_CLEAN_IPS:
+                if ":" in item:
+                    ip, port = item.split(":")
+                    pool.append((ip, int(port)))
+                else:
+                    pool.append((item, 2408))
+            # Append defaults
+            pool.extend([(ip, 2408) for ip in DEFAULT_CLEAN_IPS])
 
         if not pool:
             return ("162.159.192.1", 2408)
@@ -265,6 +346,16 @@ class ProxyWasher:
 
         return None
 
+    def _get_optimized_reserved(self, seed: str) -> List[int]:
+        """
+        Selects a reserved bytes array from OPTIMIZED_RESERVED deterministically based on seed.
+        """
+        if not OPTIMIZED_RESERVED:
+            return [0, 0, 0] # Default fallback
+
+        h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
+        return OPTIMIZED_RESERVED[h % len(OPTIMIZED_RESERVED)]
+
     def _generate_deterministic_ip(self, seed: str) -> str:
         h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
         # [FIX] Use 10.x.x.x range for 16M+ unique IPs
@@ -292,6 +383,7 @@ class ProxyWasher:
 
         unique_ip = self._generate_deterministic_ip(seed)
 
+        reserved = self._get_optimized_reserved(seed)
         return {
             "type": "wireguard",
             "local_address": [unique_ip],
@@ -299,6 +391,7 @@ class ProxyWasher:
             "server": clean_endpoint,
             "server_port": clean_port,
             "peer_public_key": exit_key["peer_public_key"],
+            "reserved": reserved,
         }
 
     def wash_failed(
@@ -350,6 +443,7 @@ class ProxyWasher:
 
             relay_out["tag"] = f"RELAY-{chain_id}"
 
+            reserved_bytes = self._get_optimized_reserved(chain_id)
             warp_out = {
                 "type": "wireguard",
                 "tag": chain_id,
@@ -358,10 +452,14 @@ class ProxyWasher:
                 "server": clean_endpoint,
                 "server_port": clean_port,
                 "peer_public_key": exit_key["peer_public_key"],
+                "reserved": reserved_bytes,
                 "detour": relay_out["tag"],
             }
 
             # We bundle BOTH outbounds into the proxy details for special handling
+            # FIX: Serialize relay object to prevent JSON errors
+            origin_dict = relay.dict() if hasattr(relay, "dict") else (relay.__dict__ if hasattr(relay, "__dict__") else relay.config)
+
             revived_proxy = Proxy(
                 config=f"revived://{relay.address}",  # Dummy config
                 protocol="revived",  # Special protocol
@@ -373,7 +471,7 @@ class ProxyWasher:
                     "chain_outbounds": [relay_out, warp_out],  # The full chain
                     "is_revived": True,
                     "use_vwarp": use_vwarp,
-                    "origin_proxy": relay,
+                    "origin_proxy": origin_dict,
                 },
             )
 
@@ -459,6 +557,7 @@ class ProxyWasher:
             exit_tag_prefix = "🛡️⚡ Optimal" if is_optimal else "🛡️ Secure"
             exit_tag = f"{exit_tag_prefix}-{relay.country_code}-{i+1}"
 
+            reserved_bytes = self._get_optimized_reserved(chain_id)
             warp_out = {
                 "type": "wireguard",
                 "tag": exit_tag,
@@ -467,6 +566,7 @@ class ProxyWasher:
                 "server": clean_endpoint,
                 "server_port": clean_port,
                 "peer_public_key": exit_key["peer_public_key"],
+                "reserved": reserved_bytes,
                 "detour": relay_tag,
             }
 

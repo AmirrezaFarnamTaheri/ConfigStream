@@ -106,6 +106,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateElement('#threatsBlocked', threats.toLocaleString());
         updateElement('#threatsNeutralized', threats.toLocaleString());
 
+        // Update Hero Stats (Source Count & Frequency)
+        const totalSources = (metadata && metadata.total_configured_sources) || 0;
+        const updateInterval = (metadata && metadata.update_interval_hours) || 6;
+        updateElement('#heroSourceCount', totalSources.toLocaleString());
+        updateElement('#heroUpdateFrequency', updateInterval.toString());
+
         const metrics = calculateMetrics(stats, proxies);
 
         // F9 Fix: Use sanitize logic inside updateElement or manual sanitization.
