@@ -377,8 +377,8 @@ async def processing_consumer(
                             # Recover origin info
                             origin = p.details.get("origin_proxy")
                             if origin:
-                                p.country_code = origin.country_code
-                                p.country = origin.country
+                                p.country_code = origin.get("country_code", "")
+                                p.country = origin.get("country", "")
                             final_batch_for_this_source.append(p)
                             async with seen_lock:
                                 stats.revived_vwarp += 1
@@ -397,8 +397,8 @@ async def processing_consumer(
                             p.process = "revived-warp"
                             origin = p.details.get("origin_proxy")
                             if origin:
-                                p.country_code = origin.country_code
-                                p.country = origin.country
+                                p.country_code = origin.get("country_code", "")
+                                p.country = origin.get("country", "")
                             final_batch_for_this_source.append(p)
                             async with seen_lock:
                                 stats.revived_warp += 1
