@@ -109,8 +109,10 @@ async def generate_pipeline_outputs(
     )
 
     # 5. Metadata & Stats
+    stats_dict = await stats.to_dict()
+
     await loop.run_in_executor(
-        None, save_metadata, stats, optimized_proxies, output_path
+        None, save_metadata, stats_dict, optimized_proxies, output_path
     )
 
     # [FIX] Export history visualization data

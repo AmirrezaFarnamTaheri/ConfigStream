@@ -81,7 +81,7 @@ class SecurityValidator:
                 categorized_issues[category].append(port_issue)
 
             # Honeypot Check (Static Port Check)
-            if DEFAULT_BLOCKLIST.is_honeypot(proxy.address, proxy.port):
+            if DEFAULT_BLOCKLIST.is_suspicious_port(proxy.port):
                 category = SECURITY_CATEGORIES["HONEYPOT_SUSPECTED"]
                 if category not in categorized_issues:
                     categorized_issues[category] = []

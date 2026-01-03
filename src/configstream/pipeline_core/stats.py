@@ -62,33 +62,34 @@ class PipelineStats:
         async with self._lock:
             return self.to_dict()
 
-    def to_dict(self) -> Dict[str, Any]:
+    async def to_dict(self) -> Dict[str, Any]:
         """
         Return a dictionary representation of stats.
         Uses defensive copies for complex types.
         """
-        return {
-            "total_configured_sources": self.total_configured_sources,
-            "fetched_sources": self.fetched_sources,
-            "fetched_lines": self.fetched_lines,
-            "parsed": self.parsed,
-            "tested": self.tested,
-            "working": self.working,
-            "geo_resolved": self.geo_resolved,
-            "duration": self.duration,
-            "final_count": self.final_count,
-            "cache_misses": self.cache_misses,
-            "scanner_ips_found": self.scanner_ips_found,
-            "washer_success_count": self.washer_success_count,
-            "smart_chain_count": self.smart_chain_count,
-            "revived_warp": self.revived_warp,
-            "revived_vwarp": self.revived_vwarp,
-            "total_revived": self.total_revived,
-            "warp_attempts": self.warp_attempts,
-            "vwarp_attempts": self.vwarp_attempts,
-            "vwarp_success": self.vwarp_success,
-            "vwarp_win_rate": self.vwarp_win_rate,
-            "washing_enabled": self.washing_enabled,
-            # Create a shallow copy of the dict to prevent iteration errors
-            "drop_reasons": dict(self.drop_reasons),
-        }
+        async with self._lock:
+            return {
+                "total_configured_sources": self.total_configured_sources,
+                "fetched_sources": self.fetched_sources,
+                "fetched_lines": self.fetched_lines,
+                "parsed": self.parsed,
+                "tested": self.tested,
+                "working": self.working,
+                "geo_resolved": self.geo_resolved,
+                "duration": self.duration,
+                "final_count": self.final_count,
+                "cache_misses": self.cache_misses,
+                "scanner_ips_found": self.scanner_ips_found,
+                "washer_success_count": self.washer_success_count,
+                "smart_chain_count": self.smart_chain_count,
+                "revived_warp": self.revived_warp,
+                "revived_vwarp": self.revived_vwarp,
+                "total_revived": self.total_revived,
+                "warp_attempts": self.warp_attempts,
+                "vwarp_attempts": self.vwarp_attempts,
+                "vwarp_success": self.vwarp_success,
+                "vwarp_win_rate": self.vwarp_win_rate,
+                "washing_enabled": self.washing_enabled,
+                # Create a shallow copy of the dict to prevent iteration errors
+                "drop_reasons": dict(self.drop_reasons),
+            }

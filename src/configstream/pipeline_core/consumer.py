@@ -26,6 +26,7 @@ from configstream.performance import PerformanceTracker
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.pipeline_core.models import PipelineStats
 from configstream.intelligence.washer.core import ProxyWasher
+from configstream.config import AppSettings
 
 if TYPE_CHECKING:
     from configstream.event_stream import EventStream
@@ -68,7 +69,7 @@ async def processing_consumer(
 
     # [FIX] Use passed shared washer or fallback (legacy support)
     if washer is None:
-        washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+        washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
         await washer.fetch_clean_ips()
 
     while True:
@@ -219,15 +220,15 @@ async def processing_consumer(
 
         if proxies_to_actually_test:
             if max_proxies and stats.tested >= max_proxies:
-                pass
+                # Stop processing further proxies once limit is reached
+                await work_queue.put(None)  # signal termination to consumer(s)
+                work_queue.task_done()
+                break  # exit the consumer loop early
             else:
                 if tester.go_tester.available:
                     # [OPTIMIZATION] Clamp chunk size to avoid overwhelming Go tester
-                    try:
-                        env_batch = int(os.getenv("GO_TESTER_BATCH_SIZE", "200"))
-                    except ValueError:
-                        env_batch = 200
-                    chunk_size = min(500, max(1, env_batch))
+                    settings = AppSettings()
+                    chunk_size = min(500, max(1, settings.GO_TESTER_BATCH_SIZE))
 
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
@@ -315,7 +316,7 @@ async def processing_consumer(
                             progress.update(task_process, completed=stats.tested)
                 else:
                     # Python fallback testing
-                    chunk_size = int(os.getenv("PY_TESTER_BATCH_SIZE", "100"))
+                    chunk_size = AppSettings().PY_TESTER_BATCH_SIZE
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
 
@@ -354,44 +355,47 @@ async def processing_consumer(
 
         # --- REVIVAL LOOP ---
         if failed_proxies:
-            # 1. Attempt Vwarp Revival (Priority)
-            vwarp_candidates, _ = washer.wash_failed(
-                failed_proxies, stats=stats, use_vwarp=True
-            )
-            if vwarp_candidates:
-                # Test Vwarp Candidates
-                await tester.test_batch(vwarp_candidates)
-                for p in vwarp_candidates:
-                    if p.is_working:
-                        p.process = "revived-vwarp"
-                        # Recover origin info
-                        origin = p.details.get("origin_proxy")
-                        if origin:
-                            p.country_code = origin.country_code
-                            p.country = origin.country
-                        final_batch_for_this_source.append(p)
-                        async with seen_lock:
-                            stats.revived_vwarp += 1
+            if not tester.go_tester.available:
+                logger.info("Skipping proxy revival (WARP) because Go tester is unavailable.")
+            else:
+                # 1. Attempt Vwarp Revival (Priority)
+                vwarp_candidates, _ = washer.wash_failed(
+                    failed_proxies, stats=stats, use_vwarp=True
+                )
+                if vwarp_candidates:
+                    # Test Vwarp Candidates
+                    await tester.test_batch(vwarp_candidates)
+                    for p in vwarp_candidates:
+                        if p.is_working:
+                            p.process = "revived-vwarp"
+                            # Recover origin info
+                            origin = p.details.get("origin_proxy")
+                            if origin:
+                                p.country_code = origin.country_code
+                                p.country = origin.country
+                            final_batch_for_this_source.append(p)
+                            async with seen_lock:
+                                stats.revived_vwarp += 1
 
-            # 2. Attempt Standard Warp Revival (Fallback/Parallel)
-            # Filter out those that already succeeded via Vwarp?
-            # Or just try everything? Let's try remaining failed ones or all.
-            # For simplicity and coverage, we can try both strategies on the original failed set.
-            warp_candidates, _ = washer.wash_failed(
-                failed_proxies, stats=stats, use_vwarp=False
-            )
-            if warp_candidates:
-                await tester.test_batch(warp_candidates)
-                for p in warp_candidates:
-                    if p.is_working:
-                        p.process = "revived-warp"
-                        origin = p.details.get("origin_proxy")
-                        if origin:
-                            p.country_code = origin.country_code
-                            p.country = origin.country
-                        final_batch_for_this_source.append(p)
-                        async with seen_lock:
-                            stats.revived_warp += 1
+                # 2. Attempt Standard Warp Revival (Fallback/Parallel)
+                # Filter out those that already succeeded via Vwarp?
+                # Or just try everything? Let's try remaining failed ones or all.
+                # For simplicity and coverage, we can try both strategies on the original failed set.
+                warp_candidates, _ = washer.wash_failed(
+                    failed_proxies, stats=stats, use_vwarp=False
+                )
+                if warp_candidates:
+                    await tester.test_batch(warp_candidates)
+                    for p in warp_candidates:
+                        if p.is_working:
+                            p.process = "revived-warp"
+                            origin = p.details.get("origin_proxy")
+                            if origin:
+                                p.country_code = origin.country_code
+                                p.country = origin.country
+                            final_batch_for_this_source.append(p)
+                            async with seen_lock:
+                                stats.revived_warp += 1
 
         # Post-process final batch (GeoIP, Filter)
         for p in final_batch_for_this_source:

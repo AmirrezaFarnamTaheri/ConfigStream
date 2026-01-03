@@ -138,10 +138,12 @@ class ProxyWasher:
             if env_keys and env_keys != "[]":
                 try:
                     parsed = json.loads(env_keys)
-                    if isinstance(parsed, list):
-                        self._warp_keys = parsed
-                except (json.JSONDecodeError, TypeError):
-                    pass
+                except json.JSONDecodeError:
+                    # Fallback to comma-separated format
+                    parsed = [k.strip() for k in env_keys.split(",") if k.strip()]
+
+                if isinstance(parsed, list):
+                    self._warp_keys = parsed
 
         self.scanner = WarpScannerWorker()
         self.key_gen = KeyGenerator()
