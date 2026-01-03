@@ -12,7 +12,6 @@ from configstream.fetcher_core.models import FetchResult
 from configstream.fetcher_core.utils import parse_retry_after as _parse_retry_after
 
 from configstream.config import AppSettings
-from configstream.security.rate_limiter import RateLimiter
 
 
 def test_parse_retry_after():
@@ -87,8 +86,11 @@ async def test_fetch_from_source_rate_limit():
 
 @pytest.mark.asyncio
 async def test_fetch_from_source_rate_limiter_precheck():
+    # Deprecated functionality test - ensure it doesn't crash if passed
+    # but actual logic is now skipped or simplified if RateLimiter is removed.
+    # If RateLimiter class is gone, we can mock a generic object with the same interface.
     client = AsyncMock(spec=httpx.AsyncClient)
-    rate_limiter = MagicMock(spec=RateLimiter)
+    rate_limiter = MagicMock()
     # First call not allowed, second allowed (async methods)
     rate_limiter.is_allowed = AsyncMock(side_effect=[False, True])
     rate_limiter.get_wait_time = AsyncMock(return_value=0.01)
