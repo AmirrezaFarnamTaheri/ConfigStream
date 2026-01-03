@@ -174,7 +174,8 @@ class GoBatchTester:
                 return
 
             cmd = [self.binary_path, "-workers", str(self.workers)]
-            cmd.extend(["-timeout", f"{int(self.timeout)}s"])
+            # Increase timeout to ensure python reaches to feed all proxies
+            cmd.extend(["-timeout", "30s"])
 
             # NOTE: Avoid module-level AppSettings() instances; settings should be created
             # lazily to respect runtime env changes (important for tests).
@@ -400,8 +401,8 @@ class GoBatchTester:
 
         # Wait for results
         # Set a total timeout relative to batch size
-        # FIX: Increase base buffer to 30s to ensure it exceeds Go worker's timeout and gives Python breathing room
-        total_timeout = min(300, len(inputs) * 2 + 30)
+        # FIX: Increase base buffer to 40s to ensure it exceeds Go worker's timeout and gives Python breathing room
+        total_timeout = min(300, len(inputs) * 2 + 40)
 
         try:
             completed_results = await asyncio.wait_for(

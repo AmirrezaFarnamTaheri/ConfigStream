@@ -308,11 +308,35 @@ class ProxyWasher:
             # Parse fallback IPs
             pool = []
             for item in FALLBACK_CLEAN_IPS:
-                if ":" in item:
-                    ip, port = item.split(":")
-                    pool.append((ip, int(port)))
-                else:
-                    pool.append((item, 2408))
+                host = str(item).strip()
+                if not host:
+                    continue
+
+                ip = host
+                port = 2408
+
+                if host.startswith("[") and "]" in host:
+                    # Bracketed IPv6: [addr]:port
+                    end = host.find("]")
+                    ip = host[: end + 1]
+                    rest = host[end + 1 :].lstrip()
+                    if rest.startswith(":"):
+                        try:
+                            port = int(rest[1:])
+                        except ValueError:
+                            continue
+                elif ":" in host:
+                    ip_part, port_part = host.rsplit(":", 1)
+                    try:
+                        port = int(port_part)
+                    except ValueError:
+                        continue
+                    ip = ip_part
+
+                if not (1 <= port <= 65535):
+                    continue
+
+                pool.append((ip, port))
             # Append defaults
             pool.extend([(ip, 2408) for ip in DEFAULT_CLEAN_IPS])
 
@@ -458,7 +482,8 @@ class ProxyWasher:
 
             # We bundle BOTH outbounds into the proxy details for special handling
             # FIX: Serialize relay object to prevent JSON errors
-            origin_dict = relay.dict() if hasattr(relay, "dict") else (relay.__dict__ if hasattr(relay, "__dict__") else relay.config)
+            # Use the canonical Pydantic method for serialization.
+            origin_dict = relay.model_dump(mode="json")
 
             revived_proxy = Proxy(
                 config=f"revived://{relay.address}",  # Dummy config

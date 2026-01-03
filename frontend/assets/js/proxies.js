@@ -30,12 +30,22 @@ const COUNTRY_THEMES = {
 function getContrastColor(hexColor) {
     if (!hexColor) return '#FFFFFF';
     // Remove hash if present
-    const hex = hexColor.replace('#', '');
+    let hex = hexColor.replace('#', '');
+
+    // Handle shorthand hex codes (e.g., "03F" -> "0033FF")
+    if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('');
+    }
+
+    // If hex is not 6 characters after expansion, it's invalid.
+    if (hex.length !== 6) {
+        return '#FFFFFF'; // Fallback for invalid format
+    }
 
     // Parse RGB
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
 
     // YIQ equation for brightness
     const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
@@ -70,10 +80,13 @@ function applyCountryTheme(countryCode) {
 
     // 4. Special Handling for Very Light Backgrounds
     // Adds a class to body so we can add borders/shadows if the background is too white
+    const body = document.body;
+    if (!body) return;
+
     if (textContrast === '#000000') {
-        document.body.classList.add('theme-light-primary');
+        body.classList.add('theme-light-primary');
     } else {
-        document.body.classList.remove('theme-light-primary');
+        body.classList.remove('theme-light-primary');
     }
 }
 
