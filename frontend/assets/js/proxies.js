@@ -1,5 +1,95 @@
 import logger from './utils/logger.js';
 
+// --- COUNTRY THEMES ---
+const COUNTRY_THEMES = {
+    'US': { p: '#3C3B6E', s: '#B22234', t: '#FFFFFF' }, // USA: Navy, Red, White
+    'DE': { p: '#FFCE00', s: '#DD0000', t: '#000000' }, // Germany: Gold, Red, Black
+    'GB': { p: '#012169', s: '#C8102E', t: '#FFFFFF' }, // UK: Navy, Red, White
+    'FR': { p: '#0055A4', s: '#EF4135', t: '#FFFFFF' }, // France: Blue, Red, White
+    'NL': { p: '#FF9B00', s: '#AE1C28', t: '#21468B' }, // Netherlands: Orange, Red, Blue
+    'RU': { p: '#0039A6', s: '#D52B1E', t: '#FFFFFF' }, // Russia: Blue, Red, White
+    'CN': { p: '#EE1C25', s: '#FFFF00', t: '#EE1C25' }, // China: Red, Gold
+    'IR': { p: '#239F40', s: '#DA0000', t: '#FFFFFF' }, // Iran: Green, Red, White
+    'TR': { p: '#E30A17', s: '#FFFFFF', t: '#E30A17' }, // Turkey: Red, White
+    'UA': { p: '#0057B8', s: '#FFD700', t: '#FFFFFF' }, // Ukraine: Blue, Yellow
+    'JP': { p: '#BC002D', s: '#FFFFFF', t: '#BC002D' }, // Japan: Red, White
+    'KR': { p: '#0047A0', s: '#CD2E3A', t: '#FFFFFF' }, // South Korea: Blue, Red, White
+    'SG': { p: '#EF3340', s: '#FFFFFF', t: '#EF3340' }, // Singapore: Red, White
+    'CA': { p: '#FF0000', s: '#FFFFFF', t: '#FF0000' }, // Canada: Red, White
+    'AU': { p: '#00008B', s: '#FF0000', t: '#FFFFFF' }, // Australia: Blue, Red, White
+    'IN': { p: '#FF9933', s: '#138808', t: '#FFFFFF' }, // India: Saffron, Green, White
+    'BR': { p: '#009739', s: '#FEDD00', t: '#002776' }, // Brazil: Green, Yellow, Blue
+    // Default / Fallback
+    'XX': { p: '#5E55F1', s: '#A855F7', t: '#D83A8D' }  // ConfigStream Default (Purple/Pink)
+};
+
+/**
+ * Calculates brightness of a hex color to determine text color.
+ * Returns '#000000' (Black) for light backgrounds, '#FFFFFF' (White) for dark.
+ */
+function getContrastColor(hexColor) {
+    if (!hexColor) return '#FFFFFF';
+    // Remove hash if present
+    let hex = hexColor.replace('#', '');
+
+    // Handle shorthand hex codes (e.g., "03F" -> "0033FF")
+    if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('');
+    }
+
+    // If hex is not 6 characters after expansion, it's invalid.
+    if (hex.length !== 6) {
+        return '#FFFFFF'; // Fallback for invalid format
+    }
+
+    // Parse RGB
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // YIQ equation for brightness
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
+}
+
+/**
+ * Applies the country theme to the CSS variables.
+ */
+function applyCountryTheme(countryCode) {
+    const root = document.documentElement;
+    const code = (countryCode || 'XX').toUpperCase();
+    // Fallback to XX if country code not in map, but keep code for potential partial matches if implemented later
+    // For now, strict match or default
+    const theme = COUNTRY_THEMES[code] || COUNTRY_THEMES['XX'];
+
+    // 1. Set Main Brand Colors
+    root.style.setProperty('--brand-primary', theme.p);
+    root.style.setProperty('--brand-secondary', theme.s);
+    root.style.setProperty('--brand-tertiary', theme.t);
+
+    // 2. Set Contrast Text Colors
+    // If Primary is light (e.g., Yellow for Germany), text becomes Black.
+    const textContrast = getContrastColor(theme.p);
+    root.style.setProperty('--brand-text-contrast', textContrast);
+
+    // 3. Dynamic Gradient
+    // Creates a gradient using the 3 flag colors
+    const gradient = `linear-gradient(135deg, ${theme.p} 0%, ${theme.t} 50%, ${theme.s} 100%)`;
+    root.style.setProperty('--brand-gradient', gradient);
+
+    // 4. Special Handling for Very Light Backgrounds
+    // Adds a class to body so we can add borders/shadows if the background is too white
+    const body = document.body;
+    if (!body) return;
+
+    if (textContrast === '#000000') {
+        body.classList.add('theme-light-primary');
+    } else {
+        body.classList.remove('theme-light-primary');
+    }
+}
+
 // Global State
 let allProxies = [];
 let filteredProxies = [];
@@ -363,6 +453,10 @@ function setupFilters() {
 
         filteredProxies = temp;
         currentPage = 1;
+
+        // Apply Country Theme
+        applyCountryTheme(fCountry);
+
         sortProxies(); // Re-sort preserves filtered list order relative to sort criteria if search score is equal?
         // Actually if search is active, we might want score to override sort.
         // But for now, let's just sort by selected sort order.

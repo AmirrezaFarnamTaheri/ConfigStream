@@ -1,0 +1,65 @@
+wireguard://0PYk8O37goUF9Uzi4G85sBL1Qpa68V%2BTIlNNAONN31s%3D@188.114.99.120:1074?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=84%2C146%2C56#Tel= @arshiacomplus wire
+wireguard://yNxzDWHLqTGpONrUKAuE1u4LWfj3sC4rL%2F6UiElhVE8%3D@162.159.192.166:934?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=100%2C206%2C89#Tel= @arshiacomplus wire
+wireguard://2AciydcgrCPIUuUSvIA3LcPILkrPWbgwwAjcvPgTRHg%3D@188.114.99.73:955?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=54%2C207%2C87#Tel= @arshiacomplus wire
+wireguard://aAAiMQOnPh61e5ueHBlIrTgJAqquX%2FV%2FA8qCyvvElXY%3D@188.114.97.204:1002?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=22%2C18%2C221#Tel= @arshiacomplus wire
+wireguard://6Gq%2FVXsLjKMyS0upFom%2Fve7H65LzBkeJbbbFpkYfC34%3D@162.159.192.253:7103?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=210%2C106%2C14#Tel= @arshiacomplus wire
+wireguard://aAAiMQOnPh61e5ueHBlIrTgJAqquX/V/A8qCyvvElXY=@188.114.97.204:7103?address=172.16.0.2/32,2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=&mtu=1330#Manual_Warp_1
+wireguard://2AciydcgrCPIUuUSvIA3LcPILkrPWbgwwAjcvPgTRHg=@188.114.99.73:2506?address=172.16.0.2/32,2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=&mtu=1330#Manual_Warp_2
+wireguard://yNxzDWHLqTGpONrUKAuE1u4LWfj3sC4rL/6UiElhVE8=@162.159.192.166:5956?address=172.16.0.2/32,2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=&mtu=1280#Manual_Warp_3
+wireguard://2AciydcgrCPIUuUSvIA3LcPILkrPWbgwwAjcvPgTRHg=@188.114.99.73:2506?address=172.16.0.2/32&publickey=bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo=&mtu=1330&jc=4&jmin=40&jmax=70&h1=1&h2=2&h3=3&h4=4#Amnezia_Warp
+wireguard://UJckB8h6r2P6xxx8UEspxw8r3YkpzBEbjxol3jeoqEw%3D@188.114.97.82:5956?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=61%2C41%2C250#Tel= @arshiacomplus wire
+wireguard://OKgayfT7JFRfDposOAB2Yp9JE%2Bkm61X4cx7lb8k1olc%3D@188.114.99.167:903?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=195%2C229%2C198#Tel= @arshiacomplus wire
+wireguard://eJBqr2a%2FkAlgdty6wzjf44%2FNFnnf9HmD5gB1XoM7F2I%3D@162.159.195.49:2408?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=125%2C28%2C170#Tel= @arshiacomplus wire
+wireguard://ON10%2FPuh9rJKzrkPgCrElFVTWn43UmjZakXzOBy%2Fi3A%3D@162.159.192.149:3138?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=60%2C13%2C104#Tel= @arshiacomplus wire
+wireguard://gLRQtHWFW5mYv0EYSfCBMcAl82aIfjvl%2Bdfz5YfLWkE%3D@188.114.99.9:1387?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=37%2C7%2C60#Tel= @arshiacomplus wire
+wireguard://gLgN8eqcGjoARY20t6X7g5iPNy4ncVYkBsb8b1smol8=@188.114.96.193:4233?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D#Manual_Warp_Added
+wireguard://eJBqr2a%2FkAlgdty6wzjf44%2FNFnnf9HmD5gB1XoM7F2I%3D@162.159.195.49:4500?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&jc=4&jmin=40&jmax=70&h1=1&h2=2&h3=3&h4=4#New_Batch_1
+wireguard://4P2dzeFZpDOnc3qwGId6aCXOeBvl91vHTGuWeZAbrV0%3D@188.114.99.111:890?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D#New_Batch_2
+wireguard://OKgayfT7JFRfDposOAB2Yp9JE%2Bkm61X4cx7lb8k1olc%3D@188.114.99.167:890?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&jc=4&jmin=40&jmax=70&h1=1&h2=2&h3=3&h4=4#New_Batch_3
+wireguard://ON10%2FPuh9rJKzrkPgCrElFVTWn43UmjZakXzOBy%2Fi3A%3D@162.159.192.149:4233?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D#New_Batch_4
+wireguard://MLYOByc46QbnHlrlnSiN0wPYBkOH%2F86q7ry7Qv6pREE%3D@188.114.99.28:8319?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&jc=4&jmin=40&jmax=70&h1=1&h2=2&h3=3&h4=4#New_Batch_5
+wireguard://mNQe7eelvlFk%2FrbPuVGMN8KyRJSEnDjaPE1RWnLiUlo%3D@188.114.97.173:955?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D#New_Batch_6
+wireguard://KDoeJzxYO2jP99cbHld4eR2PQQfQ43QaocHNAPbvKlw%3D@188.114.99.161:1180?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D#New_Batch_7
+wireguard://EMU99quTISoW0xoHaVCMyeNJzS%2BFcqvU%2FPbF%2B0wotnc%3D@162.159.195.63:5279?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&jc=4&jmin=40&jmax=70&h1=1&h2=2&h3=3&h4=4#New_Batch_8
+wireguard://QJAJAfsaQC0T9Z6LWjgoP1bBKfv1JxP65y1wFHi6xEw%3D@162.159.195.57:968?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=99%2C246%2C176#New_Batch_9
+wireguard://qE8dj5aFgTJs9lvXhB4y1%2FHzWdz%2BbKOh5S81GFSP5Ww%3D@188.114.97.150:854?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=56%2C17%2C200#New_Batch_10
+wireguard://QJRb40AVUrFHgJmohrUUDGctrbEv8ERdJoTPIMDQt38%3D@188.114.99.116:878?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=13%2C221%2C84#New_Batch_11
+wireguard://aLg2kAGQUsCB%2F1ZlE0ha7cUGSvmSnbYP41wsibhe7WE%3D@188.114.98.10:890?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=31%2C81%2C146#New_Batch_12
+wireguard://2JsJusNbc1wKn3vEwwZmajdBSeCjgIevDeQ7c1i8VFI%3D@188.114.96.98:8886?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=64%2C195%2C30#New_Batch_13
+wireguard://mAQA%2FGEnQ1MqrRSwPYVvPiAJHpUAL6%2BiGV70lRF0elE%3D@162.159.192.82:3581?address=172.16.0.2/32, 2606:4700:110:846c:e510:bfa1:ea9f:5247/128&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&reserved=58%2C214%2C87#New_Batch_14
+wireguard://2FaqTm%2BaXdVK00dvbeuMW%2Ft741BWYu9lNOOVtMI4R3Y%3D@162.159.192.11:3581?address=172.16.0.2%2F32&presharedkey=&reserved=80%2C103%2C64&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%C2%B9
+wireguard://8CBaFoNjMJ64gMWudh%2BrjxrHtCq0lktrhxseaYo2S0k%3D@162.159.192.20:903?address=172.16.0.2%2F32&presharedkey=&reserved=228%2C46%2C87&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%C2%B2
+wireguard://CBMxaub4dG7Q9W91x4%2BlUCqtF9eV1BN%2B4osBfWZNXHs%3D@162.159.195.4:2371?address=172.16.0.2%2F32&presharedkey=&reserved=225%2C17%2C205&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%C2%B3
+wireguard://AJw%2Fou0GT1nJpVAhZgYGrw58NdI4vKwHP6hrcH%2FD3FQ%3D@162.159.195.2:1002?address=172.16.0.2%2F32&presharedkey=&reserved=72%2C160%2C156&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%E2%81%B4
+wireguard://EACg2DaM5%2Ft6HFpYWHVWL%2FF1S%2BnGV3%2FcQ%2FPaN%2BdzlmM%3D@wire.nscl.ir:878?address=172.16.0.2%2F32&presharedkey=&reserved=8%2C127%2C44&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%E2%81%B6
+wireguard://0FEiV9b16z2%2FpWfXPTmExhlGmvQawEyIMhff24VAaX0%3D@162.159.192.5:1014?address=172.16.0.2%2F32&presharedkey=&reserved=68%2C223%2C255&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%E2%81%B6
+wireguard://2Ax5nKaBrfiMpaH1MNn8JG%2FrJH5WB11wbgad%2Bihcv0s%3D@162.159.192.9:7559?address=172.16.0.2%2F32&presharedkey=&reserved=12%2C174%2C107&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%E2%81%B7
+wireguard://EACg2DaM5%2Ft6HFpYWHVWL%2FF1S%2BnGV3%2FcQ%2FPaN%2BdzlmM%3D@wire.nscl.ir:878?address=172.16.0.2%2F32&presharedkey=&reserved=8%2C127%2C44&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%E2%81%B8
+wireguard://ANsY0fuQkdRtj896H0fkDQr0hxoE3BfkxdIM9JKWx2E%3D@162.159.195.3:5279?address=172.16.0.2%2F32&presharedkey=&reserved=103%2C177%2C44&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%E2%81%B9
+wireguard://CBMxaub4dG7Q9W91x4%2BlUCqtF9eV1BN%2B4osBfWZNXHs%3D@162.159.195.4:2371?address=172.16.0.2%2F32&presharedkey=&reserved=225%2C17%2C205&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%C2%B9%E2%81%B0
+wireguard://GCpkNcdHkbft3GDGx370jW6SZtYQ17C1CB2lV1QA92Q%3D@[2606:4700:d0::a29f:c003]:2408?address=172.16.0.2%2F32&presharedkey=&reserved=165%2C62%2C85&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%C2%B9%C2%B9
+wireguard://IKDOz%2F9G%2F%2FYE7Srr1lDQvwm2wH7c2kHfzIAOvjERyHs%3D@[2606:4700:d0::a29f:c004]:8742?address=172.16.0.2%2F32&presharedkey=&reserved=120%2C35%2C122&publickey=bmXOC%2BF1FxEMF9dyiK2H5%2F1SUtzH0JuVo51h2wPfgyo%3D&mtu=1380#%40ShadowProxy66%20%28warp%29%C2%B9%C2%B2
+warp://162.159.192.5:880/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🇩🇪a
+warp://162.159.192.20:1010/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🔑
+warp://162.159.195.1:880/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🤩
+warp://162.159.195.10:1010/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🇬🇶
+warp://162.159.193.3:1701/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🏟
+warp://162.159.193.3:500/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🍒
+warp://[2606:4700:d0::a29f:c012]:1701/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#💥@sorenab1🍒
+warp://[2606:4700:d1::a29f:c307]:939/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#💥@sorenab1🍒
+warp://[2606:4700:d0::a29f:c001]:500/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🍒
+warp://[2606:4700:d0::a29f:c001]:1701/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🍒
+warp://[2606:4700:d0::a29f:c001]:4500/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🍒
+warp://[2606:4700:d0::a29f:c001]:2408/?ifp=40-80&ifps=50-100&ifpd=2-4&ifpm=m4#@sorenab1🍒
+warp://[2606:4700:d0::a29f:c001]#🧞‍♀😍🧜‍♂
+warp://[2606:4700:d0::a29f:c002]#🧞‍♀🤩🧜‍♂
+warp://[2606:4700:d0::a29f:c003]#🧞‍♀🤩🧜‍♂
+warp://[2606:4700:d0::a29f:c004]#🧞‍♀🤩🧜‍♂
+warp://[2606:4700:d0::a29f:c005]#🧞‍♀🤩🧜‍♂
+warp://[2606:4700:d0::a29f:c006]#🧞‍♀🥵🧜‍♂
+warp://[2606:4700:d1::a29f:c307]#🧞‍♀🥵🧜‍♂
+warp://[2606:4700:d0::a29f:c008]#🧞‍♀🥵🧜‍♂
+warp://[2606:4700:d0::a29f:c009]#🧞‍♀🥵🧜‍♂
+warp://[2606:4700:d0::a29f:c010]#🧞‍♀🥵🧜‍♂
+warp://[2606:4700:d0::a29f:c011]#🧞‍♀🥵🧜‍♂
+warp://[2606:4700:d0::a29f:c012]#🧞‍♀🥵🧜‍♂
