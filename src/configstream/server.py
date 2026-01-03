@@ -389,12 +389,20 @@ except Exception as e:
 
 
 # Mount frontend assets (css, js, images)
-if FRONTEND_DIR.exists():
+# [FIX] Mypy error: FRONTEND_DIR is Optional[str | Path] from AppSettings?
+# No, in server.py: FRONTEND_DIR = AppSettings().FRONTEND_DIR or (BASE_DIR / "frontend")
+# AppSettings definition: FRONTEND_DIR: Optional[str] = None
+# So FRONTEND_DIR can be 'str' or 'Path'. 'str' has no 'exists'.
+# We must ensure FRONTEND_DIR is a Path object.
+
+frontend_path = Path(str(FRONTEND_DIR))
+
+if frontend_path.exists():
     app.mount(
-        "/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets"
+        "/assets", StaticFiles(directory=str(frontend_path / "assets")), name="assets"
     )
 else:
-    logger.warning(f"Frontend directory not found at {FRONTEND_DIR}")
+    logger.warning(f"Frontend directory not found at {frontend_path}")
 
 
 @app.get("/")
@@ -432,11 +440,15 @@ async def read_page(page: str):
         return await read_index()
 
     clean_page = page if page.endswith(".html") else f"{page}.html"
-    page_path = FRONTEND_DIR / clean_page
+    # Ensure frontend_path (defined above if scope allows, but this is a function)
+    # Re-cast to be safe or use global variable if we update it.
+    # FRONTEND_DIR is global. Let's cast it inside the function too.
+    frontend_path_local = Path(str(FRONTEND_DIR))
+    page_path = frontend_path_local / clean_page
 
     # Verify the resolved path is within FRONTEND_DIR
     try:
-        base = os.path.realpath(str(FRONTEND_DIR))
+        base = os.path.realpath(str(frontend_path_local))
         target = os.path.realpath(str(page_path))
         if os.path.commonpath([base, target]) == base and page_path.exists():
             return FileResponse(page_path)
