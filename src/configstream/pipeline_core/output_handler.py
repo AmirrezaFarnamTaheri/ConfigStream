@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import os
 import logging
 import asyncio
 from pathlib import Path
@@ -44,7 +43,7 @@ async def generate_pipeline_outputs(
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
-    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
 
     # [CRITICAL] Run the Go Scanner (Phase 2 Component)
     # This populates self.clean_ips in the washer with fresh, low-latency endpoints.
@@ -109,8 +108,10 @@ async def generate_pipeline_outputs(
     )
 
     # 5. Metadata & Stats
+    stats_dict = await stats.to_dict()
+
     await loop.run_in_executor(
-        None, save_metadata, stats, optimized_proxies, output_path
+        None, save_metadata, stats_dict, optimized_proxies, output_path
     )
 
     # [FIX] Export history visualization data

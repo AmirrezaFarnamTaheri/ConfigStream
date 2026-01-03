@@ -139,11 +139,14 @@ def test_dedupe_shuffle_seed():
     p1 = create_proxy(address="1")
     p2 = create_proxy(address="2")
 
-    # Mock os.getenv to return seed
-    with patch("os.getenv", return_value="42"):
+    # Mock AppSettings to return seed
+    # Patch where it is imported (filtering module)
+    with patch("configstream.filtering.AppSettings") as mock_settings:
+        mock_settings.return_value.CONFIGSTREAM_SHUFFLE_SEED = "42"
         res1 = dedupe_and_shuffle([p1, p2])
 
-    with patch("os.getenv", return_value="42"):
+    with patch("configstream.filtering.AppSettings") as mock_settings:
+        mock_settings.return_value.CONFIGSTREAM_SHUFFLE_SEED = "42"
         res2 = dedupe_and_shuffle([p1, p2])
 
     assert [p.address for p in res1] == [p.address for p in res2]

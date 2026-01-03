@@ -2,11 +2,10 @@
 import asyncio
 import logging
 import random
-from typing import Optional
+from typing import Optional, Any
 from urllib.parse import urlparse
 import httpx
 
-from configstream.security.rate_limiter import RateLimiter
 from configstream.concurrency_manager import ConcurrencyManager
 from configstream.config import AppSettings
 from configstream.circuit_breaker import CircuitBreakerManager
@@ -14,7 +13,6 @@ from configstream.adaptive_timeout import AdaptiveTimeout
 from configstream.fetcher_core.models import FetchResult, RateLimitError
 from configstream.fetcher_core.worker import fetch_single_source
 from configstream.security_validator import SecurityValidator
-from configstream.fetcher_core.constants import MAX_RESPONSE_SIZE
 
 # Integrate Source Manager
 from configstream.source_quality import SourceQualityTracker
@@ -28,7 +26,7 @@ async def fetch_from_source(
     timeout: int = 30,
     max_retries: int = 3,
     retry_delay: float = 1.0,
-    rate_limiter: Optional[RateLimiter] = None,
+    rate_limiter: Optional[Any] = None,  # Deprecated
     controller: Optional[ConcurrencyManager] = None,
     breaker_manager: Optional[CircuitBreakerManager] = None,
     timeout_tracker: Optional[AdaptiveTimeout] = None,
@@ -74,7 +72,7 @@ async def fetch_from_source(
     per_attempt_timeout = effective_timeout
 
     # 3. Pre-flight Checks (Rate Limit & Circuit Breaker)
-    if rate_limiter:
+    if rate_limiter and hasattr(rate_limiter, "is_allowed"):
         while not await rate_limiter.is_allowed(host):
             wait = await rate_limiter.get_wait_time(host)
             logger.debug(f"Rate limiting active for {host}. Waiting {wait:.2f}s...")
@@ -121,7 +119,7 @@ async def fetch_from_source(
                 client,
                 source,
                 headers,
-                MAX_RESPONSE_SIZE,
+                app_settings.MAX_RESPONSE_SIZE,
                 app_settings,
                 per_attempt_timeout,
                 start_ts,

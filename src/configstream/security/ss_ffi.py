@@ -47,9 +47,10 @@ def _verify_binary_checksum(path: Path) -> bool:
     # [SECURITY] Implement real checksum verification if hash is provided via ENV
     expected_hash = "773b0631f4e3c83758364860d50711626084807494f6c12140a321943806a642"  # Example hash, replace with real one or env var
     import hashlib
-    import os
 
-    env_hash = os.environ.get("SS_LIB_SHA256")
+    from configstream.config import AppSettings
+
+    env_hash = AppSettings().SS_LIB_SHA256
     if env_hash:
         expected_hash = env_hash.strip().lower()
 
