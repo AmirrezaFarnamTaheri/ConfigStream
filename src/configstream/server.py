@@ -24,6 +24,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from .output import OUTPUT_DIR
+from .config import AppSettings
 
 # Ensure WASM files are served with correct MIME type
 mimetypes.add_type("application/wasm", ".wasm")
@@ -34,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-FRONTEND_DIR = Path(os.getenv("FRONTEND_DIR", BASE_DIR / "frontend"))
+FRONTEND_DIR = AppSettings().FRONTEND_DIR or (BASE_DIR / "frontend")
 
 try:
     VERSION = importlib.metadata.version("configstream")
@@ -68,20 +69,14 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 # Enable CORS with restricted origins
 # Allow localhost for development and GitHub Pages for production deployment
 # Set ALLOWED_ORIGINS environment variable for custom domains
-ALLOWED_ORIGINS_STR = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:8000,http://localhost:3000,http://127.0.0.1:8000",
-)
+ALLOWED_ORIGINS_STR = AppSettings().ALLOWED_ORIGINS
 ALLOWED_ORIGINS = [
     origin.strip() for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()
 ]
 
 # Use regex pattern for GitHub Pages and other wildcard domains
 # [FIX P1] CORSMiddleware requires allow_origin_regex for wildcard patterns
-ALLOWED_ORIGIN_REGEX = os.getenv(
-    "ALLOWED_ORIGIN_REGEX",
-    r"https://.*\.github\.io",  # Allows any subdomain.github.io
-)
+ALLOWED_ORIGIN_REGEX = AppSettings().ALLOWED_ORIGIN_REGEX
 
 app.add_middleware(
     CORSMiddleware,
@@ -176,7 +171,8 @@ async def notify_update(payload: dict):
     """
     # Simple API key authentication for admin endpoints
     # Only enforce API key for external production deployments
-    api_key = os.getenv("ADMIN_API_KEY")
+    settings = AppSettings()
+    api_key = settings.ADMIN_API_KEY
     if api_key:
         provided_key = payload.get("api_key")
         # Allow internal pipeline calls without API key if key matches or is from internal source
@@ -184,7 +180,7 @@ async def notify_update(payload: dict):
         if not provided_key:
             # Check if this is an internal call (development/CI environment)
             # [SECURITY] Secure default: PRODUCTION
-            is_internal = os.getenv("ENVIRONMENT", "production") in (
+            is_internal = settings.ENVIRONMENT in (
                 "development",
                 "ci",
                 "test",
@@ -393,12 +389,20 @@ except Exception as e:
 
 
 # Mount frontend assets (css, js, images)
-if FRONTEND_DIR.exists():
+# [FIX] Mypy error: FRONTEND_DIR is Optional[str | Path] from AppSettings?
+# No, in server.py: FRONTEND_DIR = AppSettings().FRONTEND_DIR or (BASE_DIR / "frontend")
+# AppSettings definition: FRONTEND_DIR: Optional[str] = None
+# So FRONTEND_DIR can be 'str' or 'Path'. 'str' has no 'exists'.
+# We must ensure FRONTEND_DIR is a Path object.
+
+frontend_path = Path(str(FRONTEND_DIR))
+
+if frontend_path.exists():
     app.mount(
-        "/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets"
+        "/assets", StaticFiles(directory=str(frontend_path / "assets")), name="assets"
     )
 else:
-    logger.warning(f"Frontend directory not found at {FRONTEND_DIR}")
+    logger.warning(f"Frontend directory not found at {frontend_path}")
 
 
 @app.get("/")
@@ -436,11 +440,15 @@ async def read_page(page: str):
         return await read_index()
 
     clean_page = page if page.endswith(".html") else f"{page}.html"
-    page_path = FRONTEND_DIR / clean_page
+    # Ensure frontend_path (defined above if scope allows, but this is a function)
+    # Re-cast to be safe or use global variable if we update it.
+    # FRONTEND_DIR is global. Let's cast it inside the function too.
+    frontend_path_local = Path(str(FRONTEND_DIR))
+    page_path = frontend_path_local / clean_page
 
     # Verify the resolved path is within FRONTEND_DIR
     try:
-        base = os.path.realpath(str(FRONTEND_DIR))
+        base = os.path.realpath(str(frontend_path_local))
         target = os.path.realpath(str(page_path))
         if os.path.commonpath([base, target]) == base and page_path.exists():
             return FileResponse(page_path)

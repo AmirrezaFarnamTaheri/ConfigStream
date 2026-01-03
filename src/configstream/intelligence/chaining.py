@@ -7,6 +7,7 @@ import math
 
 from configstream.converters import to_singbox_outbound
 from configstream.models import Proxy
+from configstream.config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -520,9 +521,9 @@ def generate_smart_chains(
     # Strategy: User (Intranet) -> Relay (IR) -> Exit (Foreign) [-> WARP]
 
     # [FIX] Configurable intranet origin, defaulting to IR
-    import os
+    # import os - removed
 
-    intranet_origin = os.getenv("INTRANET_ORIGIN", "IR")
+    intranet_origin = AppSettings().INTRANET_ORIGIN
     relays_intranet = [
         p for p in proxies if p.country_code == intranet_origin and p.is_working
     ]

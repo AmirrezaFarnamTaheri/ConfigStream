@@ -367,21 +367,21 @@ jobs:
 
       - name: Upload to Telegram
         if: env.TELEGRAM_BOT_TOKEN != ''
-        run: python scripts/upload_telegram.py &
+        run: python scripts/upload_telegram.py
 
       - name: Upload to Hugging Face
         if: env.HF_TOKEN != ''
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_REPO_ID: ${{ secrets.HF_REPO_ID }}
-        run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID &
+        run: python scripts/upload_hf.py --path output/ --repo-id $HF_REPO_ID
 
       - name: Upload to Google Drive Mirror
         if: env.GDRIVE_FOLDER_ID != ''
         run: |
           # Ensure dependencies are installed (if not in previous steps)
           pip install google-api-python-client google-auth
-          python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID &
+          python scripts/upload_gdrive.py --path output/ --folder-id $GDRIVE_FOLDER_ID
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -399,12 +399,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Wait for Background Jobs
-        run: |
-          # Wait for all background processes and fail if any failed
-          FAIL=0
-          for job in $(jobs -p); do
-            wait $job || FAIL=1
-          done
-          exit $FAIL

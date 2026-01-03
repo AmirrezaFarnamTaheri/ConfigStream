@@ -6,7 +6,6 @@ Command line interface for the Telegram Bot.
 
 from __future__ import annotations
 
-import os
 import sys
 import logging
 from typing import TYPE_CHECKING
@@ -103,7 +102,9 @@ def main():
         )
         sys.exit(1)
 
-    token = os.getenv("TELEGRAM_BOT_TOKEN")
+    from configstream.config import AppSettings
+
+    token = AppSettings().TELEGRAM_BOT_TOKEN
     if not token:
         logger.error("TELEGRAM_BOT_TOKEN not set")
         return

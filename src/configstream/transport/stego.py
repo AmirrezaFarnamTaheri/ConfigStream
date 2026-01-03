@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # src/configstream/transport/stego.py
 
-import os
 import zlib
 import logging
 import hmac
@@ -97,7 +96,9 @@ def generate_stego_assets(
     # 2. Env var CONFIG_STREAM_KEY
     # 3. Generate new
     if not secret_key:
-        secret_key = os.getenv("CONFIG_STREAM_KEY")
+        from configstream.config import AppSettings
+
+        secret_key = AppSettings().CONFIG_STREAM_KEY
 
     if secret_key:
         try:
