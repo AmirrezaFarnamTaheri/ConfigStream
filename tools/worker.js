@@ -3,9 +3,6 @@
 // Deploy this to Cloudflare Workers (Free Tier)
 // Based on edgetunnel (simplified)
 
-// Use a UUID you generated
-const UUID = '00000000-0000-0000-0000-000000000000';
-
 export default {
   async fetch(request, env, ctx) {
     if (request.headers.get('Upgrade') !== 'websocket') {

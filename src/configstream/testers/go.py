@@ -312,15 +312,6 @@ class GoBatchTester:
                     config_str = raw_json
 
                 # FIX: Go Tester template expects "outbounds": [%s, direct]
-                # If outbound is a list (e.g., [vless]), json.dumps produces "[{...}]".
-                # We must strip the outer brackets so the template becomes [[{...}], direct] -> INVALID
-                # Wait, if we strip: [{...}] -> {...}
-                # Template: [%s, direct] -> [{...}, direct] -> CORRECT (List of objects)
-                # NOTE: to_singbox_outbound returns Dict, so this check is technically dead code
-                # but kept for safety if converter logic changes to return List.
-                if isinstance(outbound, list):
-                    config_str = config_str.strip()[1:-1]
-
                 inputs.append(
                     {
                         "config": config_str,

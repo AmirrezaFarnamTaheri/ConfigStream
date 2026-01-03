@@ -28,8 +28,6 @@ HONEYPOT_ASNS: Set[str] = set()  # Reserved for known research scanner ASNs
 
 class BlocklistManager:
     _instance: Optional["BlocklistManager"] = None
-    _lock: asyncio.Lock = asyncio.Lock()
-    _init_lock: asyncio.Lock = asyncio.Lock()
 
     def __new__(cls):
         if cls._instance is None:
@@ -183,31 +181,6 @@ class BlocklistManager:
         """
         if port in HONEYPOT_PORTS:
             return True
-        return False
-
-    def is_honeypot(self, ip: str, port: int, asn: str = "") -> bool:
-        """
-        DEPRECATED: Use is_suspicious_port instead.
-        Detects potential honey pots using heuristics.
-
-        NOTE: Passive VirusTotal checks should be used for definitive identification.
-
-        .. deprecated:: 2.0
-            Use :meth:`is_suspicious_port` for port-based checks or integrate VirusTotal for comprehensive detection.
-        """
-        import warnings
-
-        warnings.warn(
-            "is_honeypot() is deprecated. Use is_suspicious_port() for port checks.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if self.is_suspicious_port(port):
-            return True
-
-        if asn in HONEYPOT_ASNS:
-            return True
-
         return False
 
 

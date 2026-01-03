@@ -154,7 +154,7 @@ async def run_full_pipeline(
     geoip = GeoIPResolver()
 
     # [FIX] Initialize Shared Washer Singleton
-    washer = ProxyWasher(os.getenv("WARP_KEY_POOL", "[]"))
+    washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
     await washer.fetch_clean_ips()  # Pre-fetch once
 
     # Initialize Event Stream

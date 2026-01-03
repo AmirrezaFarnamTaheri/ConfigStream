@@ -46,6 +46,13 @@ class AppSettings(BaseSettings):
     # [PHASE 2] Producer Concurrency
     PRODUCER_MAX_CONCURRENCY: int = 100
 
+    # Tester Concurrency Limits
+    GO_TESTER_BATCH_SIZE: int = 200
+    PY_TESTER_BATCH_SIZE: int = 100
+
+    # Intelligence Layer
+    WARP_KEY_POOL: str = "[]"
+
     # Memory management
     BATCH_SIZE: int = 50
     CACHE_TTL: int = 1800
