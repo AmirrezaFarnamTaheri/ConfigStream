@@ -7,7 +7,7 @@ import threading
 import httpx
 import time
 from typing import List, Dict, Optional, Set, Any, Tuple
-from cachetools import LRUCache
+from cachetools import LRUCache  # type: ignore
 
 from configstream.models import Proxy
 from configstream.converters import to_singbox_outbound
