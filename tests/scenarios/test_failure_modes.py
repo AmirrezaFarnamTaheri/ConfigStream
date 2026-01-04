@@ -96,9 +96,13 @@ async def test_failure_mode_anomaly_db_crash(tmp_path, monkeypatch):
     # Mock GeoIP
     from configstream.geoip import GeoData
 
+    # [FIX] Use async mock for GeoIP lookup and keyword arguments for GeoData
+    async def fake_lookup(self, ip):
+        return GeoData(country_code="US", country_name="United States", city="City")
+
     monkeypatch.setattr(
         "configstream.geoip.GeoIPResolver.lookup",
-        lambda s, ip: GeoData("US", "United States", "City"),
+        fake_lookup,
     )
 
     result = await run_full_pipeline(
@@ -147,9 +151,13 @@ async def test_failure_mode_vt_missing(tmp_path, monkeypatch):
     )
     from configstream.geoip import GeoData
 
+    # [FIX] Use async mock for GeoIP lookup and keyword arguments for GeoData
+    async def fake_lookup(self, ip):
+        return GeoData(country_code="US", country_name="United States", city="City")
+
     monkeypatch.setattr(
         "configstream.geoip.GeoIPResolver.lookup",
-        lambda s, ip: GeoData("US", "United States", "City"),
+        fake_lookup,
     )
 
     result = await run_full_pipeline(

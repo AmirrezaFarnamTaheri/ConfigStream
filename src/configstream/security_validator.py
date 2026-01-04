@@ -207,8 +207,9 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
                   return False, "invalid_uuid_format"
 
     if proxy.protocol == "trojan":
-        password = proxy.details.get("password")
-        if not password or len(password) < policy["min_password_length"]:
+        # [FIX] Check both uuid (often used for password in simple parsers) and details['password']
+        password = proxy.details.get("password") or getattr(proxy, "uuid", None)
+        if not password or len(str(password)) < policy["min_password_length"]:
             return False, "weak_trojan_password"
 
     if proxy.protocol == "shadowsocks":

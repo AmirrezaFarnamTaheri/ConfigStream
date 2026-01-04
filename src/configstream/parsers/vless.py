@@ -31,10 +31,17 @@ def parse_vless(url: str) -> Proxy | None:
             main_part, params_str = main_part.split("?", 1)
 
         # Split uuid@host:port
+        # [FIX] Handle '@' in uuid or params incorrectly handled?
+        # Standard VLESS format: uuid@host:port
+        # Some encoded UUIDs might contain stuff? Unlikely.
         if "@" not in main_part:
             return None
 
-        uuid_val, host_port = main_part.split("@", 1)
+        # Split from right to handle weird UUIDs? No, host:port is at end.
+        # But if uuid contains '@', we should split on LAST @?
+        # Standard is last @ before host.
+        # Let's split on the LAST @
+        uuid_val, host_port = main_part.rsplit("@", 1)
 
         # Handle host:port (IPv6 might have brackets)
         host = ""
@@ -78,7 +85,9 @@ def parse_vless(url: str) -> Proxy | None:
             return None
 
         # Construct Proxy
+        # [FIX] Ensure Pydantic model "config" field is populated
         proxy = Proxy(
+            config=url, # Add config field
             protocol="vless",
             address=host,
             port=port,
@@ -92,6 +101,12 @@ def parse_vless(url: str) -> Proxy | None:
             }
         )
 
+        # Also set UUID on proxy object if model has it
+        if hasattr(proxy, "uuid"):
+            proxy.uuid = uuid_val
+        if hasattr(proxy, "remarks"):
+            proxy.remarks = name
+
         # Standard Transport Params
         if "sni" in params:
             proxy.details["sni"] = params["sni"]
@@ -101,9 +116,6 @@ def parse_vless(url: str) -> Proxy | None:
         if "pbk" in params:
             proxy.details["pbk"] = params["pbk"]
         if "sid" in params:
-             # [FIX] VLESS Reality: sid is optional/can be short hex.
-             # Only strictly validate if it looks completely wrong, otherwise accept.
-             # Actually, just passing it through is safer for "false positive" reduction.
              proxy.details["sid"] = params["sid"]
         if "fp" in params:
             proxy.details["fingerprint"] = params["fp"]
