@@ -59,16 +59,20 @@ async def fetch_multiple_sources(
         http_client: httpx.AsyncClient, source: str
     ) -> Tuple[str, FetchResult]:
         async with global_sem:
+            # [FIX] Use keyword arguments to avoid positional argument mismatch
+            # fetch_from_source(client, source, app_settings=...)
+            # timeout arg was passed incorrectly as positional app_settings in legacy code
             res = await fetch_from_source(
                 http_client,
                 source,
-                timeout,
+                app_settings=app_settings,
                 rate_limiter=rate_limiter,
                 controller=controller,
                 breaker_manager=breaker_manager,
                 timeout_tracker=timeout_tracker,
-                app_settings=app_settings,
                 quality_tracker=quality_tracker,
+                # Pass timeout if supported by orchestrator via kwargs or explicit arg?
+                # Orchestrator uses timeout_tracker.
             )
             return source, res
 

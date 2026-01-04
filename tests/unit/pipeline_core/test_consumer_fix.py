@@ -1,10 +1,10 @@
-
 import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.pipeline_core.consumer import processing_consumer
 from configstream.pipeline_core.stats import PipelineStats
 from configstream.models import Proxy
+
 
 @pytest.fixture
 def mock_dependencies_fix():
@@ -53,8 +53,9 @@ def mock_dependencies_fix():
         "geoip": geoip,
         "tracker": tracker,
         "history": history,
-        "quality": quality
+        "quality": quality,
     }
+
 
 @pytest.mark.asyncio
 async def test_processing_consumer_revival_crash(mock_dependencies_fix):
@@ -68,18 +69,30 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
     await queue.put(("test-source", ["vmess://test"]))
     await queue.put(None)  # Sentinel
 
-    original_proxy = Proxy(protocol="vmess", address="1.2.3.4", port=443, config="vmess://test", uuid="orig1")
+    original_proxy = Proxy(
+        protocol="vmess",
+        address="1.2.3.4",
+        port=443,
+        config="vmess://test",
+        uuid="orig1",
+    )
 
     # Mock parse_config
-    with patch("configstream.pipeline_core.consumer.parse_config", return_value=original_proxy):
+    with patch(
+        "configstream.pipeline_core.consumer.parse_config", return_value=original_proxy
+    ):
         # Mock validate_batch_configs
-        with patch("configstream.pipeline_core.consumer.validate_batch_configs", return_value=[original_proxy]):
+        with patch(
+            "configstream.pipeline_core.consumer.validate_batch_configs",
+            return_value=[original_proxy],
+        ):
 
             # 2. Make initial test fail
             # tester.test_batch updates in place.
             async def fail_initial_batch(batch):
                 for p in batch:
                     p.is_working = False
+
             deps["tester"].test_batch.side_effect = fail_initial_batch
 
             # 3. Setup Washer to return a revived proxy
@@ -90,7 +103,7 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
                 address="clean.ip",
                 port=2408,
                 config="revived://",
-                details={"origin_proxy": origin_dict}
+                details={"origin_proxy": origin_dict},
             )
 
             # washer.wash_failed returns (candidates, count)
@@ -129,7 +142,7 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
                 max_latency=None,
                 country_filter=None,
                 leniency=False,
-                washer=deps["washer"]
+                washer=deps["washer"],
             )
 
     # Assert correctness
