@@ -52,7 +52,7 @@ def parse_vless(url: str) -> Proxy | None:
             if end_bracket == -1:
                 return None
             host = host_port[1:end_bracket]
-            remaining = host_port[end_bracket + 1:]
+            remaining = host_port[end_bracket + 1 :]
             if remaining.startswith(":"):
                 try:
                     port = int(remaining[1:])
@@ -97,7 +97,7 @@ def parse_vless(url: str) -> Proxy | None:
                 "security": params.get("security", "none"),
                 "encryption": params.get("encryption", "none"),
                 "flow": params.get("flow", ""),
-            }
+            },
         )
 
         # Also set UUID on proxy object if model has it
