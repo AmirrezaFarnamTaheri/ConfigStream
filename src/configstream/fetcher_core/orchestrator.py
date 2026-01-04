@@ -29,7 +29,8 @@ async def fetch_from_source(
     rate_limiter: Any = None,
     breaker_manager: Any = None,
     timeout_tracker: Any = None,
-    retry_delay: float = 1.0
+    retry_delay: float = 1.0,
+    **kwargs: Any,  # [FIX] Accept extra kwargs (controller, quality_tracker) to satisfy Mypy/callers
 ) -> Any:
     """
     Robust fetcher implementation handling retries, circuit breaking, rate limiting,
@@ -38,11 +39,12 @@ async def fetch_from_source(
 
     # [FIX] Validate URL
     if not source or not source.startswith(("http://", "https://")):
-        return SimpleNamespace(success=False, content=None, error="Invalid URL", status_code=0)
+        return SimpleNamespace(
+            success=False, content=None, error="Invalid URL", status_code=0
+        )
 
     # Circuit Breaker Check
     if breaker_manager:
-        # [FIX] Extract host from URL to use as breaker key (matching test expectation)
         try:
             parsed = urlparse(source)
             host = parsed.netloc
@@ -57,7 +59,9 @@ async def fetch_from_source(
             is_open = await is_open
 
         if is_open:
-            return SimpleNamespace(success=False, content=None, error="Circuit Breaker Open", status_code=0)
+            return SimpleNamespace(
+                success=False, content=None, error="Circuit Breaker Open", status_code=0
+            )
 
     # Rate Limiter Pre-check
     if rate_limiter:
@@ -80,7 +84,9 @@ async def fetch_from_source(
                 if jitter > 2.0:
                     logger.info(f"High Jitter detected for {source}: {jitter}s")
 
-            async with client.stream("GET", source, headers=headers, timeout=timeout, follow_redirects=True) as response:
+            async with client.stream(
+                "GET", source, headers=headers, timeout=timeout, follow_redirects=True
+            ) as response:
 
                 # Check Status
                 if response.status_code == 429:
@@ -92,42 +98,69 @@ async def fetch_from_source(
                     continue
 
                 if response.status_code in [404, 410]:
-                    return SimpleNamespace(success=False, content=None, error=f"Permanent Error: {response.status_code}", status_code=response.status_code)
+                    return SimpleNamespace(
+                        success=False,
+                        content=None,
+                        error=f"Permanent Error: {response.status_code}",
+                        status_code=response.status_code,
+                    )
 
                 if response.status_code >= 500:
                     attempt += 1
                     last_error = f"HTTP {response.status_code}"
-                    await asyncio.sleep(retry_delay * (2 ** attempt))
+                    await asyncio.sleep(retry_delay * (2**attempt))
                     continue
 
                 # Content Length Check
                 content_len = response.headers.get("Content-Length")
                 if content_len and int(content_len) > MAX_RESPONSE_SIZE:
-                    return SimpleNamespace(success=False, content=None, error="Response too large", status_code=response.status_code)
+                    return SimpleNamespace(
+                        success=False,
+                        content=None,
+                        error="Response too large",
+                        status_code=response.status_code,
+                    )
 
                 # Stream Content
                 content = b""
                 async for chunk in response.aiter_bytes():
                     content += chunk
                     if len(content) > MAX_RESPONSE_SIZE:
-                        return SimpleNamespace(success=False, content=None, error="Response too large", status_code=response.status_code)
+                        return SimpleNamespace(
+                            success=False,
+                            content=None,
+                            error="Response too large",
+                            status_code=response.status_code,
+                        )
 
                 # Decode
                 text_content = content.decode("utf-8", errors="ignore")
 
-                if response.status_code == 200 and (not text_content or not text_content.strip()):
+                if response.status_code == 200 and (
+                    not text_content or not text_content.strip()
+                ):
                     attempt += 1
                     last_error = "Empty content with 200 OK"
                     continue
 
-                return SimpleNamespace(success=True, content=text_content, status_code=response.status_code, error=None)
+                return SimpleNamespace(
+                    success=True,
+                    content=text_content,
+                    status_code=response.status_code,
+                    error=None,
+                )
 
         except Exception as e:
             last_error = str(e)
             attempt += 1
             await asyncio.sleep(retry_delay)
 
-    return SimpleNamespace(success=False, content=None, error=f"Max retries exceeded: {last_error}", status_code=0)
+    return SimpleNamespace(
+        success=False,
+        content=None,
+        error=f"Max retries exceeded: {last_error}",
+        status_code=0,
+    )
 
 
 class FetchOrchestrator:

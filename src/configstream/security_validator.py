@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 import uuid
+
 # [FIX] Import urlparse directly to allow mocking in tests
 from urllib.parse import urlparse
 from typing import List, Tuple, TYPE_CHECKING
@@ -76,7 +77,7 @@ class SecurityValidator:
             # BUT reject if it contains hyphens (likely a malformed UUID)
             if "-" in val:
                 return False
-            return bool(re.match(r'^[a-zA-Z0-9_]+$', val))
+            return bool(re.match(r"^[a-zA-Z0-9_]+$", val))
 
     @staticmethod
     def is_hex(val: str) -> bool:
@@ -92,12 +93,17 @@ class SecurityValidator:
         if not mask_patterns:
             return msg
         # [FIX] Use [UUID] placeholder
-        msg = re.sub(r'[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}', '[UUID]', msg, flags=re.IGNORECASE)
+        msg = re.sub(
+            r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
+            "[UUID]",
+            msg,
+            flags=re.IGNORECASE,
+        )
         # [FIX] Mask passwords in URLs (user:pass@host)
-        msg = re.sub(r':([^:@]+)@', ':[MASKED]@', msg)
+        msg = re.sub(r":([^:@]+)@", ":[MASKED]@", msg)
 
         # [FIX] Mask likely Base64 strings (long sequences of alphanumeric+ending with =)
-        msg = re.sub(r'\b[A-Za-z0-9+/]{20,}={0,2}\b', '[BASE64]', msg)
+        msg = re.sub(r"\b[A-Za-z0-9+/]{20,}={0,2}\b", "[BASE64]", msg)
 
         return msg
 
@@ -146,7 +152,9 @@ class SecurityValidator:
 
     # [BACKWARD COMPATIBILITY]
     @staticmethod
-    def validate_proxy_config(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, str]:
+    def validate_proxy_config(
+        proxy: "Proxy", policy: dict = STRICT_POLICY
+    ) -> Tuple[bool, str]:
         """Alias for validate_proxy to maintain backward compatibility."""
         return validate_proxy(proxy, policy)
 
@@ -218,7 +226,9 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
 
 
 # [BACKWARD COMPATIBILITY]
-def validate_proxy_config(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, str]:
+def validate_proxy_config(
+    proxy: "Proxy", policy: dict = STRICT_POLICY
+) -> Tuple[bool, str]:
     """Alias for validate_proxy to maintain backward compatibility."""
     return validate_proxy(proxy, policy)
 

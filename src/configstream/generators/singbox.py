@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, cast
 from configstream.models import Proxy
 from configstream.converters import to_singbox_outbound
 
@@ -10,18 +10,23 @@ class SingBoxGenerator:
     Generates Sing-Box configuration (config.json) from a list of proxies.
     """
 
-    def generate(self, proxies: List[Proxy], region: str = "all", extra_outbounds: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    def generate(
+        self,
+        proxies: List[Proxy],
+        region: str = "all",
+        extra_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
         """
         Creates a full Sing-Box config structure.
         """
-        outbounds = []
+        outbounds: List[Dict[str, Any]] = []
 
         # [FIX] Legacy Tag Names
         SELECTOR_TAG = "🚀 Select Proxy"
         AUTO_TAG = "⚡ Best Latency"
 
         # Selector (Group)
-        selector_outbound = {
+        selector_outbound: Dict[str, Any] = {
             "type": "selector",
             "tag": SELECTOR_TAG,
             "outbounds": [AUTO_TAG, "DIRECT"],
@@ -29,7 +34,7 @@ class SingBoxGenerator:
         }
 
         # URLTest (Auto)
-        urltest_outbound = {
+        urltest_outbound: Dict[str, Any] = {
             "type": "urltest",
             "tag": AUTO_TAG,
             "outbounds": [],
@@ -47,16 +52,11 @@ class SingBoxGenerator:
                 tag = extra.get("tag")
 
                 # Logic for adding to selector:
-                # In legacy tests, WARP (wireguard) is added, but RELAY (vless) is not.
-                # Heuristic: Only add if type is wireguard or it explicitly looks like a proxy we want.
                 if tag:
                     otype = extra.get("type", "")
-                    # If it is wireguard, we add it.
                     if otype == "wireguard":
-                        selector_outbound["outbounds"].append(tag)
-                    # What if it's another proxy type?
-                    # The test fails if RELAY-123 (vless) is added.
-                    # So we strictly filter what extras go into selector.
+                        # [FIX] Mypy: cast outbounds to list
+                        cast(List[str], selector_outbound["outbounds"]).append(tag)
 
         # Add Proxy Outbounds
         for p in proxies:
@@ -64,9 +64,12 @@ class SingBoxGenerator:
                 # Use imported function directly
                 outbound_config = to_singbox_outbound(p)
 
+                # [FIX] Check for None (Mypy)
+                if outbound_config is None:
+                    continue
+
                 # [FIX] Ensure tag exists if converter didn't provide it (Mock case)
                 if "tag" not in outbound_config:
-                    # Use remarks or name or generate one
                     t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
                     outbound_config["tag"] = t
 
@@ -74,11 +77,11 @@ class SingBoxGenerator:
                 self._clean_outbound(outbound_config)
 
                 outbounds.append(outbound_config)
-                tag = outbound_config["tag"]
+                tag = outbound_config.get("tag")
 
                 if tag:
-                    selector_outbound["outbounds"].append(tag)
-                    urltest_outbound["outbounds"].append(tag)
+                    cast(List[str], selector_outbound["outbounds"]).append(tag)
+                    cast(List[str], urltest_outbound["outbounds"]).append(tag)
             except Exception:
                 continue
 
@@ -126,13 +129,18 @@ class SingBoxGenerator:
         }
         return config
 
-    def _clean_outbound(self, outbound: dict):
-        # [FIX] Expanded list of internal keys to strip
-        keys_to_remove = ["_source", "_latency", "_country", "region", "origin_proxy", "_process"]
+    def _clean_outbound(self, outbound: Dict[str, Any]):
+        keys_to_remove = [
+            "_source",
+            "_latency",
+            "_country",
+            "region",
+            "origin_proxy",
+            "_process",
+        ]
         for k in keys_to_remove:
             outbound.pop(k, None)
 
-        # Also remove any key starting with "_" just in case
         keys = list(outbound.keys())
         for k in keys:
             if k.startswith("_"):
@@ -140,10 +148,13 @@ class SingBoxGenerator:
 
 
 # [BACKWARD COMPATIBILITY]
-def generate_singbox_config(proxies: List[Proxy], region: str = "all", extra_outbounds: Optional[List[Dict[str, Any]]] = None) -> str:
+def generate_singbox_config(
+    proxies: List[Proxy],
+    region: str = "all",
+    extra_outbounds: Optional[List[Dict[str, Any]]] = None,
+) -> str:
     """
     Wrapper for SingBoxGenerator.generate to maintain backward compatibility.
-    Returns JSON string as legacy API expected.
     """
     generator = SingBoxGenerator()
     config_dict = generator.generate(proxies, region, extra_outbounds)
