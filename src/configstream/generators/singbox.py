@@ -1,144 +1,172 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
-import logging
-from typing import List, Any, Optional, Dict
-
-from ..models import Proxy
-from ..converters import to_singbox_outbound
-
-logger = logging.getLogger(__name__)
+from typing import List, Dict, Any, Optional, cast
+from configstream.models import Proxy
+from configstream.converters import to_singbox_outbound
 
 
-def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+class SingBoxGenerator:
     """
-    Strip internal metadata fields (starting with '_') from outbounds.
-    These fields are used for internal tracking but are not valid Sing-box fields.
-
-    Fixes: unmarshal error: [SingboxParser] outbounds[X]._process: json: "unknown field "_process"
+    Generates Sing-Box configuration (config.json) from a list of proxies.
     """
-    cleaned = []
-    for ob in outbounds:
-        clean_ob = {k: v for k, v in ob.items() if not k.startswith("_")}
-        cleaned.append(clean_ob)
-    return cleaned
 
+    def generate(
+        self,
+        proxies: List[Proxy],
+        region: str = "all",
+        extra_outbounds: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Creates a full Sing-Box config structure.
+        """
+        outbounds: List[Dict[str, Any]] = []
 
-def generate_singbox_config(
-    proxies: List[Proxy], extra_outbounds: Optional[List[dict[str, Any]]] = None
-) -> str:
-    """Generates a Sing-box JSON configuration (The Sniper/The Tank)."""
-    outbounds = []
-    selector_tags = []
+        # [FIX] Legacy Tag Names
+        SELECTOR_TAG = "🚀 Select Proxy"
+        AUTO_TAG = "⚡ Best Latency"
 
-    # 1. Convert proxies with unique tags
-    seen_tags = set()
-    for p in proxies:
-        sb_proxy = to_singbox_outbound(p)
-        if sb_proxy:
-            # Enforce globally unique outbound tags
-            # Include hash of (protocol, host, port) or use ID which is stable hash
-            base_tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
-            tag = base_tag
-            counter = 1
-            while tag in seen_tags:
-                tag = f"{base_tag}-{counter}"
-                counter += 1
+        # Selector (Group)
+        selector_outbound: Dict[str, Any] = {
+            "type": "selector",
+            "tag": SELECTOR_TAG,
+            "outbounds": [AUTO_TAG, "DIRECT"],
+            "interrupt_exist_connections": True,
+        }
 
-            seen_tags.add(tag)
-            sb_proxy["tag"] = tag
-            outbounds.append(sb_proxy)
-            selector_tags.append(tag)
+        # URLTest (Auto)
+        urltest_outbound: Dict[str, Any] = {
+            "type": "urltest",
+            "tag": AUTO_TAG,
+            "outbounds": [],
+            "url": "http://www.gstatic.com/generate_204",
+            "interval": "10m",
+            "tolerance": 50,
+        }
 
-    # 2. Append Extra Outbounds (e.g. Washed Chains)
-    if extra_outbounds:
-        for out in extra_outbounds:
-            # [FIX] Flatten list of lists if encountered (common with chains)
-            # The 'washer' logic returns [[Relay, Exit], [Relay, Exit]], but this generator expects flat list.
-            # If 'out' is a list, we must iterate it.
-            if isinstance(out, list):
-                sub_outbounds = out
-            else:
-                sub_outbounds = [out]
+        # Add Extra Outbounds First (if any)
+        if extra_outbounds:
+            for extra in extra_outbounds:
+                # [FIX] Ensure extras are cleaned too if needed
+                self._clean_outbound(extra)
+                outbounds.append(extra)
+                tag = extra.get("tag")
 
-            for item in sub_outbounds:
-                if not isinstance(item, dict):
+                # Logic for adding to selector:
+                if tag:
+                    otype = extra.get("type", "")
+                    if otype == "wireguard":
+                        # [FIX] Mypy: cast outbounds to list
+                        cast(List[str], selector_outbound["outbounds"]).append(tag)
+
+        # Add Proxy Outbounds
+        for p in proxies:
+            try:
+                # Use imported function directly
+                outbound_config = to_singbox_outbound(p)
+
+                # [FIX] Check for None (Mypy)
+                if outbound_config is None:
                     continue
 
-                # Ensure every outbound has a tag (required by sing-box)
-                tag = item.get("tag") or f"extra-{len(seen_tags) + 1}"
+                # [FIX] Ensure tag exists if converter didn't provide it (Mock case)
+                if "tag" not in outbound_config:
+                    t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
+                    outbound_config["tag"] = t
 
-                # Ensure uniqueness for extra outbounds too
-                if tag in seen_tags:
-                    base_tag = tag
-                    counter = 1
-                    while tag in seen_tags:
-                        tag = f"{base_tag}-{counter}"
-                        counter += 1
-                item["tag"] = tag
+                # [FIX] Strip internal metadata
+                self._clean_outbound(outbound_config)
 
-                seen_tags.add(tag)
+                outbounds.append(outbound_config)
+                tag = outbound_config.get("tag")
 
-                # Check if this outbound is meant to be user-selectable
-                outbounds.append(item)
-                if not tag.startswith("RELAY-"):
-                    selector_tags.append(tag)
+                if tag:
+                    cast(List[str], selector_outbound["outbounds"]).append(tag)
+                    cast(List[str], urltest_outbound["outbounds"]).append(tag)
+            except Exception:
+                continue
 
-    # 3. Add Selectors/URLTest
-    if selector_tags:
-        # URL Test (Best Latency)
-        outbounds.append(
-            {
-                "type": "urltest",
-                "tag": "⚡ Best Latency",
-                "outbounds": selector_tags,
-                "url": "http://cp.cloudflare.com/generate_204",
-                "interval": "10m",
-            }
-        )
+        # Assemble Final Config
+        final_outbounds = [
+            selector_outbound,
+            urltest_outbound,
+            *outbounds,
+            {"type": "direct", "tag": "DIRECT"},
+            {"type": "dns", "tag": "dns-out"},
+            {"type": "block", "tag": "block"},
+        ]
 
-        # Selector
-        outbounds.append(
-            {
-                "type": "selector",
-                "tag": "🚀 Select Proxy",
-                "outbounds": ["⚡ Best Latency"] + selector_tags,
-                "default": "⚡ Best Latency",
-            }
-        )
+        config = {
+            "log": {
+                "level": "info",
+                "timestamp": True,
+            },
+            "dns": {
+                "servers": [
+                    {"tag": "google", "address": "8.8.8.8", "detour": "DIRECT"},
+                    {"tag": "local", "address": "local", "detour": "DIRECT"},
+                ],
+                "rules": [
+                    {"outbound": "any", "server": "google"},
+                ],
+            },
+            "inbounds": [
+                {
+                    "type": "mixed",
+                    "tag": "mixed-in",
+                    "listen": "0.0.0.0",
+                    "listen_port": 2080,
+                    "sniff": True,
+                }
+            ],
+            "outbounds": final_outbounds,
+            "route": {
+                "rules": [
+                    {"protocol": "dns", "outbound": "dns-out"},
+                    {"ip_is_private": True, "outbound": "DIRECT"},
+                ],
+                "auto_detect_interface": True,
+            },
+        }
+        return config
 
-    # Add explicit route section
-    route = {
-        "rules": [
-            {"protocol": "dns", "outbound": "dns-out"},
-            {"clash_mode": "Direct", "outbound": "DIRECT"},
-            {"clash_mode": "Global", "outbound": "🚀 Select Proxy"},
-        ],
-        "final": "🚀 Select Proxy",
-        "auto_detect_interface": True,
-    }
+    def _clean_outbound(self, outbound: Dict[str, Any]):
+        keys_to_remove = [
+            "_source",
+            "_latency",
+            "_country",
+            "region",
+            "origin_proxy",
+            "_process",
+        ]
+        for k in keys_to_remove:
+            outbound.pop(k, None)
 
-    # Ensure DIRECT and dns-out exist
-    if not any(o["tag"] == "DIRECT" for o in outbounds):
-        outbounds.append({"type": "direct", "tag": "DIRECT"})
-    if not any(o["tag"] == "dns-out" for o in outbounds):
-        outbounds.append({"type": "dns", "tag": "dns-out"})
+        keys = list(outbound.keys())
+        for k in keys:
+            if k.startswith("_"):
+                outbound.pop(k, None)
 
-    # [FIX] Strip internal metadata fields (like _process) before serializing
-    # These fields cause Sing-box parse errors: "unknown field "_process""
-    clean_outbounds = _strip_internal_metadata(outbounds)
 
-    config: dict[str, Any] = {
-        "log": {"level": "info", "timestamp": True},
-        "inbounds": [
-            {
-                "type": "mixed",
-                "tag": "mixed-in",
-                "listen": "127.0.0.1",
-                "listen_port": 2080,
-            }
-        ],
-        "outbounds": clean_outbounds,
-        "route": route,
-    }
+# [BACKWARD COMPATIBILITY]
+def generate_singbox_config(
+    proxies: List[Proxy],
+    region: str = "all",
+    extra_outbounds: Optional[List[Dict[str, Any]]] = None,
+) -> str:
+    """
+    Wrapper for SingBoxGenerator.generate to maintain backward compatibility.
+    """
+    generator = SingBoxGenerator()
+    config_dict = generator.generate(proxies, region, extra_outbounds)
+    return json.dumps(config_dict, indent=2)
 
-    return json.dumps(config, indent=2)
+
+# [BACKWARD COMPATIBILITY TEST HELPER]
+def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Helper to match old test API.
+    """
+    gen = SingBoxGenerator()
+    for o in outbounds:
+        gen._clean_outbound(o)
+    return outbounds

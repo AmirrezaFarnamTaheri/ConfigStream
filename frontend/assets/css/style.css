@@ -857,9 +857,12 @@ body.dark .github-btn:hover {
         font-size: 0.85rem;
     }
 
+    /* Force headers to be visible in desktop-like view on mobile if needed,
+       but usually we hide them. */
     .proxies-table th {
         font-size: 0.75rem;
         white-space: nowrap;
+        text-align: left;
     }
 
     /* Fix notice card on mobile */
@@ -2064,6 +2067,7 @@ body.dark .filter-summary {
 
 .proxies-table th {
     text-align: left;
+    white-space: nowrap; /* [FIX] Prevent header wrapping */
     padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
     color: var(--text-secondary);
     font-weight: 600;
