@@ -41,22 +41,22 @@ class SingBoxGenerator:
         # Add Extra Outbounds First (if any)
         if extra_outbounds:
             for extra in extra_outbounds:
-                 # [FIX] Ensure extras are cleaned too if needed
-                 self._clean_outbound(extra)
-                 outbounds.append(extra)
-                 tag = extra.get("tag")
+                # [FIX] Ensure extras are cleaned too if needed
+                self._clean_outbound(extra)
+                outbounds.append(extra)
+                tag = extra.get("tag")
 
-                 # Logic for adding to selector:
-                 # In legacy tests, WARP (wireguard) is added, but RELAY (vless) is not.
-                 # Heuristic: Only add if type is wireguard or it explicitly looks like a proxy we want.
-                 if tag:
-                     otype = extra.get("type", "")
-                     # If it is wireguard, we add it.
-                     if otype == "wireguard":
-                         selector_outbound["outbounds"].append(tag)
-                     # What if it's another proxy type?
-                     # The test fails if RELAY-123 (vless) is added.
-                     # So we strictly filter what extras go into selector.
+                # Logic for adding to selector:
+                # In legacy tests, WARP (wireguard) is added, but RELAY (vless) is not.
+                # Heuristic: Only add if type is wireguard or it explicitly looks like a proxy we want.
+                if tag:
+                    otype = extra.get("type", "")
+                    # If it is wireguard, we add it.
+                    if otype == "wireguard":
+                        selector_outbound["outbounds"].append(tag)
+                    # What if it's another proxy type?
+                    # The test fails if RELAY-123 (vless) is added.
+                    # So we strictly filter what extras go into selector.
 
         # Add Proxy Outbounds
         for p in proxies:
@@ -66,9 +66,9 @@ class SingBoxGenerator:
 
                 # [FIX] Ensure tag exists if converter didn't provide it (Mock case)
                 if "tag" not in outbound_config:
-                     # Use remarks or name or generate one
-                     t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
-                     outbound_config["tag"] = t
+                    # Use remarks or name or generate one
+                    t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
+                    outbound_config["tag"] = t
 
                 # [FIX] Strip internal metadata
                 self._clean_outbound(outbound_config)
@@ -138,6 +138,7 @@ class SingBoxGenerator:
             if k.startswith("_"):
                 outbound.pop(k, None)
 
+
 # [BACKWARD COMPATIBILITY]
 def generate_singbox_config(proxies: List[Proxy], region: str = "all", extra_outbounds: Optional[List[Dict[str, Any]]] = None) -> str:
     """
@@ -147,6 +148,7 @@ def generate_singbox_config(proxies: List[Proxy], region: str = "all", extra_out
     generator = SingBoxGenerator()
     config_dict = generator.generate(proxies, region, extra_outbounds)
     return json.dumps(config_dict, indent=2)
+
 
 # [BACKWARD COMPATIBILITY TEST HELPER]
 def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

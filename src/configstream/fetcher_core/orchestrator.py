@@ -3,13 +3,12 @@ import asyncio
 import logging
 import random
 from urllib.parse import urlparse
-from typing import Optional, Any, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 import httpx
 from types import SimpleNamespace
 
 if TYPE_CHECKING:
-    from configstream.config import AppSettings
-    from configstream.fetcher_core.models import FetchResult
+    pass
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +19,7 @@ USER_AGENTS = [
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
 ]
+
 
 async def fetch_from_source(
     client: httpx.AsyncClient,
@@ -46,12 +46,6 @@ async def fetch_from_source(
         try:
             parsed = urlparse(source)
             host = parsed.netloc
-            # Remove port if present? Tests use "broken.com". If URL is http://broken.com, netloc is broken.com.
-            # If URL is http://broken.com:80, netloc is broken.com:80.
-            # Assuming test uses standard logic. If test used `f"http://{host}"`, host="broken.com".
-            # netloc will be "broken.com".
-            # If host was "broken.com:8080", netloc is "broken.com:8080".
-            # This seems correct for keying.
             key = host
         except Exception:
             key = source
@@ -134,6 +128,7 @@ async def fetch_from_source(
             await asyncio.sleep(retry_delay)
 
     return SimpleNamespace(success=False, content=None, error=f"Max retries exceeded: {last_error}", status_code=0)
+
 
 class FetchOrchestrator:
     pass

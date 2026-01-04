@@ -1,12 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 import uuid
-import binascii
-import urllib.parse
 # [FIX] Import urlparse directly to allow mocking in tests
 from urllib.parse import urlparse
-from typing import List, Optional, Tuple, TYPE_CHECKING
-from pydantic import ValidationError
+from typing import List, Tuple, TYPE_CHECKING
 import logging
 
 if TYPE_CHECKING:
@@ -140,7 +137,7 @@ class SecurityValidator:
                 # [FIX] Use internal check (to allow mocking by tests)
                 # But careful not to crash if address is netloc
                 if not SecurityValidator._is_address_safe(result.netloc.split(":")[0]):
-                     return False, "unsafe_address"
+                    return False, "unsafe_address"
                 return True, "ok"
             return False, "invalid_scheme_or_netloc"
         except Exception:
@@ -185,26 +182,26 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
             if details.get("security") in ["tls", "reality", "auto"]:
                 is_secure = True
             elif details.get("tls") is True:
-                 is_secure = True
+                is_secure = True
         elif proto == "trojan":
-             is_secure = True
+            is_secure = True
         elif proto == "hysteria2" or proto == "tuic":
-             is_secure = True
+            is_secure = True
         elif proto == "https":
-             is_secure = True
+            is_secure = True
 
         if not is_secure and proto not in ["wireguard"]:
-             if "tls" in details and not details["tls"]:
-                 return False, "tls_required"
+            if "tls" in details and not details["tls"]:
+                return False, "tls_required"
 
     if proxy.protocol in ["vmess", "vless"]:
         uuid_val = proxy.details.get("uuid") or getattr(proxy, "uuid", None)
 
         if not uuid_val or not SecurityValidator.is_valid_uuid(str(uuid_val)):
-             if not uuid_val:
-                 return False, "missing_uuid"
-             if not SecurityValidator.is_valid_uuid(str(uuid_val)):
-                  return False, "invalid_uuid_format"
+            if not uuid_val:
+                return False, "missing_uuid"
+            if not SecurityValidator.is_valid_uuid(str(uuid_val)):
+                return False, "invalid_uuid_format"
 
     if proxy.protocol == "trojan":
         # [FIX] Check both uuid (often used for password in simple parsers) and details['password']
@@ -218,6 +215,7 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
             return False, "insecure_encryption_method"
 
     return True, "ok"
+
 
 # [BACKWARD COMPATIBILITY]
 def validate_proxy_config(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, str]:

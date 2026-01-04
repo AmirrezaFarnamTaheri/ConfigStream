@@ -2,7 +2,6 @@
 import logging
 import urllib.parse
 from configstream.models import Proxy
-from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -53,14 +52,14 @@ def parse_vless(url: str) -> Proxy | None:
             if end_bracket == -1:
                 return None
             host = host_port[1:end_bracket]
-            remaining = host_port[end_bracket+1:]
+            remaining = host_port[end_bracket + 1:]
             if remaining.startswith(":"):
                 try:
                     port = int(remaining[1:])
                 except ValueError:
                     return None
             else:
-                port = 443 # Default?
+                port = 443  # Default?
         else:
             if ":" in host_port:
                 host, port_str = host_port.rsplit(":", 1)
@@ -87,7 +86,7 @@ def parse_vless(url: str) -> Proxy | None:
         # Construct Proxy
         # [FIX] Ensure Pydantic model "config" field is populated
         proxy = Proxy(
-            config=url, # Add config field
+            config=url,  # Add config field
             protocol="vless",
             address=host,
             port=port,
@@ -111,12 +110,12 @@ def parse_vless(url: str) -> Proxy | None:
         if "sni" in params:
             proxy.details["sni"] = params["sni"]
         elif params.get("security") == "tls":
-            proxy.details["sni"] = host # Default SNI to host for TLS
+            proxy.details["sni"] = host  # Default SNI to host for TLS
 
         if "pbk" in params:
             proxy.details["pbk"] = params["pbk"]
         if "sid" in params:
-             proxy.details["sid"] = params["sid"]
+            proxy.details["sid"] = params["sid"]
         if "fp" in params:
             proxy.details["fingerprint"] = params["fp"]
         if "alpn" in params:
@@ -132,12 +131,12 @@ def parse_vless(url: str) -> Proxy | None:
             proxy.details["grpc_service_name"] = params.get("serviceName", "")
 
         elif params.get("type") in ["http", "h2"]:
-             proxy.details["http_path"] = params.get("path", "/")
-             if "host" in params:
+            proxy.details["http_path"] = params.get("path", "/")
+            if "host" in params:
                 proxy.details["http_host"] = params["host"]
 
         return proxy
 
-    except Exception as e:
+    except Exception:
         # logger.debug(f"Failed to parse VLESS: {e}")
         return None
