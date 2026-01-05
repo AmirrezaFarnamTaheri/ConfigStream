@@ -240,8 +240,11 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 				targetURL = u
 
 				hostPort := u.Host
-				if !strings.Contains(hostPort, ":") {
-					hostPort += ":80"
+				if _, _, err := net.SplitHostPort(hostPort); err != nil {
+					// No explicit port: add defaults safely (works for IPv6 too).
+					host := u.Hostname()
+					port := "80"
+					hostPort = net.JoinHostPort(host, port)
 				}
 				dest = metadata.ParseSocksaddr(hostPort)
 				isHTTP = true
@@ -327,7 +330,18 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		if err != nil {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Connect error: " + err.Error()}
 		}
-		conn.Close()
+		defer conn.Close()
+
+		if network == "udp" {
+			_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
+			if _, err := conn.Write([]byte{0x00}); err != nil {
+				return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP write error: " + err.Error()}
+			}
+			var buf [1]byte
+			if _, err := conn.Read(buf[:]); err != nil {
+				return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP read error: " + err.Error()}
+			}
+		}
 	}
 
 	latency := int(time.Since(start).Milliseconds())
@@ -335,12 +349,14 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 
 	if req.CheckHoneypot {
 		if dialer, ok := outbound.(OutboundDialer); ok {
-			hpCtx, hpCancel := context.WithTimeout(ctx, 3*time.Second)
-			defer hpCancel()
-			if isHoneypot(hpCtx, dialer) {
-				issues = append(issues, "HONEYPOT")
-			} else if hpCtx.Err() == context.DeadlineExceeded && ctx.Err() == nil {
-				issues = append(issues, "HONEYPOT_TIMEOUT")
+			if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) >= 3*time.Second {
+				hpCtx, hpCancel := context.WithTimeout(ctx, 3*time.Second)
+				defer hpCancel()
+				if isHoneypot(hpCtx, dialer) {
+					issues = append(issues, "HONEYPOT")
+				} else if hpCtx.Err() == context.DeadlineExceeded && ctx.Err() == nil {
+					issues = append(issues, "HONEYPOT_TIMEOUT")
+				}
 			}
 		}
 	}
@@ -374,6 +390,10 @@ func parseConfig(configStr string) (option.Outbound, error) {
 		}
 		for i := range outs {
 			if outs[i].Type == "" {
+				continue
+			}
+			switch outs[i].Type {
+			case "direct", "block", "dns":
 				continue
 			}
 			out := outs[i]
@@ -416,7 +436,9 @@ func parseConfig(configStr string) (option.Outbound, error) {
 				continue
 			}
 			if wrapper.Outbounds[i].Tag == "proxy" {
-				return wrapper.Outbounds[i], nil
+				out := wrapper.Outbounds[i]
+				out.Tag = "proxy"
+				return out, nil
 			}
 		}
 		// Otherwise pick the first valid outbound.
@@ -433,6 +455,11 @@ func parseConfig(configStr string) (option.Outbound, error) {
 	default:
 		return option.Outbound{}, errors.New("no outbound found in config")
 	}
+}
+
+func isHoneypot(ctx context.Context, dialer OutboundDialer) bool {
+	dest := metadata.ParseSocksaddr("162.159.192.1:2408")
+	conn, err := dialer.DialContext(ctx, "udp", dest)
 	if err != nil {
 		return false
 	}
