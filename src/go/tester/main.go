@@ -316,8 +316,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP GET error: " + err.Error()}
 		}
 		defer resp.Body.Close()
-		_, _ = io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 32<<10))
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 400 {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP status error: " + resp.Status}
