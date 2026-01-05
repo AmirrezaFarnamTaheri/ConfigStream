@@ -247,11 +247,20 @@ func isHoneypot(ctx context.Context, outbound OutboundDialer) bool {
 		return false
 	}
 
-	if n >= 32 {
-		msgType := buf[0]
-		if msgType == 2 || msgType == 3 || msgType == 4 {
-			return false
+	if n > 0 {
+		// We received a response. Check if it's a valid WG response type.
+		// If not, it's likely a honeypot.
+		if n >= 32 {
+			msgType := buf[0]
+			if msgType == 2 || msgType == 3 || msgType == 4 {
+				// Valid response, not a honeypot
+				return false
+			}
 		}
+		// Any other response is considered a honeypot
+		return true
 	}
+
+	// No response or an error occurred, inconclusive.
 	return false
 }
