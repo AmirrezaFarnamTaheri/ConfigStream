@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from typing import Any, TYPE_CHECKING
 import httpx
 from types import SimpleNamespace
+from configstream.fetcher_core.models import FetchResult
 
 if TYPE_CHECKING:
     pass
@@ -39,8 +40,8 @@ async def fetch_from_source(
 
     # [FIX] Validate URL
     if not source or not source.startswith(("http://", "https://")):
-        return SimpleNamespace(
-            success=False, content=None, error="Invalid URL", status_code=0
+        return FetchResult(
+            success=False, source=source, content="", error="Invalid URL", status_code=0
         )
 
     # Circuit Breaker Check
@@ -59,8 +60,12 @@ async def fetch_from_source(
             is_open = await is_open
 
         if is_open:
-            return SimpleNamespace(
-                success=False, content=None, error="Circuit Breaker Open", status_code=0
+            return FetchResult(
+                success=False,
+                source=source,
+                content="",
+                error="Circuit Breaker Open",
+                status_code=0,
             )
 
     # Rate Limiter Pre-check
@@ -75,6 +80,7 @@ async def fetch_from_source(
     last_error = None
 
     while attempt < max_retries:
+        start_ts = asyncio.get_running_loop().time()
         try:
             # Jitter / Timeout Tracking
             timeout = 30.0
@@ -98,11 +104,13 @@ async def fetch_from_source(
                     continue
 
                 if response.status_code in [404, 410]:
-                    return SimpleNamespace(
+                    return FetchResult(
                         success=False,
-                        content=None,
+                        source=source,
+                        content="",
                         error=f"Permanent Error: {response.status_code}",
                         status_code=response.status_code,
+                        response_time=asyncio.get_running_loop().time() - start_ts,
                     )
 
                 if response.status_code >= 500:
@@ -114,11 +122,13 @@ async def fetch_from_source(
                 # Content Length Check
                 content_len = response.headers.get("Content-Length")
                 if content_len and int(content_len) > MAX_RESPONSE_SIZE:
-                    return SimpleNamespace(
+                    return FetchResult(
                         success=False,
-                        content=None,
+                        source=source,
+                        content="",
                         error="Response too large",
                         status_code=response.status_code,
+                        response_time=asyncio.get_running_loop().time() - start_ts,
                     )
 
                 # Stream Content
@@ -126,11 +136,13 @@ async def fetch_from_source(
                 async for chunk in response.aiter_bytes():
                     content += chunk
                     if len(content) > MAX_RESPONSE_SIZE:
-                        return SimpleNamespace(
+                        return FetchResult(
                             success=False,
-                            content=None,
+                            source=source,
+                            content="",
                             error="Response too large",
                             status_code=response.status_code,
+                            response_time=asyncio.get_running_loop().time() - start_ts,
                         )
 
                 # Decode
@@ -143,11 +155,13 @@ async def fetch_from_source(
                     last_error = "Empty content with 200 OK"
                     continue
 
-                return SimpleNamespace(
+                return FetchResult(
                     success=True,
+                    source=source,
                     content=text_content,
                     status_code=response.status_code,
                     error=None,
+                    response_time=asyncio.get_running_loop().time() - start_ts,
                 )
 
         except Exception as e:
@@ -155,9 +169,10 @@ async def fetch_from_source(
             attempt += 1
             await asyncio.sleep(retry_delay)
 
-    return SimpleNamespace(
+    return FetchResult(
         success=False,
-        content=None,
+        source=source,
+        content="",
         error=f"Max retries exceeded: {last_error}",
         status_code=0,
     )
