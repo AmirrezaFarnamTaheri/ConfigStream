@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import hashlib
-import binascii
 import base64
+import binascii
 from typing import Any, Dict, Optional
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -44,20 +44,11 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         )
         return None
 
-    # [FIX] Normalize protocol aliases to match converter expectations
-    protocol = proxy.protocol.lower()
-    if protocol == "ss":
-        protocol = "shadowsocks"
-    elif protocol == "hy2":
-        protocol = "hysteria2"
-    elif protocol == "wg":
-        protocol = "wireguard"
-
     # Use formatted remarks as tag when available
     if proxy.remarks and proxy.remarks.lower() not in ["", "defaultproxyname", "none"]:
         tag = proxy.remarks
     else:
-        tag = f"{protocol}-{proxy.country_code}-{proxy.id[:8]}"
+        tag = f"{proxy.protocol}-{proxy.country_code}-{proxy.id[:8]}"
 
     base: Dict[str, Any] = {
         "tag": tag,
@@ -66,6 +57,15 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     }
 
     out: Optional[Dict[str, Any]] = None
+
+    # [FIX] Protocol Normalization
+    protocol = proxy.protocol.lower()
+    if protocol == "ss":
+        protocol = "shadowsocks"
+    elif protocol == "wg":
+        protocol = "wireguard"
+    elif protocol == "hy2":
+        protocol = "hysteria2"
 
     if protocol == "vmess":
         uuid = proxy.uuid or proxy.details.get("uuid") or proxy.details.get("id")
@@ -142,8 +142,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             )
             return None
         out = {"type": "trojan", **base, "password": str(password)}
-
-        # [FIX] Force TLS output for Trojan
+        # Force TLS for Trojan
         details_with_tls = {**proxy.details, "tls": "tls"}
         add_transport_sb(out, details_with_tls)
 
@@ -186,6 +185,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "server_name": str(proxy.details.get("sni", "")),
             "insecure": is_insecure,
         }
+
     elif protocol == "socks5":
         out = {
             "type": "socks",
@@ -249,7 +249,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             unique_ip = f"172.16.{octet3}.{octet4}/32"
             local_addresses = [unique_ip]
 
-            # [FIX] Use sanitized address for logging AND satisfy test expecting sanitization
+            # Use sanitized address for logging AND satisfy test expecting sanitization
             safe_addr = SecurityValidator.sanitize_address(
                 getattr(proxy, "address", "unknown")
             )
@@ -265,7 +265,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             )
             return None
 
-        # [FIX] Convert Base64 keys to Hex for Go Tester/IPC compatibility
+        # Convert Base64 keys to Hex for Go Tester/IPC compatibility
         def to_hex_if_b64(key: str) -> str:
             if not key:
                 return ""
@@ -275,108 +275,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                     return binascii.hexlify(base64.b64decode(key)).decode()
                 except Exception:
                     return key
-            # Also handle URL-safe base64 if needed
             return key
 
-        # NOTE: Sing-box config normally expects Base64. If we convert to Hex here,
-        # we are assuming the consuming tool (Go tester) handles Hex or specifically requires it.
-        # The audit claims Go tester crashes because it receives Base64 but needs Hex.
-        # If Sing-box lib supports Hex strings for keys, this is fine.
-        # If not, this might break "normal" sing-box usage but fix the tester.
-        # Given the instruction is to fix the crash, we apply the fix.
-
-        # However, to be safe, we only apply this if we are reasonably sure.
-        # Let's try to convert private_key and peer_public_key.
-
-        # private_key = to_hex_if_b64(str(private_key))
-        # peer_public_key = to_hex_if_b64(str(proxy.details.get("peer_public_key", "")))
-
-        # Re-eval: Sing-box JSON config documentation says "base64-encoded private key".
-        # If I change it to Hex, Sing-box might reject it during config parsing.
-        # But the log `failed to get peer by public key: hex string does not fit the slice`
-        # implies that somewhere a Hex string was expected but maybe got something else (empty? wrong length?)
-        # OR it implies it tried to interpret the input as Hex and failed.
-        # If the input was Base64, and it tried to decode as Hex, it would fail "odd length" or "invalid char".
-        # "hex string does not fit the slice" suggests it decoded successfully as hex but length is wrong?
-        # No, "hex string does not fit the slice" usually comes from `hex.Decode` into a fixed size array.
-        # If I send Base64 (44 chars), and it expects Hex (64 chars).
-        # Wait, if I send Base64 "AbCd...", and it expects Hex.
-        # If the code blindly does `hex.DecodeString`, it will fail on non-hex chars.
-        # If the code does `key, err := base64.StdEncoding.DecodeString` it works.
-
-        # The error `hex string does not fit the slice` is very specific.
-        # It typically comes from: https://github.com/torvalds/linux/blob/master/drivers/net/wireguard/peer.c ?? No, this is userspace.
-        # It comes from `encoding/hex`? No.
-        # It comes from `wireguard-go`?
-
-        # If the Go code (sing-box) config parser expects Base64, it decodes it to bytes (32 bytes).
-        # Then it passes 32 bytes to the wireguard device.
-        # The error might be happening if the keys are NOT 32 bytes.
-
-        # If I convert to Hex here, I get a 64-char string.
-        # Does Sing-box accept Hex string in JSON?
-        # Inspecting Sing-box source (not available here) or assuming standard behavior:
-        # Most implementations are strict about Base64 in JSON.
-
-        # The Audit report explicitly said:
-        # "WireGuard's userspace implementation (via IPC) strictly requires keys ... to be Hex-encoded"
-        # AND "The Go tester's sing-box instance ... expects keys to be in a specific format ... but the JSON config provided by Python uses Base64."
-        # AND "Fix: Ensure the Python parser creates a strictly valid reserved field and sanitizes keys."
-        # AND "Fix Protocol Aliases in Sing-box Converter ... [FIX] Normalize protocol aliases"
-
-        # But the snippet provided in the "Resolved Code Implementation" for "Fix Protocol Aliases"
-        # DID NOT show the Base64->Hex conversion code.
-        # It only showed protocol normalization.
-
-        # However, later in the text it said: "Address the WireGuard Hex issue... ensure the Python converter outputs the keys in the format the Go tester expects (Hex)".
-
-        # I will implement a safe check: If key is B64, let's keep it B64 unless I am sure.
-        # BUT, the error `hex string does not fit the slice` is extremely suspicious of something expecting Hex.
-        # Let's try to convert to Hex. If the key is Base64, decode it to bytes, then hex string.
-
-        # Actually, let's look at `reserved`.
-        # The audit report said "Fix: Ensure the Python parser creates a strictly valid reserved field".
-        # Maybe `reserved` is the culprit?
-        # `reserved` in Sing-box config is `[]uint8` (array of numbers).
-        # My parser allows it to be `list` of ints.
-        # If `reserved` is passed as string in Python, it might be an issue.
-        # The `others.py` parser deletes `reserved` if invalid.
-
-        # Let's trust the protocol normalization fix and ensure reserved is clean.
-        # I will NOT force Hex conversion unless I'm sure, because Sing-box JSON standard is Base64.
-        # The error might be red herring or related to how `scanner.go` constructs things manually?
-        # But `scanner.go` wasn't used in `main.go`, `main.go` uses `singbox.New`.
-
-        # Let's stick to protocol normalization and see.
-        # Wait, the user prompt specifically asked me to: "Fix the table layout... Analyze these stats... Logic fell through... VLESS Reality... WireGuard IPC Error".
-        # And "Fix WireGuard Hex Encoding in Go".
-        # The user said: "Resolved Code Implementation... Fix Protocol Aliases in Sing-box Converter".
-        # That block did NOT include Hex conversion.
-        # So I will skip Hex conversion in Python for now, assuming the Go fix (if I were to do it) or the protocol alias fix is the main driver.
-        # But wait, step 6 of my plan says "**Convert WireGuard keys from Base64 to Hex**".
-        # I should probably do it if I put it in the plan.
-        # Let's try to find if there is an env var or way to control this.
-        # No.
-
-        # Let's assume the audit is right and I should convert to Hex because `sing-box` (or the specific version/usage) fails with Base64 in this context.
-        # I will add the conversion.
-
-        pk = str(private_key)
-        ppk = str(proxy.details.get("peer_public_key", ""))
-
-        # Try to decode and hex encode if it looks like base64
-        try:
-            if len(pk) == 44 and pk.endswith("="):
-                pk_bytes = base64.b64decode(pk)
-                if len(pk_bytes) == 32:
-                    pk = binascii.hexlify(pk_bytes).decode()
-
-            if len(ppk) == 44 and ppk.endswith("="):
-                ppk_bytes = base64.b64decode(ppk)
-                if len(ppk_bytes) == 32:
-                    ppk = binascii.hexlify(ppk_bytes).decode()
-        except Exception:
-            pass
+        pk = to_hex_if_b64(str(private_key))
+        ppk = to_hex_if_b64(str(proxy.details.get("peer_public_key", "")))
 
         out = {
             "type": "wireguard",
@@ -391,7 +293,6 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 isinstance(x, int) for x in reserved_val
             ):
                 out["reserved"] = reserved_val
-        return out
 
     elif protocol == "hysteria2":
         out = {
@@ -415,7 +316,6 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 "type": "salamander",
                 "password": str(proxy.details.get("obfs-password", "")),
             }
-        return out
 
     elif protocol == "tuic":
         uuid = proxy.uuid or proxy.details.get("uuid")
@@ -443,9 +343,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "insecure": is_insecure,
             "alpn": proxy.details.get("alpn", []),
         }
-        return out
 
-    # [FIX] Update final check to use normalized protocol
+    # Final check using normalized protocol variable
     if out and protocol in ["vmess", "vless", "trojan", "shadowsocks"]:
         out = apply_stealth_profile(out, protocol)
 
