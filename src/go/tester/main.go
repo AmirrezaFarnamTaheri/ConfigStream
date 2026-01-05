@@ -56,7 +56,7 @@ var (
 
 func main() {
 	flag.IntVar(&workersFlag, "workers", 20, "Number of concurrent workers")
-	flag.StringVar(&timeoutFlagRaw, "timeout", "10s", "Timeout (e.g. 10s or 10)")
+	flag.StringVar(&timeoutFlagRaw, "timeout", "10s", "Timeout duration (e.g. 10s or 10)")
 	flag.StringVar(&urlsFlag, "urls", "http://cp.cloudflare.com", "Comma-separated list of target URLs")
 	flag.Parse()
 
@@ -79,6 +79,9 @@ func main() {
 	// Sanitize workers flag
 	if workersFlag < 1 {
 		workersFlag = 1
+	}
+	if workersFlag > 200 {
+		workersFlag = 200
 	}
 
 	// Sanitize URLs
@@ -103,6 +106,7 @@ func main() {
 	var wg sync.WaitGroup
 	var outMu sync.Mutex
 
+	decodeErrors := 0
 	for {
 		var req ProxyTestRequest
 		if err := decoder.Decode(&req); err != nil {
@@ -110,8 +114,14 @@ func main() {
 				break
 			}
 			log.Printf("Decode error: %v", err)
+			decodeErrors++
+			if decodeErrors >= 5 {
+				log.Printf("Too many decode errors, stopping")
+				break
+			}
 			continue
 		}
+		decodeErrors = 0
 
 		sem <- struct{}{}
 		wg.Add(1)
@@ -134,6 +144,11 @@ func main() {
 
 func testProxy(req ProxyTestRequest) ProxyTestResult {
 	start := time.Now()
+
+	const maxConfigBytes = 1 << 20 // 1 MiB
+	if len(req.ConfigStr) > maxConfigBytes {
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config too large"}
+	}
 
 	outboundConfig, err := parseConfig(req.ConfigStr)
 	if err != nil {
@@ -211,10 +226,29 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		// Ensure scheme exists for parser if missing
 		parseTarget := target
 		if !strings.Contains(parseTarget, "://") {
-			// If no scheme, assume http for parsing logic but stick to TCP connect unless http prefix was explicit
-			// Actually, if just "google.com:80", url.Parse might treat as path.
-			// Let's stick to metadata.ParseSocksaddr for raw host:port
-			dest = metadata.ParseSocksaddr(target)
+			// Scheme-less: Check if it's host:port (TCP) or URL-like (HTTP)
+			if _, _, err := net.SplitHostPort(target); err == nil {
+				// Has host and port, treat as TCP/UDP target
+				dest = metadata.ParseSocksaddr(target)
+				isHTTP = false
+			} else {
+				// Missing port or has path, treat as HTTP
+				u, err := url.Parse("http://" + target)
+				if err != nil || u.Host == "" {
+					return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Invalid target format"}
+				}
+				targetURL = u
+
+				hostPort := u.Host
+				if _, _, err := net.SplitHostPort(hostPort); err != nil {
+					// No explicit port: add defaults safely (works for IPv6 too).
+					host := u.Hostname()
+					port := "80"
+					hostPort = net.JoinHostPort(host, port)
+				}
+				dest = metadata.ParseSocksaddr(hostPort)
+				isHTTP = true
+			}
 		} else {
 			u, err := url.Parse(target)
 			if err == nil && u.Host != "" {
@@ -249,7 +283,11 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	}
 
 	// Perform Connectivity Check
-	if isHTTP && targetURL != nil {
+	if isHTTP {
+		if targetURL == nil || targetURL.Host == "" {
+			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Invalid HTTP target"}
+		}
+
 		// HTTP Probe logic: use http.Client over proxy connection
 		transport := &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -258,12 +296,17 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 				d := metadata.ParseSocksaddr(addr)
 				return outbound.DialContext(ctx, network, d)
 			},
-			DisableKeepAlives: true,
+			DisableKeepAlives:   true,
+			ForceAttemptHTTP2:   false,
 			TLSHandshakeTimeout: 5 * time.Second,
 		}
+		defer transport.CloseIdleConnections()
 		client := &http.Client{
 			Transport: transport,
 			Timeout:   timeout,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
 		}
 
 		reqHTTP, err := http.NewRequestWithContext(ctx, "GET", targetURL.String(), nil)
@@ -275,17 +318,37 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		if err != nil {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP GET error: " + err.Error()}
 		}
-		resp.Body.Close()
+		defer resp.Body.Close()
+		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 32<<10))
 
-		// Consider 200-399 working? Or just connectivity?
-		// Simple connectivity is enough usually.
+		if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP status error: " + resp.Status}
+		}
 	} else {
 		// Raw TCP/UDP Connect
 		conn, err := outbound.DialContext(ctx, network, dest)
 		if err != nil {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Connect error: " + err.Error()}
 		}
-		conn.Close()
+		defer conn.Close()
+
+		if network == "udp" {
+			_ = conn.SetDeadline(time.Now().Add(2 * time.Second))
+			if _, err := conn.Write([]byte{0x00}); err != nil {
+				return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP write error: " + err.Error()}
+			}
+			var buf [1]byte
+			udpTimeoutOK := false
+			if _, err := conn.Read(buf[:]); err != nil {
+				// Many UDP targets won't respond; a timeout is not necessarily a failure.
+				if ne, ok := err.(net.Error); ok && ne.Timeout() {
+					udpTimeoutOK = true
+				} else {
+					return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP read error: " + err.Error()}
+				}
+			}
+			_ = udpTimeoutOK
+		}
 	}
 
 	latency := int(time.Since(start).Milliseconds())
@@ -293,8 +356,19 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 
 	if req.CheckHoneypot {
 		if dialer, ok := outbound.(OutboundDialer); ok {
-			if isHoneypot(ctx, dialer) {
-				issues = append(issues, "HONEYPOT")
+			hpTimeout := 3 * time.Second
+			if ctx.Err() != nil {
+				// Parent already canceled/expired; do not attempt honeypot probe.
+			} else if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) < hpTimeout {
+				// Not enough time left in parent context; skip honeypot probe.
+			} else {
+				hpCtx, hpCancel := context.WithTimeout(ctx, hpTimeout)
+				defer hpCancel()
+				if isHoneypot(hpCtx, dialer) {
+					issues = append(issues, "HONEYPOT")
+				} else if hpCtx.Err() == context.DeadlineExceeded && ctx.Err() == nil {
+					issues = append(issues, "HONEYPOT_TIMEOUT")
+				}
 			}
 		}
 	}
@@ -311,17 +385,110 @@ func parseConfig(configStr string) (option.Outbound, error) {
 	if strings.TrimSpace(configStr) == "" {
 		return option.Outbound{}, errors.New("empty config string")
 	}
+
+	// 0) Try: JSON array of outbounds (batch/chain payloads)
+	var outs []option.Outbound
+	if err := json.Unmarshal([]byte(configStr), &outs); err == nil {
+		hasCandidate := false
+		for i := range outs {
+			if outs[i].Type != "" {
+				hasCandidate = true
+				break
+			}
+		}
+		if hasCandidate {
+			for i := range outs {
+				if outs[i].Type == "" {
+					continue
+				}
+				if outs[i].Tag == "proxy" {
+					// Ensure canonical tag without mutating unrelated entries.
+					out := outs[i]
+					out.Tag = "proxy"
+					return out, nil
+				}
+			}
+			for i := range outs {
+				if outs[i].Type == "" {
+					continue
+				}
+				switch outs[i].Type {
+				case "direct", "block", "dns":
+					continue
+				}
+				out := outs[i]
+				out.Tag = "proxy"
+				return out, nil
+			}
+			return option.Outbound{}, errors.New("no usable outbound found in config array")
+		}
+	}
+
+	// 1) Try: single outbound JSON object
 	var out option.Outbound
-	if err := json.Unmarshal([]byte(configStr), &out); err != nil {
+	if err := json.Unmarshal([]byte(configStr), &out); err == nil && out.Type != "" {
+		out.Tag = "proxy"
+		return out, nil
+	}
+
+	// 2) Try: full options object with outbounds
+	var wrapper struct {
+		Outbounds []option.Outbound `json:"outbounds"`
+		Outbound  *option.Outbound  `json:"outbound"`
+		Proxy     *option.Outbound  `json:"proxy"`
+	}
+	if err := json.Unmarshal([]byte(configStr), &wrapper); err != nil {
 		return option.Outbound{}, err
 	}
-	out.Tag = "proxy"
-	return out, nil
+
+	switch {
+	case wrapper.Proxy != nil && wrapper.Proxy.Type != "":
+		wrapper.Proxy.Tag = "proxy"
+		return *wrapper.Proxy, nil
+
+	case wrapper.Outbound != nil && wrapper.Outbound.Type != "":
+		wrapper.Outbound.Tag = "proxy"
+		return *wrapper.Outbound, nil
+
+	case len(wrapper.Outbounds) > 0:
+		// Prefer explicit "proxy" tag if present.
+		for i := range wrapper.Outbounds {
+			if wrapper.Outbounds[i].Type == "" {
+				continue
+			}
+			switch wrapper.Outbounds[i].Type {
+			case "direct", "block", "dns":
+				continue
+			}
+			if wrapper.Outbounds[i].Tag == "proxy" {
+				out := wrapper.Outbounds[i]
+				out.Tag = "proxy"
+				return out, nil
+			}
+		}
+		// Otherwise pick the first usable outbound.
+		for i := range wrapper.Outbounds {
+			if wrapper.Outbounds[i].Type == "" {
+				continue
+			}
+			switch wrapper.Outbounds[i].Type {
+			case "direct", "block", "dns":
+				continue
+			}
+			out := wrapper.Outbounds[i]
+			out.Tag = "proxy"
+			return out, nil
+		}
+		return option.Outbound{}, errors.New("no usable outbound found in outbounds")
+
+	default:
+		return option.Outbound{}, errors.New("no outbound found in config")
+	}
 }
 
-func isHoneypot(ctx context.Context, outbound OutboundDialer) bool {
+func isHoneypot(ctx context.Context, dialer OutboundDialer) bool {
 	dest := metadata.ParseSocksaddr("162.159.192.1:2408")
-	conn, err := outbound.DialContext(ctx, "udp", dest)
+	conn, err := dialer.DialContext(ctx, "udp", dest)
 	if err != nil {
 		return false
 	}
@@ -345,11 +512,11 @@ func isHoneypot(ctx context.Context, outbound OutboundDialer) bool {
 		msgType := buf[0]
 		switch msgType {
 		case 2, 3, 4:
-			// Valid WG response
+			// Valid WG response types (e.g., cookie/handshake-related)
 			return false
 		default:
-			// Unknown/garbage: Inconclusive, assume not honeypot to avoid false positives
-			return false
+			// Non-WG-looking response strongly suggests protocol mismatch/honeypot
+			return true
 		}
 	}
 	return false
