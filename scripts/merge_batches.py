@@ -27,8 +27,32 @@ def merge_cache_history(batch_glob: str, output_dir: str):
         try:
             with open(fpath, "r") as f:
                 data = json.load(f)
-                # Simple merge: update.
-                merged_cache.update(data)
+                # [FIX] Smart Aggregation instead of .update()
+                for phash, stats in data.items():
+                    if phash not in merged_cache:
+                        merged_cache[phash] = stats
+                    else:
+                        # Aggregate stats
+                        existing = merged_cache[phash]
+                        existing["success"] = existing.get("success", 0) + stats.get(
+                            "success", 0
+                        )
+                        existing["fail"] = existing.get("fail", 0) + stats.get(
+                            "fail", 0
+                        )
+                        # Max last_seen
+                        existing["last_seen"] = max(
+                            existing.get("last_seen", 0), stats.get("last_seen", 0)
+                        )
+                        # History list append
+                        if "history" in stats:
+                            existing_hist = existing.get("history", [])
+                            existing_hist.extend(stats["history"])
+                            # Keep last 20
+                            existing["history"] = sorted(
+                                existing_hist, key=lambda x: x.get("timestamp", 0)
+                            )[-20:]
+
                 # print(f"Merged {len(data)} entries from {fpath}")
         except Exception as e:
             print(f"Failed to merge {fpath}: {e}")

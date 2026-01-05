@@ -82,7 +82,7 @@ async def merge_batches_async(
     # --- Feature: Merge Smart Cache Data (Reliability History) ---
     logger.info("\n=== Step 2.4.1: Merging Reliability Cache (Smart Chains) ===")
     # [FIX] Merge `test_cache.json` which contains reliability history
-    merged_cache = {}
+    merged_cache: Dict[str, Any] = {}
 
     # Search for cache files inside the batch data directories
     # Pattern: output_batch_*/data/test_cache.json
