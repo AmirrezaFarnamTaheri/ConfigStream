@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import binascii
-from typing import Optional
+from typing import Any, Dict, Optional
 from urllib.parse import parse_qs, unquote
 from ..models import Proxy
 from .base import normalize_proxy_details, safe_b64_decode
@@ -30,7 +30,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
         parts = config[5:].split("#", 1)
         main_part = parts[0]
 
-        details = {}
+        details: Dict[str, Any] = {}
         remark = ""
         if len(parts) > 1:
             frag = parts[1]
@@ -156,12 +156,13 @@ def parse_ss(config: str) -> Optional[Proxy]:
             logger.debug(f"Invalid host in shadowsocks config: {config[:50]}...")
             return None
 
+        server = host.strip("[]")
         details.update(
             {
                 "method": method,
                 "password": password,
-                "server": host.strip("[]"),
-                "port": str(port),
+                "server": server,
+                "port": port,
             }
         )
 

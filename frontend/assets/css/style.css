@@ -2068,13 +2068,26 @@ body.dark .filter-summary {
 
 /* [FIX] Enforce column widths on desktop to prevent layout issues */
 @media (min-width: 769px) {
-    .proxies-table th:nth-child(1) { width: 12%; } /* Protocol */
-    .proxies-table th:nth-child(2) { width: 22%; } /* Location */
-    .proxies-table th:nth-child(3) { width: 10%; } /* Latency */
-    .proxies-table th:nth-child(4) { width: 14%; } /* Status */
-    .proxies-table th:nth-child(5) { width: 14%; } /* Process */
-    .proxies-table th:nth-child(6) { width: 16%; } /* Trend */
-    .proxies-table th:nth-child(7) { width: 12%; } /* Copy */
+    .proxies-table th:nth-child(1),
+    .proxies-table td:nth-child(1) { width: 12%; } /* Protocol */
+
+    .proxies-table th:nth-child(2),
+    .proxies-table td:nth-child(2) { width: 22%; } /* Location */
+
+    .proxies-table th:nth-child(3),
+    .proxies-table td:nth-child(3) { width: 10%; } /* Latency */
+
+    .proxies-table th:nth-child(4),
+    .proxies-table td:nth-child(4) { width: 14%; } /* Status */
+
+    .proxies-table th:nth-child(5),
+    .proxies-table td:nth-child(5) { width: 14%; } /* Process */
+
+    .proxies-table th:nth-child(6),
+    .proxies-table td:nth-child(6) { width: 16%; } /* Trend */
+
+    .proxies-table th:nth-child(7),
+    .proxies-table td:nth-child(7) { width: 12%; } /* Copy */
 }
 
 .proxies-table th {
