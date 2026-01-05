@@ -339,6 +339,10 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 			}
 			var buf [1]byte
 			if _, err := conn.Read(buf[:]); err != nil {
+				// Many UDP targets won't respond; a timeout is not necessarily a failure.
+				if ne, ok := err.(net.Error); ok && ne.Timeout() {
+					return ProxyTestResult{ID: req.ID, IsWorking: true, Latency: int(time.Since(start).Milliseconds())}
+				}
 				return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP read error: " + err.Error()}
 			}
 		}
@@ -349,8 +353,11 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 
 	if req.CheckHoneypot {
 		if dialer, ok := outbound.(OutboundDialer); ok {
-			if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) >= 3*time.Second {
-				hpCtx, hpCancel := context.WithTimeout(ctx, 3*time.Second)
+			hpTimeout := 3 * time.Second
+			if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) < hpTimeout {
+				// Not enough time left in parent context; skip honeypot probe.
+			} else {
+				hpCtx, hpCancel := context.WithTimeout(ctx, hpTimeout)
 				defer hpCancel()
 				if isHoneypot(hpCtx, dialer) {
 					issues = append(issues, "HONEYPOT")
@@ -377,30 +384,39 @@ func parseConfig(configStr string) (option.Outbound, error) {
 	// 0) Try: JSON array of outbounds (batch/chain payloads)
 	var outs []option.Outbound
 	if err := json.Unmarshal([]byte(configStr), &outs); err == nil {
+		hasCandidate := false
 		for i := range outs {
-			if outs[i].Type == "" {
-				continue
+			if outs[i].Type != "" {
+				hasCandidate = true
+				break
 			}
-			if outs[i].Tag == "proxy" {
-				// Ensure canonical tag without mutating unrelated entries.
+		}
+		if hasCandidate {
+			for i := range outs {
+				if outs[i].Type == "" {
+					continue
+				}
+				if outs[i].Tag == "proxy" {
+					// Ensure canonical tag without mutating unrelated entries.
+					out := outs[i]
+					out.Tag = "proxy"
+					return out, nil
+				}
+			}
+			for i := range outs {
+				if outs[i].Type == "" {
+					continue
+				}
+				switch outs[i].Type {
+				case "direct", "block", "dns":
+					continue
+				}
 				out := outs[i]
 				out.Tag = "proxy"
 				return out, nil
 			}
+			return option.Outbound{}, errors.New("no usable outbound found in config array")
 		}
-		for i := range outs {
-			if outs[i].Type == "" {
-				continue
-			}
-			switch outs[i].Type {
-			case "direct", "block", "dns":
-				continue
-			}
-			out := outs[i]
-			out.Tag = "proxy"
-			return out, nil
-		}
-		return option.Outbound{}, errors.New("no usable outbound found in config array")
 	}
 
 	// 1) Try: single outbound JSON object
