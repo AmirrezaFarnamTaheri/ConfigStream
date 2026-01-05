@@ -338,13 +338,16 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 				return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP write error: " + err.Error()}
 			}
 			var buf [1]byte
+			udpTimeoutOK := false
 			if _, err := conn.Read(buf[:]); err != nil {
 				// Many UDP targets won't respond; a timeout is not necessarily a failure.
 				if ne, ok := err.(net.Error); ok && ne.Timeout() {
-					return ProxyTestResult{ID: req.ID, IsWorking: true, Latency: int(time.Since(start).Milliseconds())}
+					udpTimeoutOK = true
+				} else {
+					return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP read error: " + err.Error()}
 				}
-				return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "UDP read error: " + err.Error()}
 			}
+			_ = udpTimeoutOK
 		}
 	}
 
@@ -354,7 +357,9 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	if req.CheckHoneypot {
 		if dialer, ok := outbound.(OutboundDialer); ok {
 			hpTimeout := 3 * time.Second
-			if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) < hpTimeout {
+			if ctx.Err() != nil {
+				// Parent already canceled/expired; do not attempt honeypot probe.
+			} else if deadline, ok := ctx.Deadline(); ok && time.Until(deadline) < hpTimeout {
 				// Not enough time left in parent context; skip honeypot probe.
 			} else {
 				hpCtx, hpCancel := context.WithTimeout(ctx, hpTimeout)
@@ -451,22 +456,30 @@ func parseConfig(configStr string) (option.Outbound, error) {
 			if wrapper.Outbounds[i].Type == "" {
 				continue
 			}
+			switch wrapper.Outbounds[i].Type {
+			case "direct", "block", "dns":
+				continue
+			}
 			if wrapper.Outbounds[i].Tag == "proxy" {
 				out := wrapper.Outbounds[i]
 				out.Tag = "proxy"
 				return out, nil
 			}
 		}
-		// Otherwise pick the first valid outbound.
+		// Otherwise pick the first usable outbound.
 		for i := range wrapper.Outbounds {
 			if wrapper.Outbounds[i].Type == "" {
+				continue
+			}
+			switch wrapper.Outbounds[i].Type {
+			case "direct", "block", "dns":
 				continue
 			}
 			out := wrapper.Outbounds[i]
 			out.Tag = "proxy"
 			return out, nil
 		}
-		return option.Outbound{}, errors.New("no outbound found in outbounds")
+		return option.Outbound{}, errors.New("no usable outbound found in outbounds")
 
 	default:
 		return option.Outbound{}, errors.New("no outbound found in config")
