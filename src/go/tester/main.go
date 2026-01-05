@@ -56,7 +56,7 @@ var (
 
 func main() {
 	flag.IntVar(&workersFlag, "workers", 20, "Number of concurrent workers")
-	flag.StringVar(&timeoutFlagRaw, "timeout", "10s", "Timeout (e.g. 10s or 10)")
+	flag.StringVar(&timeoutFlagRaw, "timeout", "10s", "Timeout duration (e.g. 10s or 10)")
 	flag.StringVar(&urlsFlag, "urls", "http://cp.cloudflare.com", "Comma-separated list of target URLs")
 	flag.Parse()
 
@@ -79,6 +79,9 @@ func main() {
 	// Sanitize workers flag
 	if workersFlag < 1 {
 		workersFlag = 1
+	}
+	if workersFlag > 200 {
+		workersFlag = 200
 	}
 
 	// Sanitize URLs
@@ -110,7 +113,7 @@ func main() {
 				break
 			}
 			log.Printf("Decode error: %v", err)
-			continue
+			break
 		}
 
 		sem <- struct{}{}
@@ -134,6 +137,11 @@ func main() {
 
 func testProxy(req ProxyTestRequest) ProxyTestResult {
 	start := time.Now()
+
+	const maxConfigBytes = 1 << 20 // 1 MiB
+	if len(req.ConfigStr) > maxConfigBytes {
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config too large"}
+	}
 
 	outboundConfig, err := parseConfig(req.ConfigStr)
 	if err != nil {
@@ -211,10 +219,15 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		// Ensure scheme exists for parser if missing
 		parseTarget := target
 		if !strings.Contains(parseTarget, "://") {
-			// If no scheme, assume http for parsing logic but stick to TCP connect unless http prefix was explicit
-			// Actually, if just "google.com:80", url.Parse might treat as path.
-			// Let's stick to metadata.ParseSocksaddr for raw host:port
-			dest = metadata.ParseSocksaddr(target)
+			// Treat bare host[:port] as an HTTP URL for probe purposes.
+			hostPort := target
+			if !strings.Contains(hostPort, ":") {
+				hostPort += ":80"
+			}
+			dest = metadata.ParseSocksaddr(hostPort)
+
+			targetURL, _ = url.Parse("http://" + strings.TrimPrefix(hostPort, "http://"))
+			isHTTP = true
 		} else {
 			u, err := url.Parse(target)
 			if err == nil && u.Host != "" {
@@ -258,9 +271,11 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 				d := metadata.ParseSocksaddr(addr)
 				return outbound.DialContext(ctx, network, d)
 			},
-			DisableKeepAlives: true,
+			DisableKeepAlives:   true,
+			ForceAttemptHTTP2:   false,
 			TLSHandshakeTimeout: 5 * time.Second,
 		}
+		defer transport.CloseIdleConnections()
 		client := &http.Client{
 			Transport: transport,
 			Timeout:   timeout,
@@ -275,10 +290,12 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		if err != nil {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP GET error: " + err.Error()}
 		}
+		_, _ = io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
 
-		// Consider 200-399 working? Or just connectivity?
-		// Simple connectivity is enough usually.
+		if resp.StatusCode < 200 || resp.StatusCode >= 400 {
+			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP status error: " + resp.Status}
+		}
 	} else {
 		// Raw TCP/UDP Connect
 		conn, err := outbound.DialContext(ctx, network, dest)
@@ -293,9 +310,11 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 
 	if req.CheckHoneypot {
 		if dialer, ok := outbound.(OutboundDialer); ok {
-			if isHoneypot(ctx, dialer) {
+			hpCtx, hpCancel := context.WithTimeout(ctx, 3*time.Second)
+			if isHoneypot(hpCtx, dialer) {
 				issues = append(issues, "HONEYPOT")
 			}
+			hpCancel()
 		}
 	}
 
@@ -311,12 +330,37 @@ func parseConfig(configStr string) (option.Outbound, error) {
 	if strings.TrimSpace(configStr) == "" {
 		return option.Outbound{}, errors.New("empty config string")
 	}
+
+	// 1) Try: single outbound JSON object
 	var out option.Outbound
-	if err := json.Unmarshal([]byte(configStr), &out); err != nil {
+	if err := json.Unmarshal([]byte(configStr), &out); err == nil && out.Type != "" {
+		out.Tag = "proxy"
+		return out, nil
+	}
+
+	// 2) Try: full options object with outbounds
+	var wrapper struct {
+		Outbounds []option.Outbound `json:"outbounds"`
+		Outbound  *option.Outbound  `json:"outbound"`
+		Proxy     *option.Outbound  `json:"proxy"`
+	}
+	if err := json.Unmarshal([]byte(configStr), &wrapper); err != nil {
 		return option.Outbound{}, err
 	}
-	out.Tag = "proxy"
-	return out, nil
+
+	switch {
+	case wrapper.Proxy != nil && wrapper.Proxy.Type != "":
+		wrapper.Proxy.Tag = "proxy"
+		return *wrapper.Proxy, nil
+	case wrapper.Outbound != nil && wrapper.Outbound.Type != "":
+		wrapper.Outbound.Tag = "proxy"
+		return *wrapper.Outbound, nil
+	case len(wrapper.Outbounds) > 0 && wrapper.Outbounds[0].Type != "":
+		wrapper.Outbounds[0].Tag = "proxy"
+		return wrapper.Outbounds[0], nil
+	default:
+		return option.Outbound{}, errors.New("no outbound found in config")
+	}
 }
 
 func isHoneypot(ctx context.Context, outbound OutboundDialer) bool {
@@ -345,11 +389,11 @@ func isHoneypot(ctx context.Context, outbound OutboundDialer) bool {
 		msgType := buf[0]
 		switch msgType {
 		case 2, 3, 4:
-			// Valid WG response
+			// Valid WG response types (e.g., cookie/handshake-related)
 			return false
 		default:
-			// Unknown/garbage: Inconclusive, assume not honeypot to avoid false positives
-			return false
+			// Non-WG-looking response strongly suggests protocol mismatch/honeypot
+			return true
 		}
 	}
 	return false
