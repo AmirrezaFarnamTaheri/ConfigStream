@@ -415,6 +415,19 @@ function populateDropdowns(proxies) {
             protoSel.appendChild(opt);
         });
     }
+
+    // Cities
+    const cities = new Set(proxies.map(p => p.city).filter(c => c));
+    const citySel = document.getElementById('filterCity');
+    if(citySel) {
+        citySel.innerHTML = '<option value="">All Cities</option>';
+        [...cities].sort().forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            citySel.appendChild(opt);
+        });
+    }
 }
 
 function setupFilters() {
@@ -423,6 +436,7 @@ function setupFilters() {
         const search = searchInput ? searchInput.value.toLowerCase() : '';
         const fProto = document.getElementById('filterProtocol').value;
         const fCountry = document.getElementById('filterCountry').value;
+        const fCity = document.getElementById('filterCity') ? document.getElementById('filterCity').value : '';
         const minLatInput = document.getElementById('filterLatencyMin');
         const maxLatInput = document.getElementById('filterLatencyMax');
 
@@ -433,6 +447,7 @@ function setupFilters() {
         let temp = allProxies.filter(p => {
             if (fProto && p.protocol !== fProto) return false;
             if (fCountry && p.country_code !== fCountry) return false;
+            if (fCity && p.city !== fCity) return false;
             if (p.latencyVal < minLat || p.latencyVal > maxLat) return false;
             return true;
         });
@@ -464,7 +479,7 @@ function setupFilters() {
         updatePaginationInfo();
     };
 
-    ['searchInput', 'filterProtocol', 'filterCountry', 'filterLatencyMin', 'filterLatencyMax'].forEach(id => {
+    ['searchInput', 'filterProtocol', 'filterCountry', 'filterCity', 'filterLatencyMin', 'filterLatencyMax'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', apply);
     });
@@ -475,6 +490,7 @@ function setupFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('filterProtocol').value = '';
             document.getElementById('filterCountry').value = '';
+            if(document.getElementById('filterCity')) document.getElementById('filterCity').value = '';
             document.getElementById('filterLatencyMin').value = '';
             document.getElementById('filterLatencyMax').value = '';
             apply();

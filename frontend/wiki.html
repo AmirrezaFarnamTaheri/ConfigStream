@@ -293,13 +293,20 @@
                 <a href="about.html" class="nav-link">About</a>
             </nav>
             <div class="header-actions">
-                 <select id="lang-selector" class="lang-selector" aria-label="Select Language">
-                    <option value="en">English</option>
-                    <option value="zh">中文</option>
-                    <option value="ru">Русский</option>
-                    <option value="fa">فارسی</option>
-                    <option value="ar">العربية</option>
-                </select>
+                <!-- Modern Language Dropdown -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
+                    </button>
+                    <div class="lang-menu" id="lang-menu">
+                        <button onclick="window.i18n.setLanguage('en')">English</button>
+                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
+                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
+                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
+                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
+                    </div>
+                </div>
+
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
                         <i data-feather="moon" class="moon-icon"></i>
@@ -366,16 +373,7 @@
         // Init Feather Icons if inline-icons.js doesn't catch it or if we need it immediately
         // Actually inline-icons.js handles replacement.
 
-        // Bind language selector
         document.addEventListener('DOMContentLoaded', () => {
-            const selector = document.getElementById('lang-selector');
-            if(selector && window.i18n) {
-                selector.value = window.i18n.currentLang;
-                selector.addEventListener('change', (e) => {
-                    window.i18n.setLanguage(e.target.value);
-                });
-            }
-
             // Note: Common UI (Theme, Mobile Nav) is handled by common-ui.js
         });
     </script>

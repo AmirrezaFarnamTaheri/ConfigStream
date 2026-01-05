@@ -218,16 +218,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const sourceCount = metadata?.sources_count || stats.sources_count || 0;
 
-                // Update hero subtitle dynamic values
-                const heroSourceCountElem = document.getElementById('heroSourceCount');
-                if (heroSourceCountElem) {
-                    heroSourceCountElem.textContent = formatNum(sourceCount);
-                }
+                // Update hero subtitle dynamic values using new logic
+                const updateHeroSubtitle = () => {
+                     const heroSubtitle = document.getElementById('heroSubtitle');
+                     if (heroSubtitle && window.i18n) {
+                         let text = window.i18n.t('hero.subtitle.main');
+                         text = text.replace('{sources}', formatNum(sourceCount));
+                         text = text.replace('{hours}', formatNum(updateFreq));
+                         heroSubtitle.innerHTML = text; // Allow HTML for strong tags
+                     }
+                };
 
-                const heroUpdateFreqElem = document.getElementById('heroUpdateFrequency');
-                if (heroUpdateFreqElem) {
-                    heroUpdateFreqElem.textContent = formatNum(updateFreq);
-                }
+                updateHeroSubtitle();
+                // Listen for language changes to re-update
+                window.addEventListener('languageChanged', updateHeroSubtitle);
 
                 // Update "How it works" section dynamic values
                 const infoSourceCountElem = document.getElementById('infoSourceCount');

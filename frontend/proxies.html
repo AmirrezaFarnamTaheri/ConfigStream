@@ -92,7 +92,7 @@
                 <!-- Modern Language Dropdown -->
                 <div class="lang-dropdown">
                     <button class="lang-btn" aria-label="Select Language">
-                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
+                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
                     </button>
                     <div class="lang-menu" id="lang-menu">
                         <button onclick="window.i18n.setLanguage('en')">English</button>
@@ -316,18 +316,5 @@
     <script src="assets/js/common-ui.js" defer></script>
     <script type="module" src="assets/js/main.js" defer></script>
     <script type="module" src="assets/js/proxies.js" defer></script>
-    <script>
-        // Language sync
-        if (window.i18n) {
-            window.addEventListener('languageChanged', (e) => {
-                 const label = document.getElementById('current-lang-label');
-                 if(label) label.textContent = e.detail.lang.toUpperCase();
-            });
-            document.addEventListener('DOMContentLoaded', () => {
-                 const label = document.getElementById('current-lang-label');
-                 if(label) label.textContent = window.i18n.currentLang.toUpperCase();
-            });
-        }
-    </script>
 </body>
 </html>
