@@ -362,11 +362,22 @@ func parseConfig(configStr string) (option.Outbound, error) {
 	// 0) Try: JSON array of outbounds (batch/chain payloads)
 	var outs []option.Outbound
 	if err := json.Unmarshal([]byte(configStr), &outs); err == nil {
-		if len(outs) == 0 || outs[0].Type == "" {
-			return option.Outbound{}, errors.New("no outbound found in config array")
+		for i := range outs {
+			if outs[i].Type == "" {
+				continue
+			}
+			if outs[i].Tag == "proxy" {
+				return outs[i], nil
+			}
 		}
-		outs[0].Tag = "proxy"
-		return outs[0], nil
+		for i := range outs {
+			if outs[i].Type == "" {
+				continue
+			}
+			outs[i].Tag = "proxy"
+			return outs[i], nil
+		}
+		return option.Outbound{}, errors.New("no outbound found in config array")
 	}
 
 	// 1) Try: single outbound JSON object
