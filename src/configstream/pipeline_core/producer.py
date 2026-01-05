@@ -88,6 +88,13 @@ async def source_producer(
                 await work_queue.put(("supplied-config", [s], {}))
             elif s.startswith("ssconf://"):
                 remote_urls.append(s.replace("ssconf://", "https://"))
+            else:
+                # [FIX] Warn about sources that are skipped because they don't match any handler
+                # This helps debug "85 source is not correct" discrepancies if some lines are ignored
+                if s not in local_files:  # It wasn't treated as a local file either
+                    logger.warning(
+                        f"Skipping unknown source format: {SecurityValidator.sanitize_log_message(s)}"
+                    )
 
         active_urls = []
         blocked_urls = []
