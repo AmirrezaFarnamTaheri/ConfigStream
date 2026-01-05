@@ -21,13 +21,23 @@ def parse_ss(config: str) -> Optional[Proxy]:
             return None
 
         # Separate remark and query from the main part
+        # Logic: query starts with '?' if present.
+        # But '?' can be part of remark too? Usually URI standard: #fragment? No, ?query#fragment.
+        # But SS links are weird.
+        # Often: ss://BASE64#remark
+
+        # Handle '#' for remark
         parts = config[5:].split("#", 1)
         main_part = parts[0]
-        remark_part = parts[1] if len(parts) > 1 else ""
-        remark_str, _, query_str = remark_part.partition("?")
-        remark = unquote(remark_str)
-        # [FIX] Safety check for empty lists
-        details = {k: v[0] for k, v in parse_qs(query_str).items() if v}
+        remark = ""
+        if len(parts) > 1:
+            remark = unquote(parts[1])
+
+        # Check for query parameters inside main_part (not standard but possible) or after?
+        # Standard SIP002 doesn't use query params heavily except for plugins maybe?
+        # Usually plugin params are in the user_info part or decoded part.
+
+        details = {}
 
         # The part before the @ is either plain text or base64 encoded
         if "@" in main_part:
@@ -44,10 +54,26 @@ def parse_ss(config: str) -> Optional[Proxy]:
                     pass  # Not base64, proceed
         else:
             # SIP002: ss://<base64-encoded-part>
+            # Decode the whole thing
             decoded_main = safe_b64_decode(main_part)
-            if decoded_main is None or "@" not in decoded_main:
-                return None
-            user_info, host_info = decoded_main.split("@", 1)
+            if decoded_main is None:
+                 # Fallback: maybe it's legacy format without @?
+                 return None
+
+            if "@" in decoded_main:
+                user_info, host_info = decoded_main.split("@", 1)
+            else:
+                # Legacy: method:password:ip:port
+                parts_legacy = decoded_main.split(":")
+                if len(parts_legacy) >= 4:
+                    port_str = parts_legacy[-1]
+                    host = parts_legacy[-2]
+                    password = parts_legacy[-3]
+                    method = ":".join(parts_legacy[:-3])
+                    user_info = f"{method}:{password}"
+                    host_info = f"{host}:{port_str}"
+                else:
+                    return None
 
         # Parse user_info
         if ":" not in user_info:
@@ -55,6 +81,18 @@ def parse_ss(config: str) -> Optional[Proxy]:
         method, password = user_info.split(":", 1)
 
         # Parse host_info
+        # Check for plugin params (SIP003 simple-obfs etc often appended as /?plugin=...)
+        # But usually in SS links, plugins are encoded.
+
+        if "/?" in host_info:
+            host_info, query = host_info.split("/?", 1)
+            q_params = parse_qs(query)
+            details.update({k: v[0] for k, v in q_params.items() if v})
+        elif "?" in host_info:
+             host_info, query = host_info.split("?", 1)
+             q_params = parse_qs(query)
+             details.update({k: v[0] for k, v in q_params.items() if v})
+
         if ":" not in host_info:
             return None
         host, port_str = host_info.rsplit(":", 1)
@@ -68,8 +106,6 @@ def parse_ss(config: str) -> Optional[Proxy]:
             return None
 
         # Strict validation to reject garbage methods
-        # Common valid ciphers (including 2022 and AEAD)
-        # We don't want to maintain a perfect list, but we want to blacklist obvious garbage.
         invalid_methods = {
             "ss",
             "shadowsocks",
@@ -82,7 +118,6 @@ def parse_ss(config: str) -> Optional[Proxy]:
             "chacha20",  # incomplete names
         }
         if method.lower() in invalid_methods or len(method) < 3:
-            # Most ciphers are > 3 chars (rc4-md5 is 7). 'aes' is ambiguous.
             logger.debug(
                 f"Invalid Shadowsocks method detected: {method} in {config[:50]}..."
             )
@@ -98,11 +133,22 @@ def parse_ss(config: str) -> Optional[Proxy]:
             # If plugin contains options separated by ;
             if ";" in plugin_str:
                 plugin_parts = plugin_str.split(";")
-                details["plugin"] = plugin_parts[0]
+                details["plugin"] = plugin_parts[0] # The actual plugin name (e.g. obfs-local)
                 if len(plugin_parts) > 1:
+                    # The rest are options
                     details["plugin_opts"] = ";".join(plugin_parts[1:])
 
-        details.update({"method": method, "password": password})
+            # Additional normalization for simple-obfs/v2ray-plugin
+            # Sometimes param is just 'obfs-local' and opts are separate
+            pass
+
+        # [CRITICAL FIX] Ensure server/port are in details for logic checks
+        details.update({
+            "method": method,
+            "password": password,
+            "server": host.strip("[]"),
+            "port": port
+        })
 
         proxy = Proxy(
             config=config,

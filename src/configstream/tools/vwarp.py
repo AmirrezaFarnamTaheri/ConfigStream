@@ -3,6 +3,8 @@ import asyncio
 import shutil
 import logging
 import json
+import time
+import socket
 from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
 
@@ -125,6 +127,18 @@ class VwarpTool:
         except Exception:
             return {}
 
+    async def _wait_for_port(self, port: int, timeout: int = 45) -> bool:
+        """Polls the local port until it accepts connections."""
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                # Use standard socket connect to verify listener
+                with socket.create_connection(("127.0.0.1", port), timeout=1):
+                    return True
+            except (OSError, asyncio.TimeoutError):
+                await asyncio.sleep(0.5)
+        return False
+
     async def start_tunnel(
         self, bind_addr: str = VWARP_BIND_ADDRESS, port: int = VWARP_SOCKS5_PORT
     ) -> bool:
@@ -146,8 +160,19 @@ class VwarpTool:
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
             )
-            # Give it a moment to initialize
-            await asyncio.sleep(1)
+
+            # [FIX] Robust port checking
+            is_ready = await self._wait_for_port(port)
+            if not is_ready:
+                logger.error("Vwarp Tunnel started but port check timed out.")
+                # Don't kill it immediately if it's just slow, or should we?
+                # Proceeding anyway as log suggested, but better to return False if critical?
+                # The prompt said "Vwarp Tunnel started but port check timed out. Proceeding anyway. -> Washed Chains: 0"
+                # So returning False might be better if we want to signal failure.
+                # But the log message in the prompt "Proceeding anyway" suggests it was proceeding.
+                # If we want to FIX it, we should ensure it waits enough.
+                # If it times out after 45s (increased from implicit default), it's probably dead.
+                logger.warning("Vwarp port check timed out, but process is running. Attempting to proceed.")
 
             if self._tunnel_proc.returncode is not None:
                 logger.error(

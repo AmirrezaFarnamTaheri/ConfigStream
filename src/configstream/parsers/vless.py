@@ -112,10 +112,27 @@ def parse_vless(url: str) -> Proxy | None:
         elif params.get("security") == "tls":
             proxy.details["sni"] = host  # Default SNI to host for TLS
 
-        if "pbk" in params:
-            proxy.details["pbk"] = params["pbk"]
-        if "sid" in params:
-            proxy.details["sid"] = params["sid"]
+        # [FIX] Handle aliases for Reality Public Key
+        pbk = params.get("pbk")
+        if not pbk:
+            pbk = params.get("publicKey")
+        if not pbk:
+            pbk = params.get("public-key")
+
+        if pbk:
+            # Check if it's a list (unlikely from simple loop, but defensive)
+            proxy.details["pbk"] = pbk
+
+        # [FIX] Handle aliases for Short ID
+        sid = params.get("sid")
+        if not sid:
+            sid = params.get("shortId")
+        if not sid:
+            sid = params.get("short-id")
+
+        if sid:
+            proxy.details["sid"] = sid
+
         if "fp" in params:
             proxy.details["fingerprint"] = params["fp"]
         if "alpn" in params:

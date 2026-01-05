@@ -2,6 +2,7 @@
 import logging
 import sys
 import os
+import glob
 import json
 
 import asyncio
@@ -77,6 +78,61 @@ async def merge_batches_async(
 
     # Save the consolidated history
     master_tracker.save()
+
+    # --- Feature: Merge Smart Cache Data (Reliability History) ---
+    logger.info("\n=== Step 2.4.1: Merging Reliability Cache (Smart Chains) ===")
+    # [FIX] Merge `test_cache.json` which contains reliability history
+    merged_cache = {}
+
+    # Search for cache files inside the batch data directories
+    # Pattern: output_batch_*/data/test_cache.json
+    # Note: batch_dir_glob is usually relative to root (output_batch_*)
+    # We constructed batch_dirs as Path objects.
+
+    cache_found_count = 0
+    for b_dir in batch_dirs:
+        cache_path = b_dir / "data" / "test_cache.json"
+        if not cache_path.exists():
+             cache_path = b_dir / "test_cache.json" # Fallback
+
+        if cache_path.exists():
+            try:
+                with open(cache_path, 'r') as f:
+                    data = json.load(f)
+                    # Simple merge: newer keys overwrite older ones if duplicates?
+                    # Or we should merge intelligently?
+                    # test_cache.json maps proxy_hash -> {success: int, fail: int, last_seen: ts}
+                    # If we have entries for same proxy from different batches (shouldn't happen often if partitioned by source),
+                    # we should sum up successes/failures.
+                    for phash, stats in data.items():
+                        if phash not in merged_cache:
+                            merged_cache[phash] = stats
+                        else:
+                            # Aggregate stats
+                            existing = merged_cache[phash]
+                            existing['success'] = existing.get('success', 0) + stats.get('success', 0)
+                            existing['fail'] = existing.get('fail', 0) + stats.get('fail', 0)
+                            # Max last_seen
+                            existing['last_seen'] = max(existing.get('last_seen', 0), stats.get('last_seen', 0))
+                            # History list append?
+                            if 'history' in stats:
+                                existing_hist = existing.get('history', [])
+                                existing_hist.extend(stats['history'])
+                                # Keep last N
+                                existing['history'] = sorted(existing_hist, key=lambda x: x.get('timestamp', 0))[-20:]
+
+                    cache_found_count += 1
+            except Exception as e:
+                logger.warning(f"Failed to load cache {cache_path}: {e}")
+
+    logger.info(f"Found {cache_found_count} cache files. Aggregated {len(merged_cache)} cache entries.")
+
+    # Save aggregated cache
+    final_data_dir = output_dir / "data"
+    final_data_dir.mkdir(parents=True, exist_ok=True)
+
+    with open(final_data_dir / "test_cache.json", 'w') as f:
+        json.dump(merged_cache, f)
 
     # 2.1 Aggregate Stats from Batches
     # [FIX] Add vwarp and revived stats aggregation
