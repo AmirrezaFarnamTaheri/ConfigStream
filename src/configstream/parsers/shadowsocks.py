@@ -57,8 +57,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
             # Decode the whole thing
             decoded_main = safe_b64_decode(main_part)
             if decoded_main is None:
-                 # Fallback: maybe it's legacy format without @?
-                 return None
+                # Fallback: maybe it's legacy format without @?
+                return None
 
             if "@" in decoded_main:
                 user_info, host_info = decoded_main.split("@", 1)
@@ -89,9 +89,9 @@ def parse_ss(config: str) -> Optional[Proxy]:
             q_params = parse_qs(query)
             details.update({k: v[0] for k, v in q_params.items() if v})
         elif "?" in host_info:
-             host_info, query = host_info.split("?", 1)
-             q_params = parse_qs(query)
-             details.update({k: v[0] for k, v in q_params.items() if v})
+            host_info, query = host_info.split("?", 1)
+            q_params = parse_qs(query)
+            details.update({k: v[0] for k, v in q_params.items() if v})
 
         if ":" not in host_info:
             return None
@@ -133,7 +133,9 @@ def parse_ss(config: str) -> Optional[Proxy]:
             # If plugin contains options separated by ;
             if ";" in plugin_str:
                 plugin_parts = plugin_str.split(";")
-                details["plugin"] = plugin_parts[0] # The actual plugin name (e.g. obfs-local)
+                details["plugin"] = plugin_parts[
+                    0
+                ]  # The actual plugin name (e.g. obfs-local)
                 if len(plugin_parts) > 1:
                     # The rest are options
                     details["plugin_opts"] = ";".join(plugin_parts[1:])
@@ -143,12 +145,14 @@ def parse_ss(config: str) -> Optional[Proxy]:
             pass
 
         # [CRITICAL FIX] Ensure server/port are in details for logic checks
-        details.update({
-            "method": method,
-            "password": password,
-            "server": host.strip("[]"),
-            "port": port
-        })
+        details.update(
+            {
+                "method": method,
+                "password": password,
+                "server": host.strip("[]"),
+                "port": port,
+            }
+        )
 
         proxy = Proxy(
             config=config,

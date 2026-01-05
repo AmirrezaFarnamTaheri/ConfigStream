@@ -1,6 +1,45 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import argparse
+import glob
+import json
+import os
 from scripts.merge.core import merge_batches
+
+
+def merge_cache_history(batch_glob: str, output_dir: str):
+    print("--- Merging Cache History ---")
+    merged_cache = {}
+
+    # Look for cache files in batch directories
+    # Note: merge_batches_async (in core.py) also does this, but keeping this
+    # as a top-level guarantee as requested by the audit report
+    pattern = os.path.join(batch_glob, "data", "test_cache.json")
+    files = glob.glob(pattern)
+
+    # Also look in root of batch just in case
+    files.extend(glob.glob(os.path.join(batch_glob, "test_cache.json")))
+
+    files = sorted(list(set(files)))
+
+    print(f"Found {len(files)} cache files.")
+
+    for fpath in files:
+        try:
+            with open(fpath, "r") as f:
+                data = json.load(f)
+                # Simple merge: update.
+                merged_cache.update(data)
+                # print(f"Merged {len(data)} entries from {fpath}")
+        except Exception as e:
+            print(f"Failed to merge {fpath}: {e}")
+
+    # Write merged file
+    os.makedirs(os.path.join(output_dir, "data"), exist_ok=True)
+    out_path = os.path.join(output_dir, "data", "test_cache.json")
+    with open(out_path, "w") as f:
+        json.dump(merged_cache, f)
+    print(f"Total merged entries: {len(merged_cache)}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Merge batch outputs.")
@@ -11,5 +50,8 @@ if __name__ == "__main__":
     )
     parser.add_argument("--output-dir", default="output", help="Output directory")
     args = parser.parse_args()
+
+    # 1. Merge the cache history first (redundant but safe per audit)
+    merge_cache_history(args.batch_glob, args.output_dir)
 
     merge_batches(args.batch_glob, args.output_dir)

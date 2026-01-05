@@ -7,18 +7,65 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
 def validate_b64_input(data: str) -> Optional[str]:
     """
     Validate base64 string before attempting decode.
-    Legacy wrapper around safe_b64_decode's internal logic if needed,
-    but safe_b64_decode handles everything now.
+    Optimized for single-pass processing to handle large payloads efficiently.
     """
+    if not isinstance(data, str):
+        return None
+
+    # [OPTIMIZATION] Fail Fast on HTML/JSON inputs
     if not data:
         return None
-    # This is a stub for backward compatibility if other modules use it directly.
-    # But ideally, logic is now inside safe_b64_decode or we keep the old logic?
-    # The new robust logic is better.
-    return data
+
+    s_stripped = data.lstrip()[:10]
+    if s_stripped.startswith(("<", "{", "[")):
+        return None
+
+    trimmed = data.strip()
+    if not trimmed:
+        return None
+
+    # [FIX] Fix URL-encoded base64 (e.g., %3D, %2F)
+    if "%" in trimmed:
+        try:
+            from urllib.parse import unquote
+            unquoted = unquote(trimmed)
+            if unquoted != trimmed:
+                trimmed = unquoted
+        except Exception:
+            pass
+
+    # [FIX] Immediate rejection for structural markers that indicate NOT Base64
+    if ":" in trimmed and not trimmed.endswith("="):
+        # Colon inside usually means method:password or something else
+        # BUT standard base64 doesn't have colons.
+        return None
+
+    # Basic char check + noise check
+    # We allow some noise but if it's too much we drop it.
+    valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t")
+
+    # Fast check for invalid chars
+    invalid_chars = [c for c in trimmed if c not in valid_chars]
+    if len(invalid_chars) > len(trimmed) * 0.05: # >5% noise
+        return None
+
+    # Normalize
+    cleaned = "".join([c for c in trimmed if c in valid_chars and c not in "\n\r \t"])
+
+    # Fix URL safe chars
+    cleaned = cleaned.replace('-', '+').replace('_', '/')
+
+    # Padding
+    pad = len(cleaned) % 4
+    if pad:
+        cleaned += "=" * (4 - pad)
+
+    return cleaned
+
 
 def safe_b64_decode(data: str) -> Optional[str]:
     """
@@ -32,33 +79,14 @@ def safe_b64_decode(data: str) -> Optional[str]:
     if not data:
         return None
 
-    # 1. Clean payload: remove whitespace/newlines
-    data = re.sub(r'\s+', '', data)
-
-    if not data:
+    # Use validate_b64_input for cleaning first
+    cleaned = validate_b64_input(data)
+    if not cleaned:
         return None
 
-    # Helper to attempt decode
-    def try_decode(s: str, altchars=None) -> Optional[str]:
-        # Fix padding
-        pad = len(s) % 4
-        if pad:
-            s += '=' * (4 - pad)
-        try:
-            return base64.b64decode(s, altchars=altchars, validate=False).decode('utf-8', errors='ignore')
-        except (binascii.Error, ValueError):
-            return None
-
-    # 2. Try Standard Decode
-    res = try_decode(data)
-    if res: return res
-
-    # 3. Try URL-Safe Decode (explicit replacement)
-    res = try_decode(data.replace('-', '+').replace('_', '/'))
-    if res: return res
-
-    # 4. Try URL-Safe Decode (using altchars arg)
-    res = try_decode(data, altchars=b'-_')
-    if res: return res
-
-    return None
+    try:
+        return base64.b64decode(cleaned, validate=False).decode(
+            "utf-8", errors="ignore"
+        )
+    except (binascii.Error, ValueError):
+        return None

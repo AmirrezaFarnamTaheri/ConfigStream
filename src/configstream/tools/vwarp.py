@@ -172,7 +172,9 @@ class VwarpTool:
                 # But the log message in the prompt "Proceeding anyway" suggests it was proceeding.
                 # If we want to FIX it, we should ensure it waits enough.
                 # If it times out after 45s (increased from implicit default), it's probably dead.
-                logger.warning("Vwarp port check timed out, but process is running. Attempting to proceed.")
+                logger.warning(
+                    "Vwarp port check timed out, but process is running. Attempting to proceed."
+                )
 
             if self._tunnel_proc.returncode is not None:
                 logger.error(
