@@ -267,13 +267,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         # [FIX] Convert Base64 keys to Hex for Go Tester/IPC compatibility
         def to_hex_if_b64(key: str) -> str:
-            if not key: return ""
+            if not key:
+                return ""
             # Heuristic: if key is 44 chars ending in =, it's likely base64 for 32 bytes
             if len(key) == 44 and key.endswith("="):
-                 try:
-                     return binascii.hexlify(base64.b64decode(key)).decode()
-                 except Exception:
-                     return key
+                try:
+                    return binascii.hexlify(base64.b64decode(key)).decode()
+                except Exception:
+                    return key
             # Also handle URL-safe base64 if needed
             return key
 
@@ -365,17 +366,17 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         # Try to decode and hex encode if it looks like base64
         try:
-             if len(pk) == 44 and pk.endswith("="):
-                  pk_bytes = base64.b64decode(pk)
-                  if len(pk_bytes) == 32:
-                      pk = binascii.hexlify(pk_bytes).decode()
+            if len(pk) == 44 and pk.endswith("="):
+                pk_bytes = base64.b64decode(pk)
+                if len(pk_bytes) == 32:
+                    pk = binascii.hexlify(pk_bytes).decode()
 
-             if len(ppk) == 44 and ppk.endswith("="):
-                  ppk_bytes = base64.b64decode(ppk)
-                  if len(ppk_bytes) == 32:
-                      ppk = binascii.hexlify(ppk_bytes).decode()
+            if len(ppk) == 44 and ppk.endswith("="):
+                ppk_bytes = base64.b64decode(ppk)
+                if len(ppk_bytes) == 32:
+                    ppk = binascii.hexlify(ppk_bytes).decode()
         except Exception:
-             pass
+            pass
 
         out = {
             "type": "wireguard",

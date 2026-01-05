@@ -62,7 +62,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                 # Ideally, this should come from source metadata, but this improves the hit rate for SOCKS lists.
                 protocol = "http"
                 if port_val in [1080, 10800, 10808, 9050]:
-                     protocol = "socks5"
+                    protocol = "socks5"
 
                 # If source metadata indicates socks, it should be passed here, but we don't have it.
                 # The heuristic is better than always HTTP for these ports.
