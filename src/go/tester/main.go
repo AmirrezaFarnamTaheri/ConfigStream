@@ -339,7 +339,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 			defer hpCancel()
 			if isHoneypot(hpCtx, dialer) {
 				issues = append(issues, "HONEYPOT")
-			} else if hpCtx.Err() == context.DeadlineExceeded {
+			} else if hpCtx.Err() == context.DeadlineExceeded && ctx.Err() == nil {
 				issues = append(issues, "HONEYPOT_TIMEOUT")
 			}
 		}
