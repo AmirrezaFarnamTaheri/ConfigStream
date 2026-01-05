@@ -250,9 +250,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             local_addresses = [unique_ip]
 
             # Use sanitized address for logging AND satisfy test expecting sanitization
-            safe_addr = SecurityValidator.sanitize_address(
-                getattr(proxy, "address", "unknown")
-            )
+            # F841: safe_addr is not used here but logging redacted
             logger.debug(
                 f"Generated unique local IP {unique_ip} for WireGuard proxy (redacted)"
             )
@@ -349,14 +347,17 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = apply_stealth_profile(out, protocol)
 
     if out:
-        safe_addr = SecurityValidator.sanitize_address(
-            getattr(proxy, "address", "unknown")
-        )
+        # [FIX] Use safe address but also tag to satisfy strict logging tests
         safe_source = SecurityValidator.sanitize_log_message(
             str(proxy.details.get("_source", "unknown"))
         )
+
+        # Use tag for logging instead of safe_addr if safe_addr is not strictly redacted
+        # This fixes test failures in test_logging_coverage.py that check for address absence
+        proxy_tag = out.get('tag', 'unknown')
+
         logger.debug(
-            f"Successfully converted {protocol} proxy: {safe_addr} "
+            f"Successfully converted {protocol} proxy (Tag: {proxy_tag}) "
             f"(Source: {safe_source})"
         )
     else:
