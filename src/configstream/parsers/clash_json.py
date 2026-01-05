@@ -42,6 +42,12 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
             uuid = ""  # SS uses password in details
             data["password"] = data.get("password", "")
             data["method"] = data.get("cipher", "")
+        elif protocol == "wireguard" or protocol == "wg":
+            protocol = "wireguard"
+            # [FIX] Enforce private_key for WireGuard
+            if "private_key" not in data:
+                logger.debug(f"Dropping WireGuard proxy missing private_key: {address}")
+                return None
 
         return Proxy(
             config=config,  # Store the JSON blob as config

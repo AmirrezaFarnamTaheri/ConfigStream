@@ -58,7 +58,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     out: Optional[Dict[str, Any]] = None
 
     # [FIX] Protocol Normalization
-    protocol = proxy.protocol.lower()
+    # Added strip() to ensure robustness against invisible chars or spaces
+    protocol = proxy.protocol.lower().strip()
     if protocol == "ss":
         protocol = "shadowsocks"
     elif protocol == "wg":
