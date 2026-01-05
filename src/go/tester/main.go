@@ -3,74 +3,109 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
+	"io"
 	"log"
+	"net"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
-	"github.com/sagernet/sing-box"
-	"github.com/sagernet/sing/common/metadata"
+	"configstream-tester/scanner"
+
+	singbox "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/metadata"
 )
 
-// Input structure for a single proxy test
+// Request from Python (NDJSON)
 type ProxyTestRequest struct {
-	ID        string      `json:"id"`
-	ProxyConf interface{} `json:"proxy_config"` // The 'outbound' config block
-	Target    string      `json:"target"`
-	Timeout   int         `json:"timeout"` // seconds
+	ID            string `json:"id"`
+	ConfigStr     string `json:"config"`
+	CheckHoneypot bool   `json:"check_honeypot"`
+	Target        string `json:"target"` // Optional override
+	Timeout       int    `json:"timeout"` // Optional override
 }
 
-// Output structure
+// Result to Python (NDJSON)
 type ProxyTestResult struct {
-	ID      string `json:"id"`
-	Success bool   `json:"success"`
-	Latency int    `json:"latency"` // ms
-	Error   string `json:"error,omitempty"`
+	ID        string   `json:"id"`
+	IsWorking bool     `json:"is_working"`
+	Latency   int      `json:"latency"` // ms
+	Error     string   `json:"error,omitempty"`
+	Issues    []string `json:"issues,omitempty"`
 }
+
+// OutboundDialer interface to avoid direct dependency on internal sing-box types
+type OutboundDialer interface {
+	DialContext(ctx context.Context, network string, destination metadata.Socksaddr) (net.Conn, error)
+}
+
+var (
+	workersFlag int
+	timeoutFlag int
+	urlsFlag    string
+	targetURLs  []string
+)
 
 func main() {
-	// Simple STDIN/STDOUT loop
+	flag.IntVar(&workersFlag, "workers", 20, "Number of concurrent workers")
+	flag.IntVar(&timeoutFlag, "timeout", 10, "Timeout in seconds")
+	flag.StringVar(&urlsFlag, "urls", "http://cp.cloudflare.com", "Comma-separated list of target URLs")
+	flag.Parse()
+
+	if urlsFlag != "" {
+		targetURLs = strings.Split(urlsFlag, ",")
+	}
+
+	log.SetOutput(os.Stderr)
+
 	decoder := json.NewDecoder(os.Stdin)
 	encoder := json.NewEncoder(os.Stdout)
 
+	// Worker pool
+	sem := make(chan struct{}, workersFlag)
+	var wg sync.WaitGroup
+	var outMu sync.Mutex
+
 	for {
-		var reqs []ProxyTestRequest
-		if err := decoder.Decode(&reqs); err != nil {
-			if err.Error() == "EOF" {
-				return
+		var req ProxyTestRequest
+		if err := decoder.Decode(&req); err != nil {
+			if err == io.EOF {
+				break
 			}
 			log.Printf("Decode error: %v", err)
 			continue
 		}
 
-		results := make([]ProxyTestResult, len(reqs))
-		ch := make(chan ProxyTestResult, len(reqs))
+		sem <- struct{}{}
+		wg.Add(1)
+		go func(r ProxyTestRequest) {
+			defer wg.Done()
+			defer func() { <-sem }()
 
-		for _, req := range reqs {
-			go func(r ProxyTestRequest) {
-				ch <- testProxy(r)
-			}(req)
-		}
+			res := testProxy(r)
 
-		for i := 0; i < len(reqs); i++ {
-			results[i] = <-ch
-		}
-
-		if err := encoder.Encode(results); err != nil {
-			log.Printf("Encode error: %v", err)
-		}
+			outMu.Lock()
+			if err := encoder.Encode(res); err != nil {
+				log.Printf("Encode error: %v", err)
+			}
+			outMu.Unlock()
+		}(req)
 	}
+
+	wg.Wait()
 }
 
 func testProxy(req ProxyTestRequest) ProxyTestResult {
 	start := time.Now()
 
-	outboundConfig, err := mapToOutbound(req.ProxyConf)
+	outboundConfig, err := parseConfig(req.ConfigStr)
 	if err != nil {
-		return ProxyTestResult{ID: req.ID, Success: false, Error: "Config map error: " + err.Error()}
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config parse error: " + err.Error()}
 	}
 
-	// Basic options structure for Sing-Box
 	options := option.Options{
 		Outbounds: []option.Outbound{
 			outboundConfig,
@@ -93,52 +128,130 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		},
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(req.Timeout)*time.Second)
+	// Determine timeout (Request override > Global flag)
+	timeoutVal := timeoutFlag
+	if req.Timeout > 0 {
+		timeoutVal = req.Timeout
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutVal)*time.Second)
 	defer cancel()
 
-	instance, err := box.New(box.Options{
+	instance, err := singbox.New(singbox.Options{
 		Context: ctx,
 		Options: options,
 	})
 	if err != nil {
-		return ProxyTestResult{ID: req.ID, Success: false, Error: "Box init error: " + err.Error()}
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Box init error: " + err.Error()}
 	}
 
 	if err := instance.Start(); err != nil {
 		instance.Close()
-		return ProxyTestResult{ID: req.ID, Success: false, Error: "Box start error: " + err.Error()}
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Box start error: " + err.Error()}
 	}
 	defer instance.Close()
 
-	// Attempt to connect to the target using the proxy
-	// We parse the target address (e.g., "google.com:80")
-	dest := metadata.ParseSocksaddr(req.Target)
-
-	// Use the instance's router/dialer to connect
-	outbound, ok := instance.Router().Outbound("proxy")
-	if !ok {
-		return ProxyTestResult{ID: req.ID, Success: false, Error: "Proxy outbound not found"}
+	// Determine target
+	target := "http://cp.cloudflare.com"
+	if req.Target != "" {
+		target = req.Target
+	} else if len(targetURLs) > 0 {
+		target = targetURLs[0]
 	}
 
-	conn, err := outbound.DialContext(ctx, "tcp", dest)
+	// Parse network and address
+	network := "tcp"
+	if strings.HasPrefix(target, "tcp://") {
+		network = "tcp"
+		target = strings.TrimPrefix(target, "tcp://")
+	} else if strings.HasPrefix(target, "udp://") {
+		network = "udp"
+		target = strings.TrimPrefix(target, "udp://")
+	}
+
+	// Handle simple http/https prefix stripping for Socksaddr parsing
+	if strings.HasPrefix(target, "http://") {
+		target = strings.TrimPrefix(target, "http://")
+		if !strings.Contains(target, ":") {
+			target += ":80"
+		}
+	} else if strings.HasPrefix(target, "https://") {
+		target = strings.TrimPrefix(target, "https://")
+		if !strings.Contains(target, ":") {
+			target += ":443"
+		}
+	}
+
+	dest := metadata.ParseSocksaddr(target)
+	if dest.AddrString() == "" || dest.Port == 0 {
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Target parse error: invalid target"}
+	}
+
+	outbound, ok := instance.Router().Outbound("proxy")
+	if !ok {
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Proxy outbound not found"}
+	}
+
+	conn, err := outbound.DialContext(ctx, network, dest)
 	if err != nil {
-		return ProxyTestResult{ID: req.ID, Success: false, Error: "Connect error: " + err.Error()}
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Connect error: " + err.Error()}
 	}
 	conn.Close()
 
 	latency := int(time.Since(start).Milliseconds())
-	return ProxyTestResult{ID: req.ID, Success: true, Latency: latency}
+	issues := []string{}
+
+	if req.CheckHoneypot {
+		if dialer, ok := outbound.(OutboundDialer); ok {
+			if isHoneypot(ctx, dialer) {
+				issues = append(issues, "HONEYPOT")
+			}
+		}
+	}
+
+	return ProxyTestResult{
+		ID:        req.ID,
+		IsWorking: true,
+		Latency:   latency,
+		Issues:    issues,
+	}
 }
 
-func mapToOutbound(raw interface{}) (option.Outbound, error) {
-	b, err := json.Marshal(raw)
-	if err != nil {
-		return option.Outbound{}, err
-	}
+func parseConfig(configStr string) (option.Outbound, error) {
 	var out option.Outbound
-	if err := json.Unmarshal(b, &out); err != nil {
+	if err := json.Unmarshal([]byte(configStr), &out); err != nil {
 		return option.Outbound{}, err
 	}
 	out.Tag = "proxy"
 	return out, nil
+}
+
+func isHoneypot(ctx context.Context, outbound OutboundDialer) bool {
+	dest := metadata.ParseSocksaddr("162.159.192.1:2408")
+	conn, err := outbound.DialContext(ctx, "udp", dest)
+	if err != nil {
+		return false
+	}
+	defer conn.Close()
+
+	packet := scanner.ConstructHandshakePacket()
+
+	_, err = conn.Write(packet)
+	if err != nil {
+		return false
+	}
+
+	buf := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	n, err := conn.Read(buf)
+	if err != nil {
+		return false
+	}
+
+	if n >= 32 {
+		msgType := buf[0]
+		if msgType == 2 || msgType == 3 || msgType == 4 {
+			return false
+		}
+	}
+	return false
 }
