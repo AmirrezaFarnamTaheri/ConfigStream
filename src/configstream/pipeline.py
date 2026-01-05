@@ -183,12 +183,13 @@ async def run_full_pipeline(
 
             # [FIX] Robust startup check instead of sleep(1)
             # Use non-blocking asyncio check
-            for _ in range(20):  # Try for 2 seconds (20 * 0.1)
-                await asyncio.sleep(0.1)
+            # Increased timeout to 10 seconds (50 * 0.2) to accommodate slower CI/Docker environments
+            for _ in range(50):
+                await asyncio.sleep(0.2)
                 try:
                     _, writer = await asyncio.wait_for(
                         asyncio.open_connection(VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT),
-                        timeout=0.2,
+                        timeout=0.5,
                     )
                     writer.close()
                     await writer.wait_closed()
@@ -248,10 +249,13 @@ async def run_full_pipeline(
         max_workers=max_workers,
     )
 
-    # [FIX] Start Concurrency Tuner globally if fallback to Python tester is likely
-    if not tester.go_tester.available:
-        logger.info(
-            "Go tester unavailable - Starting global concurrency tuner for Python fallback"
+    # [FIX] Log tester status once globally instead of per-consumer
+    if tester.go_tester.available:
+        logger.info("Using Go batch tester for proxy testing")
+    else:
+        logger.warning(
+            "Go tester unavailable - Falling back to Python tester. "
+            "Starting global concurrency tuner."
         )
         await concurrency.start_tuner()
 

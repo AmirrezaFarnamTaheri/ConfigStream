@@ -58,11 +58,6 @@ async def processing_consumer(
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
-    if tester.go_tester.available:
-        logger.info("Using Go batch tester for proxy testing")
-    else:
-        logger.warning("Go batch tester unavailable - falling back to Python tester")
-
     if seen_lock is None:
         seen_lock = asyncio.Lock()
 

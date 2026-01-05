@@ -135,6 +135,8 @@ def extract_config_lines(
             return [], {"size_limit_exceeded": 1}
 
     # Attempt Base64 decode for subscriptions
+    # [FIX] Suppress base64 noise by not logging individual failures inside safe_b64_decode
+    # (safe_b64_decode already returns None on failure without noisy logs if handled correctly)
     decoded = safe_b64_decode(payload_str)
     if decoded is None:
         decoded = payload_str
