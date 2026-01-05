@@ -25,9 +25,7 @@ def test_hysteria2_obfs():
     assert proxy.details["obfs"] == "salamander"
     assert proxy.details["obfs-password"] == "secret"
 
-    # Missing obfs password (should log warning but return proxy)
+    # Missing obfs password (should drop proxy)
     config_missing = "hysteria2://pass@example.com:443?obfs=salamander"
     proxy = parse_hysteria2(config_missing)
-    assert proxy is not None
-    # We don't delete the field in parser, just log warning
-    assert proxy.details["obfs"] == "salamander"
+    assert proxy is None
