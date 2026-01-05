@@ -58,15 +58,23 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                     )
                     return None
 
-                # Assume HTTP if not specified
+                # [FIX] Heuristic: Default to SOCKS5 if port is 1080 or 10808, else HTTP
+                # Ideally, this should come from source metadata, but this improves the hit rate for SOCKS lists.
+                protocol = "http"
+                if port_val in [1080, 10800, 10808, 9050]:
+                     protocol = "socks5"
+
+                # If source metadata indicates socks, it should be passed here, but we don't have it.
+                # The heuristic is better than always HTTP for these ports.
+
                 return Proxy(
                     config=config,
-                    protocol="http",
+                    protocol=protocol,
                     address=host,
                     port=port_val,
                     uuid="",
                     details={},
-                    remarks="naked_ip",
+                    remarks=f"naked_ip_{protocol}",
                 )
 
         parsed = urlparse(config)
