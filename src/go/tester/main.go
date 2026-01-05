@@ -367,17 +367,13 @@ func parseConfig(configStr string) (option.Outbound, error) {
 				continue
 			}
 			if outs[i].Tag == "proxy" {
-				return outs[i], nil
+				// Ensure canonical tag without mutating unrelated entries.
+				out := outs[i]
+				out.Tag = "proxy"
+				return out, nil
 			}
 		}
-		for i := range outs {
-			if outs[i].Type == "" {
-				continue
-			}
-			outs[i].Tag = "proxy"
-			return outs[i], nil
-		}
-		return option.Outbound{}, errors.New("no outbound found in config array")
+		return option.Outbound{}, errors.New("no outbound tagged 'proxy' found in config array")
 	}
 
 	// 1) Try: single outbound JSON object
