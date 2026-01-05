@@ -3,6 +3,7 @@ import asyncio
 import shutil
 import logging
 import json
+import time
 from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
 
@@ -125,6 +126,26 @@ class VwarpTool:
         except Exception:
             return {}
 
+    async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
+        """Polls the given host:port until it accepts connections."""
+        probe_host = host
+        if host in ("0.0.0.0", "::", ""):
+            probe_host = "127.0.0.1"
+
+        start = time.time()
+        while time.time() - start < timeout:
+            try:
+                # Use asyncio to avoid blocking the event loop
+                reader, writer = await asyncio.wait_for(
+                    asyncio.open_connection(probe_host, port), timeout=1
+                )
+                writer.close()
+                await writer.wait_closed()
+                return True
+            except (OSError, asyncio.TimeoutError, ConnectionRefusedError):
+                await asyncio.sleep(0.5)
+        return False
+
     async def start_tunnel(
         self, bind_addr: str = VWARP_BIND_ADDRESS, port: int = VWARP_SOCKS5_PORT
     ) -> bool:
@@ -146,8 +167,20 @@ class VwarpTool:
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
             )
-            # Give it a moment to initialize
-            await asyncio.sleep(1)
+
+            # [FIX] Robust port checking
+            is_ready = await self._wait_for_port(bind_addr, port)
+            if not is_ready:
+                logger.error(
+                    "Vwarp Tunnel started but port check timed out. Killing process."
+                )
+                if self._tunnel_proc:
+                    try:
+                        self._tunnel_proc.kill()
+                    except ProcessLookupError:
+                        pass
+                    self._tunnel_proc = None
+                return False
 
             if self._tunnel_proc.returncode is not None:
                 logger.error(
@@ -159,6 +192,12 @@ class VwarpTool:
             return True
         except Exception as e:
             logger.warning(f"Failed to start Vwarp tunnel: {e}")
+            if self._tunnel_proc:
+                try:
+                    self._tunnel_proc.kill()
+                except ProcessLookupError:
+                    pass
+                self._tunnel_proc = None
             return False
 
     async def stop_tunnel(self) -> None:

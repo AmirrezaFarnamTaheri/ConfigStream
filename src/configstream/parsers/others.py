@@ -84,6 +84,14 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
             proxy.protocol = "hysteria2"  # Normalize protocol
 
     if proxy:
+        # [FIX] Normalize parameter aliases
+        # Map obfs_password / obfsPassword -> obfs-password
+        if "obfs-password" not in proxy.details:
+            if "obfs_password" in proxy.details:
+                proxy.details["obfs-password"] = proxy.details["obfs_password"]
+            elif "obfsPassword" in proxy.details:
+                proxy.details["obfs-password"] = proxy.details["obfsPassword"]
+
         # Hysteria 2 Obfuscation & Masquerading
         # 'obfs' -> type (e.g., 'salamander'), 'obfs-password' -> password
         if "obfs" in proxy.details:
@@ -118,7 +126,19 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
 
 def parse_tuic(c: str) -> Optional[Proxy]:
     # TUIC v5 support
-    return _parse_url_scheme(c, "tuic", 443)
+    proxy = _parse_url_scheme(c, "tuic", 443)
+    if proxy:
+        # [FIX] TUIC often requires both UUID and Password.
+        # _parse_url_scheme puts user -> uuid, pass -> details['password']
+        # If uuid is present but password is missing, some clients use uuid as password.
+        if proxy.uuid and "password" not in proxy.details:
+            # Use UUID as password if password is missing
+            proxy.details["password"] = proxy.uuid
+
+        # Ensure ALPN is present for TUIC (mandatory for some versions)
+        if "alpn" not in proxy.details:
+            proxy.details["alpn"] = ["h3"]
+    return proxy
 
 
 def parse_wireguard(c: str) -> Optional[Proxy]:

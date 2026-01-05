@@ -157,11 +157,13 @@ def extract_config_lines(
 
     for line in lines:
         candidate = line.strip()
-        if (
-            not candidate
-            or candidate.startswith("#")
-            or len(candidate) > MAX_CONFIG_LINE_LENGTH
-        ):
+        # [FIX] Better comment handling: skip # only at start, allow # in URI fragment
+        if not candidate:
+            continue
+        if candidate.startswith("#"):
+            continue
+
+        if len(candidate) > MAX_CONFIG_LINE_LENGTH:
             continue
 
         parts = candidate.split("://", 1)

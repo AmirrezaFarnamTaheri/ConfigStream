@@ -172,6 +172,7 @@ async def source_producer(
 
                         if count == 0:
                             # Log that we got content but no proxies (useful for debugging invalid formats)
+                            # [FIX] Fix logging format error (don't mix % formatting with f-strings/args)
                             logger.warning(
                                 "Source %s returned content (size=%d) but no valid config lines found. "
                                 "Drop Stats: %s",
