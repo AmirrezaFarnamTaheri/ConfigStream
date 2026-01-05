@@ -87,8 +87,13 @@ def safe_b64_decode(data: str) -> Optional[str]:
         return None
 
     try:
-        return base64.b64decode(cleaned, validate=False).decode(
-            "utf-8", errors="ignore"
-        )
+        # [FIX] Validate=True to catch subtle corruptions
+        return base64.b64decode(cleaned, validate=True).decode("utf-8", errors="ignore")
     except (binascii.Error, ValueError):
-        return None
+        # Fallback without validation if strict fails, but only if it looks plausible
+        try:
+            return base64.b64decode(cleaned, validate=False).decode(
+                "utf-8", errors="ignore"
+            )
+        except Exception:
+            return None

@@ -26,18 +26,23 @@ def parse_ss(config: str) -> Optional[Proxy]:
         # But SS links are weird.
         # Often: ss://BASE64#remark
 
-        # Handle '#' for remark
+        # Handle '#' for remark (some providers append query params after fragment)
         parts = config[5:].split("#", 1)
         main_part = parts[0]
+
+        details = {}
         remark = ""
         if len(parts) > 1:
-            remark = unquote(parts[1])
+            frag = parts[1]
+            remark_str, sep, frag_query = frag.partition("?")
+            remark = unquote(remark_str)
+            if sep and frag_query:
+                q_params = parse_qs(frag_query)
+                details.update({k: v[0] for k, v in q_params.items() if v})
 
         # Check for query parameters inside main_part (not standard but possible) or after?
         # Standard SIP002 doesn't use query params heavily except for plugins maybe?
         # Usually plugin params are in the user_info part or decoded part.
-
-        details = {}
 
         # The part before the @ is either plain text or base64 encoded
         if "@" in main_part:
@@ -145,12 +150,18 @@ def parse_ss(config: str) -> Optional[Proxy]:
             pass
 
         # [CRITICAL FIX] Ensure server/port are in details for logic checks
+
+        # Final validation before creating proxy object
+        if not host:
+            logger.debug(f"Invalid host in shadowsocks config: {config[:50]}...")
+            return None
+
         details.update(
             {
                 "method": method,
                 "password": password,
                 "server": host.strip("[]"),
-                "port": port,
+                "port": str(port),
             }
         )
 

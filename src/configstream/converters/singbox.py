@@ -270,7 +270,20 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             # Heuristic: if key is 44 chars ending in =, it's likely base64 for 32 bytes
             if len(key) == 44 and key.endswith("="):
                 try:
-                    return binascii.hexlify(base64.b64decode(key)).decode()
+                    # [FIX] Enforce 32-byte key length check
+                    raw = base64.b64decode(key, validate=True)
+                    if len(raw) == 32:
+                        return binascii.hexlify(raw).decode()
+                    else:
+                        # If length mismatch, it's not a standard curve25519 key (or garbage)
+                        # But might be acceptable for some implementation?
+                        # Standard WG keys are 32 bytes.
+                        logger.warning(f"WireGuard key length invalid ({len(raw)} bytes), expected 32.")
+                        # Return as is or fail? If we return hex of wrong length, singbox might fail.
+                        # If we return b64, singbox expects b64.
+                        # The IPC error was "encoding/hex: odd length hex string" or similar if we messed up.
+                        # If it is valid b64 but wrong length, returning b64 is safer than partial hex.
+                        return key
                 except Exception:
                     return key
             return key
