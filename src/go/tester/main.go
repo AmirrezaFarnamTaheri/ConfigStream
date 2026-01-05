@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/sagernet/sing-box"
-	"github.com/sagernet/sing/common/metadata"
+	singbox "github.com/sagernet/sing-box"
 	"github.com/sagernet/sing-box/option"
+	"github.com/sagernet/sing/common/metadata"
 )
 
 // Input structure for a single proxy test
@@ -96,7 +97,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(req.Timeout)*time.Second)
 	defer cancel()
 
-	instance, err := box.New(box.Options{
+	instance, err := singbox.New(singbox.Options{
 		Context: ctx,
 		Options: options,
 	})
@@ -111,8 +112,21 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	defer instance.Close()
 
 	// Attempt to connect to the target using the proxy
-	// We parse the target address (e.g., "google.com:80")
-	dest := metadata.ParseSocksaddr(req.Target)
+	// We parse the target address (e.g., "google.com:80" or "tcp://google.com:80")
+	target := req.Target
+	network := "tcp"
+	if strings.HasPrefix(target, "tcp://") {
+		network = "tcp"
+		target = strings.TrimPrefix(target, "tcp://")
+	} else if strings.HasPrefix(target, "udp://") {
+		network = "udp"
+		target = strings.TrimPrefix(target, "udp://")
+	}
+
+	dest := metadata.ParseSocksaddr(target)
+	if dest.AddrString() == "" || dest.Port == 0 {
+		return ProxyTestResult{ID: req.ID, Success: false, Error: "Target parse error: invalid target"}
+	}
 
 	// Use the instance's router/dialer to connect
 	outbound, ok := instance.Router().Outbound("proxy")
@@ -120,7 +134,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		return ProxyTestResult{ID: req.ID, Success: false, Error: "Proxy outbound not found"}
 	}
 
-	conn, err := outbound.DialContext(ctx, "tcp", dest)
+	conn, err := outbound.DialContext(ctx, network, dest)
 	if err != nil {
 		return ProxyTestResult{ID: req.ID, Success: false, Error: "Connect error: " + err.Error()}
 	}
