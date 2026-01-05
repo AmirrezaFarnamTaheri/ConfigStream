@@ -29,8 +29,15 @@ def merge_cache_history(batch_glob: str, output_dir: str):
                 data = json.load(f)
                 # [FIX] Smart Aggregation instead of .update()
                 for phash, stats in data.items():
+                    if not isinstance(stats, dict):
+                        continue
+
                     if phash not in merged_cache:
-                        merged_cache[phash] = stats
+                        item = dict(stats)
+                        hist = item.get("history")
+                        if not isinstance(hist, list):
+                            item.pop("history", None)
+                        merged_cache[phash] = item
                     else:
                         # Aggregate stats
                         existing = merged_cache[phash]
@@ -40,17 +47,24 @@ def merge_cache_history(batch_glob: str, output_dir: str):
                         existing["fail"] = existing.get("fail", 0) + stats.get(
                             "fail", 0
                         )
+
                         # Max last_seen
                         existing["last_seen"] = max(
                             existing.get("last_seen", 0), stats.get("last_seen", 0)
                         )
-                        # History list append
-                        if "history" in stats:
-                            existing_hist = existing.get("history", [])
-                            existing_hist.extend(stats["history"])
-                            # Keep last 20
+
+                        # History list append (only if well-formed)
+                        incoming_hist = stats.get("history")
+                        if isinstance(incoming_hist, list):
+                            existing_hist = existing.get("history")
+                            if not isinstance(existing_hist, list):
+                                existing_hist = []
+                            existing_hist.extend(incoming_hist)
                             existing["history"] = sorted(
-                                existing_hist, key=lambda x: x.get("timestamp", 0)
+                                existing_hist,
+                                key=lambda x: (
+                                    x.get("timestamp", 0) if isinstance(x, dict) else 0
+                                ),
                             )[-20:]
 
                 # print(f"Merged {len(data)} entries from {fpath}")

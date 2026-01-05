@@ -126,14 +126,18 @@ class VwarpTool:
         except Exception:
             return {}
 
-    async def _wait_for_port(self, port: int, timeout: int = 45) -> bool:
-        """Polls the local port until it accepts connections."""
+    async def _wait_for_port(self, host: str, port: int, timeout: int = 45) -> bool:
+        """Polls the given host:port until it accepts connections."""
+        probe_host = host
+        if host in ("0.0.0.0", "::", ""):
+            probe_host = "127.0.0.1"
+
         start = time.time()
         while time.time() - start < timeout:
             try:
                 # Use asyncio to avoid blocking the event loop
                 reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection("127.0.0.1", port), timeout=1
+                    asyncio.open_connection(probe_host, port), timeout=1
                 )
                 writer.close()
                 await writer.wait_closed()
@@ -165,9 +169,11 @@ class VwarpTool:
             )
 
             # [FIX] Robust port checking
-            is_ready = await self._wait_for_port(port)
+            is_ready = await self._wait_for_port(bind_addr, port)
             if not is_ready:
-                logger.error("Vwarp Tunnel started but port check timed out. Killing process.")
+                logger.error(
+                    "Vwarp Tunnel started but port check timed out. Killing process."
+                )
                 if self._tunnel_proc:
                     try:
                         self._tunnel_proc.kill()

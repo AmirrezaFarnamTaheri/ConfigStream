@@ -110,9 +110,9 @@ async def merge_batches_async(
                         else:
                             # Aggregate stats
                             existing = merged_cache[phash]
-                            existing["success"] = existing.get("success", 0) + stats.get(
+                            existing["success"] = existing.get(
                                 "success", 0
-                            )
+                            ) + stats.get("success", 0)
                             existing["fail"] = existing.get("fail", 0) + stats.get(
                                 "fail", 0
                             )
@@ -249,9 +249,7 @@ async def merge_batches_async(
                 exit_node = washed_outbounds[i + 1]
                 # The exit node tag is unique and sufficient ID
                 chain_id = exit_node.get("tag", f"chain_{i}")
-                chains_to_test.append(
-                    {"id": chain_id, "outbounds": [relay, exit_node]}
-                )
+                chains_to_test.append({"id": chain_id, "outbounds": [relay, exit_node]})
 
             if chains_to_test:
                 logger.info(f"Retesting {len(chains_to_test)} washed chains...")

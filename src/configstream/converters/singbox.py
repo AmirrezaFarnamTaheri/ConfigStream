@@ -2,7 +2,6 @@
 import logging
 import hashlib
 import base64
-import binascii
 from typing import Any, Dict, Optional
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -264,7 +263,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return None
 
         # Convert Base64 keys to Hex for Go Tester/IPC compatibility
-        def to_hex_if_b64(key: str) -> str:
+        def validate_wg_key(key: str) -> str:
             if not key:
                 return ""
             # Heuristic: if key is 44 chars ending in =, it's likely base64 for 32 bytes
@@ -272,24 +271,19 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 try:
                     # [FIX] Enforce 32-byte key length check
                     raw = base64.b64decode(key, validate=True)
-                    if len(raw) == 32:
-                        return binascii.hexlify(raw).decode()
-                    else:
-                        # If length mismatch, it's not a standard curve25519 key (or garbage)
-                        # But might be acceptable for some implementation?
-                        # Standard WG keys are 32 bytes.
-                        logger.warning(f"WireGuard key length invalid ({len(raw)} bytes), expected 32.")
-                        # Return as is or fail? If we return hex of wrong length, singbox might fail.
-                        # If we return b64, singbox expects b64.
-                        # The IPC error was "encoding/hex: odd length hex string" or similar if we messed up.
-                        # If it is valid b64 but wrong length, returning b64 is safer than partial hex.
-                        return key
+                    if len(raw) != 32:
+                        logger.warning(
+                            f"WireGuard key length invalid ({len(raw)} bytes), expected 32."
+                        )
+                        return ""
+                    # Sing-box expects standard WireGuard Base64 keys; keep original Base64.
+                    return key
                 except Exception:
                     return key
             return key
 
-        pk = to_hex_if_b64(str(private_key))
-        ppk = to_hex_if_b64(str(proxy.details.get("peer_public_key", "")))
+        pk = validate_wg_key(str(private_key))
+        ppk = validate_wg_key(str(proxy.details.get("peer_public_key", "")))
 
         out = {
             "type": "wireguard",
@@ -367,7 +361,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         # Use tag for logging instead of safe_addr if safe_addr is not strictly redacted
         # This fixes test failures in test_logging_coverage.py that check for address absence
-        proxy_tag = out.get('tag', 'unknown')
+        proxy_tag = out.get("tag", "unknown")
 
         logger.debug(
             f"Successfully converted {protocol} proxy (Tag: {proxy_tag}) "
