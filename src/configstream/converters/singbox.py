@@ -256,7 +256,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         private_key = proxy.details.get("private_key") or proxy.uuid
         if not private_key:
-            logger.warning(
+            logger.debug(
                 f"Dropping WireGuard proxy missing private_key: {proxy.address}:{proxy.port}. "
                 f"Source: {proxy.details.get('_source', 'unknown')}"
             )

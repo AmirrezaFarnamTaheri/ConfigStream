@@ -101,7 +101,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
 
             # Validate obfs-password presence if obfs is set
             if obfs_type == "salamander" and "obfs-password" not in proxy.details:
-                logger.warning(
+                logger.debug(
                     "Hysteria2 obfs=salamander requires obfs-password. Marking as suspect but retaining."
                 )
 
