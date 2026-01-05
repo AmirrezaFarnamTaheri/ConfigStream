@@ -2,7 +2,6 @@
 import logging
 import sys
 import os
-import glob
 import json
 
 import asyncio
@@ -46,6 +45,7 @@ async def merge_batches_async(
     # save_metadata unused (handled internally by generate_outputs)
 
     output_dir = root_dir / output_dir_str
+    # Use glob to silence F401 - actually pathlib.Path.glob is used below
     batch_dirs = sorted(list(root_dir.glob(batch_dir_glob)))
 
     # 1. Telemetry
@@ -93,11 +93,11 @@ async def merge_batches_async(
     for b_dir in batch_dirs:
         cache_path = b_dir / "data" / "test_cache.json"
         if not cache_path.exists():
-             cache_path = b_dir / "test_cache.json" # Fallback
+            cache_path = b_dir / "test_cache.json"  # Fallback
 
         if cache_path.exists():
             try:
-                with open(cache_path, 'r') as f:
+                with open(cache_path, "r") as f:
                     data = json.load(f)
                     # Simple merge: newer keys overwrite older ones if duplicates?
                     # Or we should merge intelligently?
@@ -110,28 +110,38 @@ async def merge_batches_async(
                         else:
                             # Aggregate stats
                             existing = merged_cache[phash]
-                            existing['success'] = existing.get('success', 0) + stats.get('success', 0)
-                            existing['fail'] = existing.get('fail', 0) + stats.get('fail', 0)
+                            existing["success"] = existing.get("success", 0) + stats.get(
+                                "success", 0
+                            )
+                            existing["fail"] = existing.get("fail", 0) + stats.get(
+                                "fail", 0
+                            )
                             # Max last_seen
-                            existing['last_seen'] = max(existing.get('last_seen', 0), stats.get('last_seen', 0))
+                            existing["last_seen"] = max(
+                                existing.get("last_seen", 0), stats.get("last_seen", 0)
+                            )
                             # History list append?
-                            if 'history' in stats:
-                                existing_hist = existing.get('history', [])
-                                existing_hist.extend(stats['history'])
+                            if "history" in stats:
+                                existing_hist = existing.get("history", [])
+                                existing_hist.extend(stats["history"])
                                 # Keep last N
-                                existing['history'] = sorted(existing_hist, key=lambda x: x.get('timestamp', 0))[-20:]
+                                existing["history"] = sorted(
+                                    existing_hist, key=lambda x: x.get("timestamp", 0)
+                                )[-20:]
 
                     cache_found_count += 1
             except Exception as e:
                 logger.warning(f"Failed to load cache {cache_path}: {e}")
 
-    logger.info(f"Found {cache_found_count} cache files. Aggregated {len(merged_cache)} cache entries.")
+    logger.info(
+        f"Found {cache_found_count} cache files. Aggregated {len(merged_cache)} cache entries."
+    )
 
     # Save aggregated cache
     final_data_dir = output_dir / "data"
     final_data_dir.mkdir(parents=True, exist_ok=True)
 
-    with open(final_data_dir / "test_cache.json", 'w') as f:
+    with open(final_data_dir / "test_cache.json", "w") as f:
         json.dump(merged_cache, f)
 
     # 2.1 Aggregate Stats from Batches
@@ -239,7 +249,9 @@ async def merge_batches_async(
                 exit_node = washed_outbounds[i + 1]
                 # The exit node tag is unique and sufficient ID
                 chain_id = exit_node.get("tag", f"chain_{i}")
-                chains_to_test.append({"id": chain_id, "outbounds": [relay, exit_node]})
+                chains_to_test.append(
+                    {"id": chain_id, "outbounds": [relay, exit_node]}
+                )
 
             if chains_to_test:
                 logger.info(f"Retesting {len(chains_to_test)} washed chains...")

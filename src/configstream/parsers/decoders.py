@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import base64
 import binascii
-import re
 import logging
 from typing import Optional
 
@@ -32,6 +31,7 @@ def validate_b64_input(data: str) -> Optional[str]:
     if "%" in trimmed:
         try:
             from urllib.parse import unquote
+
             unquoted = unquote(trimmed)
             if unquoted != trimmed:
                 trimmed = unquoted
@@ -46,18 +46,20 @@ def validate_b64_input(data: str) -> Optional[str]:
 
     # Basic char check + noise check
     # We allow some noise but if it's too much we drop it.
-    valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t")
+    valid_chars = set(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t"
+    )
 
     # Fast check for invalid chars
     invalid_chars = [c for c in trimmed if c not in valid_chars]
-    if len(invalid_chars) > len(trimmed) * 0.05: # >5% noise
+    if len(invalid_chars) > len(trimmed) * 0.05:  # >5% noise
         return None
 
     # Normalize
     cleaned = "".join([c for c in trimmed if c in valid_chars and c not in "\n\r \t"])
 
     # Fix URL safe chars
-    cleaned = cleaned.replace('-', '+').replace('_', '/')
+    cleaned = cleaned.replace("-", "+").replace("_", "/")
 
     # Padding
     pad = len(cleaned) % 4
