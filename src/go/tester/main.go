@@ -106,6 +106,7 @@ func main() {
 	var wg sync.WaitGroup
 	var outMu sync.Mutex
 
+	decodeErrors := 0
 	for {
 		var req ProxyTestRequest
 		if err := decoder.Decode(&req); err != nil {
@@ -113,8 +114,14 @@ func main() {
 				break
 			}
 			log.Printf("Decode error: %v", err)
-			break
+			decodeErrors++
+			if decodeErrors >= 5 {
+				log.Printf("Too many decode errors, stopping")
+				break
+			}
+			continue
 		}
+		decodeErrors = 0
 
 		sem <- struct{}{}
 		wg.Add(1)
@@ -219,15 +226,26 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		// Ensure scheme exists for parser if missing
 		parseTarget := target
 		if !strings.Contains(parseTarget, "://") {
-			// Treat bare host[:port] as an HTTP URL for probe purposes.
-			hostPort := target
-			if !strings.Contains(hostPort, ":") {
-				hostPort += ":80"
-			}
-			dest = metadata.ParseSocksaddr(hostPort)
+			// Scheme-less: Check if it's host:port (TCP) or URL-like (HTTP)
+			if _, _, err := net.SplitHostPort(target); err == nil {
+				// Has host and port, treat as TCP/UDP target
+				dest = metadata.ParseSocksaddr(target)
+				isHTTP = false
+			} else {
+				// Missing port or has path, treat as HTTP
+				u, err := url.Parse("http://" + target)
+				if err != nil || u.Host == "" {
+					return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Invalid target format"}
+				}
+				targetURL = u
 
-			targetURL, _ = url.Parse("http://" + strings.TrimPrefix(hostPort, "http://"))
-			isHTTP = true
+				hostPort := u.Host
+				if !strings.Contains(hostPort, ":") {
+					hostPort += ":80"
+				}
+				dest = metadata.ParseSocksaddr(hostPort)
+				isHTTP = true
+			}
 		} else {
 			u, err := url.Parse(target)
 			if err == nil && u.Host != "" {
@@ -262,7 +280,11 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	}
 
 	// Perform Connectivity Check
-	if isHTTP && targetURL != nil {
+	if isHTTP {
+		if targetURL == nil || targetURL.Host == "" {
+			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Invalid HTTP target"}
+		}
+
 		// HTTP Probe logic: use http.Client over proxy connection
 		transport := &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
@@ -279,6 +301,9 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		client := &http.Client{
 			Transport: transport,
 			Timeout:   timeout,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
 		}
 
 		reqHTTP, err := http.NewRequestWithContext(ctx, "GET", targetURL.String(), nil)
@@ -290,6 +315,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		if err != nil {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP GET error: " + err.Error()}
 		}
+		defer resp.Body.Close()
 		_, _ = io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
 
@@ -311,10 +337,12 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	if req.CheckHoneypot {
 		if dialer, ok := outbound.(OutboundDialer); ok {
 			hpCtx, hpCancel := context.WithTimeout(ctx, 3*time.Second)
+			defer hpCancel()
 			if isHoneypot(hpCtx, dialer) {
 				issues = append(issues, "HONEYPOT")
+			} else if hpCtx.Err() == context.DeadlineExceeded {
+				issues = append(issues, "HONEYPOT_TIMEOUT")
 			}
-			hpCancel()
 		}
 	}
 
@@ -329,6 +357,16 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 func parseConfig(configStr string) (option.Outbound, error) {
 	if strings.TrimSpace(configStr) == "" {
 		return option.Outbound{}, errors.New("empty config string")
+	}
+
+	// 0) Try: JSON array of outbounds (batch/chain payloads)
+	var outs []option.Outbound
+	if err := json.Unmarshal([]byte(configStr), &outs); err == nil {
+		if len(outs) == 0 || outs[0].Type == "" {
+			return option.Outbound{}, errors.New("no outbound found in config array")
+		}
+		outs[0].Tag = "proxy"
+		return outs[0], nil
 	}
 
 	// 1) Try: single outbound JSON object
