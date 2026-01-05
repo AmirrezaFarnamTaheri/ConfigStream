@@ -377,6 +377,7 @@ async def processing_consumer(
                             final_batch_for_this_source.append(p)
                             async with seen_lock:
                                 stats.revived_vwarp += 1
+                                stats.vwarp_success += 1
 
                 # 2. Attempt Standard Warp Revival (Fallback/Parallel)
                 # Filter out those that already succeeded via Vwarp?
