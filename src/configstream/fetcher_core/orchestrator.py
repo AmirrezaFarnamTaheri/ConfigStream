@@ -5,7 +5,6 @@ import random
 from urllib.parse import urlparse
 from typing import Any, TYPE_CHECKING
 import httpx
-from types import SimpleNamespace
 from configstream.fetcher_core.models import FetchResult
 
 if TYPE_CHECKING:
