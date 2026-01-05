@@ -195,7 +195,24 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	if err != nil {
 		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Connect error: " + err.Error()}
 	}
-	conn.Close()
+	defer conn.Close()
+
+	// For HTTP/S, perform a GET request to ensure application-layer connectivity
+	if strings.HasPrefix(req.Target, "http") {
+		client := http.Client{
+			Transport: &http.Transport{
+				DialContext: func(ctx context.Context, _, _ string) (net.Conn, error) {
+					return conn, nil
+				},
+			},
+			Timeout: time.Duration(timeoutVal) * time.Second,
+		}
+		resp, err := client.Get(req.Target)
+		if err != nil {
+			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "HTTP GET error: " + err.Error()}
+		}
+		resp.Body.Close()
+	}
 
 	latency := int(time.Since(start).Milliseconds())
 	issues := []string{}
