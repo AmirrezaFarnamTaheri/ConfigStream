@@ -396,34 +396,35 @@ func parseConfig(configStr string) (option.Outbound, error) {
 	case wrapper.Proxy != nil && wrapper.Proxy.Type != "":
 		wrapper.Proxy.Tag = "proxy"
 		return *wrapper.Proxy, nil
+
 	case wrapper.Outbound != nil && wrapper.Outbound.Type != "":
 		wrapper.Outbound.Tag = "proxy"
 		return *wrapper.Outbound, nil
-	case len(wrapper.Outbounds) > 0 && wrapper.Outbounds[0].Type != "":
-		wrapper.Outbounds[0].Tag = "proxy"
-		return wrapper.Outbounds[0], nil
-	default:
-			return *wrapper.Outbound, nil
-		case len(wrapper.Outbounds) > 0:
-			for i := range wrapper.Outbounds {
-				if wrapper.Outbounds[i].Type == "" {
-					continue
-				}
-				if wrapper.Outbounds[i].Tag == "proxy" {
-					return wrapper.Outbounds[i], nil
-				}
+
+	case len(wrapper.Outbounds) > 0:
+		// Prefer explicit "proxy" tag if present.
+		for i := range wrapper.Outbounds {
+			if wrapper.Outbounds[i].Type == "" {
+				continue
 			}
-			for i := range wrapper.Outbounds {
-				if wrapper.Outbounds[i].Type == "" {
-					continue
-				}
-				wrapper.Outbounds[i].Tag = "proxy"
+			if wrapper.Outbounds[i].Tag == "proxy" {
 				return wrapper.Outbounds[i], nil
 			}
-			return option.Outbound{}, errors.New("no outbound found in outbounds")
-		default:
-	dest := metadata.ParseSocksaddr("162.159.192.1:2408")
-	conn, err := outbound.DialContext(ctx, "udp", dest)
+		}
+		// Otherwise pick the first valid outbound.
+		for i := range wrapper.Outbounds {
+			if wrapper.Outbounds[i].Type == "" {
+				continue
+			}
+			out := wrapper.Outbounds[i]
+			out.Tag = "proxy"
+			return out, nil
+		}
+		return option.Outbound{}, errors.New("no outbound found in outbounds")
+
+	default:
+		return option.Outbound{}, errors.New("no outbound found in config")
+	}
 	if err != nil {
 		return false
 	}
