@@ -2063,11 +2063,12 @@ body.dark .filter-summary {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 calc(var(--space-unit) * 1.5);
+    table-layout: fixed; /* Fix column widths */
 }
 
 .proxies-table th {
     text-align: left;
-    white-space: nowrap; /* [FIX] Prevent header wrapping */
+    white-space: nowrap;
     padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
     color: var(--text-secondary);
     font-weight: 600;
@@ -2111,6 +2112,7 @@ body.dark .proxies-table th:hover {
 
 .proxies-table td {
     padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
+    vertical-align: middle;
     background: var(--bg-secondary);
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
@@ -2655,9 +2657,15 @@ body.dark #preloader {
     display: flex;
     align-items: center;
     gap: calc(var(--space-unit) * 1.5);
+    min-width: 180px;
+    white-space: normal;
+    text-align: left;
 }
 
 @media (max-width: 768px) {
+    .location-cell {
+        min-width: 0;
+    }
     .proxies-table .location-cell {
         gap: calc(var(--space-unit) * 0.5);
         flex-wrap: wrap;
