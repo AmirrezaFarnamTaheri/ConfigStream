@@ -403,11 +403,25 @@ func parseConfig(configStr string) (option.Outbound, error) {
 		wrapper.Outbounds[0].Tag = "proxy"
 		return wrapper.Outbounds[0], nil
 	default:
-		return option.Outbound{}, errors.New("no outbound found in config")
-	}
-}
-
-func isHoneypot(ctx context.Context, outbound OutboundDialer) bool {
+			return *wrapper.Outbound, nil
+		case len(wrapper.Outbounds) > 0:
+			for i := range wrapper.Outbounds {
+				if wrapper.Outbounds[i].Type == "" {
+					continue
+				}
+				if wrapper.Outbounds[i].Tag == "proxy" {
+					return wrapper.Outbounds[i], nil
+				}
+			}
+			for i := range wrapper.Outbounds {
+				if wrapper.Outbounds[i].Type == "" {
+					continue
+				}
+				wrapper.Outbounds[i].Tag = "proxy"
+				return wrapper.Outbounds[i], nil
+			}
+			return option.Outbound{}, errors.New("no outbound found in outbounds")
+		default:
 	dest := metadata.ParseSocksaddr("162.159.192.1:2408")
 	conn, err := outbound.DialContext(ctx, "udp", dest)
 	if err != nil {
