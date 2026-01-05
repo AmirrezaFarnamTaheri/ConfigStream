@@ -65,3 +65,4 @@ https://openproxylist.com/v2ray/
 https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/vless.txt
 https://raw.githubusercontent.com/Firmfox/Proxify/refs/heads/main/v2ray_configs/mixed/subscription-2.txt
 https://raw.githubusercontent.com/mshojaei77/v2rayAuto/refs/heads/main/telegram/popular_channels_1
+https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/All_Configs_Sub.txt

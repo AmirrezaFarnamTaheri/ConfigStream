@@ -44,6 +44,20 @@
                 <a href="about.html" class="nav-link active" data-i18n="nav.about">About</a>
             </nav>
             <div class="header-actions">
+                <!-- Modern Language Dropdown -->
+                <div class="lang-dropdown">
+                    <button class="lang-btn" aria-label="Select Language">
+                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
+                    </button>
+                    <div class="lang-menu" id="lang-menu">
+                        <button onclick="window.i18n.setLanguage('en')">English</button>
+                        <button onclick="window.i18n.setLanguage('zh')">中文</button>
+                        <button onclick="window.i18n.setLanguage('ru')">Русский</button>
+                        <button onclick="window.i18n.setLanguage('fa')">فارسی</button>
+                        <button onclick="window.i18n.setLanguage('ar')">العربية</button>
+                    </div>
+                </div>
+
                 <button id="theme-switcher" class="theme-btn" aria-label="Toggle theme">
                     <div class="theme-btn-inner">
                         <i data-feather="moon" class="moon-icon"></i>

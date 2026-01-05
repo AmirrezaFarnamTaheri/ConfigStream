@@ -78,7 +78,7 @@
                 <!-- Modern Language Dropdown -->
                 <div class="lang-dropdown">
                     <button class="lang-btn" aria-label="Select Language">
-                        <i data-feather="globe"></i> <span id="current-lang-label">EN</span>
+                        <i data-feather="globe"></i> <span id="current-lang-label"></span>
                     </button>
                     <div class="lang-menu" id="lang-menu">
                         <button onclick="window.i18n.setLanguage('en')">English</button>
@@ -156,6 +156,27 @@
                         <div class="stat-value-wrapper">
                             <div id="threatsBlocked" class="stat-value" style="color: var(--danger-color);">0</div>
                             <div class="stat-label" data-i18n="stats.threats">Threats Neutralized</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: var(--brand-secondary);"><i data-feather="clock"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="updateFrequency" class="stat-value">...</div>
+                            <div class="stat-label" data-i18n="stats.update">Update Frequency</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: var(--brand-primary);"><i data-feather="link"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="smartChains" class="stat-value">0</div>
+                            <div class="stat-label" data-i18n="stats.chains">Smart Chains</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: var(--brand-tertiary);"><i data-feather="trending-up"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="vwarpWinRate" class="stat-value">0%</div>
+                            <div class="stat-label" data-i18n="stats.vwarp">Vwarp Efficiency</div>
                         </div>
                     </div>
                 </div>
