@@ -8,7 +8,6 @@ from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
-from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
