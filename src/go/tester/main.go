@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/sagernet/sing-box/box"
-	"github.com/sagernet/sing-box/common/metadata"
+	"github.com/sagernet/sing-box"
+	"github.com/sagernet/sing/common/metadata"
 	"github.com/sagernet/sing-box/option"
 )
 
@@ -79,7 +79,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 				Tag:  "direct",
 			},
 		},
-		DNS: &option.DNSOption{
+		DNS: &option.DNSOptions{
 			Servers: []option.DNSServerOptions{
 				{
 					Tag:     "google",
@@ -88,7 +88,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 				},
 			},
 		},
-		Log: &option.LogOption{
+		Log: &option.LogOptions{
 			Level: "error",
 		},
 	}
@@ -112,18 +112,15 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 
 	// Attempt to connect to the target using the proxy
 	// We parse the target address (e.g., "google.com:80")
-	dest, err := metadata.ParseSocksaddr(req.Target)
-	if err != nil {
-		// Fallback if target parsing fails: assume success of Start() implies config validity
-		// but log error. Ideally, we should fail.
-		return ProxyTestResult{ID: req.ID, Success: false, Error: "Target parse error: " + err.Error()}
-	}
+	dest := metadata.ParseSocksaddr(req.Target)
 
 	// Use the instance's router/dialer to connect
-	// Note: API might vary by version. Using standard DialContext if available on Router.
-	// If Router() is not exposed or DialContext not available, this might fail compilation.
-	// However, this is the standard way to test connectivity in Sing-box.
-	conn, err := instance.Router().Dial(ctx, dest)
+	outbound, ok := instance.Router().Outbound("proxy")
+	if !ok {
+		return ProxyTestResult{ID: req.ID, Success: false, Error: "Proxy outbound not found"}
+	}
+
+	conn, err := outbound.DialContext(ctx, "tcp", dest)
 	if err != nil {
 		return ProxyTestResult{ID: req.ID, Success: false, Error: "Connect error: " + err.Error()}
 	}
