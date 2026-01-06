@@ -29,7 +29,7 @@ MAX_SOURCE_URL_LENGTH = 2048
 # Kept truly dangerous admin/cleartext ports (FTP, SSH, Telnet, SMB).
 DANGEROUS_PORTS = [21, 22, 23, 25, 110, 143, 445, 3389]
 
-# [SECURITY] Private IP ranges that should NOT be accessed via public proxies
+# Private IP ranges that should NOT be accessed via public proxies
 SUSPICIOUS_DOMAINS = [
     "localhost",
     "127.",  # Loopback

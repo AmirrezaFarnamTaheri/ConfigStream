@@ -127,7 +127,7 @@ def save_metadata(
     """
     meta_path = output_dir / "metadata.json"
 
-    # [OPTIMIZATION] Single-pass loop to collect all stats at once (O(N) instead of O(4N))
+    # Single-pass loop to collect all stats at once (O(N) instead of O(4N))
     total = len(proxies)
     working = 0
     lat_dist = {"fast": 0, "medium": 0, "slow": 0, "very_slow": 0}
@@ -183,8 +183,8 @@ def save_metadata(
     vwarp_win_rate = 0.0
     scanner_ips_found = 0
     fetched_sources = 0
-    total_configured_sources = 0  # [FIX] Total sources from config for frontend display
-    # [FIX] Additional stats that were missing from export
+    total_configured_sources = 0  # Total sources from config for frontend display
+    # Additional stats that were missing from export
     revived_warp = 0
     revived_vwarp = 0
     vwarp_attempts = 0
@@ -211,7 +211,7 @@ def save_metadata(
         total_configured_sources = (
             stats.get("total_configured_sources", 0) or fetched_sources
         )
-        # [FIX] Extract additional stats from dict
+        # Extract additional stats from dict
         revived_warp = stats.get("revived_warp", 0)
         revived_vwarp = stats.get("revived_vwarp", 0)
         vwarp_attempts = stats.get("vwarp_attempts", 0)
@@ -244,10 +244,10 @@ def save_metadata(
             scanner_ips_found = stats.scanner_ips_found
         if hasattr(stats, "fetched_sources"):
             fetched_sources = stats.fetched_sources
-        # [FIX] Extract total_configured_sources for frontend sources_count
+        # Extract total_configured_sources for frontend sources_count
         if hasattr(stats, "total_configured_sources"):
             total_configured_sources = stats.total_configured_sources or fetched_sources
-        # [FIX] Extract additional stats from PipelineStats object
+        # Extract additional stats from PipelineStats object
         if hasattr(stats, "revived_warp"):
             revived_warp = stats.revived_warp
         if hasattr(stats, "revived_vwarp"):
@@ -284,7 +284,7 @@ def save_metadata(
     # Calculate update interval (default 6 hours for production)
     update_interval_hours = AppSettings().UPDATE_INTERVAL_HOURS
 
-    # [FIX] Compute total_revived properly from both WARP and Vwarp
+    # Compute total_revived properly from both WARP and Vwarp
     total_revived_count = revived_warp + revived_vwarp
     if total_revived_count == 0:
         total_revived_count = washed_count  # Fallback to heuristic
@@ -320,13 +320,13 @@ def save_metadata(
         "scanner_ips_found": scanner_ips_found,
         "washer_success_count": washed_count,
         "smart_chain_count": smart_chain_count,
-        # [FIX] Export all revive/vwarp stats for complete tracking
+        # Export all revive/vwarp stats for complete tracking
         "revived_warp": revived_warp,
         "revived_vwarp": revived_vwarp,
         "vwarp_attempts": vwarp_attempts,
         "vwarp_success": vwarp_success,
         "washing_enabled": washing_enabled,
-        # [FIX] Export pipeline performance metrics
+        # Export pipeline performance metrics
         "duration_seconds": duration_seconds,
         "geo_resolved": geo_resolved,
         "cache_misses": cache_misses,
@@ -336,7 +336,7 @@ def save_metadata(
         "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
         "total_valid_proxies": working,
         # Frontend display values - use total_configured_sources for proper display
-        # [FIX] sources_count should show total configured sources, not just processed ones
+        # sources_count should show total configured sources, not just processed ones
         "sources_count": total_configured_sources or fetched_sources,
         "total_sources": total_configured_sources or fetched_sources,
         "fetched_sources": fetched_sources,  # Actual sources processed

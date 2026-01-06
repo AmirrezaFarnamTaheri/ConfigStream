@@ -2,11 +2,11 @@
 // Uses configuration from cache-config.js
 
 // Import shared configuration
-importScripts('assets/js/cache-config.js?v=' + new Date().getTime()); // [FIX] Bust HTTP cache
+importScripts('assets/js/cache-config.js?v=' + new Date().getTime()); // Bust HTTP cache
 
 // Access config from global scope (set by cache-config.js)
 const config = self.ConfigStreamCache || {};
-const VERSION = config.VERSION || 'ERR_NO_VERSION'; // [FIX] Fail loudly if config missing
+const VERSION = config.VERSION || 'ERR_NO_VERSION'; // Fail loudly if config missing
 const CACHE_NAME = config.CACHE_NAME || `configstream-v${VERSION}`;
 const ASSETS_TO_CACHE = config.PRECACHE_URLS || [
   'index.html',

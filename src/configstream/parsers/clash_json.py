@@ -45,7 +45,7 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
             data["method"] = data.get("cipher", "")
         elif protocol == "wireguard" or protocol == "wg":
             protocol = "wireguard"
-            # [FIX] Enforce private_key for WireGuard (accept common aliases)
+            # Enforce private_key for WireGuard (accept common aliases)
             if "private_key" not in data:
                 if "private-key" in data:
                     data["private_key"] = data.pop("private-key")

@@ -97,7 +97,7 @@ class SingBoxTester:
                     is_working = custom_results.get(p.id, False)
                     p.is_working = is_working
                     if is_working:
-                        # [FIX] Use estimated latency instead of fixed 500ms
+                        # Use estimated latency instead of fixed 500ms
                         # Mark it as estimated so UI can show it
                         p.latency = 200.0  # Optimistic estimate for revived chains
                         p.details["latency_is_estimate"] = True
@@ -110,7 +110,7 @@ class SingBoxTester:
                 f"Fallback: Testing batch of {len(proxies)} proxies using Python tester"
             )
             # Cap concurrency to avoid overwhelming the loop/system
-            # [FIX] Reduced concurrency from 100 to 20 as per audit to prevent CPU overload
+            # Reduced concurrency from 100 to 20 as per audit to prevent CPU overload
             max_concurrent = 20
             sem = asyncio.Semaphore(max_concurrent)
 

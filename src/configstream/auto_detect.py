@@ -179,7 +179,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                     # e.g. "http://..." parsed as hysteria2 -> suspicious
 
                     # Known valid schemes for fallback parsers
-                    # [Audit Fix] Heuristic Rules:
+                    # Heuristic Rules:
                     # These parsers rely on simple URL parsing. To prevent false positives where
                     # normal HTTP URLs (e.g. "http://example.com") are misclassified as proxies,
                     # we explicitly define which schemes are valid for each protocol.

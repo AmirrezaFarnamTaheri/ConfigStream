@@ -56,7 +56,7 @@ async def fetch_single_source(
             # Stream Content (Binary)
             content_parts = []
             current_size = 0
-            # [FIX] Use aiter_bytes for binary safety
+            # Use aiter_bytes for binary safety
             async for chunk in response.aiter_bytes():
                 chunk_len = len(chunk)
                 current_size += chunk_len
@@ -69,7 +69,7 @@ async def fetch_single_source(
             # Join binary parts
             content_bytes = b"".join(content_parts)
 
-            # [FIX] Try to decode to string for compatibility, fallback to safe string if binary
+            # Try to decode to string for compatibility, fallback to safe string if binary
             try:
                 content_str = content_bytes.decode("utf-8")
             except UnicodeDecodeError:

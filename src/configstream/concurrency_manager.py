@@ -37,7 +37,7 @@ class ConcurrencyManager:
 
         self.tuning_task: Optional[asyncio.Task] = None
         self._running = False
-        # [FIX] Protect start/stop logic with a lock to prevent race conditions
+        # Protect start/stop logic with a lock to prevent race conditions
         self._lifecycle_lock = asyncio.Lock()
 
     def get_semaphore(self) -> ResizableSemaphore:
@@ -96,7 +96,7 @@ class ConcurrencyManager:
         self.current_limit = new_limit
         await self.semaphore.set_limit(new_limit)
 
-    # [FIX] Made async to use await with lifecycle_lock
+    # Made async to use await with lifecycle_lock
     async def start_tuner(self):
         async with self._lifecycle_lock:
             if not self._running:

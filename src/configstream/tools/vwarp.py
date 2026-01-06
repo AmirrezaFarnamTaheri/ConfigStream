@@ -22,7 +22,7 @@ class VwarpTool:
         binary = shutil.which("vwarp")
         if not binary:
             # Fallback for local testing if not in PATH
-            # [Fix] Check specific fallback paths or env var
+            # Check specific fallback paths or env var
             possible_paths = ["/usr/local/bin/vwarp", "/opt/vwarp/vwarp", "./vwarp"]
             for p in possible_paths:
                 if Path(p).exists():
@@ -83,7 +83,7 @@ class VwarpTool:
                         port = 2408  # Default
 
                         if ":" in clean_ep:
-                            # [Audit Fix] If vwarp output includes port, parse it
+                            # If vwarp output includes port, parse it
                             # Format often is IP:PORT or [IPv6]:PORT
                             # The logic below already handles port parsing if it's in the string
                             # So we double check if existing logic covers it.
@@ -159,7 +159,7 @@ class VwarpTool:
                 await writer.wait_closed()
                 return True
             except (OSError, asyncio.TimeoutError, ConnectionRefusedError):
-                # [Fix] Throttling: wait a bit longer or use exponential backoff to reduce CPU/Net load
+                # Throttling: wait a bit longer or use exponential backoff to reduce CPU/Net load
                 await asyncio.sleep(1.0)
         return False
 
@@ -185,7 +185,7 @@ class VwarpTool:
                 stderr=asyncio.subprocess.DEVNULL,
             )
 
-            # [FIX] Robust port checking
+            # Robust port checking
             is_ready = await self._wait_for_port(bind_addr, port)
             if not is_ready:
                 logger.error(

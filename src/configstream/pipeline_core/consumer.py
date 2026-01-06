@@ -55,14 +55,14 @@ async def processing_consumer(
     leniency: bool,
     consumer_id: int = 0,
     seen_lock: Optional[asyncio.Lock] = None,
-    washer: Optional[ProxyWasher] = None,  # [FIX] Receive shared washer
+    washer: Optional[ProxyWasher] = None,  # Receive shared washer
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
     if seen_lock is None:
         seen_lock = asyncio.Lock()
 
-    # [FIX] Use passed shared washer or fallback (legacy support)
+    # Use passed shared washer or fallback (legacy support)
     if washer is None:
         washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
         await washer.fetch_clean_ips()
@@ -228,7 +228,7 @@ async def processing_consumer(
                 break  # exit the consumer loop early
             else:
                 if tester.go_tester.available:
-                    # [OPTIMIZATION] Clamp chunk size to avoid overwhelming Go tester
+                    # Clamp chunk size to avoid overwhelming Go tester
                     settings = AppSettings()
                     chunk_size = min(500, max(1, settings.GO_TESTER_BATCH_SIZE))
 
@@ -297,7 +297,7 @@ async def processing_consumer(
                                         )
                                     )
 
-                        # [OPTIMIZATION] Batch history update in executor to prevent blocking loop
+                        # Batch history update in executor to prevent blocking loop
                         if chunk:
                             await loop.run_in_executor(
                                 None, history.update_history, chunk
@@ -337,7 +337,7 @@ async def processing_consumer(
 
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
 
-                        # [OPTIMIZATION] Batch history update in executor
+                        # Batch history update in executor
                         if results:
                             await loop.run_in_executor(
                                 None, history.update_history, list(results)

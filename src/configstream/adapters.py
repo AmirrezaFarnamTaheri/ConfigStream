@@ -79,7 +79,7 @@ class SurgeAdapter(Adapter):
 
     def _format_proxy(self, p: Proxy) -> str:
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
-        # [FIX] Sanitize name: Replace commas with underscores, allow dots
+        # Sanitize name: Replace commas with underscores, allow dots
         name = name.replace(",", "_").replace("\n", " ").strip()
         name = "".join(c for c in name if c.isalnum() or c in " -_[]().")
 
@@ -319,7 +319,7 @@ class ShadowrocketAdapter(Adapter):
             userpass = f"{method}:{password}"
             b64_auth = base64.urlsafe_b64encode(userpass.encode()).decode().rstrip("=")
 
-            # [FIX] Add plugin support to URIs
+            # Add plugin support to URIs
             plugin_part = ""
             if "plugin" in p.details:
                 plugin = p.details["plugin"]

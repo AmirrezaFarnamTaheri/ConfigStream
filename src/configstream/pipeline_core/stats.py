@@ -11,7 +11,7 @@ class PipelineStats:
     end_time: Optional[datetime] = None
     drop_reasons: Dict[str, int] = field(default_factory=dict)
 
-    # [FIX] Internal lock for thread-safe access to dictionary fields
+    # Internal lock for thread-safe access to dictionary fields
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
 
     # Canonical Stats

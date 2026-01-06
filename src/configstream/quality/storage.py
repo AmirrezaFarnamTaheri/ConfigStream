@@ -30,7 +30,7 @@ class QualityStorage:
         # Each thread uses its own connection to avoid cross-thread contention.
         conn = getattr(self._thread_local, "conn", None)
         if conn is None:
-            # [FIX] Allow multi-threaded access (e.g. from executors)
+            # Allow multi-threaded access (e.g. from executors)
             conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=10)
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=NORMAL")
@@ -108,21 +108,21 @@ class QualityStorage:
 
             conn.commit()
         except sqlite3.OperationalError as e:
-            # [FIX P2-5] Database schema errors (locked, corrupted, etc.)
+            # Database schema errors (locked, corrupted, etc.)
             logger.error(f"SQLite operational error initializing DB: {e}")
             try:
                 conn.rollback()
             except Exception:
                 pass
         except sqlite3.DatabaseError as e:
-            # [FIX P2-5] Database integrity errors
+            # Database integrity errors
             logger.error(f"SQLite database error during initialization: {e}")
             try:
                 conn.rollback()
             except Exception:
                 pass
         except Exception as e:
-            # [FIX P2-5] Unexpected errors
+            # Unexpected errors
             logger.exception(f"Unexpected error initializing source quality DB: {e}")
             try:
                 conn.rollback()
@@ -147,15 +147,15 @@ class QualityStorage:
                 ).fetchone()
                 return row  # type: ignore
             except sqlite3.OperationalError as e:
-                # [FIX P2-5] Database locked or table doesn't exist
+                # Database locked or table doesn't exist
                 logger.error(f"SQLite operational error getting state for {url}: {e}")
                 return None
             except sqlite3.DatabaseError as e:
-                # [FIX P2-5] Database integrity errors
+                # Database integrity errors
                 logger.error(f"SQLite database error for {url}: {e}")
                 return None
             except Exception as e:
-                # [FIX P2-5] Unexpected errors
+                # Unexpected errors
                 logger.exception(
                     f"Unexpected error getting source state for {url}: {e}"
                 )
@@ -171,17 +171,17 @@ class QualityStorage:
                 ).fetchone()
                 return row[0] if row else 50.0
             except sqlite3.OperationalError as e:
-                # [FIX P2-5] Database locked or table doesn't exist - return default
+                # Database locked or table doesn't exist - return default
                 logger.debug(
                     f"SQLite operational error getting trust score for {url}: {e}"
                 )
                 return 50.0
             except sqlite3.DatabaseError as e:
-                # [FIX P2-5] Database integrity errors - return default
+                # Database integrity errors - return default
                 logger.warning(f"SQLite database error for {url}: {e}")
                 return 50.0
             except Exception as e:
-                # [FIX P2-5] Unexpected errors - return default
+                # Unexpected errors - return default
                 logger.debug(f"Unexpected error getting trust score for {url}: {e}")
                 return 50.0
 

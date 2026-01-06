@@ -60,7 +60,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
     out: Optional[Dict[str, Any]] = None
 
-    # [FIX] Protocol Normalization
+    # Protocol Normalization
     raw_protocol = getattr(proxy, "protocol", None)
     if not raw_protocol or not isinstance(raw_protocol, str):
         logger.debug(
@@ -281,7 +281,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             # Heuristic: if key is 44 chars ending in =, it's likely base64 for 32 bytes
             if len(key) == 44 and key.endswith("="):
                 try:
-                    # [FIX] Enforce 32-byte key length check
+                    # Enforce 32-byte key length check
                     raw = base64.b64decode(key, validate=True)
                     if len(raw) != 32:
                         logger.warning(
@@ -366,7 +366,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = apply_stealth_profile(out, protocol)
 
     if out:
-        # [FIX] Use safe address but also tag to satisfy strict logging tests
+        # Use safe address but also tag to satisfy strict logging tests
         safe_source = SecurityValidator.sanitize_log_message(
             str(proxy.details.get("_source", "unknown"))
         )
@@ -403,7 +403,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "openvpn",
             "v2ray",
         ]:
-            # [FIX] Reduced log level to DEBUG to prevent flooding logs with unsupported protocol messages
+            # Reduced log level to DEBUG to prevent flooding logs with unsupported protocol messages
             logger.debug(
                 "Protocol %s not supported in Sing-box conversion (skipped). Proxy: %s",
                 protocol,

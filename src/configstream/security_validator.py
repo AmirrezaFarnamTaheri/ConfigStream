@@ -2,7 +2,7 @@
 import re
 import uuid
 
-# [FIX] Import urlparse directly to allow mocking in tests
+# Import urlparse directly to allow mocking in tests
 from urllib.parse import urlparse
 from typing import List, Tuple, TYPE_CHECKING
 import logging
@@ -20,7 +20,7 @@ STRICT_POLICY = {
     "block_suspicious_ports": True,
 }
 
-# [FIX] Revert TEST_POLICY to reject local IPs to satisfy legacy tests
+# Revert TEST_POLICY to reject local IPs to satisfy legacy tests
 TEST_POLICY = {
     "allow_local_ips": False,
     "require_tls_validation": False,
@@ -68,7 +68,7 @@ class SecurityValidator:
     def is_valid_uuid(val: str) -> bool:
         if not val:
             return False
-        # [FIX] Relax UUID check but reject obvious bad UUIDs (with hyphens but invalid)
+        # Relax UUID check but reject obvious bad UUIDs (with hyphens but invalid)
         try:
             uuid.UUID(val)
             return True
@@ -92,17 +92,17 @@ class SecurityValidator:
         """Sanitizes sensitive info like UUIDs or IPs from logs."""
         if not mask_patterns:
             return msg
-        # [FIX] Use [UUID] placeholder
+        # placeholder
         msg = re.sub(
             r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
             "[UUID]",
             msg,
             flags=re.IGNORECASE,
         )
-        # [FIX] Mask passwords in URLs (user:pass@host)
+        # Mask passwords in URLs (user:pass@host)
         msg = re.sub(r":([^:@]+)@", ":[MASKED]@", msg)
 
-        # [FIX] Mask likely Base64 strings (long sequences of alphanumeric+ending with =)
+        # Mask likely Base64 strings (long sequences of alphanumeric+ending with =)
         msg = re.sub(r"\b[A-Za-z0-9+/]{20,}={0,2}\b", "[BASE64]", msg)
 
         return msg
@@ -136,18 +136,18 @@ class SecurityValidator:
         if not url:
             return False, "empty_url"
         try:
-            # [FIX] Use imported urlparse
+            # Use imported urlparse
             result = urlparse(url)
-            # [FIX] Restrict schemes to http/https
+            # Restrict schemes to http/https
             if result.scheme in ["http", "https"] and result.netloc:
-                # [FIX] Use internal check (to allow mocking by tests)
+                # Use internal check (to allow mocking by tests)
                 # But careful not to crash if address is netloc
                 if not SecurityValidator._is_address_safe(result.netloc.split(":")[0]):
                     return False, "unsafe_address"
                 return True, "ok"
             return False, "invalid_scheme_or_netloc"
         except Exception:
-            # [FIX] Catch generic Exception as tests might raise arbitrary exceptions to test robustness
+            # Catch generic Exception as tests might raise arbitrary exceptions to test robustness
             return False, "parse_error"
 
     # [BACKWARD COMPATIBILITY]
@@ -180,7 +180,7 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
     if not policy["allow_local_ips"] and SecurityValidator.is_local_ip(proxy.address):
         return False, "local_ip_blocked"
 
-    # [FIX] Enforce TLS if required by policy
+    # Enforce TLS if required by policy
     if policy.get("require_tls_validation"):
         is_secure = False
         proto = proxy.protocol
@@ -212,7 +212,7 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
                 return False, "invalid_uuid_format"
 
     if proxy.protocol == "trojan":
-        # [FIX] Check both uuid (often used for password in simple parsers) and details['password']
+        # Check both uuid (often used for password in simple parsers) and details['password']
         password = proxy.details.get("password") or getattr(proxy, "uuid", None)
         if not password or len(str(password)) < policy["min_password_length"]:
             return False, "weak_trojan_password"
@@ -240,16 +240,16 @@ def validate_batch_configs(
     Filters a batch of proxies, returning only the safe ones.
     """
     safe_proxies = []
-    # [FIX] Use SecurityValidator.validate_proxy_config to allow mocking on the class
+    # Use SecurityValidator.validate_proxy_config to allow mocking on the class
     for p in proxies:
         is_safe, reason = SecurityValidator.validate_proxy_config(p, policy)
         if is_safe:
-            # [FIX] Ensure we reset secure flag if it was somehow True?
+            # Ensure we reset secure flag if it was somehow True?
             # Actually, if safe, we append.
             p.is_secure = True
             safe_proxies.append(p)
         else:
-            # [FIX] Explicitly mark rejected proxies as insecure so tests checking them see the change
+            # Explicitly mark rejected proxies as insecure so tests checking them see the change
             p.is_secure = False
             if not p.security_issues:
                 p.security_issues = {}

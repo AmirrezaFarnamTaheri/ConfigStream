@@ -28,13 +28,13 @@ class AnomalyDetector:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
-        self._conn = None  # [FIX] Persistent connection
+        self._conn = None  # Persistent connection
         with self._lock:
             self._init_db()
 
     def _init_db(self):
         try:
-            # [FIX] Keep connection open, disable check_same_thread as we use a lock
+            # Keep connection open, disable check_same_thread as we use a lock
             self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
             if self._conn:
                 conn = self._conn
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS history (
         try:
             # Fetch rows under lock (short critical section), then release for computation
             with self._lock:
-                # [FIX] Robustness: Check connection state
+                # Robustness: Check connection state
                 if self._conn is None:
                     try:
                         self._init_db()
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS history (
         counts = Counter(subnets)
         most_common = counts.most_common(1)[0]
 
-        # [FIX] Add zero-length check to prevent division by zero
+        # Add zero-length check to prevent division by zero
         # If one subnet accounts for > 90% of proxies
         if len(proxies) > 0 and most_common[1] / len(proxies) > 0.9:
             logger.warning(

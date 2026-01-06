@@ -30,7 +30,7 @@ def parse_vless(url: str) -> Proxy | None:
             main_part, params_str = main_part.split("?", 1)
 
         # Split uuid@host:port
-        # [FIX] Handle '@' in uuid or params incorrectly handled?
+        # Handle '@' in uuid or params incorrectly handled?
         # Standard VLESS format: uuid@host:port
         # Some encoded UUIDs might contain stuff? Unlikely.
         if "@" not in main_part:
@@ -84,7 +84,7 @@ def parse_vless(url: str) -> Proxy | None:
             return None
 
         # Construct Proxy
-        # [FIX] Ensure Pydantic model "config" field is populated
+        # Ensure Pydantic model "config" field is populated
         proxy = Proxy(
             config=url,  # Add config field
             protocol="vless",
@@ -112,7 +112,7 @@ def parse_vless(url: str) -> Proxy | None:
         elif params.get("security") == "tls":
             proxy.details["sni"] = host  # Default SNI to host for TLS
 
-        # [FIX] Handle aliases for Reality Public Key
+        # Handle aliases for Reality Public Key
         pbk = params.get("pbk")
         if not pbk:
             pbk = params.get("publicKey")
@@ -123,7 +123,7 @@ def parse_vless(url: str) -> Proxy | None:
             # Check if it's a list (unlikely from simple loop, but defensive)
             proxy.details["pbk"] = pbk
 
-        # [FIX] Handle aliases for Short ID
+        # Handle aliases for Short ID
         sid = params.get("sid")
         if not sid:
             sid = params.get("shortId")

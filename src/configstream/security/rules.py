@@ -69,7 +69,7 @@ def validate_address(
     if address_lower in suspicious_domain_allowlist or address_lower.endswith(".test"):
         return issues
 
-    # [FIX] Normalize IDN and unicode
+    # Normalize IDN and unicode
     try:
         import idna
         import unicodedata
