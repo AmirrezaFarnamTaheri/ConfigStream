@@ -2072,10 +2072,10 @@ body.dark .filter-summary {
     .proxies-table td:nth-child(1) { width: 12%; } /* Protocol */
 
     .proxies-table th:nth-child(2),
-    .proxies-table td:nth-child(2) { width: 22%; } /* Location */
+    .proxies-table td:nth-child(2) { width: 25%; } /* Location */
 
     .proxies-table th:nth-child(3),
-    .proxies-table td:nth-child(3) { width: 10%; } /* Latency */
+    .proxies-table td:nth-child(3) { width: 15%; } /* Latency */
 
     .proxies-table th:nth-child(4),
     .proxies-table td:nth-child(4) { width: 14%; } /* Status */
@@ -2093,7 +2093,7 @@ body.dark .filter-summary {
 .proxies-table th {
     text-align: left;
     white-space: nowrap;
-    padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
+    padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2);
     color: var(--text-secondary);
     font-weight: 600;
     text-transform: uppercase;
@@ -2135,7 +2135,7 @@ body.dark .proxies-table th:hover {
 }
 
 .proxies-table td {
-    padding: calc(var(--space-unit) * 2) calc(var(--space-unit) * 3);
+    padding: calc(var(--space-unit) * 1.5) calc(var(--space-unit) * 2);
     vertical-align: middle;
     background: var(--bg-secondary);
     border-top: 1px solid var(--border);

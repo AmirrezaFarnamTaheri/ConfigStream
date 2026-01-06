@@ -10,10 +10,12 @@ def test_wireguard_missing_keys():
     assert parse_wireguard(config) is None
 
     # Valid config (uuid as private key)
-    config_valid = "wireguard://privatekey@example.com:51820"
+    # Use a valid Base64 32-byte key (44 chars)
+    valid_key = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+    config_valid = f"wireguard://{valid_key}@example.com:51820"
     proxy = parse_wireguard(config_valid)
     assert proxy is not None
-    assert proxy.details["private_key"] == "privatekey"
+    assert proxy.details["private_key"] == valid_key
 
 
 def test_hysteria2_obfs():
