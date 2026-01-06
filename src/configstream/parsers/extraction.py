@@ -35,7 +35,7 @@ def is_plausible_proxy_config(config: str) -> bool:
     if len(protocol) > 20 or len(rest) < 4:
         return False
 
-    # [FIX] Relax noise check (allowed up to 85% special chars for base64 heavy VLESS)
+    # Relax noise check (allowed up to 85% special chars for base64 heavy VLESS)
     special_char_count = sum(
         1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]"
     )
@@ -64,7 +64,7 @@ def extract_config_lines(
     """
     drop_stats: Dict[str, int] = {}
 
-    # [FIX] CRITICAL: Pre-check size to prevent OOM on massive files
+    # CRITICAL: Pre-check size to prevent OOM on massive files
     # Limit to MAX_B64_INPUT_SIZE (Using constant from settings/constants)
     if hasattr(payload, "__len__") and len(payload) > MAX_B64_INPUT_SIZE:
         logger.warning(
@@ -95,7 +95,7 @@ def extract_config_lines(
     if not payload_str.strip():
         return [], {"empty_payload": 1}
 
-    # [FIX] Check for Clash/YAML or V2Ray JSON
+    # Check for Clash/YAML or V2Ray JSON
     if payload_str.strip().startswith("{"):
         return [payload_str], {}
 
@@ -135,7 +135,7 @@ def extract_config_lines(
             return [], {"size_limit_exceeded": 1}
 
     # Attempt Base64 decode for subscriptions
-    # [FIX] Suppress base64 noise by not logging individual failures inside safe_b64_decode
+    # Suppress base64 noise by not logging individual failures inside safe_b64_decode
     # (safe_b64_decode already returns None on failure without noisy logs if handled correctly)
     decoded = safe_b64_decode(payload_str)
     if decoded is None:
@@ -159,7 +159,7 @@ def extract_config_lines(
 
     for line in lines:
         candidate = line.strip()
-        # [FIX] Better comment handling: skip # only at start, allow # in URI fragment
+        # Better comment handling: skip # only at start, allow # in URI fragment
         if not candidate:
             continue
         if candidate.startswith("#"):

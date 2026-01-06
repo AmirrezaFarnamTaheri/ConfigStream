@@ -35,7 +35,7 @@ def generate_outputs(
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
-    # [FIX] Add vwarp and revived stats parameters
+    # Add vwarp and revived stats parameters
     revived_warp: int = 0,
     revived_vwarp: int = 0,
     vwarp_attempts: int = 0,
@@ -131,7 +131,7 @@ def generate_outputs(
             f.write("\n".join(configs))
 
     # 5. Client Configs - Generate both Sniper (singbox.json) and Tank (singbox-vpn.json)
-    # [FIX] Use generate_split_outputs to create both singbox variants
+    # Use generate_split_outputs to create both singbox variants
     washed_ids = None
     if washed_outbounds:
         # Extract IDs from washed proxies to avoid duplicates
@@ -440,7 +440,7 @@ def _generate_statistics(
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
     total_washed: int = 0,
     total_revived: int = 0,
-    # [FIX] Add vwarp and revived stats parameters
+    # Add vwarp and revived stats parameters
     revived_warp: int = 0,
     revived_vwarp: int = 0,
     vwarp_attempts: int = 0,
@@ -584,7 +584,7 @@ def _generate_statistics(
         except Exception:
             pass
 
-    # [FIX] Use vwarp stats passed as parameters instead of recalculating
+    # Use vwarp stats passed as parameters instead of recalculating
     # These stats are already aggregated from all batches in merge/core.py
     vwarp_win_rate = (
         (vwarp_success / vwarp_attempts * 100) if vwarp_attempts > 0 else 0.0

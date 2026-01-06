@@ -324,7 +324,7 @@ class ProxyHistoryTracker:
         if not isinstance(output_path, Path):
             output_path = Path(output_path)
 
-        # [FIX] If file is too large, skip or truncate?
+        # If file is too large, skip or truncate?
         # Ideally we refactor HistoryExporter, but that's outside current scope.
         # We rely on _load_all_history MAX_ROWS limit to prevent crash.
         data = self._load_all_history()

@@ -122,7 +122,7 @@ def generate_split_outputs(
         )
 
     # Add Smart Chains to Sniper as well (if available)
-    # [Audit Fix] Ensure smart chains appear in singbox.json
+    # Ensure smart chains appear in singbox.json
     if smart_chains:
         for chain_list in smart_chains.values():
             for chain in chain_list:
@@ -146,7 +146,7 @@ def generate_split_outputs(
                         if item["tag"] not in selector_tags:
                             selector_tags.append(item["tag"])
 
-    # [FIX] Strip internal metadata fields (like _process) before serializing
+    # Strip internal metadata fields (like _process) before serializing
     # These fields cause Sing-box parse errors: "unknown field "_process""
     clean_outbounds = _strip_internal_metadata(outbounds)
 
@@ -262,7 +262,7 @@ def generate_split_outputs(
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
 
-    # [FIX] Strip internal metadata fields from tank outbounds too
+    # Strip internal metadata fields from tank outbounds too
     clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
 
     tank_config = {

@@ -53,7 +53,7 @@ async def prune_sources():
 
     dead_urls = set()
     all_urls = set()
-    # [FIX] Use recursive glob to capture all .txt files in root and subdirectories
+    # Use recursive glob to capture all .txt files in root and subdirectories
     # The 'or' operator previously short-circuited if root had files, ignoring subdirs.
     files_to_process = list(SOURCES_DIR.rglob("*.txt"))
 

@@ -17,7 +17,7 @@ except ImportError:
 nest_asyncio.apply()
 
 
-# [FIX] Manually patch Runner.run to support nested loops with nest_asyncio
+# Manually patch Runner.run to support nested loops with nest_asyncio
 # This is required because nest_asyncio does not patch asyncio.Runner.run (or backports)
 # and pytest-asyncio uses it directly.
 def patch_runner_for_nest_asyncio():

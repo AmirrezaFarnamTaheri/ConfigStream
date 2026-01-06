@@ -30,14 +30,14 @@ async def fetch_from_source(
     breaker_manager: Any = None,
     timeout_tracker: Any = None,
     retry_delay: float = 1.0,
-    **kwargs: Any,  # [FIX] Accept extra kwargs (controller, quality_tracker) to satisfy Mypy/callers
+    **kwargs: Any,  # Accept extra kwargs (controller, quality_tracker) to satisfy Mypy/callers
 ) -> Any:
     """
     Robust fetcher implementation handling retries, circuit breaking, rate limiting,
     and response size limits.
     """
 
-    # [FIX] Validate URL
+    # Validate URL
     if not source or not source.startswith(("http://", "https://")):
         return FetchResult(
             success=False, source=source, content="", error="Invalid URL", status_code=0

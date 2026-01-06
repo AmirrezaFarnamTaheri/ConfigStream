@@ -32,7 +32,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                 host = parts[0]
                 port_val = int(parts[1])
 
-                # [SECURITY FIX] Validate IP/hostname format
+                # Validate IP/hostname format
                 # Check for IPv4 address
                 is_valid_ipv4 = _IPV4_PATTERN.match(host) is not None
                 # Check for valid hostname (domain name)
@@ -58,7 +58,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                     )
                     return None
 
-                # [FIX] Heuristic: Default to SOCKS5 if port is 1080 or 10808, else HTTP
+                # Heuristic: Default to SOCKS5 if port is 1080 or 10808, else HTTP
                 # Ideally, this should come from source metadata, but this improves the hit rate for SOCKS lists.
                 protocol = "http"
                 if port_val in [1080, 10800, 10808, 9050]:

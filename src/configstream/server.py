@@ -42,7 +42,7 @@ try:
 except importlib.metadata.PackageNotFoundError:
     VERSION = "0.0.0"
 
-# [SECURITY] Rate Limiting
+# Rate Limiting
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
@@ -53,7 +53,7 @@ app = FastAPI(
     redoc_url=None,
 )
 
-# [SECURITY] Register Rate Limit Handler
+# Register Rate Limit Handler
 app.state.limiter = limiter
 
 
@@ -75,7 +75,7 @@ ALLOWED_ORIGINS = [
 ]
 
 # Use regex pattern for GitHub Pages and other wildcard domains
-# [FIX P1] CORSMiddleware requires allow_origin_regex for wildcard patterns
+# CORSMiddleware requires allow_origin_regex for wildcard patterns
 ALLOWED_ORIGIN_REGEX = AppSettings().ALLOWED_ORIGIN_REGEX
 
 app.add_middleware(
@@ -179,7 +179,7 @@ async def notify_update(payload: dict):
         # In production, pipeline should include api_key in payload
         if not provided_key:
             # Check if this is an internal call (development/CI environment)
-            # [SECURITY] Secure default: PRODUCTION
+            # Secure default: PRODUCTION
             is_internal = settings.ENVIRONMENT in (
                 "development",
                 "ci",
@@ -389,7 +389,7 @@ except Exception as e:
 
 
 # Mount frontend assets (css, js, images)
-# [FIX] Mypy error: FRONTEND_DIR is Optional[str | Path] from AppSettings?
+# from AppSettings?
 # No, in server.py: FRONTEND_DIR = AppSettings().FRONTEND_DIR or (BASE_DIR / "frontend")
 # AppSettings definition: FRONTEND_DIR: Optional[str] = None
 # So FRONTEND_DIR can be 'str' or 'Path'. 'str' has no 'exists'.

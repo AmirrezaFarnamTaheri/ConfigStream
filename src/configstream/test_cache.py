@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-# [FIX] Windows Compatibility for file locking
+# Windows Compatibility for file locking
 if sys.platform != "win32":
     import fcntl
 else:
@@ -72,7 +72,7 @@ class TestResultCache:
             # Use a lock file alongside the cache file
             lock_path = self.db_path.with_suffix(".lock")
 
-            # [FIX] Handle Windows locking
+            # Handle Windows locking
             if fcntl:
                 with open(lock_path, "w") as lock_file:
                     # Acquire an exclusive lock (blocking to ensure safety)
@@ -96,7 +96,7 @@ class TestResultCache:
                 with open(self.db_path, "r", encoding="utf-8") as f:
                     disk_cache = json.load(f)
                     # Merge in-memory cache into disk cache (in-memory takes precedence for own tests)
-                    # [FIX] Merge with timestamp awareness could be added here
+                    # Merge with timestamp awareness could be added here
                     disk_cache.update(self._cache)
                     self._cache = disk_cache
             except (json.JSONDecodeError, IOError):

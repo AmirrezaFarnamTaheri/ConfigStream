@@ -27,7 +27,7 @@ def make_entry(
 
     proxy_id = hashlib.sha256(private_key.encode()).hexdigest()[:16]
 
-    # [FIX] Generate unique local IP based on private key to prevent collisions
+    # Generate unique local IP based on private key to prevent collisions
     # Hash the private key to generate unique IP address in 172.16.0.0/16 range
     h = hashlib.sha256(private_key.encode()).digest()
     octet3 = h[0]

@@ -45,7 +45,7 @@ async def generate_pipeline_outputs(
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
     washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
 
-    # [CRITICAL] Run the Go Scanner (Phase 2 Component)
+    # Run the Go Scanner (Phase 2 Component)
     # This populates self.clean_ips in the washer with fresh, low-latency endpoints.
     # We await it because it's an async network operation.
     await washer.fetch_clean_ips()
@@ -56,7 +56,7 @@ async def generate_pipeline_outputs(
     # 2. Wash Batch (The "Blanket" Wash)
     # Generates standard WARP wraps for all working proxies (fallback/legacy behavior)
     # Returns the list of outbound configs and the set of IDs that were washed.
-    # [FIX] Pass stats object for metrics instrumentation
+    # Pass stats object for metrics instrumentation
     washed_outbounds, washed_ids, skip_reasons = washer.wash_batch(
         optimized_proxies, stats=stats
     )
@@ -91,7 +91,7 @@ async def generate_pipeline_outputs(
         except Exception as e:
             logger.warning(f"Failed to rotate proxies.json: {e}")
 
-    # [FIX P2] Run blocking file I/O in executor
+    # Run blocking file I/O in executor
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, save_json, optimized_proxies, proxies_path)
 
@@ -114,7 +114,7 @@ async def generate_pipeline_outputs(
         None, save_metadata, stats_dict, optimized_proxies, output_path
     )
 
-    # [FIX] Export history visualization data
+    # Export history visualization data
     # Ensure the history visualization JSON is generated for the frontend
     viz_path = output_path / "data" / "proxy_history_viz.json"
     viz_path.parent.mkdir(parents=True, exist_ok=True)

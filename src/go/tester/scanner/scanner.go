@@ -225,7 +225,7 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	}
 	close(ipChan)
 
-    // [Audit Fix] Rate Limit Throttling
+    // Rate Limit Throttling
     // Calculate delay per packet to avoid bursting network stack (e.g. 1000 pps limit)
     // If workers=50, each worker sends 1 packet then waits a bit.
     // Simple sleep strategy: 1ms sleep every N packets or just 1ms per packet if paranoid.
@@ -237,7 +237,7 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 		go func() {
 			defer wg.Done()
 			for ip := range ipChan {
-                // [Audit Fix] Support dynamic port if needed, defaulting to 2408 for now as per CIDR logic
+                // Support dynamic port if needed, defaulting to 2408 for now as per CIDR logic
                 targetPort := 2408
                 endpoint := fmt.Sprintf("%s:%d", ip, targetPort)
 
@@ -255,7 +255,7 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 					pending.Delete(endpoint)
 				}
 
-                // [Audit Fix] Throttle sends slightly to prevent packet loss at OS buffer
+                // Throttle sends slightly to prevent packet loss at OS buffer
                 time.Sleep(1 * time.Millisecond)
 			}
 		}()

@@ -108,7 +108,7 @@ function initGlobe(data) {
     container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-secondary); font-size: 1.1rem;"><div class="spinner" style="border: 3px solid var(--border); border-top-color: var(--primary-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-right: 10px;"></div>Loading globe...</div>';
 
     // Wait for Globe.gl and THREE.js libraries to be available (retry mechanism)
-    // [FIX] Removed polling loop. Rely on standard load event.
+    // Removed polling loop. Rely on standard load event.
     if (window.Globe && window.THREE) {
         _initGlobeInternal(data, container);
     } else {
@@ -455,7 +455,7 @@ function _initGlobeInternal(data, container) {
         ? '//unpkg.com/three-globe/example/img/earth-night.jpg'
         : '//unpkg.com/three-globe/example/img/earth-blue-marble.jpg';
 
-    // [FIX] Renamed from 'Globe' to 'globe' to avoid shadowing window.Globe
+    // Renamed from 'Globe' to 'globe' to avoid shadowing window.Globe
     // which causes "Cannot access 'Globe' before initialization" error
     let globe;
     try {
@@ -535,7 +535,7 @@ function _initGlobeInternal(data, container) {
     container.addEventListener('touchstart', handleInteraction);
     container.addEventListener('wheel', handleInteraction);
 
-    // [FIX] Do NOT set zoom-inactive initially which set pointer-events: none
+    // Do NOT set zoom-inactive initially which set pointer-events: none
     // container.classList.add('zoom-inactive');
 
     // Instead just ensure zoom is disabled in controls initially (done above)
@@ -642,7 +642,7 @@ function initCharts(data) {
     // 2. Latency Distribution
     const latencyCtx = document.getElementById('latencyChart').getContext('2d');
     const latData = data.latency_distribution || {};
-    // [FIX] Sync labels with backend thresholds (output_logic.py:150-158)
+    // Sync labels with backend thresholds (output_logic.py:150-158)
     // Backend: fast<200ms, medium:200-800ms, slow:800-2000ms, very_slow>2000ms
     new Chart(latencyCtx, {
         type: 'bar',

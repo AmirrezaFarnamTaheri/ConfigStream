@@ -42,19 +42,19 @@ def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
                 f.write(json_content)
             os.replace(temp_gz_path, gz_path)
         except gzip.BadGzipFile as e:
-            # [FIX P2-2] Gzip format errors
+            # Gzip format errors
             logger.error(f"Gzip compression error for {path}: {e}")
             if temp_gz_path.exists():
                 temp_gz_path.unlink()
             raise
         except (OSError, IOError) as e:
-            # [FIX P2-2] File system errors (permissions, disk space, etc.)
+            # File system errors (permissions, disk space, etc.)
             logger.error(f"I/O error during gzip compression of {path}: {e}")
             if temp_gz_path.exists():
                 temp_gz_path.unlink()
             raise
         except Exception as e:
-            # [FIX P2-2] Unexpected errors - cleanup and re-raise with context
+            # Unexpected errors - cleanup and re-raise with context
             logger.exception(f"Unexpected error compressing {path}: {e}")
             if temp_gz_path.exists():
                 temp_gz_path.unlink()

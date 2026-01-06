@@ -67,7 +67,7 @@ async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
     app_settings = AppSettings()
 
     # Configure Connection Pool Limits
-    # [FIX] Add explicit bounds to prevent resource exhaustion
+    # Add explicit bounds to prevent resource exhaustion
     max_conns = min(
         app_settings.PER_HOST_MAX_CONCURRENCY * 10,
         500,  # Hard cap at 500 connections

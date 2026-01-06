@@ -39,7 +39,7 @@ async function applyBYOW() {
     // 3. Fetch Base Configuration
     let config;
     try {
-        // [FIX] Use root-relative path with proper fallback handling
+        // Use root-relative path with proper fallback handling
         const basePath = (window.ROOT_PATH || './').replace(/\/$/, '') + '/';
 
         // Try fetching from base path first, then fallback to current directory

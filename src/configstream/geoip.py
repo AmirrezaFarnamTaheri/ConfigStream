@@ -54,10 +54,10 @@ class GeoIPResolver:
         self._lookup_lock: Optional[asyncio.Lock] = None
         self._last_mtime: float = 0.0
 
-        # [FIX] Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
+        # Track if C extension (MMAP) mode is used - readers are thread-safe in this mode
         self._uses_c_extension: bool = False
 
-        # [FIX] Fallback services for critical failures (optional integration point)
+        # Fallback services for critical failures (optional integration point)
         self.fallback_services = ["https://ipinfo.io/json", "https://ipapi.co/json"]
 
         # Load synchronously
@@ -71,7 +71,7 @@ class GeoIPResolver:
             city_path = data_dir / "GeoLite2-City.mmdb"
             asn_path = data_dir / "GeoLite2-ASN.mmdb"
 
-            # [OPTIMIZATION] Check for C extension availability
+            # Check for C extension availability
             # C extension (MMAP_EXT mode) is thread-safe for reads, allowing lock-free lookups
             db_mode = 0  # Default (Auto)
             try:
@@ -121,13 +121,13 @@ class GeoIPResolver:
                 )
 
         except (OSError, IOError) as e:
-            # [FIX P2-3] File system errors (permissions, corrupted files, etc.)
+            # File system errors (permissions, corrupted files, etc.)
             logger.error(f"I/O error loading GeoIP databases: {e}")
         except geoip2.errors.GeoIP2Error as e:
-            # [FIX P2-3] GeoIP2-specific errors (invalid database format, etc.)
+            # GeoIP2-specific errors (invalid database format, etc.)
             logger.error(f"GeoIP2 database error: {e}")
         except Exception as e:
-            # [FIX P2-3] Unexpected errors - log with full traceback
+            # Unexpected errors - log with full traceback
             logger.exception(f"Unexpected error loading GeoIP databases: {e}")
 
     def _get_lookup_lock(self) -> asyncio.Lock:
@@ -167,11 +167,11 @@ class GeoIPResolver:
             logger.debug(f"Invalid IP address format: {ip}")
             return result
 
-        # [FIX] Check for updates (only in pure python mode or before lock)
+        # Check for updates (only in pure python mode or before lock)
         if self._initialized and not self._uses_c_extension:
             self._check_reload_needed()
 
-        # [OPTIMIZATION] Skip lock when C extension is used (thread-safe reads)
+        # Skip lock when C extension is used (thread-safe reads)
         if self._uses_c_extension:
             return self._do_lookup(ip)
 
@@ -207,13 +207,13 @@ class GeoIPResolver:
             result.country_code = "XX"
             result.country_name = "Unknown"
         except (ValueError, TypeError) as e:
-            # [FIX P2-3] Invalid IP format or type errors
+            # Invalid IP format or type errors
             logger.debug(f"Invalid IP format during GeoIP lookup for {ip}: {e}")
         except geoip2.errors.GeoIP2Error as e:
-            # [FIX P2-3] GeoIP2-specific errors (database errors, etc.)
+            # GeoIP2-specific errors (database errors, etc.)
             logger.warning(f"GeoIP2 error during lookup for {ip}: {e}")
         except Exception as e:
-            # [FIX P2-3] Unexpected errors - log for debugging
+            # Unexpected errors - log for debugging
             logger.debug(f"Unexpected GeoIP lookup error for {ip}: {e}")
 
         return result
