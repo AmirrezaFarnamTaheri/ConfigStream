@@ -7,7 +7,7 @@ import uuid
 import time
 import os
 from pathlib import Path
-from typing import List, Dict, Any, Optional, cast, Set
+from typing import List, Dict, Any, Optional, cast
 
 from ..config import AppSettings
 from ..models import Proxy
@@ -72,7 +72,7 @@ class GoBatchTester:
         # Log deduplication state
         self._recent_errors: Dict[str, int] = {}
         self._last_log_flush = time.time()
-        self._log_lock = asyncio.Lock() # Protect log state
+        self._log_lock = asyncio.Lock()  # Protect log state
 
         if not self.available:
             logger.error(
@@ -84,8 +84,68 @@ class GoBatchTester:
         """Start the long-lived tester process."""
         if self.available:
             await self._ensure_process()
+            # Run startup self-test
+            if not await self.self_test():
+                logger.error(
+                    "Go Tester failed startup self-test. Switching to Python fallback."
+                )
+                await self.close()
+                self.available = False
+                return
+
             # Start heartbeat loop
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+
+    async def self_test(self) -> bool:
+        """
+        Quick health check: sends a dummy (valid) config to verify JSON IPC.
+        """
+        if not self._proc:
+            return False
+
+        # Minimal dummy VLESS config
+        dummy_config = {
+            "type": "vless",
+            "tag": "selftest",
+            "server": "1.1.1.1",
+            "server_port": 443,
+            "uuid": "50000000-0000-0000-0000-000000000000",
+            "flow": "",
+            "tls": {"enabled": True, "server_name": "example.com"},
+            "packet_encoding": "xudp",
+        }
+
+        try:
+            # We construct a synthetic Proxy object wrapper or just send raw if test_custom_configs supported it better.
+            # But test_batch expects Proxy objects. Let's create a dummy Proxy.
+            from ..models import Proxy
+
+            p = Proxy(
+                protocol="vless",
+                config="vless://...",
+                uuid="self-test-uuid",
+                address="1.1.1.1",
+                port=443,
+                id="selftest",
+            )
+            # The outbound converter needs real data to produce valid JSON
+            # Ideally we bypass conversion and test raw IPC if possible,
+            # but test_batch logic is tied to Proxy objects.
+            # Let's try test_custom_configs which takes raw dicts.
+
+            payload = {"id": "selftest-check", "outbounds": [dummy_config]}
+
+            # Use short timeout
+            result = await asyncio.wait_for(
+                self.test_custom_configs([payload]), timeout=5.0
+            )
+
+            # We expect a result (True or False), just not an exception or empty
+            return "selftest-check" in result
+
+        except Exception as e:
+            logger.warning(f"Go Tester self-test failed: {e}")
+            return False
 
     async def _restart_daemon(self) -> None:
         """Force restart of the daemon process."""
@@ -282,7 +342,9 @@ class GoBatchTester:
         async with self._log_lock:
             for error_msg, count in self._recent_errors.items():
                 if count > 0:
-                    logger.warning(f"Go Tester Error (repeated {count} times): {error_msg}")
+                    logger.warning(
+                        f"Go Tester Error (repeated {count} times): {error_msg}"
+                    )
             self._recent_errors.clear()
             self._last_log_flush = time.time()
 
@@ -303,16 +365,21 @@ class GoBatchTester:
                             logger.debug(f"Go Tester: {text}")
                     elif "error" in lower:
                         # [FIX] Deduplicate repeating errors (specifically peer key errors)
-                        if "failed to get peer by public key" in text or "wireguard" in text:
+                        if (
+                            "failed to get peer by public key" in text
+                            or "wireguard" in text
+                        ):
                             async with self._log_lock:
                                 # Simplify error message for aggregation key
                                 # E.g. "failed to get peer by public key: hex string does not fit the slice"
                                 if "failed to get peer by public key" in text:
                                     key = "WireGuard: failed to get peer by public key"
                                 else:
-                                    key = text[:50] + "..." # Truncate for key
+                                    key = text[:50] + "..."  # Truncate for key
 
-                                self._recent_errors[key] = self._recent_errors.get(key, 0) + 1
+                                self._recent_errors[key] = (
+                                    self._recent_errors.get(key, 0) + 1
+                                )
 
                                 # Flush periodically
                                 if time.time() - self._last_log_flush > 5:

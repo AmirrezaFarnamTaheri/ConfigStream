@@ -595,7 +595,7 @@ class ProxyWasher:
                         0.0,
                         0.0,
                         relay.protocol,
-                        latency=relay.latency or 0.0
+                        latency=relay.latency or 0.0,
                     )
                     relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country_code]
                     res = find_optimal_relay(origin_country, target_exit, [relay_stub])

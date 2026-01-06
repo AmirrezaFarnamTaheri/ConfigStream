@@ -66,7 +66,9 @@ async def generate_pipeline_outputs(
 
     # [FIX] Explicit logging if no chains were created despite having working proxies
     if not washed_outbounds and optimized_proxies:
-        logger.info("WARP wrap skipped for all proxies (no valid WARP endpoints or keys found).")
+        logger.info(
+            "WARP wrap skipped for all proxies (no valid WARP endpoints or keys found)."
+        )
 
     # 3. Smart Chains (The Topology Router)
     # Generates complex chains (Intranet, IPv6, Streamer).

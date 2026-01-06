@@ -50,7 +50,9 @@ except ImportError:
 
 # Minimal Proxy definition for typing
 class ProxyStub:
-    def __init__(self, country: str, lat: float, lon: float, protocol: str, latency: float = 0.0):
+    def __init__(
+        self, country: str, lat: float, lon: float, protocol: str, latency: float = 0.0
+    ):
         self.country = country
         self.lat = lat
         self.lon = lon
@@ -333,7 +335,7 @@ def calculate_relay_score(
     # Latency penalty (if available) - New optimization
     # Add latency component to distance score (1ms ≈ 10km penalty equivalent roughly)
     if relay.latency and relay.latency > 0:
-        distance_score += (relay.latency * 10)
+        distance_score += relay.latency * 10
     else:
         # Penalty for unknown latency
         distance_score += 1000
@@ -356,7 +358,7 @@ def calculate_relay_score(
         mode_penalty = (10 - speed_score) * 150
         # Extra penalty for high latency in speed mode
         if relay.latency and relay.latency > 200:
-             mode_penalty += (relay.latency - 200) * 5
+            mode_penalty += (relay.latency - 200) * 5
     elif optimization_mode == "reliability":
         # Prefer reliable protocols
         reliability_score = protocol_data["reliability"]
@@ -709,8 +711,11 @@ def generate_smart_chains(
                     coords = COUNTRIES[relay.country_code]
                     relay_stubs.append(
                         ProxyStub(
-                            relay.country_code, coords[0], coords[1], relay.protocol,
-                            latency=relay.latency or 0.0
+                            relay.country_code,
+                            coords[0],
+                            coords[1],
+                            relay.protocol,
+                            latency=relay.latency or 0.0,
                         )
                     )
 

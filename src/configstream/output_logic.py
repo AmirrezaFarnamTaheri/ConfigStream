@@ -347,7 +347,7 @@ def save_metadata(
         "tested": tested_count,
         "working": working,
         # [FIX] Added chosen_subset_size for transparency
-        "chosen_subset_size": total
+        "chosen_subset_size": total,
     }
 
     AtomicFileWriter.write_text(meta_path, json.dumps(meta, indent=2))
