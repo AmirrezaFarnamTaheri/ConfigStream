@@ -153,11 +153,11 @@ async function renderPage(filename) {
 
             const html = marked.parse(content);
 
-            // [FIX P2] Sanitize with strengthened fallback
+            // Sanitize with strengthened fallback
             let sanitized;
             if (window.DOMPurify) {
                 sanitized = window.DOMPurify.sanitize(html, {
-                     // [FIX P2] DO NOT allow iframes - XSS vector
+                     // DO NOT allow iframes - XSS vector
                      // ADD_TAGS: ['iframe'], // REMOVED - dangerous
                      ADD_ATTR: ['target', 'rel'],
                      FORBID_TAGS: ['script', 'object', 'embed', 'applet', 'iframe', 'form'],
@@ -165,7 +165,7 @@ async function renderPage(filename) {
                 });
                 container.innerHTML = sanitized;
             } else {
-                // [FIX P2] CRITICAL: If DOMPurify fails, render as plain text
+                // CRITICAL: If DOMPurify fails, render as plain text
                 console.error("[Wiki] DOMPurify not loaded - rendering as plain text for security");
                 container.innerHTML = `
                     <div class="warning-state" style="padding: 20px; background: #fff3cd; color: #856404; border-radius: 8px; margin-bottom: 20px;">

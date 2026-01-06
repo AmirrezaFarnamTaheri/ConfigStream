@@ -163,7 +163,7 @@ def main() -> None:
     print("-" * 45)
 
     # Atomic Write: Write all to .tmp first, then delete original/rename
-    # [FIX P2] Also identify stale batches to delete
+    # Also identify stale batches to delete
     existing_batches = set(SOURCES_DIR.glob("batch_*.txt"))
     new_batches = set()
 

@@ -43,7 +43,7 @@ from configstream.pipeline_stages import (
 from configstream.pipeline_core.sorter import sort_proxies_pareto
 from configstream.pipeline_core import output_handler
 from .event_stream import EventStream
-from configstream.intelligence.washer.core import ProxyWasher  # [FIX] Import here
+from configstream.intelligence.washer.core import ProxyWasher  # Import here
 from .config import AppSettings
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ async def run_full_pipeline(
         ValueError: If input parameters are invalid
         RuntimeError: If pipeline execution fails
     """
-    # [FIX P2-6] Input validation - prevent invalid parameter combinations
+    # Input validation - prevent invalid parameter combinations
     if not sources and not proxies:
         raise ValueError("Either 'sources' or 'proxies' must be provided")
 
@@ -127,7 +127,7 @@ async def run_full_pipeline(
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # [FIX] Cap max_workers globally to protect local network stack
+    # Cap max_workers globally to protect local network stack
     if max_workers <= 0:
         from .adaptive_workers import calculate_optimal_workers
 
@@ -153,7 +153,7 @@ async def run_full_pipeline(
     # Initialize GeoIP (Shared Singleton)
     geoip = GeoIPResolver()
 
-    # [FIX] Initialize Shared Washer Singleton
+    # Initialize Shared Washer Singleton
     washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
     await washer.fetch_clean_ips()  # Pre-fetch once
 
@@ -161,7 +161,7 @@ async def run_full_pipeline(
     event_stream = EventStream(output_path)
 
     stats = PipelineStats()
-    # [FIX] Track total configured sources for frontend display
+    # Track total configured sources for frontend display
     stats.total_configured_sources = len(sources) if sources else 0
 
     # Validate App Settings
@@ -181,7 +181,7 @@ async def run_full_pipeline(
                 stderr=subprocess.DEVNULL,
             )
 
-            # [FIX] Robust startup check instead of sleep(1)
+            # Robust startup check instead of sleep(1)
             # Use non-blocking asyncio check
             # Increased timeout to 10 seconds (50 * 0.2) to accommodate slower CI/Docker environments
             for _ in range(50):
@@ -249,7 +249,7 @@ async def run_full_pipeline(
         max_workers=max_workers,
     )
 
-    # [FIX] Log tester status once globally instead of per-consumer
+    # Log tester status once globally instead of per-consumer
     if tester.go_tester.available:
         logger.info("Using Go batch tester for proxy testing")
     else:
@@ -277,7 +277,7 @@ async def run_full_pipeline(
     )
 
     consumer_tasks = []
-    for _ in range(optimal_consumers):
+    for i in range(optimal_consumers):
         t = asyncio.create_task(
             processing_consumer(
                 work_queue,
@@ -299,8 +299,9 @@ async def run_full_pipeline(
                 max_latency,
                 country_filter,
                 leniency,
+                consumer_id=i,
                 seen_lock=seen_lock,
-                washer=washer,  # [FIX] Pass shared washer
+                washer=washer,  # Pass shared washer
             )
         )
         consumer_tasks.append(t)
@@ -309,7 +310,7 @@ async def run_full_pipeline(
         try:
             await asyncio.gather(producer_task, *consumer_tasks)
         except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
-            # [FIX P2-1] Specific exception handling for graceful shutdown
+            # Specific exception handling for graceful shutdown
             logger.info(f"Pipeline interrupted: {type(e).__name__}")
             # Cancel all tasks on interruption to avoid leaks/hangs
             for t in consumer_tasks:
@@ -323,7 +324,7 @@ async def run_full_pipeline(
                 pass
             raise
         except (RuntimeError, ValueError, TypeError) as e:
-            # [FIX P2-1] Catch common pipeline errors with proper logging
+            # Catch common pipeline errors with proper logging
             logger.error(f"Pipeline execution error: {e}")
             for t in consumer_tasks:
                 t.cancel()
@@ -335,7 +336,7 @@ async def run_full_pipeline(
                 pass
             raise
         except Exception as e:
-            # [FIX P2-1] Unexpected errors - log with full context
+            # Unexpected errors - log with full context
             logger.exception(f"Unexpected pipeline error: {e}")
             for t in consumer_tasks:
                 t.cancel()
@@ -358,7 +359,7 @@ async def run_full_pipeline(
         stats.final_count = len(optimized_proxies)
 
         # Generate Outputs
-        # [FIX] Set end_time for proper tracking
+        # Set end_time for proper tracking
         stats.end_time = datetime.now(timezone.utc)
         duration = (stats.end_time - start_time).total_seconds()
         stats.duration = float(duration)
@@ -368,7 +369,7 @@ async def run_full_pipeline(
         )
 
         # Save History & Cache
-        history.save()  # [FIX] Persist history data - method exists at proxy_history.py:75-77
+        history.save()  # Persist history data - method exists at proxy_history.py:75-77
 
         # Cleanup old history to prevent database bloat
         try:
@@ -396,20 +397,20 @@ async def run_full_pipeline(
                     json={"timestamp": stats.end_time or duration},
                 )
         except (httpx.TimeoutException, httpx.ConnectError) as e:
-            # [FIX P2-1] Server not running or unreachable - expected in standalone mode
+            # Server not running or unreachable - expected in standalone mode
             logger.debug(f"Server notification skipped (server not available): {e}")
         except httpx.HTTPStatusError as e:
-            # [FIX P2-1] Server returned error status
+            # Server returned error status
             logger.warning(
                 f"Server notification failed with HTTP {e.response.status_code}"
             )
         except Exception as e:
-            # [FIX P2-1] Unexpected notification error
+            # Unexpected notification error
             logger.debug(f"Unexpected error during server notification: {e}")
 
         return PipelineResult(success=True, stats=stats, output_files=generated_files)
     finally:
-        # [FIX] Stop tuner if running
+        # Stop tuner if running
         await concurrency.stop_tuner()
 
         # Shutdown tester (Go process)
@@ -424,7 +425,7 @@ async def run_full_pipeline(
                     loop = asyncio.get_running_loop()
                     await loop.run_in_executor(None, lambda: vwarp_proc.wait(timeout=2))
                 except subprocess.TimeoutExpired:
-                    # [FIX P2-1] Process didn't terminate gracefully - force kill
+                    # Process didn't terminate gracefully - force kill
                     logger.warning(
                         "Vwarp process didn't terminate gracefully, forcing kill"
                     )
@@ -436,10 +437,10 @@ async def run_full_pipeline(
                     except subprocess.TimeoutExpired:
                         logger.error("Failed to kill Vwarp process")
             except ProcessLookupError:
-                # [FIX P2-1] Process already terminated
+                # Process already terminated
                 logger.debug("Vwarp process already terminated")
             except Exception as e:
-                # [FIX P2-1] Unexpected error during Vwarp cleanup
+                # Unexpected error during Vwarp cleanup
                 logger.warning(f"Unexpected error during Vwarp cleanup: {e}")
                 try:
                     vwarp_proc.kill()
@@ -450,11 +451,11 @@ async def run_full_pipeline(
         try:
             await event_stream.aclose()
         except (OSError, IOError) as e:
-            # [FIX P2-1] File handle errors during stream closure
+            # File handle errors during stream closure
             logger.error(f"I/O error closing EventStream: {e}")
         except RuntimeError as e:
-            # [FIX P2-1] Runtime errors (e.g., event loop closed)
+            # Runtime errors (e.g., event loop closed)
             logger.warning(f"Runtime error closing EventStream: {e}")
         except Exception as e:
-            # [FIX P2-1] Unexpected errors - log with full traceback
+            # Unexpected errors - log with full traceback
             logger.exception(f"Unexpected error closing EventStream: {e}")

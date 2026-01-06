@@ -59,7 +59,7 @@ async def source_producer(
         if local_files:
             file_results = await read_multiple_files_async(local_files)
             for fpath, content in file_results:
-                # [FIX] Handle new tuple return signature
+                # Handle new tuple return signature
                 file_lines, _ = _extract_config_lines(content)
                 if file_lines:
                     await work_queue.put((fpath, file_lines, {}))
@@ -89,7 +89,7 @@ async def source_producer(
             elif s.startswith("ssconf://"):
                 remote_urls.append(s.replace("ssconf://", "https://"))
             else:
-                # [FIX] Warn about sources that are skipped because they don't match any handler
+                # Warn about sources that are skipped because they don't match any handler
                 # This helps debug "85 source is not correct" discrepancies if some lines are ignored
                 if s not in local_files:  # It wasn't treated as a local file either
                     logger.warning(
@@ -100,7 +100,7 @@ async def source_producer(
         blocked_urls = []
 
         loop = asyncio.get_running_loop()
-        # [FIX] Use dynamic semaphore limit from settings
+        # Use dynamic semaphore limit from settings
         sem_limit = getattr(settings, "PRODUCER_MAX_CONCURRENCY", 100)
         sem_limit = max(1, int(sem_limit))
         sem = asyncio.Semaphore(sem_limit)
@@ -170,7 +170,7 @@ async def source_producer(
 
                 for source, res in results.items():
                     if res.success and res.content:
-                        # [FIX] Offload parsing to executor and handle stats
+                        # Offload parsing to executor and handle stats
                         lines, drop_stats = await loop.run_in_executor(
                             None, _extract_config_lines, res.content
                         )
@@ -179,8 +179,8 @@ async def source_producer(
 
                         if count == 0:
                             # Log that we got content but no proxies (useful for debugging invalid formats)
-                            # [FIX] Fix logging format error (don't mix % formatting with f-strings/args)
-                            # [FIX] Reduced noise for expected empty sources
+                            # Fix logging format error (don't mix % formatting with f-strings/args)
+                            # Reduced noise for expected empty sources
                             log_method = (
                                 logger.debug
                                 if len(res.content) < 100
@@ -217,7 +217,7 @@ async def source_producer(
                                 )
                                 metadata = {
                                     "fetch_duration": res.response_time or 0.0,
-                                    "drop_stats": drop_stats,  # [FIX] Pass stats downstream
+                                    "drop_stats": drop_stats,  # Pass stats downstream
                                 }
                                 await work_queue.put((source, lines, metadata))
 

@@ -59,7 +59,7 @@ async def fetch_multiple_sources(
         http_client: httpx.AsyncClient, source: str
     ) -> Tuple[str, FetchResult]:
         async with global_sem:
-            # [FIX] Use keyword arguments to avoid positional argument mismatch
+            # Use keyword arguments to avoid positional argument mismatch
             # fetch_from_source(client, source, app_settings=...)
             # timeout arg was passed incorrectly as positional app_settings in legacy code
             res = await fetch_from_source(

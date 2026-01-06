@@ -149,7 +149,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
             # Sometimes param is just 'obfs-local' and opts are separate
             pass
 
-        # [CRITICAL FIX] Ensure server/port are in details for logic checks
+        # Ensure server/port are in details for logic checks
 
         # Final validation before creating proxy object
         if not host:

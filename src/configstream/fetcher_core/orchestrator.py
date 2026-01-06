@@ -30,14 +30,14 @@ async def fetch_from_source(
     breaker_manager: Any = None,
     timeout_tracker: Any = None,
     retry_delay: float = 1.0,
-    **kwargs: Any,  # [FIX] Accept extra kwargs (controller, quality_tracker) to satisfy Mypy/callers
+    **kwargs: Any,  # Accept extra kwargs (controller, quality_tracker) to satisfy Mypy/callers
 ) -> Any:
     """
     Robust fetcher implementation handling retries, circuit breaking, rate limiting,
     and response size limits.
     """
 
-    # [FIX] Validate URL
+    # Validate URL
     if not source or not source.startswith(("http://", "https://")):
         return FetchResult(
             success=False, source=source, content="", error="Invalid URL", status_code=0
@@ -150,9 +150,19 @@ async def fetch_from_source(
                 if response.status_code == 200 and (
                     not text_content or not text_content.strip()
                 ):
-                    attempt += 1
-                    last_error = "Empty content with 200 OK"
-                    continue
+                    # Treat explicit zero-length bodies as valid when Content-Length is 0.
+                    header_len = response.headers.get("Content-Length")
+                    if (
+                        not header_len
+                        or header_len.strip() == ""
+                        or header_len.strip() == "0"
+                    ):
+                        # Accept empty content if the server advertised zero bytes.
+                        pass
+                    else:
+                        attempt += 1
+                        last_error = "Empty content with 200 OK"
+                        continue
 
                 return FetchResult(
                     success=True,
@@ -163,6 +173,10 @@ async def fetch_from_source(
                     response_time=asyncio.get_running_loop().time() - start_ts,
                 )
 
+        except asyncio.CancelledError:
+            logger.warning(f"Fetch for {source} cancelled by outer signal.")
+            # Propagate cancellation to abort fetch immediately
+            raise
         except Exception as e:
             last_error = str(e)
             attempt += 1

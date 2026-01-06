@@ -44,7 +44,7 @@ def _verify_binary_checksum(path: Path) -> bool:
     Verify the SHA-256 checksum of the binary.
     Currently trusts the local filesystem until binary signing infrastructure is established.
     """
-    # [SECURITY] Implement real checksum verification if hash is provided via ENV
+    # Implement real checksum verification if hash is provided via ENV
     expected_hash = "773b0631f4e3c83758364860d50711626084807494f6c12140a321943806a642"  # Example hash, replace with real one or env var
     import hashlib
 

@@ -8,7 +8,7 @@
 // Step 1: Verify that cache configuration is available with graceful fallback
 if (!globalThis.ConfigStreamCache) {
   console.warn('[CacheManager] WARNING: Cache configuration not loaded, using defaults');
-  // [FIX] Provide default configuration instead of throwing error
+  // Provide default configuration instead of throwing error
   globalThis.ConfigStreamCache = {
     VERSION: 'v1.0.0-fallback',
     CACHE_NAME: 'configstream-cache-v1',
@@ -35,7 +35,7 @@ const Compression = {
     hasPako: typeof pako !== 'undefined',
 
     async compress(data) {
-        // [FIX] Performance guard: Don't block main thread for huge files
+        // Performance guard: Don't block main thread for huge files
         // Estimation: 1 char ~= 1 byte.
         const jsonStr = JSON.stringify(data);
         if (jsonStr.length > 3 * 1024 * 1024) { // 3MB limit for main thread compression
@@ -191,7 +191,7 @@ class CacheManager {
 
     try {
       if ('serviceWorker' in navigator) {
-        // [Audit Fix F1] Correctly point to service-worker.js
+        // Correctly point to service-worker.js
         const swUrl = new URL('service-worker.js', document.baseURI).toString();
 
         // Audit: Check if service worker file exists before registering

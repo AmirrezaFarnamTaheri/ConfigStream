@@ -265,7 +265,7 @@ function renderTable() {
         const locCell = document.createElement('td');
         locCell.setAttribute('data-label', 'Location');
         locCell.className = 'location-cell';
-        // [SECURITY FIX] Escape country code to prevent XSS
+        // Escape country code to prevent XSS
         const safeCountryCode = escapeHtml(p.country_code || 'Unknown');
         // Added onerror handler for flag loading failure (fallback to text)
         const flag = p.country_code && p.country_code !== 'XX'
@@ -323,7 +323,7 @@ function renderTable() {
         trendCell.setAttribute('data-label', 'Trend');
         trendCell.className = 'trend-cell';
 
-        // [FIX] Add trend visualization using history data
+        // Add trend visualization using history data
         const history = p.history || [];
         if (history.length >= 2) {
             // Create mini sparkline SVG
@@ -568,7 +568,7 @@ function updatePaginationInfo() {
     const createBtn = (text, page, disabled) => {
         const b = document.createElement('button');
         b.className = 'pagination-btn';
-        // [FIX P2-8] Use textContent instead of innerHTML to prevent XSS
+        // Use textContent instead of innerHTML to prevent XSS
         // Unicode arrows instead of HTML entities for security
         b.textContent = text;
         b.disabled = disabled;
@@ -576,7 +576,7 @@ function updatePaginationInfo() {
         return b;
     };
 
-    // [FIX P2-8] Use Unicode arrows (‹ U+2039, › U+203A) instead of HTML entities
+    // Use Unicode arrows (‹ U+2039, › U+203A) instead of HTML entities
     container.appendChild(createBtn('‹', currentPage - 1, currentPage === 1));
 
     const span = document.createElement('span');

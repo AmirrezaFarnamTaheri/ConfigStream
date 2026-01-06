@@ -27,7 +27,7 @@ def merge_cache_history(batch_glob: str, output_dir: str):
         try:
             with open(fpath, "r") as f:
                 data = json.load(f)
-                # [FIX] Smart Aggregation instead of .update()
+                # Smart Aggregation instead of .update()
                 for phash, stats in data.items():
                     if not isinstance(stats, dict):
                         continue

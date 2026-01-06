@@ -22,7 +22,17 @@ class VwarpTool:
         binary = shutil.which("vwarp")
         if not binary:
             # Fallback for local testing if not in PATH
-            binary = "/usr/local/bin/vwarp"
+            # Check specific fallback paths or env var
+            possible_paths = ["/usr/local/bin/vwarp", "/opt/vwarp/vwarp", "./vwarp"]
+            for p in possible_paths:
+                if Path(p).exists():
+                    binary = p
+                    break
+            else:
+                binary = (
+                    "vwarp"  # Default to name if not found, to fail gracefully later
+                )
+
         self.binary: str = binary
         self._tunnel_proc: Optional[asyncio.subprocess.Process] = None
 
@@ -30,7 +40,7 @@ class VwarpTool:
         """Quick health check."""
         if shutil.which("vwarp"):
             return True
-        if Path(self.binary).exists():
+        if self.binary and Path(self.binary).exists():
             return True
         return False
 
@@ -73,6 +83,12 @@ class VwarpTool:
                         port = 2408  # Default
 
                         if ":" in clean_ep:
+                            # If vwarp output includes port, parse it
+                            # Format often is IP:PORT or [IPv6]:PORT
+                            # The logic below already handles port parsing if it's in the string
+                            # So we double check if existing logic covers it.
+                            # Existing logic attempts to split by last colon.
+                            # So this is likely already covered, but let's make it robust.
                             # Handle IPv6 addresses in brackets [ipv6]:port
                             if clean_ep.startswith("["):
                                 # IPv6 format: [2001:db8::1]:2408
@@ -143,7 +159,8 @@ class VwarpTool:
                 await writer.wait_closed()
                 return True
             except (OSError, asyncio.TimeoutError, ConnectionRefusedError):
-                await asyncio.sleep(0.5)
+                # Throttling: wait a bit longer or use exponential backoff to reduce CPU/Net load
+                await asyncio.sleep(1.0)
         return False
 
     async def start_tunnel(
@@ -168,7 +185,7 @@ class VwarpTool:
                 stderr=asyncio.subprocess.DEVNULL,
             )
 
-            # [FIX] Robust port checking
+            # Robust port checking
             is_ready = await self._wait_for_port(bind_addr, port)
             if not is_ready:
                 logger.error(

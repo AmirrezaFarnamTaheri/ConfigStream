@@ -363,7 +363,7 @@ class UIStateManager {
       document.body.appendChild(overlay);
     }
     
-    // [FIX] Escape message to prevent XSS
+    // Escape message to prevent XSS
     overlay.innerHTML = `
       <div class="loading-spinner">
         <div class="spinner"></div>

@@ -59,7 +59,7 @@ class WarpScannerWorker:
         #   - UDP firewall blocks (GitHub Actions blocks outbound UDP)
         #   - Rate limiting from Cloudflare (shared IP pool is flagged)
         #   - Pipeline hangs on network timeouts
-        #
+
         # To enable in CI, set FORCE_SCANNER=true (use with caution)
         is_ci = os.environ.get("CI") == "true"
 

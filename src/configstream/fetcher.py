@@ -37,7 +37,7 @@ class Fetcher:
         """
         Fetches text content from a URL using the orchestrator.
         """
-        # [FIX] Use configured timeout
+        # Use configured timeout
         timeout = getattr(self.settings, "SOURCE_FETCH_TIMEOUT", 30.0)
 
         async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
