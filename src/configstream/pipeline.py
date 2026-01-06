@@ -277,7 +277,7 @@ async def run_full_pipeline(
     )
 
     consumer_tasks = []
-    for _ in range(optimal_consumers):
+    for i in range(optimal_consumers):
         t = asyncio.create_task(
             processing_consumer(
                 work_queue,
@@ -299,6 +299,7 @@ async def run_full_pipeline(
                 max_latency,
                 country_filter,
                 leniency,
+                consumer_id=i,
                 seen_lock=seen_lock,
                 washer=washer,  # [FIX] Pass shared washer
             )

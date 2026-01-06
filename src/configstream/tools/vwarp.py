@@ -22,7 +22,15 @@ class VwarpTool:
         binary = shutil.which("vwarp")
         if not binary:
             # Fallback for local testing if not in PATH
-            binary = "/usr/local/bin/vwarp"
+            # [Fix] Check specific fallback paths or env var
+            possible_paths = ["/usr/local/bin/vwarp", "/opt/vwarp/vwarp", "./vwarp"]
+            for p in possible_paths:
+                if Path(p).exists():
+                    binary = p
+                    break
+            else:
+                binary = "vwarp" # Default to name if not found, to fail gracefully later
+
         self.binary: str = binary
         self._tunnel_proc: Optional[asyncio.subprocess.Process] = None
 
@@ -30,7 +38,7 @@ class VwarpTool:
         """Quick health check."""
         if shutil.which("vwarp"):
             return True
-        if Path(self.binary).exists():
+        if self.binary and Path(self.binary).exists():
             return True
         return False
 
@@ -143,7 +151,8 @@ class VwarpTool:
                 await writer.wait_closed()
                 return True
             except (OSError, asyncio.TimeoutError, ConnectionRefusedError):
-                await asyncio.sleep(0.5)
+                # [Fix] Throttling: wait a bit longer or use exponential backoff to reduce CPU/Net load
+                await asyncio.sleep(1.0)
         return False
 
     async def start_tunnel(

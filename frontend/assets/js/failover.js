@@ -21,7 +21,17 @@
             console.warn("Triggering IPFS Failover...");
             // Logic to redirect or swap asset URLs
             if (global.CS_CONSTANTS.IPFS_GATEWAYS) {
-                // Try each gateway silently
+                const gateways = global.CS_CONSTANTS.IPFS_GATEWAYS;
+                const currentPath = window.location.pathname + window.location.search;
+                for (const gw of gateways) {
+                    const altURL = gw.replace(/\/$/, "") + currentPath;
+                    // Attempt to fetch an asset (e.g., a small icon or HEAD of current page) from the gateway to test connectivity
+                    // Use mode: 'no-cors' since we just want to see if it's reachable (opaque response is fine vs network error)
+                    fetch(altURL, { method: 'HEAD', mode: 'no-cors' }).then(() => {
+                        console.warn(`Failover: switching to IPFS gateway ${gw}`);
+                        window.location.href = altURL;
+                    }).catch(() => {/* try next gateway */});
+                }
             } else {
                 console.warn("IPFS Gateways not configured.");
             }
