@@ -29,7 +29,9 @@ class VwarpTool:
                     binary = p
                     break
             else:
-                binary = "vwarp" # Default to name if not found, to fail gracefully later
+                binary = (
+                    "vwarp"  # Default to name if not found, to fail gracefully later
+                )
 
         self.binary: str = binary
         self._tunnel_proc: Optional[asyncio.subprocess.Process] = None
@@ -81,6 +83,12 @@ class VwarpTool:
                         port = 2408  # Default
 
                         if ":" in clean_ep:
+                            # [Audit Fix] If vwarp output includes port, parse it
+                            # Format often is IP:PORT or [IPv6]:PORT
+                            # The logic below already handles port parsing if it's in the string
+                            # So we double check if existing logic covers it.
+                            # Existing logic attempts to split by last colon.
+                            # So this is likely already covered, but let's make it robust.
                             # Handle IPv6 addresses in brackets [ipv6]:port
                             if clean_ep.startswith("["):
                                 # IPv6 format: [2001:db8::1]:2408

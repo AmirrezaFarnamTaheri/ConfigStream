@@ -152,7 +152,11 @@ async def fetch_from_source(
                 ):
                     # Treat explicit zero-length bodies as valid when Content-Length is 0.
                     header_len = response.headers.get("Content-Length")
-                    if not header_len or header_len.strip() == "" or header_len.strip() == "0":
+                    if (
+                        not header_len
+                        or header_len.strip() == ""
+                        or header_len.strip() == "0"
+                    ):
                         # Accept empty content if the server advertised zero bytes.
                         pass
                     else:

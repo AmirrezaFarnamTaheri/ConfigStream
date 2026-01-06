@@ -142,7 +142,9 @@ async def processing_consumer(
                 if k not in seen_keys:
                     # If approaching limit, remove oldest entries
                     if len(seen_keys) >= max_seen:
-                        eviction_count = max(100, max_seen // 100)  # Evict 1%
+                        eviction_count = max(
+                            1000, max_seen // 10
+                        )  # Evict 10% (Audit Recommendation)
 
                         if isinstance(seen_keys, dict):
                             # Dict: Iterating gives insertion order (oldest first)
@@ -356,7 +358,9 @@ async def processing_consumer(
                                         stats.drop_reasons.get(error, 0) + 1
                                     )
                                 # Record failure for concurrency tuning feedback
-                                await concurrency.record("default", res.latency or 0, False)
+                                await concurrency.record(
+                                    "default", res.latency or 0, False
+                                )
 
                         async with seen_lock:
                             stats.tested += len(chunk)

@@ -108,6 +108,7 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	// - Receiver Goroutine: Reads responses, calculates latency.
 
 	// Using a concurrent map for tracking timestamps.
+	// Key: IP:Port string (e.g. "1.1.1.1:2408") -> StartTime
 	pending := sync.Map{}
 
 	// Channel to signal completion
@@ -173,25 +174,47 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 				continue
 			}
 
-			// Extract IP from address
-			ipStr, _, _ := net.SplitHostPort(addr.String())
+			// Extract IP and Port from address
+			// [Audit Fix] Use composite key (IP:Port) to support multi-port scanning
+			// Previously used just IP, which caused collisions if scanning multiple ports on same IP.
+			// addr.String() returns "IP:Port" already.
+			endpointStr := addr.String()
+			ipStr, portStr, _ := net.SplitHostPort(endpointStr)
 
-			// Retrieve start time
-			if val, ok := pending.LoadAndDelete(ipStr); ok {
+            // Try to find by full endpoint key
+			if val, ok := pending.LoadAndDelete(endpointStr); ok {
 				startTime := val.(time.Time)
 				latency := recvTime.Sub(startTime).Milliseconds()
+
+                port := 2408
+                fmt.Sscanf(portStr, "%d", &port)
 
 				// Avoid deadlock if results consumer is slow/unbuffered, but don't silently lose all results.
 				select {
 				case resultsChan <- ScanResult{
 					IP:      ipStr,
-					Port:    2408, // Assuming standard port
+					Port:    port,
 					Latency: latency,
 				}:
 				case <-time.After(50 * time.Millisecond):
 					// Timed out delivering result under backpressure
 				}
-			}
+			} else {
+                // Backward compatibility / Fallback if key was just IP (unlikely given sender logic below, but safe)
+                 if val, ok := pending.LoadAndDelete(ipStr); ok {
+                    startTime := val.(time.Time)
+				    latency := recvTime.Sub(startTime).Milliseconds()
+
+                    select {
+                    case resultsChan <- ScanResult{
+                        IP:      ipStr,
+                        Port:    2408,
+                        Latency: latency,
+                    }:
+                    case <-time.After(50 * time.Millisecond):
+                    }
+                 }
+            }
 		}
 	}()
 
@@ -207,18 +230,22 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 		go func() {
 			defer wg.Done()
 			for ip := range ipChan {
-				addr, err := net.ResolveUDPAddr("udp4", fmt.Sprintf("%s:2408", ip))
+                // [Audit Fix] Support dynamic port if needed, defaulting to 2408 for now as per CIDR logic
+                targetPort := 2408
+                endpoint := fmt.Sprintf("%s:%d", ip, targetPort)
+
+				addr, err := net.ResolveUDPAddr("udp4", endpoint)
 				if err != nil {
 					continue
 				}
 
-				// Store start time
-				pending.Store(ip, time.Now())
+				// Store start time with composite key
+				pending.Store(endpoint, time.Now())
 
 				// Send
 				_, err = conn.WriteTo(basePacket, addr)
 				if err != nil {
-					pending.Delete(ip)
+					pending.Delete(endpoint)
 				}
 			}
 		}()

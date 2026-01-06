@@ -141,10 +141,10 @@ def generate_split_outputs(
                 # However, usually chains have a main "Selector" or "URLTest" at the top level?
                 # If `chain` contains a "Selector" or "URLTest" with a tag, we add it.
                 for item in chain:
-                     if item.get("type") in ("selector", "urltest") and item.get("tag"):
-                         # Avoid duplicates
-                         if item["tag"] not in selector_tags:
-                             selector_tags.append(item["tag"])
+                    if item.get("type") in ("selector", "urltest") and item.get("tag"):
+                        # Avoid duplicates
+                        if item["tag"] not in selector_tags:
+                            selector_tags.append(item["tag"])
 
     # [FIX] Strip internal metadata fields (like _process) before serializing
     # These fields cause Sing-box parse errors: "unknown field "_process""
