@@ -225,6 +225,13 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	}
 	close(ipChan)
 
+    // [Audit Fix] Rate Limit Throttling
+    // Calculate delay per packet to avoid bursting network stack (e.g. 1000 pps limit)
+    // If workers=50, each worker sends 1 packet then waits a bit.
+    // Simple sleep strategy: 1ms sleep every N packets or just 1ms per packet if paranoid.
+    // Given 'workers' concurrency, raw speed is high.
+    // Let's add a small ticker to the shared consumption if possible, or just sleep in worker.
+
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
@@ -247,6 +254,9 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 				if err != nil {
 					pending.Delete(endpoint)
 				}
+
+                // [Audit Fix] Throttle sends slightly to prevent packet loss at OS buffer
+                time.Sleep(1 * time.Millisecond)
 			}
 		}()
 	}
