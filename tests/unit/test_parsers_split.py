@@ -126,7 +126,7 @@ def test_parse_wireguard_valid():
     assert proxy is not None  # Now it should pass!
     assert proxy.details["private_key"] == valid_key
 
-    config_correct = f"wireguard://1.1.1.1:51820?private_key={valid_key}&peer_public_key=pub#WG"
+    config_correct = f"wireguard://1.1.1.1:51820?private_key={valid_key}&peer_public_key={valid_key}#WG"
     proxy = parse_wireguard(config_correct)
     assert proxy is not None
     assert proxy.details["private_key"] == valid_key
