@@ -41,7 +41,61 @@ func main() {
 	}
 
     // Standard TCP connection setup
-	conn, err := dialer.Dial("tcp", "www.google.com:443") // Hardcoded for PoC, normally parse *targetUrl
+    // Dial the host extracted from the provided URL instead of a hard-coded one.
+    parsed := *targetUrl
+    host, port, err := net.SplitHostPort(parsed)
+    if err != nil {
+        // Fallback: if SplitHostPort fails, try to parse from url string or default to port 443
+        // For simplicity in this fix, we assume input might be just host or host:port
+        host = parsed
+        port = "443"
+        // If parsed is a full URL, we should parse it properly.
+        // But for this patch, we follow the audit suggestion pattern.
+    }
+
+    // Better parsing logic to handle http:// prefix if present in *targetUrl
+    // But audit patch just replaced the Dial line.
+    // Let's be slightly more robust if possible, but stick to the patch spirit.
+
+    // Using the patch logic:
+    // host, port, err := net.SplitHostPort(parsed)
+    // if err != nil { host = parsed; port = "443" }
+    // conn, err := dialer.Dial("tcp", net.JoinHostPort(host, port))
+
+    // However, *targetUrl defaults to "https://www.google.com".
+    // net.SplitHostPort("https://www.google.com") fails.
+    // We need to strip scheme.
+
+    // Let's assume the user passes host:port or we fix the parsing.
+    // The audit patch snippet:
+    // parsed := *targetUrl
+    // host, port, err := net.SplitHostPort(parsed)
+    // ...
+
+    // I will implement a slightly robust version that handles the default value too.
+
+    target := *targetUrl
+    // Strip scheme
+    if len(target) > 8 && target[:8] == "https://" {
+        target = target[8:]
+    } else if len(target) > 7 && target[:7] == "http://" {
+        target = target[7:]
+    }
+    // Remove path
+    for i := 0; i < len(target); i++ {
+        if target[i] == '/' {
+            target = target[:i]
+            break
+        }
+    }
+
+    host, port, err = net.SplitHostPort(target)
+    if err != nil {
+        host = target
+        port = "443"
+    }
+
+	conn, err := dialer.Dial("tcp", net.JoinHostPort(host, port))
 	if err != nil {
 		fmt.Printf("Failed to dial: %v\n", err)
 		os.Exit(1)
@@ -63,7 +117,7 @@ func main() {
     }
 
 	uConn := tls.UClient(conn, &tls.Config{
-		ServerName: "www.google.com",
+		ServerName: host,
         InsecureSkipVerify: true,
 	}, helloID)
 
@@ -74,7 +128,8 @@ func main() {
 	}
 
     // Send HTTP GET
-	_, err = uConn.Write([]byte("GET / HTTP/1.1\r\nHost: www.google.com\r\n\r\n"))
+    req := fmt.Sprintf("GET / HTTP/1.1\r\nHost: %s\r\n\r\n", host)
+	_, err = uConn.Write([]byte(req))
 	if err != nil {
 		fmt.Printf("Write failed: %v\n", err)
 		os.Exit(1)
