@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 # Static fallback if fetch fails
 DEFAULT_CLEAN_IPS = ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
+# Default Cloudflare WARP Server Public Key (Standard)
+DEFAULT_WARP_SERVER_KEY = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
 
 # Fallback Clean IPs from user reports
 FALLBACK_CLEAN_IPS = [
@@ -369,7 +371,8 @@ class ProxyWasher:
         for i in range(pool_len):
             idx = (start_index + i) % pool_len
             key = exit_pool[idx]
-            if key.get("private_key") and key.get("peer_public_key"):
+            # [FIX] Allow key if it has private key, inject peer key if missing
+            if key.get("private_key"):
                 return key
 
         return None
@@ -412,13 +415,19 @@ class ProxyWasher:
         unique_ip = self._generate_deterministic_ip(seed)
 
         reserved = self._get_optimized_reserved(seed)
+
+        # [FIX] Ensure valid peer public key
+        peer_key = exit_key.get("peer_public_key")
+        if not peer_key:
+            peer_key = DEFAULT_WARP_SERVER_KEY
+
         return {
             "type": "wireguard",
             "local_address": [unique_ip],
             "private_key": exit_key["private_key"],
             "server": clean_endpoint,
             "server_port": clean_port,
-            "peer_public_key": exit_key["peer_public_key"],
+            "peer_public_key": peer_key,
             "reserved": reserved,
         }
 
@@ -472,6 +481,12 @@ class ProxyWasher:
             relay_out["tag"] = f"RELAY-{chain_id}"
 
             reserved_bytes = self._get_optimized_reserved(chain_id)
+
+            # [FIX] Ensure valid peer public key
+            peer_key = exit_key.get("peer_public_key")
+            if not peer_key:
+                peer_key = DEFAULT_WARP_SERVER_KEY
+
             warp_out = {
                 "type": "wireguard",
                 "tag": chain_id,
@@ -479,7 +494,7 @@ class ProxyWasher:
                 "private_key": exit_key["private_key"],
                 "server": clean_endpoint,
                 "server_port": clean_port,
-                "peer_public_key": exit_key["peer_public_key"],
+                "peer_public_key": peer_key,
                 "reserved": reserved_bytes,
                 "detour": relay_out["tag"],
             }
@@ -574,7 +589,14 @@ class ProxyWasher:
             is_optimal = False
             try:
                 if relay.country_code and relay.country_code in COUNTRIES:
-                    relay_stub = ProxyStub(relay.country_code, 0.0, 0.0, relay.protocol)
+                    # [FIX] Pass measured latency for better optimization
+                    relay_stub = ProxyStub(
+                        relay.country_code,
+                        0.0,
+                        0.0,
+                        relay.protocol,
+                        latency=relay.latency or 0.0
+                    )
                     relay_stub.lat, relay_stub.lon = COUNTRIES[relay.country_code]
                     res = find_optimal_relay(origin_country, target_exit, [relay_stub])
                     if isinstance(res, dict) and "relay" in res:
@@ -587,6 +609,12 @@ class ProxyWasher:
             exit_tag = f"{exit_tag_prefix}-{relay.country_code}-{i+1}"
 
             reserved_bytes = self._get_optimized_reserved(chain_id)
+
+            # [FIX] Ensure valid peer public key
+            peer_key = exit_key.get("peer_public_key")
+            if not peer_key:
+                peer_key = DEFAULT_WARP_SERVER_KEY
+
             warp_out = {
                 "type": "wireguard",
                 "tag": exit_tag,
@@ -594,7 +622,7 @@ class ProxyWasher:
                 "private_key": exit_key["private_key"],
                 "server": clean_endpoint,
                 "server_port": clean_port,
-                "peer_public_key": exit_key["peer_public_key"],
+                "peer_public_key": peer_key,
                 "reserved": reserved_bytes,
                 "detour": relay_tag,
             }

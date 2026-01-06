@@ -1,12 +1,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import logging
-import os
 import orjson as json
 import shutil
 import uuid
+import time
+import os
 from pathlib import Path
-from typing import List, Dict, Any, Optional, cast
+from typing import List, Dict, Any, Optional, cast, Set
 
 from ..config import AppSettings
 from ..models import Proxy
@@ -68,6 +69,11 @@ class GoBatchTester:
         self._heartbeat_task: Optional[asyncio.Task[None]] = None
         self._stopping = False
 
+        # Log deduplication state
+        self._recent_errors: Dict[str, int] = {}
+        self._last_log_flush = time.time()
+        self._log_lock = asyncio.Lock() # Protect log state
+
         if not self.available:
             logger.error(
                 f"CRITICAL: Go batch tester binary not found (searched: {binary_path}, env: {env_path}, PATH). "
@@ -105,6 +111,10 @@ class GoBatchTester:
 
                 if needs_restart:
                     await self._ensure_process()
+
+                # Periodically flush error summary if any pending
+                await self._flush_error_logs()
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -267,6 +277,15 @@ class GoBatchTester:
             if not self._stopping:
                 logger.warning("Go Tester stdout closed (process died?)")
 
+    async def _flush_error_logs(self) -> None:
+        """Flush accumulated error logs."""
+        async with self._log_lock:
+            for error_msg, count in self._recent_errors.items():
+                if count > 0:
+                    logger.warning(f"Go Tester Error (repeated {count} times): {error_msg}")
+            self._recent_errors.clear()
+            self._last_log_flush = time.time()
+
     async def _read_stderr_loop(self) -> None:
         """Background task to read logs from stderr."""
         try:
@@ -283,7 +302,30 @@ class GoBatchTester:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug(f"Go Tester: {text}")
                     elif "error" in lower:
-                        logger.warning(f"Go Tester: {text}")
+                        # [FIX] Deduplicate repeating errors (specifically peer key errors)
+                        if "failed to get peer by public key" in text or "wireguard" in text:
+                            async with self._log_lock:
+                                # Simplify error message for aggregation key
+                                # E.g. "failed to get peer by public key: hex string does not fit the slice"
+                                if "failed to get peer by public key" in text:
+                                    key = "WireGuard: failed to get peer by public key"
+                                else:
+                                    key = text[:50] + "..." # Truncate for key
+
+                                self._recent_errors[key] = self._recent_errors.get(key, 0) + 1
+
+                                # Flush periodically
+                                if time.time() - self._last_log_flush > 5:
+                                    # Release lock briefly to flush (actually _flush acquires lock, so careful reentrancy)
+                                    # We are inside lock, cannot call _flush directly if it acquires lock
+                                    pass
+
+                            # Check flush outside lock to avoid deadlock if we refactor logging
+                            if time.time() - self._last_log_flush > 5:
+                                await self._flush_error_logs()
+                        else:
+                            # Standard logging for other errors
+                            logger.warning(f"Go Tester: {text}")
         except asyncio.CancelledError:
             pass
         except Exception:
@@ -497,6 +539,9 @@ class GoBatchTester:
             f"Go Tester results (Batch): {working_count}/{len(inputs)} working. "
             f"Failures: {failure_summary if failure_summary else 'None'}"
         )
+
+        # Flush logs after batch
+        await self._flush_error_logs()
 
         return proxies
 
