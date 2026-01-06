@@ -58,11 +58,6 @@ async def processing_consumer(
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
-    if tester.go_tester.available:
-        logger.info("Using Go batch tester for proxy testing")
-    else:
-        logger.warning("Go batch tester unavailable - falling back to Python tester")
-
     if seen_lock is None:
         seen_lock = asyncio.Lock()
 
@@ -382,6 +377,7 @@ async def processing_consumer(
                             final_batch_for_this_source.append(p)
                             async with seen_lock:
                                 stats.revived_vwarp += 1
+                                stats.vwarp_success += 1
 
                 # 2. Attempt Standard Warp Revival (Fallback/Parallel)
                 # Filter out those that already succeeded via Vwarp?

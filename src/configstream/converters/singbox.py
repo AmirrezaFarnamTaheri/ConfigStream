@@ -18,7 +18,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     """
     # Early validation - reject invalid proxies before expensive conversion
     if not proxy or not proxy.address or not proxy.port:
-        logger.debug(f"Conversion failed: invalid address/port for {proxy}")
+        safe_proxy = SecurityValidator.sanitize_log_message(
+            f"{getattr(proxy, 'protocol', 'unknown')}://{getattr(proxy, 'address', '')}:{getattr(proxy, 'port', '')}"
+        )
+        logger.debug("Conversion failed: invalid address/port for %s", safe_proxy)
         return None
 
     # Filter subscription URLs that got past parser
@@ -58,7 +61,16 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     out: Optional[Dict[str, Any]] = None
 
     # [FIX] Protocol Normalization
-    protocol = proxy.protocol.lower()
+    raw_protocol = getattr(proxy, "protocol", None)
+    if not raw_protocol or not isinstance(raw_protocol, str):
+        logger.debug(
+            "Conversion failed: missing/invalid protocol for %s",
+            SecurityValidator.sanitize_log_message(f"{proxy.address}:{proxy.port}"),
+        )
+        return None
+
+    # Added strip() to ensure robustness against invisible chars or spaces
+    protocol = raw_protocol.lower().strip()
     if protocol == "ss":
         protocol = "shadowsocks"
     elif protocol == "wg":
@@ -256,7 +268,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         private_key = proxy.details.get("private_key") or proxy.uuid
         if not private_key:
-            logger.warning(
+            logger.debug(
                 f"Dropping WireGuard proxy missing private_key: {proxy.address}:{proxy.port}. "
                 f"Source: {proxy.details.get('_source', 'unknown')}"
             )
@@ -391,9 +403,11 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "openvpn",
             "v2ray",
         ]:
-            logger.debug(
-                f"Protocol {protocol} not supported in Sing-box conversion (skipped). "
-                f"Proxy: {proxy.address}"
+            # [FIX] Log unsupported protocols at INFO for transparency
+            logger.info(
+                "Protocol %s not supported in Sing-box conversion (skipped). Proxy: %s",
+                protocol,
+                SecurityValidator.sanitize_log_message(str(proxy.address)),
             )
         else:
             logger.warning(

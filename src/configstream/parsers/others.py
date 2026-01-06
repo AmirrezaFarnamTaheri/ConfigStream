@@ -87,10 +87,11 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
         # [FIX] Normalize parameter aliases
         # Map obfs_password / obfsPassword -> obfs-password
         if "obfs-password" not in proxy.details:
+            # Check for aliases in a consistent order of preference
             if "obfs_password" in proxy.details:
-                proxy.details["obfs-password"] = proxy.details["obfs_password"]
+                proxy.details["obfs-password"] = proxy.details.pop("obfs_password")
             elif "obfsPassword" in proxy.details:
-                proxy.details["obfs-password"] = proxy.details["obfsPassword"]
+                proxy.details["obfs-password"] = proxy.details.pop("obfsPassword")
 
         # Hysteria 2 Obfuscation & Masquerading
         # 'obfs' -> type (e.g., 'salamander'), 'obfs-password' -> password
@@ -101,9 +102,10 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
 
             # Validate obfs-password presence if obfs is set
             if obfs_type == "salamander" and "obfs-password" not in proxy.details:
-                logger.warning(
-                    "Hysteria2 obfs=salamander requires obfs-password. Marking as suspect but retaining."
+                logger.debug(
+                    "Hysteria2 obfs=salamander requires obfs-password. Dropping invalid proxy."
                 )
+                return None
 
         # Port Hopping (Advanced)
         # Format: ports=80,443,8000-9000
@@ -155,8 +157,13 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
     if "private_key" not in proxy.details:
         if proxy.uuid:
             proxy.details["private_key"] = proxy.uuid
+        elif "private-key" in proxy.details:
+            proxy.details["private_key"] = proxy.details.pop("private-key")
+        elif "privateKey" in proxy.details:
+            proxy.details["private_key"] = proxy.details.pop("privateKey")
         else:
-            logger.debug("WireGuard config missing private_key.")
+            # [FIX] Enforce private_key check
+            logger.debug("Dropping WireGuard proxy missing private_key")
             return None
 
     if not proxy.details.get("private_key"):

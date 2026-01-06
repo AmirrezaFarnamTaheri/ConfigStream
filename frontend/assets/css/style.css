@@ -2148,10 +2148,8 @@ body.dark .proxies-table td {
     border-color: var(--border);
 }
 
-.proxies-table tr:first-child td:first-child { border-top-left-radius: var(--radius-lg); }
-.proxies-table tr:first-child td:last-child { border-top-right-radius: var(--radius-lg); }
-.proxies-table tr:last-child td:first-child { border-bottom-left-radius: var(--radius-lg); }
-.proxies-table tr:last-child td:last-child { border-bottom-right-radius: var(--radius-lg); }
+.proxies-table tr td:first-child { border-top-left-radius: var(--radius-lg); border-bottom-left-radius: var(--radius-lg); }
+.proxies-table tr td:last-child { border-top-right-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg); }
 
 .proxies-table tbody tr {
     transition: all var(--transition-fast);
