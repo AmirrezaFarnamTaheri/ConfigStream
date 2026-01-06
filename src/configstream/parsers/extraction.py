@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
+import re
 from typing import List, Tuple, Dict, Any
 
 from .decoders import safe_b64_decode
@@ -178,9 +179,19 @@ def extract_config_lines(
             elif not is_plausible_proxy_config(candidate):
                 reason = "implausible_format"
         else:
-            # Lines without '://' are dropped unless it's a known format handled elsewhere
-            # But here we expect URIs
-            reason = "missing_protocol_separator"
+            # [FIX] Lines without '://' are dropped, BUT we now check for IP:PORT format
+            # Use regex to match simple IP:PORT patterns (IPv4)
+            # Example: 192.168.1.1:8080
+            if re.match(r'^\d{1,3}(\.\d{1,3}){3}:\d+$', candidate):
+                # Interpret bare IPv4:port as http proxy
+                # We prepend 'http://' to make it a valid URL for parsing
+                candidate = "http://" + candidate
+                # We could also support SOCKS5 if we knew, but HTTP is safer default for bare lists
+                # Re-validate with new format
+                if not is_plausible_proxy_config(candidate):
+                   reason = "implausible_format"
+            else:
+                reason = "missing_protocol_separator"
 
         if not reason:
             configs.append(candidate)
