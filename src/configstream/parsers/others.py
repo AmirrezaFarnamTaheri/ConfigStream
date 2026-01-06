@@ -186,10 +186,14 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             # Heuristic length check first
             if len(key_clean) < 40 or len(key_clean) > 50:
                 # Check if it's hex (64 chars)
-                if len(key_clean) == 64 and all(c in "0123456789abcdefABCDEF" for c in key_clean):
+                if len(key_clean) == 64 and all(
+                    c in "0123456789abcdefABCDEF" for c in key_clean
+                ):
                     return True
                 else:
-                    logger.debug(f"WireGuard {name} length invalid ({len(key_clean)}): {key_clean[:10]}...")
+                    logger.debug(
+                        f"WireGuard {name} length invalid ({len(key_clean)}): {key_clean[:10]}..."
+                    )
                     return False
 
             # Verify decoding if it looks like Base64
@@ -200,7 +204,9 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
 
                 decoded = base64.b64decode(key_clean, validate=False)
                 if len(decoded) != 32:
-                    logger.debug(f"WireGuard {name} decoded length mismatch ({len(decoded)} != 32).")
+                    logger.debug(
+                        f"WireGuard {name} decoded length mismatch ({len(decoded)} != 32)."
+                    )
                     return False
             return True
 
