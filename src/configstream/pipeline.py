@@ -11,7 +11,6 @@ import asyncio
 import logging
 import multiprocessing
 import os
-import shutil
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -170,11 +169,14 @@ async def run_full_pipeline(
     # --- Start Vwarp Tunnel if available ---
     # [FIX] Use VwarpTool implementation to respect CI rules and improved logging
     from configstream.tools.vwarp import VwarpTool
+
     vwarp_tool = VwarpTool()
     vwarp_proc = None  # We will access vwarp_tool._tunnel_proc if needed for cleanup but better to use stop_tunnel
 
     if await vwarp_tool.is_available():
-        if await vwarp_tool.start_tunnel(bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT):
+        if await vwarp_tool.start_tunnel(
+            bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT
+        ):
             logger.info("✅ Vwarp Tunnel established.")
             os.environ["USE_VWARP_TUNNEL"] = "true"
         else:
@@ -403,7 +405,7 @@ async def run_full_pipeline(
 
         # Shutdown Vwarp tunnel (Robust cleanup)
         # [FIX] Use tool method for consistent cleanup
-        if 'vwarp_tool' in locals() and vwarp_tool:
+        if "vwarp_tool" in locals() and vwarp_tool:
             await vwarp_tool.stop_tunnel()
         elif vwarp_proc:
             # Fallback for manual Popen (legacy) - shouldn't be hit with new logic

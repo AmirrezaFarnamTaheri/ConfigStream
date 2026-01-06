@@ -118,16 +118,16 @@ class GoBatchTester:
         try:
             # We construct a synthetic Proxy object wrapper or just send raw if test_custom_configs supported it better.
             # But test_batch expects Proxy objects. Let's create a dummy Proxy.
-            from ..models import Proxy
-
-            p = Proxy(
-                protocol="vless",
-                config="vless://...",
-                uuid="self-test-uuid",
-                address="1.1.1.1",
-                port=443,
-                id="selftest",
-            )
+            # from ..models import Proxy
+            #
+            # p = Proxy(
+            #     protocol="vless",
+            #     config="vless://...",
+            #     uuid="self-test-uuid",
+            #     address="1.1.1.1",
+            #     port=443,
+            #     id="selftest",
+            # )
             # The outbound converter needs real data to produce valid JSON
             # Ideally we bypass conversion and test raw IPC if possible,
             # but test_batch logic is tied to Proxy objects.
@@ -477,11 +477,11 @@ class GoBatchTester:
                     f.set_exception(e)
 
             # Mark all proxies in this batch as failed due to daemon crash
-            for p in req_id_map.values():
-                if p.is_working is None:  # Only if not already processed
-                    p.is_working = False
-                    p.details["error"] = "DAEMON_CRASHED"
-                    p.details["failure_category"] = "CRASH"
+            for proxy_obj in req_id_map.values():
+                if proxy_obj.is_working is None:  # Only if not already processed
+                    proxy_obj.is_working = False
+                    proxy_obj.details["error"] = "DAEMON_CRASHED"
+                    proxy_obj.details["failure_category"] = "CRASH"
 
             # Process might be dead, ensure restart next time
             await self.close()
@@ -564,7 +564,12 @@ class GoBatchTester:
 
             if res_data.get("is_working"):
                 target_proxy.is_working = True
-                target_proxy.latency = res_data.get("latency")
+                # Cast to float or None to satisfy type checker
+                lat = res_data.get("latency")
+                if lat is not None:
+                    target_proxy.latency = float(lat)
+                else:
+                    target_proxy.latency = None
                 working_count += 1
                 if res_data.get("issues"):
                     for issue in res_data["issues"]:
