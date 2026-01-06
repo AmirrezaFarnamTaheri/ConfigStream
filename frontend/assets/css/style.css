@@ -2069,13 +2069,13 @@ body.dark .filter-summary {
 /* [FIX] Enforce column widths on desktop to prevent layout issues */
 @media (min-width: 769px) {
     .proxies-table th:nth-child(1),
-    .proxies-table td:nth-child(1) { width: 12%; } /* Protocol */
+    .proxies-table td:nth-child(1) { width: 15%; } /* Protocol */
 
     .proxies-table th:nth-child(2),
     .proxies-table td:nth-child(2) { width: 25%; } /* Location */
 
     .proxies-table th:nth-child(3),
-    .proxies-table td:nth-child(3) { width: 15%; } /* Latency */
+    .proxies-table td:nth-child(3) { width: 12%; } /* Latency */
 
     .proxies-table th:nth-child(4),
     .proxies-table td:nth-child(4) { width: 14%; } /* Status */
