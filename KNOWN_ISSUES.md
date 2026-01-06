@@ -1,3 +1,13 @@
+## Resolved Issues
+
+- **WARP Revival Failures**: Fixed missing peer keys in WARP chain generation.
+- **Log Noise**: Implemented deduplication for Go Tester errors.
+- **Parsing**: Added fallback for plain IP:PORT lists.
+- **Output Transparency**: Added metrics for skipped WARP wraps and source subsetting.
+- **Smart Chain Optimization**: Now using latency in scoring logic.
+- **CI Reliability**: Vwarp now skipped in CI unless forced.
+- **Source Reporting**: Added reporting for top failing sources.
+
 # Known Issues and Limitations
 
 ## Recent Fixes

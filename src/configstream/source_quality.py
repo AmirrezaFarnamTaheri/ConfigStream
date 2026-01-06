@@ -159,3 +159,10 @@ class SourceQualityTracker(QualityStorage):
             "last_checked": int(datetime.now(timezone.utc).timestamp()),
         }
         self.upsert_stats(url, stats)
+
+    def get_worst_sources(self, limit: int = 5) -> list[Dict[str, Any]]:
+        """
+        Retrieves the worst performing sources based on reliability score and consecutive failures.
+        Returns a list of dictionaries.
+        """
+        return self.get_worst_performing(limit=limit)

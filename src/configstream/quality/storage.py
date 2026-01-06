@@ -288,6 +288,43 @@ class QualityStorage:
             except Exception as e:
                 logger.error(f"Failed to record run for {url}: {e}")
 
+    def get_worst_performing(self, limit: int = 5) -> list[Dict[str, Any]]:
+        """
+        Retrieves top N failing sources.
+        """
+        with self._lock:
+            try:
+                conn = self._get_conn()
+                # Prioritize high failure count and low reliability score
+                rows = conn.execute(
+                    """
+                    SELECT url, reliability_score, consecutive_failures, status
+                    FROM source_stats
+                    WHERE reliability_score < 50 OR consecutive_failures > 0
+                    ORDER BY consecutive_failures DESC, reliability_score ASC
+                    LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+
+                results = []
+                for row in rows:
+                    results.append(
+                        {
+                            "url": row[0],
+                            "score": row[1],
+                            "failures": row[2],
+                            "status": row[3],
+                            "last_failure_reason": (
+                                "High Failures" if row[2] > 0 else "Low Reliability"
+                            ),
+                        }
+                    )
+                return results
+            except Exception as e:
+                logger.error(f"Error getting worst sources: {e}")
+                return []
+
     def merge_from(self, other_db_path: Path):
         """Merge another DB into this one."""
         if not other_db_path.exists():

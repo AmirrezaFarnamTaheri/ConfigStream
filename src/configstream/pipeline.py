@@ -168,44 +168,17 @@ async def run_full_pipeline(
     AppSettings().validate_settings()
 
     # --- Start Vwarp Tunnel if available ---
-    vwarp_proc = None
-    vwarp_bin = shutil.which("vwarp") or "/usr/local/bin/vwarp"
-    if os.path.exists(vwarp_bin):
-        try:
-            logger.info(
-                f"🚀 Starting Vwarp SOCKS5 Tunnel on port {VWARP_SOCKS5_PORT}..."
-            )
-            vwarp_proc = subprocess.Popen(
-                [vwarp_bin, "--bind", f"{VWARP_BIND_ADDRESS}:{VWARP_SOCKS5_PORT}"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
+    # [FIX] Use VwarpTool implementation to respect CI rules and improved logging
+    from configstream.tools.vwarp import VwarpTool
+    vwarp_tool = VwarpTool()
+    vwarp_proc = None  # We will access vwarp_tool._tunnel_proc if needed for cleanup but better to use stop_tunnel
 
-            # Robust startup check instead of sleep(1)
-            # Use non-blocking asyncio check
-            # Increased timeout to 10 seconds (50 * 0.2) to accommodate slower CI/Docker environments
-            for _ in range(50):
-                await asyncio.sleep(0.2)
-                try:
-                    _, writer = await asyncio.wait_for(
-                        asyncio.open_connection(VWARP_BIND_ADDRESS, VWARP_SOCKS5_PORT),
-                        timeout=0.5,
-                    )
-                    writer.close()
-                    await writer.wait_closed()
-                    logger.info("✅ Vwarp Tunnel established.")
-                    # Signal Go Tester to use it
-                    os.environ["USE_VWARP_TUNNEL"] = "true"
-                    break
-                except (OSError, ConnectionRefusedError):
-                    continue
-            else:
-                logger.warning(
-                    "⚠️ Vwarp Tunnel started but port check timed out. Proceeding anyway."
-                )
-
-        except Exception as e:
-            logger.warning(f"Failed to start Vwarp tunnel: {e}")
+    if await vwarp_tool.is_available():
+        if await vwarp_tool.start_tunnel(bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT):
+            logger.info("✅ Vwarp Tunnel established.")
+            os.environ["USE_VWARP_TUNNEL"] = "true"
+        else:
+            logger.warning("Vwarp tunnel failed to start or did not pass health check.")
 
     # Dynamic Worker Calculation based on CPU
     cpu_count = multiprocessing.cpu_count()
@@ -364,6 +337,17 @@ async def run_full_pipeline(
         duration = (stats.end_time - start_time).total_seconds()
         stats.duration = float(duration)
 
+        # [FEATURE] Log Top 5 Failing Sources
+        if quality_tracker:
+            failing_sources = quality_tracker.get_worst_sources(limit=5)
+            if failing_sources:
+                log_lines = []
+                for s_data in failing_sources:
+                    log_lines.append(
+                        f"  - {s_data['url']}: score={s_data['score']:.1f}, reason={s_data.get('last_failure_reason', 'unknown')}"
+                    )
+                logger.info("⚠️ Top 5 Failing Sources:\n" + "\n".join(log_lines))
+
         generated_files = await output_handler.generate_pipeline_outputs(
             optimized_proxies, output_path, stats, history
         )
@@ -418,7 +402,11 @@ async def run_full_pipeline(
             await tester.close()
 
         # Shutdown Vwarp tunnel (Robust cleanup)
-        if vwarp_proc:
+        # [FIX] Use tool method for consistent cleanup
+        if 'vwarp_tool' in locals() and vwarp_tool:
+            await vwarp_tool.stop_tunnel()
+        elif vwarp_proc:
+            # Fallback for manual Popen (legacy) - shouldn't be hit with new logic
             try:
                 vwarp_proc.terminate()
                 try:
@@ -430,22 +418,8 @@ async def run_full_pipeline(
                         "Vwarp process didn't terminate gracefully, forcing kill"
                     )
                     vwarp_proc.kill()
-                    try:
-                        await loop.run_in_executor(
-                            None, lambda: vwarp_proc.wait(timeout=1)
-                        )
-                    except subprocess.TimeoutExpired:
-                        logger.error("Failed to kill Vwarp process")
-            except ProcessLookupError:
-                # Process already terminated
-                logger.debug("Vwarp process already terminated")
-            except Exception as e:
-                # Unexpected error during Vwarp cleanup
-                logger.warning(f"Unexpected error during Vwarp cleanup: {e}")
-                try:
-                    vwarp_proc.kill()
-                except Exception:
-                    pass
+            except Exception:
+                pass
 
         # Ensure event stream is always closed to flush handles/buffers
         try:

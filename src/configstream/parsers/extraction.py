@@ -182,14 +182,14 @@ def extract_config_lines(
             # [FIX] Lines without '://' are dropped, BUT we now check for IP:PORT format
             # Use regex to match simple IP:PORT patterns (IPv4)
             # Example: 192.168.1.1:8080
-            if re.match(r'^\d{1,3}(\.\d{1,3}){3}:\d+$', candidate):
+            if re.match(r"^\d{1,3}(\.\d{1,3}){3}:\d+$", candidate):
                 # Interpret bare IPv4:port as http proxy
                 # We prepend 'http://' to make it a valid URL for parsing
                 candidate = "http://" + candidate
                 # We could also support SOCKS5 if we knew, but HTTP is safer default for bare lists
                 # Re-validate with new format
                 if not is_plausible_proxy_config(candidate):
-                   reason = "implausible_format"
+                    reason = "implausible_format"
             else:
                 reason = "missing_protocol_separator"
 
