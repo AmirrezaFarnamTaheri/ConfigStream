@@ -4,6 +4,7 @@ import logging
 from typing import Optional
 from ..models import Proxy
 from ..constants import MAX_CONFIG_LINE_LENGTH
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,20 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
             uuid = ""  # SS uses password in details
             data["password"] = data.get("password", "")
             data["method"] = data.get("cipher", "")
+        elif protocol == "wireguard" or protocol == "wg":
+            protocol = "wireguard"
+            # [FIX] Enforce private_key for WireGuard (accept common aliases)
+            if "private_key" not in data:
+                if "private-key" in data:
+                    data["private_key"] = data.pop("private-key")
+                elif "privateKey" in data:
+                    data["private_key"] = data.pop("privateKey")
+                else:
+                    logger.debug(
+                        "Dropping WireGuard proxy missing private_key: %s",
+                        SecurityValidator.sanitize_log_message(address),
+                    )
+                    return None
 
         return Proxy(
             config=config,  # Store the JSON blob as config
