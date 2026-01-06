@@ -3,7 +3,7 @@
 
 (function(global) {
     global.ConfigStreamCache = {
-        VERSION: 'v2.2.0', // [FIX] Synced with pyproject.toml
+        VERSION: 'v2.2.0', // Synced with pyproject.toml
         CACHE_NAME: 'configstream-cache-v2.2.0',
 
         // Cache Strategies

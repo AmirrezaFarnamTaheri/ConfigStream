@@ -228,12 +228,12 @@ def create_chain(
         warp_out = warp_config.copy()
         warp_out["tag"] = warp_tag
         warp_out["detour"] = exit_tag  # The magic: WARP goes through Exit
-        # [FIX] Inject metadata for process tracking
+        # Inject metadata for process tracking
         warp_out["_process"] = "chain"
 
         chain.append(warp_out)
     else:
-        # [FIX] Inject metadata for standard chains (no warp)
+        # Inject metadata for standard chains (no warp)
         # We attach it to the exit node's config as it's the final hop
         exit_out["_process"] = "chain"
 
@@ -520,7 +520,7 @@ def generate_smart_chains(
     # --- CHAIN 1: THE INTRANET BRIDGE (Standard & Washed) ---
     # Strategy: User (Intranet) -> Relay (IR) -> Exit (Foreign) [-> WARP]
 
-    # [FIX] Configurable intranet origin, defaulting to IR
+    # Configurable intranet origin, defaulting to IR
     # import os - removed
 
     intranet_origin = AppSettings().INTRANET_ORIGIN
@@ -528,7 +528,7 @@ def generate_smart_chains(
         p for p in proxies if p.country_code == intranet_origin and p.is_working
     ]
 
-    # [OPTIMIZATION] Pre-calculate Foreign Exit Coordinates to avoid repetitive lookups
+    # Pre-calculate Foreign Exit Coordinates to avoid repetitive lookups
     # Only compute for exits in known countries
     optimized_exits: List[Tuple[Proxy, float, float]] = []
     for ep in foreign_exits:
@@ -537,7 +537,7 @@ def generate_smart_chains(
             optimized_exits.append((ep, lat, lon))
 
     for relay in relays_intranet:
-        # [FIX] Use geographical optimization to find the best exit for this relay
+        # Use geographical optimization to find the best exit for this relay
         # Pick the exit with minimum distance to the relay
         best_exit = None
 
@@ -644,7 +644,7 @@ def generate_smart_chains(
         if not origin_coords:
             continue
 
-        # [OPTIMIZATION] Sort nearby stealth relays by approximate distance first
+        # Sort nearby stealth relays by approximate distance first
         # This acts as a heuristic to limit the detailed check to top 50 candidates
         def heuristic_dist(r):
             rc = COUNTRIES.get(r.country_code)

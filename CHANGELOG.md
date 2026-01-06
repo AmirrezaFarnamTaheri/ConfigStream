@@ -1,3 +1,18 @@
+## [2.3.0] - 2026-01-01
+
+### 🚀 Perfection Audit & Robustness
+
+**Core Backend Enhancements**
+- **Fetcher Resilience**: Improved handling of empty responses and cancellation signals.
+- **Consumer Optimization**: Fixed concurrency race conditions, refined adaptive concurrency feedback, and optimized revival logic to prevent redundant testing.
+- **Smart Chains**: Fixed backend bug where generated smart chains were omitted from `singbox.json`.
+
+**Frontend & Tools**
+- **IPFS Failover**: Implemented functional failover logic in frontend.
+- **UI Polish**: Hidden non-functional "Turbo Verify" button.
+- **Go Components**: Fixed scanner map key collisions and improved uTLS client CLI support.
+- **Housekeeping**: Deprecated legacy scripts and updated documentation.
+
 ## [2.2.0] - 2025-12-30
 
 ### 🛡️ Ironclad Audit & Hardening

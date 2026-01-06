@@ -65,23 +65,23 @@ class BlocklistManager:
             await self.load()
 
         except (httpx.TimeoutException, httpx.ConnectError) as e:
-            # [FIX P2-4] Network errors - fallback to cache
+            # Network errors - fallback to cache
             logger.warning(
                 f"Network error updating blocklist: {e}. Using cached version if available."
             )
             await self.load()
         except httpx.HTTPStatusError as e:
-            # [FIX P2-4] HTTP errors (404, 500, etc.)
+            # HTTP errors (404, 500, etc.)
             logger.warning(
                 f"HTTP error {e.response.status_code} updating blocklist. Using cached version if available."
             )
             await self.load()
         except (OSError, IOError) as e:
-            # [FIX P2-4] File system errors during cache write
+            # File system errors during cache write
             logger.error(f"I/O error saving blocklist cache: {e}")
             await self.load()
         except Exception as e:
-            # [FIX P2-4] Unexpected errors
+            # Unexpected errors
             logger.exception(f"Unexpected error updating blocklist: {e}")
             await self.load()
 
@@ -133,13 +133,13 @@ class BlocklistManager:
 
             logger.info(f"Loaded {count} blocked networks from FireHol Level 1.")
         except (OSError, IOError) as e:
-            # [FIX P2-4] File system errors reading cache
+            # File system errors reading cache
             logger.error(f"I/O error loading blocklist from {CACHE_FILE}: {e}")
         except (ValueError, ipaddress.AddressValueError) as e:
-            # [FIX P2-4] Invalid IP/CIDR format in blocklist
+            # Invalid IP/CIDR format in blocklist
             logger.error(f"Invalid IP/CIDR format in blocklist: {e}")
         except Exception as e:
-            # [FIX P2-4] Unexpected errors
+            # Unexpected errors
             logger.exception(f"Unexpected error loading blocklist: {e}")
 
     def is_blocked(self, ip: str) -> bool:

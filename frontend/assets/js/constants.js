@@ -4,12 +4,12 @@
 (function(global) {
     global.CS_CONSTANTS = {
         // Ed25519 Public Key for Subscription Verification
-        // [FIX P2] Set via environment variable in production builds
+        // Set via environment variable in production builds
         // Build command: CS_PUBLIC_KEY="actual_key" npm run build
         PUBLIC_KEY: "MCowBQYDK2VwAyEA79e/79e/79e/79e/79e/79e/79e/79e/79e/79e/79e=",
 
         // IPNS Key for Failover
-        // [FIX P2] Set via environment variable in production builds
+        // Set via environment variable in production builds
         // Build command: CS_IPNS_KEY="actual_key" npm run build
         IPNS_KEY: "k51qzi5uqu5d...",
 
@@ -26,7 +26,7 @@
         STEGO_MAX_PAYLOAD_SIZE: 2 * 1024 * 1024  // 2MB - Max decompressed payload size
     };
 
-    // [FIX P2] Validation: Detect placeholder values in production
+    // Validation: Detect placeholder values in production
     const isProduction = global.location &&
                         global.location.protocol === 'https:' &&
                         !global.location.hostname.includes('localhost') &&

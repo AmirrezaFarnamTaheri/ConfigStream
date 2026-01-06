@@ -2,6 +2,20 @@
 
 ## Recent Fixes
 
+### v2.3.0 Audit Perfection (2026-01-01)
+✅ **Core Backend Improvements**
+- **Fetcher Resilience**: Orchestrator now properly handles `Content-Length: 0` responses (legitimate empty bodies) instead of retrying, and correctly propagates cancellation signals.
+- **Consumer Concurrency**: Fixed race conditions in stats updates by ensuring all shared state mutations are lock-protected. Added missing failure recording for adaptive concurrency tuner.
+- **Revival Logic**: Optimized revival loop to avoid redundant testing; proxies revived by Vwarp are now excluded from the standard Warp fallback pass.
+- **Smart Chain Export**: Fixed bug where generated Smart Chains were missing from `singbox.json` output (Sniper mode).
+
+✅ **Frontend & Tools**
+- **IPFS Failover**: Implemented missing logic in `failover.js` to redirect to IPFS gateways upon connectivity failure.
+- **Turbo Verify**: Hidden non-functional "Turbo Verify (Local)" button in UI until WASM networking limitations are resolved.
+- **Go Scanner**: Fixed map key collision issue in `scanner.go` by using composite `IP:Port` keys.
+- **uTLS Client**: Updated `utls_client` PoC to respect command-line URLs and support dynamic host parsing.
+- **Scripts**: Deprecated legacy scripts (`clean_security_issues.py`, `scripts/merge/`) with clear warnings.
+
 ### v2.1.0 Deep Audit & Security Fixes (2025-12-25)
 ✅ **Security & Logic**
 - **Fixed**: Boolean parsing regression in Sing-box converter (Hysteria2/TUIC flags)

@@ -53,15 +53,16 @@ async def processing_consumer(
     max_latency: Optional[int],
     country_filter: Optional[str],
     leniency: bool,
+    consumer_id: int = 0,
     seen_lock: Optional[asyncio.Lock] = None,
-    washer: Optional[ProxyWasher] = None,  # [FIX] Receive shared washer
+    washer: Optional[ProxyWasher] = None,  # Receive shared washer
 ):
     policy = TEST_POLICY if leniency else STRICT_POLICY
 
     if seen_lock is None:
         seen_lock = asyncio.Lock()
 
-    # [FIX] Use passed shared washer or fallback (legacy support)
+    # Use passed shared washer or fallback (legacy support)
     if washer is None:
         washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
         await washer.fetch_clean_ips()
@@ -141,7 +142,9 @@ async def processing_consumer(
                 if k not in seen_keys:
                     # If approaching limit, remove oldest entries
                     if len(seen_keys) >= max_seen:
-                        eviction_count = max(100, max_seen // 100)  # Evict 1%
+                        eviction_count = max(
+                            1000, max_seen // 10
+                        )  # Evict 10% (Audit Recommendation)
 
                         if isinstance(seen_keys, dict):
                             # Dict: Iterating gives insertion order (oldest first)
@@ -225,12 +228,20 @@ async def processing_consumer(
                 break  # exit the consumer loop early
             else:
                 if tester.go_tester.available:
-                    # [OPTIMIZATION] Clamp chunk size to avoid overwhelming Go tester
+                    # Clamp chunk size to avoid overwhelming Go tester
                     settings = AppSettings()
                     chunk_size = min(500, max(1, settings.GO_TESTER_BATCH_SIZE))
 
                     for i in range(0, len(proxies_to_actually_test), chunk_size):
                         chunk = proxies_to_actually_test[i : i + chunk_size]
+                        # If nearing max_proxies, trim chunk to avoid overshoot
+                        if max_proxies:
+                            remaining = max_proxies - stats.tested
+                            if remaining <= 0:
+                                break  # safety check
+                            if len(chunk) > remaining:
+                                chunk = chunk[:remaining]
+
                         try:
                             await tester.test_batch(chunk)
                         except Exception as e:
@@ -286,7 +297,7 @@ async def processing_consumer(
                                         )
                                     )
 
-                        # [OPTIMIZATION] Batch history update in executor to prevent blocking loop
+                        # Batch history update in executor to prevent blocking loop
                         if chunk:
                             await loop.run_in_executor(
                                 None, history.update_history, chunk
@@ -326,7 +337,7 @@ async def processing_consumer(
 
                         results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
 
-                        # [OPTIMIZATION] Batch history update in executor
+                        # Batch history update in executor
                         if results:
                             await loop.run_in_executor(
                                 None, history.update_history, list(results)
@@ -346,6 +357,10 @@ async def processing_consumer(
                                     stats.drop_reasons[error] = (
                                         stats.drop_reasons.get(error, 0) + 1
                                     )
+                                # Record failure for concurrency tuning feedback
+                                await concurrency.record(
+                                    "default", res.latency or 0, False
+                                )
 
                         async with seen_lock:
                             stats.tested += len(chunk)
@@ -379,25 +394,30 @@ async def processing_consumer(
                                 stats.revived_vwarp += 1
                                 stats.vwarp_success += 1
 
-                # 2. Attempt Standard Warp Revival (Fallback/Parallel)
-                # Filter out those that already succeeded via Vwarp?
-                # Or just try everything? Let's try remaining failed ones or all.
-                # For simplicity and coverage, we can try both strategies on the original failed set.
-                warp_candidates, _ = washer.wash_failed(
-                    failed_proxies, stats=stats, use_vwarp=False
+                # 2. Attempt Standard Warp Revival (Fallback)
+                # Only retry proxies that did NOT succeed via Vwarp.
+                remaining_failed = (
+                    [fp for fp in failed_proxies if fp not in vwarp_candidates]
+                    if vwarp_candidates
+                    else list(failed_proxies)
                 )
-                if warp_candidates:
-                    await tester.test_batch(warp_candidates)
-                    for p in warp_candidates:
-                        if p.is_working:
-                            p.process = "revived-warp"
-                            origin = p.details.get("origin_proxy")
-                            if origin:
-                                p.country_code = origin.get("country_code", "")
-                                p.country = origin.get("country", "")
-                            final_batch_for_this_source.append(p)
-                            async with seen_lock:
-                                stats.revived_warp += 1
+
+                if remaining_failed:
+                    warp_candidates, _ = washer.wash_failed(
+                        remaining_failed, stats=stats, use_vwarp=False
+                    )
+                    if warp_candidates:
+                        await tester.test_batch(warp_candidates)
+                        for p in warp_candidates:
+                            if p.is_working:
+                                p.process = "revived-warp"
+                                origin = p.details.get("origin_proxy")
+                                if origin:
+                                    p.country_code = origin.get("country_code", "")
+                                    p.country = origin.get("country", "")
+                                final_batch_for_this_source.append(p)
+                                async with seen_lock:
+                                    stats.revived_warp += 1
 
         # Post-process final batch (GeoIP, Filter)
         for p in final_batch_for_this_source:
@@ -494,7 +514,7 @@ async def processing_consumer(
 
         work_queue.task_done()
 
-    if stats.tested > 0 and stats.working == 0:
+    if consumer_id == 0 and stats.tested > 0 and stats.working == 0:
         logger.error(
             f"CRITICAL: All {stats.tested} proxy tests failed across all sources!"
         )

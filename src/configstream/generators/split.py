@@ -121,7 +121,32 @@ def generate_split_outputs(
             }
         )
 
-    # [FIX] Strip internal metadata fields (like _process) before serializing
+    # Add Smart Chains to Sniper as well (if available)
+    # Ensure smart chains appear in singbox.json
+    if smart_chains:
+        for chain_list in smart_chains.values():
+            for chain in chain_list:
+                # Add chain outbounds to Sniper list
+                outbounds.extend(copy.deepcopy(chain))
+                # Add selector tags for chain entry points
+                # Chain entry point is usually the first element or a selector wrapping it?
+                # Usually chains are [Proxy, Proxy...] or [Selector, UrlTest...]
+                # We need to find the "entry point" tag of the chain to add to main selector.
+                # Assuming the last element's tag or a specific tag convention?
+                # Actually, `chain` is a list of outbounds. They are already linked by tags.
+                # The user typically wants to select the "Head" of the chain.
+                # In `tank`, we just add them.
+                # For `sniper` (Selector based), we should add the chain head to `selector_tags`.
+                # But identifying the head is tricky without knowing the structure.
+                # However, usually chains have a main "Selector" or "URLTest" at the top level?
+                # If `chain` contains a "Selector" or "URLTest" with a tag, we add it.
+                for item in chain:
+                    if item.get("type") in ("selector", "urltest") and item.get("tag"):
+                        # Avoid duplicates
+                        if item["tag"] not in selector_tags:
+                            selector_tags.append(item["tag"])
+
+    # Strip internal metadata fields (like _process) before serializing
     # These fields cause Sing-box parse errors: "unknown field "_process""
     clean_outbounds = _strip_internal_metadata(outbounds)
 
@@ -237,7 +262,7 @@ def generate_split_outputs(
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
 
-    # [FIX] Strip internal metadata fields from tank outbounds too
+    # Strip internal metadata fields from tank outbounds too
     clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
 
     tank_config = {

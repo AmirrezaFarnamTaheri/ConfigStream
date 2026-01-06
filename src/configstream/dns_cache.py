@@ -67,7 +67,7 @@ class DNSCache:
 
         address = info[0][4][0]
         async with self._lock:
-            # [FIX] Enforce size limit before adding new entry
+            # Enforce size limit before adding new entry
             await self._enforce_size_limit_locked()
 
             self._cache[host] = CachedDNS(address=address, expires_at=now + self._ttl)

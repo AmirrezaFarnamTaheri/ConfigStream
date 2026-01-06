@@ -57,7 +57,7 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
             tls["utls"] = {"enabled": True, "fingerprint": str(fp)}
 
         # Map insecure flags (CRITICAL FIX)
-        # [FIX] Force insecure=True for testing stability on free proxies if needed,
+        # Force insecure=True for testing stability on free proxies if needed,
         # but keeping strict check unless explicitly insecure for general cases,
         # except Hysteria/TUIC which are handled separately.
         if (

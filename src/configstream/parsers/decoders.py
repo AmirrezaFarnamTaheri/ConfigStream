@@ -15,7 +15,7 @@ def validate_b64_input(data: str) -> Optional[str]:
     if not isinstance(data, str):
         return None
 
-    # [OPTIMIZATION] Fail Fast on HTML/JSON inputs
+    # Fail Fast on HTML/JSON inputs
     if not data:
         return None
 
@@ -27,7 +27,7 @@ def validate_b64_input(data: str) -> Optional[str]:
     if not trimmed:
         return None
 
-    # [FIX] Fix URL-encoded base64 (e.g., %3D, %2F)
+    # Fix URL-encoded base64 (e.g., %3D, %2F)
     if "%" in trimmed:
         try:
             from urllib.parse import unquote
@@ -38,7 +38,7 @@ def validate_b64_input(data: str) -> Optional[str]:
         except Exception:
             pass
 
-    # [FIX] Immediate rejection for structural markers that indicate NOT Base64
+    # Immediate rejection for structural markers that indicate NOT Base64
     if ":" in trimmed and not trimmed.endswith("="):
         # Colon inside usually means method:password or something else
         # BUT standard base64 doesn't have colons.
@@ -87,7 +87,7 @@ def safe_b64_decode(data: str) -> Optional[str]:
         return None
 
     try:
-        # [FIX] Validate=True to catch subtle corruptions
+        # Validate=True to catch subtle corruptions
         return base64.b64decode(cleaned, validate=True).decode("utf-8", errors="ignore")
     except (binascii.Error, ValueError):
         # Fallback without validation if strict fails, but only if it looks plausible

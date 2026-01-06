@@ -311,7 +311,7 @@ class GoBatchTester:
                 # Use unique request ID (Full UUID) to handle duplicate proxies collision-free
                 req_id = f"{p.id}-{uuid.uuid4().hex}"
 
-                # [FIX] Handle json.dumps returning bytes or str
+                # Handle json.dumps returning bytes or str
                 raw_json = json.dumps(outbound)
                 if isinstance(raw_json, bytes):
                     config_str = raw_json.decode()
@@ -367,7 +367,7 @@ class GoBatchTester:
                 if not f.done():
                     f.set_exception(e)
 
-            # [FIX] Mark all proxies in this batch as failed due to daemon crash
+            # Mark all proxies in this batch as failed due to daemon crash
             for p in req_id_map.values():
                 if p.is_working is None:  # Only if not already processed
                     p.is_working = False
@@ -384,7 +384,7 @@ class GoBatchTester:
                 if not f.done():
                     f.set_exception(e)
 
-            # [FIX] Mark queued proxies as failed (write/IPC failure)
+            # Mark queued proxies as failed (write/IPC failure)
             for p in req_id_map.values():
                 if p.is_working is None:
                     p.is_working = False

@@ -31,7 +31,7 @@ class WasmPlugin {
 
             // Deallocate input if possible
             if (this.dealloc) {
-                // [FIX] Try-catch block for dealloc as signatures vary
+                // Try-catch block for dealloc as signatures vary
                 try {
                     this.dealloc(ptr, len);
                 } catch (e) {

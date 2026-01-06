@@ -15,7 +15,7 @@ from configstream.workers.scanner import WarpScannerWorker
 from configstream.intelligence.washer.warp_scraper import WarpScraper
 from configstream.intelligence.washer.key_generator import (
     KeyGenerator,
-)  # [FIX] Import the new key generator
+)  # Import the new key generator
 from configstream.tools.vwarp import VwarpTool
 from configstream.intelligence.chaining import find_optimal_relay, ProxyStub, COUNTRIES
 from configstream.pipeline_core.stats import PipelineStats
@@ -118,7 +118,7 @@ class ProxyWasher:
                 if self._warp_keys:
                     logger.info(f"Loaded {len(self._warp_keys)} WARP keys for washing")
                 else:
-                    # [FIX] Don't log warning here, we will try to generate/fetch later
+                    # Don't log warning here, we will try to generate/fetch later
                     logger.debug("No initial WARP keys configured")
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse warp_keys_json: {e}")
@@ -127,11 +127,11 @@ class ProxyWasher:
         self.seen_chains: LRUCache[str, bool] = LRUCache(maxsize=50000)
         self._seen_chains_lock = threading.Lock()
         self._state_lock = threading.Lock()
-        # [FIX] Critical: Add asyncio lock for async operations to prevent race conditions
+        # Critical: Add asyncio lock for async operations to prevent race conditions
         self._async_state_lock = asyncio.Lock()
         self._clean_ips: List[Tuple[str, int]] = []
 
-        # [FIX] Initialize defaults immediately if not provided
+        # Initialize defaults immediately if not provided
         if not self._warp_keys:
             from configstream.config import AppSettings
 
@@ -179,7 +179,7 @@ class ProxyWasher:
         Fetches the latest clean IPs for WARP endpoints.
         [FIX] Critical: Now uses async lock to prevent race conditions with concurrent fetches
         """
-        # [FIX] Use async lock for async operations instead of threading.Lock
+        # Use async lock for async operations instead of threading.Lock
         async with self._async_state_lock:
             # Check if we need to fetch (inside lock to prevent double-fetching)
             current_keys = self._warp_keys[:]
@@ -204,7 +204,7 @@ class ProxyWasher:
                     if key_dict["private_key"] and key_dict["peer_public_key"]:
                         new_keys.append(key_dict)
 
-                # [FIX] Update state with async lock
+                # Update state with async lock
                 async with self._async_state_lock:
                     if fresh_endpoints:
                         # Normalize to tuples
@@ -293,7 +293,7 @@ class ProxyWasher:
             self.clean_ips = [(ip, 2408) for ip in DEFAULT_CLEAN_IPS]
 
         # --- KEY GENERATION FALLBACK (Last Resort) ---
-        # [FIX] If still no keys, try to generate one
+        # If still no keys, try to generate one
         if not self.warp_keys:
             logger.info("No WARP keys found. Attempting to generate a new account...")
             try:
@@ -386,7 +386,7 @@ class ProxyWasher:
 
     def _generate_deterministic_ip(self, seed: str) -> str:
         h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
-        # [FIX] Use 10.x.x.x range for 16M+ unique IPs
+        # Use 10.x.x.x range for 16M+ unique IPs
         # Bit shift to utilize more of the hash entropy
         octet_2 = (h >> 16) % 255
         octet_3 = (h >> 8) % 255
@@ -439,7 +439,7 @@ class ProxyWasher:
             return [], 0
 
         # Limit revival candidates to prevent explosion (e.g. max 500)
-        # [FIX] Prevent infinite recursion: Filter out proxies that are already revived
+        # Prevent infinite recursion: Filter out proxies that are already revived
         candidates = [
             p
             for p in failed_proxies

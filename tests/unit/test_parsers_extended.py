@@ -19,7 +19,7 @@ def test_vless_sid_enforcement():
     #   ...
     #   sid = details.get("sid", "")
     #   if sid: ... check hex ...
-    #
+
     # It does NOT return None if sid is missing.
     # So this test expectation was wrong based on the implementation I copied.
     # However, strict VLESS Reality usually requires SID.

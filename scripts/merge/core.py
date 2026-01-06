@@ -81,7 +81,7 @@ async def merge_batches_async(
 
     # --- Feature: Merge Smart Cache Data (Reliability History) ---
     logger.info("\n=== Step 2.4.1: Merging Reliability Cache (Smart Chains) ===")
-    # [FIX] Merge `test_cache.json` which contains reliability history
+    # Merge `test_cache.json` which contains reliability history
     merged_cache: Dict[str, Any] = {}
 
     # Search for cache files inside the batch data directories
@@ -145,7 +145,7 @@ async def merge_batches_async(
         json.dump(merged_cache, f)
 
     # 2.1 Aggregate Stats from Batches
-    # [FIX] Add vwarp and revived stats aggregation
+    # Add vwarp and revived stats aggregation
     total_tested = 0
     total_fetched = 0
     total_revived_warp = 0
@@ -170,7 +170,7 @@ async def merge_batches_async(
                     "fetched_lines", data.get("total_fetched", 0)
                 )
 
-                # [FIX] Aggregate vwarp and revived stats
+                # Aggregate vwarp and revived stats
                 total_revived_warp += data.get("revived_warp", 0)
                 total_revived_vwarp += data.get("revived_vwarp", 0)
                 total_vwarp_attempts += data.get("vwarp_attempts", 0)
@@ -281,7 +281,7 @@ async def merge_batches_async(
                     else:
                         logger.debug(f"Washed chain failed retest: {cid}")
 
-                # [FIX] Combine washer revived count with batch aggregated stats
+                # Combine washer revived count with batch aggregated stats
                 # total_revived should be sum of all revived (WARP + vwarp + washer)
                 logger.info(
                     f"Washer Retest Results: {passed_count}/{len(chains_to_test)} chains working."
@@ -294,7 +294,7 @@ async def merge_batches_async(
         except Exception as e:
             logger.error(f"Failed to wash proxies: {e}", exc_info=True)
 
-    # [FIX] Calculate total_revived properly from all sources
+    # Calculate total_revived properly from all sources
     total_revived = total_revived_warp + total_revived_vwarp
 
     # Determine washing_enabled status
@@ -347,7 +347,7 @@ async def merge_batches_async(
     # 4. Generate Files
     logger.info("\n=== Step 3: Generating Output Files ===")
 
-    # [FIX] Generate outputs and collect stats with vwarp data
+    # Generate outputs and collect stats with vwarp data
     proxies_by_proto = generate_outputs(
         ranked_proxies,
         chosen_proxies,

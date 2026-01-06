@@ -21,14 +21,14 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
     - Strict "client" directive matching (not in comments)
     """
     try:
-        # [SECURITY FIX] Enforce config size limit to prevent DoS/memory exhaustion
+        # Enforce config size limit to prevent DoS/memory exhaustion
         if len(config) > MAX_OPENVPN_CONFIG_SIZE:
             logger.warning(
                 f"OpenVPN config rejected: size {len(config)} exceeds limit {MAX_OPENVPN_CONFIG_SIZE}"
             )
             return None
 
-        # [SECURITY FIX] Check for "client" directive more strictly (start of line or after whitespace)
+        # Check for "client" directive more strictly (start of line or after whitespace)
         # This prevents matching "client" in comments or embedded strings
         if not re.search(r"(^|\s)client(\s|$)", config, re.MULTILINE):
             return None
@@ -45,7 +45,7 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
         # Pick the first remote for now (simplification)
         host, port_str = remotes[0]
 
-        # [SECURITY FIX] Validate hostname length and format
+        # Validate hostname length and format
         if len(host) > 255:
             logger.warning(f"OpenVPN hostname rejected: length {len(host)} exceeds 255")
             return None
@@ -56,7 +56,7 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
             logger.warning(f"OpenVPN hostname rejected: invalid format '{host}'")
             return None
 
-        # [SECURITY FIX] Validate port range (1-65535)
+        # Validate port range (1-65535)
         try:
             port = int(port_str)
             if port < 1 or port > 65535:

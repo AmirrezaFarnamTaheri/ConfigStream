@@ -84,7 +84,7 @@ def parse_hysteria2(c: str) -> Optional[Proxy]:
             proxy.protocol = "hysteria2"  # Normalize protocol
 
     if proxy:
-        # [FIX] Normalize parameter aliases
+        # Normalize parameter aliases
         # Map obfs_password / obfsPassword -> obfs-password
         if "obfs-password" not in proxy.details:
             # Check for aliases in a consistent order of preference
@@ -130,7 +130,7 @@ def parse_tuic(c: str) -> Optional[Proxy]:
     # TUIC v5 support
     proxy = _parse_url_scheme(c, "tuic", 443)
     if proxy:
-        # [FIX] TUIC often requires both UUID and Password.
+        # TUIC often requires both UUID and Password.
         # _parse_url_scheme puts user -> uuid, pass -> details['password']
         # If uuid is present but password is missing, some clients use uuid as password.
         if proxy.uuid and "password" not in proxy.details:
@@ -162,7 +162,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         elif "privateKey" in proxy.details:
             proxy.details["private_key"] = proxy.details.pop("privateKey")
         else:
-            # [FIX] Enforce private_key check
+            # Enforce private_key check
             logger.debug("Dropping WireGuard proxy missing private_key")
             return None
 
@@ -171,7 +171,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         logger.debug("WireGuard config missing private_key.")
         return None
 
-    # [FIX] Validate WireGuard Keys (Must be 32 bytes)
+    # Validate WireGuard Keys (Must be 32 bytes)
     # The Go Tester fails with "IPC error -22: hex string does not fit the slice" if length is wrong
     # Also "failed to get peer by public key" indicates invalid peer_public_key
     try:

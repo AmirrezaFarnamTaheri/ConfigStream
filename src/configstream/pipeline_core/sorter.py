@@ -14,7 +14,7 @@ def sort_proxies_pareto(proxies: List[Proxy], history: ProxyHistoryTracker) -> N
     """
 
     # Pre-fetch stats to avoid N+1 lookups
-    # [OPTIMIZATION] Bulk fetch history stats
+    # Bulk fetch history stats
     proxy_ids = [p.id for p in proxies]
     bulk_stats = history.get_bulk_stats(proxy_ids)
 

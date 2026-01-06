@@ -16,7 +16,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         return None
 
     try:
-        # [FIX] Use formatted remarks as name when available (set by ProxyTagger)
+        # Use formatted remarks as name when available (set by ProxyTagger)
         # Fall back to generated name if remarks is empty/generic
         if proxy.remarks and proxy.remarks.lower() not in [
             "",
@@ -103,7 +103,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                     "path": proxy.details.get("path", "/"),
                     "headers": {"Host": proxy.details.get("host", "")},
                 }
-            # [FIX] Add VLESS gRPC support (was missing - only VMess had it)
+            # Add VLESS gRPC support (was missing - only VMess had it)
             elif net == "grpc":
                 common["grpc-opts"] = {
                     "grpc-service-name": proxy.details.get("serviceName", "")
@@ -129,7 +129,7 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
             return common
 
-        # [FIX] Clash Meta (Mihomo) Support for modern protocols
+        # Clash Meta (Mihomo) Support for modern protocols
         elif proxy.protocol == "hysteria2":
             common["type"] = "hysteria2"
             common["password"] = proxy.uuid or proxy.details.get("password", "")

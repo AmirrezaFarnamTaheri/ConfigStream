@@ -21,7 +21,7 @@ class SingBoxGenerator:
         """
         outbounds: List[Dict[str, Any]] = []
 
-        # [FIX] Legacy Tag Names
+        # Legacy Tag Names
         SELECTOR_TAG = "🚀 Select Proxy"
         AUTO_TAG = "⚡ Best Latency"
 
@@ -46,7 +46,7 @@ class SingBoxGenerator:
         # Add Extra Outbounds First (if any)
         if extra_outbounds:
             for extra in extra_outbounds:
-                # [FIX] Ensure extras are cleaned too if needed
+                # Ensure extras are cleaned too if needed
                 self._clean_outbound(extra)
                 outbounds.append(extra)
                 tag = extra.get("tag")
@@ -55,7 +55,7 @@ class SingBoxGenerator:
                 if tag:
                     otype = extra.get("type", "")
                     if otype == "wireguard":
-                        # [FIX] Mypy: cast outbounds to list
+                        # Mypy: cast outbounds to list
                         cast(List[str], selector_outbound["outbounds"]).append(tag)
 
         # Add Proxy Outbounds
@@ -64,16 +64,16 @@ class SingBoxGenerator:
                 # Use imported function directly
                 outbound_config = to_singbox_outbound(p)
 
-                # [FIX] Check for None (Mypy)
+                # Check for None (Mypy)
                 if outbound_config is None:
                     continue
 
-                # [FIX] Ensure tag exists if converter didn't provide it (Mock case)
+                # Ensure tag exists if converter didn't provide it (Mock case)
                 if "tag" not in outbound_config:
                     t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
                     outbound_config["tag"] = t
 
-                # [FIX] Strip internal metadata
+                # Strip internal metadata
                 self._clean_outbound(outbound_config)
 
                 outbounds.append(outbound_config)

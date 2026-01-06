@@ -8,7 +8,7 @@ let wasmError = null;
 // 1. Initialize WASM
 async function initWasm() {
     try {
-        // [FIX] Check if Go runtime is available
+        // Check if Go runtime is available
         if (typeof Go === 'undefined') {
             throw new Error('Go runtime (wasm_exec.js) not loaded');
         }
@@ -23,7 +23,7 @@ async function initWasm() {
             };
         }
 
-        // [FIX] Use correct path resolution with ROOT_PATH
+        // Use correct path resolution with ROOT_PATH
         const wasmPath = (window.ROOT_PATH || './') + 'assets/wasm/tester.wasm';
 
         const result = await WebAssembly.instantiateStreaming(
@@ -46,7 +46,7 @@ async function initWasm() {
             console.error("❌ WASM Load Failed:", err);
         }
         wasmError = err;
-        // [FIX] Set wasmReady to false explicitly and expose error
+        // Set wasmReady to false explicitly and expose error
         window.wasmReady = false;
         window.wasmError = err.message;
         // Dispatch event even on failure so app doesn't hang
@@ -67,13 +67,13 @@ window.addEventListener('beforeunload', cleanup);
 
 // 3. Test Function
 async function verifyProxyBatch(proxies) {
-    // [FIX] Better error handling for WASM unavailability
+    // Better error handling for WASM unavailability
     if (!wasmReady || !window.wasmReady) {
         if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn("WASM not ready - skipping client-side verification");
         return proxies;
     }
 
-    // [FIX] Check if testProxyWasm function is available
+    // Check if testProxyWasm function is available
     if (typeof window.testProxyWasm !== 'function') {
         if (window.ConfigStreamLogger) window.ConfigStreamLogger.warn("WASM testProxyWasm function not available - skipping client-side verification");
         return proxies;
@@ -122,14 +122,14 @@ async function verifyProxyBatch(proxies) {
                         p.tags.push("verified-local");
                     }
                 } else {
-                    // [FIX] Only override latency if proxy doesn't already have one
+                    // Only override latency if proxy doesn't already have one
                     if (p.latency === null || p.latency === undefined) {
                         p.latency = 9999;
                     }
                 }
             } catch (e) {
                 console.warn(`WASM Test Error for ${p.address}:`, e);
-                // [FIX] Don't override latency on error - keep server-side value
+                // Don't override latency on error - keep server-side value
             }
             return p;
         }));
