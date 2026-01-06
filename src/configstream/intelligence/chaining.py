@@ -696,12 +696,13 @@ def generate_smart_chains(
         # Use speed optimization mode
         if exit_node.country_code in COUNTRIES:
             exit_coords = COUNTRIES[exit_node.country_code]
+            # Use strict type casting for float arguments
             exit_stub = ProxyStub(
                 exit_node.country_code,
                 exit_coords[0],
                 exit_coords[1],
                 exit_node.protocol,
-                latency=exit_node.latency or 0.0,
+                latency=float(exit_node.latency or 0.0),
             )
 
             # Build candidate stubs from fast relays
@@ -715,7 +716,7 @@ def generate_smart_chains(
                             coords[0],
                             coords[1],
                             relay.protocol,
-                            latency=relay.latency or 0.0,
+                            latency=float(relay.latency or 0.0),
                         )
                     )
 
