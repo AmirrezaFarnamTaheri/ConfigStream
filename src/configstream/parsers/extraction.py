@@ -65,7 +65,7 @@ def extract_config_lines(
     drop_stats: Dict[str, int] = {}
 
     # [FIX] CRITICAL: Pre-check size to prevent OOM on massive files
-    # Limit to MAX_B64_INPUT_SIZE (200MB)
+    # Limit to MAX_B64_INPUT_SIZE (Using constant from settings/constants)
     if hasattr(payload, "__len__") and len(payload) > MAX_B64_INPUT_SIZE:
         logger.warning(
             f"extract_config_lines: Payload exceeds {MAX_B64_INPUT_SIZE} bytes limit. Dropping to prevent OOM."
