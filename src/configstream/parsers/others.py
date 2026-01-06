@@ -7,6 +7,7 @@ from typing import Optional
 from urllib.parse import parse_qs, unquote, urlparse
 from ..models import Proxy
 from .base import normalize_proxy_details
+from .decoders import safe_b64_decode
 from ..constants import MAX_CONFIG_LINE_LENGTH
 
 logger = logging.getLogger(__name__)
@@ -166,8 +167,46 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             logger.debug("Dropping WireGuard proxy missing private_key")
             return None
 
-    if not proxy.details.get("private_key"):
+    private_key = proxy.details.get("private_key")
+    if not private_key:
         logger.debug("WireGuard config missing private_key.")
+        return None
+
+    # [FIX] Validate WireGuard Private Key Length (Must be 32 bytes)
+    # The Go Tester fails with "IPC error -22: hex string does not fit the slice" if length is wrong
+    try:
+        # Standard WG keys are Base64 encoded
+        # We try to decode it. If it fails or length is not 32 bytes, we drop it.
+        # Note: safe_b64_decode returns string (utf-8), but keys are binary.
+        # We need raw bytes check. So we use standard b64decode here or check string length.
+        # A 32-byte key in Base64 is approx 44 chars (43 chars + padding).
+        pk_clean = private_key.strip().replace(" ", "+")  # Some configs have spaces
+
+        # Heuristic length check first
+        if len(pk_clean) < 40 or len(pk_clean) > 50:
+             # Check if it's hex (64 chars)
+             if len(pk_clean) == 64 and all(c in "0123456789abcdefABCDEF" for c in pk_clean):
+                 pass # Hex is valid for some implementations, pass it through
+             else:
+                 logger.debug(f"WireGuard private_key length invalid ({len(pk_clean)}): {pk_clean[:10]}...")
+                 return None
+
+        # Verify decoding if it looks like Base64
+        if len(pk_clean) >= 40 and len(pk_clean) <= 50:
+             import base64
+             import binascii
+             # Pad if needed
+             pad = len(pk_clean) % 4
+             if pad:
+                 pk_clean += "=" * (4 - pad)
+
+             decoded = base64.b64decode(pk_clean, validate=False)
+             if len(decoded) != 32:
+                 logger.debug(f"WireGuard private_key decoded length mismatch ({len(decoded)} != 32).")
+                 return None
+
+    except Exception as e:
+        logger.debug(f"WireGuard private_key validation failed: {e}")
         return None
 
     # Reserved bytes check (for WARP/WireGuard)

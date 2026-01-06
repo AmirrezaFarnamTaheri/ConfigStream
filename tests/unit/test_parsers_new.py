@@ -41,11 +41,13 @@ class TestParsers:
         assert proxy.details["obfs"] == "salamander"
 
     def test_parse_wireguard_reserved(self):
-        config = "wireguard://user@1.2.3.4:51820?public_key=pub&private_key=priv&reserved=[1,2,3]&address=10.0.0.1/24#WG"
+        # Use valid Base64 32-byte private key
+        valid_key = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+        config = f"wireguard://user@1.2.3.4:51820?public_key=pub&private_key={valid_key}&reserved=[1,2,3]&address=10.0.0.1/24#WG"
         proxy = _parse_wireguard(config)
         assert proxy is not None
         assert proxy.protocol == "wireguard"
-        config_bad = "wireguard://user@1.2.3.4:51820?public_key=pub&private_key=priv&reserved=badformat&address=10.0.0.1/24#WG"
+        config_bad = f"wireguard://user@1.2.3.4:51820?public_key=pub&private_key={valid_key}&reserved=badformat&address=10.0.0.1/24#WG"
         proxy_bad = _parse_wireguard(config_bad)
         assert proxy_bad is not None
 

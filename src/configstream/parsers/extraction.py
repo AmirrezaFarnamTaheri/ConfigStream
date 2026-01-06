@@ -39,7 +39,7 @@ def is_plausible_proxy_config(config: str) -> bool:
     special_char_count = sum(
         1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]"
     )
-    if special_char_count > len(rest) * 0.85:
+    if special_char_count > len(rest) * 0.95:
         return False
 
     # [Check] Double protocol
