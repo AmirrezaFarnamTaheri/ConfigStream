@@ -117,14 +117,16 @@ MII...
 
 
 def test_parse_wireguard_valid():
-    config = "wireguard://privatekey@1.1.1.1:51820?publickey=pub&reserved=1,2,3#WG"
+    # Use valid Base64 32-byte key
+    valid_key = "YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE="
+    config = f"wireguard://{valid_key}@1.1.1.1:51820?publickey=pub&reserved=1,2,3#WG"
     # With the new fix in parsers/others.py, if uuid is present and private_key not in details,
     # it maps uuid -> private_key.
     proxy = parse_wireguard(config)
     assert proxy is not None  # Now it should pass!
-    assert proxy.details["private_key"] == "privatekey"
+    assert proxy.details["private_key"] == valid_key
 
-    config_correct = "wireguard://1.1.1.1:51820?private_key=priv&peer_public_key=pub#WG"
+    config_correct = f"wireguard://1.1.1.1:51820?private_key={valid_key}&peer_public_key={valid_key}#WG"
     proxy = parse_wireguard(config_correct)
     assert proxy is not None
-    assert proxy.details["private_key"] == "priv"
+    assert proxy.details["private_key"] == valid_key

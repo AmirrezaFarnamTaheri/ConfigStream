@@ -106,6 +106,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateElement('#threatsBlocked', threats.toLocaleString());
         updateElement('#threatsNeutralized', threats.toLocaleString());
 
+        const smartChains = (metadata && metadata.total_smart_chains) || 0;
+        updateElement('#smartChains', smartChains.toLocaleString());
+
+        const vwarpWinRate = (metadata && metadata.vwarp_win_rate) || 0;
+        updateElement('#vwarpWinRate', (vwarpWinRate !== undefined) ? Math.round(vwarpWinRate) + '%' : '0%');
+
         // Update Hero Stats (Source Count & Frequency)
         const totalSources = (metadata && metadata.total_configured_sources) || 0;
         const updateInterval = (metadata && metadata.update_interval_hours) || 6;

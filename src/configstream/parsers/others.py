@@ -166,8 +166,60 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             logger.debug("Dropping WireGuard proxy missing private_key")
             return None
 
-    if not proxy.details.get("private_key"):
+    private_key = proxy.details.get("private_key")
+    if not private_key:
         logger.debug("WireGuard config missing private_key.")
+        return None
+
+    # [FIX] Validate WireGuard Keys (Must be 32 bytes)
+    # The Go Tester fails with "IPC error -22: hex string does not fit the slice" if length is wrong
+    # Also "failed to get peer by public key" indicates invalid peer_public_key
+    try:
+        import base64
+
+        def validate_wg_key(key: str, name: str) -> bool:
+            if not key:
+                return True  # Let later checks handle missing optional keys if any
+
+            key_clean = key.strip().replace(" ", "+")
+
+            # Heuristic length check first
+            if len(key_clean) < 40 or len(key_clean) > 50:
+                # Check if it's hex (64 chars)
+                if len(key_clean) == 64 and all(
+                    c in "0123456789abcdefABCDEF" for c in key_clean
+                ):
+                    return True
+                else:
+                    logger.debug(
+                        f"WireGuard {name} length invalid ({len(key_clean)}): {key_clean[:10]}..."
+                    )
+                    return False
+
+            # Verify decoding if it looks like Base64
+            if len(key_clean) >= 40 and len(key_clean) <= 50:
+                pad = len(key_clean) % 4
+                if pad:
+                    key_clean += "=" * (4 - pad)
+
+                decoded = base64.b64decode(key_clean, validate=False)
+                if len(decoded) != 32:
+                    logger.debug(
+                        f"WireGuard {name} decoded length mismatch ({len(decoded)} != 32)."
+                    )
+                    return False
+            return True
+
+        if not validate_wg_key(private_key, "private_key"):
+            return None
+
+        # Also validate peer_public_key if present
+        peer_pub = proxy.details.get("peer_public_key")
+        if peer_pub and not validate_wg_key(peer_pub, "peer_public_key"):
+            return None
+
+    except Exception as e:
+        logger.debug(f"WireGuard key validation failed: {e}")
         return None
 
     # Reserved bytes check (for WARP/WireGuard)

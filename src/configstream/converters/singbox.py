@@ -403,8 +403,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "openvpn",
             "v2ray",
         ]:
-            # [FIX] Log unsupported protocols at INFO for transparency
-            logger.info(
+            # [FIX] Reduced log level to DEBUG to prevent flooding logs with unsupported protocol messages
+            logger.debug(
                 "Protocol %s not supported in Sing-box conversion (skipped). Proxy: %s",
                 protocol,
                 SecurityValidator.sanitize_log_message(str(proxy.address)),
