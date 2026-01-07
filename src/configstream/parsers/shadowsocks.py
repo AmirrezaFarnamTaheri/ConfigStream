@@ -122,7 +122,8 @@ def parse_ss(config: str) -> Optional[Proxy]:
             "aes",
             "chacha20",  # incomplete names
         }
-        if method.lower() in invalid_methods or len(method) < 3:
+        # [FIX] Relaxed length check to allow legacy short methods (e.g. rc4)
+        if method.lower() in invalid_methods or len(method) < 2:
             logger.debug(
                 f"Invalid Shadowsocks method detected: {method} in {config[:50]}..."
             )
