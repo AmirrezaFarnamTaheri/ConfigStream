@@ -181,6 +181,15 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             if not key:
                 return True  # Let later checks handle missing optional keys if any
 
+            # [FIX] Handle URL-encoded keys (e.g. %2B for +)
+            if "%" in key:
+                try:
+                    from urllib.parse import unquote
+
+                    key = unquote(key)
+                except Exception:
+                    pass
+
             key_clean = key.strip().replace(" ", "+")
 
             # Heuristic length check first

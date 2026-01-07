@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
+import re
 from typing import List, Tuple, Dict, Any
 
 from .decoders import safe_b64_decode
@@ -32,14 +33,21 @@ def is_plausible_proxy_config(config: str) -> bool:
     if "://" not in config:
         return False
     protocol, rest = config.split("://", 1)
-    if len(protocol) > 20 or len(rest) < 4:
+    if not protocol or len(protocol) > 20 or len(rest) < 4:
         return False
 
     # Relax noise check (allowed up to 85% special chars for base64 heavy VLESS)
+    # Modern protocols like VLESS/Trojan with huge Base64 payloads can look very "noisy"
+    # We increase tolerance to nearly 100% or just check against truly invalid control chars
+    # instead of ratio. But keeping a loose ratio check prevents binary garbage.
+    # Expanded allowed chars to include more URI safe chars.
     special_char_count = sum(
-        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]"
+        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]!*'|$"
     )
-    if special_char_count > len(rest) * 0.95:
+
+    # [FIX] Increased threshold to 0.98 to allow almost fully encrypted strings
+    # Some Base64 strings + parameters can be very dense in special chars.
+    if len(rest) > 20 and special_char_count > len(rest) * 0.98:
         return False
 
     # [Check] Double protocol
@@ -178,9 +186,25 @@ def extract_config_lines(
             elif not is_plausible_proxy_config(candidate):
                 reason = "implausible_format"
         else:
-            # Lines without '://' are dropped unless it's a known format handled elsewhere
-            # But here we expect URIs
-            reason = "missing_protocol_separator"
+            # [FIX] Lines without '://' are dropped, BUT we now check for IP:PORT format
+            # Support both IPv4 (strictly validated) and IPv6 (bracketed)
+
+            # IPv4: IP:PORT (e.g. 1.2.3.4:8080)
+            ipv4_pattern = r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}:\d{1,5}$"
+
+            # IPv6: [IP]:PORT (e.g. [2001:db8::1]:8080)
+            # Basic check for brackets and colon-port
+            ipv6_pattern = r"^\[[a-fA-F0-9:]+\]:\d{1,5}$"
+
+            if re.match(ipv4_pattern, candidate) or re.match(ipv6_pattern, candidate):
+                # Interpret bare IP:port as http proxy
+                # We prepend 'http://' to make it a valid URL for parsing
+                candidate = "http://" + candidate
+                # Re-validate with new format
+                if not is_plausible_proxy_config(candidate):
+                    reason = "implausible_format"
+            else:
+                reason = "missing_protocol_separator"
 
         if not reason:
             configs.append(candidate)

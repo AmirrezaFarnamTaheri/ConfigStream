@@ -50,11 +50,14 @@ except ImportError:
 
 # Minimal Proxy definition for typing
 class ProxyStub:
-    def __init__(self, country: str, lat: float, lon: float, protocol: str):
+    def __init__(
+        self, country: str, lat: float, lon: float, protocol: str, latency: float = 0.0
+    ):
         self.country = country
         self.lat = lat
         self.lon = lon
         self.protocol = protocol
+        self.latency = latency
 
 
 # Comprehensive country coordinates database (approximate center lat/lon)
@@ -329,6 +332,14 @@ def calculate_relay_score(
     # Base distance penalty
     distance_score = total_path + protocol_data["penalty_km"]
 
+    # Latency penalty (if available) - New optimization
+    # Add latency component to distance score (1ms ≈ 10km penalty equivalent roughly)
+    if relay.latency and relay.latency > 0:
+        distance_score += relay.latency * 10
+    else:
+        # Penalty for unknown latency
+        distance_score += 1000
+
     # Triangle inequality penalty (route efficiency)
     if total_path > 1.8 * direct_dist:
         distance_score += 2000  # Very inefficient route
@@ -345,6 +356,9 @@ def calculate_relay_score(
         # Prefer high-speed protocols
         speed_score = protocol_data["speed"]
         mode_penalty = (10 - speed_score) * 150
+        # Extra penalty for high latency in speed mode
+        if relay.latency and relay.latency > 200:
+            mode_penalty += int((relay.latency - 200) * 5)
     elif optimization_mode == "reliability":
         # Prefer reliable protocols
         reliability_score = protocol_data["reliability"]
@@ -682,11 +696,13 @@ def generate_smart_chains(
         # Use speed optimization mode
         if exit_node.country_code in COUNTRIES:
             exit_coords = COUNTRIES[exit_node.country_code]
+            # Use strict type casting for float arguments
             exit_stub = ProxyStub(
                 exit_node.country_code,
                 exit_coords[0],
                 exit_coords[1],
                 exit_node.protocol,
+                latency=float(exit_node.latency or 0.0),
             )
 
             # Build candidate stubs from fast relays
@@ -696,7 +712,11 @@ def generate_smart_chains(
                     coords = COUNTRIES[relay.country_code]
                     relay_stubs.append(
                         ProxyStub(
-                            relay.country_code, coords[0], coords[1], relay.protocol
+                            relay.country_code,
+                            coords[0],
+                            coords[1],
+                            relay.protocol,
+                            latency=float(relay.latency or 0.0),
                         )
                     )
 

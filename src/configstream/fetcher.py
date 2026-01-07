@@ -40,7 +40,12 @@ class Fetcher:
         # Use configured timeout
         timeout = getattr(self.settings, "SOURCE_FETCH_TIMEOUT", 30.0)
 
-        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+        # [AUDIT FIX] Add explicit connection limits to prevent resource exhaustion
+        limits = httpx.Limits(max_keepalive_connections=100, max_connections=500)
+
+        async with httpx.AsyncClient(
+            timeout=timeout, follow_redirects=True, limits=limits
+        ) as client:
             result = await fetch_from_source(
                 client=client, source=url, app_settings=self.settings
             )
