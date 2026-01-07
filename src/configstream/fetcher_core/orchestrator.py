@@ -49,9 +49,9 @@ async def fetch_from_source(
         host = parsed_url.netloc
         # Check for malformed raw.githubusercontent domains (e.g. user.raw.githubusercontent.com)
         if "raw.githubusercontent.com" in host and host != "raw.githubusercontent.com":
-             logger.warning(
-                 f"Suspicious hostname detected: {host}. This might be a malformed GitHub raw URL."
-             )
+            logger.warning(
+                f"Suspicious hostname detected: {host}. This might be a malformed GitHub raw URL."
+            )
     except Exception:
         pass
 
@@ -167,21 +167,18 @@ async def fetch_from_source(
                     if not text_content or not text_content.strip():
                         # Check Content-Length to see if it was explicitly empty
                         header_len = response.headers.get("Content-Length")
-                        if (
-                            header_len
-                            and header_len.strip() == "0"
-                        ):
-                             # Valid empty response
-                             pass
+                        if header_len and header_len.strip() == "0":
+                            # Valid empty response
+                            pass
                         elif not text_content:
-                             # Empty but maybe no content-length or implicitly empty
-                             # Log specific error but treat as valid 'no content' failure instead of retry loop if it persists?
-                             # Actually we should retry if we expect content but got none (network glitch?)
-                             # But usually empty body with 200 OK is final.
-                             # Let's count it as success=True but content="" so parser sees 0 proxies.
-                             pass
+                            # Empty but maybe no content-length or implicitly empty
+                            # Log specific error but treat as valid 'no content' failure instead of retry loop if it persists?
+                            # Actually we should retry if we expect content but got none (network glitch?)
+                            # But usually empty body with 200 OK is final.
+                            # Let's count it as success=True but content="" so parser sees 0 proxies.
+                            pass
                         else:
-                             pass
+                            pass
 
                 return FetchResult(
                     success=True,

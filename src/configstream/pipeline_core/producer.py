@@ -175,7 +175,8 @@ async def source_producer(
                         # Offload parsing to executor and handle stats
                         # [FIX] Pass source to _extract_config_lines using partial
                         lines, drop_stats = await loop.run_in_executor(
-                            None, partial(_extract_config_lines, res.content, source=source)
+                            None,
+                            partial(_extract_config_lines, res.content, source=source),
                         )
                         count = len(lines)
                         safe_source = SecurityValidator.sanitize_log_message(source)
