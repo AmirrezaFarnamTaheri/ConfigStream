@@ -954,4 +954,15 @@ class I18n {
 window.i18n = new I18n();
 document.addEventListener('DOMContentLoaded', () => {
     window.i18n.setLanguage(window.i18n.currentLang);
+
+    // Add event listeners for language selection buttons
+    const langButtons = document.querySelectorAll('.lang-select-btn');
+    langButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const lang = e.currentTarget.getAttribute('data-lang');
+            if (lang) {
+                window.i18n.setLanguage(lang);
+            }
+        });
+    });
 });
