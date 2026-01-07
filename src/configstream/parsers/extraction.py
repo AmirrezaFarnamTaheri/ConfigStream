@@ -187,14 +187,19 @@ def extract_config_lines(
                 reason = "implausible_format"
         else:
             # [FIX] Lines without '://' are dropped, BUT we now check for IP:PORT format
-            # Use a slightly stricter regex for IPv4 address validation (0-255 range)
-            # Matches IP:PORT where IP is valid IPv4 structure and Port is 1-5 digits
-            ip_port_pattern = r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}:\d{1,5}$"
-            if re.match(ip_port_pattern, candidate):
-                # Interpret bare IPv4:port as http proxy
+            # Support both IPv4 (strictly validated) and IPv6 (bracketed)
+
+            # IPv4: IP:PORT (e.g. 1.2.3.4:8080)
+            ipv4_pattern = r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}:\d{1,5}$"
+
+            # IPv6: [IP]:PORT (e.g. [2001:db8::1]:8080)
+            # Basic check for brackets and colon-port
+            ipv6_pattern = r"^\[[a-fA-F0-9:]+\]:\d{1,5}$"
+
+            if re.match(ipv4_pattern, candidate) or re.match(ipv6_pattern, candidate):
+                # Interpret bare IP:port as http proxy
                 # We prepend 'http://' to make it a valid URL for parsing
                 candidate = "http://" + candidate
-                # We could also support SOCKS5 if we knew, but HTTP is safer default for bare lists
                 # Re-validate with new format
                 if not is_plausible_proxy_config(candidate):
                     reason = "implausible_format"
