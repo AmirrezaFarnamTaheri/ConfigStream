@@ -61,7 +61,7 @@ def is_plausible_proxy_config(config: str) -> bool:
 
 
 def extract_config_lines(
-    payload: Any, max_lines: int = MAX_LINES_PER_SOURCE
+    payload: Any, max_lines: int = MAX_LINES_PER_SOURCE, source_url: str = ""
 ) -> Tuple[List[str], Dict[str, int]]:
     """
     Extract configuration lines with validation and limits.
@@ -104,8 +104,28 @@ def extract_config_lines(
         return [], {"empty_payload": 1}
 
     # Check for Clash/YAML or V2Ray JSON
-    if payload_str.strip().startswith("{"):
+    stripped_payload = payload_str.strip()
+    if stripped_payload.startswith("{"):
         return [payload_str], {}
+
+    # Check for JSON Array (List of configs)
+    if stripped_payload.startswith("["):
+        try:
+            import json
+            data = json.loads(stripped_payload)
+            if isinstance(data, list):
+                # If it's a list of strings, return them. If list of dicts, dump each.
+                extracted = []
+                for item in data:
+                    if isinstance(item, str):
+                        extracted.append(item)
+                    elif isinstance(item, dict):
+                        extracted.append(json.dumps(item))
+                if extracted:
+                    return extracted, {}
+        except Exception as e:
+            logger.debug(f"JSON array parse failed: {e}")
+            drop_stats["json_array_parse_error"] = 1
 
     # Try YAML (Clash)
     if "proxies:" in payload_str and (
@@ -199,7 +219,12 @@ def extract_config_lines(
             if re.match(ipv4_pattern, candidate) or re.match(ipv6_pattern, candidate):
                 # Interpret bare IP:port as http proxy
                 # We prepend 'http://' to make it a valid URL for parsing
-                candidate = "http://" + candidate
+                # Heuristic: If source name implies SOCKS, use socks5://
+                scheme = "http://"
+                if source_url and ("socks" in source_url.lower()):
+                    scheme = "socks5://"
+
+                candidate = scheme + candidate
                 # Re-validate with new format
                 if not is_plausible_proxy_config(candidate):
                     reason = "implausible_format"
@@ -215,14 +240,15 @@ def extract_config_lines(
 
     total_dropped = sum(drop_stats.values())
     if total_dropped > 0:
+        src_tag = f"[{source_url}] " if source_url else ""
         if len(configs) > 0:
             logger.info(
-                f"Parsed {len(configs)} configs. Dropped {total_dropped} lines. "
+                f"{src_tag}Parsed {len(configs)} configs. Dropped {total_dropped} lines. "
                 f"Reasons: {drop_stats}"
             )
         else:
             logger.debug(
-                f"All lines dropped. Reasons: {drop_stats}. Samples: {dropped_samples}"
+                f"{src_tag}All lines dropped. Reasons: {drop_stats}. Samples: {dropped_samples}"
             )
 
     return configs, drop_stats

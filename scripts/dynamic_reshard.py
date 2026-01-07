@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
 SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
-NUM_BATCHES = 10  # Target number of shards
+# NUM_BATCHES is now dynamic
 DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
 
 # Regex for Source Summary block in consumer.py
@@ -94,6 +94,11 @@ def main() -> None:
         print(f"❌ Sources directory '{SOURCES_DIR}' not found.")
         return
 
+    # Determine NUM_BATCHES dynamically by counting existing batch files
+    existing_batches_count = len(list(SOURCES_DIR.glob("batch_*.txt")))
+    num_batches = existing_batches_count if existing_batches_count > 0 else 10
+    print(f"ℹ️  Detected {num_batches} existing batch files. Using this as target shard count.")
+
     # 2. Backup
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     print(f"📦 Backing up sources to {BACKUP_DIR}...")
@@ -135,8 +140,8 @@ def main() -> None:
     final_sources.sort(key=lambda x: x[1], reverse=True)
 
     # 6. Greedy Bin Packing
-    batches: List[List[str]] = [[] for _ in range(NUM_BATCHES)]
-    batch_loads: List[int] = [0] * NUM_BATCHES
+    batches: List[List[str]] = [[] for _ in range(num_batches)]
+    batch_loads: List[int] = [0] * num_batches
 
     for url, weight in final_sources:
         # Find the batch with the current lowest load

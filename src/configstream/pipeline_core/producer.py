@@ -68,7 +68,9 @@ async def source_producer(
 
         # C. Handle Remote Sources
         remote_urls = []
-        for s in sources:
+        # Deduplicate sources
+        unique_sources = list(dict.fromkeys(sources))
+        for s in unique_sources:
             if s.startswith("http"):
                 remote_urls.append(s)
             elif s.startswith(
@@ -172,7 +174,7 @@ async def source_producer(
                     if res.success and res.content:
                         # Offload parsing to executor and handle stats
                         lines, drop_stats = await loop.run_in_executor(
-                            None, _extract_config_lines, res.content
+                            None, _extract_config_lines, res.content, 10000, source
                         )
                         count = len(lines)
                         safe_source = SecurityValidator.sanitize_log_message(source)

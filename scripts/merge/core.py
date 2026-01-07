@@ -187,6 +187,26 @@ async def merge_batches_async(
 
     # 3. Rankings
     logger.info("\n=== Step 1: Ranking and Renaming ===")
+    # Calculate health scores before ranking
+    from configstream.score import calculate_health_score
+    from configstream.test_cache import TestResultCache
+    from configstream.config import AppSettings
+
+    # Create a temporary cache object populated with merged data to look up history
+    # Note: TestResultCache usually loads from file, but we have merged_cache dict.
+    # We can patch it or use it directly if score.py supports dict.
+    # score.py expects an object with get_health_score(proxy).
+    # We'll instantiate a TestResultCache and manually set its internal data.
+
+    settings = AppSettings()
+    temp_cache = TestResultCache(cache_path=output_dir / "data" / "test_cache.json")
+    # Inject merged data directly
+    temp_cache.cache = merged_cache
+
+    logger.info("Calculating health scores for all proxies...")
+    for p in merged_proxies:
+        p.score = calculate_health_score(p, temp_cache, settings)
+
     ranked_proxies = rank_and_rename_proxies(merged_proxies)
     logger.info(f"Ranked {len(ranked_proxies)} proxies")
 

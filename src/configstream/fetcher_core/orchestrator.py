@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from typing import Any, TYPE_CHECKING
 import httpx
 from configstream.fetcher_core.models import FetchResult
+from configstream.config import AppSettings
 
 if TYPE_CHECKING:
     pass
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # Constants inferred from tests
-MAX_RESPONSE_SIZE = 10 * 1024 * 1024  # 10MB default?
+# MAX_RESPONSE_SIZE is now loaded from AppSettings
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
@@ -42,6 +43,30 @@ async def fetch_from_source(
         return FetchResult(
             success=False, source=source, content="", error="Invalid URL", status_code=0
         )
+
+    # URL Normalization (Fix common malformed GitHub URLs)
+    # Fix: Catch "user.raw.githubusercontent.com" which is invalid (should be raw.githubusercontent.com/user/...)
+    # or user.github.io
+    try:
+        parsed = urlparse(source)
+        if parsed.netloc.endswith(".raw.githubusercontent.com"):
+            # Likely a malformed URL where username is subdomain.
+            # We can't easily auto-fix to valid path without knowing structure,
+            # but we can try to guess or fail fast.
+            # Example: freevpnspy.raw.githubusercontent.com -> freevpnspy.github.io?
+            # Or raw.githubusercontent.com/freevpnspy/...?
+            # For now, we log a specific warning about the malformed URL.
+            logger.warning(
+                f"Potentially malformed GitHub URL: {source}. "
+                "raw.githubusercontent.com does not support subdomains. "
+                "Check if this should be 'raw.githubusercontent.com/USER/REPO/...' "
+                "or 'USER.github.io/REPO/...'."
+            )
+    except Exception:
+        pass
+
+    settings = app_settings or AppSettings()
+    max_size = settings.MAX_RESPONSE_SIZE
 
     # Circuit Breaker Check
     if breaker_manager:
@@ -120,7 +145,7 @@ async def fetch_from_source(
 
                 # Content Length Check
                 content_len = response.headers.get("Content-Length")
-                if content_len and int(content_len) > MAX_RESPONSE_SIZE:
+                if content_len and int(content_len) > max_size:
                     return FetchResult(
                         success=False,
                         source=source,
@@ -134,7 +159,7 @@ async def fetch_from_source(
                 content = b""
                 async for chunk in response.aiter_bytes():
                     content += chunk
-                    if len(content) > MAX_RESPONSE_SIZE:
+                    if len(content) > max_size:
                         return FetchResult(
                             success=False,
                             source=source,
@@ -152,14 +177,14 @@ async def fetch_from_source(
                 ):
                     # Treat explicit zero-length bodies as valid when Content-Length is 0.
                     header_len = response.headers.get("Content-Length")
-                    if (
-                        not header_len
-                        or header_len.strip() == ""
-                        or header_len.strip() == "0"
-                    ):
+                    if header_len and header_len.strip() == "0":
                         # Accept empty content if the server advertised zero bytes.
+                        logger.info(f"Source {source} returned explicit empty content (CL=0).")
                         pass
                     else:
+                        # Empty content but CL missing or != 0 -> likely a failure
+                        # Don't retry indefinitely, just fail this attempt
+                        # If we retry, we might hit same issue.
                         attempt += 1
                         last_error = "Empty content with 200 OK"
                         continue

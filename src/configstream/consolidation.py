@@ -40,7 +40,7 @@ def get_country_flag(country_code: str) -> str:
 
 def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
     """
-    Rank proxies by protocol based on latency and rename them.
+    Rank proxies by protocol based on score (higher is better) then latency (lower is better) and rename them.
     Format: PROTOCOL-RANK [COUNTRY_FLAG] ||| ORIGINAL_NAME
     """
     # Group proxies by protocol
@@ -48,12 +48,18 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
     for proxy in proxies:
         proxies_by_protocol[proxy.protocol].append(proxy)
 
-    # Sort each protocol group by latency (lower is better)
+    # Sort each protocol group
     ranked_proxies = []
     for protocol, protocol_proxies in proxies_by_protocol.items():
-        # Sort by latency (None values go to end)
+        # Sort by score (descending) then latency (ascending)
+        # Assuming proxy.score is available (populated in merge/core.py)
+        # If score not set, default to 0.
         protocol_proxies.sort(
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf"))
+            key=lambda p: (
+                -getattr(p, "score", 0),
+                p.latency is None,
+                p.latency if p.latency else float("inf"),
+            )
         )
 
         # Rename with rank
@@ -98,10 +104,14 @@ def select_top_configs(
     for proxy in ranked_proxies:
         proxies_by_protocol[proxy.protocol].append(proxy)
 
-    # Ensure sorting by latency for selection
+    # Ensure sorting by score/latency for selection
     for proto_list in proxies_by_protocol.values():
         proto_list.sort(
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf"))
+            key=lambda p: (
+                -getattr(p, "score", 0),
+                p.latency is None,
+                p.latency if p.latency else float("inf"),
+            )
         )
 
     # Select top N from each protocol
@@ -118,10 +128,14 @@ def select_top_configs(
 
     # If we haven't reached the limit, fill from overall ranking
     if len(selected) < total_limit:
-        # Sort all proxies by latency overall
+        # Sort all proxies by score/latency overall
         overall_ranked = sorted(
             ranked_proxies,
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf")),
+            key=lambda p: (
+                -getattr(p, "score", 0),
+                p.latency is None,
+                p.latency if p.latency else float("inf"),
+            ),
         )
 
         # Fill the gap
