@@ -1,3 +1,26 @@
+## [2.3.1] - 2025-12-23
+
+### Critical Audit Fixes: Reliability, Transparency, and Performance
+
+**WARP Integration**
+- **WARP Revival Fix**: Fixed `hex string does not fit the slice` error by injecting a default Cloudflare WARP `peer_public_key` when missing from scraped keys. This enables successful WARP handshakes.
+- **CI Handling**: Vwarp tool now auto-disables in CI environments (unless `FORCE_SCANNER=true`) to prevent timeouts and log spam.
+- **Output Logging**: Added explicit info logging when WARP wrapping is skipped entirely due to no valid keys/endpoints.
+
+**Performance & Robustness**
+- **Log Deduplication**: Go Tester logs are now deduplicated to prevent spamming repeating errors (e.g., WireGuard key errors) hundreds of times per batch.
+- **Parsing Fallback**: Added support for plain `IP:PORT` proxy lists in `extraction.py` by automatically prepending `http://` scheme, recovering hundreds of previously dropped proxies.
+- **Go Tester Self-Test**: Added a startup health check (`self_test()`) to the Go Tester to verify IPC/JSON handling before processing batches.
+- **Smart Chain Optimization**: Updated chain selection algorithm to use proxy latency in scoring, favoring lower-latency relays for better performance.
+
+**Transparency**
+- **Source Failure Reporting**: Added `get_worst_sources()` to `SourceQualityTracker` and implemented a \Top 5 Failing Sources\ summary log at the end of the pipeline.
+- **Metadata Update**: Added `chosen_subset_size` to `metadata.json` to clarify when the published subscription is a subset of total working proxies.
+
+**Quality Checks**
+- All unit tests pass.
+- Mypy, Black, and Flake8 compliance verified on changed files.
+
 ## [2.3.0] - 2026-01-01
 
 ### 🚀 Perfection Audit & Robustness

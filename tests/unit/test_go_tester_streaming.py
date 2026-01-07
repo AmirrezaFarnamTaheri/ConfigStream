@@ -40,9 +40,11 @@ async def test_go_tester_streaming():
         tester = GoBatchTester(binary_path="/bin/true")
         tester.available = True
 
-        # Start (implicit or explicit)
-        await tester.start()
-        assert tester._proc is not None
+        # Mock self_test to succeed since we are mocking process anyway
+        with patch.object(GoBatchTester, "self_test", new=AsyncMock(return_value=True)):
+            # Start (implicit or explicit)
+            await tester.start()
+            assert tester._proc is not None
 
         proxies = [
             Proxy(

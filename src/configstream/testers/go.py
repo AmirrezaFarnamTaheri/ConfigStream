@@ -1,10 +1,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import logging
-import os
 import orjson as json
 import shutil
 import uuid
+import time
+import os
 from pathlib import Path
 from typing import List, Dict, Any, Optional, cast
 
@@ -68,6 +69,11 @@ class GoBatchTester:
         self._heartbeat_task: Optional[asyncio.Task[None]] = None
         self._stopping = False
 
+        # Log deduplication state
+        self._recent_errors: Dict[str, int] = {}
+        self._last_log_flush = time.time()
+        self._log_lock = asyncio.Lock()  # Protect log state
+
         if not self.available:
             logger.error(
                 f"CRITICAL: Go batch tester binary not found (searched: {binary_path}, env: {env_path}, PATH). "
@@ -78,8 +84,70 @@ class GoBatchTester:
         """Start the long-lived tester process."""
         if self.available:
             await self._ensure_process()
+            # Run startup self-test
+            if not await self.self_test():
+                logger.error(
+                    "Go Tester failed startup self-test. Switching to Python fallback."
+                )
+                await self.close()
+                self.available = False
+                return
+
             # Start heartbeat loop
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+
+    async def self_test(self) -> bool:
+        """
+        Quick health check: sends a dummy (valid) config to verify JSON IPC.
+        """
+        if not self._proc:
+            return False
+
+        # Minimal dummy VLESS config
+        dummy_config = {
+            "type": "vless",
+            "tag": "selftest",
+            "server": "1.1.1.1",
+            "server_port": 443,
+            "uuid": "50000000-0000-0000-0000-000000000000",
+            "flow": "",
+            "tls": {"enabled": True, "server_name": "example.com"},
+            "packet_encoding": "xudp",
+        }
+
+        try:
+            # We construct a synthetic Proxy object wrapper or just send raw if test_custom_configs supported it better.
+            # But test_batch expects Proxy objects. Let's create a dummy Proxy.
+            # from ..models import Proxy
+            #
+            # p = Proxy(
+            #     protocol="vless",
+            #     config="vless://...",
+            #     uuid="self-test-uuid",
+            #     address="1.1.1.1",
+            #     port=443,
+            #     id="selftest",
+            # )
+            # The outbound converter needs real data to produce valid JSON
+            # Ideally we bypass conversion and test raw IPC if possible,
+            # but test_batch logic is tied to Proxy objects.
+            # Let's try test_custom_configs which takes raw dicts.
+
+            payload = {"id": "selftest-check", "outbounds": [dummy_config]}
+
+            # Use short timeout
+            result = await asyncio.wait_for(
+                self.test_custom_configs([payload]), timeout=5.0
+            )
+
+            # We expect a result (True or False), just not an exception or empty
+            return "selftest-check" in result
+
+        except Exception as e:
+            logger.warning(f"Go Tester self-test failed: {e}")
+            # If self-test fails due to timeout or other reasons, we might still want to proceed
+            # if we are in a flaky environment, but generally failure here means IPC is broken.
+            return False
 
     async def _restart_daemon(self) -> None:
         """Force restart of the daemon process."""
@@ -105,6 +173,10 @@ class GoBatchTester:
 
                 if needs_restart:
                     await self._ensure_process()
+
+                # Periodically flush error summary if any pending
+                await self._flush_error_logs()
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -267,6 +339,17 @@ class GoBatchTester:
             if not self._stopping:
                 logger.warning("Go Tester stdout closed (process died?)")
 
+    async def _flush_error_logs(self) -> None:
+        """Flush accumulated error logs."""
+        async with self._log_lock:
+            for error_msg, count in self._recent_errors.items():
+                if count > 0:
+                    logger.warning(
+                        f"Go Tester Error (repeated {count} times): {error_msg}"
+                    )
+            self._recent_errors.clear()
+            self._last_log_flush = time.time()
+
     async def _read_stderr_loop(self) -> None:
         """Background task to read logs from stderr."""
         try:
@@ -283,7 +366,35 @@ class GoBatchTester:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug(f"Go Tester: {text}")
                     elif "error" in lower:
-                        logger.warning(f"Go Tester: {text}")
+                        # [FIX] Deduplicate repeating errors (specifically peer key errors)
+                        if (
+                            "failed to get peer by public key" in text
+                            or "wireguard" in text
+                        ):
+                            async with self._log_lock:
+                                # Simplify error message for aggregation key
+                                # E.g. "failed to get peer by public key: hex string does not fit the slice"
+                                if "failed to get peer by public key" in text:
+                                    key = "WireGuard: failed to get peer by public key"
+                                else:
+                                    key = text[:50] + "..."  # Truncate for key
+
+                                self._recent_errors[key] = (
+                                    self._recent_errors.get(key, 0) + 1
+                                )
+
+                                # Flush periodically
+                                if time.time() - self._last_log_flush > 5:
+                                    # Release lock briefly to flush (actually _flush acquires lock, so careful reentrancy)
+                                    # We are inside lock, cannot call _flush directly if it acquires lock
+                                    pass
+
+                            # Check flush outside lock to avoid deadlock if we refactor logging
+                            if time.time() - self._last_log_flush > 5:
+                                await self._flush_error_logs()
+                        else:
+                            # Standard logging for other errors
+                            logger.warning(f"Go Tester: {text}")
         except asyncio.CancelledError:
             pass
         except Exception:
@@ -368,11 +479,11 @@ class GoBatchTester:
                     f.set_exception(e)
 
             # Mark all proxies in this batch as failed due to daemon crash
-            for p in req_id_map.values():
-                if p.is_working is None:  # Only if not already processed
-                    p.is_working = False
-                    p.details["error"] = "DAEMON_CRASHED"
-                    p.details["failure_category"] = "CRASH"
+            for proxy_obj in req_id_map.values():
+                if proxy_obj.is_working is None:  # Only if not already processed
+                    proxy_obj.is_working = False
+                    proxy_obj.details["error"] = "DAEMON_CRASHED"
+                    proxy_obj.details["failure_category"] = "CRASH"
 
             # Process might be dead, ensure restart next time
             await self.close()
@@ -421,10 +532,11 @@ class GoBatchTester:
                 for req_id in keys_to_remove:
                     self._pending_futures.pop(req_id, None)
             for req_id in keys_to_remove:
-                if proxy_obj := req_id_map.get(req_id):
-                    proxy_obj.is_working = False
-                    proxy_obj.details["error"] = "BATCH_TIMEOUT"
-                    proxy_obj.details["failure_category"] = "TIMEOUT"
+                po = req_id_map.get(req_id)
+                if po:
+                    po.is_working = False
+                    po.details["error"] = "BATCH_TIMEOUT"
+                    po.details["failure_category"] = "TIMEOUT"
             # Cancel futures after cleanup
             for f in futures:
                 if not f.done():
@@ -449,13 +561,20 @@ class GoBatchTester:
             # Rename to avoid shadowing the variable 'proxy_obj' from the cleanup loop (if it leaked)
             # although python loop variables leak, but 'proxy_obj' in cleanup was inside the loop scope
             # and this is outside. But to be safe and satisfy linter:
-            target_proxy: Optional[Proxy] = req_id_map.get(req_id)
-            if not target_proxy:
+            # Explicitly type cast the result of get()
+            tp = req_id_map.get(req_id)
+            if tp is None:
                 continue
+            target_proxy: Proxy = tp
 
             if res_data.get("is_working"):
                 target_proxy.is_working = True
-                target_proxy.latency = res_data.get("latency")
+                # Cast to float or None to satisfy type checker
+                lat = res_data.get("latency")
+                if lat is not None:
+                    target_proxy.latency = float(lat)
+                else:
+                    target_proxy.latency = None
                 working_count += 1
                 if res_data.get("issues"):
                     for issue in res_data["issues"]:
@@ -497,6 +616,9 @@ class GoBatchTester:
             f"Go Tester results (Batch): {working_count}/{len(inputs)} working. "
             f"Failures: {failure_summary if failure_summary else 'None'}"
         )
+
+        # Flush logs after batch
+        await self._flush_error_logs()
 
         return proxies
 

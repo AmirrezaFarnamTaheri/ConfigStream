@@ -115,7 +115,9 @@ async def processing_consumer(
                         if p:
                             p.details["_source"] = src
                             result.append(p)
-                    except Exception:
+                    except Exception as e:
+                        # [FIX] Log parse exceptions at debug level
+                        logger.debug(f"Parse error for source {src} (line {i}): {e}")
                         pass
             except Exception:
                 pass

@@ -64,6 +64,12 @@ async def generate_pipeline_outputs(
     # Update stats with washing results
     stats.washer_success_count = len(washed_ids)
 
+    # [FIX] Explicit logging if no chains were created despite having working proxies
+    if not washed_outbounds and optimized_proxies:
+        logger.info(
+            "WARP wrap skipped for all proxies (no valid WARP endpoints or keys found)."
+        )
+
     # 3. Smart Chains (The Topology Router)
     # Generates complex chains (Intranet, IPv6, Streamer).
     # We pass the 'washer' instance so it can borrow the Clean IPs and Keys

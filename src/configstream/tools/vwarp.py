@@ -4,6 +4,7 @@ import shutil
 import logging
 import json
 import time
+import os
 from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
 
@@ -38,6 +39,18 @@ class VwarpTool:
 
     async def is_available(self) -> bool:
         """Quick health check."""
+        # CI Check: Disable unless forced
+        is_ci = os.environ.get("CI") == "true"
+
+        # Lazy import to avoid circular dependency
+        from configstream.config import AppSettings
+
+        force_scanner = AppSettings().FORCE_SCANNER
+
+        if is_ci and not force_scanner:
+            logger.debug("Vwarp disabled in CI environment (FORCE_SCANNER not set).")
+            return False
+
         if shutil.which("vwarp"):
             return True
         if self.binary and Path(self.binary).exists():
@@ -179,32 +192,68 @@ class VwarpTool:
         cmd = [self.binary, "--bind", f"{bind_addr}:{port}"]
         try:
             logger.info(f"🚀 Starting Vwarp SOCKS5 Tunnel on {bind_addr}:{port}...")
+            # Capture stdout/stderr for debugging if it fails
             self._tunnel_proc = await asyncio.create_subprocess_exec(
                 *cmd,
-                stdout=asyncio.subprocess.DEVNULL,
-                stderr=asyncio.subprocess.DEVNULL,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
 
             # Robust port checking
             is_ready = await self._wait_for_port(bind_addr, port)
             if not is_ready:
-                logger.error(
-                    "Vwarp Tunnel started but port check timed out. Killing process."
-                )
-                if self._tunnel_proc:
+                logger.error("Vwarp Tunnel started but port check timed out.")
+
+                # Check for immediate exit and logs
+                if self._tunnel_proc.returncode is not None:
+                    stdout, stderr = await self._tunnel_proc.communicate()
+                    if stdout:
+                        logger.debug(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
+                    if stderr:
+                        logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                else:
+                    # Kill and read logs
                     try:
-                        self._tunnel_proc.kill()
-                    except ProcessLookupError:
-                        pass
-                    self._tunnel_proc = None
+                        self._tunnel_proc.terminate()
+                        # Allow brief time for logs to flush
+                        try:
+                            stdout, stderr = await asyncio.wait_for(
+                                self._tunnel_proc.communicate(), timeout=1.0
+                            )
+                            if stderr:
+                                logger.error(
+                                    f"Vwarp stderr before kill: {stderr.decode(errors='ignore')}"
+                                )
+                        except asyncio.TimeoutError:
+                            self._tunnel_proc.kill()
+                    except Exception as e:
+                        logger.debug(f"Error killing hung vwarp: {e}")
+
+                self._tunnel_proc = None
                 return False
 
+            # Check if it died immediately after port check success (rare but possible)
             if self._tunnel_proc.returncode is not None:
                 logger.error(
                     f"Vwarp tunnel exited immediately with code {self._tunnel_proc.returncode}"
                 )
                 self._tunnel_proc = None
                 return False
+
+            # Start background task to consume logs so buffer doesn't fill up
+            # We don't really need the logs unless it crashes, but we must consume pipe
+            async def consume_stream(stream, level):
+                while stream and not stream.at_eof():
+                    line = await stream.readline()
+                    if line:
+                        logger.log(
+                            level, f"Vwarp: {line.decode(errors='ignore').strip()}"
+                        )
+
+            asyncio.create_task(consume_stream(self._tunnel_proc.stdout, logging.DEBUG))
+            asyncio.create_task(
+                consume_stream(self._tunnel_proc.stderr, logging.WARNING)
+            )
 
             return True
         except Exception as e:
