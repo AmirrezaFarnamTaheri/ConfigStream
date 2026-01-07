@@ -10,8 +10,18 @@ from typing import Dict, List, Tuple
 LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
 SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
-NUM_BATCHES = 10  # Target number of shards
 DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
+
+# [FIX] Determine NUM_BATCHES dynamically
+try:
+    if SOURCES_DIR.exists():
+        existing_batch_files = list(SOURCES_DIR.glob("batch_*.txt"))
+        NUM_BATCHES = max(len(existing_batch_files), 10) # At least 10, or current count
+    else:
+        NUM_BATCHES = 10
+except Exception:
+    NUM_BATCHES = 10
+
 
 # Regex for Source Summary block in consumer.py
 # Source Summary [URL]: Raw=123 ... Fetch=500ms Dur=1500ms
@@ -158,7 +168,7 @@ def main() -> None:
         min_load = 0
 
     # 8. Write Output
-    print("\n⚖️  Optimized Batch Distribution (Time-Based):")
+    print(f"\n⚖️  Optimized Batch Distribution (Time-Based) across {NUM_BATCHES} batches:")
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
 

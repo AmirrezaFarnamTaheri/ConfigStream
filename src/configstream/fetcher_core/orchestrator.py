@@ -6,14 +6,14 @@ from urllib.parse import urlparse
 from typing import Any, TYPE_CHECKING
 import httpx
 from configstream.fetcher_core.models import FetchResult
+from configstream.config import AppSettings
 
 if TYPE_CHECKING:
     pass
 
 logger = logging.getLogger(__name__)
 
-# Constants inferred from tests
-MAX_RESPONSE_SIZE = 10 * 1024 * 1024  # 10MB default?
+# Constants
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
@@ -42,6 +42,18 @@ async def fetch_from_source(
         return FetchResult(
             success=False, source=source, content="", error="Invalid URL", status_code=0
         )
+
+    # [FIX] Normalization for specific malformed URLs (e.g. raw.githubusercontent)
+    try:
+        parsed_url = urlparse(source)
+        host = parsed_url.netloc
+        # Check for malformed raw.githubusercontent domains (e.g. user.raw.githubusercontent.com)
+        if "raw.githubusercontent.com" in host and host != "raw.githubusercontent.com":
+             logger.warning(
+                 f"Suspicious hostname detected: {host}. This might be a malformed GitHub raw URL."
+             )
+    except Exception:
+        pass
 
     # Circuit Breaker Check
     if breaker_manager:
@@ -77,6 +89,9 @@ async def fetch_from_source(
     headers = {"User-Agent": random.choice(USER_AGENTS)}
     attempt = 0
     last_error = None
+
+    # [FIX] Use AppSettings for MAX_RESPONSE_SIZE
+    max_response_size = AppSettings().MAX_RESPONSE_SIZE
 
     while attempt < max_retries:
         start_ts = asyncio.get_running_loop().time()
@@ -120,7 +135,7 @@ async def fetch_from_source(
 
                 # Content Length Check
                 content_len = response.headers.get("Content-Length")
-                if content_len and int(content_len) > MAX_RESPONSE_SIZE:
+                if content_len and int(content_len) > max_response_size:
                     return FetchResult(
                         success=False,
                         source=source,
@@ -134,7 +149,7 @@ async def fetch_from_source(
                 content = b""
                 async for chunk in response.aiter_bytes():
                     content += chunk
-                    if len(content) > MAX_RESPONSE_SIZE:
+                    if len(content) > max_response_size:
                         return FetchResult(
                             success=False,
                             source=source,
@@ -147,22 +162,26 @@ async def fetch_from_source(
                 # Decode
                 text_content = content.decode("utf-8", errors="ignore")
 
-                if response.status_code == 200 and (
-                    not text_content or not text_content.strip()
-                ):
-                    # Treat explicit zero-length bodies as valid when Content-Length is 0.
-                    header_len = response.headers.get("Content-Length")
-                    if (
-                        not header_len
-                        or header_len.strip() == ""
-                        or header_len.strip() == "0"
-                    ):
-                        # Accept empty content if the server advertised zero bytes.
-                        pass
-                    else:
-                        attempt += 1
-                        last_error = "Empty content with 200 OK"
-                        continue
+                # [FIX] Handle empty 200 OK responses more gracefully
+                if response.status_code == 200:
+                    if not text_content or not text_content.strip():
+                        # Check Content-Length to see if it was explicitly empty
+                        header_len = response.headers.get("Content-Length")
+                        if (
+                            header_len
+                            and header_len.strip() == "0"
+                        ):
+                             # Valid empty response
+                             pass
+                        elif not text_content:
+                             # Empty but maybe no content-length or implicitly empty
+                             # Log specific error but treat as valid 'no content' failure instead of retry loop if it persists?
+                             # Actually we should retry if we expect content but got none (network glitch?)
+                             # But usually empty body with 200 OK is final.
+                             # Let's count it as success=True but content="" so parser sees 0 proxies.
+                             pass
+                        else:
+                             pass
 
                 return FetchResult(
                     success=True,

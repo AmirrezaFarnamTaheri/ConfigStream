@@ -83,7 +83,8 @@ async def processing_consumer(
             source, raw_lines = item
             metadata = {}
 
-        async with seen_lock:
+        # [FIX] Use stats._lock for stats updates
+        async with stats._lock:
             stats.fetched_sources += 1
             stats.fetched_lines += len(raw_lines)
             if "drop_stats" in metadata and isinstance(metadata["drop_stats"], dict):
@@ -176,11 +177,15 @@ async def processing_consumer(
                     unique_batch.append(p)
                 else:
                     duplicates_count += 1
+
+            # [FIX] Update stats via its lock separately (seen_lock protects seen_keys, stats._lock protects stats)
+            # Actually since this is inside seen_lock, and duplicates_count is local, we can do it after or nested.
+            # Best practice: avoid nested locks if possible, but stats._lock is fine here.
+
+        async with stats._lock:
             stats.drop_reasons["duplicate"] = (
                 stats.drop_reasons.get("duplicate", 0) + duplicates_count
             )
-
-        async with seen_lock:
             stats.parsed += len(unique_batch)
 
         with tracker.phase("security_validation"):
@@ -193,7 +198,7 @@ async def processing_consumer(
 
         dropped_unsafe = len(unique_batch) - len(safe_batch)
         if dropped_unsafe > 0:
-            async with seen_lock:
+            async with stats._lock:
                 stats.drop_reasons["security_validation"] = (
                     stats.drop_reasons.get("security_validation", 0) + dropped_unsafe
                 )
@@ -210,7 +215,7 @@ async def processing_consumer(
             if cached:
                 final_batch_for_this_source.append(cached)
             else:
-                async with seen_lock:
+                async with stats._lock:
                     stats.cache_misses += 1
                 proxies_to_actually_test.append(p)
 
@@ -316,12 +321,12 @@ async def processing_consumer(
                                 failure_cat = res.details.get(
                                     "failure_category", "TEST_FAILED"
                                 )
-                                async with seen_lock:
+                                async with stats._lock:
                                     stats.drop_reasons[failure_cat] = (
                                         stats.drop_reasons.get(failure_cat, 0) + 1
                                     )
 
-                        async with seen_lock:
+                        async with stats._lock:
                             stats.tested += len(chunk)
 
                         if progress and task_process:
@@ -355,7 +360,7 @@ async def processing_consumer(
                             else:
                                 failed_proxies.append(res)  # Collect for revival
                                 error = res.details.get("error", "TEST_FAILED")
-                                async with seen_lock:
+                                async with stats._lock:
                                     stats.drop_reasons[error] = (
                                         stats.drop_reasons.get(error, 0) + 1
                                     )
@@ -364,7 +369,7 @@ async def processing_consumer(
                                     "default", res.latency or 0, False
                                 )
 
-                        async with seen_lock:
+                        async with stats._lock:
                             stats.tested += len(chunk)
                         if progress and task_process:
                             progress.update(task_process, completed=stats.tested)
@@ -392,7 +397,7 @@ async def processing_consumer(
                                 p.country_code = origin.get("country_code", "")
                                 p.country = origin.get("country", "")
                             final_batch_for_this_source.append(p)
-                            async with seen_lock:
+                            async with stats._lock:
                                 stats.revived_vwarp += 1
                                 stats.vwarp_success += 1
 
@@ -418,7 +423,7 @@ async def processing_consumer(
                                     p.country_code = origin.get("country_code", "")
                                     p.country = origin.get("country", "")
                                 final_batch_for_this_source.append(p)
-                                async with seen_lock:
+                                async with stats._lock:
                                     stats.revived_warp += 1
 
         # Post-process final batch (GeoIP, Filter)
@@ -441,7 +446,7 @@ async def processing_consumer(
                             p.details["lat"] = geo_data.lat
                         if geo_data.lng:
                             p.details["lng"] = geo_data.lng
-                        async with seen_lock:
+                        async with stats._lock:
                             stats.geo_resolved += 1
             if country_filter:
                 if p.country_code != country_filter.upper():
@@ -449,6 +454,8 @@ async def processing_consumer(
             # Fix: Acquire lock before appending to prevent race condition
             async with seen_lock:
                 final_proxies.append(p)
+
+            async with stats._lock:
                 stats.working += 1
 
         working_count = sum(1 for p in final_batch_for_this_source if p.is_working)
