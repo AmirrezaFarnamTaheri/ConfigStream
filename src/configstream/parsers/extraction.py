@@ -33,14 +33,21 @@ def is_plausible_proxy_config(config: str) -> bool:
     if "://" not in config:
         return False
     protocol, rest = config.split("://", 1)
-    if len(protocol) > 20 or len(rest) < 4:
+    if not protocol or len(protocol) > 20 or len(rest) < 4:
         return False
 
     # Relax noise check (allowed up to 85% special chars for base64 heavy VLESS)
+    # Modern protocols like VLESS/Trojan with huge Base64 payloads can look very "noisy"
+    # We increase tolerance to nearly 100% or just check against truly invalid control chars
+    # instead of ratio. But keeping a loose ratio check prevents binary garbage.
+    # Expanded allowed chars to include more URI safe chars.
     special_char_count = sum(
-        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]"
+        1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]!*'|$"
     )
-    if special_char_count > len(rest) * 0.95:
+
+    # [FIX] Increased threshold to 0.98 to allow almost fully encrypted strings
+    # Some Base64 strings + parameters can be very dense in special chars.
+    if len(rest) > 20 and special_char_count > len(rest) * 0.98:
         return False
 
     # [Check] Double protocol
@@ -180,9 +187,10 @@ def extract_config_lines(
                 reason = "implausible_format"
         else:
             # [FIX] Lines without '://' are dropped, BUT we now check for IP:PORT format
-            # Use regex to match simple IP:PORT patterns (IPv4)
-            # Example: 192.168.1.1:8080
-            if re.match(r"^\d{1,3}(\.\d{1,3}){3}:\d+$", candidate):
+            # Use a slightly stricter regex for IPv4 address validation (0-255 range)
+            # Matches IP:PORT where IP is valid IPv4 structure and Port is 1-5 digits
+            ip_port_pattern = r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}:\d{1,5}$"
+            if re.match(ip_port_pattern, candidate):
                 # Interpret bare IPv4:port as http proxy
                 # We prepend 'http://' to make it a valid URL for parsing
                 candidate = "http://" + candidate
