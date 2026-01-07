@@ -11,9 +11,9 @@
 ### Extensive Backend Audit & Source Expansion (Batch 12 Redistribution)
 
 **Major Enhancements**
-- **Source Expansion**: Added ~62 new high-quality proxy sources (extracted from a curated list of 100+ items) into the pipeline.
+- **Source Expansion**: Added ~100 new proxy sources (URLs/APIs) and redistributed them evenly into 11 batches (800+ total unique sources).
 - **Dynamic Resharding**: Created and executed `scripts/redistribute_sources.py` to:
-    - Collect all sources from `batch_1.txt` through `batch_12.txt`.
+    - Collect all sources from `batch_1.txt` through `batch_12.txt` (and new sources).
     - Deduplicate and balance them evenly into 11 optimized batches (`batch_1` to `batch_11`).
     - Remove the temporary `batch_12.txt`.
 - **Fetcher Robustness**:
@@ -24,12 +24,14 @@
     - Updated `extraction.py` to support JSON arrays (e.g., `["vmess://..."]`) and YAML files detected by extension.
     - **Critical SOCKS Fix**: Fixed a bug where plain `IP:port` lists from SOCKS sources were being tested as HTTP. The parser now infers `socks5://` or `socks4://` scheme from the source filename context.
 - **Scoring & Ranking**:
-    - Integrated `calculate_health_score` (reliability + latency + uptime) into the consolidation logic.
+    - Integrated `calculate_health_score` (reliability + latency + uptime) into `consolidation.py` and `sorter.py`.
     - Updated `rank_and_rename_proxies` to include country flags in remarks (e.g., `VMESS-1 [🇺🇸]`).
     - Updated stale proxy penalty calculation (2.0x latency multiplier).
 - **Concurrency & Thread Safety**:
     - Added explicit async locks in `consumer.py` to ensure thread-safe updates to `PipelineStats` drop reasons.
     - Updated `output_handler.py` to reuse `Washer` instances, preventing redundant initialization logs.
+- **Intelligence**:
+    - Updated `washer/core.py` to allow dynamic loading of WARP peer keys from `AppSettings`.
 
 **Test Suite & Quality**
 - **Verification**: Ran full `pytest` suite (700 tests passed).

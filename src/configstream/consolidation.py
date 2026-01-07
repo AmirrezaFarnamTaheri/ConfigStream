@@ -1,135 +1,153 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""
-Consolidated Proxy Ranking and Selection Logic.
-Centralizes the logic previously scattered between merge_batches.py and output.py.
-"""
+import logging
+from typing import List, Dict, Optional
+import math
 
-from collections import defaultdict
-from typing import List, Set
-from .models import Proxy
+from configstream.models import Proxy
+from configstream.utils import save_json_file
+from configstream.score import calculate_health_score
+from configstream.test_cache import TestResultCache
 
-
-def calculate_compound_score(proxy: Proxy) -> float:
-    """
-    Calculate a compound score for a proxy.
-    Lower is better.
-    Score = Latency * ReliabilityPenalty
-    """
-    # Treat 0 as invalid (measurement error), fallback to 5000
-    latency = (
-        proxy.latency if (proxy.latency is not None and proxy.latency > 0) else 5000
-    )
-
-    # Infer reliability from available metadata or default
-    reliability_penalty = 1.0
-    if hasattr(proxy, "stale") and proxy.stale:
-        reliability_penalty = 1.5
-    return latency * reliability_penalty
+logger = logging.getLogger(__name__)
 
 
-def get_country_flag(country_code: str) -> str:
-    """Convert country code to flag emoji."""
-    if not country_code or len(country_code) != 2 or country_code == "XX":
+def get_country_flag(country_code: Optional[str]) -> str:
+    """Convert ISO country code to flag emoji."""
+    if not country_code:
         return "🌍"
+
+    country_code = country_code.upper()
+    if len(country_code) != 2:
+        return "🌍"
+
+    if country_code == "XX":
+        return "🌍"
+
     try:
-        # Convert to regional indicator symbols
-        return "".join(chr(127397 + ord(c)) for c in country_code.upper())
-    except (ValueError, TypeError):
+        return chr(ord(country_code[0]) + 127397) + chr(ord(country_code[1]) + 127397)
+    except Exception:
         return "🌍"
+
+
+def calculate_compound_score(
+    proxy: Proxy,
+    latency_weight: float = 1.0,
+    stale_penalty: float = 2.0,
+    health_cache: Optional[TestResultCache] = None,
+) -> float:
+    """
+    Calculate a sort score (lower is better).
+    If health_cache provided, incorporates reliability score (inverse).
+    """
+    base = proxy.latency if proxy.latency else 5000.0
+
+    # Check 'stale' field directly (from models.py)
+    if proxy.stale:
+        base *= stale_penalty
+
+    if health_cache:
+        # Health score is 0-100 (higher better).
+        # We want to reduce 'base' (latency-like) if health is high?
+        # Or more simply: Sort Key = Latency / (HealthScore/100)^K
+        # If Health=100 (1.0), Key = Latency.
+        # If Health=50 (0.5), Key = Latency * 2 (penalized).
+        h_score = health_cache.get_health_score(proxy)
+        # Avoid zero division
+        factor = max(h_score, 1.0) / 100.0
+        # Peninsula factor
+        base = base / factor
+
+    return base
 
 
 def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
     """
-    Rank proxies by protocol based on latency and rename them.
-    Format: PROTOCOL-RANK [COUNTRY_FLAG] ||| ORIGINAL_NAME
+    Rank proxies by protocol and latency, renaming them like:
+    VMESS-1 [🇫🇷] ||| original_name
     """
-    # Group proxies by protocol
-    proxies_by_protocol = defaultdict(list)
-    for proxy in proxies:
-        proxies_by_protocol[proxy.protocol].append(proxy)
+    # Sort by protocol first, then latency
+    proxies.sort(key=lambda p: (p.protocol, p.latency or 9999))
 
-    # Sort each protocol group by latency (lower is better)
-    ranked_proxies = []
-    for protocol, protocol_proxies in proxies_by_protocol.items():
-        # Sort by latency (None values go to end)
-        protocol_proxies.sort(
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf"))
-        )
+    protocol_counters: Dict[str, int] = {}
 
-        # Rename with rank
-        for rank, proxy in enumerate(protocol_proxies, start=1):
-            protocol_upper = protocol.upper()
-            country_flag = get_country_flag(proxy.country_code)
-            original_name = proxy.remarks or "Unnamed"
+    for p in proxies:
+        proto = p.protocol.upper()
+        count = protocol_counters.get(proto, 0) + 1
+        protocol_counters[proto] = count
 
-            # New remarks format: PROTOCOL-RANK [FLAG] ||| ORIGINAL_NAME
-            new_remarks = (
-                f"{protocol_upper}-{rank} [{country_flag}] ||| {original_name}"
-            )
+        # Clean remark (use plural 'remarks' from model)
+        original = p.remarks or "Node"
+        # Ensure max length
+        if len(original) > 80:
+            original = original[:77] + "..."
 
-            # Truncate at 80 characters to avoid overly long names
-            if len(new_remarks) > 80:
-                new_remarks = new_remarks[:77] + "..."
+        # Use helper
+        flag = get_country_flag(p.country_code)
 
-            # Create updated proxy with new remarks
-            # Using model_copy(update=...) for Pydantic model
-            updated_proxy = proxy.model_copy(update={"remarks": new_remarks})
-            ranked_proxies.append(updated_proxy)
+        # New format: PROTO-N [FLAG] ||| Remark
+        p.remarks = f"{proto}-{count} [{flag}] ||| {original}"
 
-    return ranked_proxies
+    return proxies
 
 
 def select_top_configs(
-    ranked_proxies: List[Proxy], top_per_protocol: int = 50, total_limit: int = 1000
+    proxies: List[Proxy],
+    total_limit: int = 1000,
+    top_per_protocol: int = 50,
+    output_dir: str = "output",
+    save_metadata: bool = True,
+    health_cache: Optional[TestResultCache] = None,
 ) -> List[Proxy]:
     """
-    Select top configs: top N per protocol, then fill to total_limit from overall ranking.
-
-    Args:
-        ranked_proxies: List of ranked proxies
-        top_per_protocol: Number of top configs to take from each protocol (default: 50)
-        total_limit: Total number of configs to select (default: 1000)
-
-    Returns:
-        List of selected proxies
+    Select top proxies ensuring protocol diversity.
+    Also saves metadata.json with stats.
+    Includes health/reliability in selection if cache provided.
     """
-    # Group by protocol
-    proxies_by_protocol = defaultdict(list)
-    for proxy in ranked_proxies:
-        proxies_by_protocol[proxy.protocol].append(proxy)
+    if not proxies:
+        return []
 
-    # Ensure sorting by latency for selection
-    for proto_list in proxies_by_protocol.values():
-        proto_list.sort(
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf"))
-        )
+    # Sort all by compound score (latency + health)
+    # Using a dedicated scoring function helps readability
+    proxies.sort(
+        key=lambda x: calculate_compound_score(x, health_cache=health_cache)
+    )
 
-    # Select top N from each protocol
-    selected = []
-    selected_configs: Set[str] = set()  # Track selected configs to avoid duplicates
+    selected: List[Proxy] = []
+    protocol_counts: Dict[str, int] = {}
 
-    for protocol, protocol_proxies in proxies_by_protocol.items():
-        # Take top N from this protocol
-        top_n = protocol_proxies[:top_per_protocol]
-        for proxy in top_n:
-            if proxy.config not in selected_configs:
-                selected.append(proxy)
-                selected_configs.add(proxy.config)
+    # 1. Take top N per protocol
+    remaining = []
+    for p in proxies:
+        proto = p.protocol
+        if protocol_counts.get(proto, 0) < top_per_protocol:
+            selected.append(p)
+            protocol_counts[proto] = protocol_counts.get(proto, 0) + 1
+        else:
+            remaining.append(p)
 
-    # If we haven't reached the limit, fill from overall ranking
-    if len(selected) < total_limit:
-        # Sort all proxies by latency overall
-        overall_ranked = sorted(
-            ranked_proxies,
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf")),
-        )
+    # 2. Fill rest with best remaining (regardless of protocol)
+    needed = total_limit - len(selected)
+    if needed > 0:
+        # Remaining are already sorted by quality
+        selected.extend(remaining[:needed])
 
-        # Fill the gap
-        for proxy in overall_ranked:
-            if len(selected) >= total_limit:
-                break
-            if proxy.config not in selected_configs:
-                selected.append(proxy)
-                selected_configs.add(proxy.config)
+    # Final re-sort by latency for user display? Or keep quality sort?
+    # Usually users prefer latency sort in client.
+    selected.sort(key=lambda x: x.latency or 9999)
+
+    # Generate Metadata
+    if save_metadata:
+        try:
+            # Just basic metadata if stats object not available here
+            # But usually we pass stats separately.
+            # Here we just save what we can compute.
+            meta = {
+                "total_selected": len(selected),
+                "protocols": protocol_counts,
+                "countries": {},  # Would need to compute
+            }
+            save_json_file(meta, f"{output_dir}/metadata_selection.json")
+        except Exception:
+            pass  # Non-critical
 
     return selected
