@@ -6,14 +6,20 @@ from urllib.parse import urlparse
 from typing import Any, TYPE_CHECKING
 import httpx
 from configstream.fetcher_core.models import FetchResult
+from configstream.config import AppSettings
 
 if TYPE_CHECKING:
     pass
 
 logger = logging.getLogger(__name__)
 
-# Constants inferred from tests
-MAX_RESPONSE_SIZE = 10 * 1024 * 1024  # 10MB default?
+# Use AppSettings if available, otherwise default
+MAX_RESPONSE_SIZE = (
+    AppSettings.MAX_RESPONSE_SIZE
+    if hasattr(AppSettings, "MAX_RESPONSE_SIZE")
+    else 10 * 1024 * 1024
+)
+
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
@@ -42,6 +48,25 @@ async def fetch_from_source(
         return FetchResult(
             success=False, source=source, content="", error="Invalid URL", status_code=0
         )
+
+    # Sanitize malformed raw.githubusercontent URLs
+    if "raw.githubusercontent" in source and "github.com" not in source:
+        # Check if it has a valid structure like user/repo/branch/file
+        # Often users might copy malformed links.
+        # But specifically, the log showed "freevpnspy.raw.githubusercontent.com" which is invalid hostname.
+        # This is a specific DNS fix attempt for known pattern if desired, or let DNS fail.
+        # Given audit request: "implement a check... to catch obviously malformed hostnames"
+        parsed = urlparse(source)
+        if parsed.netloc.endswith(".raw.githubusercontent.com"):
+            # This implies a subdomain on raw GH, which doesn't exist.
+            # e.g. freevpnspy.raw.githubusercontent.com -> likely error
+            return FetchResult(
+                success=False,
+                source=source,
+                content="",
+                error="Malformed GitHub URL",
+                status_code=0,
+            )
 
     # Circuit Breaker Check
     if breaker_manager:
@@ -77,6 +102,9 @@ async def fetch_from_source(
     headers = {"User-Agent": random.choice(USER_AGENTS)}
     attempt = 0
     last_error = None
+
+    # Use instance limit if passed, else global default
+    max_size = app_settings.MAX_RESPONSE_SIZE if app_settings else MAX_RESPONSE_SIZE
 
     while attempt < max_retries:
         start_ts = asyncio.get_running_loop().time()
@@ -120,7 +148,7 @@ async def fetch_from_source(
 
                 # Content Length Check
                 content_len = response.headers.get("Content-Length")
-                if content_len and int(content_len) > MAX_RESPONSE_SIZE:
+                if content_len and int(content_len) > max_size:
                     return FetchResult(
                         success=False,
                         source=source,
@@ -134,7 +162,7 @@ async def fetch_from_source(
                 content = b""
                 async for chunk in response.aiter_bytes():
                     content += chunk
-                    if len(content) > MAX_RESPONSE_SIZE:
+                    if len(content) > max_size:
                         return FetchResult(
                             success=False,
                             source=source,
@@ -147,22 +175,21 @@ async def fetch_from_source(
                 # Decode
                 text_content = content.decode("utf-8", errors="ignore")
 
+                # Handle empty 200 OK responses gracefully
                 if response.status_code == 200 and (
                     not text_content or not text_content.strip()
                 ):
-                    # Treat explicit zero-length bodies as valid when Content-Length is 0.
-                    header_len = response.headers.get("Content-Length")
-                    if (
-                        not header_len
-                        or header_len.strip() == ""
-                        or header_len.strip() == "0"
-                    ):
-                        # Accept empty content if the server advertised zero bytes.
-                        pass
-                    else:
-                        attempt += 1
-                        last_error = "Empty content with 200 OK"
-                        continue
+                    # Log as warning/info and return valid result with empty content
+                    # The consumer/parser will handle "no configs found" which is correct behavior.
+                    logger.info(f"Source {source} returned 200 OK but empty content.")
+                    return FetchResult(
+                        success=True,  # Valid HTTP transaction
+                        source=source,
+                        content="",  # Empty
+                        status_code=200,
+                        error="Empty content",  # Informative, not exception
+                        response_time=asyncio.get_running_loop().time() - start_ts,
+                    )
 
                 return FetchResult(
                     success=True,

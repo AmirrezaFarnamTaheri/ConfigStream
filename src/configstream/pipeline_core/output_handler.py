@@ -2,7 +2,7 @@
 import logging
 import asyncio
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from configstream.models import Proxy
 from configstream.history.tracker import ProxyHistoryTracker
@@ -22,6 +22,7 @@ async def generate_pipeline_outputs(
     output_path: Path,
     stats: PipelineStats,
     history: ProxyHistoryTracker,
+    washer: Optional[ProxyWasher] = None,
 ):
     """
     Orchestrates the generation of all pipeline outputs.
@@ -43,12 +44,12 @@ async def generate_pipeline_outputs(
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
-    washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
-
-    # Run the Go Scanner (Phase 2 Component)
-    # This populates self.clean_ips in the washer with fresh, low-latency endpoints.
-    # We await it because it's an async network operation.
-    await washer.fetch_clean_ips()
+    if washer is None:
+        washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
+        # Run the Go Scanner (Phase 2 Component)
+        # This populates self.clean_ips in the washer with fresh, low-latency endpoints.
+        # We await it because it's an async network operation.
+        await washer.fetch_clean_ips()
 
     # Update stats with scanner results
     stats.scanner_ips_found = len(washer.clean_ips)

@@ -54,6 +54,7 @@ class AppSettings(BaseSettings):
     WARP_KEY_POOL: str = "[]"
     INTRANET_ORIGIN: str = "IR"
     OPTIMAL_RELAY_ORIGIN: str = "IR"
+    WARP_PEER_KEY: Optional[str] = None  # Added for washer/core.py
 
     # Memory management
     BATCH_SIZE: int = 50
