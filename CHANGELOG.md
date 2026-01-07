@@ -21,15 +21,15 @@
     - Patched `MAX_RESPONSE_SIZE` to respect `AppSettings` (200MB) instead of hardcoded 10MB limit.
     - Added sanitization for malformed GitHub raw URLs.
 - **Parsing Improvements**:
-    - Updated `extraction.py` to support JSON arrays (e.g., `["vmess://..."]`) and detect YAML by file extension.
+    - Updated `extraction.py` to support JSON arrays (e.g., `["vmess://..."]`) and YAML files detected by extension.
     - **Critical SOCKS Fix**: Fixed a bug where plain `IP:port` lists from SOCKS sources were being tested as HTTP. The parser now infers `socks5://` or `socks4://` scheme from the source filename context.
 - **Scoring & Ranking**:
-    - Integrated `calculate_health_score` (combining latency, reliability, uptime) into the consolidation logic.
-    - Updated `rank_and_rename_proxies` to include country flags and standardized naming (e.g., `VMESS-1 [🇺🇸]`).
+    - Integrated `calculate_health_score` (reliability + latency + uptime) into the consolidation logic.
+    - Updated `rank_and_rename_proxies` to include country flags in remarks (e.g., `VMESS-1 [🇺🇸]`).
     - Updated stale proxy penalty calculation (2.0x latency multiplier).
 - **Concurrency & Thread Safety**:
-    - Added explicit async locks in `consumer.py` to ensure thread-safe updates to `PipelineStats`.
-    - Updated `output_handler.py` to reuse `Washer` instances, eliminating duplicate initialization logs.
+    - Added explicit async locks in `consumer.py` to ensure thread-safe updates to `PipelineStats` drop reasons.
+    - Updated `output_handler.py` to reuse `Washer` instances, preventing redundant initialization logs.
 
 **Test Suite & Quality**
 - **Verification**: Ran full `pytest` suite (700 tests passed).

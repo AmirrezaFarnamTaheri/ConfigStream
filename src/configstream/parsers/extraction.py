@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import re
-import json
 from typing import List, Tuple, Dict, Any, Optional
 
 from .decoders import safe_b64_decode
@@ -37,17 +36,11 @@ def is_plausible_proxy_config(config: str) -> bool:
     if not protocol or len(protocol) > 20 or len(rest) < 4:
         return False
 
-    # Relax noise check (allowed up to 85% special chars for base64 heavy VLESS)
-    # Modern protocols like VLESS/Trojan with huge Base64 payloads can look very "noisy"
-    # We increase tolerance to nearly 100% or just check against truly invalid control chars
-    # instead of ratio. But keeping a loose ratio check prevents binary garbage.
-    # Expanded allowed chars to include more URI safe chars.
+    # Relax noise check (allowed up to 98% special chars for base64 heavy VLESS)
     special_char_count = sum(
         1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]!*'|$"
     )
 
-    # [FIX] Increased threshold to 0.98 to allow almost fully encrypted strings
-    # Some Base64 strings + parameters can be very dense in special chars.
     if len(rest) > 20 and special_char_count > len(rest) * 0.98:
         return False
 
@@ -62,10 +55,17 @@ def is_plausible_proxy_config(config: str) -> bool:
 
 
 def extract_config_lines(
-    payload: Any, max_lines: int = MAX_LINES_PER_SOURCE, source: Optional[str] = None
+    payload: Any,
+    max_lines: int = MAX_LINES_PER_SOURCE,
+    source_url: Optional[str] = None,
 ) -> Tuple[List[str], Dict[str, int]]:
     """
     Extract configuration lines with validation and limits.
+
+    Args:
+        payload: Content to parse (str or bytes).
+        max_lines: Max number of lines to process.
+        source_url: The URL where payload came from (used for protocol inference).
 
     Returns:
         Tuple[List[str], Dict[str, int]]: A tuple containing the list of valid config lines
@@ -74,7 +74,6 @@ def extract_config_lines(
     drop_stats: Dict[str, int] = {}
 
     # CRITICAL: Pre-check size to prevent OOM on massive files
-    # Limit to MAX_B64_INPUT_SIZE (Using constant from settings/constants)
     if hasattr(payload, "__len__") and len(payload) > MAX_B64_INPUT_SIZE:
         logger.warning(
             f"extract_config_lines: Payload exceeds {MAX_B64_INPUT_SIZE} bytes limit. Dropping to prevent OOM."
@@ -84,13 +83,11 @@ def extract_config_lines(
     # Handle input type (bytes or str)
     if isinstance(payload, bytes):
         try:
-            # Fallback strategy: utf-8 -> latin-1 (covers most cases)
             payload_str = payload.decode("utf-8")
         except UnicodeDecodeError:
             try:
                 payload_str = payload.decode("latin-1")
             except Exception:
-                # Last resort: ignore errors to salvage printable chars
                 payload_str = payload.decode("utf-8", errors="ignore")
                 logger.debug(
                     "extract_config_lines: Binary payload decoded with errors ignored."
@@ -104,47 +101,71 @@ def extract_config_lines(
     if not payload_str.strip():
         return [], {"empty_payload": 1}
 
-    stripped_payload = payload_str.strip()
-
-    # [FIX] Handle JSON Arrays (e.g. [{"..."}, ...])
-    if stripped_payload.startswith("[") and stripped_payload.endswith("]"):
+    # 1. Check for JSON Array (e.g. ["vmess://...", ...])
+    if payload_str.strip().startswith("["):
         try:
-            data = json.loads(stripped_payload)
+            import json
+
+            data = json.loads(payload_str)
             if isinstance(data, list):
-                # Ensure it's a list of proxy-like objects (dicts) or strings
+                # Extract strings from list
                 configs = []
                 for item in data:
-                    if isinstance(item, dict):
-                        # Convert dict to JSON string (parser will handle it)
-                        configs.append(json.dumps(item))
-                    elif isinstance(item, str):
+                    if isinstance(item, str):
                         configs.append(item)
-                if configs:
-                    return configs, {}
-        except json.JSONDecodeError:
-            pass  # Fallthrough to standard processing
+                    elif isinstance(item, dict):
+                        # Maybe object with config string? or V2Ray object?
+                        # For now, if dict, convert to JSON string (V2Ray format)
+                        configs.append(json.dumps(item))
+                # Validate extracted configs later in loop
+                # We replace lines with extracted list
+                lines = configs
+            else:
+                # Not a list, maybe fallback
+                lines = payload_str.splitlines()
+        except Exception as e:
+            logger.debug(f"Failed to parse JSON array: {e}")
+            lines = payload_str.splitlines()
 
-    # Check for Clash/YAML or V2Ray JSON
-    if stripped_payload.startswith("{"):
-        return [payload_str], {}
+    # 2. Check for V2Ray JSON Object (single)
+    elif payload_str.strip().startswith("{"):
+        # Check if it's V2Ray (outbounds) or just a JSON object wrapper
+        try:
+            import json
 
-    # [FIX] Enhanced YAML detection via source extension or keys
-    is_yaml = False
-    if source and (source.endswith(".yaml") or source.endswith(".yml")):
-        is_yaml = True
-    elif "proxies:" in payload_str and (
-        "- name:" in payload_str or "-name:" in payload_str
+            data = json.loads(payload_str)
+            # If it has "proxies" key (Clash/Mihomo JSON)
+            if "proxies" in data and isinstance(data["proxies"], list):
+                return [
+                    json.dumps(p) for p in data["proxies"] if isinstance(p, dict)
+                ], {}
+            # If standard V2Ray, return as is
+            return [payload_str], {}
+        except Exception:
+            return [payload_str], {}  # Let parser fail later if invalid
+
+    # 3. Check for YAML (Clash)
+    # Detect by keys or extension if provided
+    elif (
+        "proxies:" in payload_str
+        and (
+            "- name:" in payload_str
+            or "-name:" in payload_str
+            or "- type:" in payload_str
+        )
+        or (
+            source_url and (source_url.endswith(".yaml") or source_url.endswith(".yml"))
+        )
     ):
-        is_yaml = True
-
-    if is_yaml:
         try:
             import yaml  # type: ignore
+            import json
 
             data = yaml.safe_load(payload_str)
-            proxies = data.get("proxies", [])
+            # Handle list of proxies
+            proxies = data if isinstance(data, list) else data.get("proxies", [])
+
             if isinstance(proxies, list):
-                # Convert each proxy dict to a JSON string line
                 return [json.dumps(p) for p in proxies if isinstance(p, dict)], {}
         except ImportError:
             logger.warning("PyYAML not installed, skipping Clash YAML parsing")
@@ -152,32 +173,33 @@ def extract_config_lines(
         except Exception as e:
             logger.debug(f"Failed to parse Clash YAML: {e}")
             drop_stats["yaml_parse_error"] = 1
-        # Fallback to plain text if YAML parse failed but it might be text
-        if not is_yaml:  # Only if it wasn't strictly identified by extension
+
+        if "proxies" not in payload_str:
+            # If not obviously YAML structure but .yaml extension,
+            # might be just text list. Fallback.
+            lines = payload_str.splitlines()
+        else:
             return [payload_str], drop_stats
 
-    # Check if it's an OpenVPN file
-    if "client" in payload_str and (
+    # 4. OpenVPN
+    elif "client" in payload_str and (
         "dev tun" in payload_str or "dev tap" in payload_str
     ):
         if len(payload_str) < MAX_B64_OUTPUT_SIZE:
             return [payload_str], {}
         else:
-            logger.warning(
-                "extract_config_lines: OpenVPN config exceeds size limit (%d bytes).",
-                len(payload_str),
-            )
             return [], {"size_limit_exceeded": 1}
 
-    # Attempt Base64 decode for subscriptions
-    decoded = safe_b64_decode(payload_str)
-    if decoded is None:
-        decoded = payload_str
-
-    if decoded != payload_str:
-        lines = decoded.splitlines()
     else:
-        lines = payload_str.splitlines()
+        # Attempt Base64 decode for subscriptions
+        decoded = safe_b64_decode(payload_str)
+        if decoded is None:
+            decoded = payload_str
+
+        if decoded != payload_str:
+            lines = decoded.splitlines()
+        else:
+            lines = payload_str.splitlines()
 
     if len(lines) > max_lines:
         logger.warning(f"Payload has {len(lines)} lines, truncating to {max_lines}.")
@@ -190,18 +212,18 @@ def extract_config_lines(
     configs = []
     dropped_samples: List[str] = []
 
-    # [FIX] Heuristic for protocol-specific lists (e.g. socks5.txt)
-    default_protocol_prefix = None
-    if source:
-        src_lower = source.lower()
-        if "socks5" in src_lower:
-            default_protocol_prefix = "socks5://"
-        elif "socks4" in src_lower:
-            default_protocol_prefix = "socks4://"
+    # Heuristic for default protocol based on source URL
+    default_scheme = "http://"
+    if source_url:
+        u_lower = source_url.lower()
+        if "socks5" in u_lower:
+            default_scheme = "socks5://"
+        elif "socks4" in u_lower:
+            default_scheme = "socks4://"
+        # else default http
 
     for line in lines:
         candidate = line.strip()
-        # Better comment handling: skip # only at start, allow # in URI fragment
         if not candidate:
             continue
         if candidate.startswith("#"):
@@ -220,24 +242,13 @@ def extract_config_lines(
             elif not is_plausible_proxy_config(candidate):
                 reason = "implausible_format"
         else:
-            # [FIX] Lines without '://' are dropped, BUT we now check for IP:PORT format
-            # Support both IPv4 (strictly validated) and IPv6 (bracketed)
-
-            # IPv4: IP:PORT (e.g. 1.2.3.4:8080)
+            # Check for IP:PORT format
             ipv4_pattern = r"^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}:\d{1,5}$"
-
-            # IPv6: [IP]:PORT (e.g. [2001:db8::1]:8080)
-            # Basic check for brackets and colon-port
             ipv6_pattern = r"^\[[a-fA-F0-9:]+\]:\d{1,5}$"
 
             if re.match(ipv4_pattern, candidate) or re.match(ipv6_pattern, candidate):
-                # Interpret bare IP:port
-                # [FIX] Use default protocol if inferred from source, else default to http://
-                prefix = (
-                    default_protocol_prefix if default_protocol_prefix else "http://"
-                )
-                candidate = prefix + candidate
-
+                # Apply inferred scheme
+                candidate = default_scheme + candidate
                 # Re-validate with new format
                 if not is_plausible_proxy_config(candidate):
                     reason = "implausible_format"

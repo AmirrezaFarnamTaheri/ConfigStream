@@ -60,9 +60,8 @@ async def source_producer(
         if local_files:
             file_results = await read_multiple_files_async(local_files)
             for fpath, content in file_results:
-                # Handle new tuple return signature
-                # [FIX] Pass source to extract_config_lines
-                file_lines, _ = _extract_config_lines(content, source=fpath)
+                # Handle new tuple return signature, pass source_url for context
+                file_lines, _ = _extract_config_lines(content, source_url=fpath)
                 if file_lines:
                     await work_queue.put((fpath, file_lines, {}))
                 if progress and task_fetch:
@@ -173,11 +172,14 @@ async def source_producer(
                 for source, res in results.items():
                     if res.success and res.content:
                         # Offload parsing to executor and handle stats
-                        # [FIX] Pass source to _extract_config_lines using partial
-                        lines, drop_stats = await loop.run_in_executor(
-                            None,
-                            partial(_extract_config_lines, res.content, source=source),
+                        # [FIX] Use partial to pass keyword argument to run_in_executor
+                        extract_func = partial(
+                            _extract_config_lines, res.content, source_url=source
                         )
+                        lines, drop_stats = await loop.run_in_executor(
+                            None, extract_func
+                        )
+
                         count = len(lines)
                         safe_source = SecurityValidator.sanitize_log_message(source)
 

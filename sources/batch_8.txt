@@ -1,7 +1,4 @@
-# Batch 8 - 70 sources
-https://raw.githubusercontent.com/lagzian/IranConfigCollector/main/Base64.txt
-https://raw.githubusercontent.com/lagzian/SS-Collector/main/mix.txt
-https://raw.githubusercontent.com/lagzian/SS-Collector/main/mix_clash.yaml
+# Batch 8 - 74 sources
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/reality.txt
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/vmess.txt
 https://raw.githubusercontent.com/lcx12901/v2ray-/master/v2ray.txt
@@ -69,3 +66,10 @@ https://raw.githubusercontent.com/mshojaei77/v2rayAuto/main/mix
 https://raw.githubusercontent.com/mshojaei77/v2rayAuto/refs/heads/main/telegram/popular_channels_1
 https://raw.githubusercontent.com/nasheep/FreeNode/main/clash/PlayLab
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/default.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/hys-tuic.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/mobile.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/my.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/speed.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/wg.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/mobile.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/speed.txt

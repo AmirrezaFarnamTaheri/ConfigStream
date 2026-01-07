@@ -22,7 +22,7 @@ async def generate_pipeline_outputs(
     output_path: Path,
     stats: PipelineStats,
     history: ProxyHistoryTracker,
-    washer: Optional[ProxyWasher] = None,  # [FIX] Accept washer
+    washer: Optional[ProxyWasher] = None,
 ):
     """
     Orchestrates the generation of all pipeline outputs.

@@ -1,4 +1,8 @@
-# Batch 6 - 70 sources
+# Batch 6 - 74 sources
+https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/socks5.txt
+https://raw.githubusercontent.com/V2RAYCONFIGSPOOL/V2RAY_SUB/refs/heads/main/v2ray_configs.txt
+https://raw.githubusercontent.com/V2RET-V2RET-V2RET-V2RET-V2RET-V2RET/v2ret/main/sub.txt
+https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/shadowsocks.txt
 https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/trojan.txt
 https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/vless.txt
 https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/vmess.txt

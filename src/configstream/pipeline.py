@@ -350,7 +350,7 @@ async def run_full_pipeline(
                     )
                 logger.info("⚠️ Top 5 Failing Sources:\n" + "\n".join(log_lines))
 
-        # [FIX] Pass washer to avoid re-fetch and duplicate logs
+        # Pass washer instance to reuse clean IPs and keys
         generated_files = await output_handler.generate_pipeline_outputs(
             optimized_proxies, output_path, stats, history, washer=washer
         )

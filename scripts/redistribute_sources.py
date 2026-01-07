@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Redistribute sources from all batch files (including batch 12) into 11 balanced batches.
+Redistribute sources from all batch files and the new sources list into 11 balanced batches.
+Ensures we have strictly more sources than before.
 """
 import glob
 import os
@@ -12,7 +13,7 @@ def redistribute():
     sources_dir = Path("sources")
     all_lines = set()
 
-    # 1. Collect all sources
+    # 1. Collect all existing sources
     batch_files = glob.glob(str(sources_dir / "batch_*.txt"))
     print(f"Found {len(batch_files)} batch files.")
 
@@ -23,10 +24,16 @@ def redistribute():
                 if line and not line.startswith("#"):
                     all_lines.add(line)
 
-    # Add manual extras if any (e.g. Tor exit list identified in audit)
-    extras = ["https://check.torproject.org/torbulkexitlist"]
-    for ex in extras:
-        all_lines.add(ex)
+    # 2. Add new extracted sources
+    if os.path.exists("new_sources_doc.txt"):
+        print("Reading new sources from new_sources_doc.txt...")
+        with open("new_sources_doc.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    # Basic validation: needs http
+                    if line.startswith("http"):
+                        all_lines.add(line)
 
     sorted_sources = sorted(list(all_lines))
     total_sources = len(sorted_sources)
@@ -36,17 +43,13 @@ def redistribute():
         print("No sources found. Exiting.")
         return
 
-    # 2. Distribute into 11 batches
+    # 3. Distribute into 11 batches
     num_batches = 11
     batch_size = math.ceil(total_sources / num_batches)
 
     print(
         f"Redistributing into {num_batches} batches (approx {batch_size} per batch)..."
     )
-
-    # Clear existing batch files? Or overwrite? Overwrite is safer.
-    # We will write batch_1.txt to batch_11.txt
-    # and remove batch_12.txt if it exists.
 
     for i in range(num_batches):
         batch_num = i + 1
@@ -61,10 +64,11 @@ def redistribute():
 
         print(f"Wrote {filename} ({len(chunk)} sources)")
 
-    # 3. Cleanup extra batches (batch_12, etc.)
-    for bf in batch_files:
+    # 4. Cleanup extra batches (batch_12, etc.)
+    # We re-glob because we might have deleted/created things
+    batch_files_final = glob.glob(str(sources_dir / "batch_*.txt"))
+    for bf in batch_files_final:
         try:
-            # Extract number
             name = Path(bf).name
             num_part = name.replace("batch_", "").replace(".txt", "")
             if num_part.isdigit():
