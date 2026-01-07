@@ -132,7 +132,9 @@ def extract_config_lines(
     is_yaml = False
     if source and (source.endswith(".yaml") or source.endswith(".yml")):
         is_yaml = True
-    elif "proxies:" in payload_str and ("- name:" in payload_str or "-name:" in payload_str):
+    elif "proxies:" in payload_str and (
+        "- name:" in payload_str or "-name:" in payload_str
+    ):
         is_yaml = True
 
     if is_yaml:
@@ -151,8 +153,8 @@ def extract_config_lines(
             logger.debug(f"Failed to parse Clash YAML: {e}")
             drop_stats["yaml_parse_error"] = 1
         # Fallback to plain text if YAML parse failed but it might be text
-        if not is_yaml: # Only if it wasn't strictly identified by extension
-             return [payload_str], drop_stats
+        if not is_yaml:  # Only if it wasn't strictly identified by extension
+            return [payload_str], drop_stats
 
     # Check if it's an OpenVPN file
     if "client" in payload_str and (
@@ -231,7 +233,9 @@ def extract_config_lines(
             if re.match(ipv4_pattern, candidate) or re.match(ipv6_pattern, candidate):
                 # Interpret bare IP:port
                 # [FIX] Use default protocol if inferred from source, else default to http://
-                prefix = default_protocol_prefix if default_protocol_prefix else "http://"
+                prefix = (
+                    default_protocol_prefix if default_protocol_prefix else "http://"
+                )
                 candidate = prefix + candidate
 
                 # Re-validate with new format
