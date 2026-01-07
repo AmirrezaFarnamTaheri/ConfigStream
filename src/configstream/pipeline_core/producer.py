@@ -3,6 +3,7 @@ import asyncio
 import logging
 from typing import List, Optional, TYPE_CHECKING
 from rich.progress import Progress, TaskID
+from functools import partial
 
 from configstream.models import Proxy
 from configstream.config import AppSettings
@@ -59,8 +60,8 @@ async def source_producer(
         if local_files:
             file_results = await read_multiple_files_async(local_files)
             for fpath, content in file_results:
-                # Handle new tuple return signature
-                file_lines, _ = _extract_config_lines(content)
+                # Handle new tuple return signature, pass source_url for context
+                file_lines, _ = _extract_config_lines(content, source_url=fpath)
                 if file_lines:
                     await work_queue.put((fpath, file_lines, {}))
                 if progress and task_fetch:
@@ -171,9 +172,14 @@ async def source_producer(
                 for source, res in results.items():
                     if res.success and res.content:
                         # Offload parsing to executor and handle stats
-                        lines, drop_stats = await loop.run_in_executor(
-                            None, _extract_config_lines, res.content
+                        # [FIX] Use partial to pass keyword argument to run_in_executor
+                        extract_func = partial(
+                            _extract_config_lines, res.content, source_url=source
                         )
+                        lines, drop_stats = await loop.run_in_executor(
+                            None, extract_func
+                        )
+
                         count = len(lines)
                         safe_source = SecurityValidator.sanitize_log_message(source)
 
