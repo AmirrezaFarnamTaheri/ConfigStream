@@ -185,6 +185,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
             if "%" in key:
                 try:
                     from urllib.parse import unquote
+
                     key = unquote(key)
                 except Exception:
                     pass

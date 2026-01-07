@@ -358,7 +358,7 @@ def calculate_relay_score(
         mode_penalty = (10 - speed_score) * 150
         # Extra penalty for high latency in speed mode
         if relay.latency and relay.latency > 200:
-            mode_penalty += (relay.latency - 200) * 5
+            mode_penalty += int((relay.latency - 200) * 5)
     elif optimization_mode == "reliability":
         # Prefer reliable protocols
         reliability_score = protocol_data["reliability"]

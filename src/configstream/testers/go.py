@@ -145,6 +145,8 @@ class GoBatchTester:
 
         except Exception as e:
             logger.warning(f"Go Tester self-test failed: {e}")
+            # If self-test fails due to timeout or other reasons, we might still want to proceed
+            # if we are in a flaky environment, but generally failure here means IPC is broken.
             return False
 
     async def _restart_daemon(self) -> None:
@@ -530,10 +532,11 @@ class GoBatchTester:
                 for req_id in keys_to_remove:
                     self._pending_futures.pop(req_id, None)
             for req_id in keys_to_remove:
-                if proxy_obj := req_id_map.get(req_id):
-                    proxy_obj.is_working = False
-                    proxy_obj.details["error"] = "BATCH_TIMEOUT"
-                    proxy_obj.details["failure_category"] = "TIMEOUT"
+                po = req_id_map.get(req_id)
+                if po:
+                    po.is_working = False
+                    po.details["error"] = "BATCH_TIMEOUT"
+                    po.details["failure_category"] = "TIMEOUT"
             # Cancel futures after cleanup
             for f in futures:
                 if not f.done():
@@ -558,9 +561,11 @@ class GoBatchTester:
             # Rename to avoid shadowing the variable 'proxy_obj' from the cleanup loop (if it leaked)
             # although python loop variables leak, but 'proxy_obj' in cleanup was inside the loop scope
             # and this is outside. But to be safe and satisfy linter:
-            target_proxy: Optional[Proxy] = req_id_map.get(req_id)
-            if not target_proxy:
+            # Explicitly type cast the result of get()
+            tp = req_id_map.get(req_id)
+            if tp is None:
                 continue
+            target_proxy: Proxy = tp
 
             if res_data.get("is_working"):
                 target_proxy.is_working = True
