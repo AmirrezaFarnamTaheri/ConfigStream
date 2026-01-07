@@ -5,16 +5,38 @@ Centralizes the logic previously scattered between merge_batches.py and output.p
 """
 
 from collections import defaultdict
-from typing import List, Set
+from typing import List, Set, Optional, Any
 from .models import Proxy
+from .score import calculate_health_score
+from .test_cache import TestResultCache
+from .config import AppSettings
 
 
-def calculate_compound_score(proxy: Proxy) -> float:
+def calculate_compound_score(proxy: Proxy, cache: Optional[TestResultCache] = None) -> float:
     """
     Calculate a compound score for a proxy.
     Lower is better.
     Score = Latency * ReliabilityPenalty
+
+    [FIX] Integrate comprehensive health score if cache is available.
+    If health score is used, we invert it (100 - score) because this function expects 'lower is better'.
     """
+    if cache:
+        # High health score (0-100) -> Low compound score
+        health = calculate_health_score(proxy, cache=cache)
+        # Invert: 100 is best (0 cost), 0 is worst (100 cost).
+        # Multiply by latency factor to keep latency relevant but secondary to health?
+        # Or just use inverted health score as primary key, with latency as tie breaker.
+
+        # Let's combine: (100 - health) * 10 + latency * 0.1
+        # Example:
+        # Proxy A: Health 90 (very reliable), Latency 200ms -> 10*10 + 20 = 120
+        # Proxy B: Health 50 (unreliable), Latency 50ms -> 50*10 + 5 = 505 (Worse)
+        # Proxy C: Health 90, Latency 50ms -> 10*10 + 5 = 105 (Best)
+
+        return (100.0 - health) * 10.0 + (proxy.latency or 5000) * 0.1
+
+    # Legacy Fallback
     # Treat 0 as invalid (measurement error), fallback to 5000
     latency = (
         proxy.latency if (proxy.latency is not None and proxy.latency > 0) else 5000
@@ -38,9 +60,9 @@ def get_country_flag(country_code: str) -> str:
         return "🌍"
 
 
-def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
+def rank_and_rename_proxies(proxies: List[Proxy], cache: Optional[TestResultCache] = None) -> List[Proxy]:
     """
-    Rank proxies by protocol based on latency and rename them.
+    Rank proxies by protocol based on score/latency and rename them.
     Format: PROTOCOL-RANK [COUNTRY_FLAG] ||| ORIGINAL_NAME
     """
     # Group proxies by protocol
@@ -48,13 +70,11 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
     for proxy in proxies:
         proxies_by_protocol[proxy.protocol].append(proxy)
 
-    # Sort each protocol group by latency (lower is better)
+    # Sort each protocol group by score (lower is better)
     ranked_proxies = []
     for protocol, protocol_proxies in proxies_by_protocol.items():
-        # Sort by latency (None values go to end)
-        protocol_proxies.sort(
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf"))
-        )
+        # Sort by compound score
+        protocol_proxies.sort(key=lambda p: calculate_compound_score(p, cache))
 
         # Rename with rank
         for rank, proxy in enumerate(protocol_proxies, start=1):
@@ -80,7 +100,10 @@ def rank_and_rename_proxies(proxies: List[Proxy]) -> List[Proxy]:
 
 
 def select_top_configs(
-    ranked_proxies: List[Proxy], top_per_protocol: int = 50, total_limit: int = 1000
+    ranked_proxies: List[Proxy],
+    top_per_protocol: int = 50,
+    total_limit: int = 1000,
+    cache: Optional[TestResultCache] = None
 ) -> List[Proxy]:
     """
     Select top configs: top N per protocol, then fill to total_limit from overall ranking.
@@ -89,6 +112,7 @@ def select_top_configs(
         ranked_proxies: List of ranked proxies
         top_per_protocol: Number of top configs to take from each protocol (default: 50)
         total_limit: Total number of configs to select (default: 1000)
+        cache: Optional cache for scoring
 
     Returns:
         List of selected proxies
@@ -98,11 +122,9 @@ def select_top_configs(
     for proxy in ranked_proxies:
         proxies_by_protocol[proxy.protocol].append(proxy)
 
-    # Ensure sorting by latency for selection
+    # Ensure sorting by score for selection
     for proto_list in proxies_by_protocol.values():
-        proto_list.sort(
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf"))
-        )
+        proto_list.sort(key=lambda p: calculate_compound_score(p, cache))
 
     # Select top N from each protocol
     selected = []
@@ -118,10 +140,10 @@ def select_top_configs(
 
     # If we haven't reached the limit, fill from overall ranking
     if len(selected) < total_limit:
-        # Sort all proxies by latency overall
+        # Sort all proxies by score overall
         overall_ranked = sorted(
             ranked_proxies,
-            key=lambda p: (p.latency is None, p.latency if p.latency else float("inf")),
+            key=lambda p: calculate_compound_score(p, cache),
         )
 
         # Fill the gap

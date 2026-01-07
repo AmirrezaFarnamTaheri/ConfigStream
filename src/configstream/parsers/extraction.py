@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import re
-from typing import List, Tuple, Dict, Any
+import json
+from typing import List, Tuple, Dict, Any, Optional
 
 from .decoders import safe_b64_decode
 from ..constants import (
@@ -61,7 +62,7 @@ def is_plausible_proxy_config(config: str) -> bool:
 
 
 def extract_config_lines(
-    payload: Any, max_lines: int = MAX_LINES_PER_SOURCE
+    payload: Any, max_lines: int = MAX_LINES_PER_SOURCE, source: Optional[str] = None
 ) -> Tuple[List[str], Dict[str, int]]:
     """
     Extract configuration lines with validation and limits.
@@ -103,17 +104,40 @@ def extract_config_lines(
     if not payload_str.strip():
         return [], {"empty_payload": 1}
 
+    stripped_payload = payload_str.strip()
+
+    # [FIX] Handle JSON Arrays (e.g. [{"..."}, ...])
+    if stripped_payload.startswith("[") and stripped_payload.endswith("]"):
+        try:
+            data = json.loads(stripped_payload)
+            if isinstance(data, list):
+                # Ensure it's a list of proxy-like objects (dicts) or strings
+                configs = []
+                for item in data:
+                    if isinstance(item, dict):
+                        # Convert dict to JSON string (parser will handle it)
+                        configs.append(json.dumps(item))
+                    elif isinstance(item, str):
+                        configs.append(item)
+                if configs:
+                    return configs, {}
+        except json.JSONDecodeError:
+            pass  # Fallthrough to standard processing
+
     # Check for Clash/YAML or V2Ray JSON
-    if payload_str.strip().startswith("{"):
+    if stripped_payload.startswith("{"):
         return [payload_str], {}
 
-    # Try YAML (Clash)
-    if "proxies:" in payload_str and (
-        "- name:" in payload_str or "-name:" in payload_str
-    ):
+    # [FIX] Enhanced YAML detection via source extension or keys
+    is_yaml = False
+    if source and (source.endswith(".yaml") or source.endswith(".yml")):
+        is_yaml = True
+    elif "proxies:" in payload_str and ("- name:" in payload_str or "-name:" in payload_str):
+        is_yaml = True
+
+    if is_yaml:
         try:
             import yaml  # type: ignore
-            import json
 
             data = yaml.safe_load(payload_str)
             proxies = data.get("proxies", [])
@@ -126,8 +150,9 @@ def extract_config_lines(
         except Exception as e:
             logger.debug(f"Failed to parse Clash YAML: {e}")
             drop_stats["yaml_parse_error"] = 1
-        # Fallback to plain text
-        return [payload_str], drop_stats
+        # Fallback to plain text if YAML parse failed but it might be text
+        if not is_yaml: # Only if it wasn't strictly identified by extension
+             return [payload_str], drop_stats
 
     # Check if it's an OpenVPN file
     if "client" in payload_str and (
@@ -143,8 +168,6 @@ def extract_config_lines(
             return [], {"size_limit_exceeded": 1}
 
     # Attempt Base64 decode for subscriptions
-    # Suppress base64 noise by not logging individual failures inside safe_b64_decode
-    # (safe_b64_decode already returns None on failure without noisy logs if handled correctly)
     decoded = safe_b64_decode(payload_str)
     if decoded is None:
         decoded = payload_str
@@ -164,6 +187,15 @@ def extract_config_lines(
 
     configs = []
     dropped_samples: List[str] = []
+
+    # [FIX] Heuristic for protocol-specific lists (e.g. socks5.txt)
+    default_protocol_prefix = None
+    if source:
+        src_lower = source.lower()
+        if "socks5" in src_lower:
+            default_protocol_prefix = "socks5://"
+        elif "socks4" in src_lower:
+            default_protocol_prefix = "socks4://"
 
     for line in lines:
         candidate = line.strip()
@@ -197,9 +229,11 @@ def extract_config_lines(
             ipv6_pattern = r"^\[[a-fA-F0-9:]+\]:\d{1,5}$"
 
             if re.match(ipv4_pattern, candidate) or re.match(ipv6_pattern, candidate):
-                # Interpret bare IP:port as http proxy
-                # We prepend 'http://' to make it a valid URL for parsing
-                candidate = "http://" + candidate
+                # Interpret bare IP:port
+                # [FIX] Use default protocol if inferred from source, else default to http://
+                prefix = default_protocol_prefix if default_protocol_prefix else "http://"
+                candidate = prefix + candidate
+
                 # Re-validate with new format
                 if not is_plausible_proxy_config(candidate):
                     reason = "implausible_format"
