@@ -213,10 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Configuration values from metadata (or stats as fallback)
-                const updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 6;
+                // Default to 5 hours and 85 sources as per configuration if metadata is missing
+                const updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 5;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
-                const sourceCount = metadata?.sources_count || stats.sources_count || 0;
+                const sourceCount = metadata?.sources_count || stats.sources_count || 85;
 
                 // Update hero subtitle dynamic values using new logic
                 const updateHeroSubtitle = () => {
