@@ -146,6 +146,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         window.stateManager.setLoading(true, 'Fetching latest data...');
+
+        // Define defaults and updater function outside try/catch to ensure availability
+        let sourceCount = 85;
+        let updateFreq = 5;
+
+        const updateHeroSubtitle = () => {
+             const heroSubtitle = document.getElementById('heroSubtitle');
+             const formatNum = (num) => {
+                 if (num === undefined || num === null) return 'N/A';
+                 return window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+             };
+
+             if (heroSubtitle && window.i18n) {
+                 let text = window.i18n.t('hero.subtitle.main');
+                 text = text.replace('{sources}', formatNum(sourceCount));
+                 text = text.replace('{hours}', formatNum(updateFreq));
+                 heroSubtitle.innerHTML = text; // Allow HTML for strong tags
+             }
+        };
+
         try {
             // Fetch metadata and statistics in parallel
             const [metadata, stats] = await Promise.all([
@@ -214,21 +234,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Configuration values from metadata (or stats as fallback)
                 // Default to 5 hours and 85 sources as per configuration if metadata is missing
-                const updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 5;
+                updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 5;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
-                const sourceCount = metadata?.sources_count || stats.sources_count || 85;
-
-                // Update hero subtitle dynamic values using new logic
-                const updateHeroSubtitle = () => {
-                     const heroSubtitle = document.getElementById('heroSubtitle');
-                     if (heroSubtitle && window.i18n) {
-                         let text = window.i18n.t('hero.subtitle.main');
-                         text = text.replace('{sources}', formatNum(sourceCount));
-                         text = text.replace('{hours}', formatNum(updateFreq));
-                         heroSubtitle.innerHTML = text; // Allow HTML for strong tags
-                     }
-                };
+                sourceCount = metadata?.sources_count || stats.sources_count || 85;
 
                 updateHeroSubtitle();
                 // Listen for language changes to re-update
@@ -252,6 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateElement('#footerUpdate', 'N/A');
             updateElement('#totalConfigs', 'N/A');
             updateElement('#workingConfigs', 'N/A');
+
+            // Even if fetch fails, show the hero defaults
+            updateHeroSubtitle();
+            window.addEventListener('languageChanged', updateHeroSubtitle);
         } finally {
             window.stateManager.setLoading(false);
             // Hide preloader after data fetching is complete
