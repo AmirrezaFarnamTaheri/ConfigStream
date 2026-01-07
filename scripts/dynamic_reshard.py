@@ -3,6 +3,7 @@ import re
 import glob
 import shutil
 import statistics
+import os
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -12,23 +13,16 @@ SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
 DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
 
-# [FIX] Determine NUM_BATCHES dynamically
-try:
-    if SOURCES_DIR.exists():
-        existing_batch_files = list(SOURCES_DIR.glob("batch_*.txt"))
-        NUM_BATCHES = max(
-            len(existing_batch_files), 10
-        )  # At least 10, or current count
-    else:
-        NUM_BATCHES = 10
-except Exception:
-    NUM_BATCHES = 10
-
-
 # Regex for Source Summary block in consumer.py
 # Source Summary [URL]: Raw=123 ... Fetch=500ms Dur=1500ms
 RAW_LINES_REGEX = re.compile(r"Raw=(\d+)")
 FETCH_TIME_REGEX = re.compile(r"Fetch=([\d.]+)ms")
+
+
+def get_current_batch_count() -> int:
+    """Detect number of batch files to maintain existing parallelism."""
+    count = len(list(SOURCES_DIR.glob("batch_*.txt")))
+    return max(count, 10)  # Default to at least 10
 
 
 def parse_logs(log_files: List[str]) -> Dict[str, Tuple[int, float]]:
@@ -98,13 +92,14 @@ def get_existing_sources() -> List[str]:
 def main() -> None:
     # 1. Setup Workspace
     log_files = glob.glob(LOG_PATTERN)
-    if not log_files:
-        print(f"❌ No log files found matching '{LOG_PATTERN}'. Cannot optimize!")
-        return
 
     if not SOURCES_DIR.exists():
         print(f"❌ Sources directory '{SOURCES_DIR}' not found.")
         return
+
+    # Determine batch count dynamically
+    num_batches = get_current_batch_count()
+    print(f"Using {num_batches} batches based on existing files.")
 
     # 2. Backup
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
@@ -116,7 +111,7 @@ def main() -> None:
             print(f"⚠️  Backup failed for {f}: {e}")
 
     # 3. Gather Data
-    observed_metrics = parse_logs(log_files)
+    observed_metrics = parse_logs(log_files) if log_files else {}
     all_urls = get_existing_sources()
 
     # 4. Assign Weights Based on Fetch + Test Duration
@@ -147,8 +142,8 @@ def main() -> None:
     final_sources.sort(key=lambda x: x[1], reverse=True)
 
     # 6. Greedy Bin Packing
-    batches: List[List[str]] = [[] for _ in range(NUM_BATCHES)]
-    batch_loads: List[int] = [0] * NUM_BATCHES
+    batches: List[List[str]] = [[] for _ in range(num_batches)]
+    batch_loads: List[int] = [0] * num_batches
 
     for url, weight in final_sources:
         # Find the batch with the current lowest load
@@ -170,9 +165,7 @@ def main() -> None:
         min_load = 0
 
     # 8. Write Output
-    print(
-        f"\n⚖️  Optimized Batch Distribution (Time-Based) across {NUM_BATCHES} batches:"
-    )
+    print("\n⚖️  Optimized Batch Distribution (Time-Based):")
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
 

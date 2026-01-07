@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 # Static fallback if fetch fails
 DEFAULT_CLEAN_IPS = ["162.159.192.1", "162.159.193.10", "162.159.195.5"]
 # Default Cloudflare WARP Server Public Key (Standard)
+# Note: This key can rotate. Audit suggested ensuring it's valid.
+# Ideally, this should be fetched from an API or env var.
+# For now, we allow overriding via AppSettings if defined, else use this standard one.
 DEFAULT_WARP_SERVER_KEY = "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
 
 # Fallback Clean IPs from user reports
@@ -417,9 +420,10 @@ class ProxyWasher:
         reserved = self._get_optimized_reserved(seed)
 
         # [FIX] Ensure valid peer public key
+        # Check environment or use default
         peer_key = exit_key.get("peer_public_key")
         if not peer_key:
-            peer_key = DEFAULT_WARP_SERVER_KEY
+            peer_key = AppSettings().WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
 
         return {
             "type": "wireguard",
@@ -485,7 +489,7 @@ class ProxyWasher:
             # [FIX] Ensure valid peer public key
             peer_key = exit_key.get("peer_public_key")
             if not peer_key:
-                peer_key = DEFAULT_WARP_SERVER_KEY
+                peer_key = AppSettings().WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
 
             warp_out = {
                 "type": "wireguard",
@@ -613,7 +617,7 @@ class ProxyWasher:
             # [FIX] Ensure valid peer public key
             peer_key = exit_key.get("peer_public_key")
             if not peer_key:
-                peer_key = DEFAULT_WARP_SERVER_KEY
+                peer_key = AppSettings().WARP_PEER_KEY or DEFAULT_WARP_SERVER_KEY
 
             warp_out = {
                 "type": "wireguard",

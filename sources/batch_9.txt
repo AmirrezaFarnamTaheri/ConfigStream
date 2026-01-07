@@ -1,11 +1,4 @@
-# Batch 9 - 70 sources
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/hys-tuic.txt
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/mobile.txt
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/my.txt
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/speed.txt
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/wg.txt
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/mobile.txt
-https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/speed.txt
+# Batch 9 - 74 sources
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/wg.txt
 https://raw.githubusercontent.com/nscl5/4/main/Splitted-By-Protocol/ss.txt
 https://raw.githubusercontent.com/nscl5/5/main/configs/all.txt
@@ -35,6 +28,7 @@ https://raw.githubusercontent.com/ronghuaxueleng/get_v2/main/pub/combine.yaml
 https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY.txt
 https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY_BASE64.txt
 https://raw.githubusercontent.com/roosterkid/openproxylist/main/V2RAY_RAW.txt
+https://raw.githubusercontent.com/roperzhang/FreeAirport/main/subscribe.txt
 https://raw.githubusercontent.com/sahar-km/Freedom/main/-/-/Arm64/-/V8A.txt#V8A
 https://raw.githubusercontent.com/sami-soft/v2rayN_proxy/main/new1.txt
 https://raw.githubusercontent.com/sansorchi/sansorchi/refs/heads/main/data.txt
@@ -69,3 +63,13 @@ https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/trojan.txt
 https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/vless.txt
 https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/vmess.txt
 https://raw.githubusercontent.com/shbioc/clash/main/aaa01.yaml
+https://raw.githubusercontent.com/snakem982/proxypool/main/source/clash-meta-2.yaml
+https://raw.githubusercontent.com/snakem982/proxypool/main/source/clash-meta.yaml
+https://raw.githubusercontent.com/snakem982/proxypool/main/source/v2ray-2.txt
+https://raw.githubusercontent.com/soroushmirzaei/telegram-configs-collector/main/protocols/reality
+https://raw.githubusercontent.com/ssrsub/ssr/master/clash.yaml
+https://raw.githubusercontent.com/ssrsub/ssr/master/v2ray
+https://raw.githubusercontent.com/sun9426/sun9426.github.io/main/subscribe/Clash.yaml
+https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/base64/mix
+https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/mix
+https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/reality

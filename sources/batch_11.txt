@@ -1,18 +1,4 @@
-# Batch 11 - 66 sources
-https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link
-https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/mixed_iran.txt
-https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/ss_iran.txt
-https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/trojan_iran.txt
-https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vless_iran.txt
-https://raw.githubusercontent.com/youfoundamin/V2rayCollector/main/vmess_iran.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_shadowsocks.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_trojan.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vless.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_vmess.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_shadowsocks.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_trojan.txt
+# Batch 11 - 64 sources
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_vless.txt
 https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_vmess.txt
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/meta.yaml
@@ -23,17 +9,22 @@ https://raw.githubusercontent.com/zjfb/SubCrawler/main/sub/share/all
 https://raw.githubusercontent.com/zjr13808836946/zjr_clash/main/V2_SSR_M
 https://raw.githubusercontent.com/zzz6839/SubCrawler/main/sub/share/all
 https://rentry.co/free2config_t_h/raw
+https://rootjazz.com/proxies/proxies.txt
 https://rss-node.com/link/vqOaWFJRfbYxpAhY?mu=1
 https://rss.getfree.win/link/w9ted9eZq1zbC3gx?sub=1
 https://scys.org/proxy
 https://spys.one/en/socks-proxy-list/
+https://stackoverflow.com/questions/tagged/proxy
 https://sub.amiralter.com/config-lite
 https://sub.idsvip.com/link/abcd1234?clash=1
 https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpeasoft%2FNoMoreWalls%2Fmaster%2Fsnippets%2Fnodes.meta.yml&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&tls13=true&emoji=true&list=false&xudp=true&udp=true&tfo=false&expand=true&scv=false&fdn=false&singbox.ipv6=1
 https://sureproxy.com/free
+https://t.me/ProxyDailyChannel
+https://t.me/ProxyScanBot
 https://t.me/irancpi_vpn/713
 https://trojanvmess.pages.dev/cmcm?b64#cmcm?b64
 https://tt.vg/freeclash
+https://twitter.com/ProxyDaily
 https://v2.alicivil.workers.dev
 https://v2.alicivil.workers.dev/?list=100&unique=false&shuffle=true&count=1000#?list=100&unique=false&shuffle=true&count=1000
 https://v2.alicivil.workers.dev/?list=3
@@ -48,9 +39,13 @@ https://vvsub.xyz/api/al/19786-xDX1SCq61Ymi
 https://www.allfreevpn.com/proxy-list/
 https://www.best-proxy-list.com/
 https://www.bestfreeproxy.com/
+https://www.blackhatworld.com/seo/free-proxies.107026/
 https://www.cool-proxy.net/proxies.json
+https://www.facebook.com/search/top?q=free%20proxy
+https://www.freeproxy.list/
 https://www.freeproxylist.net/
 https://www.haidaobot.xyz/link/QwdUmWolPN0LkThW?mu=2
+https://www.kaggle.com/datasets/search?search=free+proxies
 https://www.multi-proxy.com/proxylist.php
 https://www.my-proxy.com/free-proxy-list.html
 https://www.proxy-list.download/api/v1/get?type=all
@@ -59,7 +54,10 @@ https://www.proxyscan.io/download?type=http
 https://www.proxyscan.io/download?type=http,https,socks4,socks5
 https://www.proxyscan.io/download?type=socks4
 https://www.proxyscan.io/download?type=socks5
+https://www.reddit.com/r/proxylist/
+https://www.socks-proxy.net/
 https://www.sslproxies.org/
+https://www.us-proxy.org/
 https://xship.top/v1/subscribe?starlink=lK-IH1mWfDG6xJ1yTB6JIGuL
 https://yebekhe.link/api/singbox/?url=https%3A%2F%2Feliv2ray.cloud%2Fsub%2Feliv2%2F-EliV2ray-EliV2ray.txt&limit=0&tun=true
 https://yebekhe.link/api/singbox/?url=https%3A%2F%2Foss.v2rayse.com%2Fproxies%2Fdata%2F2023-11-11%2FFqgjQs1.txt&limit=0&tun=true

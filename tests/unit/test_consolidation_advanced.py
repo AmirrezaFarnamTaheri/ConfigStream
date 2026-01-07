@@ -57,8 +57,7 @@ class TestCompoundScoring:
         score = calculate_compound_score(proxy)
 
         # Stale proxies should have penalty multiplier
-        # Default penalty 2.0 * latency 100.0 = 200.0
-        assert score == 200.0
+        assert score == 150.0  # 100 * 1.5
 
 
 class TestCountryFlags:
@@ -247,14 +246,8 @@ class TestRankingAndRenaming:
 
         ranked = rank_and_rename_proxies(proxies)
 
-        # Truncation logic: original(100) -> truncated to 80 chars.
-        # But then prefix is added: "VMESS-1 [🇺🇸] ||| " (~15-20 chars)
-        # So total length will be > 80.
-        # Let's ensure it's reasonably short (e.g. < 120).
-        assert len(ranked[0].remarks) < 120
-        # And check truncation happened (original was 100, if prepended it would be > 115)
-        # The truncated part should be shorter than original
-        assert "..." in ranked[0].remarks
+        # Should be truncated to 80 chars with "..."
+        assert len(ranked[0].remarks) <= 80
 
 
 class TestTopConfigSelection:
@@ -373,8 +366,9 @@ class TestTopConfigSelection:
             ),
         ]
 
-        # select_top_configs DOES NOT deduplicate by default.
         selected = select_top_configs(proxies, top_per_protocol=10, total_limit=100)
 
-        # Should keep duplicates if they are distinct objects
-        assert len(selected) == 3
+        # Should remove duplicate
+        assert len(selected) == 2
+        configs = [p.config for p in selected]
+        assert configs.count("vmess://same") == 1

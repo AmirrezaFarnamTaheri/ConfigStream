@@ -7,18 +7,12 @@ Includes atomic file operations and advanced concurrency primitives.
 import asyncio
 import logging
 import os
-import json
 import tempfile
 from pathlib import Path
-from typing import Union, Any
+from typing import Union
 from contextlib import asynccontextmanager
 
 logger = logging.getLogger(__name__)
-
-
-def save_json_file(data: Any, path: str) -> None:
-    """Helper to save data as JSON atomically."""
-    AtomicFileWriter.write_text(path, json.dumps(data, indent=2))
 
 
 class AtomicFileWriter:
