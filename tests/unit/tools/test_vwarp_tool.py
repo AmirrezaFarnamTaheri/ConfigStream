@@ -7,16 +7,18 @@ from configstream.tools.vwarp import VwarpTool
 
 @pytest.mark.asyncio
 async def test_vwarp_is_available():
-    with patch("shutil.which", return_value="/usr/bin/vwarp"):
-        tool = VwarpTool()
-        assert await tool.is_available()
+    # Mock os.environ to avoid CI=true check failing the test
+    with patch("os.environ.get", return_value="false"):
+        with patch("shutil.which", return_value="/usr/bin/vwarp"):
+            tool = VwarpTool()
+            assert await tool.is_available()
 
-    with (
-        patch("shutil.which", return_value=None),
-        patch("pathlib.Path.exists", return_value=False),
-    ):
-        tool = VwarpTool()
-        assert not await tool.is_available()
+        with (
+            patch("shutil.which", return_value=None),
+            patch("pathlib.Path.exists", return_value=False),
+        ):
+            tool = VwarpTool()
+            assert not await tool.is_available()
 
 
 @pytest.mark.asyncio
