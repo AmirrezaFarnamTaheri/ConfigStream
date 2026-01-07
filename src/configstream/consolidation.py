@@ -1,11 +1,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 from typing import List, Dict, Optional
-import math
 
 from configstream.models import Proxy
 from configstream.utils import save_json_file
-from configstream.score import calculate_health_score
 from configstream.test_cache import TestResultCache
 
 logger = logging.getLogger(__name__)
@@ -108,9 +106,7 @@ def select_top_configs(
 
     # Sort all by compound score (latency + health)
     # Using a dedicated scoring function helps readability
-    proxies.sort(
-        key=lambda x: calculate_compound_score(x, health_cache=health_cache)
-    )
+    proxies.sort(key=lambda x: calculate_compound_score(x, health_cache=health_cache))
 
     selected: List[Proxy] = []
     protocol_counts: Dict[str, int] = {}
