@@ -38,6 +38,18 @@ class VwarpTool:
 
     async def is_available(self) -> bool:
         """Quick health check."""
+        # CI Check: Disable unless forced
+        is_ci = os.environ.get("CI") == "true"
+
+        # Lazy import to avoid circular dependency
+        from configstream.config import AppSettings
+
+        force_scanner = AppSettings().FORCE_SCANNER
+
+        if is_ci and not force_scanner:
+            logger.debug("Vwarp disabled in CI environment (FORCE_SCANNER not set).")
+            return False
+
         if shutil.which("vwarp"):
             return True
         if self.binary and Path(self.binary).exists():
