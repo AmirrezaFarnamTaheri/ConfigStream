@@ -73,3 +73,7 @@ https://raw.githubusercontent.com/Lewis-1217/FreeNodes/main/bpjzx2
 https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/Latest_base64.txt
 https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/NodeList.txt
 https://raw.githubusercontent.com/MOnday9907/v2ray/main/v2ray.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub15.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub16.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub17.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub18.txt
