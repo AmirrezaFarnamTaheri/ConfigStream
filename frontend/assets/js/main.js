@@ -146,6 +146,30 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         window.stateManager.setLoading(true, 'Fetching latest data...');
+
+        // Define defaults and updater function outside try/catch to ensure availability
+        let sourceCount = 815;
+        let updateFreq = 5;
+
+        const updateHeroSubtitle = () => {
+             const heroSubtitle = document.getElementById('heroSubtitle');
+             const formatNum = (num) => {
+                 if (num === undefined || num === null) return 'N/A';
+                 return window.i18n && window.i18n.formatNumber ? window.i18n.formatNumber(num) : num;
+             };
+
+             if (heroSubtitle && window.i18n) {
+                 let text = window.i18n.t('hero.subtitle.main');
+                 text = text.replace('{sources}', formatNum(sourceCount));
+                 text = text.replace('{hours}', formatNum(updateFreq));
+                 heroSubtitle.innerHTML = text; // Allow HTML for strong tags
+             }
+        };
+
+        // Initialize immediately with defaults to avoid "--" flash or placeholders
+        updateHeroSubtitle();
+        window.addEventListener('languageChanged', updateHeroSubtitle);
+
         try {
             // Fetch metadata and statistics in parallel
             const [metadata, stats] = await Promise.all([
@@ -213,25 +237,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Configuration values from metadata (or stats as fallback)
-                const updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 6;
+                // Default to 5 hours and 85 sources as per configuration if metadata is missing
+                updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 5;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
-                const sourceCount = metadata?.sources_count || stats.sources_count || 0;
+                sourceCount = metadata?.sources_count || stats.sources_count || 815;
 
-                // Update hero subtitle dynamic values using new logic
-                const updateHeroSubtitle = () => {
-                     const heroSubtitle = document.getElementById('heroSubtitle');
-                     if (heroSubtitle && window.i18n) {
-                         let text = window.i18n.t('hero.subtitle.main');
-                         text = text.replace('{sources}', formatNum(sourceCount));
-                         text = text.replace('{hours}', formatNum(updateFreq));
-                         heroSubtitle.innerHTML = text; // Allow HTML for strong tags
-                     }
-                };
-
+                // Re-run updater with new data
                 updateHeroSubtitle();
-                // Listen for language changes to re-update
-                window.addEventListener('languageChanged', updateHeroSubtitle);
 
                 // Update "How it works" section dynamic values
                 const infoSourceCountElem = document.getElementById('infoSourceCount');

@@ -73,3 +73,7 @@ https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/shadowso
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/trojan
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/vless
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/vmess
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub22.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub23.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub24.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub25.txt

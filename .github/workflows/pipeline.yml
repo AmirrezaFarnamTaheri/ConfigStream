@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "0 */6 * * *"  # [FIX] Truly every 6 hours (0, 6, 12, 18)
+    - cron: "0 */5 * * *"  # [FIX] Every 5 hours as requested
   workflow_dispatch:
 
 concurrency:
@@ -195,6 +195,7 @@ jobs:
           BATCH_NUMBER: ${{ matrix.batch_number }}
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
+          UPDATE_INTERVAL_HOURS: 5
           CANARY_URL: "https://httpbin.org"
         run: |
           set -euxo pipefail

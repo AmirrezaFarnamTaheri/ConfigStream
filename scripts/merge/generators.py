@@ -96,6 +96,10 @@ def generate_outputs(
         with open(output_dir / "all.txt", "w") as f:
             f.write("\n".join(all_configs))
 
+        # [Task 5] Create proxies.txt as a copy of all.txt for "Raw Configs"
+        with open(output_dir / "proxies.txt", "w") as f:
+            f.write("\n".join(all_configs))
+
         base64_content = generate_base64_subscription(ranked_proxies)
         with open(output_dir / "base64.txt", "w") as f:
             f.write(base64_content)

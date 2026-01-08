@@ -63,3 +63,12 @@ https://yebekhe.link/api/singbox/?url=https%3A%2F%2Feliv2ray.cloud%2Fsub%2Feliv2
 https://yebekhe.link/api/singbox/?url=https%3A%2F%2Foss.v2rayse.com%2Fproxies%2Fdata%2F2023-11-11%2FFqgjQs1.txt&limit=0&tun=true
 https://yip.su/proxy
 https://zhuanhuan.diga.workers.dev/sub?target=clash&url=https%3A%2F%2Fraw.githubusercontent.com%2FLewis-1217%2FFreeNodes%2Fmain%2Fbpjzx1&insert=false&emoji=true&list=false&tfo=false&scv=false&fdn=false&sort=false&new_name=true
+# Batch 4 - 74 sources
+https://raw.githubusercontent.com/Mahanfix/v2rayvpn/main/mahanfix
+https://raw.githubusercontent.com/Mahdi0024/ProxyCollector/master/sub/proxies.txt
+https://raw.githubusercontent.com/Mahdi0024/ProxyCollector/master/sub/singbox.json
+https://raw.githubusercontent.com/MahsaNetConfigTopic/config/main/xray_final.txt
+https://raw.githubusercontent.com/MahsaNetConfigTopic/config/refs/heads/main/xray_final.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/all.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub1.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub10.txt

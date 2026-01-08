@@ -73,3 +73,4 @@ https://raw.githubusercontent.com/kevin-wud/v2ray-node/main/clash.yaml
 https://raw.githubusercontent.com/lagzian/IranConfigCollector/main/Base64.txt
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/mix.txt
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/mix_clash.yaml
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub30.txt

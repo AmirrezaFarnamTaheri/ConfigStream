@@ -73,3 +73,7 @@ https://raw.githubusercontent.com/BUTUbird/ClashPoint/main/application.yaml
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/blues.yaml
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/clashmeta.yaml
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/ndnode.yaml
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub11.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub12.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub13.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub14.txt

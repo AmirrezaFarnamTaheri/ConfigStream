@@ -73,3 +73,4 @@ https://hasdata.com/free-proxy-list
 https://hidemy.name/en/proxy-list/
 https://hidemyip.com/proxylist
 https://igdux.top/ENWm#VPNZ4%20
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub3.txt

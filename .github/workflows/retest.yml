@@ -2,7 +2,8 @@ name: Retest
 
 on:
   schedule:
-    - cron: "0 */3 * * *"  # Every 3 hours
+    - cron: "0 0-21/3 * * *"
+    - cron: "30 1-22/3 * * *" # Alternating every 1.5h
   workflow_dispatch:
 
 permissions:
