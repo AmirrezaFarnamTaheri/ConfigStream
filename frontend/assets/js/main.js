@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.stateManager.setLoading(true, 'Fetching latest data...');
 
         // Define defaults and updater function outside try/catch to ensure availability
-        let sourceCount = 85;
+        let sourceCount = 815;
         let updateFreq = 5;
 
         const updateHeroSubtitle = () => {
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 5;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
-                sourceCount = metadata?.sources_count || stats.sources_count || 85;
+                sourceCount = metadata?.sources_count || stats.sources_count || 815;
 
                 // Re-run updater with new data
                 updateHeroSubtitle();
