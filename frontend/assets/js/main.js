@@ -166,6 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
              }
         };
 
+        // Initialize immediately with defaults to avoid "--" flash or placeholders
+        updateHeroSubtitle();
+        window.addEventListener('languageChanged', updateHeroSubtitle);
+
         try {
             // Fetch metadata and statistics in parallel
             const [metadata, stats] = await Promise.all([
@@ -239,9 +243,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 sourceCount = metadata?.sources_count || stats.sources_count || 85;
 
+                // Re-run updater with new data
                 updateHeroSubtitle();
-                // Listen for language changes to re-update
-                window.addEventListener('languageChanged', updateHeroSubtitle);
 
                 // Update "How it works" section dynamic values
                 const infoSourceCountElem = document.getElementById('infoSourceCount');
@@ -261,10 +264,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateElement('#footerUpdate', 'N/A');
             updateElement('#totalConfigs', 'N/A');
             updateElement('#workingConfigs', 'N/A');
-
-            // Even if fetch fails, show the hero defaults
-            updateHeroSubtitle();
-            window.addEventListener('languageChanged', updateHeroSubtitle);
         } finally {
             window.stateManager.setLoading(false);
             // Hide preloader after data fetching is complete

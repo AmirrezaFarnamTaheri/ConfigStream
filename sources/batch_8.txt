@@ -73,3 +73,7 @@ https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/speed.txt
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/wg.txt
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/mobile.txt
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/speed.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub26.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub27.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub28.txt
+https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub29.txt
