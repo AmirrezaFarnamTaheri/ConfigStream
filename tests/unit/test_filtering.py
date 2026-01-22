@@ -30,13 +30,9 @@ def test_filter_different_protocols_same_port():
     )  # Diff proto
 
     result = filter_unique_endpoints([p1, p2])
-    # Wait, filter_unique_endpoints hashes (IP:Port|UUID|Path|SNI). Protocol is IGNORED.
-    # So if they have same IP, Port, UUID (default ""), Path (""), SNI (""), they COLLIDE.
-    # But p1 and p2 are created with create_test_proxy which sets default config.
-    # We should set different UUIDs if we want them to differ, OR assert they are merged if logic ignores protocol.
-    # The logic explicitly comments: "# We ignore 'remarks', 'protocol' (sometimes vmess/vless are confused but same backend)"
-    # So expected is 1 if UUIDs are same.
-    assert len(result) == 1
+    # Protocols are included by default in the endpoint fingerprint,
+    # so two protocols on the same endpoint remain distinct.
+    assert len(result) == 2
 
 
 def test_filter_with_auth_diff():

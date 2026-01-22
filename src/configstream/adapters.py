@@ -12,6 +12,7 @@ import urllib.parse
 from typing import List, Optional, Dict, Any
 from .models import Proxy
 from .adapters_base import format_singbox_chain_for_surge, format_singbox_chain_for_loon
+from .utils.bool_parser import parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
@@ -344,6 +345,9 @@ class ShadowrocketAdapter(Adapter):
             # This is a basic fallback
             import json
 
+            tls_enabled = parse_tls_flag(p.details.get("tls")) or p.details.get(
+                "security"
+            ) in ("tls", "reality")
             v_obj = {
                 "v": "2",
                 "ps": p.remarks or "ConfigStream",
@@ -354,7 +358,7 @@ class ShadowrocketAdapter(Adapter):
                 "net": p.details.get("net", "tcp"),
                 "type": "none",
                 "host": p.details.get("host", ""),
-                "tls": p.details.get("tls", ""),
+                "tls": "tls" if tls_enabled else "",
             }
             return "vmess://" + base64.b64encode(json.dumps(v_obj).encode()).decode()
 

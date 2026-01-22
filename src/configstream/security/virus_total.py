@@ -51,7 +51,8 @@ async def scan_url(url: str) -> dict[str, int]:
     headers = {"x-apikey": VT_API_KEY}
 
     try:
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=AppSettings().SECURITY_CHECK_TIMEOUT)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(report_url, headers=headers) as resp:
                 if resp.status == 200:
                     data = await resp.json()
@@ -117,7 +118,8 @@ async def check_ip_reputation(ip: str) -> dict[str, int]:
     headers = {"x-apikey": VT_API_KEY}
 
     try:
-        async with aiohttp.ClientSession() as session:
+        timeout = aiohttp.ClientTimeout(total=AppSettings().SECURITY_CHECK_TIMEOUT)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
             # Use context manager for the response object as per aiohttp
             async with session.get(url, headers=headers) as resp:
                 if resp.status == 200:

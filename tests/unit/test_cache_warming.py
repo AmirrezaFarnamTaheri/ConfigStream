@@ -35,11 +35,11 @@ def test_warm_cache(mock_cache):
     # health scores
     def health_score(p):
         if p.id == "p1":
-            return 80
+            return 0.8
         if p.id == "p4":
-            return 90
+            return 0.9
         if p.id == "p3":
-            return 50
+            return 0.5
         return 0
 
     mock_cache.get_health_score.side_effect = health_score
@@ -47,9 +47,9 @@ def test_warm_cache(mock_cache):
     result = warm_cache(mock_cache, proxies)
 
     # Expected order:
-    # 1. High score (>70): p4 (90), p1 (80)
+    # 1. High score (>0.7): p4 (0.9), p1 (0.8)
     # 2. Uncached: p2
-    # 3. Low score: p3 (50)
+    # 3. Low score: p3 (0.5)
 
     assert result[0].id == "p4"
     assert result[1].id == "p1"

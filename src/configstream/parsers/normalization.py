@@ -58,3 +58,23 @@ def normalize_proxy_details(proxy: Proxy) -> None:
             logger.debug(f"Normalized ALPN for {proxy.id[:8]}: {alpn_list}")
         elif isinstance(alpn, (list, tuple)):
             proxy.details["alpn"] = [str(item) for item in alpn]
+
+    # 4. Normalize TLS flag to a boolean when possible
+    tls_val = proxy.details.get("tls")
+    if isinstance(tls_val, dict):
+        # Preserve structured TLS configs
+        pass
+    elif isinstance(tls_val, str):
+        tls_norm = tls_val.strip().lower()
+        if tls_norm in ("tls", "true", "1", "yes", "on"):
+            proxy.details["tls"] = True
+        elif tls_norm in ("false", "0", "no", "off", "none", ""):
+            proxy.details["tls"] = False
+    elif isinstance(tls_val, (int, bool)):
+        proxy.details["tls"] = bool(tls_val)
+
+    security = proxy.details.get("security")
+    if security in ("tls", "reality"):
+        current_tls = proxy.details.get("tls")
+        if not isinstance(current_tls, dict) and current_tls is not False:
+            proxy.details["tls"] = True

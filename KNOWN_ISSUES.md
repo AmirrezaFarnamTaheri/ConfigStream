@@ -24,7 +24,7 @@
 - **Turbo Verify**: Hidden non-functional "Turbo Verify (Local)" button in UI until WASM networking limitations are resolved.
 - **Go Scanner**: Fixed map key collision issue in `scanner.go` by using composite `IP:Port` keys.
 - **uTLS Client**: Updated `utls_client` PoC to respect command-line URLs and support dynamic host parsing.
-- **Scripts**: Deprecated legacy scripts (`clean_security_issues.py`, `scripts/merge/`) with clear warnings.
+- **Scripts**: Removed deprecated legacy scripts (`clean_security_issues.py`, `scripts/merge/`).
 
 ### v2.1.0 Deep Audit & Security Fixes (2025-12-25)
 ✅ **Security & Logic**

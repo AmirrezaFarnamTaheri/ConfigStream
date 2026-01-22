@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from typing import Dict, Any
+from ..utils.bool_parser import parse_tls_flag
 
 
 def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, Any]:
@@ -36,7 +37,11 @@ def add_transport_opts(base: Dict[str, Any], details: Dict[str, Any]) -> Dict[st
             base["h2-opts"] = h2_opts
 
     # Common TLS fields
-    if details.get("tls") == "tls" or details.get("security") in ["tls", "reality"]:
+    tls_enabled = parse_tls_flag(details.get("tls")) or details.get("security") in [
+        "tls",
+        "reality",
+    ]
+    if tls_enabled:
         base["tls"] = True
         if "sni" in details:
             base["servername"] = str(details["sni"])

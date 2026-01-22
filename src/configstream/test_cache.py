@@ -24,6 +24,7 @@ else:
 
 from .models import Proxy
 from .utils import AtomicFileWriter
+from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,9 @@ class TestResultCache:
 
     __test__ = False
 
-    def __init__(self, db_path: str = "data/test_cache.json", ttl_seconds: int = 3600):
+    def __init__(
+        self, db_path: str = "data/test_cache.json", ttl_seconds: Optional[int] = None
+    ):
         """
         Initialize the test result cache.
 
@@ -42,6 +45,8 @@ class TestResultCache:
             ttl_seconds: Time-to-live for cached results (default: 1 hour).
         """
         self.db_path = Path(db_path)
+        if ttl_seconds is None:
+            ttl_seconds = AppSettings().CACHE_TTL
         self.ttl_seconds = ttl_seconds
         self._cache: Dict[str, Dict[str, Any]] = {}
         self.load()

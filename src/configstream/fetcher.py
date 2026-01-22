@@ -38,7 +38,7 @@ class Fetcher:
         Fetches text content from a URL using the orchestrator.
         """
         # Use configured timeout
-        timeout = getattr(self.settings, "SOURCE_FETCH_TIMEOUT", 30.0)
+        timeout = getattr(self.settings, "FETCH_TIMEOUT", 30.0)
 
         # [AUDIT FIX] Add explicit connection limits to prevent resource exhaustion
         limits = httpx.Limits(max_keepalive_connections=100, max_connections=500)
@@ -47,7 +47,10 @@ class Fetcher:
             timeout=timeout, follow_redirects=True, limits=limits
         ) as client:
             result = await fetch_from_source(
-                client=client, source=url, app_settings=self.settings
+                client=client,
+                source=url,
+                app_settings=self.settings,
+                timeout=float(timeout),
             )
 
             if result.success and result.content:

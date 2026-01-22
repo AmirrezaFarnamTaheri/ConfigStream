@@ -123,6 +123,15 @@ class WarpScannerWorker:
         Returns:
             List[str]: A list of valid IP addresses (e.g., ["162.159.192.1", ...])
         """
+        from configstream.config import AppSettings
+
+        settings = AppSettings()
+        if not settings.ALLOW_ACTIVE_SCANNING and not settings.FORCE_SCANNER:
+            logger.info(
+                "Warp scan skipped: active scanning is disabled (ALLOW_ACTIVE_SCANNING=false)."
+            )
+            return []
+
         if not self.available:
             logger.warning("Scan requested but binary is unavailable.")
             return []

@@ -71,8 +71,7 @@ async def fetch_multiple_sources(
                 breaker_manager=breaker_manager,
                 timeout_tracker=timeout_tracker,
                 quality_tracker=quality_tracker,
-                # Pass timeout if supported by orchestrator via kwargs or explicit arg?
-                # Orchestrator uses timeout_tracker.
+                timeout=timeout,
             )
             return source, res
 

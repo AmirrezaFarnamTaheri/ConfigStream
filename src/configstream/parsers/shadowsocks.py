@@ -84,6 +84,12 @@ def parse_ss(config: str) -> Optional[Proxy]:
         if ":" not in user_info:
             return None
         method, password = user_info.split(":", 1)
+        if not password:
+            for key in ("password", "psk", "pass", "pwd"):
+                val = details.get(key, "")
+                if isinstance(val, str) and val.strip():
+                    password = val.strip()
+                    break
 
         # Parse host_info
         # Check for plugin params (SIP003 simple-obfs etc often appended as /?plugin=...)

@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
 import httpx
+import sniffio
 
 from .dns_cache import DEFAULT_CACHE
 from .config import AppSettings
@@ -87,13 +88,17 @@ async def get_client(retries: int = 0) -> AsyncIterator[httpx.AsyncClient]:
     transport = transport_cls(retries=retries, limits=limits, http2=HTTP2_AVAILABLE)
 
     # Configure Client
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(20.0, connect=10.0, read=15.0),
-        headers={
-            "User-Agent": "ConfigStream/1.1 (+https://github.com/AmirrezaFarnamTaheri/ConfigStream)",
-            "Accept": "text/plain, application/json, */*",
-        },
-        follow_redirects=True,
-        transport=transport,
-    ) as client:
-        yield client
+    token = sniffio.current_async_library_cvar.set("asyncio")
+    try:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(20.0, connect=10.0, read=15.0),
+            headers={
+                "User-Agent": "ConfigStream/1.1 (+https://github.com/AmirrezaFarnamTaheri/ConfigStream)",
+                "Accept": "text/plain, application/json, */*",
+            },
+            follow_redirects=True,
+            transport=transport,
+        ) as client:
+            yield client
+    finally:
+        sniffio.current_async_library_cvar.reset(token)

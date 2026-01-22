@@ -5,6 +5,7 @@ from typing import Optional
 from ..models import Proxy
 from ..constants import MAX_CONFIG_LINE_LENGTH
 from ..security_validator import SecurityValidator
+from .base import normalize_proxy_details
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +59,7 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
                     )
                     return None
 
-        return Proxy(
+        proxy = Proxy(
             config=config,  # Store the JSON blob as config
             protocol=protocol,
             address=address,
@@ -67,6 +68,8 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
             details=data,
             remarks=data.get("name", ""),
         )
+        normalize_proxy_details(proxy)
+        return proxy
     except Exception as e:
         logger.debug(f"Failed to parse Clash JSON: {e}")
         return None

@@ -67,9 +67,8 @@ class GeoIPResolver:
     def _load_databases(self) -> None:
         """Load MMDB files if available."""
         try:
-            data_dir = Path("data")
-            city_path = data_dir / "GeoLite2-City.mmdb"
-            asn_path = data_dir / "GeoLite2-ASN.mmdb"
+            city_path = Path(self.settings.GEOIP_CITY_DB_PATH)
+            asn_path = Path(self.settings.GEOIP_ASN_DB_PATH)
 
             # Check for C extension availability
             # C extension (MMAP_EXT mode) is thread-safe for reads, allowing lock-free lookups
@@ -139,7 +138,7 @@ class GeoIPResolver:
     def _check_reload_needed(self):
         """Check if DB file has changed on disk."""
         try:
-            p = Path("data/GeoLite2-City.mmdb")
+            p = Path(self.settings.GEOIP_CITY_DB_PATH)
             if p.exists():
                 mtime = p.stat().st_mtime
                 if mtime > self._last_mtime:

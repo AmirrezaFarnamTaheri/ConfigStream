@@ -41,7 +41,10 @@ def generate_categorized_outputs(
 
     # 1. Generate Smart Chains if not provided
     if smart_chains is None:
-        smart_chains = generate_smart_chains(proxies, washer=washer)
+        if AppSettings().ENABLE_SMART_CHAINING:
+            smart_chains = generate_smart_chains(proxies, washer=washer)
+        else:
+            smart_chains = {}
 
     # 2. Generate Split Outputs (The Tank & The Sniper & Clash)
     # This restores singbox-vpn.json (Tank) and singbox.json (Sniper)
@@ -294,7 +297,16 @@ def save_metadata(
         total_revived_count = warp_count_heuristic
 
     # Washing Enabled Logic (Best effort inference for Shards)
-    washing_enabled = bool(AppSettings().WARP_KEY_POOL) or vwarp_attempts > 0
+    washing_enabled = False
+    warp_pool_raw = AppSettings().WARP_KEY_POOL
+    if isinstance(warp_pool_raw, str) and warp_pool_raw.strip():
+        try:
+            warp_pool = json.loads(warp_pool_raw)
+            washing_enabled = isinstance(warp_pool, list) and len(warp_pool) > 0
+        except json.JSONDecodeError:
+            # Non-JSON value treated as enabled if non-empty (backward compat)
+            washing_enabled = True
+    washing_enabled = washing_enabled or vwarp_attempts > 0
 
     meta = {
         "schema_version": "2.3.0",  # Updated to match generators.py

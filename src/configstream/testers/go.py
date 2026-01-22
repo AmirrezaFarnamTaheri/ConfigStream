@@ -246,8 +246,8 @@ class GoBatchTester:
                 return
 
             cmd = [self.binary_path, "-workers", str(self.workers)]
-            # Increase timeout to ensure python reaches to feed all proxies
-            cmd.extend(["-timeout", "30s"])
+            timeout_sec = max(1, int(self.timeout))
+            cmd.extend(["-timeout", f"{timeout_sec}s"])
 
             # NOTE: Avoid module-level AppSettings() instances; settings should be created
             # lazily to respect runtime env changes (important for tests).
@@ -415,6 +415,8 @@ class GoBatchTester:
         req_id_map: Dict[str, Proxy] = {}  # Map req_id -> Proxy
         futures: List[asyncio.Future[Any]] = []
         loop = asyncio.get_running_loop()
+        settings = AppSettings()
+        canary_url = settings.CANARY_URL if check_honeypot else ""
 
         for p in proxies:
             outbound = to_singbox_outbound(p)
@@ -423,20 +425,21 @@ class GoBatchTester:
                 req_id = f"{p.id}-{uuid.uuid4().hex}"
 
                 # Handle json.dumps returning bytes or str
-                raw_json = json.dumps(outbound)
+                raw_json = json.dumps([outbound])
                 if isinstance(raw_json, bytes):
                     config_str = raw_json.decode()
                 else:
                     config_str = raw_json
 
-                # FIX: Go Tester template expects "outbounds": [%s, direct]
-                inputs.append(
-                    {
-                        "config": config_str,
-                        "id": req_id,
-                        "check_honeypot": check_honeypot,
-                    }
-                )
+                # FIX: Go Tester expects "config" to be a JSON array of outbounds
+                payload = {
+                    "config": config_str,
+                    "id": req_id,
+                    "check_honeypot": check_honeypot,
+                }
+                if canary_url:
+                    payload["target"] = canary_url
+                inputs.append(payload)
                 req_id_map[req_id] = p
 
                 fut = loop.create_future()
@@ -467,8 +470,8 @@ class GoBatchTester:
                 else:
                     lines.append(dumped)
 
-            payload = "\n".join(lines) + "\n"
-            self._proc.stdin.write(payload.encode())
+            payload_str = "\n".join(lines) + "\n"
+            self._proc.stdin.write(payload_str.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
             if not self._stopping:
@@ -638,6 +641,8 @@ class GoBatchTester:
         reverse_map: Dict[str, str] = {}  # req_id -> original_id
         futures: List[asyncio.Future[Any]] = []
         loop = asyncio.get_running_loop()
+        settings = AppSettings()
+        canary_url = settings.CANARY_URL if check_honeypot else ""
 
         for item in configs:
             chain_id = item.get("id")
@@ -651,25 +656,20 @@ class GoBatchTester:
                 config_str = raw_json.decode()
             else:
                 config_str = raw_json
-
-            # FIX: Strip brackets only when the JSON is actually an array; keep safe for empty lists.
-            if isinstance(outbounds, list):
-                s = config_str.strip()
-                if not outbounds:
-                    continue
-                if s.startswith("[") and s.endswith("]") and len(s) >= 2:
-                    config_str = s[1:-1]
+            if isinstance(outbounds, list) and not outbounds:
+                continue
 
             # Unique request ID (Full UUID)
             req_id = f"{chain_id}-{uuid.uuid4().hex}"
 
-            inputs.append(
-                {
-                    "config": config_str,
-                    "id": req_id,
-                    "check_honeypot": check_honeypot,
-                }
-            )
+            payload = {
+                "config": config_str,
+                "id": req_id,
+                "check_honeypot": check_honeypot,
+            }
+            if canary_url:
+                payload["target"] = canary_url
+            inputs.append(payload)
             req_id_map[chain_id] = req_id
             reverse_map[req_id] = chain_id
 
@@ -691,8 +691,8 @@ class GoBatchTester:
                 else:
                     lines.append(dumped)
 
-            payload = "\n".join(lines) + "\n"
-            self._proc.stdin.write(payload.encode())
+            payload_str = "\n".join(lines) + "\n"
+            self._proc.stdin.write(payload_str.encode())
             await self._proc.stdin.drain()
         except (BrokenPipeError, ConnectionResetError) as e:
             logger.error(

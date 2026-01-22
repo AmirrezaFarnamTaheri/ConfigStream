@@ -4,7 +4,7 @@ const logger = window.createLogger ? window.createLogger('Stego') : console;
 const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 
 // ⚠️ DO NOT CHANGE THIS LINE MANUALLY ⚠️
-// This is a PLACEHOLDER. The Python pipeline injects the real key from STEGO_KEY environment variable.
+// This is a PLACEHOLDER. The pipeline injects the real key from STEGO_KEY (or CONFIG_STREAM_KEY legacy).
 // If deploying manually, set STEGO_KEY in your environment or this feature will not work.
 // The key below is rotated every 6 hours by GitHub Actions.
 // NOTE: This key provides OBFUSCATION ONLY, not strong confidentiality, as it is visible in client-side code.

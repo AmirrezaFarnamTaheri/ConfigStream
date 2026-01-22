@@ -2,10 +2,13 @@
 import logging
 import json
 import re
+import ipaddress
 from typing import Optional
 from urllib.parse import urlparse, unquote
 from ..models import Proxy
+from .base import normalize_proxy_details
 from ..constants import MAX_CONFIG_LINE_LENGTH
+from ..config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -27,25 +30,33 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
 
         # Support naked IP:PORT for SOCKS/HTTP
         if "://" not in config and ":" in config and not config.startswith("{"):
-            parts = config.split(":")
-            if len(parts) == 2 and parts[1].isdigit():
-                host = parts[0]
-                port_val = int(parts[1])
+            host = ""
+            port_val = 0
+            if config.startswith("[") and "]:" in config:
+                host_part, _, port_str = config[1:].partition("]:")
+                if host_part and port_str.isdigit():
+                    host = host_part
+                    port_val = int(port_str)
+            else:
+                parts = config.split(":")
+                if len(parts) == 2 and parts[1].isdigit():
+                    host = parts[0]
+                    port_val = int(parts[1])
 
+            if host and port_val:
                 # Validate IP/hostname format
-                # Check for IPv4 address
-                is_valid_ipv4 = _IPV4_PATTERN.match(host) is not None
-                # Check for valid hostname (domain name)
+                is_valid_ip = False
+                try:
+                    ipaddress.ip_address(host)
+                    is_valid_ip = True
+                except ValueError:
+                    is_valid_ip = False
+
                 is_valid_hostname = (
                     _HOSTNAME_PATTERN.match(host) is not None and len(host) <= 253
                 )
-                # Check for IPv6 (simple check: contains only hex digits and colons)
-                is_potential_ipv6 = (
-                    all(c in "0123456789abcdefABCDEF:" for c in host)
-                    and host.count(":") >= 2
-                )
 
-                if not (is_valid_ipv4 or is_valid_hostname or is_potential_ipv6):
+                if not (is_valid_ip or is_valid_hostname):
                     logger.debug(
                         f"Naked IP:PORT rejected: invalid host format '{host}'"
                     )
@@ -67,7 +78,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                 # If source metadata indicates socks, it should be passed here, but we don't have it.
                 # The heuristic is better than always HTTP for these ports.
 
-                return Proxy(
+                proxy = Proxy(
                     config=config,
                     protocol=protocol,
                     address=host,
@@ -76,26 +87,35 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
                     details={},
                     remarks=f"naked_ip_{protocol}",
                 )
+                normalize_proxy_details(proxy)
+                return proxy
 
         parsed = urlparse(config)
         if not parsed.hostname:
             return None
 
+        host = parsed.hostname
+        is_valid_ip = False
+        try:
+            ipaddress.ip_address(host)
+            is_valid_ip = True
+        except ValueError:
+            is_valid_ip = False
+
         # Stricter check for generic parsing: Must have valid hostname characters
-        if not all(
-            c.isalnum() or c in ".-_" for c in parsed.hostname if c not in "[]"
-        ):  # allow [] for IPv6
-            return None
+        if not is_valid_ip:
+            if not _HOSTNAME_PATTERN.match(host) or len(host) > 253:
+                return None
 
         # Block "invalid" or "garbage" as hostnames for testing hygiene
-        if parsed.hostname.lower() in ("garbage", "invalid"):
+        if host.lower() in ("garbage", "invalid"):
             return None
 
         # Ensure hostname has at least one dot or is localhost (basic validity)
-        if "." not in parsed.hostname and parsed.hostname != "localhost":
-            # Only allow if it looks like an IP (though rare without dots except IPv6)
-            # This prevents "garbage" being accepted if check above fails
-            return None
+        if not is_valid_ip and "." not in host and host != "localhost":
+            # Allow single-label hostnames only when explicitly permitted.
+            if not AppSettings().ALLOW_PRIVATE_IPS:
+                return None
 
         scheme = parsed.scheme.lower()
 
@@ -123,19 +143,21 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         if not (1 <= port <= 65535):
             return None
 
-        details = {"password": parsed.password or ""}
+        details: dict[str, object] = {"password": parsed.password or ""}
         if tls:
-            details["tls"] = "true"  # type: ignore
+            details["tls"] = True
 
-        return Proxy(
+        proxy = Proxy(
             config=config,
             protocol=protocol,
-            address=parsed.hostname,
+            address=host,
             port=port,
             uuid=parsed.username or "",
             details=details,
             remarks=unquote(parsed.fragment or ""),
         )
+        normalize_proxy_details(proxy)
+        return proxy
     except (ValueError, IndexError) as e:
         logger.debug(f"Failed to parse Generic config: {str(e)[:50]}")
         return None
@@ -152,15 +174,22 @@ def parse_naive(config: str) -> Optional[Proxy]:
             return None
         if not parsed.username or not parsed.password:
             return None
-        return Proxy(
+        scheme = parsed.scheme.lower()
+        tls = scheme == "https"
+        details: dict[str, object] = {"password": parsed.password or ""}
+        if tls:
+            details["tls"] = True
+        proxy = Proxy(
             config=config,
             protocol="naive",
             address=parsed.hostname,
-            port=parsed.port or 443,
+            port=parsed.port or (443 if tls else 80),
             uuid=parsed.username or "",
-            details={"password": parsed.password or ""},
+            details=details,
             remarks=unquote(parsed.fragment or ""),
         )
+        normalize_proxy_details(proxy)
+        return proxy
     except (ValueError, IndexError) as e:
         logger.debug(f"Failed to parse Naive config: {str(e)[:50]}")
         return None

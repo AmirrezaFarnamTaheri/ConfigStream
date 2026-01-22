@@ -306,14 +306,15 @@ Required for full functionality:
 export PYTHONPATH="/path/to/ConfigStream/src"
 
 # Optional: Enhanced Features
-export WARP_KEY_POOL="key1,key2,key3"          # Enable proxy washing
-export MAXMIND_LICENSE_KEY="your-key"          # GeoIP lookups
-export VT_API_KEY="your-virustotal-key"        # Security scanning
+export WARP_KEY_POOL='[{"private_key":"...","reserved":[0,0,0],"peer_public_key":"..."}]'  # Enable proxy washing
+export USE_VWARP_TUNNEL="true"                  # Route Go tester through Vwarp if available
+export MAXMIND_LICENSE_KEY="your-key"           # GeoIP lookups
+export VT_API_KEY="your-virustotal-key"         # Security scanning
+export CANARY_URL="https://example.com/health"  # Strict security target override
 
 # Optional: Production Deployment
 export ADMIN_API_KEY="your-secret-key"         # Protect admin endpoints
 export ALLOWED_ORIGINS="https://yourdomain.com" # CORS restrictions
-export STEGO_KEY="your-fernet-key"             # Steganography feature
 ```
 
 ---

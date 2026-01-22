@@ -8,6 +8,7 @@ from typing import Mapping, Optional, TYPE_CHECKING
 
 from .config import AppSettings
 from .models import Proxy
+from .utils.bool_parser import parse_tls_flag
 
 if TYPE_CHECKING:
     from .test_cache import TestResultCache
@@ -93,7 +94,7 @@ def calculate_health_score(
     security_score = 0.0
     if proxy.details:
         # Each feature contributes a fraction of the total security points
-        if proxy.details.get("tls"):
+        if parse_tls_flag(proxy.details.get("tls")):
             security_score += 0.5 * w_sec  # 50% of weight
         if proxy.details.get("aead"):
             security_score += 0.25 * w_sec  # 25% of weight
@@ -133,7 +134,7 @@ def score_balanced(
     score += max(0.0, 1.0 - (proxy.age_seconds or 0) / 86400.0) * 10.0
     details = proxy.details or {}
     privacy = 0.0
-    if details.get("tls"):
+    if parse_tls_flag(details.get("tls")):
         privacy += 2.0
     if details.get("aead"):
         privacy += 2.0
@@ -149,7 +150,7 @@ def score_privacy(
     """Legacy scoring function prioritizing privacy features."""
     details = proxy.details or {}
     base = 0.0
-    if details.get("tls"):
+    if parse_tls_flag(details.get("tls")):
         base += 35.0
     if details.get("aead"):
         base += 25.0

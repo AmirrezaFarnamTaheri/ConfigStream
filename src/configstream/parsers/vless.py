@@ -2,6 +2,7 @@
 import logging
 import urllib.parse
 from configstream.models import Proxy
+from .base import normalize_proxy_details
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +80,16 @@ def parse_vless(url: str) -> Proxy | None:
                     k, v = pair.split("=", 1)
                     params[k] = urllib.parse.unquote(v)
 
+        uuid_val = uuid_val.strip()
+        if not uuid_val:
+            for key in ("uuid", "id", "user", "userid", "uid"):
+                val = params.get(key)
+                if isinstance(val, str) and val.strip():
+                    uuid_val = val.strip()
+                    break
+
         # Validation (Relaxed)
-        if not host or not port:
+        if not host or not port or not uuid_val:
             return None
 
         # Construct Proxy
@@ -152,6 +161,7 @@ def parse_vless(url: str) -> Proxy | None:
             if "host" in params:
                 proxy.details["http_host"] = params["host"]
 
+        normalize_proxy_details(proxy)
         return proxy
 
     except Exception:

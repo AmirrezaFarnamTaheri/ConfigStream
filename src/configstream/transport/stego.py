@@ -93,12 +93,13 @@ def generate_stego_assets(
 
     # Priority:
     # 1. Passed arg
-    # 2. Env var CONFIG_STREAM_KEY
+    # 2. Env var STEGO_KEY (preferred) or CONFIG_STREAM_KEY (legacy)
     # 3. Generate new
     if not secret_key:
         from configstream.config import AppSettings
 
-        secret_key = AppSettings().CONFIG_STREAM_KEY
+        settings = AppSettings()
+        secret_key = settings.STEGO_KEY or settings.CONFIG_STREAM_KEY
 
     if secret_key:
         try:
@@ -107,7 +108,9 @@ def generate_stego_assets(
             key = Fernet.generate_key()
     else:
         key = Fernet.generate_key()
-        logger.warning("No CONFIG_STREAM_KEY set; using random key for this build.")
+        logger.warning(
+            "No STEGO_KEY/CONFIG_STREAM_KEY set; using random key for this build."
+        )
 
     packer = StegoPacker(key)
 

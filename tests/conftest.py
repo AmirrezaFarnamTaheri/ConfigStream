@@ -13,8 +13,14 @@ try:
 except ImportError:
     pass
 
-# Apply nest_asyncio to allow nested event loops (critical for testing asyncio.run calls)
-nest_asyncio.apply()
+
+# Apply nest_asyncio only on older runtimes where nested loops are expected.
+def _should_patch_nest_asyncio() -> bool:
+    return sys.version_info < (3, 12)
+
+
+if _should_patch_nest_asyncio():
+    nest_asyncio.apply()
 
 
 # Manually patch Runner.run to support nested loops with nest_asyncio
@@ -77,13 +83,15 @@ def patch_runner_for_nest_asyncio():
         pass
 
 
-patch_runner_for_nest_asyncio()
+if _should_patch_nest_asyncio():
+    patch_runner_for_nest_asyncio()
 
 
 @pytest.fixture(scope="session", autouse=True)
 def apply_nest_asyncio_fixture():
-    nest_asyncio.apply()
-    patch_runner_for_nest_asyncio()
+    if _should_patch_nest_asyncio():
+        nest_asyncio.apply()
+        patch_runner_for_nest_asyncio()
 
 
 @pytest.fixture(scope="session")

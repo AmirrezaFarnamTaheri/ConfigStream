@@ -12,6 +12,7 @@ from typing import List, Dict
 from pathlib import Path
 from configstream.models import Proxy
 from configstream.utils import AtomicFileWriter
+from configstream.utils.bool_parser import parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ def _compute_vector(proxy: Proxy) -> List[int]:
         security += 3
     if proxy.details and proxy.details.get("security") in ("tls", "reality"):
         security += 4
-    if proxy.details and proxy.details.get("tls") == "tls":
+    if proxy.details and parse_tls_flag(proxy.details.get("tls")):
         security += 2
     h_security = min(security, 9)
 

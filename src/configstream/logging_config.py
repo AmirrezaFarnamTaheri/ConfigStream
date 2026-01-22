@@ -11,6 +11,8 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
 
+from .security_validator import SecurityValidator
+
 # Context variable for storing trace IDs across async contexts
 trace_id_var: ContextVar[str] = ContextVar("trace_id", default="")
 
@@ -78,7 +80,7 @@ class SensitiveDataFilter(logging.Filter):
                 f"__URL_PLACEHOLDER_{i}__", url
             )
 
-        record.msg = message_without_urls
+        record.msg = SecurityValidator.sanitize_log_message(message_without_urls)
         return True
 
 
