@@ -87,12 +87,12 @@ To test 10,000+ proxies in minutes on a free runner, Python's `asyncio` loop is 
 
 ### The Go Sidecar (`src/go/tester`)
 *   **Role**: Mass connectivity testing.
-*   **Mechanism**: A compiled Go binary. Python spawns it as a subprocess and communicates via standard I/O (JSON streaming).
+*   **Mechanism**: A compiled Go binary. Python spawns it as a subprocess and communicates via standard I/O (NDJSON stream).
 *   **Performance**: Go spawns thousands of lightweight Goroutines, allowing us to saturate the network interface without CPU blocking.
 *   **Features**:
     *   **TCP/UDP Checks**: Fast socket opening.
-    *   **TLS Handshake**: Verifies the certificate validity.
-    *   **uTLS Integration**: Randomized Client Hello fingerprinting to bypass anti-bot protections on proxy servers.
+    *   **HTTP Probes**: GET requests through the outbound to measure latency.
+    *   **Sing-box Core**: Uses sing-box outbounds for modern protocol handling.
 
 ### Sing-box Integration (`singbox2proxy`)
 *   **Role**: Testing complex, modern protocols (Hysteria 2, Tuic, VLESS-Reality).
@@ -105,13 +105,10 @@ To test 10,000+ proxies in minutes on a free runner, Python's `asyncio` loop is 
 
 ## 3. The Edge Plane (WASM)
 
-To decentralize testing and provide users with truth from *their* perspective, we moved testing to the browser.
+To decentralize testing and provide users with truth from *their* perspective, we moved limited verification to the browser.
 
 *   **WebAssembly (WASM)**: We compile the Go tester code to WASM (`tester.wasm`).
-*   **Limitations & Solutions**:
-    *   Browsers cannot open raw TCP sockets.
-    *   **Solution 1 (WebSocket)**: For `vmess+ws`, `vless+ws`, `trojan+ws`, the WASM module uses the browser's native WebSocket API to perform a real handshake and connectivity test.
-    *   **Solution 2 (HTTP/Relay)**: For raw TCP protocols, we use standard HTTP latency checks where CORS permits.
+*   **Current Limitation**: Browsers cannot open raw TCP/UDP sockets from WASM. The current WASM verifier is limited to local config integrity checks and lightweight logic. Full network testing remains a server-side capability (see `KNOWN_ISSUES.md`).
 
 ## 4. Frontend Architecture (Edge Plane)
 
@@ -135,8 +132,8 @@ Running on a 7GB RAM shared runner requires strict discipline.
 
 To scale indefinitely, we use the **Matrix Strategy**:
 
-1.  **Sharding**: Source files are split into `sources/batch_1.txt` through `batch_6.txt`.
-2.  **Parallel Execution**: GitHub starts 6 independent VMs.
+1.  **Sharding**: Source files are split into `sources/batch_1.txt` through `batch_11.txt`.
+2.  **Parallel Execution**: GitHub starts 11 independent VMs.
     *   VM 1 processes Batch 1.
     *   VM 2 processes Batch 2.
     *   ...
@@ -145,7 +142,7 @@ To scale indefinitely, we use the **Matrix Strategy**:
     *   They download a *common* cache at the start.
     *   At the end, they upload their *deltas* (new findings) as artifacts.
 4.  **Merge Job**:
-    *   The final job downloads all 6 artifact sets.
+    *   The final job downloads all 11 artifact sets.
     *   It executes `scripts/merge_batches.py` to consolidate the SQLite databases and proxy lists into a single master dataset.
     *   This master dataset generates the final `metadata.json` and subscriptions.
 

@@ -56,11 +56,21 @@ async def processing_consumer(
     consumer_id: int = 0,
     seen_lock: Optional[asyncio.Lock] = None,
     washer: Optional[ProxyWasher] = None,  # Receive shared washer
+    stop_event: Optional[asyncio.Event] = None,
+    test_budget: Optional[asyncio.Semaphore] = None,
 ):
+    settings = AppSettings()
     policy = TEST_POLICY if leniency else STRICT_POLICY
+    policy = policy.copy()
+    policy["allow_local_ips"] = settings.ALLOW_PRIVATE_IPS
+    policy["require_tls_validation"] = settings.TLS_TESTS_ENABLED
+    enable_cache_warming = settings.ENABLE_CACHE_WARMING
 
     if seen_lock is None:
         seen_lock = asyncio.Lock()
+
+    if stop_event is None:
+        stop_event = asyncio.Event()
 
     # Use passed shared washer or fallback (legacy support)
     if washer is None:
@@ -76,6 +86,10 @@ async def processing_consumer(
         if item is None:
             work_queue.task_done()
             break
+
+        if stop_event.is_set():
+            work_queue.task_done()
+            continue
 
         if len(item) == 3:
             source, raw_lines, metadata = item
@@ -108,6 +122,7 @@ async def processing_consumer(
 
         def _parse_chunk(lines, src):
             result = []
+            safe_src = SecurityValidator.sanitize_log_message(str(src))
             try:
                 for i, line in enumerate(lines):
                     try:
@@ -117,7 +132,9 @@ async def processing_consumer(
                             result.append(p)
                     except Exception as e:
                         # [FIX] Log parse exceptions at debug level
-                        logger.debug(f"Parse error for source {src} (line {i}): {e}")
+                        logger.debug(
+                            f"Parse error for source {safe_src} (line {i}): {e}"
+                        )
                         pass
             except Exception:
                 pass
@@ -198,10 +215,23 @@ async def processing_consumer(
                     stats.drop_reasons.get("security_validation", 0) + dropped_unsafe
                 )
 
+        if enable_cache_warming and safe_batch:
+            try:
+                from configstream.cache_warming import warm_cache
+
+                safe_batch = warm_cache(test_cache, safe_batch)
+            except Exception as exc:
+                logger.debug(
+                    SecurityValidator.sanitize_log_message(
+                        f"Cache warming skipped due to error: {exc}"
+                    )
+                )
+
         final_batch_for_this_source = []
         proxies_to_actually_test = []
 
         # Cache Check
+        budget_exhausted = False
         for p in safe_batch:
             cached = None
             if not scheduler.should_retest(p):
@@ -212,162 +242,159 @@ async def processing_consumer(
             else:
                 async with seen_lock:
                     stats.cache_misses += 1
-                proxies_to_actually_test.append(p)
+                if test_budget is not None:
+                    if test_budget.locked():
+                        budget_exhausted = True
+                        async with seen_lock:
+                            stats.drop_reasons["max_proxies"] = (
+                                stats.drop_reasons.get("max_proxies", 0) + 1
+                            )
+                    else:
+                        await test_budget.acquire()
+                        proxies_to_actually_test.append(p)
+                else:
+                    proxies_to_actually_test.append(p)
+
+        if budget_exhausted:
+            stop_event.set()
 
         # Testing
         failed_proxies = []  # Candidates for revival
 
         if proxies_to_actually_test:
-            if max_proxies and stats.tested >= max_proxies:
-                # Stop processing further proxies once limit is reached
-                await work_queue.put(None)  # signal termination to consumer(s)
-                # DO NOT call task_done() here; it will be called at the end of the loop
-                # or when we break out if we consumed an item.
-                # However, we haven't consumed an item from the queue that corresponds to this check?
-                # Actually, `item` was popped at the start of loop.
-                # So we must call task_done() for the current `item` before breaking.
-                work_queue.task_done()
-                break  # exit the consumer loop early
-            else:
-                if tester.go_tester.available:
-                    # Clamp chunk size to avoid overwhelming Go tester
-                    settings = AppSettings()
-                    chunk_size = min(500, max(1, settings.GO_TESTER_BATCH_SIZE))
+            if tester.go_tester.available:
+                # Clamp chunk size to avoid overwhelming Go tester
+                settings = AppSettings()
+                chunk_size = min(500, max(1, settings.GO_TESTER_BATCH_SIZE))
 
-                    for i in range(0, len(proxies_to_actually_test), chunk_size):
-                        chunk = proxies_to_actually_test[i : i + chunk_size]
-                        # If nearing max_proxies, trim chunk to avoid overshoot
-                        if max_proxies:
-                            remaining = max_proxies - stats.tested
-                            if remaining <= 0:
-                                break  # safety check
-                            if len(chunk) > remaining:
-                                chunk = chunk[:remaining]
+                for i in range(0, len(proxies_to_actually_test), chunk_size):
+                    chunk = proxies_to_actually_test[i : i + chunk_size]
+                    # If nearing max_proxies, trim chunk to avoid overshoot
+                    if max_proxies:
+                        remaining = max_proxies - stats.tested
+                        if remaining <= 0:
+                            break  # safety check
+                        if len(chunk) > remaining:
+                            chunk = chunk[:remaining]
 
-                        try:
-                            await tester.test_batch(chunk)
-                        except Exception as e:
-                            logger.error(
-                                SecurityValidator.sanitize_log_message(
-                                    f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
-                                )
+                    try:
+                        await tester.test_batch(chunk)
+                    except Exception as e:
+                        logger.error(
+                            SecurityValidator.sanitize_log_message(
+                                f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
                             )
+                        )
 
-                            # Fallback to Python tester for this chunk
-                            async def _fallback_test(p: Proxy):
-                                sem = concurrency.get_semaphore()
-                                async with sem:
-                                    try:
-                                        return await tester.test(p)
-                                    except asyncio.CancelledError:
-                                        raise
-                                    except Exception as e:
-                                        logger.error(
-                                            SecurityValidator.sanitize_log_message(
-                                                f"Fallback test failed for proxy {p.id}: {e}"
-                                            )
-                                        )
-                                        p.is_working = False
-                                        p.details["error"] = "FALLBACK_TEST_FAILED"
-                                        return p
-
-                            results = await asyncio.gather(
-                                *[_fallback_test(x) for x in chunk],
-                                return_exceptions=True,
-                            )
-                            # Update chunk with results (results are mostly in-place modifications to Proxy objects if successful,
-                            # but tester.test returns updated proxy)
-                            # Actually tester.test returns a COPY or modifies?
-                            # SingBoxTester.test returns Proxy.
-                            # We need to reflect this back to chunk if needed, but since Proxy is mutable and passed by ref,
-                            # let's assume tester.test updates it or returns it.
-                            # Standard pattern:
-                            for idx, res in enumerate(results):
-                                if isinstance(res, Proxy):
-                                    chunk[idx] = res
-                                else:
-                                    # `res` is an Exception due to return_exceptions=True
-                                    if isinstance(res, asyncio.CancelledError):
-                                        raise res
-
-                                    p = chunk[idx]
-                                    p.is_working = False
-                                    p.details["error"] = "FALLBACK_TEST_EXCEPTION"
-                                    logger.error(
-                                        SecurityValidator.sanitize_log_message(
-                                            f"Fallback test for proxy {p.id} raised an exception: {res}"
-                                        )
-                                    )
-
-                        # Batch history update in executor to prevent blocking loop
-                        if chunk:
-                            await loop.run_in_executor(
-                                None, history.update_history, chunk
-                            )
-
-                        for res in chunk:
-                            if res.is_working:
-                                res.process = "native"  # Explicitly mark as native
-                                final_batch_for_this_source.append(res)
-                            else:
-                                # [REVIVAL] Collect failed proxies
-                                failed_proxies.append(res)
-
-                                failure_cat = res.details.get(
-                                    "failure_category", "TEST_FAILED"
-                                )
-                                async with seen_lock:
-                                    stats.drop_reasons[failure_cat] = (
-                                        stats.drop_reasons.get(failure_cat, 0) + 1
-                                    )
-
-                        async with seen_lock:
-                            stats.tested += len(chunk)
-
-                        if progress and task_process:
-                            progress.update(task_process, completed=stats.tested)
-                else:
-                    # Python fallback testing
-                    chunk_size = AppSettings().PY_TESTER_BATCH_SIZE
-                    for i in range(0, len(proxies_to_actually_test), chunk_size):
-                        chunk = proxies_to_actually_test[i : i + chunk_size]
-
-                        async def _test_wrap(p: Proxy):
+                        # Fallback to Python tester for this chunk
+                        async def _fallback_test(p: Proxy):
                             sem = concurrency.get_semaphore()
                             async with sem:
-                                return await tester.test(p)
-
-                        results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
-
-                        # Batch history update in executor
-                        if results:
-                            await loop.run_in_executor(
-                                None, history.update_history, list(results)
-                            )
-
-                        for res in results:
-                            if res.is_working:
-                                res.process = "native"
-                                await concurrency.record(
-                                    "default", res.latency or 0, True
-                                )
-                                final_batch_for_this_source.append(res)
-                            else:
-                                failed_proxies.append(res)  # Collect for revival
-                                error = res.details.get("error", "TEST_FAILED")
-                                async with seen_lock:
-                                    stats.drop_reasons[error] = (
-                                        stats.drop_reasons.get(error, 0) + 1
+                                try:
+                                    return await tester.test(p)
+                                except asyncio.CancelledError:
+                                    raise
+                                except Exception as e:
+                                    logger.error(
+                                        SecurityValidator.sanitize_log_message(
+                                            f"Fallback test failed for proxy {p.id}: {e}"
+                                        )
                                     )
-                                # Record failure for concurrency tuning feedback
-                                await concurrency.record(
-                                    "default", res.latency or 0, False
+                                    p.is_working = False
+                                    p.details["error"] = "FALLBACK_TEST_FAILED"
+                                    return p
+
+                        results = await asyncio.gather(
+                            *[_fallback_test(x) for x in chunk],
+                            return_exceptions=True,
+                        )
+                        # Update chunk with results (results are mostly in-place modifications to Proxy objects if successful,
+                        # but tester.test returns updated proxy)
+                        # Actually tester.test returns a COPY or modifies?
+                        # SingBoxTester.test returns Proxy.
+                        # We need to reflect this back to chunk if needed, but since Proxy is mutable and passed by ref,
+                        # let's assume tester.test updates it or returns it.
+                        # Standard pattern:
+                        for idx, res in enumerate(results):
+                            if isinstance(res, Proxy):
+                                chunk[idx] = res
+                            else:
+                                # `res` is an Exception due to return_exceptions=True
+                                if isinstance(res, asyncio.CancelledError):
+                                    raise res
+
+                                p = chunk[idx]
+                                p.is_working = False
+                                p.details["error"] = "FALLBACK_TEST_EXCEPTION"
+                                logger.error(
+                                    SecurityValidator.sanitize_log_message(
+                                        f"Fallback test for proxy {p.id} raised an exception: {res}"
+                                    )
                                 )
 
-                        async with seen_lock:
-                            stats.tested += len(chunk)
-                        if progress and task_process:
-                            progress.update(task_process, completed=stats.tested)
+                    # Batch history update in executor to prevent blocking loop
+                    if chunk:
+                        await loop.run_in_executor(None, history.update_history, chunk)
+
+                    for res in chunk:
+                        if res.is_working:
+                            res.process = "native"  # Explicitly mark as native
+                            final_batch_for_this_source.append(res)
+                        else:
+                            # [REVIVAL] Collect failed proxies
+                            failed_proxies.append(res)
+
+                            failure_cat = res.details.get(
+                                "failure_category", "TEST_FAILED"
+                            )
+                            async with seen_lock:
+                                stats.drop_reasons[failure_cat] = (
+                                    stats.drop_reasons.get(failure_cat, 0) + 1
+                                )
+
+                    async with seen_lock:
+                        stats.tested += len(chunk)
+
+                    if progress and task_process:
+                        progress.update(task_process, completed=stats.tested)
+            else:
+                # Python fallback testing
+                chunk_size = AppSettings().PY_TESTER_BATCH_SIZE
+                for i in range(0, len(proxies_to_actually_test), chunk_size):
+                    chunk = proxies_to_actually_test[i : i + chunk_size]
+
+                    async def _test_wrap(p: Proxy):
+                        sem = concurrency.get_semaphore()
+                        async with sem:
+                            return await tester.test(p)
+
+                    results = await asyncio.gather(*[_test_wrap(x) for x in chunk])
+
+                    # Batch history update in executor
+                    if results:
+                        await loop.run_in_executor(
+                            None, history.update_history, list(results)
+                        )
+
+                    for res in results:
+                        if res.is_working:
+                            res.process = "native"
+                            await concurrency.record("default", res.latency or 0, True)
+                            final_batch_for_this_source.append(res)
+                        else:
+                            failed_proxies.append(res)  # Collect for revival
+                            error = res.details.get("error", "TEST_FAILED")
+                            async with seen_lock:
+                                stats.drop_reasons[error] = (
+                                    stats.drop_reasons.get(error, 0) + 1
+                                )
+                            # Record failure for concurrency tuning feedback
+                            await concurrency.record("default", res.latency or 0, False)
+
+                    async with seen_lock:
+                        stats.tested += len(chunk)
+                    if progress and task_process:
+                        progress.update(task_process, completed=stats.tested)
 
         # --- REVIVAL LOOP ---
         if failed_proxies:
@@ -481,8 +508,10 @@ async def processing_consumer(
         else:
             logger.debug(summary_msg)
 
-        if not source.startswith("supplied-proxies") and not source.startswith(
-            "sources/"
+        if (
+            not source.startswith("supplied-proxies")
+            and not source.startswith("supplied-config")
+            and not source.startswith("sources/")
         ):
             try:
                 await loop.run_in_executor(

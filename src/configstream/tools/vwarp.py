@@ -62,6 +62,15 @@ class VwarpTool:
         Runs 'vwarp --scan' to harvest unblocked Cloudflare IPs.
         Returns a list of (host, port) tuples.
         """
+        from configstream.config import AppSettings
+
+        settings = AppSettings()
+        if not settings.ALLOW_ACTIVE_SCANNING and not settings.FORCE_SCANNER:
+            logger.info(
+                "Vwarp scan skipped: active scanning is disabled (ALLOW_ACTIVE_SCANNING=false)."
+            )
+            return []
+
         if not await self.is_available():
             logger.debug("❌ Vwarp binary missing. Cannot scan.")
             return []

@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 from ..models import Proxy
 from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
-from ..utils.bool_parser import parse_bool
+from ..utils.bool_parser import parse_bool, parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
@@ -154,16 +154,19 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             return None
         out = {"type": "trojan", **base, "password": str(password)}
         # Force TLS for Trojan
-        details_with_tls = {**proxy.details, "tls": "tls"}
+        details_with_tls = {**proxy.details, "tls": True}
         add_transport_sb(out, details_with_tls)
 
     elif protocol == "http":
+        tls_enabled = parse_tls_flag(proxy.details.get("tls")) or proxy.details.get(
+            "security"
+        ) in ("tls", "reality")
         out = {
             "type": "http",
             **base,
             "username": proxy.uuid if proxy.uuid else "",
             "password": str(proxy.details.get("password", "")),
-            "tls": {"enabled": proxy.details.get("tls") == "tls"},
+            "tls": {"enabled": tls_enabled},
         }
 
     elif protocol == "ssh":
@@ -188,9 +191,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "up_mbps": int(up_mbps) if str(up_mbps).isdigit() else 100,
             "down_mbps": int(down_mbps) if str(down_mbps).isdigit() else 100,
         }
-        is_insecure = False
-        if proxy.details.get("allowInsecure") or proxy.details.get("skip_cert_verify"):
-            is_insecure = True
+        is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
+            proxy.details.get("skip_cert_verify")
+        )
         out["tls"] = {
             "enabled": True,
             "server_name": str(proxy.details.get("sni", "")),
@@ -228,7 +231,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "username": str(username),
             "password": str(password),
         }
-        if proxy.details.get("tls") or proxy.port == 443:
+        if parse_tls_flag(proxy.details.get("tls")) or proxy.port == 443:
             out["tls"] = {
                 "enabled": True,
                 "server_name": str(proxy.details.get("sni", proxy.address)),

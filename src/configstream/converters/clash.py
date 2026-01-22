@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 import logging
 
 from ..models import Proxy
+from ..utils.bool_parser import parse_bool, parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +71,10 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 }
 
             # TLS
-            if (
-                proxy.details.get("security") == "tls"
-                or proxy.details.get("tls") == "tls"
-            ):
+            tls_enabled = parse_tls_flag(proxy.details.get("tls")) or proxy.details.get(
+                "security"
+            ) in ("tls", "reality")
+            if tls_enabled:
                 common["tls"] = True
                 if proxy.details.get("sni"):
                     common["servername"] = proxy.details["sni"]
@@ -110,13 +111,8 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 }
 
             # TLS handling
-            if proxy.details.get("security") == "tls":
-                common["tls"] = True
-                if proxy.details.get("sni"):
-                    common["servername"] = proxy.details["sni"]
-                if proxy.details.get("fp"):
-                    common["client-fingerprint"] = proxy.details["fp"]
-            elif proxy.details.get("security") == "reality":
+            security = proxy.details.get("security")
+            if security == "reality":
                 # Clash Meta specific Reality fields
                 common["tls"] = True
                 common["servername"] = proxy.details.get("sni", "")
@@ -126,6 +122,16 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 }
                 if proxy.details.get("fp"):
                     common["client-fingerprint"] = proxy.details["fp"]
+            else:
+                tls_enabled = (
+                    parse_tls_flag(proxy.details.get("tls")) or security == "tls"
+                )
+                if tls_enabled:
+                    common["tls"] = True
+                    if proxy.details.get("sni"):
+                        common["servername"] = proxy.details["sni"]
+                    if proxy.details.get("fp"):
+                        common["client-fingerprint"] = proxy.details["fp"]
 
             return common
 
@@ -134,7 +140,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             common["type"] = "hysteria2"
             common["password"] = proxy.uuid or proxy.details.get("password", "")
             common["sni"] = proxy.details.get("sni", "")
-            common["skip-cert-verify"] = proxy.details.get("allowInsecure", False)
+            common["skip-cert-verify"] = parse_bool(
+                proxy.details.get("allowInsecure", False)
+            )
             if proxy.details.get("obfs") == "salamander":
                 common["obfs"] = "salamander"
                 common["obfs-password"] = proxy.details.get("obfs-password", "")
@@ -148,7 +156,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
             common["congestion-controller"] = proxy.details.get(
                 "congestion_controller", "bbr"
             )
-            common["skip-cert-verify"] = proxy.details.get("allowInsecure", False)
+            common["skip-cert-verify"] = parse_bool(
+                proxy.details.get("allowInsecure", False)
+            )
             return common
 
         elif proxy.protocol == "wireguard":

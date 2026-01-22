@@ -19,6 +19,7 @@ from .models import Proxy
 from .history.tracker import ProxyHistoryTracker
 from .serialize import serialize_proxy
 from .utils import AtomicFileWriter
+from .utils.bool_parser import parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
@@ -101,11 +102,12 @@ def save_metadata(  # pylint: disable=too-many-locals,too-many-branches,too-many
         # Track security type
         if p.details:
             sec = p.details.get("security", "none")
+            tls_enabled = parse_tls_flag(p.details.get("tls"))
             if sec == "reality":
                 security_distribution["reality"] += 1
-            elif sec in ("tls", "xtls"):
+            elif sec in ("tls", "xtls") or tls_enabled:
                 security_distribution["tls"] += 1
-            elif sec in ("none", ""):
+            elif sec in ("none", "") and not tls_enabled:
                 security_distribution["none"] += 1
             else:
                 security_distribution["other"] += 1

@@ -8,11 +8,13 @@ from datetime import datetime, timezone
 
 import aiohttp
 from aiohttp_socks import ProxyConnector
+from urllib.parse import quote
 
 from ..config import AppSettings
 from ..models import Proxy
 from ..converters import to_singbox_outbound
 from ..security_validator import SecurityValidator
+from ..utils.bool_parser import parse_tls_flag
 from .utils import SecureConfigContext
 
 logger = logging.getLogger(__name__)
@@ -46,19 +48,50 @@ class PythonTester:
 
     async def test_direct(self, proxy: Proxy) -> Proxy:
         try:
-            proto = "socks5" if "socks" in proxy.protocol else proxy.protocol
-            url = f"{proto}://{proxy.address}:{proxy.port}"
-            logger.debug(f"Testing direct connection: {url}")
+            proto = proxy.protocol.lower()
+            if proto in ("socks", "socks5"):
+                proto = "socks5"
+            elif proto == "socks4":
+                proto = "socks4"
+            elif proto == "https":
+                proto = "https"
+            elif proto == "http" and parse_tls_flag(proxy.details.get("tls")):
+                proto = "https"
+
+            user = (
+                proxy.uuid
+                or proxy.details.get("username")
+                or proxy.details.get("user", "")
+            )
+            password = proxy.details.get("password") or ""
+            auth = ""
+            if user:
+                auth = f"{quote(str(user))}"
+                if password:
+                    auth += f":{quote(str(password))}"
+                auth += "@"
+
+            host = proxy.address
+            if ":" in host and not host.startswith("["):
+                host = f"[{host}]"
+
+            url = f"{proto}://{auth}{host}:{proxy.port}"
+            logger.debug(
+                "Testing direct connection: %s",
+                SecurityValidator.sanitize_log_message(url),
+            )
             connector = ProxyConnector.from_url(url)
             async with aiohttp.ClientSession(connector=connector) as session:
                 latency = await self._measure_latency_robust(session, proxy)
                 if latency is not None:
                     proxy.latency = latency
                     proxy.is_working = True
-                    if (
-                        proxy.protocol in ["http", "socks", "socks5"]
-                        and proxy.details.get("tls") != "tls"
-                    ):
+                    if proxy.protocol in [
+                        "http",
+                        "socks",
+                        "socks5",
+                        "socks4",
+                    ] and not parse_tls_flag(proxy.details.get("tls")):
                         proxy.tags.append("insecure")
                     if self.strict_security:
                         await self._run_security_checks(session, proxy)
@@ -66,7 +99,7 @@ class PythonTester:
                     proxy.is_working = False
         except Exception as e:
             proxy.is_working = False
-            proxy.details["error"] = str(e)
+            proxy.details["error"] = SecurityValidator.sanitize_log_message(str(e))
 
         proxy.tested_at = self.datetime_now_iso()
         return proxy
@@ -144,10 +177,14 @@ class PythonTester:
                     proxy.is_working = False
             except Exception as e:
                 logger.warning(
-                    f"Exception during proxy test for {proxy.address}:{proxy.port}: {e}"
+                    "Exception during proxy test for %s: %s",
+                    SecurityValidator.sanitize_log_message(
+                        f"{proxy.address}:{proxy.port}"
+                    ),
+                    SecurityValidator.sanitize_log_message(str(e)),
                 )
                 proxy.is_working = False
-                proxy.details["error"] = str(e)
+                proxy.details["error"] = SecurityValidator.sanitize_log_message(str(e))
             finally:
                 if sb_instance:
                     try:
@@ -182,6 +219,15 @@ class PythonTester:
             if not latencies:
                 return None
             return sum(latencies) / len(latencies)
+
+        if self.strict_security and self.settings.CANARY_URL:
+            latency = await _try_url(self.settings.CANARY_URL)
+            if latency is not None:
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(
+                        f"Latency check passed via CANARY_URL: {latency:.2f}ms"
+                    )
+                return round(latency, 2)
 
         google_url = self.settings.TEST_URLS.get(
             "google", "https://www.google.com/generate_204"

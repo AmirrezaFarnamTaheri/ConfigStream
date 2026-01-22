@@ -42,7 +42,9 @@ def warm_cache(cache: TestResultCache, proxies: List[Proxy]) -> List[Proxy]:
 
     # Return high-quality proxies first, then uncached
     return (
-        [p for p, _ in cached if _ > 70] + uncached + [p for p, s in cached if s <= 70]
+        [p for p, score in cached if score > 0.7]
+        + uncached
+        + [p for p, score in cached if score <= 0.7]
     )
 
 

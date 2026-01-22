@@ -40,7 +40,7 @@ class SingBoxTester:
         if self.cache and (cached := self.cache.get(proxy)):
             return cached
 
-        if proxy.protocol.lower() in ("http", "https", "socks", "socks5"):
+        if proxy.protocol.lower() in ("http", "https", "socks", "socks5", "socks4"):
             return await self.python_tester.test_direct(proxy)
 
         result = await self.python_tester.test_via_singbox(proxy)

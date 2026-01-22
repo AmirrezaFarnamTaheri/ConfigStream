@@ -6,6 +6,7 @@ import uuid
 from urllib.parse import urlparse
 from typing import List, Tuple, TYPE_CHECKING
 import logging
+from .utils.bool_parser import parse_tls_flag
 
 if TYPE_CHECKING:
     from configstream.models import Proxy
@@ -101,6 +102,12 @@ class SecurityValidator:
         )
         # Mask passwords in URLs (user:pass@host)
         msg = re.sub(r":([^:@]+)@", ":[MASKED]@", msg)
+        # Mask common query-style secrets (token, key, secret, password, uuid, id)
+        msg = re.sub(
+            r"(?i)(token|key|secret|pass|password|uuid|id)=([^&\s]+)",
+            r"\1=[MASKED]",
+            msg,
+        )
 
         # Mask likely Base64 strings (long sequences of alphanumeric+ending with =)
         msg = re.sub(r"\b[A-Za-z0-9+/]{20,}={0,2}\b", "[BASE64]", msg)
@@ -185,11 +192,12 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
         is_secure = False
         proto = proxy.protocol
         details = proxy.details or {}
+        tls_flag = parse_tls_flag(details.get("tls"))
 
         if proto in ["vmess", "vless"]:
             if details.get("security") in ["tls", "reality", "auto"]:
                 is_secure = True
-            elif details.get("tls") is True:
+            elif tls_flag:
                 is_secure = True
         elif proto == "trojan":
             is_secure = True
@@ -199,7 +207,7 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
             is_secure = True
 
         if not is_secure and proto not in ["wireguard"]:
-            if "tls" in details and not details["tls"]:
+            if "tls" in details and not tls_flag:
                 return False, "tls_required"
 
     if proxy.protocol in ["vmess", "vless"]:
@@ -253,6 +261,6 @@ def validate_batch_configs(
             p.is_secure = False
             if not p.security_issues:
                 p.security_issues = {}
-            pass
+            p.security_issues.setdefault("policy", []).append(reason)
 
     return safe_proxies

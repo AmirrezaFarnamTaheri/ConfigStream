@@ -19,3 +19,14 @@ def parse_bool(value: Any) -> bool:
     if s in ("true", "1", "yes", "on"):
         return True
     return False
+
+
+def parse_tls_flag(value: Any) -> bool:
+    """
+    Normalize TLS flags stored as bools, strings, or TLS option dicts.
+    """
+    if isinstance(value, dict):
+        return parse_bool(value.get("enabled"))
+    if isinstance(value, str) and value.strip().lower() == "tls":
+        return True
+    return parse_bool(value)

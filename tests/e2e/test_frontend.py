@@ -1,9 +1,23 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
-from playwright.sync_api import Page, expect
+from pathlib import Path
+from playwright.sync_api import Page, expect, sync_playwright
 from playwright._impl._errors import Error as PlaywrightError
 import re
 import json
+
+
+def _playwright_ready() -> bool:
+    try:
+        with sync_playwright() as p:
+            return Path(p.chromium.executable_path).exists()
+    except Exception:
+        return False
+
+
+pytestmark = pytest.mark.skipif(
+    not _playwright_ready(), reason="Playwright browsers not installed"
+)
 
 
 # Remove all asyncio markers, let pytest-playwright handle loop injection

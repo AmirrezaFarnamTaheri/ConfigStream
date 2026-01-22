@@ -60,7 +60,7 @@ ConfigStream is an automated VPN configuration aggregator that collects, tests, 
 │                                                        │         │
 │  ┌────────────────────────────────────────────────────▼──────┐  │
 │  │                     TEST QUEUE                            │  │
-│  │  (SQLite-backed, bounded size, backpressure control)      │  │
+│  │  (asyncio.Queue, in-memory, bounded size)      │  │
 │  └────────────────────────────────────────────────────┬──────┘  │
 │                                                        │         │
 │  ┌─────────────────────────────────────────────────────▼──────┐ │
@@ -114,10 +114,10 @@ ConfigStream is an automated VPN configuration aggregator that collects, tests, 
 **Key Features**:
 - HTTP/2 support with connection pooling
 - Exponential backoff retries (max 3)
-- ETag/Last-Modified caching
+- Adaptive timeouts with jitter tracking
 - Rate limiting protection
-- Hedged requests for critical sources
 - Circuit breaker pattern
+- Binary-safe streaming (aiter_bytes + safe decode)
 
 **Implementation**:
 ```python
@@ -568,40 +568,46 @@ with self._state_lock:
 
 ### SQLite Databases
 
-**1. Main Database** (`data/configstream.db`)
-- Proxy test results cache
-- Source quality history
-- Anomaly detection baseline
+**1. Source Quality DB** (`data/source_quality.db`)
+- `source_stats` (reliability, consecutive failures, trust score)
+- `source_runs` (per-run metrics)
+- `proxy_history` (per-proxy test history)
 
-**2. Queue Database** (`data/queue.db`)
-- Persistent work queue
-- Survives process crashes
+**2. Proxy History DB** (`data/history.db`)
+- Same schema as above when a separate history DB is used
 
-**3. Cache Database** (`data/cache.db`)
-- ETag cache for HTTP fetches
-- DNS resolution cache
+### JSON Caches
+
+- `data/test_cache.json`: recent proxy test results (TTL cache)
+- `data/timeout_history.json`: adaptive timeout state
+
+### GeoIP Data
+
+- `data/GeoLite2-City.mmdb` and `data/GeoLite2-ASN.mmdb`
 
 ### Schema Examples
 
 ```sql
--- Proxy Cache
-CREATE TABLE proxy_cache (
-    id TEXT PRIMARY KEY,
-    config TEXT,
-    is_working BOOLEAN,
-    latency REAL,
-    tested_at TIMESTAMP,
-    expires_at TIMESTAMP
+CREATE TABLE source_stats (
+    url TEXT PRIMARY KEY,
+    total_fetched INTEGER DEFAULT 0,
+    total_working INTEGER DEFAULT 0,
+    consecutive_failures INTEGER DEFAULT 0,
+    last_checked INTEGER DEFAULT 0,
+    reliability_score REAL DEFAULT 100.0,
+    diversity_score REAL DEFAULT 0.0,
+    trust_score REAL DEFAULT 50.0,
+    status TEXT DEFAULT 'active'
 );
 
--- Source Quality
-CREATE TABLE source_quality (
-    source TEXT PRIMARY KEY,
-    fetch_count INTEGER,
-    success_count INTEGER,
-    average_count REAL,
-    diversity_score REAL,
-    last_fetch TIMESTAMP
+CREATE TABLE proxy_history (
+    proxy_id TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    is_working INTEGER NOT NULL,
+    latency REAL,
+    country_code TEXT,
+    session_id TEXT,
+    failure_reason TEXT
 );
 ```
 
@@ -777,7 +783,7 @@ User Request
 │  └────────────────────────────────────────────────────┘  │
 │                          │                               │
 │  ┌───────────────────────▼────────────────────────────┐  │
-│  │  Job: Process (Matrix: batch 1-6)                 │  │
+│  │  Job: Process (Matrix: batch 1-11)                 │  │
 │  │  • Run pipeline for batch_N.txt                   │  │
 │  │  • Test proxies (parallel)                        │  │
 │  │  • Upload shard artifact                          │  │
@@ -811,12 +817,12 @@ User Request
 
 **Problem**: Single job would timeout (6-hour limit)
 
-**Solution**: Matrix strategy (6 parallel jobs)
+**Solution**: Matrix strategy (11 parallel jobs)
 
 ```yaml
 strategy:
   matrix:
-    batch: [1, 2, 3, 4, 5, 6]
+    batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 ```
 
 **Benefits**:

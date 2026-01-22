@@ -30,6 +30,8 @@ class AppSettings(BaseSettings):
     SECURITY_CHECK_TIMEOUT: int = 8
     RETEST_TIMEOUT: int = 6
     GEOIP_TIMEOUT: int = 5
+    GEOIP_CITY_DB_PATH: str = "data/GeoLite2-City.mmdb"
+    GEOIP_ASN_DB_PATH: str = "data/GeoLite2-ASN.mmdb"
 
     # Latency thresholds
     MIN_LATENCY: int = 10
@@ -60,6 +62,7 @@ class AppSettings(BaseSettings):
     BATCH_SIZE: int = 50
     MAX_SEEN_KEYS: int = 200000
     CACHE_TTL: int = 1800
+    MAX_WORKERS: int = 0
 
     # Scoring weights
     SCORE_WEIGHTS: dict[str, float] = {
@@ -90,7 +93,7 @@ class AppSettings(BaseSettings):
     # Logging
     MASK_SENSITIVE_DATA: bool = True
     LOG_LEVEL: str = "INFO"
-    CANARY_URL: str = "https://httpbin.org"
+    CANARY_URL: str = ""
 
     # Feature flags
     DNS_CACHE_ENABLED: bool = True
@@ -106,8 +109,15 @@ class AppSettings(BaseSettings):
     CIRCUIT_TRIP_5XX_RATE: float = 0.2
     CIRCUIT_OPEN_SEC: int = 120
     QUEUE_MAX_TRIES: int = 5
-    TLS_TESTS_ALLOW_INSECURE: bool = False
     TLS_TESTS_ENABLED: bool = True
+
+    # Optional pipeline toggles (default to enabled)
+    ENABLE_CACHE_WARMING: bool = True
+    ENABLE_SMART_CHAINING: bool = True
+    ENABLE_ANOMALY_DETECTION: bool = True
+
+    # Strict tester security mode (honeypot + extra checks)
+    STRICT_SECURITY: bool = False
 
     # Proxy renaming
     RENAME_TEMPLATE: Optional[str] = None
@@ -125,6 +135,7 @@ class AppSettings(BaseSettings):
     TELEGRAM_BOT_TOKEN: Optional[str] = None
     VT_API_KEY: Optional[str] = None
     ADMIN_API_KEY: Optional[str] = None
+    STEGO_KEY: Optional[str] = None
     CONFIG_STREAM_KEY: Optional[str] = None
     MAXMIND_LICENSE_KEY: Optional[str] = None
 
@@ -133,8 +144,13 @@ class AppSettings(BaseSettings):
     SS_LIB_SHA256: Optional[str] = None
 
     # Flags
-    USE_VWARP_TUNNEL: bool = False
+    USE_VWARP_TUNNEL: bool = True
     FORCE_SCANNER: bool = False
+    ALLOW_ACTIVE_SCANNING: bool = False
+
+    # Deduplication behavior
+    DEDUP_IGNORE_PROTOCOL: bool = False
+    ENABLE_ENDPOINT_FILTERING: bool = True
 
     # Server Config
     FRONTEND_DIR: Optional[str] = None
@@ -146,6 +162,7 @@ class AppSettings(BaseSettings):
 
     # Fetcher
     MAX_RESPONSE_SIZE: int = 200 * 1024 * 1024
+    QUALITY_DB_PATH: str = "data/source_quality.db"
 
     # Score Tuning (Advanced)
     SCORE_SIGMOID_CENTER_RATIO: float = 0.6
@@ -166,6 +183,8 @@ class AppSettings(BaseSettings):
             raise ValueError("TEST_TIMEOUT must be positive")
         if self.FETCH_TIMEOUT <= 0:
             raise ValueError("FETCH_TIMEOUT must be positive")
+        if self.MAX_WORKERS < 0:
+            raise ValueError("MAX_WORKERS must be >= 0")
         if self.BATCH_SIZE <= 0 or self.BATCH_SIZE > 1000:
             raise ValueError("BATCH_SIZE must be between 1 and 1000")
         if self.RATE_LIMIT_REQUESTS <= 0:

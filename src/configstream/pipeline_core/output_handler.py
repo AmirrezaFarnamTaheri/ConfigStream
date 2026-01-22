@@ -7,7 +7,8 @@ from typing import List, Optional
 from configstream.models import Proxy
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.output_logic import generate_categorized_outputs, save_metadata
-from configstream.output_transport import save_json
+from configstream.output_transport import save_json, inject_stego_key_into_frontend
+from configstream.transport.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
 from configstream.pipeline_core.stats import PipelineStats
@@ -75,7 +76,11 @@ async def generate_pipeline_outputs(
     # Generates complex chains (Intranet, IPv6, Streamer).
     # We pass the 'washer' instance so it can borrow the Clean IPs and Keys
     # to create "Washed Smart Chains" (3-hop).
-    smart_chains = generate_smart_chains(optimized_proxies, washer=washer)
+    smart_chains = {}
+    if settings.ENABLE_SMART_CHAINING:
+        smart_chains = generate_smart_chains(optimized_proxies, washer=washer)
+    else:
+        logger.info("Smart chaining disabled by configuration.")
 
     # Update stats with smart chain counts (total number of chains generated)
     total_chains = sum(len(v) for v in smart_chains.values())
@@ -120,6 +125,33 @@ async def generate_pipeline_outputs(
     await loop.run_in_executor(
         None, save_metadata, stats_dict, optimized_proxies, output_path
     )
+
+    # 6. Stego Assets + Frontend Key Injection (optional)
+    secret_key = settings.STEGO_KEY or settings.CONFIG_STREAM_KEY
+    if isinstance(secret_key, str) and secret_key.strip() and len(secret_key) >= 20:
+        frontend_root = (
+            Path(settings.FRONTEND_DIR)
+            if settings.FRONTEND_DIR
+            else Path(__file__).resolve().parents[3] / "frontend"
+        )
+        if frontend_root.exists():
+            assets_dir = frontend_root / "assets" / "images"
+            stego_js_path = frontend_root / "assets" / "js" / "stego.js"
+            await loop.run_in_executor(
+                None, generate_stego_assets, output_path, assets_dir, secret_key
+            )
+            await loop.run_in_executor(
+                None,
+                inject_stego_key_into_frontend,
+                secret_key,
+                stego_js_path,
+            )
+        else:
+            logger.debug(
+                "Frontend directory not found; skipping stego asset generation."
+            )
+    else:
+        logger.debug("Stego generation skipped: STEGO_KEY not configured.")
 
     # Export history visualization data
     # Ensure the history visualization JSON is generated for the frontend

@@ -119,7 +119,7 @@ class ProxyWasher:
                 logger.warning(f"warp_keys_json is not a list, got {type(parsed)}")
                 self._warp_keys: List[Dict[str, Any]] = []
             else:
-                self._warp_keys = parsed
+                self._warp_keys = self._normalize_warp_keys(parsed)
                 if self._warp_keys:
                     logger.info(f"Loaded {len(self._warp_keys)} WARP keys for washing")
                 else:
@@ -150,10 +150,29 @@ class ProxyWasher:
                     parsed = [k.strip() for k in env_keys.split(",") if k.strip()]
 
                 if isinstance(parsed, list):
-                    self._warp_keys = parsed
+                    self._warp_keys = self._normalize_warp_keys(parsed)
 
         self.scanner = WarpScannerWorker()
         self.key_gen = KeyGenerator()
+
+    @staticmethod
+    def _normalize_warp_keys(entries: List[Any]) -> List[Dict[str, Any]]:
+        normalized: List[Dict[str, Any]] = []
+        for item in entries:
+            if isinstance(item, dict):
+                if "private_key" not in item:
+                    if "private-key" in item:
+                        item["private_key"] = item.pop("private-key")
+                    elif "privateKey" in item:
+                        item["private_key"] = item.pop("privateKey")
+                if item.get("private_key"):
+                    normalized.append(item)
+                continue
+            if isinstance(item, str):
+                key_str = item.strip()
+                if key_str:
+                    normalized.append({"private_key": key_str})
+        return normalized
 
     @property
     def warp_keys(self) -> List[Dict[str, Any]]:
@@ -554,9 +573,6 @@ class ProxyWasher:
         origin_country = AppSettings().OPTIMAL_RELAY_ORIGIN
 
         for i, relay in enumerate(candidates):
-            if stats:
-                stats.vwarp_attempts += 1
-
             exit_key = self._get_consistent_exit(relay.id, keys)
             if not exit_key:
                 skip_reasons["invalid_warp_key"] = (
@@ -636,8 +652,5 @@ class ProxyWasher:
             warp_out["_process"] = "washed"
             washed_outbounds.append(warp_out)
             washed_ids.add(relay.id)
-
-            if stats:
-                stats.vwarp_success += 1
 
         return washed_outbounds, washed_ids, skip_reasons

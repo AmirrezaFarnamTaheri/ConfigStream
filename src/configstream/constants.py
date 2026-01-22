@@ -1,8 +1,20 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Centralized constants for all modules."""
 
+import os
+
+
 # [PHASE 5] Network & Tunnel Configuration
-VWARP_SOCKS5_PORT = 10808  # Default port for Vwarp SOCKS5 tunnel
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+
+VWARP_SOCKS5_PORT = _env_int(
+    "VWARP_SOCKS5_PORT", 10808
+)  # Default port for Vwarp SOCKS5 tunnel
 VWARP_BIND_ADDRESS = "127.0.0.1"  # Localhost binding for security
 
 # [PHASE 5] Anomaly Detection Constants
@@ -17,11 +29,11 @@ CACHE_WARMING_LOW_SCORE_THRESHOLD = 50  # Proxy count for low-score tier
 VIRUSTOTAL_CACHE_SIZE = 1000  # LRU cache size for VT lookups
 
 # Size Limits (Kept low to prevent DoS/OOM. Use streaming for large sources.)
-MAX_B64_INPUT_SIZE = 10 * 1024 * 1024  # 10 MB
-MAX_B64_OUTPUT_SIZE = 50 * 1024 * 1024  # 50 MB
-MAX_CONFIG_LINE_LENGTH = 10000
-MAX_LINES_PER_SOURCE = 40000  # Maximum lines to process per source
-MAX_SOURCE_URL_LENGTH = 2048
+MAX_B64_INPUT_SIZE = _env_int("MAX_B64_INPUT_SIZE", 10 * 1024 * 1024)  # 10 MB
+MAX_B64_OUTPUT_SIZE = _env_int("MAX_B64_OUTPUT_SIZE", 50 * 1024 * 1024)  # 50 MB
+MAX_CONFIG_LINE_LENGTH = _env_int("MAX_CONFIG_LINE_LENGTH", 10000)
+MAX_LINES_PER_SOURCE = _env_int("MAX_LINES_PER_SOURCE", 40000)  # Max lines per source
+MAX_SOURCE_URL_LENGTH = _env_int("MAX_SOURCE_URL_LENGTH", 2048)
 
 # Ports & Domains
 # Removed 3306 (MySQL), 5432 (Postgres), 6379 (Redis), 27017 (Mongo)

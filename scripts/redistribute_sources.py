@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Redistribute sources from all batch files and the new sources list into 11 balanced batches.
-Ensures we have strictly more sources than before.
+Redistribute sources from all batch files into 11 balanced batches.
 """
 import glob
 import os
@@ -23,17 +22,6 @@ def redistribute():
                 line = line.strip()
                 if line and not line.startswith("#"):
                     all_lines.add(line)
-
-    # 2. Add new extracted sources
-    if os.path.exists("new_sources_doc.txt"):
-        print("Reading new sources from new_sources_doc.txt...")
-        with open("new_sources_doc.txt", "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#"):
-                    # Basic validation: needs http
-                    if line.startswith("http"):
-                        all_lines.add(line)
 
     sorted_sources = sorted(list(all_lines))
     total_sources = len(sorted_sources)

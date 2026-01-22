@@ -102,6 +102,13 @@ async def run_full_pipeline(
         )
         max_workers = 1000
 
+    settings = AppSettings()
+    if max_workers <= 0 and settings.MAX_WORKERS > 0:
+        max_workers = settings.MAX_WORKERS
+
+    if not strict_security and settings.STRICT_SECURITY:
+        strict_security = True
+
     if max_proxies is not None and max_proxies <= 0:
         raise ValueError(f"'max_proxies' must be > 0 or None (got {max_proxies})")
 
@@ -153,7 +160,7 @@ async def run_full_pipeline(
     geoip = GeoIPResolver()
 
     # Initialize Shared Washer Singleton
-    washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
+    washer = ProxyWasher(settings.WARP_KEY_POOL)
     await washer.fetch_clean_ips()  # Pre-fetch once
 
     # Initialize Event Stream
@@ -163,8 +170,13 @@ async def run_full_pipeline(
     # Track total configured sources for frontend display
     stats.total_configured_sources = len(sources) if sources else 0
 
+    stop_event = asyncio.Event()
+    test_budget: Optional[asyncio.Semaphore] = None
+    if max_proxies:
+        test_budget = asyncio.Semaphore(max_proxies)
+
     # Validate App Settings
-    AppSettings().validate_settings()
+    settings.validate_settings()
 
     # --- Start Vwarp Tunnel if available ---
     # [FIX] Use VwarpTool implementation to respect CI rules and improved logging
@@ -173,14 +185,21 @@ async def run_full_pipeline(
     vwarp_tool = VwarpTool()
     vwarp_proc = None  # We will access vwarp_tool._tunnel_proc if needed for cleanup but better to use stop_tunnel
 
-    if await vwarp_tool.is_available():
-        if await vwarp_tool.start_tunnel(
-            bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT
-        ):
-            logger.info("✅ Vwarp Tunnel established.")
-            os.environ["USE_VWARP_TUNNEL"] = "true"
+    if settings.USE_VWARP_TUNNEL:
+        if await vwarp_tool.is_available():
+            if await vwarp_tool.start_tunnel(
+                bind_addr=VWARP_BIND_ADDRESS, port=VWARP_SOCKS5_PORT
+            ):
+                logger.info("✅ Vwarp Tunnel established.")
+                os.environ["USE_VWARP_TUNNEL"] = "true"
+            else:
+                logger.warning(
+                    "Vwarp tunnel failed to start or did not pass health check."
+                )
         else:
-            logger.warning("Vwarp tunnel failed to start or did not pass health check.")
+            logger.warning("Vwarp tunnel requested but vwarp binary is unavailable.")
+    else:
+        logger.info("Vwarp tunnel disabled by configuration.")
 
     # Dynamic Worker Calculation based on CPU
     cpu_count = multiprocessing.cpu_count()
@@ -248,6 +267,7 @@ async def run_full_pipeline(
             progress,
             task_fetch,
             num_consumers=optimal_consumers,
+            stop_event=stop_event,
         )
     )
 
@@ -277,6 +297,8 @@ async def run_full_pipeline(
                 consumer_id=i,
                 seen_lock=seen_lock,
                 washer=washer,  # Pass shared washer
+                stop_event=stop_event,
+                test_budget=test_budget,
             )
         )
         consumer_tasks.append(t)
@@ -326,7 +348,11 @@ async def run_full_pipeline(
         # 5. Final Cleanup & Output
 
         # Deduplicate Endpoints (IP:Port)
-        optimized_proxies = filter_unique_endpoints(final_proxies)
+        if settings.ENABLE_ENDPOINT_FILTERING:
+            optimized_proxies = filter_unique_endpoints(final_proxies)
+        else:
+            logger.info("Endpoint filtering disabled by configuration.")
+            optimized_proxies = list(final_proxies)
 
         # Pareto Sort (in-place)
         sort_proxies_pareto(optimized_proxies, history)

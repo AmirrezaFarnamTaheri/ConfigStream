@@ -38,18 +38,19 @@ We track the average response time for every **Domain/IP**.
 
 **Algorithm**:
 1.  **Cold Start**: Default timeout is 10s.
-2.  **Learning**: Every success records the latency.
+2.  **Learning**: Every attempt records latency (success and failure).
 3.  **Calculation**:
     ```python
-    TargetTimeout = AvgLatency + (3 * StandardDeviation)
+    TargetTimeout = p95_latency * 2
     ```
-4.  **Bounds**: Min 3s, Max 20s.
+    Smoothed via moving average to avoid spikes.
+4.  **Bounds**: Min 3s, Max 30s.
 
 **Effect**: If `us.server.com` usually responds in 200ms +/- 50ms, we set the timeout to ~350ms. If it hangs, we cut it instantly. This speeds up the pipeline by 40-60%.
 
 ## 3. The SingBoxTester
 
-The `SingBoxTester` (`src/configstream/testers_core.py`) is the interface between Python and the testing engines.
+The `SingBoxTester` (`src/configstream/testers/manager.py`) is the interface between Python and the testing engines.
 
 *   **Logic Flow**:
     ```python
@@ -64,17 +65,17 @@ The `SingBoxTester` (`src/configstream/testers_core.py`) is the interface betwee
 ### The Go Sidecar (Batch Tester)
 *   **Path**: `src/go/tester/main.go`
 *   **Concurrency**: Uses Go routines. Can handle 500 concurrent checks easily.
-*   **Interface**: Reads JSON lines from STDIN, writes JSON lines to STDOUT.
-*   **Honeypot Check**: Optionally performs a canary request using a `CANARY_URL` when `strict_security` is enabled.
-    *   If `CANARY_URL` is **not** set, the tester logs a **warning** and disables honeypot detection while still measuring latency.
-    *   This makes configuration drift visible without breaking the overall test pipeline.
+*   **Interface**: NDJSON stream (one JSON object per line) for both stdin and stdout.
+*   **Payload Format**: Each `config` field must be a JSON **array** of outbounds.
+*   **Honeypot Check**: When `strict_security` is enabled, the Go sidecar performs a UDP honeypot probe and, if `CANARY_URL` is set, uses it as the test target.
+    *   If `CANARY_URL` is **not** set, the tester falls back to the normal `TEST_URLS` list.
 
 ## 4. Pipeline Orchestration & Backpressure
 
 The `run_full_pipeline` function (`src/configstream/pipeline.py`) orchestrates producer/consumer stages, concurrency tuning, and output generation.
 
-*   **Work Queue**: Uses an `asyncio.Queue` with a **max size of 500** to provide sufficient buffering between the fetcher and tester stages without risking deadlocks under high load.
-*   **Timeouts**: The consumer side uses `asyncio.wait_for(..., timeout=300.0)` to avoid blocking indefinitely if the producer dies unexpectedly.
+*   **Work Queue**: Uses an `asyncio.Queue` with a **max size of 5000** to provide sufficient buffering between the fetcher and tester stages without risking deadlocks under high load.
+*   **Timeouts**: Consumers terminate only on sentinel values (no hard timeout) to avoid dropping slow sources.
 *   **Event Stream Lifecycle**: The `EventStream` is now closed in a `finally` block to guarantee that file handles and buffers are flushed even if the pipeline raises an exception.
 
 ## 4. Intelligence Layers
@@ -92,17 +93,18 @@ Tracks the historical performance of every subscription source.
     *   **Garbage**: <1% reliability. Disabled automatically.
 
 ### Anomaly Detector (`src/configstream/anomaly.py`)
-Detects "Pollution Attacks" or "Spam Batches."
+Detects "Pollution Attacks" or "Spam Batches" using volume-based statistics (MAD + Z-score).
 
-1.  **Subnet Flood**:
-    *   If a batch of 100 proxies contains 95 from `1.2.3.0/24`, it is suspicious.
-    *   Action: Discard the whole batch.
-2.  **Port Scanning**:
-    *   If a batch contains sequential ports on the same IP (`1.2.3.4:1001`, `1.2.3.4:1002`...), we flag it.
+1.  **Volume Spikes**:
+    *   Detects large deviations from historical counts per source.
+2.  **Volume Drops**:
+    *   Logs significant drops but does not block sources.
+
+Subnet-flood and sequential-port heuristics exist as helpers but are not enforced by default in the pipeline.
 
 ## 5. Proxy Washing & Smart Chaining
 
-### `ProxyWasher` (`src/configstream/intelligence/washer.py`)
+### `ProxyWasher` (`src/configstream/intelligence/washer/core.py`)
 *   **Problem**: Many IPs are "dirty" (blacklisted by Google/Cloudflare).
 *   **Solution**: We wrap the proxy in a **Chain**.
     *   `Client -> DirtyProxy -> WARP (Clean IP) -> Target`

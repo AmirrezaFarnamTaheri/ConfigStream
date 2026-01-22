@@ -13,6 +13,7 @@ from .parsers import (
     parse_generic_url_scheme,
     parse_hysteria,
     parse_hysteria2,
+    parse_naive,
     parse_ss,
     parse_trojan,
     parse_tuic,
@@ -89,6 +90,9 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                 "ssh": lambda x: parse_generic_url_scheme(
                     x
                 ),  # SSH often works with generic
+                "naive": parse_naive,
+                "naive+https": parse_naive,
+                "naive+http": parse_naive,
             },
         )
 
@@ -165,6 +169,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
         parse_hysteria,
         parse_tuic,
         parse_wireguard,
+        parse_naive,
     )
 
     for parser in fallback_parsers:
@@ -192,6 +197,7 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                         "vless": ["vless"],
                         "ss": ["ss", "ss2022"],
                         "trojan": ["trojan", "trojan-go"],
+                        "naive": ["naive", "naive+https", "naive+http"],
                     }
 
                     # If the result protocol has specific schemes, enforce them

@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 from typing import Dict, Any
+from ..utils.bool_parser import parse_bool, parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +40,13 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
     # TLS
     security = details.get("security", "")
 
-    if (
-        details.get("tls") == "tls"
+    tls_enabled = (
+        parse_tls_flag(details.get("tls"))
         or security in ["tls", "reality"]
         or out.get("type") == "trojan"
-    ):
+    )
+
+    if tls_enabled:
         tls: Dict[str, Any] = {"enabled": True}
         if "sni" in details:
             tls["server_name"] = str(details["sni"])
@@ -61,9 +64,9 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
         # but keeping strict check unless explicitly insecure for general cases,
         # except Hysteria/TUIC which are handled separately.
         if (
-            details.get("allowInsecure")
-            or details.get("insecure")
-            or details.get("skip_cert_verify")
+            parse_bool(details.get("allowInsecure"))
+            or parse_bool(details.get("insecure"))
+            or parse_bool(details.get("skip_cert_verify"))
         ):
             tls["insecure"] = True
             logger.debug(f"Enabled insecure TLS for {out.get('server')}")

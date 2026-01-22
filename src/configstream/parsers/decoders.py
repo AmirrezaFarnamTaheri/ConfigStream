@@ -38,21 +38,32 @@ def validate_b64_input(data: str) -> Optional[str]:
         except Exception:
             pass
 
-    # Immediate rejection for structural markers that indicate NOT Base64
-    if ":" in trimmed and not trimmed.endswith("="):
-        # Colon inside usually means method:password or something else
-        # BUT standard base64 doesn't have colons.
-        return None
-
     # Basic char check + noise check
     # We allow some noise but if it's too much we drop it.
     valid_chars = set(
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=-_\n\r \t"
     )
 
+    # Immediate rejection for structural markers that indicate NOT Base64
+    if ":" in trimmed and not trimmed.endswith("="):
+        # Colon inside usually means method:password or something else
+        # BUT standard base64 doesn't have colons.
+        return None
+
     # Fast check for invalid chars
     invalid_chars = [c for c in trimmed if c not in valid_chars]
     if len(invalid_chars) > len(trimmed) * 0.05:  # >5% noise
+        return None
+
+    # Trim leading/trailing garbage while preserving internal separators
+    start = 0
+    end = len(trimmed)
+    while start < end and trimmed[start] not in valid_chars:
+        start += 1
+    while end > start and trimmed[end - 1] not in valid_chars:
+        end -= 1
+    trimmed = trimmed[start:end]
+    if not trimmed:
         return None
 
     # Normalize

@@ -62,7 +62,13 @@ def main():
 @click.option("--input", "-i", required=True, help="Path to proxies.json file")
 @click.option("--output", "-o", default="output", help="Output directory")
 @click.option("--max-workers", "-w", default=0, help="Concurrency limit (0=Auto-scale)")
-@click.option("--timeout", "-t", default=10, help="Test timeout in seconds")
+@click.option(
+    "--timeout",
+    "-t",
+    default=None,
+    type=int,
+    help="Test timeout in seconds (defaults to RETEST_TIMEOUT).",
+)
 @click.option(
     "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
 )
@@ -75,8 +81,13 @@ def main():
 def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
     """Retest proxies from a JSON file."""
     setup_logging(verbose)
+    from .config import AppSettings
     from .models import Proxy
     from .async_file_ops import read_file_async
+
+    settings = AppSettings()
+    if timeout is None:
+        timeout = settings.RETEST_TIMEOUT
 
     async def _run_retest():
         input_path = Path(input)
@@ -140,7 +151,13 @@ def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
 )
 @click.option("--output", "-o", default="output", help="Output directory")
 @click.option("--max-workers", "-w", default=0, help="Concurrency limit (0=Auto-scale)")
-@click.option("--timeout", "-t", default=10, help="Test timeout in seconds")
+@click.option(
+    "--timeout",
+    "-t",
+    default=None,
+    type=int,
+    help="Test timeout in seconds (defaults to TEST_TIMEOUT).",
+)
 @click.option("--country", "-c", help="Filter by country code (e.g., US, DE)")
 @click.option(
     "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
@@ -171,6 +188,11 @@ def merge(
 ):
     """Fetch, test, and merge proxies from sources."""
     setup_logging(verbose)
+    from .config import AppSettings
+
+    settings = AppSettings()
+    if timeout is None:
+        timeout = settings.TEST_TIMEOUT
 
     # Load sources
     source_path = Path(sources)

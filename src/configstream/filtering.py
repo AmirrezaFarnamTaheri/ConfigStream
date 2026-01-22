@@ -8,6 +8,7 @@ from typing import Callable, Iterable, List, Sequence, Dict, Tuple, Any
 
 from .models import Proxy
 from .config import AppSettings
+from .utils.bool_parser import parse_tls_flag
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +41,11 @@ def proxy_unique_key(
     mode = str(details.get("mode", "")).strip()  # gRPC mode
     host = str(details.get("host", "")).lower().strip()  # WS host
     transport = str(details.get("net") or details.get("type") or "tcp").lower().strip()
-    security = (
-        str(details.get("security") or details.get("tls") or "none").lower().strip()
-    )
+    security = details.get("security")
+    if security:
+        security = str(security).lower().strip()
+    else:
+        security = "tls" if parse_tls_flag(details.get("tls")) else "none"
 
     return (
         proto,
@@ -118,6 +121,8 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
     """
     # Key: Fingerprint Hash -> Proxy
     fingerprint_map: Dict[str, Proxy] = {}
+    settings = AppSettings()
+    include_protocol = not settings.DEDUP_IGNORE_PROTOCOL
 
     for p in proxies:
         # 1. Gather Core Identity Fields
@@ -133,10 +138,11 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
         sni = (p.sni or "").lower().strip()
 
         # 3. Construct Fingerprint String
-        # We ignore 'remarks', 'protocol' (sometimes vmess/vless are confused but same backend),
-        # and 'title'.
-        # Format: IP:PORT|UUID|PATH|SNI
+        # We ignore 'remarks' and 'title'. Protocol can be included if configured.
+        # Format: [PROTOCOL|]IP:PORT|UUID|PATH|SNI
         raw_fingerprint = f"{addr}:{port}|{uuid}|{path}|{sni}"
+        if include_protocol:
+            raw_fingerprint = f"{p.protocol.lower().strip()}|{raw_fingerprint}"
 
         # 4. Hash it
         # Audit: SHA-256 for collision resistance

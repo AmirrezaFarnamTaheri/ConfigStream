@@ -30,7 +30,11 @@ def parse_trojan(config: str) -> Optional[Proxy]:
         uuid = parsed.username or ""
         # Fallback: check query params for password
         if not uuid:
-            uuid = details.get("password", "")
+            for key in ("password", "pass", "pwd", "token", "uuid", "id"):
+                val = details.get(key, "")
+                if isinstance(val, str) and val.strip():
+                    uuid = val.strip()
+                    break
 
         # Strict Trojan password (stored as username) requirement
         if not uuid:

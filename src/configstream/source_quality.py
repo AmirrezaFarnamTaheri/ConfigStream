@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 from .quality.storage import QualityStorage
 from .quality.scoring import calculate_diversity_score
+from .config import AppSettings
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class SourceQualityTracker(QualityStorage):
     def __init__(self, db_path: Optional[Path] = None):
         if db_path is None:
             # Default path if none provided (e.g. from pipeline)
-            db_path = Path("data/source_quality.db")
+            db_path = Path(AppSettings().QUALITY_DB_PATH)
         super().__init__(db_path)
 
         # Legacy in-memory fallback for compatibility if needed

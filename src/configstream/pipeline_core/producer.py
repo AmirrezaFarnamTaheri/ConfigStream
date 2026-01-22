@@ -4,6 +4,7 @@ import logging
 from typing import List, Optional, TYPE_CHECKING
 from rich.progress import Progress, TaskID
 from functools import partial
+from urllib.parse import urlparse
 
 from configstream.models import Proxy
 from configstream.config import AppSettings
@@ -30,8 +31,48 @@ async def source_producer(
     progress: Optional[Progress],
     task_fetch: Optional[TaskID],
     num_consumers: int = 1,
+    stop_event: Optional[asyncio.Event] = None,
 ):
     settings = AppSettings()
+    if stop_event is None:
+        stop_event = asyncio.Event()
+    enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
+
+    def _is_direct_proxy(candidate: str) -> bool:
+        lower = candidate.lower()
+        if lower.startswith(
+            (
+                "ss://",
+                "vmess://",
+                "vless://",
+                "trojan://",
+                "hysteria://",
+                "hy2://",
+                "hysteria2://",
+                "tuic://",
+                "ssh://",
+                "wg://",
+                "wireguard://",
+                "naive://",
+                "naive+https://",
+                "naive+http://",
+                "socks://",
+                "socks4://",
+                "socks5://",
+            )
+        ):
+            return True
+        if lower.startswith(("http://", "https://")):
+            parsed = urlparse(candidate)
+            return (
+                parsed.hostname is not None
+                and parsed.port is not None
+                and parsed.path in ("", "/")
+                and not parsed.query
+                and not parsed.fragment
+            )
+        return False
+
     try:
         # A. Handle Pre-supplied Proxies
         if proxies:
@@ -40,63 +81,40 @@ async def source_producer(
                 await work_queue.put(("supplied-proxies", supplied_lines, {}))
 
         # B. Handle File Sources
-        # Treat only real filesystem paths as local files; skip proxy URIs.
-        protocol_prefixes = (
-            "http://",
-            "https://",
-            "ss://",
-            "vmess://",
-            "vless://",
-            "trojan://",
-            "hysteria://",
-            "hy2://",
-            "tuic://",
-            "ssh://",
-            "wg://",
-            "wireguard://",
-            "ssconf://",
-        )
-        local_files = [s for s in sources if not s.startswith(protocol_prefixes)]
+        local_files: List[str] = []
+        remote_urls: List[str] = []
+        for raw in sources:
+            if stop_event.is_set():
+                break
+            s = raw.strip()
+            if not s:
+                continue
+            lower = s.lower()
+            if _is_direct_proxy(s):
+                await work_queue.put(("supplied-config", [s], {}))
+            elif lower.startswith("ssconf://"):
+                remote_urls.append(s.replace("ssconf://", "https://", 1))
+            elif lower.startswith(("http://", "https://")):
+                remote_urls.append(s)
+            else:
+                local_files.append(s)
+
         if local_files:
             file_results = await read_multiple_files_async(local_files)
             for fpath, content in file_results:
-                # Handle new tuple return signature, pass source_url for context
-                file_lines, _ = _extract_config_lines(content, source_url=fpath)
+                if stop_event.is_set():
+                    break
+                extract_func = partial(_extract_config_lines, content, source_url=fpath)
+                file_lines, drop_stats = (
+                    await asyncio.get_running_loop().run_in_executor(None, extract_func)
+                )
                 if file_lines:
-                    await work_queue.put((fpath, file_lines, {}))
+                    metadata: dict[str, object] = {"drop_stats": drop_stats}
+                    await work_queue.put((fpath, file_lines, metadata))
                 if progress and task_fetch:
                     progress.advance(task_fetch)
 
         # C. Handle Remote Sources
-        remote_urls = []
-        for s in sources:
-            if s.startswith("http"):
-                remote_urls.append(s)
-            elif s.startswith(
-                (
-                    "ss://",
-                    "vmess://",
-                    "vless://",
-                    "trojan://",
-                    "hysteria://",
-                    "hy2://",
-                    "tuic://",
-                    "ssh://",
-                    "wg://",
-                    "wireguard://",
-                )
-            ):
-                await work_queue.put(("supplied-config", [s], {}))
-            elif s.startswith("ssconf://"):
-                remote_urls.append(s.replace("ssconf://", "https://"))
-            else:
-                # Warn about sources that are skipped because they don't match any handler
-                # This helps debug "85 source is not correct" discrepancies if some lines are ignored
-                if s not in local_files:  # It wasn't treated as a local file either
-                    logger.warning(
-                        f"Skipping unknown source format: {SecurityValidator.sanitize_log_message(s)}"
-                    )
-
         active_urls = []
         blocked_urls = []
 
@@ -142,13 +160,15 @@ async def source_producer(
                 [SecurityValidator.sanitize_log_message(u) for u in blocked_urls],
             )
 
-        if active_urls:
+        if active_urls and not stop_event.is_set():
             logger.info(
                 f"Starting fetch for {len(active_urls)} active sources "
                 f"(Batch Size: 100, Concurrent Limit: {settings.PER_HOST_MAX_CONCURRENCY})"
             )
             batch_size = 100  # Increased from 50 to 100 for better throughput
             for i in range(0, len(active_urls), batch_size):
+                if stop_event.is_set():
+                    break
                 # Add jitter to prevent overwhelming remote servers or rate limits
                 if i > 0:
                     import random
@@ -170,6 +190,8 @@ async def source_producer(
                 )
 
                 for source, res in results.items():
+                    if stop_event.is_set():
+                        break
                     if res.success and res.content:
                         # Offload parsing to executor and handle stats
                         # [FIX] Use partial to pass keyword argument to run_in_executor
@@ -202,9 +224,12 @@ async def source_producer(
                             continue
 
                         # Offload anomaly check to executor to avoid blocking on DB/ML
-                        is_safe, reason = await loop.run_in_executor(
-                            None, anomaly_detector.is_safe, source, count
-                        )
+                        if enable_anomaly_detection:
+                            is_safe, reason = await loop.run_in_executor(
+                                None, anomaly_detector.is_safe, source, count
+                            )
+                        else:
+                            is_safe, reason = True, "Anomaly detection disabled"
 
                         if is_safe:
                             if lines:
@@ -212,9 +237,10 @@ async def source_producer(
                                     f"Anomaly check passed for {safe_source} (Count: {count})"
                                 )
                                 # Offload record to executor
-                                await loop.run_in_executor(
-                                    None, anomaly_detector.record, source, count
-                                )
+                                if enable_anomaly_detection:
+                                    await loop.run_in_executor(
+                                        None, anomaly_detector.record, source, count
+                                    )
                                 # Prepare metadata and fetch time
                                 fetch_time = (
                                     f"{res.response_time:.2f}s"
@@ -244,8 +270,13 @@ async def source_producer(
                                 )
                     else:
                         safe_source = SecurityValidator.sanitize_log_message(source)
+                        safe_error = (
+                            SecurityValidator.sanitize_log_message(str(res.error))
+                            if res.error
+                            else "unknown"
+                        )
                         logger.warning(
-                            f"Failed to fetch {safe_source}: {res.error} "
+                            f"Failed to fetch {safe_source}: {safe_error} "
                             f"(Status: {res.status_code})"
                         )
     except Exception as e:
