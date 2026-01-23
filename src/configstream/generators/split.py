@@ -27,6 +27,19 @@ def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, 
     return cleaned
 
 
+def _append_unique_tag(tags: List[str], tag: Optional[str]) -> None:
+    if tag and tag not in tags:
+        tags.append(tag)
+
+
+def _chain_entry_tag(chain: List[Dict[str, Any]]) -> Optional[str]:
+    for item in reversed(chain):
+        tag = item.get("tag")
+        if tag:
+            return tag
+    return None
+
+
 def generate_split_outputs(
     proxies: List[Proxy],
     output_dir: Path,
@@ -48,6 +61,13 @@ def generate_split_outputs(
         if washed_ids and p.id in washed_ids:
             continue
 
+        chain_outbounds = p.details.get("chain_outbounds")
+        if isinstance(chain_outbounds, list) and chain_outbounds:
+            chain_copy = copy.deepcopy(chain_outbounds)
+            outbounds.extend(chain_copy)
+            _append_unique_tag(selector_tags, _chain_entry_tag(chain_copy))
+            continue
+
         sb_proxy = to_singbox_outbound(p)
         if sb_proxy:
             tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
@@ -61,7 +81,7 @@ def generate_split_outputs(
                     "sleep": "0-10",
                 }
             outbounds.append(sb_proxy)
-            selector_tags.append(tag)
+            _append_unique_tag(selector_tags, tag)
 
     # Add washed outbounds
     if washed_outbounds:
@@ -70,7 +90,32 @@ def generate_split_outputs(
         outbounds.extend(washed_clones)
         for w in washed_clones:
             if w.get("tag") and "RELAY" not in w["tag"]:
-                selector_tags.append(w["tag"])
+                _append_unique_tag(selector_tags, w["tag"])
+
+    # Add Smart Chains to Sniper as well (if available)
+    # Ensure smart chains appear in singbox.json
+    if smart_chains:
+        for chain_list in smart_chains.values():
+            for chain in chain_list:
+                # Add chain outbounds to Sniper list
+                chain_copy = copy.deepcopy(chain)
+                outbounds.extend(chain_copy)
+                _append_unique_tag(selector_tags, _chain_entry_tag(chain_copy))
+                # Add selector tags for chain entry points
+                # Chain entry point is usually the first element or a selector wrapping it?
+                # Usually chains are [Proxy, Proxy...] or [Selector, UrlTest...]
+                # We need to find the "entry point" tag of the chain to add to main selector.
+                # Assuming the last element's tag or a specific tag convention?
+                # Actually, `chain` is a list of outbounds. They are already linked by tags.
+                # The user typically wants to select the "Head" of the chain.
+                # In `tank`, we just add them.
+                # For `sniper` (Selector based), we should add the chain head to `selector_tags`.
+                # But identifying the head is tricky without knowing the structure.
+                # However, usually chains have a main "Selector" or "URLTest" at the top level?
+                # If `chain` contains a "Selector" or "URLTest" with a tag, we add it.
+                for item in chain_copy:
+                    if item.get("type") in ("selector", "urltest") and item.get("tag"):
+                        _append_unique_tag(selector_tags, item["tag"])
 
     # Add URLTest
     if selector_tags:
@@ -121,31 +166,6 @@ def generate_split_outputs(
             }
         )
 
-    # Add Smart Chains to Sniper as well (if available)
-    # Ensure smart chains appear in singbox.json
-    if smart_chains:
-        for chain_list in smart_chains.values():
-            for chain in chain_list:
-                # Add chain outbounds to Sniper list
-                outbounds.extend(copy.deepcopy(chain))
-                # Add selector tags for chain entry points
-                # Chain entry point is usually the first element or a selector wrapping it?
-                # Usually chains are [Proxy, Proxy...] or [Selector, UrlTest...]
-                # We need to find the "entry point" tag of the chain to add to main selector.
-                # Assuming the last element's tag or a specific tag convention?
-                # Actually, `chain` is a list of outbounds. They are already linked by tags.
-                # The user typically wants to select the "Head" of the chain.
-                # In `tank`, we just add them.
-                # For `sniper` (Selector based), we should add the chain head to `selector_tags`.
-                # But identifying the head is tricky without knowing the structure.
-                # However, usually chains have a main "Selector" or "URLTest" at the top level?
-                # If `chain` contains a "Selector" or "URLTest" with a tag, we add it.
-                for item in chain:
-                    if item.get("type") in ("selector", "urltest") and item.get("tag"):
-                        # Avoid duplicates
-                        if item["tag"] not in selector_tags:
-                            selector_tags.append(item["tag"])
-
     # Strip internal metadata fields (like _process) before serializing
     # These fields cause Sing-box parse errors: "unknown field "_process""
     clean_outbounds = _strip_internal_metadata(outbounds)
@@ -164,7 +184,9 @@ def generate_split_outputs(
     }
 
     sniper_path = output_dir / "singbox.json"
-    AtomicFileWriter.write_text(sniper_path, json.dumps(sniper_config, indent=2))
+    AtomicFileWriter.write_text(
+        sniper_path, json.dumps(sniper_config, indent=2, ensure_ascii=False)
+    )
     files["singbox"] = sniper_path
 
     # 2. Tank (singbox-vpn.json) - Full VPN/TUN - No Fragmentation (usually)
@@ -176,12 +198,19 @@ def generate_split_outputs(
         if washed_ids and p.id in washed_ids:
             continue
 
+        chain_outbounds = p.details.get("chain_outbounds")
+        if isinstance(chain_outbounds, list) and chain_outbounds:
+            chain_copy = copy.deepcopy(chain_outbounds)
+            tank_outbounds.extend(chain_copy)
+            _append_unique_tag(tank_proxy_tags, _chain_entry_tag(chain_copy))
+            continue
+
         sb_proxy = to_singbox_outbound(p)
         if sb_proxy:
             tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
             sb_proxy["tag"] = tag
             tank_outbounds.append(sb_proxy)
-            tank_proxy_tags.append(tag)
+            _append_unique_tag(tank_proxy_tags, tag)
 
     if washed_outbounds:
         tank_outbounds.extend(copy.deepcopy(washed_outbounds))
@@ -192,7 +221,9 @@ def generate_split_outputs(
             # Actually, `generate_smart_chains` returns Dict[str, List[List[Dict]]].
             # So chain_list is List[List[Dict]]. We need to flatten it or iterate.
             for chain in chain_list:
-                tank_outbounds.extend(copy.deepcopy(chain))
+                chain_copy = copy.deepcopy(chain)
+                tank_outbounds.extend(chain_copy)
+                _append_unique_tag(tank_proxy_tags, _chain_entry_tag(chain_copy))
 
     # Add Groups to Tank
     tank_washed_tags = [
@@ -288,7 +319,9 @@ def generate_split_outputs(
     }
 
     tank_path = output_dir / "singbox-vpn.json"
-    AtomicFileWriter.write_text(tank_path, json.dumps(tank_config, indent=2))
+    AtomicFileWriter.write_text(
+        tank_path, json.dumps(tank_config, indent=2, ensure_ascii=False)
+    )
     files["singbox_vpn"] = tank_path
 
     # Clash

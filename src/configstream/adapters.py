@@ -314,6 +314,11 @@ class ShadowrocketAdapter(Adapter):
         """Reconstruct URI with full protocol support."""
         name = urllib.parse.quote(p.remarks or "ConfigStream")
 
+        def _join_list(value: Any) -> str:
+            if isinstance(value, (list, tuple)):
+                return ",".join(str(item) for item in value if item)
+            return str(value) if value is not None else ""
+
         if p.protocol in ("ss", "shadowsocks"):
             method = p.details.get("method", "chacha20-ietf-poly1305")
             password = p.details.get("password", "")
@@ -337,8 +342,30 @@ class ShadowrocketAdapter(Adapter):
             return f"ss://{b64_auth}@{p.address}:{p.port}{query}#{name}"
 
         elif p.protocol == "trojan":
+            params = {}
             sni = p.details.get("sni", "")
-            return f"trojan://{p.uuid}@{p.address}:{p.port}?peer={sni}&sni={sni}#{name}"
+            if sni:
+                params["peer"] = sni
+                params["sni"] = sni
+            net = p.details.get("net") or p.details.get("type")
+            if net:
+                params["type"] = net
+            path = p.details.get("path") or p.details.get("ws_path") or p.details.get(
+                "http_path"
+            )
+            if path:
+                params["path"] = path
+            host = p.details.get("host") or p.details.get("http_host")
+            if host:
+                params["host"] = host
+            service_name = p.details.get("serviceName") or p.details.get(
+                "grpc_service_name"
+            )
+            if service_name:
+                params["serviceName"] = service_name
+            query = urllib.parse.urlencode(params, safe=",") if params else ""
+            query_part = f"?{query}" if query else ""
+            return f"trojan://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
 
         elif p.protocol == "vmess":
             # Simplified VMess reconstruction (often better to use original if available)
@@ -348,6 +375,7 @@ class ShadowrocketAdapter(Adapter):
             tls_enabled = parse_tls_flag(p.details.get("tls")) or p.details.get(
                 "security"
             ) in ("tls", "reality")
+            net = p.details.get("net") or p.details.get("type") or "tcp"
             v_obj = {
                 "v": "2",
                 "ps": p.remarks or "ConfigStream",
@@ -355,32 +383,145 @@ class ShadowrocketAdapter(Adapter):
                 "port": str(p.port),
                 "id": p.uuid,
                 "aid": "0",
-                "net": p.details.get("net", "tcp"),
+                "net": net,
                 "type": "none",
                 "host": p.details.get("host", ""),
                 "tls": "tls" if tls_enabled else "",
             }
+            path = p.details.get("path") or p.details.get("ws_path")
+            if path:
+                v_obj["path"] = path
+            sni = p.details.get("sni")
+            if sni:
+                v_obj["sni"] = sni
+            alpn = p.details.get("alpn")
+            if alpn:
+                v_obj["alpn"] = _join_list(alpn)
+            fp = p.details.get("fp") or p.details.get("fingerprint")
+            if fp:
+                v_obj["fp"] = fp
             return "vmess://" + base64.b64encode(json.dumps(v_obj).encode()).decode()
 
         elif p.protocol == "vless":
             # vless://uuid@host:port?params#name
-            security = p.details.get("security", "tls")
+            params = {}
+            security = p.details.get("security")
+            if not security:
+                security = "tls" if parse_tls_flag(p.details.get("tls")) else "none"
+            if security:
+                params["security"] = security
             sni = p.details.get("sni", "")
-            net = p.details.get("net", "tcp")
-            params = f"security={security}&sni={sni}&type={net}"
-            return f"vless://{p.uuid}@{p.address}:{p.port}?{params}#{name}"
+            if sni:
+                params["sni"] = sni
+            net = p.details.get("net") or p.details.get("type") or "tcp"
+            if net:
+                params["type"] = net
+            flow = p.details.get("flow")
+            if flow:
+                params["flow"] = flow
+            encryption = p.details.get("encryption")
+            if encryption:
+                params["encryption"] = encryption
+            host = p.details.get("host") or p.details.get("http_host")
+            if host:
+                params["host"] = host
+            path = p.details.get("path") or p.details.get("ws_path") or p.details.get(
+                "http_path"
+            )
+            if path:
+                params["path"] = path
+            service_name = p.details.get("serviceName") or p.details.get(
+                "grpc_service_name"
+            )
+            if service_name:
+                params["serviceName"] = service_name
+            pbk = (
+                p.details.get("pbk")
+                or p.details.get("publicKey")
+                or p.details.get("public_key")
+            )
+            if pbk:
+                params["pbk"] = pbk
+            sid = (
+                p.details.get("sid")
+                or p.details.get("shortId")
+                or p.details.get("short_id")
+            )
+            if sid:
+                params["sid"] = sid
+            fp = p.details.get("fp") or p.details.get("fingerprint")
+            if fp:
+                params["fp"] = fp
+            alpn = p.details.get("alpn")
+            if alpn:
+                params["alpn"] = _join_list(alpn)
+            query = urllib.parse.urlencode(params, safe=",") if params else ""
+            query_part = f"?{query}" if query else ""
+            return f"vless://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
 
         elif p.protocol in ("hysteria2", "hy2"):
             # hysteria2://password@host:port?sni=...#name
             sni = p.details.get("sni", "")
-            return f"hysteria2://{p.uuid}@{p.address}:{p.port}?sni={sni}#{name}"
+            params = {}
+            if sni:
+                params["sni"] = sni
+            alpn = p.details.get("alpn")
+            if alpn:
+                params["alpn"] = _join_list(alpn)
+            query = urllib.parse.urlencode(params, safe=",") if params else ""
+            query_part = f"?{query}" if query else ""
+            return (
+                f"hysteria2://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
+            )
 
         elif p.protocol == "tuic":
             # tuic://uuid:password@host:port?sni=...#name
             # TUIC V5 usually just uses UUID as auth or uuid:pass
             sni = p.details.get("sni", "")
             password = p.details.get("password", "")
-            return f"tuic://{p.uuid}:{password}@{p.address}:{p.port}?sni={sni}#{name}"
+            query = f"?sni={urllib.parse.quote(sni)}" if sni else ""
+            return (
+                f"tuic://{p.uuid}:{password}@{p.address}:{p.port}{query}#{name}"
+            )
+
+        elif p.protocol in ("http", "socks5", "socks4"):
+            scheme = p.protocol
+            if scheme == "http":
+                scheme = "https" if parse_tls_flag(p.details.get("tls")) else "http"
+            user = p.uuid or ""
+            password = p.details.get("password", "")
+            auth = ""
+            if user:
+                auth_user = urllib.parse.quote(user)
+                if password:
+                    auth_pass = urllib.parse.quote(password)
+                    auth = f"{auth_user}:{auth_pass}@"
+                else:
+                    auth = f"{auth_user}@"
+            return f"{scheme}://{auth}{p.address}:{p.port}#{name}"
+
+        elif p.protocol == "naive":
+            user = p.uuid or ""
+            password = p.details.get("password", "")
+            if not user or not password:
+                return ""
+            scheme = "naive+https" if parse_tls_flag(p.details.get("tls")) else "naive+http"
+            auth_user = urllib.parse.quote(user)
+            auth_pass = urllib.parse.quote(password)
+            return f"{scheme}://{auth_user}:{auth_pass}@{p.address}:{p.port}#{name}"
+
+        elif p.protocol == "ssh":
+            user = p.uuid or ""
+            password = p.details.get("password", "")
+            auth = ""
+            if user:
+                auth_user = urllib.parse.quote(user)
+                if password:
+                    auth_pass = urllib.parse.quote(password)
+                    auth = f"{auth_user}:{auth_pass}@"
+                else:
+                    auth = f"{auth_user}@"
+            return f"ssh://{auth}{p.address}:{p.port}#{name}"
 
         return ""
 

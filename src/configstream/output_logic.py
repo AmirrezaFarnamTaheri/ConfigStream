@@ -12,6 +12,7 @@ from .output_generators import (
     generate_base64_subscription,
     generate_split_outputs,
 )
+from .generators.plaintext import generate_plaintext_subscription
 from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
 from .utils import AtomicFileWriter
@@ -68,10 +69,32 @@ def generate_categorized_outputs(
         generated_files["clash_full"] = split_files["clash"]
 
     # 3. Standard Subscription (Base64)
-    sub_path = output_dir / "sub.txt"
     sub_content = generate_base64_subscription(proxies)
+    sub_path = output_dir / "sub.txt"
     AtomicFileWriter.write_text(sub_path, sub_content)
     generated_files["sub_full"] = sub_path
+
+    base64_path = output_dir / "base64.txt"
+    AtomicFileWriter.write_text(base64_path, sub_content)
+    generated_files["base64"] = base64_path
+
+    vpn_base64_path = output_dir / "vpn_subscription_base64.txt"
+    AtomicFileWriter.write_text(vpn_base64_path, sub_content)
+    generated_files["vpn_subscription_base64"] = vpn_base64_path
+
+    # 3b. Raw URI list (Plaintext)
+    raw_content = generate_plaintext_subscription(proxies)
+    raw_path = output_dir / "raw.txt"
+    AtomicFileWriter.write_text(raw_path, raw_content)
+    generated_files["raw"] = raw_path
+
+    all_path = output_dir / "all.txt"
+    AtomicFileWriter.write_text(all_path, raw_content)
+    generated_files["all"] = all_path
+
+    proxies_txt_path = output_dir / "proxies.txt"
+    AtomicFileWriter.write_text(proxies_txt_path, raw_content)
+    generated_files["proxies_txt"] = proxies_txt_path
 
     # 4. Categorized Sub-files (By Country & Protocol)
     # Grouping
@@ -284,7 +307,7 @@ def save_metadata(
     except Exception:
         pkg_version = "unknown"
 
-    # Calculate update interval (default 6 hours for production)
+    # Calculate update interval (default 3 hours for production)
     update_interval_hours = AppSettings().UPDATE_INTERVAL_HOURS
 
     # Compute total_revived properly from both WARP and Vwarp
@@ -362,7 +385,7 @@ def save_metadata(
         "chosen_subset_size": total,
     }
 
-    AtomicFileWriter.write_text(meta_path, json.dumps(meta, indent=2))
+    AtomicFileWriter.write_text(meta_path, json.dumps(meta, indent=2, ensure_ascii=False))
 
     # NOTE: statistics.json removed - metadata.json is now single source of truth
     # All frontend code updated to use metadata.json directly

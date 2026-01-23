@@ -158,7 +158,7 @@ def generate_singbox_config(
     """
     generator = SingBoxGenerator()
     config_dict = generator.generate(proxies, region, extra_outbounds)
-    return json.dumps(config_dict, indent=2)
+    return json.dumps(config_dict, indent=2, ensure_ascii=False)
 
 
 # [BACKWARD COMPATIBILITY TEST HELPER]

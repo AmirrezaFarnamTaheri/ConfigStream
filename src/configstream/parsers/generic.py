@@ -3,7 +3,7 @@ import logging
 import json
 import re
 import ipaddress
-from typing import Optional
+from typing import Optional, Any, Dict
 from urllib.parse import urlparse, unquote
 from ..models import Proxy
 from .base import normalize_proxy_details
@@ -211,38 +211,171 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
     outbounds = data.get("outbounds")
     if not outbound and isinstance(outbounds, list) and outbounds:
         outbound = outbounds[0]
-    if not outbound:
+    if not outbound or not isinstance(outbound, dict):
         return None
 
-    protocol = outbound.get("protocol", "v2ray")
-    settings = outbound.get("settings", {})
-    server_info = None
-    for key in ("vnext", "servers"):
-        nodes = settings.get(key)
-        if isinstance(nodes, list) and nodes:
-            server_info = nodes[0]
-            break
-
-    if not server_info:
+    protocol_raw = str(outbound.get("protocol", "")).lower().strip()
+    if not protocol_raw:
         return None
 
-    address = (
-        server_info.get("address") or server_info.get("server") or server_info.get("ip")
-    )
-    port = server_info.get("port")
+    settings = outbound.get("settings")
+    if not isinstance(settings, dict):
+        settings = {}
+
+    stream_settings = outbound.get("streamSettings")
+    if not isinstance(stream_settings, dict):
+        stream_settings = {}
+
+    def _extract_stream_details(stream: Dict[str, Any]) -> Dict[str, Any]:
+        details: Dict[str, Any] = {}
+        network = stream.get("network") or stream.get("type")
+        if isinstance(network, str) and network:
+            details["net"] = network
+
+        security = stream.get("security")
+        if isinstance(security, str) and security:
+            details["security"] = security
+
+        if security in ("tls", "xtls"):
+            tls_settings = stream.get("tlsSettings") or stream.get("xtlsSettings")
+            if isinstance(tls_settings, dict):
+                server_name = tls_settings.get("serverName")
+                if server_name:
+                    details["sni"] = server_name
+                alpn = tls_settings.get("alpn")
+                if alpn:
+                    details["alpn"] = alpn
+        elif security == "reality":
+            reality = stream.get("realitySettings")
+            if isinstance(reality, dict):
+                server_name = reality.get("serverName")
+                if server_name:
+                    details["sni"] = server_name
+                public_key = reality.get("publicKey")
+                if public_key:
+                    details["pbk"] = public_key
+                short_id = reality.get("shortId")
+                if short_id:
+                    details["sid"] = short_id
+                fingerprint = reality.get("fingerprint")
+                if fingerprint:
+                    details["fp"] = fingerprint
+
+        if network == "ws":
+            ws_settings = stream.get("wsSettings")
+            if isinstance(ws_settings, dict):
+                path = ws_settings.get("path")
+                if path:
+                    details["path"] = path
+                headers = ws_settings.get("headers")
+                if isinstance(headers, dict):
+                    host = headers.get("Host") or headers.get("host")
+                    if host:
+                        details["host"] = host
+        elif network == "grpc":
+            grpc_settings = stream.get("grpcSettings")
+            if isinstance(grpc_settings, dict):
+                service_name = grpc_settings.get("serviceName")
+                if service_name:
+                    details["serviceName"] = service_name
+        elif network in ("http", "h2"):
+            http_settings = stream.get("httpSettings")
+            if isinstance(http_settings, dict):
+                path = http_settings.get("path")
+                if isinstance(path, list):
+                    if path:
+                        details["path"] = path[0]
+                elif path:
+                    details["path"] = path
+                host = http_settings.get("host")
+                if isinstance(host, list):
+                    if host:
+                        details["host"] = host[0]
+                elif host:
+                    details["host"] = host
+
+        return details
+
+    details = _extract_stream_details(stream_settings)
+
+    address = ""
+    port = None
+    uuid = ""
+    protocol = protocol_raw
+
+    if protocol_raw in ("vmess", "vless"):
+        nodes = settings.get("vnext")
+        if not isinstance(nodes, list) or not nodes:
+            return None
+        server_info = nodes[0]
+        if not isinstance(server_info, dict):
+            return None
+        address = (
+            server_info.get("address")
+            or server_info.get("server")
+            or server_info.get("ip")
+        )
+        port = server_info.get("port")
+        users = server_info.get("users")
+        user_info = users[0] if isinstance(users, list) and users else {}
+        if isinstance(user_info, dict):
+            uuid = user_info.get("id") or user_info.get("uuid") or ""
+            if protocol_raw == "vless":
+                flow = user_info.get("flow")
+                if flow:
+                    details["flow"] = flow
+                encryption = user_info.get("encryption")
+                if encryption:
+                    details["encryption"] = encryption
+            elif protocol_raw == "vmess":
+                alter_id = user_info.get("alterId")
+                if alter_id is not None:
+                    details["aid"] = alter_id
+        if not uuid:
+            return None
+    elif protocol_raw in ("trojan", "shadowsocks", "ss", "socks", "http"):
+        nodes = settings.get("servers")
+        if not isinstance(nodes, list) or not nodes:
+            return None
+        server_info = nodes[0]
+        if not isinstance(server_info, dict):
+            return None
+        address = (
+            server_info.get("address")
+            or server_info.get("server")
+            or server_info.get("ip")
+        )
+        port = server_info.get("port")
+        if protocol_raw == "trojan":
+            uuid = server_info.get("password", "")
+            if not uuid:
+                return None
+        elif protocol_raw in ("shadowsocks", "ss"):
+            protocol = "shadowsocks"
+            details["password"] = server_info.get("password", "")
+            method = server_info.get("method") or server_info.get("cipher")
+            if method:
+                details["method"] = method
+            if not details["password"]:
+                return None
+        elif protocol_raw == "socks":
+            protocol = "socks5"
+            user = server_info.get("user") or server_info.get("username") or ""
+            uuid = user
+            password = server_info.get("pass") or server_info.get("password")
+            if password:
+                details["password"] = password
+        elif protocol_raw == "http":
+            user = server_info.get("user") or server_info.get("username") or ""
+            uuid = user
+            password = server_info.get("pass") or server_info.get("password")
+            if password:
+                details["password"] = password
+    else:
+        return None
+
     if not address or port is None:
         return None
-
-    users = server_info.get("users")
-    uuid = ""
-    if isinstance(users, list) and users:
-        uuid = users[0].get("id", "")
-
-    metadata = {
-        "protocol": protocol,
-        "settings": settings,
-    }
-    remarks = outbound.get("tag", data.get("remark", ""))
 
     try:
         port_int = int(port)
@@ -250,12 +383,16 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
         logger.debug(f"Invalid port in v2ray config: {port}")
         return None
 
-    return Proxy(
+    remarks = outbound.get("tag", data.get("remark", ""))
+
+    proxy = Proxy(
         config=config,
-        protocol="v2ray",
+        protocol=protocol,
         address=address,
         port=port_int,
         uuid=uuid,
         remarks=remarks or "",
-        details=metadata,
+        details=details,
     )
+    normalize_proxy_details(proxy)
+    return proxy

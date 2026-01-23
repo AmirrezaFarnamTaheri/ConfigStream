@@ -95,7 +95,9 @@ def generate_vectors(proxies: List[Proxy], output_dir: Path) -> None:
 
     output_file = output_dir / "vectors.json"
     try:
-        AtomicFileWriter.write_text(output_file, json.dumps(vector_map))
+        AtomicFileWriter.write_text(
+            output_file, json.dumps(vector_map, ensure_ascii=False)
+        )
         logger.info(f"Generated static vectors for {len(vector_map)} proxies")
     except Exception as e:
         logger.error(f"Failed to generate vectors: {e}")

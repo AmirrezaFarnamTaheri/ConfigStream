@@ -2,14 +2,10 @@
 import base64
 from typing import List
 from ..models import Proxy
+from .plaintext import generate_plaintext_subscription
 
 
 def generate_base64_subscription(proxies: List[Proxy]) -> str:
     """Generates a base64 encoded subscription string."""
-    lines = []
-    for p in proxies:
-        if p.config:
-            lines.append(p.config)
-
-    content = "\n".join(lines)
+    content = generate_plaintext_subscription(proxies)
     return base64.b64encode(content.encode("utf-8")).decode("utf-8")
