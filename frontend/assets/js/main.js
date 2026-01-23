@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Define defaults and updater function outside try/catch to ensure availability
         let sourceCount = 815;
-        let updateFreq = 5;
+        let updateFreq = 3;
 
         const updateHeroSubtitle = () => {
              const heroSubtitle = document.getElementById('heroSubtitle');
@@ -237,8 +237,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Configuration values from metadata (or stats as fallback)
-                // Default to 5 hours and 85 sources as per configuration if metadata is missing
-                updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 5;
+                // Default to 3 hours and 85 sources as per configuration if metadata is missing
+                updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 3;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
                 sourceCount = metadata?.sources_count || stats.sources_count || 815;

@@ -23,7 +23,6 @@ from rich.progress import (
     TaskProgressColumn,
 )
 
-from .pipeline import run_full_pipeline
 from .geoip import DEFAULT_RESOLVER
 from .tools.warp import generate_warp_proxy
 
@@ -209,6 +208,8 @@ def merge(
     console.print(f"Sources: {len(valid_sources)} | Output: {output}")
 
     async def _run():
+        from .pipeline import run_full_pipeline
+
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),

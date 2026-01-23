@@ -7,7 +7,7 @@ ConfigStream relies on a robust, automated DevOps pipeline. We adhere to "GitOps
 The heart of the system is `.github/workflows/pipeline.yml`.
 
 ### Workflow Triggers
-*   **Schedule**: `cron: "0 */6 * * *"` (Every 6 hours).
+*   **Schedule**: `cron: "0 */3 * * *"` (Every 3 hours).
 *   **Manual**: `workflow_dispatch` (For emergency updates).
 *   **Push**: On changes to `main` (For testing code changes).
 

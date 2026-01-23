@@ -1,9 +1,9 @@
 name: Pipeline Health Check
 
 on:
-  # Run 30 minutes after pipeline (which runs every 6 hours)
+  # Run 30 minutes after pipeline (which runs every 3 hours)
   schedule:
-    - cron: '30 */6 * * *'
+    - cron: '30 */3 * * *'
   # Allow manual trigger
   workflow_dispatch:
   # Run after pipeline completes

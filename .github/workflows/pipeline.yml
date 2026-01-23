@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "0 */5 * * *"  # [FIX] Every 5 hours as requested
+    - cron: "0 */3 * * *"  # [FIX] Every 3 hours as requested
   workflow_dispatch:
 
 concurrency:
@@ -85,10 +85,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            data/adaptive_timeout.db
             data/source_quality.db
             data/test_cache.json
-            data/proxy_history.json
+            data/history.db
+            data/timeout_history.json
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
           key: configstream-data-${{ github.ref }}
@@ -175,10 +175,10 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            data/adaptive_timeout.db
             data/source_quality.db
             data/test_cache.json
-            data/proxy_history.json
+            data/history.db
+            data/timeout_history.json
             data/GeoLite2-City.mmdb
             data/GeoLite2-ASN.mmdb
           key: configstream-data-${{ github.ref }}
@@ -195,7 +195,7 @@ jobs:
           BATCH_NUMBER: ${{ matrix.batch_number }}
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
-          UPDATE_INTERVAL_HOURS: 5
+          UPDATE_INTERVAL_HOURS: 3
           CANARY_URL: "https://httpbin.org"
         run: |
           set -euxo pipefail
@@ -212,8 +212,9 @@ jobs:
           # Copy only if they exist
           [ -f data/source_quality.db ] && cp data/source_quality.db output_batch_${BATCH_NUMBER}/data/ || true
           [ -f data/anomaly.db ] && cp data/anomaly.db output_batch_${BATCH_NUMBER}/data/ || true
-          [ -f data/adaptive_timeout.db ] && cp data/adaptive_timeout.db output_batch_${BATCH_NUMBER}/data/ || true
-          [ -f data/proxy_history.json ] && cp data/proxy_history.json output_batch_${BATCH_NUMBER}/data/ || true
+          [ -f data/history.db ] && cp data/history.db output_batch_${BATCH_NUMBER}/data/ || true
+          [ -f data/timeout_history.json ] && cp data/timeout_history.json output_batch_${BATCH_NUMBER}/data/ || true
+          [ -f data/test_cache.json ] && cp data/test_cache.json output_batch_${BATCH_NUMBER}/data/ || true
 
       - name: Upload shard artifact
         if: always()

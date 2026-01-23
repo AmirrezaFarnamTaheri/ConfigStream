@@ -101,8 +101,8 @@ class SourceQualityTracker(QualityStorage):
             return False
         if status == "probation":
             last_checked = state[1]
-            # Retry every 6 hours
-            if (datetime.now(timezone.utc).timestamp() - last_checked) < (6 * 3600):
+            # Retry every 3 hours
+            if (datetime.now(timezone.utc).timestamp() - last_checked) < (3 * 3600):
                 return False
         return True
 

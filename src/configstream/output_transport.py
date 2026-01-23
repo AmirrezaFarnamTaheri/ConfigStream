@@ -193,7 +193,7 @@ def save_metadata(  # pylint: disable=too-many-locals,too-many-branches,too-many
         "protocol_colors": PROTOCOL_COLORS,
     }
 
-    metadata_content = json.dumps(metadata, indent=2)
+    metadata_content = json.dumps(metadata, indent=2, ensure_ascii=False)
     # [UNIFIED] Only create metadata.json - single source of truth
     # summary.json removed as it was identical content
     target_path = output_dir / "metadata.json"
