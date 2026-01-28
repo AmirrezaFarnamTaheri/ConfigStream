@@ -41,11 +41,27 @@ def check_minimum_proxies(proxies: List[Dict], min_count: int) -> None:
 def check_success_rate(metadata: Dict[str, Any], min_rate: float) -> None:
     """Check proxy test success rate."""
     # Compatible with both new and old metadata formats
-    # Use parsed count if available, otherwise fetched
-    tested = metadata.get("stats", {}).get(
-        "parsed", metadata.get("total_fetched", metadata.get("total_proxies_tested", 0))
+    stats_block = metadata.get("stats", {})
+    if not isinstance(stats_block, dict):
+        stats_block = {}
+
+    tested = (
+        metadata.get("total_tested")
+        or metadata.get("tested")
+        or stats_block.get("tested")
+        or metadata.get("parsed")
+        or stats_block.get("parsed")
+        or metadata.get("total_proxies_tested")
+        or metadata.get("total_unique_candidates")
+        or 0
     )
-    working = metadata.get("total_working", metadata.get("total_working_proxies", 0))
+    working = (
+        metadata.get("total_working")
+        or metadata.get("working")
+        or stats_block.get("working")
+        or metadata.get("total_working_proxies")
+        or 0
+    )
 
     # Validate metrics before division
     if not isinstance(tested, (int, float)) or tested < 0:
@@ -79,7 +95,11 @@ def check_success_rate(metadata: Dict[str, Any], min_rate: float) -> None:
 
 def check_data_freshness(metadata: Dict[str, Any], max_age_hours: int) -> None:
     """Check data freshness."""
-    timestamp_str = metadata.get("last_updated_utc", metadata.get("timestamp"))
+    timestamp_str = (
+        metadata.get("last_updated_utc")
+        or metadata.get("generated_at")
+        or metadata.get("timestamp")
+    )
 
     if not timestamp_str:
         raise HealthCheckError("❌ No timestamp in metadata")

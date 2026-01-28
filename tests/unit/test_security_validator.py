@@ -22,16 +22,21 @@ def test_validate_strict_policy():
     assert len(results) >= 1
 
 
-def test_validate_rejects_bad_ips():
+def test_validate_rejects_bad_ips(monkeypatch):
     # Private IP
     p1 = create_test_proxy(address="127.0.0.1")
+    monkeypatch.setenv("INCLUDE_INSECURE_PROXIES", "true")
     results = validate_batch_configs([p1], TEST_POLICY)
-    assert len(results) == 0
+    assert len(results) == 1
+    assert results[0].is_secure is False
+    assert "local_ip_blocked" in results[0].security_issues.get("policy", [])
 
 
-def test_validate_rejects_invalid_uuid():
+def test_validate_rejects_invalid_uuid(monkeypatch):
     p1 = create_test_proxy(uuid="invalid-uuid")
     # If validator checks UUID format
-    validate_batch_configs([p1], TEST_POLICY)
-    # It might just tag it or filter it.
-    # Assuming validation logic filters invalid proxies.
+    monkeypatch.setenv("INCLUDE_INSECURE_PROXIES", "true")
+    results = validate_batch_configs([p1], TEST_POLICY)
+    assert len(results) == 1
+    assert results[0].is_secure is False
+    assert "invalid_uuid_format" in results[0].security_issues.get("policy", [])

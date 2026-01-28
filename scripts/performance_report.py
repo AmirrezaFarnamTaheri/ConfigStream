@@ -38,7 +38,7 @@ async def main():
     ]
 
     print(f"🚀 Running pipeline with {len(sources)} sources from {sources_file}...")
-    print("   Limiting to 100 proxies for performance testing\n")
+    print("   Running full pipeline for performance testing\n")
 
     # Environment Isolation
     import os
@@ -52,7 +52,6 @@ async def main():
         result = await run_full_pipeline(
             sources=sources,
             output_dir="benchmark_output",
-            max_proxies=100,
             max_workers=20,
             timeout=10,
         )

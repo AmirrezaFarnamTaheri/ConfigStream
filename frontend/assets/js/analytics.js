@@ -82,7 +82,9 @@ function updateStats(data) {
     const workingCount = data.total_valid_proxies;
     update('workingConfigs', formatNum(workingCount));
 
-    const totalRevived = data.total_revived;
+    const revivedWarp = data.revived_warp || 0;
+    const revivedVwarp = data.revived_vwarp || 0;
+    const totalRevived = data.total_revived ?? (revivedWarp + revivedVwarp);
 
     let cleanVal = data.total_clean;
     if (cleanVal === undefined && workingCount !== undefined && totalRevived !== undefined) {
@@ -91,6 +93,8 @@ function updateStats(data) {
 
     update('totalClean', formatNum(cleanVal));
     update('totalRevived', formatNum(totalRevived));
+    update('revivedWarp', formatNum(revivedWarp));
+    update('revivedVwarp', formatNum(revivedVwarp));
     update('threatsBlocked', formatNum(data.total_dirty));
 
     // Update timestamp if available

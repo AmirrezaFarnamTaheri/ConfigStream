@@ -81,6 +81,7 @@ class SensitiveDataFilter(logging.Filter):
             )
 
         record.msg = SecurityValidator.sanitize_log_message(message_without_urls)
+        record.args = ()
         return True
 
 

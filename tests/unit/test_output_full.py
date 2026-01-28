@@ -123,7 +123,7 @@ def test_generate_split_outputs(proxies, output_dir):
 
         import json
 
-        vpn_config = json.loads(files["singbox_vpn"].read_text())
+        vpn_config = json.loads(files["singbox_vpn"].read_text(encoding="utf-8"))
         outbounds = vpn_config["outbounds"]
         auto_selector = next(o for o in outbounds if o["tag"] == "🚀 Auto")
         assert len(auto_selector["outbounds"]) == 1
@@ -148,7 +148,7 @@ async def test_generate_categorized_outputs(proxies, output_dir):
         history_instance = MockHistory.return_value
         history_instance.get_history.return_value = []
 
-        MockWasher.return_value.wash_batch.return_value = ([], set())
+        MockWasher.return_value.wash_batch.return_value = ([], set(), {})
 
         files = generate_categorized_outputs(proxies, output_dir)
 
@@ -156,5 +156,5 @@ async def test_generate_categorized_outputs(proxies, output_dir):
         assert "proto_vless" in files
         assert "country_US" in files
 
-        assert (output_dir / "by_protocol" / "vless.json").exists()
-        assert (output_dir / "by_country" / "US.json").exists()
+        assert (output_dir / "protocols" / "vless.json").exists()
+        assert (output_dir / "countries" / "US.json").exists()

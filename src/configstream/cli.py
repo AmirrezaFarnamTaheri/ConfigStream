@@ -25,6 +25,9 @@ from rich.progress import (
 
 from .geoip import DEFAULT_RESOLVER
 from .tools.warp import generate_warp_proxy
+from .pipeline import run_full_pipeline
+from .logging_config import SensitiveDataFilter
+from .config import AppSettings
 
 # Initialize Rich Console
 console = Console()
@@ -32,12 +35,16 @@ console = Console()
 
 def setup_logging(verbose: bool):
     level = logging.DEBUG if verbose else logging.INFO
+    settings = AppSettings()
     logging.basicConfig(
         level=level,
         format="%(message)s",
         datefmt="[%X]",
         handlers=[RichHandler(console=console, rich_tracebacks=True, show_path=False)],
     )
+    if settings.MASK_SENSITIVE_DATA:
+        for handler in logging.getLogger().handlers:
+            handler.addFilter(SensitiveDataFilter())
     # Silence noisy libraries
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("aiohttp").setLevel(logging.WARNING)
@@ -126,7 +133,21 @@ def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
         return result
 
     try:
-        result = asyncio.run(_run_retest())
+        coro = _run_retest()
+        try:
+            result = asyncio.run(coro)
+        except RuntimeError as e:
+            coro.close()
+            if "no current event loop" in str(e).lower():
+                loop = asyncio.new_event_loop()
+                try:
+                    asyncio.set_event_loop(loop)
+                    result = loop.run_until_complete(_run_retest())
+                finally:
+                    loop.close()
+                    asyncio.set_event_loop(None)
+            else:
+                raise
         if result.success:
             stats = result.stats.to_dict()
             console.print("\n[bold green]Retest Completed Successfully![/bold green]")
@@ -162,7 +183,10 @@ def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
     "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
 )
 @click.option(
-    "--max-proxies", default=None, type=int, help="Limit number of tested proxies"
+    "--max-proxies",
+    default=None,
+    type=int,
+    help="Deprecated (ignored). Proxy caps are disabled.",
 )
 @click.option(
     "--leniency/--strict",
@@ -206,10 +230,11 @@ def merge(
 
     console.print("[bold green]🚀 Starting ConfigStream Pipeline[/bold green]")
     console.print(f"Sources: {len(valid_sources)} | Output: {output}")
+    if max_proxies is not None:
+        console.print("[yellow]Warning: --max-proxies is deprecated and ignored.[/yellow]")
+        max_proxies = None
 
     async def _run():
-        from .pipeline import run_full_pipeline
-
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -238,7 +263,21 @@ def merge(
         if sys.platform == "win32":
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-        result = asyncio.run(_run())
+        coro = _run()
+        try:
+            result = asyncio.run(coro)
+        except RuntimeError as e:
+            coro.close()
+            if "no current event loop" in str(e).lower():
+                loop = asyncio.new_event_loop()
+                try:
+                    asyncio.set_event_loop(loop)
+                    result = loop.run_until_complete(_run())
+                finally:
+                    loop.close()
+                    asyncio.set_event_loop(None)
+            else:
+                raise
 
         if result.success:
             stats_obj = result.stats
@@ -406,7 +445,21 @@ def generate_warp(count):
             console.print(f"Details: {p.details}")
             console.print(f"[dim]{p.config}[/dim]")
 
-    asyncio.run(_gen())
+    coro = _gen()
+    try:
+        asyncio.run(coro)
+    except RuntimeError as e:
+        coro.close()
+        if "no current event loop" in str(e).lower():
+            loop = asyncio.new_event_loop()
+            try:
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(_gen())
+            finally:
+                loop.close()
+                asyncio.set_event_loop(None)
+        else:
+            raise
 
     console.print(
         "\n[dim]Note: Real key generation requires the 'cryptography' library.[/dim]"

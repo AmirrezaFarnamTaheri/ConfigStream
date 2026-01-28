@@ -36,12 +36,9 @@ async def generate_pipeline_outputs(
     # Must run BEFORE output generation so converters can use the formatted names.
     settings = AppSettings()
     rename_template = settings.RENAME_TEMPLATE
-    if rename_template:
-        logger.info(f"Applying proxy tagging with template: {rename_template}")
-        tagger = ProxyTagger(rename_template)
-        tagger.apply(optimized_proxies)
-    else:
-        logger.debug("No RENAME_TEMPLATE configured, skipping proxy tagging")
+    tagger = ProxyTagger(rename_template)
+    logger.info(f"Applying proxy tagging with template: {tagger.template}")
+    tagger.apply(optimized_proxies)
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
@@ -107,6 +104,16 @@ async def generate_pipeline_outputs(
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, save_json, optimized_proxies, proxies_path)
 
+    revived_proxies = [
+        p
+        for p in optimized_proxies
+        if (p.process or "").startswith("revived") or p.details.get("is_revived")
+    ]
+    revived_path = None
+    if revived_proxies:
+        revived_path = output_path / "revived.json"
+        await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
+
     generated_files = await loop.run_in_executor(
         None,
         lambda: generate_categorized_outputs(
@@ -118,6 +125,8 @@ async def generate_pipeline_outputs(
             washer=washer,
         ),
     )
+    if revived_path:
+        generated_files["revived"] = revived_path
 
     # 5. Metadata & Stats
     stats_dict = await stats.to_dict()

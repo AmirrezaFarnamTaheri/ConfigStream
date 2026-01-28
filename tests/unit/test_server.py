@@ -1,11 +1,45 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import pytest
-from fastapi.testclient import TestClient
 import json
 from unittest.mock import patch
+
+import asyncio
+
+import httpx
+import sniffio
+from pathlib import Path
+from starlette.responses import Response
+import pytest
 from configstream.server import app
 
-client = TestClient(app)
+
+@pytest.fixture
+async def async_client(monkeypatch):
+    monkeypatch.setattr(sniffio, "current_async_library", lambda: "asyncio")
+    import anyio._backends._asyncio as anyio_asyncio
+    import starlette.responses as starlette_responses
+    import configstream.server as server_mod
+
+    loop = asyncio.get_running_loop()
+    keepalive_event = asyncio.Event()
+    keepalive_task = loop.create_task(keepalive_event.wait())
+
+    def _safe_current_task():
+        task = asyncio.current_task()
+        return task or keepalive_task
+
+    monkeypatch.setattr(anyio_asyncio, "current_task", _safe_current_task)
+
+    def _fake_file_response(path, *args, **kwargs):
+        data = Path(path).read_bytes() if Path(path).exists() else b""
+        return Response(content=data, media_type=kwargs.get("media_type"))
+
+    monkeypatch.setattr(starlette_responses, "FileResponse", _fake_file_response)
+    monkeypatch.setattr(server_mod, "FileResponse", _fake_file_response)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+    keepalive_event.set()
+    keepalive_task.cancel()
 
 
 @pytest.fixture
@@ -29,12 +63,12 @@ def mock_output_dir(tmp_path):
     (output_dir / "proxies.json").write_text(json.dumps(proxies))
 
     # Create country specific file
-    country_dir = output_dir / "by_country"
+    country_dir = output_dir / "countries"
     country_dir.mkdir()
-    (country_dir / "us.json").write_text(json.dumps(proxies))
+    (country_dir / "US.json").write_text(json.dumps(proxies))
 
     # Create protocol specific file
-    proto_dir = output_dir / "by_protocol"
+    proto_dir = output_dir / "protocols"
     proto_dir.mkdir()
     (proto_dir / "vmess.json").write_text(json.dumps(proxies))
 
@@ -58,9 +92,10 @@ def mock_frontend_dir(tmp_path):
     return frontend_dir
 
 
-def test_health_check(mock_output_dir):
+@pytest.mark.asyncio
+async def test_health_check(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        response = client.get("/health")
+        response = await async_client.get("/health")
         assert response.status_code == 200
         # Check keys existence and status value
         json_resp = response.json()
@@ -70,57 +105,63 @@ def test_health_check(mock_output_dir):
         assert json_resp["files_present"] >= 0
 
 
-def test_get_stats(mock_output_dir):
+@pytest.mark.asyncio
+async def test_get_stats(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        response = client.get("/api/stats")
+        response = await async_client.get("/api/stats")
         assert response.status_code == 200
         data = response.json()
         assert data["total_proxies"] == 100
 
 
-def test_get_proxies_all(mock_output_dir):
+@pytest.mark.asyncio
+async def test_get_proxies_all(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        response = client.get("/api/proxies")
+        response = await async_client.get("/api/proxies")
         assert response.status_code == 200
         assert len(response.json()) == 1
 
 
-def test_get_proxies_by_country(mock_output_dir):
+@pytest.mark.asyncio
+async def test_get_proxies_by_country(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        response = client.get("/api/proxies?country=US")
+        response = await async_client.get("/api/proxies?country=US")
         assert response.status_code == 200
         assert len(response.json()) == 1
 
-        response = client.get("/api/proxies?country=XX")
+        response = await async_client.get("/api/proxies?country=XX")
         assert response.status_code == 404
 
 
-def test_get_proxies_by_protocol(mock_output_dir):
+@pytest.mark.asyncio
+async def test_get_proxies_by_protocol(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        response = client.get("/api/proxies?protocol=vmess")
+        response = await async_client.get("/api/proxies?protocol=vmess")
         assert response.status_code == 200
         assert len(response.json()) == 1
 
-        response = client.get("/api/proxies?protocol=invalid")
+        response = await async_client.get("/api/proxies?protocol=invalid")
         assert response.status_code == 404
 
 
-def test_download_subscription(mock_output_dir):
+@pytest.mark.asyncio
+async def test_download_subscription(mock_output_dir, async_client):
     with patch("configstream.server.OUTPUT_DIR", mock_output_dir):
-        response = client.get("/subscribe/clash")
+        response = await async_client.get("/subscribe/clash")
         assert response.status_code == 200
         assert "proxies:" in response.text
 
-        response = client.get("/subscribe/invalid")
+        response = await async_client.get("/subscribe/invalid")
         assert response.status_code == 400
 
 
-def test_frontend_serving(mock_frontend_dir):
+@pytest.mark.asyncio
+async def test_frontend_serving(mock_frontend_dir, async_client):
     with patch("configstream.server.FRONTEND_DIR", mock_frontend_dir):
-        response = client.get("/")
+        response = await async_client.get("/")
         assert response.status_code == 200
         assert "Index" in response.text
 
-        response = client.get("/about")
+        response = await async_client.get("/about")
         assert response.status_code == 200
         assert "About" in response.text

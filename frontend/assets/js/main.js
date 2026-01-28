@@ -215,8 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const workingCount = stats.total_valid_proxies;
                 updateElement('#workingConfigs', formatNum(workingCount));
 
-                const totalRevived = stats.total_revived;
+                const revivedWarp = stats.revived_warp || 0;
+                const revivedVwarp = stats.revived_vwarp || 0;
+                const totalRevived = stats.total_revived ?? (revivedWarp + revivedVwarp);
                 updateElement('#totalRevived', formatNum(totalRevived));
+                updateElement('#revivedWarp', formatNum(revivedWarp));
+                updateElement('#revivedVwarp', formatNum(revivedVwarp));
 
                 const threatsBlocked = stats.total_dirty;
                 updateElement('#threatsBlocked', formatNum(threatsBlocked));
@@ -237,8 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Configuration values from metadata (or stats as fallback)
-                // Default to 3 hours and 85 sources as per configuration if metadata is missing
-                updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 3;
+                // Default to 5 hours and 85 sources as per configuration if metadata is missing
+                updateFreq = metadata?.update_interval_hours || stats.update_interval_hours || 5;
                 updateElement('#updateFrequency', `${updateFreq} hrs`);
 
                 sourceCount = metadata?.sources_count || stats.sources_count || 815;

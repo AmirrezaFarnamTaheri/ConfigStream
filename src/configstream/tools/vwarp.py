@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
 
 from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
+from ..async_utils import safe_wait_for
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,10 @@ class VwarpTool:
             )
             # Give it 30 seconds max to find IPs
             try:
-                stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=30)
+                if asyncio.current_task() is None:
+                    stdout, _ = await proc.communicate()
+                else:
+                    stdout, _ = await safe_wait_for(proc.communicate(), timeout=30)
             except asyncio.TimeoutError:
                 try:
                     proc.kill()
@@ -174,7 +178,7 @@ class VwarpTool:
         while time.time() - start < timeout:
             try:
                 # Use asyncio to avoid blocking the event loop
-                reader, writer = await asyncio.wait_for(
+                reader, writer = await safe_wait_for(
                     asyncio.open_connection(probe_host, port), timeout=1
                 )
                 writer.close()
@@ -226,7 +230,7 @@ class VwarpTool:
                         self._tunnel_proc.terminate()
                         # Allow brief time for logs to flush
                         try:
-                            stdout, stderr = await asyncio.wait_for(
+                            stdout, stderr = await safe_wait_for(
                                 self._tunnel_proc.communicate(), timeout=1.0
                             )
                             if stderr:
@@ -284,7 +288,7 @@ class VwarpTool:
             try:
                 self._tunnel_proc.terminate()
                 try:
-                    await asyncio.wait_for(self._tunnel_proc.wait(), timeout=2.0)
+                    await safe_wait_for(self._tunnel_proc.wait(), timeout=2.0)
                 except asyncio.TimeoutError:
                     self._tunnel_proc.kill()
             except ProcessLookupError:

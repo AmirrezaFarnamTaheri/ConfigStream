@@ -488,6 +488,10 @@ async def test_processing_consumer_max_proxies(mock_dependencies):
     await queue.put(None)
 
     p = Proxy(protocol="vmess", address="1.2.3.4", port=443, config="vmess://test")
+    res = p.model_copy()
+    res.is_working = True
+    res.latency = 50
+    mock_dependencies["tester"].test.return_value = res
 
     with patch("configstream.pipeline_core.consumer.parse_config", return_value=p):
         with patch(
@@ -516,8 +520,8 @@ async def test_processing_consumer_max_proxies(mock_dependencies):
                 leniency=False,
             )
 
-    # Should trigger 'pass' in max_proxies check
-    assert stats.tested == 10  # No increment
+    # max_proxies is ignored; the proxy should still be tested.
+    assert stats.tested == 11
 
 
 @pytest.mark.asyncio

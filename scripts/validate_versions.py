@@ -24,10 +24,10 @@ def main():
         errors.append(f"CHANGELOG.md missing entry for [{truth_version}]")
 
     # 3. Check Frontend Config
-    js_config = (root / "frontend/assets/js/cache_config.js").read_text()
+    js_config = (root / "frontend/assets/js/cache-config.js").read_text()
     if f"VERSION: 'v{truth_version}'" not in js_config:
         errors.append(
-            f"frontend/assets/js/cache_config.js version mismatch. Expected 'v{truth_version}'"
+            f"frontend/assets/js/cache-config.js version mismatch. Expected 'v{truth_version}'"
         )
 
     # 4. Check Init

@@ -35,10 +35,11 @@ class TestBase64Decoding:
         result = _safe_b64_decode("")
         assert result is None
 
-    def test_safe_b64_decode_oversized(self):
+    def test_safe_b64_decode_oversized(self, monkeypatch):
         """Test oversized base64 input."""
-        # Create a very large base64 string
-        large_input = "A" * (10 * 1024 * 1024 + 1)  # Over 10MB
+        monkeypatch.setattr("configstream.parsers.decoders.MAX_B64_INPUT_SIZE", 100)
+        # Create a base64 string slightly over the configured limit
+        large_input = "A" * 101
         result = _safe_b64_decode(large_input)
         # Should return None if too large
         assert result is None
@@ -242,8 +243,11 @@ remote example.com 1194
     def test_extract_oversized_line(self):
         """Test oversized config line is skipped."""
         config = "vmess://" + "A" * 100000  # Over MAX_CONFIG_LINE_LENGTH
-        result, stats = _extract_config_lines(config)
-        assert len(result) == 0
+        from unittest.mock import patch
+
+        with patch("configstream.parsers.extraction.MAX_CONFIG_LINE_LENGTH", 1000):
+            result, stats = _extract_config_lines(config)
+            assert len(result) == 0
 
     def test_extract_with_comments(self):
         """Test lines starting with # are skipped."""

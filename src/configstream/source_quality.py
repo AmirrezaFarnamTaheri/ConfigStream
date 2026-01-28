@@ -101,8 +101,9 @@ class SourceQualityTracker(QualityStorage):
             return False
         if status == "probation":
             last_checked = state[1]
-            # Retry every 3 hours
-            if (datetime.now(timezone.utc).timestamp() - last_checked) < (3 * 3600):
+            # Retry at the configured pipeline interval
+            retry_seconds = AppSettings().UPDATE_INTERVAL_HOURS * 3600
+            if (datetime.now(timezone.utc).timestamp() - last_checked) < retry_seconds:
                 return False
         return True
 

@@ -86,7 +86,7 @@ async def test_mixed_protocols_dry_run(tmp_path, monkeypatch):
     # Verify content
     import json
 
-    proxies = json.loads((output_dir / "proxies.json").read_text())
+    proxies = json.loads((output_dir / "proxies.json").read_text(encoding="utf-8"))
     protocols = {p["protocol"] for p in proxies}
     assert "vless" in protocols
     assert "vmess" in protocols

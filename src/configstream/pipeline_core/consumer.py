@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import logging
+import inspect
 import orjson as json
 from typing import List, Optional, Any, TYPE_CHECKING
 
@@ -75,7 +76,7 @@ async def processing_consumer(
     # Use passed shared washer or fallback (legacy support)
     if washer is None:
         washer = ProxyWasher(AppSettings().WARP_KEY_POOL)
-        await washer.fetch_clean_ips()
+    washer_ready = False
 
     while True:
         # The producer sends None as sentinel when done, which is the proper
@@ -132,8 +133,9 @@ async def processing_consumer(
                             result.append(p)
                     except Exception as e:
                         # [FIX] Log parse exceptions at debug level
+                        safe_error = SecurityValidator.sanitize_log_message(str(e))
                         logger.debug(
-                            f"Parse error for source {safe_src} (line {i}): {e}"
+                            f"Parse error for source {safe_src} (line {i}): {safe_error}"
                         )
                         pass
             except Exception:
@@ -160,7 +162,7 @@ async def processing_consumer(
                 k = proxy_unique_key(p)
                 if k not in seen_keys:
                     # If approaching limit, remove oldest entries
-                    if len(seen_keys) >= max_seen:
+                    if max_seen > 0 and len(seen_keys) >= max_seen:
                         eviction_count = max(
                             1000, max_seen // 10
                         )  # Evict 10% (Audit Recommendation)
@@ -231,7 +233,6 @@ async def processing_consumer(
         proxies_to_actually_test = []
 
         # Cache Check
-        budget_exhausted = False
         for p in safe_batch:
             cached = None
             if not scheduler.should_retest(p):
@@ -242,21 +243,7 @@ async def processing_consumer(
             else:
                 async with seen_lock:
                     stats.cache_misses += 1
-                if test_budget is not None:
-                    if test_budget.locked():
-                        budget_exhausted = True
-                        async with seen_lock:
-                            stats.drop_reasons["max_proxies"] = (
-                                stats.drop_reasons.get("max_proxies", 0) + 1
-                            )
-                    else:
-                        await test_budget.acquire()
-                        proxies_to_actually_test.append(p)
-                else:
-                    proxies_to_actually_test.append(p)
-
-        if budget_exhausted:
-            stop_event.set()
+                proxies_to_actually_test.append(p)
 
         # Testing
         failed_proxies = []  # Candidates for revival
@@ -265,18 +252,13 @@ async def processing_consumer(
             if tester.go_tester.available:
                 # Clamp chunk size to avoid overwhelming Go tester
                 settings = AppSettings()
-                chunk_size = min(500, max(1, settings.GO_TESTER_BATCH_SIZE))
+                if settings.GO_TESTER_BATCH_SIZE <= 0:
+                    chunk_size = len(proxies_to_actually_test)
+                else:
+                    chunk_size = max(1, int(settings.GO_TESTER_BATCH_SIZE))
 
                 for i in range(0, len(proxies_to_actually_test), chunk_size):
                     chunk = proxies_to_actually_test[i : i + chunk_size]
-                    # If nearing max_proxies, trim chunk to avoid overshoot
-                    if max_proxies:
-                        remaining = max_proxies - stats.tested
-                        if remaining <= 0:
-                            break  # safety check
-                        if len(chunk) > remaining:
-                            chunk = chunk[:remaining]
-
                     try:
                         await tester.test_batch(chunk)
                     except Exception as e:
@@ -359,7 +341,11 @@ async def processing_consumer(
                         progress.update(task_process, completed=stats.tested)
             else:
                 # Python fallback testing
-                chunk_size = AppSettings().PY_TESTER_BATCH_SIZE
+                settings = AppSettings()
+                if settings.PY_TESTER_BATCH_SIZE <= 0:
+                    chunk_size = len(proxies_to_actually_test)
+                else:
+                    chunk_size = max(1, int(settings.PY_TESTER_BATCH_SIZE))
                 for i in range(0, len(proxies_to_actually_test), chunk_size):
                     chunk = proxies_to_actually_test[i : i + chunk_size]
 
@@ -403,10 +389,18 @@ async def processing_consumer(
                     "Skipping proxy revival (WARP) because Go tester is unavailable."
                 )
             else:
+                if not washer_ready or not washer.clean_ips or not washer.warp_keys:
+                    fetch_clean = getattr(washer, "fetch_clean_ips", None)
+                    if callable(fetch_clean):
+                        result = fetch_clean()
+                        if inspect.isawaitable(result):
+                            await result
+                    washer_ready = True
                 # 1. Attempt Vwarp Revival (Priority)
                 vwarp_candidates, _ = washer.wash_failed(
                     failed_proxies, stats=stats, use_vwarp=True
                 )
+                vwarp_success_ids: set[str] = set()
                 if vwarp_candidates:
                     # Test Vwarp Candidates
                     await tester.test_batch(vwarp_candidates)
@@ -418,6 +412,11 @@ async def processing_consumer(
                             if origin:
                                 p.country_code = origin.get("country_code", "")
                                 p.country = origin.get("country", "")
+                            origin_id = p.details.get("origin_id")
+                            if not origin_id and isinstance(origin, dict):
+                                origin_id = origin.get("uuid") or origin.get("id")
+                            if origin_id:
+                                vwarp_success_ids.add(str(origin_id))
                             final_batch_for_this_source.append(p)
                             async with seen_lock:
                                 stats.revived_vwarp += 1
@@ -426,8 +425,8 @@ async def processing_consumer(
                 # 2. Attempt Standard Warp Revival (Fallback)
                 # Only retry proxies that did NOT succeed via Vwarp.
                 remaining_failed = (
-                    [fp for fp in failed_proxies if fp not in vwarp_candidates]
-                    if vwarp_candidates
+                    [fp for fp in failed_proxies if str(fp.id) not in vwarp_success_ids]
+                    if vwarp_success_ids
                     else list(failed_proxies)
                 )
 

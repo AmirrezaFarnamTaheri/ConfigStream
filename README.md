@@ -37,7 +37,7 @@ We leverage the free tiers of GitHub Actions, Pages, and public APIs to build a 
 ### Latest Release: v2.1.0 (2025-12-25)
 - **Status**: ✅ **PRODUCTION READY**
 - **Uptime**: 99.5% (GitHub Actions scheduled runs)
-- **Update Frequency**: Every 3 hours (automatic)
+- **Update Frequency**: Every 5 hours (automatic)
 - **Active Proxies**: Dynamic (varies by availability)
 - **Supported Protocols**: 12+ (Shadowsocks, VMess, VLESS, Trojan, Hysteria2, TUIC, WireGuard, etc.)
 
@@ -128,7 +128,7 @@ ConfigStream has undergone comprehensive security auditing and follows industry 
 # Recommended environment variables for production deployment:
 export ADMIN_API_KEY="your-secret-admin-key-here"     # Protect admin endpoints
 export ALLOWED_ORIGINS="https://yourdomain.com"       # Restrict CORS to your domain
-export STEGO_KEY="your-base64-fernet-key"            # Rotate every 3 hours
+export STEGO_KEY="your-base64-fernet-key"            # Rotate every 5 hours
 export WARP_KEY_POOL="key1,key2,key3"                # WARP keys for proxy washing
 ```
 
@@ -249,7 +249,7 @@ All issues have been triaged and documented. None require immediate action for p
 
 ## 📦 Usage
 
-### Subscription Links (Updated Every 3 Hours)
+### Subscription Links (Updated Every 5 Hours)
 
 Production deployment on GitHub Pages:
 
@@ -268,10 +268,24 @@ Production deployment on GitHub Pages:
     - Features: Rule-based routing, provider support
     - Protocols: Clash-compatible protocols
 
-*   **Universal Base64:** `https://amirrezafarnamtaheri.github.io/ConfigStream/vpn_subscription_base64.txt`
+*   **Universal Base64:** `https://amirrezafarnamtaheri.github.io/ConfigStream/base64.txt`
     - Best for: Simple clients
     - Features: Plain text subscription links
     - Protocols: All supported protocols
+
+*   **Chosen (Top Picks):** `https://amirrezafarnamtaheri.github.io/ConfigStream/chosen/base64.txt`
+    - Best for: Small, fast-start lists
+    - Features: Top latency picks per protocol
+    - Protocols: All supported protocols
+
+*   **Sing-box Chains (Washed + Smart):** `https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-chains.json`
+    - Best for: Chain-only imports (WARP/WARP + Smart Chains)
+    - Features: Washed chains and smart routing chains only
+    - Protocols: Sing-box outbounds
+
+*   **Revived Proxies (JSON):** `https://amirrezafarnamtaheri.github.io/ConfigStream/revived.json`
+    - Best for: Revived-only lists
+    - Format: `proxies.json` schema
 
 *   **Native Configs Pack:** `https://amirrezafarnamtaheri.github.io/ConfigStream/side_products.zip`
     - Best for: Direct client import

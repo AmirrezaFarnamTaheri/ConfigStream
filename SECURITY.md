@@ -49,7 +49,7 @@
 ### Data Security
 
 #### Encryption
-- **Stego Key**: Rotated every 3 hours via CI/CD (STEGO_KEY environment variable)
+- **Stego Key**: Rotated every 5 hours via CI/CD (STEGO_KEY environment variable)
 - **Admin API**: Protected with ADMIN_API_KEY (optional, recommended in production)
 - **Fernet Encryption**: Used for steganography feature (obfuscation only)
 
@@ -57,6 +57,7 @@
 - **No Telemetry**: No user tracking or analytics sent to external services
 - **Local Processing**: All proxy testing done locally
 - **No Cloud Dependencies**: Fully self-hosted solution
+- **Insecure Proxy Retention**: Non-fatal policy rejections are retained and tagged so consumers can filter or discard downstream (malformed/invalid configs still drop).
 
 ## Reporting a Vulnerability
 
@@ -146,7 +147,7 @@ export MAXMIND_LICENSE_KEY="your-key"   # For GeoIP lookups
 - [ ] All secrets in environment variables (not files)
 - [ ] ADMIN_API_KEY configured for admin endpoints
 - [ ] ALLOWED_ORIGINS restricted to your domain
-- [ ] STEGO_KEY rotated regularly (recommend: every 3 hours)
+- [ ] STEGO_KEY rotated regularly (recommend: every 5 hours)
 - [ ] Container running as non-root user
 - [ ] Health checks enabled in orchestrator
 - [ ] Logs monitored for suspicious activity

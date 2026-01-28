@@ -22,7 +22,8 @@ async def test_vwarp_is_available():
 
 
 @pytest.mark.asyncio
-async def test_scan_endpoints():
+async def test_scan_endpoints(monkeypatch):
+    monkeypatch.setenv("ALLOW_ACTIVE_SCANNING", "true")
     tool = VwarpTool()
     tool.is_available = AsyncMock(return_value=True)
     tool.binary = "vwarp"

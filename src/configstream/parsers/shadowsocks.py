@@ -14,7 +14,7 @@ def parse_ss(config: str) -> Optional[Proxy]:
     """Parse a Shadowsocks (ss://) URL."""
     try:
         config = config.strip()
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         if not config.startswith("ss://"):
@@ -194,7 +194,7 @@ def parse_ss2022(config: str) -> Optional[Proxy]:
     """Parse a Shadowsocks 2022 (ss2022://) URL - uses same format as SS."""
     try:
         config = config.strip()
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         if not config.startswith("ss2022://"):

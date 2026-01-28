@@ -77,6 +77,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         protocol = "wireguard"
     elif protocol == "hy2":
         protocol = "hysteria2"
+    elif protocol == "socks":
+        protocol = "socks5"
 
     if protocol == "vmess":
         uuid = proxy.uuid or proxy.details.get("uuid") or proxy.details.get("id")
@@ -156,6 +158,25 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         # Force TLS for Trojan
         details_with_tls = {**proxy.details, "tls": True}
         add_transport_sb(out, details_with_tls)
+
+    elif protocol == "revived":
+        chain_outbounds = proxy.details.get("chain_outbounds")
+        if not isinstance(chain_outbounds, list) or not chain_outbounds:
+            return None
+
+        chain_items = [o for o in chain_outbounds if isinstance(o, dict)]
+        if not chain_items:
+            return None
+
+        chain_head = next(
+            (o for o in chain_items if o.get("type") == "wireguard"), chain_items[-1]
+        )
+        extra_outbounds = [o for o in chain_items if o is not chain_head]
+        out = chain_head.copy()
+        if proxy.remarks:
+            out["tag"] = proxy.remarks
+        if extra_outbounds:
+            out["_extra_outbounds"] = extra_outbounds
 
     elif protocol == "http":
         tls_enabled = parse_tls_flag(proxy.details.get("tls")) or proxy.details.get(
@@ -414,7 +435,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             )
         else:
             logger.warning(
-                f"Dropped {protocol} proxy {proxy.address} during conversion. "
+                f"Dropped {protocol} proxy {SecurityValidator.sanitize_log_message(str(proxy.address))} during conversion. "
                 f"Reason: Logic fell through (Missing implementation or valid fields). "
                 f"Details: {details_to_log}"
             )

@@ -144,13 +144,13 @@ def test_generate_split_outputs(tmp_path, sample_proxies):
     assert "singbox" in files
     assert "clash" in files
 
-    with open(files["singbox_vpn"]) as f:
+    with open(files["singbox_vpn"], encoding="utf-8") as f:
         vpn_conf = json.load(f)
         assert vpn_conf["inbounds"][0]["type"] == "tun"
         tags = [o["tag"] for o in vpn_conf["outbounds"]]
         assert "🛡️ Secure-RU-1" in tags
 
-    with open(files["singbox"]) as f:
+    with open(files["singbox"], encoding="utf-8") as f:
         sniper_conf = json.load(f)
         assert sniper_conf["inbounds"][0]["type"] == "mixed"
         for o in sniper_conf["outbounds"]:

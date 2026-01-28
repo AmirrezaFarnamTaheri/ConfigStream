@@ -15,7 +15,7 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
     try:
         config = config.strip()
         # Enforce MAX_CONFIG_LINE_LENGTH
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         data = json.loads(config)

@@ -146,6 +146,6 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
             )
 
     # Assert correctness
-    # Both Vwarp and Warp revival paths succeed with the same mock proxy, so we get 2
-    assert len(final_proxies) == 2
+    # Vwarp success skips the fallback Warp retry for the same proxy.
+    assert len(final_proxies) == 1
     assert final_proxies[0].protocol == "revived"

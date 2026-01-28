@@ -54,3 +54,75 @@ if sys.platform == "win32":
 
     if hasattr(asyncio, "WindowsSelectorEventLoopPolicy"):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+def _patch_sniffio_for_asyncio() -> None:
+    """Work around sniffio detection failures on newer Python/asyncio combos."""
+    try:
+        import sniffio  # type: ignore
+    except Exception:
+        return
+
+    import asyncio
+
+    if (
+        getattr(sniffio.current_async_library, "__name__", "")
+        == "_patched_async_library"
+    ):
+        return
+
+    _orig = sniffio.current_async_library
+
+    def _patched_async_library():
+        try:
+            return _orig()
+        except sniffio.AsyncLibraryNotFoundError:
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                raise
+            return "asyncio"
+
+    sniffio.current_async_library = _patched_async_library  # type: ignore[assignment]
+
+
+def _patch_anyio_current_task() -> None:
+    """Work around anyio current_task returning None on newer Python/asyncio."""
+    try:
+        import anyio._backends._asyncio as anyio_asyncio  # type: ignore
+    except Exception:
+        return
+
+    import asyncio
+    import weakref
+
+    if getattr(anyio_asyncio.current_task, "__name__", "") == "_safe_current_task":
+        return
+
+    _orig_current_task = anyio_asyncio.current_task
+    _dummy_tasks: (
+        "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Task]"
+    ) = weakref.WeakKeyDictionary()
+
+    async def _keepalive() -> None:
+        await asyncio.Event().wait()
+
+    def _safe_current_task(loop=None):
+        task = _orig_current_task(loop)
+        if task is not None:
+            return task
+        try:
+            running_loop = loop or asyncio.get_running_loop()
+        except RuntimeError:
+            return task
+        dummy = _dummy_tasks.get(running_loop)
+        if dummy is None or dummy.done():
+            dummy = running_loop.create_task(_keepalive())
+            _dummy_tasks[running_loop] = dummy
+        return dummy
+
+    anyio_asyncio.current_task = _safe_current_task
+
+
+_patch_sniffio_for_asyncio()
+_patch_anyio_current_task()

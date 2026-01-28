@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import copy
 import logging
 from typing import List, Optional, Dict
 from datetime import datetime, timezone
@@ -27,6 +28,7 @@ class SingBoxTester:
         self.strict_security = strict_security
         self.settings = AppSettings()
         self.dry_run = dry_run
+        self.max_workers = max_workers
         self.go_tester = GoBatchTester(workers=max_workers, timeout=int(timeout))
         self.python_tester = PythonTester(self.settings, timeout, strict_security)
 
@@ -83,15 +85,54 @@ class SingBoxTester:
             if revived_candidates:
                 configs = []
                 for p in revived_candidates:
-                    configs.append(
-                        {"id": p.id, "outbounds": p.details.get("chain_outbounds")}
-                    )
+                    chain_outbounds = p.details.get("chain_outbounds")
+                    if isinstance(chain_outbounds, list):
+                        chain_outbounds = copy.deepcopy(chain_outbounds)
+                        head_index = None
+                        for i, outbound in enumerate(chain_outbounds):
+                            if isinstance(outbound, dict) and outbound.get("detour"):
+                                head_index = i
+                                break
+                        if head_index is None:
+                            for i, outbound in enumerate(chain_outbounds):
+                                if (
+                                    isinstance(outbound, dict)
+                                    and outbound.get("type") == "wireguard"
+                                ):
+                                    head_index = i
+                                    break
+                        if head_index is not None:
+                            chain_outbounds[head_index]["tag"] = "proxy"
+                            head = chain_outbounds.pop(head_index)
+                            chain_outbounds.insert(0, head)
+                    configs.append({"id": p.id, "outbounds": chain_outbounds})
 
                 custom_results: Dict[str, bool] = (
                     await self.go_tester.test_custom_configs(
                         configs, check_honeypot=False
                     )
                 )
+                missing = [
+                    p for p in revived_candidates if p.id not in custom_results
+                ]
+                if missing:
+                    logger.warning(
+                        "Go tester returned empty/partial results for revived chains; falling back to Python tester."
+                    )
+                    max_concurrent = max(
+                        1, int(self.max_workers) if self.max_workers else 1
+                    )
+                    sem = asyncio.Semaphore(max_concurrent)
+
+                    async def _fallback_chain_test(p: Proxy) -> Proxy:
+                        async with sem:
+                            return await self.python_tester.test_via_singbox(p)
+
+                    fallback_results = await asyncio.gather(
+                        *[_fallback_chain_test(p) for p in missing]
+                    )
+                    for res in fallback_results:
+                        custom_results[res.id] = bool(res.is_working)
 
                 for p in revived_candidates:
                     is_working = custom_results.get(p.id, False)
@@ -99,8 +140,9 @@ class SingBoxTester:
                     if is_working:
                         # Use estimated latency instead of fixed 500ms
                         # Mark it as estimated so UI can show it
-                        p.latency = 200.0  # Optimistic estimate for revived chains
-                        p.details["latency_is_estimate"] = True
+                        if p.latency is None:
+                            p.latency = 200.0  # Optimistic estimate for revived chains
+                            p.details["latency_is_estimate"] = True
                     else:
                         p.details["error"] = "REVIVAL_FAILED"
 
@@ -109,9 +151,7 @@ class SingBoxTester:
             logger.info(
                 f"Fallback: Testing batch of {len(proxies)} proxies using Python tester"
             )
-            # Cap concurrency to avoid overwhelming the loop/system
-            # Reduced concurrency from 100 to 20 as per audit to prevent CPU overload
-            max_concurrent = 20
+            max_concurrent = max(1, int(self.max_workers) if self.max_workers else 1)
             sem = asyncio.Semaphore(max_concurrent)
 
             async def _guarded_test(p: Proxy) -> Proxy:
@@ -119,7 +159,7 @@ class SingBoxTester:
                     return await self.test(p)
 
             results: List[Proxy] = []
-            chunk_size = 200
+            chunk_size = max(1, max_concurrent * 10)
             for i in range(0, len(proxies), chunk_size):
                 chunk = proxies[i : i + chunk_size]
                 chunk_tasks = [_guarded_test(p) for p in chunk]

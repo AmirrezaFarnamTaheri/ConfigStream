@@ -144,13 +144,17 @@ async def test_fetch_from_source_too_large_header():
     client = AsyncMock(spec=httpx.AsyncClient)
     mock_response = AsyncMock()
     mock_response.status_code = 200
-    mock_response.headers = {"Content-Length": str(MAX_RESPONSE_SIZE + 100)}
+    app_settings = AppSettings()
+    app_settings.MAX_RESPONSE_SIZE = 100
+    mock_response.headers = {"Content-Length": str(app_settings.MAX_RESPONSE_SIZE + 100)}
 
     mock_stream_ctx = AsyncMock()
     mock_stream_ctx.__aenter__.return_value = mock_response
     client.stream.return_value = mock_stream_ctx
 
-    result = await fetch_from_source(client, "http://valid.com", max_retries=1)
+    result = await fetch_from_source(
+        client, "http://valid.com", max_retries=1, app_settings=app_settings
+    )
 
     assert not result.success
     assert "Response too large" in result.error
@@ -162,10 +166,12 @@ async def test_fetch_from_source_too_large_stream():
     mock_response = AsyncMock()
     mock_response.status_code = 200
     mock_response.headers = {}
+    app_settings = AppSettings()
+    app_settings.MAX_RESPONSE_SIZE = 100
 
     # Generate large chunks
     async def async_iter():
-        yield b"a" * (MAX_RESPONSE_SIZE + 100)
+        yield b"a" * (app_settings.MAX_RESPONSE_SIZE + 100)
 
     mock_response.aiter_bytes = lambda: async_iter()
 
@@ -173,7 +179,9 @@ async def test_fetch_from_source_too_large_stream():
     mock_stream_ctx.__aenter__.return_value = mock_response
     client.stream.return_value = mock_stream_ctx
 
-    result = await fetch_from_source(client, "http://valid.com", max_retries=1)
+    result = await fetch_from_source(
+        client, "http://valid.com", max_retries=1, app_settings=app_settings
+    )
 
     assert not result.success
     assert "Response too large" in result.error

@@ -27,7 +27,7 @@ You can customize the behavior using GitHub Repository Secrets/Variables:
 
 ### Usage
 The pipeline runs automatically:
--   **Schedule**: Every 3 hours (00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 UTC).
+-   **Schedule**: Every 5 hours (00:00, 05:00, 10:00, 15:00, 20:00 UTC).
 -   **Manual**: Go to Actions > "ConfigStream Pipeline" > "Run workflow".
 
 ---
@@ -56,7 +56,7 @@ Ideal for local development or running on a dedicated server/VPS with isolation.
 
 ### Access
 -   Dashboard: `http://localhost:8000`
--   Subscription: `http://localhost:8000/files/base64.txt`
+-   Subscription: `http://localhost:8000/subscribe/base64`
 
 ---
 
@@ -88,9 +88,9 @@ configstream merge --sources sources/batch_1.txt --output /var/www/html/configst
 ```
 
 ### Automation (Cron)
-Add a crontab entry to run every 3 hours:
+Add a crontab entry to run every 5 hours:
 ```bash
-0 */3 * * * /usr/local/bin/configstream merge --sources /path/to/sources.txt --output /var/www/html/configstream >> /var/log/configstream.log 2>&1
+0 */5 * * * /usr/local/bin/configstream merge --sources /path/to/sources.txt --output /var/www/html/configstream >> /var/log/configstream.log 2>&1
 ```
 
 ---

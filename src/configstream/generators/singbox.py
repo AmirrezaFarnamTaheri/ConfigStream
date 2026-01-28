@@ -43,20 +43,27 @@ class SingBoxGenerator:
             "tolerance": 50,
         }
 
+        added_tags: set[str] = set()
+
+        def _append_outbound(
+            outbound: Dict[str, Any], *, add_to_selector: bool
+        ) -> bool:
+            self._clean_outbound(outbound)
+            tag = outbound.get("tag")
+            if tag and tag in added_tags:
+                return False
+            outbounds.append(outbound)
+            if tag:
+                added_tags.add(tag)
+                if add_to_selector:
+                    cast(List[str], selector_outbound["outbounds"]).append(tag)
+            return True
+
         # Add Extra Outbounds First (if any)
         if extra_outbounds:
             for extra in extra_outbounds:
-                # Ensure extras are cleaned too if needed
-                self._clean_outbound(extra)
-                outbounds.append(extra)
-                tag = extra.get("tag")
-
-                # Logic for adding to selector:
-                if tag:
-                    otype = extra.get("type", "")
-                    if otype == "wireguard":
-                        # Mypy: cast outbounds to list
-                        cast(List[str], selector_outbound["outbounds"]).append(tag)
+                otype = extra.get("type", "")
+                _append_outbound(extra, add_to_selector=otype == "wireguard")
 
         # Add Proxy Outbounds
         for p in proxies:
@@ -73,14 +80,18 @@ class SingBoxGenerator:
                     t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
                     outbound_config["tag"] = t
 
+                extra_chain = outbound_config.pop("_extra_outbounds", None)
+                if isinstance(extra_chain, list):
+                    for extra in extra_chain:
+                        if isinstance(extra, dict):
+                            _append_outbound(extra, add_to_selector=False)
+
                 # Strip internal metadata
                 self._clean_outbound(outbound_config)
 
-                outbounds.append(outbound_config)
+                added = _append_outbound(outbound_config, add_to_selector=True)
                 tag = outbound_config.get("tag")
-
-                if tag:
-                    cast(List[str], selector_outbound["outbounds"]).append(tag)
+                if added and tag:
                     cast(List[str], urltest_outbound["outbounds"]).append(tag)
             except Exception:
                 continue

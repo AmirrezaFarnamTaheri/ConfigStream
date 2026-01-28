@@ -18,7 +18,7 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
         config = config.strip()
 
         # Enforce MAX_CONFIG_LINE_LENGTH
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         parsed = urlparse(config)

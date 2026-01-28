@@ -21,8 +21,8 @@ def test_parse_generic_http():
 def test_parse_generic_invalid_hostname():
     assert parse_generic_url_scheme("http://garbage:8080") is None
     assert parse_generic_url_scheme("http://invalid:8080") is None
-    # Hostname must have dot or be localhost
-    assert parse_generic_url_scheme("http://nodot:8080") is None
+    # Hostname with no dot is allowed when private IPs are permitted
+    assert parse_generic_url_scheme("http://nodot:8080") is not None
     assert parse_generic_url_scheme("http://localhost:8080") is not None
 
 
@@ -73,14 +73,7 @@ def test_parse_v2ray_json():
     """
     proxy = parse_v2ray_json(json_conf)
     assert proxy is not None
-    assert (
-        proxy.protocol == "v2ray"
-    )  # parser sets generic protocol name 'v2ray' if input is generic json?
-    # The code gets protocol from outbound: "protocol": "vmess"
-    # But wait, code: protocol = outbound.get("protocol", "v2ray")
-    # Then: return Proxy(..., protocol="v2ray", ...)
-    # It hardcodes "v2ray" as protocol in Proxy constructor!
-    assert proxy.protocol == "v2ray"
+    assert proxy.protocol == "vmess"
     assert proxy.address == "example.com"
     assert proxy.port == 10086
     assert proxy.uuid == "uuid"

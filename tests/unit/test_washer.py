@@ -114,7 +114,7 @@ def test_wash_failed_stats_increment(washer_stats_fixture, stats):
 
 
 def test_wash_batch_stats_increment(washer_stats_fixture, stats):
-    """Verify wash_batch increments vwarp_attempts/success, but NOT revived_warp."""
+    """Verify wash_batch increments warp attempts and success count."""
     working_proxy = Proxy(
         source="test",
         address="2.2.2.2",
@@ -133,6 +133,6 @@ def test_wash_batch_stats_increment(washer_stats_fixture, stats):
     )
 
     assert len(outbounds) > 0
-    assert stats.vwarp_attempts == 1
-    assert stats.vwarp_success == 1
+    assert stats.warp_attempts == 1
+    assert stats.washer_success_count == 1
     assert stats.revived_warp == 0  # Should NOT increment

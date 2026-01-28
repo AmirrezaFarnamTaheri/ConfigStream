@@ -45,7 +45,7 @@ ConfigStream uses three caching strategies:
 | Strategy | Use Case | Resources |
 |----------|----------|-----------|
 | **networkOnly** | Never cache | None currently |
-| **networkFirst** | Dynamic data | `metadata.json`, `proxies.json`, `statistics.json`, `vpn_subscription_base64.txt` |
+| **networkFirst** | Dynamic data | `metadata.json`, `proxies.json`, `base64.txt` |
 | **cacheFirst** | Static assets | CSS, JS, images, fonts, HTML pages |
 
 **Configuration:**

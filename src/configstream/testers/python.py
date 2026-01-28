@@ -15,21 +15,30 @@ from ..models import Proxy
 from ..converters import to_singbox_outbound
 from ..security_validator import SecurityValidator
 from ..utils.bool_parser import parse_tls_flag
+from ..async_utils import safe_wait_for
 from .utils import SecureConfigContext
 
 logger = logging.getLogger(__name__)
 
-# Optional dependency
-try:
-    from singbox2proxy import SingBoxProxy as singbox_factory
-except ImportError:
-    singbox_factory = None
-    # Suppress this warning if we are in an environment where it's known to be optional
-    # or just log it as debug/info to reduce noise unless debug mode is on.
-    logger.info(
-        "singbox2proxy not installed - Python fallback testing for complex protocols (VLESS/VMess) unavailable. "
-        "Direct protocols (SOCKS/HTTP) will still be tested."
-    )
+_singbox_factory = None
+
+
+def _get_singbox_factory():
+    """Lazy import to avoid import-time side effects in tests."""
+    global _singbox_factory
+    if _singbox_factory is not None:
+        return _singbox_factory
+    try:
+        from singbox2proxy import SingBoxProxy as singbox_factory  # type: ignore
+
+        _singbox_factory = singbox_factory
+    except ImportError:
+        _singbox_factory = False
+        logger.info(
+            "singbox2proxy not installed - Python fallback testing for complex protocols (VLESS/VMess) unavailable. "
+            "Direct protocols (SOCKS/HTTP) will still be tested."
+        )
+    return _singbox_factory if _singbox_factory is not False else None
 
 
 class PythonTester:
@@ -115,7 +124,13 @@ class PythonTester:
             proxy.is_working = False
             return proxy
 
+        extra_outbounds = outbound_config.pop("_extra_outbounds", None)
         outbound_config["tag"] = "proxy-test"
+        outbounds = [outbound_config]
+        if isinstance(extra_outbounds, list):
+            for extra in extra_outbounds:
+                if isinstance(extra, dict):
+                    outbounds.append(extra)
         full_config = {
             "log": {"level": "info"},
             "inbounds": [
@@ -126,17 +141,18 @@ class PythonTester:
                     "listen_port": 0,
                 }
             ],
-            "outbounds": [outbound_config],
+            "outbounds": outbounds,
         }
         config_content = json.dumps(full_config)
 
         with SecureConfigContext(config_content) as config_path:
             sb_instance = None
             try:
+                singbox_factory = _get_singbox_factory()
                 if singbox_factory:
                     try:
                         start_time = time.monotonic()
-                        sb_instance = await asyncio.wait_for(
+                        sb_instance = await safe_wait_for(
                             loop.run_in_executor(
                                 None, lambda: singbox_factory(config_path)
                             ),
@@ -188,7 +204,7 @@ class PythonTester:
             finally:
                 if sb_instance:
                     try:
-                        await asyncio.wait_for(
+                        await safe_wait_for(
                             loop.run_in_executor(None, sb_instance.stop), timeout=5.0
                         )
                     except Exception as e:
@@ -252,9 +268,8 @@ class PythonTester:
             from ..security.blocklist import DEFAULT_BLOCKLIST
 
             if DEFAULT_BLOCKLIST.is_blocked(proxy.resolved_ip):
-                proxy.is_working = False
                 proxy.security_issues.setdefault("blocklist", []).append(
                     "FireHol Blocked (Late Check)"
                 )
-                return
+                proxy.details["security_override"] = "blocklist"
         proxy.tags.append("secure-checked")

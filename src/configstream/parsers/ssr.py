@@ -18,7 +18,7 @@ def _b64_normalize(s: str) -> str:
 def parse_ssr(config: str) -> Optional[Proxy]:
     try:
         config = config.strip()
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         if not config.startswith("ssr://"):
