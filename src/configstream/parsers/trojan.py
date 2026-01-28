@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def parse_trojan(config: str) -> Optional[Proxy]:
     try:
         config = config.strip()
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         parsed = urlparse(config)

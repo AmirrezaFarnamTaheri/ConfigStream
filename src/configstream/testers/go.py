@@ -13,6 +13,7 @@ from ..config import AppSettings
 from ..models import Proxy
 from ..converters import to_singbox_outbound
 from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
+from ..async_utils import safe_wait_for
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +25,12 @@ class GoBatchTester:
         workers: int = 20,
         timeout: int = 10,
     ):
-        # Clamp workers to a safe range
+        # Normalize workers to a positive integer
         try:
             w = int(workers)
         except Exception:
             w = 20
-        # Clamp between 1 and 100 (reduced from 1000 for stability)
-        self.workers = max(1, min(w, 100))
+        self.workers = max(1, w)
         self.timeout = timeout
         env_path = AppSettings().CONFIGSTREAM_TESTER_BIN
 
@@ -44,6 +44,16 @@ class GoBatchTester:
         else:
             # Try finding in PATH or current directory
             resolved = shutil.which(binary_path)
+            if not resolved:
+                # Manual PATH scan for extensionless binaries (Windows CI can miss these)
+                path_env = os.environ.get("PATH", "")
+                for entry in path_env.split(os.pathsep):
+                    if not entry:
+                        continue
+                    candidate = Path(entry) / binary_path
+                    if candidate.exists():
+                        resolved = str(candidate)
+                        break
             if not resolved:
                 # Fallback to looking in known locations
                 common_locations = [
@@ -136,7 +146,7 @@ class GoBatchTester:
             payload = {"id": "selftest-check", "outbounds": [dummy_config]}
 
             # Use short timeout
-            result = await asyncio.wait_for(
+            result = await safe_wait_for(
                 self.test_custom_configs([payload]), timeout=5.0
             )
 
@@ -193,7 +203,7 @@ class GoBatchTester:
                         await asyncio.sleep(0.1)  # Give time to flush/close
                     self._proc.terminate()
                     try:
-                        await asyncio.wait_for(self._proc.wait(), timeout=2.0)
+                        await safe_wait_for(self._proc.wait(), timeout=2.0)
                     except asyncio.TimeoutError:
                         self._proc.kill()
                 except Exception as e:
@@ -517,7 +527,7 @@ class GoBatchTester:
         total_timeout = min(300, len(inputs) * 2 + 40)
 
         try:
-            completed_results = await asyncio.wait_for(
+            completed_results = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True), timeout=total_timeout
             )
         except asyncio.TimeoutError:
@@ -587,8 +597,25 @@ class GoBatchTester:
                         if issue == "DIRTY_IP":
                             target_proxy.tags.append("dirty_ip")
             else:
-                target_proxy.is_working = False
                 error_msg = str(res_data.get("error", "unknown"))
+                security_tokens = ("DIRTY_IP", "HONEYPOT", "BLOCKLIST", "SUSPICIOUS")
+                if any(token in error_msg for token in security_tokens):
+                    target_proxy.is_working = True
+                    lat = res_data.get("latency")
+                    if lat is not None:
+                        target_proxy.latency = float(lat)
+                    target_proxy.security_issues.setdefault("go_check", []).append(
+                        error_msg
+                    )
+                    target_proxy.details["security_warning"] = error_msg
+                    target_proxy.details["security_override"] = "go_check"
+                    if "DIRTY_IP" in error_msg:
+                        target_proxy.tags.append("dirty_ip")
+                    if "HONEYPOT" in error_msg:
+                        target_proxy.tags.append("honeypot")
+                    continue
+
+                target_proxy.is_working = False
                 target_proxy.details["error"] = error_msg
 
                 # Categorize error
@@ -706,7 +733,7 @@ class GoBatchTester:
 
         # Wait
         try:
-            completed = await asyncio.wait_for(
+            completed = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True), timeout=120
             )
         except asyncio.TimeoutError:

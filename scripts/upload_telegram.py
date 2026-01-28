@@ -36,7 +36,9 @@ def main():
         output_dir / "singbox.json",
         output_dir / "clash.yaml",
         output_dir / "singbox-vpn.json",
-        output_dir / "vpn_subscription_base64.txt",
+        output_dir / "base64.txt",
+        output_dir / "singbox-chains.json",
+        output_dir / "revived.json",
     ]
 
     version = os.getenv("VERSION_TAG", "latest")

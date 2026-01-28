@@ -55,13 +55,13 @@ def test_validate_batch_configs():
         Proxy(protocol="ss", address="suspicious.com", port=443, config="unsafe"),
     ]
 
-    # Mock validator to fail the second one
+    # Mock validator to fail the second one with a non-fatal reason
     with patch(
         "configstream.security_validator.SecurityValidator.validate_proxy_config"
     ) as mock_val:
-        mock_val.side_effect = [(True, {}), (False, {"category": ["issue"]})]
+        mock_val.side_effect = [(True, "ok"), (False, "tls_required")]
 
         secure = validate_batch_configs(proxies)
-        assert len(secure) == 1
+        assert len(secure) == 2
         assert secure[0].address == "1.1.1.1"
         assert proxies[1].is_secure is False

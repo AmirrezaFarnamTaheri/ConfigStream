@@ -6,6 +6,7 @@ Maintains backward compatibility.
 """
 
 from pathlib import Path
+import os
 
 from .intelligence.washer import ProxyWasher
 from .intelligence.chaining import generate_smart_chains
@@ -16,8 +17,8 @@ from .output_transport import save_json
 # We alias it here for backward compatibility with older tests/scripts
 generate_split_outputs = generate_categorized_outputs
 
-# Global constant for output directory
-OUTPUT_DIR = Path("output")
+# Global constant for output directory (env override supported)
+OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "output"))
 
 __all__ = [
     "generate_categorized_outputs",

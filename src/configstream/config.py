@@ -49,8 +49,8 @@ class AppSettings(BaseSettings):
     PRODUCER_MAX_CONCURRENCY: int = 100
 
     # Tester Concurrency Limits
-    GO_TESTER_BATCH_SIZE: int = 200
-    PY_TESTER_BATCH_SIZE: int = 100
+    GO_TESTER_BATCH_SIZE: int = 0
+    PY_TESTER_BATCH_SIZE: int = 0
 
     # Intelligence Layer
     WARP_KEY_POOL: str = "[]"
@@ -60,7 +60,7 @@ class AppSettings(BaseSettings):
 
     # Memory management
     BATCH_SIZE: int = 50
-    MAX_SEEN_KEYS: int = 200000
+    MAX_SEEN_KEYS: int = 0
     CACHE_TTL: int = 1800
     MAX_WORKERS: int = 0
 
@@ -123,10 +123,11 @@ class AppSettings(BaseSettings):
     RENAME_TEMPLATE: Optional[str] = None
 
     # Update Interval
-    UPDATE_INTERVAL_HOURS: int = 3
+    UPDATE_INTERVAL_HOURS: int = 5
 
     # Security Validator
-    ALLOW_PRIVATE_IPS: bool = False
+    ALLOW_PRIVATE_IPS: bool = True
+    INCLUDE_INSECURE_PROXIES: bool = True
 
     # Shuffle
     CONFIGSTREAM_SHUFFLE_SEED: Optional[str] = None
@@ -161,7 +162,7 @@ class AppSettings(BaseSettings):
     ENVIRONMENT: str = "production"
 
     # Fetcher
-    MAX_RESPONSE_SIZE: int = 200 * 1024 * 1024
+    MAX_RESPONSE_SIZE: int = 0
     QUALITY_DB_PATH: str = "data/source_quality.db"
 
     # Score Tuning (Advanced)
@@ -185,7 +186,7 @@ class AppSettings(BaseSettings):
             raise ValueError("FETCH_TIMEOUT must be positive")
         if self.MAX_WORKERS < 0:
             raise ValueError("MAX_WORKERS must be >= 0")
-        if self.BATCH_SIZE <= 0 or self.BATCH_SIZE > 1000:
-            raise ValueError("BATCH_SIZE must be between 1 and 1000")
+        if self.BATCH_SIZE <= 0:
+            raise ValueError("BATCH_SIZE must be > 0")
         if self.RATE_LIMIT_REQUESTS <= 0:
             raise ValueError("RATE_LIMIT_REQUESTS must be positive")

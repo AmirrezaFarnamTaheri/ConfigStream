@@ -104,12 +104,9 @@ async def test_pipeline_dry_run(tmp_path, mock_proxies):
             stats.fetched_lines = 2
 
             while True:
-                try:
-                    item = await asyncio.wait_for(work_queue.get(), timeout=1.0)
-                    work_queue.task_done()
-                    if item is None:
-                        break
-                except asyncio.TimeoutError:
+                item = await work_queue.get()
+                work_queue.task_done()
+                if item is None:
                     break
 
         mock_producer.side_effect = fake_producer

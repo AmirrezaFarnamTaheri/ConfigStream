@@ -69,7 +69,7 @@ async def run_full_pipeline(
         sources: List of source URLs to fetch proxies from
         output_dir: Output directory path for generated files
         max_workers: Maximum concurrent workers (0 = auto-calculate)
-        max_proxies: Maximum number of proxies to process (None = unlimited)
+        max_proxies: Deprecated (ignored). Proxy caps are disabled.
         timeout: Proxy test timeout in seconds
         country_filter: ISO country code filter (e.g., "US", "GB")
         max_latency: Maximum acceptable latency in milliseconds
@@ -96,11 +96,11 @@ async def run_full_pipeline(
     if max_workers < 0:
         raise ValueError(f"'max_workers' must be >= 0 (got {max_workers})")
 
-    if max_workers > 10000:
+    if max_proxies is not None:
         logger.warning(
-            f"max_workers={max_workers} is extremely high - clamping to 1000 for stability"
+            "max_proxies is deprecated and ignored (proxy caps are disabled)."
         )
-        max_workers = 1000
+        max_proxies = None
 
     settings = AppSettings()
     if max_workers <= 0 and settings.MAX_WORKERS > 0:
@@ -108,9 +108,6 @@ async def run_full_pipeline(
 
     if not strict_security and settings.STRICT_SECURITY:
         strict_security = True
-
-    if max_proxies is not None and max_proxies <= 0:
-        raise ValueError(f"'max_proxies' must be > 0 or None (got {max_proxies})")
 
     if timeout <= 0 or timeout > 300:
         raise ValueError(f"'timeout' must be between 1 and 300 seconds (got {timeout})")
@@ -133,7 +130,7 @@ async def run_full_pipeline(
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # Cap max_workers globally to protect local network stack
+    # Auto-calc max_workers if not explicitly provided
     if max_workers <= 0:
         from .adaptive_workers import calculate_optimal_workers
 
@@ -142,7 +139,10 @@ async def run_full_pipeline(
     # Initialize Intelligence Stack
     timeout_tracker = AdaptiveTimeout()
     concurrency = ConcurrencyManager(
-        asyncio.get_running_loop(), initial_limit=max_workers
+        asyncio.get_running_loop(),
+        initial_limit=max_workers,
+        min_limit=1,
+        max_limit=max_workers,
     )
     test_cache = TestResultCache()
     scheduler = SmartRetestScheduler(cache=test_cache)
@@ -161,7 +161,8 @@ async def run_full_pipeline(
 
     # Initialize Shared Washer Singleton
     washer = ProxyWasher(settings.WARP_KEY_POOL)
-    await washer.fetch_clean_ips()  # Pre-fetch once
+    if not dry_run:
+        await washer.fetch_clean_ips()  # Pre-fetch once
 
     # Initialize Event Stream
     event_stream = EventStream(output_path)
@@ -172,8 +173,6 @@ async def run_full_pipeline(
 
     stop_event = asyncio.Event()
     test_budget: Optional[asyncio.Semaphore] = None
-    if max_proxies:
-        test_budget = asyncio.Semaphore(max_proxies)
 
     # Validate App Settings
     settings.validate_settings()

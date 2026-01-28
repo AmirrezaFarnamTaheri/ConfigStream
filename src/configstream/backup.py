@@ -89,15 +89,19 @@ def backup_databases(
                 )
 
             # Perform backup to temp file
-            with src_conn as src, sqlite3.connect(backup_path_temp, timeout=5.0) as dst:
+            dst_conn = None
+            try:
+                dst_conn = sqlite3.connect(backup_path_temp, timeout=5.0)
                 # Try incremental backup with small pages to reduce lock time
                 try:
-                    src.backup(dst, pages=1000, progress=None)
+                    src_conn.backup(dst_conn, pages=1000, progress=None)
                 except TypeError:
                     # Older Python/SQLite without 'pages' kwarg
-                    src.backup(dst)
-
-            src_conn.close()
+                    src_conn.backup(dst_conn)
+            finally:
+                if dst_conn is not None:
+                    dst_conn.close()
+                src_conn.close()
 
             # Compress the backup using gzip
             with (

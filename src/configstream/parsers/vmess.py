@@ -25,7 +25,7 @@ def parse_vmess(config: str) -> Optional[Proxy]:
         if not decoded.strip().startswith("{"):
             return None
 
-        if len(decoded) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(decoded) > MAX_CONFIG_LINE_LENGTH:
             logger.warning(f"VMess decoded data too large: {len(decoded)} bytes")
             return None
 

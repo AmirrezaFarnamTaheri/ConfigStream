@@ -24,7 +24,7 @@ This document provides a comprehensive overview of ConfigStream's architecture, 
 
 ## System Overview
 
-ConfigStream is an automated VPN configuration aggregator that collects, tests, and publishes working proxy configurations from free public sources. The system operates on a scheduled basis (every 3 hours) via GitHub Actions.
+ConfigStream is an automated VPN configuration aggregator that collects, tests, and publishes working proxy configurations from free public sources. The system operates on a scheduled basis (every 5 hours) via GitHub Actions.
 
 ### Key Characteristics
 
@@ -764,7 +764,7 @@ User Request
 │               GITHUB ACTIONS WORKFLOW                     │
 │                                                           │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  Trigger: Cron (*/3 * * * *) or Manual            │  │
+│  │  Trigger: Cron (*/5 * * * *) or Manual            │  │
 │  └────────────────────────────────────────────────────┘  │
 │                          │                               │
 │  ┌───────────────────────▼────────────────────────────┐  │
@@ -877,17 +877,17 @@ for i in range(0, len(proxies), chunk_size):
 ### 6. Smart Deduplication with Memory Management
 
 ```python
-# [v2.0.12 FIX] Efficient deduplication with bounded memory
-max_seen = int(os.getenv("MAX_SEEN_KEYS", "200000"))
+# [v2.0.12 FIX] Efficient deduplication with bounded memory (0 = unlimited)
+max_seen = int(os.getenv("MAX_SEEN_KEYS", "0"))
 
 for proxy in parsed_batch:
     key = proxy_unique_key(proxy)
     if key not in seen_keys:
         # Only evict when approaching limit
-        if len(seen_keys) >= max_seen:
-            eviction_count = max(1000, max_seen // 10)
-            keys_to_remove = list(seen_keys)[:eviction_count]
-            seen_keys.difference_update(keys_to_remove)
+    if max_seen > 0 and len(seen_keys) >= max_seen:
+        eviction_count = max(1000, max_seen // 10)
+        keys_to_remove = list(seen_keys)[:eviction_count]
+        seen_keys.difference_update(keys_to_remove)
 
         seen_keys.add(key)
         unique_batch.append(proxy)
@@ -1056,7 +1056,7 @@ logger.info("Test proxy", extra={"trace_id": trace_id})
 
 ### 1. Real-Time Updates
 
-Replace 3-hour schedule with continuous streaming:
+Replace 5-hour schedule with continuous streaming:
 
 ```python
 async def continuous_pipeline():
@@ -1111,7 +1111,7 @@ async def continuous_pipeline():
 
 ## Conclusion
 
-ConfigStream's architecture balances **simplicity**, **performance**, and **reliability**. The producer-consumer pipeline, async/await concurrency, and zero-cost deployment strategy enable processing thousands of proxies every 3 hours with minimal infrastructure.
+ConfigStream's architecture balances **simplicity**, **performance**, and **reliability**. The producer-consumer pipeline, async/await concurrency, and zero-cost deployment strategy enable processing thousands of proxies every 5 hours with minimal infrastructure.
 
 Key architectural decisions:
 - ✅ **Async/Await**: 50× better concurrency than threads

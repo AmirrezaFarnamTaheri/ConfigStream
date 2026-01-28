@@ -16,13 +16,14 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "bugs": {
     "url": "https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues"
   },
   "homepage": "https://github.com/AmirrezaFarnamTaheri/ConfigStream#readme",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "playwright": "^1.56.1"
   }
 }

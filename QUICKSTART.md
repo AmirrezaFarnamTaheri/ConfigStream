@@ -43,10 +43,21 @@ configstream merge \
 
 ### 4. View Results
 The results will be in the `output/` directory:
-- `output/proxies.json` (Data)
-- `output/base64.txt` (Subscription)
-- `output/chosen/` (Best proxies)
-- `output/gallery.png` (Steganography Image)
+- `output/proxies.json` (Full proxy list)
+- `output/base64.txt` (Base64 subscription)
+- `output/chosen/base64.txt` (Top picks per protocol)
+- `output/proxies.txt` (Plaintext URIs, grouped by protocol)
+- `output/singbox.json` (Smart routing)
+- `output/singbox-vpn.json` (TUN/VPN mode)
+- `output/singbox-chains.json` (Washed + smart chains only)
+- `output/revived.json` (Revived proxies, if any)
+- `output/shadowrocket.txt` (Shadowrocket format)
+- `output/quantumult.conf` (Quantumult X format)
+- `output/surge.conf` (Surge format)
+- `output/loon.conf` (Loon format)
+- `output/sip008.json` (SIP008 Shadowsocks format)
+- `output/side_products.zip` (OpenVPN/WireGuard pack + URIs)
+- `output/metadata.json` (Pipeline stats)
 
 ---
 
@@ -94,5 +105,4 @@ configstream update-databases
 **Manage Database Backups:**
 ```bash
 configstream backup
-configstream list-db-backups
 ```

@@ -10,11 +10,16 @@ ConfigStream is configured via Environment Variables.
 | `TEST_TIMEOUT` | `10` | Timeout in seconds for proxy testing. |
 | `FETCH_TIMEOUT` | `15` | Timeout in seconds for source fetching. |
 | `CANARY_URL` | `""` | Optional override target used during strict security checks. |
-| `MAX_LINES_PER_SOURCE` | `40000` | Max lines processed per source payload. |
-| `MAX_CONFIG_LINE_LENGTH` | `10000` | Max length of a single config line. |
-| `MAX_B64_INPUT_SIZE` | `10485760` | Max input size (bytes) before Base64 decode. |
-| `MAX_B64_OUTPUT_SIZE` | `52428800` | Max decoded size (bytes) before parsing. |
+| `MAX_LINES_PER_SOURCE` | `0` | Max lines processed per source payload (0 = unlimited). |
+| `MAX_CONFIG_LINE_LENGTH` | `0` | Max length of a single config line (0 = unlimited). |
+| `MAX_B64_INPUT_SIZE` | `0` | Max input size (bytes) before Base64 decode (0 = unlimited). |
+| `MAX_B64_OUTPUT_SIZE` | `0` | Max decoded size (bytes) before parsing (0 = unlimited). |
 | `MAX_SOURCE_URL_LENGTH` | `2048` | Max source URL length. |
+| `MAX_SEEN_KEYS` | `0` | Max dedup keys retained in memory (0 = unlimited). |
+| `MAX_OPENVPN_CONFIG_SIZE` | `0` | Max OpenVPN config size (bytes) (0 = unlimited). |
+| `MAX_RESPONSE_SIZE` | `0` | Max fetch response size (bytes) (0 = unlimited). |
+| `GO_TESTER_BATCH_SIZE` | `0` | Go tester batch size (0 = no chunking). |
+| `PY_TESTER_BATCH_SIZE` | `0` | Python tester batch size (0 = no chunking). |
 
 ## Intelligence Layer (v2.0)
 
@@ -37,7 +42,7 @@ ConfigStream is configured via Environment Variables.
 | :--- | :--- | :--- |
 | `STRICT_SECURITY` | `false` | Enable honeypot probing + stricter tester checks. |
 | `STEGO_KEY` | *None* | Fernet key used for stego asset generation and frontend injection. |
-| `ALLOW_PRIVATE_IPS` | `false` | Allow private/loopback IPs through validation. |
+| `ALLOW_PRIVATE_IPS` | `true` | Allow private/loopback IPs through validation. |
 | `TLS_TESTS_ENABLED` | `true` | Require TLS-capable configs when TLS validation is enabled. |
 | `DEDUP_IGNORE_PROTOCOL` | `false` | Ignore protocol when endpoint-deduplicating (more aggressive). |
 | `ENABLE_ENDPOINT_FILTERING` | `true` | Enable endpoint-level deduplication after testing. |

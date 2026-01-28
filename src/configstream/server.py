@@ -25,17 +25,22 @@ from slowapi.errors import RateLimitExceeded
 
 from .output import OUTPUT_DIR
 from .config import AppSettings
+from .logging_config import setup_logging
 
 # Ensure WASM files are served with correct MIME type
 mimetypes.add_type("application/wasm", ".wasm")
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging (sanitized)
+settings = AppSettings()
+setup_logging(
+    level=settings.LOG_LEVEL,
+    mask_sensitive=settings.MASK_SENSITIVE_DATA,
+)
 logger = logging.getLogger(__name__)
 
 # Define paths relative to the container structure
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-FRONTEND_DIR = AppSettings().FRONTEND_DIR or (BASE_DIR / "frontend")
+FRONTEND_DIR = settings.FRONTEND_DIR or (BASE_DIR / "frontend")
 
 try:
     VERSION = importlib.metadata.version("configstream")
@@ -69,14 +74,14 @@ app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
 # Enable CORS with restricted origins
 # Allow localhost for development and GitHub Pages for production deployment
 # Set ALLOWED_ORIGINS environment variable for custom domains
-ALLOWED_ORIGINS_STR = AppSettings().ALLOWED_ORIGINS
+ALLOWED_ORIGINS_STR = settings.ALLOWED_ORIGINS
 ALLOWED_ORIGINS = [
     origin.strip() for origin in ALLOWED_ORIGINS_STR.split(",") if origin.strip()
 ]
 
 # Use regex pattern for GitHub Pages and other wildcard domains
 # CORSMiddleware requires allow_origin_regex for wildcard patterns
-ALLOWED_ORIGIN_REGEX = AppSettings().ALLOWED_ORIGIN_REGEX
+ALLOWED_ORIGIN_REGEX = settings.ALLOWED_ORIGIN_REGEX
 
 app.add_middleware(
     CORSMiddleware,
@@ -89,6 +94,48 @@ app.add_middleware(
 
 # Pre-compile regex for path validation
 SAFE_PATH_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
+ROOT_OUTPUT_FILES = {
+    "metadata.json": "application/json",
+    "proxies.json": "application/json",
+    "proxies.old.json": "application/json",
+    "base64.txt": "text/plain",
+    "proxies.txt": "text/plain",
+    "shadowrocket.txt": "text/plain",
+    "quantumult.conf": "text/plain",
+    "surge.conf": "text/plain",
+    "loon.conf": "text/plain",
+    "sip008.json": "application/json",
+    "singbox.json": "application/json",
+    "singbox-vpn.json": "application/json",
+    "singbox-chains.json": "application/json",
+    "revived.json": "application/json",
+    "clash.yaml": "text/yaml",
+    "side_products.zip": "application/zip",
+}
+
+
+def _resolve_output_path(rel_path: str) -> Path:
+    base = OUTPUT_DIR.resolve()
+    target = (OUTPUT_DIR / rel_path).resolve()
+    try:
+        target.relative_to(base)
+    except ValueError as exc:
+        raise HTTPException(400, "Invalid path") from exc
+    return target
+
+
+def _serve_output_file(rel_path: str, media_type: Optional[str] = None) -> FileResponse:
+    target = _resolve_output_path(rel_path)
+    if not target.exists():
+        raise HTTPException(404, "File not generated yet")
+    return FileResponse(target, media_type=media_type)
+
+
+def _make_output_handler(rel_path: str, media_type: Optional[str]):
+    def _handler():
+        return _serve_output_file(rel_path, media_type)
+
+    return _handler
 
 
 # --- WebSocket Connection Manager ---
@@ -304,7 +351,7 @@ async def get_proxies(
             or "\\" in country
         ):
             raise HTTPException(400, "Invalid country parameter")
-        fpath = OUTPUT_DIR / "by_country" / f"{country.lower()}.json"
+        fpath = OUTPUT_DIR / "countries" / f"{country.upper()}.json"
         if not is_safe_path(fpath):
             raise HTTPException(400, "Invalid country parameter")
 
@@ -320,7 +367,7 @@ async def get_proxies(
             or "\\" in protocol
         ):
             raise HTTPException(400, "Invalid protocol parameter")
-        fpath = OUTPUT_DIR / "by_protocol" / f"{protocol.lower()}.json"
+        fpath = OUTPUT_DIR / "protocols" / f"{protocol.lower()}.json"
         if not is_safe_path(fpath):
             raise HTTPException(400, "Invalid protocol parameter")
 
@@ -343,7 +390,7 @@ async def download_subscription(format: str):
     Formats: base64, clash, singbox, shadowrocket, quantumult, quantumultx, loon, sip008, surge
     """
     file_map = {
-        "base64": "vpn_subscription_base64.txt",
+        "base64": "base64.txt",
         "clash": "clash.yaml",
         "singbox": "singbox.json",
         "shadowrocket": "shadowrocket.txt",
@@ -353,6 +400,8 @@ async def download_subscription(format: str):
         "loon": "loon.conf",
         "sip008": "sip008.json",
         "singbox-vpn": "singbox-vpn.json",
+        "singbox-chains": "singbox-chains.json",
+        "revived": "revived.json",
     }
 
     if format not in file_map:
@@ -363,6 +412,49 @@ async def download_subscription(format: str):
         raise HTTPException(404, "File not generated yet")
 
     return FileResponse(target, filename=file_map[format])
+
+
+def _serve_output_subpath(prefix: str, path: str) -> FileResponse:
+    if not path or ".." in path:
+        raise HTTPException(400, "Invalid path")
+    rel = str(Path(prefix) / path)
+    target = _resolve_output_path(rel)
+    if not target.exists() or not target.is_file():
+        raise HTTPException(404, "File not generated yet")
+    return FileResponse(target)
+
+
+for rel_path, media_type in ROOT_OUTPUT_FILES.items():
+    app.add_api_route(
+        f"/{rel_path}",
+        _make_output_handler(rel_path, media_type),
+        methods=["GET"],
+    )
+
+
+@app.get("/data/{path:path}")
+async def output_data(path: str):
+    return _serve_output_subpath("data", path)
+
+
+@app.get("/countries/{path:path}")
+async def output_countries(path: str):
+    return _serve_output_subpath("countries", path)
+
+
+@app.get("/protocols/{path:path}")
+async def output_protocols(path: str):
+    return _serve_output_subpath("protocols", path)
+
+
+@app.get("/chosen/{path:path}")
+async def output_chosen(path: str):
+    return _serve_output_subpath("chosen", path)
+
+
+@app.get("/docs/{path:path}")
+async def output_docs(path: str):
+    return _serve_output_subpath("docs", path)
 
 
 # --- Static File Serving ---
@@ -407,7 +499,8 @@ else:
 
 @app.get("/")
 async def read_index():
-    index_path = FRONTEND_DIR / "index.html"
+    frontend_path_local = Path(str(FRONTEND_DIR))
+    index_path = frontend_path_local / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
     return JSONResponse(

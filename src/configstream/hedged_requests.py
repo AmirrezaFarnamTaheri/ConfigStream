@@ -10,6 +10,8 @@ request fails prematurely.
 import asyncio
 from typing import Any, Tuple, TypeVar
 
+from .async_utils import safe_wait_for
+
 T = TypeVar("T")
 
 
@@ -85,7 +87,7 @@ async def hedged_get(
         # We loop until we get a success or exhaust all tasks
         while received_responses < expected_responses:
             # Wait for next result
-            task_id, success, result = await asyncio.wait_for(
+            task_id, success, result = await safe_wait_for(
                 queue.get(), timeout=timeout + 1
             )
             received_responses += 1

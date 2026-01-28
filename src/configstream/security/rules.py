@@ -233,7 +233,7 @@ def validate_config_string(config: str) -> Dict[str, str]:
         return issues
 
     # Check length
-    if len(config) > MAX_CONFIG_LINE_LENGTH:
+    if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
         logger.warning(f"Config too long: {len(config)} chars")
         issues[SECURITY_CATEGORIES["CONFIG_TOO_LONG"]] = (
             f"Config exceeds max length: {len(config)} chars"

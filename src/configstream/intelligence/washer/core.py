@@ -470,13 +470,12 @@ class ProxyWasher:
         if not self.warp_keys:
             return [], 0
 
-        # Limit revival candidates to prevent explosion (e.g. max 500)
         # Prevent infinite recursion: Filter out proxies that are already revived
         candidates = [
             p
             for p in failed_proxies
             if p.protocol != "revived" and not p.details.get("is_revived")
-        ][:500]
+        ]
 
         for relay in candidates:
             # Basic plausibility check before reviving
@@ -539,6 +538,7 @@ class ProxyWasher:
                     "is_revived": True,
                     "use_vwarp": use_vwarp,
                     "origin_proxy": origin_dict,
+                    "origin_id": relay.id,
                 },
             )
 
@@ -546,10 +546,18 @@ class ProxyWasher:
             revived_count += 1
 
             if stats:
-                if use_vwarp:
-                    stats.vwarp_attempts += 1
+                lock = getattr(stats, "_lock", None)
+                if lock:
+                    with lock:
+                        if use_vwarp:
+                            stats.vwarp_attempts += 1
+                        else:
+                            stats.warp_attempts += 1
                 else:
-                    stats.warp_attempts += 1
+                    if use_vwarp:
+                        stats.vwarp_attempts += 1
+                    else:
+                        stats.warp_attempts += 1
 
         return revived_candidates, revived_count
 
@@ -652,5 +660,20 @@ class ProxyWasher:
             warp_out["_process"] = "washed"
             washed_outbounds.append(warp_out)
             washed_ids.add(relay.id)
+            if stats:
+                lock = getattr(stats, "_lock", None)
+                if lock:
+                    with lock:
+                        stats.warp_attempts += 1
+                else:
+                    stats.warp_attempts += 1
+
+        if stats:
+            lock = getattr(stats, "_lock", None)
+            if lock:
+                with lock:
+                    stats.washer_success_count = len(washed_ids)
+            else:
+                stats.washer_success_count = len(washed_ids)
 
         return washed_outbounds, washed_ids, skip_reasons

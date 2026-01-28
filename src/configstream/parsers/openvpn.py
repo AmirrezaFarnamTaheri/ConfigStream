@@ -3,12 +3,9 @@ import logging
 import re
 from typing import Optional
 from ..models import Proxy
+from ..constants import MAX_OPENVPN_CONFIG_SIZE
 
 logger = logging.getLogger(__name__)
-
-# Security: Maximum config size to prevent DoS attacks (1MB)
-MAX_OPENVPN_CONFIG_SIZE = 1024 * 1024
-
 
 def parse_openvpn(config: str) -> Optional[Proxy]:
     """
@@ -21,8 +18,8 @@ def parse_openvpn(config: str) -> Optional[Proxy]:
     - Strict "client" directive matching (not in comments)
     """
     try:
-        # Enforce config size limit to prevent DoS/memory exhaustion
-        if len(config) > MAX_OPENVPN_CONFIG_SIZE:
+        # Enforce config size limit to prevent DoS/memory exhaustion (0 = unlimited)
+        if MAX_OPENVPN_CONFIG_SIZE > 0 and len(config) > MAX_OPENVPN_CONFIG_SIZE:
             logger.warning(
                 f"OpenVPN config rejected: size {len(config)} exceeds limit {MAX_OPENVPN_CONFIG_SIZE}"
             )

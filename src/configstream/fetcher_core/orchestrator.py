@@ -108,7 +108,11 @@ async def fetch_from_source(
     last_error = None
 
     # Use instance limit if passed, else global default
-    max_size = app_settings.MAX_RESPONSE_SIZE if app_settings else MAX_RESPONSE_SIZE
+    max_size_raw = app_settings.MAX_RESPONSE_SIZE if app_settings else MAX_RESPONSE_SIZE
+    try:
+        max_size = int(max_size_raw)
+    except (TypeError, ValueError):
+        max_size = 0
 
     while attempt < max_retries:
         start_ts = loop.time()
@@ -195,7 +199,7 @@ async def fetch_from_source(
                         content_len_int = int(content_len)
                     except (TypeError, ValueError):
                         content_len_int = None
-                if content_len_int and content_len_int > max_size:
+                if max_size > 0 and content_len_int and content_len_int > max_size:
                     response_time = loop.time() - start_ts
                     if timeout_tracker:
                         await timeout_tracker.record_attempt(
@@ -215,7 +219,7 @@ async def fetch_from_source(
                 current_size = 0
                 async for chunk in response.aiter_bytes():
                     current_size += len(chunk)
-                    if current_size > max_size:
+                    if max_size > 0 and current_size > max_size:
                         response_time = loop.time() - start_ts
                         if timeout_tracker:
                             await timeout_tracker.record_attempt(

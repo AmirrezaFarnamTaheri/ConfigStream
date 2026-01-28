@@ -25,7 +25,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
     """Parse generic URL-based schemes like http, socks."""
     try:
         config = config.strip()
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         # Support naked IP:PORT for SOCKS/HTTP
@@ -166,7 +166,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
 def parse_naive(config: str) -> Optional[Proxy]:
     try:
         config = config.strip()
-        if len(config) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(config) > MAX_CONFIG_LINE_LENGTH:
             return None
 
         parsed = urlparse(config.replace("naive+", ""))
@@ -197,7 +197,7 @@ def parse_naive(config: str) -> Optional[Proxy]:
 
 def parse_v2ray_json(config: str) -> Optional[Proxy]:
     stripped = config.strip()
-    if len(stripped) > MAX_CONFIG_LINE_LENGTH:
+    if MAX_CONFIG_LINE_LENGTH > 0 and len(stripped) > MAX_CONFIG_LINE_LENGTH:
         return None
 
     if not stripped.startswith("{"):
@@ -310,11 +310,14 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
         server_info = nodes[0]
         if not isinstance(server_info, dict):
             return None
-        address = (
+        address_raw = (
             server_info.get("address")
             or server_info.get("server")
             or server_info.get("ip")
         )
+        if not address_raw:
+            return None
+        address = str(address_raw)
         port = server_info.get("port")
         users = server_info.get("users")
         user_info = users[0] if isinstance(users, list) and users else {}
@@ -340,11 +343,14 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
         server_info = nodes[0]
         if not isinstance(server_info, dict):
             return None
-        address = (
+        address_raw = (
             server_info.get("address")
             or server_info.get("server")
             or server_info.get("ip")
         )
+        if not address_raw:
+            return None
+        address = str(address_raw)
         port = server_info.get("port")
         if protocol_raw == "trojan":
             uuid = server_info.get("password", "")
@@ -357,6 +363,19 @@ def parse_v2ray_json(config: str) -> Optional[Proxy]:
             if method:
                 details["method"] = method
             if not details["password"]:
+                return None
+            invalid_methods = {
+                "ss",
+                "shadowsocks",
+                "",
+                "none",
+                "null",
+                "default",
+                "cipher",
+                "aes",
+                "chacha20",
+            }
+            if not method or method.lower() in invalid_methods or len(method) < 2:
                 return None
         elif protocol_raw == "socks":
             protocol = "socks5"

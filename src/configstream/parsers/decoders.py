@@ -4,6 +4,8 @@ import binascii
 import logging
 from typing import Optional
 
+from ..constants import MAX_B64_INPUT_SIZE
+
 logger = logging.getLogger(__name__)
 
 
@@ -90,6 +92,8 @@ def safe_b64_decode(data: str) -> Optional[str]:
     - Dirty inputs
     """
     if not data:
+        return None
+    if MAX_B64_INPUT_SIZE > 0 and len(data) > MAX_B64_INPUT_SIZE:
         return None
 
     # Use validate_b64_input for cleaning first

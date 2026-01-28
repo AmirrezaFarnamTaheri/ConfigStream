@@ -10,8 +10,8 @@
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-repo/configstream.git
-    cd configstream
+    git clone https://github.com/AmirrezaFarnamTaheri/ConfigStream.git
+    cd ConfigStream
     ```
 
 2.  **Install Python dependencies:**
@@ -33,13 +33,13 @@ To run a simple test pipeline locally:
 
 ```bash
 # Run a single batch (Batch 1)
-python -m configstream.cli merge --batch 1 --verbose
+configstream merge --sources sources/batch_1.txt --output output/ --verbose
 ```
 
-To run the merge process (requires previous batch outputs):
+To merge shard outputs (requires previous batch outputs):
 
 ```bash
-python -m configstream.cli merge
+python -m scripts.merge_batches
 ```
 
 ## Configuration Basics
@@ -49,6 +49,6 @@ Configuration is managed via `src/configstream/config.py` and environment variab
 *   `MAX_WORKERS`: Controls concurrency (default: adaptive).
 *   `TEST_TIMEOUT`: Timeout for proxy tests (default: 15s).
 *   `WARP_KEY_POOL`: (Optional) JSON array of WARP keys for washing.
-*   `WARP_CLEAN_IPS`: (Optional) JSON array or comma-separated list of clean IPs.
+*   `UPDATE_INTERVAL_HOURS`: Publish interval used in metadata.
 
 See [Configuration Reference](configuration.md) for full details.

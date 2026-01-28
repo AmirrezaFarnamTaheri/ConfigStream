@@ -283,6 +283,37 @@ class QuantumultXAdapter(Adapter):
 class ShadowrocketAdapter(Adapter):
     """Export to Shadowrocket format (Base64 encoded links or plain URI list)."""
 
+    def _update_fragment(self, raw: str, safe_name: str) -> str:
+        base = raw.split("#", 1)[0].strip()
+        if not safe_name:
+            return base
+        return f"{base}#{safe_name}"
+
+    def _rewrite_vmess_name(self, raw: str, raw_name: str, safe_name: str) -> Optional[str]:
+        if not raw_name:
+            return raw
+        try:
+            payload = raw.split("://", 1)[1].strip()
+        except IndexError:
+            return None
+
+        # Normalize padding for base64 decoding.
+        padded = payload + "=" * (-len(payload) % 4)
+        for decoder in (base64.b64decode, base64.urlsafe_b64decode):
+            try:
+                decoded = decoder(padded.encode())
+                data = json.loads(decoded)
+                if not isinstance(data, dict):
+                    continue
+                data["ps"] = raw_name
+                encoded = base64.b64encode(
+                    json.dumps(data, ensure_ascii=False).encode()
+                ).decode()
+                return f"vmess://{encoded}#{safe_name}"
+            except Exception:
+                continue
+        return None
+
     def export(
         self,
         proxies: List[Proxy],
@@ -291,9 +322,38 @@ class ShadowrocketAdapter(Adapter):
         lines = []
         reconstructed_count = 0
         for p in proxies:
-            # Shadowrocket supports standard URIs natively
+            # Skip revived placeholders; they are chains, not raw URIs.
+            if p.protocol == "revived" or str(p.config).lower().startswith("revived://"):
+                continue
+
+            # Normalize existing URIs to enforce consistent tags and protocols.
             if p.config and "://" in p.config:
-                lines.append(p.config)
+                raw = p.config.strip()
+                scheme = raw.split("://", 1)[0].lower()
+                raw_fragment = ""
+                if "#" in raw:
+                    raw_fragment = raw.split("#", 1)[1]
+                raw_name = p.remarks or urllib.parse.unquote(raw_fragment) or "ConfigStream"
+                safe_name = (
+                    urllib.parse.quote(raw_name)
+                    if p.remarks or not raw_fragment
+                    else raw_fragment
+                )
+
+                if scheme == "socks":
+                    uri = self._reconstruct_uri(p, name_override=raw_name)
+                    if uri:
+                        lines.append(uri)
+                        reconstructed_count += 1
+                        continue
+
+                if scheme == "vmess":
+                    updated = self._rewrite_vmess_name(raw, raw_name, safe_name)
+                    if updated:
+                        lines.append(updated)
+                        continue
+
+                lines.append(self._update_fragment(raw, safe_name))
                 continue
 
             # Fallback to reconstruction
@@ -310,9 +370,9 @@ class ShadowrocketAdapter(Adapter):
         )
         return "\n".join(lines)
 
-    def _reconstruct_uri(self, p: Proxy) -> str:
+    def _reconstruct_uri(self, p: Proxy, name_override: Optional[str] = None) -> str:
         """Reconstruct URI with full protocol support."""
-        name = urllib.parse.quote(p.remarks or "ConfigStream")
+        name = urllib.parse.quote(name_override or p.remarks or "ConfigStream")
 
         def _join_list(value: Any) -> str:
             if isinstance(value, (list, tuple)):
@@ -350,8 +410,10 @@ class ShadowrocketAdapter(Adapter):
             net = p.details.get("net") or p.details.get("type")
             if net:
                 params["type"] = net
-            path = p.details.get("path") or p.details.get("ws_path") or p.details.get(
-                "http_path"
+            path = (
+                p.details.get("path")
+                or p.details.get("ws_path")
+                or p.details.get("http_path")
             )
             if path:
                 params["path"] = path
@@ -425,8 +487,10 @@ class ShadowrocketAdapter(Adapter):
             host = p.details.get("host") or p.details.get("http_host")
             if host:
                 params["host"] = host
-            path = p.details.get("path") or p.details.get("ws_path") or p.details.get(
-                "http_path"
+            path = (
+                p.details.get("path")
+                or p.details.get("ws_path")
+                or p.details.get("http_path")
             )
             if path:
                 params["path"] = path
@@ -470,9 +534,7 @@ class ShadowrocketAdapter(Adapter):
                 params["alpn"] = _join_list(alpn)
             query = urllib.parse.urlencode(params, safe=",") if params else ""
             query_part = f"?{query}" if query else ""
-            return (
-                f"hysteria2://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
-            )
+            return f"hysteria2://{p.uuid}@{p.address}:{p.port}{query_part}#{name}"
 
         elif p.protocol == "tuic":
             # tuic://uuid:password@host:port?sni=...#name
@@ -480,12 +542,10 @@ class ShadowrocketAdapter(Adapter):
             sni = p.details.get("sni", "")
             password = p.details.get("password", "")
             query = f"?sni={urllib.parse.quote(sni)}" if sni else ""
-            return (
-                f"tuic://{p.uuid}:{password}@{p.address}:{p.port}{query}#{name}"
-            )
+            return f"tuic://{p.uuid}:{password}@{p.address}:{p.port}{query}#{name}"
 
-        elif p.protocol in ("http", "socks5", "socks4"):
-            scheme = p.protocol
+        elif p.protocol in ("http", "socks5", "socks4", "socks"):
+            scheme = "socks5" if p.protocol == "socks" else p.protocol
             if scheme == "http":
                 scheme = "https" if parse_tls_flag(p.details.get("tls")) else "http"
             user = p.uuid or ""
@@ -505,7 +565,9 @@ class ShadowrocketAdapter(Adapter):
             password = p.details.get("password", "")
             if not user or not password:
                 return ""
-            scheme = "naive+https" if parse_tls_flag(p.details.get("tls")) else "naive+http"
+            scheme = (
+                "naive+https" if parse_tls_flag(p.details.get("tls")) else "naive+http"
+            )
             auth_user = urllib.parse.quote(user)
             auth_pass = urllib.parse.quote(password)
             return f"{scheme}://{auth_user}:{auth_pass}@{p.address}:{p.port}#{name}"

@@ -192,7 +192,7 @@ async def source_producer(
                 for source, res in results.items():
                     if stop_event.is_set():
                         break
-                    if res.success and res.content:
+                    if res.success:
                         # Offload parsing to executor and handle stats
                         # [FIX] Use partial to pass keyword argument to run_in_executor
                         extract_func = partial(
@@ -280,7 +280,8 @@ async def source_producer(
                             f"(Status: {res.status_code})"
                         )
     except Exception as e:
-        logger.error(f"Producer failed: {e}")
+        safe_error = SecurityValidator.sanitize_log_message(str(e))
+        logger.error(f"Producer failed: {safe_error}")
     finally:
         # If absolutely nothing was provided, log a clear warning – this would
         # otherwise result in a silent zero-output run.

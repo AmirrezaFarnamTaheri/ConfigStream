@@ -28,12 +28,13 @@ CACHE_WARMING_LOW_SCORE_THRESHOLD = 50  # Proxy count for low-score tier
 # [PHASE 5] VirusTotal Cache Size
 VIRUSTOTAL_CACHE_SIZE = 1000  # LRU cache size for VT lookups
 
-# Size Limits (Kept low to prevent DoS/OOM. Use streaming for large sources.)
-MAX_B64_INPUT_SIZE = _env_int("MAX_B64_INPUT_SIZE", 10 * 1024 * 1024)  # 10 MB
-MAX_B64_OUTPUT_SIZE = _env_int("MAX_B64_OUTPUT_SIZE", 50 * 1024 * 1024)  # 50 MB
-MAX_CONFIG_LINE_LENGTH = _env_int("MAX_CONFIG_LINE_LENGTH", 10000)
-MAX_LINES_PER_SOURCE = _env_int("MAX_LINES_PER_SOURCE", 40000)  # Max lines per source
+# Size Limits (0 = unlimited; use streaming for large sources.)
+MAX_B64_INPUT_SIZE = _env_int("MAX_B64_INPUT_SIZE", 0)
+MAX_B64_OUTPUT_SIZE = _env_int("MAX_B64_OUTPUT_SIZE", 0)
+MAX_CONFIG_LINE_LENGTH = _env_int("MAX_CONFIG_LINE_LENGTH", 0)  # 0 = unlimited
+MAX_LINES_PER_SOURCE = _env_int("MAX_LINES_PER_SOURCE", 0)  # 0 = unlimited
 MAX_SOURCE_URL_LENGTH = _env_int("MAX_SOURCE_URL_LENGTH", 2048)
+MAX_OPENVPN_CONFIG_SIZE = _env_int("MAX_OPENVPN_CONFIG_SIZE", 0)
 
 # Ports & Domains
 # Removed 3306 (MySQL), 5432 (Postgres), 6379 (Redis), 27017 (Mongo)

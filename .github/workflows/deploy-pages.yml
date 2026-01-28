@@ -86,8 +86,13 @@ jobs:
         run: |
           set -euxo pipefail
 
-          # The pipeline output artifact already contains the fully generated site.
-          # We just need to add API simulation and ensure .nojekyll.
+          # The pipeline output artifact contains data outputs; we add frontend assets,
+          # API simulation, and ensure .nojekyll for a complete Pages site.
+          
+          # Merge frontend assets into output for GitHub Pages
+          if [ -d "frontend" ]; then
+            cp -R frontend/. output/
+          fi
 
           # Create API simulation structure
           mkdir -p output/api
@@ -104,8 +109,10 @@ jobs:
 
           # Update cache version
           ts=$(date +%Y%m%d%H%M%S)
+          cache_version="v${ts}"
           if [ -f output/assets/js/cache-config.js ]; then
-             sed -i "s/const VERSION = '[^']*'/const VERSION = '${ts}'/" output/assets/js/cache-config.js
+             sed -i "s/VERSION: '[^']*'/VERSION: '${cache_version}'/" output/assets/js/cache-config.js
+             sed -i "s/CACHE_NAME: 'configstream-cache-[^']*'/CACHE_NAME: 'configstream-cache-${cache_version}'/" output/assets/js/cache-config.js
           fi
 
       - name: List deployment files

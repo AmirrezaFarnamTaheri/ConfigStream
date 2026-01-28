@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Any
 from datetime import datetime, timezone
-import asyncio
+import threading
 
 
 @dataclass
@@ -12,7 +12,7 @@ class PipelineStats:
     drop_reasons: Dict[str, int] = field(default_factory=dict)
 
     # Internal lock for thread-safe access to dictionary fields
-    _lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     # Canonical Stats
     total_configured_sources: int = (
@@ -66,7 +66,7 @@ class PipelineStats:
         Return a dictionary representation of stats.
         Uses defensive copies for complex types.
         """
-        async with self._lock:
+        with self._lock:
             return {
                 "total_configured_sources": self.total_configured_sources,
                 "fetched_sources": self.fetched_sources,

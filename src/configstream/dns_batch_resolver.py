@@ -9,6 +9,8 @@ from typing import Dict, List, Optional, cast
 
 import aiodns
 
+from .async_utils import safe_wait_for
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,7 +40,7 @@ class BatchDNSResolver:
             return None
         try:
             # Use asyncio.wait_for to enforce a timeout on each query
-            result = await asyncio.wait_for(
+            result = await safe_wait_for(
                 self.resolver.query(hostname, "A"), timeout=self.timeout
             )
             if result:

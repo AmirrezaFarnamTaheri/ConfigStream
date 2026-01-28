@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "0 */3 * * *"  # [FIX] Every 3 hours as requested
+    - cron: "0 */5 * * *"  # [FIX] Every 5 hours as requested
   workflow_dispatch:
 
 concurrency:
@@ -195,7 +195,7 @@ jobs:
           BATCH_NUMBER: ${{ matrix.batch_number }}
           VT_API_KEY: ${{ secrets.VT_API_KEY }}
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
-          UPDATE_INTERVAL_HOURS: 3
+          UPDATE_INTERVAL_HOURS: 5
           CANARY_URL: "https://httpbin.org"
         run: |
           set -euxo pipefail
@@ -348,7 +348,7 @@ jobs:
           CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
         run: |
           python scripts/publish_ipfs.py \
-            --file output/vpn_subscription_base64.txt \
+            --file output/base64.txt \
             --domain fallback.example.com
 
       - name: Upload Pipeline Output
@@ -394,7 +394,7 @@ jobs:
              output/singbox.json
              output/clash.yaml
              output/singbox-vpn.json
-             output/vpn_subscription_base64.txt
+             output/base64.txt
              output/stealth_cover.png
              output/consolidated_pipeline.log
           draft: false

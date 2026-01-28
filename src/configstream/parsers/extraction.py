@@ -90,7 +90,11 @@ def extract_config_lines(
     drop_stats: Dict[str, int] = {}
 
     # CRITICAL: Pre-check size to prevent OOM on massive files
-    if hasattr(payload, "__len__") and len(payload) > MAX_B64_INPUT_SIZE:
+    if (
+        MAX_B64_INPUT_SIZE > 0
+        and hasattr(payload, "__len__")
+        and len(payload) > MAX_B64_INPUT_SIZE
+    ):
         logger.warning(
             f"extract_config_lines: Payload exceeds {MAX_B64_INPUT_SIZE} bytes limit. Dropping to prevent OOM."
         )
@@ -201,7 +205,7 @@ def extract_config_lines(
     elif "client" in payload_str and (
         "dev tun" in payload_str or "dev tap" in payload_str
     ):
-        if len(payload_str) < MAX_B64_OUTPUT_SIZE:
+        if MAX_B64_OUTPUT_SIZE <= 0 or len(payload_str) < MAX_B64_OUTPUT_SIZE:
             return [payload_str], {}
         else:
             return [], {"size_limit_exceeded": 1}
@@ -217,7 +221,7 @@ def extract_config_lines(
         else:
             lines = payload_str.splitlines()
 
-    if len(lines) > max_lines:
+    if max_lines > 0 and len(lines) > max_lines:
         original_count = len(lines)
         logger.warning(
             f"Payload has {original_count} lines, truncating to {max_lines}."
@@ -248,7 +252,7 @@ def extract_config_lines(
         if candidate.startswith("#"):
             continue
 
-        if len(candidate) > MAX_CONFIG_LINE_LENGTH:
+        if MAX_CONFIG_LINE_LENGTH > 0 and len(candidate) > MAX_CONFIG_LINE_LENGTH:
             continue
 
         if candidate.startswith("{"):

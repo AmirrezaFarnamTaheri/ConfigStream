@@ -1,24 +1,112 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
 import logging
+import copy
+import shutil
+import os
+import re
+import tempfile
+import zipfile
 from typing import List, Dict, Optional, Any
 from pathlib import Path
 from datetime import datetime, timezone
 from importlib.metadata import version
 
 from .models import Proxy
+from .converters.common import safe_int_conversion
 from .output_generators import (
     generate_singbox_config,
     generate_base64_subscription,
     generate_split_outputs,
 )
+from .adapters import get_adapter
 from .generators.plaintext import generate_plaintext_subscription
 from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
 from .utils import AtomicFileWriter
 from .config import AppSettings
+from .constants import CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_filename(value: str, fallback: str) -> str:
+    if not value:
+        return fallback
+    clean = re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._-")
+    return clean or fallback
+
+
+def _build_wireguard_config(proxy: Proxy) -> Optional[str]:
+    details = proxy.details or {}
+    private_key = details.get("private_key") or proxy.uuid or ""
+    peer_public_key = details.get("peer_public_key") or details.get("public_key") or ""
+
+    local_address = details.get("local_address") or details.get("private_ipv4")
+    addresses: List[str] = []
+    if isinstance(local_address, list):
+        addresses = [str(item) for item in local_address if item]
+    elif isinstance(local_address, str) and local_address:
+        addresses = [local_address]
+
+    if not private_key or not peer_public_key:
+        return None
+
+    allowed_ips = details.get("allowed_ips") or "0.0.0.0/0, ::/0"
+    endpoint = f"{proxy.address}:{proxy.port}"
+    keepalive = details.get("persistent_keepalive") or details.get("keepalive")
+    dns = details.get("dns")
+
+    lines = [
+        "[Interface]",
+        f"PrivateKey = {private_key}",
+    ]
+    if addresses:
+        lines.append(f"Address = {', '.join(addresses)}")
+    if dns:
+        lines.append(f"DNS = {dns}")
+    lines.append("")
+    lines.extend(
+        [
+            "[Peer]",
+            f"PublicKey = {peer_public_key}",
+            f"AllowedIPs = {allowed_ips}",
+            f"Endpoint = {endpoint}",
+        ]
+    )
+    if keepalive:
+        lines.append(f"PersistentKeepalive = {keepalive}")
+
+    return "\n".join(lines) + "\n"
+
+
+def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
+    if CHOSEN_TOP_PER_PROTOCOL <= 0 and CHOSEN_TOTAL_TARGET <= 0:
+        return []
+
+    by_protocol: Dict[str, List[Proxy]] = {}
+    for proxy in proxies:
+        if not proxy.is_working:
+            continue
+        proto = (proxy.protocol or "unknown").lower()
+        by_protocol.setdefault(proto, []).append(proxy)
+
+    chosen: List[Proxy] = []
+    for proto in sorted(by_protocol.keys()):
+        candidates = sorted(
+            by_protocol[proto],
+            key=lambda p: (p.latency is None, p.latency or 9e9),
+        )
+        if CHOSEN_TOP_PER_PROTOCOL > 0:
+            candidates = candidates[:CHOSEN_TOP_PER_PROTOCOL]
+        chosen.extend(candidates)
+
+    if CHOSEN_TOTAL_TARGET > 0 and len(chosen) > CHOSEN_TOTAL_TARGET:
+        chosen = sorted(
+            chosen, key=lambda p: (p.latency is None, p.latency or 9e9)
+        )[:CHOSEN_TOTAL_TARGET]
+
+    return chosen
 
 
 def generate_categorized_outputs(
@@ -35,6 +123,24 @@ def generate_categorized_outputs(
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     generated_files = {}
+
+    # Remove legacy redundant artifacts to keep output clean and canonical.
+    legacy_files = ["raw.txt", "all.txt", "sub.txt", "vpn_subscription_base64.txt"]
+    for name in legacy_files:
+        legacy_path = output_dir / name
+        if legacy_path.exists():
+            try:
+                legacy_path.unlink()
+            except OSError:
+                pass
+
+    for legacy_dir in ("by_country", "by_protocol"):
+        legacy_path = output_dir / legacy_dir
+        if legacy_path.exists() and legacy_path.is_dir():
+            try:
+                shutil.rmtree(legacy_path)
+            except OSError:
+                pass
 
     # Initialize washer if not provided (fallback)
     if washer is None:
@@ -70,31 +176,92 @@ def generate_categorized_outputs(
 
     # 3. Standard Subscription (Base64)
     sub_content = generate_base64_subscription(proxies)
-    sub_path = output_dir / "sub.txt"
-    AtomicFileWriter.write_text(sub_path, sub_content)
-    generated_files["sub_full"] = sub_path
-
     base64_path = output_dir / "base64.txt"
     AtomicFileWriter.write_text(base64_path, sub_content)
     generated_files["base64"] = base64_path
 
-    vpn_base64_path = output_dir / "vpn_subscription_base64.txt"
-    AtomicFileWriter.write_text(vpn_base64_path, sub_content)
-    generated_files["vpn_subscription_base64"] = vpn_base64_path
-
-    # 3b. Raw URI list (Plaintext)
+    # 3b. Raw URI list (Plaintext) - single canonical file to avoid redundancy
     raw_content = generate_plaintext_subscription(proxies)
-    raw_path = output_dir / "raw.txt"
-    AtomicFileWriter.write_text(raw_path, raw_content)
-    generated_files["raw"] = raw_path
-
-    all_path = output_dir / "all.txt"
-    AtomicFileWriter.write_text(all_path, raw_content)
-    generated_files["all"] = all_path
-
     proxies_txt_path = output_dir / "proxies.txt"
     AtomicFileWriter.write_text(proxies_txt_path, raw_content)
     generated_files["proxies_txt"] = proxies_txt_path
+
+    # 3c. Chosen subset (top per protocol)
+    chosen = _select_chosen_proxies(proxies)
+    if chosen:
+        chosen_dir = output_dir / "chosen"
+        chosen_dir.mkdir(exist_ok=True)
+        chosen_base64 = generate_base64_subscription(chosen)
+        chosen_base64_path = chosen_dir / "base64.txt"
+        AtomicFileWriter.write_text(chosen_base64_path, chosen_base64)
+        generated_files["chosen_base64"] = chosen_base64_path
+
+    # 3d. Adapter-specific outputs (Shadowrocket, QuantumultX, Surge, Loon, SIP008)
+    adapter_specs = {
+        "shadowrocket": ("shadowrocket", "shadowrocket.txt"),
+        "quantumult": ("quantumultx", "quantumult.conf"),
+        "surge": ("surge", "surge.conf"),
+        "loon": ("loon", "loon.conf"),
+        "sip008": ("sip008", "sip008.json"),
+    }
+    for key, (adapter_name, filename) in adapter_specs.items():
+        try:
+            adapter = get_adapter(adapter_name)
+            if adapter_name in ("surge", "loon"):
+                content = adapter.export(proxies, washed_outbounds=washed_outbounds)
+            else:
+                content = adapter.export(proxies)
+            out_path = output_dir / filename
+            AtomicFileWriter.write_text(out_path, content)
+            generated_files[key] = out_path
+        except Exception as exc:
+            logger.warning(
+                "Failed to generate %s output: %s", adapter_name, str(exc)
+            )
+
+    # 3e. Side products pack (OpenVPN + WireGuard + plain URIs)
+    side_products_path = output_dir / "side_products.zip"
+    openvpn_candidates = [
+        p for p in proxies if (p.protocol or "").lower() == "openvpn" and p.config
+    ]
+    wireguard_candidates = [
+        p
+        for p in proxies
+        if (p.protocol or "").lower() in ("wireguard", "wg")
+    ]
+    if raw_content or openvpn_candidates or wireguard_candidates:
+        tmp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                dir=output_dir, prefix=".side_products.", suffix=".tmp", delete=False
+            ) as tmp:
+                tmp_path = tmp.name
+            with zipfile.ZipFile(
+                tmp_path, "w", compression=zipfile.ZIP_DEFLATED
+            ) as zf:
+                zf.writestr("proxies.txt", raw_content)
+                for proxy in openvpn_candidates:
+                    name = _safe_filename(
+                        proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                    )
+                    zf.writestr(f"openvpn/{name}.ovpn", proxy.config)
+                for proxy in wireguard_candidates:
+                    wg_config = _build_wireguard_config(proxy)
+                    if not wg_config:
+                        continue
+                    name = _safe_filename(
+                        proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                    )
+                    zf.writestr(f"wireguard/{name}.conf", wg_config)
+            os.replace(tmp_path, side_products_path)
+            generated_files["side_products"] = side_products_path
+        except Exception as exc:
+            logger.warning("Failed to generate side_products.zip: %s", str(exc))
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
 
     # 4. Categorized Sub-files (By Country & Protocol)
     # Grouping
@@ -103,41 +270,66 @@ def generate_categorized_outputs(
 
     for p in proxies:
         if p.is_working:
-            cc = p.country_code if p.country_code else "XX"
+            cc = (p.country_code or "XX").upper()
             by_country.setdefault(cc, []).append(p)
-            by_protocol.setdefault(p.protocol, []).append(p)
+            by_protocol.setdefault((p.protocol or "").lower(), []).append(p)
 
     # Write Country files
     country_dir = output_dir / "countries"
     country_dir.mkdir(exist_ok=True)
-    # Alias country_dir to by_country for tests
-    by_country_dir = output_dir / "by_country"
-    by_country_dir.mkdir(exist_ok=True)
 
     for cc, plist in by_country.items():
         # We generate files for all, including XX
         cpath = country_dir / f"{cc}.json"
         AtomicFileWriter.write_text(cpath, generate_singbox_config(plist))
 
-        # Write to by_country as well for tests
-        bcpath = by_country_dir / f"{cc}.json"
-        AtomicFileWriter.write_text(bcpath, generate_singbox_config(plist))
-        generated_files[f"country_{cc}"] = bcpath
+        generated_files[f"country_{cc}"] = cpath
 
     # Write Protocol files
     proto_dir = output_dir / "protocols"
     proto_dir.mkdir(exist_ok=True)
-    # Alias to by_protocol for tests
-    by_proto_dir = output_dir / "by_protocol"
-    by_proto_dir.mkdir(exist_ok=True)
 
     for proto, plist in by_protocol.items():
         ppath = proto_dir / f"{proto}.json"
         AtomicFileWriter.write_text(ppath, generate_singbox_config(plist))
 
-        bppath = by_proto_dir / f"{proto}.json"
-        AtomicFileWriter.write_text(bppath, generate_singbox_config(plist))
-        generated_files[f"proto_{proto}"] = bppath
+        generated_files[f"proto_{proto}"] = ppath
+
+    # 5. Chain-only output (Washed + Revived + Smart Chains)
+    chain_outbounds: List[Dict[str, Any]] = []
+    seen_tags: set[str] = set()
+
+    def _append_chain(outbounds: List[Dict[str, Any]]) -> None:
+        for outbound in outbounds:
+            if not isinstance(outbound, dict):
+                continue
+            tag = outbound.get("tag")
+            if tag and tag in seen_tags:
+                continue
+            chain_outbounds.append(outbound)
+            if tag:
+                seen_tags.add(tag)
+
+    for p in proxies:
+        chain = p.details.get("chain_outbounds")
+        if isinstance(chain, list) and chain:
+            _append_chain(copy.deepcopy(chain))
+
+    if washed_outbounds:
+        _append_chain(copy.deepcopy(washed_outbounds))
+
+    if smart_chains:
+        for chain_list in smart_chains.values():
+            for chain in chain_list:
+                if isinstance(chain, list) and chain:
+                    _append_chain(copy.deepcopy(chain))
+
+    if chain_outbounds:
+        chains_path = output_dir / "singbox-chains.json"
+        AtomicFileWriter.write_text(
+            chains_path, generate_singbox_config([], extra_outbounds=chain_outbounds)
+        )
+        generated_files["singbox_chains"] = chains_path
 
     logger.info(f"Generated {len(generated_files)} output files.")
     return generated_files
@@ -222,7 +414,9 @@ def save_metadata(
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
-        total_sourced = stats.get("total_fetched", total)
+        total_sourced = safe_int_conversion(
+            stats.get("fetched_lines") or stats.get("total_fetched") or total
+        )
         parsed_count = stats.get("parsed", total)
         tested_count = stats.get("tested", total)
         # reasons might be in stats['rejection_reasons'] if available, or empty
@@ -307,7 +501,7 @@ def save_metadata(
     except Exception:
         pkg_version = "unknown"
 
-    # Calculate update interval (default 3 hours for production)
+    # Calculate update interval (default 5 hours for production)
     update_interval_hours = AppSettings().UPDATE_INTERVAL_HOURS
 
     # Compute total_revived properly from both WARP and Vwarp
@@ -334,7 +528,7 @@ def save_metadata(
     meta = {
         "schema_version": "2.3.0",  # Updated to match generators.py
         "version": pkg_version,
-        "total_proxies": total,  # Total working proxies (final count)
+        "total_proxies": total + smart_chain_count,  # Working proxies + smart chains
         "total_tested": tested_count,  # Number of proxies actually tested
         "total_working": working,
         "success_rate": (working / tested_count) if tested_count > 0 else 0,
@@ -382,10 +576,12 @@ def save_metadata(
         "tested": tested_count,
         "working": working,
         # [FIX] Added chosen_subset_size for transparency
-        "chosen_subset_size": total,
+        "chosen_subset_size": len(_select_chosen_proxies(proxies)),
     }
 
-    AtomicFileWriter.write_text(meta_path, json.dumps(meta, indent=2, ensure_ascii=False))
+    AtomicFileWriter.write_text(
+        meta_path, json.dumps(meta, indent=2, ensure_ascii=False)
+    )
 
     # NOTE: statistics.json removed - metadata.json is now single source of truth
     # All frontend code updated to use metadata.json directly

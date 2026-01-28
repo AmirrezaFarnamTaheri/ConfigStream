@@ -363,7 +363,9 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
 
     stats_payload = _merge_metadata(batch_dirs)
     stats = PipelineStats()
-    stats.total_configured_sources = int(stats_payload.get("total_configured_sources", 0))
+    stats.total_configured_sources = int(
+        stats_payload.get("total_configured_sources", 0)
+    )
     stats.fetched_sources = int(stats_payload.get("fetched_sources", 0))
     stats.fetched_lines = int(stats_payload.get("fetched_lines", 0))
     stats.parsed = int(stats_payload.get("parsed", 0))

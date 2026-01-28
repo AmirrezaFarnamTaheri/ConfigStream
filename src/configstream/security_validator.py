@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from typing import List, Tuple, TYPE_CHECKING
 import logging
 from .utils.bool_parser import parse_tls_flag
+from .config import AppSettings
 
 if TYPE_CHECKING:
     from configstream.models import Proxy
@@ -130,6 +131,8 @@ class SecurityValidator:
         """
         Internal check for address safety. Used by tests to mock safety checks.
         """
+        if AppSettings().ALLOW_PRIVATE_IPS:
+            return True
         if SecurityValidator.is_local_ip(address):
             return False
         return True
@@ -222,7 +225,9 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
     if proxy.protocol == "trojan":
         # Check both uuid (often used for password in simple parsers) and details['password']
         password = proxy.details.get("password") or getattr(proxy, "uuid", None)
-        if not password or len(str(password)) < policy["min_password_length"]:
+        if not password:
+            return False, "missing_trojan_password"
+        if len(str(password)) < policy["min_password_length"]:
             return False, "weak_trojan_password"
 
     if proxy.protocol == "shadowsocks":
@@ -231,6 +236,23 @@ def validate_proxy(proxy: "Proxy", policy: dict = STRICT_POLICY) -> Tuple[bool, 
             return False, "insecure_encryption_method"
 
     return True, "ok"
+
+
+def _should_include_insecure(reason: str) -> bool:
+    """
+    Decide whether to retain an insecure proxy for output/testing.
+    Broad allowlist: retain policy rejections but keep malformed configs dropped.
+    """
+    if not isinstance(reason, str):
+        return False
+    fatal_reasons = {
+        "missing_address_or_port",
+        "invalid_port_range",
+        "invalid_port_type",
+        "missing_uuid",
+        "missing_trojan_password",
+    }
+    return reason not in fatal_reasons
 
 
 # [BACKWARD COMPATIBILITY]
@@ -248,13 +270,18 @@ def validate_batch_configs(
     Filters a batch of proxies, returning only the safe ones.
     """
     safe_proxies = []
+    settings = AppSettings()
+    include_insecure = settings.INCLUDE_INSECURE_PROXIES
     # Use SecurityValidator.validate_proxy_config to allow mocking on the class
     for p in proxies:
         is_safe, reason = SecurityValidator.validate_proxy_config(p, policy)
         if is_safe:
-            # Ensure we reset secure flag if it was somehow True?
-            # Actually, if safe, we append.
             p.is_secure = True
+            if AppSettings().ALLOW_PRIVATE_IPS and SecurityValidator.is_local_ip(
+                p.address
+            ):
+                p.is_secure = False
+                p.security_issues.setdefault("policy", []).append("local_ip_allowed")
             safe_proxies.append(p)
         else:
             # Explicitly mark rejected proxies as insecure so tests checking them see the change
@@ -262,5 +289,8 @@ def validate_batch_configs(
             if not p.security_issues:
                 p.security_issues = {}
             p.security_issues.setdefault("policy", []).append(reason)
+
+            if include_insecure and _should_include_insecure(reason):
+                safe_proxies.append(p)
 
     return safe_proxies

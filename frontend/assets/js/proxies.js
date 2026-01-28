@@ -311,7 +311,7 @@ function renderTable() {
         const processType = p.process || 'native';
         let pBadge = 'badge-secondary';
         if (processType === 'washed') pBadge = 'badge-success';
-        if (processType === 'revived') pBadge = 'badge-warning';
+        if (processType === 'revived' || processType.startsWith('revived-')) pBadge = 'badge-warning';
         if (processType === 'chain') pBadge = 'badge-info';
         if (processType === 'smart') pBadge = 'badge-primary';
 

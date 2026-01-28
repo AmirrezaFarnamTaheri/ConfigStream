@@ -2,94 +2,102 @@
 
 ## CLI Reference
 
-ConfigStream is primarily driven by its Command Line Interface (CLI).
+ConfigStream is driven by the `configstream` CLI.
 
-### Global Options
-*   `--help`: Show help message and exit.
-*   `--version`: Show the version number.
-
-### Commands
-
-#### `run`
-Executes the main aggregation pipeline.
+### `merge`
+Fetch, test, and merge proxies from sources.
 ```bash
-configstream run --sources sources/batch_1.txt --output output/ --max-workers 50
+configstream merge --sources sources/batch_1.txt --output output/ --max-workers 50
 ```
-**Options:**
-*   `--sources`: Path to source file or URL (Required).
-*   `--output`: Directory to save results (Default: `output/`).
-*   `--max-workers`: Number of concurrent workers (Default: Auto).
-*   `--timeout`: Connection timeout in seconds (Default: 10).
-*   `--country`: Filter by country code (e.g., `IR`, `CN`).
-*   `--strict`: Enable strict security checks (honeypot detection).
+**Options**
+- `--sources`: Path to source list (required).
+- `--output`: Output directory (default: `output/`).
+- `--max-workers`: Concurrency limit (0 = auto-scale).
+- `--timeout`: Test timeout in seconds (defaults to `TEST_TIMEOUT`).
+- `--country`: ISO country code filter (e.g., `US`).
+- `--max-latency`: Max acceptable latency in ms.
+- `--leniency/--strict`: Allow insecure proxies (default: strict).
+- `--dry-run`: Skip network tests.
+- `--verbose`: Debug logging.
+- `--max-proxies`: Deprecated (ignored).
 
-#### `serve`
-Starts the API server.
+### `retest`
+Retest proxies from an existing `proxies.json`.
 ```bash
-configstream serve --host 0.0.0.0 --port 8000
+configstream retest --input output/proxies.json --output output/ --max-workers 50
 ```
 
-#### `bot`
-Starts the Telegram bot (polling mode).
+### `update-databases`
+Download GeoIP databases.
 ```bash
-configstream bot
+configstream update-databases
 ```
 
-#### `generate-warp`
-Generates a Cloudflare WARP WireGuard configuration.
+### `generate-warp`
+Generate WARP templates.
 ```bash
-configstream generate-warp
+configstream generate-warp --count 1
+```
+
+### `bot`
+Start the Telegram bot (polling).
+```bash
+configstream bot --token $TELEGRAM_BOT_TOKEN
+```
+
+### `backup`
+Backup pipeline databases.
+```bash
+configstream backup --days 7 --dir data
 ```
 
 ## REST API (FastAPI)
 
-The server exposes the following endpoints:
-
 ### Public Endpoints
 
 #### `GET /api/stats`
-Returns current pipeline statistics and last run status.
-```json
-{
-  "last_updated": "2023-10-27T10:00:00Z",
-  "total_proxies": 1500,
-  "working_proxies": 1200,
-  "sources_count": 50
-}
-```
+Returns the latest pipeline metadata (`metadata.json`).
 
-#### `GET /api/convert`
-Converts a subscription URL or content to a different format.
-**Query Params:**
-*   `url`: The subscription URL.
-*   `target`: Target format (`clash`, `singbox`, `base64`).
+#### `GET /api/proxies`
+Optional filters:
+- `country=US`
+- `protocol=vless`
+
+#### `GET /api/diff/proxies?base_version=...`
+Returns a delta against the previous `proxies.json` snapshot (if available).
+
+#### `GET /subscribe/{format}`
+Supported formats:
+`base64`, `clash`, `singbox`, `singbox-vpn`, `singbox-chains`,
+`shadowrocket`, `quantumult`, `surge`, `loon`, `sip008`, `revived`
+
+#### `GET /chosen/base64.txt`
+Top picks per protocol (small curated Base64 subscription).
 
 #### `GET /health`
-Health check endpoint for monitoring.
-```json
-{
-  "status": "ok",
-  "output_dir": "output/",
-  "files_present": ["singbox.json", "clash.yaml"]
-}
-```
+Basic health information.
+
+#### `WS /ws/updates`
+WebSocket stream for pipeline update notifications.
+
+### Admin Endpoint
+
+#### `POST /api/admin/notify-update`
+Broadcast update events to connected clients. Requires `ADMIN_API_KEY` in production.
 
 ## Data Formats
 
-### Metadata (`metadata.json`)
-The `metadata.json` file contains summary data for the frontend.
+### `metadata.json`
+Summary statistics for the frontend and downstream clients.
 ```json
 {
-  "generated_at": "...",
-  "stats": { ... },
-  "proxies": [
-    {
-      "id": "...",
-      "protocol": "vmess",
-      "country": "US",
-      "latency": 150,
-      "reliability": 0.95
-    }
-  ]
+  "schema_version": "2.3.0",
+  "total_proxies": 5000,
+  "total_working": 4300,
+  "total_revived": 650,
+  "total_smart_chains": 120,
+  "sources_count": 800,
+  "update_interval_hours": 5,
+  "generated_at": "2026-01-25T12:00:00Z"
 }
 ```

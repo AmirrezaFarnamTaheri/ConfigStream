@@ -53,8 +53,8 @@ def generate_split_outputs(
     files: Dict[str, Path] = {}
 
     # 1. Sniper (Standard singbox.json) - Smart Routing + TLS Fragmentation
-    outbounds = []
-    selector_tags = []
+    outbounds: List[Dict[str, Any]] = []
+    selector_tags: List[str] = []
 
     for p in proxies:
         # Skip washed proxies (they are replaced by washed_outbounds)
@@ -190,8 +190,8 @@ def generate_split_outputs(
     files["singbox"] = sniper_path
 
     # 2. Tank (singbox-vpn.json) - Full VPN/TUN - No Fragmentation (usually)
-    tank_outbounds = []
-    tank_proxy_tags = []
+    tank_outbounds: List[Dict[str, Any]] = []
+    tank_proxy_tags: List[str] = []
 
     # Re-convert for Tank (clean slate, no frag)
     for p in proxies:
