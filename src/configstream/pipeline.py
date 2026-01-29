@@ -15,6 +15,7 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Dict
+from contextlib import suppress
 
 from rich.progress import Progress, TaskID
 
@@ -30,7 +31,7 @@ from .anomaly import AnomalyDetector
 from .security.blocklist import DEFAULT_BLOCKLIST
 from .performance import PerformanceTracker
 from .history.tracker import ProxyHistoryTracker
-from .filtering import filter_unique_endpoints
+from .filtering import dedupe_and_shuffle, filter_unique_endpoints
 from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 
 from configstream.pipeline_core.stats import PipelineStats
@@ -61,6 +62,7 @@ async def run_full_pipeline(
     progress: Optional[Progress] = None,
     proxies: Optional[List[Proxy]] = None,  # Pre-supplied proxies
     dry_run: bool = False,
+    time_limit_seconds: Optional[int] = None,
 ) -> PipelineResult:
     """
     Execute the streaming proxy aggregation pipeline.
@@ -78,6 +80,7 @@ async def run_full_pipeline(
         progress: Optional Rich progress bar instance
         proxies: Pre-supplied proxy list (bypasses source fetching)
         dry_run: Skip actual proxy testing (validation mode)
+        time_limit_seconds: Optional soft time limit for the batch (0 disables)
 
     Returns:
         PipelineResult with statistics and output file paths
@@ -122,6 +125,13 @@ async def run_full_pipeline(
                 f"'country_filter' must be a 2-letter ISO code (got '{country_filter}')"
             )
         country_filter = country_filter.upper()
+
+    if time_limit_seconds is None:
+        time_limit_seconds = settings.BATCH_TIME_LIMIT_SECONDS
+    if time_limit_seconds is not None and time_limit_seconds < 0:
+        raise ValueError(
+            f"'time_limit_seconds' must be >= 0 (got {time_limit_seconds})"
+        )
 
     start_time = datetime.now(timezone.utc)
     tracker = PerformanceTracker()
@@ -170,6 +180,8 @@ async def run_full_pipeline(
     stats = PipelineStats()
     # Track total configured sources for frontend display
     stats.total_configured_sources = len(sources) if sources else 0
+    if time_limit_seconds:
+        stats.time_limit_seconds = int(time_limit_seconds)
 
     stop_event = asyncio.Event()
     test_budget: Optional[asyncio.Semaphore] = None
@@ -255,6 +267,22 @@ async def run_full_pipeline(
     logger.info(f"Starting pipeline with {optimal_consumers} parallel consumers")
 
     # Run Producer and Consumers concurrently
+    time_limit_task: Optional[asyncio.Task] = None
+    if time_limit_seconds and time_limit_seconds > 0:
+        logger.info(
+            f"Batch time limit enabled: {time_limit_seconds}s (soft stop with partial output)."
+        )
+
+        async def _time_limit_watcher() -> None:
+            await asyncio.sleep(time_limit_seconds)
+            if not stop_event.is_set():
+                stats.time_limited = True
+                stop_event.set()
+                logger.warning(
+                    "Batch time limit reached. Stopping intake and finalizing partial output."
+                )
+
+        time_limit_task = asyncio.create_task(_time_limit_watcher())
     producer_task = asyncio.create_task(
         source_producer(
             sources,
@@ -346,12 +374,12 @@ async def run_full_pipeline(
 
         # 5. Final Cleanup & Output
 
-        # Deduplicate Endpoints (IP:Port)
+        # Deduplicate configs first, then deduplicate endpoints (IP:Port).
+        optimized_proxies = dedupe_and_shuffle(final_proxies)
         if settings.ENABLE_ENDPOINT_FILTERING:
-            optimized_proxies = filter_unique_endpoints(final_proxies)
+            optimized_proxies = filter_unique_endpoints(optimized_proxies)
         else:
             logger.info("Endpoint filtering disabled by configuration.")
-            optimized_proxies = list(final_proxies)
 
         # Pareto Sort (in-place)
         sort_proxies_pareto(optimized_proxies, history)
@@ -424,6 +452,10 @@ async def run_full_pipeline(
     finally:
         # Stop tuner if running
         await concurrency.stop_tuner()
+        if time_limit_task:
+            time_limit_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await time_limit_task
 
         # Shutdown tester (Go process)
         if tester:

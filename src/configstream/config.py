@@ -30,6 +30,8 @@ class AppSettings(BaseSettings):
     SECURITY_CHECK_TIMEOUT: int = 8
     RETEST_TIMEOUT: int = 6
     GEOIP_TIMEOUT: int = 5
+    # Soft time limit for a batch run (0 disables). Default 6 hours.
+    BATCH_TIME_LIMIT_SECONDS: int = 20000
     GEOIP_CITY_DB_PATH: str = "data/GeoLite2-City.mmdb"
     GEOIP_ASN_DB_PATH: str = "data/GeoLite2-ASN.mmdb"
 
@@ -184,6 +186,8 @@ class AppSettings(BaseSettings):
             raise ValueError("TEST_TIMEOUT must be positive")
         if self.FETCH_TIMEOUT <= 0:
             raise ValueError("FETCH_TIMEOUT must be positive")
+        if self.BATCH_TIME_LIMIT_SECONDS < 0:
+            raise ValueError("BATCH_TIME_LIMIT_SECONDS must be >= 0")
         if self.MAX_WORKERS < 0:
             raise ValueError("MAX_WORKERS must be >= 0")
         if self.BATCH_SIZE <= 0:

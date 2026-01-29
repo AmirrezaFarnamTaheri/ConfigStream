@@ -294,6 +294,15 @@ def merge(
             console.print(f"Tested: {_get('tested')}")
             console.print(f"Working: {_get('working')}")
             console.print(f"GeoIP: {_get('geo_resolved')}")
+            time_limited = False
+            if hasattr(stats_obj, "time_limited"):
+                time_limited = bool(stats_obj.time_limited)
+            elif isinstance(stats, dict):
+                time_limited = bool(stats.get("time_limited", False))
+            if time_limited:
+                console.print(
+                    "[yellow]Time limit reached; output contains partial results.[/yellow]"
+                )
         else:
             console.print(f"\n[bold red]Pipeline Failed: {result.error}[/bold red]")
             sys.exit(1)

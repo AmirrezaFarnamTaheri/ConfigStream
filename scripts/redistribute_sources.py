@@ -1,11 +1,27 @@
 #!/usr/bin/env python3
 """
-Redistribute sources from all batch files into 11 balanced batches.
+Redistribute sources from all batch files into 14 balanced batches.
+Ensures links from the same project are spread across shards.
 """
 import glob
 import os
-import math
 from pathlib import Path
+from urllib.parse import urlparse
+
+
+def _project_key(url: str) -> str:
+    try:
+        parsed = urlparse(url)
+        host = parsed.netloc.lower().replace("www.", "")
+        parts = [p for p in parsed.path.split("/") if p]
+        if host in ("raw.githubusercontent.com", "github.com"):
+            if len(parts) >= 2:
+                return f"github:{parts[0]}/{parts[1]}"
+        if host in ("gitlab.com", "bitbucket.org") and len(parts) >= 2:
+            return f"{host}:{parts[0]}/{parts[1]}"
+        return host or url
+    except Exception:
+        return url
 
 
 def redistribute():
@@ -31,28 +47,47 @@ def redistribute():
         print("No sources found. Exiting.")
         return
 
-    # 3. Distribute into 11 batches
-    num_batches = 11
-    batch_size = math.ceil(total_sources / num_batches)
+    # 3. Distribute into 14 batches, separating projects when possible
+    num_batches = 14
+    print(f"Redistributing into {num_batches} batches with project separation...")
 
-    print(
-        f"Redistributing into {num_batches} batches (approx {batch_size} per batch)..."
-    )
+    batches = [[] for _ in range(num_batches)]
+    batch_projects = [set() for _ in range(num_batches)]
+    batch_loads = [0] * num_batches
 
-    for i in range(num_batches):
-        batch_num = i + 1
-        start_idx = i * batch_size
-        end_idx = start_idx + batch_size
-        chunk = sorted_sources[start_idx:end_idx]
+    project_groups = {}
+    for url in sorted_sources:
+        key = _project_key(url)
+        project_groups.setdefault(key, []).append(url)
 
-        filename = sources_dir / f"batch_{batch_num}.txt"
+    for project, items in sorted(
+        project_groups.items(), key=lambda x: len(x[1]), reverse=True
+    ):
+        if len(items) > num_batches:
+            print(
+                f"⚠️  Project {project} has {len(items)} links; "
+                "some shards will contain more than one link."
+            )
+        for url in items:
+            candidate_batches = [
+                i for i in range(num_batches) if project not in batch_projects[i]
+            ]
+            if not candidate_batches:
+                candidate_batches = list(range(num_batches))
+            target = min(candidate_batches, key=lambda i: batch_loads[i])
+            batches[target].append(url)
+            batch_projects[target].add(project)
+            batch_loads[target] += 1
+
+    for i, chunk in enumerate(batches, start=1):
+        filename = sources_dir / f"batch_{i}.txt"
         with open(filename, "w", encoding="utf-8") as f:
-            f.write(f"# Batch {batch_num} - {len(chunk)} sources\n")
+            f.write(f"# Batch {i} - {len(chunk)} sources\n")
             f.write("\n".join(chunk) + "\n")
 
         print(f"Wrote {filename} ({len(chunk)} sources)")
 
-    # 4. Cleanup extra batches (batch_12, etc.)
+    # 4. Cleanup extra batches (batch_15, etc.)
     # We re-glob because we might have deleted/created things
     batch_files_final = glob.glob(str(sources_dir / "batch_*.txt"))
     for bf in batch_files_final:

@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 from configstream.anomaly import AnomalyDetector
 from configstream.config import AppSettings
-from configstream.filtering import filter_unique_endpoints
+from configstream.filtering import dedupe_and_shuffle, filter_unique_endpoints
 from configstream.history.tracker import ProxyHistoryTracker
 from configstream.models import Proxy
 from configstream.pipeline_core import output_handler
@@ -274,6 +274,8 @@ def _merge_metadata(batch_dirs: Iterable[Path]) -> Dict[str, Any]:
         "vwarp_success": 0,
         "revived_warp": 0,
         "revived_vwarp": 0,
+        "time_limited": False,
+        "time_limit_seconds": 0,
     }
     drop_reasons: Dict[str, int] = {}
 
@@ -303,6 +305,15 @@ def _merge_metadata(batch_dirs: Iterable[Path]) -> Dict[str, Any]:
         totals["vwarp_success"] += int(data.get("vwarp_success", 0) or 0)
         totals["revived_warp"] += int(data.get("revived_warp", 0) or 0)
         totals["revived_vwarp"] += int(data.get("revived_vwarp", 0) or 0)
+
+        if data.get("time_limited"):
+            totals["time_limited"] = True
+        try:
+            limit_val = int(data.get("time_limit_seconds", 0) or 0)
+            if limit_val > totals["time_limit_seconds"]:
+                totals["time_limit_seconds"] = limit_val
+        except (TypeError, ValueError):
+            pass
 
         reasons = data.get("rejection_reasons", data.get("drop_reasons", {}))
         if isinstance(reasons, dict):
@@ -350,6 +361,7 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
         return
 
     settings = AppSettings()
+    all_proxies = dedupe_and_shuffle(all_proxies)
     if settings.ENABLE_ENDPOINT_FILTERING:
         all_proxies = filter_unique_endpoints(all_proxies)
 
@@ -380,6 +392,8 @@ def merge_batches(batch_glob: str, output_dir: str) -> None:
     stats.vwarp_success = int(stats_payload.get("vwarp_success", 0))
     stats.drop_reasons = stats_payload.get("drop_reasons", {})
     stats.final_count = len(all_proxies)
+    stats.time_limited = bool(stats_payload.get("time_limited", False))
+    stats.time_limit_seconds = int(stats_payload.get("time_limit_seconds", 0) or 0)
     stats.end_time = datetime.now(timezone.utc)
 
     output_path = Path(output_dir)

@@ -3,6 +3,7 @@ import re
 import glob
 import shutil
 import statistics
+from urllib.parse import urlparse
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -21,7 +22,22 @@ FETCH_TIME_REGEX = re.compile(r"Fetch=([\d.]+)ms")
 def get_current_batch_count() -> int:
     """Detect number of batch files to maintain existing parallelism."""
     count = len(list(SOURCES_DIR.glob("batch_*.txt")))
-    return max(count, 10)  # Default to at least 10
+    return max(count, 14)  # Default to at least 14
+
+
+def _project_key(url: str) -> str:
+    try:
+        parsed = urlparse(url)
+        host = parsed.netloc.lower().replace("www.", "")
+        parts = [p for p in parsed.path.split("/") if p]
+        if host in ("raw.githubusercontent.com", "github.com"):
+            if len(parts) >= 2:
+                return f"github:{parts[0]}/{parts[1]}"
+        if host in ("gitlab.com", "bitbucket.org") and len(parts) >= 2:
+            return f"{host}:{parts[0]}/{parts[1]}"
+        return host or url
+    except Exception:
+        return url
 
 
 def parse_logs(log_files: List[str]) -> Dict[str, Tuple[int, float]]:
@@ -140,16 +156,38 @@ def main() -> None:
     # 5. Sort by Weight (Descending) - Critical for Bin Packing
     final_sources.sort(key=lambda x: x[1], reverse=True)
 
-    # 6. Greedy Bin Packing
+    # 6. Greedy Bin Packing with project separation
     batches: List[List[str]] = [[] for _ in range(num_batches)]
     batch_loads: List[int] = [0] * num_batches
+    batch_projects: List[set[str]] = [set() for _ in range(num_batches)]
 
+    project_groups: Dict[str, List[Tuple[str, int]]] = {}
     for url, weight in final_sources:
-        # Find the batch with the current lowest load
-        min_load_index = batch_loads.index(min(batch_loads))
+        key = _project_key(url)
+        project_groups.setdefault(key, []).append((url, weight))
 
-        batches[min_load_index].append(url)
-        batch_loads[min_load_index] += weight
+    ordered_projects = sorted(
+        project_groups.items(),
+        key=lambda item: sum(weight for _, weight in item[1]),
+        reverse=True,
+    )
+
+    for project, items in ordered_projects:
+        if len(items) > num_batches:
+            print(
+                f"⚠️  Project {project} has {len(items)} sources; "
+                "some shards will contain more than one link."
+            )
+        for url, weight in sorted(items, key=lambda x: x[1], reverse=True):
+            candidate_batches = [
+                i for i in range(num_batches) if project not in batch_projects[i]
+            ]
+            if not candidate_batches:
+                candidate_batches = list(range(num_batches))
+            min_load_index = min(candidate_batches, key=lambda i: batch_loads[i])
+            batches[min_load_index].append(url)
+            batch_loads[min_load_index] += weight
+            batch_projects[min_load_index].add(project)
 
     # 7. Calculate Performance Metrics
     if batch_loads:
