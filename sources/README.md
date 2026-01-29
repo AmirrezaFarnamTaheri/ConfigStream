@@ -3,7 +3,8 @@
 This directory contains the source lists for the ConfigStream pipeline.
 
 ## Structure
-Sources are distributed across multiple batch files (`batch_*.txt`) to allow parallel processing.
+Sources are distributed across 14 batch files (`batch_*.txt`) to allow parallel
+processing while keeping links from the same project spread across shards.
 
 ## Policy: One Canonical Link Per Provider
 To avoid duplication and wasted bandwidth, we strictly enforce a **Canonical Link Policy**:

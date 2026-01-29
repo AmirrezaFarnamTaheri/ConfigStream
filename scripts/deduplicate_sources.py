@@ -91,7 +91,22 @@ EXTRA_SOURCES = [
 SOURCES_DIR = Path("sources")
 CONSOLIDATED_FILE = Path("consolidated_sources.txt")
 BATCH_PATTERN = "batch_*.txt"
-NUM_BATCHES = 10
+NUM_BATCHES = 14
+
+
+def _project_key(url: str) -> str:
+    try:
+        parsed = urlparse(url)
+        host = parsed.netloc.lower().replace("www.", "")
+        parts = [p for p in parsed.path.split("/") if p]
+        if host in ("raw.githubusercontent.com", "github.com"):
+            if len(parts) >= 2:
+                return f"github:{parts[0]}/{parts[1]}"
+        if host in ("gitlab.com", "bitbucket.org") and len(parts) >= 2:
+            return f"{host}:{parts[0]}/{parts[1]}"
+        return host or url
+    except Exception:
+        return url
 
 
 def get_domain(url: str) -> str:
@@ -171,12 +186,35 @@ def main():
     print(f"  - Blocked {blocked_count} dead/blacklisted links.")
     print(f"✨ Final source count: {len(final_urls)}")
 
-    # 4. Redistribute into Batches
+    # 4. Redistribute into Batches with project separation
     sorted_urls = sorted(list(final_urls))
     batches: List[List[str]] = [[] for _ in range(NUM_BATCHES)]
+    batch_projects = [set() for _ in range(NUM_BATCHES)]
+    batch_loads = [0] * NUM_BATCHES
 
-    for i, url in enumerate(sorted_urls):
-        batches[i % NUM_BATCHES].append(url)
+    project_groups = {}
+    for url in sorted_urls:
+        key = _project_key(url)
+        project_groups.setdefault(key, []).append(url)
+
+    for project, items in sorted(
+        project_groups.items(), key=lambda x: len(x[1]), reverse=True
+    ):
+        if len(items) > NUM_BATCHES:
+            print(
+                f"⚠️  Project {project} has {len(items)} links; "
+                "some shards will contain more than one link."
+            )
+        for url in items:
+            candidate_batches = [
+                i for i in range(NUM_BATCHES) if project not in batch_projects[i]
+            ]
+            if not candidate_batches:
+                candidate_batches = list(range(NUM_BATCHES))
+            target = min(candidate_batches, key=lambda i: batch_loads[i])
+            batches[target].append(url)
+            batch_projects[target].add(project)
+            batch_loads[target] += 1
 
     # 5. Write to files
     SOURCES_DIR.mkdir(exist_ok=True)

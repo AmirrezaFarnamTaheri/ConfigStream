@@ -132,8 +132,8 @@ def build_proxy_tags(proxy: Proxy) -> List[str]:
     else:
         tags.append("STATUS:DOWN")
 
-    cc = (proxy.country_code or "").upper() or "XX"
-    tags.append(f"GEO:{cc}")
+    cc = (proxy.country_code or "").upper()
+    tags.append(f"GEO:{get_flag_emoji(cc)}")
 
     if proxy.latency is not None:
         tags.append(f"LAT:{int(proxy.latency)}MS")
@@ -184,11 +184,12 @@ def format_proxy_name(template: str, proxy: Proxy) -> str:
         original_name = f"{proxy.address}:{proxy.port}"
 
     # 2. Create a dictionary of all possible values
-    cc = proxy.country_code or ""
+    cc = (proxy.country_code or "").upper()
     city = (proxy.city or "").strip()
     if city:
         city = city.replace(" ", "_")
-    geo = f"{cc}-{city}" if cc and city else (cc or "XX")
+    flag = get_flag_emoji(cc)
+    geo = f"{flag}-{city}" if city else flag
     stack = build_proxy_stack(proxy)
     status_tag = "UP" if proxy.is_working else "DOWN"
     process_tag = (proxy.process or "native").upper()
@@ -279,7 +280,7 @@ class ProxyTagger:
 
     # Default template when RENAME_TEMPLATE env var is not set
     DEFAULT_TEMPLATE = (
-        "{geo} {stack} {latency_tag} {status_tag} {process_tag} {issue_tag} {id_short}"
+        "{geo} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}"
     )
 
     def __init__(self, name_template: Optional[str] = None):
@@ -309,19 +310,9 @@ class ProxyTagger:
             f"Applying name template '{self.template}' to {len(proxies)} proxies..."
         )
 
-        # Track seen names to ensure uniqueness (vital for Sing-box/Clash clients)
-        seen_names: Dict[str, int] = {}
-
         for proxy in proxies:
             # Format the name using the template
             new_name = format_proxy_name(self.template, proxy)
-
-            # Ensure uniqueness by appending counter for duplicates
-            if new_name in seen_names:
-                seen_names[new_name] += 1
-                new_name = f"{new_name} #{seen_names[new_name]}"
-            else:
-                seen_names[new_name] = 1
 
             # Modify the 'remarks' field IN-PLACE
             proxy.remarks = new_name
@@ -333,7 +324,5 @@ class ProxyTagger:
                         tags.append(tag)
             proxy.tags = tags
 
-        logger.info(
-            f"Tagged {len(proxies)} proxies with {len(seen_names)} unique names"
-        )
+        logger.info(f"Tagged {len(proxies)} proxies with template metadata")
         return proxies

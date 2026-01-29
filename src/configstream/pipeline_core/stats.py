@@ -32,6 +32,9 @@ class PipelineStats:
     scanner_ips_found: int = 0
     washer_success_count: int = 0
     smart_chain_count: int = 0
+    # Time budget handling
+    time_limited: bool = False
+    time_limit_seconds: int = 0
 
     # Revived Stats
     revived_warp: int = 0
@@ -81,6 +84,8 @@ class PipelineStats:
                 "scanner_ips_found": self.scanner_ips_found,
                 "washer_success_count": self.washer_success_count,
                 "smart_chain_count": self.smart_chain_count,
+                "time_limited": self.time_limited,
+                "time_limit_seconds": self.time_limit_seconds,
                 "revived_warp": self.revived_warp,
                 "revived_vwarp": self.revived_vwarp,
                 "total_revived": self.total_revived,

@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 from collections import defaultdict
 from typing import Dict, List, Tuple
+from urllib.parse import urlparse
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -19,7 +20,22 @@ logger = logging.getLogger(__name__)
 
 DB_PATH = Path("data/source_quality.db")
 SOURCES_DIR = Path("sources")
-BATCH_COUNT = 10
+BATCH_COUNT = 14
+
+
+def _project_key(url: str) -> str:
+    try:
+        parsed = urlparse(url)
+        host = parsed.netloc.lower().replace("www.", "")
+        parts = [p for p in parsed.path.split("/") if p]
+        if host in ("raw.githubusercontent.com", "github.com"):
+            if len(parts) >= 2:
+                return f"github:{parts[0]}/{parts[1]}"
+        if host in ("gitlab.com", "bitbucket.org") and len(parts) >= 2:
+            return f"{host}:{parts[0]}/{parts[1]}"
+        return host or url
+    except Exception:
+        return url
 
 
 def get_source_durations(db_path: Path) -> Dict[str, float]:
@@ -97,12 +113,35 @@ def distribute_sources(
 
     batches: Dict[int, List[Tuple[str, float]]] = defaultdict(list)
     batch_times = {i: 0.0 for i in range(1, num_batches + 1)}
+    batch_projects = {i: set() for i in range(1, num_batches + 1)}
 
+    project_groups: Dict[str, List[Tuple[str, float]]] = defaultdict(list)
     for source, duration in weighted_sources:
-        # Find batch with minimum current total duration
-        min_batch = min(batch_times, key=lambda k: batch_times[k])
-        batches[min_batch].append((source, duration))
-        batch_times[min_batch] += duration
+        project_groups[_project_key(source)].append((source, duration))
+
+    ordered_projects = sorted(
+        project_groups.items(),
+        key=lambda item: sum(duration for _, duration in item[1]),
+        reverse=True,
+    )
+
+    for project, items in ordered_projects:
+        if len(items) > num_batches:
+            logger.warning(
+                "Project %s has %d links; some shards will contain more than one link.",
+                project,
+                len(items),
+            )
+        for source, duration in sorted(items, key=lambda x: x[1], reverse=True):
+            candidates = [
+                i for i in batch_times if project not in batch_projects[i]
+            ]
+            if not candidates:
+                candidates = list(batch_times.keys())
+            min_batch = min(candidates, key=lambda k: batch_times[k])
+            batches[min_batch].append((source, duration))
+            batch_times[min_batch] += duration
+            batch_projects[min_batch].add(project)
 
     # Extract just the source strings
     result = {i: [x[0] for x in batch_list] for i, batch_list in batches.items()}

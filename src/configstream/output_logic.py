@@ -411,6 +411,8 @@ def save_metadata(
     geo_resolved = 0
     cache_misses = 0
     final_count = 0
+    time_limited = False
+    time_limit_seconds = 0
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
@@ -440,6 +442,8 @@ def save_metadata(
         geo_resolved = stats.get("geo_resolved", 0)
         cache_misses = stats.get("cache_misses", 0)
         final_count = stats.get("final_count", 0)
+        time_limited = bool(stats.get("time_limited", False))
+        time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
@@ -484,6 +488,10 @@ def save_metadata(
             cache_misses = stats.cache_misses
         if hasattr(stats, "final_count"):
             final_count = stats.final_count
+        if hasattr(stats, "time_limited"):
+            time_limited = bool(stats.time_limited)
+        if hasattr(stats, "time_limit_seconds"):
+            time_limit_seconds = int(stats.time_limit_seconds or 0)
 
     # Fallback heuristics if counts still 0 (use values from single-pass loop)
     if washed_count == 0:
@@ -560,6 +568,8 @@ def save_metadata(
         "geo_resolved": geo_resolved,
         "cache_misses": cache_misses,
         "final_count": final_count or working,
+        "time_limited": time_limited,
+        "time_limit_seconds": time_limit_seconds,
         # Canonical Keys (Consolidated)
         "total_lines_sourced": total_sourced,
         "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
