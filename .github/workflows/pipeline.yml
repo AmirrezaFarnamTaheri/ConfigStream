@@ -197,6 +197,8 @@ jobs:
           WARP_KEY_POOL: ${{ secrets.WARP_KEY_POOL }}
           UPDATE_INTERVAL_HOURS: 5
           CANARY_URL: "https://httpbin.org"
+          BATCH_TIME_LIMIT_SECONDS: 18000
+          BATCH_TIME_LIMIT_GRACE_SECONDS: 600
         run: |
           set -euxo pipefail
           echo "Running pipeline for batch $BATCH_NUMBER"

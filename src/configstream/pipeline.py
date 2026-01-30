@@ -332,7 +332,28 @@ async def run_full_pipeline(
 
     try:
         try:
-            await asyncio.gather(producer_task, *consumer_tasks)
+            gather_task = asyncio.gather(producer_task, *consumer_tasks)
+            if time_limit_seconds and time_limit_seconds > 0:
+                grace_seconds = int(
+                    getattr(settings, "BATCH_TIME_LIMIT_GRACE_SECONDS", 0)
+                )
+                hard_timeout = time_limit_seconds + max(0, grace_seconds)
+                await asyncio.wait_for(gather_task, timeout=hard_timeout)
+            else:
+                await gather_task
+        except asyncio.TimeoutError:
+            # Hard stop to prevent CI timeouts when soft stop can't drain in time.
+            stats.time_limited = True
+            stop_event.set()
+            logger.warning(
+                "Hard batch time limit reached. Cancelling pipeline tasks to finalize output."
+            )
+            for t in consumer_tasks:
+                t.cancel()
+            producer_task.cancel()
+            await asyncio.gather(*consumer_tasks, return_exceptions=True)
+            with suppress(asyncio.CancelledError):
+                await producer_task
         except (asyncio.CancelledError, KeyboardInterrupt, SystemExit) as e:
             # Specific exception handling for graceful shutdown
             logger.info(f"Pipeline interrupted: {type(e).__name__}")

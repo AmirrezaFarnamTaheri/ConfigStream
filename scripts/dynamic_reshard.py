@@ -3,6 +3,10 @@ import re
 import glob
 import shutil
 import statistics
+import json
+import math
+import sqlite3
+from collections import defaultdict
 from urllib.parse import urlparse
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -11,7 +15,12 @@ from typing import Dict, List, Tuple
 LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
 SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
+DB_PATH = Path("data/source_quality.db")
 DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
+MIN_BATCHES = 14
+MAX_BATCHES = 16
+TARGET_BATCH_SECONDS = 14400  # Aim for <= 4 hours per batch
+RUNS_PER_SOURCE = 5
 
 # Regex for Source Summary block in consumer.py
 # Source Summary [URL]: Raw=123 ... Fetch=500ms Dur=1500ms
@@ -22,7 +31,7 @@ FETCH_TIME_REGEX = re.compile(r"Fetch=([\d.]+)ms")
 def get_current_batch_count() -> int:
     """Detect number of batch files to maintain existing parallelism."""
     count = len(list(SOURCES_DIR.glob("batch_*.txt")))
-    return max(count, 14)  # Default to at least 14
+    return max(count, MIN_BATCHES)
 
 
 def _project_key(url: str) -> str:
@@ -40,12 +49,14 @@ def _project_key(url: str) -> str:
         return url
 
 
-def parse_logs(log_files: List[str]) -> Dict[str, Tuple[int, float]]:
+def parse_logs(
+    log_files: List[str], test_time_per_proxy: float
+) -> Dict[str, Tuple[int, float]]:
     """
-    Scans log files to build a map of {source_url: (proxy_count, fetch_duration)}.
+    Scans log files to build a map of {source_url: (proxy_count, total_duration)}.
     """
     source_metrics: Dict[str, Tuple[int, float]] = {}
-    print(f"🔍 Scanning {len(log_files)} log files...")
+    print(f"[INFO] Scanning {len(log_files)} log files...")
 
     for log_file in log_files:
         try:
@@ -69,18 +80,159 @@ def parse_logs(log_files: List[str]) -> Dict[str, Tuple[int, float]]:
                     fetch_match = FETCH_TIME_REGEX.search(block)
                     fetch_ms = float(fetch_match.group(1)) if fetch_match else 0.0
                     fetch_duration = fetch_ms / 1000.0
+                    test_duration = count * test_time_per_proxy
+                    total_duration = fetch_duration + test_duration
 
                     if count > 0:
                         existing = source_metrics.get(url, (0, 0.0))
-                        if fetch_duration > existing[1]:
-                            source_metrics[url] = (count, fetch_duration)
+                        if total_duration > existing[1]:
+                            source_metrics[url] = (count, total_duration)
                 except Exception:
                     continue
         except Exception as e:
-            print(f"⚠️  Could not read {log_file}: {e}")
+            print(f"[WARN] Could not read {log_file}: {e}")
 
-    print(f"📊 Identified {len(source_metrics)} active sources from logs.")
+    print(f"[INFO] Identified {len(source_metrics)} active sources from logs.")
     return source_metrics
+
+
+def parse_db_runs(
+    db_path: Path,
+) -> Tuple[Dict[str, Tuple[int, float]], Dict[str, Dict[str, float]]]:
+    """
+    Load recent per-source timing data from source_quality.db.
+
+    Returns:
+        source_metrics: {url: (fetched_count, avg_duration_seconds)}
+        batch_stats: {batch_id: {"sources": int, "total_duration_s": float, "total_fetched": int}}
+    """
+    if not db_path.exists():
+        return {}, {}
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='source_runs'"
+            )
+            if not cursor.fetchone():
+                return {}, {}
+
+            rows = conn.execute(
+                """
+                SELECT url, timestamp, duration_ms, fetched_count, working_count, batch_source
+                FROM source_runs
+                """
+            ).fetchall()
+    except Exception as e:
+        print(f"[WARN] Failed to read {db_path}: {e}")
+        return {}, {}
+
+    per_url_runs: Dict[str, List[Tuple[int, float, int, int, str]]] = defaultdict(list)
+    for url, ts, duration_ms, fetched_count, working_count, batch_source in rows:
+        if not url:
+            continue
+        try:
+            ts_i = int(ts or 0)
+        except Exception:
+            ts_i = 0
+        try:
+            dur_ms = float(duration_ms or 0.0)
+        except Exception:
+            dur_ms = 0.0
+        try:
+            fetched = int(fetched_count or 0)
+        except Exception:
+            fetched = 0
+        try:
+            working = int(working_count or 0)
+        except Exception:
+            working = 0
+        batch_tag = str(batch_source or "").strip()
+        per_url_runs[url].append((ts_i, dur_ms, fetched, working, batch_tag))
+
+    source_metrics: Dict[str, Tuple[int, float]] = {}
+    batch_stats: Dict[str, Dict[str, float]] = defaultdict(
+        lambda: {"sources": 0, "total_duration_s": 0.0, "total_fetched": 0}
+    )
+
+    for url, runs in per_url_runs.items():
+        runs.sort(key=lambda r: r[0], reverse=True)
+        recent = runs[:RUNS_PER_SOURCE]
+        if not recent:
+            continue
+        avg_duration_s = sum(r[1] for r in recent) / max(len(recent), 1) / 1000.0
+        avg_fetched = int(sum(r[2] for r in recent) / max(len(recent), 1))
+        source_metrics[url] = (avg_fetched, max(0.0, avg_duration_s))
+
+        # For batch stats, use the latest run only.
+        ts_i, dur_ms, fetched, _working, batch_tag = runs[0]
+        if batch_tag.startswith("batch_"):
+            batch_stats[batch_tag]["sources"] += 1
+            batch_stats[batch_tag]["total_duration_s"] += max(0.0, dur_ms / 1000.0)
+            batch_stats[batch_tag]["total_fetched"] += int(fetched)
+
+    return source_metrics, batch_stats
+
+
+def _write_batch_stats(batch_stats: Dict[str, Dict[str, float]]) -> None:
+    if not batch_stats:
+        return
+    output = {}
+    for batch_id, data in batch_stats.items():
+        output[batch_id] = {
+            "sources": int(data.get("sources", 0)),
+            "total_duration_s": float(data.get("total_duration_s", 0.0)),
+            "total_fetched": int(data.get("total_fetched", 0)),
+        }
+    out_path = Path("data") / "batch_load_stats.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(output, indent=2), encoding="utf-8")
+
+
+def _recommend_batch_count(total_seconds: float, current_batches: int) -> int:
+    if total_seconds <= 0:
+        return current_batches
+    required = int(math.ceil(total_seconds / TARGET_BATCH_SECONDS))
+    required = max(required, MIN_BATCHES, current_batches)
+    return min(required, MAX_BATCHES)
+
+
+def _distribute_sources(
+    final_sources: List[Tuple[str, int]], num_batches: int
+) -> Tuple[List[List[str]], List[int]]:
+    batches: List[List[str]] = [[] for _ in range(num_batches)]
+    batch_loads: List[int] = [0] * num_batches
+    batch_projects: List[set[str]] = [set() for _ in range(num_batches)]
+
+    project_groups: Dict[str, List[Tuple[str, int]]] = {}
+    for url, weight in final_sources:
+        key = _project_key(url)
+        project_groups.setdefault(key, []).append((url, weight))
+
+    ordered_projects = sorted(
+        project_groups.items(),
+        key=lambda item: sum(weight for _, weight in item[1]),
+        reverse=True,
+    )
+
+    for project, items in ordered_projects:
+        if len(items) > num_batches:
+            print(
+                f"[WARN] Project {project} has {len(items)} sources; "
+                "some shards will contain more than one link."
+            )
+        for url, weight in sorted(items, key=lambda x: x[1], reverse=True):
+            candidate_batches = [
+                i for i in range(num_batches) if project not in batch_projects[i]
+            ]
+            if not candidate_batches:
+                candidate_batches = list(range(num_batches))
+            min_load_index = min(candidate_batches, key=lambda i: batch_loads[i])
+            batches[min_load_index].append(url)
+            batch_loads[min_load_index] += weight
+            batch_projects[min_load_index].add(project)
+
+    return batches, batch_loads
 
 
 def get_existing_sources() -> List[str]:
@@ -100,7 +252,7 @@ def get_existing_sources() -> List[str]:
                 if line and not line.startswith("#"):
                     urls.add(line)
         except Exception as e:
-            print(f"⚠️  Could not read source file {f}: {e}")
+            print(f"[WARN] Could not read source file {f}: {e}")
     return list(urls)
 
 
@@ -109,7 +261,7 @@ def main() -> None:
     log_files = glob.glob(LOG_PATTERN)
 
     if not SOURCES_DIR.exists():
-        print(f"❌ Sources directory '{SOURCES_DIR}' not found.")
+        print(f"[ERROR] Sources directory '{SOURCES_DIR}' not found.")
         return
 
     # Determine batch count dynamically
@@ -118,31 +270,35 @@ def main() -> None:
 
     # 2. Backup
     BACKUP_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"📦 Backing up sources to {BACKUP_DIR}...")
+    print(f"[INFO] Backing up sources to {BACKUP_DIR}...")
     for f in SOURCES_DIR.glob("batch_*.txt"):
         try:
             shutil.copy2(f, BACKUP_DIR)
         except Exception as e:
-            print(f"⚠️  Backup failed for {f}: {e}")
+            print(f"[WARN] Backup failed for {f}: {e}")
 
     # 3. Gather Data
-    observed_metrics = parse_logs(log_files) if log_files else {}
+    # Test time is proportional to proxy count (500 workers, ~0.03s per proxy)
+    TEST_TIME_PER_PROXY = 0.03  # seconds (empirical estimate with Go tester)
+    db_metrics, batch_stats = parse_db_runs(DB_PATH)
+    observed_metrics: Dict[str, Tuple[int, float]] = {}
+    if log_files:
+        observed_metrics.update(
+            parse_logs(log_files, test_time_per_proxy=TEST_TIME_PER_PROXY)
+        )
+    if db_metrics:
+        # Prefer DB metrics when available
+        observed_metrics.update(db_metrics)
+    if batch_stats:
+        _write_batch_stats(batch_stats)
     all_urls = get_existing_sources()
 
     # 4. Assign Weights Based on Fetch + Test Duration
-    # Total batch time = fetch_time + test_time
-    # Test time is proportional to proxy count (500 workers, ~0.03s per proxy)
-    TEST_TIME_PER_PROXY = 0.03  # seconds (empirical estimate with Go tester)
 
     final_sources: List[Tuple[str, int]] = []
     for url in all_urls:
         if url in observed_metrics:
-            count, fetch_duration = observed_metrics[url]
-            # Calculate total time: fetch + testing
-            # Test time = count * time_per_proxy
-            test_duration = count * TEST_TIME_PER_PROXY
-            total_duration = fetch_duration + test_duration
-
+            count, total_duration = observed_metrics[url]
             # Convert to deciseconds for integer weights
             weight = int(total_duration * 10)
             # Ensure minimum weight of 1
@@ -157,37 +313,16 @@ def main() -> None:
     final_sources.sort(key=lambda x: x[1], reverse=True)
 
     # 6. Greedy Bin Packing with project separation
-    batches: List[List[str]] = [[] for _ in range(num_batches)]
-    batch_loads: List[int] = [0] * num_batches
-    batch_projects: List[set[str]] = [set() for _ in range(num_batches)]
+    total_seconds = sum(weight for _, weight in final_sources) / 10.0
+    recommended_batches = _recommend_batch_count(total_seconds, num_batches)
+    if recommended_batches > num_batches:
+        print(
+            f"[INFO] Increasing batch count from {num_batches} to {recommended_batches} "
+            f"(target {TARGET_BATCH_SECONDS}s max per batch)."
+        )
+        num_batches = recommended_batches
 
-    project_groups: Dict[str, List[Tuple[str, int]]] = {}
-    for url, weight in final_sources:
-        key = _project_key(url)
-        project_groups.setdefault(key, []).append((url, weight))
-
-    ordered_projects = sorted(
-        project_groups.items(),
-        key=lambda item: sum(weight for _, weight in item[1]),
-        reverse=True,
-    )
-
-    for project, items in ordered_projects:
-        if len(items) > num_batches:
-            print(
-                f"⚠️  Project {project} has {len(items)} sources; "
-                "some shards will contain more than one link."
-            )
-        for url, weight in sorted(items, key=lambda x: x[1], reverse=True):
-            candidate_batches = [
-                i for i in range(num_batches) if project not in batch_projects[i]
-            ]
-            if not candidate_batches:
-                candidate_batches = list(range(num_batches))
-            min_load_index = min(candidate_batches, key=lambda i: batch_loads[i])
-            batches[min_load_index].append(url)
-            batch_loads[min_load_index] += weight
-            batch_projects[min_load_index].add(project)
+    batches, batch_loads = _distribute_sources(final_sources, num_batches)
 
     # 7. Calculate Performance Metrics
     if batch_loads:
@@ -202,7 +337,7 @@ def main() -> None:
         min_load = 0
 
     # 8. Write Output
-    print("\n⚖️  Optimized Batch Distribution (Time-Based):")
+    print("\n[INFO] Optimized Batch Distribution (Time-Based):")
     print(f"{'Batch':<10} | {'Sources':<10} | {'Est. Time (s)':<15}")
     print("-" * 45)
 
@@ -239,16 +374,16 @@ def main() -> None:
         for stale in stale_batches:
             try:
                 stale.unlink()
-                print(f"🗑️ Deleted stale batch: {stale.name}")
+                print(f"[INFO] Deleted stale batch: {stale.name}")
             except Exception as e:
-                print(f"⚠️ Failed to delete stale batch {stale}: {e}")
+                print(f"[WARN] Failed to delete stale batch {stale}: {e}")
 
         # 2. Rename temps to final
         for tmp_path, final_path in temp_files:
             tmp_path.replace(final_path)
 
     except Exception as e:
-        print(f"❌ Atomic write failed: {e}")
+        print(f"[ERROR] Atomic write failed: {e}")
         # Cleanup temps
         for tmp, _ in temp_files:
             if tmp.exists():
@@ -256,14 +391,25 @@ def main() -> None:
         return
 
     # 9. Log Performance Metrics
-    print("\n📊 Time-Based Load Balancing Metrics:")
+    print("\n[INFO] Time-Based Load Balancing Metrics:")
     print(f"  Load Balance Ratio: {load_balance_ratio:.2f}x (ideal: 1.00x)")
     print(f"  Standard Deviation: {std_dev / 10:.2f}s")
     print(f"  Slowest Batch: {max_load / 10:.1f}s")
     print(f"  Fastest Batch: {min_load / 10:.1f}s")
     print(f"  Sources with timing data: {len(observed_metrics)}/{len(all_urls)}")
 
-    print("\n✅ Refactor complete. Run the pipeline again to see performance gains.")
+    if batch_stats:
+        print("\n[INFO] Observed Batch Load (latest runs):")
+        for batch_id in sorted(batch_stats.keys()):
+            data = batch_stats[batch_id]
+            print(
+                f"  {batch_id}: {int(data['sources'])} sources, "
+                f"{data['total_duration_s']:.1f}s total"
+            )
+
+    print(
+        "\n[INFO] Refactor complete. Run the pipeline again to see performance gains."
+    )
 
 
 if __name__ == "__main__":
