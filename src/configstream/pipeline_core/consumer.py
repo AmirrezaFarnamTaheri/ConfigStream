@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import inspect
+import os
 import orjson as json
 from typing import List, Optional, Any, TYPE_CHECKING
 
@@ -525,6 +526,8 @@ async def processing_consumer(
             except Exception:
                 pass
             try:
+                batch_number = os.getenv("BATCH_NUMBER", "").strip()
+                batch_source = f"batch_{batch_number}" if batch_number else "pipeline"
                 await loop.run_in_executor(
                     None,
                     quality_tracker.record_run,
@@ -536,7 +539,7 @@ async def processing_consumer(
                         "working_count": working_count,
                         "geoip_json": json.dumps(geoip_stats).decode(),
                         "failure_modes_json": json.dumps(failure_modes).decode(),
-                        "batch_source": "pipeline",
+                        "batch_source": batch_source,
                     },
                 )
             except Exception:
