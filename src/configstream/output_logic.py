@@ -102,9 +102,9 @@ def _select_chosen_proxies(proxies: List[Proxy]) -> List[Proxy]:
         chosen.extend(candidates)
 
     if CHOSEN_TOTAL_TARGET > 0 and len(chosen) > CHOSEN_TOTAL_TARGET:
-        chosen = sorted(
-            chosen, key=lambda p: (p.latency is None, p.latency or 9e9)
-        )[:CHOSEN_TOTAL_TARGET]
+        chosen = sorted(chosen, key=lambda p: (p.latency is None, p.latency or 9e9))[
+            :CHOSEN_TOTAL_TARGET
+        ]
 
     return chosen
 
@@ -215,9 +215,7 @@ def generate_categorized_outputs(
             AtomicFileWriter.write_text(out_path, content)
             generated_files[key] = out_path
         except Exception as exc:
-            logger.warning(
-                "Failed to generate %s output: %s", adapter_name, str(exc)
-            )
+            logger.warning("Failed to generate %s output: %s", adapter_name, str(exc))
 
     # 3e. Side products pack (OpenVPN + WireGuard + plain URIs)
     side_products_path = output_dir / "side_products.zip"
@@ -225,9 +223,7 @@ def generate_categorized_outputs(
         p for p in proxies if (p.protocol or "").lower() == "openvpn" and p.config
     ]
     wireguard_candidates = [
-        p
-        for p in proxies
-        if (p.protocol or "").lower() in ("wireguard", "wg")
+        p for p in proxies if (p.protocol or "").lower() in ("wireguard", "wg")
     ]
     if raw_content or openvpn_candidates or wireguard_candidates:
         tmp_path = None
@@ -236,9 +232,7 @@ def generate_categorized_outputs(
                 dir=output_dir, prefix=".side_products.", suffix=".tmp", delete=False
             ) as tmp:
                 tmp_path = tmp.name
-            with zipfile.ZipFile(
-                tmp_path, "w", compression=zipfile.ZIP_DEFLATED
-            ) as zf:
+            with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr("proxies.txt", raw_content)
                 for proxy in openvpn_candidates:
                     name = _safe_filename(

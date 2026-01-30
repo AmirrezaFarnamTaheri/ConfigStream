@@ -289,7 +289,9 @@ class ShadowrocketAdapter(Adapter):
             return base
         return f"{base}#{safe_name}"
 
-    def _rewrite_vmess_name(self, raw: str, raw_name: str, safe_name: str) -> Optional[str]:
+    def _rewrite_vmess_name(
+        self, raw: str, raw_name: str, safe_name: str
+    ) -> Optional[str]:
         if not raw_name:
             return raw
         try:
@@ -323,7 +325,9 @@ class ShadowrocketAdapter(Adapter):
         reconstructed_count = 0
         for p in proxies:
             # Skip revived placeholders; they are chains, not raw URIs.
-            if p.protocol == "revived" or str(p.config).lower().startswith("revived://"):
+            if p.protocol == "revived" or str(p.config).lower().startswith(
+                "revived://"
+            ):
                 continue
 
             # Normalize existing URIs to enforce consistent tags and protocols.
@@ -333,7 +337,9 @@ class ShadowrocketAdapter(Adapter):
                 raw_fragment = ""
                 if "#" in raw:
                     raw_fragment = raw.split("#", 1)[1]
-                raw_name = p.remarks or urllib.parse.unquote(raw_fragment) or "ConfigStream"
+                raw_name = (
+                    p.remarks or urllib.parse.unquote(raw_fragment) or "ConfigStream"
+                )
                 safe_name = (
                     urllib.parse.quote(raw_name)
                     if p.remarks or not raw_fragment

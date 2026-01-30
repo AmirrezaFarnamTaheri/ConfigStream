@@ -65,7 +65,7 @@ def redistribute():
     ):
         if len(items) > num_batches:
             print(
-                f"⚠️  Project {project} has {len(items)} links; "
+                f"Warning: Project {project} has {len(items)} links; "
                 "some shards will contain more than one link."
             )
         for url in items:

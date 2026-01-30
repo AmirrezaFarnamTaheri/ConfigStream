@@ -132,8 +132,8 @@ Running on a 7GB RAM shared runner requires strict discipline.
 
 To scale indefinitely, we use the **Matrix Strategy**:
 
-1.  **Sharding**: Source files are split into `sources/batch_1.txt` through `batch_11.txt`.
-2.  **Parallel Execution**: GitHub starts 11 independent VMs.
+1.  **Sharding**: Source files are split into `sources/batch_1.txt` through `batch_14.txt`.
+2.  **Parallel Execution**: GitHub starts 14 independent VMs.
     *   VM 1 processes Batch 1.
     *   VM 2 processes Batch 2.
     *   ...
@@ -142,7 +142,7 @@ To scale indefinitely, we use the **Matrix Strategy**:
     *   They download a *common* cache at the start.
     *   At the end, they upload their *deltas* (new findings) as artifacts.
 4.  **Merge Job**:
-    *   The final job downloads all 11 artifact sets.
+    *   The final job downloads all 14 artifact sets.
     *   It executes `scripts/merge_batches.py` to consolidate the SQLite databases and proxy lists into a single master dataset.
     *   This master dataset generates the final `metadata.json` and subscriptions.
 

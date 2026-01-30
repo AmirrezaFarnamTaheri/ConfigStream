@@ -26,7 +26,9 @@ async def test_max_response_size_behavior():
     mock_client = MagicMock(spec=httpx.AsyncClient)
     mock_response = MagicMock()
     mock_response.status_code = 200
-    mock_response.headers = {"Content-Length": str(app_settings.MAX_RESPONSE_SIZE + 100)}
+    mock_response.headers = {
+        "Content-Length": str(app_settings.MAX_RESPONSE_SIZE + 100)
+    }
 
     # Mock stream context manager
     mock_stream = MagicMock()
