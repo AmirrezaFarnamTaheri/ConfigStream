@@ -113,9 +113,7 @@ def distribute_sources(
 
     batches: Dict[int, List[Tuple[str, float]]] = defaultdict(list)
     batch_times: Dict[int, float] = {i: 0.0 for i in range(1, num_batches + 1)}
-    batch_projects: Dict[int, Set[str]] = {
-        i: set() for i in range(1, num_batches + 1)
-    }
+    batch_projects: Dict[int, Set[str]] = {i: set() for i in range(1, num_batches + 1)}
 
     project_groups: Dict[str, List[Tuple[str, float]]] = defaultdict(list)
     for source, duration in weighted_sources:
