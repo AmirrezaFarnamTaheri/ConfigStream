@@ -117,7 +117,7 @@ def get_domain(url: str) -> str:
 
 
 def main():
-    print("🚀 Starting Source Deduplication & Restoration...")
+    print("Starting Source Deduplication & Restoration...")
 
     # 1. Gather all existing sources from consolidated file (Source of Truth)
     existing_urls: Set[str] = set()
@@ -128,7 +128,7 @@ def main():
             if line and not line.startswith("#"):
                 existing_urls.add(line)
     else:
-        print("⚠️ consolidated_sources.txt not found, falling back to batches.")
+        print("Warning: consolidated_sources.txt not found, falling back to batches.")
         if SOURCES_DIR.exists():
             for f in SOURCES_DIR.glob(BATCH_PATTERN):
                 content = f.read_text(encoding="utf-8").splitlines()
@@ -137,7 +137,7 @@ def main():
                     if line and not line.startswith("#"):
                         existing_urls.add(line)
 
-    print(f"📦 Loaded {len(existing_urls)} existing sources.")
+    print(f"Loaded {len(existing_urls)} existing sources.")
 
     # 2. Identify Domains for New Sources
     new_source_domains = {get_domain(u): u for u in NEW_SOURCES}
@@ -181,10 +181,10 @@ def main():
             final_urls.add(url)
             kept_count += 1
 
-    print("🧹 Deduplication complete.")
+    print("Deduplication complete.")
     print(f"  - Dropped {dropped_count} subset/duplicate links.")
     print(f"  - Blocked {blocked_count} dead/blacklisted links.")
-    print(f"✨ Final source count: {len(final_urls)}")
+    print(f"Final source count: {len(final_urls)}")
 
     # 4. Redistribute into Batches with project separation
     sorted_urls = sorted(list(final_urls))
@@ -202,7 +202,7 @@ def main():
     ):
         if len(items) > NUM_BATCHES:
             print(
-                f"⚠️  Project {project} has {len(items)} links; "
+                f"Warning: Project {project} has {len(items)} links; "
                 "some shards will contain more than one link."
             )
         for url in items:
@@ -233,7 +233,7 @@ def main():
     CONSOLIDATED_FILE.write_text("\n".join(sorted_urls), encoding="utf-8")
 
     print(
-        f"💾 Written {len(final_urls)} sources to {NUM_BATCHES} batch files and consolidated_sources.txt."
+        f"Written {len(final_urls)} sources to {NUM_BATCHES} batch files and consolidated_sources.txt."
     )
 
 
