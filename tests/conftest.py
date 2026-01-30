@@ -14,9 +14,10 @@ except ImportError:
     pass
 
 
-# Apply nest_asyncio only on older runtimes where nested loops are expected.
+# Apply nest_asyncio on runtimes where pytest-asyncio may invoke Runner.run
+# inside an already running loop (observed on 3.12 in CI).
 def _should_patch_nest_asyncio() -> bool:
-    return sys.version_info < (3, 12)
+    return sys.version_info < (3, 13)
 
 
 if _should_patch_nest_asyncio():
