@@ -7,6 +7,7 @@ import glob
 import os
 from pathlib import Path
 from urllib.parse import urlparse
+from typing import List, Tuple
 
 
 def _project_key(url: str) -> str:
@@ -24,24 +25,46 @@ def _project_key(url: str) -> str:
         return url
 
 
-def redistribute():
-    sources_dir = Path("sources")
-    all_lines = set()
+def _read_sources_from_file(path: Path) -> List[str]:
+    if not path.exists():
+        return []
+    lines: List[str] = []
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line and not line.startswith("#"):
+            lines.append(line)
+    return lines
 
-    # 1. Collect all existing sources
+
+def _read_sources_from_batches(sources_dir: Path) -> Tuple[List[str], int]:
     batch_files = glob.glob(str(sources_dir / "batch_*.txt"))
     print(f"Found {len(batch_files)} batch files.")
-
+    sources: List[str] = []
     for bf in batch_files:
         with open(bf, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
+            for raw in f:
+                line = raw.strip()
                 if line and not line.startswith("#"):
-                    all_lines.add(line)
+                    sources.append(line)
+    return sources, len(batch_files)
 
-    sorted_sources = sorted(list(all_lines))
-    total_sources = len(sorted_sources)
-    print(f"Total unique sources found: {total_sources}")
+
+def redistribute():
+    sources_dir = Path("sources")
+    consolidated_file = Path("consolidated_sources.txt")
+
+    # 1. Collect all existing sources
+    sources = _read_sources_from_file(consolidated_file)
+    batch_count = 0
+    if sources:
+        print(f"Loaded {len(sources)} sources from {consolidated_file}.")
+    else:
+        sources, batch_count = _read_sources_from_batches(sources_dir)
+        print(f"Loaded {len(sources)} sources from {batch_count} batch files.")
+
+    total_sources = len(sources)
+    unique_sources = len(set(sources))
+    print(f"Total sources: {total_sources} (unique: {unique_sources})")
 
     if total_sources == 0:
         print("No sources found. Exiting.")
@@ -56,7 +79,7 @@ def redistribute():
     batch_loads = [0] * num_batches
 
     project_groups = {}
-    for url in sorted_sources:
+    for url in sources:
         key = _project_key(url)
         project_groups.setdefault(key, []).append(url)
 
