@@ -146,7 +146,9 @@ async def test_fetch_from_source_too_large_header():
     mock_response.status_code = 200
     app_settings = AppSettings()
     app_settings.MAX_RESPONSE_SIZE = 100
-    mock_response.headers = {"Content-Length": str(app_settings.MAX_RESPONSE_SIZE + 100)}
+    mock_response.headers = {
+        "Content-Length": str(app_settings.MAX_RESPONSE_SIZE + 100)
+    }
 
     mock_stream_ctx = AsyncMock()
     mock_stream_ctx.__aenter__.return_value = mock_response

@@ -18,34 +18,60 @@ separators are collapsed, and leading/trailing separators are trimmed.
 These placeholders are available to the name template (the default uses a
 subset):
 
-- `remarks`: Original proxy name (fallback to `address:port` if empty).
-- `protocol`: Uppercased protocol name.
-- `stack`: Composite stack label (protocol + transport + security, etc.).
-- `transport`: Transport label only (e.g., `WS`, `GRPC`).
-- `security`: Security label only (e.g., `TLS`, `REALITY`).
-- `status`: `UP` or `DOWN`.
-- `status_tag`: Same as `status`.
-- `process`: Uppercased process origin (`NATIVE`, `REVIVED-WARP`, etc.).
-- `process_tag`: Same as `process`.
-- `latency_tag`: `NNNms` string or empty if missing.
-- `issue_tag`: `SEC:...` aggregation string or empty.
-- `geo`: Flag emoji with optional city suffix.
-- `country`: Original country name/code when available.
-- `country_code`: ISO 2-letter country code.
-- `country_flag`: Flag emoji derived from `country_code`.
-- `city`: City name (if available).
-- `latency`: Integer latency in ms as a string (no `ms` suffix).
-- `asn`: ASN value if known (e.g., `AS15169`).
-- `address`: Host/IP used by the proxy.
-- `port`: Proxy port.
-- `id`: Proxy unique ID (if present).
-- `id_short`: First 6 chars of `id` (not used in the default template).
+- `remarks`:
+  - Original proxy name.
+  - Fallback: `address:port` if empty or generic.
+- `protocol`:
+  - Uppercased protocol name (e.g., `VLESS`, `TROJAN`, `SS2022`).
+- `stack`:
+  - Composite stack label (protocol + transport + security + revival + method).
+  - See "stack" section for ordering and rules.
+- `transport`:
+  - Transport label only (e.g., `WS`, `GRPC`, `H2`, `TCP`).
+- `security`:
+  - Security label only (`TLS` or `REALITY`) when detected; empty otherwise.
+- `status`:
+  - `UP` for working proxies; `DOWN` for failed proxies.
+- `status_tag`:
+  - Same value as `status`.
+- `process`:
+  - Uppercased `proxy.process` (e.g., `NATIVE`, `REVIVED-WARP`).
+- `process_tag`:
+  - Same value as `process`.
+- `latency_tag`:
+  - `NNNms` string; empty if latency is unknown.
+- `issue_tag`:
+  - `SEC:<ISSUE1>,<ISSUE2>` aggregation string; empty if no issues.
+- `geo`:
+  - Flag emoji derived from `country_code`, optionally `FLAG-City`.
+  - Country code is not included when a flag is available.
+- `country`:
+  - Country name or code if supplied by GeoIP.
+- `country_code`:
+  - ISO 2-letter country code if known; empty otherwise.
+- `country_flag`:
+  - Flag emoji derived from `country_code` or `🌐` when unknown.
+- `city`:
+  - City name when available.
+- `latency`:
+  - Integer latency in ms as a string (no `ms` suffix).
+- `asn`:
+  - ASN identifier if known (e.g., `AS15169`).
+- `address`:
+  - Host/IP used by the proxy.
+- `port`:
+  - Proxy port as a string.
+- `id`:
+  - Proxy unique ID when present.
+- `id_short`:
+  - First 6 chars of `id` (not used in the default template).
 
 ### Section Details
 
 `geo`
 - Derived from `country_code`.
 - Value is a flag emoji (for example `🇺🇸`) or `🌐` when unknown/invalid.
+- Country code is not shown when a flag is available.
 - If `city` exists, output is `FLAG-City` with spaces converted to `_`
   (for example `🇩🇪-Frankfurt_am_Main`).
 
@@ -133,6 +159,7 @@ has tags, new tags are appended without duplication.
   - Derived from `proxy.is_working`.
 - `GEO:<FLAG>`
   - Country flag emoji from `country_code`, or `🌐` if unknown.
+  - Country code is not included when a flag is available.
 - `LAT:<N>MS`
   - Integer latency in milliseconds when known.
 

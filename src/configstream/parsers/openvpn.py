@@ -7,6 +7,7 @@ from ..constants import MAX_OPENVPN_CONFIG_SIZE
 
 logger = logging.getLogger(__name__)
 
+
 def parse_openvpn(config: str) -> Optional[Proxy]:
     """
     Parse OpenVPN configuration content.

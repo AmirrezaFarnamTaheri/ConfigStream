@@ -112,9 +112,7 @@ class SingBoxTester:
                         configs, check_honeypot=False
                     )
                 )
-                missing = [
-                    p for p in revived_candidates if p.id not in custom_results
-                ]
+                missing = [p for p in revived_candidates if p.id not in custom_results]
                 if missing:
                     logger.warning(
                         "Go tester returned empty/partial results for revived chains; falling back to Python tester."

@@ -8,14 +8,13 @@
 
 ## [2.1.0] - 2025-01-07
 
-### Extensive Backend Audit & Source Expansion (Batch 12 Redistribution)
+### Extensive Backend Audit & Source Expansion (Batch 14 Redistribution)
 
 **Major Enhancements**
-- **Source Expansion**: Added ~100 new proxy sources (URLs/APIs) and redistributed them evenly into 11 batches (800+ total unique sources).
+- **Source Expansion**: Added ~100 new proxy sources (URLs/APIs) and redistributed them evenly into 14 batches (800+ total unique sources).
 - **Dynamic Resharding**: Created and executed `scripts/redistribute_sources.py` to:
-    - Collect all sources from `batch_1.txt` through `batch_12.txt` (and new sources).
-    - Deduplicate and balance them evenly into 11 optimized batches (`batch_1` to `batch_11`).
-    - Remove the temporary `batch_12.txt`.
+    - Collect all sources from existing batch files (and new sources).
+    - Deduplicate and balance them evenly into 14 optimized batches (`batch_1` to `batch_14`).
 - **Fetcher Robustness**:
     - Fixed handling of "200 OK" empty responses (now logged clearly as "Empty content" instead of failure).
     - Patched `MAX_RESPONSE_SIZE` to respect `AppSettings` (200MB) instead of hardcoded 10MB limit.

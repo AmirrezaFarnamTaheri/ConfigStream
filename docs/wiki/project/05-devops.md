@@ -17,10 +17,10 @@ The pipeline uses a **Matrix Strategy** to parallelize work.
 
 ```mermaid
 graph TD
-    A[Setup Job] --> B{Matrix Jobs 1..11}
+    A[Setup Job] --> B{Matrix Jobs 1..14}
     B -->|Shard 1| C1[Run Batch 1]
     B -->|Shard 2| C2[Run Batch 2]
-    B -->|...| C3[Run Batch 11]
+    B -->|...| C3[Run Batch 14]
     C1 --> D[Merge & Publish]
     C2 --> D
     C3 --> D
@@ -36,7 +36,7 @@ graph TD
 *   Pre-warms DNS cache.
 
 #### 2. Sharding (`aggregator`)
-*   We split `sources/` into 11 batch files (`sources/batch_1.txt` to `batch_11.txt`).
+*   We split `sources/` into 14 batch files (`sources/batch_1.txt` to `batch_14.txt`).
 *   Each job in the matrix picks one batch file and processes it independently.
 *   **Result**: Each job outputs a `partial_output_{id}.zip`.
 

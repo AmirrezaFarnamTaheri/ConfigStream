@@ -133,9 +133,7 @@ def distribute_sources(
                 len(items),
             )
         for source, duration in sorted(items, key=lambda x: x[1], reverse=True):
-            candidates = [
-                i for i in batch_times if project not in batch_projects[i]
-            ]
+            candidates = [i for i in batch_times if project not in batch_projects[i]]
             if not candidates:
                 candidates = list(batch_times.keys())
             min_batch = min(candidates, key=lambda k: batch_times[k])

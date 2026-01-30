@@ -46,6 +46,39 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Download Pipeline Output (from workflow_run)
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download ${{ github.event.workflow_run.id }} \
+            --name pipeline-output \
+            --dir output
+
+          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
+            echo "Error: Failed to download pipeline-output artifact"
+            exit 1
+          fi
+
+      - name: Download Pipeline Output (latest successful)
+        if: github.event_name != 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LATEST_RUN=$(gh run list --workflow=pipeline.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$LATEST_RUN" ]; then
+            echo "Error: No successful pipeline run found"
+            exit 1
+          fi
+          gh run download "$LATEST_RUN" \
+            --name pipeline-output \
+            --dir output
+
+          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
+            echo "Error: Failed to download pipeline-output artifact"
+            exit 1
+          fi
+
       - name: Verify pipeline outputs exist
         id: verify
         run: |

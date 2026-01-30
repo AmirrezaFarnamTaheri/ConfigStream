@@ -783,7 +783,7 @@ User Request
 │  └────────────────────────────────────────────────────┘  │
 │                          │                               │
 │  ┌───────────────────────▼────────────────────────────┐  │
-│  │  Job: Process (Matrix: batch 1-11)                 │  │
+│  │  Job: Process (Matrix: batch 1-14)                 │  │
 │  │  • Run pipeline for batch_N.txt                   │  │
 │  │  • Test proxies (parallel)                        │  │
 │  │  • Upload shard artifact                          │  │
@@ -817,12 +817,12 @@ User Request
 
 **Problem**: Single job would timeout (6-hour limit)
 
-**Solution**: Matrix strategy (11 parallel jobs)
+**Solution**: Matrix strategy (14 parallel jobs)
 
 ```yaml
 strategy:
   matrix:
-    batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
 ```
 
 **Benefits**:

@@ -75,6 +75,24 @@ jobs:
           echo "ℹ️ The next retest will run according to the standard 3-hour schedule."
           exit 0
 
+      - name: Download latest pipeline output
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LATEST_RUN=$(gh run list --workflow=pipeline.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$LATEST_RUN" ]; then
+            echo "No successful pipeline run found; skipping retest."
+            exit 0
+          fi
+          gh run download "$LATEST_RUN" \
+            --name pipeline-output \
+            --dir output
+
+          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
+            echo "No output directory found after download; skipping retest."
+            exit 0
+          fi
+
       - name: Check previous output existence
         id: check_output
         run: |

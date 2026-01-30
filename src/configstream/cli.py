@@ -231,7 +231,9 @@ def merge(
     console.print("[bold green]🚀 Starting ConfigStream Pipeline[/bold green]")
     console.print(f"Sources: {len(valid_sources)} | Output: {output}")
     if max_proxies is not None:
-        console.print("[yellow]Warning: --max-proxies is deprecated and ignored.[/yellow]")
+        console.print(
+            "[yellow]Warning: --max-proxies is deprecated and ignored.[/yellow]"
+        )
         max_proxies = None
 
     async def _run():
