@@ -10,7 +10,7 @@ import statistics
 import logging
 from pathlib import Path
 from collections import defaultdict
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 from urllib.parse import urlparse
 
 logging.basicConfig(
@@ -112,8 +112,10 @@ def distribute_sources(
     weighted_sources.sort(key=lambda x: x[1], reverse=True)
 
     batches: Dict[int, List[Tuple[str, float]]] = defaultdict(list)
-    batch_times = {i: 0.0 for i in range(1, num_batches + 1)}
-    batch_projects = {i: set() for i in range(1, num_batches + 1)}
+    batch_times: Dict[int, float] = {i: 0.0 for i in range(1, num_batches + 1)}
+    batch_projects: Dict[int, Set[str]] = {
+        i: set() for i in range(1, num_batches + 1)
+    }
 
     project_groups: Dict[str, List[Tuple[str, float]]] = defaultdict(list)
     for source, duration in weighted_sources:

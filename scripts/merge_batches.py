@@ -41,6 +41,15 @@ def _coerce_float(value: Any) -> Optional[float]:
         return None
 
 
+def _coerce_int(value: Any) -> Optional[int]:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _load_json(path: Path) -> Optional[Any]:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -56,9 +65,8 @@ def _proxy_from_dict(raw: Dict[str, Any]) -> Optional[Proxy]:
     port_raw = raw.get("port")
     if not config or not protocol or not address:
         return None
-    try:
-        port = int(port_raw)
-    except (TypeError, ValueError):
+    port = _coerce_int(port_raw)
+    if port is None:
         return None
     if port <= 0 or port > 65535:
         return None
