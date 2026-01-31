@@ -1,0 +1,145 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 356ms | UP | NATIVE",
+        "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 411ms | UP | NATIVE",
+        "🇦🇹-Vienna | VLESS+TCP+REALITY | 504ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 2442ms | UP | NATIVE",
+        "🇦🇹-Vienna | HTTP+TCP | 2166ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 356ms | UP | NATIVE",
+        "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 411ms | UP | NATIVE",
+        "🇦🇹-Vienna | VLESS+TCP+REALITY | 504ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 2442ms | UP | NATIVE",
+        "🇦🇹-Vienna | HTTP+TCP | 2166ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 356ms | UP | NATIVE",
+      "server": "37.235.56.69",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 411ms | UP | NATIVE",
+      "server": "37.235.56.69",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "vless",
+      "tag": "🇦🇹-Vienna | VLESS+TCP+REALITY | 504ms | UP | NATIVE",
+      "server": "38.180.144.156",
+      "server_port": 8443,
+      "uuid": "ae0a43bc-6189-456e-9b8a-a93f39af336e",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.microsoft.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "76Cfr5qNl9BCrSb6jdkrgj0HbwfyCwj4oF6JJVhKD0s",
+          "short_id": "42d7234d875308a2"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 2442ms | UP | NATIVE",
+      "server": "178.115.255.177",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇹-Vienna | HTTP+TCP | 2166ms | UP | NATIVE",
+      "server": "95.163.153.116",
+      "server_port": 20184,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

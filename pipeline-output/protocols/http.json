@@ -1,0 +1,2199 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇺🇸-Richmond | HTTP+TCP | 15ms | UP | NATIVE",
+        "🇺🇸-Los_Angeles | HTTP+TCP | 60ms | UP | NATIVE",
+        "🇺🇸-Council_Bluffs | HTTP+TCP | 203ms | UP | NATIVE",
+        "🇺🇸-Chicago | HTTP+TCP | 205ms | UP | NATIVE",
+        "🇺🇸-Washington | HTTP+TCP | 304ms | UP | NATIVE",
+        "🇩🇪-Hamburg | HTTP+TCP | 433ms | UP | NATIVE",
+        "🇺🇸-Elk_Grove_Village | HTTP+TCP | 448ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 460ms | UP | NATIVE",
+        "🇨🇿-Unknown | HTTP+TCP | 475ms | UP | NATIVE",
+        "🇨🇴-Cartagena | HTTP+TCP | 475ms | UP | NATIVE",
+        "🇫🇮-Helsinki | HTTP+TCP | 483ms | UP | NATIVE",
+        "🇬🇧-Slough | HTTP+TCP | 484ms | UP | NATIVE",
+        "🇩🇪-Falkenstein | HTTP+TCP | 524ms | UP | NATIVE",
+        "🇺🇦-Kyiv | HTTP+TCP | 526ms | UP | NATIVE",
+        "🇩🇪-Nuremberg | HTTP+TCP | 534ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 556ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 583ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 593ms | UP | NATIVE",
+        "🇰🇷-Dongdaemun | HTTP+TCP | 624ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 627ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 631ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 661ms | UP | NATIVE",
+        "🇰🇷-Seo-gu | HTTP+TCP | 665ms | UP | NATIVE",
+        "🇰🇷-Gangnam-gu | HTTP+TCP | 666ms | UP | NATIVE",
+        "🇹🇼-Hsinchu | HTTP+TCP | 667ms | UP | NATIVE",
+        "🇺🇸-Unknown | HTTP+TCP | 679ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 680ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 799ms | UP | NATIVE",
+        "🇮🇳-Panvel | HTTP+TCP | 871ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 878ms | UP | NATIVE",
+        "🇮🇩-Bogor | HTTP+TCP | 880ms | UP | NATIVE",
+        "🇮🇩-Batam | HTTP+TCP | 898ms | UP | NATIVE",
+        "🇰🇷-Pocheon-si | HTTP+TCP | 909ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 909ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 911ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HTTP+TCP | 915ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 938ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 956ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 974ms | UP | NATIVE",
+        "🇹🇷-Unknown | HTTP+TCP | 1083ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 2840ms | UP | NATIVE",
+        "🇪🇨-Unknown | HTTP+TCP | 4087ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2335ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 1900ms | UP | NATIVE",
+        "🇮🇩-Tanjungbalai | HTTP+TCP | 5220ms | UP | NATIVE",
+        "🇪🇸-Madrid | HTTP+TCP | 3156ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 4189ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5341ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 2789ms | UP | NATIVE",
+        "🇻🇳-Unknown | HTTP+TCP | 4925ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2091ms | UP | NATIVE",
+        "🇲🇽-Tapachula | HTTP+TCP | 2669ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2717ms | UP | NATIVE",
+        "🇺🇸-San_Jose | HTTP+TCP | 4183ms | UP | NATIVE",
+        "🇺🇸-Clifton | HTTP+TCP | 2637ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 2742ms | UP | NATIVE",
+        "🇻🇪-Unknown | HTTP+TCP | 5915ms | UP | NATIVE",
+        "🇻🇪-Valencia | HTTP+TCP | 4050ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | HTTP+TCP | 4232ms | UP | NATIVE",
+        "🇪🇬-Unknown | HTTP+TCP | 5988ms | UP | NATIVE",
+        "🇧🇷-Porto_Alegre | HTTP+TCP | 4535ms | UP | NATIVE",
+        "🇺🇸-Phoenix | HTTP+TCP | 2891ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 1425ms | UP | NATIVE",
+        "🇻🇪-San_Cristóbal | HTTP+TCP | 3516ms | UP | NATIVE",
+        "🇲🇽-Zapopan | HTTP+TCP | 2307ms | UP | NATIVE",
+        "🇺🇿-Tashkent | HTTP+TCP | 1387ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 1506ms | UP | NATIVE",
+        "🇮🇩-Bekasi | HTTP+TCP | 5964ms | UP | NATIVE",
+        "🇳🇱-Dronten | HTTP+TCP | 5412ms | UP | NATIVE",
+        "🇩🇴-Unknown | HTTP+TCP | 4256ms | UP | NATIVE",
+        "🇮🇩-Kediri | HTTP+TCP | 2558ms | UP | NATIVE",
+        "🇨🇴-Garzón | HTTP+TCP | 2718ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4762ms | UP | NATIVE",
+        "🇺🇸-San_Jose | HTTP+TCP | 2089ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 3178ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2588ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5021ms | UP | NATIVE",
+        "🇮🇩-Indramayu | HTTP+TCP | 3889ms | UP | NATIVE",
+        "🇵🇭-Manila | HTTP+TCP | 2914ms | UP | NATIVE",
+        "🇹🇷-Antakya | HTTP+TCP | 2510ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3754ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4362ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 1361ms | UP | NATIVE",
+        "🇺🇸-Atlanta | HTTP+TCP | 4302ms | UP | NATIVE",
+        "🇲🇩-Unknown | HTTP+TCP | 1470ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3183ms | UP | NATIVE",
+        "🇮🇪-Dublin | HTTP+TCP | 2018ms | UP | NATIVE",
+        "🇨🇴-El_Bagre | HTTP+TCP | 1817ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 4653ms | UP | NATIVE",
+        "🇲🇽-Cabo_San_Lucas | HTTP+TCP | 3677ms | UP | NATIVE",
+        "🇩🇪-Nuremberg | HTTP+TCP | 1841ms | UP | NATIVE",
+        "🇹🇭-Chon_Buri | HTTP+TCP | 4001ms | UP | NATIVE",
+        "🇻🇳-Hanoi | HTTP+TCP | 2936ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 5856ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 1652ms | UP | NATIVE",
+        "🇺🇸-San_Jose | HTTP+TCP | 3043ms | UP | NATIVE",
+        "🇰🇷-Seoul | HTTP+TCP | 2736ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 5309ms | UP | NATIVE",
+        "🇭🇺-Unknown | HTTP+TCP | 4800ms | UP | NATIVE",
+        "🇮🇳-Mangaluru | HTTP+TCP | 3235ms | UP | NATIVE",
+        "🇹🇭-Unknown | HTTP+TCP | 5410ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5577ms | UP | NATIVE",
+        "🇮🇩-Indramayu | HTTP+TCP | 5302ms | UP | NATIVE",
+        "🇻🇳-Hanoi | HTTP+TCP | 3791ms | UP | NATIVE",
+        "🇩🇴-Guananico | HTTP+TCP | 5270ms | UP | NATIVE",
+        "🇺🇸-Brooklyn | HTTP+TCP | 4292ms | UP | NATIVE",
+        "🇦🇷-Puerto_Eldorado | HTTP+TCP | 1775ms | UP | NATIVE",
+        "🇮🇩-Bandung | HTTP+TCP | 5729ms | UP | NATIVE",
+        "🇺🇸-Brooklyn | HTTP+TCP | 3337ms | UP | NATIVE",
+        "🇭🇺-Kisharsány | HTTP+TCP | 4355ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 2233ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 4157ms | UP | NATIVE",
+        "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
+        "🇮🇩-Mojokerto | HTTP+TCP | 5373ms | UP | NATIVE",
+        "🇪🇬-Cairo | HTTP+TCP | 1153ms | UP | NATIVE",
+        "🇮🇩-Tangerang | HTTP+TCP | 2822ms | UP | NATIVE",
+        "🇯🇵-Tokyo | HTTP+TCP | 1128ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 3105ms | UP | NATIVE",
+        "🇮🇩-Surabaya | HTTP+TCP | 2345ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 1138ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 2091ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 2213ms | UP | NATIVE",
+        "🇨🇴-Cartagena | HTTP+TCP | 5240ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 1620ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 1080ms | UP | NATIVE",
+        "🇦🇷-Unknown | HTTP+TCP | 3885ms | UP | NATIVE",
+        "🇳🇵-Patan | HTTP+TCP | 3981ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | HTTP+TCP | 1185ms | UP | NATIVE",
+        "🇵🇰-Lahore | HTTP+TCP | 1683ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 3430ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | HTTP+TCP | 3957ms | UP | NATIVE",
+        "🇵🇭-Cabanatuan_City | HTTP+TCP | 5722ms | UP | NATIVE",
+        "🇰🇿-Karaganda | HTTP+TCP | 2004ms | UP | NATIVE",
+        "🇧🇷-Itajaí | HTTP+TCP | 5136ms | UP | NATIVE",
+        "🇺🇸-Clifton | HTTP+TCP | 1465ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3691ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 5585ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4152ms | UP | NATIVE",
+        "🇦🇹-Vienna | HTTP+TCP | 2166ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 3457ms | UP | NATIVE",
+        "🇯🇵-Yokohama | HTTP+TCP | 2716ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2657ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 3537ms | UP | NATIVE",
+        "🇨🇳-Unknown | HTTP+TCP | 1153ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4672ms | UP | NATIVE",
+        "🇧🇷-Cachoeiras_de_Macacu | HTTP+TCP | 4192ms | UP | NATIVE",
+        "🇹🇷-Unknown | HTTP+TCP | 5203ms | UP | NATIVE",
+        "🇨🇱-Unknown | HTTP+TCP | 5843ms | UP | NATIVE",
+        "🇲🇽-Tecozautla | HTTP+TCP | 5362ms | UP | NATIVE",
+        "🇵🇰-Multan | HTTP+TCP | 1277ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2142ms | UP | NATIVE",
+        "🇹🇷-Antakya | HTTP+TCP | 3619ms | UP | NATIVE",
+        "🇻🇳-Hanoi | HTTP+TCP | 2889ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4815ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | HTTP+TCP | 3190ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 2417ms | UP | NATIVE",
+        "🇿🇲-Lusaka | HTTP+TCP | 3403ms | UP | NATIVE",
+        "🇮🇩-Malang | HTTP+TCP | 3224ms | UP | NATIVE",
+        "🇺🇸-Phillipsburg | HTTP+TCP | 3688ms | UP | NATIVE",
+        "🇹🇼-Taipei | HTTP+TCP | 2654ms | UP | NATIVE",
+        "🇰🇭-Unknown | HTTP+TCP | 4033ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5851ms | UP | NATIVE",
+        "🇲🇽-San_Felipe_Orizatlán | HTTP+TCP | 1917ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇺🇸-Richmond | HTTP+TCP | 15ms | UP | NATIVE",
+        "🇺🇸-Los_Angeles | HTTP+TCP | 60ms | UP | NATIVE",
+        "🇺🇸-Council_Bluffs | HTTP+TCP | 203ms | UP | NATIVE",
+        "🇺🇸-Chicago | HTTP+TCP | 205ms | UP | NATIVE",
+        "🇺🇸-Washington | HTTP+TCP | 304ms | UP | NATIVE",
+        "🇩🇪-Hamburg | HTTP+TCP | 433ms | UP | NATIVE",
+        "🇺🇸-Elk_Grove_Village | HTTP+TCP | 448ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 460ms | UP | NATIVE",
+        "🇨🇿-Unknown | HTTP+TCP | 475ms | UP | NATIVE",
+        "🇨🇴-Cartagena | HTTP+TCP | 475ms | UP | NATIVE",
+        "🇫🇮-Helsinki | HTTP+TCP | 483ms | UP | NATIVE",
+        "🇬🇧-Slough | HTTP+TCP | 484ms | UP | NATIVE",
+        "🇩🇪-Falkenstein | HTTP+TCP | 524ms | UP | NATIVE",
+        "🇺🇦-Kyiv | HTTP+TCP | 526ms | UP | NATIVE",
+        "🇩🇪-Nuremberg | HTTP+TCP | 534ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 556ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 583ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 593ms | UP | NATIVE",
+        "🇰🇷-Dongdaemun | HTTP+TCP | 624ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 627ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 631ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 661ms | UP | NATIVE",
+        "🇰🇷-Seo-gu | HTTP+TCP | 665ms | UP | NATIVE",
+        "🇰🇷-Gangnam-gu | HTTP+TCP | 666ms | UP | NATIVE",
+        "🇹🇼-Hsinchu | HTTP+TCP | 667ms | UP | NATIVE",
+        "🇺🇸-Unknown | HTTP+TCP | 679ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 680ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 799ms | UP | NATIVE",
+        "🇮🇳-Panvel | HTTP+TCP | 871ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 878ms | UP | NATIVE",
+        "🇮🇩-Bogor | HTTP+TCP | 880ms | UP | NATIVE",
+        "🇮🇩-Batam | HTTP+TCP | 898ms | UP | NATIVE",
+        "🇰🇷-Pocheon-si | HTTP+TCP | 909ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 909ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 911ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HTTP+TCP | 915ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 938ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 956ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 974ms | UP | NATIVE",
+        "🇹🇷-Unknown | HTTP+TCP | 1083ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 2840ms | UP | NATIVE",
+        "🇪🇨-Unknown | HTTP+TCP | 4087ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2335ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 1900ms | UP | NATIVE",
+        "🇮🇩-Tanjungbalai | HTTP+TCP | 5220ms | UP | NATIVE",
+        "🇪🇸-Madrid | HTTP+TCP | 3156ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 4189ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5341ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 2789ms | UP | NATIVE",
+        "🇻🇳-Unknown | HTTP+TCP | 4925ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2091ms | UP | NATIVE",
+        "🇲🇽-Tapachula | HTTP+TCP | 2669ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2717ms | UP | NATIVE",
+        "🇺🇸-San_Jose | HTTP+TCP | 4183ms | UP | NATIVE",
+        "🇺🇸-Clifton | HTTP+TCP | 2637ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 2742ms | UP | NATIVE",
+        "🇻🇪-Unknown | HTTP+TCP | 5915ms | UP | NATIVE",
+        "🇻🇪-Valencia | HTTP+TCP | 4050ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | HTTP+TCP | 4232ms | UP | NATIVE",
+        "🇪🇬-Unknown | HTTP+TCP | 5988ms | UP | NATIVE",
+        "🇧🇷-Porto_Alegre | HTTP+TCP | 4535ms | UP | NATIVE",
+        "🇺🇸-Phoenix | HTTP+TCP | 2891ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 1425ms | UP | NATIVE",
+        "🇻🇪-San_Cristóbal | HTTP+TCP | 3516ms | UP | NATIVE",
+        "🇲🇽-Zapopan | HTTP+TCP | 2307ms | UP | NATIVE",
+        "🇺🇿-Tashkent | HTTP+TCP | 1387ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 1506ms | UP | NATIVE",
+        "🇮🇩-Bekasi | HTTP+TCP | 5964ms | UP | NATIVE",
+        "🇳🇱-Dronten | HTTP+TCP | 5412ms | UP | NATIVE",
+        "🇩🇴-Unknown | HTTP+TCP | 4256ms | UP | NATIVE",
+        "🇮🇩-Kediri | HTTP+TCP | 2558ms | UP | NATIVE",
+        "🇨🇴-Garzón | HTTP+TCP | 2718ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4762ms | UP | NATIVE",
+        "🇺🇸-San_Jose | HTTP+TCP | 2089ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 3178ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2588ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5021ms | UP | NATIVE",
+        "🇮🇩-Indramayu | HTTP+TCP | 3889ms | UP | NATIVE",
+        "🇵🇭-Manila | HTTP+TCP | 2914ms | UP | NATIVE",
+        "🇹🇷-Antakya | HTTP+TCP | 2510ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3754ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4362ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 1361ms | UP | NATIVE",
+        "🇺🇸-Atlanta | HTTP+TCP | 4302ms | UP | NATIVE",
+        "🇲🇩-Unknown | HTTP+TCP | 1470ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3183ms | UP | NATIVE",
+        "🇮🇪-Dublin | HTTP+TCP | 2018ms | UP | NATIVE",
+        "🇨🇴-El_Bagre | HTTP+TCP | 1817ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 4653ms | UP | NATIVE",
+        "🇲🇽-Cabo_San_Lucas | HTTP+TCP | 3677ms | UP | NATIVE",
+        "🇩🇪-Nuremberg | HTTP+TCP | 1841ms | UP | NATIVE",
+        "🇹🇭-Chon_Buri | HTTP+TCP | 4001ms | UP | NATIVE",
+        "🇻🇳-Hanoi | HTTP+TCP | 2936ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 5856ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 1652ms | UP | NATIVE",
+        "🇺🇸-San_Jose | HTTP+TCP | 3043ms | UP | NATIVE",
+        "🇰🇷-Seoul | HTTP+TCP | 2736ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 5309ms | UP | NATIVE",
+        "🇭🇺-Unknown | HTTP+TCP | 4800ms | UP | NATIVE",
+        "🇮🇳-Mangaluru | HTTP+TCP | 3235ms | UP | NATIVE",
+        "🇹🇭-Unknown | HTTP+TCP | 5410ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5577ms | UP | NATIVE",
+        "🇮🇩-Indramayu | HTTP+TCP | 5302ms | UP | NATIVE",
+        "🇻🇳-Hanoi | HTTP+TCP | 3791ms | UP | NATIVE",
+        "🇩🇴-Guananico | HTTP+TCP | 5270ms | UP | NATIVE",
+        "🇺🇸-Brooklyn | HTTP+TCP | 4292ms | UP | NATIVE",
+        "🇦🇷-Puerto_Eldorado | HTTP+TCP | 1775ms | UP | NATIVE",
+        "🇮🇩-Bandung | HTTP+TCP | 5729ms | UP | NATIVE",
+        "🇺🇸-Brooklyn | HTTP+TCP | 3337ms | UP | NATIVE",
+        "🇭🇺-Kisharsány | HTTP+TCP | 4355ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 2233ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 4157ms | UP | NATIVE",
+        "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
+        "🇮🇩-Mojokerto | HTTP+TCP | 5373ms | UP | NATIVE",
+        "🇪🇬-Cairo | HTTP+TCP | 1153ms | UP | NATIVE",
+        "🇮🇩-Tangerang | HTTP+TCP | 2822ms | UP | NATIVE",
+        "🇯🇵-Tokyo | HTTP+TCP | 1128ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 3105ms | UP | NATIVE",
+        "🇮🇩-Surabaya | HTTP+TCP | 2345ms | UP | NATIVE",
+        "🇻🇬-Unknown | HTTP+TCP | 1138ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 2091ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 2213ms | UP | NATIVE",
+        "🇨🇴-Cartagena | HTTP+TCP | 5240ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 1620ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 1080ms | UP | NATIVE",
+        "🇦🇷-Unknown | HTTP+TCP | 3885ms | UP | NATIVE",
+        "🇳🇵-Patan | HTTP+TCP | 3981ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | HTTP+TCP | 1185ms | UP | NATIVE",
+        "🇵🇰-Lahore | HTTP+TCP | 1683ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 3430ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | HTTP+TCP | 3957ms | UP | NATIVE",
+        "🇵🇭-Cabanatuan_City | HTTP+TCP | 5722ms | UP | NATIVE",
+        "🇰🇿-Karaganda | HTTP+TCP | 2004ms | UP | NATIVE",
+        "🇧🇷-Itajaí | HTTP+TCP | 5136ms | UP | NATIVE",
+        "🇺🇸-Clifton | HTTP+TCP | 1465ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3691ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 5585ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4152ms | UP | NATIVE",
+        "🇦🇹-Vienna | HTTP+TCP | 2166ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 3457ms | UP | NATIVE",
+        "🇯🇵-Yokohama | HTTP+TCP | 2716ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2657ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 3537ms | UP | NATIVE",
+        "🇨🇳-Unknown | HTTP+TCP | 1153ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4672ms | UP | NATIVE",
+        "🇧🇷-Cachoeiras_de_Macacu | HTTP+TCP | 4192ms | UP | NATIVE",
+        "🇹🇷-Unknown | HTTP+TCP | 5203ms | UP | NATIVE",
+        "🇨🇱-Unknown | HTTP+TCP | 5843ms | UP | NATIVE",
+        "🇲🇽-Tecozautla | HTTP+TCP | 5362ms | UP | NATIVE",
+        "🇵🇰-Multan | HTTP+TCP | 1277ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 2142ms | UP | NATIVE",
+        "🇹🇷-Antakya | HTTP+TCP | 3619ms | UP | NATIVE",
+        "🇻🇳-Hanoi | HTTP+TCP | 2889ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4815ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | HTTP+TCP | 3190ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 2417ms | UP | NATIVE",
+        "🇿🇲-Lusaka | HTTP+TCP | 3403ms | UP | NATIVE",
+        "🇮🇩-Malang | HTTP+TCP | 3224ms | UP | NATIVE",
+        "🇺🇸-Phillipsburg | HTTP+TCP | 3688ms | UP | NATIVE",
+        "🇹🇼-Taipei | HTTP+TCP | 2654ms | UP | NATIVE",
+        "🇰🇭-Unknown | HTTP+TCP | 4033ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5851ms | UP | NATIVE",
+        "🇲🇽-San_Felipe_Orizatlán | HTTP+TCP | 1917ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Richmond | HTTP+TCP | 15ms | UP | NATIVE",
+      "server": "64.112.185.210",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Los_Angeles | HTTP+TCP | 60ms | UP | NATIVE",
+      "server": "66.80.0.115",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Council_Bluffs | HTTP+TCP | 203ms | UP | NATIVE",
+      "server": "35.225.22.61",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Chicago | HTTP+TCP | 205ms | UP | NATIVE",
+      "server": "68.235.35.171",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Washington | HTTP+TCP | 304ms | UP | NATIVE",
+      "server": "52.188.28.218",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪-Hamburg | HTTP+TCP | 433ms | UP | NATIVE",
+      "server": "195.222.249.165",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Elk_Grove_Village | HTTP+TCP | 448ms | UP | NATIVE",
+      "server": "107.173.141.163",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-St_Petersburg | HTTP+TCP | 460ms | UP | NATIVE",
+      "server": "95.213.217.168",
+      "server_port": 52004,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇿-Unknown | HTTP+TCP | 475ms | UP | NATIVE",
+      "server": "195.133.9.205",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Cartagena | HTTP+TCP | 475ms | UP | NATIVE",
+      "server": "138.121.15.230",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇫🇮-Helsinki | HTTP+TCP | 483ms | UP | NATIVE",
+      "server": "85.209.129.228",
+      "server_port": 55555,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇬🇧-Slough | HTTP+TCP | 484ms | UP | NATIVE",
+      "server": "134.209.29.120",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪-Falkenstein | HTTP+TCP | 524ms | UP | NATIVE",
+      "server": "138.201.128.41",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇦-Kyiv | HTTP+TCP | 526ms | UP | NATIVE",
+      "server": "77.123.145.21",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪-Nuremberg | HTTP+TCP | 534ms | UP | NATIVE",
+      "server": "46.224.204.97",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 556ms | UP | NATIVE",
+      "server": "45.151.182.9",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-St_Petersburg | HTTP+TCP | 583ms | UP | NATIVE",
+      "server": "46.161.6.165",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 593ms | UP | NATIVE",
+      "server": "85.192.56.4",
+      "server_port": 48716,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Dongdaemun | HTTP+TCP | 624ms | UP | NATIVE",
+      "server": "59.6.25.118",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇬-Unknown | HTTP+TCP | 627ms | UP | NATIVE",
+      "server": "45.88.0.116",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇬-Unknown | HTTP+TCP | 631ms | UP | NATIVE",
+      "server": "45.88.0.115",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 661ms | UP | NATIVE",
+      "server": "89.19.209.217",
+      "server_port": 31285,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Seo-gu | HTTP+TCP | 665ms | UP | NATIVE",
+      "server": "211.230.49.122",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Gangnam-gu | HTTP+TCP | 666ms | UP | NATIVE",
+      "server": "14.52.8.2",
+      "server_port": 10080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇼-Hsinchu | HTTP+TCP | 667ms | UP | NATIVE",
+      "server": "61.230.49.8",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Unknown | HTTP+TCP | 679ms | UP | NATIVE",
+      "server": "162.240.154.26",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 680ms | UP | NATIVE",
+      "server": "139.162.16.232",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 799ms | UP | NATIVE",
+      "server": "94.177.58.26",
+      "server_port": 7443,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Panvel | HTTP+TCP | 871ms | UP | NATIVE",
+      "server": "94.249.213.235",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 878ms | UP | NATIVE",
+      "server": "165.225.113.220",
+      "server_port": 10958,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Bogor | HTTP+TCP | 880ms | UP | NATIVE",
+      "server": "202.152.44.18",
+      "server_port": 8081,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Batam | HTTP+TCP | 898ms | UP | NATIVE",
+      "server": "103.124.196.134",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Pocheon-si | HTTP+TCP | 909ms | UP | NATIVE",
+      "server": "220.88.163.174",
+      "server_port": 10080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Mumbai | HTTP+TCP | 909ms | UP | NATIVE",
+      "server": "34.14.143.185",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 911ms | UP | NATIVE",
+      "server": "101.47.16.101",
+      "server_port": 7890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇳🇱-Amsterdam | HTTP+TCP | 915ms | UP | NATIVE",
+      "server": "185.233.202.217",
+      "server_port": 5858,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Unknown | HTTP+TCP | 938ms | UP | NATIVE",
+      "server": "115.114.77.133",
+      "server_port": 9090,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Mumbai | HTTP+TCP | 956ms | UP | NATIVE",
+      "server": "172.236.162.80",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Unknown | HTTP+TCP | 974ms | UP | NATIVE",
+      "server": "217.77.102.18",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇷-Unknown | HTTP+TCP | 1083ms | UP | NATIVE",
+      "server": "212.108.115.102",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Unknown | HTTP+TCP | 2840ms | UP | NATIVE",
+      "server": "103.161.64.44",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Unknown | HTTP+TCP | 4087ms | UP | NATIVE",
+      "server": "190.12.150.244",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 2335ms | UP | NATIVE",
+      "server": "103.184.67.115",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 1900ms | UP | NATIVE",
+      "server": "59.153.18.230",
+      "server_port": 20909,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Tanjungbalai | HTTP+TCP | 5220ms | UP | NATIVE",
+      "server": "160.19.16.6",
+      "server_port": 8182,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇸-Madrid | HTTP+TCP | 3156ms | UP | NATIVE",
+      "server": "90.174.128.42",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 4189ms | UP | NATIVE",
+      "server": "137.59.49.205",
+      "server_port": 22122,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5341ms | UP | NATIVE",
+      "server": "103.188.169.93",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇬-Unknown | HTTP+TCP | 2789ms | UP | NATIVE",
+      "server": "45.88.0.111",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳-Unknown | HTTP+TCP | 4925ms | UP | NATIVE",
+      "server": "103.3.246.71",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 2091ms | UP | NATIVE",
+      "server": "27.123.1.46",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Tapachula | HTTP+TCP | 2669ms | UP | NATIVE",
+      "server": "177.229.197.230",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Quito | HTTP+TCP | 2717ms | UP | NATIVE",
+      "server": "177.234.217.82",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-San_Jose | HTTP+TCP | 4183ms | UP | NATIVE",
+      "server": "104.251.81.175",
+      "server_port": 14270,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Clifton | HTTP+TCP | 2637ms | UP | NATIVE",
+      "server": "209.97.150.167",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Dhaka | HTTP+TCP | 2742ms | UP | NATIVE",
+      "server": "113.11.35.242",
+      "server_port": 36909,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪-Unknown | HTTP+TCP | 5915ms | UP | NATIVE",
+      "server": "200.59.186.178",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪-Valencia | HTTP+TCP | 4050ms | UP | NATIVE",
+      "server": "190.120.252.174",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Guayaquil | HTTP+TCP | 4232ms | UP | NATIVE",
+      "server": "177.234.194.30",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇬-Unknown | HTTP+TCP | 5988ms | UP | NATIVE",
+      "server": "196.204.138.244",
+      "server_port": 1976,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-Porto_Alegre | HTTP+TCP | 4535ms | UP | NATIVE",
+      "server": "177.19.167.242",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Phoenix | HTTP+TCP | 2891ms | UP | NATIVE",
+      "server": "178.130.47.129",
+      "server_port": 1082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Unknown | HTTP+TCP | 1425ms | UP | NATIVE",
+      "server": "83.221.15.166",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪-San_Cristóbal | HTTP+TCP | 3516ms | UP | NATIVE",
+      "server": "190.97.254.250",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Zapopan | HTTP+TCP | 2307ms | UP | NATIVE",
+      "server": "45.190.78.20",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇿-Tashkent | HTTP+TCP | 1387ms | UP | NATIVE",
+      "server": "195.158.8.123",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 1506ms | UP | NATIVE",
+      "server": "103.188.52.59",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Bekasi | HTTP+TCP | 5964ms | UP | NATIVE",
+      "server": "103.166.9.42",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇳🇱-Dronten | HTTP+TCP | 5412ms | UP | NATIVE",
+      "server": "45.144.232.249",
+      "server_port": 53830,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇴-Unknown | HTTP+TCP | 4256ms | UP | NATIVE",
+      "server": "38.156.14.34",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Kediri | HTTP+TCP | 2558ms | UP | NATIVE",
+      "server": "202.58.77.19",
+      "server_port": 3127,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Garzón | HTTP+TCP | 2718ms | UP | NATIVE",
+      "server": "38.211.76.201",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4762ms | UP | NATIVE",
+      "server": "103.132.52.196",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-San_Jose | HTTP+TCP | 2089ms | UP | NATIVE",
+      "server": "104.251.81.87",
+      "server_port": 14270,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 3178ms | UP | NATIVE",
+      "server": "158.160.215.167",
+      "server_port": 8123,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Quito | HTTP+TCP | 2588ms | UP | NATIVE",
+      "server": "177.234.217.83",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5021ms | UP | NATIVE",
+      "server": "119.82.242.200",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Indramayu | HTTP+TCP | 3889ms | UP | NATIVE",
+      "server": "157.66.16.52",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭-Manila | HTTP+TCP | 2914ms | UP | NATIVE",
+      "server": "195.86.215.2",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇷-Antakya | HTTP+TCP | 2510ms | UP | NATIVE",
+      "server": "185.200.38.54",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 3754ms | UP | NATIVE",
+      "server": "103.193.145.155",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4362ms | UP | NATIVE",
+      "server": "103.188.33.74",
+      "server_port": 8085,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 1361ms | UP | NATIVE",
+      "server": "202.5.53.145",
+      "server_port": 9355,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Atlanta | HTTP+TCP | 4302ms | UP | NATIVE",
+      "server": "78.153.155.31",
+      "server_port": 1082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇩-Unknown | HTTP+TCP | 1470ms | UP | NATIVE",
+      "server": "103.35.188.243",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 3183ms | UP | NATIVE",
+      "server": "103.28.113.22",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇪-Dublin | HTTP+TCP | 2018ms | UP | NATIVE",
+      "server": "20.107.168.234",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-El_Bagre | HTTP+TCP | 1817ms | UP | NATIVE",
+      "server": "190.60.59.181",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 4653ms | UP | NATIVE",
+      "server": "128.199.202.122",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Cabo_San_Lucas | HTTP+TCP | 3677ms | UP | NATIVE",
+      "server": "187.199.160.126",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪-Nuremberg | HTTP+TCP | 1841ms | UP | NATIVE",
+      "server": "91.107.154.88",
+      "server_port": 443,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇭-Chon_Buri | HTTP+TCP | 4001ms | UP | NATIVE",
+      "server": "101.109.119.24",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳-Hanoi | HTTP+TCP | 2936ms | UP | NATIVE",
+      "server": "123.24.206.123",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Jakarta | HTTP+TCP | 5856ms | UP | NATIVE",
+      "server": "103.120.174.75",
+      "server_port": 1818,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇷-Unknown | HTTP+TCP | 1652ms | UP | NATIVE",
+      "server": "85.133.227.150",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-San_Jose | HTTP+TCP | 3043ms | UP | NATIVE",
+      "server": "12.218.209.130",
+      "server_port": 53281,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Seoul | HTTP+TCP | 2736ms | UP | NATIVE",
+      "server": "220.72.132.91",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Cuenca | HTTP+TCP | 5309ms | UP | NATIVE",
+      "server": "181.78.202.28",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇭🇺-Unknown | HTTP+TCP | 4800ms | UP | NATIVE",
+      "server": "89.43.133.145",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Mangaluru | HTTP+TCP | 3235ms | UP | NATIVE",
+      "server": "202.140.62.212",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇭-Unknown | HTTP+TCP | 5410ms | UP | NATIVE",
+      "server": "161.82.141.219",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5577ms | UP | NATIVE",
+      "server": "103.97.140.96",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Indramayu | HTTP+TCP | 5302ms | UP | NATIVE",
+      "server": "157.66.16.54",
+      "server_port": 8989,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳-Hanoi | HTTP+TCP | 3791ms | UP | NATIVE",
+      "server": "222.252.97.26",
+      "server_port": 8008,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇴-Guananico | HTTP+TCP | 5270ms | UP | NATIVE",
+      "server": "190.89.38.30",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Brooklyn | HTTP+TCP | 4292ms | UP | NATIVE",
+      "server": "163.5.128.211",
+      "server_port": 14270,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇷-Puerto_Eldorado | HTTP+TCP | 1775ms | UP | NATIVE",
+      "server": "187.102.219.64",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Bandung | HTTP+TCP | 5729ms | UP | NATIVE",
+      "server": "36.89.212.252",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Brooklyn | HTTP+TCP | 3337ms | UP | NATIVE",
+      "server": "163.5.128.210",
+      "server_port": 14270,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇭🇺-Kisharsány | HTTP+TCP | 4355ms | UP | NATIVE",
+      "server": "94.248.216.229",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 2233ms | UP | NATIVE",
+      "server": "83.171.252.150",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 4157ms | UP | NATIVE",
+      "server": "59.153.19.2",
+      "server_port": 20909,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
+      "server": "200.115.96.50",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Mojokerto | HTTP+TCP | 5373ms | UP | NATIVE",
+      "server": "160.19.84.23",
+      "server_port": 61943,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇬-Cairo | HTTP+TCP | 1153ms | UP | NATIVE",
+      "server": "213.131.85.30",
+      "server_port": 1976,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Tangerang | HTTP+TCP | 2822ms | UP | NATIVE",
+      "server": "154.19.38.195",
+      "server_port": 1111,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵-Tokyo | HTTP+TCP | 1128ms | UP | NATIVE",
+      "server": "139.162.78.109",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪-Frankfurt_am_Main | HTTP+TCP | 3105ms | UP | NATIVE",
+      "server": "109.107.181.151",
+      "server_port": 51553,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Surabaya | HTTP+TCP | 2345ms | UP | NATIVE",
+      "server": "103.189.254.2",
+      "server_port": 2222,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇬-Unknown | HTTP+TCP | 1138ms | UP | NATIVE",
+      "server": "45.88.0.113",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 2091ms | UP | NATIVE",
+      "server": "202.181.148.64",
+      "server_port": 54101,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 2213ms | UP | NATIVE",
+      "server": "202.5.36.147",
+      "server_port": 8090,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Cartagena | HTTP+TCP | 5240ms | UP | NATIVE",
+      "server": "190.145.227.114",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 1620ms | UP | NATIVE",
+      "server": "101.47.16.15",
+      "server_port": 7890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 1080ms | UP | NATIVE",
+      "server": "103.172.70.167",
+      "server_port": 8088,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇷-Unknown | HTTP+TCP | 3885ms | UP | NATIVE",
+      "server": "190.111.218.139",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇳🇵-Patan | HTTP+TCP | 3981ms | UP | NATIVE",
+      "server": "110.34.1.178",
+      "server_port": 7777,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳-Ho_Chi_Minh_City | HTTP+TCP | 1185ms | UP | NATIVE",
+      "server": "14.167.185.20",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇰-Lahore | HTTP+TCP | 1683ms | UP | NATIVE",
+      "server": "59.103.34.162",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Cuenca | HTTP+TCP | 3430ms | UP | NATIVE",
+      "server": "200.24.159.230",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Hyderabad | HTTP+TCP | 3957ms | UP | NATIVE",
+      "server": "14.143.130.210",
+      "server_port": 1111,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭-Cabanatuan_City | HTTP+TCP | 5722ms | UP | NATIVE",
+      "server": "180.191.14.144",
+      "server_port": 8081,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇿-Karaganda | HTTP+TCP | 2004ms | UP | NATIVE",
+      "server": "188.130.160.209",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-Itajaí | HTTP+TCP | 5136ms | UP | NATIVE",
+      "server": "189.72.85.254",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Clifton | HTTP+TCP | 1465ms | UP | NATIVE",
+      "server": "138.197.68.35",
+      "server_port": 4857,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 3691ms | UP | NATIVE",
+      "server": "150.107.140.238",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Dhaka | HTTP+TCP | 5585ms | UP | NATIVE",
+      "server": "27.147.137.234",
+      "server_port": 9108,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4152ms | UP | NATIVE",
+      "server": "121.101.129.72",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇹-Vienna | HTTP+TCP | 2166ms | UP | NATIVE",
+      "server": "95.163.153.116",
+      "server_port": 20184,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Jakarta | HTTP+TCP | 3457ms | UP | NATIVE",
+      "server": "103.177.104.121",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵-Yokohama | HTTP+TCP | 2716ms | UP | NATIVE",
+      "server": "116.80.47.45",
+      "server_port": 3172,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 2657ms | UP | NATIVE",
+      "server": "103.110.10.162",
+      "server_port": 1992,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Bogotá | HTTP+TCP | 3537ms | UP | NATIVE",
+      "server": "181.78.79.41",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇳-Unknown | HTTP+TCP | 1153ms | UP | NATIVE",
+      "server": "120.92.212.16",
+      "server_port": 7890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4672ms | UP | NATIVE",
+      "server": "103.147.247.191",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-Cachoeiras_de_Macacu | HTTP+TCP | 4192ms | UP | NATIVE",
+      "server": "186.235.123.3",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇷-Unknown | HTTP+TCP | 5203ms | UP | NATIVE",
+      "server": "176.117.106.126",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇱-Unknown | HTTP+TCP | 5843ms | UP | NATIVE",
+      "server": "45.180.26.1",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Tecozautla | HTTP+TCP | 5362ms | UP | NATIVE",
+      "server": "38.194.224.134",
+      "server_port": 1452,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇰-Multan | HTTP+TCP | 1277ms | UP | NATIVE",
+      "server": "103.153.39.35",
+      "server_port": 8083,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 2142ms | UP | NATIVE",
+      "server": "103.193.144.81",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇷-Antakya | HTTP+TCP | 3619ms | UP | NATIVE",
+      "server": "38.156.72.12",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳-Hanoi | HTTP+TCP | 2889ms | UP | NATIVE",
+      "server": "14.232.228.80",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4815ms | UP | NATIVE",
+      "server": "103.189.249.145",
+      "server_port": 1111,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-São_Paulo | HTTP+TCP | 3190ms | UP | NATIVE",
+      "server": "200.201.134.184",
+      "server_port": 8787,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇷-Unknown | HTTP+TCP | 2417ms | UP | NATIVE",
+      "server": "85.133.227.182",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇿🇲-Lusaka | HTTP+TCP | 3403ms | UP | NATIVE",
+      "server": "41.223.119.156",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Malang | HTTP+TCP | 3224ms | UP | NATIVE",
+      "server": "103.76.148.222",
+      "server_port": 8181,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸-Phillipsburg | HTTP+TCP | 3688ms | UP | NATIVE",
+      "server": "204.186.254.106",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇼-Taipei | HTTP+TCP | 2654ms | UP | NATIVE",
+      "server": "34.81.143.86",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇭-Unknown | HTTP+TCP | 4033ms | UP | NATIVE",
+      "server": "203.217.169.26",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5851ms | UP | NATIVE",
+      "server": "103.55.225.38",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-San_Felipe_Orizatlán | HTTP+TCP | 1917ms | UP | NATIVE",
+      "server": "200.71.111.90",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

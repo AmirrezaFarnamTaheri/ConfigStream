@@ -1,0 +1,411 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇫🇮-Helsinki | VLESS+TCP | 352ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 357ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 361ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 412ms | UP | NATIVE",
+        "🇫🇮-Unknown | VLESS+TCP | 423ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 475ms | UP | NATIVE",
+        "🇫🇮-Helsinki | HTTP+TCP | 483ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 524ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+RAW+REALITY | 527ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 535ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 639ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 642ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 675ms | UP | NATIVE",
+        "🇫🇮-Unknown | VLESS+TCP | 708ms | UP | NATIVE",
+        "🇫🇮-Unknown | VLESS+TCP | 718ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+TLS | 984ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SOCKS5+TCP | 2693ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 1498ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇫🇮-Helsinki | VLESS+TCP | 352ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 357ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 361ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 412ms | UP | NATIVE",
+        "🇫🇮-Unknown | VLESS+TCP | 423ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 475ms | UP | NATIVE",
+        "🇫🇮-Helsinki | HTTP+TCP | 483ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 524ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+RAW+REALITY | 527ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 535ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 639ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 642ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 675ms | UP | NATIVE",
+        "🇫🇮-Unknown | VLESS+TCP | 708ms | UP | NATIVE",
+        "🇫🇮-Unknown | VLESS+TCP | 718ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+TLS | 984ms | UP | NATIVE",
+        "🇫🇮-Helsinki | SOCKS5+TCP | 2693ms | UP | NATIVE",
+        "🇫🇮-Helsinki | VLESS+TCP+REALITY | 1498ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP | 352ms | UP | NATIVE",
+      "server": "65.109.219.76",
+      "server_port": 19854,
+      "uuid": "b16e18a9-6363-4af5-9144-7fba011c1f25"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇫🇮-Helsinki | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 357ms | UP | NATIVE",
+      "server": "38.244.136.233",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "dAHM1pm8ag7KdlrUylQi6t"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇫🇮-Helsinki | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 361ms | UP | NATIVE",
+      "server": "37.143.129.98",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇫🇮-Helsinki | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 412ms | UP | NATIVE",
+      "server": "45.15.127.49",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "yXoiEDFMVorGUeKla77k7sEXCeSE5r2A"
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Unknown | VLESS+TCP | 423ms | UP | NATIVE",
+      "server": "104.128.134.181",
+      "server_port": 34816,
+      "uuid": "05a6897b-bdea-46d9-8654-89bceb208504"
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 475ms | UP | NATIVE",
+      "server": "65.108.108.151",
+      "server_port": 443,
+      "uuid": "feaf1d64-b44c-4cc8-b114-4001478c1fd0",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "fit.jojack.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "u26A516I3BCfUMPOo6rw0-XYt0C2sCWaPNP2pNdtxzw",
+          "short_id": "f8865ecbb9bc11a3"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇫🇮-Helsinki | HTTP+TCP | 483ms | UP | NATIVE",
+      "server": "85.209.129.228",
+      "server_port": 55555,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
+      "server": "78.153.139.68",
+      "server_port": 8443,
+      "uuid": "fd8972d7-cf5e-11f0-9970-45e1d80c4039",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "images.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "pekfYPV5U8EjfQ4_zS5c6I2NnOZ2jUlyMGAWa4FWPF4",
+          "short_id": "58c512b4422e2517"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
+      "server": "185.88.36.55",
+      "server_port": 443,
+      "uuid": "1ceceebd-5478-4b98-9839-6e25beb9546b",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "30eHXS9LpzFg443EtLaGLuDFo2QGa4zvLM7WdT-tSiM",
+          "short_id": "35debf0dc757d053"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 524ms | UP | NATIVE",
+      "server": "37.27.254.251",
+      "server_port": 443,
+      "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.cloudflare.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
+          "short_id": "7cad5040"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+RAW+REALITY | 527ms | UP | NATIVE",
+      "server": "93.152.207.254",
+      "server_port": 34045,
+      "uuid": "d8dd94fd-540e-461d-b5d4-acebef02c22a",
+      "tls": {
+        "enabled": true,
+        "server_name": "visit-this-invitation-link-to-join-tg-enkelte-notif.ekt.me",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "cDaDzPr3PlS3NM8lreHZbdo-Mhqz8vMBzMSkHXhGIUA",
+          "short_id": "e8ab71d0"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 535ms | UP | NATIVE",
+      "server": "46.62.128.207",
+      "server_port": 443,
+      "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.cloudflare.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
+          "short_id": "7cad5040"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 639ms | UP | NATIVE",
+      "server": "62.60.229.32",
+      "server_port": 443,
+      "uuid": "e3379093-7c89-4c8a-be1f-abb92a3305a1",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "web.max.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "X6M54TjT_X10PF8zMBxr_m4Djoyy_m4nhP28o-lGKy8",
+          "short_id": "cf563330b1a8ef60"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 642ms | UP | NATIVE",
+      "server": "212.87.222.181",
+      "server_port": 443,
+      "uuid": "beab408c-6aa3-43b9-a1ca-e6fabba5d8e7",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "rTp9PEn36FtQFu32jWAPO3r-e1W2px3RGSuhR-L1DVM",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 675ms | UP | NATIVE",
+      "server": "93.152.207.254",
+      "server_port": 45884,
+      "uuid": "57a5f6b3-ea58-4d4e-ad9c-a9830f148184",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_GoR9cR6JOUmQ1PM-s2GsHiy6OuIo1Ek1a7lhNKkvj4",
+          "short_id": "9a"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Unknown | VLESS+TCP | 708ms | UP | NATIVE",
+      "server": "104.128.134.181",
+      "server_port": 34816,
+      "uuid": "103b210d-c76d-488e-acd4-fed943ba025e"
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Unknown | VLESS+TCP | 718ms | UP | NATIVE",
+      "server": "104.128.134.181",
+      "server_port": 34816,
+      "uuid": "fd058cd3-55fa-43ce-a634-1920b7d12c45"
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+TLS | 984ms | UP | NATIVE",
+      "server": "45.144.52.229",
+      "server_port": 443,
+      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn2.suio.me"
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇫🇮-Helsinki | SOCKS5+TCP | 2693ms | UP | NATIVE",
+      "server": "85.209.129.228",
+      "server_port": 55555,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮-Helsinki | VLESS+TCP+REALITY | 1498ms | UP | NATIVE",
+      "server": "31.59.168.88",
+      "server_port": 6443,
+      "uuid": "4088cb46-66f8-43fa-bf37-6919cdda7830",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tradingview.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "EhuKqEHHG-dQPFdT55oVEXAi9-cpGXPcxbpd6lGFoz4",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

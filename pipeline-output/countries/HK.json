@@ -1,0 +1,849 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+SS+AES-256-CFB | 476ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 486ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 488ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 491ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 499ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 501ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 504ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 505ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 563ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP | 576ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 595ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+AES-256-CFB | 627ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 647ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 654ms | UP | NATIVE",
+        "🇭🇰-Lam_Tin | VMESS+WS | 654ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 657ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 810ms | UP | NATIVE",
+        "🇭🇰-Unknown | VLESS+WS+TLS | 819ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 827ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 831ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 847ms | UP | NATIVE",
+        "🇭🇰-Unknown | VLESS+WS+TLS | 854ms | UP | NATIVE",
+        "🇭🇰-Lam_Tin | VMESS+WS | 855ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 859ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 937ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 954ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 962ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 993ms | UP | NATIVE",
+        "🇭🇰-Unknown | VLESS+TCP+REALITY | 1776ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1111ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 1312ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 1476ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 2749ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 2568ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3058ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 1380ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1323ms | UP | NATIVE",
+        "🇭🇰-Fanling | VMESS+TCP | 5976ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 3274ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SOCKS5+TCP | 2555ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3002ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 1368ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1084ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | HYSTERIA2+QUIC | 4506ms | UP | NATIVE",
+        "🇭🇰-Fanling | VMESS+TCP | 5572ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 1807ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 1847ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1933ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1063ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 3236ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1214ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+SS+AES-256-CFB | 476ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 486ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 488ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 491ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 499ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 501ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 504ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 505ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 563ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP | 576ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 595ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+AES-256-CFB | 627ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 647ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 654ms | UP | NATIVE",
+        "🇭🇰-Lam_Tin | VMESS+WS | 654ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 657ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 810ms | UP | NATIVE",
+        "🇭🇰-Unknown | VLESS+WS+TLS | 819ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 827ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 831ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 847ms | UP | NATIVE",
+        "🇭🇰-Unknown | VLESS+WS+TLS | 854ms | UP | NATIVE",
+        "🇭🇰-Lam_Tin | VMESS+WS | 855ms | UP | NATIVE",
+        "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 859ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 937ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 954ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 962ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 993ms | UP | NATIVE",
+        "🇭🇰-Unknown | VLESS+TCP+REALITY | 1776ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1111ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 1312ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 1476ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 2749ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 2568ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3058ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 1380ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1323ms | UP | NATIVE",
+        "🇭🇰-Fanling | VMESS+TCP | 5976ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 3274ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | SOCKS5+TCP | 2555ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3002ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 1368ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1084ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | HYSTERIA2+QUIC | 4506ms | UP | NATIVE",
+        "🇭🇰-Fanling | VMESS+TCP | 5572ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Unknown | TROJAN+TCP | 1807ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 1847ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1933ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1063ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 3236ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1214ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Hong_Kong | SHADOWSOCKS+SS+AES-256-CFB | 476ms | UP | NATIVE",
+      "server": "216.250.97.82",
+      "server_port": 38388,
+      "method": "aes-256-cfb",
+      "password": "Xn8jKdmDM00IeO%#$#fJAMtsEAEUOpH/YWYtYqDFnT0SV"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 486ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.217.248.98",
+      "server_port": 8080,
+      "uuid": "3c9a9f2d-f1a3-4175-b590-03996201d0b9",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 488ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.210.248.133",
+      "server_port": 43425,
+      "uuid": "aa10afb0-f913-4343-9c69-bc797fcba2db",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 491ms | UP | NATIVE",
+      "server": "38.54.85.242",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "3ff6d2f0563891a4"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.243.92.155",
+      "server_port": 8080,
+      "uuid": "6e8b3a5e-d756-4f2c-b197-8fc4a2f94857",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 499ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.218.16.45",
+      "server_port": 8080,
+      "uuid": "dd84b685-98b0-48d8-ae73-975d5d32bc21",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 501ms | UP | NATIVE",
+      "server": "38.60.203.155",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "a46a7f1876472552"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.242.22.4",
+      "server_port": 8080,
+      "uuid": "8f765afd-a611-4008-8c62-e1b3415e57f7",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 504ms | UP | NATIVE",
+      "server": "103.149.182.158",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 505ms | UP | NATIVE",
+      "server": "103.141.221.200",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 563ms | UP | NATIVE",
+      "server": "185.244.208.150",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "41d6655d3625fd14"
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Hong_Kong | VLESS+TCP | 576ms | UP | NATIVE",
+      "server": "43.161.253.78",
+      "server_port": 9527,
+      "uuid": "d4a23188-85b0-4b46-b84b-f1d36d66c03e"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 595ms | UP | NATIVE",
+      "server": "203.23.128.92",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Hong_Kong | SHADOWSOCKS+TCP+AES-256-CFB | 627ms | UP | NATIVE",
+      "server": "203.23.128.33",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 647ms | UP | NATIVE",
+      "server": "38.54.23.58",
+      "server_port": 443,
+      "uuid": "6048472f-0993-4ae0-8203-960b9a0f4113",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.amazon.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "i7xxqA7h16NpQQAGiQJKxubs-_IRCUUlredSK7swTkw",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 654ms | UP | NATIVE",
+      "server": "58.152.25.236",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Lam_Tin | VMESS+WS | 654ms | UP | NATIVE",
+      "server": "210.3.159.150",
+      "server_port": 42717,
+      "uuid": "b5803d74-c6f8-415f-e1e6-ebc9e4269b86",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 657ms | UP | NATIVE",
+      "server": "103.149.183.200",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP+TLS | 810ms | UP | NATIVE",
+      "server": "58.152.25.236",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Unknown | VLESS+WS+TLS | 819ms | UP | NATIVE",
+      "server": "103.192.179.211",
+      "server_port": 12999,
+      "uuid": "8451ed89-d170-43b2-a9a4-eef553ef6600",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "hdmxf524.pages.dev",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "hdmxf524.pages.dev"
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 827ms | UP | NATIVE",
+      "server": "103.149.183.10",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 831ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 847ms | UP | NATIVE",
+      "server": "103.141.221.88",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Unknown | VLESS+WS+TLS | 854ms | UP | NATIVE",
+      "server": "149.104.4.119",
+      "server_port": 2053,
+      "uuid": "8451ed89-d170-43b2-a9a4-eef553ef6600",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "hddp490.pages.dev",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "hddp490.pages.dev"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Lam_Tin | VMESS+WS | 855ms | UP | NATIVE",
+      "server": "210.3.159.150",
+      "server_port": 42717,
+      "uuid": "b5803d74-c6f8-415f-e1e6-ebc9e4269b86",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "210.3.159.150",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇭🇰-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 859ms | UP | NATIVE",
+      "server": "103.149.182.79",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 937ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] trojan-HK ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 954ms | UP | NATIVE",
+      "server": "156.224.78.8",
+      "server_port": 10001,
+      "uuid": "9c79aceb-4649-44ea-9698-b5e9ecf6d6da",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.icloud.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "D_kMOsg1KCtT0tudPFVDXGuEcSqZGtUYqBB-BiIxmls",
+          "short_id": "f7223dab"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 962ms | UP | NATIVE",
+      "server": "47.243.95.187",
+      "server_port": 443,
+      "uuid": "c28a6258-7baa-40fc-8a51-87f59c847cd7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214906.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214906.wpg27.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 993ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "219.76.135.98",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Unknown | VLESS+TCP+REALITY | 1776ms | UP | NATIVE",
+      "server": "112.120.48.176",
+      "server_port": 443,
+      "uuid": "eeaa07ca-2693-42f8-e544-a16521d8e922",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.icloud.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "KwIjeh5fgXZEOlg68dpzFTNAcbdqI0WUacwlcOgGrCU",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1111ms | UP | NATIVE",
+      "server": "43.100.32.6",
+      "server_port": 443,
+      "uuid": "8c5d150c-b046-4440-8230-e84506a065a3",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1747624267.4u9ma.icu",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1747624267.4u9ma.icu"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 1312ms | UP | NATIVE",
+      "server": "85.208.104.42",
+      "server_port": 10001,
+      "uuid": "9c79aceb-4649-44ea-9698-b5e9ecf6d6da",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.icloud.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "7qP6YKWx5CJXia1qjQoIcD7FRjUBbioaioioI729D34",
+          "short_id": "2afe4310"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 1476ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.210.178.4",
+      "server_port": 8080,
+      "uuid": "718cfac2-0044-4e43-ad9e-9f67f07b545a",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 2749ms | UP | NATIVE",
+      "server": "47.243.244.164",
+      "server_port": 443,
+      "uuid": "3514a93f-bb26-4442-8f99-971b2ff3388a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214908.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214908.wpg27.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 2568ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%252Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 3058ms | UP | NATIVE | SEC:tls_required",
+      "server": "45.207.157.29",
+      "server_port": 13852,
+      "uuid": "845764df-ecb3-4b13-bed2-bf1551b68e9a",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1380ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] trojan-HK ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1323ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Fanling | VMESS+TCP | 5976ms | UP | NATIVE | SEC:tls_required",
+      "server": "202.85.53.200",
+      "server_port": 30830,
+      "uuid": "cbb3f877-d1fb-344c-87a9-d153bffd5484",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 3274ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇭🇰-Hong_Kong | SOCKS5+TCP | 2555ms | UP | NATIVE",
+      "server": "47.243.75.202",
+      "server_port": 58854,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 3002ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.242.192.233",
+      "server_port": 52190,
+      "uuid": "98689724-deb2-4a3d-b83b-602221995baf",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1368ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1084ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%2Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇭🇰-Hong_Kong | HYSTERIA2+QUIC | 4506ms | UP | NATIVE",
+      "server": "156.226.173.8",
+      "server_port": 8443,
+      "password": "9c23940e-efd8-4763-bfb5-54739b50893d",
+      "tls": {
+        "enabled": true,
+        "server_name": "hy5.hy2yydsapi.top",
+        "insecure": false,
+        "alpn": []
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Fanling | VMESS+TCP | 5572ms | UP | NATIVE | SEC:tls_required",
+      "server": "202.85.53.179",
+      "server_port": 30830,
+      "uuid": "cbb3f877-d1fb-344c-87a9-d153bffd5484",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1807ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇭🇰-Hong_Kong | VLESS+TCP+REALITY | 1847ms | UP | NATIVE",
+      "server": "47.83.153.19",
+      "server_port": 59750,
+      "uuid": "9e76cfb8-b7a6-40f6-c2aa-9905aa19f31b",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.amd.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "W9BjX6YmCIVsjhKMlz233Yoe0xcf0SVHfvPKqbf3vCg",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1933ms | UP | NATIVE",
+      "server": "8.218.19.101",
+      "server_port": 443,
+      "uuid": "469e9a38-b64e-46c3-9793-234158942d3b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214902.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214902.wpg27.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1063ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 3236ms | UP | NATIVE",
+      "server": "8.210.165.109",
+      "server_port": 443,
+      "uuid": "b141803a-209c-47bd-be6e-14d6bc1e96be",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214918.74qxv.top",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214918.74qxv.top"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1214ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%252Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

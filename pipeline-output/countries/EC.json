@@ -1,0 +1,196 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 355ms | UP | NATIVE",
+        "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 455ms | UP | NATIVE",
+        "🇪🇨-Unknown | HTTP+TCP | 4087ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2717ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | HTTP+TCP | 4232ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2588ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 5309ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 1282ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 3430ms | UP | NATIVE",
+        "🇪🇨-Quito | SOCKS4+TCP | 1062ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 355ms | UP | NATIVE",
+        "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 455ms | UP | NATIVE",
+        "🇪🇨-Unknown | HTTP+TCP | 4087ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2717ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | HTTP+TCP | 4232ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 2588ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 5309ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 1282ms | UP | NATIVE",
+        "🇪🇨-Cuenca | HTTP+TCP | 3430ms | UP | NATIVE",
+        "🇪🇨-Quito | SOCKS4+TCP | 1062ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 355ms | UP | NATIVE",
+      "server": "185.47.253.227",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 455ms | UP | NATIVE",
+      "server": "38.165.231.25",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Unknown | HTTP+TCP | 4087ms | UP | NATIVE",
+      "server": "190.12.150.244",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Quito | HTTP+TCP | 2717ms | UP | NATIVE",
+      "server": "177.234.217.82",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Guayaquil | HTTP+TCP | 4232ms | UP | NATIVE",
+      "server": "177.234.194.30",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Quito | HTTP+TCP | 2588ms | UP | NATIVE",
+      "server": "177.234.217.83",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Cuenca | HTTP+TCP | 5309ms | UP | NATIVE",
+      "server": "181.78.202.28",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇨-Guayaquil | SOCKS4+TCP | 1282ms | UP | NATIVE",
+      "server": "45.238.57.1",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨-Cuenca | HTTP+TCP | 3430ms | UP | NATIVE",
+      "server": "200.24.159.230",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇨-Quito | SOCKS4+TCP | 1062ms | UP | NATIVE",
+      "server": "190.57.131.158",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

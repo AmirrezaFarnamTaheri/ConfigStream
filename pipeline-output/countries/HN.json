@@ -1,0 +1,111 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 5548ms | UP | NATIVE",
+        "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 3943ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 5548ms | UP | NATIVE",
+        "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 3943ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "socks",
+      "tag": "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 5548ms | UP | NATIVE",
+      "server": "181.115.74.172",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
+      "server": "200.115.96.50",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 3943ms | UP | NATIVE",
+      "server": "138.59.177.117",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

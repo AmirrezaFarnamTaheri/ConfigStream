@@ -1,0 +1,353 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 499ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 624ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 655ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 696ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 730ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 746ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC+TLS | 750ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+HYSTERIA2 | 846ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 862ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+HYSTERIA2 | 906ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 913ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 1065ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | HYSTERIA2+QUIC | 4506ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 1013ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 1015ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 499ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 624ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 655ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 696ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 730ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 746ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC+TLS | 750ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+HYSTERIA2 | 846ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 862ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+HYSTERIA2 | 906ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 913ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 1065ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | HYSTERIA2+QUIC | 4506ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 1013ms | UP | NATIVE",
+        "🌐 | HYSTERIA2+QUIC | 1015ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 499ms | UP | NATIVE",
+      "server": "206.71.158.41",
+      "server_port": 35000,
+      "password": "b4bd0613-ff7c-4f2f-954d-185915e6ddad",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.kermanshahi.org",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "@JavidnamanIran-Javid-SHAH-KingRezaPahlavi"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 624ms | UP | NATIVE",
+      "server": "206.71.158.40",
+      "server_port": 35000,
+      "password": "b4bd0613-ff7c-4f2f-954d-185915e6ddad",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.kermanshahi.org",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "@JavidnamanIran-Javid-SHAH-KingRezaPahlavi"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 655ms | UP | NATIVE",
+      "server": "206.71.158.37",
+      "server_port": 35000,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇳🇱-Amsterdam | HYSTERIA2+QUIC | 696ms | UP | NATIVE",
+      "server": "206.71.158.37",
+      "server_port": 36400,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 730ms | UP | NATIVE",
+      "server": "206.71.158.37",
+      "server_port": 36300,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 746ms | UP | NATIVE",
+      "server": "206.71.158.37",
+      "server_port": 35200,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🌐 | HYSTERIA2+QUIC+TLS | 750ms | UP | NATIVE",
+      "server": "yapc-1.adamhayward.co.uk",
+      "server_port": 35000,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🌐 | HYSTERIA2+HYSTERIA2 | 846ms | UP | NATIVE",
+      "server": "iij.mggl.wang",
+      "server_port": 35789,
+      "password": "bc4d55c1-38df-43e6-8df7-3733e84d9399",
+      "tls": {
+        "enabled": true,
+        "server_name": "iij.mggl.wang",
+        "insecure": false,
+        "alpn": []
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🌐 | HYSTERIA2+QUIC | 862ms | UP | NATIVE",
+      "server": "yapc-1.adamhayward.co.uk",
+      "server_port": 35200,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🌐 | HYSTERIA2+HYSTERIA2 | 906ms | UP | NATIVE",
+      "server": "57fb775b-t6ngg0-t7v83h-1kcpe.hk1.hyhuawei.com",
+      "server_port": 443,
+      "password": "3f514ea2-4662-11ed-a8bf-f23c91cfbbc9",
+      "tls": {
+        "enabled": true,
+        "server_name": "",
+        "insecure": false,
+        "alpn": []
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇳🇱-Amsterdam | HYSTERIA2+QUIC+TLS | 913ms | UP | NATIVE",
+      "server": "206.71.158.37",
+      "server_port": 36600,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🌐 | HYSTERIA2+QUIC | 1065ms | UP | NATIVE",
+      "server": "yapc-1.adamhayward.co.uk",
+      "server_port": 36400,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🇭🇰-Hong_Kong | HYSTERIA2+QUIC | 4506ms | UP | NATIVE",
+      "server": "156.226.173.8",
+      "server_port": 8443,
+      "password": "9c23940e-efd8-4763-bfb5-54739b50893d",
+      "tls": {
+        "enabled": true,
+        "server_name": "hy5.hy2yydsapi.top",
+        "insecure": false,
+        "alpn": []
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🌐 | HYSTERIA2+QUIC | 1013ms | UP | NATIVE",
+      "server": "yapc-1.adamhayward.co.uk",
+      "server_port": 36300,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "hysteria2",
+      "tag": "🌐 | HYSTERIA2+QUIC | 1015ms | UP | NATIVE",
+      "server": "yapc-1.adamhayward.co.uk",
+      "server_port": 36600,
+      "password": "Yet-Another-Public-Config-1",
+      "tls": {
+        "enabled": true,
+        "server_name": "YAPC-1.afshin.ir",
+        "insecure": false,
+        "alpn": []
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "Yet-Another-Public-Config-1"
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}
