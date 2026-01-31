@@ -1,0 +1,1891 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 39ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 46ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 50ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 50ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 98ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS5+TCP | 390ms | UP | NATIVE",
+        "🇷🇺-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 415ms | UP | NATIVE",
+        "🇷🇺-Moscow | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
+        "🇷🇺-Unknown | VMESS+TCP | 438ms | UP | NATIVE | SEC:tls_required",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 446ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 460ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 471ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 472ms | UP | NATIVE",
+        "🇷🇺-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 474ms | UP | NATIVE",
+        "🇷🇺-Unknown | TROJAN+TCP+REALITY | 513ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 539ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 556ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 581ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 583ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 591ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 593ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 621ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 625ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 631ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 635ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 641ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 655ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 669ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 678ms | UP | NATIVE",
+        "🇷🇺-Moscow | SHADOWSOCKS+TCP+AES-256-CFB | 699ms | UP | NATIVE",
+        "🇷🇺-Moscow | VMESS+WS+TLS | 703ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 714ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 724ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 726ms | UP | NATIVE",
+        "🇷🇺-Volgograd | SOCKS4+TCP | 733ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 734ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 797ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 805ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 812ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 817ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 822ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 827ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 830ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 842ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 845ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 848ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 850ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 854ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 858ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 874ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 874ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 896ms | UP | NATIVE",
+        "🇷🇺-Samara | SOCKS5+TCP | 919ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | VLESS+TCP+REALITY | 949ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 952ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 974ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 981ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 991ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1589ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS5+TCP | 4391ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 1216ms | UP | NATIVE",
+        "🇷🇺-Chelyabinsk | SOCKS4+TCP | 1270ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS5+TCP | 1853ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1576ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | VLESS+TCP+REALITY | 1736ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 1021ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 1425ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 2554ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1119ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 3178ms | UP | NATIVE",
+        "🇷🇺-Penza | SOCKS4+TCP | 2292ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 2536ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 2432ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 2761ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3765ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3441ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 2213ms | UP | NATIVE",
+        "🇷🇺-Penza | SOCKS4+TCP | 1649ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 5911ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 5447ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 1322ms | UP | NATIVE",
+        "🇷🇺-Rostov-on-Don | SOCKS5+TCP | 2484ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS5+TCP | 1486ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 4793ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 4840ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS5+TCP | 2022ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 2424ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1525ms | UP | NATIVE",
+        "🇷🇺-Ivanteyevka | SOCKS4+TCP | 4109ms | UP | NATIVE",
+        "🇷🇺-Krasnodar | SOCKS4+TCP | 1659ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 2331ms | UP | NATIVE | SEC:invalid_uuid_format",
+        "🇷🇺-Moscow | HTTP+TCP | 2233ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS5+TCP | 3830ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1590ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 2870ms | UP | NATIVE",
+        "🇷🇺-Podolsk | SOCKS4+TCP | 5641ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 4059ms | UP | NATIVE",
+        "🇷🇺-Perm | SOCKS5+TCP | 1100ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 2091ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 4156ms | UP | NATIVE",
+        "🇷🇺-Krasnodar | SOCKS5+TCP | 1359ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3275ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1917ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1150ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3108ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 2175ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 4947ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1069ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 4735ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 39ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 46ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 50ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 50ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 98ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS5+TCP | 390ms | UP | NATIVE",
+        "🇷🇺-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 415ms | UP | NATIVE",
+        "🇷🇺-Moscow | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
+        "🇷🇺-Unknown | VMESS+TCP | 438ms | UP | NATIVE | SEC:tls_required",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 446ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 460ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 471ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 472ms | UP | NATIVE",
+        "🇷🇺-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 474ms | UP | NATIVE",
+        "🇷🇺-Unknown | TROJAN+TCP+REALITY | 513ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 539ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 556ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 581ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | HTTP+TCP | 583ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 591ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 593ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 621ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 625ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 631ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 635ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 641ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 655ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 669ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 678ms | UP | NATIVE",
+        "🇷🇺-Moscow | SHADOWSOCKS+TCP+AES-256-CFB | 699ms | UP | NATIVE",
+        "🇷🇺-Moscow | VMESS+WS+TLS | 703ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 714ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 724ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 726ms | UP | NATIVE",
+        "🇷🇺-Volgograd | SOCKS4+TCP | 733ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 734ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 797ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 805ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 812ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 817ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 822ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 827ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 830ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 842ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 845ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 848ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 850ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 854ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 858ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 874ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 874ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 896ms | UP | NATIVE",
+        "🇷🇺-Samara | SOCKS5+TCP | 919ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | VLESS+TCP+REALITY | 949ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 952ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 974ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 981ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 991ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1589ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS5+TCP | 4391ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 1216ms | UP | NATIVE",
+        "🇷🇺-Chelyabinsk | SOCKS4+TCP | 1270ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS5+TCP | 1853ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1576ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | VLESS+TCP+REALITY | 1736ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 1021ms | UP | NATIVE",
+        "🇷🇺-Unknown | HTTP+TCP | 1425ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 2554ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1119ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 3178ms | UP | NATIVE",
+        "🇷🇺-Penza | SOCKS4+TCP | 2292ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 2536ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 2432ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 2761ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3765ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3441ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 2213ms | UP | NATIVE",
+        "🇷🇺-Penza | SOCKS4+TCP | 1649ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 5911ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 5447ms | UP | NATIVE",
+        "🇷🇺-Moscow | VLESS+TCP+REALITY | 1322ms | UP | NATIVE",
+        "🇷🇺-Rostov-on-Don | SOCKS5+TCP | 2484ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS5+TCP | 1486ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 4793ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 4840ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS5+TCP | 2022ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 2424ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1525ms | UP | NATIVE",
+        "🇷🇺-Ivanteyevka | SOCKS4+TCP | 4109ms | UP | NATIVE",
+        "🇷🇺-Krasnodar | SOCKS4+TCP | 1659ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 2331ms | UP | NATIVE | SEC:invalid_uuid_format",
+        "🇷🇺-Moscow | HTTP+TCP | 2233ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS5+TCP | 3830ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1590ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 2870ms | UP | NATIVE",
+        "🇷🇺-Podolsk | SOCKS4+TCP | 5641ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 4059ms | UP | NATIVE",
+        "🇷🇺-Perm | SOCKS5+TCP | 1100ms | UP | NATIVE",
+        "🇷🇺-Moscow | HTTP+TCP | 2091ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 4156ms | UP | NATIVE",
+        "🇷🇺-Krasnodar | SOCKS5+TCP | 1359ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3275ms | UP | NATIVE",
+        "🇷🇺-Unknown | VLESS+TCP+REALITY | 1917ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1150ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3108ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 2175ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 4947ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1069ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 4735ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 39ms | UP | NATIVE",
+      "server": "80.92.205.51",
+      "server_port": 8443,
+      "uuid": "4e93d99e-7540-4f4d-884f-63a3c4a845dd",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tradingview.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "61Svf2Pd08DRvSgCHyI_J-F7lhPLd_hg3mS_byFl_h0",
+          "short_id": "fb1a8818b2ec7f2e"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 46ms | UP | NATIVE",
+      "server": "45.89.53.110",
+      "server_port": 8443,
+      "uuid": "93a20fae-54f4-4e25-93ef-995b3e52fc04",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tradingview.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "61Svf2Pd08DRvSgCHyI_J-F7lhPLd_hg3mS_byFl_h0",
+          "short_id": "cefa7ca418bd0dcb"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 50ms | UP | NATIVE",
+      "server": "80.92.205.51",
+      "server_port": 8443,
+      "uuid": "93a20fae-54f4-4e25-93ef-995b3e52fc04",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tradingview.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "61Svf2Pd08DRvSgCHyI_J-F7lhPLd_hg3mS_byFl_h0",
+          "short_id": "cefa7ca418bd0dcb"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 50ms | UP | NATIVE",
+      "server": "45.89.53.167",
+      "server_port": 8443,
+      "uuid": "93a20fae-54f4-4e25-93ef-995b3e52fc04",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tradingview.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "61Svf2Pd08DRvSgCHyI_J-F7lhPLd_hg3mS_byFl_h0",
+          "short_id": "fb1a8818b2ec7f2e"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 98ms | UP | NATIVE",
+      "server": "45.89.53.49",
+      "server_port": 8443,
+      "uuid": "93a20fae-54f4-4e25-93ef-995b3e52fc04",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tradingview.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "61Svf2Pd08DRvSgCHyI_J-F7lhPLd_hg3mS_byFl_h0",
+          "short_id": "fb1a8818b2ec7f2e"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS5+TCP | 390ms | UP | NATIVE",
+      "server": "147.45.124.194",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇷🇺-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 415ms | UP | NATIVE",
+      "server": "5.182.37.87",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "Oy4TsrxfaJExUIhlcSqHpVQIWIFM2jZR"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇷🇺-Moscow | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
+      "server": "45.144.31.24",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "7HQ8w1YWMdNjq68bZt1tNfpDHLFA1BPA"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇷🇺-Unknown | VMESS+TCP | 438ms | UP | NATIVE | SEC:tls_required",
+      "server": "45.89.52.207",
+      "server_port": 39651,
+      "uuid": "ac4c12c5-45f2-4398-a718-9983941ede2b",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-St_Petersburg | SOCKS4+TCP | 446ms | UP | NATIVE",
+      "server": "84.52.123.163",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-St_Petersburg | HTTP+TCP | 460ms | UP | NATIVE",
+      "server": "95.213.217.168",
+      "server_port": 52004,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 471ms | UP | NATIVE",
+      "server": "45.87.153.176",
+      "server_port": 4443,
+      "uuid": "0290082e-071e-4b8a-a712-772a2612b605",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "github.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "5XB_N3ATilH-6tp_MXht-84_y5YaJnx_Z7MbuY2otHE",
+          "short_id": "aa7e96542880027a"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 472ms | UP | NATIVE",
+      "server": "45.87.154.132",
+      "server_port": 4443,
+      "uuid": "0290082e-071e-4b8a-a712-772a2612b605",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "github.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "5XB_N3ATilH-6tp_MXht-84_y5YaJnx_Z7MbuY2otHE",
+          "short_id": "aa7e96542880027a"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇷🇺-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 474ms | UP | NATIVE",
+      "server": "45.89.55.173",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ixPymFma6P7U41wk9MNP7znPnvax3mjd"
+    },
+    {
+      "type": "trojan",
+      "tag": "🇷🇺-Unknown | TROJAN+TCP+REALITY | 513ms | UP | NATIVE",
+      "server": "176.125.240.167",
+      "server_port": 9443,
+      "password": "249454d267254a52ab3c8b7906bc12ab",
+      "tls": {
+        "enabled": true,
+        "server_name": "apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "random"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mvXhdnqrOTuyX9K9Hm7632OJCFGdFwkBpw56X-aKn20",
+          "short_id": "aabbccdd"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 539ms | UP | NATIVE",
+      "server": "147.45.60.6",
+      "server_port": 443,
+      "uuid": "beab408c-6aa3-43b9-a1ca-e6fabba5d8e7",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "rTp9PEn36FtQFu32jWAPO3r-e1W2px3RGSuhR-L1DVM",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 556ms | UP | NATIVE",
+      "server": "45.151.182.9",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 581ms | UP | NATIVE",
+      "server": "5.129.198.156",
+      "server_port": 8443,
+      "uuid": "9f4ffa56-6813-430c-8cac-159cc469086a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "shiftline.xyz",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "QjcIcRxF6rLpMImGD9wUYmeftFwpkuwLKm9nChbD50A",
+          "short_id": "60a0c1f0f4c9ca63"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-St_Petersburg | HTTP+TCP | 583ms | UP | NATIVE",
+      "server": "46.161.6.165",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 591ms | UP | NATIVE",
+      "server": "193.57.138.53",
+      "server_port": 40921,
+      "uuid": "b042a503-3cb9-461f-994d-28a642133b5e",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "heCmtLzcbUCR7Y1ZSomzRZpc45p9Qie9p_2W6Xw333A",
+          "short_id": "c42db93ba6c62c"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 593ms | UP | NATIVE",
+      "server": "85.192.56.4",
+      "server_port": 48716,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 621ms | UP | NATIVE",
+      "server": "5.129.249.134",
+      "server_port": 443,
+      "uuid": "4821536d-26b8-53a1-8b52-6ba7bbcab5cf",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ir.ozone.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "F14RpPKCKo_qPcW7EFVu1M18JsAT8c04O08cIi0Ghg4",
+          "short_id": "ab1cd2"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 625ms | UP | NATIVE",
+      "server": "5.129.249.134",
+      "server_port": 443,
+      "uuid": "mega768",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ir.ozone.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "F14RpPKCKo_qPcW7EFVu1M18JsAT8c04O08cIi0Ghg4",
+          "short_id": "ab1cd2"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 631ms | UP | NATIVE",
+      "server": "5.129.249.134",
+      "server_port": 443,
+      "uuid": "eaca6b0a-9728-5766-8fb0-0be81c1b7c91",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ir.ozone.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "F14RpPKCKo_qPcW7EFVu1M18JsAT8c04O08cIi0Ghg4",
+          "short_id": "ab1cd2"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 635ms | UP | NATIVE",
+      "server": "5.182.36.56",
+      "server_port": 45886,
+      "uuid": "8338171d-2ea7-4015-bdea-492f3d5d4e60",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "zJeLZDPHoHMcAzBJh38tSavofNlkBrpADFx9jVVPil0",
+          "short_id": "94f9"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 641ms | UP | NATIVE",
+      "server": "176.125.240.166",
+      "server_port": 443,
+      "uuid": "002accb526534fcab24a72b0ea1cff59",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "GgiY38LjRI1hS1LKhdqvtJ5SDDO436GvihG-TzEI2XE",
+          "short_id": "aabbccdd"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 655ms | UP | NATIVE",
+      "server": "5.129.249.134",
+      "server_port": 443,
+      "uuid": "5d338ff0-5826-55e0-a603-699b018d7498",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ir.ozone.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "F14RpPKCKo_qPcW7EFVu1M18JsAT8c04O08cIi0Ghg4",
+          "short_id": "ab1cd2"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 669ms | UP | NATIVE",
+      "server": "5.129.249.134",
+      "server_port": 443,
+      "uuid": "97138143-cf37-59a9-9c0f-94290ce5904d",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ir.ozone.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "F14RpPKCKo_qPcW7EFVu1M18JsAT8c04O08cIi0Ghg4",
+          "short_id": "ab1cd2"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 678ms | UP | NATIVE",
+      "server": "5.182.36.251",
+      "server_port": 16331,
+      "uuid": "d7dbeb1e-268c-465c-8f59-489f14703efd",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "wYtc0dMr5fw5bBQkbLNpTqtu0m4B9NKnOyEWjRJUmzk",
+          "short_id": "910aab"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇷🇺-Moscow | SHADOWSOCKS+TCP+AES-256-CFB | 699ms | UP | NATIVE",
+      "server": "38.60.223.8",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇷🇺-Moscow | VMESS+WS+TLS | 703ms | UP | NATIVE",
+      "server": "95.81.123.15",
+      "server_port": 40956,
+      "uuid": "4f3cfda3-a255-40eb-8801-71f9fffb19d6",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 714ms | UP | NATIVE",
+      "server": "158.160.221.132",
+      "server_port": 443,
+      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
+          "short_id": "1929ef620e9b34f5"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 724ms | UP | NATIVE",
+      "server": "130.193.59.133",
+      "server_port": 51101,
+      "uuid": "e127f737-bd10-475a-9461-e68904180eab",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_CjW0Khlrr5z5oc9Oy6-w2ZEanz-zMBktVn5EOX9oTM",
+          "short_id": "4ffc99daad0f261f"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 726ms | UP | NATIVE",
+      "server": "158.160.221.132",
+      "server_port": 8443,
+      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
+          "short_id": "887c0d72e771a934"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Volgograd | SOCKS4+TCP | 733ms | UP | NATIVE",
+      "server": "88.87.79.18",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 734ms | UP | NATIVE",
+      "server": "193.233.199.219",
+      "server_port": 443,
+      "uuid": "beab408c-6aa3-43b9-a1ca-e6fabba5d8e7",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "rTp9PEn36FtQFu32jWAPO3r-e1W2px3RGSuhR-L1DVM",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 797ms | UP | NATIVE",
+      "server": "158.160.105.121",
+      "server_port": 8443,
+      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
+          "short_id": "887c0d72e771a934"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 805ms | UP | NATIVE",
+      "server": "89.169.128.105",
+      "server_port": 443,
+      "uuid": "0ff8dbfb-d7ee-4a19-b22d-b652a8b52e22",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "7zd9mJilgjOrg_ohtw23Vmio-pdnYqeP_r-kiWt87Cg",
+          "short_id": "f4b4a6365558ea2e"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 812ms | UP | NATIVE",
+      "server": "130.193.59.133",
+      "server_port": 443,
+      "uuid": "e127f737-bd10-475a-9461-e68904180eab",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_CjW0Khlrr5z5oc9Oy6-w2ZEanz-zMBktVn5EOX9oTM",
+          "short_id": "f32140952ba18e18"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 817ms | UP | NATIVE",
+      "server": "130.193.59.133",
+      "server_port": 8443,
+      "uuid": "e127f737-bd10-475a-9461-e68904180eab",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_CjW0Khlrr5z5oc9Oy6-w2ZEanz-zMBktVn5EOX9oTM",
+          "short_id": "6419bed7fd0a2cff"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 822ms | UP | NATIVE",
+      "server": "90.156.217.130",
+      "server_port": 51101,
+      "uuid": "e127f737-bd10-475a-9461-e68904180eab",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_CjW0Khlrr5z5oc9Oy6-w2ZEanz-zMBktVn5EOX9oTM",
+          "short_id": "4ffc99daad0f261f"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 827ms | UP | NATIVE",
+      "server": "83.166.238.183",
+      "server_port": 51102,
+      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
+          "short_id": "887c0d72e771a934"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 830ms | UP | NATIVE",
+      "server": "83.166.238.183",
+      "server_port": 8443,
+      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
+          "short_id": "887c0d72e771a934"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 842ms | UP | NATIVE",
+      "server": "158.160.105.121",
+      "server_port": 443,
+      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
+          "short_id": "887c0d72e771a934"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 845ms | UP | NATIVE",
+      "server": "90.156.217.130",
+      "server_port": 8443,
+      "uuid": "e127f737-bd10-475a-9461-e68904180eab",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_CjW0Khlrr5z5oc9Oy6-w2ZEanz-zMBktVn5EOX9oTM",
+          "short_id": "4ffc99daad0f261f"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 848ms | UP | NATIVE",
+      "server": "87.239.106.153",
+      "server_port": 8443,
+      "uuid": "1e4649f5-f5d6-4896-9be0-4c6725d4106e",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "zr8_rtHm86s_G1gfRwNtunStGngYZSdYkA3PyBFXpDg",
+          "short_id": "48fccabc158a4c22"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 850ms | UP | NATIVE",
+      "server": "84.252.143.25",
+      "server_port": 8443,
+      "uuid": "1e4649f5-f5d6-4896-9be0-4c6725d4106e",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "zr8_rtHm86s_G1gfRwNtunStGngYZSdYkA3PyBFXpDg",
+          "short_id": "04bf0403f96e5b4b"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 854ms | UP | NATIVE",
+      "server": "89.169.162.214",
+      "server_port": 8443,
+      "uuid": "2ad6bd90-51fd-41d2-985b-b7aab5cd77c8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "zii4nGNapnFKL6SN8GzWNqFlElBvUCUFUThEP0kFH04",
+          "short_id": "205748bc0f24a747"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 858ms | UP | NATIVE",
+      "server": "83.166.238.183",
+      "server_port": 443,
+      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
+          "short_id": "887c0d72e771a934"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 874ms | UP | NATIVE",
+      "server": "51.250.93.16",
+      "server_port": 12000,
+      "uuid": "1ceceebd-5478-4b98-9839-6e25beb9546b",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "max.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "0a3d38cwnQfUM7EqjEinf1XUZyKdzgiuRMayO3LcYl0",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 874ms | UP | NATIVE",
+      "server": "5.129.249.134",
+      "server_port": 443,
+      "uuid": "mega1346",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ir.ozone.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "F14RpPKCKo_qPcW7EFVu1M18JsAT8c04O08cIi0Ghg4",
+          "short_id": "ab1cd2"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 896ms | UP | NATIVE",
+      "server": "5.129.249.134",
+      "server_port": 443,
+      "uuid": "mega1698",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ir.ozone.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "F14RpPKCKo_qPcW7EFVu1M18JsAT8c04O08cIi0Ghg4",
+          "short_id": "ab1cd2"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Samara | SOCKS5+TCP | 919ms | UP | NATIVE",
+      "server": "46.0.205.4",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-St_Petersburg | VLESS+TCP+REALITY | 949ms | UP | NATIVE",
+      "server": "45.12.75.242",
+      "server_port": 26424,
+      "uuid": "633f424e-2b11-48da-a6b3-a849dd71456f",
+      "tls": {
+        "enabled": true,
+        "server_name": "ya.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "l8AubqcxQO-HRFJy4pZL1vbLOo-eXit69s-XulSELE0",
+          "short_id": "23103e1e"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 952ms | UP | NATIVE",
+      "server": "46.243.232.142",
+      "server_port": 443,
+      "uuid": "1daf1a3a-8087-4e44-bde2-d374d0cf69e4",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "sun6-22.userapi.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Z6d_bbLY2IarsuQ5BDmRSleuL0uLDApRHjXaJkR2LkU",
+          "short_id": "278efd4cc196c984"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Unknown | HTTP+TCP | 974ms | UP | NATIVE",
+      "server": "217.77.102.18",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 981ms | UP | NATIVE",
+      "server": "146.185.240.23",
+      "server_port": 443,
+      "uuid": "2ad6bd90-51fd-41d2-985b-b7aab5cd77c8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "zii4nGNapnFKL6SN8GzWNqFlElBvUCUFUThEP0kFH04",
+          "short_id": "205748bc0f24a747"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-St_Petersburg | SOCKS4+TCP | 991ms | UP | NATIVE",
+      "server": "46.149.34.206",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1589ms | UP | NATIVE",
+      "server": "93.90.212.2",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS5+TCP | 4391ms | UP | NATIVE",
+      "server": "195.133.11.246",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 1216ms | UP | NATIVE",
+      "server": "146.185.241.64",
+      "server_port": 7443,
+      "uuid": "c7f067ad-044c-407e-b1d2-711902903ac0",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "eh.vk.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "SyjVadnQbWChjFZ6xqq4LkXRWHrUy65OYgHwEP7o6Xw",
+          "short_id": "111111"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Chelyabinsk | SOCKS4+TCP | 1270ms | UP | NATIVE",
+      "server": "94.181.33.149",
+      "server_port": 40840,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-St_Petersburg | SOCKS5+TCP | 1853ms | UP | NATIVE",
+      "server": "93.187.188.30",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 1576ms | UP | NATIVE",
+      "server": "178.154.253.80",
+      "server_port": 8443,
+      "uuid": "0ff8dbfb-d7ee-4a19-b22d-b652a8b52e22",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "7zd9mJilgjOrg_ohtw23Vmio-pdnYqeP_r-kiWt87Cg",
+          "short_id": "f4b4a6365558ea2e"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-St_Petersburg | VLESS+TCP+REALITY | 1736ms | UP | NATIVE",
+      "server": "178.250.246.80",
+      "server_port": 1488,
+      "uuid": "d6b1327d-2bec-4366-a3a1-9b1284f95841",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 1021ms | UP | NATIVE",
+      "server": "83.220.46.106",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Unknown | HTTP+TCP | 1425ms | UP | NATIVE",
+      "server": "83.221.15.166",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 2554ms | UP | NATIVE",
+      "server": "46.8.48.143",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 1119ms | UP | NATIVE",
+      "server": "84.23.52.70",
+      "server_port": 8443,
+      "uuid": "0ff8dbfb-d7ee-4a19-b22d-b652a8b52e22",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "7zd9mJilgjOrg_ohtw23Vmio-pdnYqeP_r-kiWt87Cg",
+          "short_id": "8ba12e75110b7a9c"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 3178ms | UP | NATIVE",
+      "server": "158.160.215.167",
+      "server_port": 8123,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Penza | SOCKS4+TCP | 2292ms | UP | NATIVE",
+      "server": "85.237.51.73",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2536ms | UP | NATIVE",
+      "server": "94.232.11.178",
+      "server_port": 58028,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 2432ms | UP | NATIVE",
+      "server": "95.163.182.178",
+      "server_port": 443,
+      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "api-maps.yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "5bGFIWSo4vlrd9Tv1yFcpdpSjrjYYN20SOWHYfighHc",
+          "short_id": "abde0809"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 2761ms | UP | NATIVE",
+      "server": "202.181.148.64",
+      "server_port": 54101,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3765ms | UP | NATIVE",
+      "server": "83.219.1.130",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3441ms | UP | NATIVE",
+      "server": "109.68.189.22",
+      "server_port": 54643,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-St_Petersburg | SOCKS4+TCP | 2213ms | UP | NATIVE",
+      "server": "94.247.241.70",
+      "server_port": 51006,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Penza | SOCKS4+TCP | 1649ms | UP | NATIVE",
+      "server": "85.237.62.189",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 5911ms | UP | NATIVE",
+      "server": "78.109.139.51",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 5447ms | UP | NATIVE",
+      "server": "185.30.43.65",
+      "server_port": 60606,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Moscow | VLESS+TCP+REALITY | 1322ms | UP | NATIVE",
+      "server": "212.233.73.212",
+      "server_port": 443,
+      "uuid": "0ff8dbfb-d7ee-4a19-b22d-b652a8b52e22",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "7zd9mJilgjOrg_ohtw23Vmio-pdnYqeP_r-kiWt87Cg",
+          "short_id": "2715592069f36fe7"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Rostov-on-Don | SOCKS5+TCP | 2484ms | UP | NATIVE",
+      "server": "87.117.11.57",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS5+TCP | 1486ms | UP | NATIVE",
+      "server": "85.192.56.4",
+      "server_port": 48716,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 4793ms | UP | NATIVE",
+      "server": "95.163.209.21",
+      "server_port": 443,
+      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "api-maps.yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "5bGFIWSo4vlrd9Tv1yFcpdpSjrjYYN20SOWHYfighHc",
+          "short_id": "44f0602c"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 4840ms | UP | NATIVE",
+      "server": "46.188.2.42",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS5+TCP | 2022ms | UP | NATIVE",
+      "server": "109.195.20.54",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 2424ms | UP | NATIVE",
+      "server": "95.163.210.176",
+      "server_port": 443,
+      "uuid": "ddc2716c-8b78-49dc-baa6-495f98f20ba6",
+      "tls": {
+        "enabled": true,
+        "server_name": "api-maps.yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "iMR5eGZwmy4V0DseMJxZGc-llTJ1nUYpLJYN52HMmyc",
+          "short_id": "8a26b74e56ecbd45"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 1525ms | UP | NATIVE",
+      "server": "89.169.162.214",
+      "server_port": 443,
+      "uuid": "2ad6bd90-51fd-41d2-985b-b7aab5cd77c8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "zii4nGNapnFKL6SN8GzWNqFlElBvUCUFUThEP0kFH04",
+          "short_id": "205748bc0f24a747"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Ivanteyevka | SOCKS4+TCP | 4109ms | UP | NATIVE",
+      "server": "91.247.250.215",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Krasnodar | SOCKS4+TCP | 1659ms | UP | NATIVE",
+      "server": "46.8.60.2",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 2331ms | UP | NATIVE | SEC:invalid_uuid_format",
+      "server": "84.201.167.199",
+      "server_port": 443,
+      "uuid": "fa-8031206539-1766312475386029",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "2rjzbqQ49m-jpfzhiuBNb8Izwwjw0dIg5JAKdv-B2kE",
+          "short_id": "d1d42381ba35"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 2233ms | UP | NATIVE",
+      "server": "83.171.252.150",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS5+TCP | 3830ms | UP | NATIVE",
+      "server": "188.191.164.55",
+      "server_port": 4890,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1590ms | UP | NATIVE",
+      "server": "185.26.168.17",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2870ms | UP | NATIVE",
+      "server": "94.253.95.241",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Podolsk | SOCKS4+TCP | 5641ms | UP | NATIVE",
+      "server": "85.30.215.48",
+      "server_port": 60541,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 4059ms | UP | NATIVE",
+      "server": "85.192.56.4",
+      "server_port": 48716,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Perm | SOCKS5+TCP | 1100ms | UP | NATIVE",
+      "server": "46.146.220.247",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺-Moscow | HTTP+TCP | 2091ms | UP | NATIVE",
+      "server": "202.181.148.64",
+      "server_port": 54101,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 4156ms | UP | NATIVE",
+      "server": "37.139.34.145",
+      "server_port": 8443,
+      "uuid": "1e4649f5-f5d6-4896-9be0-4c6725d4106e",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "zr8_rtHm86s_G1gfRwNtunStGngYZSdYkA3PyBFXpDg",
+          "short_id": "48fccabc158a4c22"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Krasnodar | SOCKS5+TCP | 1359ms | UP | NATIVE",
+      "server": "213.226.122.5",
+      "server_port": 7788,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3275ms | UP | NATIVE",
+      "server": "92.42.8.23",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇺-Unknown | VLESS+TCP+REALITY | 1917ms | UP | NATIVE",
+      "server": "84.201.167.199",
+      "server_port": 443,
+      "uuid": "d26a9be3-023a-557a-a41e-b3d3841c4018",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "2rjzbqQ49m-jpfzhiuBNb8Izwwjw0dIg5JAKdv-B2kE",
+          "short_id": "d1d42381ba35"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1150ms | UP | NATIVE",
+      "server": "92.42.8.22",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3108ms | UP | NATIVE",
+      "server": "212.103.118.77",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2175ms | UP | NATIVE",
+      "server": "31.40.144.129",
+      "server_port": 8888,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 4947ms | UP | NATIVE",
+      "server": "195.133.11.246",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1069ms | UP | NATIVE",
+      "server": "176.214.78.230",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 4735ms | UP | NATIVE",
+      "server": "109.106.196.250",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

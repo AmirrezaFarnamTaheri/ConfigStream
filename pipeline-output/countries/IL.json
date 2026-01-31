@@ -1,0 +1,173 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 420ms | UP | NATIVE",
+        "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 425ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 469ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 474ms | UP | NATIVE",
+        "🇮🇱-Haifa | VLESS+TCP+REALITY | 595ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 420ms | UP | NATIVE",
+        "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 425ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 469ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 474ms | UP | NATIVE",
+        "🇮🇱-Haifa | VLESS+TCP+REALITY | 595ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 420ms | UP | NATIVE",
+      "server": "163.171.213.47",
+      "server_port": 12025,
+      "method": "chacha20-ietf-poly1305",
+      "password": "abe595aeb7a6a035"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
+      "server": "5.188.227.18",
+      "server_port": 11202,
+      "method": "chacha20-ietf-poly1305",
+      "password": "317f13c5c2ebdea3"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 425ms | UP | NATIVE",
+      "server": "163.171.213.46",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "d121385f700a6915"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
+      "server": "163.171.213.47",
+      "server_port": 46281,
+      "method": "chacha20-ietf-poly1305",
+      "password": "08e4090bc46fd8a6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 469ms | UP | NATIVE",
+      "server": "163.171.213.47",
+      "server_port": 46282,
+      "method": "chacha20-ietf-poly1305",
+      "password": "08e4090bc46fd8a6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
+      "server": "89.46.239.231",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 474ms | UP | NATIVE",
+      "server": "163.171.213.47",
+      "server_port": 19702,
+      "method": "chacha20-ietf-poly1305",
+      "password": "2e5c75c35d7ee929"
+    },
+    {
+      "type": "vless",
+      "tag": "🇮🇱-Haifa | VLESS+TCP+REALITY | 595ms | UP | NATIVE",
+      "server": "31.133.100.249",
+      "server_port": 443,
+      "uuid": "55caaee8-4efd-40a5-8578-3edc39e0aff1",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.microsoft.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "7Ch1IcMY1Cq1d5ZK71mNRZ2kI8MLjRMFqN4Rmmp913M",
+          "short_id": "2ff45b6c5e99c32e"
+        }
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

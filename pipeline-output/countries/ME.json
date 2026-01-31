@@ -1,0 +1,98 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇲🇪-Budva | SOCKS4+TCP | 2013ms | UP | NATIVE",
+        "🇲🇪-Podgorica | SOCKS4+TCP | 2102ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇲🇪-Budva | SOCKS4+TCP | 2013ms | UP | NATIVE",
+        "🇲🇪-Podgorica | SOCKS4+TCP | 2102ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇪-Budva | SOCKS4+TCP | 2013ms | UP | NATIVE",
+      "server": "109.72.100.113",
+      "server_port": 48293,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇪-Podgorica | SOCKS4+TCP | 2102ms | UP | NATIVE",
+      "server": "62.4.37.104",
+      "server_port": 60606,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

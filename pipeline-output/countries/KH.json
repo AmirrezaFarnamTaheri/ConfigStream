@@ -1,0 +1,540 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 779ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 785ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 818ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 829ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 981ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2858ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4919ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1775ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS4+TCP | 1914ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3879ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2069ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2099ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1977ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 5625ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4752ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4614ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5669ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS4+TCP | 5706ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1776ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1747ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5302ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1575ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5674ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5621ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3833ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS5+TCP | 1642ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1725ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2630ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1766ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5776ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 5962ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1781ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1720ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1701ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3651ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2752ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5834ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2661ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3617ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4029ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4758ms | UP | NATIVE",
+        "🇰🇭-Unknown | HTTP+TCP | 4033ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4925ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 779ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 785ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 818ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 829ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 981ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2858ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4919ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1775ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS4+TCP | 1914ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3879ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2069ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2099ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1977ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 5625ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4752ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4614ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5669ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS4+TCP | 5706ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1776ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1747ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5302ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1575ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5674ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5621ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3833ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS5+TCP | 1642ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1725ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2630ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1766ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5776ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 5962ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1781ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1720ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1701ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3651ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2752ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5834ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2661ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3617ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4029ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4758ms | UP | NATIVE",
+        "🇰🇭-Unknown | HTTP+TCP | 4033ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4925ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 779ms | UP | NATIVE",
+      "server": "38.54.4.65",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 785ms | UP | NATIVE",
+      "server": "38.54.93.66",
+      "server_port": 49696,
+      "method": "chacha20-ietf-poly1305",
+      "password": "3b72ad57035835c7"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 818ms | UP | NATIVE",
+      "server": "38.54.93.205",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "80bcc0874d39c391"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 829ms | UP | NATIVE",
+      "server": "38.54.93.107",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "5654d957c5f61640"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇭-Phnom_Penh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 981ms | UP | NATIVE",
+      "server": "38.54.4.87",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2858ms | UP | NATIVE",
+      "server": "110.235.240.104",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4919ms | UP | NATIVE",
+      "server": "202.62.62.51",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1775ms | UP | NATIVE",
+      "server": "110.235.247.105",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Unknown | SOCKS4+TCP | 1914ms | UP | NATIVE",
+      "server": "163.47.174.47",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3879ms | UP | NATIVE",
+      "server": "110.235.252.146",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2069ms | UP | NATIVE",
+      "server": "110.235.255.21",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2099ms | UP | NATIVE",
+      "server": "110.235.248.137",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1977ms | UP | NATIVE",
+      "server": "203.189.150.93",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS4+TCP | 5625ms | UP | NATIVE",
+      "server": "202.84.76.190",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4752ms | UP | NATIVE",
+      "server": "124.248.168.187",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4614ms | UP | NATIVE",
+      "server": "110.235.240.223",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5669ms | UP | NATIVE",
+      "server": "203.189.152.142",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Unknown | SOCKS4+TCP | 5706ms | UP | NATIVE",
+      "server": "119.15.89.87",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1776ms | UP | NATIVE",
+      "server": "203.189.153.168",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1747ms | UP | NATIVE",
+      "server": "202.62.52.120",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5302ms | UP | NATIVE",
+      "server": "116.212.142.239",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1575ms | UP | NATIVE",
+      "server": "202.79.26.242",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5674ms | UP | NATIVE",
+      "server": "203.189.152.141",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5621ms | UP | NATIVE",
+      "server": "202.62.59.218",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3833ms | UP | NATIVE",
+      "server": "203.189.135.14",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Unknown | SOCKS5+TCP | 1642ms | UP | NATIVE",
+      "server": "111.67.103.204",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1725ms | UP | NATIVE",
+      "server": "202.62.39.87",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2630ms | UP | NATIVE",
+      "server": "202.62.42.167",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1766ms | UP | NATIVE",
+      "server": "202.62.37.36",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5776ms | UP | NATIVE",
+      "server": "124.248.190.48",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS4+TCP | 5962ms | UP | NATIVE",
+      "server": "110.74.195.152",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1781ms | UP | NATIVE",
+      "server": "110.235.247.65",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1720ms | UP | NATIVE",
+      "server": "110.235.246.62",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 1701ms | UP | NATIVE",
+      "server": "203.189.135.73",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 3651ms | UP | NATIVE",
+      "server": "110.235.255.245",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2752ms | UP | NATIVE",
+      "server": "203.189.159.120",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 5834ms | UP | NATIVE",
+      "server": "203.189.154.200",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 2661ms | UP | NATIVE",
+      "server": "202.62.34.102",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3617ms | UP | NATIVE",
+      "server": "122.252.179.66",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4029ms | UP | NATIVE",
+      "server": "110.235.248.150",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4758ms | UP | NATIVE",
+      "server": "124.248.190.47",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇭-Unknown | HTTP+TCP | 4033ms | UP | NATIVE",
+      "server": "203.217.169.26",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS5+TCP | 4925ms | UP | NATIVE",
+      "server": "203.189.154.20",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

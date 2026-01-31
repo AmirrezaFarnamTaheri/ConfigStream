@@ -1,0 +1,124 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 430ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 600ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 430ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 600ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 430ms | UP | NATIVE",
+      "server": "46.246.98.74",
+      "server_port": 443,
+      "uuid": "95e118b4-4352-4218-8493-f20cc7fc467a",
+      "tls": {
+        "enabled": true,
+        "server_name": "learn.microsoft.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "nBJICh1KzfMblaXtSxpTiPIHGg2TKP5PF8nq-89Q6jg",
+          "short_id": "6ed3324b"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 600ms | UP | NATIVE",
+      "server": "77.91.84.103",
+      "server_port": 443,
+      "uuid": "772d810c-4886-4475-81b2-2673b682c778",
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "HLFSR9-jdtfNAwTx3Sf5JKR4cuuhZqUcOlzjPzIsvXQ",
+          "short_id": "9cb177f23e2edd"
+        }
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

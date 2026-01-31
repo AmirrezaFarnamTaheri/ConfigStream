@@ -1,0 +1,150 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 581ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 938ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 4941ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 581ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 938ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 4941ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 581ms | UP | NATIVE",
+      "server": "38.60.192.176",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
+      "server": "38.54.97.247",
+      "server_port": 28026,
+      "method": "chacha20-ietf-poly1305",
+      "password": "3bb08205cb6c8af0"
+    },
+    {
+      "type": "vless",
+      "tag": "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 938ms | UP | NATIVE",
+      "server": "45.89.107.200",
+      "server_port": 8443,
+      "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.cloudflare.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
+          "short_id": "7cad5040"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇾-Unknown | SOCKS4+TCP | 4941ms | UP | NATIVE",
+      "server": "103.1.105.10",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE",
+      "server": "47.250.45.234",
+      "server_port": 43063,
+      "uuid": "c77f48f5-4be3-4461-b52b-49998e7b897b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/arki",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

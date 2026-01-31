@@ -1,0 +1,126 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇧🇴-La_Paz | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 719ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 2113ms | UP | NATIVE",
+        "🇧🇴-Santa_Cruz_de_la_Sierra | SOCKS4+TCP | 3800ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 4166ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 2434ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇧🇴-La_Paz | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 719ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 2113ms | UP | NATIVE",
+        "🇧🇴-Santa_Cruz_de_la_Sierra | SOCKS4+TCP | 3800ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 4166ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 2434ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇴-La_Paz | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 719ms | UP | NATIVE",
+      "server": "185.93.173.60",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇴-La_Paz | SOCKS4+TCP | 2113ms | UP | NATIVE",
+      "server": "190.104.8.142",
+      "server_port": 14888,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇴-Santa_Cruz_de_la_Sierra | SOCKS4+TCP | 3800ms | UP | NATIVE",
+      "server": "181.115.207.114",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇴-La_Paz | SOCKS4+TCP | 4166ms | UP | NATIVE",
+      "server": "190.104.26.227",
+      "server_port": 33638,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇴-La_Paz | SOCKS4+TCP | 2434ms | UP | NATIVE",
+      "server": "200.105.192.6",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

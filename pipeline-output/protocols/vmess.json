@@ -1,0 +1,3523 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇺🇸-Ashburn | VMESS+TCP | 18ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Ashburn | VMESS+TCP | 22ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Santa_Clara | VMESS+TCP | 24ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Unknown | VMESS+TCP | 27ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 40ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Unknown | VMESS+TCP | 41ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 41ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 42ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 43ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 44ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 45ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 46ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 47ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Unknown | VMESS+NONE | 47ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 49ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 51ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS | 74ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 79ms | UP | NATIVE",
+        "🇺🇸-Santa_Clara | VMESS+RAW | 80ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Los_Angeles | VMESS+WS+TLS | 82ms | UP | NATIVE",
+        "🇺🇸-Dallas | VMESS+TCP | 86ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 123ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 136ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 137ms | UP | NATIVE",
+        "🇵🇭-Unknown | VMESS+WS | 142ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 144ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 145ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 149ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 153ms | UP | NATIVE",
+        "🇺🇸-St_Louis | VMESS+WS | 158ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 166ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 174ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 176ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 178ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 180ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 182ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 186ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 188ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-St_Louis | VMESS+WS | 190ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 190ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 197ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 226ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 237ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 245ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 252ms | UP | NATIVE",
+        "🇲🇩-Unknown | VMESS+TCP | 253ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Frankfurt_am_Main | VMESS+TCP | 275ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+TCP | 292ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+NONE | 310ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 311ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | VMESS+NONE | 341ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Toronto | VMESS+WS+TLS | 345ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | VMESS+TCP | 348ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Los_Angeles | VMESS+WS | 382ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 385ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 394ms | UP | NATIVE",
+        "🇫🇷-Unknown | VMESS+TCP | 394ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 397ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 398ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 406ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+WS | 415ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS | 422ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+WS | 430ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 432ms | UP | NATIVE | SEC:tls_required",
+        "🇷🇺-Unknown | VMESS+TCP | 438ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+WS | 449ms | UP | NATIVE | SEC:tls_required",
+        "🇹🇼-Unknown | VMESS+TCP | 480ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 486ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 488ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 499ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Chuncheon | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Los_Angeles | VMESS+TCP | 507ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Seoul | VMESS+TCP | 508ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-St_Louis | VMESS+WS | 513ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 529ms | UP | NATIVE",
+        "🇸🇬-Unknown | VMESS+TCP | 542ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 550ms | UP | NATIVE | SEC:tls_required",
+        "🇸🇬-Unknown | VMESS+TCP | 553ms | UP | NATIVE | SEC:tls_required",
+        "🇸🇬-Unknown | VMESS+TCP | 555ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 559ms | UP | NATIVE",
+        "🇦🇱-Tirana | VMESS+WS | 560ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 563ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 570ms | UP | NATIVE",
+        "🇺🇸-Unknown | VMESS+WS+TLS | 590ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 596ms | UP | NATIVE | SEC:tls_required",
+        "🇬🇧-Bexley | VMESS+WS | 607ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-St_Louis | VMESS+WS | 621ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+RAW | 647ms | UP | NATIVE",
+        "🇭🇰-Lam_Tin | VMESS+WS | 654ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 668ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 669ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 673ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 675ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 675ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 679ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 691ms | UP | NATIVE",
+        "🇦🇪-Dubai | VMESS+TCP | 692ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 694ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 697ms | UP | NATIVE",
+        "🇫🇷-Unknown | VMESS+WS+TLS | 698ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 699ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 700ms | UP | NATIVE",
+        "🇷🇺-Moscow | VMESS+WS+TLS | 703ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 705ms | UP | NATIVE",
+        "🇻🇳-Unknown | VMESS+TCP | 720ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 735ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 747ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 753ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 758ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 766ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 770ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 776ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 778ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 783ms | UP | NATIVE",
+        "🇫🇷-Unknown | VMESS+WS+TLS | 785ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 798ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS | 806ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 843ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Lam_Tin | VMESS+WS | 855ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+TCP | 869ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 879ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 889ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 894ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 916ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 917ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 934ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 949ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 953ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 962ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VMESS+WS | 973ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 989ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1067ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 2477ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1111ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 1480ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 1476ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 1042ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 2749ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 2185ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 4731ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1011ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3058ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1017ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 1352ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇺-Canberra | VMESS+WS | 1293ms | UP | NATIVE | SEC:tls_required",
+        "🇧🇷-São_Paulo | VMESS+WS | 1072ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 4039ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1444ms | UP | NATIVE",
+        "🇺🇸-Unknown | VMESS+TCP | 1378ms | UP | NATIVE | SEC:tls_required",
+        "🇮🇳-Pune | VMESS+TCP | 3065ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Fanling | VMESS+TCP | 5976ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 4309ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 3284ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1058ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3002ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 3163ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VMESS+WS | 1015ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1198ms | UP | NATIVE",
+        "🇵🇭-Manila | VMESS+WS | 1447ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1217ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1145ms | UP | NATIVE",
+        "🇭🇰-Fanling | VMESS+TCP | 5572ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 2295ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 2791ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1218ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 5423ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 1164ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1933ms | UP | NATIVE",
+        "🇺🇸-Unknown | VMESS+VMESS | 3131ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VMESS+TCP | 3713ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1249ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 3236ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1089ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1231ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1025ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇺🇸-Ashburn | VMESS+TCP | 18ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Ashburn | VMESS+TCP | 22ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Santa_Clara | VMESS+TCP | 24ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Unknown | VMESS+TCP | 27ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 40ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Unknown | VMESS+TCP | 41ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 41ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 42ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 43ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 44ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 45ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 46ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 47ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Unknown | VMESS+NONE | 47ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 49ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 51ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS | 74ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 79ms | UP | NATIVE",
+        "🇺🇸-Santa_Clara | VMESS+RAW | 80ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Los_Angeles | VMESS+WS+TLS | 82ms | UP | NATIVE",
+        "🇺🇸-Dallas | VMESS+TCP | 86ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 123ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 136ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 137ms | UP | NATIVE",
+        "🇵🇭-Unknown | VMESS+WS | 142ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 144ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 145ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 149ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 153ms | UP | NATIVE",
+        "🇺🇸-St_Louis | VMESS+WS | 158ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 166ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 174ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 176ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 178ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 180ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 182ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 186ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 188ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-St_Louis | VMESS+WS | 190ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 190ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 197ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 226ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 237ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 245ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 252ms | UP | NATIVE",
+        "🇲🇩-Unknown | VMESS+TCP | 253ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Frankfurt_am_Main | VMESS+TCP | 275ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+TCP | 292ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+NONE | 310ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 311ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | VMESS+NONE | 341ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Toronto | VMESS+WS+TLS | 345ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | VMESS+TCP | 348ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Los_Angeles | VMESS+WS | 382ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 385ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 394ms | UP | NATIVE",
+        "🇫🇷-Unknown | VMESS+TCP | 394ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 397ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 398ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 406ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+WS | 415ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS | 422ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+WS | 430ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 432ms | UP | NATIVE | SEC:tls_required",
+        "🇷🇺-Unknown | VMESS+TCP | 438ms | UP | NATIVE | SEC:tls_required",
+        "🇫🇷-Unknown | VMESS+WS | 449ms | UP | NATIVE | SEC:tls_required",
+        "🇹🇼-Unknown | VMESS+TCP | 480ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 486ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 488ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 499ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Chuncheon | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-Los_Angeles | VMESS+TCP | 507ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Seoul | VMESS+TCP | 508ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-St_Louis | VMESS+WS | 513ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 529ms | UP | NATIVE",
+        "🇸🇬-Unknown | VMESS+TCP | 542ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 550ms | UP | NATIVE | SEC:tls_required",
+        "🇸🇬-Unknown | VMESS+TCP | 553ms | UP | NATIVE | SEC:tls_required",
+        "🇸🇬-Unknown | VMESS+TCP | 555ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 559ms | UP | NATIVE",
+        "🇦🇱-Tirana | VMESS+WS | 560ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 563ms | UP | NATIVE | SEC:tls_required",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 570ms | UP | NATIVE",
+        "🇺🇸-Unknown | VMESS+WS+TLS | 590ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 596ms | UP | NATIVE | SEC:tls_required",
+        "🇬🇧-Bexley | VMESS+WS | 607ms | UP | NATIVE | SEC:tls_required",
+        "🇺🇸-St_Louis | VMESS+WS | 621ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+RAW | 647ms | UP | NATIVE",
+        "🇭🇰-Lam_Tin | VMESS+WS | 654ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 668ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 669ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 673ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 675ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 675ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 679ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 691ms | UP | NATIVE",
+        "🇦🇪-Dubai | VMESS+TCP | 692ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 694ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 697ms | UP | NATIVE",
+        "🇫🇷-Unknown | VMESS+WS+TLS | 698ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 699ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 700ms | UP | NATIVE",
+        "🇷🇺-Moscow | VMESS+WS+TLS | 703ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 705ms | UP | NATIVE",
+        "🇻🇳-Unknown | VMESS+TCP | 720ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 735ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 747ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 753ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 758ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 766ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 770ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 776ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 778ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 783ms | UP | NATIVE",
+        "🇫🇷-Unknown | VMESS+WS+TLS | 785ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 798ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS | 806ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+TCP | 843ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Lam_Tin | VMESS+WS | 855ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+TCP | 869ms | UP | NATIVE | SEC:tls_required",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 879ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 889ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 894ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 916ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 917ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 934ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 949ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 953ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 962ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VMESS+WS | 973ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 989ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1067ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 2477ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1111ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 1480ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 1476ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS | 1042ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 2749ms | UP | NATIVE",
+        "🇽🇽-Unknown | VMESS+WS+TLS | 2185ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 4731ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1011ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3058ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1017ms | UP | NATIVE",
+        "🌐 | VMESS+WS | 1352ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇺-Canberra | VMESS+WS | 1293ms | UP | NATIVE | SEC:tls_required",
+        "🇧🇷-São_Paulo | VMESS+WS | 1072ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 4039ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1444ms | UP | NATIVE",
+        "🇺🇸-Unknown | VMESS+TCP | 1378ms | UP | NATIVE | SEC:tls_required",
+        "🇮🇳-Pune | VMESS+TCP | 3065ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Fanling | VMESS+TCP | 5976ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 4309ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 3284ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1058ms | UP | NATIVE | SEC:tls_required",
+        "🇭🇰-Hong_Kong | VMESS+TCP | 3002ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 3163ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VMESS+WS | 1015ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1198ms | UP | NATIVE",
+        "🇵🇭-Manila | VMESS+WS | 1447ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1217ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1145ms | UP | NATIVE",
+        "🇭🇰-Fanling | VMESS+TCP | 5572ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 2295ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 2791ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1218ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 5423ms | UP | NATIVE",
+        "🇩🇪-Unknown | VMESS+WS+TLS | 1164ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1933ms | UP | NATIVE",
+        "🇺🇸-Unknown | VMESS+VMESS | 3131ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VMESS+TCP | 3713ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1249ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | VMESS+WS+TLS | 3236ms | UP | NATIVE",
+        "🌐 | VMESS+WS+TLS | 1089ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1231ms | UP | NATIVE | SEC:tls_required",
+        "🌐 | VMESS+WS+TLS | 1025ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Ashburn | VMESS+TCP | 18ms | UP | NATIVE | SEC:tls_required",
+      "server": "172.234.132.232",
+      "server_port": 10001,
+      "uuid": "a6b99c05-8e0a-4f7e-bf7b-e4b9febb9589",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Ashburn | VMESS+TCP | 22ms | UP | NATIVE | SEC:tls_required",
+      "server": "172.233.229.91",
+      "server_port": 14102,
+      "uuid": "27ba87fc-583f-4763-9060-83cf0b9264db",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Santa_Clara | VMESS+TCP | 24ms | UP | NATIVE | SEC:tls_required",
+      "server": "216.75.145.237",
+      "server_port": 110,
+      "uuid": "a5a25715-1553-4586-949d-3bb0fb87cbcd",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Unknown | VMESS+TCP | 27ms | UP | NATIVE | SEC:tls_required",
+      "server": "165.140.216.141",
+      "server_port": 443,
+      "uuid": "e7d72a8d-26f2-4b54-b366-0c43e0bcba7d",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 40ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Unknown | VMESS+TCP | 41ms | UP | NATIVE | SEC:tls_required",
+      "server": "23.138.148.47",
+      "server_port": 42507,
+      "uuid": "4db07b13-6524-49d2-b432-1f312c0e9c7c",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 41ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 42ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 43ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 44ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 45ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 46ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 47ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Unknown | VMESS+NONE | 47ms | UP | NATIVE | SEC:tls_required",
+      "server": "209.54.104.219",
+      "server_port": 43966,
+      "uuid": "0e3606ae-321a-4d0b-85ec-5f4352f4bc24",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 49ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 51ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS | 74ms | UP | NATIVE | SEC:tls_required",
+      "server": "104.21.38.90",
+      "server_port": 80,
+      "uuid": "2d068083-2cb0-4ae3-a44a-6fc82f3039cc",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/87Ex2JiYYWr7FRa06b88JSo",
+        "headers": {
+          "Host": "dddcccdvfg.222856.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 79ms | UP | NATIVE",
+      "server": "107.174.82.102.sslip.io",
+      "server_port": 443,
+      "uuid": "bb824a22-b7ce-427b-9ed6-1adf0751da02",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/Ov7HrgwlEcRugowKV",
+        "headers": {
+          "Host": "107.174.82.102.sslip.io",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "107.174.82.102.sslip.io"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Santa_Clara | VMESS+RAW | 80ms | UP | NATIVE | SEC:tls_required",
+      "server": "216.75.145.237",
+      "server_port": 110,
+      "uuid": "a5a25715-1553-4586-949d-3bb0fb87cbcd",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Los_Angeles | VMESS+WS+TLS | 82ms | UP | NATIVE",
+      "server": "107.174.82.102",
+      "server_port": 443,
+      "uuid": "bb824a22-b7ce-427b-9ed6-1adf0751da02",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/Ov7HrgwlEcRugowKV",
+        "headers": {
+          "Host": "107.174.82.102.sslip.io",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "107.174.82.102.sslip.io",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Dallas | VMESS+TCP | 86ms | UP | NATIVE | SEC:tls_required",
+      "server": "192.227.249.227",
+      "server_port": 27641,
+      "uuid": "3b134252-e7c2-43df-98b7-da204104aa79",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE | SEC:tls_required",
+      "server": "51.79.103.76",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE",
+      "server": "51.79.103.76",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "51.79.103.76",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 123ms | UP | NATIVE",
+      "server": "4D41-b510-Fc35f2D7ECd7.664.qzz.io",
+      "server_port": 443,
+      "uuid": "0507fbcd-b983-43a7-8e1d-2c561960ad4f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/pyyY4ZVTyJV3vr9noOhn",
+        "headers": {
+          "Host": "4D41-b510-fC35f2d7ecd7.664.qZz.io",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "4D41-b510-Fc35f2D7ECd7.664.qzz.io"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 136ms | UP | NATIVE | SEC:tls_required",
+      "server": "15.235.41.200",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 137ms | UP | NATIVE",
+      "server": "51.79.103.76",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇵🇭-Unknown | VMESS+WS | 142ms | UP | NATIVE | SEC:tls_required",
+      "server": "154.83.2.156",
+      "server_port": 2086,
+      "uuid": "92373ed1-78a8-4cbe-aa06-54af1edd0471",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "v205.19740822.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 144ms | UP | NATIVE | SEC:tls_required",
+      "server": "51.79.102.253",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "51.79.102.253",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 145ms | UP | NATIVE | SEC:tls_required",
+      "server": "51.79.102.253",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 149ms | UP | NATIVE | SEC:tls_required",
+      "server": "51.79.102.253",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 153ms | UP | NATIVE",
+      "server": "54d-bD0D-C3F111D0b879.664.QzZ.io",
+      "server_port": 443,
+      "uuid": "0507fbcd-b983-43a7-8e1d-2c561960ad4f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/pyyY4ZVTyJV3vr9noOhn",
+        "headers": {
+          "Host": "54D-bd0D-c3f111D0b879.664.QZZ.iO",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "54D-bd0D-c3f111D0b879.664.qZz.iO"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-St_Louis | VMESS+WS | 158ms | UP | NATIVE | SEC:tls_required",
+      "server": "209.126.84.189",
+      "server_port": 443,
+      "uuid": "2c981164-9b93-4bca-94ff-b78d3f8498d7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmessws",
+        "headers": {
+          "Host": "209.126.84.189",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 166ms | UP | NATIVE",
+      "server": "51.79.103.76",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 174ms | UP | NATIVE | SEC:tls_required",
+      "server": "ddDFHhj.922922.Shop",
+      "server_port": 80,
+      "uuid": "bce0c7cb-08d1-46a7-b77b-7bff8b46252f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/RkUUbqhA9GJZBROjL3Q5vTymr",
+        "headers": {
+          "Host": "ddDFHhj.922922.Shop",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 176ms | UP | NATIVE | SEC:tls_required",
+      "server": "DddFfRtY6.922922.shop",
+      "server_port": 80,
+      "uuid": "bce0c7cb-08d1-46a7-b77b-7bff8b46252f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/RkUUbqhA9GJZBROjL3Q5vTymr",
+        "headers": {
+          "Host": "DddFfRtY6.922922.shop",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 178ms | UP | NATIVE",
+      "server": "d-4beD-b726-2c53a82e4925.664.qZz.io",
+      "server_port": 443,
+      "uuid": "0507fbcd-b983-43a7-8e1d-2c561960ad4f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/pyyY4ZVTyJV3vr9noOhn",
+        "headers": {
+          "Host": "D-4bEd-b726-2c53A82E4925.664.qzZ.iO",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "D-4bEd-b726-2c53A82E4925.664.qzZ.iO"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 180ms | UP | NATIVE | SEC:tls_required",
+      "server": "dddffgthyu.922922.shop",
+      "server_port": 80,
+      "uuid": "bce0c7cb-08d1-46a7-b77b-7bff8b46252f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/RkUUbqhA9GJZBROjL3Q5vTymr",
+        "headers": {
+          "Host": "dDdFfGTHYU.922922.SHOP",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 182ms | UP | NATIVE | SEC:tls_required",
+      "server": "XXXccFrt.922922.ShOP",
+      "server_port": 80,
+      "uuid": "bce0c7cb-08d1-46a7-b77b-7bff8b46252f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/RkUUbqhA9GJZBROjL3Q5vTymr",
+        "headers": {
+          "Host": "XXXccFrt.922922.ShOP",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 186ms | UP | NATIVE | SEC:tls_required",
+      "server": "gggggggggggggg.222769.xyz",
+      "server_port": 80,
+      "uuid": "2e65577e-8fdb-4bb1-a495-96f3122099a7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/f6taOMcOSZb9TPR",
+        "headers": {
+          "Host": "gggggggggggggg.222769.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 188ms | UP | NATIVE | SEC:tls_required",
+      "server": "cCc.922922.ShOp",
+      "server_port": 80,
+      "uuid": "bce0c7cb-08d1-46a7-b77b-7bff8b46252f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/RkUUbqhA9GJZBROjL3Q5vTymr",
+        "headers": {
+          "Host": "cCc.922922.ShOp",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-St_Louis | VMESS+WS | 190ms | UP | NATIVE | SEC:tls_required",
+      "server": "209.126.84.189",
+      "server_port": 443,
+      "uuid": "2c981164-9b93-4bca-94ff-b78d3f8498d7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmessws",
+        "headers": {
+          "Host": "AZERB.NET",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 190ms | UP | NATIVE | SEC:tls_required",
+      "server": "ZzXxdE.922922.sHOp",
+      "server_port": 80,
+      "uuid": "bce0c7cb-08d1-46a7-b77b-7bff8b46252f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/RkUUbqhA9GJZBROjL3Q5vTymr",
+        "headers": {
+          "Host": "ZzXxdE.922922.sHOp",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 197ms | UP | NATIVE | SEC:tls_required",
+      "server": "dDdCCVFg.922922.SHOP",
+      "server_port": 80,
+      "uuid": "bce0c7cb-08d1-46a7-b77b-7bff8b46252f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/RkUUbqhA9GJZBROjL3Q5vTymr",
+        "headers": {
+          "Host": "dDdCCVFg.922922.SHOP",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS+TLS | 226ms | UP | NATIVE",
+      "server": "8.6.112.0",
+      "server_port": 2083,
+      "uuid": "e6395c20-4571-4b34-d6b1-55a5d36e49ea",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/e6395c20",
+        "headers": {
+          "Host": "hgtrojan.zabc.net",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "hgtrojan.zabc.net",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 237ms | UP | NATIVE | SEC:tls_required",
+      "server": "NnnNNNnNnNNNNN.222769.xYZ",
+      "server_port": 80,
+      "uuid": "2e65577e-8fdb-4bb1-a495-96f3122099a7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/f6taOMcOSZb9TPR",
+        "headers": {
+          "Host": "nnnnnnnnnnnnnn.222769.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 245ms | UP | NATIVE",
+      "server": "chatgpt.com",
+      "server_port": 2083,
+      "uuid": "e6395c20-4571-4b34-d6b1-55a5d36e49ea",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/e6395c20",
+        "headers": {
+          "Host": "hgtrojan.zabc.net",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "hgtrojan.zabc.net"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS+TLS | 252ms | UP | NATIVE",
+      "server": "162.159.152.4",
+      "server_port": 443,
+      "uuid": "2c981164-9b93-4bca-94ff-b78d3f8498d7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmessws",
+        "headers": {
+          "Host": "v2ray.codefyinc.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "v2ray.codefyinc.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇲🇩-Unknown | VMESS+TCP | 253ms | UP | NATIVE | SEC:tls_required",
+      "server": "94.232.247.165",
+      "server_port": 45653,
+      "uuid": "9e91d19a-c73f-4276-adbc-b337c374259c",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+TCP | 275ms | UP | NATIVE | SEC:tls_required",
+      "server": "85.195.101.122",
+      "server_port": 40878,
+      "uuid": "f3d4167e-b15e-4e46-82e9-9286ef93fda7",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇫🇷-Unknown | VMESS+TCP | 292ms | UP | NATIVE | SEC:tls_required",
+      "server": "162.19.248.238",
+      "server_port": 550,
+      "uuid": "ede27a79-b039-490b-932c-495de4b68880",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+NONE | 310ms | UP | NATIVE | SEC:tls_required",
+      "server": "92.246.87.170",
+      "server_port": 18355,
+      "uuid": "caf921c7-ac63-40bc-faa1-cda097fd7e42",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 311ms | UP | NATIVE",
+      "server": "v2ray.codefyinc.com",
+      "server_port": 443,
+      "uuid": "2c981164-9b93-4bca-94ff-b78d3f8498d7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmessws",
+        "headers": {
+          "Host": "v2ray.codefyinc.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇲🇽-Querétaro_City | VMESS+NONE | 341ms | UP | NATIVE | SEC:tls_required",
+      "server": "216.238.86.158",
+      "server_port": 34460,
+      "uuid": "90be214d-048c-4ea2-a602-b8e4d4e51e36",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Toronto | VMESS+WS+TLS | 345ms | UP | NATIVE",
+      "server": "23.162.200.227",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇲🇽-Querétaro_City | VMESS+TCP | 348ms | UP | NATIVE | SEC:tls_required",
+      "server": "216.238.87.47",
+      "server_port": 27502,
+      "uuid": "b8155ce4-7e08-4c40-800f-8671312b7124",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Los_Angeles | VMESS+WS | 382ms | UP | NATIVE | SEC:tls_required",
+      "server": "69.63.210.35",
+      "server_port": 24943,
+      "uuid": "a89feda9-ec30-48c1-ae6b-1a6f5b573f6b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/a89feda9-ec30-48c1-ae6b-1a6f5b573f6b-vm",
+        "headers": {
+          "Host": "www.bing.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 385ms | UP | NATIVE",
+      "server": "15.235.83.227",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 394ms | UP | NATIVE",
+      "server": "15.235.50.172",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇫🇷-Unknown | VMESS+TCP | 394ms | UP | NATIVE | SEC:tls_required",
+      "server": "162.19.248.238",
+      "server_port": 550,
+      "uuid": "ede27a79-b039-490b-932c-495de4b68880",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 397ms | UP | NATIVE",
+      "server": "148.113.176.192",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 398ms | UP | NATIVE",
+      "server": "6b-4f68-8d87-7c4aadd12ab9.664.qzz.io",
+      "server_port": 443,
+      "uuid": "0507fbcd-b983-43a7-8e1d-2c561960ad4f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/pyyY4ZVTyJV3vr9noOhn",
+        "headers": {
+          "Host": "6B-4F68-8D87-7c4aaDd12ab9.664.QZz.iO",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "6B-4F68-8D87-7c4aaDd12ab9.664.QZz.iO"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 406ms | UP | NATIVE | SEC:tls_required",
+      "server": "tgju.org",
+      "server_port": 8080,
+      "uuid": "nasnet",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/nasnet/cdn",
+        "headers": {
+          "Host": "nasnet-162191099.sharghdaily.co",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇫🇷-Unknown | VMESS+WS | 415ms | UP | NATIVE | SEC:tls_required",
+      "server": "5.196.29.123",
+      "server_port": 2082,
+      "uuid": "112ac36f-3f53-4e26-8371-d25c028e1b9a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS | 422ms | UP | NATIVE | SEC:tls_required",
+      "server": "172.67.204.84",
+      "server_port": 8080,
+      "uuid": "nasnet",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/nasnet/cdn",
+        "headers": {
+          "Host": "nasnet-511952424.mcitel.co",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇫🇷-Unknown | VMESS+WS | 430ms | UP | NATIVE | SEC:tls_required",
+      "server": "5.196.29.123",
+      "server_port": 2082,
+      "uuid": "112ac36f-3f53-4e26-8371-d25c028e1b9a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 432ms | UP | NATIVE | SEC:tls_required",
+      "server": "15.235.41.200",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇷🇺-Unknown | VMESS+TCP | 438ms | UP | NATIVE | SEC:tls_required",
+      "server": "45.89.52.207",
+      "server_port": 39651,
+      "uuid": "ac4c12c5-45f2-4398-a718-9983941ede2b",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇫🇷-Unknown | VMESS+WS | 449ms | UP | NATIVE | SEC:tls_required",
+      "server": "5.196.29.123",
+      "server_port": 2082,
+      "uuid": "112ac36f-3f53-4e26-8371-d25c028e1b9a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇹🇼-Unknown | VMESS+TCP | 480ms | UP | NATIVE | SEC:tls_required",
+      "server": "165.154.195.38",
+      "server_port": 35034,
+      "uuid": "959a8caf-4cea-43d0-a548-3628e7ddfafc",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 486ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.217.248.98",
+      "server_port": 8080,
+      "uuid": "3c9a9f2d-f1a3-4175-b590-03996201d0b9",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 488ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.210.248.133",
+      "server_port": 43425,
+      "uuid": "aa10afb0-f913-4343-9c69-bc797fcba2db",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+      "server": "de.zarasite.ir",
+      "server_port": 6533,
+      "uuid": "7fea7538-e321-41de-a395-3afcbd7ec27c",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 497ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.243.92.155",
+      "server_port": 8080,
+      "uuid": "6e8b3a5e-d756-4f2c-b197-8fc4a2f94857",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 499ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.218.16.45",
+      "server_port": 8080,
+      "uuid": "dd84b685-98b0-48d8-ae73-975d5d32bc21",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇷-Chuncheon | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+      "server": "146.56.112.110",
+      "server_port": 8888,
+      "uuid": "e7c302f3-90d6-42dd-9d7d-94a3683a3707",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.242.22.4",
+      "server_port": 8080,
+      "uuid": "8f765afd-a611-4008-8c62-e1b3415e57f7",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Los_Angeles | VMESS+TCP | 507ms | UP | NATIVE | SEC:tls_required",
+      "server": "206.119.191.9",
+      "server_port": 7100,
+      "uuid": "10853485-26e1-477b-d257-58a3f4873db3",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇷-Seoul | VMESS+TCP | 508ms | UP | NATIVE | SEC:tls_required",
+      "server": "140.238.2.250",
+      "server_port": 443,
+      "uuid": "41a7089a-040b-4538-8b8d-010902405bde",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-St_Louis | VMESS+WS | 513ms | UP | NATIVE | SEC:tls_required",
+      "server": "209.126.84.189",
+      "server_port": 443,
+      "uuid": "2c981164-9b93-4bca-94ff-b78d3f8498d7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmessws",
+        "headers": {
+          "Host": "v2ray.codefyinc.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 529ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "fa8f8911-2e9b-494e-9a8d-f80239ee2214",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇸🇬-Unknown | VMESS+TCP | 542ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.236.78.132",
+      "server_port": 8080,
+      "uuid": "542f6e13-9542-470c-974a-d31c0a05a37d",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 550ms | UP | NATIVE | SEC:tls_required",
+      "server": "tgju.org",
+      "server_port": 8080,
+      "uuid": "nasnet",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/nasnet/cdn",
+        "headers": {
+          "Host": "nasnet-571296497.iranpress.co",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇸🇬-Unknown | VMESS+TCP | 553ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.236.10.117",
+      "server_port": 8080,
+      "uuid": "324f77dc-49ea-4853-8930-fbe4f1d7298c",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇸🇬-Unknown | VMESS+TCP | 555ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.236.110.28",
+      "server_port": 8080,
+      "uuid": "c215c685-8bbd-4d35-9e44-068738b9c4c1",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 559ms | UP | NATIVE",
+      "server": "pq-Hungary1.09vpn.com",
+      "server_port": 8443,
+      "uuid": "6f1f1a18-ecc4-4513-890e-fd193042f564",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇦🇱-Tirana | VMESS+WS | 560ms | UP | NATIVE | SEC:tls_required",
+      "server": "45.15.170.237",
+      "server_port": 80,
+      "uuid": "820d4b4f-3357-4dc7-9381-6e5fd52b5f39",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 563ms | UP | NATIVE | SEC:tls_required",
+      "server": "adelmeli.com",
+      "server_port": 80,
+      "uuid": "89e25562-d0f1-4f54-8afb-6ee374e30fbb",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS+TLS | 570ms | UP | NATIVE",
+      "server": "162.159.152.4",
+      "server_port": 8443,
+      "uuid": "19e52bf4-1b7d-4bd4-ae66-6ca024436c17",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/gbt",
+        "headers": {
+          "Host": "frsys.fl-dl.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "frsys.fl-dl.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Unknown | VMESS+WS+TLS | 590ms | UP | NATIVE",
+      "server": "208.103.161.110",
+      "server_port": 443,
+      "uuid": "2c981164-9b93-4bca-94ff-b78d3f8498d7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmessws",
+        "headers": {
+          "Host": "v2ray.codefyinc.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "v2ray.codefyinc.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 596ms | UP | NATIVE | SEC:tls_required",
+      "server": "15.235.41.200",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "15.235.41.200",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇬🇧-Bexley | VMESS+WS | 607ms | UP | NATIVE | SEC:tls_required",
+      "server": "57.129.132.223",
+      "server_port": 80,
+      "uuid": "a25cbf11-2908-4a1b-a3a8-9a571777dca3",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-St_Louis | VMESS+WS | 621ms | UP | NATIVE | SEC:tls_required",
+      "server": "209.126.84.189",
+      "server_port": 443,
+      "uuid": "2c981164-9b93-4bca-94ff-b78d3f8498d7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmessws",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+RAW | 647ms | UP | NATIVE",
+      "server": "h1.pyanyarray.com",
+      "server_port": 1191,
+      "uuid": "d744bb69-3ef6-3d90-8695-87b59ac22a02",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Lam_Tin | VMESS+WS | 654ms | UP | NATIVE",
+      "server": "210.3.159.150",
+      "server_port": 42717,
+      "uuid": "b5803d74-c6f8-415f-e1e6-ebc9e4269b86",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 668ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "27104fae-f047-4993-902a-9368d8a3e9bc",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS+TLS | 669ms | UP | NATIVE",
+      "server": "172.64.155.209",
+      "server_port": 2083,
+      "uuid": "3a9bb1fe-adb3-46f3-b16c-6af5fdde5326",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "kk1.gaming-center.ir",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "kk1.gaming-center.ir",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 673ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "3786e67a-41eb-4b92-b31e-417e89493b93",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 675ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "b01d1e26-2f84-48da-88a1-1d06a77857f3",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS+TLS | 675ms | UP | NATIVE",
+      "server": "162.159.152.4",
+      "server_port": 2083,
+      "uuid": "3a9bb1fe-adb3-46f3-b16c-6af5fdde5326",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "kk1.gaming-center.ir",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "kk1.gaming-center.ir",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 679ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "54a0bf6d-f2b5-4b2a-942c-798fb129527e",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 691ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "12929592-a7bd-41eb-ab4d-d804f76c4ff9",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇦🇪-Dubai | VMESS+TCP | 692ms | UP | NATIVE | SEC:tls_required",
+      "server": "89.31.120.192",
+      "server_port": 443,
+      "uuid": "44537595-9ccc-4b83-8936-5f9ad3229019",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 694ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "4ec66d81-9565-4d8e-ae58-2bacfde95f48",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 697ms | UP | NATIVE",
+      "server": "chatgpt.com",
+      "server_port": 2083,
+      "uuid": "3a9bb1fe-adb3-46f3-b16c-6af5fdde5326",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "kk1.gaming-center.ir",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "kk1.gaming-center.ir",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇫🇷-Unknown | VMESS+WS+TLS | 698ms | UP | NATIVE",
+      "server": "57.128.189.240",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 699ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "254551f6-ec28-4938-ad0e-0aa4aa1965ec",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 700ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "6d600864-32da-49fd-baf4-7df051762454",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇷🇺-Moscow | VMESS+WS+TLS | 703ms | UP | NATIVE",
+      "server": "95.81.123.15",
+      "server_port": 40956,
+      "uuid": "4f3cfda3-a255-40eb-8801-71f9fffb19d6",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 705ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "3b475934-cb2a-4d96-b260-5e50cca5d430",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇻🇳-Unknown | VMESS+TCP | 720ms | UP | NATIVE | SEC:tls_required",
+      "server": "160.191.245.48",
+      "server_port": 58623,
+      "uuid": "8d74803e-aa74-47ef-e3ae-23eeaa96f89d",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 735ms | UP | NATIVE",
+      "server": "n1753598452.wpg27.xyz",
+      "server_port": 443,
+      "uuid": "4f23eb7c-ef2f-43b0-90dd-f2b8a75954a5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1753598452.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1753598452.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 747ms | UP | NATIVE",
+      "server": "57.129.28.69",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 753ms | UP | NATIVE",
+      "server": "57.129.25.25",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 758ms | UP | NATIVE",
+      "server": "57.129.25.23",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 766ms | UP | NATIVE",
+      "server": "57.129.64.199",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 770ms | UP | NATIVE",
+      "server": "57.129.28.213",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 776ms | UP | NATIVE",
+      "server": "57.129.64.157",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 778ms | UP | NATIVE",
+      "server": "seoul03.zgjok.com",
+      "server_port": 443,
+      "uuid": "72a0dac4-9689-4a57-b164-5c65bfa94772",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "seoul03.zgjok.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "seoul03.zgjok.com"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Frankfurt_am_Main | VMESS+WS+TLS | 783ms | UP | NATIVE",
+      "server": "57.129.28.64",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇫🇷-Unknown | VMESS+WS+TLS | 785ms | UP | NATIVE",
+      "server": "141.95.126.134",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 798ms | UP | NATIVE",
+      "server": "support.zoom.us",
+      "server_port": 443,
+      "uuid": "a655a63f-44e1-4675-a0d3-a71d59e2478f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/@Malinda6104",
+        "headers": {
+          "Host": "node4.rtxconfigz.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "node4.rtxconfigz.com"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS | 806ms | UP | NATIVE | SEC:tls_required",
+      "server": "104.21.69.44",
+      "server_port": 8080,
+      "uuid": "nasnet",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/nasnet/cdn",
+        "headers": {
+          "Host": "nasnet-511952424.mcitel.co",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 843ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Lam_Tin | VMESS+WS | 855ms | UP | NATIVE",
+      "server": "210.3.159.150",
+      "server_port": 42717,
+      "uuid": "b5803d74-c6f8-415f-e1e6-ebc9e4269b86",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "210.3.159.150",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+TCP | 869ms | UP | NATIVE | SEC:tls_required",
+      "server": "82.198.246.97",
+      "server_port": 180,
+      "uuid": "d13fc2f5-3e05-4795-81eb-44143a09e552",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 879ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "f1a513d2-c32a-49dc-8e64-d4f8a2f1e001",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 889ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "e3cb685e-7840-45cb-9d64-b2028d9b635e",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 894ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "35f332d0-0b05-4cc6-91cb-ec0d4465055f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 916ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "c50f9480-2e1d-40db-9458-630e79636663",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 917ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "c6e0562f-7ad1-40fb-a255-26194b2de84a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 934ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "d0e97ee2-c6de-48f8-bd4a-8e63a9cd9e89",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 949ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "b2da9920-b0a7-4354-9e26-3833ab8d00d0",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 953ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "e1cc26b3-df0b-477b-afb0-53659a25e978",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 962ms | UP | NATIVE",
+      "server": "47.243.95.187",
+      "server_port": 443,
+      "uuid": "c28a6258-7baa-40fc-8a51-87f59c847cd7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214906.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214906.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇧🇷-São_Paulo | VMESS+WS | 973ms | UP | NATIVE | SEC:tls_required",
+      "server": "95.164.4.88",
+      "server_port": 80,
+      "uuid": "24b6bbfb-9b27-4f17-bd32-67523bf487d9",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 989ms | UP | NATIVE",
+      "server": "n1753598451.74qxv.top",
+      "server_port": 443,
+      "uuid": "9798678f-5b8c-4ff1-bbdd-b9b5c1539de0",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1753598451.74qxv.top",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1753598451.74qxv.top"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1067ms | UP | NATIVE",
+      "server": "n1747624271.lie5d.cyou",
+      "server_port": 443,
+      "uuid": "a231ba8b-8871-416c-813b-e2240bc66bb2",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1747624271.lie5d.cyou",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1747624271.lie5d.cyou"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 2477ms | UP | NATIVE",
+      "server": "n1761214919.mv7wh.tech",
+      "server_port": 443,
+      "uuid": "c592f040-faff-47dc-a464-9bccf2dd4e7b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214919.mv7wh.tech",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214919.mv7wh.tech"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1111ms | UP | NATIVE",
+      "server": "43.100.32.6",
+      "server_port": 443,
+      "uuid": "8c5d150c-b046-4440-8230-e84506a065a3",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1747624267.4u9ma.icu",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1747624267.4u9ma.icu"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS+TLS | 1480ms | UP | NATIVE",
+      "server": "104.18.32.47",
+      "server_port": 2083,
+      "uuid": "e6395c20-4571-4b34-d6b1-55a5d36e49ea",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/e6395c20",
+        "headers": {
+          "Host": "hgtrojan.zabc.net",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "hgtrojan.zabc.net"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 1476ms | UP | NATIVE | SEC:tls_required",
+      "server": "8.210.178.4",
+      "server_port": 8080,
+      "uuid": "718cfac2-0044-4e43-ad9e-9f67f07b545a",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 1042ms | UP | NATIVE | SEC:tls_required",
+      "server": "pq-brazil1.09vpn.com",
+      "server_port": 80,
+      "uuid": "c04c3b34-70fd-4fec-963e-c12d09f36bef",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "Host": "pq-brazil1.09vpn.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 2749ms | UP | NATIVE",
+      "server": "47.243.244.164",
+      "server_port": 443,
+      "uuid": "3514a93f-bb26-4442-8f99-971b2ff3388a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214908.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214908.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇽🇽-Unknown | VMESS+WS+TLS | 2185ms | UP | NATIVE",
+      "server": "172.64.152.23",
+      "server_port": 8443,
+      "uuid": "19e52bf4-1b7d-4bd4-ae66-6ca024436c17",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/gbt",
+        "headers": {
+          "Host": "frsys.fl-dl.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "frsys.fl-dl.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 4731ms | UP | NATIVE",
+      "server": "n1761214915.mv7wh.tech",
+      "server_port": 443,
+      "uuid": "1f2daf43-ff90-4df9-9276-dfb8486d72bc",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214915.mv7wh.tech",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214915.mv7wh.tech"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1011ms | UP | NATIVE",
+      "server": "n1761214908.wpg27.xyz",
+      "server_port": 443,
+      "uuid": "3514a93f-bb26-4442-8f99-971b2ff3388a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214908.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214908.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 3058ms | UP | NATIVE | SEC:tls_required",
+      "server": "45.207.157.29",
+      "server_port": 13852,
+      "uuid": "845764df-ecb3-4b13-bed2-bf1551b68e9a",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1017ms | UP | NATIVE",
+      "server": "n1753598446.wpg27.xyz",
+      "server_port": 443,
+      "uuid": "a5047d95-24b8-451a-93e3-f2a387b93d5a",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1753598446.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1753598446.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS | 1352ms | UP | NATIVE | SEC:tls_required",
+      "server": "3h-kazakhstan1.09vpn.com",
+      "server_port": 80,
+      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇦🇺-Canberra | VMESS+WS | 1293ms | UP | NATIVE | SEC:tls_required",
+      "server": "45.15.185.17",
+      "server_port": 80,
+      "uuid": "c503a96a-a2f5-4847-a31f-20c17ecf3be4",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇧🇷-São_Paulo | VMESS+WS | 1072ms | UP | NATIVE",
+      "server": "95.164.4.88",
+      "server_port": 80,
+      "uuid": "c04c3b34-70fd-4fec-963e-c12d09f36bef",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 4039ms | UP | NATIVE",
+      "server": "n1747624267.4u9ma.icu",
+      "server_port": 443,
+      "uuid": "8c5d150c-b046-4440-8230-e84506a065a3",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1747624267.4u9ma.icu",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1747624267.4u9ma.icu"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇿-Almaty | VMESS+WS | 1444ms | UP | NATIVE",
+      "server": "38.107.234.57",
+      "server_port": 80,
+      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "Host": "38.107.234.57",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Unknown | VMESS+TCP | 1378ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.251.91.241",
+      "server_port": 42899,
+      "uuid": "0925b355-2bcd-4eae-9720-d2709e4f7e36",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇮🇳-Pune | VMESS+TCP | 3065ms | UP | NATIVE | SEC:tls_required",
+      "server": "20.193.153.19",
+      "server_port": 15834,
+      "uuid": "39a8c374-76b1-4e90-ab85-85cd9a42ded2",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Fanling | VMESS+TCP | 5976ms | UP | NATIVE | SEC:tls_required",
+      "server": "202.85.53.200",
+      "server_port": 30830,
+      "uuid": "cbb3f877-d1fb-344c-87a9-d153bffd5484",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 4309ms | UP | NATIVE",
+      "server": "n1753598445.74qxv.top",
+      "server_port": 443,
+      "uuid": "f53b95dc-3ec3-49a2-803a-510e614ae577",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1753598445.74qxv.top",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1753598445.74qxv.top",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 3284ms | UP | NATIVE",
+      "server": "n1761214907.74qxv.top",
+      "server_port": 443,
+      "uuid": "4c17399f-c93d-4527-8ace-5bdc2f0901f3",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214907.74qxv.top",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214907.74qxv.top"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇿-Almaty | VMESS+WS | 1058ms | UP | NATIVE | SEC:tls_required",
+      "server": "38.107.234.57",
+      "server_port": 80,
+      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+TCP | 3002ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.242.192.233",
+      "server_port": 52190,
+      "uuid": "98689724-deb2-4a3d-b83b-602221995baf",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 3163ms | UP | NATIVE",
+      "server": "n1761214904.wpg27.xyz",
+      "server_port": 443,
+      "uuid": "7f6f64ae-3778-434c-adfc-95cb67ee8b73",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214904.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214904.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇧🇷-São_Paulo | VMESS+WS | 1015ms | UP | NATIVE | SEC:tls_required",
+      "server": "95.164.4.88",
+      "server_port": 80,
+      "uuid": "c04c3b34-70fd-4fec-963e-c12d09f36bef",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "Host": "pq-brazil1.09vpn.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1198ms | UP | NATIVE",
+      "server": "v2.dabache.top",
+      "server_port": 2083,
+      "uuid": "3a9bb1fe-adb3-46f3-b16c-6af5fdde5326",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "kk1.gaming-center.ir",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "kk1.gaming-center.ir"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇵🇭-Manila | VMESS+WS | 1447ms | UP | NATIVE | SEC:tls_required",
+      "server": "61.245.11.60",
+      "server_port": 80,
+      "uuid": "a3e3a710-79f8-4ae0-b83c-607aab40d197",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1217ms | UP | NATIVE",
+      "server": "cf.090227.xyz",
+      "server_port": 443,
+      "uuid": "290cc691-3ac6-4387-98a1-25c8eb8ca2ea",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "sgal.dagrate.eu.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "sgal.dagrate.eu.org"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1145ms | UP | NATIVE",
+      "server": "node4.rtxconfigz.com",
+      "server_port": 443,
+      "uuid": "a655a63f-44e1-4675-a0d3-a71d59e2478f",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/@Malinda6104",
+        "headers": {
+          "Host": "node4.rtxconfigz.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "node4.rtxconfigz.com"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Fanling | VMESS+TCP | 5572ms | UP | NATIVE | SEC:tls_required",
+      "server": "202.85.53.179",
+      "server_port": 30830,
+      "uuid": "cbb3f877-d1fb-344c-87a9-d153bffd5484",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE",
+      "server": "47.250.45.234",
+      "server_port": 43063,
+      "uuid": "c77f48f5-4be3-4461-b52b-49998e7b897b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/arki",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 2295ms | UP | NATIVE",
+      "server": "n1761214918.74qxv.top",
+      "server_port": 443,
+      "uuid": "b141803a-209c-47bd-be6e-14d6bc1e96be",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214918.74qxv.top",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214918.74qxv.top"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 2791ms | UP | NATIVE",
+      "server": "n1761214912.wpg27.xyz",
+      "server_port": 443,
+      "uuid": "4f86a909-836d-4643-b650-d812144a1fa9",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214912.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214912.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1218ms | UP | NATIVE",
+      "server": "n1761214902.wpg27.xyz",
+      "server_port": 443,
+      "uuid": "469e9a38-b64e-46c3-9793-234158942d3b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214902.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214902.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 5423ms | UP | NATIVE",
+      "server": "n1761214906.wpg27.xyz",
+      "server_port": 443,
+      "uuid": "c28a6258-7baa-40fc-8a51-87f59c847cd7",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214906.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214906.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇩🇪-Unknown | VMESS+WS+TLS | 1164ms | UP | NATIVE",
+      "server": "5.83.150.108",
+      "server_port": 36792,
+      "uuid": "9631096d-3032-4942-9446-bdf12665682b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/speedtest",
+        "headers": {
+          "Host": "imafake.locker",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "imafake.locker",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 1933ms | UP | NATIVE",
+      "server": "8.218.19.101",
+      "server_port": 443,
+      "uuid": "469e9a38-b64e-46c3-9793-234158942d3b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214902.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214902.wpg27.xyz"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇺🇸-Unknown | VMESS+VMESS | 3131ms | UP | NATIVE",
+      "server": "47.253.197.26",
+      "server_port": 12056,
+      "uuid": "dd7be7f1-38ff-45e6-f1e5-b20c2190f527",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇯🇵-Tokyo | VMESS+TCP | 3713ms | UP | NATIVE | SEC:tls_required",
+      "server": "47.74.62.63",
+      "server_port": 8080,
+      "uuid": "28cfc3c5-5048-429e-a4fe-898269b02fc2",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1249ms | UP | NATIVE",
+      "server": "n1747624280.lie5d.cyou",
+      "server_port": 443,
+      "uuid": "49dcf4b4-81eb-4fe2-91d3-86dc2e27ced5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1747624280.lie5d.cyou",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1747624280.lie5d.cyou"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇭🇰-Hong_Kong | VMESS+WS+TLS | 3236ms | UP | NATIVE",
+      "server": "8.210.165.109",
+      "server_port": 443,
+      "uuid": "b141803a-209c-47bd-be6e-14d6bc1e96be",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214918.74qxv.top",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214918.74qxv.top"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1089ms | UP | NATIVE",
+      "server": "seoul02.zgjok.com",
+      "server_port": 443,
+      "uuid": "1a1e5196-eab4-4772-9012-65c27f19a524",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "seoul02.zgjok.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "seoul02.zgjok.com"
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇿-Almaty | VMESS+WS | 1231ms | UP | NATIVE | SEC:tls_required",
+      "server": "38.107.234.57",
+      "server_port": 80,
+      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🌐 | VMESS+WS+TLS | 1025ms | UP | NATIVE",
+      "server": "n1761214910.74qxv.top",
+      "server_port": 443,
+      "uuid": "011c4670-cdde-44fb-b9be-8a1e27af26c9",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1761214910.74qxv.top",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1761214910.74qxv.top"
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

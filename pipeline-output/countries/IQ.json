@@ -1,0 +1,98 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇮🇶-Unknown | SOCKS4+TCP | 2729ms | UP | NATIVE",
+        "🇮🇶-Baghdad | SOCKS4+TCP | 2445ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇮🇶-Unknown | SOCKS4+TCP | 2729ms | UP | NATIVE",
+        "🇮🇶-Baghdad | SOCKS4+TCP | 2445ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇶-Unknown | SOCKS4+TCP | 2729ms | UP | NATIVE",
+      "server": "62.201.212.198",
+      "server_port": 4673,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇶-Baghdad | SOCKS4+TCP | 2445ms | UP | NATIVE",
+      "server": "109.224.22.36",
+      "server_port": 51372,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

@@ -1,0 +1,382 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇰🇷-Chuncheon | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Seoul | VMESS+TCP | 508ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Yangcheon-gu | SHADOWSOCKS+TCP+AES-256-CFB | 549ms | UP | NATIVE",
+        "🇰🇷-Gwacheon | SHADOWSOCKS+TCP+AES-256-CFB | 581ms | UP | NATIVE",
+        "🇰🇷-Seoul | SHADOWSOCKS+TCP+AES-256-GCM | 611ms | UP | NATIVE",
+        "🇰🇷-Dongdaemun | HTTP+TCP | 624ms | UP | NATIVE",
+        "🇰🇷-Seo-gu | HTTP+TCP | 665ms | UP | NATIVE",
+        "🇰🇷-Gangnam-gu | HTTP+TCP | 666ms | UP | NATIVE",
+        "🇰🇷-Seoul | VLESS+GRPC+REALITY | 667ms | UP | NATIVE",
+        "🇰🇷-Pocheon-si | HTTP+TCP | 909ms | UP | NATIVE",
+        "🇰🇷-Seocheon-gun | SOCKS4+TCP | 1150ms | UP | NATIVE",
+        "🇰🇷-Seoul | VLESS+TCP+REALITY | 1503ms | UP | NATIVE",
+        "🇰🇷-Buk-gu | VLESS+GRPC+REALITY | 1095ms | UP | NATIVE",
+        "🇰🇷-Unknown | SOCKS4+TCP | 3719ms | UP | NATIVE",
+        "🇰🇷-Seoul | HTTP+TCP | 2736ms | UP | NATIVE",
+        "🇰🇷-Unknown | SOCKS4+TCP | 5792ms | UP | NATIVE",
+        "🇰🇷-Ansan-si | SOCKS4+TCP | 1502ms | UP | NATIVE",
+        "🇰🇷-Seoul | SOCKS5+TCP | 1480ms | UP | NATIVE",
+        "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1114ms | UP | NATIVE",
+        "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1460ms | UP | NATIVE",
+        "🇰🇷-Songpa-gu | SOCKS5+TCP | 2806ms | UP | NATIVE",
+        "🇰🇷-Unknown | VLESS+TCP+REALITY | 1268ms | UP | NATIVE",
+        "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1877ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇰🇷-Chuncheon | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Seoul | VMESS+TCP | 508ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇷-Yangcheon-gu | SHADOWSOCKS+TCP+AES-256-CFB | 549ms | UP | NATIVE",
+        "🇰🇷-Gwacheon | SHADOWSOCKS+TCP+AES-256-CFB | 581ms | UP | NATIVE",
+        "🇰🇷-Seoul | SHADOWSOCKS+TCP+AES-256-GCM | 611ms | UP | NATIVE",
+        "🇰🇷-Dongdaemun | HTTP+TCP | 624ms | UP | NATIVE",
+        "🇰🇷-Seo-gu | HTTP+TCP | 665ms | UP | NATIVE",
+        "🇰🇷-Gangnam-gu | HTTP+TCP | 666ms | UP | NATIVE",
+        "🇰🇷-Seoul | VLESS+GRPC+REALITY | 667ms | UP | NATIVE",
+        "🇰🇷-Pocheon-si | HTTP+TCP | 909ms | UP | NATIVE",
+        "🇰🇷-Seocheon-gun | SOCKS4+TCP | 1150ms | UP | NATIVE",
+        "🇰🇷-Seoul | VLESS+TCP+REALITY | 1503ms | UP | NATIVE",
+        "🇰🇷-Buk-gu | VLESS+GRPC+REALITY | 1095ms | UP | NATIVE",
+        "🇰🇷-Unknown | SOCKS4+TCP | 3719ms | UP | NATIVE",
+        "🇰🇷-Seoul | HTTP+TCP | 2736ms | UP | NATIVE",
+        "🇰🇷-Unknown | SOCKS4+TCP | 5792ms | UP | NATIVE",
+        "🇰🇷-Ansan-si | SOCKS4+TCP | 1502ms | UP | NATIVE",
+        "🇰🇷-Seoul | SOCKS5+TCP | 1480ms | UP | NATIVE",
+        "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1114ms | UP | NATIVE",
+        "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1460ms | UP | NATIVE",
+        "🇰🇷-Songpa-gu | SOCKS5+TCP | 2806ms | UP | NATIVE",
+        "🇰🇷-Unknown | VLESS+TCP+REALITY | 1268ms | UP | NATIVE",
+        "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1877ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇷-Chuncheon | VMESS+TCP | 502ms | UP | NATIVE | SEC:tls_required",
+      "server": "146.56.112.110",
+      "server_port": 8888,
+      "uuid": "e7c302f3-90d6-42dd-9d7d-94a3683a3707",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇷-Seoul | VMESS+TCP | 508ms | UP | NATIVE | SEC:tls_required",
+      "server": "140.238.2.250",
+      "server_port": 443,
+      "uuid": "41a7089a-040b-4538-8b8d-010902405bde",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇷-Yangcheon-gu | SHADOWSOCKS+TCP+AES-256-CFB | 549ms | UP | NATIVE",
+      "server": "218.237.185.230",
+      "server_port": 4652,
+      "method": "aes-256-cfb",
+      "password": "qwerREWQ@@"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇷-Gwacheon | SHADOWSOCKS+TCP+AES-256-CFB | 581ms | UP | NATIVE",
+      "server": "221.139.79.57",
+      "server_port": 13979,
+      "method": "aes-256-cfb",
+      "password": "qwerREWQ@@"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇷-Seoul | SHADOWSOCKS+TCP+AES-256-GCM | 611ms | UP | NATIVE",
+      "server": "141.164.45.187",
+      "server_port": 7001,
+      "method": "aes-256-gcm",
+      "password": "RexnBgU7EV5ADxG"
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Dongdaemun | HTTP+TCP | 624ms | UP | NATIVE",
+      "server": "59.6.25.118",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Seo-gu | HTTP+TCP | 665ms | UP | NATIVE",
+      "server": "211.230.49.122",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Gangnam-gu | HTTP+TCP | 666ms | UP | NATIVE",
+      "server": "14.52.8.2",
+      "server_port": 10080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇰🇷-Seoul | VLESS+GRPC+REALITY | 667ms | UP | NATIVE",
+      "server": "158.247.196.83",
+      "server_port": 10099,
+      "uuid": "ba5c0b61-1862-4718-cb83-5c5c842cc0b2",
+      "transport": {
+        "type": "grpc"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.speedtest.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "rYH4wPTVzSwtpXgI3U7YxppIP6oudD-425vT7pyhj1w",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Pocheon-si | HTTP+TCP | 909ms | UP | NATIVE",
+      "server": "220.88.163.174",
+      "server_port": 10080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Seocheon-gun | SOCKS4+TCP | 1150ms | UP | NATIVE",
+      "server": "175.203.138.160",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇰🇷-Seoul | VLESS+TCP+REALITY | 1503ms | UP | NATIVE",
+      "server": "47.80.13.85",
+      "server_port": 443,
+      "uuid": "3e7f67de-648e-4871-b51a-a225214d41ee",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.company-target.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "TRP10HqKUXEQ3O-cfsq93DycfBmbJe9KM36yvSa8Mmw",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇰🇷-Buk-gu | VLESS+GRPC+REALITY | 1095ms | UP | NATIVE",
+      "server": "222.102.51.111",
+      "server_port": 51698,
+      "uuid": "5d42cfef-0556-4f0c-bfb7-161aef500ab5",
+      "transport": {
+        "type": "grpc"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "lenovoglobal.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "PPZbDAYSwCYnPCF8BxguTFfAAZTnLnzpsHePCkGZYxo",
+          "short_id": "34"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Unknown | SOCKS4+TCP | 3719ms | UP | NATIVE",
+      "server": "211.174.99.161",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷-Seoul | HTTP+TCP | 2736ms | UP | NATIVE",
+      "server": "220.72.132.91",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Unknown | SOCKS4+TCP | 5792ms | UP | NATIVE",
+      "server": "114.108.177.104",
+      "server_port": 60984,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Ansan-si | SOCKS4+TCP | 1502ms | UP | NATIVE",
+      "server": "121.139.218.165",
+      "server_port": 43295,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Seoul | SOCKS5+TCP | 1480ms | UP | NATIVE",
+      "server": "8.220.194.115",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1114ms | UP | NATIVE",
+      "server": "121.169.46.116",
+      "server_port": 1090,
+      "username": "Og%3D%3D",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1460ms | UP | NATIVE",
+      "server": "121.169.46.116",
+      "server_port": 1090,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Songpa-gu | SOCKS5+TCP | 2806ms | UP | NATIVE",
+      "server": "115.136.121.54",
+      "server_port": 9050,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇰🇷-Unknown | VLESS+TCP+REALITY | 1268ms | UP | NATIVE",
+      "server": "61.111.247.233",
+      "server_port": 34045,
+      "uuid": "d8dd94fd-540e-461d-b5d4-acebef02c22a",
+      "tls": {
+        "enabled": true,
+        "server_name": "visit-this-invitation-link-to-join-tg-enkelte-notif.ekt.me",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "cDaDzPr3PlS3NM8lreHZbdo-Mhqz8vMBzMSkHXhGIUA",
+          "short_id": "e8ab71d0"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Hwaseong-si | SOCKS5+TCP | 1877ms | UP | NATIVE",
+      "server": "121.169.46.116",
+      "server_port": 1090,
+      "username": "T2clM0QlM0Q6",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 864ms | UP | NATIVE",
+        "🇿🇦-Durban | SOCKS4+TCP | 4481ms | UP | NATIVE",
+        "🇿🇦-Rustenburg | SOCKS5+TCP | 4580ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | SOCKS4+TCP | 2655ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 864ms | UP | NATIVE",
+        "🇿🇦-Durban | SOCKS4+TCP | 4481ms | UP | NATIVE",
+        "🇿🇦-Rustenburg | SOCKS5+TCP | 4580ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | SOCKS4+TCP | 2655ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
+      "server": "156.38.168.58",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇿🇦-Johannesburg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 864ms | UP | NATIVE",
+      "server": "154.205.150.157",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇿🇦-Durban | SOCKS4+TCP | 4481ms | UP | NATIVE",
+      "server": "169.239.45.51",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇿🇦-Rustenburg | SOCKS5+TCP | 4580ms | UP | NATIVE",
+      "server": "168.253.92.93",
+      "server_port": 10808,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇿🇦-Johannesburg | SOCKS4+TCP | 2655ms | UP | NATIVE",
+      "server": "41.169.151.154",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

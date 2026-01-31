@@ -1,0 +1,242 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 1967ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3777ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3785ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 2688ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 3080ms | UP | NATIVE",
+        "🇹🇭-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1880ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS5+TCP | 2256ms | UP | NATIVE",
+        "🇹🇭-Bangkok | TROJAN+TCP+TLS | 1135ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 2970ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1054ms | UP | NATIVE",
+        "🇹🇭-Chon_Buri | HTTP+TCP | 4001ms | UP | NATIVE",
+        "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 2455ms | UP | NATIVE",
+        "🇹🇭-Unknown | HTTP+TCP | 5410ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 2023ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS5+TCP | 3022ms | UP | NATIVE",
+        "🇹🇭-Pak_Kret | SOCKS4+TCP | 4018ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇹🇭-Bangkok | SOCKS4+TCP | 1967ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3777ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3785ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 2688ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 3080ms | UP | NATIVE",
+        "🇹🇭-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1880ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS5+TCP | 2256ms | UP | NATIVE",
+        "🇹🇭-Bangkok | TROJAN+TCP+TLS | 1135ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 2970ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1054ms | UP | NATIVE",
+        "🇹🇭-Chon_Buri | HTTP+TCP | 4001ms | UP | NATIVE",
+        "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 2455ms | UP | NATIVE",
+        "🇹🇭-Unknown | HTTP+TCP | 5410ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 2023ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS5+TCP | 3022ms | UP | NATIVE",
+        "🇹🇭-Pak_Kret | SOCKS4+TCP | 4018ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 1967ms | UP | NATIVE",
+      "server": "182.53.96.56",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3777ms | UP | NATIVE",
+      "server": "101.109.245.200",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3785ms | UP | NATIVE",
+      "server": "49.229.36.171",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 2688ms | UP | NATIVE",
+      "server": "61.7.147.227",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Unknown | SOCKS4+TCP | 3080ms | UP | NATIVE",
+      "server": "159.192.97.129",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇭-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1880ms | UP | NATIVE",
+      "server": "119.59.127.129",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS5+TCP | 2256ms | UP | NATIVE",
+      "server": "154.197.69.137",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "trojan",
+      "tag": "🇹🇭-Bangkok | TROJAN+TCP+TLS | 1135ms | UP | NATIVE",
+      "server": "38.54.82.205",
+      "server_port": 27877,
+      "password": "pUF+zmIw0QuRESBPLofx7eOj6Xc49",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.metaphysicalmagnet.click"
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Unknown | SOCKS4+TCP | 2970ms | UP | NATIVE",
+      "server": "159.192.121.240",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇭-Bangkok | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1054ms | UP | NATIVE",
+      "server": "163.171.148.71",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "312ee9bcc9570095"
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇭-Chon_Buri | HTTP+TCP | 4001ms | UP | NATIVE",
+      "server": "101.109.119.24",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 2455ms | UP | NATIVE",
+      "server": "113.53.29.228",
+      "server_port": 13629,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇭-Unknown | HTTP+TCP | 5410ms | UP | NATIVE",
+      "server": "161.82.141.219",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 2023ms | UP | NATIVE",
+      "server": "1.4.195.114",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS5+TCP | 3022ms | UP | NATIVE",
+      "server": "154.197.69.137",
+      "server_port": 1081,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Pak_Kret | SOCKS4+TCP | 4018ms | UP | NATIVE",
+      "server": "1.179.172.45",
+      "server_port": 31225,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

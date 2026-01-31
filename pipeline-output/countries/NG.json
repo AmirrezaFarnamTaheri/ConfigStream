@@ -1,0 +1,109 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇳🇬-Lagos | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 668ms | UP | NATIVE",
+        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1179ms | UP | NATIVE",
+        "🇳🇬-Unknown | SOCKS4+TCP | 3043ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇳🇬-Lagos | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 668ms | UP | NATIVE",
+        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1179ms | UP | NATIVE",
+        "🇳🇬-Unknown | SOCKS4+TCP | 3043ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇳🇬-Lagos | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 668ms | UP | NATIVE",
+      "server": "185.255.123.166",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1179ms | UP | NATIVE",
+      "server": "185.255.123.110",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇬-Unknown | SOCKS4+TCP | 3043ms | UP | NATIVE",
+      "server": "197.156.240.66",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

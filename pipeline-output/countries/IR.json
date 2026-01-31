@@ -1,0 +1,309 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇮🇷-Unknown | VLESS+TCP | 312ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 649ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 746ms | UP | NATIVE",
+        "🇮🇷-Unknown | SOCKS4+TCP | 2359ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 5202ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 5546ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4909ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3171ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 1574ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 1652ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4407ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3577ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3727ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4269ms | UP | NATIVE",
+        "🇮🇷-Unknown | SOCKS4+TCP | 2006ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4873ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4435ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3342ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 2417ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4082ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 2879ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇮🇷-Unknown | VLESS+TCP | 312ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 649ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 746ms | UP | NATIVE",
+        "🇮🇷-Unknown | SOCKS4+TCP | 2359ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 5202ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 5546ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4909ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3171ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 1574ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 1652ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4407ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3577ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3727ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4269ms | UP | NATIVE",
+        "🇮🇷-Unknown | SOCKS4+TCP | 2006ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4873ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4435ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 3342ms | UP | NATIVE",
+        "🇮🇷-Unknown | HTTP+TCP | 2417ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 4082ms | UP | NATIVE",
+        "🇮🇷-Tehran | SOCKS5+TCP | 2879ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vless",
+      "tag": "🇮🇷-Unknown | VLESS+TCP | 312ms | UP | NATIVE",
+      "server": "85.133.196.78",
+      "server_port": 1050,
+      "uuid": "4ef2801b-c828-4de9-bd8e-a9b516e05dd2"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 649ms | UP | NATIVE",
+      "server": "62.60.131.205",
+      "server_port": 4026,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 746ms | UP | NATIVE",
+      "server": "62.60.131.203",
+      "server_port": 4104,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Unknown | SOCKS4+TCP | 2359ms | UP | NATIVE",
+      "server": "217.218.242.75",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 5202ms | UP | NATIVE",
+      "server": "62.60.131.205",
+      "server_port": 4100,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 5546ms | UP | NATIVE",
+      "server": "62.60.131.204",
+      "server_port": 4401,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 4909ms | UP | NATIVE",
+      "server": "62.60.131.253",
+      "server_port": 18568,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 3171ms | UP | NATIVE",
+      "server": "62.60.131.186",
+      "server_port": 5103,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 1574ms | UP | NATIVE",
+      "server": "62.60.131.204",
+      "server_port": 5167,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇷-Unknown | HTTP+TCP | 1652ms | UP | NATIVE",
+      "server": "85.133.227.150",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 4407ms | UP | NATIVE",
+      "server": "62.60.131.178",
+      "server_port": 4090,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 3577ms | UP | NATIVE",
+      "server": "62.60.131.253",
+      "server_port": 4462,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 3727ms | UP | NATIVE",
+      "server": "62.60.131.203",
+      "server_port": 4060,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 4269ms | UP | NATIVE",
+      "server": "62.60.131.192",
+      "server_port": 27821,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Unknown | SOCKS4+TCP | 2006ms | UP | NATIVE",
+      "server": "151.232.18.66",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 4873ms | UP | NATIVE",
+      "server": "62.60.131.178",
+      "server_port": 4351,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 4435ms | UP | NATIVE",
+      "server": "62.60.131.203",
+      "server_port": 4017,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 3342ms | UP | NATIVE",
+      "server": "62.60.131.205",
+      "server_port": 10230,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇷-Unknown | HTTP+TCP | 2417ms | UP | NATIVE",
+      "server": "85.133.227.182",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 4082ms | UP | NATIVE",
+      "server": "62.60.131.204",
+      "server_port": 4024,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇷-Tehran | SOCKS5+TCP | 2879ms | UP | NATIVE",
+      "server": "62.60.131.179",
+      "server_port": 4189,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

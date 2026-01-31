@@ -1,0 +1,146 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 369ms | UP | NATIVE",
+        "🇨🇭-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
+        "🇨🇭-Unknown | VLESS+TCP+REALITY | 4971ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 369ms | UP | NATIVE",
+        "🇨🇭-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
+        "🇨🇭-Unknown | VLESS+TCP+REALITY | 4971ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "trojan",
+      "tag": "🇨🇭-Unknown | TROJAN+WS+TLS | 369ms | UP | NATIVE",
+      "server": "185.18.250.245",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.calmlunch.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.calmlunch.com"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
+      "server": "138.124.75.116",
+      "server_port": 8443,
+      "uuid": "f4fec1b0-a67e-4967-b9ea-0bd832b57a4d",
+      "tls": {
+        "enabled": true,
+        "server_name": "sun6-21.userapi.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "upDCW94g-pSYQrmXvOrTVYlwBUrSKhYFF9QwrqObdVo",
+          "short_id": "3ca620a7ed5f3196"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭-Unknown | VLESS+TCP+REALITY | 4971ms | UP | NATIVE",
+      "server": "199.68.196.108",
+      "server_port": 8443,
+      "uuid": "9c42819a-67a6-4742-9c6d-64900ba62160",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.samsung.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}
