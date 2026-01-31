@@ -41,7 +41,6 @@ data/*.mmdb
 data/*.json
 
 # Prevent output bloat in source history
-output/
 reports/
 
 # Logs
