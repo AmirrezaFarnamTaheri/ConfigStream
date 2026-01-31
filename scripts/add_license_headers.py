@@ -2,6 +2,7 @@
 """
 Adds SPDX license headers to source files.
 """
+
 from pathlib import Path
 
 SPDX_HEADER = """# SPDX-License-Identifier: AGPL-3.0-or-later

@@ -42,8 +42,7 @@ class QualityStorage:
         try:
             conn = self._get_conn()
             # Main stats table
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS source_stats (
                     url TEXT PRIMARY KEY,
                     total_fetched INTEGER DEFAULT 0,
@@ -55,8 +54,7 @@ class QualityStorage:
                         trust_score REAL DEFAULT 50.0,
                         status TEXT DEFAULT 'active'
                     )
-                    """
-            )
+                    """)
 
             # Migration check for trust_score
             cursor = conn.execute("PRAGMA table_info(source_stats)")
@@ -67,8 +65,7 @@ class QualityStorage:
                 )
 
             # History table for detailed run tracing
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS source_runs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     url TEXT NOT NULL,
@@ -81,12 +78,10 @@ class QualityStorage:
                     batch_source TEXT,
                     FOREIGN KEY(url) REFERENCES source_stats(url)
                 )
-                """
-            )
+                """)
 
             # Proxy History Table (Individual Proxy Reliability)
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS proxy_history (
                     proxy_id TEXT NOT NULL,
                     timestamp INTEGER NOT NULL,
@@ -96,8 +91,7 @@ class QualityStorage:
                     session_id TEXT,
                     failure_reason TEXT
                 )
-                """
-            )
+                """)
             # Index for fast lookup
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_proxy_history_id ON proxy_history(proxy_id)"

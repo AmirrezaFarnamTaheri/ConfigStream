@@ -64,3 +64,13 @@ https://dev.kuaidaili.com/api/freeproxy
 https://www.kaggle.com/datasets/search?search=free+proxies
 https://www.multi-proxy.com/proxylist.php
 https://raw.githubusercontent.com/imalrzai/ExclaveVirtual/main/ExclaveVirtual
+https://rootjazz.com/proxies/proxies.txt
+https://raw.githubusercontent.com/valid7996/Gozargah/main/Gozargah_sing-box_sub
+https://raw.githubusercontent.com/TelAB841Conf/AB_841-config-Free-X-ray/refs/heads/main/X-ray_Server-Free
+https://raw.githubusercontent.com/imboys/proxyForClash/refs/heads/master/free%20proxy.yml
+https://raw.githubusercontent.com/MrPooyaX/SansorchiFucker/main/data.txt
+https://www.allfreevpn.com/proxy-list/
+https://proxyorbit.com/api/all
+https://free.proxy-sale.com/api/front/main/proxy/export
+https://raw.githubusercontent.com/tjyu010/jiedian/main/21
+https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90

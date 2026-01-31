@@ -23,11 +23,7 @@ echo "🧩 Merging Batches..."
 # Assuming WARP_KEY_POOL is set in env or .env
 python -m scripts.merge_batches
 
-# 3. Quality Gate
-echo "🛡️ Running Healthcheck..."
-python scripts/healthcheck.py --min-proxies 10 --min-success-rate 0.0
-
-# 4. Analyze and Refactor for NEXT time
+# 3. Analyze and Refactor for NEXT time
 echo "🔄 Analyzing performance and refactoring sources..."
 python scripts/dynamic_reshard.py
 

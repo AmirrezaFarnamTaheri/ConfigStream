@@ -44,8 +44,7 @@ def test_homepage_loads(page: Page, http_server):
 
     try:
         # Disable animations to prevent visibility issues
-        page.add_init_script(
-            """
+        page.add_init_script("""
             const style = document.createElement('style');
             style.innerHTML = `
                 *, *::before, *::after {
@@ -55,8 +54,7 @@ def test_homepage_loads(page: Page, http_server):
                 }
             `;
             document.head.appendChild(style);
-        """
-        )
+        """)
 
         page.goto(url, wait_until="networkidle", timeout=10000)
     except PlaywrightError as e:
@@ -153,8 +151,7 @@ def test_widgets_presence(page: Page, http_server):
     # Inject a mock fetch function that returns our data for statistics endpoints
     # We do this before navigation so it's available when the page loads
     # [UNIFIED] metadata.json is now single source of truth for all analytics data
-    page.add_init_script(
-        f"""
+    page.add_init_script(f"""
         const originalFetch = window.fetch;
         window.fetch = async (url, options) => {{
             // Mock metadata.json (unified stats) and api/stats endpoints
@@ -171,8 +168,7 @@ def test_widgets_presence(page: Page, http_server):
         // Mock window.api.fetchStatistics directly if needed
         window.api = window.api || {{}};
         window.api.fetchStatistics = async () => ({mock_json});
-    """
-    )
+    """)
 
     try:
         page.goto(url, wait_until="networkidle", timeout=10000)
