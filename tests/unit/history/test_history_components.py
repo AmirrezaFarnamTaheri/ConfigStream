@@ -9,7 +9,6 @@ from configstream.history.storage import HistoryStorage
 from configstream.history.analytics import HistoryAnalytics
 from configstream.history.export import HistoryExporter
 
-
 # --- Storage Tests ---
 
 
