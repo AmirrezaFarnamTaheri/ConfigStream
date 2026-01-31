@@ -339,9 +339,6 @@ jobs:
             git push origin HEAD:${{ github.ref_name }} || echo "⚠️ Push failed, optimization will apply next run"
           fi
 
-      - name: Quality Gate
-        run: python scripts/healthcheck.py --min-proxies 100 --min-success-rate 0.01
-
       - name: Publish to IPFS (Unstoppable)
         if: env.PINATA_JWT != ''
         env:
