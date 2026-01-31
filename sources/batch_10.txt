@@ -54,13 +54,3 @@ https://raw.githubusercontent.com/adminaliang/v2ray/main/v2ray
 https://raw.githubusercontent.com/WilliamStar007/ClashX-V2Ray-TopFreeProxy/main/combine/clash.config.yaml
 https://raw.githubusercontent.com/zzz6839/SubCrawler/main/sub/share/all
 https://www.sslproxies.org/
-https://apex.gaming-shop54.top/QXYR8Itk5Ll9oPHMixCwK/095f2d65-00b7-4760-9591-7599adc803d4/all.txt?name=apex.gaming-shop54.top-unknown&asn=unknown&mode=new
-https://raw.githubusercontent.com/personqianduixue/SubCrawler/main/sub/share/all
-https://raw.githubusercontent.com/parsashonam/v2ray/main/all
-https://raw.githubusercontent.com/ronghuaxueleng/get_v2/main/pub/combine.yaml
-https://tt.vg/freeclash
-https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpeasoft%2FNoMoreWalls%2Fmaster%2Fsnippets%2Fnodes.meta.yml&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&tls13=true&emoji=true&list=false&xudp=true&udp=true&tfo=false&expand=true&scv=false&fdn=false&singbox.ipv6=1
-https://raw.githubusercontent.com/JieErJingFu/FreeNodesV2RayorTrojan_20210113-/main/EncryptedFreeNodes.txt
-https://proxyspeedy.com/api/all
-https://aliveproxy.com/proxy-list/
-https://raw.githubusercontent.com/Ashkan-m/v2ray/refs/heads/main/VIP.txt
