@@ -70,7 +70,9 @@ class VwarpTool:
             if self.binary:
                 return True
 
-            logger.info(f"Vwarp binary not found. Attempting to download {VWARP_VERSION}...")
+            logger.info(
+                f"Vwarp binary not found. Attempting to download {VWARP_VERSION}..."
+            )
 
             try:
                 # Determine install location
@@ -86,11 +88,15 @@ class VwarpTool:
                     install_dir = Path("/tmp/configstream-bin")
                     install_dir.mkdir(parents=True, exist_ok=True)
                     target_path = install_dir / "vwarp"
-                    logger.warning(f"Cannot write to ~/.local/bin, installing to {target_path}")
+                    logger.warning(
+                        f"Cannot write to ~/.local/bin, installing to {target_path}"
+                    )
 
                 logger.info(f"Downloading Vwarp from {VWARP_URL}")
 
-                async with httpx.AsyncClient(follow_redirects=True, timeout=60.0) as client:
+                async with httpx.AsyncClient(
+                    follow_redirects=True, timeout=60.0
+                ) as client:
                     resp = await client.get(VWARP_URL)
                     resp.raise_for_status()
                     content = resp.content
@@ -98,7 +104,9 @@ class VwarpTool:
                 # Verify Checksum
                 digest = hashlib.sha256(content).hexdigest()
                 if digest != VWARP_SHA256:
-                    logger.error(f"Vwarp checksum mismatch! Expected {VWARP_SHA256}, got {digest}")
+                    logger.error(
+                        f"Vwarp checksum mismatch! Expected {VWARP_SHA256}, got {digest}"
+                    )
                     return False
 
                 # Extract
@@ -106,7 +114,10 @@ class VwarpTool:
                     # Find the vwarp binary in the zip using exact filename match
                     vwarp_member_info = None
                     for member_info in zf.infolist():
-                        if not member_info.is_dir() and Path(member_info.filename).name == "vwarp":
+                        if (
+                            not member_info.is_dir()
+                            and Path(member_info.filename).name == "vwarp"
+                        ):
                             vwarp_member_info = member_info
                             break
 
@@ -115,7 +126,10 @@ class VwarpTool:
                         return False
 
                     # Extract to target path
-                    with zf.open(vwarp_member_info) as source, open(target_path, "wb") as target:
+                    with (
+                        zf.open(vwarp_member_info) as source,
+                        open(target_path, "wb") as target,
+                    ):
                         shutil.copyfileobj(source, target)
 
                 # Make executable
@@ -126,9 +140,10 @@ class VwarpTool:
 
                 # Verify it runs
                 proc = await asyncio.create_subprocess_exec(
-                    self.binary, "version",
+                    self.binary,
+                    "version",
                     stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
+                    stderr=asyncio.subprocess.PIPE,
                 )
                 await proc.communicate()
 
@@ -136,7 +151,9 @@ class VwarpTool:
                     logger.info(f"✅ Vwarp successfully installed to {self.binary}")
                     return True
                 else:
-                    logger.error(f"Vwarp installed but failed execution check (code {proc.returncode})")
+                    logger.error(
+                        f"Vwarp installed but failed execution check (code {proc.returncode})"
+                    )
                     return False
 
             except Exception as e:

@@ -18,7 +18,7 @@ class QualityStorage:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._thread_local = threading.local()  # per-thread storage
-        self._lock = threading.Lock()   # [FIX] Initialize the lock
+        self._lock = threading.Lock()  # [FIX] Initialize the lock
         with self._lock:
             self._init_db()
 

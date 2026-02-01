@@ -157,7 +157,9 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
 
     # [FIX] Handle exclave:// scheme
     if not proxy and c.lower().startswith("exclave://"):
-        proxy = _parse_url_scheme(c, "wireguard", 51820)   # Pass expected protocol 'wireguard', scheme check handled inside
+        proxy = _parse_url_scheme(
+            c, "wireguard", 51820
+        )  # Pass expected protocol 'wireguard', scheme check handled inside
         if proxy:
             proxy.protocol = "wireguard"
 
@@ -174,7 +176,7 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
                 end_bracket = addr_val.find("]")
                 if end_bracket != -1:
                     h = addr_val[1:end_bracket]
-                    rest = addr_val[end_bracket+1:]
+                    rest = addr_val[end_bracket + 1 :]
                     if rest.startswith(":"):
                         p = rest[1:]
                         if p.isdigit():
