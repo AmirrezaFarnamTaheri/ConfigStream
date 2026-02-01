@@ -51,9 +51,7 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     try:
         ip = ipaddress.ip_address(proxy.address)
         if ip.is_loopback or ip.is_private:
-            logger.debug(
-                f"Dropped local/private proxy: {proxy.address}:{proxy.port}"
-            )
+            logger.debug(f"Dropped local/private proxy: {proxy.address}:{proxy.port}")
             return None
     except ValueError:
         # Not an IP address (domain name), proceed
