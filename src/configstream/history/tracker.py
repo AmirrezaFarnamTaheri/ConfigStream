@@ -193,27 +193,27 @@ class ProxyHistoryTracker:
                 (datetime.now(timezone.utc) - timedelta(days=days)).timestamp()
             )
             sql = "DELETE FROM proxy_history WHERE timestamp < ?"
-        removed = 0
+            removed = 0
 
             if hasattr(self.storage, "execute_write"):
-            # Assumes execute_write is modified to return rowcount if supported
-            # For now, it returns None or result, so we default to 0 if not supported
-            res = self.storage.execute_write(sql, (cutoff,))
-            if isinstance(res, int):
-                removed = res
-            else:
-                # If underlying storage doesn't return count, we can't report it easily
-                # but we prefer returning 0 over -1 to match type signature if strict
-                removed = 0
+                # Assumes execute_write is modified to return rowcount if supported
+                # For now, it returns None or result, so we default to 0 if not supported
+                res = self.storage.execute_write(sql, (cutoff,))
+                if isinstance(res, int):
+                    removed = res
+                else:
+                    # If underlying storage doesn't return count, we can't report it easily
+                    # but we prefer returning 0 over -1 to match type signature if strict
+                    removed = 0
             else:
                 conn = self.storage.get_connection()
                 cursor = conn.execute(sql, (cutoff,))
                 conn.commit()
                 removed = int(cursor.rowcount)
 
-        if removed > 0:
-            logger.info(f"Cleaned up {removed} old history entries")
-        return removed
+            if removed > 0:
+                logger.info(f"Cleaned up {removed} old history entries")
+            return removed
         except Exception as e:
             logger.error(f"Failed to cleanup history: {e}")
             return 0
