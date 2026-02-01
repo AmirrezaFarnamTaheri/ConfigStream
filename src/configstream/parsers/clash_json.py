@@ -42,7 +42,11 @@ def parse_clash_json(config: str) -> Optional[Proxy]:
         elif protocol == "ss" or protocol == "shadowsocks":
             protocol = "shadowsocks"
             uuid = ""  # SS uses password in details
-            data["password"] = data.get("password", "")
+            password = data.get("password", "")
+            if not password:
+                # [FIX] Reject Shadowsocks without password immediately
+                return None
+            data["password"] = password
             data["method"] = data.get("cipher", "")
         elif protocol == "wireguard" or protocol == "wg":
             protocol = "wireguard"

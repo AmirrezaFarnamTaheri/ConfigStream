@@ -38,11 +38,9 @@ https://igdux.top/dnZR#vsoren.pnz4
 https://raw.githubusercontent.com/voken100g/AutoSSR/master/online
 http://free-proxy.cz/en/proxylist/main
 https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
-https://marsproxies.com/free-proxy-list
 https://proxychecked.org/
 https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml
 https://www.cool-proxy.net/proxies.json
-https://yip.su/proxy
 https://raw.githubusercontent.com/lflflf999/0516/main/list
 https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/all
 https://raw.githubusercontent.com/MahsaNetConfigTopic/config/main/xray_final.txt
@@ -54,7 +52,6 @@ https://raw.githubusercontent.com/mheidari98/.proxy/main/all
 https://raw.githubusercontent.com/gfpcom/free-proxy-list/main/dist/hysteria2.txt
 https://raw.githubusercontent.com/TelAB841Conf/AB_841-config-Free-X-ray/refs/heads/main/X-ray_Server-Free
 https://raw.githubusercontent.com/DarknessShade/Sub/main/V2mix
-https://pastebin.com/u/clarketm
 https://apex.gaming-shop54.top/QXYR8Itk5Ll9oPHMixCwK/095f2d65-00b7-4760-9591-7599adc803d4/all.txt?name=apex.gaming-shop54.top-unknown&asn=unknown&mode=new
 https://trojanvmess.pages.dev/cmcm?b64#cmcm?b64
 http://proxy-list.org/english/yourproxylists/sample.txt

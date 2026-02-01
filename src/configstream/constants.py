@@ -100,6 +100,7 @@ VALID_PROTOCOLS = [
     "tuic",
     "wireguard",
     "wg",
+    "exclave",
     "naive",
     "naive+https",  # Naive proxy with HTTPS
     "naive+http",  # Naive proxy with HTTP

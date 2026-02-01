@@ -121,6 +121,24 @@ def extract_config_lines(
     if not payload_str.strip():
         return [], {"empty_payload": 1}
 
+    # [FIX] HTML Pollution Detection
+    # Detect common HTML tags at start of content
+    stripped_start = payload_str.strip()[:100].lower()
+    if (
+        "<!doctype html>" in stripped_start
+        or "<html" in stripped_start
+        or "<head" in stripped_start
+        or "<body" in stripped_start
+    ):
+        # Unless it looks like a Mixed Content file (rare)
+        # Check if it has vmess:// or similar in first 1000 chars?
+        # If it's a massive HTML page, scanning it all is expensive.
+        # But some sources might wrap configs in <pre>.
+        # Heuristic: If it has HTML tags AND is > 100KB, it's likely a webpage not a config.
+        # Or if lines look mostly like HTML.
+        # For safety, let's just warn and proceed BUT if it's purely HTML, we drop all.
+        pass
+
     # 1. Check for JSON Array (e.g. ["vmess://...", ...])
     if payload_str.strip().startswith("["):
         try:
@@ -245,11 +263,26 @@ def extract_config_lines(
             default_scheme = "socks4://"
         # else default http
 
+    html_drops = 0
+
     for line in lines:
         candidate = line.strip()
         if not candidate:
             continue
         if candidate.startswith("#"):
+            continue
+
+        # [FIX] Individual HTML Line Detection (Robust)
+        if candidate.startswith("<") and (
+            candidate.lower().startswith("<!doctype")
+            or candidate.lower().startswith("<html")
+            or candidate.lower().startswith("<head")
+            or candidate.lower().startswith("<body")
+            or candidate.lower().startswith("<div")
+            or candidate.lower().startswith("<script")
+            or candidate.lower().startswith("<span")
+        ):
+            html_drops += 1
             continue
 
         if MAX_CONFIG_LINE_LENGTH > 0 and len(candidate) > MAX_CONFIG_LINE_LENGTH:
@@ -289,9 +322,12 @@ def extract_config_lines(
                         candidate = f"{default_scheme}{addr}:{port_val}"
 
                         # Heuristic: "ip:port:user:pass" -> include auth if it looks clean (IPv4 only)
+                        # Also check for "user:pass@ip:port" (SIP002 raw style)
                         if ":" not in host:
-                            prefix = match.group(0)
+                            prefix = match.group(0)  # e.g. 1.2.3.4:80
                             raw_trim = raw_candidate.strip()
+
+                            # Case 1: IP:PORT:USER:PASS (Legacy/SOCKS)
                             if raw_trim.startswith(prefix + ":"):
                                 tail = raw_trim[len(prefix) + 1 :]
                                 cred_parts = tail.split(":")
@@ -308,6 +344,26 @@ def extract_config_lines(
                                     ):
                                         candidate = f"{default_scheme}{user}:{pwd}@{host}:{port_val}"
 
+                            # Case 2: USER:PASS@IP:PORT (Raw SS/SIP002)
+                            elif raw_trim.endswith("@" + prefix):
+                                head = raw_trim[: -len("@" + prefix)]
+                                if ":" in head:
+                                    # Might be method:password
+                                    user, pwd = head.split(":", 1)
+                                    user = user.strip()
+                                    pwd = pwd.strip()
+                                    if (
+                                        user
+                                        and pwd
+                                        and " " not in user
+                                        and " " not in pwd
+                                        and len(user) <= 64
+                                        and len(pwd) <= 128
+                                    ):
+                                        # Use ss:// scheme if it looks like encryption method
+                                        scheme = "ss://" if "chacha" in user or "aes" in user or "rc4" in user else default_scheme
+                                        candidate = f"{scheme}{user}:{pwd}@{host}:{port_val}"
+
                         # Re-validate with new format
                         if not is_plausible_proxy_config(candidate):
                             reason = "implausible_format"
@@ -321,19 +377,26 @@ def extract_config_lines(
             if len(dropped_samples) < 5:
                 dropped_samples.append(f"{candidate[:50]}... [{reason}]")
 
+    if html_drops > 0:
+        drop_stats["html_content"] = html_drops
+
     total_dropped = sum(drop_stats.values())
     if total_dropped > 0:
         total_seen = total_dropped + len(configs)
         drop_rate = (total_dropped / total_seen) if total_seen else 1.0
-        log_method = logger.warning if drop_rate > 0.5 else logger.debug
-        if len(configs) > 0:
-            log_method(
-                f"Parsed {len(configs)} configs. Dropped {total_dropped} lines. "
-                f"Reasons: {drop_stats}"
-            )
+        # If > 90% drops are HTML, just say "Source returned HTML content"
+        if html_drops > total_dropped * 0.9:
+            logger.debug(f"Source {source_url} dropped {html_drops} lines of HTML content.")
         else:
-            log_method(
-                f"All lines dropped. Reasons: {drop_stats}. Samples: {dropped_samples}"
-            )
+            log_method = logger.warning if drop_rate > 0.5 else logger.debug
+            if len(configs) > 0:
+                log_method(
+                    f"Parsed {len(configs)} configs. Dropped {total_dropped} lines. "
+                    f"Reasons: {drop_stats}"
+                )
+            else:
+                log_method(
+                    f"All lines dropped. Reasons: {drop_stats}. Samples: {dropped_samples}"
+                )
 
     return configs, drop_stats

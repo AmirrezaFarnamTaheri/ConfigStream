@@ -34,13 +34,10 @@ https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/NodeList.txt
 https://raw.githubusercontent.com/ts-sf/fly/main/v2
 https://raw.githubusercontent.com/snakem982/proxypool/main/source/clash-meta-2.yaml
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/speednodes.yaml
-https://api.openproxy.space/lists/socks4
 https://raw.githubusercontent.com/mermeroo/Loon/main/node
 http://spys.one/en/free-proxy-list/
-https://hidemy.name/en/proxy-list/
 https://noopsproxy.com/api/all
 https://proxyspeedy.com/api/all
-https://sureproxy.com/free
 https://www.my-proxy.com/free-proxy-list.html
 https://raw.githubusercontent.com/Flik6/getNode/main/v2ray.txt
 https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks4.txt
@@ -64,6 +61,5 @@ https://raw.githubusercontent.com/AlienVPN402/SFA-Config-Servers/main/index.html
 https://raw.githubusercontent.com/JieErJingFu/FreeNodesV2RayorTrojan_20210113-/main/EncryptedFreeNodes.txt
 https://raw.githubusercontent.com/Ashkan-m/v2ray/refs/heads/main/VIP.txt
 https://qishuijc.top/api/v1/client/subscribe?token=391afb46752d77774f9848f1b0e30b14
-https://github.com/scraperapi/blog
 https://www.blackhatworld.com/seo/free-proxies.107026/
 https://raw.githubusercontent.com/imboys/proxyForClash/refs/heads/master/free%20proxy.yml

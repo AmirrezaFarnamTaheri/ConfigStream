@@ -30,7 +30,6 @@ https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/Eterni
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/vmess.txt
 https://raw.githubusercontent.com/V2RayRoot/V2RayConfig/main/Config/trojan.txt
 https://raw.githubusercontent.com/vxiaov/free_proxy_ss/main/ssr/ssrsub
-https://api.openproxy.space/lists/shttp
 https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/v2ray/Geekshare.txt
 https://raw.githubusercontent.com/aqayerez/MatnOfficial-VPN/refs/heads/main/MatnOfficial#MatnOfficial
 https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/main/sublinks/mix.txt
@@ -46,12 +45,9 @@ https://raw.githubusercontent.com/DiDiten/ScrapeAndCategorize/main/Clash/output/
 https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_vless.yaml
 https://rss-node.com/link/vqOaWFJRfbYxpAhY?mu=1
 https://www.my-proxy.com/free-proxy-list.html
-https://buyproxy.ru/free
 https://www.reddit.com/r/proxylist/
-https://geonode.com/free-proxy-list
 https://www.haidaobot.xyz/link/QwdUmWolPN0LkThW?mu=2
 https://raw.githubusercontent.com/Jia-Pingwa/free-v2ray-merge/main/output.txt
-http://proxydb.net/
 https://neurotoxinw.coding.net/p/qifei/d/qifei/git/raw/master/README.md
 https://raw.githubusercontent.com/chfchf0306/jeidian4.18/main/4.18
 https://raw.githubusercontent.com/theGreatPeter/v2rayNodes/main/nodes.txt
@@ -62,7 +58,6 @@ https://raw.githubusercontent.com/mermeroo/QX/refs/heads/main/Nodes
 https://raw.githubusercontent.com/Jason05211211/Freerocket/main/freessr
 https://dev.kuaidaili.com/api/freeproxy
 https://www.kaggle.com/datasets/search?search=free+proxies
-https://www.multi-proxy.com/proxylist.php
 https://raw.githubusercontent.com/imalrzai/ExclaveVirtual/main/ExclaveVirtual
 https://rootjazz.com/proxies/proxies.txt
 https://raw.githubusercontent.com/valid7996/Gozargah/main/Gozargah_sing-box_sub

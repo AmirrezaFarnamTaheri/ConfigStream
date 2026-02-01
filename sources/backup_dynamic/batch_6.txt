@@ -36,13 +36,11 @@ https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/clash/Geeksh
 https://raw.githubusercontent.com/aqayerez/MatnOfficial-VPN/refs/heads/main/MatnOfficial
 https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks4.txt
 https://raw.githubusercontent.com/YasserDivaR/pr0xy/main/ShadowSocks2021.txt
-http://gatherproxy.com/
 https://fresh-proxy-list.net/
 https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd/#KIA_NET
 https://proxymlist.com/freeproxy
 https://raw.githubusercontent.com/parvinxs/Submahsanetxsparvin/refs/heads/main/Sub.mahsa.xsparvin
 https://www.freeproxylist.net/
-https://github.com/mmpx12/proxy-list
 https://raw.githubusercontent.com/nscl5/5/main/configs/all.txt
 https://raw.githubusercontent.com/hkaa0/permalink/main/sub.txt
 https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/Sub1.txt
@@ -59,9 +57,7 @@ https://raw.githubusercontent.com/4n0nymou3/multi-proxy-config-fetcher/refs/head
 https://raw.githubusercontent.com/GozargahAzadi/config/main/sub
 https://raw.githubusercontent.com/AB-84-AB/Free-Shadowsocks/refs/heads/main/Telegram-id-AB_841
 https://freenode.openrunner.net/uploads/20240617-clash.yaml
-https://best-proxy.com
 https://v2y.xyz/api/v1/client/subscribe?token=2533ce3df935ebaf4143fcc3df068ebd
-http://ultraproxies.com/
 https://ch.owokkvsxks.store/api/v1/client/subscribe?token=ad180e3b9514176a8cb26bf2962d5f1e
 http://www.proxylists.net/
 /refs/heads/main/Reality

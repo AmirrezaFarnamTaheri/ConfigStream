@@ -47,7 +47,6 @@ https://raw.githubusercontent.com/ssrsub/ssr/master/v2ray
 https://raw.githubusercontent.com/jikelonglie/meskell/main/meskell
 https://raw.githubusercontent.com/tkamirparsa/Javid-shah/refs/heads/main/Sub.text
 https://raw.githubusercontent.com/HakurouKen/free-node/main/public
-https://iproyal.com/free-proxy-list
 https://raw.githubusercontent.com/SunBK201/MySCR/master/clash/SunBK201_conf.yaml
 http://proxy-list.org/english/yourproxylists/sample.txt
 https://raw.githubusercontent.com/freessr0/FREE-SSR/master/SSR_2020-05-02__18-54-50.txt
