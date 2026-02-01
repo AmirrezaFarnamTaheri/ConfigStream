@@ -33,3 +33,5 @@ https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_2.txt
 https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub6.txt
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks5.txt
 https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/v2rayshare.yaml
+https://raw.githubusercontent.com/code3-dev/code3-dev/refs/heads/main/warp-in-vless#Warp-in-VLESS
+https://raw.githubusercontent.com/parvinxs/Fssociety/refs/heads/main/Fssociety.sub

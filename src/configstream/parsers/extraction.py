@@ -322,9 +322,12 @@ def extract_config_lines(
                         candidate = f"{default_scheme}{addr}:{port_val}"
 
                         # Heuristic: "ip:port:user:pass" -> include auth if it looks clean (IPv4 only)
+                        # Also check for "user:pass@ip:port" (SIP002 raw style)
                         if ":" not in host:
-                            prefix = match.group(0)
+                            prefix = match.group(0)  # e.g. 1.2.3.4:80
                             raw_trim = raw_candidate.strip()
+
+                            # Case 1: IP:PORT:USER:PASS (Legacy/SOCKS)
                             if raw_trim.startswith(prefix + ":"):
                                 tail = raw_trim[len(prefix) + 1 :]
                                 cred_parts = tail.split(":")
@@ -340,6 +343,26 @@ def extract_config_lines(
                                         and len(pwd) <= 128
                                     ):
                                         candidate = f"{default_scheme}{user}:{pwd}@{host}:{port_val}"
+
+                            # Case 2: USER:PASS@IP:PORT (Raw SS/SIP002)
+                            elif raw_trim.endswith("@" + prefix):
+                                head = raw_trim[: -len("@" + prefix)]
+                                if ":" in head:
+                                    # Might be method:password
+                                    user, pwd = head.split(":", 1)
+                                    user = user.strip()
+                                    pwd = pwd.strip()
+                                    if (
+                                        user
+                                        and pwd
+                                        and " " not in user
+                                        and " " not in pwd
+                                        and len(user) <= 64
+                                        and len(pwd) <= 128
+                                    ):
+                                        # Use ss:// scheme if it looks like encryption method
+                                        scheme = "ss://" if "chacha" in user or "aes" in user or "rc4" in user else default_scheme
+                                        candidate = f"{scheme}{user}:{pwd}@{host}:{port_val}"
 
                         # Re-validate with new format
                         if not is_plausible_proxy_config(candidate):

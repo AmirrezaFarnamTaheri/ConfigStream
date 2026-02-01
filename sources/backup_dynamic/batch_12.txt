@@ -20,7 +20,6 @@ https://raw.githubusercontent.com/du5/free/master/file/0312/clash.yaml
 https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/vmess.txt
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/vless
 https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/vmess.txt
-https://www.proxyscan.io/download?type=http
 https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Realm
 https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.meta.yml
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/reality
@@ -29,17 +28,14 @@ https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/Splitted-By-Proto
 https://raw.githubusercontent.com/mohamadfg-dev/telegram-v2ray-configs-collector/refs/heads/main/category/httpupgrade.txt
 https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/Long_term_subscription3
 https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/master/collected-proxies/row-url/all.txt
-https://openproxy.space/list/http
 https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub
 @ -1,59 +1,13 @@
-https://t.me/irancpi_vpn/713
 https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/vmess.txt
 https://raw.githubusercontent.com/itxve/fetch-clash-node/main/node/NodeFree.yaml
 https://raw.githubusercontent.com/vxiaov/free_proxy_ss/main/ss/sssub
 https://aliveproxy.com/proxy-list/
 https://hidemyip.com/proxylist
 https://openproxylist.xyz/all.txt
-https://publicproxyservers.com/api/proxy
 https://www.allfreevpn.com/proxy-list/
 https://www.proxy-list.download/api/v1/get?type=all
 https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector_Py/main/sub/Mix/mix.txt
@@ -50,7 +46,6 @@ https://raw.githubusercontent.com/liketolivefree/kobabi/main/sub_all.txt
 https://raw.githubusercontent.com/mahdibland/SSAggregator/master/sub/sub_merge_yaml.yml
 https://raw.githubusercontent.com/RX4096/proxy-list/main/online/socks5.txt
 https://raw.githubusercontent.com/Rayan-Config/C-Sub/refs/heads/main/configs/singbox_configs.json
-https://proxifly.dev/api/proxy?format=txt
 https://api.yebekhe.link/shervin
 http://cnproxy.com
 https://raw.githubusercontent.com/yebekhe/vpn-fail/refs/heads/main/sub-link

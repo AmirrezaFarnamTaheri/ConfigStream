@@ -36,7 +36,6 @@ https://raw.githubusercontent.com/SoliSpirit/v2ray-configs/main/Protocols/vless.
 https://raw.githubusercontent.com/aqayerez/MatnOfficial-VPN/main/MatnOfficial#MatnOfficial
 https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt
 https://raw.githubusercontent.com/voken100g/AutoSSR/master/stable
-http://gatherproxy.com/
 https://fresh-proxy-list.net/
 https://msk.vless-balancer.ru/sub/dXNlcl82Nzg4MzMxMjQ5LDE3Njk1MzUzMTkBqGm3A1STd#Subscription
 https://proxymlist.com/freeproxy
@@ -55,14 +54,11 @@ https://raw.githubusercontent.com/proxyscrape/proxyscrape/master/proxies.json
 https://raw.githubusercontent.com/codingbox/Free-Node-Merge/main/node.txt
 https://raw.githubusercontent.com/Stinsonysm/GO_V2rayCollector/main/trojan_iran.txt
 https://raw.githubusercontent.com/DiDiten/HiN-VPN/main/subscription/hiddify/mix
-https://premproxy.com/list/ip-port/1.htm
 https://raw.githubusercontent.com/69z1zfw2fly/fly/main/2.yaml
 https://free.proxy-sale.com/api/front/main/proxy/export
-https://archive.org/details/proxy-list
 http://robin.victoriacross.ir
 https://rss-node.com/link/vqOaWFJRfbYxpAhY?mu=1
 https://vvsub.xyz/api/al/19786-xDX1SCq61Ymi
-http://www.freeproxylist.com/
 https://www.socks-proxy.net/
 https://stackoverflow.com/questions/tagged/proxy
 https://raw.githubusercontent.com/mlabalabala/v2ray-node/main/nodefree4clash.txt
