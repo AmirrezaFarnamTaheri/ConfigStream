@@ -2,6 +2,7 @@
 import logging
 import hashlib
 import base64
+import ipaddress
 from typing import Any, Dict, Optional
 from ..models import Proxy
 from ..security_validator import SecurityValidator
@@ -46,6 +47,18 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         )
         return None
 
+    # [FIX] Silently drop loopback/private IPs to reduce log noise from local proxies
+    try:
+        ip = ipaddress.ip_address(proxy.address)
+        if ip.is_loopback or ip.is_private:
+            logger.debug(
+                f"Dropped local/private proxy: {proxy.address}:{proxy.port}"
+            )
+            return None
+    except ValueError:
+        # Not an IP address (domain name), proceed
+        pass
+
     # Use formatted remarks as tag when available
     if proxy.remarks and proxy.remarks.lower() not in ["", "defaultproxyname", "none"]:
         tag = proxy.remarks
@@ -79,6 +92,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         protocol = "hysteria2"
     elif protocol == "socks":
         protocol = "socks5"
+
+    if protocol == "anytls":
+        logger.debug(
+            f"Dropping AnyTLS proxy (unsupported): {proxy.address}:{proxy.port}"
+        )
+        return None
 
     if protocol == "vmess":
         uuid = proxy.uuid or proxy.details.get("uuid") or proxy.details.get("id")
