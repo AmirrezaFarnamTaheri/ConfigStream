@@ -72,7 +72,7 @@ def redistribute():
         return
 
     # 3. Distribute into 14 batches, separating projects when possible
-    num_batches = 14
+    num_batches = 15
     print(f"Redistributing into {num_batches} batches with project separation...")
 
     batches = [[] for _ in range(num_batches)]
