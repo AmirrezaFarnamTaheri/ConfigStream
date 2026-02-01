@@ -38,11 +38,9 @@ https://igdux.top/~FREE2CONFIG,T,H
 https://raw.githubusercontent.com/voken100g/AutoSSR/master/recent
 http://free-proxy.cz/en/proxylist/main
 https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
-https://marsproxies.com/free-proxy-list
 https://proxychecked.org/
 https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml
 https://www.cool-proxy.net/proxies.json
-https://yip.su/proxy
 https://raw.githubusercontent.com/lflflf999/0516/main/BX-JD
 https://raw.githubusercontent.com/awesome-vpn/awesome-vpn/master/ss
 https://raw.githubusercontent.com/MahsaNetConfigTopic/config/refs/heads/main/xray_final.txt

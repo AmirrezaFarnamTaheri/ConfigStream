@@ -45,14 +45,12 @@ https://raw.githubusercontent.com/Mahdi0024/ProxyCollector/master/sub/proxies.tx
 https://raw.githubusercontent.com/mahdibland/SSAggregator/mast
 https://raw.githubusercontent.com/F0rc3Run/F0rc3Run/main/splitted-by-protocol/shadowsocks.txt
 https://raw.githubusercontent.com/hotsymbol/vpnsetting/master/v2rayopen
-https://hidemy.name/en/proxy-list/
 https://raw.githubusercontent.com/gitbigg/dy/main/sub.txt
 https://www.proxynova.com/proxy-server-list/
 https://raw.githubusercontent.com/sh3d0ww02f/sh3d0ww02f.github.io/main/ssr.config
 https://raw.githubusercontent.com/PangTouY00/Auto_proxy/main/Long_term_subscription_num
 https://raw.githubusercontent.com/amin4139/share_file/master/list
 https://raw.githubusercontent.com/Creativveb/v2configs/main/updated
-https://www.bestfreeproxy.com/
 https://raw.githubusercontent.com/DarknessShade/Sub/main/V2mix
 https://raw.githubusercontent.com/Proxydaemitelegram/Proxydaemi44/main/Proxydaemi44
 https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt
@@ -62,7 +60,6 @@ https://www.cool-proxy.net/proxies.json
 https://raw.githubusercontent.com/yaney01/Yaney01/main/yaney_01
 https://raw.githubusercontent.com/bia-pain-bache/BPB-Wizard/main/install.sh
 https://raw.githubusercontent.com/dream4network/telegram-configs-collector/main/subscribe/protocols/juicity
-https://archive.org/details/proxy-list
 https://v2y.xyz/api/v1/client/subscribe?token=2533ce3df935ebaf4143fcc3df068ebd
 # Redistributed from Batch 11
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/default.txt

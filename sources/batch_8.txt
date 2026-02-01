@@ -56,10 +56,8 @@ https://api.pubproxy.com/v1/proxy?limit=5&format=txt&type=http
 https://www.proxy-list.download/api/v1/get?type=all
 https://12o.ooo/link/JLisT80gOhRkiFnX?sub=1
 https://raw.githubusercontent.com/eycorsican/rule-sets/master/kitsunebi_sub
-https://proxapi.co/api/proxy?protocol=all
 https://raw.githubusercontent.com/ircfspace/warpsub/main/export/warp
 https://raw.githubusercontent.com/Ptechgithub/configs/main/clash12.yaml
-https://www.freeproxyupdate.com/api/proxy
 https://raw.githubusercontent.com/SANYIMOE/VPN-free/master/sub
 https://raw.githubusercontent.com/baipiao0/baipiao02/main/v2ray
 https://www.freeproxy.list/

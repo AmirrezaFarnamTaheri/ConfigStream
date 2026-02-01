@@ -39,7 +39,6 @@ https://raw.githubusercontent.com/mermeroo/Loon/refs/heads/main/all.nodes.txt
 https://aliveproxy.com/proxy-list/
 https://hidemyip.com/proxylist
 https://openproxylist.xyz/all.txt
-https://publicproxyservers.com/api/proxy
 https://www.allfreevpn.com/proxy-list/
 https://www.proxy-list.download/api/v1/get?type=all
 https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector_Py/refs/heads/main/sub/Mix/mix.txt
@@ -50,8 +49,6 @@ https://raw.githubusercontent.com/liketolivefree/kobabi/main/singbox.json
 https://raw.githubusercontent.com/mahdibland/SSAggregator/mast
 https://raw.githubusercontent.com/RX4096/proxy-list/main/online/socks4.txt
 https://raw.githubusercontent.com/Rayan-Config/C-Sub/refs/heads/main/configs/proxy.txt
-https://packetstream.io/free-proxy-list
-https://www.freeproxyupdate.com/api/proxy
 https://v2.fit/modules/servers/V2raySocks/osubscribe.php?sid=7063&token=lKJwbO2onxIr
 https://raw.githubusercontent.com/sh3d0ww02f/sh3d0ww02f.github.io/main/ssr.config
 https://raw.githubusercontent.com/ircfspace/warpsub/main/export/warp
@@ -65,5 +62,4 @@ https://raw.githubusercontent.com/V2RaySSR/Tools/master/clash.yaml
 https://raw.githubusercontent.com/RaymondHarris971/ssrsub/master/9a075bdee5.txt
 https://raw.githubusercontent.com/Leon406/SubCrawler/main/sub/share/v2
 https://raw.githubusercontent.com/10ium/MihomoSaz/main/Sublist/NiREvil_SSTime.yaml
-http://0day.kiev.ua/proxy
 https://raw.githubusercontent.com/sansorchi/sansorchi/refs/heads/main/data.txt

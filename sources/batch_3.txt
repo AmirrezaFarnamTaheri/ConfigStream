@@ -42,10 +42,8 @@ https://raw.githubusercontent.com/liketolivefree/kobabi/main/singbox.json
 https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/v2ray.txt
 https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/sub.txt
 https://raw.githubusercontent.com/darkvpnapp/CloudflarePlus/refs/heads/main/proxy
-https://openproxy.space/list
 https://raw.githubusercontent.com/ts-sf/fly/main/v2
 https://raw.githubusercontent.com/adiwzx/freenode/main/adispeed.yml
-https://premproxy.com/list/ip-port/1.htm
 https://raw.githubusercontent.com/HosseinKoofi/GO_V2rayCollector/main/mixed_iran.txt
 https://proxynium.com/
 https://raw.githubusercontent.com/Stinsonysm/GO_V2rayCollector/main/trojan_iran.txt
@@ -58,8 +56,6 @@ https://iwxf.netlify.app/
 https://raw.githubusercontent.com/Syavar/V2ray-Configs/main/OK_google.com.txt
 https://raw.githubusercontent.com/chfchf0306/clash/main/clash
 https://raw.githubusercontent.com/AB-84-AB/WarpFree/refs/heads/main/WarpFree
-https://pastebin.com/u/clarketm
-https://openproxylist.com/v2ray/
 https://raw.githubusercontent.com/gooooooooooooogle/Clash-Config/main/Clash.yaml
 https://raw.githubusercontent.com/Surfboardv2ray/Proxy-sorter/main/sub
 https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
@@ -68,7 +64,6 @@ https://apex.gaming-shop54.top/QXYR8Itk5Ll9oPHMixCwK/095f2d65-00b7-4760-9591-759
 https://raw.githubusercontent.com/personqianduixue/SubCrawler/main/sub/share/all
 https://raw.githubusercontent.com/parsashonam/v2ray/main/all
 https://raw.githubusercontent.com/ronghuaxueleng/get_v2/main/pub/combine.yaml
-https://tt.vg/freeclash
 https://subapi.fxxk.dedyn.io/sub?target=singbox&url=https%3A%2F%2Fraw.githubusercontent.com%2Fpeasoft%2FNoMoreWalls%2Fmaster%2Fsnippets%2Fnodes.meta.yml&insert=false&config=https%3A%2F%2Fraw.githubusercontent.com%2FACL4SSR%2FACL4SSR%2Fmaster%2FClash%2Fconfig%2FACL4SSR_Online_Full_NoAuto.ini&tls13=true&emoji=true&list=false&xudp=true&udp=true&tfo=false&expand=true&scv=false&fdn=false&singbox.ipv6=1
 https://raw.githubusercontent.com/JieErJingFu/FreeNodesV2RayorTrojan_20210113-/main/EncryptedFreeNodes.txt
 https://proxyspeedy.com/api/all

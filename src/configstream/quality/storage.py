@@ -8,7 +8,7 @@ import sqlite3
 import logging
 import threading
 from pathlib import Path
-from typing import Optional, Tuple, Dict, Any, cast
+from typing import Optional, Tuple, Dict, Any, cast, List
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class QualityStorage:
         self.db_path = db_path
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._thread_local = threading.local()  # per-thread storage
-        self._lock = threading.Lock()
+        self._lock = threading.Lock()   # [FIX] Initialize the lock
         with self._lock:
             self._init_db()
 
@@ -31,7 +31,7 @@ class QualityStorage:
         conn = getattr(self._thread_local, "conn", None)
         if conn is None:
             # Allow multi-threaded access (e.g. from executors)
-            conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=10)
+            conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=20)
             conn.execute("PRAGMA journal_mode=WAL")
             conn.execute("PRAGMA synchronous=NORMAL")
             self._thread_local.conn = conn
@@ -129,6 +129,26 @@ class QualityStorage:
         if conn:
             conn.close()
             self._thread_local.conn = None
+
+    def execute_write(self, sql: str, params: Tuple = ()) -> None:
+        """Execute a single write operation with proper serialization."""
+        with self._lock:
+            try:
+                conn = self._get_conn()
+                conn.execute(sql, params)
+                conn.commit()
+            except Exception as e:
+                logger.error(f"DB Write Error: {e}")
+
+    def execute_write_many(self, sql: str, params_list: List[Tuple]) -> None:
+        """Execute a batch write operation with proper serialization."""
+        with self._lock:
+            try:
+                conn = self._get_conn()
+                conn.executemany(sql, params_list)
+                conn.commit()
+            except Exception as e:
+                logger.error(f"DB Batch Write Error: {e}")
 
     def get_source_state(self, url: str) -> Optional[Tuple[Any, ...]]:
         """Get state for a source: (status, last_checked, consecutive_failures, reliability_score)."""

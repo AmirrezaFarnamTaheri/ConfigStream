@@ -45,11 +45,8 @@ https://raw.githubusercontent.com/Rayan-Config/C-Sub/refs/heads/main/configs/sin
 https://api.openproxylist.xyz/socks5.txt
 https://raw.githubusercontent.com/Lewis-1217/FreeNodes/main/bpjzx2
 http://robin.victoriacross.ir
-http://sockslist.net/
 https://raw.githubusercontent.com/proxifly/free-proxy-list/main/proxies/all/data.txt
-http://ultraproxies.com/
 https://fresh-proxy-list.net/
-https://marsproxies.com/free-proxy-list
 https://raw.githubusercontent.com/freenodes/freenodes/main/clash.yaml
 https://raw.githubusercontent.com/MrPooyaX/VpnsFucking/main/Shenzo.txt
 https://cdn.fildl.ir/sub/TUNrQ2JpLDE3Njc4OTA3OTEyzup1z2RKG#Subscription
@@ -61,6 +58,5 @@ https://raw.githubusercontent.com/v2ray-links/v2ray-free/master/v2ray
 https://raw.githubusercontent.com/AB841V0N/Warp-ON-Warp/main/AB_841-Warp-ON-Warp
 https://hidemyip.com/proxylist
 https://raw.githubusercontent.com/iboxz/free-v2ray-collector/main/main/mix
-https://twitter.com/ProxyDaily
 https://cyber-gateway.net/get-proxy/free-proxy/24-free-http-proxy
 https://raw.githubusercontent.com/kevin-wud/v2ray-node/main/clash.yaml
