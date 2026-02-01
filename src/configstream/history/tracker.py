@@ -69,15 +69,13 @@ class ProxyHistoryTracker:
     def update_history(self, proxies: List[Proxy]):
         """
         Updates the history database with the latest test results.
+        Uses serialized write access to prevent database locks.
         """
         if not self.storage:
             logger.warning("History storage not initialized, skipping update.")
             return
 
         try:
-            # Access the internal connection of QualityStorage
-            conn = self.storage.get_connection()
-
             timestamp = int(datetime.now(timezone.utc).timestamp())
 
             data_to_insert = []
@@ -94,14 +92,19 @@ class ProxyHistoryTracker:
                     )
                 )
 
-            conn.executemany(
-                """
+            sql = """
                 INSERT INTO proxy_history (proxy_id, timestamp, is_working, latency, country_code, session_id, failure_reason)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                data_to_insert,
-            )
-            conn.commit()
+                """
+
+            # Use thread-safe write method if available
+            if hasattr(self.storage, "execute_write_many"):
+                self.storage.execute_write_many(sql, data_to_insert)
+            else:
+                # Fallback for legacy/mock storage
+                conn = self.storage.get_connection()
+                conn.executemany(sql, data_to_insert)
+                conn.commit()
 
         except Exception as e:
             logger.error(f"Failed to update proxy history: {e}")
@@ -186,16 +189,28 @@ class ProxyHistoryTracker:
             return 0
 
         try:
-            conn = self.storage.get_connection()
             cutoff = int(
                 (datetime.now(timezone.utc) - timedelta(days=days)).timestamp()
             )
+            sql = "DELETE FROM proxy_history WHERE timestamp < ?"
+            removed = 0
 
-            cursor = conn.execute(
-                "DELETE FROM proxy_history WHERE timestamp < ?", (cutoff,)
-            )
-            conn.commit()
-            removed = int(cursor.rowcount)
+            if hasattr(self.storage, "execute_write"):
+                # Assumes execute_write is modified to return rowcount if supported
+                # For now, it returns None or result, so we default to 0 if not supported
+                res = self.storage.execute_write(sql, (cutoff,))
+                if isinstance(res, int):
+                    removed = res
+                else:
+                    # If underlying storage doesn't return count, we can't report it easily
+                    # but we prefer returning 0 over -1 to match type signature if strict
+                    removed = 0
+            else:
+                conn = self.storage.get_connection()
+                cursor = conn.execute(sql, (cutoff,))
+                conn.commit()
+                removed = int(cursor.rowcount)
+
             if removed > 0:
                 logger.info(f"Cleaned up {removed} old history entries")
             return removed

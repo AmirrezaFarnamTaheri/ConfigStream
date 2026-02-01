@@ -113,6 +113,11 @@ async def generate_pipeline_outputs(
     if revived_proxies:
         revived_path = output_path / "revived.json"
         await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
+    else:
+        # [FIX] Log if no revived proxies found, for debugging
+        logger.info(
+            "No revived proxies found to export (revived.json will not be created)."
+        )
 
     generated_files = await loop.run_in_executor(
         None,

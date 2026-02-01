@@ -25,7 +25,12 @@ def _parse_url_scheme(config: str, protocol: str, default_port: int) -> Optional
 
         # Handle scheme mismatch or missing scheme
         if parsed.scheme:
-            if parsed.scheme.lower() not in (protocol, protocol.lower()):
+            # [FIX] Allow exclave scheme for wireguard parser
+            allowed_schemes = [protocol, protocol.lower()]
+            if protocol == "wireguard":
+                allowed_schemes.extend(["exclave"])
+
+            if parsed.scheme.lower() not in allowed_schemes:
                 # If scheme mismatches (e.g. hysteria2:// in a hysteria parser), return None
                 # This allows specific parsers to own their protocols
                 return None
@@ -150,8 +155,44 @@ def parse_wireguard(c: str) -> Optional[Proxy]:
         if proxy:
             proxy.protocol = "wireguard"  # Normalize
 
+    # [FIX] Handle exclave:// scheme
+    if not proxy and c.lower().startswith("exclave://"):
+        proxy = _parse_url_scheme(
+            c, "wireguard", 51820
+        )  # Pass expected protocol 'wireguard', scheme check handled inside
+        if proxy:
+            proxy.protocol = "wireguard"
+
     if not proxy:
         return None
+
+    # [FIX] Recover real address if hostname is 'wg' (common in Exclave links)
+    if proxy.address == "wg" and "address" in proxy.details:
+        addr_val = proxy.details["address"]
+        # Handle host:port split
+        if ":" in addr_val:
+            # Check if IPv6 [host]:port
+            if addr_val.startswith("["):
+                end_bracket = addr_val.find("]")
+                if end_bracket != -1:
+                    h = addr_val[1:end_bracket]
+                    rest = addr_val[end_bracket + 1 :]
+                    if rest.startswith(":"):
+                        p = rest[1:]
+                        if p.isdigit():
+                            proxy.address = h
+                            proxy.port = int(p)
+                    else:
+                        proxy.address = h
+            else:
+                h, p = addr_val.rsplit(":", 1)
+                if p.isdigit():
+                    proxy.address = h
+                    proxy.port = int(p)
+                else:
+                    proxy.address = addr_val
+        else:
+            proxy.address = addr_val
 
     # WireGuard specific: if private_key is not in details, try to use uuid (username)
     if "private_key" not in proxy.details:

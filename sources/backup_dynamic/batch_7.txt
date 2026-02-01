@@ -36,12 +36,7 @@ https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/assets/Geeks
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/meta.yaml
 https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/socks5.txt
 https://raw.githubusercontent.com/YasserDivaR/pr0xy/main/all
-http://proxydb.net/
-https://geonode.com/free-proxy-list
-https://netproxylist.com/api/get?list=all
 https://proxyrack.com/free-proxy-list
-https://scys.org/proxy
-https://www.multi-proxy.com/proxylist.php
 https://raw.githubusercontent.com/AliDev-ir/FreeVPN/main/vpn
 https://gist.github.com/go4sharing/9cd241e781444d0924227c4171ccc02b/raw/d077791e5da3aa2ba3769009c65fbd499ff97c32/gistfile1.txt
 https://raw.githubusercontent.com/moneyfly1/sublist/main/clash.yml
@@ -50,7 +45,6 @@ https://raw.githubusercontent.com/Zaeem20/FREE_PROXIES_LIST/master/socks4.txt
 https://raw.githubusercontent.com/adiwzx/freenode/main/adinetmuisc.yml
 https://raw.githubusercontent.com/DarknessShade/WoW/main/Xray-WoW.json
 https://raw.githubusercontent.com/10ium/free-config/refs/heads/main/HighSpeed.txt
-http://www.freeproxy.win/api/proxy
 https://raw.githubusercontent.com/tbbatbb/Proxy/master/dist/v2ray.config.txt
 https://raw.githubusercontent.com/kevin-wud/v2ray-node/main/clash.yaml
 https://raw.githubusercontent.com/bingoYB/node_processing/main/dist/all.yaml
@@ -60,10 +54,7 @@ https://raw.githubusercontent.com/MrPooyaX/VpnsFucking/main/Shenzo.txt
 https://raw.githubusercontent.com/HakurouKen/free-node/main/public
 https://raw.githubusercontent.com/AB-84-AB/WarpFree/refs/heads/main/WarpFree
 https://luminati.io/
-http://sockslist.net/
-https://buyproxy.ru/free
 https://ghp.ci/https://gist.githubusercontent.com/dalazhi-hotmail/4c0033fda050c7290d0d1f04e90ad129/raw/clash.yaml
 https://channel-freevpnhomes-subscription.shampoosirsehat.homes
-http://www.qihoo.com/
 https://raw.githubusercontent.com/xiyaowong/freeFQ/main/v2ray
 https://raw.githubusercontent.com/bia-pain-bache/BPB-Wizard/main/install.sh

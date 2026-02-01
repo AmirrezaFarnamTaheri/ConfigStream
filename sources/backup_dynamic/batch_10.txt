@@ -34,13 +34,10 @@ https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub
 https://raw.githubusercontent.com/ts-sf/fly/main/clash
 https://raw.githubusercontent.com/snakem982/proxypool/main/source/clash-meta.yaml
 https://raw.githubusercontent.com/hamedcode/port-based-v2ray-configs/main/sub/ss.txt
-https://api.openproxy.space/lists/socks5
 https://raw.githubusercontent.com/mermeroo/Loon/main/node%202
 https://spys.one/en/socks-proxy-list/
-https://hidemy.name/en/proxy-list/
 https://noopsproxy.com/api/all
 https://proxyspeedy.com/api/all
-https://sureproxy.com/free
 https://www.my-proxy.com/free-proxy-list.html
 https://raw.githubusercontent.com/Flik6/getNode/main/clash.yaml
 https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks5.txt

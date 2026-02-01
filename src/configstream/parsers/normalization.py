@@ -78,3 +78,31 @@ def normalize_proxy_details(proxy: Proxy) -> None:
         current_tls = proxy.details.get("tls")
         if not isinstance(current_tls, dict) and current_tls is not False:
             proxy.details["tls"] = True
+
+    # 5. [FIX] Normalize Reality Fields (pbk, sid)
+    # Map aliases like publicKey -> pbk, shortId -> sid
+    if (
+        security == "reality"
+        or proxy.details.get("pbk")
+        or proxy.details.get("publicKey")
+    ):
+        # PBK Normalization
+        if "pbk" not in proxy.details:
+            if "publicKey" in proxy.details:
+                proxy.details["pbk"] = proxy.details["publicKey"]
+            elif "public-key" in proxy.details:
+                proxy.details["pbk"] = proxy.details["public-key"]
+
+        # SID Normalization
+        if "sid" not in proxy.details:
+            if "shortId" in proxy.details:
+                proxy.details["sid"] = proxy.details["shortId"]
+            elif "short-id" in proxy.details:
+                proxy.details["sid"] = proxy.details["short-id"]
+            elif "short_id" in proxy.details:
+                proxy.details["sid"] = proxy.details["short_id"]
+
+        # Fingerprint Normalization
+        if "fp" not in proxy.details:
+            if "fingerprint" in proxy.details:
+                proxy.details["fp"] = proxy.details["fingerprint"]
