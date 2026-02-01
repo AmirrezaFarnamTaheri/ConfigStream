@@ -5,13 +5,23 @@ import logging
 import json
 import time
 import os
+import hashlib
+import zipfile
+import stat
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
+import httpx
 
 from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from ..async_utils import safe_wait_for
 
 logger = logging.getLogger(__name__)
+
+# Constants for Vwarp binary management
+VWARP_VERSION = "v2.1.0"
+VWARP_SHA256 = "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7"
+VWARP_URL = f"https://github.com/voidr3aper-anon/Vwarp/releases/download/{VWARP_VERSION}/vwarp_linux-amd64.zip"
 
 
 class VwarpTool:
@@ -21,22 +31,117 @@ class VwarpTool:
     """
 
     def __init__(self) -> None:
-        binary = shutil.which("vwarp")
-        if not binary:
-            # Fallback for local testing if not in PATH
-            # Check specific fallback paths or env var
-            possible_paths = ["/usr/local/bin/vwarp", "/opt/vwarp/vwarp", "./vwarp"]
-            for p in possible_paths:
-                if Path(p).exists():
-                    binary = p
-                    break
-            else:
-                binary = (
-                    "vwarp"  # Default to name if not found, to fail gracefully later
-                )
-
-        self.binary: str = binary
+        self.binary: Optional[str] = self._find_binary()
         self._tunnel_proc: Optional[asyncio.subprocess.Process] = None
+        self._install_lock = asyncio.Lock()
+
+    def _find_binary(self) -> Optional[str]:
+        """Locates the vwarp binary in PATH or common locations."""
+        # 1. Check PATH
+        binary = shutil.which("vwarp")
+        if binary:
+            return binary
+
+        # 2. Check user local bin
+        home = Path.home()
+        local_bin = home / ".local" / "bin" / "vwarp"
+        if local_bin.exists() and os.access(local_bin, os.X_OK):
+            return str(local_bin)
+
+        # 3. Check fallback paths
+        possible_paths = ["/usr/local/bin/vwarp", "/opt/vwarp/vwarp", "./vwarp"]
+        for p in possible_paths:
+            if Path(p).exists() and os.access(p, os.X_OK):
+                return p
+
+        return None
+
+    async def ensure_installed(self) -> bool:
+        """
+        Ensures Vwarp is installed. Downloads if missing.
+        Returns True if installed/available, False otherwise.
+        """
+        if self.binary and Path(self.binary).exists():
+            return True
+
+        async with self._install_lock:
+            # Re-check inside lock
+            self.binary = self._find_binary()
+            if self.binary:
+                return True
+
+            logger.info(f"Vwarp binary not found. Attempting to download {VWARP_VERSION}...")
+
+            try:
+                # Determine install location
+                # Prefer ~/.local/bin, create if needed
+                home = Path.home()
+                install_dir = home / ".local" / "bin"
+                install_dir.mkdir(parents=True, exist_ok=True)
+                target_path = install_dir / "vwarp"
+
+                # Check write permissions
+                if not os.access(install_dir, os.W_OK):
+                    # Fallback to current directory or /tmp
+                    install_dir = Path("/tmp/configstream-bin")
+                    install_dir.mkdir(parents=True, exist_ok=True)
+                    target_path = install_dir / "vwarp"
+                    logger.warning(f"Cannot write to ~/.local/bin, installing to {target_path}")
+
+                logger.info(f"Downloading Vwarp from {VWARP_URL}")
+
+                async with httpx.AsyncClient(follow_redirects=True, timeout=60.0) as client:
+                    resp = await client.get(VWARP_URL)
+                    resp.raise_for_status()
+                    content = resp.read()
+
+                # Verify Checksum
+                digest = hashlib.sha256(content).hexdigest()
+                if digest != VWARP_SHA256:
+                    logger.error(f"Vwarp checksum mismatch! Expected {VWARP_SHA256}, got {digest}")
+                    return False
+
+                # Extract
+                with zipfile.ZipFile(BytesIO(content)) as zf:
+                    # Find the vwarp binary in the zip
+                    vwarp_member = None
+                    for name in zf.namelist():
+                        if name.endswith("vwarp") and not name.startswith("__MACOSX"):
+                            vwarp_member = name
+                            break
+
+                    if not vwarp_member:
+                        logger.error("Vwarp binary not found in zip archive")
+                        return False
+
+                    # Extract to target path
+                    with zf.open(vwarp_member) as source, open(target_path, "wb") as target:
+                        shutil.copyfileobj(source, target)
+
+                # Make executable
+                st = os.stat(target_path)
+                os.chmod(target_path, st.st_mode | stat.S_IEXEC)
+
+                self.binary = str(target_path)
+
+                # Verify it runs
+                proc = await asyncio.create_subprocess_exec(
+                    self.binary, "version",
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                await proc.communicate()
+
+                if proc.returncode == 0:
+                    logger.info(f"✅ Vwarp successfully installed to {self.binary}")
+                    return True
+                else:
+                    logger.error(f"Vwarp installed but failed execution check (code {proc.returncode})")
+                    return False
+
+            except Exception as e:
+                logger.error(f"Failed to install Vwarp: {e}")
+                return False
 
     async def is_available(self) -> bool:
         """Quick health check."""
@@ -52,11 +157,11 @@ class VwarpTool:
             logger.debug("Vwarp disabled in CI environment (FORCE_SCANNER not set).")
             return False
 
-        if shutil.which("vwarp"):
-            return True
         if self.binary and Path(self.binary).exists():
             return True
-        return False
+
+        # Attempt installation if missing
+        return await self.ensure_installed()
 
     async def scan_endpoints(self, rtt_limit: str = "800ms") -> List[Tuple[str, int]]:
         """
