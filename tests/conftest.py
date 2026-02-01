@@ -5,10 +5,10 @@ import nest_asyncio
 # Apply nest_asyncio globally
 nest_asyncio.apply()
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def event_loop():
     """
-    Create an instance of the default event loop for each test session.
+    Create an instance of the default event loop for each test.
     We apply nest_asyncio to this loop to allow nested event loops
     (e.g. asyncio.run called from within a test).
     """
