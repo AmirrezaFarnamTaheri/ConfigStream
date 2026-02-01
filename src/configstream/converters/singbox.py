@@ -95,7 +95,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "security": "auto",
             "alter_id": 0,
         }
-        add_transport_sb(out, proxy.details)
+        if not add_transport_sb(out, proxy.details):
+            return None
 
     elif protocol == "vless":
         uuid = proxy.uuid or proxy.details.get("uuid")
@@ -115,7 +116,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             flow_val = flow_val.strip()
         if flow_val:
             out["flow"] = str(flow_val)
-        add_transport_sb(out, proxy.details)
+        if not add_transport_sb(out, proxy.details):
+            return None
 
     elif protocol in ["shadowsocks", "ss2022"]:
         if not proxy.details.get("password"):
@@ -157,7 +159,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = {"type": "trojan", **base, "password": str(password)}
         # Force TLS for Trojan
         details_with_tls = {**proxy.details, "tls": True}
-        add_transport_sb(out, details_with_tls)
+        if not add_transport_sb(out, details_with_tls):
+            return None
 
     elif protocol == "revived":
         chain_outbounds = proxy.details.get("chain_outbounds")
@@ -320,6 +323,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
         pk = validate_wg_key(str(private_key))
         ppk = validate_wg_key(str(proxy.details.get("peer_public_key", "")))
+
+        # [FIX] Enforce peer_public_key
+        if not ppk:
+            logger.debug(
+                f"Dropping WireGuard proxy missing peer_public_key: {proxy.address}:{proxy.port}. "
+                f"Source: {proxy.details.get('_source', 'unknown')}"
+            )
+            return None
 
         out = {
             "type": "wireguard",
