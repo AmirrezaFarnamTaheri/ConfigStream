@@ -2,7 +2,6 @@
 output_batch_*/
 data/
 *.zip
-*.log
 dist/
 build/
 *.egg-info/
@@ -44,7 +43,6 @@ data/*.json
 reports/
 
 # Logs
-*.log
 
 # Docker volumes
 output/
