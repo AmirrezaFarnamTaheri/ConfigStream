@@ -39,22 +39,29 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 166ms | UP | NATIVE",
-        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 177ms | UP | NATIVE",
-        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+AES-256-CFB | 178ms | UP | NATIVE",
-        "🇲🇽-Querétaro_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 206ms | UP | NATIVE",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 186ms | UP | NATIVE",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 208ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 213ms | UP | NATIVE",
         "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 214ms | UP | NATIVE",
         "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 216ms | UP | NATIVE",
-        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 221ms | UP | NATIVE",
-        "🇲🇽-Querétaro_City | VMESS+NONE | 341ms | UP | NATIVE | SEC:tls_required",
-        "🇲🇽-Querétaro_City | VMESS+TCP | 348ms | UP | NATIVE | SEC:tls_required",
-        "🇲🇽-Guadalupe | SOCKS4+TCP | 481ms | UP | NATIVE",
-        "🇲🇽-Tapachula | HTTP+TCP | 2669ms | UP | NATIVE",
-        "🇲🇽-Zapopan | HTTP+TCP | 2307ms | UP | NATIVE",
-        "🇲🇽-Cabo_San_Lucas | HTTP+TCP | 3677ms | UP | NATIVE",
-        "🇲🇽-Unknown | SOCKS4+TCP | 1408ms | UP | NATIVE",
-        "🇲🇽-Tecozautla | HTTP+TCP | 5362ms | UP | NATIVE",
-        "🇲🇽-San_Felipe_Orizatlán | HTTP+TCP | 1917ms | UP | NATIVE"
+        "🇲🇽-Querétaro_City | VMESS+TCP | 258ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇽-Querétaro_City | VMESS+TCP | 261ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 358ms | UP | NATIVE",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 373ms | UP | NATIVE",
+        "🇲🇽-León | HTTP+TCP | 768ms | UP | NATIVE",
+        "🇲🇽-Tapachula | HTTP+TCP | 4964ms | UP | NATIVE",
+        "🇲🇽-Azcapotzalco | SOCKS4+TCP | 1508ms | UP | NATIVE",
+        "🇲🇽-Aguascalientes | SOCKS4+TCP | 3663ms | UP | NATIVE",
+        "🇲🇽-Tizayuca | HTTP+TCP | 5658ms | UP | NATIVE",
+        "🇲🇽-Ixtlahuaca_de_Rayón | HTTP+TCP | 4151ms | UP | NATIVE",
+        "🇲🇽-Yurécuaro | HTTP+TCP | 2218ms | UP | NATIVE",
+        "🇲🇽-Guadalupe | SOCKS4+TCP | 2579ms | UP | NATIVE",
+        "🇲🇽-Tapachula | HTTP+TCP | 4058ms | UP | NATIVE",
+        "🇲🇽-Puerto_Vallarta | HTTP+TCP | 5565ms | UP | NATIVE",
+        "🇲🇽-Aguascalientes | SOCKS4+TCP | 1595ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | HTTP+TCP | 2038ms | UP | NATIVE",
+        "🇲🇽-San_Juan_del_Río | HTTP+TCP | 4327ms | UP | NATIVE",
+        "🇲🇽-Tlaxcoapan | HTTP+TCP | 3961ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -62,22 +69,29 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 166ms | UP | NATIVE",
-        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 177ms | UP | NATIVE",
-        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+AES-256-CFB | 178ms | UP | NATIVE",
-        "🇲🇽-Querétaro_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 206ms | UP | NATIVE",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 186ms | UP | NATIVE",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 208ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 213ms | UP | NATIVE",
         "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 214ms | UP | NATIVE",
         "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 216ms | UP | NATIVE",
-        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 221ms | UP | NATIVE",
-        "🇲🇽-Querétaro_City | VMESS+NONE | 341ms | UP | NATIVE | SEC:tls_required",
-        "🇲🇽-Querétaro_City | VMESS+TCP | 348ms | UP | NATIVE | SEC:tls_required",
-        "🇲🇽-Guadalupe | SOCKS4+TCP | 481ms | UP | NATIVE",
-        "🇲🇽-Tapachula | HTTP+TCP | 2669ms | UP | NATIVE",
-        "🇲🇽-Zapopan | HTTP+TCP | 2307ms | UP | NATIVE",
-        "🇲🇽-Cabo_San_Lucas | HTTP+TCP | 3677ms | UP | NATIVE",
-        "🇲🇽-Unknown | SOCKS4+TCP | 1408ms | UP | NATIVE",
-        "🇲🇽-Tecozautla | HTTP+TCP | 5362ms | UP | NATIVE",
-        "🇲🇽-San_Felipe_Orizatlán | HTTP+TCP | 1917ms | UP | NATIVE"
+        "🇲🇽-Querétaro_City | VMESS+TCP | 258ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇽-Querétaro_City | VMESS+TCP | 261ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 358ms | UP | NATIVE",
+        "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 373ms | UP | NATIVE",
+        "🇲🇽-León | HTTP+TCP | 768ms | UP | NATIVE",
+        "🇲🇽-Tapachula | HTTP+TCP | 4964ms | UP | NATIVE",
+        "🇲🇽-Azcapotzalco | SOCKS4+TCP | 1508ms | UP | NATIVE",
+        "🇲🇽-Aguascalientes | SOCKS4+TCP | 3663ms | UP | NATIVE",
+        "🇲🇽-Tizayuca | HTTP+TCP | 5658ms | UP | NATIVE",
+        "🇲🇽-Ixtlahuaca_de_Rayón | HTTP+TCP | 4151ms | UP | NATIVE",
+        "🇲🇽-Yurécuaro | HTTP+TCP | 2218ms | UP | NATIVE",
+        "🇲🇽-Guadalupe | SOCKS4+TCP | 2579ms | UP | NATIVE",
+        "🇲🇽-Tapachula | HTTP+TCP | 4058ms | UP | NATIVE",
+        "🇲🇽-Puerto_Vallarta | HTTP+TCP | 5565ms | UP | NATIVE",
+        "🇲🇽-Aguascalientes | SOCKS4+TCP | 1595ms | UP | NATIVE",
+        "🇲🇽-Querétaro_City | HTTP+TCP | 2038ms | UP | NATIVE",
+        "🇲🇽-San_Juan_del_Río | HTTP+TCP | 4327ms | UP | NATIVE",
+        "🇲🇽-Tlaxcoapan | HTTP+TCP | 3961ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -85,7 +99,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 166ms | UP | NATIVE",
+      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 186ms | UP | NATIVE",
       "server": "147.78.1.230",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -93,15 +107,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 177ms | UP | NATIVE",
-      "server": "147.78.1.27",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+SS+AES-256-CFB | 178ms | UP | NATIVE",
+      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 208ms | UP | NATIVE",
       "server": "147.78.1.230",
       "server_port": 989,
       "method": "aes-256-cfb",
@@ -109,7 +115,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇽-Querétaro_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 206ms | UP | NATIVE",
+      "tag": "🇲🇽-Querétaro_City | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 213ms | UP | NATIVE",
       "server": "185.163.1.90",
       "server_port": 11201,
       "method": "chacha20-ietf-poly1305",
@@ -132,25 +138,8 @@
       "password": "651df5dc8fd08d0c"
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 221ms | UP | NATIVE",
-      "server": "147.78.1.27",
-      "server_port": 989,
-      "method": "aes-256-cfb",
-      "password": "f8f7aCzcPKbsF8p3"
-    },
-    {
       "type": "vmess",
-      "tag": "🇲🇽-Querétaro_City | VMESS+NONE | 341ms | UP | NATIVE | SEC:tls_required",
-      "server": "216.238.86.158",
-      "server_port": 34460,
-      "uuid": "90be214d-048c-4ea2-a602-b8e4d4e51e36",
-      "security": "auto",
-      "alter_id": 0
-    },
-    {
-      "type": "vmess",
-      "tag": "🇲🇽-Querétaro_City | VMESS+TCP | 348ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇲🇽-Querétaro_City | VMESS+TCP | 258ms | UP | NATIVE | SEC:tls_required",
       "server": "216.238.87.47",
       "server_port": 27502,
       "uuid": "b8155ce4-7e08-4c40-800f-8671312b7124",
@@ -158,15 +147,44 @@
       "alter_id": 0
     },
     {
-      "type": "socks",
-      "tag": "🇲🇽-Guadalupe | SOCKS4+TCP | 481ms | UP | NATIVE",
-      "server": "189.203.181.34",
-      "server_port": 1080,
-      "version": "4"
+      "type": "vmess",
+      "tag": "🇲🇽-Querétaro_City | VMESS+TCP | 261ms | UP | NATIVE | SEC:tls_required",
+      "server": "216.238.86.158",
+      "server_port": 34460,
+      "uuid": "90be214d-048c-4ea2-a602-b8e4d4e51e36",
+      "security": "auto",
+      "alter_id": 0
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+TCP+AES-256-CFB | 358ms | UP | NATIVE",
+      "server": "147.78.1.27",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇲🇽-Mexico_City | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 373ms | UP | NATIVE",
+      "server": "147.78.1.27",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
       "type": "http",
-      "tag": "🇲🇽-Tapachula | HTTP+TCP | 2669ms | UP | NATIVE",
+      "tag": "🇲🇽-León | HTTP+TCP | 768ms | UP | NATIVE",
+      "server": "187.251.224.167",
+      "server_port": 8081,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Tapachula | HTTP+TCP | 4964ms | UP | NATIVE",
       "server": "177.229.197.230",
       "server_port": 999,
       "username": "",
@@ -176,9 +194,23 @@
       }
     },
     {
+      "type": "socks",
+      "tag": "🇲🇽-Azcapotzalco | SOCKS4+TCP | 1508ms | UP | NATIVE",
+      "server": "187.188.131.169",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇽-Aguascalientes | SOCKS4+TCP | 3663ms | UP | NATIVE",
+      "server": "170.81.140.79",
+      "server_port": 61437,
+      "version": "4"
+    },
+    {
       "type": "http",
-      "tag": "🇲🇽-Zapopan | HTTP+TCP | 2307ms | UP | NATIVE",
-      "server": "45.190.78.20",
+      "tag": "🇲🇽-Tizayuca | HTTP+TCP | 5658ms | UP | NATIVE",
+      "server": "38.123.212.243",
       "server_port": 999,
       "username": "",
       "password": "",
@@ -188,9 +220,20 @@
     },
     {
       "type": "http",
-      "tag": "🇲🇽-Cabo_San_Lucas | HTTP+TCP | 3677ms | UP | NATIVE",
-      "server": "187.199.160.126",
-      "server_port": 80,
+      "tag": "🇲🇽-Ixtlahuaca_de_Rayón | HTTP+TCP | 4151ms | UP | NATIVE",
+      "server": "38.123.220.173",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Yurécuaro | HTTP+TCP | 2218ms | UP | NATIVE",
+      "server": "205.164.192.115",
+      "server_port": 999,
       "username": "",
       "password": "",
       "tls": {
@@ -199,16 +242,16 @@
     },
     {
       "type": "socks",
-      "tag": "🇲🇽-Unknown | SOCKS4+TCP | 1408ms | UP | NATIVE",
-      "server": "187.210.136.88",
-      "server_port": 4153,
+      "tag": "🇲🇽-Guadalupe | SOCKS4+TCP | 2579ms | UP | NATIVE",
+      "server": "189.203.181.34",
+      "server_port": 1080,
       "version": "4"
     },
     {
       "type": "http",
-      "tag": "🇲🇽-Tecozautla | HTTP+TCP | 5362ms | UP | NATIVE",
-      "server": "38.194.224.134",
-      "server_port": 1452,
+      "tag": "🇲🇽-Tapachula | HTTP+TCP | 4058ms | UP | NATIVE",
+      "server": "177.229.197.227",
+      "server_port": 999,
       "username": "",
       "password": "",
       "tls": {
@@ -217,8 +260,48 @@
     },
     {
       "type": "http",
-      "tag": "🇲🇽-San_Felipe_Orizatlán | HTTP+TCP | 1917ms | UP | NATIVE",
-      "server": "200.71.111.90",
+      "tag": "🇲🇽-Puerto_Vallarta | HTTP+TCP | 5565ms | UP | NATIVE",
+      "server": "187.190.127.212",
+      "server_port": 8081,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇽-Aguascalientes | SOCKS4+TCP | 1595ms | UP | NATIVE",
+      "server": "170.81.141.254",
+      "server_port": 61437,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Querétaro_City | HTTP+TCP | 2038ms | UP | NATIVE",
+      "server": "78.12.230.52",
+      "server_port": 10025,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-San_Juan_del_Río | HTTP+TCP | 4327ms | UP | NATIVE",
+      "server": "38.65.174.107",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽-Tlaxcoapan | HTTP+TCP | 3961ms | UP | NATIVE",
+      "server": "38.58.174.225",
       "server_port": 999,
       "username": "",
       "password": "",

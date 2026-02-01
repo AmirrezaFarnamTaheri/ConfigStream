@@ -39,11 +39,14 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 581ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 938ms | UP | NATIVE",
-        "🇲🇾-Unknown | SOCKS4+TCP | 4941ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE"
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 597ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 903ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 956ms | UP | NATIVE",
+        "🇲🇾-Shah_Alam | HTTP+TCP | 3873ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 1208ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 4159ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 1775ms | UP | NATIVE",
+        "🇲🇾-Cyberjaya | HTTP+TCP | 5996ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -51,11 +54,14 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 581ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 938ms | UP | NATIVE",
-        "🇲🇾-Unknown | SOCKS4+TCP | 4941ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE"
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 597ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 903ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 956ms | UP | NATIVE",
+        "🇲🇾-Shah_Alam | HTTP+TCP | 3873ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 1208ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 4159ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 1775ms | UP | NATIVE",
+        "🇲🇾-Cyberjaya | HTTP+TCP | 5996ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -63,7 +69,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 581ms | UP | NATIVE",
+      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 597ms | UP | NATIVE",
       "server": "38.60.192.176",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -71,7 +77,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
+      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 903ms | UP | NATIVE",
       "server": "38.54.97.247",
       "server_port": 28026,
       "method": "chacha20-ietf-poly1305",
@@ -79,7 +85,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 938ms | UP | NATIVE",
+      "tag": "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 956ms | UP | NATIVE",
       "server": "45.89.107.200",
       "server_port": 8443,
       "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
@@ -99,15 +105,19 @@
       }
     },
     {
-      "type": "socks",
-      "tag": "🇲🇾-Unknown | SOCKS4+TCP | 4941ms | UP | NATIVE",
-      "server": "103.1.105.10",
-      "server_port": 4153,
-      "version": "4"
+      "type": "http",
+      "tag": "🇲🇾-Shah_Alam | HTTP+TCP | 3873ms | UP | NATIVE",
+      "server": "175.139.208.65",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "vmess",
-      "tag": "🇲🇾-Kuala_Lumpur | VMESS+WS | 2944ms | UP | NATIVE",
+      "tag": "🇲🇾-Kuala_Lumpur | VMESS+WS | 1208ms | UP | NATIVE",
       "server": "47.250.45.234",
       "server_port": 43063,
       "uuid": "c77f48f5-4be3-4461-b52b-49998e7b897b",
@@ -119,6 +129,31 @@
         "headers": {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 4159ms | UP | NATIVE",
+      "server": "60.54.19.45",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇾-Unknown | SOCKS4+TCP | 1775ms | UP | NATIVE",
+      "server": "103.1.105.10",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇾-Cyberjaya | HTTP+TCP | 5996ms | UP | NATIVE",
+      "server": "110.159.123.225",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
       }
     },
     {

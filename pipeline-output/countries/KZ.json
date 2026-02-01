@@ -39,26 +39,22 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇰🇿-Almaty | VLESS+WS+TLS | 606ms | UP | NATIVE",
-        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 766ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 838ms | UP | NATIVE",
-        "🇰🇿-Almaty | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 874ms | UP | NATIVE",
-        "🇰🇿-Kostanay | SOCKS4+TCP | 3794ms | UP | NATIVE",
-        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1271ms | UP | NATIVE",
-        "🇰🇿-Karaganda | VLESS+TCP+REALITY | 1871ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 1129ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 1626ms | UP | NATIVE",
-        "🇰🇿-Almaty | VMESS+WS | 1444ms | UP | NATIVE",
-        "🇰🇿-Astana | VLESS+TCP+REALITY | 1306ms | UP | NATIVE",
-        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1655ms | UP | NATIVE",
-        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1208ms | UP | NATIVE",
-        "🇰🇿-Astana | VLESS+TCP+REALITY | 1230ms | UP | NATIVE",
-        "🇰🇿-Almaty | VMESS+WS | 1058ms | UP | NATIVE | SEC:tls_required",
-        "🇰🇿-Astana | VLESS+TCP+REALITY | 1332ms | UP | NATIVE",
-        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1043ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 1875ms | UP | NATIVE",
-        "🇰🇿-Karaganda | HTTP+TCP | 2004ms | UP | NATIVE",
-        "🇰🇿-Almaty | VMESS+WS | 1231ms | UP | NATIVE | SEC:tls_required"
+        "🇰🇿-Unknown | VLESS+TCP+REALITY | 694ms | UP | NATIVE",
+        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 771ms | UP | NATIVE",
+        "🇰🇿-Almaty | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1728ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 2122ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1094ms | UP | NATIVE",
+        "🇰🇿-Karaganda | HTTP+TCP | 5566ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 2039ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1106ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇿-Karaganda | VLESS+RAW+REALITY | 4863ms | UP | NATIVE",
+        "🇰🇿-Astana | VLESS+TCP+REALITY | 1322ms | UP | NATIVE",
+        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1017ms | UP | NATIVE",
+        "🇰🇿-Astana | VLESS+TCP+REALITY | 1252ms | UP | NATIVE",
+        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1219ms | UP | NATIVE",
+        "🇰🇿-Astana | VLESS+TCP+REALITY | 1175ms | UP | NATIVE",
+        "🇰🇿-Kostanay | SOCKS4+TCP | 2297ms | UP | NATIVE",
+        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1889ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -66,26 +62,22 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇰🇿-Almaty | VLESS+WS+TLS | 606ms | UP | NATIVE",
-        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 766ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 838ms | UP | NATIVE",
-        "🇰🇿-Almaty | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 874ms | UP | NATIVE",
-        "🇰🇿-Kostanay | SOCKS4+TCP | 3794ms | UP | NATIVE",
-        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1271ms | UP | NATIVE",
-        "🇰🇿-Karaganda | VLESS+TCP+REALITY | 1871ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 1129ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 1626ms | UP | NATIVE",
-        "🇰🇿-Almaty | VMESS+WS | 1444ms | UP | NATIVE",
-        "🇰🇿-Astana | VLESS+TCP+REALITY | 1306ms | UP | NATIVE",
-        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1655ms | UP | NATIVE",
-        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1208ms | UP | NATIVE",
-        "🇰🇿-Astana | VLESS+TCP+REALITY | 1230ms | UP | NATIVE",
-        "🇰🇿-Almaty | VMESS+WS | 1058ms | UP | NATIVE | SEC:tls_required",
-        "🇰🇿-Astana | VLESS+TCP+REALITY | 1332ms | UP | NATIVE",
-        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1043ms | UP | NATIVE",
-        "🇰🇿-Unknown | VLESS+TCP+REALITY | 1875ms | UP | NATIVE",
-        "🇰🇿-Karaganda | HTTP+TCP | 2004ms | UP | NATIVE",
-        "🇰🇿-Almaty | VMESS+WS | 1231ms | UP | NATIVE | SEC:tls_required"
+        "🇰🇿-Unknown | VLESS+TCP+REALITY | 694ms | UP | NATIVE",
+        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 771ms | UP | NATIVE",
+        "🇰🇿-Almaty | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1728ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 2122ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1094ms | UP | NATIVE",
+        "🇰🇿-Karaganda | HTTP+TCP | 5566ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 2039ms | UP | NATIVE",
+        "🇰🇿-Almaty | VMESS+WS | 1106ms | UP | NATIVE | SEC:tls_required",
+        "🇰🇿-Karaganda | VLESS+RAW+REALITY | 4863ms | UP | NATIVE",
+        "🇰🇿-Astana | VLESS+TCP+REALITY | 1322ms | UP | NATIVE",
+        "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1017ms | UP | NATIVE",
+        "🇰🇿-Astana | VLESS+TCP+REALITY | 1252ms | UP | NATIVE",
+        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1219ms | UP | NATIVE",
+        "🇰🇿-Astana | VLESS+TCP+REALITY | 1175ms | UP | NATIVE",
+        "🇰🇿-Kostanay | SOCKS4+TCP | 2297ms | UP | NATIVE",
+        "🇰🇿-Almaty | VLESS+TCP+REALITY | 1889ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -93,33 +85,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇰🇿-Almaty | VLESS+WS+TLS | 606ms | UP | NATIVE",
-      "server": "194.76.18.25",
-      "server_port": 2053,
-      "uuid": "c659ce22-0a02-4d75-8c89-58d99916b846",
-      "transport": {
-        "type": "ws",
-        "headers": {
-          "Host": "ir6.hnbyme.online",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "ir6.hnbyme.online"
-      }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 766ms | UP | NATIVE",
-      "server": "109.61.39.28",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Unknown | VLESS+TCP+REALITY | 838ms | UP | NATIVE",
+      "tag": "🇰🇿-Unknown | VLESS+TCP+REALITY | 694ms | UP | NATIVE",
       "server": "212.111.87.162",
       "server_port": 443,
       "uuid": "40ecece1-edd9-4543-99c7-529ee594135d",
@@ -139,22 +105,173 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇰🇿-Almaty | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 874ms | UP | NATIVE",
+      "tag": "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 771ms | UP | NATIVE",
+      "server": "109.61.39.28",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇿-Almaty | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1728ms | UP | NATIVE",
+      "server": "103.106.3.82",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "4SaCIazlgumYkM8FkPzlmwjpyWBDZFBk"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇿-Almaty | VMESS+WS | 2122ms | UP | NATIVE | SEC:tls_required",
+      "server": "38.107.234.57",
+      "server_port": 80,
+      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇰🇿-Almaty | VLESS+TCP+REALITY | 1094ms | UP | NATIVE",
+      "server": "91.217.11.21",
+      "server_port": 443,
+      "uuid": "fdb239e1-d6b1-4b04-84c8-52a124ca0bf7",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "kazakhstan13.yourbot.biz",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "3jjLvTnB7NtUoXI9hSuhM2Aru5kuGN2yal1I5uDoenY",
+          "short_id": "5231"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇿-Karaganda | HTTP+TCP | 5566ms | UP | NATIVE",
+      "server": "188.130.160.209",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇿-Almaty | VMESS+WS | 2039ms | UP | NATIVE",
+      "server": "38.107.234.57",
+      "server_port": 80,
+      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "Host": "38.107.234.57",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇰🇿-Almaty | VMESS+WS | 1106ms | UP | NATIVE | SEC:tls_required",
+      "server": "38.107.234.57",
+      "server_port": 80,
+      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇰🇿-Karaganda | VLESS+RAW+REALITY | 4863ms | UP | NATIVE",
+      "server": "109.248.170.119",
+      "server_port": 13447,
+      "uuid": "b573cefb-7bc7-4a42-b407-b8b534e66773",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_0wM2ep44eAcrgf5PflKaBivknCWT6kMvQBQUoScCkE",
+          "short_id": "83"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇰🇿-Astana | VLESS+TCP+REALITY | 1322ms | UP | NATIVE",
+      "server": "83.222.23.81",
+      "server_port": 38065,
+      "uuid": "4b9063e0-3288-44e9-9aac-80fbfce323a0",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "dSSDPTK6AHfAdRAXD9i4rzqcNIY65RxlF25UyCKdiyo",
+          "short_id": "fa"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1017ms | UP | NATIVE",
       "server": "45.159.250.190",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
-      "type": "socks",
-      "tag": "🇰🇿-Kostanay | SOCKS4+TCP | 3794ms | UP | NATIVE",
-      "server": "109.248.236.150",
-      "server_port": 60606,
-      "version": "4"
+      "type": "vless",
+      "tag": "🇰🇿-Astana | VLESS+TCP+REALITY | 1252ms | UP | NATIVE",
+      "server": "178.236.16.98",
+      "server_port": 35728,
+      "uuid": "a00d89f6-ab7e-4e30-a5e5-54c701d62c93",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "vhUFNoFcvtZAVMo8y5K5eU2V43m5q6yjmWIhp5RkFng",
+          "short_id": "69a2"
+        }
+      }
     },
     {
       "type": "vless",
-      "tag": "🇰🇿-Almaty | VLESS+TCP+REALITY | 1271ms | UP | NATIVE",
+      "tag": "🇰🇿-Almaty | VLESS+TCP+REALITY | 1219ms | UP | NATIVE",
       "server": "82.41.30.56",
       "server_port": 4241,
       "uuid": "c7f067ad-044c-407e-b1d2-711902903ac0",
@@ -175,134 +292,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇰🇿-Karaganda | VLESS+TCP+REALITY | 1871ms | UP | NATIVE",
-      "server": "109.248.170.119",
-      "server_port": 13447,
-      "uuid": "b573cefb-7bc7-4a42-b407-b8b534e66773",
-      "tls": {
-        "enabled": true,
-        "server_name": "yahoo.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "_0wM2ep44eAcrgf5PflKaBivknCWT6kMvQBQUoScCkE",
-          "short_id": "83"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Unknown | VLESS+TCP+REALITY | 1129ms | UP | NATIVE",
-      "server": "212.111.84.187",
-      "server_port": 8443,
-      "uuid": "d4d031ec-0ba6-486a-aa0c-dce2b7cb8933",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "m.vk.ru",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "Qddpg8luihgzgx4g4uMJklXzlrMCd8L1igJSWrRUvSc",
-          "short_id": "887c0d72e771a934"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Unknown | VLESS+TCP+REALITY | 1626ms | UP | NATIVE",
-      "server": "212.111.84.64",
-      "server_port": 8443,
-      "uuid": "2ad6bd90-51fd-41d2-985b-b7aab5cd77c8",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "m.vk.ru",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "zii4nGNapnFKL6SN8GzWNqFlElBvUCUFUThEP0kFH04",
-          "short_id": "205748bc0f24a747"
-        }
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇰🇿-Almaty | VMESS+WS | 1444ms | UP | NATIVE",
-      "server": "38.107.234.57",
-      "server_port": 80,
-      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/vmess/",
-        "headers": {
-          "Host": "38.107.234.57",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Astana | VLESS+TCP+REALITY | 1306ms | UP | NATIVE",
-      "server": "178.236.16.98",
-      "server_port": 35728,
-      "uuid": "a00d89f6-ab7e-4e30-a5e5-54c701d62c93",
-      "tls": {
-        "enabled": true,
-        "server_name": "yahoo.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "vhUFNoFcvtZAVMo8y5K5eU2V43m5q6yjmWIhp5RkFng",
-          "short_id": "69a2"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Almaty | VLESS+TCP+REALITY | 1655ms | UP | NATIVE",
-      "server": "176.120.72.63",
-      "server_port": 38339,
-      "uuid": "481c5606-b586-44d7-bc2e-d8ef30d67f62",
-      "tls": {
-        "enabled": true,
-        "server_name": "dl.google.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "o0MFuznHh_Wztg0FTAMhFXm3hjAqOJAJIIVNn-_A9WA",
-          "short_id": "e16883e511"
-        }
-      }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇰🇿-Almaty | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1208ms | UP | NATIVE",
-      "server": "103.106.3.82",
-      "server_port": 443,
-      "method": "chacha20-ietf-poly1305",
-      "password": "4SaCIazlgumYkM8FkPzlmwjpyWBDZFBk"
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Astana | VLESS+TCP+REALITY | 1230ms | UP | NATIVE",
+      "tag": "🇰🇿-Astana | VLESS+TCP+REALITY | 1175ms | UP | NATIVE",
       "server": "77.73.232.61",
       "server_port": 19747,
       "uuid": "2a9ed01e-5455-44b4-a66a-76ee8165f0ac",
@@ -321,108 +311,29 @@
       }
     },
     {
-      "type": "vmess",
-      "tag": "🇰🇿-Almaty | VMESS+WS | 1058ms | UP | NATIVE | SEC:tls_required",
-      "server": "38.107.234.57",
-      "server_port": 80,
-      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/vmess/",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
+      "type": "socks",
+      "tag": "🇰🇿-Kostanay | SOCKS4+TCP | 2297ms | UP | NATIVE",
+      "server": "109.248.152.231",
+      "server_port": 60606,
+      "version": "4"
     },
     {
       "type": "vless",
-      "tag": "🇰🇿-Astana | VLESS+TCP+REALITY | 1332ms | UP | NATIVE",
-      "server": "83.222.23.81",
-      "server_port": 38065,
-      "uuid": "4b9063e0-3288-44e9-9aac-80fbfce323a0",
+      "tag": "🇰🇿-Almaty | VLESS+TCP+REALITY | 1889ms | UP | NATIVE",
+      "server": "176.120.72.63",
+      "server_port": 38339,
+      "uuid": "481c5606-b586-44d7-bc2e-d8ef30d67f62",
       "tls": {
         "enabled": true,
-        "server_name": "yahoo.com",
+        "server_name": "dl.google.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "dSSDPTK6AHfAdRAXD9i4rzqcNIY65RxlF25UyCKdiyo",
-          "short_id": "fa"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Almaty | VLESS+TCP+REALITY | 1043ms | UP | NATIVE",
-      "server": "91.217.11.21",
-      "server_port": 443,
-      "uuid": "fdb239e1-d6b1-4b04-84c8-52a124ca0bf7",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "kazakhstan13.yourbot.biz",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "3jjLvTnB7NtUoXI9hSuhM2Aru5kuGN2yal1I5uDoenY",
-          "short_id": "5231"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇰🇿-Unknown | VLESS+TCP+REALITY | 1875ms | UP | NATIVE",
-      "server": "212.111.84.82",
-      "server_port": 443,
-      "uuid": "0ff8dbfb-d7ee-4a19-b22d-b652a8b52e22",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "m.vk.ru",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "7zd9mJilgjOrg_ohtw23Vmio-pdnYqeP_r-kiWt87Cg",
-          "short_id": "f4b4a6365558ea2e"
-        }
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇰🇿-Karaganda | HTTP+TCP | 2004ms | UP | NATIVE",
-      "server": "188.130.160.209",
-      "server_port": 80,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇰🇿-Almaty | VMESS+WS | 1231ms | UP | NATIVE | SEC:tls_required",
-      "server": "38.107.234.57",
-      "server_port": 80,
-      "uuid": "567f4be5-12ab-42e1-b8d9-db6fd1fdd31c",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/vmess/",
-        "headers": {
-          "Host": "google.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+          "public_key": "o0MFuznHh_Wztg0FTAMhFXm3hjAqOJAJIIVNn-_A9WA",
+          "short_id": "e16883e511"
         }
       }
     },

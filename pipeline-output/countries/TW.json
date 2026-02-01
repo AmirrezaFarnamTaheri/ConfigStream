@@ -39,28 +39,31 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 470ms | UP | NATIVE",
-        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 479ms | UP | NATIVE",
-        "🇹🇼-Unknown | VMESS+TCP | 480ms | UP | NATIVE | SEC:tls_required",
-        "🇹🇼-Hsinchu | HTTP+TCP | 667ms | UP | NATIVE",
-        "🇹🇼-Taipei | SHADOWSOCKS+TCP+AES-256-CFB | 774ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 5292ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 1375ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 4126ms | UP | NATIVE",
-        "🇹🇼-Taichung | SOCKS4+TCP | 5313ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 1831ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2219ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2917ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 4988ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2602ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 1228ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 4561ms | UP | NATIVE",
-        "🇹🇼-New_Taipei_City | SOCKS4+TCP | 1359ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 1543ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 3790ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2892ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2497ms | UP | NATIVE",
-        "🇹🇼-Taipei | HTTP+TCP | 2654ms | UP | NATIVE"
+        "🇹🇼-Unknown | VMESS+TCP | 470ms | UP | NATIVE | SEC:tls_required",
+        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 584ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+SS+AES-256-CFB | 595ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 596ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 713ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+TCP+AES-256-CFB | 892ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 930ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+SS+AES-256-CFB | 930ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 5117ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3546ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3473ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 1364ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 2394ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 4931ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 1542ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3254ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3033ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 4627ms | UP | NATIVE",
+        "🇹🇼-Zhongli_District | VLESS+TCP+REALITY | 3518ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 5085ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3738ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 1441ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 2762ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 4795ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 1737ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -68,52 +71,39 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 470ms | UP | NATIVE",
-        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 479ms | UP | NATIVE",
-        "🇹🇼-Unknown | VMESS+TCP | 480ms | UP | NATIVE | SEC:tls_required",
-        "🇹🇼-Hsinchu | HTTP+TCP | 667ms | UP | NATIVE",
-        "🇹🇼-Taipei | SHADOWSOCKS+TCP+AES-256-CFB | 774ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 5292ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 1375ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 4126ms | UP | NATIVE",
-        "🇹🇼-Taichung | SOCKS4+TCP | 5313ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 1831ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2219ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2917ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 4988ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2602ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 1228ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 4561ms | UP | NATIVE",
-        "🇹🇼-New_Taipei_City | SOCKS4+TCP | 1359ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 1543ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 3790ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2892ms | UP | NATIVE",
-        "🇹🇼-Unknown | SOCKS5+TCP | 2497ms | UP | NATIVE",
-        "🇹🇼-Taipei | HTTP+TCP | 2654ms | UP | NATIVE"
+        "🇹🇼-Unknown | VMESS+TCP | 470ms | UP | NATIVE | SEC:tls_required",
+        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 584ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+SS+AES-256-CFB | 595ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 596ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 713ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+TCP+AES-256-CFB | 892ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 930ms | UP | NATIVE",
+        "🇹🇼-Taipei | SHADOWSOCKS+SS+AES-256-CFB | 930ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 5117ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3546ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3473ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 1364ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 2394ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 4931ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 1542ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3254ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3033ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 4627ms | UP | NATIVE",
+        "🇹🇼-Zhongli_District | VLESS+TCP+REALITY | 3518ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 5085ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 3738ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 1441ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 2762ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 4795ms | UP | NATIVE",
+        "🇹🇼-Unknown | SOCKS5+TCP | 1737ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 470ms | UP | NATIVE",
-      "server": "154.223.20.79",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 479ms | UP | NATIVE",
-      "server": "38.54.107.101",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
       "type": "vmess",
-      "tag": "🇹🇼-Unknown | VMESS+TCP | 480ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇹🇼-Unknown | VMESS+TCP | 470ms | UP | NATIVE | SEC:tls_required",
       "server": "165.154.195.38",
       "server_port": 35034,
       "uuid": "959a8caf-4cea-43d0-a548-3628e7ddfafc",
@@ -121,19 +111,41 @@
       "alter_id": 0
     },
     {
-      "type": "http",
-      "tag": "🇹🇼-Hsinchu | HTTP+TCP | 667ms | UP | NATIVE",
-      "server": "61.230.49.8",
-      "server_port": 80,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
+      "type": "shadowsocks",
+      "tag": "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 584ms | UP | NATIVE",
+      "server": "154.223.20.79",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
       "type": "shadowsocks",
-      "tag": "🇹🇼-Taipei | SHADOWSOCKS+TCP+AES-256-CFB | 774ms | UP | NATIVE",
+      "tag": "🇹🇼-Taipei | SHADOWSOCKS+SS+AES-256-CFB | 595ms | UP | NATIVE",
+      "server": "154.223.20.79",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇼-Taipei | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 596ms | UP | NATIVE",
+      "server": "38.54.107.101",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 713ms | UP | NATIVE",
+      "server": "36.255.98.151",
+      "server_port": 5823,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇼-Taipei | SHADOWSOCKS+TCP+AES-256-CFB | 892ms | UP | NATIVE",
       "server": "223.165.4.173",
       "server_port": 989,
       "method": "aes-256-cfb",
@@ -141,50 +153,74 @@
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 5292ms | UP | NATIVE",
-      "server": "36.255.98.160",
-      "server_port": 5865,
+      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 930ms | UP | NATIVE",
+      "server": "125.228.94.232",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇼-Taipei | SHADOWSOCKS+SS+AES-256-CFB | 930ms | UP | NATIVE",
+      "server": "185.189.160.105",
+      "server_port": 41632,
+      "method": "aes-256-cfb",
+      "password": "qwerREWQ@@"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 5117ms | UP | NATIVE",
+      "server": "36.255.98.169",
+      "server_port": 4983,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 1375ms | UP | NATIVE",
-      "server": "36.255.98.184",
-      "server_port": 4147,
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 3546ms | UP | NATIVE",
+      "server": "36.255.98.153",
+      "server_port": 4387,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 4126ms | UP | NATIVE",
-      "server": "36.255.98.184",
-      "server_port": 8299,
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 3473ms | UP | NATIVE",
+      "server": "36.255.98.161",
+      "server_port": 16048,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Taichung | SOCKS4+TCP | 5313ms | UP | NATIVE",
-      "server": "220.132.41.160",
-      "server_port": 1088,
+      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 1364ms | UP | NATIVE",
+      "server": "125.228.94.199",
+      "server_port": 4145,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 1831ms | UP | NATIVE",
-      "server": "36.255.98.165",
-      "server_port": 4733,
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 2394ms | UP | NATIVE",
+      "server": "36.255.98.160",
+      "server_port": 17076,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 2219ms | UP | NATIVE",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 4931ms | UP | NATIVE",
+      "server": "36.255.98.176",
+      "server_port": 19093,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 1542ms | UP | NATIVE",
       "server": "141.11.42.163",
       "server_port": 1080,
       "username": "",
@@ -193,76 +229,56 @@
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 2917ms | UP | NATIVE",
-      "server": "36.255.98.151",
-      "server_port": 5823,
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 3254ms | UP | NATIVE",
+      "server": "36.255.98.181",
+      "server_port": 5101,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 4988ms | UP | NATIVE",
-      "server": "36.255.98.156",
-      "server_port": 4238,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 2602ms | UP | NATIVE",
-      "server": "36.255.98.176",
-      "server_port": 10162,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 1228ms | UP | NATIVE",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 3033ms | UP | NATIVE",
       "server": "36.255.98.180",
-      "server_port": 8970,
+      "server_port": 4133,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 4561ms | UP | NATIVE",
-      "server": "36.255.98.151",
-      "server_port": 4030,
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 4627ms | UP | NATIVE",
+      "server": "36.255.98.165",
+      "server_port": 10888,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
-      "type": "socks",
-      "tag": "🇹🇼-New_Taipei_City | SOCKS4+TCP | 1359ms | UP | NATIVE",
-      "server": "125.228.143.207",
-      "server_port": 4145,
-      "version": "4"
+      "type": "vless",
+      "tag": "🇹🇼-Zhongli_District | VLESS+TCP+REALITY | 3518ms | UP | NATIVE",
+      "server": "114.43.33.124",
+      "server_port": 20519,
+      "uuid": "04793d5b-1b79-49fc-b5f9-2e8ce0e3ebc6",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "buylite.music.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "fbABzUObM1ehY0C9V83p34p8ah9w2s4lDrdAiXdzGxI",
+          "short_id": "4b070735"
+        }
+      }
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 1543ms | UP | NATIVE",
-      "server": "125.228.94.199",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 3790ms | UP | NATIVE",
-      "server": "36.255.98.150",
-      "server_port": 4310,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 2892ms | UP | NATIVE",
-      "server": "36.255.98.160",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 5085ms | UP | NATIVE",
+      "server": "36.255.98.161",
       "server_port": 4016,
       "username": "",
       "password": "",
@@ -270,23 +286,46 @@
     },
     {
       "type": "socks",
-      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 2497ms | UP | NATIVE",
-      "server": "36.255.98.169",
-      "server_port": 15353,
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 3738ms | UP | NATIVE",
+      "server": "36.255.98.181",
+      "server_port": 4090,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
-      "type": "http",
-      "tag": "🇹🇼-Taipei | HTTP+TCP | 2654ms | UP | NATIVE",
-      "server": "34.81.143.86",
-      "server_port": 3128,
+      "type": "socks",
+      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 1441ms | UP | NATIVE",
+      "server": "125.228.94.153",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 2762ms | UP | NATIVE",
+      "server": "36.255.98.160",
+      "server_port": 10111,
       "username": "",
       "password": "",
-      "tls": {
-        "enabled": false
-      }
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 4795ms | UP | NATIVE",
+      "server": "36.255.98.180",
+      "server_port": 4048,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Unknown | SOCKS5+TCP | 1737ms | UP | NATIVE",
+      "server": "36.255.98.175",
+      "server_port": 4722,
+      "username": "",
+      "password": "",
+      "version": "5"
     },
     {
       "type": "direct",

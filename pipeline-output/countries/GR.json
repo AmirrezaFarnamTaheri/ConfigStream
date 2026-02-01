@@ -39,12 +39,13 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 464ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 520ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 522ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 460ms | UP | NATIVE",
         "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 539ms | UP | NATIVE"
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 584ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 591ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 592ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 601ms | UP | NATIVE",
+        "🇬🇷-Athens | SOCKS4+TCP | 2134ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -52,12 +53,13 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 464ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 520ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 522ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 460ms | UP | NATIVE",
         "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
-        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 539ms | UP | NATIVE"
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 584ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 591ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 592ms | UP | NATIVE",
+        "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 601ms | UP | NATIVE",
+        "🇬🇷-Athens | SOCKS4+TCP | 2134ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -65,7 +67,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 464ms | UP | NATIVE",
+      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 460ms | UP | NATIVE",
+      "server": "38.54.29.57",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cb955c8530320120"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
       "server": "38.54.29.18",
       "server_port": 11201,
       "method": "chacha20-ietf-poly1305",
@@ -73,31 +83,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
-      "server": "38.54.29.130",
-      "server_port": 11203,
-      "method": "chacha20-ietf-poly1305",
-      "password": "4df2be7c6eef0ed6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 520ms | UP | NATIVE",
-      "server": "38.54.29.130",
-      "server_port": 11201,
-      "method": "chacha20-ietf-poly1305",
-      "password": "4df2be7c6eef0ed6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 522ms | UP | NATIVE",
-      "server": "38.54.29.130",
-      "server_port": 11204,
-      "method": "chacha20-ietf-poly1305",
-      "password": "4df2be7c6eef0ed6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
+      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 584ms | UP | NATIVE",
       "server": "38.54.29.130",
       "server_port": 11205,
       "method": "chacha20-ietf-poly1305",
@@ -105,11 +91,34 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 539ms | UP | NATIVE",
-      "server": "38.54.29.57",
-      "server_port": 11201,
+      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 591ms | UP | NATIVE",
+      "server": "38.54.29.130",
+      "server_port": 11202,
       "method": "chacha20-ietf-poly1305",
-      "password": "cb955c8530320120"
+      "password": "4df2be7c6eef0ed6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 592ms | UP | NATIVE",
+      "server": "38.54.29.130",
+      "server_port": 11204,
+      "method": "chacha20-ietf-poly1305",
+      "password": "4df2be7c6eef0ed6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇬🇷-Athens | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 601ms | UP | NATIVE",
+      "server": "38.54.29.130",
+      "server_port": 11203,
+      "method": "chacha20-ietf-poly1305",
+      "password": "4df2be7c6eef0ed6"
+    },
+    {
+      "type": "socks",
+      "tag": "🇬🇷-Athens | SOCKS4+TCP | 2134ms | UP | NATIVE",
+      "server": "46.198.132.237",
+      "server_port": 51372,
+      "version": "4"
     },
     {
       "type": "direct",

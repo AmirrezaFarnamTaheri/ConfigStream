@@ -39,7 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇷🇴-Bucharest | SOCKS4+TCP | 1082ms | UP | NATIVE"
+        "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
+        "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,7 +49,9 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇷🇴-Bucharest | SOCKS4+TCP | 1082ms | UP | NATIVE"
+        "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
+        "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -55,9 +59,23 @@
     },
     {
       "type": "socks",
-      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 1082ms | UP | NATIVE",
+      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
       "server": "81.12.157.98",
       "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
+      "server": "46.214.153.223",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE",
+      "server": "81.12.169.254",
+      "server_port": 4153,
       "version": "4"
     },
     {

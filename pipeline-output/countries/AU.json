@@ -39,21 +39,21 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇦🇺-Unknown | VLESS+TCP+TLS | 321ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 534ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 632ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 644ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+SS+AES-256-CFB | 664ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 673ms | UP | NATIVE",
-        "🇦🇺-Bungarribee | VLESS+RAW+REALITY | 676ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 682ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 723ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 738ms | UP | NATIVE",
-        "🇦🇺-Canberra | VMESS+WS | 1293ms | UP | NATIVE | SEC:tls_required",
-        "🇦🇺-Canberra | VLESS+TCP+REALITY | 1405ms | UP | NATIVE",
-        "🇦🇺-Sydney | SOCKS4+TCP | 5921ms | UP | NATIVE",
-        "🇦🇺-Canberra | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1603ms | UP | NATIVE",
-        "🇦🇺-Sydney | SOCKS5+TCP | 1363ms | UP | NATIVE"
+        "🇦🇺-Unknown | VLESS+TCP+TLS | 427ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 549ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+SS+AES-256-CFB | 660ms | UP | NATIVE",
+        "🇦🇺-Bungarribee | VLESS+TCP+REALITY | 673ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 739ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 795ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 813ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 834ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 849ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 893ms | UP | NATIVE",
+        "🇦🇺-Canberra | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1181ms | UP | NATIVE",
+        "🇦🇺-Sydney | SOCKS4+TCP | 1250ms | UP | NATIVE",
+        "🇦🇺-Canberra | VMESS+WS | 1085ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇺-Canberra | VLESS+TCP+REALITY | 1916ms | UP | NATIVE",
+        "🇦🇺-Sydney | SOCKS5+TCP | 1322ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -61,21 +61,21 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇦🇺-Unknown | VLESS+TCP+TLS | 321ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 534ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 632ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 644ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+SS+AES-256-CFB | 664ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 673ms | UP | NATIVE",
-        "🇦🇺-Bungarribee | VLESS+RAW+REALITY | 676ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 682ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 723ms | UP | NATIVE",
-        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 738ms | UP | NATIVE",
-        "🇦🇺-Canberra | VMESS+WS | 1293ms | UP | NATIVE | SEC:tls_required",
-        "🇦🇺-Canberra | VLESS+TCP+REALITY | 1405ms | UP | NATIVE",
-        "🇦🇺-Sydney | SOCKS4+TCP | 5921ms | UP | NATIVE",
-        "🇦🇺-Canberra | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1603ms | UP | NATIVE",
-        "🇦🇺-Sydney | SOCKS5+TCP | 1363ms | UP | NATIVE"
+        "🇦🇺-Unknown | VLESS+TCP+TLS | 427ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 549ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+SS+AES-256-CFB | 660ms | UP | NATIVE",
+        "🇦🇺-Bungarribee | VLESS+TCP+REALITY | 673ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 739ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 795ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 813ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 834ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 849ms | UP | NATIVE",
+        "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 893ms | UP | NATIVE",
+        "🇦🇺-Canberra | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1181ms | UP | NATIVE",
+        "🇦🇺-Sydney | SOCKS4+TCP | 1250ms | UP | NATIVE",
+        "🇦🇺-Canberra | VMESS+WS | 1085ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇺-Canberra | VLESS+TCP+REALITY | 1916ms | UP | NATIVE",
+        "🇦🇺-Sydney | SOCKS5+TCP | 1322ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -83,7 +83,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇦🇺-Unknown | VLESS+TCP+TLS | 321ms | UP | NATIVE",
+      "tag": "🇦🇺-Unknown | VLESS+TCP+TLS | 427ms | UP | NATIVE",
       "server": "91.247.177.208",
       "server_port": 443,
       "uuid": "5a9a33eb-546c-4ffa-aadc-1c75b3ac084b",
@@ -95,7 +95,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 534ms | UP | NATIVE",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 549ms | UP | NATIVE",
       "server": "103.75.119.38",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -103,39 +103,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 632ms | UP | NATIVE",
-      "server": "154.26.156.99",
-      "server_port": 47387,
-      "method": "chacha20-ietf-poly1305",
-      "password": "78322e4b934870b6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 644ms | UP | NATIVE",
-      "server": "154.26.156.99",
-      "server_port": 22881,
-      "method": "chacha20-ietf-poly1305",
-      "password": "dce8b654876490f0"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+SS+AES-256-CFB | 664ms | UP | NATIVE",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+SS+AES-256-CFB | 660ms | UP | NATIVE",
       "server": "103.75.119.38",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 673ms | UP | NATIVE",
-      "server": "154.26.156.99",
-      "server_port": 47386,
-      "method": "chacha20-ietf-poly1305",
-      "password": "78322e4b934870b6"
-    },
-    {
       "type": "vless",
-      "tag": "🇦🇺-Bungarribee | VLESS+RAW+REALITY | 676ms | UP | NATIVE",
+      "tag": "🇦🇺-Bungarribee | VLESS+TCP+REALITY | 673ms | UP | NATIVE",
       "server": "192.9.162.122",
       "server_port": 1443,
       "uuid": "7a169e43-ff85-4572-9843-ba7207d07319",
@@ -156,15 +132,23 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 682ms | UP | NATIVE",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 739ms | UP | NATIVE",
       "server": "154.26.156.99",
-      "server_port": 47385,
+      "server_port": 47388,
       "method": "chacha20-ietf-poly1305",
       "password": "78322e4b934870b6"
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 723ms | UP | NATIVE",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 795ms | UP | NATIVE",
+      "server": "154.26.156.99",
+      "server_port": 47387,
+      "method": "chacha20-ietf-poly1305",
+      "password": "78322e4b934870b6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 813ms | UP | NATIVE",
       "server": "95.111.222.113",
       "server_port": 443,
       "method": "chacha20-ietf-poly1305",
@@ -172,15 +156,46 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 738ms | UP | NATIVE",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 834ms | UP | NATIVE",
       "server": "154.26.156.99",
-      "server_port": 47388,
+      "server_port": 47385,
       "method": "chacha20-ietf-poly1305",
       "password": "78322e4b934870b6"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 849ms | UP | NATIVE",
+      "server": "154.26.156.99",
+      "server_port": 22881,
+      "method": "chacha20-ietf-poly1305",
+      "password": "dce8b654876490f0"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇦🇺-Sydney | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 893ms | UP | NATIVE",
+      "server": "154.26.156.99",
+      "server_port": 47386,
+      "method": "chacha20-ietf-poly1305",
+      "password": "78322e4b934870b6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇦🇺-Canberra | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1181ms | UP | NATIVE",
+      "server": "45.15.185.70",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇺-Sydney | SOCKS4+TCP | 1250ms | UP | NATIVE",
+      "server": "134.199.159.23",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
       "type": "vmess",
-      "tag": "🇦🇺-Canberra | VMESS+WS | 1293ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇦🇺-Canberra | VMESS+WS | 1085ms | UP | NATIVE | SEC:tls_required",
       "server": "45.15.185.17",
       "server_port": 80,
       "uuid": "c503a96a-a2f5-4847-a31f-20c17ecf3be4",
@@ -196,7 +211,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇦🇺-Canberra | VLESS+TCP+REALITY | 1405ms | UP | NATIVE",
+      "tag": "🇦🇺-Canberra | VLESS+TCP+REALITY | 1916ms | UP | NATIVE",
       "server": "45.15.185.69",
       "server_port": 8443,
       "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
@@ -217,22 +232,7 @@
     },
     {
       "type": "socks",
-      "tag": "🇦🇺-Sydney | SOCKS4+TCP | 5921ms | UP | NATIVE",
-      "server": "134.199.159.23",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇦🇺-Canberra | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1603ms | UP | NATIVE",
-      "server": "45.15.185.70",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇺-Sydney | SOCKS5+TCP | 1363ms | UP | NATIVE",
+      "tag": "🇦🇺-Sydney | SOCKS5+TCP | 1322ms | UP | NATIVE",
       "server": "134.199.159.23",
       "server_port": 1080,
       "username": "",

@@ -39,13 +39,16 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇱🇻-Riga | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 348ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 673ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 761ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 803ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 817ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 919ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 1087ms | UP | NATIVE"
+        "🇱🇻-Riga | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 375ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 661ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 715ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 801ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 811ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 819ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 872ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 958ms | UP | NATIVE",
+        "🇱🇻-Saldus | SOCKS4+TCP | 990ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -53,13 +56,16 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇱🇻-Riga | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 348ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 673ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 761ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 803ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 817ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 919ms | UP | NATIVE",
-        "🇱🇻-Riga | VLESS+TCP+REALITY | 1087ms | UP | NATIVE"
+        "🇱🇻-Riga | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 375ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 661ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 715ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 801ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 811ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 819ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 872ms | UP | NATIVE",
+        "🇱🇻-Riga | VLESS+TCP+REALITY | 958ms | UP | NATIVE",
+        "🇱🇻-Saldus | SOCKS4+TCP | 990ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -67,7 +73,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇱🇻-Riga | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 348ms | UP | NATIVE",
+      "tag": "🇱🇻-Riga | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 375ms | UP | NATIVE",
       "server": "46.183.217.204",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -75,48 +81,48 @@
     },
     {
       "type": "vless",
-      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 673ms | UP | NATIVE",
-      "server": "31.56.117.136",
-      "server_port": 443,
-      "uuid": "3faffd2e-8901-415a-913c-d65dca1e6ea7",
-      "tls": {
-        "enabled": true,
-        "server_name": "yahoo.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "RhoGmhreM57SAkedZHIms4M7nqCJKZ8i-o-_0itirQ4",
-          "short_id": "434e9b8e71a328ae"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 761ms | UP | NATIVE",
-      "server": "188.253.16.31",
-      "server_port": 443,
-      "uuid": "b79ba265-aff0-4d16-9322-7b124465dc38",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
+      "server": "193.68.89.85",
+      "server_port": 15518,
+      "uuid": "afa7cc47-243c-477b-a526-6262d5b75353",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "yahoo.com",
+        "server_name": "yabro-wbplugin.edadeal.yandex.ru",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "KX1PfrASrflF1Ra1TcjujnOAK-4sPiEVDSfAPS1DAl8",
-          "short_id": "e33013f4"
+          "public_key": "OX-N6M3HbuQEkJzz06aDO6YNEt6nNSfcikNiB0mRRDI",
+          "short_id": ""
         }
       }
     },
     {
       "type": "vless",
-      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 803ms | UP | NATIVE",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 661ms | UP | NATIVE",
+      "server": "185.135.86.130",
+      "server_port": 443,
+      "uuid": "b6569a74-3606-4ec5-9d29-46a9e12aed3e",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.speedtest.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "YLSRUKO-sm6In4ckqgVjagHKrWcA5r2aV7khO5brOUQ",
+          "short_id": "e3c5c005cae07eb7"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 715ms | UP | NATIVE",
       "server": "45.130.214.192",
       "server_port": 53231,
       "uuid": "4b8d8d7f-a8b4-4e44-80a9-6f13c3149b52",
@@ -136,7 +142,27 @@
     },
     {
       "type": "vless",
-      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 817ms | UP | NATIVE",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 801ms | UP | NATIVE",
+      "server": "37.233.82.140",
+      "server_port": 40478,
+      "uuid": "e977d854-33f3-4345-abee-bf3fa9a6d880",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "lcJ0LSh015XRfz5-7wB_hln3-bq5ZatFgPugSUCrdR0",
+          "short_id": "3c"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 811ms | UP | NATIVE",
       "server": "188.253.16.31",
       "server_port": 443,
       "uuid": "a8c099ce-04d8-43d2-8100-34e72f7beba4",
@@ -157,7 +183,48 @@
     },
     {
       "type": "vless",
-      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 919ms | UP | NATIVE",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 819ms | UP | NATIVE",
+      "server": "188.253.16.31",
+      "server_port": 443,
+      "uuid": "b79ba265-aff0-4d16-9322-7b124465dc38",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "KX1PfrASrflF1Ra1TcjujnOAK-4sPiEVDSfAPS1DAl8",
+          "short_id": "e33013f4"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 872ms | UP | NATIVE",
+      "server": "31.56.117.136",
+      "server_port": 443,
+      "uuid": "3faffd2e-8901-415a-913c-d65dca1e6ea7",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "RhoGmhreM57SAkedZHIms4M7nqCJKZ8i-o-_0itirQ4",
+          "short_id": "434e9b8e71a328ae"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 958ms | UP | NATIVE",
       "server": "188.253.16.31",
       "server_port": 443,
       "uuid": "43135731-165e-4064-872e-7e9447fbebfb",
@@ -177,24 +244,11 @@
       }
     },
     {
-      "type": "vless",
-      "tag": "🇱🇻-Riga | VLESS+TCP+REALITY | 1087ms | UP | NATIVE",
-      "server": "37.233.82.140",
-      "server_port": 40478,
-      "uuid": "e977d854-33f3-4345-abee-bf3fa9a6d880",
-      "tls": {
-        "enabled": true,
-        "server_name": "yahoo.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "lcJ0LSh015XRfz5-7wB_hln3-bq5ZatFgPugSUCrdR0",
-          "short_id": "3c"
-        }
-      }
+      "type": "socks",
+      "tag": "🇱🇻-Saldus | SOCKS4+TCP | 990ms | UP | NATIVE",
+      "server": "31.170.17.141",
+      "server_port": 4153,
+      "version": "4"
     },
     {
       "type": "direct",

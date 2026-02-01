@@ -39,9 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 5548ms | UP | NATIVE",
-        "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
-        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 3943ms | UP | NATIVE"
+        "🇭🇳-Tegucigalpa | HTTP+TCP | 5994ms | UP | NATIVE",
+        "🇭🇳-Unknown | HTTP+TCP | 4135ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,25 +48,17 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 5548ms | UP | NATIVE",
-        "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
-        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 3943ms | UP | NATIVE"
+        "🇭🇳-Tegucigalpa | HTTP+TCP | 5994ms | UP | NATIVE",
+        "🇭🇳-Unknown | HTTP+TCP | 4135ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "socks",
-      "tag": "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 5548ms | UP | NATIVE",
-      "server": "181.115.74.172",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
       "type": "http",
-      "tag": "🇭🇳-Tegucigalpa | HTTP+TCP | 4815ms | UP | NATIVE",
-      "server": "200.115.96.50",
+      "tag": "🇭🇳-Tegucigalpa | HTTP+TCP | 5994ms | UP | NATIVE",
+      "server": "190.61.116.253",
       "server_port": 999,
       "username": "",
       "password": "",
@@ -76,11 +67,15 @@
       }
     },
     {
-      "type": "socks",
-      "tag": "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 3943ms | UP | NATIVE",
-      "server": "138.59.177.117",
-      "server_port": 5678,
-      "version": "4"
+      "type": "http",
+      "tag": "🇭🇳-Unknown | HTTP+TCP | 4135ms | UP | NATIVE",
+      "server": "181.78.44.63",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "direct",

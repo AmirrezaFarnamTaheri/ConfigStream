@@ -39,8 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇺🇿-Tashkent | VLESS+TCP | 975ms | UP | NATIVE",
-        "🇺🇿-Tashkent | HTTP+TCP | 1387ms | UP | NATIVE"
+        "🇺🇿-Tashkent | VLESS+TCP | 978ms | UP | NATIVE",
+        "🇺🇿-Tashkent | HTTP+TCP | 2674ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇺🇿-Tashkent | VLESS+TCP | 975ms | UP | NATIVE",
-        "🇺🇿-Tashkent | HTTP+TCP | 1387ms | UP | NATIVE"
+        "🇺🇿-Tashkent | VLESS+TCP | 978ms | UP | NATIVE",
+        "🇺🇿-Tashkent | HTTP+TCP | 2674ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,14 +57,14 @@
     },
     {
       "type": "vless",
-      "tag": "🇺🇿-Tashkent | VLESS+TCP | 975ms | UP | NATIVE",
+      "tag": "🇺🇿-Tashkent | VLESS+TCP | 978ms | UP | NATIVE",
       "server": "62.122.217.56",
       "server_port": 668,
       "uuid": "f7ddcea8-95e3-48de-909f-bb5d3c47696b"
     },
     {
       "type": "http",
-      "tag": "🇺🇿-Tashkent | HTTP+TCP | 1387ms | UP | NATIVE",
+      "tag": "🇺🇿-Tashkent | HTTP+TCP | 2674ms | UP | NATIVE",
       "server": "195.158.8.123",
       "server_port": 3128,
       "username": "",

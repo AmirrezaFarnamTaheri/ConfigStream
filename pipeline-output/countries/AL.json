@@ -39,11 +39,12 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 424ms | UP | NATIVE",
-        "🇦🇱-Tirana | VMESS+WS | 560ms | UP | NATIVE | SEC:tls_required",
-        "🇦🇱-Unknown | SOCKS4+TCP | 4474ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 1167ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 5109ms | UP | NATIVE"
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
+        "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
+        "🇦🇱-Tirana | HTTP+TCP | 4176ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -51,11 +52,12 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 424ms | UP | NATIVE",
-        "🇦🇱-Tirana | VMESS+WS | 560ms | UP | NATIVE | SEC:tls_required",
-        "🇦🇱-Unknown | SOCKS4+TCP | 4474ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 1167ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 5109ms | UP | NATIVE"
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
+        "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
+        "🇦🇱-Tirana | HTTP+TCP | 4176ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -63,7 +65,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 424ms | UP | NATIVE",
+      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
       "server": "78.159.131.5",
       "server_port": 443,
       "uuid": "83dd438b-357b-4060-a633-52e9714afabe",
@@ -83,38 +85,40 @@
       }
     },
     {
-      "type": "vmess",
-      "tag": "🇦🇱-Tirana | VMESS+WS | 560ms | UP | NATIVE | SEC:tls_required",
-      "server": "45.15.170.237",
-      "server_port": 80,
-      "uuid": "820d4b4f-3357-4dc7-9381-6e5fd52b5f39",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/vmess/",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇦🇱-Unknown | SOCKS4+TCP | 4474ms | UP | NATIVE",
-      "server": "185.190.90.2",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
+      "server": "79.106.170.126",
       "server_port": 4145,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 1167ms | UP | NATIVE",
-      "server": "80.78.77.52",
+      "tag": "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
+      "server": "185.190.90.2",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇱-Tirana | HTTP+TCP | 4176ms | UP | NATIVE",
+      "server": "217.24.245.58",
+      "server_port": 8079,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
+      "server": "80.78.78.106",
       "server_port": 65530,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 5109ms | UP | NATIVE",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE",
       "server": "80.78.73.120",
       "server_port": 65530,
       "version": "4"
