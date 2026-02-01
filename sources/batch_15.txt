@@ -98,3 +98,4 @@ https://v2.alicivil.workers.dev/?count=2000&list=vn&shuffle=true
 https://v2.alicivil.workers.dev/?count=2000&list=za&shuffle=true
 https://v2.alicivil.workers.dev/?count=5000&list=100&unique=true
 https://v2.alicivil.workers.dev/?protocol=warp
+https://raw.githubusercontent.com/voidr3aper-anon/GFW-slayer/refs/heads/main/configs/regional/iran/emergency-add-on-for-iran.json
