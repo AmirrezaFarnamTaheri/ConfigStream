@@ -72,3 +72,10 @@ http://www.proxylists.net/
 https://freenode.openrunner.net/uploads/20240617-clash.yaml
 https://www.socks-proxy.net/
 https://www.best-proxy-list.com/
+# Redistributed from Batch 10
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-12.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub4.txt
+https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/main/Clash_Reality
+https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/refs/heads/main/sub/hysteria
+https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/vmess
+https://raw.githubusercontent.com/FNET00bot/FNET00/Config/hiddify
