@@ -32,10 +32,8 @@ https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks4.txt
 https://raw.githubusercontent.com/chongdong1230/dxz/main/clash
 https://raw.githubusercontent.com/nscl5/5/refs/heads/main/configs/all.txt
 https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/main/mix/sub.html
-https://github.com/scraperapi/blog
 https://proxyrack.com/free-proxy-list
 https://rss.getfree.win/link/w9ted9eZq1zbC3gx?sub=1
-http://0day.kiev.ua/proxy
 http://free-proxy.cz/en/proxylist/main
 https://raw.githubusercontent.com/freefq/free/master/v2
 https://raw.githubusercontent.com/adminaliang/v2ray/main/v2ray

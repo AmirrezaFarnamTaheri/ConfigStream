@@ -81,9 +81,11 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
                     "short_id": str(details.get("sid", "") or ""),
                 }
             else:
-                logger.warning(
-                    f"Skipping Reality TLS for {out.get('server')}: missing or invalid pbk"
+                # [FIX] Fail validation for Reality without PBK
+                logger.debug(
+                    f"Skipping invalid Reality TLS for {out.get('server')}: missing pbk"
                 )
+                return {}  # Return empty dict to signal failure
 
         out["tls"] = tls
 
