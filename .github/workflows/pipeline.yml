@@ -199,6 +199,9 @@ jobs:
           CANARY_URL: "https://httpbin.org"
           BATCH_TIME_LIMIT_SECONDS: 18000
           BATCH_TIME_LIMIT_GRACE_SECONDS: 600
+          FORCE_SCANNER: "true"
+          ALLOW_ACTIVE_SCANNING: "true"
+          VWARP_VERSION: "v2.1.0"
         run: |
           set -euxo pipefail
           echo "Running pipeline for batch $BATCH_NUMBER"
