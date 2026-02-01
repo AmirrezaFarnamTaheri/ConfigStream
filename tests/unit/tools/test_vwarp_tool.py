@@ -46,6 +46,7 @@ async def test_scan_endpoints(monkeypatch):
 @pytest.mark.asyncio
 async def test_generate_masque_config():
     tool = VwarpTool()
+    tool.binary = "vwarp"  # Mock binary path
     tool.is_available = AsyncMock(return_value=True)
 
     process_mock = AsyncMock()
