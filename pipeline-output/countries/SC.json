@@ -39,8 +39,10 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇸🇨-Unknown | VLESS+WS+TLS | 52ms | UP | NATIVE",
-        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 682ms | UP | NATIVE"
+        "🇸🇨-Unknown | VLESS+WS+TLS | 54ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 58ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 496ms | UP | NATIVE",
+        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 687ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +50,10 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇸🇨-Unknown | VLESS+WS+TLS | 52ms | UP | NATIVE",
-        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 682ms | UP | NATIVE"
+        "🇸🇨-Unknown | VLESS+WS+TLS | 54ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 58ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 496ms | UP | NATIVE",
+        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 687ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,7 +61,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 52ms | UP | NATIVE",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 54ms | UP | NATIVE",
       "server": "192.144.19.55",
       "server_port": 8443,
       "uuid": "83f03646-fb28-44cc-9d2c-8853f6c09285",
@@ -74,8 +78,44 @@
       }
     },
     {
+      "type": "vless",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 58ms | UP | NATIVE",
+      "server": "45.130.125.126",
+      "server_port": 8443,
+      "uuid": "829658bf-03c4-4c28-81e9-dd6ea141b2d0",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "5jq7fvwpqt5owo2fi198sa6qoxznkzfea7en4m3xroeqrt3u3q.zjde5.de5.net",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "5jq7fvwpqt5owo2fi198sa6qoxznkzfea7en4m3xroeqrt3u3q.zjde5.de5.net"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 496ms | UP | NATIVE",
+      "server": "45.130.125.160",
+      "server_port": 443,
+      "uuid": "29fa0634-fc9a-4a5a-9104-b7e36e8a9b61",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "gozar1.i2fed.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "gozar1.i2fed.com"
+      }
+    },
+    {
       "type": "shadowsocks",
-      "tag": "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 682ms | UP | NATIVE",
+      "tag": "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 687ms | UP | NATIVE",
       "server": "156.244.19.94",
       "server_port": 11201,
       "method": "chacha20-ietf-poly1305",

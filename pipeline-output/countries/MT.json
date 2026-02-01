@@ -39,9 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇲🇹-Valletta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 457ms | UP | NATIVE",
-        "🇲🇹-Valletta | SHADOWSOCKS+TCP+AES-256-CFB | 615ms | UP | NATIVE",
-        "🇲🇹-Naxxar | SOCKS4+TCP | 4334ms | UP | NATIVE"
+        "🇲🇹-Valletta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 481ms | UP | NATIVE",
+        "🇲🇹-Naxxar | SOCKS4+TCP | 4168ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,9 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇲🇹-Valletta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 457ms | UP | NATIVE",
-        "🇲🇹-Valletta | SHADOWSOCKS+TCP+AES-256-CFB | 615ms | UP | NATIVE",
-        "🇲🇹-Naxxar | SOCKS4+TCP | 4334ms | UP | NATIVE"
+        "🇲🇹-Valletta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 481ms | UP | NATIVE",
+        "🇲🇹-Naxxar | SOCKS4+TCP | 4168ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -59,23 +57,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇹-Valletta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 457ms | UP | NATIVE",
+      "tag": "🇲🇹-Valletta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 481ms | UP | NATIVE",
       "server": "171.22.254.129",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇲🇹-Valletta | SHADOWSOCKS+TCP+AES-256-CFB | 615ms | UP | NATIVE",
-      "server": "171.22.254.17",
-      "server_port": 989,
-      "method": "aes-256-cfb",
-      "password": "f8f7aCzcPKbsF8p3"
-    },
-    {
       "type": "socks",
-      "tag": "🇲🇹-Naxxar | SOCKS4+TCP | 4334ms | UP | NATIVE",
+      "tag": "🇲🇹-Naxxar | SOCKS4+TCP | 4168ms | UP | NATIVE",
       "server": "213.165.185.211",
       "server_port": 4153,
       "version": "4"

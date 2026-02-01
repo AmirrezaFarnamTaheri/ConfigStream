@@ -39,21 +39,21 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 455ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 458ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 460ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 612ms | UP | NATIVE",
-        "🇦🇷-Tostado | SOCKS4+TCP | 1810ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 2186ms | UP | NATIVE",
-        "🇦🇷-Posadas | SOCKS4+TCP | 1429ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 1226ms | UP | NATIVE",
-        "🇦🇷-La_Paz | SOCKS4+TCP | 1389ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3300ms | UP | NATIVE",
-        "🇦🇷-General_Roca | SOCKS4+TCP | 3614ms | UP | NATIVE",
-        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2577ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 4449ms | UP | NATIVE",
-        "🇦🇷-Santa_Isabel | SOCKS4+TCP | 1424ms | UP | NATIVE"
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 446ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 447ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 451ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 451ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 452ms | UP | NATIVE",
+        "🇦🇷-San_Antonio_Oeste | SOCKS4+TCP | 2850ms | UP | NATIVE",
+        "🇦🇷-Tostado | SOCKS4+TCP | 2399ms | UP | NATIVE",
+        "🇦🇷-La_Paz | SOCKS4+TCP | 1865ms | UP | NATIVE",
+        "🇦🇷-Unknown | HTTP+TCP | 5334ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3351ms | UP | NATIVE",
+        "🇦🇷-Río_Gallegos | SOCKS5+TCP | 1064ms | UP | NATIVE",
+        "🇦🇷-Unknown | SOCKS4+TCP | 1174ms | UP | NATIVE",
+        "🇦🇷-Puerto_Eldorado | HTTP+TCP | 3281ms | UP | NATIVE",
+        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2454ms | UP | NATIVE",
+        "🇦🇷-General_Roca | HTTP+TCP | 5335ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -61,21 +61,21 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 455ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 458ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 460ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 612ms | UP | NATIVE",
-        "🇦🇷-Tostado | SOCKS4+TCP | 1810ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 2186ms | UP | NATIVE",
-        "🇦🇷-Posadas | SOCKS4+TCP | 1429ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 1226ms | UP | NATIVE",
-        "🇦🇷-La_Paz | SOCKS4+TCP | 1389ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3300ms | UP | NATIVE",
-        "🇦🇷-General_Roca | SOCKS4+TCP | 3614ms | UP | NATIVE",
-        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2577ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 4449ms | UP | NATIVE",
-        "🇦🇷-Santa_Isabel | SOCKS4+TCP | 1424ms | UP | NATIVE"
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 446ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 447ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 451ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 451ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 452ms | UP | NATIVE",
+        "🇦🇷-San_Antonio_Oeste | SOCKS4+TCP | 2850ms | UP | NATIVE",
+        "🇦🇷-Tostado | SOCKS4+TCP | 2399ms | UP | NATIVE",
+        "🇦🇷-La_Paz | SOCKS4+TCP | 1865ms | UP | NATIVE",
+        "🇦🇷-Unknown | HTTP+TCP | 5334ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3351ms | UP | NATIVE",
+        "🇦🇷-Río_Gallegos | SOCKS5+TCP | 1064ms | UP | NATIVE",
+        "🇦🇷-Unknown | SOCKS4+TCP | 1174ms | UP | NATIVE",
+        "🇦🇷-Puerto_Eldorado | HTTP+TCP | 3281ms | UP | NATIVE",
+        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2454ms | UP | NATIVE",
+        "🇦🇷-General_Roca | HTTP+TCP | 5335ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -83,31 +83,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 455ms | UP | NATIVE",
-      "server": "190.103.176.32",
-      "server_port": 989,
-      "method": "aes-256-cfb",
-      "password": "f8f7aCzcPKbsF8p3"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 458ms | UP | NATIVE",
-      "server": "190.103.176.32",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 460ms | UP | NATIVE",
-      "server": "154.205.154.200",
-      "server_port": 11201,
-      "method": "chacha20-ietf-poly1305",
-      "password": "4f26d8bb593a5fc5"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
+      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 446ms | UP | NATIVE",
       "server": "154.205.154.184",
       "server_port": 11201,
       "method": "chacha20-ietf-poly1305",
@@ -115,81 +91,119 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 612ms | UP | NATIVE",
+      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 447ms | UP | NATIVE",
       "server": "38.54.45.129",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+AES-256-CFB | 451ms | UP | NATIVE",
+      "server": "190.103.176.32",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 451ms | UP | NATIVE",
+      "server": "154.205.154.200",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "4f26d8bb593a5fc5"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇦🇷-Buenos_Aires | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 452ms | UP | NATIVE",
+      "server": "190.103.176.32",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
       "type": "socks",
-      "tag": "🇦🇷-Tostado | SOCKS4+TCP | 1810ms | UP | NATIVE",
-      "server": "190.228.33.44",
+      "tag": "🇦🇷-San_Antonio_Oeste | SOCKS4+TCP | 2850ms | UP | NATIVE",
+      "server": "168.196.24.29",
+      "server_port": 60606,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇷-Tostado | SOCKS4+TCP | 2399ms | UP | NATIVE",
+      "server": "190.228.33.42",
       "server_port": 1085,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 2186ms | UP | NATIVE",
-      "server": "200.80.227.234",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Posadas | SOCKS4+TCP | 1429ms | UP | NATIVE",
-      "server": "181.15.154.154",
-      "server_port": 52033,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 1226ms | UP | NATIVE",
-      "server": "190.220.25.42",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-La_Paz | SOCKS4+TCP | 1389ms | UP | NATIVE",
+      "tag": "🇦🇷-La_Paz | SOCKS4+TCP | 1865ms | UP | NATIVE",
       "server": "45.187.76.2",
       "server_port": 3629,
       "version": "4"
     },
     {
+      "type": "http",
+      "tag": "🇦🇷-Unknown | HTTP+TCP | 5334ms | UP | NATIVE",
+      "server": "181.209.82.203",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3300ms | UP | NATIVE",
+      "tag": "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3351ms | UP | NATIVE",
       "server": "201.234.24.89",
       "server_port": 4153,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇷-General_Roca | SOCKS4+TCP | 3614ms | UP | NATIVE",
-      "server": "181.28.137.18",
-      "server_port": 5678,
-      "version": "4"
+      "tag": "🇦🇷-Río_Gallegos | SOCKS5+TCP | 1064ms | UP | NATIVE",
+      "server": "170.233.30.33",
+      "server_port": 4153,
+      "username": "",
+      "password": "",
+      "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇦🇷-Bell_Ville | SOCKS4+TCP | 2577ms | UP | NATIVE",
+      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 1174ms | UP | NATIVE",
+      "server": "200.80.227.234",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇷-Puerto_Eldorado | HTTP+TCP | 3281ms | UP | NATIVE",
+      "server": "187.102.219.64",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇷-Bell_Ville | SOCKS4+TCP | 2454ms | UP | NATIVE",
       "server": "200.122.92.211",
       "server_port": 5678,
       "version": "4"
     },
     {
-      "type": "socks",
-      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 4449ms | UP | NATIVE",
-      "server": "200.123.109.166",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Santa_Isabel | SOCKS4+TCP | 1424ms | UP | NATIVE",
-      "server": "138.186.155.1",
-      "server_port": 1085,
-      "version": "4"
+      "type": "http",
+      "tag": "🇦🇷-General_Roca | HTTP+TCP | 5335ms | UP | NATIVE",
+      "server": "191.97.96.86",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "direct",

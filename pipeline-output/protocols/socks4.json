@@ -39,321 +39,275 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇺🇸-Detroit | SOCKS4+TCP | 140ms | UP | NATIVE",
-        "🇺🇸-San_Francisco | SOCKS4+TCP | 166ms | UP | NATIVE",
-        "🇺🇸-Phoenix | SOCKS4+TCP | 227ms | UP | NATIVE",
-        "🇺🇸-Columbus | SOCKS4+TCP | 232ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS4+TCP | 253ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 451ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 476ms | UP | NATIVE",
-        "🇨🇴-Kennedy | SOCKS4+TCP | 561ms | UP | NATIVE",
-        "🇵🇱-Warsaw | SOCKS4+TCP | 578ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 673ms | UP | NATIVE",
-        "🇺🇸-Tampa | SOCKS4+TCP | 684ms | UP | NATIVE",
-        "🇨🇴-Pereira | SOCKS4+TCP | 686ms | UP | NATIVE",
-        "🇨🇷-Unknown | SOCKS4+TCP | 710ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 742ms | UP | NATIVE",
-        "🇰🇷-Ansan-si | SOCKS4+TCP | 784ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | SOCKS4+TCP | 812ms | UP | NATIVE",
-        "🇫🇷-Unknown | SOCKS4+TCP | 825ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 844ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 876ms | UP | NATIVE",
-        "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 930ms | UP | NATIVE",
-        "🇸🇪-Upplands_Vasby | SOCKS4+TCP | 941ms | UP | NATIVE",
-        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 954ms | UP | NATIVE",
-        "🇮🇹-Verdellino | SOCKS4+TCP | 964ms | UP | NATIVE",
-        "🇨🇿-Znojmo | SOCKS4+TCP | 969ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 974ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 987ms | UP | NATIVE",
-        "🇱🇻-Saldus | SOCKS4+TCP | 990ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS4+TCP | 998ms | UP | NATIVE",
-        "🇧🇬-Plovdiv | SOCKS4+TCP | 999ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3434ms | UP | NATIVE",
-        "🇵🇸-Unknown | SOCKS4+TCP | 5335ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1821ms | UP | NATIVE",
-        "🇰🇷-Seoul | SOCKS4+TCP | 3735ms | UP | NATIVE",
-        "🇲🇼-Unknown | SOCKS4+TCP | 2648ms | UP | NATIVE",
-        "🇦🇷-Tostado | SOCKS4+TCP | 1810ms | UP | NATIVE",
-        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4022ms | UP | NATIVE",
-        "🇮🇶-Baghdad | SOCKS4+TCP | 4567ms | UP | NATIVE",
-        "🇦🇺-Sydney | SOCKS4+TCP | 1250ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 5070ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1601ms | UP | NATIVE",
-        "🇨🇴-Cartagena | SOCKS4+TCP | 5107ms | UP | NATIVE",
-        "🇲🇪-Podgorica | SOCKS4+TCP | 4546ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3162ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 3023ms | UP | NATIVE",
-        "🇺🇸-Lenexa | SOCKS4+TCP | 1456ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 5370ms | UP | NATIVE",
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 1162ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2901ms | UP | NATIVE",
-        "🇧🇷-Mogi_das_Cruzes | SOCKS4+TCP | 5285ms | UP | NATIVE",
-        "🇨🇱-Port_Montt | SOCKS4+TCP | 4219ms | UP | NATIVE",
-        "🇰🇷-Unknown | SOCKS4+TCP | 1306ms | UP | NATIVE",
-        "🇧🇷-Nova_Friburgo | SOCKS4+TCP | 2177ms | UP | NATIVE",
-        "🇧🇷-Juiz_de_Fora | SOCKS4+TCP | 1046ms | UP | NATIVE",
-        "🇰🇭-Unknown | SOCKS4+TCP | 3925ms | UP | NATIVE",
-        "🇺🇸-Asheville | SOCKS4+TCP | 2008ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SOCKS4+TCP | 1776ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2968ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3028ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 2186ms | UP | NATIVE",
-        "🇮🇳-Hyderabad | SOCKS4+TCP | 5328ms | UP | NATIVE",
-        "🇲🇽-Azcapotzalco | SOCKS4+TCP | 1508ms | UP | NATIVE",
-        "🇮🇳-Udaipur | SOCKS4+TCP | 1991ms | UP | NATIVE",
-        "🇭🇷-Zagreb | SOCKS4+TCP | 1412ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 3361ms | UP | NATIVE",
-        "🇦🇷-Posadas | SOCKS4+TCP | 1429ms | UP | NATIVE",
-        "🇨🇴-Cali | SOCKS4+TCP | 1939ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1956ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 2419ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 1364ms | UP | NATIVE",
-        "🇪🇸-Bilbao | SOCKS4+TCP | 1032ms | UP | NATIVE",
-        "🇰🇷-Seoul | SOCKS4+TCP | 1202ms | UP | NATIVE",
-        "🇲🇽-Aguascalientes | SOCKS4+TCP | 3663ms | UP | NATIVE",
-        "🇬🇧-Unknown | SOCKS4+TCP | 5201ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2091ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1479ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 1226ms | UP | NATIVE",
-        "🇵🇱-Rzeszów | SOCKS4+TCP | 3228ms | UP | NATIVE",
-        "🇷🇸-Belgrade | SOCKS4+TCP | 2174ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2608ms | UP | NATIVE",
-        "🇮🇳-Kochi | SOCKS4+TCP | 3280ms | UP | NATIVE",
-        "🇪🇸-Empuriabrava | SOCKS4+TCP | 2983ms | UP | NATIVE",
-        "🇺🇸-Allegan | SOCKS4+TCP | 1576ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1519ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 1379ms | UP | NATIVE",
-        "🇹🇷-Gaziantep | SOCKS4+TCP | 1167ms | UP | NATIVE",
-        "🇦🇷-La_Paz | SOCKS4+TCP | 1389ms | UP | NATIVE",
-        "🇮🇳-Anuppankulam | SOCKS4+TCP | 3259ms | UP | NATIVE",
-        "🇧🇴-La_Paz | SOCKS4+TCP | 1122ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 3455ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5163ms | UP | NATIVE",
-        "🇹🇭-Chiang_Mai | SOCKS4+TCP | 3851ms | UP | NATIVE",
-        "🇨🇴-Bosa | SOCKS4+TCP | 1782ms | UP | NATIVE",
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 2148ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 2189ms | UP | NATIVE",
-        "🇧🇷-Itirapina | SOCKS4+TCP | 2178ms | UP | NATIVE",
-        "🇺🇦-Odesa | SOCKS4+TCP | 4168ms | UP | NATIVE",
-        "🇰🇷-Gwangmyeong | SOCKS4+TCP | 2589ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 1165ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2590ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 1862ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2467ms | UP | NATIVE",
-        "🇳🇬-Unknown | SOCKS4+TCP | 2885ms | UP | NATIVE",
-        "🇵🇱-Poznan | SOCKS4+TCP | 2056ms | UP | NATIVE",
-        "🇺🇸-Miami | SOCKS4+TCP | 1533ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2465ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 3550ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 3268ms | UP | NATIVE",
-        "🇵🇰-Unknown | SOCKS4+TCP | 2063ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3064ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 3075ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 4159ms | UP | NATIVE",
-        "🇻🇳-Da_Nang | SOCKS4+TCP | 3071ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 2246ms | UP | NATIVE",
-        "🇧🇴-Santa_Cruz_de_la_Sierra | SOCKS4+TCP | 5429ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 1282ms | UP | NATIVE",
-        "🇷🇺-Voronezh | SOCKS4+TCP | 2569ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS4+TCP | 2487ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2087ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 1008ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 5617ms | UP | NATIVE",
-        "🇧🇩-Mymensingh | SOCKS4+TCP | 1972ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 2217ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3995ms | UP | NATIVE",
-        "🇭🇺-Hajdúnánás | SOCKS4+TCP | 4504ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1088ms | UP | NATIVE",
-        "🇵🇱-Siedlce | SOCKS4+TCP | 3596ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3300ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3593ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 1205ms | UP | NATIVE",
-        "🇧🇷-Sapé | SOCKS4+TCP | 3907ms | UP | NATIVE",
-        "🇧🇹-Unknown | SOCKS4+TCP | 4076ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 1502ms | UP | NATIVE",
-        "🇦🇷-General_Roca | SOCKS4+TCP | 3614ms | UP | NATIVE",
-        "🇮🇩-Jakarta_Pusat | SOCKS4+TCP | 5996ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 1817ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2907ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 4995ms | UP | NATIVE",
-        "🇮🇳-Kolkata | SOCKS4+TCP | 2253ms | UP | NATIVE",
-        "🇵🇰-Karachi | SOCKS4+TCP | 5675ms | UP | NATIVE",
-        "🇲🇹-Naxxar | SOCKS4+TCP | 4334ms | UP | NATIVE",
-        "🇺🇸-San_Jose | SOCKS4+TCP | 2197ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 3040ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2407ms | UP | NATIVE",
-        "🇺🇸-San_Bernardino | SOCKS4+TCP | 3350ms | UP | NATIVE",
-        "🇵🇭-Makati_City | SOCKS4+TCP | 5793ms | UP | NATIVE",
-        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 2473ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1540ms | UP | NATIVE",
-        "🇬🇷-Athens | SOCKS4+TCP | 2134ms | UP | NATIVE",
-        "🇷🇸-Užice | SOCKS4+TCP | 2155ms | UP | NATIVE",
-        "🇹🇭-Lamphun | SOCKS4+TCP | 5132ms | UP | NATIVE",
-        "🇫🇷-Paris | SOCKS4+TCP | 1547ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2718ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 2133ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 1032ms | UP | NATIVE",
-        "🇦🇹-Vienna | SOCKS4+TCP | 2991ms | UP | NATIVE",
-        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2577ms | UP | NATIVE",
-        "🇳🇬-Unknown | SOCKS4+TCP | 5276ms | UP | NATIVE",
-        "🇧🇷-Recife | SOCKS4+TCP | 1502ms | UP | NATIVE",
-        "🇻🇳-Tây_Ninh | SOCKS4+TCP | 3155ms | UP | NATIVE",
-        "🇹🇭-Pak_Kret | SOCKS4+TCP | 3729ms | UP | NATIVE",
-        "🇻🇳-Unknown | SOCKS4+TCP | 1331ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2735ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 5797ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 4075ms | UP | NATIVE",
-        "🇺🇸-Lowell | SOCKS4+TCP | 2422ms | UP | NATIVE",
-        "🇰🇷-Gangdong-gu | SOCKS4+TCP | 1173ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1294ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 1889ms | UP | NATIVE",
-        "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 1741ms | UP | NATIVE",
-        "🇧🇷-Salvador | SOCKS4+TCP | 2224ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1987ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3489ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1910ms | UP | NATIVE",
-        "🇺🇾-Montevideo | SOCKS4+TCP | 4261ms | UP | NATIVE",
-        "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 1375ms | UP | NATIVE",
-        "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
-        "🇵🇷-San_Juan | SOCKS4+TCP | 4997ms | UP | NATIVE",
-        "🇮🇩-Sunter_Agung | SOCKS4+TCP | 5622ms | UP | NATIVE",
-        "🇬🇹-Guatemala_City | SOCKS4+TCP | 1564ms | UP | NATIVE",
-        "🇵🇱-Unknown | SOCKS4+TCP | 1636ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2280ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 1325ms | UP | NATIVE",
-        "🇲🇽-Guadalupe | SOCKS4+TCP | 2579ms | UP | NATIVE",
-        "🇧🇷-Simões_Filho | SOCKS4+TCP | 1562ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5200ms | UP | NATIVE",
-        "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE",
-        "🇧🇷-Itaperuna | SOCKS4+TCP | 1410ms | UP | NATIVE",
-        "🇰🇭-Phumĭ_Kândal | SOCKS4+TCP | 1687ms | UP | NATIVE",
-        "🇺🇸-Nederland | SOCKS4+TCP | 1344ms | UP | NATIVE",
-        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2099ms | UP | NATIVE",
-        "🇵🇾-Ciudad_del_Este | SOCKS4+TCP | 1224ms | UP | NATIVE",
-        "🇦🇹-Vienna | SOCKS4+TCP | 3027ms | UP | NATIVE",
-        "🇺🇸-Richland | SOCKS4+TCP | 4323ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2566ms | UP | NATIVE",
-        "🇵🇪-Lima | SOCKS4+TCP | 3177ms | UP | NATIVE",
-        "🇹🇭-Unknown | SOCKS4+TCP | 4012ms | UP | NATIVE",
-        "🇧🇼-Gaborone | SOCKS4+TCP | 3973ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 1230ms | UP | NATIVE",
-        "🇮🇶-Unknown | SOCKS4+TCP | 1462ms | UP | NATIVE",
-        "🇮🇶-Unknown | SOCKS4+TCP | 1316ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2633ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS4+TCP | 2502ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 2313ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 3250ms | UP | NATIVE",
-        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 2346ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3598ms | UP | NATIVE",
-        "🇵🇱-Zielona_Góra | SOCKS4+TCP | 4762ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3819ms | UP | NATIVE",
-        "🇺🇦-Unknown | SOCKS4+TCP | 2746ms | UP | NATIVE",
-        "🇧🇴-La_Paz | SOCKS4+TCP | 1330ms | UP | NATIVE",
-        "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 2280ms | UP | NATIVE",
-        "🇺🇸-Atlanta | SOCKS4+TCP | 2200ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 4449ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2080ms | UP | NATIVE",
-        "🇨🇴-Santa_Marta | SOCKS4+TCP | 1150ms | UP | NATIVE",
-        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 5288ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 1203ms | UP | NATIVE",
-        "🇷🇺-Chelyabinsk | SOCKS4+TCP | 3333ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2712ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1054ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 3961ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 3999ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SOCKS4+TCP | 1342ms | UP | NATIVE",
-        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3683ms | UP | NATIVE",
-        "🇸🇬-Unknown | SOCKS4+TCP | 5737ms | UP | NATIVE",
-        "🇧🇷-Ibirité | SOCKS4+TCP | 1204ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 5005ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 3039ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
-        "🇮🇳-Kumarapalayam | SOCKS4+TCP | 2098ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 1567ms | UP | NATIVE",
-        "🇰🇪-Nairobi | SOCKS4+TCP | 3817ms | UP | NATIVE",
-        "🇮🇶-Baghdad | SOCKS4+TCP | 2937ms | UP | NATIVE",
-        "🇫🇷-Nice | SOCKS4+TCP | 3980ms | UP | NATIVE",
-        "🇦🇷-Santa_Isabel | SOCKS4+TCP | 1424ms | UP | NATIVE",
-        "🇪🇸-Empuriabrava | SOCKS4+TCP | 3539ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS4+TCP | 1200ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 3804ms | UP | NATIVE",
-        "🇧🇷-Posse | SOCKS4+TCP | 1488ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 3629ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 2653ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 1203ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 5999ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1178ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 2506ms | UP | NATIVE",
-        "🇷🇺-Cheboksary | SOCKS4+TCP | 5734ms | UP | NATIVE",
-        "🇧🇬-Razlog | SOCKS4+TCP | 2545ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 1376ms | UP | NATIVE",
-        "🇧🇬-Svilengrad | SOCKS4+TCP | 2265ms | UP | NATIVE",
-        "🇱🇦-Unknown | SOCKS4+TCP | 4904ms | UP | NATIVE",
-        "🇷🇺-St_Petersburg | SOCKS4+TCP | 2090ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 1441ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 4391ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | SOCKS4+TCP | 5360ms | UP | NATIVE",
-        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5216ms | UP | NATIVE",
-        "🇮🇩-Jakarta_Pusat | SOCKS4+TCP | 2536ms | UP | NATIVE",
-        "🇧🇷-Dracena | SOCKS4+TCP | 5167ms | UP | NATIVE",
-        "🇲🇾-Unknown | SOCKS4+TCP | 1775ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 4523ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2745ms | UP | NATIVE",
-        "🇦🇲-Yerevan | SOCKS4+TCP | 1018ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1883ms | UP | NATIVE",
-        "🇷🇸-Belgrade | SOCKS4+TCP | 5201ms | UP | NATIVE",
-        "🇮🇷-Unknown | SOCKS4+TCP | 2704ms | UP | NATIVE",
-        "🇵🇱-Gorzów_Wielkopolski | SOCKS4+TCP | 1332ms | UP | NATIVE",
-        "🇮🇩-South_Tangerang | SOCKS4+TCP | 1825ms | UP | NATIVE",
-        "🇺🇸-Austin | SOCKS4+TCP | 2458ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | SOCKS4+TCP | 2312ms | UP | NATIVE",
-        "🇺🇦-Ternopil | SOCKS4+TCP | 1015ms | UP | NATIVE",
-        "🇵🇾-Asunción | SOCKS4+TCP | 2117ms | UP | NATIVE",
-        "🇲🇽-Aguascalientes | SOCKS4+TCP | 1595ms | UP | NATIVE",
-        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 3113ms | UP | NATIVE",
-        "🇧🇷-Pelotas | SOCKS4+TCP | 5178ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2979ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5956ms | UP | NATIVE",
-        "🇭🇰-Hong_Kong | SOCKS4+TCP | 1171ms | UP | NATIVE",
-        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 3140ms | UP | NATIVE",
-        "🇧🇼-Gaborone | SOCKS4+TCP | 2975ms | UP | NATIVE",
-        "🇹🇭-Unknown | SOCKS4+TCP | 3728ms | UP | NATIVE",
-        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 2232ms | UP | NATIVE",
-        "🇰🇷-Unknown | SOCKS4+TCP | 5435ms | UP | NATIVE",
-        "🇰🇿-Kostanay | SOCKS4+TCP | 2297ms | UP | NATIVE",
-        "🇨🇦-Mississauga | SOCKS4+TCP | 1268ms | UP | NATIVE",
-        "🇧🇷-Osasco | SOCKS4+TCP | 3267ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE",
-        "🇳🇿-New_Plymouth | SOCKS4+TCP | 3651ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 1055ms | UP | NATIVE",
-        "🇦🇲-Yerevan | SOCKS4+TCP | 2376ms | UP | NATIVE",
-        "🇺🇸-Raleigh | SOCKS4+TCP | 2481ms | UP | NATIVE",
-        "🇱🇧-Tripoli | SOCKS4+TCP | 2624ms | UP | NATIVE",
-        "🇮🇳-Kalyān | SOCKS4+TCP | 3922ms | UP | NATIVE",
-        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 1944ms | UP | NATIVE",
-        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1355ms | UP | NATIVE",
-        "🇨🇾-Nicosia | SOCKS4+TCP | 2712ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1912ms | UP | NATIVE",
-        "🇷🇺-Penza | SOCKS4+TCP | 1300ms | UP | NATIVE",
-        "🇺🇦-Kozyn | SOCKS4+TCP | 2119ms | UP | NATIVE",
-        "🇺🇸-Imperial | SOCKS4+TCP | 2324ms | UP | NATIVE",
-        "🇮🇳-Vellore | SOCKS4+TCP | 3024ms | UP | NATIVE",
-        "🇭🇺-Budapest | SOCKS4+TCP | 2247ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 1495ms | UP | NATIVE",
-        "🇺🇦-Dnipro | SOCKS4+TCP | 3575ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5027ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2182ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2760ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2259ms | UP | NATIVE",
-        "🇬🇭-Unknown | SOCKS4+TCP | 2572ms | UP | NATIVE",
-        "🇺🇸-Los_Angeles | SOCKS4+TCP | 1333ms | UP | NATIVE",
-        "🇿🇦-Equestria | SOCKS4+TCP | 4359ms | UP | NATIVE",
-        "🇧🇷-Florianópolis | SOCKS4+TCP | 1835ms | UP | NATIVE",
-        "🇲🇲-Unknown | SOCKS4+TCP | 4204ms | UP | NATIVE"
+        "🇺🇸-Atlanta | SOCKS4+TCP | 107ms | UP | NATIVE",
+        "🇺🇸-Glassboro | SOCKS4+TCP | 209ms | UP | NATIVE",
+        "🇨🇦-Mississauga | SOCKS4+TCP | 235ms | UP | NATIVE",
+        "🇺🇸-Raleigh | SOCKS4+TCP | 326ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 347ms | UP | NATIVE",
+        "🇺🇸-Austin | SOCKS4+TCP | 412ms | UP | NATIVE",
+        "🇺🇸-Morrison | SOCKS4+TCP | 413ms | UP | NATIVE",
+        "🇲🇽-Guadalupe | SOCKS4+TCP | 466ms | UP | NATIVE",
+        "🇲🇽-Unknown | SOCKS4+TCP | 540ms | UP | NATIVE",
+        "🇩🇪-Falkenstein | SOCKS4+TCP | 571ms | UP | NATIVE",
+        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 607ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 618ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 630ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 644ms | UP | NATIVE",
+        "🇨🇷-Unknown | SOCKS4+TCP | 652ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 661ms | UP | NATIVE",
+        "🇫🇷-Unknown | SOCKS4+TCP | 691ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 711ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 728ms | UP | NATIVE",
+        "🇧🇷-Curitiba | SOCKS4+TCP | 750ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 758ms | UP | NATIVE",
+        "🇫🇷-Nice | SOCKS4+TCP | 774ms | UP | NATIVE",
+        "🇨🇴-Bucaramanga | SOCKS4+TCP | 800ms | UP | NATIVE",
+        "🇪🇸-La_Romana | SOCKS4+TCP | 836ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 852ms | UP | NATIVE",
+        "🇧🇷-Itaperuna | SOCKS4+TCP | 877ms | UP | NATIVE",
+        "🇺🇸-Morrison | SOCKS4+TCP | 903ms | UP | NATIVE",
+        "🇬🇧-Unknown | SOCKS4+TCP | 913ms | UP | NATIVE",
+        "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE",
+        "🇦🇱-Unknown | SOCKS4+TCP | 926ms | UP | NATIVE",
+        "🇷🇸-Užice | SOCKS4+TCP | 936ms | UP | NATIVE",
+        "🇵🇱-Racibórz | SOCKS4+TCP | 958ms | UP | NATIVE",
+        "🇺🇸-Fremont | SOCKS4+TCP | 963ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 964ms | UP | NATIVE",
+        "🇨🇱-Santiago | SOCKS4+TCP | 967ms | UP | NATIVE",
+        "🇧🇦-Sarajevo | SOCKS4+TCP | 986ms | UP | NATIVE",
+        "🇧🇷-Ibirité | SOCKS4+TCP | 997ms | UP | NATIVE",
+        "🇮🇳-Udaipur | SOCKS4+TCP | 3030ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4347ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5351ms | UP | NATIVE",
+        "🇺🇸-New_York | SOCKS4+TCP | 4197ms | UP | NATIVE",
+        "🇦🇲-Yerevan | SOCKS4+TCP | 2370ms | UP | NATIVE",
+        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 1072ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS4+TCP | 3489ms | UP | NATIVE",
+        "🇮🇳-Anuppankulam | SOCKS4+TCP | 4485ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2217ms | UP | NATIVE",
+        "🇺🇦-Ternopil | SOCKS4+TCP | 1104ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 5327ms | UP | NATIVE",
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 1616ms | UP | NATIVE",
+        "🇻🇪-Maturín | SOCKS4+TCP | 5476ms | UP | NATIVE",
+        "🇹🇷-Unknown | SOCKS4+TCP | 2733ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 4068ms | UP | NATIVE",
+        "🇮🇩-Probolinggo | SOCKS4+TCP | 3787ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3247ms | UP | NATIVE",
+        "🇮🇩-Sunter_Agung | SOCKS4+TCP | 3923ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4837ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 1211ms | UP | NATIVE",
+        "🇦🇲-Yerevan | SOCKS4+TCP | 1232ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 2294ms | UP | NATIVE",
+        "🇮🇳-Bagpat | SOCKS4+TCP | 5128ms | UP | NATIVE",
+        "🇮🇳-Chennai | SOCKS4+TCP | 5146ms | UP | NATIVE",
+        "🇧🇷-Salvador | SOCKS4+TCP | 1225ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 1896ms | UP | NATIVE",
+        "🇰🇪-Nairobi | SOCKS4+TCP | 1646ms | UP | NATIVE",
+        "🇭🇷-Zagreb | SOCKS4+TCP | 4811ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4324ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 4024ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 3616ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 2215ms | UP | NATIVE",
+        "🇨🇦-Sioux_Lookout | SOCKS4+TCP | 5648ms | UP | NATIVE",
+        "🇵🇪-Lima | SOCKS4+TCP | 2054ms | UP | NATIVE",
+        "🇹🇭-Chiang_Mai | SOCKS4+TCP | 2175ms | UP | NATIVE",
+        "🇦🇷-San_Antonio_Oeste | SOCKS4+TCP | 2850ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 1978ms | UP | NATIVE",
+        "🇰🇿-Almaty | SOCKS4+TCP | 4871ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 1957ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3398ms | UP | NATIVE",
+        "🇺🇸-Lowell | SOCKS4+TCP | 1328ms | UP | NATIVE",
+        "🇺🇸-Elk_Mound | SOCKS4+TCP | 1277ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 4232ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3914ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 3168ms | UP | NATIVE",
+        "🇷🇸-Belgrade | SOCKS4+TCP | 1934ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 1047ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 1686ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5527ms | UP | NATIVE",
+        "🇧🇷-Campo_Mourão | SOCKS4+TCP | 5193ms | UP | NATIVE",
+        "🇮🇳-Nadiād | SOCKS4+TCP | 4160ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 2957ms | UP | NATIVE",
+        "🇷🇺-Voronezh | SOCKS4+TCP | 3084ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2384ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 2185ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3804ms | UP | NATIVE",
+        "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 4711ms | UP | NATIVE",
+        "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE",
+        "🇵🇰-Unknown | SOCKS4+TCP | 3085ms | UP | NATIVE",
+        "🇹🇭-Phuket | SOCKS4+TCP | 4024ms | UP | NATIVE",
+        "🇺🇦-Burshtyn | SOCKS4+TCP | 4090ms | UP | NATIVE",
+        "🇦🇷-Tostado | SOCKS4+TCP | 2399ms | UP | NATIVE",
+        "🇮🇩-Pemalang | SOCKS4+TCP | 1937ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3242ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5279ms | UP | NATIVE",
+        "🇧🇷-Cuiabá | SOCKS4+TCP | 4244ms | UP | NATIVE",
+        "🇳🇱-Dronten | SOCKS4+TCP | 5636ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4166ms | UP | NATIVE",
+        "🇺🇸-Imperial | SOCKS4+TCP | 1437ms | UP | NATIVE",
+        "🇭🇺-Hajdúnánás | SOCKS4+TCP | 4091ms | UP | NATIVE",
+        "🇹🇭-Pak_Kret | SOCKS4+TCP | 5536ms | UP | NATIVE",
+        "🇧🇬-Unknown | SOCKS4+TCP | 1041ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 3884ms | UP | NATIVE",
+        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2069ms | UP | NATIVE",
+        "🇦🇷-La_Paz | SOCKS4+TCP | 1865ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 1737ms | UP | NATIVE",
+        "🇬🇧-Unknown | SOCKS4+TCP | 1298ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 2956ms | UP | NATIVE",
+        "🇮🇳-Kalyān | SOCKS4+TCP | 4060ms | UP | NATIVE",
+        "🇻🇳-Tây_Ninh | SOCKS4+TCP | 4879ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 1939ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 2203ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3996ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 5268ms | UP | NATIVE",
+        "🇧🇼-Unknown | SOCKS4+TCP | 3864ms | UP | NATIVE",
+        "🇱🇹-Palanga | SOCKS4+TCP | 5793ms | UP | NATIVE",
+        "🇷🇺-Cheboksary | SOCKS4+TCP | 1201ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1029ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5282ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5231ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 5987ms | UP | NATIVE",
+        "🇧🇷-Anta_Gorda | SOCKS4+TCP | 4122ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3972ms | UP | NATIVE",
+        "🇨🇴-Bosa | SOCKS4+TCP | 3179ms | UP | NATIVE",
+        "🇺🇸-Detroit | SOCKS4+TCP | 2290ms | UP | NATIVE",
+        "🇵🇱-Poznan | SOCKS4+TCP | 1990ms | UP | NATIVE",
+        "🇵🇱-Gorzów_Wielkopolski | SOCKS4+TCP | 2011ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 3973ms | UP | NATIVE",
+        "🇷🇺-Krasnodar | SOCKS4+TCP | 1229ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3204ms | UP | NATIVE",
+        "🇵🇷-San_Juan | SOCKS4+TCP | 3531ms | UP | NATIVE",
+        "🇰🇷-Seoul | SOCKS4+TCP | 4517ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 2110ms | UP | NATIVE",
+        "🇮🇶-Baghdad | SOCKS4+TCP | 1575ms | UP | NATIVE",
+        "🇬🇹-Unknown | SOCKS4+TCP | 3560ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3014ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 3367ms | UP | NATIVE",
+        "🇰🇷-Seoul | SOCKS4+TCP | 1385ms | UP | NATIVE",
+        "🇧🇬-Razlog | SOCKS4+TCP | 1163ms | UP | NATIVE",
+        "🇧🇷-Itabaiana | SOCKS4+TCP | 5116ms | UP | NATIVE",
+        "🇦🇹-Vienna | SOCKS4+TCP | 3555ms | UP | NATIVE",
+        "🇮🇩-Palembang | SOCKS4+TCP | 4942ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3931ms | UP | NATIVE",
+        "🇹🇭-Pak_Kret | SOCKS4+TCP | 4180ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3915ms | UP | NATIVE",
+        "🇷🇺-Penza | SOCKS4+TCP | 3770ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4187ms | UP | NATIVE",
+        "🇬🇷-Athens | SOCKS4+TCP | 1115ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 3222ms | UP | NATIVE",
+        "🇧🇬-Stara_Zagora | SOCKS4+TCP | 2149ms | UP | NATIVE",
+        "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
+        "🇵🇱-Siedlce | SOCKS4+TCP | 1949ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 4263ms | UP | NATIVE",
+        "🇧🇬-Plovdiv | SOCKS4+TCP | 4668ms | UP | NATIVE",
+        "🇧🇷-Palotina | SOCKS4+TCP | 1198ms | UP | NATIVE",
+        "🇱🇧-Tripoli | SOCKS4+TCP | 1184ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1109ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 1895ms | UP | NATIVE",
+        "🇧🇬-Unknown | SOCKS4+TCP | 5278ms | UP | NATIVE",
+        "🇧🇷-Dracena | SOCKS4+TCP | 2069ms | UP | NATIVE",
+        "🇵🇾-Asunción | SOCKS4+TCP | 2116ms | UP | NATIVE",
+        "🇰🇷-Unknown | SOCKS4+TCP | 4032ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3351ms | UP | NATIVE",
+        "🇧🇷-Recife | SOCKS4+TCP | 2272ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 1021ms | UP | NATIVE",
+        "🇺🇸-San_Jose | SOCKS4+TCP | 2579ms | UP | NATIVE",
+        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5360ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4274ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5243ms | UP | NATIVE",
+        "🇧🇷-Macapá | SOCKS4+TCP | 4593ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1210ms | UP | NATIVE",
+        "🇮🇹-Naples | SOCKS4+TCP | 4646ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 2348ms | UP | NATIVE",
+        "🇻🇳-Unknown | SOCKS4+TCP | 1858ms | UP | NATIVE",
+        "🇨🇴-Cereté | SOCKS4+TCP | 1697ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3499ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS4+TCP | 1738ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SOCKS4+TCP | 2021ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1369ms | UP | NATIVE",
+        "🇷🇺-Ivanteyevka | SOCKS4+TCP | 3061ms | UP | NATIVE",
+        "🇺🇦-Lviv | SOCKS4+TCP | 1072ms | UP | NATIVE",
+        "🇸🇪-Unknown | SOCKS4+TCP | 1410ms | UP | NATIVE",
+        "🇧🇷-Taboão_da_Serra | SOCKS4+TCP | 3023ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 2147ms | UP | NATIVE",
+        "🇧🇷-Pelotas | SOCKS4+TCP | 2216ms | UP | NATIVE",
+        "🇵🇱-Unknown | SOCKS4+TCP | 5874ms | UP | NATIVE",
+        "🇧🇷-Itapetinga | SOCKS4+TCP | 1034ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 3090ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2989ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 2936ms | UP | NATIVE",
+        "🇺🇸-Richland | SOCKS4+TCP | 4676ms | UP | NATIVE",
+        "🇮🇩-South_Tangerang | SOCKS4+TCP | 2958ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3513ms | UP | NATIVE",
+        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4674ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | SOCKS4+TCP | 3777ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3314ms | UP | NATIVE",
+        "🇵🇱-Rzeszów | SOCKS4+TCP | 2006ms | UP | NATIVE",
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 2698ms | UP | NATIVE",
+        "🇨🇾-Limassol | SOCKS4+TCP | 2741ms | UP | NATIVE",
+        "🇵🇱-Lodz | SOCKS4+TCP | 1077ms | UP | NATIVE",
+        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 4141ms | UP | NATIVE",
+        "🇧🇼-Unknown | SOCKS4+TCP | 3893ms | UP | NATIVE",
+        "🇺🇦-Odesa | SOCKS4+TCP | 1205ms | UP | NATIVE",
+        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 3022ms | UP | NATIVE",
+        "🇳🇬-Unknown | SOCKS4+TCP | 1966ms | UP | NATIVE",
+        "🇺🇦-Dnipro | SOCKS4+TCP | 2198ms | UP | NATIVE",
+        "🇻🇳-Hanoi | SOCKS4+TCP | 1976ms | UP | NATIVE",
+        "🇦🇷-Unknown | SOCKS4+TCP | 1174ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 2027ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4057ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 5075ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2931ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2209ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 1999ms | UP | NATIVE",
+        "🇲🇹-Naxxar | SOCKS4+TCP | 4168ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 4909ms | UP | NATIVE",
+        "🇦🇺-Sydney | SOCKS4+TCP | 1584ms | UP | NATIVE",
+        "🇺🇦-Chernivtsi | SOCKS4+TCP | 4212ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 4404ms | UP | NATIVE",
+        "🇵🇾-Asunción | SOCKS4+TCP | 1388ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3995ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 5691ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5035ms | UP | NATIVE",
+        "🇹🇼-Taichung | SOCKS4+TCP | 2125ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS4+TCP | 5625ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE",
+        "🇧🇷-Osasco | SOCKS4+TCP | 1063ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4208ms | UP | NATIVE",
+        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2454ms | UP | NATIVE",
+        "🇮🇩-Depok | SOCKS4+TCP | 2005ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | SOCKS4+TCP | 1984ms | UP | NATIVE",
+        "🇲🇪-Podgorica | SOCKS4+TCP | 2034ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 3318ms | UP | NATIVE",
+        "🇸🇪-Stockholm | SOCKS4+TCP | 1802ms | UP | NATIVE",
+        "🇮🇳-Virār | SOCKS4+TCP | 1913ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2514ms | UP | NATIVE",
+        "🇺🇸-Hammonton | SOCKS4+TCP | 1168ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 2647ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS4+TCP | 2271ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 5069ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3135ms | UP | NATIVE",
+        "🇺🇸-Dallas | SOCKS4+TCP | 1276ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SOCKS4+TCP | 5995ms | UP | NATIVE",
+        "🇺🇸-Phoenix | SOCKS4+TCP | 2403ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4896ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2051ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5025ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 4188ms | UP | NATIVE",
+        "🇪🇸-Málaga | SOCKS4+TCP | 4124ms | UP | NATIVE",
+        "🇺🇦-Liuboml | SOCKS4+TCP | 4086ms | UP | NATIVE",
+        "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 4136ms | UP | NATIVE",
+        "🇺🇸-New_York | SOCKS4+TCP | 2036ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 2462ms | UP | NATIVE",
+        "🇺🇸-Nederland | SOCKS4+TCP | 1162ms | UP | NATIVE",
+        "🇺🇦-Odesa | SOCKS4+TCP | 3133ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS4+TCP | 3434ms | UP | NATIVE",
+        "🇱🇦-Unknown | SOCKS4+TCP | 4568ms | UP | NATIVE",
+        "🇧🇷-Simões_Filho | SOCKS4+TCP | 1146ms | UP | NATIVE",
+        "🇨🇾-Nicosia | SOCKS4+TCP | 3378ms | UP | NATIVE",
+        "🇷🇸-Užice | SOCKS4+TCP | 2024ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 5297ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -361,321 +315,275 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇺🇸-Detroit | SOCKS4+TCP | 140ms | UP | NATIVE",
-        "🇺🇸-San_Francisco | SOCKS4+TCP | 166ms | UP | NATIVE",
-        "🇺🇸-Phoenix | SOCKS4+TCP | 227ms | UP | NATIVE",
-        "🇺🇸-Columbus | SOCKS4+TCP | 232ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS4+TCP | 253ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 451ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 476ms | UP | NATIVE",
-        "🇨🇴-Kennedy | SOCKS4+TCP | 561ms | UP | NATIVE",
-        "🇵🇱-Warsaw | SOCKS4+TCP | 578ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 673ms | UP | NATIVE",
-        "🇺🇸-Tampa | SOCKS4+TCP | 684ms | UP | NATIVE",
-        "🇨🇴-Pereira | SOCKS4+TCP | 686ms | UP | NATIVE",
-        "🇨🇷-Unknown | SOCKS4+TCP | 710ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 742ms | UP | NATIVE",
-        "🇰🇷-Ansan-si | SOCKS4+TCP | 784ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | SOCKS4+TCP | 812ms | UP | NATIVE",
-        "🇫🇷-Unknown | SOCKS4+TCP | 825ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 844ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 876ms | UP | NATIVE",
-        "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 930ms | UP | NATIVE",
-        "🇸🇪-Upplands_Vasby | SOCKS4+TCP | 941ms | UP | NATIVE",
-        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 954ms | UP | NATIVE",
-        "🇮🇹-Verdellino | SOCKS4+TCP | 964ms | UP | NATIVE",
-        "🇨🇿-Znojmo | SOCKS4+TCP | 969ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 974ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 987ms | UP | NATIVE",
-        "🇱🇻-Saldus | SOCKS4+TCP | 990ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS4+TCP | 998ms | UP | NATIVE",
-        "🇧🇬-Plovdiv | SOCKS4+TCP | 999ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3434ms | UP | NATIVE",
-        "🇵🇸-Unknown | SOCKS4+TCP | 5335ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1821ms | UP | NATIVE",
-        "🇰🇷-Seoul | SOCKS4+TCP | 3735ms | UP | NATIVE",
-        "🇲🇼-Unknown | SOCKS4+TCP | 2648ms | UP | NATIVE",
-        "🇦🇷-Tostado | SOCKS4+TCP | 1810ms | UP | NATIVE",
-        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4022ms | UP | NATIVE",
-        "🇮🇶-Baghdad | SOCKS4+TCP | 4567ms | UP | NATIVE",
-        "🇦🇺-Sydney | SOCKS4+TCP | 1250ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 5070ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1601ms | UP | NATIVE",
-        "🇨🇴-Cartagena | SOCKS4+TCP | 5107ms | UP | NATIVE",
-        "🇲🇪-Podgorica | SOCKS4+TCP | 4546ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3162ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 3023ms | UP | NATIVE",
-        "🇺🇸-Lenexa | SOCKS4+TCP | 1456ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 5370ms | UP | NATIVE",
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 1162ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2901ms | UP | NATIVE",
-        "🇧🇷-Mogi_das_Cruzes | SOCKS4+TCP | 5285ms | UP | NATIVE",
-        "🇨🇱-Port_Montt | SOCKS4+TCP | 4219ms | UP | NATIVE",
-        "🇰🇷-Unknown | SOCKS4+TCP | 1306ms | UP | NATIVE",
-        "🇧🇷-Nova_Friburgo | SOCKS4+TCP | 2177ms | UP | NATIVE",
-        "🇧🇷-Juiz_de_Fora | SOCKS4+TCP | 1046ms | UP | NATIVE",
-        "🇰🇭-Unknown | SOCKS4+TCP | 3925ms | UP | NATIVE",
-        "🇺🇸-Asheville | SOCKS4+TCP | 2008ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SOCKS4+TCP | 1776ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2968ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3028ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 2186ms | UP | NATIVE",
-        "🇮🇳-Hyderabad | SOCKS4+TCP | 5328ms | UP | NATIVE",
-        "🇲🇽-Azcapotzalco | SOCKS4+TCP | 1508ms | UP | NATIVE",
-        "🇮🇳-Udaipur | SOCKS4+TCP | 1991ms | UP | NATIVE",
-        "🇭🇷-Zagreb | SOCKS4+TCP | 1412ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 3361ms | UP | NATIVE",
-        "🇦🇷-Posadas | SOCKS4+TCP | 1429ms | UP | NATIVE",
-        "🇨🇴-Cali | SOCKS4+TCP | 1939ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1956ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 2419ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 1364ms | UP | NATIVE",
-        "🇪🇸-Bilbao | SOCKS4+TCP | 1032ms | UP | NATIVE",
-        "🇰🇷-Seoul | SOCKS4+TCP | 1202ms | UP | NATIVE",
-        "🇲🇽-Aguascalientes | SOCKS4+TCP | 3663ms | UP | NATIVE",
-        "🇬🇧-Unknown | SOCKS4+TCP | 5201ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2091ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1479ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 1226ms | UP | NATIVE",
-        "🇵🇱-Rzeszów | SOCKS4+TCP | 3228ms | UP | NATIVE",
-        "🇷🇸-Belgrade | SOCKS4+TCP | 2174ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2608ms | UP | NATIVE",
-        "🇮🇳-Kochi | SOCKS4+TCP | 3280ms | UP | NATIVE",
-        "🇪🇸-Empuriabrava | SOCKS4+TCP | 2983ms | UP | NATIVE",
-        "🇺🇸-Allegan | SOCKS4+TCP | 1576ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1519ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 1379ms | UP | NATIVE",
-        "🇹🇷-Gaziantep | SOCKS4+TCP | 1167ms | UP | NATIVE",
-        "🇦🇷-La_Paz | SOCKS4+TCP | 1389ms | UP | NATIVE",
-        "🇮🇳-Anuppankulam | SOCKS4+TCP | 3259ms | UP | NATIVE",
-        "🇧🇴-La_Paz | SOCKS4+TCP | 1122ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 3455ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5163ms | UP | NATIVE",
-        "🇹🇭-Chiang_Mai | SOCKS4+TCP | 3851ms | UP | NATIVE",
-        "🇨🇴-Bosa | SOCKS4+TCP | 1782ms | UP | NATIVE",
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 2148ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 2189ms | UP | NATIVE",
-        "🇧🇷-Itirapina | SOCKS4+TCP | 2178ms | UP | NATIVE",
-        "🇺🇦-Odesa | SOCKS4+TCP | 4168ms | UP | NATIVE",
-        "🇰🇷-Gwangmyeong | SOCKS4+TCP | 2589ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 1165ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2590ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 1862ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2467ms | UP | NATIVE",
-        "🇳🇬-Unknown | SOCKS4+TCP | 2885ms | UP | NATIVE",
-        "🇵🇱-Poznan | SOCKS4+TCP | 2056ms | UP | NATIVE",
-        "🇺🇸-Miami | SOCKS4+TCP | 1533ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2465ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 3550ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 3268ms | UP | NATIVE",
-        "🇵🇰-Unknown | SOCKS4+TCP | 2063ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3064ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 3075ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 4159ms | UP | NATIVE",
-        "🇻🇳-Da_Nang | SOCKS4+TCP | 3071ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 2246ms | UP | NATIVE",
-        "🇧🇴-Santa_Cruz_de_la_Sierra | SOCKS4+TCP | 5429ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 1282ms | UP | NATIVE",
-        "🇷🇺-Voronezh | SOCKS4+TCP | 2569ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS4+TCP | 2487ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2087ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 1008ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 5617ms | UP | NATIVE",
-        "🇧🇩-Mymensingh | SOCKS4+TCP | 1972ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 2217ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3995ms | UP | NATIVE",
-        "🇭🇺-Hajdúnánás | SOCKS4+TCP | 4504ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1088ms | UP | NATIVE",
-        "🇵🇱-Siedlce | SOCKS4+TCP | 3596ms | UP | NATIVE",
-        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3300ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3593ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 1205ms | UP | NATIVE",
-        "🇧🇷-Sapé | SOCKS4+TCP | 3907ms | UP | NATIVE",
-        "🇧🇹-Unknown | SOCKS4+TCP | 4076ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 1502ms | UP | NATIVE",
-        "🇦🇷-General_Roca | SOCKS4+TCP | 3614ms | UP | NATIVE",
-        "🇮🇩-Jakarta_Pusat | SOCKS4+TCP | 5996ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 1817ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2907ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 4995ms | UP | NATIVE",
-        "🇮🇳-Kolkata | SOCKS4+TCP | 2253ms | UP | NATIVE",
-        "🇵🇰-Karachi | SOCKS4+TCP | 5675ms | UP | NATIVE",
-        "🇲🇹-Naxxar | SOCKS4+TCP | 4334ms | UP | NATIVE",
-        "🇺🇸-San_Jose | SOCKS4+TCP | 2197ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 3040ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2407ms | UP | NATIVE",
-        "🇺🇸-San_Bernardino | SOCKS4+TCP | 3350ms | UP | NATIVE",
-        "🇵🇭-Makati_City | SOCKS4+TCP | 5793ms | UP | NATIVE",
-        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 2473ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1540ms | UP | NATIVE",
-        "🇬🇷-Athens | SOCKS4+TCP | 2134ms | UP | NATIVE",
-        "🇷🇸-Užice | SOCKS4+TCP | 2155ms | UP | NATIVE",
-        "🇹🇭-Lamphun | SOCKS4+TCP | 5132ms | UP | NATIVE",
-        "🇫🇷-Paris | SOCKS4+TCP | 1547ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2718ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 2133ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 1032ms | UP | NATIVE",
-        "🇦🇹-Vienna | SOCKS4+TCP | 2991ms | UP | NATIVE",
-        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2577ms | UP | NATIVE",
-        "🇳🇬-Unknown | SOCKS4+TCP | 5276ms | UP | NATIVE",
-        "🇧🇷-Recife | SOCKS4+TCP | 1502ms | UP | NATIVE",
-        "🇻🇳-Tây_Ninh | SOCKS4+TCP | 3155ms | UP | NATIVE",
-        "🇹🇭-Pak_Kret | SOCKS4+TCP | 3729ms | UP | NATIVE",
-        "🇻🇳-Unknown | SOCKS4+TCP | 1331ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2735ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 5797ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 4075ms | UP | NATIVE",
-        "🇺🇸-Lowell | SOCKS4+TCP | 2422ms | UP | NATIVE",
-        "🇰🇷-Gangdong-gu | SOCKS4+TCP | 1173ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1294ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 1889ms | UP | NATIVE",
-        "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 1741ms | UP | NATIVE",
-        "🇧🇷-Salvador | SOCKS4+TCP | 2224ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1987ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3489ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1910ms | UP | NATIVE",
-        "🇺🇾-Montevideo | SOCKS4+TCP | 4261ms | UP | NATIVE",
-        "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 1375ms | UP | NATIVE",
-        "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
-        "🇵🇷-San_Juan | SOCKS4+TCP | 4997ms | UP | NATIVE",
-        "🇮🇩-Sunter_Agung | SOCKS4+TCP | 5622ms | UP | NATIVE",
-        "🇬🇹-Guatemala_City | SOCKS4+TCP | 1564ms | UP | NATIVE",
-        "🇵🇱-Unknown | SOCKS4+TCP | 1636ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2280ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 1325ms | UP | NATIVE",
-        "🇲🇽-Guadalupe | SOCKS4+TCP | 2579ms | UP | NATIVE",
-        "🇧🇷-Simões_Filho | SOCKS4+TCP | 1562ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5200ms | UP | NATIVE",
-        "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE",
-        "🇧🇷-Itaperuna | SOCKS4+TCP | 1410ms | UP | NATIVE",
-        "🇰🇭-Phumĭ_Kândal | SOCKS4+TCP | 1687ms | UP | NATIVE",
-        "🇺🇸-Nederland | SOCKS4+TCP | 1344ms | UP | NATIVE",
-        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2099ms | UP | NATIVE",
-        "🇵🇾-Ciudad_del_Este | SOCKS4+TCP | 1224ms | UP | NATIVE",
-        "🇦🇹-Vienna | SOCKS4+TCP | 3027ms | UP | NATIVE",
-        "🇺🇸-Richland | SOCKS4+TCP | 4323ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2566ms | UP | NATIVE",
-        "🇵🇪-Lima | SOCKS4+TCP | 3177ms | UP | NATIVE",
-        "🇹🇭-Unknown | SOCKS4+TCP | 4012ms | UP | NATIVE",
-        "🇧🇼-Gaborone | SOCKS4+TCP | 3973ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 1230ms | UP | NATIVE",
-        "🇮🇶-Unknown | SOCKS4+TCP | 1462ms | UP | NATIVE",
-        "🇮🇶-Unknown | SOCKS4+TCP | 1316ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2633ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS4+TCP | 2502ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 2313ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 3250ms | UP | NATIVE",
-        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 2346ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3598ms | UP | NATIVE",
-        "🇵🇱-Zielona_Góra | SOCKS4+TCP | 4762ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 3819ms | UP | NATIVE",
-        "🇺🇦-Unknown | SOCKS4+TCP | 2746ms | UP | NATIVE",
-        "🇧🇴-La_Paz | SOCKS4+TCP | 1330ms | UP | NATIVE",
-        "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 2280ms | UP | NATIVE",
-        "🇺🇸-Atlanta | SOCKS4+TCP | 2200ms | UP | NATIVE",
-        "🇦🇷-Unknown | SOCKS4+TCP | 4449ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2080ms | UP | NATIVE",
-        "🇨🇴-Santa_Marta | SOCKS4+TCP | 1150ms | UP | NATIVE",
-        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 5288ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 1203ms | UP | NATIVE",
-        "🇷🇺-Chelyabinsk | SOCKS4+TCP | 3333ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2712ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1054ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 3961ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 3999ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SOCKS4+TCP | 1342ms | UP | NATIVE",
-        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3683ms | UP | NATIVE",
-        "🇸🇬-Unknown | SOCKS4+TCP | 5737ms | UP | NATIVE",
-        "🇧🇷-Ibirité | SOCKS4+TCP | 1204ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 5005ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 3039ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
-        "🇮🇳-Kumarapalayam | SOCKS4+TCP | 2098ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 1567ms | UP | NATIVE",
-        "🇰🇪-Nairobi | SOCKS4+TCP | 3817ms | UP | NATIVE",
-        "🇮🇶-Baghdad | SOCKS4+TCP | 2937ms | UP | NATIVE",
-        "🇫🇷-Nice | SOCKS4+TCP | 3980ms | UP | NATIVE",
-        "🇦🇷-Santa_Isabel | SOCKS4+TCP | 1424ms | UP | NATIVE",
-        "🇪🇸-Empuriabrava | SOCKS4+TCP | 3539ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS4+TCP | 1200ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 3804ms | UP | NATIVE",
-        "🇧🇷-Posse | SOCKS4+TCP | 1488ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 3629ms | UP | NATIVE",
-        "🇻🇳-Hanoi | SOCKS4+TCP | 2653ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 1203ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 5999ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1178ms | UP | NATIVE",
-        "🇷🇺-Moscow | SOCKS4+TCP | 2506ms | UP | NATIVE",
-        "🇷🇺-Cheboksary | SOCKS4+TCP | 5734ms | UP | NATIVE",
-        "🇧🇬-Razlog | SOCKS4+TCP | 2545ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 1376ms | UP | NATIVE",
-        "🇧🇬-Svilengrad | SOCKS4+TCP | 2265ms | UP | NATIVE",
-        "🇱🇦-Unknown | SOCKS4+TCP | 4904ms | UP | NATIVE",
-        "🇷🇺-St_Petersburg | SOCKS4+TCP | 2090ms | UP | NATIVE",
-        "🇹🇼-Taipei | SOCKS4+TCP | 1441ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 4391ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | SOCKS4+TCP | 5360ms | UP | NATIVE",
-        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5216ms | UP | NATIVE",
-        "🇮🇩-Jakarta_Pusat | SOCKS4+TCP | 2536ms | UP | NATIVE",
-        "🇧🇷-Dracena | SOCKS4+TCP | 5167ms | UP | NATIVE",
-        "🇲🇾-Unknown | SOCKS4+TCP | 1775ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 4523ms | UP | NATIVE",
-        "🇹🇭-Bangkok | SOCKS4+TCP | 2745ms | UP | NATIVE",
-        "🇦🇲-Yerevan | SOCKS4+TCP | 1018ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1883ms | UP | NATIVE",
-        "🇷🇸-Belgrade | SOCKS4+TCP | 5201ms | UP | NATIVE",
-        "🇮🇷-Unknown | SOCKS4+TCP | 2704ms | UP | NATIVE",
-        "🇵🇱-Gorzów_Wielkopolski | SOCKS4+TCP | 1332ms | UP | NATIVE",
-        "🇮🇩-South_Tangerang | SOCKS4+TCP | 1825ms | UP | NATIVE",
-        "🇺🇸-Austin | SOCKS4+TCP | 2458ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | SOCKS4+TCP | 2312ms | UP | NATIVE",
-        "🇺🇦-Ternopil | SOCKS4+TCP | 1015ms | UP | NATIVE",
-        "🇵🇾-Asunción | SOCKS4+TCP | 2117ms | UP | NATIVE",
-        "🇲🇽-Aguascalientes | SOCKS4+TCP | 1595ms | UP | NATIVE",
-        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 3113ms | UP | NATIVE",
-        "🇧🇷-Pelotas | SOCKS4+TCP | 5178ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2979ms | UP | NATIVE",
-        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5956ms | UP | NATIVE",
-        "🇭🇰-Hong_Kong | SOCKS4+TCP | 1171ms | UP | NATIVE",
-        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 3140ms | UP | NATIVE",
-        "🇧🇼-Gaborone | SOCKS4+TCP | 2975ms | UP | NATIVE",
-        "🇹🇭-Unknown | SOCKS4+TCP | 3728ms | UP | NATIVE",
-        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 2232ms | UP | NATIVE",
-        "🇰🇷-Unknown | SOCKS4+TCP | 5435ms | UP | NATIVE",
-        "🇰🇿-Kostanay | SOCKS4+TCP | 2297ms | UP | NATIVE",
-        "🇨🇦-Mississauga | SOCKS4+TCP | 1268ms | UP | NATIVE",
-        "🇧🇷-Osasco | SOCKS4+TCP | 3267ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE",
-        "🇳🇿-New_Plymouth | SOCKS4+TCP | 3651ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 1055ms | UP | NATIVE",
-        "🇦🇲-Yerevan | SOCKS4+TCP | 2376ms | UP | NATIVE",
-        "🇺🇸-Raleigh | SOCKS4+TCP | 2481ms | UP | NATIVE",
-        "🇱🇧-Tripoli | SOCKS4+TCP | 2624ms | UP | NATIVE",
-        "🇮🇳-Kalyān | SOCKS4+TCP | 3922ms | UP | NATIVE",
-        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 1944ms | UP | NATIVE",
-        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1355ms | UP | NATIVE",
-        "🇨🇾-Nicosia | SOCKS4+TCP | 2712ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1912ms | UP | NATIVE",
-        "🇷🇺-Penza | SOCKS4+TCP | 1300ms | UP | NATIVE",
-        "🇺🇦-Kozyn | SOCKS4+TCP | 2119ms | UP | NATIVE",
-        "🇺🇸-Imperial | SOCKS4+TCP | 2324ms | UP | NATIVE",
-        "🇮🇳-Vellore | SOCKS4+TCP | 3024ms | UP | NATIVE",
-        "🇭🇺-Budapest | SOCKS4+TCP | 2247ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 1495ms | UP | NATIVE",
-        "🇺🇦-Dnipro | SOCKS4+TCP | 3575ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5027ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2182ms | UP | NATIVE",
-        "🇷🇺-Unknown | SOCKS4+TCP | 2760ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2259ms | UP | NATIVE",
-        "🇬🇭-Unknown | SOCKS4+TCP | 2572ms | UP | NATIVE",
-        "🇺🇸-Los_Angeles | SOCKS4+TCP | 1333ms | UP | NATIVE",
-        "🇿🇦-Equestria | SOCKS4+TCP | 4359ms | UP | NATIVE",
-        "🇧🇷-Florianópolis | SOCKS4+TCP | 1835ms | UP | NATIVE",
-        "🇲🇲-Unknown | SOCKS4+TCP | 4204ms | UP | NATIVE"
+        "🇺🇸-Atlanta | SOCKS4+TCP | 107ms | UP | NATIVE",
+        "🇺🇸-Glassboro | SOCKS4+TCP | 209ms | UP | NATIVE",
+        "🇨🇦-Mississauga | SOCKS4+TCP | 235ms | UP | NATIVE",
+        "🇺🇸-Raleigh | SOCKS4+TCP | 326ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 347ms | UP | NATIVE",
+        "🇺🇸-Austin | SOCKS4+TCP | 412ms | UP | NATIVE",
+        "🇺🇸-Morrison | SOCKS4+TCP | 413ms | UP | NATIVE",
+        "🇲🇽-Guadalupe | SOCKS4+TCP | 466ms | UP | NATIVE",
+        "🇲🇽-Unknown | SOCKS4+TCP | 540ms | UP | NATIVE",
+        "🇩🇪-Falkenstein | SOCKS4+TCP | 571ms | UP | NATIVE",
+        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 607ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 618ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 630ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 644ms | UP | NATIVE",
+        "🇨🇷-Unknown | SOCKS4+TCP | 652ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 661ms | UP | NATIVE",
+        "🇫🇷-Unknown | SOCKS4+TCP | 691ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 711ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 728ms | UP | NATIVE",
+        "🇧🇷-Curitiba | SOCKS4+TCP | 750ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 758ms | UP | NATIVE",
+        "🇫🇷-Nice | SOCKS4+TCP | 774ms | UP | NATIVE",
+        "🇨🇴-Bucaramanga | SOCKS4+TCP | 800ms | UP | NATIVE",
+        "🇪🇸-La_Romana | SOCKS4+TCP | 836ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 852ms | UP | NATIVE",
+        "🇧🇷-Itaperuna | SOCKS4+TCP | 877ms | UP | NATIVE",
+        "🇺🇸-Morrison | SOCKS4+TCP | 903ms | UP | NATIVE",
+        "🇬🇧-Unknown | SOCKS4+TCP | 913ms | UP | NATIVE",
+        "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE",
+        "🇦🇱-Unknown | SOCKS4+TCP | 926ms | UP | NATIVE",
+        "🇷🇸-Užice | SOCKS4+TCP | 936ms | UP | NATIVE",
+        "🇵🇱-Racibórz | SOCKS4+TCP | 958ms | UP | NATIVE",
+        "🇺🇸-Fremont | SOCKS4+TCP | 963ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 964ms | UP | NATIVE",
+        "🇨🇱-Santiago | SOCKS4+TCP | 967ms | UP | NATIVE",
+        "🇧🇦-Sarajevo | SOCKS4+TCP | 986ms | UP | NATIVE",
+        "🇧🇷-Ibirité | SOCKS4+TCP | 997ms | UP | NATIVE",
+        "🇮🇳-Udaipur | SOCKS4+TCP | 3030ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4347ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5351ms | UP | NATIVE",
+        "🇺🇸-New_York | SOCKS4+TCP | 4197ms | UP | NATIVE",
+        "🇦🇲-Yerevan | SOCKS4+TCP | 2370ms | UP | NATIVE",
+        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 1072ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS4+TCP | 3489ms | UP | NATIVE",
+        "🇮🇳-Anuppankulam | SOCKS4+TCP | 4485ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2217ms | UP | NATIVE",
+        "🇺🇦-Ternopil | SOCKS4+TCP | 1104ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 5327ms | UP | NATIVE",
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 1616ms | UP | NATIVE",
+        "🇻🇪-Maturín | SOCKS4+TCP | 5476ms | UP | NATIVE",
+        "🇹🇷-Unknown | SOCKS4+TCP | 2733ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 4068ms | UP | NATIVE",
+        "🇮🇩-Probolinggo | SOCKS4+TCP | 3787ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3247ms | UP | NATIVE",
+        "🇮🇩-Sunter_Agung | SOCKS4+TCP | 3923ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4837ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 1211ms | UP | NATIVE",
+        "🇦🇲-Yerevan | SOCKS4+TCP | 1232ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 2294ms | UP | NATIVE",
+        "🇮🇳-Bagpat | SOCKS4+TCP | 5128ms | UP | NATIVE",
+        "🇮🇳-Chennai | SOCKS4+TCP | 5146ms | UP | NATIVE",
+        "🇧🇷-Salvador | SOCKS4+TCP | 1225ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 1896ms | UP | NATIVE",
+        "🇰🇪-Nairobi | SOCKS4+TCP | 1646ms | UP | NATIVE",
+        "🇭🇷-Zagreb | SOCKS4+TCP | 4811ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4324ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 4024ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 3616ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 2215ms | UP | NATIVE",
+        "🇨🇦-Sioux_Lookout | SOCKS4+TCP | 5648ms | UP | NATIVE",
+        "🇵🇪-Lima | SOCKS4+TCP | 2054ms | UP | NATIVE",
+        "🇹🇭-Chiang_Mai | SOCKS4+TCP | 2175ms | UP | NATIVE",
+        "🇦🇷-San_Antonio_Oeste | SOCKS4+TCP | 2850ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 1978ms | UP | NATIVE",
+        "🇰🇿-Almaty | SOCKS4+TCP | 4871ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 1957ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3398ms | UP | NATIVE",
+        "🇺🇸-Lowell | SOCKS4+TCP | 1328ms | UP | NATIVE",
+        "🇺🇸-Elk_Mound | SOCKS4+TCP | 1277ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 4232ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3914ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 3168ms | UP | NATIVE",
+        "🇷🇸-Belgrade | SOCKS4+TCP | 1934ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 1047ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 1686ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5527ms | UP | NATIVE",
+        "🇧🇷-Campo_Mourão | SOCKS4+TCP | 5193ms | UP | NATIVE",
+        "🇮🇳-Nadiād | SOCKS4+TCP | 4160ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 2957ms | UP | NATIVE",
+        "🇷🇺-Voronezh | SOCKS4+TCP | 3084ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2384ms | UP | NATIVE",
+        "🇧🇴-La_Paz | SOCKS4+TCP | 2185ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3804ms | UP | NATIVE",
+        "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 4711ms | UP | NATIVE",
+        "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE",
+        "🇵🇰-Unknown | SOCKS4+TCP | 3085ms | UP | NATIVE",
+        "🇹🇭-Phuket | SOCKS4+TCP | 4024ms | UP | NATIVE",
+        "🇺🇦-Burshtyn | SOCKS4+TCP | 4090ms | UP | NATIVE",
+        "🇦🇷-Tostado | SOCKS4+TCP | 2399ms | UP | NATIVE",
+        "🇮🇩-Pemalang | SOCKS4+TCP | 1937ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3242ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5279ms | UP | NATIVE",
+        "🇧🇷-Cuiabá | SOCKS4+TCP | 4244ms | UP | NATIVE",
+        "🇳🇱-Dronten | SOCKS4+TCP | 5636ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4166ms | UP | NATIVE",
+        "🇺🇸-Imperial | SOCKS4+TCP | 1437ms | UP | NATIVE",
+        "🇭🇺-Hajdúnánás | SOCKS4+TCP | 4091ms | UP | NATIVE",
+        "🇹🇭-Pak_Kret | SOCKS4+TCP | 5536ms | UP | NATIVE",
+        "🇧🇬-Unknown | SOCKS4+TCP | 1041ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 3884ms | UP | NATIVE",
+        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2069ms | UP | NATIVE",
+        "🇦🇷-La_Paz | SOCKS4+TCP | 1865ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 1737ms | UP | NATIVE",
+        "🇬🇧-Unknown | SOCKS4+TCP | 1298ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 2956ms | UP | NATIVE",
+        "🇮🇳-Kalyān | SOCKS4+TCP | 4060ms | UP | NATIVE",
+        "🇻🇳-Tây_Ninh | SOCKS4+TCP | 4879ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 1939ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 2203ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3996ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 5268ms | UP | NATIVE",
+        "🇧🇼-Unknown | SOCKS4+TCP | 3864ms | UP | NATIVE",
+        "🇱🇹-Palanga | SOCKS4+TCP | 5793ms | UP | NATIVE",
+        "🇷🇺-Cheboksary | SOCKS4+TCP | 1201ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1029ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5282ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5231ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 5987ms | UP | NATIVE",
+        "🇧🇷-Anta_Gorda | SOCKS4+TCP | 4122ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3972ms | UP | NATIVE",
+        "🇨🇴-Bosa | SOCKS4+TCP | 3179ms | UP | NATIVE",
+        "🇺🇸-Detroit | SOCKS4+TCP | 2290ms | UP | NATIVE",
+        "🇵🇱-Poznan | SOCKS4+TCP | 1990ms | UP | NATIVE",
+        "🇵🇱-Gorzów_Wielkopolski | SOCKS4+TCP | 2011ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 3973ms | UP | NATIVE",
+        "🇷🇺-Krasnodar | SOCKS4+TCP | 1229ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3204ms | UP | NATIVE",
+        "🇵🇷-San_Juan | SOCKS4+TCP | 3531ms | UP | NATIVE",
+        "🇰🇷-Seoul | SOCKS4+TCP | 4517ms | UP | NATIVE",
+        "🇹🇭-Unknown | SOCKS4+TCP | 2110ms | UP | NATIVE",
+        "🇮🇶-Baghdad | SOCKS4+TCP | 1575ms | UP | NATIVE",
+        "🇬🇹-Unknown | SOCKS4+TCP | 3560ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3014ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 3367ms | UP | NATIVE",
+        "🇰🇷-Seoul | SOCKS4+TCP | 1385ms | UP | NATIVE",
+        "🇧🇬-Razlog | SOCKS4+TCP | 1163ms | UP | NATIVE",
+        "🇧🇷-Itabaiana | SOCKS4+TCP | 5116ms | UP | NATIVE",
+        "🇦🇹-Vienna | SOCKS4+TCP | 3555ms | UP | NATIVE",
+        "🇮🇩-Palembang | SOCKS4+TCP | 4942ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3931ms | UP | NATIVE",
+        "🇹🇭-Pak_Kret | SOCKS4+TCP | 4180ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3915ms | UP | NATIVE",
+        "🇷🇺-Penza | SOCKS4+TCP | 3770ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4187ms | UP | NATIVE",
+        "🇬🇷-Athens | SOCKS4+TCP | 1115ms | UP | NATIVE",
+        "🇷🇺-Moscow | SOCKS4+TCP | 3222ms | UP | NATIVE",
+        "🇧🇬-Stara_Zagora | SOCKS4+TCP | 2149ms | UP | NATIVE",
+        "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
+        "🇵🇱-Siedlce | SOCKS4+TCP | 1949ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 4263ms | UP | NATIVE",
+        "🇧🇬-Plovdiv | SOCKS4+TCP | 4668ms | UP | NATIVE",
+        "🇧🇷-Palotina | SOCKS4+TCP | 1198ms | UP | NATIVE",
+        "🇱🇧-Tripoli | SOCKS4+TCP | 1184ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1109ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 1895ms | UP | NATIVE",
+        "🇧🇬-Unknown | SOCKS4+TCP | 5278ms | UP | NATIVE",
+        "🇧🇷-Dracena | SOCKS4+TCP | 2069ms | UP | NATIVE",
+        "🇵🇾-Asunción | SOCKS4+TCP | 2116ms | UP | NATIVE",
+        "🇰🇷-Unknown | SOCKS4+TCP | 4032ms | UP | NATIVE",
+        "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3351ms | UP | NATIVE",
+        "🇧🇷-Recife | SOCKS4+TCP | 2272ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 1021ms | UP | NATIVE",
+        "🇺🇸-San_Jose | SOCKS4+TCP | 2579ms | UP | NATIVE",
+        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5360ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4274ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5243ms | UP | NATIVE",
+        "🇧🇷-Macapá | SOCKS4+TCP | 4593ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1210ms | UP | NATIVE",
+        "🇮🇹-Naples | SOCKS4+TCP | 4646ms | UP | NATIVE",
+        "🇹🇼-Taipei | SOCKS4+TCP | 2348ms | UP | NATIVE",
+        "🇻🇳-Unknown | SOCKS4+TCP | 1858ms | UP | NATIVE",
+        "🇨🇴-Cereté | SOCKS4+TCP | 1697ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 3499ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS4+TCP | 1738ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SOCKS4+TCP | 2021ms | UP | NATIVE",
+        "🇷🇺-Unknown | SOCKS4+TCP | 1369ms | UP | NATIVE",
+        "🇷🇺-Ivanteyevka | SOCKS4+TCP | 3061ms | UP | NATIVE",
+        "🇺🇦-Lviv | SOCKS4+TCP | 1072ms | UP | NATIVE",
+        "🇸🇪-Unknown | SOCKS4+TCP | 1410ms | UP | NATIVE",
+        "🇧🇷-Taboão_da_Serra | SOCKS4+TCP | 3023ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 2147ms | UP | NATIVE",
+        "🇧🇷-Pelotas | SOCKS4+TCP | 2216ms | UP | NATIVE",
+        "🇵🇱-Unknown | SOCKS4+TCP | 5874ms | UP | NATIVE",
+        "🇧🇷-Itapetinga | SOCKS4+TCP | 1034ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 3090ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2989ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 2936ms | UP | NATIVE",
+        "🇺🇸-Richland | SOCKS4+TCP | 4676ms | UP | NATIVE",
+        "🇮🇩-South_Tangerang | SOCKS4+TCP | 2958ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3513ms | UP | NATIVE",
+        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4674ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | SOCKS4+TCP | 3777ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3314ms | UP | NATIVE",
+        "🇵🇱-Rzeszów | SOCKS4+TCP | 2006ms | UP | NATIVE",
+        "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 2698ms | UP | NATIVE",
+        "🇨🇾-Limassol | SOCKS4+TCP | 2741ms | UP | NATIVE",
+        "🇵🇱-Lodz | SOCKS4+TCP | 1077ms | UP | NATIVE",
+        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 4141ms | UP | NATIVE",
+        "🇧🇼-Unknown | SOCKS4+TCP | 3893ms | UP | NATIVE",
+        "🇺🇦-Odesa | SOCKS4+TCP | 1205ms | UP | NATIVE",
+        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 3022ms | UP | NATIVE",
+        "🇳🇬-Unknown | SOCKS4+TCP | 1966ms | UP | NATIVE",
+        "🇺🇦-Dnipro | SOCKS4+TCP | 2198ms | UP | NATIVE",
+        "🇻🇳-Hanoi | SOCKS4+TCP | 1976ms | UP | NATIVE",
+        "🇦🇷-Unknown | SOCKS4+TCP | 1174ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 2027ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4057ms | UP | NATIVE",
+        "🇷🇺-St_Petersburg | SOCKS4+TCP | 5075ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2931ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2209ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 1999ms | UP | NATIVE",
+        "🇲🇹-Naxxar | SOCKS4+TCP | 4168ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 4909ms | UP | NATIVE",
+        "🇦🇺-Sydney | SOCKS4+TCP | 1584ms | UP | NATIVE",
+        "🇺🇦-Chernivtsi | SOCKS4+TCP | 4212ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 4404ms | UP | NATIVE",
+        "🇵🇾-Asunción | SOCKS4+TCP | 1388ms | UP | NATIVE",
+        "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3995ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 5691ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5035ms | UP | NATIVE",
+        "🇹🇼-Taichung | SOCKS4+TCP | 2125ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS4+TCP | 5625ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE",
+        "🇧🇷-Osasco | SOCKS4+TCP | 1063ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4208ms | UP | NATIVE",
+        "🇦🇷-Bell_Ville | SOCKS4+TCP | 2454ms | UP | NATIVE",
+        "🇮🇩-Depok | SOCKS4+TCP | 2005ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | SOCKS4+TCP | 1984ms | UP | NATIVE",
+        "🇲🇪-Podgorica | SOCKS4+TCP | 2034ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 3318ms | UP | NATIVE",
+        "🇸🇪-Stockholm | SOCKS4+TCP | 1802ms | UP | NATIVE",
+        "🇮🇳-Virār | SOCKS4+TCP | 1913ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2514ms | UP | NATIVE",
+        "🇺🇸-Hammonton | SOCKS4+TCP | 1168ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 2647ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS4+TCP | 2271ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 5069ms | UP | NATIVE",
+        "🇹🇭-Bangkok | SOCKS4+TCP | 3135ms | UP | NATIVE",
+        "🇺🇸-Dallas | SOCKS4+TCP | 1276ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SOCKS4+TCP | 5995ms | UP | NATIVE",
+        "🇺🇸-Phoenix | SOCKS4+TCP | 2403ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4896ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2051ms | UP | NATIVE",
+        "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5025ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 4188ms | UP | NATIVE",
+        "🇪🇸-Málaga | SOCKS4+TCP | 4124ms | UP | NATIVE",
+        "🇺🇦-Liuboml | SOCKS4+TCP | 4086ms | UP | NATIVE",
+        "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 4136ms | UP | NATIVE",
+        "🇺🇸-New_York | SOCKS4+TCP | 2036ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 2462ms | UP | NATIVE",
+        "🇺🇸-Nederland | SOCKS4+TCP | 1162ms | UP | NATIVE",
+        "🇺🇦-Odesa | SOCKS4+TCP | 3133ms | UP | NATIVE",
+        "🇰🇭-Unknown | SOCKS4+TCP | 3434ms | UP | NATIVE",
+        "🇱🇦-Unknown | SOCKS4+TCP | 4568ms | UP | NATIVE",
+        "🇧🇷-Simões_Filho | SOCKS4+TCP | 1146ms | UP | NATIVE",
+        "🇨🇾-Nicosia | SOCKS4+TCP | 3378ms | UP | NATIVE",
+        "🇷🇸-Užice | SOCKS4+TCP | 2024ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 5297ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -683,2207 +591,1885 @@
     },
     {
       "type": "socks",
-      "tag": "🇺🇸-Detroit | SOCKS4+TCP | 140ms | UP | NATIVE",
-      "server": "50.238.47.86",
-      "server_port": 32100,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-San_Francisco | SOCKS4+TCP | 166ms | UP | NATIVE",
-      "server": "50.250.205.21",
-      "server_port": 32100,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Phoenix | SOCKS4+TCP | 227ms | UP | NATIVE",
-      "server": "178.130.47.129",
-      "server_port": 1082,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Columbus | SOCKS4+TCP | 232ms | UP | NATIVE",
-      "server": "70.60.132.130",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇦-Montreal | SOCKS4+TCP | 253ms | UP | NATIVE",
-      "server": "24.37.245.42",
-      "server_port": 51056,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 451ms | UP | NATIVE",
-      "server": "193.233.254.7",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 476ms | UP | NATIVE",
-      "server": "193.233.254.9",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Kennedy | SOCKS4+TCP | 561ms | UP | NATIVE",
-      "server": "190.85.47.198",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇱-Warsaw | SOCKS4+TCP | 578ms | UP | NATIVE",
-      "server": "91.223.52.141",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 673ms | UP | NATIVE",
-      "server": "193.233.254.8",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Tampa | SOCKS4+TCP | 684ms | UP | NATIVE",
-      "server": "47.206.214.2",
-      "server_port": 54321,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Pereira | SOCKS4+TCP | 686ms | UP | NATIVE",
-      "server": "200.10.31.74",
-      "server_port": 49992,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇷-Unknown | SOCKS4+TCP | 710ms | UP | NATIVE",
-      "server": "200.192.236.242",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 742ms | UP | NATIVE",
-      "server": "77.238.79.111",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇷-Ansan-si | SOCKS4+TCP | 784ms | UP | NATIVE",
-      "server": "121.139.218.165",
-      "server_port": 43295,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇪🇨-Guayaquil | SOCKS4+TCP | 812ms | UP | NATIVE",
-      "server": "45.238.57.1",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇫🇷-Unknown | SOCKS4+TCP | 825ms | UP | NATIVE",
-      "server": "213.19.205.18",
-      "server_port": 54321,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 844ms | UP | NATIVE",
-      "server": "185.26.168.17",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 876ms | UP | NATIVE",
-      "server": "85.192.56.4",
-      "server_port": 48716,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
-      "server": "81.12.157.98",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
-      "server": "79.106.170.126",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 930ms | UP | NATIVE",
-      "server": "125.228.94.232",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇪-Upplands_Vasby | SOCKS4+TCP | 941ms | UP | NATIVE",
-      "server": "85.228.42.230",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 954ms | UP | NATIVE",
-      "server": "186.190.228.83",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇹-Verdellino | SOCKS4+TCP | 964ms | UP | NATIVE",
-      "server": "46.21.186.252",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇿-Znojmo | SOCKS4+TCP | 969ms | UP | NATIVE",
-      "server": "90.182.147.170",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 974ms | UP | NATIVE",
-      "server": "27.50.18.113",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 987ms | UP | NATIVE",
-      "server": "109.232.106.150",
-      "server_port": 52435,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇱🇻-Saldus | SOCKS4+TCP | 990ms | UP | NATIVE",
-      "server": "31.170.17.141",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Kyiv | SOCKS4+TCP | 998ms | UP | NATIVE",
-      "server": "31.43.63.70",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Plovdiv | SOCKS4+TCP | 999ms | UP | NATIVE",
-      "server": "91.92.80.199",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3434ms | UP | NATIVE",
-      "server": "83.219.1.130",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇸-Unknown | SOCKS4+TCP | 5335ms | UP | NATIVE",
-      "server": "93.184.7.26",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1821ms | UP | NATIVE",
-      "server": "116.118.98.26",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇷-Seoul | SOCKS4+TCP | 3735ms | UP | NATIVE",
-      "server": "8.220.194.115",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇼-Unknown | SOCKS4+TCP | 2648ms | UP | NATIVE",
-      "server": "41.190.92.50",
-      "server_port": 60606,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Tostado | SOCKS4+TCP | 1810ms | UP | NATIVE",
-      "server": "190.228.33.44",
-      "server_port": 1085,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4022ms | UP | NATIVE",
-      "server": "189.50.138.10",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇶-Baghdad | SOCKS4+TCP | 4567ms | UP | NATIVE",
-      "server": "109.224.12.170",
-      "server_port": 52015,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇺-Sydney | SOCKS4+TCP | 1250ms | UP | NATIVE",
-      "server": "134.199.159.23",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 5070ms | UP | NATIVE",
-      "server": "103.9.134.114",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1601ms | UP | NATIVE",
-      "server": "111.68.31.134",
-      "server_port": 40385,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Cartagena | SOCKS4+TCP | 5107ms | UP | NATIVE",
-      "server": "181.204.4.74",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇪-Podgorica | SOCKS4+TCP | 4546ms | UP | NATIVE",
-      "server": "62.4.37.104",
-      "server_port": 60606,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3162ms | UP | NATIVE",
-      "server": "103.111.22.26",
-      "server_port": 58563,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3023ms | UP | NATIVE",
-      "server": "49.229.36.210",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Lenexa | SOCKS4+TCP | 1456ms | UP | NATIVE",
-      "server": "75.81.166.118",
-      "server_port": 39593,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 5370ms | UP | NATIVE",
-      "server": "124.41.213.174",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇦-Sarajevo | SOCKS4+TCP | 1162ms | UP | NATIVE",
-      "server": "80.65.80.230",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 2901ms | UP | NATIVE",
-      "server": "61.7.147.227",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Mogi_das_Cruzes | SOCKS4+TCP | 5285ms | UP | NATIVE",
-      "server": "45.172.202.84",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇱-Port_Montt | SOCKS4+TCP | 4219ms | UP | NATIVE",
-      "server": "190.13.147.93",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇷-Unknown | SOCKS4+TCP | 1306ms | UP | NATIVE",
-      "server": "114.108.177.104",
-      "server_port": 60984,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Nova_Friburgo | SOCKS4+TCP | 2177ms | UP | NATIVE",
-      "server": "187.95.34.36",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Juiz_de_Fora | SOCKS4+TCP | 1046ms | UP | NATIVE",
-      "server": "45.171.216.12",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇭-Unknown | SOCKS4+TCP | 3925ms | UP | NATIVE",
-      "server": "163.47.174.47",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Asheville | SOCKS4+TCP | 2008ms | UP | NATIVE",
-      "server": "103.83.36.1",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Mumbai | SOCKS4+TCP | 1776ms | UP | NATIVE",
-      "server": "103.66.233.177",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2968ms | UP | NATIVE",
-      "server": "123.231.230.58",
-      "server_port": 31196,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3028ms | UP | NATIVE",
-      "server": "222.165.215.117",
-      "server_port": 52667,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 2186ms | UP | NATIVE",
-      "server": "200.80.227.234",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Hyderabad | SOCKS4+TCP | 5328ms | UP | NATIVE",
-      "server": "103.206.105.193",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇽-Azcapotzalco | SOCKS4+TCP | 1508ms | UP | NATIVE",
-      "server": "187.188.131.169",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Udaipur | SOCKS4+TCP | 1991ms | UP | NATIVE",
-      "server": "123.253.124.28",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇭🇷-Zagreb | SOCKS4+TCP | 1412ms | UP | NATIVE",
-      "server": "82.132.19.108",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 3361ms | UP | NATIVE",
-      "server": "88.213.214.254",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Posadas | SOCKS4+TCP | 1429ms | UP | NATIVE",
-      "server": "181.15.154.154",
-      "server_port": 52033,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Cali | SOCKS4+TCP | 1939ms | UP | NATIVE",
-      "server": "190.242.59.158",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1956ms | UP | NATIVE",
-      "server": "103.60.187.129",
-      "server_port": 52195,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 2419ms | UP | NATIVE",
-      "server": "109.107.181.151",
-      "server_port": 51553,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 1364ms | UP | NATIVE",
-      "server": "125.228.94.199",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇪🇸-Bilbao | SOCKS4+TCP | 1032ms | UP | NATIVE",
-      "server": "195.219.98.27",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇷-Seoul | SOCKS4+TCP | 1202ms | UP | NATIVE",
-      "server": "193.122.105.251",
-      "server_port": 65535,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇽-Aguascalientes | SOCKS4+TCP | 3663ms | UP | NATIVE",
-      "server": "170.81.140.79",
-      "server_port": 61437,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇬🇧-Unknown | SOCKS4+TCP | 5201ms | UP | NATIVE",
-      "server": "147.45.179.84",
-      "server_port": 1082,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2091ms | UP | NATIVE",
-      "server": "45.249.79.190",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1479ms | UP | NATIVE",
-      "server": "103.184.67.37",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 1226ms | UP | NATIVE",
-      "server": "190.220.25.42",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇱-Rzeszów | SOCKS4+TCP | 3228ms | UP | NATIVE",
-      "server": "91.150.189.122",
-      "server_port": 60647,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇸-Belgrade | SOCKS4+TCP | 2174ms | UP | NATIVE",
-      "server": "79.101.45.94",
-      "server_port": 56921,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2608ms | UP | NATIVE",
-      "server": "125.234.94.204",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Kochi | SOCKS4+TCP | 3280ms | UP | NATIVE",
-      "server": "45.116.230.79",
-      "server_port": 4673,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇪🇸-Empuriabrava | SOCKS4+TCP | 2983ms | UP | NATIVE",
-      "server": "185.161.186.92",
-      "server_port": 54321,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Allegan | SOCKS4+TCP | 1576ms | UP | NATIVE",
-      "server": "96.36.50.99",
-      "server_port": 39593,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 1519ms | UP | NATIVE",
-      "server": "119.148.23.210",
-      "server_port": 9990,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 1379ms | UP | NATIVE",
-      "server": "190.249.169.153",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇷-Gaziantep | SOCKS4+TCP | 1167ms | UP | NATIVE",
-      "server": "176.235.182.90",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-La_Paz | SOCKS4+TCP | 1389ms | UP | NATIVE",
-      "server": "45.187.76.2",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Anuppankulam | SOCKS4+TCP | 3259ms | UP | NATIVE",
-      "server": "45.116.114.37",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇴-La_Paz | SOCKS4+TCP | 1122ms | UP | NATIVE",
-      "server": "190.104.26.227",
-      "server_port": 33638,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-São_Paulo | SOCKS4+TCP | 3455ms | UP | NATIVE",
-      "server": "201.93.159.234",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5163ms | UP | NATIVE",
-      "server": "103.53.110.45",
-      "server_port": 10801,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Chiang_Mai | SOCKS4+TCP | 3851ms | UP | NATIVE",
-      "server": "182.53.216.73",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Bosa | SOCKS4+TCP | 1782ms | UP | NATIVE",
-      "server": "190.144.224.182",
-      "server_port": 44550,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇦-Sarajevo | SOCKS4+TCP | 2148ms | UP | NATIVE",
-      "server": "212.39.114.139",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 2189ms | UP | NATIVE",
-      "server": "103.66.176.45",
-      "server_port": 32251,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Itirapina | SOCKS4+TCP | 2178ms | UP | NATIVE",
-      "server": "177.52.212.56",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Odesa | SOCKS4+TCP | 4168ms | UP | NATIVE",
-      "server": "195.138.65.34",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇷-Gwangmyeong | SOCKS4+TCP | 2589ms | UP | NATIVE",
-      "server": "112.221.46.117",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 1165ms | UP | NATIVE",
-      "server": "46.8.48.143",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2590ms | UP | NATIVE",
-      "server": "116.118.98.10",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 1862ms | UP | NATIVE",
-      "server": "202.40.179.18",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2467ms | UP | NATIVE",
-      "server": "146.196.63.250",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇬-Unknown | SOCKS4+TCP | 2885ms | UP | NATIVE",
-      "server": "197.156.240.66",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇱-Poznan | SOCKS4+TCP | 2056ms | UP | NATIVE",
-      "server": "213.156.124.3",
-      "server_port": 33333,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Miami | SOCKS4+TCP | 1533ms | UP | NATIVE",
-      "server": "45.61.188.134",
-      "server_port": 44499,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2465ms | UP | NATIVE",
-      "server": "176.214.78.230",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 3550ms | UP | NATIVE",
-      "server": "195.78.100.162",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 3268ms | UP | NATIVE",
-      "server": "31.13.239.4",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇰-Unknown | SOCKS4+TCP | 2063ms | UP | NATIVE",
-      "server": "110.93.206.62",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3064ms | UP | NATIVE",
-      "server": "103.143.214.77",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 3075ms | UP | NATIVE",
-      "server": "203.188.245.98",
-      "server_port": 52837,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 4159ms | UP | NATIVE",
-      "server": "60.54.19.45",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Da_Nang | SOCKS4+TCP | 3071ms | UP | NATIVE",
-      "server": "118.70.212.110",
-      "server_port": 60606,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 2246ms | UP | NATIVE",
-      "server": "181.205.46.178",
-      "server_port": 4666,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇴-Santa_Cruz_de_la_Sierra | SOCKS4+TCP | 5429ms | UP | NATIVE",
-      "server": "181.115.207.114",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1282ms | UP | NATIVE",
-      "server": "94.232.11.178",
-      "server_port": 58028,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Voronezh | SOCKS4+TCP | 2569ms | UP | NATIVE",
-      "server": "195.46.172.190",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Kyiv | SOCKS4+TCP | 2487ms | UP | NATIVE",
-      "server": "193.106.57.96",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 2087ms | UP | NATIVE",
-      "server": "103.82.8.189",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 1008ms | UP | NATIVE",
-      "server": "181.143.59.140",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 5617ms | UP | NATIVE",
-      "server": "83.220.46.106",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Mymensingh | SOCKS4+TCP | 1972ms | UP | NATIVE",
-      "server": "27.123.254.158",
-      "server_port": 6969,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 2217ms | UP | NATIVE",
-      "server": "202.166.196.105",
-      "server_port": 48293,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3995ms | UP | NATIVE",
-      "server": "122.248.46.26",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇭🇺-Hajdúnánás | SOCKS4+TCP | 4504ms | UP | NATIVE",
-      "server": "84.2.239.42",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1088ms | UP | NATIVE",
-      "server": "171.250.216.38",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇱-Siedlce | SOCKS4+TCP | 3596ms | UP | NATIVE",
-      "server": "185.186.17.57",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3300ms | UP | NATIVE",
-      "server": "201.234.24.89",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3593ms | UP | NATIVE",
-      "server": "160.22.22.85",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1205ms | UP | NATIVE",
-      "server": "212.103.118.77",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Sapé | SOCKS4+TCP | 3907ms | UP | NATIVE",
-      "server": "187.19.127.180",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇹-Unknown | SOCKS4+TCP | 4076ms | UP | NATIVE",
-      "server": "202.144.134.150",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 1502ms | UP | NATIVE",
-      "server": "78.128.124.108",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-General_Roca | SOCKS4+TCP | 3614ms | UP | NATIVE",
-      "server": "181.28.137.18",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta_Pusat | SOCKS4+TCP | 5996ms | UP | NATIVE",
-      "server": "202.51.112.169",
-      "server_port": 5430,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Hanoi | SOCKS4+TCP | 1817ms | UP | NATIVE",
-      "server": "27.72.122.228",
-      "server_port": 51067,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2907ms | UP | NATIVE",
-      "server": "103.85.103.1",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Hanoi | SOCKS4+TCP | 4995ms | UP | NATIVE",
-      "server": "113.160.154.7",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Kolkata | SOCKS4+TCP | 2253ms | UP | NATIVE",
-      "server": "115.187.50.40",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇰-Karachi | SOCKS4+TCP | 5675ms | UP | NATIVE",
-      "server": "110.93.231.73",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇹-Naxxar | SOCKS4+TCP | 4334ms | UP | NATIVE",
-      "server": "213.165.185.211",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-San_Jose | SOCKS4+TCP | 2197ms | UP | NATIVE",
-      "server": "12.218.209.130",
-      "server_port": 13326,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 3040ms | UP | NATIVE",
-      "server": "116.118.98.21",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2407ms | UP | NATIVE",
-      "server": "78.109.139.51",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-San_Bernardino | SOCKS4+TCP | 3350ms | UP | NATIVE",
-      "server": "74.62.23.242",
-      "server_port": 39593,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇭-Makati_City | SOCKS4+TCP | 5793ms | UP | NATIVE",
-      "server": "124.105.55.176",
-      "server_port": 30906,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 2473ms | UP | NATIVE",
-      "server": "186.194.234.18",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 1540ms | UP | NATIVE",
-      "server": "202.51.103.154",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇬🇷-Athens | SOCKS4+TCP | 2134ms | UP | NATIVE",
-      "server": "46.198.132.237",
-      "server_port": 51372,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇸-Užice | SOCKS4+TCP | 2155ms | UP | NATIVE",
-      "server": "91.150.77.58",
-      "server_port": 56921,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Lamphun | SOCKS4+TCP | 5132ms | UP | NATIVE",
-      "server": "118.172.47.97",
-      "server_port": 51327,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇫🇷-Paris | SOCKS4+TCP | 1547ms | UP | NATIVE",
-      "server": "62.133.62.12",
-      "server_port": 1082,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 2718ms | UP | NATIVE",
-      "server": "101.109.245.200",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 2133ms | UP | NATIVE",
-      "server": "195.9.146.246",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 1032ms | UP | NATIVE",
-      "server": "212.5.132.74",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇹-Vienna | SOCKS4+TCP | 2991ms | UP | NATIVE",
-      "server": "95.163.153.116",
-      "server_port": 44937,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Bell_Ville | SOCKS4+TCP | 2577ms | UP | NATIVE",
-      "server": "200.122.92.211",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇬-Unknown | SOCKS4+TCP | 5276ms | UP | NATIVE",
-      "server": "102.165.125.102",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Recife | SOCKS4+TCP | 1502ms | UP | NATIVE",
-      "server": "187.103.74.137",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Tây_Ninh | SOCKS4+TCP | 3155ms | UP | NATIVE",
-      "server": "14.241.182.44",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Pak_Kret | SOCKS4+TCP | 3729ms | UP | NATIVE",
-      "server": "1.179.151.165",
-      "server_port": 31948,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Unknown | SOCKS4+TCP | 1331ms | UP | NATIVE",
-      "server": "116.106.107.225",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 2735ms | UP | NATIVE",
-      "server": "182.53.96.56",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 5797ms | UP | NATIVE",
-      "server": "122.154.71.65",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 4075ms | UP | NATIVE",
-      "server": "181.129.74.58",
-      "server_port": 30431,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Lowell | SOCKS4+TCP | 2422ms | UP | NATIVE",
-      "server": "69.36.63.128",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇷-Gangdong-gu | SOCKS4+TCP | 1173ms | UP | NATIVE",
-      "server": "14.63.49.131",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1294ms | UP | NATIVE",
-      "server": "115.75.160.196",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Karet | SOCKS4+TCP | 1889ms | UP | NATIVE",
-      "server": "36.66.203.163",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 1741ms | UP | NATIVE",
-      "server": "113.53.29.228",
-      "server_port": 13629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Salvador | SOCKS4+TCP | 2224ms | UP | NATIVE",
-      "server": "177.136.124.46",
-      "server_port": 56113,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 1987ms | UP | NATIVE",
-      "server": "27.147.221.140",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3489ms | UP | NATIVE",
-      "server": "212.220.13.98",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1910ms | UP | NATIVE",
-      "server": "115.75.163.225",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇾-Montevideo | SOCKS4+TCP | 4261ms | UP | NATIVE",
-      "server": "179.27.86.36",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 1375ms | UP | NATIVE",
-      "server": "31.131.135.247",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
-      "server": "46.214.153.223",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇷-San_Juan | SOCKS4+TCP | 4997ms | UP | NATIVE",
-      "server": "67.206.213.202",
-      "server_port": 55555,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Sunter_Agung | SOCKS4+TCP | 5622ms | UP | NATIVE",
-      "server": "117.102.115.158",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇬🇹-Guatemala_City | SOCKS4+TCP | 1564ms | UP | NATIVE",
-      "server": "168.194.75.98",
-      "server_port": 8888,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇱-Unknown | SOCKS4+TCP | 1636ms | UP | NATIVE",
-      "server": "185.32.4.110",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2280ms | UP | NATIVE",
-      "server": "31.172.133.253",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 1325ms | UP | NATIVE",
-      "server": "202.166.211.182",
-      "server_port": 1488,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇽-Guadalupe | SOCKS4+TCP | 2579ms | UP | NATIVE",
-      "server": "189.203.181.34",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Simões_Filho | SOCKS4+TCP | 1562ms | UP | NATIVE",
-      "server": "177.85.65.177",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5200ms | UP | NATIVE",
-      "server": "103.37.82.134",
-      "server_port": 39873,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE",
-      "server": "81.12.169.254",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Itaperuna | SOCKS4+TCP | 1410ms | UP | NATIVE",
-      "server": "170.244.0.179",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇭-Phumĭ_Kândal | SOCKS4+TCP | 1687ms | UP | NATIVE",
-      "server": "36.37.244.41",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Nederland | SOCKS4+TCP | 1344ms | UP | NATIVE",
-      "server": "8.39.228.133",
-      "server_port": 39593,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2099ms | UP | NATIVE",
-      "server": "93.123.98.80",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇾-Ciudad_del_Este | SOCKS4+TCP | 1224ms | UP | NATIVE",
-      "server": "143.255.140.28",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇹-Vienna | SOCKS4+TCP | 3027ms | UP | NATIVE",
-      "server": "95.163.153.116",
-      "server_port": 26305,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Richland | SOCKS4+TCP | 4323ms | UP | NATIVE",
-      "server": "162.255.108.254",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2566ms | UP | NATIVE",
-      "server": "103.224.54.233",
-      "server_port": 31433,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇪-Lima | SOCKS4+TCP | 3177ms | UP | NATIVE",
-      "server": "190.12.95.170",
-      "server_port": 37209,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Unknown | SOCKS4+TCP | 4012ms | UP | NATIVE",
-      "server": "203.156.190.5",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇼-Gaborone | SOCKS4+TCP | 3973ms | UP | NATIVE",
-      "server": "129.205.244.185",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
-      "server": "103.97.94.22",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 1230ms | UP | NATIVE",
-      "server": "178.115.255.177",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇶-Unknown | SOCKS4+TCP | 1462ms | UP | NATIVE",
-      "server": "185.95.186.165",
-      "server_port": 48293,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇶-Unknown | SOCKS4+TCP | 1316ms | UP | NATIVE",
-      "server": "62.201.212.198",
-      "server_port": 4673,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2633ms | UP | NATIVE",
-      "server": "103.134.214.131",
-      "server_port": 1648,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇷-Istanbul | SOCKS4+TCP | 2502ms | UP | NATIVE",
-      "server": "185.87.121.35",
-      "server_port": 8975,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 2313ms | UP | NATIVE",
-      "server": "181.143.21.146",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 3250ms | UP | NATIVE",
-      "server": "114.4.200.222",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Porto_Seguro | SOCKS4+TCP | 2346ms | UP | NATIVE",
-      "server": "201.218.189.212",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3598ms | UP | NATIVE",
-      "server": "195.133.250.173",
-      "server_port": 3128,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇱-Zielona_Góra | SOCKS4+TCP | 4762ms | UP | NATIVE",
-      "server": "185.14.149.33",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3819ms | UP | NATIVE",
-      "server": "213.210.67.186",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Unknown | SOCKS4+TCP | 2746ms | UP | NATIVE",
-      "server": "195.74.72.111",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇴-La_Paz | SOCKS4+TCP | 1330ms | UP | NATIVE",
-      "server": "190.104.8.142",
-      "server_port": 14888,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
-      "server": "185.190.90.2",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 2280ms | UP | NATIVE",
-      "server": "202.181.148.64",
-      "server_port": 54101,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Atlanta | SOCKS4+TCP | 2200ms | UP | NATIVE",
+      "tag": "🇺🇸-Atlanta | SOCKS4+TCP | 107ms | UP | NATIVE",
       "server": "78.153.155.31",
       "server_port": 1081,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 4449ms | UP | NATIVE",
-      "server": "200.123.109.166",
-      "server_port": 4153,
+      "tag": "🇺🇸-Glassboro | SOCKS4+TCP | 209ms | UP | NATIVE",
+      "server": "50.233.111.162",
+      "server_port": 32100,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 2080ms | UP | NATIVE",
-      "server": "118.174.14.65",
-      "server_port": 44336,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Santa_Marta | SOCKS4+TCP | 1150ms | UP | NATIVE",
-      "server": "186.1.182.194",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Caldas_Novas | SOCKS4+TCP | 5288ms | UP | NATIVE",
-      "server": "186.224.225.30",
-      "server_port": 42648,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 1203ms | UP | NATIVE",
-      "server": "46.160.90.81",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Chelyabinsk | SOCKS4+TCP | 3333ms | UP | NATIVE",
-      "server": "94.181.33.149",
-      "server_port": 40840,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2712ms | UP | NATIVE",
-      "server": "103.160.41.138",
-      "server_port": 3829,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 1054ms | UP | NATIVE",
-      "server": "125.234.95.122",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3961ms | UP | NATIVE",
-      "server": "1.4.195.114",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-São_Paulo | SOCKS4+TCP | 3999ms | UP | NATIVE",
-      "server": "201.46.29.115",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇯🇵-Tokyo | SOCKS4+TCP | 1342ms | UP | NATIVE",
-      "server": "205.177.85.130",
-      "server_port": 39593,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3683ms | UP | NATIVE",
-      "server": "122.252.179.66",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Unknown | SOCKS4+TCP | 5737ms | UP | NATIVE",
-      "server": "47.237.169.183",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Ibirité | SOCKS4+TCP | 1204ms | UP | NATIVE",
-      "server": "186.248.87.172",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Karet | SOCKS4+TCP | 5005ms | UP | NATIVE",
-      "server": "103.154.113.245",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3039ms | UP | NATIVE",
-      "server": "154.197.69.137",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
-      "server": "80.78.78.106",
-      "server_port": 65530,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Kumarapalayam | SOCKS4+TCP | 2098ms | UP | NATIVE",
-      "server": "103.105.40.13",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Hanoi | SOCKS4+TCP | 1567ms | UP | NATIVE",
-      "server": "14.232.166.150",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇪-Nairobi | SOCKS4+TCP | 3817ms | UP | NATIVE",
-      "server": "197.232.43.224",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇶-Baghdad | SOCKS4+TCP | 2937ms | UP | NATIVE",
-      "server": "109.224.22.34",
-      "server_port": 51372,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇫🇷-Nice | SOCKS4+TCP | 3980ms | UP | NATIVE",
-      "server": "95.178.108.189",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇷-Santa_Isabel | SOCKS4+TCP | 1424ms | UP | NATIVE",
-      "server": "138.186.155.1",
-      "server_port": 1085,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇪🇸-Empuriabrava | SOCKS4+TCP | 3539ms | UP | NATIVE",
-      "server": "185.161.186.82",
-      "server_port": 54321,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS4+TCP | 1200ms | UP | NATIVE",
-      "server": "165.22.110.253",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 3804ms | UP | NATIVE",
-      "server": "212.50.19.150",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Posse | SOCKS4+TCP | 1488ms | UP | NATIVE",
-      "server": "177.67.136.241",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Karet | SOCKS4+TCP | 3629ms | UP | NATIVE",
-      "server": "36.66.170.25",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Hanoi | SOCKS4+TCP | 2653ms | UP | NATIVE",
-      "server": "183.80.130.10",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 1203ms | UP | NATIVE",
-      "server": "89.19.209.217",
-      "server_port": 31285,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-São_Paulo | SOCKS4+TCP | 5999ms | UP | NATIVE",
-      "server": "177.26.112.65",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1178ms | UP | NATIVE",
-      "server": "103.85.103.13",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 2506ms | UP | NATIVE",
-      "server": "46.188.2.42",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Cheboksary | SOCKS4+TCP | 5734ms | UP | NATIVE",
-      "server": "89.151.134.157",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Razlog | SOCKS4+TCP | 2545ms | UP | NATIVE",
-      "server": "213.149.156.87",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 1376ms | UP | NATIVE",
-      "server": "201.184.239.75",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Svilengrad | SOCKS4+TCP | 2265ms | UP | NATIVE",
-      "server": "93.183.175.6",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇱🇦-Unknown | SOCKS4+TCP | 4904ms | UP | NATIVE",
-      "server": "202.123.183.66",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-St_Petersburg | SOCKS4+TCP | 2090ms | UP | NATIVE",
-      "server": "94.247.241.70",
-      "server_port": 51006,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 1441ms | UP | NATIVE",
-      "server": "125.228.94.153",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 4391ms | UP | NATIVE",
-      "server": "125.27.10.84",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇱-Amsterdam | SOCKS4+TCP | 5360ms | UP | NATIVE",
-      "server": "138.124.117.139",
-      "server_port": 31645,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5216ms | UP | NATIVE",
-      "server": "49.0.156.20",
-      "server_port": 32000,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta_Pusat | SOCKS4+TCP | 2536ms | UP | NATIVE",
-      "server": "202.51.126.241",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Dracena | SOCKS4+TCP | 5167ms | UP | NATIVE",
-      "server": "187.17.201.203",
-      "server_port": 38737,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇾-Unknown | SOCKS4+TCP | 1775ms | UP | NATIVE",
-      "server": "103.1.105.10",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 4523ms | UP | NATIVE",
-      "server": "103.18.47.79",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 2745ms | UP | NATIVE",
-      "server": "110.77.135.70",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇲-Yerevan | SOCKS4+TCP | 1018ms | UP | NATIVE",
-      "server": "81.16.9.222",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 1883ms | UP | NATIVE",
-      "server": "36.64.27.123",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇸-Belgrade | SOCKS4+TCP | 5201ms | UP | NATIVE",
-      "server": "79.101.106.74",
-      "server_port": 33608,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇷-Unknown | SOCKS4+TCP | 2704ms | UP | NATIVE",
-      "server": "46.34.161.9",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇱-Gorzów_Wielkopolski | SOCKS4+TCP | 1332ms | UP | NATIVE",
-      "server": "37.131.164.94",
-      "server_port": 59341,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-South_Tangerang | SOCKS4+TCP | 1825ms | UP | NATIVE",
-      "server": "182.16.171.65",
-      "server_port": 51459,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Austin | SOCKS4+TCP | 2458ms | UP | NATIVE",
-      "server": "97.105.12.186",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇱-Amsterdam | SOCKS4+TCP | 2312ms | UP | NATIVE",
-      "server": "138.124.117.139",
-      "server_port": 31646,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Ternopil | SOCKS4+TCP | 1015ms | UP | NATIVE",
-      "server": "5.58.47.25",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇾-Asunción | SOCKS4+TCP | 2117ms | UP | NATIVE",
-      "server": "179.189.219.98",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇽-Aguascalientes | SOCKS4+TCP | 1595ms | UP | NATIVE",
-      "server": "170.81.141.254",
-      "server_port": 61437,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 3113ms | UP | NATIVE",
-      "server": "186.216.195.1",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Pelotas | SOCKS4+TCP | 5178ms | UP | NATIVE",
-      "server": "187.86.153.254",
-      "server_port": 30660,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 2979ms | UP | NATIVE",
-      "server": "163.53.180.115",
-      "server_port": 60606,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5956ms | UP | NATIVE",
-      "server": "118.71.99.233",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇭🇰-Hong_Kong | SOCKS4+TCP | 1171ms | UP | NATIVE",
-      "server": "23.175.201.46",
-      "server_port": 1234,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Porto_Seguro | SOCKS4+TCP | 3140ms | UP | NATIVE",
-      "server": "45.236.152.21",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇼-Gaborone | SOCKS4+TCP | 2975ms | UP | NATIVE",
-      "server": "129.205.244.158",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇭-Unknown | SOCKS4+TCP | 3728ms | UP | NATIVE",
-      "server": "203.170.146.146",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Caldas_Novas | SOCKS4+TCP | 2232ms | UP | NATIVE",
-      "server": "186.224.225.26",
-      "server_port": 42648,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇷-Unknown | SOCKS4+TCP | 5435ms | UP | NATIVE",
-      "server": "118.67.170.121",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇿-Kostanay | SOCKS4+TCP | 2297ms | UP | NATIVE",
-      "server": "109.248.152.231",
-      "server_port": 60606,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇦-Mississauga | SOCKS4+TCP | 1268ms | UP | NATIVE",
+      "tag": "🇨🇦-Mississauga | SOCKS4+TCP | 235ms | UP | NATIVE",
       "server": "192.158.15.201",
       "server_port": 50877,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇷-Osasco | SOCKS4+TCP | 3267ms | UP | NATIVE",
-      "server": "187.95.136.46",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE",
-      "server": "80.78.73.120",
-      "server_port": 65530,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇿-New_Plymouth | SOCKS4+TCP | 3651ms | UP | NATIVE",
-      "server": "43.231.192.105",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1055ms | UP | NATIVE",
-      "server": "109.68.189.22",
-      "server_port": 54643,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇲-Yerevan | SOCKS4+TCP | 2376ms | UP | NATIVE",
-      "server": "130.193.123.34",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Raleigh | SOCKS4+TCP | 2481ms | UP | NATIVE",
+      "tag": "🇺🇸-Raleigh | SOCKS4+TCP | 326ms | UP | NATIVE",
       "server": "12.11.59.114",
       "server_port": 1080,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇱🇧-Tripoli | SOCKS4+TCP | 2624ms | UP | NATIVE",
-      "server": "185.114.89.74",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 347ms | UP | NATIVE",
+      "server": "147.45.124.194",
       "server_port": 1080,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇮🇳-Kalyān | SOCKS4+TCP | 3922ms | UP | NATIVE",
-      "server": "103.127.23.10",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇰🇭-Phnom_Penh | SOCKS4+TCP | 1944ms | UP | NATIVE",
-      "server": "36.37.189.64",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1355ms | UP | NATIVE",
-      "server": "202.162.212.164",
+      "tag": "🇺🇸-Austin | SOCKS4+TCP | 412ms | UP | NATIVE",
+      "server": "97.105.12.186",
       "server_port": 4153,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇨🇾-Nicosia | SOCKS4+TCP | 2712ms | UP | NATIVE",
-      "server": "213.7.196.26",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 1912ms | UP | NATIVE",
-      "server": "121.200.60.122",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇺-Penza | SOCKS4+TCP | 1300ms | UP | NATIVE",
-      "server": "85.237.62.189",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Kozyn | SOCKS4+TCP | 2119ms | UP | NATIVE",
-      "server": "91.199.93.32",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇸-Imperial | SOCKS4+TCP | 2324ms | UP | NATIVE",
-      "server": "64.64.152.248",
+      "tag": "🇺🇸-Morrison | SOCKS4+TCP | 413ms | UP | NATIVE",
+      "server": "8.42.71.224",
       "server_port": 39593,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇮🇳-Vellore | SOCKS4+TCP | 3024ms | UP | NATIVE",
-      "server": "103.48.183.113",
-      "server_port": 4145,
+      "tag": "🇲🇽-Guadalupe | SOCKS4+TCP | 466ms | UP | NATIVE",
+      "server": "189.203.181.34",
+      "server_port": 1080,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇭🇺-Budapest | SOCKS4+TCP | 2247ms | UP | NATIVE",
-      "server": "89.134.125.5",
+      "tag": "🇲🇽-Unknown | SOCKS4+TCP | 540ms | UP | NATIVE",
+      "server": "187.210.136.88",
       "server_port": 4153,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 1495ms | UP | NATIVE",
+      "tag": "🇩🇪-Falkenstein | SOCKS4+TCP | 571ms | UP | NATIVE",
+      "server": "49.13.48.65",
+      "server_port": 9821,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 607ms | UP | NATIVE",
+      "server": "186.190.228.83",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 618ms | UP | NATIVE",
+      "server": "46.188.2.42",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 630ms | UP | NATIVE",
+      "server": "193.233.254.7",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 644ms | UP | NATIVE",
+      "server": "193.233.254.8",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇷-Unknown | SOCKS4+TCP | 652ms | UP | NATIVE",
+      "server": "200.192.236.242",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 661ms | UP | NATIVE",
+      "server": "193.233.254.9",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇫🇷-Unknown | SOCKS4+TCP | 691ms | UP | NATIVE",
+      "server": "213.19.205.18",
+      "server_port": 54321,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇩🇪-Frankfurt_am_Main | SOCKS4+TCP | 711ms | UP | NATIVE",
+      "server": "89.19.209.217",
+      "server_port": 31285,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 728ms | UP | NATIVE",
+      "server": "181.129.74.58",
+      "server_port": 30431,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Curitiba | SOCKS4+TCP | 750ms | UP | NATIVE",
+      "server": "45.226.83.146",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇨-Guayaquil | SOCKS4+TCP | 758ms | UP | NATIVE",
+      "server": "45.238.57.1",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇫🇷-Nice | SOCKS4+TCP | 774ms | UP | NATIVE",
+      "server": "95.178.108.189",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Bucaramanga | SOCKS4+TCP | 800ms | UP | NATIVE",
+      "server": "181.129.182.138",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇸-La_Romana | SOCKS4+TCP | 836ms | UP | NATIVE",
+      "server": "178.236.112.175",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 852ms | UP | NATIVE",
+      "server": "46.8.48.143",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Itaperuna | SOCKS4+TCP | 877ms | UP | NATIVE",
+      "server": "170.244.0.179",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Morrison | SOCKS4+TCP | 903ms | UP | NATIVE",
+      "server": "8.42.68.109",
+      "server_port": 39593,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇬🇧-Unknown | SOCKS4+TCP | 913ms | UP | NATIVE",
+      "server": "147.45.179.84",
+      "server_port": 1082,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE",
+      "server": "90.182.147.170",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇱-Unknown | SOCKS4+TCP | 926ms | UP | NATIVE",
+      "server": "185.190.90.2",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇸-Užice | SOCKS4+TCP | 936ms | UP | NATIVE",
+      "server": "91.150.77.57",
+      "server_port": 56921,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇱-Racibórz | SOCKS4+TCP | 958ms | UP | NATIVE",
+      "server": "78.31.93.76",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Fremont | SOCKS4+TCP | 963ms | UP | NATIVE",
+      "server": "198.0.198.132",
+      "server_port": 54321,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 964ms | UP | NATIVE",
+      "server": "80.78.70.253",
+      "server_port": 65530,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇱-Santiago | SOCKS4+TCP | 967ms | UP | NATIVE",
+      "server": "186.10.102.218",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇦-Sarajevo | SOCKS4+TCP | 986ms | UP | NATIVE",
+      "server": "212.39.114.139",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Ibirité | SOCKS4+TCP | 997ms | UP | NATIVE",
+      "server": "186.248.87.172",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Udaipur | SOCKS4+TCP | 3030ms | UP | NATIVE",
+      "server": "123.253.124.28",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 4347ms | UP | NATIVE",
+      "server": "103.231.45.145",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 5351ms | UP | NATIVE",
+      "server": "80.78.77.52",
+      "server_port": 65530,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-New_York | SOCKS4+TCP | 4197ms | UP | NATIVE",
+      "server": "64.49.67.164",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇲-Yerevan | SOCKS4+TCP | 2370ms | UP | NATIVE",
+      "server": "130.193.123.34",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Porto_Seguro | SOCKS4+TCP | 1072ms | UP | NATIVE",
+      "server": "201.218.189.212",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇦-Montreal | SOCKS4+TCP | 3489ms | UP | NATIVE",
+      "server": "24.37.245.42",
+      "server_port": 51056,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Anuppankulam | SOCKS4+TCP | 4485ms | UP | NATIVE",
+      "server": "45.116.114.37",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 2217ms | UP | NATIVE",
+      "server": "27.147.221.140",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Ternopil | SOCKS4+TCP | 1104ms | UP | NATIVE",
+      "server": "5.58.47.25",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Hyderabad | SOCKS4+TCP | 5327ms | UP | NATIVE",
+      "server": "103.161.31.41",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 1616ms | UP | NATIVE",
+      "server": "181.115.75.102",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇻🇪-Maturín | SOCKS4+TCP | 5476ms | UP | NATIVE",
+      "server": "38.188.52.210",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇷-Unknown | SOCKS4+TCP | 2733ms | UP | NATIVE",
+      "server": "185.86.5.162",
+      "server_port": 8975,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 4068ms | UP | NATIVE",
+      "server": "93.90.212.2",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Probolinggo | SOCKS4+TCP | 3787ms | UP | NATIVE",
+      "server": "103.157.116.179",
+      "server_port": 10810,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3247ms | UP | NATIVE",
+      "server": "103.224.54.233",
+      "server_port": 31433,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Sunter_Agung | SOCKS4+TCP | 3923ms | UP | NATIVE",
+      "server": "117.102.115.154",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 4837ms | UP | NATIVE",
+      "server": "45.249.79.190",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 1211ms | UP | NATIVE",
+      "server": "114.4.200.222",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇲-Yerevan | SOCKS4+TCP | 1232ms | UP | NATIVE",
+      "server": "37.186.66.158",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 2294ms | UP | NATIVE",
+      "server": "36.67.88.77",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Bagpat | SOCKS4+TCP | 5128ms | UP | NATIVE",
+      "server": "43.230.196.98",
+      "server_port": 48200,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Chennai | SOCKS4+TCP | 5146ms | UP | NATIVE",
+      "server": "210.16.86.105",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Salvador | SOCKS4+TCP | 1225ms | UP | NATIVE",
+      "server": "177.136.124.46",
+      "server_port": 56113,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇾-Unknown | SOCKS4+TCP | 1896ms | UP | NATIVE",
+      "server": "103.1.105.10",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇪-Nairobi | SOCKS4+TCP | 1646ms | UP | NATIVE",
+      "server": "197.232.43.224",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇭🇷-Zagreb | SOCKS4+TCP | 4811ms | UP | NATIVE",
+      "server": "82.132.19.108",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4324ms | UP | NATIVE",
+      "server": "182.253.40.33",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 4024ms | UP | NATIVE",
       "server": "83.218.186.22",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Dnipro | SOCKS4+TCP | 3575ms | UP | NATIVE",
-      "server": "188.163.170.130",
-      "server_port": 35578,
+      "tag": "🇷🇺-St_Petersburg | SOCKS4+TCP | 3616ms | UP | NATIVE",
+      "server": "94.247.241.70",
+      "server_port": 51006,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5027ms | UP | NATIVE",
-      "server": "43.248.27.11",
-      "server_port": 54730,
+      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 2215ms | UP | NATIVE",
+      "server": "202.79.35.12",
+      "server_port": 1080,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2182ms | UP | NATIVE",
-      "server": "31.40.144.129",
-      "server_port": 8888,
+      "tag": "🇨🇦-Sioux_Lookout | SOCKS4+TCP | 5648ms | UP | NATIVE",
+      "server": "24.76.21.10",
+      "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 2760ms | UP | NATIVE",
-      "server": "89.237.35.145",
-      "server_port": 51549,
+      "tag": "🇵🇪-Lima | SOCKS4+TCP | 2054ms | UP | NATIVE",
+      "server": "190.12.95.170",
+      "server_port": 37209,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2259ms | UP | NATIVE",
+      "tag": "🇹🇭-Chiang_Mai | SOCKS4+TCP | 2175ms | UP | NATIVE",
+      "server": "182.53.216.73",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇷-San_Antonio_Oeste | SOCKS4+TCP | 2850ms | UP | NATIVE",
+      "server": "168.196.24.29",
+      "server_port": 60606,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1978ms | UP | NATIVE",
+      "server": "103.60.186.21",
+      "server_port": 52195,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇿-Almaty | SOCKS4+TCP | 4871ms | UP | NATIVE",
+      "server": "82.200.235.134",
+      "server_port": 38191,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 1957ms | UP | NATIVE",
+      "server": "202.51.103.154",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3398ms | UP | NATIVE",
+      "server": "1.4.195.114",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Lowell | SOCKS4+TCP | 1328ms | UP | NATIVE",
+      "server": "69.36.63.128",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Elk_Mound | SOCKS4+TCP | 1277ms | UP | NATIVE",
+      "server": "216.222.162.3",
+      "server_port": 39593,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 4232ms | UP | NATIVE",
+      "server": "103.28.86.241",
+      "server_port": 57230,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 3914ms | UP | NATIVE",
+      "server": "118.67.220.225",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 3168ms | UP | NATIVE",
+      "server": "202.40.188.2",
+      "server_port": 1088,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇸-Belgrade | SOCKS4+TCP | 1934ms | UP | NATIVE",
+      "server": "178.220.148.82",
+      "server_port": 10801,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 1047ms | UP | NATIVE",
+      "server": "213.222.34.200",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇷-Istanbul | SOCKS4+TCP | 1686ms | UP | NATIVE",
+      "server": "185.87.121.5",
+      "server_port": 8975,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 5527ms | UP | NATIVE",
+      "server": "80.78.74.56",
+      "server_port": 65530,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Campo_Mourão | SOCKS4+TCP | 5193ms | UP | NATIVE",
+      "server": "177.125.212.244",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Nadiād | SOCKS4+TCP | 4160ms | UP | NATIVE",
+      "server": "27.121.101.5",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 2957ms | UP | NATIVE",
+      "server": "202.51.105.102",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Voronezh | SOCKS4+TCP | 3084ms | UP | NATIVE",
+      "server": "195.46.172.190",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2384ms | UP | NATIVE",
+      "server": "202.162.212.164",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇴-La_Paz | SOCKS4+TCP | 2185ms | UP | NATIVE",
+      "server": "190.104.26.227",
+      "server_port": 33638,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3804ms | UP | NATIVE",
+      "server": "103.174.236.98",
+      "server_port": 8080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 4711ms | UP | NATIVE",
+      "server": "31.131.135.247",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE",
+      "server": "213.145.137.102",
+      "server_port": 37447,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇰-Unknown | SOCKS4+TCP | 3085ms | UP | NATIVE",
+      "server": "110.93.206.62",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Phuket | SOCKS4+TCP | 4024ms | UP | NATIVE",
+      "server": "1.20.227.66",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Burshtyn | SOCKS4+TCP | 4090ms | UP | NATIVE",
+      "server": "94.231.188.230",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇷-Tostado | SOCKS4+TCP | 2399ms | UP | NATIVE",
+      "server": "190.228.33.42",
+      "server_port": 1085,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Pemalang | SOCKS4+TCP | 1937ms | UP | NATIVE",
+      "server": "103.167.156.102",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3242ms | UP | NATIVE",
+      "server": "103.37.82.134",
+      "server_port": 39873,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5279ms | UP | NATIVE",
       "server": "203.112.134.74",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇬🇭-Unknown | SOCKS4+TCP | 2572ms | UP | NATIVE",
-      "server": "196.29.231.1",
+      "tag": "🇧🇷-Cuiabá | SOCKS4+TCP | 4244ms | UP | NATIVE",
+      "server": "45.228.151.157",
+      "server_port": 1088,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇱-Dronten | SOCKS4+TCP | 5636ms | UP | NATIVE",
+      "server": "45.144.232.249",
+      "server_port": 53764,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 4166ms | UP | NATIVE",
+      "server": "103.97.94.22",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Imperial | SOCKS4+TCP | 1437ms | UP | NATIVE",
+      "server": "64.64.152.248",
+      "server_port": 39593,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇭🇺-Hajdúnánás | SOCKS4+TCP | 4091ms | UP | NATIVE",
+      "server": "84.2.239.42",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Pak_Kret | SOCKS4+TCP | 5536ms | UP | NATIVE",
+      "server": "1.179.151.165",
+      "server_port": 31948,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 1041ms | UP | NATIVE",
+      "server": "88.213.214.254",
       "server_port": 4145,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇸-Los_Angeles | SOCKS4+TCP | 1333ms | UP | NATIVE",
-      "server": "76.81.6.107",
-      "server_port": 31008,
+      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 3884ms | UP | NATIVE",
+      "server": "14.241.241.185",
+      "server_port": 4145,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇿🇦-Equestria | SOCKS4+TCP | 4359ms | UP | NATIVE",
-      "server": "41.21.182.179",
+      "tag": "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2069ms | UP | NATIVE",
+      "server": "93.123.98.80",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇷-Florianópolis | SOCKS4+TCP | 1835ms | UP | NATIVE",
-      "server": "200.188.246.122",
+      "tag": "🇦🇷-La_Paz | SOCKS4+TCP | 1865ms | UP | NATIVE",
+      "server": "45.187.76.2",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇷-Istanbul | SOCKS4+TCP | 1737ms | UP | NATIVE",
+      "server": "185.87.121.35",
+      "server_port": 8975,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇬🇧-Unknown | SOCKS4+TCP | 1298ms | UP | NATIVE",
+      "server": "5.157.64.213",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Hyderabad | SOCKS4+TCP | 2956ms | UP | NATIVE",
+      "server": "119.235.50.246",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Kalyān | SOCKS4+TCP | 4060ms | UP | NATIVE",
+      "server": "103.127.23.10",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇻🇳-Tây_Ninh | SOCKS4+TCP | 4879ms | UP | NATIVE",
+      "server": "14.241.182.44",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1939ms | UP | NATIVE",
+      "server": "43.252.236.114",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 2203ms | UP | NATIVE",
+      "server": "124.41.213.174",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3996ms | UP | NATIVE",
+      "server": "123.231.230.58",
+      "server_port": 31196,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 5268ms | UP | NATIVE",
+      "server": "36.64.164.210",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇼-Unknown | SOCKS4+TCP | 3864ms | UP | NATIVE",
+      "server": "83.143.24.29",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇱🇹-Palanga | SOCKS4+TCP | 5793ms | UP | NATIVE",
+      "server": "86.100.63.246",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Cheboksary | SOCKS4+TCP | 1201ms | UP | NATIVE",
+      "server": "89.151.134.157",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1029ms | UP | NATIVE",
+      "server": "109.232.106.150",
+      "server_port": 52435,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 5282ms | UP | NATIVE",
+      "server": "202.40.180.22",
+      "server_port": 1088,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5231ms | UP | NATIVE",
+      "server": "27.116.53.9",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 5987ms | UP | NATIVE",
+      "server": "212.5.132.74",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Anta_Gorda | SOCKS4+TCP | 4122ms | UP | NATIVE",
+      "server": "168.227.148.21",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3972ms | UP | NATIVE",
+      "server": "182.53.96.56",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Bosa | SOCKS4+TCP | 3179ms | UP | NATIVE",
+      "server": "190.144.224.182",
+      "server_port": 44550,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Detroit | SOCKS4+TCP | 2290ms | UP | NATIVE",
+      "server": "50.238.47.86",
+      "server_port": 32100,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇱-Poznan | SOCKS4+TCP | 1990ms | UP | NATIVE",
+      "server": "213.156.124.3",
+      "server_port": 33333,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇱-Gorzów_Wielkopolski | SOCKS4+TCP | 2011ms | UP | NATIVE",
+      "server": "37.131.164.48",
+      "server_port": 59341,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Unknown | SOCKS4+TCP | 3973ms | UP | NATIVE",
+      "server": "203.170.146.146",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Krasnodar | SOCKS4+TCP | 1229ms | UP | NATIVE",
+      "server": "46.8.60.2",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 3204ms | UP | NATIVE",
+      "server": "118.67.223.4",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇷-San_Juan | SOCKS4+TCP | 3531ms | UP | NATIVE",
+      "server": "172.99.187.33",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Seoul | SOCKS4+TCP | 4517ms | UP | NATIVE",
+      "server": "103.115.17.121",
+      "server_port": 1234,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Unknown | SOCKS4+TCP | 2110ms | UP | NATIVE",
+      "server": "110.78.148.205",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇶-Baghdad | SOCKS4+TCP | 1575ms | UP | NATIVE",
+      "server": "109.224.12.170",
+      "server_port": 52015,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇬🇹-Unknown | SOCKS4+TCP | 3560ms | UP | NATIVE",
+      "server": "190.14.5.163",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3014ms | UP | NATIVE",
+      "server": "110.74.195.152",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 3367ms | UP | NATIVE",
+      "server": "46.160.90.81",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Seoul | SOCKS4+TCP | 1385ms | UP | NATIVE",
+      "server": "8.220.194.115",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Razlog | SOCKS4+TCP | 1163ms | UP | NATIVE",
+      "server": "213.149.156.87",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Itabaiana | SOCKS4+TCP | 5116ms | UP | NATIVE",
+      "server": "138.186.133.161",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇹-Vienna | SOCKS4+TCP | 3555ms | UP | NATIVE",
+      "server": "95.163.153.116",
+      "server_port": 44937,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Palembang | SOCKS4+TCP | 4942ms | UP | NATIVE",
+      "server": "157.10.97.12",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3931ms | UP | NATIVE",
+      "server": "103.112.234.33",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Pak_Kret | SOCKS4+TCP | 4180ms | UP | NATIVE",
+      "server": "1.179.172.45",
+      "server_port": 31225,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3915ms | UP | NATIVE",
+      "server": "111.68.31.134",
+      "server_port": 40385,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Penza | SOCKS4+TCP | 3770ms | UP | NATIVE",
+      "server": "85.237.62.189",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4187ms | UP | NATIVE",
+      "server": "131.161.68.41",
+      "server_port": 35944,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇬🇷-Athens | SOCKS4+TCP | 1115ms | UP | NATIVE",
+      "server": "46.198.132.237",
+      "server_port": 51372,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Moscow | SOCKS4+TCP | 3222ms | UP | NATIVE",
+      "server": "83.220.46.106",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Stara_Zagora | SOCKS4+TCP | 2149ms | UP | NATIVE",
+      "server": "46.47.82.16",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
+      "server": "81.12.157.98",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇱-Siedlce | SOCKS4+TCP | 1949ms | UP | NATIVE",
+      "server": "185.186.17.57",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 4263ms | UP | NATIVE",
+      "server": "101.109.245.200",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Plovdiv | SOCKS4+TCP | 4668ms | UP | NATIVE",
+      "server": "91.92.80.199",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Palotina | SOCKS4+TCP | 1198ms | UP | NATIVE",
+      "server": "177.39.211.113",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇱🇧-Tripoli | SOCKS4+TCP | 1184ms | UP | NATIVE",
+      "server": "185.114.89.74",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1109ms | UP | NATIVE",
+      "server": "109.106.196.250",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-St_Petersburg | SOCKS4+TCP | 1895ms | UP | NATIVE",
+      "server": "84.52.123.163",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 5278ms | UP | NATIVE",
+      "server": "31.13.239.4",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Dracena | SOCKS4+TCP | 2069ms | UP | NATIVE",
+      "server": "187.17.201.203",
+      "server_port": 38737,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇾-Asunción | SOCKS4+TCP | 2116ms | UP | NATIVE",
+      "server": "179.189.219.98",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇷-Unknown | SOCKS4+TCP | 4032ms | UP | NATIVE",
+      "server": "211.174.99.161",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇷-Buenos_Aires | SOCKS4+TCP | 3351ms | UP | NATIVE",
+      "server": "201.234.24.89",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Recife | SOCKS4+TCP | 2272ms | UP | NATIVE",
+      "server": "187.103.74.137",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 1021ms | UP | NATIVE",
+      "server": "95.43.244.15",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-San_Jose | SOCKS4+TCP | 2579ms | UP | NATIVE",
+      "server": "12.218.209.130",
+      "server_port": 13326,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5360ms | UP | NATIVE",
+      "server": "49.0.156.20",
+      "server_port": 32000,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 4274ms | UP | NATIVE",
+      "server": "115.127.180.90",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 5243ms | UP | NATIVE",
+      "server": "202.74.48.66",
+      "server_port": 1088,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Macapá | SOCKS4+TCP | 4593ms | UP | NATIVE",
+      "server": "177.131.29.214",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1210ms | UP | NATIVE",
+      "server": "185.26.168.17",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇹-Naples | SOCKS4+TCP | 4646ms | UP | NATIVE",
+      "server": "5.95.121.180",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Taipei | SOCKS4+TCP | 2348ms | UP | NATIVE",
+      "server": "125.228.94.199",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇻🇳-Unknown | SOCKS4+TCP | 1858ms | UP | NATIVE",
+      "server": "103.221.228.50",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Cereté | SOCKS4+TCP | 1697ms | UP | NATIVE",
+      "server": "181.48.243.194",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
+      "server": "103.233.103.237",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 3499ms | UP | NATIVE",
+      "server": "94.232.11.178",
+      "server_port": 58028,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇦-Montreal | SOCKS4+TCP | 1738ms | UP | NATIVE",
+      "server": "45.73.0.118",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-São_Paulo | SOCKS4+TCP | 2021ms | UP | NATIVE",
+      "server": "177.26.112.65",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Unknown | SOCKS4+TCP | 1369ms | UP | NATIVE",
+      "server": "78.109.139.51",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-Ivanteyevka | SOCKS4+TCP | 3061ms | UP | NATIVE",
+      "server": "91.247.250.215",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Lviv | SOCKS4+TCP | 1072ms | UP | NATIVE",
+      "server": "178.210.130.89",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇪-Unknown | SOCKS4+TCP | 1410ms | UP | NATIVE",
+      "server": "81.228.44.187",
+      "server_port": 65530,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Taboão_da_Serra | SOCKS4+TCP | 3023ms | UP | NATIVE",
+      "server": "143.137.116.72",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 2147ms | UP | NATIVE",
+      "server": "58.147.171.12",
+      "server_port": 10801,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Pelotas | SOCKS4+TCP | 2216ms | UP | NATIVE",
+      "server": "187.86.153.254",
+      "server_port": 30660,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇱-Unknown | SOCKS4+TCP | 5874ms | UP | NATIVE",
+      "server": "185.32.4.102",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Itapetinga | SOCKS4+TCP | 1034ms | UP | NATIVE",
+      "server": "170.81.108.153",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Kyiv | SOCKS4+TCP | 3090ms | UP | NATIVE",
+      "server": "31.43.63.70",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 2989ms | UP | NATIVE",
+      "server": "121.200.60.122",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 2936ms | UP | NATIVE",
+      "server": "103.18.47.79",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Richland | SOCKS4+TCP | 4676ms | UP | NATIVE",
+      "server": "162.255.110.52",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-South_Tangerang | SOCKS4+TCP | 2958ms | UP | NATIVE",
+      "server": "182.16.171.65",
+      "server_port": 51459,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3513ms | UP | NATIVE",
+      "server": "103.146.170.244",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4674ms | UP | NATIVE",
+      "server": "186.194.234.18",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇱-Amsterdam | SOCKS4+TCP | 3777ms | UP | NATIVE",
+      "server": "128.199.37.92",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3314ms | UP | NATIVE",
+      "server": "103.189.235.233",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇱-Rzeszów | SOCKS4+TCP | 2006ms | UP | NATIVE",
+      "server": "91.150.189.122",
+      "server_port": 60647,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇭🇳-San_Pedro_Sula | SOCKS4+TCP | 2698ms | UP | NATIVE",
+      "server": "138.59.177.117",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇾-Limassol | SOCKS4+TCP | 2741ms | UP | NATIVE",
+      "server": "212.31.100.138",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇱-Lodz | SOCKS4+TCP | 1077ms | UP | NATIVE",
+      "server": "85.89.184.87",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Caldas_Novas | SOCKS4+TCP | 4141ms | UP | NATIVE",
+      "server": "186.224.225.82",
+      "server_port": 42648,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇼-Unknown | SOCKS4+TCP | 3893ms | UP | NATIVE",
+      "server": "83.143.29.225",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Odesa | SOCKS4+TCP | 1205ms | UP | NATIVE",
+      "server": "213.231.7.10",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Saint_Vlas | SOCKS4+TCP | 3022ms | UP | NATIVE",
+      "server": "87.121.49.238",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇬-Unknown | SOCKS4+TCP | 1966ms | UP | NATIVE",
+      "server": "169.239.236.201",
+      "server_port": 10801,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Dnipro | SOCKS4+TCP | 2198ms | UP | NATIVE",
+      "server": "188.163.170.130",
+      "server_port": 35578,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇻🇳-Hanoi | SOCKS4+TCP | 1976ms | UP | NATIVE",
+      "server": "14.232.166.150",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇷-Unknown | SOCKS4+TCP | 1174ms | UP | NATIVE",
+      "server": "200.80.227.234",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Kyiv | SOCKS4+TCP | 2027ms | UP | NATIVE",
+      "server": "217.27.149.190",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4057ms | UP | NATIVE",
+      "server": "103.151.155.18",
+      "server_port": 11080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇺-St_Petersburg | SOCKS4+TCP | 5075ms | UP | NATIVE",
+      "server": "46.149.34.206",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 2931ms | UP | NATIVE",
+      "server": "116.118.98.21",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2209ms | UP | NATIVE",
+      "server": "203.174.15.50",
       "server_port": 60606,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇲🇲-Unknown | SOCKS4+TCP | 4204ms | UP | NATIVE",
-      "server": "136.228.163.150",
+      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 1999ms | UP | NATIVE",
+      "server": "45.6.101.98",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇹-Naxxar | SOCKS4+TCP | 4168ms | UP | NATIVE",
+      "server": "213.165.185.211",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 4909ms | UP | NATIVE",
+      "server": "178.115.255.177",
       "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇺-Sydney | SOCKS4+TCP | 1584ms | UP | NATIVE",
+      "server": "134.199.159.23",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Chernivtsi | SOCKS4+TCP | 4212ms | UP | NATIVE",
+      "server": "176.120.32.135",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 4404ms | UP | NATIVE",
+      "server": "118.91.175.146",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇾-Asunción | SOCKS4+TCP | 1388ms | UP | NATIVE",
+      "server": "190.104.143.94",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Phnom_Penh | SOCKS4+TCP | 3995ms | UP | NATIVE",
+      "server": "122.252.179.66",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 5691ms | UP | NATIVE",
+      "server": "201.184.239.75",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5035ms | UP | NATIVE",
+      "server": "115.75.163.225",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇼-Taichung | SOCKS4+TCP | 2125ms | UP | NATIVE",
+      "server": "220.132.41.160",
+      "server_port": 1088,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Singapore | SOCKS4+TCP | 5625ms | UP | NATIVE",
+      "server": "43.133.37.149",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE",
+      "server": "81.12.169.254",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Osasco | SOCKS4+TCP | 1063ms | UP | NATIVE",
+      "server": "187.95.136.46",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4208ms | UP | NATIVE",
+      "server": "103.184.51.254",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇷-Bell_Ville | SOCKS4+TCP | 2454ms | UP | NATIVE",
+      "server": "200.122.92.211",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Depok | SOCKS4+TCP | 2005ms | UP | NATIVE",
+      "server": "115.85.74.114",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇱-Amsterdam | SOCKS4+TCP | 1984ms | UP | NATIVE",
+      "server": "185.245.104.100",
+      "server_port": 33333,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇪-Podgorica | SOCKS4+TCP | 2034ms | UP | NATIVE",
+      "server": "62.4.37.104",
+      "server_port": 60606,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 3318ms | UP | NATIVE",
+      "server": "202.79.35.143",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇪-Stockholm | SOCKS4+TCP | 1802ms | UP | NATIVE",
+      "server": "89.22.237.70",
+      "server_port": 80,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Virār | SOCKS4+TCP | 1913ms | UP | NATIVE",
+      "server": "103.139.246.166",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2514ms | UP | NATIVE",
+      "server": "103.130.7.11",
+      "server_port": 9898,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Hammonton | SOCKS4+TCP | 1168ms | UP | NATIVE",
+      "server": "50.234.24.129",
+      "server_port": 32100,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 2647ms | UP | NATIVE",
+      "server": "91.247.92.63",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Singapore | SOCKS4+TCP | 2271ms | UP | NATIVE",
+      "server": "43.153.205.77",
+      "server_port": 555,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5069ms | UP | NATIVE",
+      "server": "202.148.22.106",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Bangkok | SOCKS4+TCP | 3135ms | UP | NATIVE",
+      "server": "110.77.135.70",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Dallas | SOCKS4+TCP | 1276ms | UP | NATIVE",
+      "server": "40.134.10.174",
+      "server_port": 18351,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Mumbai | SOCKS4+TCP | 5995ms | UP | NATIVE",
+      "server": "103.205.128.81",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Phoenix | SOCKS4+TCP | 2403ms | UP | NATIVE",
+      "server": "178.130.47.129",
+      "server_port": 1082,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 4896ms | UP | NATIVE",
+      "server": "202.40.179.18",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2051ms | UP | NATIVE",
+      "server": "202.162.219.10",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇻🇳-Ho_Chi_Minh_City | SOCKS4+TCP | 5025ms | UP | NATIVE",
+      "server": "115.75.160.196",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 4188ms | UP | NATIVE",
+      "server": "123.200.6.58",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇸-Málaga | SOCKS4+TCP | 4124ms | UP | NATIVE",
+      "server": "77.225.198.220",
+      "server_port": 4673,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Liuboml | SOCKS4+TCP | 4086ms | UP | NATIVE",
+      "server": "95.182.78.4",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇹🇭-Changwat_Sara_Buri | SOCKS4+TCP | 4136ms | UP | NATIVE",
+      "server": "113.53.29.228",
+      "server_port": 13629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-New_York | SOCKS4+TCP | 2036ms | UP | NATIVE",
+      "server": "64.49.67.166",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2462ms | UP | NATIVE",
+      "server": "146.196.63.250",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇸-Nederland | SOCKS4+TCP | 1162ms | UP | NATIVE",
+      "server": "8.39.228.25",
+      "server_port": 39593,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Odesa | SOCKS4+TCP | 3133ms | UP | NATIVE",
+      "server": "195.138.65.34",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇰🇭-Unknown | SOCKS4+TCP | 3434ms | UP | NATIVE",
+      "server": "119.15.89.87",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇱🇦-Unknown | SOCKS4+TCP | 4568ms | UP | NATIVE",
+      "server": "202.123.183.66",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Simões_Filho | SOCKS4+TCP | 1146ms | UP | NATIVE",
+      "server": "177.85.65.177",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇾-Nicosia | SOCKS4+TCP | 3378ms | UP | NATIVE",
+      "server": "213.7.196.26",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇷🇸-Užice | SOCKS4+TCP | 2024ms | UP | NATIVE",
+      "server": "91.150.77.58",
+      "server_port": 56921,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 5297ms | UP | NATIVE",
+      "server": "202.166.196.105",
+      "server_port": 48293,
       "version": "4"
     },
     {
