@@ -31,17 +31,6 @@ def patch_runner_for_nest_asyncio():
 # Apply the patch immediately
 patch_runner_for_nest_asyncio()
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for each test session."""
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-    yield loop
-    # Do not close the loop if it was already running (e.g. in some environments)
-    # loop.close()
-
 @pytest.fixture(scope="function")
 def isolate_asyncio():
     """
