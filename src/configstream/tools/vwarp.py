@@ -93,7 +93,7 @@ class VwarpTool:
                 async with httpx.AsyncClient(follow_redirects=True, timeout=60.0) as client:
                     resp = await client.get(VWARP_URL)
                     resp.raise_for_status()
-                    content = resp.read()
+                    content = resp.content
 
                 # Verify Checksum
                 digest = hashlib.sha256(content).hexdigest()
@@ -103,19 +103,19 @@ class VwarpTool:
 
                 # Extract
                 with zipfile.ZipFile(BytesIO(content)) as zf:
-                    # Find the vwarp binary in the zip
-                    vwarp_member = None
-                    for name in zf.namelist():
-                        if name.endswith("vwarp") and not name.startswith("__MACOSX"):
-                            vwarp_member = name
+                    # Find the vwarp binary in the zip using exact filename match
+                    vwarp_member_info = None
+                    for member_info in zf.infolist():
+                        if not member_info.is_dir() and Path(member_info.filename).name == "vwarp":
+                            vwarp_member_info = member_info
                             break
 
-                    if not vwarp_member:
+                    if not vwarp_member_info:
                         logger.error("Vwarp binary not found in zip archive")
                         return False
 
                     # Extract to target path
-                    with zf.open(vwarp_member) as source, open(target_path, "wb") as target:
+                    with zf.open(vwarp_member_info) as source, open(target_path, "wb") as target:
                         shutil.copyfileobj(source, target)
 
                 # Make executable

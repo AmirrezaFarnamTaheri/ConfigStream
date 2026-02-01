@@ -319,17 +319,15 @@ def generate_categorized_outputs(
                     _append_chain(copy.deepcopy(chain))
 
     if chain_outbounds:
+        chains_config_content = generate_singbox_config([], extra_outbounds=chain_outbounds)
+
         chains_path = output_dir / "singbox-chains.json"
-        AtomicFileWriter.write_text(
-            chains_path, generate_singbox_config([], extra_outbounds=chain_outbounds)
-        )
+        AtomicFileWriter.write_text(chains_path, chains_config_content)
         generated_files["singbox_chains"] = chains_path
 
         # [FIX] Alias: also save as chains.json if requested
         chains_alias_path = output_dir / "chains.json"
-        AtomicFileWriter.write_text(
-            chains_alias_path, generate_singbox_config([], extra_outbounds=chain_outbounds)
-        )
+        AtomicFileWriter.write_text(chains_alias_path, chains_config_content)
         generated_files["chains"] = chains_alias_path
 
     logger.info(f"Generated {len(generated_files)} output files.")
