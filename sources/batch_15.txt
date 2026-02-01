@@ -1,0 +1,35 @@
+# ConfigStream Batch 15
+# Optimized based on fetch duration for equal execution times
+# Est. Fetch Time: 806.0s
+
+# From Batch 6
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-3.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks4.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/master/nodes/merged.txt
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-3.txt
+https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_trojan.txt
+https://raw.githubusercontent.com/du5/free/master/file/0407/clash.yaml
+
+# From Batch 10
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_2.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/https.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/refs/heads/main/nodes/wenode.txt
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-7.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/main/my.txt
+https://raw.githubusercontent.com/du5/free/master/file/0407/clash2.yaml
+
+# From Batch 11
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-10.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_3.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub1.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/http.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/wenode.yaml
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-1.txt
+
+# From Batch 12
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-4.txt
+https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/protocols/ss.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_2.txt
+https://raw.githubusercontent.com/barry-far/V2ray-config/main/Sub6.txt
+https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks5.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/v2rayshare.yaml

@@ -74,3 +74,10 @@ https://proxyorbit.com/api/all
 https://free.proxy-sale.com/api/front/main/proxy/export
 https://raw.githubusercontent.com/tjyu010/jiedian/main/21
 https://freeproxy.world/?type=&anonymity=&country=&speed=&port=&uptime=90
+# Redistributed from Batch 12
+https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-5.txt
+https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/mobile.txt
+https://raw.githubusercontent.com/du5/free/master/file/0906/surge.conf
+https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG/refs/heads/main/T,H
+https://raw.githubusercontent.com/MhdiTaheri/V2rayCollector/refs/heads/main/sub/vmess
+https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/reality

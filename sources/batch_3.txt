@@ -74,3 +74,10 @@ https://raw.githubusercontent.com/JieErJingFu/FreeNodesV2RayorTrojan_20210113-/m
 https://proxyspeedy.com/api/all
 https://aliveproxy.com/proxy-list/
 https://raw.githubusercontent.com/Ashkan-m/v2ray/refs/heads/main/VIP.txt
+# Redistributed from Batch 6
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/refs/heads/main/mtn/sub_1.txt
+https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mtn/sub_3.txt
+https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/hy2
+https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Trojan.txt
+https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/temporary
+https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/normal/hysteria2
