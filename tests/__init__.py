@@ -7,6 +7,7 @@ import sys
 # This patches asyncio.Runner.run (and backports) to allow nested execution
 # if a loop is already running.
 
+
 def patch_runner_run():
     runners_to_patch = []
 
@@ -17,6 +18,7 @@ def patch_runner_run():
     # Backports (used by pytest-asyncio on Py3.10)
     try:
         import backports.asyncio.runner.runner
+
         runners_to_patch.append(backports.asyncio.runner.runner.Runner)
     except ImportError:
         pass
@@ -44,5 +46,6 @@ def patch_runner_run():
 
         RunnerClass.run = patched_run
         RunnerClass._patched_by_configstream = True
+
 
 patch_runner_run()

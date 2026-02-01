@@ -361,8 +361,16 @@ def extract_config_lines(
                                         and len(pwd) <= 128
                                     ):
                                         # Use ss:// scheme if it looks like encryption method
-                                        scheme = "ss://" if "chacha" in user or "aes" in user or "rc4" in user else default_scheme
-                                        candidate = f"{scheme}{user}:{pwd}@{host}:{port_val}"
+                                        scheme = (
+                                            "ss://"
+                                            if "chacha" in user
+                                            or "aes" in user
+                                            or "rc4" in user
+                                            else default_scheme
+                                        )
+                                        candidate = (
+                                            f"{scheme}{user}:{pwd}@{host}:{port_val}"
+                                        )
 
                         # Re-validate with new format
                         if not is_plausible_proxy_config(candidate):
@@ -386,7 +394,9 @@ def extract_config_lines(
         drop_rate = (total_dropped / total_seen) if total_seen else 1.0
         # If > 90% drops are HTML, just say "Source returned HTML content"
         if html_drops > total_dropped * 0.9:
-            logger.debug(f"Source {source_url} dropped {html_drops} lines of HTML content.")
+            logger.debug(
+                f"Source {source_url} dropped {html_drops} lines of HTML content."
+            )
         else:
             log_method = logger.warning if drop_rate > 0.5 else logger.debug
             if len(configs) > 0:
