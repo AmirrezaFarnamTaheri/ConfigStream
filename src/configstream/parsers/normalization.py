@@ -81,7 +81,11 @@ def normalize_proxy_details(proxy: Proxy) -> None:
 
     # 5. [FIX] Normalize Reality Fields (pbk, sid)
     # Map aliases like publicKey -> pbk, shortId -> sid
-    if security == "reality" or proxy.details.get("pbk") or proxy.details.get("publicKey"):
+    if (
+        security == "reality"
+        or proxy.details.get("pbk")
+        or proxy.details.get("publicKey")
+    ):
         # PBK Normalization
         if "pbk" not in proxy.details:
             if "publicKey" in proxy.details:

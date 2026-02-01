@@ -11,6 +11,7 @@ from pathlib import Path
 # Apply nest_asyncio globally
 nest_asyncio.apply()
 
+
 @pytest.fixture(scope="function")
 def event_loop():
     """
@@ -25,6 +26,7 @@ def event_loop():
     asyncio.set_event_loop(None)
     loop.close()
 
+
 @pytest.fixture(scope="function")
 def isolate_asyncio():
     """
@@ -37,6 +39,7 @@ def isolate_asyncio():
     yield loop
     asyncio.set_event_loop(None)
     loop.close()
+
 
 @pytest.fixture(scope="session")
 def http_server():

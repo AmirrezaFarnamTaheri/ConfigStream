@@ -319,7 +319,9 @@ def generate_categorized_outputs(
                     _append_chain(copy.deepcopy(chain))
 
     if chain_outbounds:
-        chains_config_content = generate_singbox_config([], extra_outbounds=chain_outbounds)
+        chains_config_content = generate_singbox_config(
+            [], extra_outbounds=chain_outbounds
+        )
 
         chains_path = output_dir / "singbox-chains.json"
         AtomicFileWriter.write_text(chains_path, chains_config_content)
