@@ -177,12 +177,12 @@ class VwarpTool:
             )
             return []
 
-        if not await self.is_available():
+        if not await self.is_available() or not self.binary:
             logger.debug("❌ Vwarp binary missing. Cannot scan.")
             return []
 
         # Command: vwarp --scan --rtt 800ms --verbose
-        cmd = [self.binary, "--scan", "--rtt", rtt_limit]
+        cmd: List[str] = [self.binary, "--scan", "--rtt", rtt_limit]
 
         try:
             logger.info("📡 Starting Vwarp active scanner...")
@@ -259,10 +259,10 @@ class VwarpTool:
         """
         Exports a MASQUE-enabled Sing-box configuration.
         """
-        if not await self.is_available():
+        if not await self.is_available() or not self.binary:
             return {}
 
-        cmd = [self.binary, "--export-singbox", "--masque-preset", preset]
+        cmd: List[str] = [self.binary, "--export-singbox", "--masque-preset", preset]
         try:
             proc = await asyncio.create_subprocess_exec(
                 *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
@@ -300,14 +300,14 @@ class VwarpTool:
         """
         Starts the Vwarp SOCKS5 tunnel in the background.
         """
-        if not await self.is_available():
+        if not await self.is_available() or not self.binary:
             return False
 
         if self._tunnel_proc:
             # Already running
             return True
 
-        cmd = [self.binary, "--bind", f"{bind_addr}:{port}"]
+        cmd: List[str] = [self.binary, "--bind", f"{bind_addr}:{port}"]
         try:
             logger.info(f"🚀 Starting Vwarp SOCKS5 Tunnel on {bind_addr}:{port}...")
             # Capture stdout/stderr for debugging if it fails

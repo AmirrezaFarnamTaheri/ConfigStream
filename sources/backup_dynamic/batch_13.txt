@@ -20,7 +20,6 @@ https://raw.githubusercontent.com/du5/free/master/file/0407/clash.yaml
 https://raw.githubusercontent.com/barry-far/V2ray-Config/main/Splitted-By-Protocol/ss.txt
 https://raw.githubusercontent.com/taheri79/V2rayCollector/main/sub/normal/vmess
 https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/config.txt
-https://proxyscan.io/
 https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Warp
 https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/shadowsocks
@@ -29,7 +28,6 @@ https://raw.githubusercontent.com/Epodonios/v2ray-configs/main/All_Configs_Sub.t
 https://raw.githubusercontent.com/mohamadfg-dev/telegram-v2ray-configs-collector/refs/heads/main/category/xhttp.txt
 https://raw.githubusercontent.com/w1770946466/Auto_proxy/main/Long_term_subscription_num
 https://raw.githubusercontent.com/MrMohebi/xray-proxy-grabber-telegram/refs/heads/master/collected-proxies/xray-json-full/actives_all.json
-https://openproxy.space/list
 https://raw.githubusercontent.com/TheSpeedX/PROXY-List/main/http.txt
 @ -1,59 +1,13 @@
 https://t.me/ProxyDailyChannel
@@ -37,15 +35,12 @@ https://t.me/ProxyDailyChannel
 https://raw.githubusercontent.com/itxve/fetch-clash-node/main/node/NodeShare.yaml
 https://raw.githubusercontent.com/vxiaov/free_proxy_ss/main/ssr/ssrsub
 https://free-proxy-list.net/
-https://iproyal.com/free-proxy-list
-https://proxapi.co/api/proxy?protocol=all
 https://raw.githubusercontent.com/R3ZARAHIMI/7/main/Config_jo.json
 https://www.best-proxy-list.com/
 https://www.proxynova.com/proxy-server-list/
 https://raw.githubusercontent.com/UptimerBot/proxy-list/main/proxies/socks5.txt
 https://raw.githubusercontent.com/Mahdi0024/ProxyCollector/master/sub/proxies.txt
 https://raw.githubusercontent.com/ALIILAPRO/v2rayNG-Config/main/server.txt
-https://Rayan-Config.github.io/NB
 https://raw.githubusercontent.com/pojiezhiyuanjun/freev2/master/1225.txt
 https://raw.githubusercontent.com/prxchk/proxy-list/main/socks4.txt
 https://raw.githubusercontent.com/arshiacomplus/WoW-fix/main/Xray-WoW.json

@@ -34,14 +34,8 @@ https://raw.githubusercontent.com/LonUp/NodeList/main/V2RAY/Latest_base64.txt
 https://raw.githubusercontent.com/ts-sf/fly/main/v2
 https://raw.githubusercontent.com/igeekshare/GeekshareFreeNode/main/v2ray/Geekshare.txt
 https://raw.githubusercontent.com/zhangkaiitugithub/passcro/main/sing-box.json
-https://api.openproxy.space/lists/shttp
 https://raw.githubusercontent.com/YasserDivaR/pr0xy/main/winformClash.yaml
-http://proxydb.net/
-https://geonode.com/free-proxy-list
-https://netproxylist.com/api/get?list=all
 https://proxyrack.com/free-proxy-list
-https://scys.org/proxy
-https://www.multi-proxy.com/proxylist.php
 https://raw.githubusercontent.com/AliDev-ir/FreeVPN/main/pcvpn
 https://gist.github.com/saisad387
 https://raw.githubusercontent.com/moneyfly1/sublist/main/config.yaml

@@ -11,7 +11,6 @@ https://raw.githubusercontent.com/sevcator/5ubscrpt10n/main/mini/m1n1-5ub-6.txt
 https://raw.githubusercontent.com/Sage-77/V2ray-configs/main/warp.txt
 https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_list.json
 https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.yml
-https://www.proxyscan.io/download?type=http
 https://raw.githubusercontent.com/coldwater-10/V2Hub1/main/Split/Base64/reality
 https://bitbucket.org/huwo1/proxy_nodes/raw/f31ca9ec67b84071515729ff45b011b6b09c10f2/trojan.md
 https://raw.githubusercontent.com/vxiaov/free_proxies/main/links.txt
@@ -30,7 +29,6 @@ https://gist.github.com/go4sharing/9cd241e781444d0924227c4171ccc02b/raw/d077791e
 https://raw.githubusercontent.com/xiaoji235/airport-free/master/v2ray.txt
 https://raw.githubusercontent.com/arshiacomplus/WoW-fix/main/Xray-WoW.json
 https://raw.githubusercontent.com/ermaozi01/free_clash_vpn/main/subscribe/v2ray.txt
-https://github.com/mmpx12/proxy-list
 https://raw.githubusercontent.com/ssrsub/ssr/master/clash.yaml
 http://cnproxy.com
 https://proxyway.com/free-proxy
@@ -39,6 +37,5 @@ https://sub.amiralter.com/config-lite
 https://raw.githubusercontent.com/AB-84-AB/Free-Shadowsocks/refs/heads/main/Telegram-id-AB_841
 https://vvsub.xyz/api/al/19786-xDX1SCq61Ymi
 https://raw.githubusercontent.com/pojiezhiyuanjun/2023/master/0804clash.yml
-http://www.freeproxy.win/api/proxy
 https://raw.githubusercontent.com/rootjazz/proxylist/master/proxylist.txt
 https://stackoverflow.com/questions/tagged/proxy
