@@ -39,8 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇩🇴-Unknown | HTTP+TCP | 4256ms | UP | NATIVE",
-        "🇩🇴-Guananico | HTTP+TCP | 5270ms | UP | NATIVE"
+        "🇩🇴-Mejía_de_Navarrete | HTTP+TCP | 5746ms | UP | NATIVE",
+        "🇩🇴-Santo_Domingo_Este | HTTP+TCP | 4293ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇩🇴-Unknown | HTTP+TCP | 4256ms | UP | NATIVE",
-        "🇩🇴-Guananico | HTTP+TCP | 5270ms | UP | NATIVE"
+        "🇩🇴-Mejía_de_Navarrete | HTTP+TCP | 5746ms | UP | NATIVE",
+        "🇩🇴-Santo_Domingo_Este | HTTP+TCP | 4293ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,8 +57,8 @@
     },
     {
       "type": "http",
-      "tag": "🇩🇴-Unknown | HTTP+TCP | 4256ms | UP | NATIVE",
-      "server": "38.156.14.34",
+      "tag": "🇩🇴-Mejía_de_Navarrete | HTTP+TCP | 5746ms | UP | NATIVE",
+      "server": "200.125.169.165",
       "server_port": 999,
       "username": "",
       "password": "",
@@ -68,8 +68,8 @@
     },
     {
       "type": "http",
-      "tag": "🇩🇴-Guananico | HTTP+TCP | 5270ms | UP | NATIVE",
-      "server": "190.89.38.30",
+      "tag": "🇩🇴-Santo_Domingo_Este | HTTP+TCP | 4293ms | UP | NATIVE",
+      "server": "38.123.48.50",
       "server_port": 999,
       "username": "",
       "password": "",

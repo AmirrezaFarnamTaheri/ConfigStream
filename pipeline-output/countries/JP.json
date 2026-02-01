@@ -39,42 +39,50 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇯🇵-Tokyo | SHADOWSOCKS+SS+AES-128-GCM | 319ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 318ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 319ms | UP | NATIVE",
         "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 320ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 324ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-256-GCM | 334ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 441ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 442ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 444ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+RC4-MD5 | 461ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇯🇵-Tokyo | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 481ms | UP | NATIVE",
-        "🇯🇵-Tokyo | VLESS+WS+TLS | 570ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 628ms | UP | NATIVE",
-        "🇯🇵-Osaka | VLESS+TCP+REALITY | 636ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TROJAN | 644ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 646ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 696ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 703ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 706ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 706ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 710ms | UP | NATIVE",
-        "🇯🇵-Unknown | TROJAN+TCP | 723ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 725ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 727ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 866ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VLESS+TCP+REALITY | 432ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 438ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 439ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 441ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VLESS+TCP+REALITY | 442ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 445ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 447ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-256-GCM | 448ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 450ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+RC4-MD5 | 460ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 474ms | UP | NATIVE",
+        "🇯🇵-Osaka | VLESS+TCP+REALITY | 480ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 494ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 499ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 580ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VLESS+WS+TLS | 582ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 626ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN+TLS | 644ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 700ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 702ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 711ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 712ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 722ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 726ms | UP | NATIVE",
+        "🇯🇵-Unknown | TROJAN+TCP | 728ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VMESS+WS+TLS | 743ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 869ms | UP | NATIVE",
         "🇯🇵-Tokyo | TROJAN+TROJAN | 869ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 870ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 998ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1006ms | UP | NATIVE",
-        "🇯🇵-Tokyo | VLESS+TCP+REALITY | 1971ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TROJAN | 1026ms | UP | NATIVE",
-        "🇯🇵-Yokohama | VLESS+TCP+REALITY | 3671ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 1020ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1002ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TROJAN | 1016ms | UP | NATIVE",
-        "🇯🇵-Tokyo | HTTP+TCP | 1128ms | UP | NATIVE",
-        "🇯🇵-Yokohama | HTTP+TCP | 2716ms | UP | NATIVE",
-        "🇯🇵-Tokyo | VMESS+TCP | 3713ms | UP | NATIVE | SEC:tls_required"
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 874ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 970ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 972ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 972ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 992ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1016ms | UP | NATIVE",
+        "🇯🇵-Yokohama | HTTP+TCP | 3694ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 2659ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 1011ms | UP | NATIVE",
+        "🇯🇵-Yokohama | HTTP+TCP | 1628ms | UP | NATIVE",
+        "🇯🇵-Tokyo | HTTP+TCP | 4297ms | UP | NATIVE",
+        "🇯🇵-Unknown | HTTP+TCP | 4946ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SOCKS4+TCP | 1342ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -82,42 +90,50 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇯🇵-Tokyo | SHADOWSOCKS+SS+AES-128-GCM | 319ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 318ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 319ms | UP | NATIVE",
         "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 320ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 324ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-256-GCM | 334ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 441ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 442ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 444ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+RC4-MD5 | 461ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇯🇵-Tokyo | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 481ms | UP | NATIVE",
-        "🇯🇵-Tokyo | VLESS+WS+TLS | 570ms | UP | NATIVE",
-        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 628ms | UP | NATIVE",
-        "🇯🇵-Osaka | VLESS+TCP+REALITY | 636ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TROJAN | 644ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 646ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 696ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 703ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 706ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 706ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 710ms | UP | NATIVE",
-        "🇯🇵-Unknown | TROJAN+TCP | 723ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 725ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 727ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 866ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VLESS+TCP+REALITY | 432ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 438ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 439ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 441ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VLESS+TCP+REALITY | 442ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 445ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 447ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-256-GCM | 448ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 450ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+RC4-MD5 | 460ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 474ms | UP | NATIVE",
+        "🇯🇵-Osaka | VLESS+TCP+REALITY | 480ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 494ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 499ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 580ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VLESS+WS+TLS | 582ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 626ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN+TLS | 644ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 700ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 702ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 711ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 712ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 722ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 726ms | UP | NATIVE",
+        "🇯🇵-Unknown | TROJAN+TCP | 728ms | UP | NATIVE",
+        "🇯🇵-Tokyo | VMESS+WS+TLS | 743ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 869ms | UP | NATIVE",
         "🇯🇵-Tokyo | TROJAN+TROJAN | 869ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 870ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 998ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1006ms | UP | NATIVE",
-        "🇯🇵-Tokyo | VLESS+TCP+REALITY | 1971ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TROJAN | 1026ms | UP | NATIVE",
-        "🇯🇵-Yokohama | VLESS+TCP+REALITY | 3671ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 1020ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1002ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TROJAN | 1016ms | UP | NATIVE",
-        "🇯🇵-Tokyo | HTTP+TCP | 1128ms | UP | NATIVE",
-        "🇯🇵-Yokohama | HTTP+TCP | 2716ms | UP | NATIVE",
-        "🇯🇵-Tokyo | VMESS+TCP | 3713ms | UP | NATIVE | SEC:tls_required"
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 874ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 970ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 972ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 972ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 992ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1016ms | UP | NATIVE",
+        "🇯🇵-Yokohama | HTTP+TCP | 3694ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 2659ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 1011ms | UP | NATIVE",
+        "🇯🇵-Yokohama | HTTP+TCP | 1628ms | UP | NATIVE",
+        "🇯🇵-Tokyo | HTTP+TCP | 4297ms | UP | NATIVE",
+        "🇯🇵-Unknown | HTTP+TCP | 4946ms | UP | NATIVE",
+        "🇯🇵-Tokyo | SOCKS4+TCP | 1342ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -125,8 +141,16 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+SS+AES-128-GCM | 319ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 318ms | UP | NATIVE",
       "server": "149.22.87.204",
+      "server_port": 443,
+      "method": "aes-128-gcm",
+      "password": "shadowsocks"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 319ms | UP | NATIVE",
+      "server": "149.22.87.240",
       "server_port": 443,
       "method": "aes-128-gcm",
       "password": "shadowsocks"
@@ -140,35 +164,29 @@
       "password": "shadowsocks"
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-128-GCM | 324ms | UP | NATIVE",
-      "server": "149.22.87.240",
-      "server_port": 443,
-      "method": "aes-128-gcm",
-      "password": "shadowsocks"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-256-GCM | 334ms | UP | NATIVE",
-      "server": "103.106.228.175",
-      "server_port": 8009,
-      "method": "aes-256-gcm",
-      "password": "XKFKl2rULjIp74"
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 441ms | UP | NATIVE",
-      "server": "160.16.57.238",
-      "server_port": 1933,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "type": "vless",
+      "tag": "🇯🇵-Tokyo | VLESS+TCP+REALITY | 432ms | UP | NATIVE",
+      "server": "38.60.212.251",
+      "server_port": 29059,
+      "uuid": "d706bf16-124a-417b-aaa0-0d6d5efd58fd",
+      "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "www.nintendogames.net"
+        "server_name": "mensura.cdn-apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "V_eMkcHXf237wGyfggMHHRvQqw51rW1UJPEIw_T2IE4",
+          "short_id": "6ba85179e30d4fc2"
+        }
       }
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 442ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 438ms | UP | NATIVE",
       "server": "153.121.45.139",
       "server_port": 3423,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
@@ -179,7 +197,54 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 444ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 439ms | UP | NATIVE",
+      "server": "153.121.38.213",
+      "server_port": 3423,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 441ms | UP | NATIVE",
+      "server": "154.205.139.9",
+      "server_port": 11204,
+      "method": "chacha20-ietf-poly1305",
+      "password": "303ac65e30f28b0b"
+    },
+    {
+      "type": "vless",
+      "tag": "🇯🇵-Tokyo | VLESS+TCP+REALITY | 442ms | UP | NATIVE",
+      "server": "47.245.38.111",
+      "server_port": 443,
+      "uuid": "86b414b6-966e-4f6d-ab16-32049ef732d3",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.autodesk.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "y167aJhpgWWjltY4UCir_uu8Mj__Hkc1W4etD0QXYH4",
+          "short_id": "860705e716cbe6ed"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 445ms | UP | NATIVE",
+      "server": "103.106.228.247",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 447ms | UP | NATIVE",
       "server": "57.180.246.207",
       "server_port": 1933,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
@@ -190,49 +255,42 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+RC4-MD5 | 461ms | UP | NATIVE | SEC:insecure_encryption_method",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+AES-256-GCM | 448ms | UP | NATIVE",
+      "server": "103.106.228.175",
+      "server_port": 8009,
+      "method": "aes-256-gcm",
+      "password": "XKFKl2rULjIp74"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 450ms | UP | NATIVE",
+      "server": "154.205.139.9",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "303ac65e30f28b0b"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+RC4-MD5 | 460ms | UP | NATIVE | SEC:insecure_encryption_method",
       "server": "172.105.199.111",
       "server_port": 8080,
       "method": "rc4-md5",
       "password": "14fFPrbezE3HDZzsMOr6"
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 481ms | UP | NATIVE",
-      "server": "103.106.228.247",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "vless",
-      "tag": "🇯🇵-Tokyo | VLESS+WS+TLS | 570ms | UP | NATIVE",
-      "server": "5.226.49.164",
-      "server_port": 443,
-      "uuid": "e258977b-e413-4718-a3af-02d75492c349",
-      "transport": {
-        "type": "ws",
-        "headers": {
-          "Host": "jp-aniu.xmmaa.dpdns.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 474ms | UP | NATIVE",
+      "server": "160.16.57.238",
+      "server_port": 1933,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
       "tls": {
         "enabled": true,
-        "server_name": "jp-aniu.xmmaa.dpdns.org"
+        "server_name": "www.nintendogames.net"
       }
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 628ms | UP | NATIVE",
-      "server": "103.75.118.125",
-      "server_port": 443,
-      "method": "chacha20-ietf-poly1305",
-      "password": "XLOrvLWkCBBBxLqSEe9S8lnC5PLsNfRh"
-    },
-    {
       "type": "vless",
-      "tag": "🇯🇵-Osaka | VLESS+TCP+REALITY | 636ms | UP | NATIVE",
+      "tag": "🇯🇵-Osaka | VLESS+TCP+REALITY | 480ms | UP | NATIVE",
       "server": "138.2.50.155",
       "server_port": 44073,
       "uuid": "11d29ec6-be66-4f59-97c6-7cff836ea318",
@@ -252,8 +310,58 @@
       }
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 494ms | UP | NATIVE",
+      "server": "154.205.139.9",
+      "server_port": 11205,
+      "method": "chacha20-ietf-poly1305",
+      "password": "303ac65e30f28b0b"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 499ms | UP | NATIVE",
+      "server": "154.205.139.9",
+      "server_port": 11202,
+      "method": "chacha20-ietf-poly1305",
+      "password": "303ac65e30f28b0b"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 580ms | UP | NATIVE",
+      "server": "154.205.139.9",
+      "server_port": 11203,
+      "method": "chacha20-ietf-poly1305",
+      "password": "303ac65e30f28b0b"
+    },
+    {
+      "type": "vless",
+      "tag": "🇯🇵-Tokyo | VLESS+WS+TLS | 582ms | UP | NATIVE",
+      "server": "5.226.49.164",
+      "server_port": 443,
+      "uuid": "e258977b-e413-4718-a3af-02d75492c349",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "jp-aniu.xmmaa.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "jp-aniu.xmmaa.dpdns.org"
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇯🇵-Tokyo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 626ms | UP | NATIVE",
+      "server": "103.75.118.125",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "XLOrvLWkCBBBxLqSEe9S8lnC5PLsNfRh"
+    },
+    {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 644ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN+TLS | 644ms | UP | NATIVE",
       "server": "160.16.68.250",
       "server_port": 3423,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
@@ -264,62 +372,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 646ms | UP | NATIVE",
-      "server": "153.121.38.213",
-      "server_port": 3423,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 696ms | UP | NATIVE",
-      "server": "160.16.70.180",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 703ms | UP | NATIVE",
-      "server": "160.16.72.33",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 706ms | UP | NATIVE",
-      "server": "160.16.63.16",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 706ms | UP | NATIVE",
-      "server": "160.16.150.76",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 710ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 700ms | UP | NATIVE",
       "server": "160.16.87.174",
       "server_port": 3901,
       "password": "869e9086806483ca4744a4cb0f3d6e16",
@@ -330,22 +383,10 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Unknown | TROJAN+TCP | 723ms | UP | NATIVE",
-      "server": "153.121.65.107",
-      "server_port": 3076,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 725ms | UP | NATIVE",
-      "server": "160.16.138.24",
-      "server_port": 544,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 702ms | UP | NATIVE",
+      "server": "160.16.63.16",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
       "tls": {
         "enabled": true,
         "server_name": "www.nintendogames.net"
@@ -353,7 +394,29 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 727ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 711ms | UP | NATIVE",
+      "server": "160.16.72.33",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 712ms | UP | NATIVE",
+      "server": "160.16.150.76",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 722ms | UP | NATIVE",
       "server": "160.16.116.227",
       "server_port": 544,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
@@ -364,8 +427,52 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 866ms | UP | NATIVE",
-      "server": "57.180.246.207",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 726ms | UP | NATIVE",
+      "server": "160.16.138.24",
+      "server_port": 544,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Unknown | TROJAN+TCP | 728ms | UP | NATIVE",
+      "server": "153.121.65.107",
+      "server_port": 3076,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇯🇵-Tokyo | VMESS+WS+TLS | 743ms | UP | NATIVE",
+      "server": "47.245.42.92",
+      "server_port": 443,
+      "uuid": "4f23eb7c-ef2f-43b0-90dd-f2b8a75954a5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "n1753598452.wpg27.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "n1753598452.wpg27.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 869ms | UP | NATIVE",
+      "server": "160.16.124.55",
       "server_port": 491,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
       "tls": {
@@ -386,8 +493,8 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 870ms | UP | NATIVE",
-      "server": "160.16.124.55",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 874ms | UP | NATIVE",
+      "server": "57.180.246.207",
       "server_port": 491,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
       "tls": {
@@ -397,18 +504,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 998ms | UP | NATIVE",
-      "server": "153.121.39.240",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1006ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 970ms | UP | NATIVE",
       "server": "160.16.89.176",
       "server_port": 5076,
       "password": "869e9086806483ca4744a4cb0f3d6e16",
@@ -418,71 +514,8 @@
       }
     },
     {
-      "type": "vless",
-      "tag": "🇯🇵-Tokyo | VLESS+TCP+REALITY | 1971ms | UP | NATIVE",
-      "server": "47.245.38.111",
-      "server_port": 443,
-      "uuid": "86b414b6-966e-4f6d-ab16-32049ef732d3",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.autodesk.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "y167aJhpgWWjltY4UCir_uu8Mj__Hkc1W4etD0QXYH4",
-          "short_id": "860705e716cbe6ed"
-        }
-      }
-    },
-    {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 1026ms | UP | NATIVE",
-      "server": "160.16.81.84",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇯🇵-Yokohama | VLESS+TCP+REALITY | 3671ms | UP | NATIVE",
-      "server": "116.80.58.239",
-      "server_port": 39975,
-      "uuid": "15b84012-d261-4b4c-807a-061bb4a901fd",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "cloudcircus.jp",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "qhTzYYIgBzDLNYR79oxftqdo1kzL-1_hGJKfqrOliCY",
-          "short_id": ""
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 1020ms | UP | NATIVE",
-      "server": "160.16.132.38",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1002ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 972ms | UP | NATIVE",
       "server": "160.16.85.33",
       "server_port": 5076,
       "password": "869e9086806483ca4744a4cb0f3d6e16",
@@ -493,7 +526,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 1016ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 972ms | UP | NATIVE",
       "server": "160.16.130.21",
       "server_port": 5076,
       "password": "869e9086806483ca4744a4cb0f3d6e16",
@@ -503,19 +536,30 @@
       }
     },
     {
-      "type": "http",
-      "tag": "🇯🇵-Tokyo | HTTP+TCP | 1128ms | UP | NATIVE",
-      "server": "139.162.78.109",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 992ms | UP | NATIVE",
+      "server": "160.16.132.38",
+      "server_port": 5076,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
       "tls": {
-        "enabled": false
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1016ms | UP | NATIVE",
+      "server": "153.121.39.240",
+      "server_port": 5076,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
       }
     },
     {
       "type": "http",
-      "tag": "🇯🇵-Yokohama | HTTP+TCP | 2716ms | UP | NATIVE",
+      "tag": "🇯🇵-Yokohama | HTTP+TCP | 3694ms | UP | NATIVE",
       "server": "116.80.47.45",
       "server_port": 3172,
       "username": "",
@@ -525,13 +569,67 @@
       }
     },
     {
-      "type": "vmess",
-      "tag": "🇯🇵-Tokyo | VMESS+TCP | 3713ms | UP | NATIVE | SEC:tls_required",
-      "server": "47.74.62.63",
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 2659ms | UP | NATIVE",
+      "server": "37.202.200.19",
+      "server_port": 25010,
+      "password": "09e71e3b-1f9f-44ab-9a10-02e0e10e2f05",
+      "tls": {
+        "enabled": true,
+        "server_name": "37.202.200.19",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 1011ms | UP | NATIVE",
+      "server": "160.16.81.84",
+      "server_port": 5076,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵-Yokohama | HTTP+TCP | 1628ms | UP | NATIVE",
+      "server": "116.80.45.151",
+      "server_port": 3172,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵-Tokyo | HTTP+TCP | 4297ms | UP | NATIVE",
+      "server": "1.33.246.75",
       "server_port": 8080,
-      "uuid": "28cfc3c5-5048-429e-a4fe-898269b02fc2",
-      "security": "auto",
-      "alter_id": 0
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵-Unknown | HTTP+TCP | 4946ms | UP | NATIVE",
+      "server": "157.120.34.237",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇯🇵-Tokyo | SOCKS4+TCP | 1342ms | UP | NATIVE",
+      "server": "205.177.85.130",
+      "server_port": 39593,
+      "version": "4"
     },
     {
       "type": "direct",

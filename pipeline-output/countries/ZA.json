@@ -39,11 +39,12 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
-        "🇿🇦-Johannesburg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 864ms | UP | NATIVE",
-        "🇿🇦-Durban | SOCKS4+TCP | 4481ms | UP | NATIVE",
-        "🇿🇦-Rustenburg | SOCKS5+TCP | 4580ms | UP | NATIVE",
-        "🇿🇦-Johannesburg | SOCKS4+TCP | 2655ms | UP | NATIVE"
+        "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 831ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 913ms | UP | NATIVE",
+        "🇿🇦-Nelspruit | SOCKS5+TCP | 1453ms | UP | NATIVE",
+        "🇿🇦-Unknown | HTTP+TCP | 5064ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | HTTP+TCP | 5936ms | UP | NATIVE",
+        "🇿🇦-Equestria | SOCKS4+TCP | 4359ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -51,11 +52,12 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
-        "🇿🇦-Johannesburg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 864ms | UP | NATIVE",
-        "🇿🇦-Durban | SOCKS4+TCP | 4481ms | UP | NATIVE",
-        "🇿🇦-Rustenburg | SOCKS5+TCP | 4580ms | UP | NATIVE",
-        "🇿🇦-Johannesburg | SOCKS4+TCP | 2655ms | UP | NATIVE"
+        "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 831ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 913ms | UP | NATIVE",
+        "🇿🇦-Nelspruit | SOCKS5+TCP | 1453ms | UP | NATIVE",
+        "🇿🇦-Unknown | HTTP+TCP | 5064ms | UP | NATIVE",
+        "🇿🇦-Johannesburg | HTTP+TCP | 5936ms | UP | NATIVE",
+        "🇿🇦-Equestria | SOCKS4+TCP | 4359ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -63,7 +65,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
+      "tag": "🇿🇦-Pretoria | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 831ms | UP | NATIVE",
       "server": "156.38.168.58",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -71,7 +73,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇿🇦-Johannesburg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 864ms | UP | NATIVE",
+      "tag": "🇿🇦-Johannesburg | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 913ms | UP | NATIVE",
       "server": "154.205.150.157",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -79,25 +81,40 @@
     },
     {
       "type": "socks",
-      "tag": "🇿🇦-Durban | SOCKS4+TCP | 4481ms | UP | NATIVE",
-      "server": "169.239.45.51",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇿🇦-Rustenburg | SOCKS5+TCP | 4580ms | UP | NATIVE",
-      "server": "168.253.92.93",
-      "server_port": 10808,
+      "tag": "🇿🇦-Nelspruit | SOCKS5+TCP | 1453ms | UP | NATIVE",
+      "server": "102.36.127.53",
+      "server_port": 1080,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
+      "type": "http",
+      "tag": "🇿🇦-Unknown | HTTP+TCP | 5064ms | UP | NATIVE",
+      "server": "41.185.72.62",
+      "server_port": 3030,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇿🇦-Johannesburg | HTTP+TCP | 5936ms | UP | NATIVE",
+      "server": "160.119.228.146",
+      "server_port": 12354,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇿🇦-Johannesburg | SOCKS4+TCP | 2655ms | UP | NATIVE",
-      "server": "41.169.151.154",
-      "server_port": 4153,
+      "tag": "🇿🇦-Equestria | SOCKS4+TCP | 4359ms | UP | NATIVE",
+      "server": "41.21.182.179",
+      "server_port": 5678,
       "version": "4"
     },
     {

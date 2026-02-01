@@ -39,17 +39,17 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 678ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 749ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 754ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 767ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 791ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 802ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 826ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 949ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 958ms | UP | NATIVE",
-        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 3234ms | UP | NATIVE",
-        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 3178ms | UP | NATIVE"
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 728ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 730ms | UP | NATIVE",
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 759ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 764ms | UP | NATIVE",
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 764ms | UP | NATIVE",
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 916ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 922ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 972ms | UP | NATIVE",
+        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 1104ms | UP | NATIVE",
+        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 4204ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -57,17 +57,17 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 678ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 749ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 754ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 767ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 791ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 802ms | UP | NATIVE",
-        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 826ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 949ms | UP | NATIVE",
-        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 958ms | UP | NATIVE",
-        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 3234ms | UP | NATIVE",
-        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 3178ms | UP | NATIVE"
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 728ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 730ms | UP | NATIVE",
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 759ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 764ms | UP | NATIVE",
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 764ms | UP | NATIVE",
+        "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 916ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 922ms | UP | NATIVE",
+        "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 972ms | UP | NATIVE",
+        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 1104ms | UP | NATIVE",
+        "🇸🇦-Unknown | VLESS+GRPC+REALITY | 4204ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -75,15 +75,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 678ms | UP | NATIVE",
-      "server": "163.171.207.11",
-      "server_port": 29464,
-      "method": "chacha20-ietf-poly1305",
-      "password": "cb4258dc1b53613c"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 749ms | UP | NATIVE",
+      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 728ms | UP | NATIVE",
       "server": "154.205.134.155",
       "server_port": 11651,
       "method": "chacha20-ietf-poly1305",
@@ -91,7 +83,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 754ms | UP | NATIVE",
+      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 730ms | UP | NATIVE",
+      "server": "163.171.207.11",
+      "server_port": 29461,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cb4258dc1b53613c"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 759ms | UP | NATIVE",
       "server": "154.205.134.155",
       "server_port": 24854,
       "method": "chacha20-ietf-poly1305",
@@ -99,15 +99,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 767ms | UP | NATIVE",
-      "server": "154.205.134.155",
-      "server_port": 24852,
-      "method": "chacha20-ietf-poly1305",
-      "password": "2916150efedd2d17"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 791ms | UP | NATIVE",
+      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 764ms | UP | NATIVE",
       "server": "163.171.207.11",
       "server_port": 19688,
       "method": "chacha20-ietf-poly1305",
@@ -115,15 +107,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 802ms | UP | NATIVE",
-      "server": "163.171.207.11",
-      "server_port": 29462,
-      "method": "chacha20-ietf-poly1305",
-      "password": "cb4258dc1b53613c"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 826ms | UP | NATIVE",
+      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 764ms | UP | NATIVE",
       "server": "154.205.134.155",
       "server_port": 24853,
       "method": "chacha20-ietf-poly1305",
@@ -131,7 +115,23 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 949ms | UP | NATIVE",
+      "tag": "🇸🇦-Riyadh | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 815ms | UP | NATIVE",
+      "server": "154.205.134.155",
+      "server_port": 24852,
+      "method": "chacha20-ietf-poly1305",
+      "password": "2916150efedd2d17"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 916ms | UP | NATIVE",
+      "server": "163.171.207.11",
+      "server_port": 29464,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cb4258dc1b53613c"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 922ms | UP | NATIVE",
       "server": "163.171.207.11",
       "server_port": 29463,
       "method": "chacha20-ietf-poly1305",
@@ -139,18 +139,18 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 958ms | UP | NATIVE",
+      "tag": "🇸🇦-Jeddah | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 972ms | UP | NATIVE",
       "server": "163.171.207.11",
-      "server_port": 29461,
+      "server_port": 29462,
       "method": "chacha20-ietf-poly1305",
       "password": "cb4258dc1b53613c"
     },
     {
       "type": "vless",
-      "tag": "🇸🇦-Unknown | VLESS+GRPC+REALITY | 3234ms | UP | NATIVE",
+      "tag": "🇸🇦-Unknown | VLESS+GRPC+REALITY | 1104ms | UP | NATIVE",
       "server": "81.208.170.142",
       "server_port": 1500,
-      "uuid": "sGLzG6kUwBpZd73sW0nq",
+      "uuid": "e332f028-d343-5b44-8016-b3130f39e133",
       "transport": {
         "type": "grpc"
       },
@@ -170,10 +170,10 @@
     },
     {
       "type": "vless",
-      "tag": "🇸🇦-Unknown | VLESS+GRPC+REALITY | 3178ms | UP | NATIVE",
+      "tag": "🇸🇦-Unknown | VLESS+GRPC+REALITY | 4204ms | UP | NATIVE",
       "server": "81.208.170.142",
       "server_port": 1500,
-      "uuid": "e332f028-d343-5b44-8016-b3130f39e133",
+      "uuid": "sGLzG6kUwBpZd73sW0nq",
       "transport": {
         "type": "grpc"
       },

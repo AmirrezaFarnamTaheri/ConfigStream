@@ -39,16 +39,14 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 81ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 84ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Madrid | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 407ms | UP | NATIVE",
-        "🇪🇸-Barcelona | SHADOWSOCKS+TCP+AES-256-CFB | 469ms | UP | NATIVE",
-        "🇪🇸-Ocaña | SOCKS5+TCP | 612ms | UP | NATIVE",
-        "🇪🇸-Madrid | SOCKS5+TCP | 738ms | UP | NATIVE",
-        "🇪🇸-Bilbao | SOCKS4+TCP | 895ms | UP | NATIVE",
-        "🇪🇸-Málaga | SOCKS4+TCP | 3309ms | UP | NATIVE",
-        "🇪🇸-Madrid | HTTP+TCP | 3156ms | UP | NATIVE",
-        "🇪🇸-Alcúdia | SOCKS4+TCP | 1952ms | UP | NATIVE"
+        "🇪🇸-Unknown | TROJAN+WS+TLS | 99ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸-Madrid | SHADOWSOCKS+TCP+AES-256-CFB | 343ms | UP | NATIVE",
+        "🇪🇸-Madrid | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 399ms | UP | NATIVE",
+        "🇪🇸-Barcelona | SHADOWSOCKS+TCP+AES-256-CFB | 483ms | UP | NATIVE",
+        "🇪🇸-Unknown | SOCKS5+TCP | 703ms | UP | NATIVE",
+        "🇪🇸-Bilbao | SOCKS4+TCP | 1032ms | UP | NATIVE",
+        "🇪🇸-Empuriabrava | SOCKS4+TCP | 2983ms | UP | NATIVE",
+        "🇪🇸-Empuriabrava | SOCKS4+TCP | 3539ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -56,16 +54,14 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 81ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 84ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Madrid | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 407ms | UP | NATIVE",
-        "🇪🇸-Barcelona | SHADOWSOCKS+TCP+AES-256-CFB | 469ms | UP | NATIVE",
-        "🇪🇸-Ocaña | SOCKS5+TCP | 612ms | UP | NATIVE",
-        "🇪🇸-Madrid | SOCKS5+TCP | 738ms | UP | NATIVE",
-        "🇪🇸-Bilbao | SOCKS4+TCP | 895ms | UP | NATIVE",
-        "🇪🇸-Málaga | SOCKS4+TCP | 3309ms | UP | NATIVE",
-        "🇪🇸-Madrid | HTTP+TCP | 3156ms | UP | NATIVE",
-        "🇪🇸-Alcúdia | SOCKS4+TCP | 1952ms | UP | NATIVE"
+        "🇪🇸-Unknown | TROJAN+WS+TLS | 99ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸-Madrid | SHADOWSOCKS+TCP+AES-256-CFB | 343ms | UP | NATIVE",
+        "🇪🇸-Madrid | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 399ms | UP | NATIVE",
+        "🇪🇸-Barcelona | SHADOWSOCKS+TCP+AES-256-CFB | 483ms | UP | NATIVE",
+        "🇪🇸-Unknown | SOCKS5+TCP | 703ms | UP | NATIVE",
+        "🇪🇸-Bilbao | SOCKS4+TCP | 1032ms | UP | NATIVE",
+        "🇪🇸-Empuriabrava | SOCKS4+TCP | 2983ms | UP | NATIVE",
+        "🇪🇸-Empuriabrava | SOCKS4+TCP | 3539ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -73,7 +69,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 81ms | UP | NATIVE | SEC:weak_trojan_password",
+      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 99ms | UP | NATIVE | SEC:weak_trojan_password",
       "server": "109.234.211.66",
       "server_port": 8443,
       "password": "trojan",
@@ -91,27 +87,16 @@
       }
     },
     {
-      "type": "trojan",
-      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 84ms | UP | NATIVE | SEC:weak_trojan_password",
-      "server": "109.234.211.66",
-      "server_port": 2087,
-      "password": "trojan",
-      "transport": {
-        "type": "ws",
-        "path": "/?BIA_TELEGRAM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)",
-        "headers": {
-          "Host": "store.timimi.dpdns.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "store.timimi.dpdns.org"
-      }
+      "type": "shadowsocks",
+      "tag": "🇪🇸-Madrid | SHADOWSOCKS+TCP+AES-256-CFB | 343ms | UP | NATIVE",
+      "server": "5.188.181.201",
+      "server_port": 9005,
+      "method": "aes-256-cfb",
+      "password": "ZET59LF6DvCC8KVt"
     },
     {
       "type": "shadowsocks",
-      "tag": "🇪🇸-Madrid | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 407ms | UP | NATIVE",
+      "tag": "🇪🇸-Madrid | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 399ms | UP | NATIVE",
       "server": "37.143.130.203",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -119,7 +104,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇪🇸-Barcelona | SHADOWSOCKS+TCP+AES-256-CFB | 469ms | UP | NATIVE",
+      "tag": "🇪🇸-Barcelona | SHADOWSOCKS+TCP+AES-256-CFB | 483ms | UP | NATIVE",
       "server": "45.154.206.192",
       "server_port": 989,
       "method": "aes-256-cfb",
@@ -127,52 +112,32 @@
     },
     {
       "type": "socks",
-      "tag": "🇪🇸-Ocaña | SOCKS5+TCP | 612ms | UP | NATIVE",
-      "server": "168.245.197.146",
-      "server_port": 80,
+      "tag": "🇪🇸-Unknown | SOCKS5+TCP | 703ms | UP | NATIVE",
+      "server": "82.223.165.28",
+      "server_port": 18356,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇪🇸-Madrid | SOCKS5+TCP | 738ms | UP | NATIVE",
-      "server": "143.47.59.115",
-      "server_port": 8118,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇪🇸-Bilbao | SOCKS4+TCP | 895ms | UP | NATIVE",
+      "tag": "🇪🇸-Bilbao | SOCKS4+TCP | 1032ms | UP | NATIVE",
       "server": "195.219.98.27",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇪🇸-Málaga | SOCKS4+TCP | 3309ms | UP | NATIVE",
-      "server": "77.225.198.220",
-      "server_port": 4673,
+      "tag": "🇪🇸-Empuriabrava | SOCKS4+TCP | 2983ms | UP | NATIVE",
+      "server": "185.161.186.92",
+      "server_port": 54321,
       "version": "4"
     },
     {
-      "type": "http",
-      "tag": "🇪🇸-Madrid | HTTP+TCP | 3156ms | UP | NATIVE",
-      "server": "90.174.128.42",
-      "server_port": 3128,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇪🇸-Alcúdia | SOCKS4+TCP | 1952ms | UP | NATIVE",
-      "server": "141.105.107.152",
-      "server_port": 5678,
+      "tag": "🇪🇸-Empuriabrava | SOCKS4+TCP | 3539ms | UP | NATIVE",
+      "server": "185.161.186.82",
+      "server_port": 54321,
       "version": "4"
     },
     {
