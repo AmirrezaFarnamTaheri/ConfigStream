@@ -39,7 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇺🇾-Montevideo | SOCKS4+TCP | 4261ms | UP | NATIVE"
+        "🇸🇰-Bratislava | VLESS+TCP+REALITY | 582ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,18 +47,32 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇺🇾-Montevideo | SOCKS4+TCP | 4261ms | UP | NATIVE"
+        "🇸🇰-Bratislava | VLESS+TCP+REALITY | 582ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "socks",
-      "tag": "🇺🇾-Montevideo | SOCKS4+TCP | 4261ms | UP | NATIVE",
-      "server": "179.27.86.36",
-      "server_port": 4153,
-      "version": "4"
+      "type": "vless",
+      "tag": "🇸🇰-Bratislava | VLESS+TCP+REALITY | 582ms | UP | NATIVE",
+      "server": "86.110.243.171",
+      "server_port": 25449,
+      "uuid": "0df23c07-b289-4d65-822a-228478ca73bd",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "eh.vk.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "lK8UJ7XkqXleVOC3XQRYEeXdnC37GSwCj2qHZiW87C8",
+          "short_id": ""
+        }
+      }
     },
     {
       "type": "direct",

@@ -39,44 +39,48 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 648ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 668ms | UP | NATIVE",
-        "🇮🇳-Pune | VMESS+TCP | 795ms | UP | NATIVE | SEC:tls_required",
-        "🇮🇳-Bengaluru | SHADOWSOCKS+TCP+AES-256-CFB | 810ms | UP | NATIVE",
-        "🇮🇳-Mumbai | HTTP+TCP | 866ms | UP | NATIVE",
-        "🇮🇳-Panvel | HTTP+TCP | 875ms | UP | NATIVE",
-        "🇮🇳-Mumbai | HTTP+TCP | 902ms | UP | NATIVE",
-        "🇮🇳-Unknown | VLESS+TCP+REALITY | 924ms | UP | NATIVE",
-        "🇮🇳-Bengaluru | HTTP+TCP | 943ms | UP | NATIVE",
-        "🇮🇳-Bengaluru | HTTP+TCP | 994ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3162ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SOCKS4+TCP | 1776ms | UP | NATIVE",
-        "🇮🇳-Hyderabad | SOCKS4+TCP | 5328ms | UP | NATIVE",
-        "🇮🇳-Udaipur | SOCKS4+TCP | 1991ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1956ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2091ms | UP | NATIVE",
-        "🇮🇳-Kochi | SOCKS4+TCP | 3280ms | UP | NATIVE",
-        "🇮🇳-Anuppankulam | SOCKS4+TCP | 3259ms | UP | NATIVE",
-        "🇮🇳-Bengaluru | HTTP+TCP | 1030ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5163ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2467ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3064ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1108ms | UP | NATIVE",
-        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1248ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2907ms | UP | NATIVE",
-        "🇮🇳-Kolkata | SOCKS4+TCP | 2253ms | UP | NATIVE",
-        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1068ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5200ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2566ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
-        "🇮🇳-Kumarapalayam | SOCKS4+TCP | 2098ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1178ms | UP | NATIVE",
-        "🇮🇳-Unknown | HTTP+TCP | 1013ms | UP | NATIVE",
-        "🇮🇳-Pune | VMESS+TCP | 1762ms | UP | NATIVE | SEC:tls_required",
-        "🇮🇳-Mumbai | HTTP+TCP | 5847ms | UP | NATIVE",
-        "🇮🇳-Kalyān | SOCKS4+TCP | 3922ms | UP | NATIVE",
-        "🇮🇳-Vellore | SOCKS4+TCP | 3024ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2259ms | UP | NATIVE"
+        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 700ms | UP | NATIVE",
+        "🇮🇳-Pune | VMESS+TCP | 720ms | UP | NATIVE | SEC:tls_required",
+        "🇮🇳-Bengaluru | SHADOWSOCKS+TCP+AES-256-CFB | 720ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 721ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 827ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 915ms | UP | NATIVE",
+        "🇮🇳-Panvel | VLESS+TCP+REALITY | 925ms | UP | NATIVE",
+        "🇮🇳-Bengaluru | HTTP+TCP | 1818ms | UP | NATIVE",
+        "🇮🇳-Udaipur | SOCKS4+TCP | 3030ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4347ms | UP | NATIVE",
+        "🇮🇳-Anuppankulam | SOCKS4+TCP | 4485ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 5327ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3247ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 5449ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4837ms | UP | NATIVE",
+        "🇮🇳-Bagpat | SOCKS4+TCP | 5128ms | UP | NATIVE",
+        "🇮🇳-Chennai | SOCKS4+TCP | 5146ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1087ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 1978ms | UP | NATIVE",
+        "🇮🇳-Nadiād | SOCKS4+TCP | 4160ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3242ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5279ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4166ms | UP | NATIVE",
+        "🇮🇳-Unknown | VLESS+TCP+REALITY | 1018ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 2956ms | UP | NATIVE",
+        "🇮🇳-Kalyān | SOCKS4+TCP | 4060ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+TLS | 1059ms | UP | NATIVE",
+        "🇮🇳-Mumbai | VLESS+TCP+REALITY | 1207ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5231ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3931ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS5+TCP | 2663ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1039ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 1444ms | UP | NATIVE",
+        "🇮🇳-Ankleshwar | SOCKS5+TCP | 4173ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3513ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1043ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 1056ms | UP | NATIVE",
+        "🇮🇳-Virār | SOCKS4+TCP | 1913ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+TLS | 1026ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SOCKS4+TCP | 5995ms | UP | NATIVE",
+        "🇮🇳-Bengaluru | HTTP+TCP | 1846ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 2462ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -84,44 +88,48 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 648ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 668ms | UP | NATIVE",
-        "🇮🇳-Pune | VMESS+TCP | 795ms | UP | NATIVE | SEC:tls_required",
-        "🇮🇳-Bengaluru | SHADOWSOCKS+TCP+AES-256-CFB | 810ms | UP | NATIVE",
-        "🇮🇳-Mumbai | HTTP+TCP | 866ms | UP | NATIVE",
-        "🇮🇳-Panvel | HTTP+TCP | 875ms | UP | NATIVE",
-        "🇮🇳-Mumbai | HTTP+TCP | 902ms | UP | NATIVE",
-        "🇮🇳-Unknown | VLESS+TCP+REALITY | 924ms | UP | NATIVE",
-        "🇮🇳-Bengaluru | HTTP+TCP | 943ms | UP | NATIVE",
-        "🇮🇳-Bengaluru | HTTP+TCP | 994ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3162ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SOCKS4+TCP | 1776ms | UP | NATIVE",
-        "🇮🇳-Hyderabad | SOCKS4+TCP | 5328ms | UP | NATIVE",
-        "🇮🇳-Udaipur | SOCKS4+TCP | 1991ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1956ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2091ms | UP | NATIVE",
-        "🇮🇳-Kochi | SOCKS4+TCP | 3280ms | UP | NATIVE",
-        "🇮🇳-Anuppankulam | SOCKS4+TCP | 3259ms | UP | NATIVE",
-        "🇮🇳-Bengaluru | HTTP+TCP | 1030ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5163ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2467ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 3064ms | UP | NATIVE",
-        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1108ms | UP | NATIVE",
-        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1248ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2907ms | UP | NATIVE",
-        "🇮🇳-Kolkata | SOCKS4+TCP | 2253ms | UP | NATIVE",
-        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1068ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 5200ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2566ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
-        "🇮🇳-Kumarapalayam | SOCKS4+TCP | 2098ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 1178ms | UP | NATIVE",
-        "🇮🇳-Unknown | HTTP+TCP | 1013ms | UP | NATIVE",
-        "🇮🇳-Pune | VMESS+TCP | 1762ms | UP | NATIVE | SEC:tls_required",
-        "🇮🇳-Mumbai | HTTP+TCP | 5847ms | UP | NATIVE",
-        "🇮🇳-Kalyān | SOCKS4+TCP | 3922ms | UP | NATIVE",
-        "🇮🇳-Vellore | SOCKS4+TCP | 3024ms | UP | NATIVE",
-        "🇮🇳-Unknown | SOCKS4+TCP | 2259ms | UP | NATIVE"
+        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 700ms | UP | NATIVE",
+        "🇮🇳-Pune | VMESS+TCP | 720ms | UP | NATIVE | SEC:tls_required",
+        "🇮🇳-Bengaluru | SHADOWSOCKS+TCP+AES-256-CFB | 720ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 721ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 827ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 915ms | UP | NATIVE",
+        "🇮🇳-Panvel | VLESS+TCP+REALITY | 925ms | UP | NATIVE",
+        "🇮🇳-Bengaluru | HTTP+TCP | 1818ms | UP | NATIVE",
+        "🇮🇳-Udaipur | SOCKS4+TCP | 3030ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4347ms | UP | NATIVE",
+        "🇮🇳-Anuppankulam | SOCKS4+TCP | 4485ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 5327ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3247ms | UP | NATIVE",
+        "🇮🇳-Unknown | HTTP+TCP | 5449ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4837ms | UP | NATIVE",
+        "🇮🇳-Bagpat | SOCKS4+TCP | 5128ms | UP | NATIVE",
+        "🇮🇳-Chennai | SOCKS4+TCP | 5146ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1087ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 1978ms | UP | NATIVE",
+        "🇮🇳-Nadiād | SOCKS4+TCP | 4160ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3242ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5279ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 4166ms | UP | NATIVE",
+        "🇮🇳-Unknown | VLESS+TCP+REALITY | 1018ms | UP | NATIVE",
+        "🇮🇳-Hyderabad | SOCKS4+TCP | 2956ms | UP | NATIVE",
+        "🇮🇳-Kalyān | SOCKS4+TCP | 4060ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+TLS | 1059ms | UP | NATIVE",
+        "🇮🇳-Mumbai | VLESS+TCP+REALITY | 1207ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 5231ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3931ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS5+TCP | 2663ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1039ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 1444ms | UP | NATIVE",
+        "🇮🇳-Ankleshwar | SOCKS5+TCP | 4173ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 3513ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1043ms | UP | NATIVE",
+        "🇮🇳-Mumbai | HTTP+TCP | 1056ms | UP | NATIVE",
+        "🇮🇳-Virār | SOCKS4+TCP | 1913ms | UP | NATIVE",
+        "🇮🇳-New_Delhi | VLESS+TCP+TLS | 1026ms | UP | NATIVE",
+        "🇮🇳-Mumbai | SOCKS4+TCP | 5995ms | UP | NATIVE",
+        "🇮🇳-Bengaluru | HTTP+TCP | 1846ms | UP | NATIVE",
+        "🇮🇳-Unknown | SOCKS4+TCP | 2462ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -129,15 +137,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 648ms | UP | NATIVE",
-      "server": "82.180.146.173",
-      "server_port": 35652,
-      "method": "aes-128-gcm",
-      "password": "93498539-7838-4836-b9b3-8311ffc79bcf"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 668ms | UP | NATIVE",
+      "tag": "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 700ms | UP | NATIVE",
       "server": "82.180.146.173",
       "server_port": 30607,
       "method": "aes-128-gcm",
@@ -145,7 +145,7 @@
     },
     {
       "type": "vmess",
-      "tag": "🇮🇳-Pune | VMESS+TCP | 795ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇮🇳-Pune | VMESS+TCP | 720ms | UP | NATIVE | SEC:tls_required",
       "server": "20.193.153.19",
       "server_port": 15834,
       "uuid": "39a8c374-76b1-4e90-ab85-85cd9a42ded2",
@@ -154,16 +154,24 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇮🇳-Bengaluru | SHADOWSOCKS+TCP+AES-256-CFB | 810ms | UP | NATIVE",
+      "tag": "🇮🇳-Bengaluru | SHADOWSOCKS+TCP+AES-256-CFB | 720ms | UP | NATIVE",
       "server": "134.209.147.198",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇮🇳-Mumbai | SHADOWSOCKS+TCP+AES-128-GCM | 721ms | UP | NATIVE",
+      "server": "82.180.146.173",
+      "server_port": 35652,
+      "method": "aes-128-gcm",
+      "password": "93498539-7838-4836-b9b3-8311ffc79bcf"
+    },
+    {
       "type": "http",
-      "tag": "🇮🇳-Mumbai | HTTP+TCP | 866ms | UP | NATIVE",
-      "server": "172.236.161.47",
+      "tag": "🇮🇳-Mumbai | HTTP+TCP | 827ms | UP | NATIVE",
+      "server": "172.236.163.78",
       "server_port": 3128,
       "username": "",
       "password": "",
@@ -173,20 +181,9 @@
     },
     {
       "type": "http",
-      "tag": "🇮🇳-Panvel | HTTP+TCP | 875ms | UP | NATIVE",
-      "server": "94.249.213.235",
-      "server_port": 80,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇳-Mumbai | HTTP+TCP | 902ms | UP | NATIVE",
-      "server": "34.14.143.185",
-      "server_port": 3128,
+      "tag": "🇮🇳-Unknown | HTTP+TCP | 915ms | UP | NATIVE",
+      "server": "115.114.77.133",
+      "server_port": 9090,
       "username": "",
       "password": "",
       "tls": {
@@ -195,7 +192,149 @@
     },
     {
       "type": "vless",
-      "tag": "🇮🇳-Unknown | VLESS+TCP+REALITY | 924ms | UP | NATIVE",
+      "tag": "🇮🇳-Panvel | VLESS+TCP+REALITY | 925ms | UP | NATIVE",
+      "server": "188.208.141.224",
+      "server_port": 443,
+      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "hls-svod.itunes.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
+          "short_id": "8453e5fd9af927"
+        }
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Bengaluru | HTTP+TCP | 1818ms | UP | NATIVE",
+      "server": "139.59.1.14",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Udaipur | SOCKS4+TCP | 3030ms | UP | NATIVE",
+      "server": "123.253.124.28",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 4347ms | UP | NATIVE",
+      "server": "103.231.45.145",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Anuppankulam | SOCKS4+TCP | 4485ms | UP | NATIVE",
+      "server": "45.116.114.37",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Hyderabad | SOCKS4+TCP | 5327ms | UP | NATIVE",
+      "server": "103.161.31.41",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3247ms | UP | NATIVE",
+      "server": "103.224.54.233",
+      "server_port": 31433,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳-Unknown | HTTP+TCP | 5449ms | UP | NATIVE",
+      "server": "202.62.75.241",
+      "server_port": 83,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 4837ms | UP | NATIVE",
+      "server": "45.249.79.190",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Bagpat | SOCKS4+TCP | 5128ms | UP | NATIVE",
+      "server": "43.230.196.98",
+      "server_port": 48200,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Chennai | SOCKS4+TCP | 5146ms | UP | NATIVE",
+      "server": "210.16.86.105",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇳-Mumbai | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1087ms | UP | NATIVE",
+      "server": "103.97.203.227",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1978ms | UP | NATIVE",
+      "server": "103.60.186.21",
+      "server_port": 52195,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Nadiād | SOCKS4+TCP | 4160ms | UP | NATIVE",
+      "server": "27.121.101.5",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3242ms | UP | NATIVE",
+      "server": "103.37.82.134",
+      "server_port": 39873,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5279ms | UP | NATIVE",
+      "server": "203.112.134.74",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 4166ms | UP | NATIVE",
+      "server": "103.97.94.22",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇮🇳-Unknown | VLESS+TCP+REALITY | 1018ms | UP | NATIVE",
       "server": "103.17.193.224",
       "server_port": 443,
       "uuid": "7005f499-036f-4570-a2a1-29761cfbbd9e",
@@ -215,126 +354,77 @@
       }
     },
     {
-      "type": "http",
-      "tag": "🇮🇳-Bengaluru | HTTP+TCP | 943ms | UP | NATIVE",
-      "server": "139.59.1.14",
-      "server_port": 80,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇳-Bengaluru | HTTP+TCP | 994ms | UP | NATIVE",
-      "server": "139.59.1.14",
-      "server_port": 3128,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3162ms | UP | NATIVE",
-      "server": "103.111.22.26",
-      "server_port": 58563,
+      "tag": "🇮🇳-Hyderabad | SOCKS4+TCP | 2956ms | UP | NATIVE",
+      "server": "119.235.50.246",
+      "server_port": 4153,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇮🇳-Mumbai | SOCKS4+TCP | 1776ms | UP | NATIVE",
-      "server": "103.66.233.177",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Hyderabad | SOCKS4+TCP | 5328ms | UP | NATIVE",
-      "server": "103.206.105.193",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Udaipur | SOCKS4+TCP | 1991ms | UP | NATIVE",
-      "server": "123.253.124.28",
+      "tag": "🇮🇳-Kalyān | SOCKS4+TCP | 4060ms | UP | NATIVE",
+      "server": "103.127.23.10",
       "server_port": 5678,
       "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1956ms | UP | NATIVE",
-      "server": "103.60.187.129",
-      "server_port": 52195,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2091ms | UP | NATIVE",
-      "server": "45.249.79.190",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Kochi | SOCKS4+TCP | 3280ms | UP | NATIVE",
-      "server": "45.116.230.79",
-      "server_port": 4673,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Anuppankulam | SOCKS4+TCP | 3259ms | UP | NATIVE",
-      "server": "45.116.114.37",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇳-Bengaluru | HTTP+TCP | 1030ms | UP | NATIVE",
-      "server": "139.59.1.14",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5163ms | UP | NATIVE",
-      "server": "103.53.110.45",
-      "server_port": 10801,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2467ms | UP | NATIVE",
-      "server": "146.196.63.250",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3064ms | UP | NATIVE",
-      "server": "103.143.214.77",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇮🇳-Mumbai | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1108ms | UP | NATIVE",
-      "server": "103.97.203.227",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
       "type": "vless",
-      "tag": "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1248ms | UP | NATIVE",
+      "tag": "🇮🇳-New_Delhi | VLESS+TCP+TLS | 1059ms | UP | NATIVE",
+      "server": "45.88.183.33",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "incdn1.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇮🇳-Mumbai | VLESS+TCP+REALITY | 1207ms | UP | NATIVE",
+      "server": "103.243.232.218",
+      "server_port": 443,
+      "uuid": "7005f499-036f-4570-a2a1-29761cfbbd9e",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "id.fasti.win",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "-YTGWg5DjsLDyaDfr1D83kiUK22LVcrK3yC53lqqigs",
+          "short_id": "feedbacc"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5231ms | UP | NATIVE",
+      "server": "27.116.53.9",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3931ms | UP | NATIVE",
+      "server": "103.112.234.33",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS5+TCP | 2663ms | UP | NATIVE",
+      "server": "163.53.204.178",
+      "server_port": 9813,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1039ms | UP | NATIVE",
       "server": "45.88.183.124",
       "server_port": 443,
       "uuid": "5e8e9c07-8785-46f0-b783-efe874589b05",
@@ -354,22 +444,35 @@
       }
     },
     {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2907ms | UP | NATIVE",
-      "server": "103.85.103.1",
-      "server_port": 5678,
-      "version": "4"
+      "type": "http",
+      "tag": "🇮🇳-Mumbai | HTTP+TCP | 1444ms | UP | NATIVE",
+      "server": "172.236.161.47",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "socks",
-      "tag": "🇮🇳-Kolkata | SOCKS4+TCP | 2253ms | UP | NATIVE",
-      "server": "115.187.50.40",
+      "tag": "🇮🇳-Ankleshwar | SOCKS5+TCP | 4173ms | UP | NATIVE",
+      "server": "150.129.115.253",
+      "server_port": 6667,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 3513ms | UP | NATIVE",
+      "server": "103.146.170.244",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "vless",
-      "tag": "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1068ms | UP | NATIVE",
+      "tag": "🇮🇳-New_Delhi | VLESS+TCP+REALITY | 1043ms | UP | NATIVE",
       "server": "45.88.183.100",
       "server_port": 8443,
       "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
@@ -389,64 +492,9 @@
       }
     },
     {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 5200ms | UP | NATIVE",
-      "server": "103.37.82.134",
-      "server_port": 39873,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2566ms | UP | NATIVE",
-      "server": "103.224.54.233",
-      "server_port": 31433,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1892ms | UP | NATIVE",
-      "server": "103.97.94.22",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Kumarapalayam | SOCKS4+TCP | 2098ms | UP | NATIVE",
-      "server": "103.105.40.13",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 1178ms | UP | NATIVE",
-      "server": "103.85.103.13",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
       "type": "http",
-      "tag": "🇮🇳-Unknown | HTTP+TCP | 1013ms | UP | NATIVE",
-      "server": "115.114.77.133",
-      "server_port": 9090,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇮🇳-Pune | VMESS+TCP | 1762ms | UP | NATIVE | SEC:tls_required",
-      "server": "20.193.153.19",
-      "server_port": 15834,
-      "uuid": "39a8c374-76b1-4e90-ab85-85cd9a42ded2",
-      "security": "auto",
-      "alter_id": 0
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇳-Mumbai | HTTP+TCP | 5847ms | UP | NATIVE",
-      "server": "172.236.162.80",
+      "tag": "🇮🇳-Mumbai | HTTP+TCP | 1056ms | UP | NATIVE",
+      "server": "34.14.143.185",
       "server_port": 3128,
       "username": "",
       "password": "",
@@ -456,23 +504,45 @@
     },
     {
       "type": "socks",
-      "tag": "🇮🇳-Kalyān | SOCKS4+TCP | 3922ms | UP | NATIVE",
-      "server": "103.127.23.10",
+      "tag": "🇮🇳-Virār | SOCKS4+TCP | 1913ms | UP | NATIVE",
+      "server": "103.139.246.166",
       "server_port": 5678,
       "version": "4"
     },
     {
+      "type": "vless",
+      "tag": "🇮🇳-New_Delhi | VLESS+TCP+TLS | 1026ms | UP | NATIVE",
+      "server": "45.88.183.79",
+      "server_port": 443,
+      "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
+      "tls": {
+        "enabled": true,
+        "server_name": "incdn3.suio.me"
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇮🇳-Vellore | SOCKS4+TCP | 3024ms | UP | NATIVE",
-      "server": "103.48.183.113",
+      "tag": "🇮🇳-Mumbai | SOCKS4+TCP | 5995ms | UP | NATIVE",
+      "server": "103.205.128.81",
       "server_port": 4145,
       "version": "4"
     },
     {
+      "type": "http",
+      "tag": "🇮🇳-Bengaluru | HTTP+TCP | 1846ms | UP | NATIVE",
+      "server": "139.59.1.14",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2259ms | UP | NATIVE",
-      "server": "203.112.134.74",
-      "server_port": 5678,
+      "tag": "🇮🇳-Unknown | SOCKS4+TCP | 2462ms | UP | NATIVE",
+      "server": "146.196.63.250",
+      "server_port": 4145,
       "version": "4"
     },
     {

@@ -39,11 +39,10 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇻🇪-Unknown | HTTP+TCP | 5514ms | UP | NATIVE",
-        "🇻🇪-Unknown | HTTP+TCP | 4817ms | UP | NATIVE",
-        "🇻🇪-Caracas | HTTP+TCP | 4204ms | UP | NATIVE",
-        "🇻🇪-Unknown | HTTP+TCP | 1817ms | UP | NATIVE",
-        "🇻🇪-Barquisimeto | HTTP+TCP | 5187ms | UP | NATIVE"
+        "🇻🇪-Maturín | SOCKS4+TCP | 5476ms | UP | NATIVE",
+        "🇻🇪-Valencia | HTTP+TCP | 4847ms | UP | NATIVE",
+        "🇻🇪-Caracas | HTTP+TCP | 3708ms | UP | NATIVE",
+        "🇻🇪-Puerto_Ordaz_and_San_Felix | HTTP+TCP | 1850ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -51,65 +50,49 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇻🇪-Unknown | HTTP+TCP | 5514ms | UP | NATIVE",
-        "🇻🇪-Unknown | HTTP+TCP | 4817ms | UP | NATIVE",
-        "🇻🇪-Caracas | HTTP+TCP | 4204ms | UP | NATIVE",
-        "🇻🇪-Unknown | HTTP+TCP | 1817ms | UP | NATIVE",
-        "🇻🇪-Barquisimeto | HTTP+TCP | 5187ms | UP | NATIVE"
+        "🇻🇪-Maturín | SOCKS4+TCP | 5476ms | UP | NATIVE",
+        "🇻🇪-Valencia | HTTP+TCP | 4847ms | UP | NATIVE",
+        "🇻🇪-Caracas | HTTP+TCP | 3708ms | UP | NATIVE",
+        "🇻🇪-Puerto_Ordaz_and_San_Felix | HTTP+TCP | 1850ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
+      "type": "socks",
+      "tag": "🇻🇪-Maturín | SOCKS4+TCP | 5476ms | UP | NATIVE",
+      "server": "38.188.52.210",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
       "type": "http",
-      "tag": "🇻🇪-Unknown | HTTP+TCP | 5514ms | UP | NATIVE",
-      "server": "141.136.63.126",
+      "tag": "🇻🇪-Valencia | HTTP+TCP | 4847ms | UP | NATIVE",
+      "server": "45.184.103.110",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪-Caracas | HTTP+TCP | 3708ms | UP | NATIVE",
+      "server": "190.153.22.149",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪-Puerto_Ordaz_and_San_Felix | HTTP+TCP | 1850ms | UP | NATIVE",
+      "server": "186.188.109.125",
       "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇻🇪-Unknown | HTTP+TCP | 4817ms | UP | NATIVE",
-      "server": "200.59.186.179",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇻🇪-Caracas | HTTP+TCP | 4204ms | UP | NATIVE",
-      "server": "38.41.12.89",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇻🇪-Unknown | HTTP+TCP | 1817ms | UP | NATIVE",
-      "server": "200.59.191.233",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇻🇪-Barquisimeto | HTTP+TCP | 5187ms | UP | NATIVE",
-      "server": "38.172.160.160",
-      "server_port": 999,
       "username": "",
       "password": "",
       "tls": {

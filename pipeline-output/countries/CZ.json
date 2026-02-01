@@ -39,7 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇨🇿-Znojmo | SOCKS4+TCP | 969ms | UP | NATIVE"
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
+        "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,15 +49,59 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇨🇿-Znojmo | SOCKS4+TCP | 969ms | UP | NATIVE"
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
+        "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
+      "type": "vless",
+      "tag": "🇨🇿-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
+      "server": "194.87.76.23",
+      "server_port": 8443,
+      "uuid": "9f4ffa56-6813-430c-8cac-159cc469086a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "shiftline.xyz",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "QjcIcRxF6rLpMImGD9wUYmeftFwpkuwLKm9nChbD50A",
+          "short_id": "60a0c1f0f4c9ca63"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇿-Unknown | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
+      "server": "195.133.25.187",
+      "server_port": 8443,
+      "uuid": "9f4ffa56-6813-430c-8cac-159cc469086a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "shiftline.xyz",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "QjcIcRxF6rLpMImGD9wUYmeftFwpkuwLKm9nChbD50A",
+          "short_id": "60a0c1f0f4c9ca63"
+        }
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇨🇿-Znojmo | SOCKS4+TCP | 969ms | UP | NATIVE",
+      "tag": "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE",
       "server": "90.182.147.170",
       "server_port": 4145,
       "version": "4"

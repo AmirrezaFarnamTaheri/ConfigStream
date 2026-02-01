@@ -39,26 +39,25 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇧🇩-Unknown | SOCKS4+TCP | 5070ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1519ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 2189ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 1862ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 3075ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2087ms | UP | NATIVE",
-        "🇧🇩-Mymensingh | SOCKS4+TCP | 1972ms | UP | NATIVE",
-        "🇧🇩-Unknown | HTTP+TCP | 1607ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS5+TCP | 3857ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1987ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS5+TCP | 1446ms | UP | NATIVE",
-        "🇧🇩-Unknown | HTTP+TCP | 3748ms | UP | NATIVE",
-        "🇧🇩-Dhaka | HTTP+TCP | 3770ms | UP | NATIVE",
-        "🇧🇩-Dhaka | HTTP+TCP | 1393ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2979ms | UP | NATIVE",
-        "🇧🇩-Dhaka | HTTP+TCP | 4172ms | UP | NATIVE",
-        "🇧🇩-Unknown | HTTP+TCP | 1982ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS5+TCP | 2517ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1912ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS5+TCP | 2520ms | UP | NATIVE"
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2217ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 4373ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3914ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 3168ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS5+TCP | 2522ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5282ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 5071ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3204ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 3861ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS5+TCP | 5017ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4274ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5243ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 2147ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2989ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 1678ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 3203ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 5464ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4896ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 4188ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -66,26 +65,25 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇧🇩-Unknown | SOCKS4+TCP | 5070ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1519ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 2189ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 1862ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 3075ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2087ms | UP | NATIVE",
-        "🇧🇩-Mymensingh | SOCKS4+TCP | 1972ms | UP | NATIVE",
-        "🇧🇩-Unknown | HTTP+TCP | 1607ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS5+TCP | 3857ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1987ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS5+TCP | 1446ms | UP | NATIVE",
-        "🇧🇩-Unknown | HTTP+TCP | 3748ms | UP | NATIVE",
-        "🇧🇩-Dhaka | HTTP+TCP | 3770ms | UP | NATIVE",
-        "🇧🇩-Dhaka | HTTP+TCP | 1393ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS4+TCP | 2979ms | UP | NATIVE",
-        "🇧🇩-Dhaka | HTTP+TCP | 4172ms | UP | NATIVE",
-        "🇧🇩-Unknown | HTTP+TCP | 1982ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS5+TCP | 2517ms | UP | NATIVE",
-        "🇧🇩-Dhaka | SOCKS4+TCP | 1912ms | UP | NATIVE",
-        "🇧🇩-Unknown | SOCKS5+TCP | 2520ms | UP | NATIVE"
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2217ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 4373ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3914ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 3168ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS5+TCP | 2522ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5282ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 5071ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 3204ms | UP | NATIVE",
+        "🇧🇩-Dhaka | HTTP+TCP | 3861ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS5+TCP | 5017ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4274ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 5243ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 2147ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 2989ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 1678ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 3203ms | UP | NATIVE",
+        "🇧🇩-Unknown | HTTP+TCP | 5464ms | UP | NATIVE",
+        "🇧🇩-Unknown | SOCKS4+TCP | 4896ms | UP | NATIVE",
+        "🇧🇩-Dhaka | SOCKS4+TCP | 4188ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -93,175 +91,164 @@
     },
     {
       "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 5070ms | UP | NATIVE",
-      "server": "103.9.134.114",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 2217ms | UP | NATIVE",
+      "server": "27.147.221.140",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 4373ms | UP | NATIVE",
+      "server": "103.245.109.57",
+      "server_port": 39355,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 3914ms | UP | NATIVE",
+      "server": "118.67.220.225",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 3168ms | UP | NATIVE",
+      "server": "202.40.188.2",
+      "server_port": 1088,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS5+TCP | 2522ms | UP | NATIVE",
+      "server": "103.136.107.70",
       "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 5282ms | UP | NATIVE",
+      "server": "202.40.180.22",
+      "server_port": 1088,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Dhaka | HTTP+TCP | 5071ms | UP | NATIVE",
+      "server": "182.160.110.154",
+      "server_port": 9898,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 3204ms | UP | NATIVE",
+      "server": "118.67.223.4",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Dhaka | HTTP+TCP | 3861ms | UP | NATIVE",
+      "server": "114.130.153.122",
+      "server_port": 58080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS5+TCP | 5017ms | UP | NATIVE",
+      "server": "103.118.85.144",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 4274ms | UP | NATIVE",
+      "server": "115.127.180.90",
+      "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 1519ms | UP | NATIVE",
-      "server": "119.148.23.210",
-      "server_port": 9990,
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 5243ms | UP | NATIVE",
+      "server": "202.74.48.66",
+      "server_port": 1088,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 2189ms | UP | NATIVE",
-      "server": "103.66.176.45",
-      "server_port": 32251,
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 2147ms | UP | NATIVE",
+      "server": "58.147.171.12",
+      "server_port": 10801,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 1862ms | UP | NATIVE",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 2989ms | UP | NATIVE",
+      "server": "121.200.60.122",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 1678ms | UP | NATIVE",
+      "server": "59.153.17.46",
+      "server_port": 20909,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 3203ms | UP | NATIVE",
+      "server": "43.225.151.30",
+      "server_port": 20505,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩-Unknown | HTTP+TCP | 5464ms | UP | NATIVE",
+      "server": "119.18.145.51",
+      "server_port": 4126,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 4896ms | UP | NATIVE",
       "server": "202.40.179.18",
       "server_port": 4145,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 3075ms | UP | NATIVE",
-      "server": "203.188.245.98",
-      "server_port": 52837,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 2087ms | UP | NATIVE",
-      "server": "103.82.8.189",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Mymensingh | SOCKS4+TCP | 1972ms | UP | NATIVE",
-      "server": "27.123.254.158",
-      "server_port": 6969,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇩-Unknown | HTTP+TCP | 1607ms | UP | NATIVE",
-      "server": "59.153.19.197",
-      "server_port": 20909,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS5+TCP | 3857ms | UP | NATIVE",
-      "server": "115.127.107.106",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 1987ms | UP | NATIVE",
-      "server": "27.147.221.140",
+      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 4188ms | UP | NATIVE",
+      "server": "123.200.6.58",
       "server_port": 5678,
       "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS5+TCP | 1446ms | UP | NATIVE",
-      "server": "103.189.218.158",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇩-Unknown | HTTP+TCP | 3748ms | UP | NATIVE",
-      "server": "59.153.18.93",
-      "server_port": 20909,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇩-Dhaka | HTTP+TCP | 3770ms | UP | NATIVE",
-      "server": "27.147.137.234",
-      "server_port": 9108,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇩-Dhaka | HTTP+TCP | 1393ms | UP | NATIVE",
-      "server": "123.200.7.190",
-      "server_port": 2314,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS4+TCP | 2979ms | UP | NATIVE",
-      "server": "163.53.180.115",
-      "server_port": 60606,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇩-Dhaka | HTTP+TCP | 4172ms | UP | NATIVE",
-      "server": "113.11.35.242",
-      "server_port": 36909,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇩-Unknown | HTTP+TCP | 1982ms | UP | NATIVE",
-      "server": "59.153.16.214",
-      "server_port": 20909,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS5+TCP | 2517ms | UP | NATIVE",
-      "server": "103.189.218.76",
-      "server_port": 6969,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Dhaka | SOCKS4+TCP | 1912ms | UP | NATIVE",
-      "server": "121.200.60.122",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇩-Unknown | SOCKS5+TCP | 2520ms | UP | NATIVE",
-      "server": "103.118.85.146",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
     },
     {
       "type": "direct",

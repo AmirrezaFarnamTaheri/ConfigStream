@@ -39,12 +39,16 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
-        "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
-        "🇦🇱-Tirana | HTTP+TCP | 4176ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE"
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 560ms | UP | NATIVE",
+        "🇦🇱-Tirana | VMESS+WS | 805ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 867ms | UP | NATIVE",
+        "🇦🇱-Unknown | SOCKS4+TCP | 926ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 964ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5351ms | UP | NATIVE",
+        "🇦🇱-Tirana | HTTP+TCP | 5014ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5527ms | UP | NATIVE",
+        "🇦🇱-Tirana | HTTP+TCP | 5667ms | UP | NATIVE",
+        "🇦🇱-Gjirokastër | HTTP+TCP | 5622ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -52,12 +56,16 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
-        "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
-        "🇦🇱-Tirana | HTTP+TCP | 4176ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE"
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 560ms | UP | NATIVE",
+        "🇦🇱-Tirana | VMESS+WS | 805ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 867ms | UP | NATIVE",
+        "🇦🇱-Unknown | SOCKS4+TCP | 926ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 964ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5351ms | UP | NATIVE",
+        "🇦🇱-Tirana | HTTP+TCP | 5014ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5527ms | UP | NATIVE",
+        "🇦🇱-Tirana | HTTP+TCP | 5667ms | UP | NATIVE",
+        "🇦🇱-Gjirokastër | HTTP+TCP | 5622ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -65,7 +73,43 @@
     },
     {
       "type": "vless",
-      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
+      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 560ms | UP | NATIVE",
+      "server": "78.159.131.51",
+      "server_port": 443,
+      "uuid": "40ecece1-edd9-4543-99c7-529ee594135d",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.samsung.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "bonLTdEWniTF7h32iBBM4XK5CP0MhhZ0rIegMsYpbkw",
+          "short_id": "e249378d"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇦🇱-Tirana | VMESS+WS | 805ms | UP | NATIVE | SEC:tls_required",
+      "server": "45.15.170.237",
+      "server_port": 80,
+      "uuid": "820d4b4f-3357-4dc7-9381-6e5fd52b5f39",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 867ms | UP | NATIVE",
       "server": "78.159.131.5",
       "server_port": 443,
       "uuid": "83dd438b-357b-4060-a633-52e9714afabe",
@@ -86,23 +130,30 @@
     },
     {
       "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 907ms | UP | NATIVE",
-      "server": "79.106.170.126",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇱-Unknown | SOCKS4+TCP | 4463ms | UP | NATIVE",
+      "tag": "🇦🇱-Unknown | SOCKS4+TCP | 926ms | UP | NATIVE",
       "server": "185.190.90.2",
       "server_port": 4145,
       "version": "4"
     },
     {
+      "type": "socks",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 964ms | UP | NATIVE",
+      "server": "80.78.70.253",
+      "server_port": 65530,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 5351ms | UP | NATIVE",
+      "server": "80.78.77.52",
+      "server_port": 65530,
+      "version": "4"
+    },
+    {
       "type": "http",
-      "tag": "🇦🇱-Tirana | HTTP+TCP | 4176ms | UP | NATIVE",
-      "server": "217.24.245.58",
-      "server_port": 8079,
+      "tag": "🇦🇱-Tirana | HTTP+TCP | 5014ms | UP | NATIVE",
+      "server": "77.242.21.133",
+      "server_port": 8080,
       "username": "",
       "password": "",
       "tls": {
@@ -111,17 +162,32 @@
     },
     {
       "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 1474ms | UP | NATIVE",
-      "server": "80.78.78.106",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 5527ms | UP | NATIVE",
+      "server": "80.78.74.56",
       "server_port": 65530,
       "version": "4"
     },
     {
-      "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 2181ms | UP | NATIVE",
-      "server": "80.78.73.120",
-      "server_port": 65530,
-      "version": "4"
+      "type": "http",
+      "tag": "🇦🇱-Tirana | HTTP+TCP | 5667ms | UP | NATIVE",
+      "server": "77.242.21.186",
+      "server_port": 8081,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇱-Gjirokastër | HTTP+TCP | 5622ms | UP | NATIVE",
+      "server": "79.106.229.115",
+      "server_port": 8989,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "direct",

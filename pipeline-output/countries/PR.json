@@ -39,9 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 269ms | UP | NATIVE",
-        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+AES-256-CFB | 294ms | UP | NATIVE",
-        "🇵🇷-San_Juan | SOCKS4+TCP | 4997ms | UP | NATIVE"
+        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+AES-256-CFB | 263ms | UP | NATIVE",
+        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 293ms | UP | NATIVE",
+        "🇵🇷-San_Juan | SOCKS4+TCP | 3531ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,9 +49,9 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 269ms | UP | NATIVE",
-        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+AES-256-CFB | 294ms | UP | NATIVE",
-        "🇵🇷-San_Juan | SOCKS4+TCP | 4997ms | UP | NATIVE"
+        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+AES-256-CFB | 263ms | UP | NATIVE",
+        "🇵🇷-San_Juan | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 293ms | UP | NATIVE",
+        "🇵🇷-San_Juan | SOCKS4+TCP | 3531ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -59,25 +59,25 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇵🇷-San_Juan | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 269ms | UP | NATIVE",
-      "server": "185.47.255.213",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇵🇷-San_Juan | SHADOWSOCKS+TCP+AES-256-CFB | 294ms | UP | NATIVE",
+      "tag": "🇵🇷-San_Juan | SHADOWSOCKS+TCP+AES-256-CFB | 263ms | UP | NATIVE",
       "server": "185.47.255.22",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇵🇷-San_Juan | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 293ms | UP | NATIVE",
+      "server": "185.47.255.213",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
       "type": "socks",
-      "tag": "🇵🇷-San_Juan | SOCKS4+TCP | 4997ms | UP | NATIVE",
-      "server": "67.206.213.202",
-      "server_port": 55555,
+      "tag": "🇵🇷-San_Juan | SOCKS4+TCP | 3531ms | UP | NATIVE",
+      "server": "172.99.187.33",
+      "server_port": 4145,
       "version": "4"
     },
     {

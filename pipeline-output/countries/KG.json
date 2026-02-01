@@ -39,7 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇱🇺-Luxembourg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 325ms | UP | NATIVE"
+        "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,19 +47,18 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇱🇺-Luxembourg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 325ms | UP | NATIVE"
+        "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇱🇺-Luxembourg | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 325ms | UP | NATIVE",
-      "server": "45.12.144.18",
-      "server_port": 443,
-      "method": "chacha20-ietf-poly1305",
-      "password": "LQyAUItafUmmO3EZZx9UbiX6IGydSBgL"
+      "type": "socks",
+      "tag": "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE",
+      "server": "213.145.137.102",
+      "server_port": 37447,
+      "version": "4"
     },
     {
       "type": "direct",

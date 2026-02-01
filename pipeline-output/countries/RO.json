@@ -39,9 +39,10 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
-        "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
-        "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE"
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 383ms | UP | NATIVE",
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 713ms | UP | NATIVE",
+        "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,31 +50,67 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
-        "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
-        "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE"
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 383ms | UP | NATIVE",
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 713ms | UP | NATIVE",
+        "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
+      "type": "vless",
+      "tag": "🇷🇴-Unknown | VLESS+TCP+REALITY | 383ms | UP | NATIVE",
+      "server": "195.74.93.78",
+      "server_port": 443,
+      "uuid": "94a1c4c7-338e-4949-9811-85bf4eff17a2",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "germany100.zentrolamia.xyz",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "2NI1cJu3hqsuezavpbcBExl3BrcaZb-TEA3PCUlmIzo",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇷🇴-Unknown | VLESS+TCP+REALITY | 713ms | UP | NATIVE",
+      "server": "81.180.93.45",
+      "server_port": 443,
+      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "hls-svod.itunes.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
+          "short_id": "86e999a2cdc2"
+        }
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 886ms | UP | NATIVE",
+      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
       "server": "81.12.157.98",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇷🇴-Radauti | SOCKS4+TCP | 3289ms | UP | NATIVE",
-      "server": "46.214.153.223",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇷🇴-Pantelimon | SOCKS4+TCP | 2276ms | UP | NATIVE",
+      "tag": "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE",
       "server": "81.12.169.254",
       "server_port": 4153,
       "version": "4"

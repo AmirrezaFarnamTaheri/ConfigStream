@@ -39,10 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇳🇿-Wellington | VLESS+TCP+REALITY | 4625ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
-        "🇳🇿-New_Plymouth | SOCKS4+TCP | 3651ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE"
+        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE",
+        "🇳🇿-Wellington | TROJAN+RAW+TLS | 1190ms | UP | NATIVE",
+        "🇳🇿-Wellington | VLESS+TCP+REALITY | 2718ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -50,18 +49,43 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇳🇿-Wellington | VLESS+TCP+REALITY | 4625ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
-        "🇳🇿-New_Plymouth | SOCKS4+TCP | 3651ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE"
+        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE",
+        "🇳🇿-Wellington | TROJAN+RAW+TLS | 1190ms | UP | NATIVE",
+        "🇳🇿-Wellington | VLESS+TCP+REALITY | 2718ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
+      "type": "trojan",
+      "tag": "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE",
+      "server": "45.15.140.107",
+      "server_port": 19106,
+      "password": "tSk5LQoJr7F.WnRsUM4hT",
+      "tls": {
+        "enabled": true,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇿-Wellington | TROJAN+RAW+TLS | 1190ms | UP | NATIVE",
+      "server": "45.15.140.107",
+      "server_port": 19106,
+      "password": "tSk5LQoJr7F.WnRsUM4hT",
+      "tls": {
+        "enabled": true,
+        "server_name": "binaryboots.algorithmblanket.click"
+      }
+    },
+    {
       "type": "vless",
-      "tag": "🇳🇿-Wellington | VLESS+TCP+REALITY | 4625ms | UP | NATIVE",
+      "tag": "🇳🇿-Wellington | VLESS+TCP+REALITY | 2718ms | UP | NATIVE",
       "server": "45.15.140.38",
       "server_port": 28495,
       "uuid": "7e296434-2d17-48d3-928d-19eaa34aecb1",
@@ -77,39 +101,6 @@
           "public_key": "KXMH8QzaRa66F6GxOR1CanBunO2uHdJvri2zCbar2RQ",
           "short_id": "0ecc2c1392"
         }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
-      "server": "45.15.140.107",
-      "server_port": 19106,
-      "password": "tSk5LQoJr7F.WnRsUM4hT",
-      "tls": {
-        "enabled": true,
-        "server_name": "binaryboots.algorithmblanket.click"
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇿-New_Plymouth | SOCKS4+TCP | 3651ms | UP | NATIVE",
-      "server": "43.231.192.105",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE",
-      "server": "45.15.140.107",
-      "server_port": 19106,
-      "password": "tSk5LQoJr7F.WnRsUM4hT",
-      "tls": {
-        "enabled": true,
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "insecure": true
       }
     },
     {

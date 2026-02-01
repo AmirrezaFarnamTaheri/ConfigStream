@@ -39,9 +39,13 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 388ms | UP | NATIVE",
-        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 391ms | UP | NATIVE",
-        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 464ms | UP | NATIVE"
+        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 350ms | UP | NATIVE",
+        "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 403ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 454ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 538ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 628ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 685ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 1050ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,9 +53,13 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 388ms | UP | NATIVE",
-        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 391ms | UP | NATIVE",
-        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 464ms | UP | NATIVE"
+        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 350ms | UP | NATIVE",
+        "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 403ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 454ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 538ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 628ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 685ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 1050ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -59,7 +67,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 388ms | UP | NATIVE",
+      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 350ms | UP | NATIVE",
       "server": "185.193.49.88",
       "server_port": 989,
       "method": "aes-256-cfb",
@@ -67,7 +75,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 391ms | UP | NATIVE",
+      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 403ms | UP | NATIVE",
       "server": "188.214.36.155",
       "server_port": 989,
       "method": "aes-256-cfb",
@@ -75,7 +83,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 464ms | UP | NATIVE",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 454ms | UP | NATIVE",
       "server": "87.121.86.31",
       "server_port": 57516,
       "uuid": "de2708c5-6e8e-4582-85ed-98f2554e5208",
@@ -91,6 +99,90 @@
           "enabled": true,
           "public_key": "ScCsL43AFwGSI8WvpjhAE6Y9PguU49ZLbwF-6YTbrTo",
           "short_id": "c1765dd26b1e70"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 538ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "ca911bd2-e08f-42d8-aefb-3117494d3367",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Unknown | VLESS+TCP+REALITY | 628ms | UP | NATIVE",
+      "server": "185.215.186.115",
+      "server_port": 443,
+      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "hls-svod.itunes.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
+          "short_id": "48720c"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Unknown | VLESS+TCP+REALITY | 685ms | UP | NATIVE",
+      "server": "185.215.186.250",
+      "server_port": 443,
+      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "hls-svod.itunes.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
+          "short_id": "48720c"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 1050ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "3ff03067-b0dd-4361-a21f-27bb9474b9b8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
         }
       }
     },

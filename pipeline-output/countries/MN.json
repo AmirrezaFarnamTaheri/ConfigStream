@@ -39,7 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5216ms | UP | NATIVE"
+        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5360ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,7 +47,7 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5216ms | UP | NATIVE"
+        "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5360ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -55,7 +55,7 @@
     },
     {
       "type": "socks",
-      "tag": "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5216ms | UP | NATIVE",
+      "tag": "🇲🇳-Ulan_Bator | SOCKS4+TCP | 5360ms | UP | NATIVE",
       "server": "49.0.156.20",
       "server_port": 32000,
       "version": "4"

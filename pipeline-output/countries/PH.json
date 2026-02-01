@@ -39,15 +39,13 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇵🇭-Unknown | VMESS+WS | 759ms | UP | NATIVE | SEC:tls_required",
-        "🇵🇭-Manila | VMESS+WS | 965ms | UP | NATIVE | SEC:tls_required",
-        "🇵🇭-Bacoor | HTTP+TCP | 3576ms | UP | NATIVE",
-        "🇵🇭-Quezon_City | HTTP+TCP | 5474ms | UP | NATIVE",
-        "🇵🇭-Unknown | SOCKS5+TCP | 1478ms | UP | NATIVE",
-        "🇵🇭-Makati_City | SOCKS4+TCP | 5793ms | UP | NATIVE",
-        "🇵🇭-Concepcion | HTTP+TCP | 4651ms | UP | NATIVE",
-        "🇵🇭-Lahug | HTTP+TCP | 4199ms | UP | NATIVE",
-        "🇵🇭-Davao_City | HTTP+TCP | 5184ms | UP | NATIVE"
+        "🇵🇭-Unknown | VMESS+WS | 518ms | UP | NATIVE | SEC:tls_required",
+        "🇵🇭-Unknown | SOCKS5+TCP | 3071ms | UP | NATIVE",
+        "🇵🇭-Manila | VMESS+WS | 1684ms | UP | NATIVE | SEC:tls_required",
+        "🇵🇭-Manila | HTTP+TCP | 1080ms | UP | NATIVE",
+        "🇵🇭-Unknown | SOCKS5+TCP | 1453ms | UP | NATIVE",
+        "🇵🇭-Imus | HTTP+TCP | 4983ms | UP | NATIVE",
+        "🇵🇭-Manila | SOCKS5+TCP | 5980ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -55,15 +53,13 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇵🇭-Unknown | VMESS+WS | 759ms | UP | NATIVE | SEC:tls_required",
-        "🇵🇭-Manila | VMESS+WS | 965ms | UP | NATIVE | SEC:tls_required",
-        "🇵🇭-Bacoor | HTTP+TCP | 3576ms | UP | NATIVE",
-        "🇵🇭-Quezon_City | HTTP+TCP | 5474ms | UP | NATIVE",
-        "🇵🇭-Unknown | SOCKS5+TCP | 1478ms | UP | NATIVE",
-        "🇵🇭-Makati_City | SOCKS4+TCP | 5793ms | UP | NATIVE",
-        "🇵🇭-Concepcion | HTTP+TCP | 4651ms | UP | NATIVE",
-        "🇵🇭-Lahug | HTTP+TCP | 4199ms | UP | NATIVE",
-        "🇵🇭-Davao_City | HTTP+TCP | 5184ms | UP | NATIVE"
+        "🇵🇭-Unknown | VMESS+WS | 518ms | UP | NATIVE | SEC:tls_required",
+        "🇵🇭-Unknown | SOCKS5+TCP | 3071ms | UP | NATIVE",
+        "🇵🇭-Manila | VMESS+WS | 1684ms | UP | NATIVE | SEC:tls_required",
+        "🇵🇭-Manila | HTTP+TCP | 1080ms | UP | NATIVE",
+        "🇵🇭-Unknown | SOCKS5+TCP | 1453ms | UP | NATIVE",
+        "🇵🇭-Imus | HTTP+TCP | 4983ms | UP | NATIVE",
+        "🇵🇭-Manila | SOCKS5+TCP | 5980ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -71,7 +67,7 @@
     },
     {
       "type": "vmess",
-      "tag": "🇵🇭-Unknown | VMESS+WS | 759ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇵🇭-Unknown | VMESS+WS | 518ms | UP | NATIVE | SEC:tls_required",
       "server": "154.83.2.156",
       "server_port": 2086,
       "uuid": "92373ed1-78a8-4cbe-aa06-54af1edd0471",
@@ -87,8 +83,17 @@
       }
     },
     {
+      "type": "socks",
+      "tag": "🇵🇭-Unknown | SOCKS5+TCP | 3071ms | UP | NATIVE",
+      "server": "61.9.34.118",
+      "server_port": 58765,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
       "type": "vmess",
-      "tag": "🇵🇭-Manila | VMESS+WS | 965ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇵🇭-Manila | VMESS+WS | 1684ms | UP | NATIVE | SEC:tls_required",
       "server": "61.245.11.60",
       "server_port": 80,
       "uuid": "a3e3a710-79f8-4ae0-b83c-607aab40d197",
@@ -104,57 +109,8 @@
     },
     {
       "type": "http",
-      "tag": "🇵🇭-Bacoor | HTTP+TCP | 3576ms | UP | NATIVE",
-      "server": "122.52.34.247",
-      "server_port": 8082,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇵🇭-Quezon_City | HTTP+TCP | 5474ms | UP | NATIVE",
-      "server": "165.101.102.38",
-      "server_port": 8088,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇭-Unknown | SOCKS5+TCP | 1478ms | UP | NATIVE",
-      "server": "103.239.201.50",
-      "server_port": 58765,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇭-Makati_City | SOCKS4+TCP | 5793ms | UP | NATIVE",
-      "server": "124.105.55.176",
-      "server_port": 30906,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇵🇭-Concepcion | HTTP+TCP | 4651ms | UP | NATIVE",
-      "server": "119.93.198.210",
-      "server_port": 8082,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇵🇭-Lahug | HTTP+TCP | 4199ms | UP | NATIVE",
-      "server": "180.190.184.82",
+      "tag": "🇵🇭-Manila | HTTP+TCP | 1080ms | UP | NATIVE",
+      "server": "8.220.188.140",
       "server_port": 8080,
       "username": "",
       "password": "",
@@ -163,15 +119,33 @@
       }
     },
     {
+      "type": "socks",
+      "tag": "🇵🇭-Unknown | SOCKS5+TCP | 1453ms | UP | NATIVE",
+      "server": "103.239.200.226",
+      "server_port": 11,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
       "type": "http",
-      "tag": "🇵🇭-Davao_City | HTTP+TCP | 5184ms | UP | NATIVE",
-      "server": "209.146.18.132",
-      "server_port": 5050,
+      "tag": "🇵🇭-Imus | HTTP+TCP | 4983ms | UP | NATIVE",
+      "server": "49.144.28.148",
+      "server_port": 8181,
       "username": "",
       "password": "",
       "tls": {
         "enabled": false
       }
+    },
+    {
+      "type": "socks",
+      "tag": "🇵🇭-Manila | SOCKS5+TCP | 5980ms | UP | NATIVE",
+      "server": "8.212.161.91",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
     },
     {
       "type": "direct",

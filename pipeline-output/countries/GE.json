@@ -39,8 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇬🇪-Unknown | VLESS+TCP+REALITY | 610ms | UP | NATIVE",
-        "🇬🇪-Marneuli | HTTP+TCP | 1662ms | UP | NATIVE"
+        "🇬🇪-Unknown | VLESS+TCP+REALITY | 552ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +47,7 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇬🇪-Unknown | VLESS+TCP+REALITY | 610ms | UP | NATIVE",
-        "🇬🇪-Marneuli | HTTP+TCP | 1662ms | UP | NATIVE"
+        "🇬🇪-Unknown | VLESS+TCP+REALITY | 552ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,7 +55,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇬🇪-Unknown | VLESS+TCP+REALITY | 610ms | UP | NATIVE",
+      "tag": "🇬🇪-Unknown | VLESS+TCP+REALITY | 552ms | UP | NATIVE",
       "server": "77.91.74.179",
       "server_port": 8443,
       "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
@@ -74,17 +72,6 @@
           "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
           "short_id": "7cad5040"
         }
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇬🇪-Marneuli | HTTP+TCP | 1662ms | UP | NATIVE",
-      "server": "85.117.63.207",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
       }
     },
     {
