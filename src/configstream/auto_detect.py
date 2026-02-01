@@ -194,7 +194,11 @@ def auto_detect_and_parse(config: str) -> Optional[Proxy]:
                         "hysteria2": ["hysteria2", "hy2"],
                         "hysteria": ["hysteria", "hy1"],
                         "tuic": ["tuic"],
-                        "wireguard": ["wireguard", "wg", "exclave"],  # [FIX] Add exclave
+                        "wireguard": [
+                            "wireguard",
+                            "wg",
+                            "exclave",
+                        ],  # [FIX] Add exclave
                         "vmess": ["vmess"],
                         "vless": ["vless"],
                         "ss": ["ss", "ss2022"],

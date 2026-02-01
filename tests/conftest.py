@@ -1,46 +1,31 @@
 import pytest
 import asyncio
-import os
 import nest_asyncio
+import threading
+import http.server
+import socketserver
+import time
+import requests
+from pathlib import Path
 
-# Apply nest_asyncio globally for all tests to support nested event loops
-# (e.g. running pytest from inside an existing loop, or tests calling asyncio.run)
+# Apply nest_asyncio globally
 nest_asyncio.apply()
 
-# Manually patch Runner.run to support nested loops with nest_asyncio
-# This is required because nest_asyncio does not patch asyncio.Runner.run (or backports)
-def patch_runner_for_nest_asyncio():
-    try:
-        # Check if Runner exists (Python 3.11+)
-        if hasattr(asyncio, "Runner"):
-            original_run = asyncio.Runner.run
 
-            def patched_run(self, coro, *, context=None):
-                # If loop is already running, use run_until_complete
-                loop = self.get_loop()
-                if loop.is_running():
-                    # nest_asyncio patched loop.run_until_complete handles reentrancy
-                    return loop.run_until_complete(coro)
-                else:
-                    return original_run(self, coro, context=context)
-
-            asyncio.Runner.run = patched_run
-    except Exception:
-        pass
-
-# Apply the patch immediately
-patch_runner_for_nest_asyncio()
-
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def event_loop():
-    """Create an instance of the default event loop for each test session."""
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
+    """
+    Create an instance of the default event loop for each test.
+    Explicitly sets the loop as current to prevent 'Runner.run' conflicts
+    and applies nest_asyncio for reentrancy support.
+    """
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    nest_asyncio.apply(loop)
     yield loop
-    # Do not close the loop if it was already running (e.g. in some environments)
-    # loop.close()
+    asyncio.set_event_loop(None)
+    loop.close()
+
 
 @pytest.fixture(scope="function")
 def isolate_asyncio():
@@ -52,4 +37,47 @@ def isolate_asyncio():
     asyncio.set_event_loop(loop)
     nest_asyncio.apply(loop)
     yield loop
+    asyncio.set_event_loop(None)
     loop.close()
+
+
+@pytest.fixture(scope="session")
+def http_server():
+    """
+    Spins up a simple HTTP server serving the 'frontend' directory for E2E tests.
+    Returns the base URL string.
+    """
+    port = 8085
+    directory = Path("frontend").resolve()
+
+    if not directory.exists():
+        pytest.skip("Frontend directory not found")
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=str(directory), **kwargs)
+
+        def log_message(self, format, *args):
+            pass  # Silence logs
+
+    httpd = socketserver.TCPServer(("127.0.0.1", port), Handler)
+
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+
+    base_url = f"http://127.0.0.1:{port}"
+
+    # Wait for server
+    for _ in range(50):
+        try:
+            requests.get(base_url, timeout=0.5)
+            break
+        except Exception:
+            time.sleep(0.1)
+    else:
+        pytest.fail("Could not start http_server fixture")
+
+    yield base_url
+
+    httpd.shutdown()
+    httpd.server_close()
