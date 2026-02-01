@@ -272,6 +272,8 @@ class GoBatchTester:
                 # Prepare environment
                 env = os.environ.copy()
                 env["GOLOG_LOG_LEVEL"] = "error"
+                # Fix for Sing-box 1.11+ deprecation warning/fatal error
+                env["ENABLE_DEPRECATED_WIREGUARD_OUTBOUND"] = "true"
                 # Ensure temp dir is accessible
                 env["TMPDIR"] = os.environ.get("TMPDIR", "/tmp")
                 env["PATH"] = os.environ.get("PATH", "/usr/bin:/bin")
@@ -279,10 +281,14 @@ class GoBatchTester:
                 # 🚀 FORCE TRAFFIC THROUGH VWARP TUNNEL IF AVAILABLE
                 # Check environment directly as it might be set dynamically by pipeline.py
                 # or fallback to AppSettings if set globally
-                use_vwarp = (
-                    os.environ.get("USE_VWARP_TUNNEL") == "true"
-                    or settings.USE_VWARP_TUNNEL
-                )
+                # [FIX] Respect explicit disable via environment variable
+                env_vwarp = os.environ.get("USE_VWARP_TUNNEL")
+                if env_vwarp == "false":
+                    use_vwarp = False
+                elif env_vwarp == "true":
+                    use_vwarp = True
+                else:
+                    use_vwarp = settings.USE_VWARP_TUNNEL
 
                 if use_vwarp:
                     # Using Vwarp tunnel configuration from constants

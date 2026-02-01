@@ -306,7 +306,10 @@ class VwarpTool:
                 writer.close()
                 await writer.wait_closed()
                 return True
-            except (OSError, asyncio.TimeoutError, ConnectionRefusedError):
+            except (OSError, asyncio.TimeoutError, ConnectionRefusedError) as e:
+                # Log only if debug is enabled to avoid spam
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"Vwarp port check failed (retrying): {e}")
                 # Throttling: wait a bit longer or use exponential backoff to reduce CPU/Net load
                 await asyncio.sleep(1.0)
         return False

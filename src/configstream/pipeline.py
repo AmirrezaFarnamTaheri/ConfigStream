@@ -205,10 +205,14 @@ async def run_full_pipeline(
                 os.environ["USE_VWARP_TUNNEL"] = "true"
             else:
                 logger.warning(
-                    "Vwarp tunnel failed to start or did not pass health check."
+                    "Vwarp tunnel failed to start or did not pass health check. Disabling Vwarp integration."
                 )
+                os.environ["USE_VWARP_TUNNEL"] = "false"
         else:
-            logger.warning("Vwarp tunnel requested but vwarp binary is unavailable.")
+            logger.warning(
+                "Vwarp tunnel requested but vwarp binary is unavailable. Disabling Vwarp integration."
+            )
+            os.environ["USE_VWARP_TUNNEL"] = "false"
     else:
         logger.info("Vwarp tunnel disabled by configuration.")
 

@@ -52,9 +52,13 @@ var (
 	timeoutDuration time.Duration
 	urlsFlag        string
 	targetURLs      []string
+	modeFlag        string
+	limitFlag       int
 )
 
 func main() {
+	flag.StringVar(&modeFlag, "mode", "test", "Operation mode: 'test' or 'scan'")
+	flag.IntVar(&limitFlag, "limit", 50, "Limit for scan results")
 	flag.IntVar(&workersFlag, "workers", 20, "Number of concurrent workers")
 	flag.StringVar(&timeoutFlagRaw, "timeout", "10s", "Timeout duration (e.g. 10s or 10)")
 	flag.StringVar(&urlsFlag, "urls", "http://cp.cloudflare.com", "Comma-separated list of target URLs")
@@ -98,6 +102,36 @@ func main() {
 
 	log.SetOutput(os.Stderr)
 
+	if modeFlag == "scan" {
+		runScanner()
+	} else {
+		runTester()
+	}
+}
+
+func runScanner() {
+	resultsChan := make(chan scanner.ScanResult)
+
+	go func() {
+		scanner.RunScan(workersFlag, timeoutDuration, limitFlag, scanner.DefaultCidrs, resultsChan)
+		close(resultsChan)
+	}()
+
+	encoder := json.NewEncoder(os.Stdout)
+	count := 0
+
+	for res := range resultsChan {
+		if err := encoder.Encode(res); err != nil {
+			log.Printf("Encode error: %v", err)
+		}
+		count++
+		if limitFlag > 0 && count >= limitFlag {
+			break
+		}
+	}
+}
+
+func runTester() {
 	decoder := json.NewDecoder(os.Stdin)
 	encoder := json.NewEncoder(os.Stdout)
 
