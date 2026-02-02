@@ -345,13 +345,7 @@ def _merge_logs(output_dir: str) -> None:
     with consolidated.open("w", encoding="utf-8") as out_f:
         for log_path in log_files:
             out_f.write(f"===== {log_path.name} =====\n")
-            # Stream the file content
-            with log_path.open("r", encoding="utf-8", errors="ignore") as in_f:
-                while True:
-                    chunk = in_f.read(65536)  # 64KB chunks
-                    if not chunk:
-                        break
-                    out_f.write(chunk)
+            out_f.write(log_path.read_text(encoding="utf-8", errors="ignore"))
             out_f.write("\n\n")
     print(f"Wrote consolidated log to {consolidated}.")
 
