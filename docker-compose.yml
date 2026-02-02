@@ -4,6 +4,7 @@ services:
   # 1. Web Dashboard (Always Running)
   web:
     build: .
+    entrypoint: ["uvicorn", "configstream.server:app", "--host", "0.0.0.0", "--port", "8000"]
     container_name: configstream_web
     restart: unless-stopped
     ports:
@@ -13,6 +14,7 @@ services:
       - ./frontend:/app/frontend # Dev mode: hot reload frontend changes
     environment:
       - OUTPUT_DIR=/app/output
+      - FRONTEND_DIR=/app/frontend
     deploy:
       resources:
         limits:
@@ -22,7 +24,8 @@ services:
 
   # 2. Aggregator Worker (Runs Interval Loop)
   worker:
-    image: configstream_web:latest # Reuses the image built above
+    build: .  # Use same Dockerfile; override command only
+    entrypoint: ["/bin/sh", "-eu", "-c"]
     container_name: configstream_worker
     restart: unless-stopped
     volumes:
@@ -38,7 +41,7 @@ services:
 
       while true; do
         echo '🚀 Starting ConfigStream Pipeline...';
-        configstream merge --sources sources/batch_1.txt --output output/ --max-workers 30 --timeout 12 --strict;
+        python -m configstream.cli merge --sources sources/batch_1.txt --output output/ --max-workers 30 --timeout 12 --strict;
         echo '✅ Run Complete. Sleeping for 5 hours...';
         sleep 18000;
       done"
