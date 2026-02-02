@@ -3,7 +3,6 @@ import asyncio
 import logging
 import inspect
 import os
-import time
 import orjson as json
 from typing import List, Optional, Any, TYPE_CHECKING
 
@@ -506,7 +505,6 @@ async def processing_consumer(
             f"Parsed={len(parsed_batch)} "
             f"Tested={len(proxies_to_actually_test)} "
             f"Working={working_count} "
-            f"Fetch={fetch_duration:.0f}ms "
             f"Dur={full_duration_ms:.0f}ms"
         )
 
@@ -540,7 +538,7 @@ async def processing_consumer(
                     quality_tracker.record_run,
                     source,
                     {
-                        "timestamp": int(time.time()),
+                        "timestamp": int(process_end_time),
                         "duration_ms": full_duration_ms,
                         "fetched_count": fetched_count,
                         "working_count": working_count,

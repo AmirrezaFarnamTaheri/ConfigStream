@@ -455,18 +455,11 @@ async def run_full_pipeline(
             # Only if running in same process, which is rare for pipeline vs server split.
             # But we can try hitting the endpoint.
             import httpx
-            ts = stats.end_time.isoformat() if stats.end_time else datetime.now(timezone.utc).isoformat()
-            update_id = ts  # stable monotonic ordering across runs; also human-readable
-            ts_epoch = int((stats.end_time or datetime.now(timezone.utc)).timestamp())
 
             async with httpx.AsyncClient(timeout=1.0) as client:
-                headers = {}
-                if settings.ADMIN_API_KEY:
-                    headers["x-admin-api-key"] = settings.ADMIN_API_KEY
                 await client.post(
                     "http://127.0.0.1:8000/api/admin/notify-update",
-                    json={"timestamp": ts_epoch, "timestamp_iso": ts, "version": update_id},
-                    headers=headers,
+                    json={"timestamp": stats.end_time or duration},
                 )
         except (httpx.TimeoutException, httpx.ConnectError) as e:
             # Server not running or unreachable - expected in standalone mode
