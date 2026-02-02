@@ -44,7 +44,6 @@ https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output_iran/
 https://raw.githubusercontent.com/DiDiten/ScrapeAndCategorize/main/Clash/output/diditen-fetcher.yaml
 https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_vless.yaml
 https://rss-node.com/link/vqOaWFJRfbYxpAhY?mu=1
-https://www.my-proxy.com/free-proxy-list.html
 https://www.reddit.com/r/proxylist/
 https://www.haidaobot.xyz/link/QwdUmWolPN0LkThW?mu=2
 https://raw.githubusercontent.com/Jia-Pingwa/free-v2ray-merge/main/output.txt

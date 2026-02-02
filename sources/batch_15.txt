@@ -37,7 +37,6 @@ https://api.proxyscrape.com/v3/free-proxy-list/get?request=displayproxies&proxy_
 https://raw.githubusercontent.com/ImMyron/V2ray/main/Irancell
 https://raw.githubusercontent.com/dalazhi/v2ray/main/clash.yaml
 https://raw.githubusercontent.com/RX4096/proxy-list/main/online/socks5.txt
-https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/refs/heads/main/mix/sub.html
 https://raw.githubusercontent.com/Lewis-1217/FreeNodes/main/bpjzx2
 https://raw.githubusercontent.com/Danialsamadi/v2go/main/All_Configs_Sub.txt
 https://cdn.jsdelivr.net/gh/vxiaov/free_proxies@main/clash/clash.provider.yaml
@@ -46,7 +45,6 @@ https://raw.githubusercontent.com/resasanian/Mirza/main/sub
 https://alienvpn402.github.io/AlienVPN402-subscribe-servers-sing-box/
 https://www.sslproxies.org/
 https://sub.idsvip.com/link/abcd1234?clash=1
-https://www.my-proxy.com/free-proxy-list.html
 https://www.blackhatworld.com/seo/free-proxies.107026/
 https://raw.githubusercontent.com/tbbatbb/Proxy/master/dist/v2ray.config.txt
 https://raw.githubusercontent.com/Ai123999/HiddifySubs-Notorgamers/refs/heads/main/4vless_@Notorgamers.txt

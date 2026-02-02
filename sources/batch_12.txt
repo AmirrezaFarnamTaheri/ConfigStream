@@ -51,7 +51,6 @@ https://proxymlist.com/freeproxy
 https://raw.githubusercontent.com/Ai123999/WhiteeListSub/refs/heads/main/whitelistkeys
 https://check.torproject.org/torbulkexitlist
 https://raw.githubusercontent.com/bingoYB/node_processing/main/dist/all.yaml
-http://cybersyndrome.net/pla2.html
 https://rss-node.com/link/vqOaWFJRfbYxpAhY?mu=1
 https://proxy11.com/api/proxy
 https://raw.githubusercontent.com/sansorchi/sansorchi/refs/heads/main/data.txt
