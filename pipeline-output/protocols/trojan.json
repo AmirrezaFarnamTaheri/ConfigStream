@@ -39,155 +39,177 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇦🇪-Unknown | TROJAN+WS | 59ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 64ms | UP | NATIVE",
-        "🇦🇪-Unknown | TROJAN+WS+TLS | 65ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 70ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 75ms | UP | NATIVE",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 76ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 84ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇺🇸-Las_Vegas | TROJAN+GRPC+REALITY | 92ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 93ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 103ms | UP | NATIVE",
-        "🇲🇺-Unknown | TROJAN+WS+TLS | 105ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 107ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇺🇸-Phoenix | TROJAN+WS+TLS | 130ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 170ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 171ms | UP | NATIVE",
-        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 185ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 252ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 258ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 264ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 306ms | UP | NATIVE",
-        "🇬🇧-Poplar | TROJAN+TCP+TLS | 326ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 335ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 352ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 368ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 370ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 373ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 382ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+TROJAN | 387ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 391ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 392ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 396ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 398ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 399ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+TCP | 407ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 409ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 409ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 416ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+WS+TLS | 429ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 441ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 58ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 73ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 76ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 81ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 84ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 90ms | UP | NATIVE",
+        "🇪🇸-Unknown | TROJAN+WS+TLS | 97ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🌐 | TROJAN+WS+TLS | 98ms | UP | NATIVE",
+        "🇪🇸-Unknown | TROJAN+WS | 102ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇺🇸-Dallas | TROJAN+TCP+TLS | 105ms | UP | NATIVE",
+        "🇪🇸-Unknown | TROJAN+WS+TLS | 108ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇺🇸-Las_Vegas | TROJAN+GRPC+REALITY | 109ms | UP | NATIVE",
+        "🇺🇸-Dallas | TROJAN+TCP+TLS | 119ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 157ms | UP | NATIVE",
+        "🇲🇺-Unknown | TROJAN+WS+TLS | 164ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 205ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 322ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 334ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP | 336ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 338ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 340ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 344ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 359ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+TCP | 360ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+TCP | 361ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+TCP | 362ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 366ms | UP | NATIVE",
+        "🇺🇸-Phoenix | TROJAN+WS+TLS | 367ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 376ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 380ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 380ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 381ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 388ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 389ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 390ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 399ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 403ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 406ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 411ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 417ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 418ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 420ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 435ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP+TLS | 435ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 436ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP | 437ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 443ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 444ms | UP | NATIVE",
         "🇽🇽-Unknown | TROJAN+WS+TLS | 447ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 455ms | UP | NATIVE",
-        "🇳🇴-Unknown | TROJAN+TCP+TLS | 456ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 449ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 453ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 454ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 463ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 466ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 467ms | UP | NATIVE",
         "🇽🇽-Unknown | TROJAN+WS+TLS | 468ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+TCP | 470ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 472ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 476ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 477ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 478ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 486ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 502ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 509ms | UP | NATIVE",
-        "🇫🇷-Unknown | TROJAN+WS+TLS | 515ms | UP | NATIVE",
-        "🇬🇧-Poplar | TROJAN+TCP | 518ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 519ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 521ms | UP | NATIVE",
-        "🇬🇧-Poplar | TROJAN+TCP | 528ms | UP | NATIVE",
-        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 543ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 545ms | UP | NATIVE",
-        "🇫🇷-Unknown | TROJAN+WS+TLS | 549ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 553ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 560ms | UP | NATIVE",
-        "🇺🇸-Unknown | TROJAN+WS+TLS | 569ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 571ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 577ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 582ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 593ms | UP | NATIVE",
-        "🇳🇴-Unknown | TROJAN+TCP | 614ms | UP | NATIVE",
-        "🌐 | TROJAN+RAW+TLS | 616ms | UP | NATIVE",
-        "🇳🇴-Unknown | TROJAN+TCP+TLS | 618ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 631ms | UP | NATIVE",
-        "🇷🇺-Unknown | TROJAN+TCP+REALITY | 641ms | UP | NATIVE",
-        "🇺🇸-Unknown | TROJAN+WS+TLS | 641ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP+TLS | 652ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 660ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 667ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 681ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 682ms | UP | NATIVE",
-        "🌐 | TROJAN+GRPC+REALITY | 698ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 720ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 725ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 726ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 729ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 734ms | UP | NATIVE",
-        "🇯🇵-Unknown | TROJAN+TCP+TLS | 738ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 740ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 745ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 748ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 759ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 792ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP+TLS | 840ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 851ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 877ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 881ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 891ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 894ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 894ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 896ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 900ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 906ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 914ms | UP | NATIVE",
-        "🌐 | TROJAN+RAW+TLS | 931ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 957ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 972ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 984ms | UP | NATIVE",
-        "🇫🇮-Helsinki | TROJAN+TCP+REALITY | 998ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 3707ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1827ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 1117ms | UP | NATIVE",
-        "🌐 | TROJAN+TROJAN | 2733ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1535ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1005ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1424ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 2609ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1556ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1481ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1008ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1014ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1387ms | UP | NATIVE",
-        "🌐 | TROJAN+WS | 2723ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 1007ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 2026ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 1678ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 1193ms | UP | NATIVE",
-        "🇨🇭-Unknown | TROJAN+WS+TLS | 1622ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1788ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 3083ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 3649ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 4691ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 5496ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 1501ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+RAW+TLS | 1190ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1251ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 1254ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 2556ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 1907ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 1581ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1793ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 5928ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 5702ms | UP | NATIVE",
-        "🌐 | TROJAN+WS | 5082ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 5814ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 2980ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 1235ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1807ms | UP | NATIVE",
-        "🇹🇭-Bangkok | TROJAN+TCP+TLS | 1000ms | UP | NATIVE",
-        "🇫🇮-Helsinki | TROJAN+TCP+TLS | 4364ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 1012ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 1082ms | UP | NATIVE"
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 481ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+WS+TLS | 487ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 493ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 498ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 502ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 504ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 504ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 507ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+        "🇫🇷-Unknown | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 512ms | UP | NATIVE",
+        "🇺🇸-Unknown | TROJAN+WS+TLS | 521ms | UP | NATIVE",
+        "🇫🇷-Unknown | TROJAN+WS+TLS | 526ms | UP | NATIVE",
+        "🇺🇸-Unknown | TROJAN+WS+TLS | 527ms | UP | NATIVE",
+        "🇷🇺-Unknown | TROJAN+TCP+REALITY | 554ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 563ms | UP | NATIVE",
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 572ms | UP | NATIVE",
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 577ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 579ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP+TLS | 581ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 587ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 594ms | UP | NATIVE",
+        "🇫🇮-Helsinki | TROJAN+TCP+REALITY | 598ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 609ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 611ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 624ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 628ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP+TLS | 636ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 639ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 668ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 670ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 674ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 687ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 699ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 700ms | UP | NATIVE",
+        "🌐 | TROJAN+GRPC+REALITY | 705ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 706ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 712ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 713ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 715ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 718ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 721ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 724ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 728ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 728ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 728ms | UP | NATIVE",
+        "🇯🇵-Unknown | TROJAN+TROJAN | 729ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 730ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 731ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 738ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 738ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 739ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 744ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 753ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 785ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 799ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 828ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 829ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 862ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 871ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 872ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 874ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 878ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 890ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 897ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 901ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 924ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 928ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 931ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 974ms | UP | NATIVE",
+        "🇹🇭-Bangkok | TROJAN+TCP+TLS | 981ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 986ms | UP | NATIVE",
+        "🇹🇼-Taichung | TROJAN+TCP | 4789ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 1003ms | UP | NATIVE",
+        "🇫🇮-Helsinki | TROJAN+TCP+TLS | 3900ms | UP | NATIVE",
+        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 2556ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2582ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 3454ms | UP | NATIVE",
+        "🌐 | TROJAN+TROJAN | 2039ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1988ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1958ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2376ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 2706ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1300ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1020ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1017ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 4182ms | UP | NATIVE",
+        "🇫🇮-Helsinki | TROJAN+TCP+TLS | 1849ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 3782ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1962ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1219ms | UP | NATIVE",
+        "🌐 | TROJAN+TROJAN | 1443ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 4913ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 4805ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 1104ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 1707ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1379ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1702ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2594ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 1026ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 2121ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1310ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1000ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 3091ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1889ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 3537ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1398ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1459ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1790ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2470ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1802ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 5712ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1242ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -195,155 +217,177 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇦🇪-Unknown | TROJAN+WS | 59ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 64ms | UP | NATIVE",
-        "🇦🇪-Unknown | TROJAN+WS+TLS | 65ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 70ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 75ms | UP | NATIVE",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 76ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 84ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇺🇸-Las_Vegas | TROJAN+GRPC+REALITY | 92ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 93ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 103ms | UP | NATIVE",
-        "🇲🇺-Unknown | TROJAN+WS+TLS | 105ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇪🇸-Unknown | TROJAN+WS+TLS | 107ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇺🇸-Phoenix | TROJAN+WS+TLS | 130ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 170ms | UP | NATIVE | SEC:weak_trojan_password",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 171ms | UP | NATIVE",
-        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 185ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 252ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 258ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 264ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 306ms | UP | NATIVE",
-        "🇬🇧-Poplar | TROJAN+TCP+TLS | 326ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 335ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 352ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 368ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 370ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 373ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 382ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+TROJAN | 387ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 391ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 392ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 396ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 398ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 399ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+TCP | 407ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 409ms | UP | NATIVE",
-        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 409ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 416ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+WS+TLS | 429ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 441ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 58ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 73ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 76ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 81ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 84ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 90ms | UP | NATIVE",
+        "🇪🇸-Unknown | TROJAN+WS+TLS | 97ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🌐 | TROJAN+WS+TLS | 98ms | UP | NATIVE",
+        "🇪🇸-Unknown | TROJAN+WS | 102ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇺🇸-Dallas | TROJAN+TCP+TLS | 105ms | UP | NATIVE",
+        "🇪🇸-Unknown | TROJAN+WS+TLS | 108ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇺🇸-Las_Vegas | TROJAN+GRPC+REALITY | 109ms | UP | NATIVE",
+        "🇺🇸-Dallas | TROJAN+TCP+TLS | 119ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 157ms | UP | NATIVE",
+        "🇲🇺-Unknown | TROJAN+WS+TLS | 164ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 205ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 322ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 334ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP | 336ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 338ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 340ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 344ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 359ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+TCP | 360ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+TCP | 361ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+TCP | 362ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 366ms | UP | NATIVE",
+        "🇺🇸-Phoenix | TROJAN+WS+TLS | 367ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 376ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 380ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 380ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 381ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 388ms | UP | NATIVE",
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 389ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 390ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 399ms | UP | NATIVE",
+        "🇬🇧-Poplar | TROJAN+TCP+TLS | 403ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 406ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 411ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 417ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 418ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 420ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 435ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP+TLS | 435ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 436ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP | 437ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 443ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 444ms | UP | NATIVE",
         "🇽🇽-Unknown | TROJAN+WS+TLS | 447ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 455ms | UP | NATIVE",
-        "🇳🇴-Unknown | TROJAN+TCP+TLS | 456ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 449ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 453ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 454ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 463ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 466ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 467ms | UP | NATIVE",
         "🇽🇽-Unknown | TROJAN+WS+TLS | 468ms | UP | NATIVE",
-        "🇬🇧-City_of_London | TROJAN+TCP | 470ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 472ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 476ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 477ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 478ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 486ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 502ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 509ms | UP | NATIVE",
-        "🇫🇷-Unknown | TROJAN+WS+TLS | 515ms | UP | NATIVE",
-        "🇬🇧-Poplar | TROJAN+TCP | 518ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 519ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 521ms | UP | NATIVE",
-        "🇬🇧-Poplar | TROJAN+TCP | 528ms | UP | NATIVE",
-        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 543ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 545ms | UP | NATIVE",
-        "🇫🇷-Unknown | TROJAN+WS+TLS | 549ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 553ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 560ms | UP | NATIVE",
-        "🇺🇸-Unknown | TROJAN+WS+TLS | 569ms | UP | NATIVE",
-        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 571ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 577ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 582ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 593ms | UP | NATIVE",
-        "🇳🇴-Unknown | TROJAN+TCP | 614ms | UP | NATIVE",
-        "🌐 | TROJAN+RAW+TLS | 616ms | UP | NATIVE",
-        "🇳🇴-Unknown | TROJAN+TCP+TLS | 618ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 631ms | UP | NATIVE",
-        "🇷🇺-Unknown | TROJAN+TCP+REALITY | 641ms | UP | NATIVE",
-        "🇺🇸-Unknown | TROJAN+WS+TLS | 641ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP+TLS | 652ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 660ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 667ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 681ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 682ms | UP | NATIVE",
-        "🌐 | TROJAN+GRPC+REALITY | 698ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 720ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 725ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 726ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 729ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 734ms | UP | NATIVE",
-        "🇯🇵-Unknown | TROJAN+TCP+TLS | 738ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 740ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 745ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 748ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 759ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 792ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP+TLS | 840ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 851ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 877ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 881ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 891ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 894ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 894ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 896ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 900ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 906ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 914ms | UP | NATIVE",
-        "🌐 | TROJAN+RAW+TLS | 931ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 957ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 972ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 984ms | UP | NATIVE",
-        "🇫🇮-Helsinki | TROJAN+TCP+REALITY | 998ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 3707ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1827ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 1117ms | UP | NATIVE",
-        "🌐 | TROJAN+TROJAN | 2733ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1535ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1005ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1424ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 2609ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1556ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1481ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1008ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1014ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1387ms | UP | NATIVE",
-        "🌐 | TROJAN+WS | 2723ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 1007ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 2026ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 1678ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 1193ms | UP | NATIVE",
-        "🇨🇭-Unknown | TROJAN+WS+TLS | 1622ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1788ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 3083ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 3649ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 4691ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 5496ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 1501ms | UP | NATIVE",
-        "🇳🇿-Wellington | TROJAN+RAW+TLS | 1190ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1251ms | UP | NATIVE",
-        "🇽🇽-Unknown | TROJAN+WS+TLS | 1254ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 2556ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 1907ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 1581ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1793ms | UP | NATIVE",
-        "🌐 | TROJAN+WS+TLS | 5928ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 5702ms | UP | NATIVE",
-        "🌐 | TROJAN+WS | 5082ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 5814ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 2980ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP+TLS | 1235ms | UP | NATIVE",
-        "🌐 | TROJAN+TCP | 1807ms | UP | NATIVE",
-        "🇹🇭-Bangkok | TROJAN+TCP+TLS | 1000ms | UP | NATIVE",
-        "🇫🇮-Helsinki | TROJAN+TCP+TLS | 4364ms | UP | NATIVE",
-        "🇯🇵-Tokyo | TROJAN+TCP | 1012ms | UP | NATIVE",
-        "🇭🇰-Unknown | TROJAN+TCP | 1082ms | UP | NATIVE"
+        "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 481ms | UP | NATIVE",
+        "🇬🇧-City_of_London | TROJAN+WS+TLS | 487ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 493ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 498ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 502ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 504ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 504ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 507ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+        "🇫🇷-Unknown | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 512ms | UP | NATIVE",
+        "🇺🇸-Unknown | TROJAN+WS+TLS | 521ms | UP | NATIVE",
+        "🇫🇷-Unknown | TROJAN+WS+TLS | 526ms | UP | NATIVE",
+        "🇺🇸-Unknown | TROJAN+WS+TLS | 527ms | UP | NATIVE",
+        "🇷🇺-Unknown | TROJAN+TCP+REALITY | 554ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 563ms | UP | NATIVE",
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 572ms | UP | NATIVE",
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 577ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 579ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP+TLS | 581ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 587ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 594ms | UP | NATIVE",
+        "🇫🇮-Helsinki | TROJAN+TCP+REALITY | 598ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 609ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 611ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 624ms | UP | NATIVE",
+        "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 628ms | UP | NATIVE",
+        "🇳🇴-Unknown | TROJAN+TCP+TLS | 636ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 639ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 668ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 670ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 674ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 687ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 699ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 700ms | UP | NATIVE",
+        "🌐 | TROJAN+GRPC+REALITY | 705ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 706ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 712ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 713ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 715ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 718ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 721ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 724ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 728ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 728ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 728ms | UP | NATIVE",
+        "🇯🇵-Unknown | TROJAN+TROJAN | 729ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 730ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 731ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 738ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 738ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 739ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 744ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 753ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 785ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 799ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 828ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 829ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 862ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 871ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 872ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 874ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 878ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 890ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 897ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 901ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 924ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 928ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 931ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP | 974ms | UP | NATIVE",
+        "🇹🇭-Bangkok | TROJAN+TCP+TLS | 981ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 986ms | UP | NATIVE",
+        "🇹🇼-Taichung | TROJAN+TCP | 4789ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 1003ms | UP | NATIVE",
+        "🇫🇮-Helsinki | TROJAN+TCP+TLS | 3900ms | UP | NATIVE",
+        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 2556ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2582ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 3454ms | UP | NATIVE",
+        "🌐 | TROJAN+TROJAN | 2039ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1988ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1958ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2376ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 2706ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1300ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1020ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1017ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 4182ms | UP | NATIVE",
+        "🇫🇮-Helsinki | TROJAN+TCP+TLS | 1849ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 3782ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1962ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1219ms | UP | NATIVE",
+        "🌐 | TROJAN+TROJAN | 1443ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 4913ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 4805ms | UP | NATIVE",
+        "🌐 | TROJAN+WS+TLS | 1104ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 1707ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1379ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1702ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2594ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TROJAN | 1026ms | UP | NATIVE",
+        "🇽🇽-Unknown | TROJAN+WS+TLS | 2121ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1310ms | UP | NATIVE",
+        "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1000ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 3091ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1889ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP+TLS | 3537ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1398ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1459ms | UP | NATIVE",
+        "🇭🇰-Hong_Kong | TROJAN+TCP | 1790ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP+TLS | 2470ms | UP | NATIVE",
+        "🌐 | TROJAN+TCP | 1802ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 5712ms | UP | NATIVE",
+        "🇭🇰-Unknown | TROJAN+TCP | 1242ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -351,76 +395,26 @@
     },
     {
       "type": "trojan",
-      "tag": "🇦🇪-Unknown | TROJAN+WS | 59ms | UP | NATIVE",
-      "server": "94.140.0.1",
+      "tag": "🌐 | TROJAN+WS+TLS | 58ms | UP | NATIVE",
+      "server": "zzus1.til69.com",
       "server_port": 443,
-      "password": "bpb-trojan",
+      "password": "31dc19f1-0078-46fc-84eb-4e917742da47",
       "transport": {
         "type": "ws",
-        "path": "/tr?ed=2560",
+        "path": "/31dc19f1-0078-46fc-84eb-4e917742da47",
         "headers": {
-          "Host": "singbox.lu567890.us.kg",
+          "Host": "zzus1.til69.com",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "singbox.lu567890.us.kg",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
+        "server_name": "zzus1.til69.com"
       }
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 64ms | UP | NATIVE",
-      "server": "ipbaz.ping-box.com",
-      "server_port": 443,
-      "password": "bpb-trojan",
-      "transport": {
-        "type": "ws",
-        "path": "/tr?ed=2560",
-        "headers": {
-          "Host": "singbox.lu567890.us.kg",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "singbox.lu567890.us.kg",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇦🇪-Unknown | TROJAN+WS+TLS | 65ms | UP | NATIVE",
-      "server": "94.140.0.1",
-      "server_port": 443,
-      "password": "bpb-trojan",
-      "transport": {
-        "type": "ws",
-        "path": "/tr--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--Vpn_Sky--?ed=2560",
-        "headers": {
-          "Host": "singbox.lu567890.us.kg",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "singbox.lu567890.us.kg",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 70ms | UP | NATIVE",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 73ms | UP | NATIVE",
       "server": "172.67.180.227",
       "server_port": 443,
       "password": "bpb-trojan",
@@ -443,91 +437,64 @@
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 75ms | UP | NATIVE",
-      "server": "www.csgo.com",
+      "tag": "🌐 | TROJAN+WS+TLS | 76ms | UP | NATIVE",
+      "server": "zzus3.til69.com",
       "server_port": 443,
-      "password": "bpb-trojan",
+      "password": "aa38c0dc-8536-4e9e-9204-9ec41c88d8e3",
       "transport": {
         "type": "ws",
-        "path": "/tr?ed=2560",
+        "path": "/aa38c0dc-8536-4e9e-9204-9ec41c88d8e3",
         "headers": {
-          "Host": "singbox.lu567890.us.kg",
+          "Host": "zzus3.til69.com",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "singbox.lu567890.us.kg",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
+        "server_name": "zzus3.til69.com"
       }
     },
     {
       "type": "trojan",
-      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 76ms | UP | NATIVE | SEC:weak_trojan_password",
-      "server": "109.234.211.66",
-      "server_port": 8443,
-      "password": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 81ms | UP | NATIVE",
+      "server": "zzus2.til69.com",
+      "server_port": 443,
+      "password": "d4f5f530-2d3e-4cc5-9000-a86e762d195f",
       "transport": {
         "type": "ws",
-        "path": "/",
+        "path": "/d4f5f530-2d3e-4cc5-9000-a86e762d195f",
         "headers": {
-          "Host": "store.timimi.dpdns.org",
+          "Host": "zzus2.til69.com",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "store.timimi.dpdns.org"
+        "server_name": "zzus2.til69.com"
       }
     },
     {
       "type": "trojan",
-      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 84ms | UP | NATIVE | SEC:weak_trojan_password",
-      "server": "109.234.211.66",
-      "server_port": 2087,
-      "password": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 84ms | UP | NATIVE",
+      "server": "zzus4.til69.com",
+      "server_port": 443,
+      "password": "28a3f777-3a40-4641-a967-be9755b6e35a",
       "transport": {
         "type": "ws",
-        "path": "/",
+        "path": "/28a3f777-3a40-4641-a967-be9755b6e35a",
         "headers": {
-          "Host": "store.timimi.dpdns.org",
+          "Host": "zzus4.til69.com",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "store.timimi.dpdns.org"
+        "server_name": "zzus4.til69.com"
       }
     },
     {
       "type": "trojan",
-      "tag": "🇺🇸-Las_Vegas | TROJAN+GRPC+REALITY | 92ms | UP | NATIVE",
-      "server": "205.185.115.223",
-      "server_port": 19258,
-      "password": "iWnFtzMiac",
-      "transport": {
-        "type": "grpc"
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "cloudflare.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "q_lg6VnOGhN_Ow5gHtZoDv_mJp-8W7m51N6vKamsMXk",
-          "short_id": "6d7efa97b2"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 93ms | UP | NATIVE",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 90ms | UP | NATIVE",
       "server": "104.21.75.193",
       "server_port": 443,
       "password": "bpb-trojan",
@@ -550,21 +517,40 @@
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 103ms | UP | NATIVE",
-      "server": "188.114.98.0",
+      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 97ms | UP | NATIVE | SEC:weak_trojan_password",
+      "server": "109.234.211.66",
+      "server_port": 8443,
+      "password": "trojan",
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "store.timimi.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "store.timimi.dpdns.org"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 98ms | UP | NATIVE",
+      "server": "bpb-workers.wdav1979.cloudns.org",
       "server_port": 443,
       "password": "bpb-trojan",
       "transport": {
         "type": "ws",
         "path": "/tr?ed=2560",
         "headers": {
-          "Host": "singbox.lu567890.us.kg",
+          "Host": "bpb-workers.wdav1979.cloudns.org",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "singbox.lu567890.us.kg",
+        "server_name": "bpb-workers.wdav1979.cloudns.org",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
@@ -573,13 +559,13 @@
     },
     {
       "type": "trojan",
-      "tag": "🇲🇺-Unknown | TROJAN+WS+TLS | 105ms | UP | NATIVE | SEC:weak_trojan_password",
-      "server": "45.192.222.112",
+      "tag": "🇪🇸-Unknown | TROJAN+WS | 102ms | UP | NATIVE | SEC:weak_trojan_password",
+      "server": "109.234.211.66",
       "server_port": 8443,
       "password": "trojan",
       "transport": {
         "type": "ws",
-        "path": "/?ed=2560",
+        "path": "🔒",
         "headers": {
           "Host": "store.timimi.dpdns.org",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -587,22 +573,30 @@
       },
       "tls": {
         "enabled": true,
-        "server_name": "store.timimi.dpdns.org",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
+        "server_name": "store.timimi.dpdns.org"
       }
     },
     {
       "type": "trojan",
-      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 107ms | UP | NATIVE | SEC:weak_trojan_password",
+      "tag": "🇺🇸-Dallas | TROJAN+TCP+TLS | 105ms | UP | NATIVE",
+      "server": "64.94.95.115",
+      "server_port": 57142,
+      "password": "kkzh2prsyr2ik47as615",
+      "tls": {
+        "enabled": true,
+        "server_name": "static.rutube.ru",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇪🇸-Unknown | TROJAN+WS+TLS | 108ms | UP | NATIVE | SEC:weak_trojan_password",
       "server": "109.234.211.66",
       "server_port": 2087,
       "password": "trojan",
       "transport": {
         "type": "ws",
-        "path": "/?BIA_TELEGRAM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)",
+        "path": "/",
         "headers": {
           "Host": "store.timimi.dpdns.org",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -615,45 +609,42 @@
     },
     {
       "type": "trojan",
-      "tag": "🇺🇸-Phoenix | TROJAN+WS+TLS | 130ms | UP | NATIVE",
-      "server": "158.101.11.204",
-      "server_port": 15805,
-      "password": "iwangjie",
+      "tag": "🇺🇸-Las_Vegas | TROJAN+GRPC+REALITY | 109ms | UP | NATIVE",
+      "server": "205.185.115.223",
+      "server_port": 19258,
+      "password": "iWnFtzMiac",
       "transport": {
-        "type": "ws",
-        "path": "/?ed=2560",
-        "headers": {
-          "Host": "nodes.830901.xyz",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
+        "type": "grpc"
       },
       "tls": {
         "enabled": true,
-        "server_name": "nodes.830901.xyz"
+        "server_name": "cloudflare.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "q_lg6VnOGhN_Ow5gHtZoDv_mJp-8W7m51N6vKamsMXk",
+          "short_id": "6d7efa97b2"
+        }
       }
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 170ms | UP | NATIVE | SEC:weak_trojan_password",
-      "server": "22b.net",
-      "server_port": 2087,
-      "password": "trojan",
-      "transport": {
-        "type": "ws",
-        "path": "/?BIA_TELEGRAM (@AZARBAYJAB1) TM (@AZARBAYJAB1) TM (@AZARBAYJAB1) TM (@AZARBAYJAB1) TM (@AZARBAYJAB1) TM (@AZARBAYJAB1)",
-        "headers": {
-          "Host": "store.timimi.dpdns.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
+      "tag": "🇺🇸-Dallas | TROJAN+TCP+TLS | 119ms | UP | NATIVE",
+      "server": "64.94.95.114",
+      "server_port": 57142,
+      "password": "kkzh2prsyr2ik47as615",
       "tls": {
         "enabled": true,
-        "server_name": "store.timimi.dpdns.org"
+        "server_name": "static.rutube.ru",
+        "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 171ms | UP | NATIVE",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 157ms | UP | NATIVE",
       "server": "172.67.157.220",
       "server_port": 443,
       "password": "e4cbe8b8-37db-4aaa-8469-b84f34c51ebc",
@@ -676,7 +667,30 @@
     },
     {
       "type": "trojan",
-      "tag": "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 185ms | UP | NATIVE",
+      "tag": "🇲🇺-Unknown | TROJAN+WS+TLS | 164ms | UP | NATIVE | SEC:weak_trojan_password",
+      "server": "45.192.222.112",
+      "server_port": 8443,
+      "password": "trojan",
+      "transport": {
+        "type": "ws",
+        "path": "/?ed=2560",
+        "headers": {
+          "Host": "store.timimi.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "store.timimi.dpdns.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 205ms | UP | NATIVE",
       "server": "209.200.246.248",
       "server_port": 22086,
       "password": "chslToBpxJ",
@@ -699,83 +713,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 252ms | UP | NATIVE",
-      "server": "zzus4.til69.com",
-      "server_port": 443,
-      "password": "28a3f777-3a40-4641-a967-be9755b6e35a",
-      "transport": {
-        "type": "ws",
-        "path": "/28a3f777-3a40-4641-a967-be9755b6e35a",
-        "headers": {
-          "Host": "zzus4.til69.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "zzus4.til69.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 258ms | UP | NATIVE",
-      "server": "zzus3.til69.com",
-      "server_port": 443,
-      "password": "aa38c0dc-8536-4e9e-9204-9ec41c88d8e3",
-      "transport": {
-        "type": "ws",
-        "path": "/aa38c0dc-8536-4e9e-9204-9ec41c88d8e3",
-        "headers": {
-          "Host": "zzus3.til69.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "zzus3.til69.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 264ms | UP | NATIVE",
-      "server": "zzus2.til69.com",
-      "server_port": 443,
-      "password": "d4f5f530-2d3e-4cc5-9000-a86e762d195f",
-      "transport": {
-        "type": "ws",
-        "path": "/d4f5f530-2d3e-4cc5-9000-a86e762d195f",
-        "headers": {
-          "Host": "zzus2.til69.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "zzus2.til69.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 306ms | UP | NATIVE",
-      "server": "zzus1.til69.com",
-      "server_port": 443,
-      "password": "31dc19f1-0078-46fc-84eb-4e917742da47",
-      "transport": {
-        "type": "ws",
-        "path": "/31dc19f1-0078-46fc-84eb-4e917742da47",
-        "headers": {
-          "Host": "zzus1.til69.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "zzus1.til69.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇬🇧-Poplar | TROJAN+TCP+TLS | 326ms | UP | NATIVE",
+      "tag": "🇬🇧-Poplar | TROJAN+TCP+TLS | 322ms | UP | NATIVE",
       "server": "209.250.224.246",
       "server_port": 24293,
       "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
@@ -787,59 +725,111 @@
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP+TLS | 335ms | UP | NATIVE",
-      "server": "uk-1.fishchipsexpress.com",
-      "server_port": 443,
-      "password": "R8ufkVqwRZAgtwjyrA",
+      "tag": "🇬🇧-Poplar | TROJAN+TCP+TLS | 334ms | UP | NATIVE",
+      "server": "209.250.224.246",
+      "server_port": 24293,
+      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
       "tls": {
         "enabled": true,
-        "server_name": "uk-1.fishchipsexpress.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP+TLS | 352ms | UP | NATIVE",
-      "server": "uk-1.fishchipsexpress.com",
-      "server_port": 443,
-      "password": "R8ufkVqwRZAgtwjyrA",
-      "tls": {
-        "enabled": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 368ms | UP | NATIVE",
-      "server": "45.32.153.36",
-      "server_port": 20994,
-      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
-      "tls": {
-        "enabled": true,
-        "server_name": "ads.x5.ru",
         "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 370ms | UP | NATIVE",
-      "server": "172.64.152.23",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.calmlunch.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
+      "tag": "🇬🇧-Poplar | TROJAN+TCP | 336ms | UP | NATIVE",
+      "server": "108.61.175.83",
+      "server_port": 24293,
+      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
       "tls": {
         "enabled": true,
-        "server_name": "www.calmlunch.com"
+        "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 373ms | UP | NATIVE",
+      "tag": "🇬🇧-Poplar | TROJAN+TCP+TLS | 338ms | UP | NATIVE",
+      "server": "209.250.224.246",
+      "server_port": 24293,
+      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇬🇧-Poplar | TROJAN+TCP+TLS | 340ms | UP | NATIVE",
+      "server": "209.250.224.246",
+      "server_port": 24293,
+      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
+      "tls": {
+        "enabled": true,
+        "server_name": " [By DukeMehdi]",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇬🇧-Poplar | TROJAN+TCP+TLS | 344ms | UP | NATIVE",
+      "server": "209.250.224.246",
+      "server_port": 24293,
+      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 359ms | UP | NATIVE",
+      "server": "95.179.183.126",
+      "server_port": 13345,
+      "password": "Szb=-Zguo53QhmivcJqEAWtpdPX6Y",
+      "tls": {
+        "enabled": true,
+        "server_name": "infiniteinjera.semanticstrainer.click"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇬🇧-City_of_London | TROJAN+TCP | 360ms | UP | NATIVE",
+      "server": "45.89.111.142",
+      "server_port": 443,
+      "password": "7LBbob9IutFObLxLf9Svc1HaV",
+      "tls": {
+        "enabled": true,
+        "server_name": "hl-freedom-1.undef.network"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇬🇧-City_of_London | TROJAN+TCP | 361ms | UP | NATIVE",
+      "server": "45.89.111.142",
+      "server_port": 443,
+      "password": "7LBbob9IutFObLxLf9Svc1HaV",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇬🇧-City_of_London | TROJAN+TCP | 362ms | UP | NATIVE",
+      "server": "45.89.111.142",
+      "server_port": 443,
+      "password": "7LBbob9IutFObLxLf9Svc1HaV",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha]",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 366ms | UP | NATIVE",
       "server": "104.18.32.47",
       "server_port": 443,
       "password": "humanity",
@@ -859,7 +849,45 @@
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 382ms | UP | NATIVE",
+      "tag": "🇺🇸-Phoenix | TROJAN+WS+TLS | 367ms | UP | NATIVE",
+      "server": "158.101.11.204",
+      "server_port": 15805,
+      "password": "iwangjie",
+      "transport": {
+        "type": "ws",
+        "path": "/?ed=2560",
+        "headers": {
+          "Host": "nodes.830901.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "nodes.830901.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 376ms | UP | NATIVE",
+      "server": "188.114.98.0",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.calmlunch.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.calmlunch.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 380ms | UP | NATIVE",
       "server": "www.calmlunch.com",
       "server_port": 443,
       "password": "humanity",
@@ -883,19 +911,164 @@
     },
     {
       "type": "trojan",
-      "tag": "🇬🇧-City_of_London | TROJAN+TROJAN | 387ms | UP | NATIVE",
-      "server": "45.89.111.142",
-      "server_port": 443,
-      "password": "7LBbob9IutFObLxLf9Svc1HaV",
+      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 380ms | UP | NATIVE",
+      "server": "45.32.158.138",
+      "server_port": 20994,
+      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
       "tls": {
         "enabled": true,
-        "server_name": "hl-freedom-1.undef.network"
+        "server_name": "ads.x5.ru",
+        "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 391ms | UP | NATIVE",
-      "server": "chatgpt.com",
+      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 381ms | UP | NATIVE",
+      "server": "45.32.158.138",
+      "server_port": 20994,
+      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 388ms | UP | NATIVE",
+      "server": "45.32.153.36",
+      "server_port": 20994,
+      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 389ms | UP | NATIVE",
+      "server": "45.32.153.36",
+      "server_port": 20994,
+      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 390ms | UP | NATIVE",
+      "server": "104.18.8.83",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.calmlunch.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.calmlunch.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 399ms | UP | NATIVE",
+      "server": "172.64.152.23",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.calmlunch.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.calmlunch.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇬🇧-Poplar | TROJAN+TCP+TLS | 403ms | UP | NATIVE",
+      "server": "108.61.175.83",
+      "server_port": 24293,
+      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 406ms | UP | NATIVE",
+      "server": "95.179.183.126",
+      "server_port": 13345,
+      "password": "Szb=-Zguo53QhmivcJqEAWtpdPX6Y",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha]",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 411ms | UP | NATIVE",
+      "server": "172.64.152.23",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.multiplydose.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.multiplydose.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 417ms | UP | NATIVE",
+      "server": "188.114.96.3",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.multiplydose.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.multiplydose.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 418ms | UP | NATIVE",
+      "server": "188.114.98.0",
       "server_port": 443,
       "password": "humanity",
       "transport": {
@@ -917,20 +1090,144 @@
     },
     {
       "type": "trojan",
-      "tag": "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 392ms | UP | NATIVE",
-      "server": "95.179.183.126",
+      "tag": "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 420ms | UP | NATIVE",
+      "server": "45.63.40.126",
       "server_port": 13345,
       "password": "Szb=-Zguo53QhmivcJqEAWtpdPX6Y",
       "tls": {
         "enabled": true,
-        "server_name": "🔒 [By EbraSha]",
+        "server_name": "ads.x5.ru",
         "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 396ms | UP | NATIVE",
-      "server": "172.64.155.209",
+      "tag": "🌐 | TROJAN+WS+TLS | 435ms | UP | NATIVE",
+      "server": "www.multiplydose.com",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.multiplydose.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.multiplydose.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇴-Unknown | TROJAN+TCP+TLS | 435ms | UP | NATIVE",
+      "server": "83.143.87.9",
+      "server_port": 18581,
+      "password": "RPyW62_b9aH.ztJKeArou",
+      "tls": {
+        "enabled": true,
+        "server_name": "m.vk.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 436ms | UP | NATIVE",
+      "server": "160.16.68.250",
+      "server_port": 3423,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇴-Unknown | TROJAN+TCP | 437ms | UP | NATIVE",
+      "server": "80.173.231.254",
+      "server_port": 12420,
+      "password": "wp9IsiY82uQhcmgNC1eoBM",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.semanticstaplegun.click"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 443ms | UP | NATIVE",
+      "server": "160.16.106.99",
+      "server_port": 3423,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 444ms | UP | NATIVE",
+      "server": "153.121.38.213",
+      "server_port": 3423,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 447ms | UP | NATIVE",
+      "server": "188.114.98.0",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.multiplydose.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.multiplydose.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 449ms | UP | NATIVE",
+      "server": "153.121.45.139",
+      "server_port": 3423,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 453ms | UP | NATIVE",
+      "server": "37.235.49.209",
+      "server_port": 28099,
+      "password": "qmBSKnAl6LYi9=z23Rs.Z",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 454ms | UP | NATIVE",
+      "server": "188.114.96.3",
       "server_port": 443,
       "password": "humanity",
       "transport": {
@@ -943,12 +1240,66 @@
       },
       "tls": {
         "enabled": true,
-        "server_name": "www.gossipglove.com"
+        "server_name": "www.gossipglove.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
       }
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 398ms | UP | NATIVE",
+      "tag": "🌐 | TROJAN+WS+TLS | 463ms | UP | NATIVE",
+      "server": "hl-freedom-0.undef.network",
+      "server_port": 443,
+      "password": "76yTlnTIsjCTlmqnUJ5Tzc1rM",
+      "transport": {
+        "type": "ws",
+        "path": "/f2fc2a1f",
+        "headers": {
+          "Host": "hl-freedom-0.undef.network",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "hl-freedom-0.undef.network"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 466ms | UP | NATIVE",
+      "server": "37.235.49.209",
+      "server_port": 28099,
+      "password": "qmBSKnAl6LYi9=z23Rs.Z",
+      "tls": {
+        "enabled": true,
+        "server_name": "celestialcorset.crystalhamster.click",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 467ms | UP | NATIVE",
+      "server": "104.18.32.47",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.multiplydose.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.multiplydose.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 468ms | UP | NATIVE",
       "server": "104.18.32.47",
       "server_port": 443,
       "password": "humanity",
@@ -971,89 +1322,18 @@
     },
     {
       "type": "trojan",
-      "tag": "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 399ms | UP | NATIVE",
-      "server": "95.179.183.126",
-      "server_port": 13345,
-      "password": "Szb=-Zguo53QhmivcJqEAWtpdPX6Y",
+      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 481ms | UP | NATIVE",
+      "server": "140.82.35.244",
+      "server_port": 20994,
+      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
       "tls": {
         "enabled": true,
-        "server_name": "infiniteinjera.semanticstrainer.click",
         "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🇬🇧-City_of_London | TROJAN+TCP | 407ms | UP | NATIVE",
-      "server": "45.89.111.142",
-      "server_port": 443,
-      "password": "7LBbob9IutFObLxLf9Svc1HaV",
-      "tls": {
-        "enabled": true,
-        "server_name": "🔒 [By EbraSha]",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 409ms | UP | NATIVE",
-      "server": "www.gossipglove.com",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.gossipglove.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.gossipglove.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 409ms | UP | NATIVE",
-      "server": "45.63.40.126",
-      "server_port": 13345,
-      "password": "Szb=-Zguo53QhmivcJqEAWtpdPX6Y",
-      "tls": {
-        "enabled": true,
-        "server_name": "ads.x5.ru",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 416ms | UP | NATIVE",
-      "server": "188.114.96.3",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.gossipglove.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.gossipglove.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇬🇧-City_of_London | TROJAN+WS+TLS | 429ms | UP | NATIVE",
+      "tag": "🇬🇧-City_of_London | TROJAN+WS+TLS | 487ms | UP | NATIVE",
       "server": "45.89.111.142",
       "server_port": 443,
       "password": "7LBbob9IutFObLxLf9Svc1HaV",
@@ -1072,170 +1352,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 441ms | UP | NATIVE",
-      "server": "104.18.1.55",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.gossipglove.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.gossipglove.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 447ms | UP | NATIVE",
-      "server": "188.114.98.0",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.gossipglove.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.gossipglove.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 455ms | UP | NATIVE",
-      "server": "www.multiplydose.com",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.multiplydose.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.multiplydose.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇴-Unknown | TROJAN+TCP+TLS | 456ms | UP | NATIVE",
-      "server": "80.173.231.254",
-      "server_port": 12420,
-      "password": "wp9IsiY82uQhcmgNC1eoBM",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.semanticstaplegun.click"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 468ms | UP | NATIVE",
-      "server": "188.114.96.3",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.multiplydose.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.multiplydose.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇬🇧-City_of_London | TROJAN+TCP | 470ms | UP | NATIVE",
-      "server": "45.89.111.142",
-      "server_port": 443,
-      "password": "7LBbob9IutFObLxLf9Svc1HaV",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 472ms | UP | NATIVE",
-      "server": "153.121.38.213",
-      "server_port": 3423,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 476ms | UP | NATIVE",
-      "server": "140.82.35.244",
-      "server_port": 20994,
-      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
-      "tls": {
-        "enabled": true,
-        "server_name": "ads.x5.ru",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 477ms | UP | NATIVE",
-      "server": "104.18.0.55",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.gossipglove.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.gossipglove.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 478ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 493ms | UP | NATIVE",
       "server": "160.16.57.238",
       "server_port": 1933,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
@@ -1246,18 +1363,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 486ms | UP | NATIVE",
-      "server": "153.121.45.139",
-      "server_port": 3423,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 502ms | UP | NATIVE",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 498ms | UP | NATIVE",
       "server": "160.16.105.192",
       "server_port": 1933,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
@@ -1268,200 +1374,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 509ms | UP | NATIVE",
-      "server": "160.16.68.250",
-      "server_port": 3423,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇫🇷-Unknown | TROJAN+WS+TLS | 515ms | UP | NATIVE",
-      "server": "141.94.68.216",
-      "server_port": 2053,
-      "password": "iwangjie",
-      "transport": {
-        "type": "ws",
-        "path": "/?ed=2560",
-        "headers": {
-          "Host": "nodes.830901.xyz",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "nodes.830901.xyz"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇬🇧-Poplar | TROJAN+TCP | 518ms | UP | NATIVE",
-      "server": "108.61.175.83",
-      "server_port": 24293,
-      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP+TLS | 519ms | UP | NATIVE",
-      "server": "45.32.158.138",
-      "server_port": 20994,
-      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
-      "tls": {
-        "enabled": true,
-        "server_name": "ads.x5.ru",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 521ms | UP | NATIVE",
-      "server": "172.64.152.23",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.creationlong.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.creationlong.org"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇬🇧-Poplar | TROJAN+TCP | 528ms | UP | NATIVE",
-      "server": "209.250.224.246",
-      "server_port": 24293,
-      "password": "Iisy37ABxOJ8Ha_cb5fpXKkm-WSFV",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 543ms | UP | NATIVE",
-      "server": "37.235.49.209",
-      "server_port": 28099,
-      "password": "qmBSKnAl6LYi9=z23Rs.Z",
-      "tls": {
-        "enabled": true,
-        "server_name": "celestialcorset.crystalhamster.click",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 545ms | UP | NATIVE",
-      "server": "45.32.158.138",
-      "server_port": 20994,
-      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇫🇷-Unknown | TROJAN+WS+TLS | 549ms | UP | NATIVE",
-      "server": "135.125.232.253",
-      "server_port": 2053,
-      "password": "iwangjie",
-      "transport": {
-        "type": "ws",
-        "path": "/?ed=2560",
-        "headers": {
-          "Host": "nodes.830901.xyz",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "nodes.830901.xyz"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 553ms | UP | NATIVE",
-      "server": "172.64.152.23",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.multiplydose.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.multiplydose.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 560ms | UP | NATIVE",
-      "server": "45.32.153.36",
-      "server_port": 20994,
-      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇺🇸-Unknown | TROJAN+WS+TLS | 569ms | UP | NATIVE",
-      "server": "208.103.161.110",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.creationlong.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.creationlong.org"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇩🇪-Frankfurt_am_Main | TROJAN+TCP | 571ms | UP | NATIVE",
-      "server": "140.82.35.244",
-      "server_port": 20994,
-      "password": "x.8ur1QiCyzlRHXeaB5UwoDfgZ04s",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 577ms | UP | NATIVE",
+      "tag": "🌐 | TROJAN+WS+TLS | 502ms | UP | NATIVE",
       "server": "hl-freedom-1.undef.network",
       "server_port": 443,
       "password": "7LBbob9IutFObLxLf9Svc1HaV",
@@ -1480,124 +1393,8 @@
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 582ms | UP | NATIVE",
-      "server": "hl-freedom-0.undef.network",
-      "server_port": 443,
-      "password": "76yTlnTIsjCTlmqnUJ5Tzc1rM",
-      "transport": {
-        "type": "ws",
-        "path": "/f2fc2a1f",
-        "headers": {
-          "Host": "hl-freedom-0.undef.network",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "hl-freedom-0.undef.network"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 593ms | UP | NATIVE",
-      "server": "188.114.96.3",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.calmlunch.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.calmlunch.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇴-Unknown | TROJAN+TCP | 614ms | UP | NATIVE",
-      "server": "83.143.87.9",
-      "server_port": 18581,
-      "password": "RPyW62_b9aH.ztJKeArou",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+RAW+TLS | 616ms | UP | NATIVE",
-      "server": "ee-1.kamediorg.com",
-      "server_port": 443,
-      "password": "R8ufkVqwRZAgtwjyrA",
-      "tls": {
-        "enabled": true,
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇴-Unknown | TROJAN+TCP+TLS | 618ms | UP | NATIVE",
-      "server": "80.173.230.196",
-      "server_port": 26279,
-      "password": "a5inYFE=JGV89+hjxIqgDp1tcWBd6",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 631ms | UP | NATIVE",
-      "server": "www.gossipglove.com",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇷🇺-Unknown | TROJAN+TCP+REALITY | 641ms | UP | NATIVE",
-      "server": "176.125.240.167",
-      "server_port": 9443,
-      "password": "249454d267254a52ab3c8b7906bc12ab",
-      "tls": {
-        "enabled": true,
-        "server_name": "apple.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "random"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "mvXhdnqrOTuyX9K9Hm7632OJCFGdFwkBpw56X-aKn20",
-          "short_id": "aabbccdd"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇺🇸-Unknown | TROJAN+WS+TLS | 641ms | UP | NATIVE",
-      "server": "208.103.161.9",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 504ms | UP | NATIVE",
+      "server": "172.64.152.23",
       "server_port": 443,
       "password": "humanity",
       "transport": {
@@ -1610,18 +1407,14 @@
       },
       "tls": {
         "enabled": true,
-        "server_name": "www.creationlong.org",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
+        "server_name": "www.creationlong.org"
       }
     },
     {
       "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP+TLS | 652ms | UP | NATIVE",
-      "server": "203.198.122.20",
-      "server_port": 443,
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 504ms | UP | NATIVE",
+      "server": "13.230.22.2",
+      "server_port": 4006,
       "password": "c1d83c0c7d57cead4379ba14a82df69b",
       "tls": {
         "enabled": true,
@@ -1630,49 +1423,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 660ms | UP | NATIVE",
-      "server": "188.114.98.0",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.calmlunch.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.calmlunch.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 667ms | UP | NATIVE",
-      "server": "www.creationlong.org",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.creationlong.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.creationlong.org",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 681ms | UP | NATIVE",
+      "tag": "🌐 | TROJAN+WS+TLS | 507ms | UP | NATIVE",
       "server": "free1.aattaash.com",
       "server_port": 443,
       "password": "humanity",
@@ -1695,60 +1446,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 682ms | UP | NATIVE",
-      "server": "hl-freedom-2.undef.network",
-      "server_port": 443,
-      "password": "Tn2Bf0iRwJkJQgDk6gX6x81RB",
-      "transport": {
-        "type": "ws",
-        "path": "/f2fc2a1f",
-        "headers": {
-          "Host": "hl-freedom-2.undef.network",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "hl-freedom-2.undef.network"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+GRPC+REALITY | 698ms | UP | NATIVE",
-      "server": "hk.scpnb.top",
-      "server_port": 19066,
-      "password": "q4oerwN2UA",
-      "transport": {
-        "type": "grpc"
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.amazon.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "AxHqJCigFf4BzJlj4EeD6FloA-PYwr2rw2clWtCB4FU",
-          "short_id": "803975"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 720ms | UP | NATIVE",
-      "server": "160.16.63.16",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 725ms | UP | NATIVE",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 509ms | UP | NATIVE",
       "server": "188.114.98.0",
       "server_port": 443,
       "password": "humanity",
@@ -1767,112 +1465,40 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 726ms | UP | NATIVE",
-      "server": "160.16.150.76",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tag": "🇫🇷-Unknown | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+      "server": "141.94.68.216",
+      "server_port": 2053,
+      "password": "iwangjie",
+      "transport": {
+        "type": "ws",
+        "path": "/?ed=2560",
+        "headers": {
+          "Host": "nodes.830901.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
       "tls": {
         "enabled": true,
-        "server_name": "www.nintendogames.net"
+        "server_name": "nodes.830901.xyz"
       }
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 729ms | UP | NATIVE",
-      "server": "160.16.70.180",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 734ms | UP | NATIVE",
-      "server": "160.16.72.33",
-      "server_port": 3901,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Unknown | TROJAN+TCP+TLS | 738ms | UP | NATIVE",
-      "server": "153.121.65.107",
-      "server_port": 3076,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 740ms | UP | NATIVE",
-      "server": "160.16.138.24",
-      "server_port": 544,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 745ms | UP | NATIVE",
-      "server": "160.16.124.17",
-      "server_port": 3076,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 748ms | UP | NATIVE",
-      "server": "160.16.144.208",
-      "server_port": 3076,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 759ms | UP | NATIVE",
-      "server": "160.16.116.227",
-      "server_port": 544,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 792ms | UP | NATIVE",
-      "server": "58.152.25.236",
+      "tag": "🌐 | TROJAN+WS+TLS | 509ms | UP | NATIVE",
+      "server": "chatgpt.com",
       "server_port": 443,
-      "password": "BxceQaOe",
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.gossipglove.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
       "tls": {
         "enabled": true,
-        "server_name": "t.me/ripaojiedian",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP+TLS | 840ms | UP | NATIVE",
-      "server": "58.152.25.236",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
+        "server_name": "www.gossipglove.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
@@ -1882,76 +1508,20 @@
     },
     {
       "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 851ms | UP | NATIVE",
-      "server": "58.152.53.45",
-      "server_port": 443,
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 512ms | UP | NATIVE",
+      "server": "46.51.237.24",
+      "server_port": 20539,
       "password": "BxceQaOe",
       "tls": {
         "enabled": true,
-        "server_name": "t.me/ripaojiedian",
+        "server_name": "t.me%2Fripaojiedian",
         "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 877ms | UP | NATIVE",
-      "server": "219.76.135.98",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 881ms | UP | NATIVE",
-      "server": "58.152.53.45",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 891ms | UP | NATIVE",
-      "server": "160.16.124.55",
-      "server_port": 491,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 894ms | UP | NATIVE",
-      "server": "160.16.117.182",
-      "server_port": 491,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 894ms | UP | NATIVE",
-      "server": "58.152.53.45",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "server_name": "t.me%252Fripaojiedian",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 896ms | UP | NATIVE",
-      "server": "188.114.96.3",
+      "tag": "🇺🇸-Unknown | TROJAN+WS+TLS | 521ms | UP | NATIVE",
+      "server": "208.103.161.110",
       "server_port": 443,
       "password": "humanity",
       "transport": {
@@ -1969,325 +1539,27 @@
     },
     {
       "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 900ms | UP | NATIVE",
-      "server": "219.76.135.98",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "server_name": "t.me%2Fripaojiedian",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 906ms | UP | NATIVE",
-      "server": "160.16.72.205",
-      "server_port": 491,
-      "password": "c1d83c0c7d57cead4379ba14a82df69b",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 914ms | UP | NATIVE",
-      "server": "tuntro010.instconn.com",
-      "server_port": 443,
-      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
-      "tls": {
-        "enabled": true,
-        "server_name": "frankfurtrm2.686911.xyz",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+RAW+TLS | 931ms | UP | NATIVE",
-      "server": "tttyder.wsone.icu",
-      "server_port": 443,
-      "password": "M7v%w11Se*",
-      "tls": {
-        "enabled": true,
-        "server_name": "tttyder.wsone.icu"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 957ms | UP | NATIVE",
-      "server": "58.152.53.45",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "server_name": "t.me%2Fripaojiedian",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 972ms | UP | NATIVE",
-      "server": "219.76.135.98",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "server_name": "219.76.135.98",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 984ms | UP | NATIVE",
-      "server": "153.121.39.240",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇫🇮-Helsinki | TROJAN+TCP+REALITY | 998ms | UP | NATIVE",
-      "server": "89.125.53.224",
-      "server_port": 8443,
-      "password": "oB2ktP6RmgQ3pU4aCY1HqU65DckzAP",
-      "tls": {
-        "enabled": true,
-        "server_name": "ozon.ru",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "ZHAP_9aE2w58UowfRNM0HcSz-rH5gvz6SqEbl3xh0xE",
-          "short_id": "7ed240d95d658340"
-        }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 3707ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31101,
-      "password": "ce96eb24-8c47-40a6-a5d4-d840950b4caf",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1827ms | UP | NATIVE",
-      "server": "tuntro011.instconn.com",
-      "server_port": 40130,
-      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
-      "tls": {
-        "enabled": true,
-        "server_name": "cntwbta.686911.xyz",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP+TLS | 1117ms | UP | NATIVE",
-      "server": "tuntro000.instconn.com",
-      "server_port": 443,
-      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
-      "tls": {
-        "enabled": true,
-        "server_name": "hkip5.686911.xyz"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TROJAN | 2733ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 35501,
-      "password": "3692ef88-4d16-4848-a01b-b646f9448b11",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1535ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31101,
-      "password": "14f7a5c0-e8ae-40a7-884c-41555730e3b6",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1005ms | UP | NATIVE",
-      "server": "160.16.130.21",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1424ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31103,
-      "password": "5f4142b3-b20f-43f1-bc09-41c0e00662f9",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 2609ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 35501,
-      "password": "2bbd6bec-686d-46bc-9e5d-b814f164cca4",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1556ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31103,
-      "password": "e4e06eb8-2ba9-45d4-8e25-d6c7fcfd4992",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1481ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31103,
-      "password": "d829c38c-89f9-4373-90a5-3bdeed4de646",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1008ms | UP | NATIVE",
-      "server": "160.16.81.84",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1014ms | UP | NATIVE",
-      "server": "160.16.85.33",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1387ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31103,
-      "password": "3692ef88-4d16-4848-a01b-b646f9448b11",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS | 2723ms | UP | NATIVE",
-      "server": "v1.dabache.top",
-      "server_port": 8443,
-      "password": "T9BpZIVMNv",
+      "tag": "🇫🇷-Unknown | TROJAN+WS+TLS | 526ms | UP | NATIVE",
+      "server": "135.125.232.253",
+      "server_port": 2053,
+      "password": "iwangjie",
       "transport": {
         "type": "ws",
-        "path": "/amd",
+        "path": "/?ed=2560",
         "headers": {
-          "Host": "sweden.vmaxpanel.com",
+          "Host": "nodes.830901.xyz",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "sweden.vmaxpanel.com",
-        "insecure": true
+        "server_name": "nodes.830901.xyz"
       }
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 1007ms | UP | NATIVE",
-      "server": "160.16.89.176",
-      "server_port": 5076,
-      "password": "869e9086806483ca4744a4cb0f3d6e16",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.nintendogames.net"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇿-Wellington | TROJAN+TCP+TLS | 1362ms | UP | NATIVE",
-      "server": "45.15.140.107",
-      "server_port": 19106,
-      "password": "tSk5LQoJr7F.WnRsUM4hT",
-      "tls": {
-        "enabled": true,
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 2026ms | UP | NATIVE",
-      "server": "mfyousheng.nl.eu.org",
-      "server_port": 443,
-      "password": "Puj01Rc8UcA9IzcFcYOs8KMOhCz6aX2Q",
-      "transport": {
-        "type": "ws",
-        "path": "/tjwsLhx0SFASG4l9FERJ1g",
-        "headers": {
-          "Host": "mfyousheng.nl.eu.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "mfyousheng.nl.eu.org",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 1678ms | UP | NATIVE",
-      "server": "foriran.mizbanit.com",
+      "tag": "🇺🇸-Unknown | TROJAN+WS+TLS | 527ms | UP | NATIVE",
+      "server": "208.103.161.9",
       "server_port": 443,
       "password": "humanity",
       "transport": {
@@ -2309,61 +1581,27 @@
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 1193ms | UP | NATIVE",
-      "server": "104.18.10.110",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.multiplydose.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
+      "tag": "🇷🇺-Unknown | TROJAN+TCP+REALITY | 554ms | UP | NATIVE",
+      "server": "176.125.240.167",
+      "server_port": 9443,
+      "password": "249454d267254a52ab3c8b7906bc12ab",
       "tls": {
         "enabled": true,
-        "server_name": "www.multiplydose.com",
+        "server_name": "apple.com",
         "utls": {
           "enabled": true,
-          "fingerprint": "chrome"
+          "fingerprint": "random"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mvXhdnqrOTuyX9K9Hm7632OJCFGdFwkBpw56X-aKn20",
+          "short_id": "aabbccdd"
         }
       }
     },
     {
       "type": "trojan",
-      "tag": "🇨🇭-Unknown | TROJAN+WS+TLS | 1622ms | UP | NATIVE",
-      "server": "185.18.250.245",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.calmlunch.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.calmlunch.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1788ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31102,
-      "password": "de4a75b4-1072-4ec6-87d8-af2c947fcc5d",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 3083ms | UP | NATIVE",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 563ms | UP | NATIVE",
       "server": "104.18.11.110",
       "server_port": 443,
       "password": "humanity",
@@ -2387,7 +1625,809 @@
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 3649ms | UP | NATIVE",
+      "tag": "🇨🇭-Unknown | TROJAN+WS+TLS | 572ms | UP | NATIVE",
+      "server": "185.18.250.245",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.calmlunch.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.calmlunch.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇨🇭-Unknown | TROJAN+WS+TLS | 577ms | UP | NATIVE",
+      "server": "185.18.250.252",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.gossipglove.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.gossipglove.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 579ms | UP | NATIVE",
+      "server": "37.235.49.209",
+      "server_port": 28099,
+      "password": "qmBSKnAl6LYi9=z23Rs.Z",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha]",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇴-Unknown | TROJAN+TCP+TLS | 581ms | UP | NATIVE",
+      "server": "83.143.87.9",
+      "server_port": 18581,
+      "password": "RPyW62_b9aH.ztJKeArou",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 587ms | UP | NATIVE",
+      "server": "hl-freedom-2.undef.network",
+      "server_port": 443,
+      "password": "Tn2Bf0iRwJkJQgDk6gX6x81RB",
+      "transport": {
+        "type": "ws",
+        "path": "/f2fc2a1f",
+        "headers": {
+          "Host": "hl-freedom-2.undef.network",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "hl-freedom-2.undef.network"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 594ms | UP | NATIVE",
+      "server": "188.114.96.3",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.calmlunch.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.calmlunch.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇫🇮-Helsinki | TROJAN+TCP+REALITY | 598ms | UP | NATIVE",
+      "server": "89.125.53.224",
+      "server_port": 8443,
+      "password": "oB2ktP6RmgQ3pU4aCY1HqU65DckzAP",
+      "tls": {
+        "enabled": true,
+        "server_name": "ozon.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "ZHAP_9aE2w58UowfRNM0HcSz-rH5gvz6SqEbl3xh0xE",
+          "short_id": "7ed240d95d658340"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP | 609ms | UP | NATIVE",
+      "server": "tuntro010.instconn.com",
+      "server_port": 443,
+      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
+      "tls": {
+        "enabled": true,
+        "server_name": "frankfurtrm2.686911.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 611ms | UP | NATIVE",
+      "server": "104.21.40.34",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.gossipglove.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.gossipglove.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 624ms | UP | NATIVE",
+      "server": "www.gossipglove.com",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.gossipglove.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.gossipglove.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇱-Amsterdam | TROJAN+TCP+TLS | 628ms | UP | NATIVE",
+      "server": "95.179.184.71",
+      "server_port": 13345,
+      "password": "Szb=-Zguo53QhmivcJqEAWtpdPX6Y",
+      "tls": {
+        "enabled": true,
+        "server_name": "infiniteinjera.semanticstrainer.click",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇴-Unknown | TROJAN+TCP+TLS | 636ms | UP | NATIVE",
+      "server": "80.173.230.196",
+      "server_port": 26279,
+      "password": "a5inYFE=JGV89+hjxIqgDp1tcWBd6",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 639ms | UP | NATIVE",
+      "server": "203.198.122.20",
+      "server_port": 443,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 668ms | UP | NATIVE",
+      "server": "13.230.22.2",
+      "server_port": 1867,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 670ms | UP | NATIVE",
+      "server": "13.230.22.2",
+      "server_port": 1867,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 674ms | UP | NATIVE",
+      "server": "www.creationlong.org",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.creationlong.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.creationlong.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 687ms | UP | NATIVE",
+      "server": "foriran.mizbanit.com",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.creationlong.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.creationlong.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 699ms | UP | NATIVE",
+      "server": "www.multiplydose.com",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "//assignment",
+        "headers": {
+          "Host": "www.multiplydose.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.multiplydose.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 700ms | UP | NATIVE",
+      "server": "58.152.25.236",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+GRPC+REALITY | 705ms | UP | NATIVE",
+      "server": "hk.scpnb.top",
+      "server_port": 19066,
+      "password": "q4oerwN2UA",
+      "transport": {
+        "type": "grpc"
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.amazon.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "AxHqJCigFf4BzJlj4EeD6FloA-PYwr2rw2clWtCB4FU",
+          "short_id": "803975"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 706ms | UP | NATIVE",
+      "server": "160.16.72.33",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 712ms | UP | NATIVE",
+      "server": "160.16.150.76",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 713ms | UP | NATIVE",
+      "server": "160.16.70.180",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 715ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 2826,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] trojan-HK ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 718ms | UP | NATIVE",
+      "server": "160.16.87.174",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 721ms | UP | NATIVE",
+      "server": "13.113.82.107",
+      "server_port": 1691,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 724ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 2826,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 728ms | UP | NATIVE",
+      "server": "160.16.124.17",
+      "server_port": 3076,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 728ms | UP | NATIVE",
+      "server": "160.16.144.208",
+      "server_port": 3076,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 728ms | UP | NATIVE",
+      "server": "160.16.116.227",
+      "server_port": 544,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Unknown | TROJAN+TROJAN | 729ms | UP | NATIVE",
+      "server": "153.121.65.107",
+      "server_port": 3076,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 730ms | UP | NATIVE",
+      "server": "160.16.106.99",
+      "server_port": 3076,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 731ms | UP | NATIVE",
+      "server": "160.16.138.24",
+      "server_port": 544,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 738ms | UP | NATIVE",
+      "server": "160.16.63.16",
+      "server_port": 3901,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 738ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 2826,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 739ms | UP | NATIVE",
+      "server": "188.114.96.3",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.creationlong.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.creationlong.org"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 744ms | UP | NATIVE",
+      "server": "13.230.22.2",
+      "server_port": 1867,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%252Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP+TLS | 753ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "58.152.53.45",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 785ms | UP | NATIVE",
+      "server": "13.113.82.107",
+      "server_port": 1691,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%25252Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP | 799ms | UP | NATIVE",
+      "server": "tuntro000.instconn.com",
+      "server_port": 443,
+      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
+      "tls": {
+        "enabled": true,
+        "server_name": "hkip5.686911.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP+TLS | 828ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%25252Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 829ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%2Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 862ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 871ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 2826,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 872ms | UP | NATIVE",
+      "server": "160.16.72.205",
+      "server_port": 491,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 874ms | UP | NATIVE",
+      "server": "160.16.124.55",
+      "server_port": 491,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 878ms | UP | NATIVE",
+      "server": "160.16.117.182",
+      "server_port": 491,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 890ms | UP | NATIVE",
+      "server": "13.230.22.2",
+      "server_port": 1867,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 897ms | UP | NATIVE",
+      "server": "13.230.22.2",
+      "server_port": 1867,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 901ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 924ms | UP | NATIVE",
+      "server": "13.113.82.107",
+      "server_port": 1691,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 928ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 931ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 974ms | UP | NATIVE",
+      "server": "13.113.82.107",
+      "server_port": 1691,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇹🇭-Bangkok | TROJAN+TCP+TLS | 981ms | UP | NATIVE",
+      "server": "38.54.82.205",
+      "server_port": 27877,
+      "password": "pUF+zmIw0QuRESBPLofx7eOj6Xc49",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.metaphysicalmagnet.click"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 986ms | UP | NATIVE",
+      "server": "mfyousheng.nl.eu.org",
+      "server_port": 443,
+      "password": "Puj01Rc8UcA9IzcFcYOs8KMOhCz6aX2Q",
+      "transport": {
+        "type": "ws",
+        "path": "/tjwsLhx0SFASG4l9FERJ1g",
+        "headers": {
+          "Host": "mfyousheng.nl.eu.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "mfyousheng.nl.eu.org"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇹🇼-Taichung | TROJAN+TCP | 4789ms | UP | NATIVE",
+      "server": "220.130.58.136",
+      "server_port": 31101,
+      "password": "14f7a5c0-e8ae-40a7-884c-41555730e3b6",
+      "tls": {
+        "enabled": true,
+        "server_name": "green2.cdntencentmusic.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 1003ms | UP | NATIVE",
+      "server": "160.16.85.33",
+      "server_port": 5076,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇫🇮-Helsinki | TROJAN+TCP+TLS | 3900ms | UP | NATIVE",
+      "server": "212.193.18.144",
+      "server_port": 36158,
+      "password": "ZblhWr0mqMakCPg.N",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
+      "server": "45.15.140.107",
+      "server_port": 19106,
+      "password": "tSk5LQoJr7F.WnRsUM4hT",
+      "tls": {
+        "enabled": true,
+        "server_name": "binaryboots.algorithmblanket.click"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 2556ms | UP | NATIVE",
       "server": "188.114.97.3",
       "server_port": 443,
       "password": "Puj01Rc8UcA9IzcFcYOs8KMOhCz6aX2Q",
@@ -2407,30 +2447,78 @@
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 4691ms | UP | NATIVE",
-      "server": "188.114.98.0",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.multiplydose.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
+      "tag": "🌐 | TROJAN+TCP+TLS | 2582ms | UP | NATIVE",
+      "server": "xiaozhu1.kkieo555.cn",
+      "server_port": 11278,
+      "password": "f5565321-e64f-471a-b12c-2277a71ff896",
       "tls": {
         "enabled": true,
-        "server_name": "www.multiplydose.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        }
+        "server_name": "Telegram%25F0%259F%2587%25A8%25F0%259F%2587%25B3WangCai2",
+        "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 5496ms | UP | NATIVE",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 3454ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TROJAN | 2039ms | UP | NATIVE",
+      "server": "green2.cdntencentmusic.com",
+      "server_port": 31103,
+      "password": "36f64eb4-04aa-4eba-8f63-c8be3e2610d1",
+      "tls": {
+        "enabled": true,
+        "server_name": "green2.cdntencentmusic.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1988ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "219.76.135.98",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1958ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%2Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP+TLS | 2376ms | UP | NATIVE",
+      "server": "xiaozhu1.kkieo555.cn",
+      "server_port": 11278,
+      "password": "a378b310-2c97-4617-9656-4f1e57607316",
+      "tls": {
+        "enabled": true,
+        "server_name": "Telegram%25F0%259F%2587%25A8%25F0%259F%2587%25B3WangCai2",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP | 2706ms | UP | NATIVE",
       "server": "green2.cdntencentmusic.com",
       "server_port": 31102,
       "password": "80429ec5-265a-4a99-b0bb-ddc9e75411c0",
@@ -2442,226 +2530,65 @@
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 1501ms | UP | NATIVE",
-      "server": "104.18.9.83",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 1300ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 1221,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me/ripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1020ms | UP | NATIVE",
+      "server": "153.121.39.240",
+      "server_port": 5076,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1017ms | UP | NATIVE",
+      "server": "160.16.130.21",
+      "server_port": 5076,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 4182ms | UP | NATIVE",
+      "server": "104.18.1.55",
       "server_port": 443,
       "password": "humanity",
       "transport": {
         "type": "ws",
         "path": "/assignment",
         "headers": {
-          "Host": "www.calmlunch.com",
+          "Host": "www.gossipglove.com",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "www.calmlunch.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇳🇿-Wellington | TROJAN+RAW+TLS | 1190ms | UP | NATIVE",
-      "server": "45.15.140.107",
-      "server_port": 19106,
-      "password": "tSk5LQoJr7F.WnRsUM4hT",
-      "tls": {
-        "enabled": true,
-        "server_name": "binaryboots.algorithmblanket.click"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1251ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31103,
-      "password": "f01a5910-650a-4d32-8aad-05b0f7497dba",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
+        "server_name": "www.gossipglove.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
         "insecure": true
       }
     },
     {
       "type": "trojan",
-      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 1254ms | UP | NATIVE",
-      "server": "104.18.32.47",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.multiplydose.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.multiplydose.com"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 2556ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31102,
-      "password": "19fcde52-c498-4863-8fb1-5923c75dec39",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1907ms | UP | NATIVE",
-      "server": "219.76.135.98",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "server_name": "t.me%252Fripaojiedian",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1581ms | UP | NATIVE",
-      "server": "219.76.135.98",
-      "server_port": 443,
-      "password": "BxceQaOe",
-      "tls": {
-        "enabled": true,
-        "server_name": "🔒 [By EbraSha] trojan-HK ",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1793ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31102,
-      "password": "90bf79c8-62b3-4d4b-ad02-cceea15d9129",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS+TLS | 5928ms | UP | NATIVE",
-      "server": "vip1.kaixincloud.top",
-      "server_port": 8443,
-      "password": "T9BpZIVMNv",
-      "transport": {
-        "type": "ws",
-        "path": "/amd",
-        "headers": {
-          "Host": "sweden.vmaxpanel.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "sweden.vmaxpanel.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 5702ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31102,
-      "password": "5f4142b3-b20f-43f1-bc09-41c0e00662f9",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+WS | 5082ms | UP | NATIVE",
-      "server": "v3.dabache.top",
-      "server_port": 8443,
-      "password": "T9BpZIVMNv",
-      "transport": {
-        "type": "ws",
-        "path": "/amd",
-        "headers": {
-          "Host": "sweden.vmaxpanel.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "sweden.vmaxpanel.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 5814ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31102,
-      "password": "21f085a7-ace6-495e-b550-281c8bfde899",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 2980ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 35501,
-      "password": "5f4142b3-b20f-43f1-bc09-41c0e00662f9",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP+TLS | 1235ms | UP | NATIVE",
-      "server": "tuntro006.instconn.com",
-      "server_port": 443,
-      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
-      "tls": {
-        "enabled": true,
-        "server_name": "torontorm1.686911.xyz"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🌐 | TROJAN+TCP | 1807ms | UP | NATIVE",
-      "server": "green2.cdntencentmusic.com",
-      "server_port": 31102,
-      "password": "14f7a5c0-e8ae-40a7-884c-41555730e3b6",
-      "tls": {
-        "enabled": true,
-        "server_name": "green2.cdntencentmusic.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇹🇭-Bangkok | TROJAN+TCP+TLS | 1000ms | UP | NATIVE",
-      "server": "38.54.82.205",
-      "server_port": 27877,
-      "password": "pUF+zmIw0QuRESBPLofx7eOj6Xc49",
-      "tls": {
-        "enabled": true,
-        "server_name": "www.metaphysicalmagnet.click"
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇫🇮-Helsinki | TROJAN+TCP+TLS | 4364ms | UP | NATIVE",
+      "tag": "🇫🇮-Helsinki | TROJAN+TCP+TLS | 1849ms | UP | NATIVE",
       "server": "212.193.18.144",
       "server_port": 36158,
       "password": "ZblhWr0mqMakCPg.N",
@@ -2677,7 +2604,199 @@
     },
     {
       "type": "trojan",
-      "tag": "🇯🇵-Tokyo | TROJAN+TCP | 1012ms | UP | NATIVE",
+      "tag": "🌐 | TROJAN+TCP+TLS | 3782ms | UP | NATIVE",
+      "server": "green2.cdntencentmusic.com",
+      "server_port": 35501,
+      "password": "3692ef88-4d16-4848-a01b-b646f9448b11",
+      "tls": {
+        "enabled": true,
+        "server_name": "green2.cdntencentmusic.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1962ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%252Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP | 1219ms | UP | NATIVE",
+      "server": "tuntro011.instconn.com",
+      "server_port": 40130,
+      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
+      "tls": {
+        "enabled": true,
+        "server_name": "cntwbta.686911.xyz"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TROJAN | 1443ms | UP | NATIVE",
+      "server": "green2.cdntencentmusic.com",
+      "server_port": 31103,
+      "password": "9a406ac0-6931-44f8-8178-3227458cdc04",
+      "tls": {
+        "enabled": true,
+        "server_name": "green2.cdntencentmusic.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP+TLS | 4913ms | UP | NATIVE",
+      "server": "green2.cdntencentmusic.com",
+      "server_port": 31102,
+      "password": "5f4142b3-b20f-43f1-bc09-41c0e00662f9",
+      "tls": {
+        "enabled": true,
+        "server_name": "green2.cdntencentmusic.com"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 4805ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 1221,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+WS+TLS | 1104ms | UP | NATIVE",
+      "server": "www.gossipglove.com",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 1707ms | UP | NATIVE",
+      "server": "172.66.47.45",
+      "server_port": 8443,
+      "password": "T9BpZIVMNv",
+      "transport": {
+        "type": "ws",
+        "path": "/amd",
+        "headers": {
+          "Host": "sweden.vmaxpanel.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "sweden.vmaxpanel.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP | 1379ms | UP | NATIVE",
+      "server": "tuntro006.instconn.com",
+      "server_port": 443,
+      "password": "63b21d86-a49c-4936-a634-0b5af3e30433",
+      "tls": {
+        "enabled": true,
+        "server_name": "torontorm1.686911.xyz",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 1702ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 2826,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP+TLS | 2594ms | UP | NATIVE",
+      "server": "xiaozhu1.kkieo555.cn",
+      "server_port": 11278,
+      "password": "5d3877aa-b3d2-4679-8a1f-d96647e8417e",
+      "tls": {
+        "enabled": true,
+        "server_name": "Telegram%25F0%259F%2587%25A8%25F0%259F%2587%25B3WangCai2",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TROJAN | 1026ms | UP | NATIVE",
+      "server": "160.16.89.176",
+      "server_port": 5076,
+      "password": "869e9086806483ca4744a4cb0f3d6e16",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇽🇽-Unknown | TROJAN+WS+TLS | 2121ms | UP | NATIVE",
+      "server": "104.18.0.55",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.gossipglove.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.gossipglove.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 1310ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 1221,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] trojan-US ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇯🇵-Tokyo | TROJAN+TCP+TLS | 1000ms | UP | NATIVE",
       "server": "160.16.132.38",
       "server_port": 5076,
       "password": "869e9086806483ca4744a4cb0f3d6e16",
@@ -2688,13 +2807,120 @@
     },
     {
       "type": "trojan",
-      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1082ms | UP | NATIVE",
-      "server": "58.152.53.45",
+      "tag": "🌐 | TROJAN+TCP+TLS | 3091ms | UP | NATIVE",
+      "server": "xiaozhu1.kkieo555.cn",
+      "server_port": 11278,
+      "password": "d03e1173-3109-43c0-a5dd-e2b56916c540",
+      "tls": {
+        "enabled": true,
+        "server_name": "Telegram%25F0%259F%2587%25A8%25F0%259F%2587%25B3WangCai2",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1889ms | UP | NATIVE",
+      "server": "219.76.135.98",
       "server_port": 443,
       "password": "BxceQaOe",
       "tls": {
         "enabled": true,
         "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP+TLS | 3537ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%2525252Fripaojiedian",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 1398ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 1221,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha] ",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP | 1459ms | UP | NATIVE",
+      "server": "green2.cdntencentmusic.com",
+      "server_port": 31101,
+      "password": "14f7a5c0-e8ae-40a7-884c-41555730e3b6",
+      "tls": {
+        "enabled": true,
+        "server_name": "green2.cdntencentmusic.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Hong_Kong | TROJAN+TCP | 1790ms | UP | NATIVE",
+      "server": "43.199.77.22",
+      "server_port": 1221,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP+TLS | 2470ms | UP | NATIVE",
+      "server": "xiaozhu1.kkieo555.cn",
+      "server_port": 11278,
+      "password": "66037360-50d4-49c3-b3e7-810de84917e9",
+      "tls": {
+        "enabled": true,
+        "server_name": "Telegram%25F0%259F%2587%25A8%25F0%259F%2587%25B3WangCai2",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🌐 | TROJAN+TCP | 1802ms | UP | NATIVE",
+      "server": "green2.cdntencentmusic.com",
+      "server_port": 31103,
+      "password": "5f4142b3-b20f-43f1-bc09-41c0e00662f9",
+      "tls": {
+        "enabled": true,
+        "server_name": "green2.cdntencentmusic.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 5712ms | UP | NATIVE",
+      "server": "219.76.135.98",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒",
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇭🇰-Unknown | TROJAN+TCP | 1242ms | UP | NATIVE",
+      "server": "58.152.53.45",
+      "server_port": 443,
+      "password": "BxceQaOe",
+      "tls": {
+        "enabled": true,
+        "server_name": "t.me%252Fripaojiedian",
         "insecure": true
       }
     },

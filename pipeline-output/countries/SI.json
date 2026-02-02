@@ -39,7 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇸🇮-Unknown | VLESS+TCP+REALITY | 2247ms | UP | NATIVE"
+        "🇸🇮-Ljubljana | SHADOWSOCKS+TCP+AES-256-CFB | 504ms | UP | NATIVE",
+        "🇸🇮-Unknown | VLESS+TCP+REALITY | 1875ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,15 +48,24 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇸🇮-Unknown | VLESS+TCP+REALITY | 2247ms | UP | NATIVE"
+        "🇸🇮-Ljubljana | SHADOWSOCKS+TCP+AES-256-CFB | 504ms | UP | NATIVE",
+        "🇸🇮-Unknown | VLESS+TCP+REALITY | 1875ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇸🇮-Ljubljana | SHADOWSOCKS+TCP+AES-256-CFB | 504ms | UP | NATIVE",
+      "server": "192.71.244.150",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
       "type": "vless",
-      "tag": "🇸🇮-Unknown | VLESS+TCP+REALITY | 2247ms | UP | NATIVE",
+      "tag": "🇸🇮-Unknown | VLESS+TCP+REALITY | 1875ms | UP | NATIVE",
       "server": "92.60.78.221",
       "server_port": 443,
       "uuid": "6897c181-24b1-4880-8660-e6c5c7ee13c7",

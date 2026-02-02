@@ -39,20 +39,27 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 607ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 728ms | UP | NATIVE",
-        "🇨🇴-Bucaramanga | SOCKS4+TCP | 800ms | UP | NATIVE",
-        "🇨🇴-Bogotá | HTTP+TCP | 3678ms | UP | NATIVE",
-        "🇨🇴-Unknown | HTTP+TCP | 5040ms | UP | NATIVE",
-        "🇨🇴-Bosa | SOCKS4+TCP | 3179ms | UP | NATIVE",
-        "🇨🇴-Bogotá | HTTP+TCP | 3348ms | UP | NATIVE",
-        "🇨🇴-Cereté | SOCKS4+TCP | 1697ms | UP | NATIVE",
-        "🇨🇴-Villavicencio | HTTP+TCP | 4163ms | UP | NATIVE",
-        "🇨🇴-Bogotá | HTTP+TCP | 5879ms | UP | NATIVE",
-        "🇨🇴-Medellín | HTTP+TCP | 2303ms | UP | NATIVE",
-        "🇨🇴-Granada | HTTP+TCP | 4704ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 5691ms | UP | NATIVE",
-        "🇨🇴-Barranquilla | HTTP+TCP | 4638ms | UP | NATIVE"
+        "🇨🇴-Bogotá | SHADOWSOCKS+TCP+AES-256-CFB | 346ms | UP | NATIVE",
+        "🇨🇴-Cali | HTTP+TCP | 498ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 570ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 574ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 2966ms | UP | NATIVE",
+        "🇨🇴-Túquerres | SOCKS4+TCP | 4683ms | UP | NATIVE",
+        "🇨🇴-Subachoque | HTTP+TCP | 5776ms | UP | NATIVE",
+        "🇨🇴-Medellín | HTTP+TCP | 1649ms | UP | NATIVE",
+        "🇨🇴-Bogotá | VLESS+WS+TLS | 1349ms | UP | NATIVE",
+        "🇨🇴-Florencia | SOCKS4+TCP | 3749ms | UP | NATIVE",
+        "🇨🇴-Unknown | HTTP+TCP | 5243ms | UP | NATIVE",
+        "🇨🇴-Popayán | HTTP+TCP | 1716ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 4208ms | UP | NATIVE",
+        "🇨🇴-Sincelejo | HTTP+TCP | 4496ms | UP | NATIVE",
+        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 1770ms | UP | NATIVE",
+        "🇨🇴-Santa_Marta | SOCKS4+TCP | 1138ms | UP | NATIVE",
+        "🇨🇴-Pereira | SOCKS4+TCP | 3043ms | UP | NATIVE",
+        "🇨🇴-Bosa | SOCKS4+TCP | 4444ms | UP | NATIVE",
+        "🇨🇴-Cereté | SOCKS4+TCP | 3070ms | UP | NATIVE",
+        "🇨🇴-Bucaramanga | SOCKS4+TCP | 4105ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 4317ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -60,108 +67,44 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 607ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 728ms | UP | NATIVE",
-        "🇨🇴-Bucaramanga | SOCKS4+TCP | 800ms | UP | NATIVE",
-        "🇨🇴-Bogotá | HTTP+TCP | 3678ms | UP | NATIVE",
-        "🇨🇴-Unknown | HTTP+TCP | 5040ms | UP | NATIVE",
-        "🇨🇴-Bosa | SOCKS4+TCP | 3179ms | UP | NATIVE",
-        "🇨🇴-Bogotá | HTTP+TCP | 3348ms | UP | NATIVE",
-        "🇨🇴-Cereté | SOCKS4+TCP | 1697ms | UP | NATIVE",
-        "🇨🇴-Villavicencio | HTTP+TCP | 4163ms | UP | NATIVE",
-        "🇨🇴-Bogotá | HTTP+TCP | 5879ms | UP | NATIVE",
-        "🇨🇴-Medellín | HTTP+TCP | 2303ms | UP | NATIVE",
-        "🇨🇴-Granada | HTTP+TCP | 4704ms | UP | NATIVE",
-        "🇨🇴-Medellín | SOCKS4+TCP | 5691ms | UP | NATIVE",
-        "🇨🇴-Barranquilla | HTTP+TCP | 4638ms | UP | NATIVE"
+        "🇨🇴-Bogotá | SHADOWSOCKS+TCP+AES-256-CFB | 346ms | UP | NATIVE",
+        "🇨🇴-Cali | HTTP+TCP | 498ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 570ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 574ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 2966ms | UP | NATIVE",
+        "🇨🇴-Túquerres | SOCKS4+TCP | 4683ms | UP | NATIVE",
+        "🇨🇴-Subachoque | HTTP+TCP | 5776ms | UP | NATIVE",
+        "🇨🇴-Medellín | HTTP+TCP | 1649ms | UP | NATIVE",
+        "🇨🇴-Bogotá | VLESS+WS+TLS | 1349ms | UP | NATIVE",
+        "🇨🇴-Florencia | SOCKS4+TCP | 3749ms | UP | NATIVE",
+        "🇨🇴-Unknown | HTTP+TCP | 5243ms | UP | NATIVE",
+        "🇨🇴-Popayán | HTTP+TCP | 1716ms | UP | NATIVE",
+        "🇨🇴-Medellín | SOCKS4+TCP | 4208ms | UP | NATIVE",
+        "🇨🇴-Sincelejo | HTTP+TCP | 4496ms | UP | NATIVE",
+        "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 1770ms | UP | NATIVE",
+        "🇨🇴-Santa_Marta | SOCKS4+TCP | 1138ms | UP | NATIVE",
+        "🇨🇴-Pereira | SOCKS4+TCP | 3043ms | UP | NATIVE",
+        "🇨🇴-Bosa | SOCKS4+TCP | 4444ms | UP | NATIVE",
+        "🇨🇴-Cereté | SOCKS4+TCP | 3070ms | UP | NATIVE",
+        "🇨🇴-Bucaramanga | SOCKS4+TCP | 4105ms | UP | NATIVE",
+        "🇨🇴-Bogotá | HTTP+TCP | 4317ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "socks",
-      "tag": "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 607ms | UP | NATIVE",
-      "server": "186.190.228.83",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 728ms | UP | NATIVE",
-      "server": "181.129.74.58",
-      "server_port": 30431,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Bucaramanga | SOCKS4+TCP | 800ms | UP | NATIVE",
-      "server": "181.129.182.138",
-      "server_port": 5678,
-      "version": "4"
+      "type": "shadowsocks",
+      "tag": "🇨🇴-Bogotá | SHADOWSOCKS+TCP+AES-256-CFB | 346ms | UP | NATIVE",
+      "server": "154.223.16.212",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
     },
     {
       "type": "http",
-      "tag": "🇨🇴-Bogotá | HTTP+TCP | 3678ms | UP | NATIVE",
-      "server": "190.121.146.75",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇨🇴-Unknown | HTTP+TCP | 5040ms | UP | NATIVE",
-      "server": "200.69.78.90",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Bosa | SOCKS4+TCP | 3179ms | UP | NATIVE",
-      "server": "190.144.224.182",
-      "server_port": 44550,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇨🇴-Bogotá | HTTP+TCP | 3348ms | UP | NATIVE",
-      "server": "190.2.209.59",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇴-Cereté | SOCKS4+TCP | 1697ms | UP | NATIVE",
-      "server": "181.48.243.194",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇨🇴-Villavicencio | HTTP+TCP | 4163ms | UP | NATIVE",
-      "server": "38.191.204.146",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇨🇴-Bogotá | HTTP+TCP | 5879ms | UP | NATIVE",
-      "server": "190.216.132.225",
+      "tag": "🇨🇴-Cali | HTTP+TCP | 498ms | UP | NATIVE",
+      "server": "190.242.157.215",
       "server_port": 8080,
       "username": "",
       "password": "",
@@ -171,9 +114,9 @@
     },
     {
       "type": "http",
-      "tag": "🇨🇴-Medellín | HTTP+TCP | 2303ms | UP | NATIVE",
-      "server": "181.143.104.84",
-      "server_port": 3000,
+      "tag": "🇨🇴-Bogotá | HTTP+TCP | 570ms | UP | NATIVE",
+      "server": "181.78.73.73",
+      "server_port": 999,
       "username": "",
       "password": "",
       "tls": {
@@ -182,8 +125,8 @@
     },
     {
       "type": "http",
-      "tag": "🇨🇴-Granada | HTTP+TCP | 4704ms | UP | NATIVE",
-      "server": "186.148.163.18",
+      "tag": "🇨🇴-Bogotá | HTTP+TCP | 574ms | UP | NATIVE",
+      "server": "179.1.234.30",
       "server_port": 999,
       "username": "",
       "password": "",
@@ -193,16 +136,152 @@
     },
     {
       "type": "socks",
-      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 5691ms | UP | NATIVE",
-      "server": "201.184.239.75",
+      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 2966ms | UP | NATIVE",
+      "server": "181.205.46.178",
+      "server_port": 4666,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Túquerres | SOCKS4+TCP | 4683ms | UP | NATIVE",
+      "server": "38.51.243.173",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "http",
-      "tag": "🇨🇴-Barranquilla | HTTP+TCP | 4638ms | UP | NATIVE",
-      "server": "190.60.61.53",
+      "tag": "🇨🇴-Subachoque | HTTP+TCP | 5776ms | UP | NATIVE",
+      "server": "186.96.111.214",
       "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Medellín | HTTP+TCP | 1649ms | UP | NATIVE",
+      "server": "181.143.104.84",
+      "server_port": 3000,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇴-Bogotá | VLESS+WS+TLS | 1349ms | UP | NATIVE",
+      "server": "91.148.134.83",
+      "server_port": 8443,
+      "uuid": "4c642cae-1a6d-4e51-a1c3-fa5892437aa3",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "5465765525.ccfly.tech",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "5465765525.ccfly.tech"
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Florencia | SOCKS4+TCP | 3749ms | UP | NATIVE",
+      "server": "191.102.82.83",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Unknown | HTTP+TCP | 5243ms | UP | NATIVE",
+      "server": "209.14.98.6",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Popayán | HTTP+TCP | 1716ms | UP | NATIVE",
+      "server": "45.233.169.254",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Medellín | SOCKS4+TCP | 4208ms | UP | NATIVE",
+      "server": "181.129.74.58",
+      "server_port": 30431,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Sincelejo | HTTP+TCP | 4496ms | UP | NATIVE",
+      "server": "181.71.64.26",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Paz_de_Ariporo | SOCKS4+TCP | 1770ms | UP | NATIVE",
+      "server": "186.190.228.83",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Santa_Marta | SOCKS4+TCP | 1138ms | UP | NATIVE",
+      "server": "186.1.182.194",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Pereira | SOCKS4+TCP | 3043ms | UP | NATIVE",
+      "server": "200.10.31.74",
+      "server_port": 49992,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Bosa | SOCKS4+TCP | 4444ms | UP | NATIVE",
+      "server": "190.144.224.182",
+      "server_port": 44550,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Cereté | SOCKS4+TCP | 3070ms | UP | NATIVE",
+      "server": "181.48.243.194",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴-Bucaramanga | SOCKS4+TCP | 4105ms | UP | NATIVE",
+      "server": "181.204.39.202",
+      "server_port": 53740,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴-Bogotá | HTTP+TCP | 4317ms | UP | NATIVE",
+      "server": "181.57.183.26",
+      "server_port": 8080,
       "username": "",
       "password": "",
       "tls": {

@@ -39,12 +39,14 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 718ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 962ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2400ms | UP | NATIVE",
-        "🇲🇾-Unknown | SOCKS4+TCP | 1896ms | UP | NATIVE",
-        "🇲🇾-Shah_Alam | HTTP+TCP | 5594ms | UP | NATIVE"
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 602ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 756ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇾-Kuala_Lumpur | VMESS+TCP+TLS | 756ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 929ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 3588ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2231ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 2532ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 1567ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -52,12 +54,14 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 718ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 962ms | UP | NATIVE",
-        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2400ms | UP | NATIVE",
-        "🇲🇾-Unknown | SOCKS4+TCP | 1896ms | UP | NATIVE",
-        "🇲🇾-Shah_Alam | HTTP+TCP | 5594ms | UP | NATIVE"
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 602ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 756ms | UP | NATIVE | SEC:tls_required",
+        "🇲🇾-Kuala_Lumpur | VMESS+TCP+TLS | 756ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 929ms | UP | NATIVE",
+        "🇲🇾-Unknown | SOCKS4+TCP | 3588ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VMESS+WS | 2231ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 2532ms | UP | NATIVE",
+        "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 1567ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -65,23 +69,83 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
-      "server": "38.60.192.176",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 718ms | UP | NATIVE",
+      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 602ms | UP | NATIVE",
       "server": "38.54.97.247",
       "server_port": 28026,
       "method": "chacha20-ietf-poly1305",
       "password": "3bb08205cb6c8af0"
     },
     {
+      "type": "vmess",
+      "tag": "🇲🇾-Kuala_Lumpur | VMESS+WS | 756ms | UP | NATIVE | SEC:tls_required",
+      "server": "38.54.98.110",
+      "server_port": 20522,
+      "uuid": "cfb08f31-bca2-4f78-a8fa-2784a83ab1f8",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/telegram_@sswia",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇲🇾-Kuala_Lumpur | VMESS+TCP+TLS | 756ms | UP | NATIVE",
+      "server": "38.54.98.110",
+      "server_port": 2052,
+      "uuid": "665d9b8f-153d-4907-adac-de12afd9c851",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "ml0724.ysds168.shop",
+        "insecure": true
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇲🇾-Kuala_Lumpur | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 929ms | UP | NATIVE",
+      "server": "38.60.192.176",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇾-Unknown | SOCKS4+TCP | 3588ms | UP | NATIVE",
+      "server": "103.1.105.10",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇲🇾-Kuala_Lumpur | VMESS+WS | 2231ms | UP | NATIVE",
+      "server": "47.250.45.234",
+      "server_port": 43063,
+      "uuid": "c77f48f5-4be3-4461-b52b-49998e7b897b",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/arki",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇲🇾-Kuala_Lumpur | SOCKS4+TCP | 2532ms | UP | NATIVE",
+      "server": "175.139.201.193",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
       "type": "vless",
-      "tag": "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 962ms | UP | NATIVE",
+      "tag": "🇲🇾-Kuala_Lumpur | VLESS+TCP+REALITY | 1567ms | UP | NATIVE",
       "server": "45.89.107.200",
       "server_port": 8443,
       "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
@@ -98,40 +162,6 @@
           "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
           "short_id": "7cad5040"
         }
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇲🇾-Kuala_Lumpur | VMESS+WS | 2400ms | UP | NATIVE",
-      "server": "47.250.45.234",
-      "server_port": 43063,
-      "uuid": "c77f48f5-4be3-4461-b52b-49998e7b897b",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/arki",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇲🇾-Unknown | SOCKS4+TCP | 1896ms | UP | NATIVE",
-      "server": "103.1.105.10",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇲🇾-Shah_Alam | HTTP+TCP | 5594ms | UP | NATIVE",
-      "server": "175.139.208.65",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
       }
     },
     {

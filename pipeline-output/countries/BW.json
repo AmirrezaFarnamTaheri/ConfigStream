@@ -39,8 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇧🇼-Unknown | SOCKS4+TCP | 3864ms | UP | NATIVE",
-        "🇧🇼-Unknown | SOCKS4+TCP | 3893ms | UP | NATIVE"
+        "🇧🇼-Gaborone | SOCKS4+TCP | 2192ms | UP | NATIVE",
+        "🇧🇼-Unknown | SOCKS4+TCP | 3103ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇧🇼-Unknown | SOCKS4+TCP | 3864ms | UP | NATIVE",
-        "🇧🇼-Unknown | SOCKS4+TCP | 3893ms | UP | NATIVE"
+        "🇧🇼-Gaborone | SOCKS4+TCP | 2192ms | UP | NATIVE",
+        "🇧🇼-Unknown | SOCKS4+TCP | 3103ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,16 +57,16 @@
     },
     {
       "type": "socks",
-      "tag": "🇧🇼-Unknown | SOCKS4+TCP | 3864ms | UP | NATIVE",
-      "server": "83.143.24.29",
-      "server_port": 5678,
+      "tag": "🇧🇼-Gaborone | SOCKS4+TCP | 2192ms | UP | NATIVE",
+      "server": "129.205.244.158",
+      "server_port": 1080,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇼-Unknown | SOCKS4+TCP | 3893ms | UP | NATIVE",
-      "server": "83.143.29.225",
-      "server_port": 1080,
+      "tag": "🇧🇼-Unknown | SOCKS4+TCP | 3103ms | UP | NATIVE",
+      "server": "83.143.24.29",
+      "server_port": 5678,
       "version": "4"
     },
     {

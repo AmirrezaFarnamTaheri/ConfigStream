@@ -39,7 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE"
+        "🇺🇬-Kampala | SOCKS4+TCP | 4090ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,7 +47,7 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE"
+        "🇺🇬-Kampala | SOCKS4+TCP | 4090ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -55,9 +55,9 @@
     },
     {
       "type": "socks",
-      "tag": "🇰🇬-Unknown | SOCKS4+TCP | 3172ms | UP | NATIVE",
-      "server": "213.145.137.102",
-      "server_port": 37447,
+      "tag": "🇺🇬-Kampala | SOCKS4+TCP | 4090ms | UP | NATIVE",
+      "server": "196.0.111.186",
+      "server_port": 46048,
       "version": "4"
     },
     {

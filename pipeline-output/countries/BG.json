@@ -39,24 +39,17 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇧🇬-Unknown | VLESS+WS+TLS | 49ms | UP | NATIVE",
-        "🇧🇬-Sofia | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 503ms | UP | NATIVE",
-        "🇧🇬-Unknown | VLESS+TCP+REALITY | 570ms | UP | NATIVE",
-        "🇧🇬-Sofia | SHADOWSOCKS+TCP+AES-256-CFB | 729ms | UP | NATIVE",
-        "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 763ms | UP | NATIVE",
-        "🇧🇬-Unknown | HTTP+TCP | 996ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 1047ms | UP | NATIVE",
-        "🇧🇬-Pleven | SOCKS5+TCP | 1758ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 1041ms | UP | NATIVE",
-        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2069ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 5987ms | UP | NATIVE",
-        "🇧🇬-Razlog | SOCKS4+TCP | 1163ms | UP | NATIVE",
-        "🇧🇬-Stara_Zagora | SOCKS4+TCP | 2149ms | UP | NATIVE",
-        "🇧🇬-Plovdiv | SOCKS4+TCP | 4668ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 5278ms | UP | NATIVE",
-        "🇧🇬-Sofia | HTTP+TCP | 5867ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 1021ms | UP | NATIVE",
-        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 3022ms | UP | NATIVE"
+        "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 550ms | UP | NATIVE",
+        "🇧🇬-Unknown | VLESS+TCP+REALITY | 589ms | UP | NATIVE",
+        "🇧🇬-Sofia | SHADOWSOCKS+SS+AES-256-CFB | 749ms | UP | NATIVE",
+        "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 757ms | UP | NATIVE",
+        "🇧🇬-Svilengrad | SOCKS4+TCP | 3609ms | UP | NATIVE",
+        "🇧🇬-Unknown | SOCKS4+TCP | 1316ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 5960ms | UP | NATIVE",
+        "🇧🇬-Razlog | SOCKS4+TCP | 5112ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 4130ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 2015ms | UP | NATIVE",
+        "🇧🇬-Pleven | SOCKS5+TCP | 1786ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -64,50 +57,25 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇧🇬-Unknown | VLESS+WS+TLS | 49ms | UP | NATIVE",
-        "🇧🇬-Sofia | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 503ms | UP | NATIVE",
-        "🇧🇬-Unknown | VLESS+TCP+REALITY | 570ms | UP | NATIVE",
-        "🇧🇬-Sofia | SHADOWSOCKS+TCP+AES-256-CFB | 729ms | UP | NATIVE",
-        "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 763ms | UP | NATIVE",
-        "🇧🇬-Unknown | HTTP+TCP | 996ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 1047ms | UP | NATIVE",
-        "🇧🇬-Pleven | SOCKS5+TCP | 1758ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 1041ms | UP | NATIVE",
-        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2069ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 5987ms | UP | NATIVE",
-        "🇧🇬-Razlog | SOCKS4+TCP | 1163ms | UP | NATIVE",
-        "🇧🇬-Stara_Zagora | SOCKS4+TCP | 2149ms | UP | NATIVE",
-        "🇧🇬-Plovdiv | SOCKS4+TCP | 4668ms | UP | NATIVE",
-        "🇧🇬-Unknown | SOCKS4+TCP | 5278ms | UP | NATIVE",
-        "🇧🇬-Sofia | HTTP+TCP | 5867ms | UP | NATIVE",
-        "🇧🇬-Sofia | SOCKS4+TCP | 1021ms | UP | NATIVE",
-        "🇧🇬-Saint_Vlas | SOCKS4+TCP | 3022ms | UP | NATIVE"
+        "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 550ms | UP | NATIVE",
+        "🇧🇬-Unknown | VLESS+TCP+REALITY | 589ms | UP | NATIVE",
+        "🇧🇬-Sofia | SHADOWSOCKS+SS+AES-256-CFB | 749ms | UP | NATIVE",
+        "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 757ms | UP | NATIVE",
+        "🇧🇬-Svilengrad | SOCKS4+TCP | 3609ms | UP | NATIVE",
+        "🇧🇬-Unknown | SOCKS4+TCP | 1316ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 5960ms | UP | NATIVE",
+        "🇧🇬-Razlog | SOCKS4+TCP | 5112ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 4130ms | UP | NATIVE",
+        "🇧🇬-Sofia | SOCKS4+TCP | 2015ms | UP | NATIVE",
+        "🇧🇬-Pleven | SOCKS5+TCP | 1786ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "vless",
-      "tag": "🇧🇬-Unknown | VLESS+WS+TLS | 49ms | UP | NATIVE",
-      "server": "147.78.140.0",
-      "server_port": 8443,
-      "uuid": "829658bf-03c4-4c28-81e9-dd6ea141b2d0",
-      "transport": {
-        "type": "ws",
-        "headers": {
-          "Host": "5jq7fvwpqt5owo2fi198sa6qoxznkzfea7en4m3xroeqrt3u3q.zjde5.de5.net",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "5jq7fvwpqt5owo2fi198sa6qoxznkzfea7en4m3xroeqrt3u3q.zjde5.de5.net"
-      }
-    },
-    {
       "type": "shadowsocks",
-      "tag": "🇧🇬-Sofia | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 503ms | UP | NATIVE",
+      "tag": "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 550ms | UP | NATIVE",
       "server": "38.60.247.151",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -115,7 +83,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇧🇬-Unknown | VLESS+TCP+REALITY | 570ms | UP | NATIVE",
+      "tag": "🇧🇬-Unknown | VLESS+TCP+REALITY | 589ms | UP | NATIVE",
       "server": "146.19.80.115",
       "server_port": 443,
       "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
@@ -136,7 +104,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇧🇬-Sofia | SHADOWSOCKS+TCP+AES-256-CFB | 729ms | UP | NATIVE",
+      "tag": "🇧🇬-Sofia | SHADOWSOCKS+SS+AES-256-CFB | 749ms | UP | NATIVE",
       "server": "38.60.247.151",
       "server_port": 989,
       "method": "aes-256-cfb",
@@ -144,112 +112,62 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 763ms | UP | NATIVE",
+      "tag": "🇧🇬-Sofia | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 757ms | UP | NATIVE",
       "server": "89.44.197.181",
       "server_port": 31348,
       "method": "chacha20-ietf-poly1305",
       "password": "zDLmeWRsfcFdKT1Tpy02xodEToqCldTxvZcRoPIZZtBdnIEL"
     },
     {
-      "type": "http",
-      "tag": "🇧🇬-Unknown | HTTP+TCP | 996ms | UP | NATIVE",
-      "server": "45.136.198.40",
-      "server_port": 3128,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 1047ms | UP | NATIVE",
-      "server": "213.222.34.200",
-      "server_port": 4145,
+      "tag": "🇧🇬-Svilengrad | SOCKS4+TCP | 3609ms | UP | NATIVE",
+      "server": "93.183.175.6",
+      "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇬-Pleven | SOCKS5+TCP | 1758ms | UP | NATIVE",
-      "server": "31.211.142.115",
-      "server_port": 8192,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 1041ms | UP | NATIVE",
+      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 1316ms | UP | NATIVE",
       "server": "88.213.214.254",
       "server_port": 4145,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇬-Saint_Vlas | SOCKS4+TCP | 2069ms | UP | NATIVE",
-      "server": "93.123.98.80",
+      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 5960ms | UP | NATIVE",
+      "server": "92.247.31.130",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇬-Razlog | SOCKS4+TCP | 5112ms | UP | NATIVE",
+      "server": "213.149.154.213",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 5987ms | UP | NATIVE",
+      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 4130ms | UP | NATIVE",
       "server": "212.5.132.74",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇬-Razlog | SOCKS4+TCP | 1163ms | UP | NATIVE",
-      "server": "213.149.156.87",
+      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 2015ms | UP | NATIVE",
+      "server": "77.238.79.111",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇬-Stara_Zagora | SOCKS4+TCP | 2149ms | UP | NATIVE",
-      "server": "46.47.82.16",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Plovdiv | SOCKS4+TCP | 4668ms | UP | NATIVE",
-      "server": "91.92.80.199",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Unknown | SOCKS4+TCP | 5278ms | UP | NATIVE",
-      "server": "31.13.239.4",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇬-Sofia | HTTP+TCP | 5867ms | UP | NATIVE",
-      "server": "92.247.12.136",
-      "server_port": 9510,
+      "tag": "🇧🇬-Pleven | SOCKS5+TCP | 1786ms | UP | NATIVE",
+      "server": "31.211.142.115",
+      "server_port": 8192,
       "username": "",
       "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Sofia | SOCKS4+TCP | 1021ms | UP | NATIVE",
-      "server": "95.43.244.15",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇬-Saint_Vlas | SOCKS4+TCP | 3022ms | UP | NATIVE",
-      "server": "87.121.49.238",
-      "server_port": 4145,
-      "version": "4"
+      "version": "5"
     },
     {
       "type": "direct",

@@ -39,10 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 505ms | UP | NATIVE",
-        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+AES-256-CFB | 643ms | UP | NATIVE",
-        "🇵🇪-Lima | SOCKS4+TCP | 2054ms | UP | NATIVE",
-        "🇵🇪-Lima | HTTP+TCP | 5856ms | UP | NATIVE"
+        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 488ms | UP | NATIVE",
+        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+SS+AES-256-CFB | 882ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -50,10 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 505ms | UP | NATIVE",
-        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+AES-256-CFB | 643ms | UP | NATIVE",
-        "🇵🇪-Lima | SOCKS4+TCP | 2054ms | UP | NATIVE",
-        "🇵🇪-Lima | HTTP+TCP | 5856ms | UP | NATIVE"
+        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 488ms | UP | NATIVE",
+        "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+SS+AES-256-CFB | 882ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -61,7 +57,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 505ms | UP | NATIVE",
+      "tag": "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 488ms | UP | NATIVE",
       "server": "138.186.143.32",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -69,29 +65,11 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+TCP+AES-256-CFB | 643ms | UP | NATIVE",
+      "tag": "🇵🇪-Santiago_de_Surco | SHADOWSOCKS+SS+AES-256-CFB | 882ms | UP | NATIVE",
       "server": "138.186.143.32",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇪-Lima | SOCKS4+TCP | 2054ms | UP | NATIVE",
-      "server": "190.12.95.170",
-      "server_port": 37209,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇵🇪-Lima | HTTP+TCP | 5856ms | UP | NATIVE",
-      "server": "201.230.121.86",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
     },
     {
       "type": "direct",

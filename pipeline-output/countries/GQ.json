@@ -39,8 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇱🇧-Tripoli | SOCKS4+TCP | 1599ms | UP | NATIVE",
-        "🇱🇧-Baalbek | HTTP+TCP | 4172ms | UP | NATIVE"
+        "🇬🇶-Bata | HTTP+TCP | 2743ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,25 +47,17 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇱🇧-Tripoli | SOCKS4+TCP | 1599ms | UP | NATIVE",
-        "🇱🇧-Baalbek | HTTP+TCP | 4172ms | UP | NATIVE"
+        "🇬🇶-Bata | HTTP+TCP | 2743ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "socks",
-      "tag": "🇱🇧-Tripoli | SOCKS4+TCP | 1599ms | UP | NATIVE",
-      "server": "185.114.89.74",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
       "type": "http",
-      "tag": "🇱🇧-Baalbek | HTTP+TCP | 4172ms | UP | NATIVE",
-      "server": "185.82.99.219",
-      "server_port": 50066,
+      "tag": "🇬🇶-Bata | HTTP+TCP | 2743ms | UP | NATIVE",
+      "server": "102.164.252.150",
+      "server_port": 8080,
       "username": "",
       "password": "",
       "tls": {

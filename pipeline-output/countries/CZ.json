@@ -39,9 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇨🇿-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
-        "🇨🇿-Unknown | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
-        "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE"
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 591ms | UP | NATIVE",
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 772ms | UP | NATIVE",
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 875ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,9 +49,9 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇨🇿-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
-        "🇨🇿-Unknown | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
-        "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE"
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 591ms | UP | NATIVE",
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 772ms | UP | NATIVE",
+        "🇨🇿-Unknown | VLESS+TCP+REALITY | 875ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -59,7 +59,28 @@
     },
     {
       "type": "vless",
-      "tag": "🇨🇿-Unknown | VLESS+TCP+REALITY | 596ms | UP | NATIVE",
+      "tag": "🇨🇿-Unknown | VLESS+TCP+REALITY | 591ms | UP | NATIVE",
+      "server": "195.133.25.187",
+      "server_port": 8443,
+      "uuid": "9f4ffa56-6813-430c-8cac-159cc469086a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "shiftline.xyz",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "QjcIcRxF6rLpMImGD9wUYmeftFwpkuwLKm9nChbD50A",
+          "short_id": "60a0c1f0f4c9ca63"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇿-Unknown | VLESS+TCP+REALITY | 772ms | UP | NATIVE",
       "server": "194.87.76.23",
       "server_port": 8443,
       "uuid": "9f4ffa56-6813-430c-8cac-159cc469086a",
@@ -80,31 +101,24 @@
     },
     {
       "type": "vless",
-      "tag": "🇨🇿-Unknown | VLESS+TCP+REALITY | 603ms | UP | NATIVE",
-      "server": "195.133.25.187",
-      "server_port": 8443,
-      "uuid": "9f4ffa56-6813-430c-8cac-159cc469086a",
+      "tag": "🇨🇿-Unknown | VLESS+TCP+REALITY | 875ms | UP | NATIVE",
+      "server": "194.87.140.146",
+      "server_port": 443,
+      "uuid": "c4bfda4b-0652-45a2-86ee-d627e5a2d4a5",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "shiftline.xyz",
+        "server_name": "www.nvidia.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "QjcIcRxF6rLpMImGD9wUYmeftFwpkuwLKm9nChbD50A",
-          "short_id": "60a0c1f0f4c9ca63"
+          "public_key": "QTnnDh22E-zeFRXYjhXYLTFw6sCgum2-H_-PVto140Q",
+          "short_id": "aabbccdd"
         }
       }
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇿-Znojmo | SOCKS4+TCP | 926ms | UP | NATIVE",
-      "server": "90.182.147.170",
-      "server_port": 4145,
-      "version": "4"
     },
     {
       "type": "direct",

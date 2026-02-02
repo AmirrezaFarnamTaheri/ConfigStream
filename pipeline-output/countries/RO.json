@@ -39,10 +39,10 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇷🇴-Unknown | VLESS+TCP+REALITY | 383ms | UP | NATIVE",
-        "🇷🇴-Unknown | VLESS+TCP+REALITY | 713ms | UP | NATIVE",
-        "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
-        "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE"
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 565ms | UP | NATIVE",
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 669ms | UP | NATIVE",
+        "🇷🇴-Bucharest | SOCKS4+TCP | 3200ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 3167ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -50,10 +50,10 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇷🇴-Unknown | VLESS+TCP+REALITY | 383ms | UP | NATIVE",
-        "🇷🇴-Unknown | VLESS+TCP+REALITY | 713ms | UP | NATIVE",
-        "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
-        "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE"
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 565ms | UP | NATIVE",
+        "🇷🇴-Unknown | VLESS+TCP+REALITY | 669ms | UP | NATIVE",
+        "🇷🇴-Bucharest | SOCKS4+TCP | 3200ms | UP | NATIVE",
+        "🇷🇴-Pantelimon | SOCKS4+TCP | 3167ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -61,7 +61,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇷🇴-Unknown | VLESS+TCP+REALITY | 383ms | UP | NATIVE",
+      "tag": "🇷🇴-Unknown | VLESS+TCP+REALITY | 565ms | UP | NATIVE",
       "server": "195.74.93.78",
       "server_port": 443,
       "uuid": "94a1c4c7-338e-4949-9811-85bf4eff17a2",
@@ -82,7 +82,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇷🇴-Unknown | VLESS+TCP+REALITY | 713ms | UP | NATIVE",
+      "tag": "🇷🇴-Unknown | VLESS+TCP+REALITY | 669ms | UP | NATIVE",
       "server": "81.180.93.45",
       "server_port": 443,
       "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
@@ -103,14 +103,14 @@
     },
     {
       "type": "socks",
-      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 3473ms | UP | NATIVE",
+      "tag": "🇷🇴-Bucharest | SOCKS4+TCP | 3200ms | UP | NATIVE",
       "server": "81.12.157.98",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇷🇴-Pantelimon | SOCKS4+TCP | 2434ms | UP | NATIVE",
+      "tag": "🇷🇴-Pantelimon | SOCKS4+TCP | 3167ms | UP | NATIVE",
       "server": "81.12.169.254",
       "server_port": 4153,
       "version": "4"

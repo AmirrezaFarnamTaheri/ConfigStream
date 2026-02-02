@@ -39,10 +39,12 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇸🇨-Unknown | VLESS+WS+TLS | 54ms | UP | NATIVE",
-        "🇸🇨-Unknown | VLESS+WS+TLS | 58ms | UP | NATIVE",
-        "🇸🇨-Unknown | VLESS+WS+TLS | 496ms | UP | NATIVE",
-        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 687ms | UP | NATIVE"
+        "🇸🇨-Unknown | VLESS+WS+TLS | 63ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 66ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 93ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 115ms | UP | NATIVE",
+        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 560ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 4657ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -50,10 +52,12 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇸🇨-Unknown | VLESS+WS+TLS | 54ms | UP | NATIVE",
-        "🇸🇨-Unknown | VLESS+WS+TLS | 58ms | UP | NATIVE",
-        "🇸🇨-Unknown | VLESS+WS+TLS | 496ms | UP | NATIVE",
-        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 687ms | UP | NATIVE"
+        "🇸🇨-Unknown | VLESS+WS+TLS | 63ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 66ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 93ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 115ms | UP | NATIVE",
+        "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 560ms | UP | NATIVE",
+        "🇸🇨-Unknown | VLESS+WS+TLS | 4657ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -61,43 +65,87 @@
     },
     {
       "type": "vless",
-      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 54ms | UP | NATIVE",
-      "server": "192.144.19.55",
-      "server_port": 8443,
-      "uuid": "83f03646-fb28-44cc-9d2c-8853f6c09285",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 63ms | UP | NATIVE",
+      "server": "45.130.125.160",
+      "server_port": 443,
+      "uuid": "ea33fc71-2ce3-48e1-93fb-e36142c1e1ee",
       "transport": {
         "type": "ws",
         "headers": {
-          "Host": "r4fnviw9jl4i4rx.zjde5.de5.net",
+          "Host": "afrcloud4.c01.kr",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "r4fnviw9jl4i4rx.zjde5.de5.net"
+        "server_name": "afrcloud4.c01.kr"
       }
     },
     {
       "type": "vless",
-      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 58ms | UP | NATIVE",
-      "server": "45.130.125.126",
-      "server_port": 8443,
-      "uuid": "829658bf-03c4-4c28-81e9-dd6ea141b2d0",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 66ms | UP | NATIVE",
+      "server": "154.194.0.120",
+      "server_port": 443,
+      "uuid": "e258977b-e413-4718-a3af-02d75492c349",
       "transport": {
         "type": "ws",
         "headers": {
-          "Host": "5jq7fvwpqt5owo2fi198sa6qoxznkzfea7en4m3xroeqrt3u3q.zjde5.de5.net",
+          "Host": "jp-aniu.xmmaa.dpdns.org",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
       },
       "tls": {
         "enabled": true,
-        "server_name": "5jq7fvwpqt5owo2fi198sa6qoxznkzfea7en4m3xroeqrt3u3q.zjde5.de5.net"
+        "server_name": "jp-aniu.xmmaa.dpdns.org"
       }
     },
     {
       "type": "vless",
-      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 496ms | UP | NATIVE",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 93ms | UP | NATIVE",
+      "server": "154.194.0.228",
+      "server_port": 443,
+      "uuid": "e258977b-e413-4718-a3af-02d75492c349",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "jp-aniu.xmmaa.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "jp-aniu.xmmaa.dpdns.org"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 115ms | UP | NATIVE",
+      "server": "154.194.0.154",
+      "server_port": 443,
+      "uuid": "e258977b-e413-4718-a3af-02d75492c349",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "jp-aniu.xmmaa.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "jp-aniu.xmmaa.dpdns.org"
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 560ms | UP | NATIVE",
+      "server": "156.244.19.94",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "652e423c559eefd4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇨-Unknown | VLESS+WS+TLS | 4657ms | UP | NATIVE",
       "server": "45.130.125.160",
       "server_port": 443,
       "uuid": "29fa0634-fc9a-4a5a-9104-b7e36e8a9b61",
@@ -112,14 +160,6 @@
         "enabled": true,
         "server_name": "gozar1.i2fed.com"
       }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇨-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 687ms | UP | NATIVE",
-      "server": "156.244.19.94",
-      "server_port": 11201,
-      "method": "chacha20-ietf-poly1305",
-      "password": "652e423c559eefd4"
     },
     {
       "type": "direct",
