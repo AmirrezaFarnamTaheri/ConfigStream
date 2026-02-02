@@ -335,7 +335,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                     # Sing-box expects standard WireGuard Base64 keys; keep original Base64.
                     return key
                 except Exception:
-                    return key
+                    # [FIX] Return empty string on invalid Base64 to prevent passing illegal data to Go
+                    return ""
             return key
 
         pk = validate_wg_key(str(private_key))
