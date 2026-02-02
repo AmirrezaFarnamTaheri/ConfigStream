@@ -4,7 +4,7 @@
 
 https://v2.alicivil.workers.dev/?count=2000&list=pe&shuffle=true
 https://v2.alicivil.workers.dev/?count=2000&list=tw&shuffle=true
-https://v2.alicivil.workers.dev/?list=100&unique=false&shuffle=true&count=1000#?list=100&unique=false&shuffle=true&count=1000
+https://v2.alicivil.workers.dev/?list=100&unique=false&shuffle=true&count=1000
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub26.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub14.txt
 https://raw.githubusercontent.com/MatinGhanbari/v2ray-configs/main/subscriptions/v2ray/subs/sub23.txt

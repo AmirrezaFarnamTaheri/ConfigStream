@@ -226,7 +226,13 @@ async def notify_update(payload: dict, request: Request):
 
         if not provided_key and auth_header:
             parts = auth_header.split(None, 1)  # e.g. "Bearer <token>"
-            provided_key = parts[1] if len(parts) == 2 else auth_header
+            if len(parts) == 2 and parts[0].lower() == "bearer":
+                provided_key = parts[1].strip()
+
+        if provided_key is not None:
+            provided_key = provided_key.strip()
+            if "\n" in provided_key or "\r" in provided_key:
+                provided_key = None
 
         # Allow internal pipeline calls without API key if key matches or is from internal source
         # In production, pipeline should include api_key in payload

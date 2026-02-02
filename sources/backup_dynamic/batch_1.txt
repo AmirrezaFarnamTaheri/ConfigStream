@@ -25,7 +25,7 @@ https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Xray/sub
 https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/clash/mix
 https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/ss.txt
 https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/vless.txt
-https://v2.alicivil.workers.dev/?shuffle=true
+https://v2.alicivil.workers.dev/?count=2000&shuffle=true
 https://raw.githubusercontent.com/webdao/v2ray/master/nodes.txt
 https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg1
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/reality.txt
