@@ -47,12 +47,10 @@ https://freevpnspy.raw.githubusercontent.com/2024/08/20240802_novless.yaml
 https://raw.githubusercontent.com/eycorsican/rule-sets/master/kitsunebi_sub
 https://cdn.fildl.ir/sub/TUNrQ2JpLDE3Njc4OTA3OTEyzup1z2RKG#Subscription
 https://raw.githubusercontent.com/IranianCypherpunks/Xray/main/Sub
-https://www.facebook.com/search/top?q=free%20proxy
 https://raw.githubusercontent.com/tony0392/clash/main/clash.yaml
 https://raw.githubusercontent.com/Mahanfix/v2rayvpn/main/mahanfix
 https://raw.githubusercontent.com/parkerpa/zypjj/main/clash
 https://raw.githubusercontent.com/personqianduixue/SubCrawler/main/sub/share/all
-https://luminati.io/
 https://hidemyip.com/proxylist
 https://raw.githubusercontent.com/sami-soft/v2rayN_proxy/main/new1.txt
 https://raw.githubusercontent.com/69z1zfw2fly/fly/main/2.yaml

@@ -25,7 +25,7 @@ services:
   # 2. Aggregator Worker (Runs Interval Loop)
   worker:
     build: .  # Use same Dockerfile; override command only
-    entrypoint: ["/bin/sh", "-c"]
+    entrypoint: ["/bin/sh", "-eu", "-c"]
     container_name: configstream_worker
     restart: unless-stopped
     volumes:

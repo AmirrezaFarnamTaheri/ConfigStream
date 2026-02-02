@@ -56,7 +56,8 @@ self.addEventListener('fetch', (event) => {
   const mode = config.CACHE_STRATEGY || 'stale-while-revalidate';
 
   const isData = url.pathname.endsWith('.json') || url.pathname.includes('/api/');
-  const effectiveMode = isData ? 'network-first' : mode;
+  const normalizedMode = (typeof mode === 'string') ? mode : 'stale-while-revalidate';
+  const effectiveMode = isData ? 'network-first' : normalizedMode;
 
   if (effectiveMode === 'network-first') {
     event.respondWith(
