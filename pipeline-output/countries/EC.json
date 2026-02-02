@@ -39,20 +39,16 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 377ms | UP | NATIVE",
-        "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 452ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | SOCKS4+TCP | 758ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | HTTP+TCP | 5353ms | UP | NATIVE",
-        "🇪🇨-Portoviejo | HTTP+TCP | 5403ms | UP | NATIVE",
-        "🇪🇨-Milagro | HTTP+TCP | 2926ms | UP | NATIVE",
-        "🇪🇨-Machala | HTTP+TCP | 2046ms | UP | NATIVE",
-        "🇪🇨-Unknown | HTTP+TCP | 5828ms | UP | NATIVE",
-        "🇪🇨-Cuenca | HTTP+TCP | 2620ms | UP | NATIVE",
-        "🇪🇨-Cuenca | HTTP+TCP | 4741ms | UP | NATIVE",
-        "🇪🇨-Quito | HTTP+TCP | 5720ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | HTTP+TCP | 4881ms | UP | NATIVE",
-        "🇪🇨-Unknown | HTTP+TCP | 1343ms | UP | NATIVE",
-        "🇪🇨-Unknown | HTTP+TCP | 4586ms | UP | NATIVE"
+        "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 423ms | UP | NATIVE",
+        "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 505ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 566ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 873ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 965ms | UP | NATIVE",
+        "🇪🇨-Portoviejo | HTTP+TCP | 2736ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 4414ms | UP | NATIVE",
+        "🇪🇨-Zamora_Nuevo | HTTP+TCP | 4888ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 3576ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | HTTP+TCP | 3668ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -60,20 +56,16 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 377ms | UP | NATIVE",
-        "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 452ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | SOCKS4+TCP | 758ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | HTTP+TCP | 5353ms | UP | NATIVE",
-        "🇪🇨-Portoviejo | HTTP+TCP | 5403ms | UP | NATIVE",
-        "🇪🇨-Milagro | HTTP+TCP | 2926ms | UP | NATIVE",
-        "🇪🇨-Machala | HTTP+TCP | 2046ms | UP | NATIVE",
-        "🇪🇨-Unknown | HTTP+TCP | 5828ms | UP | NATIVE",
-        "🇪🇨-Cuenca | HTTP+TCP | 2620ms | UP | NATIVE",
-        "🇪🇨-Cuenca | HTTP+TCP | 4741ms | UP | NATIVE",
-        "🇪🇨-Quito | HTTP+TCP | 5720ms | UP | NATIVE",
-        "🇪🇨-Guayaquil | HTTP+TCP | 4881ms | UP | NATIVE",
-        "🇪🇨-Unknown | HTTP+TCP | 1343ms | UP | NATIVE",
-        "🇪🇨-Unknown | HTTP+TCP | 4586ms | UP | NATIVE"
+        "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 423ms | UP | NATIVE",
+        "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 505ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 566ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 873ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | SOCKS4+TCP | 965ms | UP | NATIVE",
+        "🇪🇨-Portoviejo | HTTP+TCP | 2736ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 4414ms | UP | NATIVE",
+        "🇪🇨-Zamora_Nuevo | HTTP+TCP | 4888ms | UP | NATIVE",
+        "🇪🇨-Quito | HTTP+TCP | 3576ms | UP | NATIVE",
+        "🇪🇨-Guayaquil | HTTP+TCP | 3668ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -81,7 +73,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 377ms | UP | NATIVE",
+      "tag": "🇪🇨-Quito | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 423ms | UP | NATIVE",
       "server": "185.47.253.227",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -89,24 +81,17 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 452ms | UP | NATIVE",
+      "tag": "🇪🇨-Quito | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 505ms | UP | NATIVE",
       "server": "38.165.231.25",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
-      "type": "socks",
-      "tag": "🇪🇨-Guayaquil | SOCKS4+TCP | 758ms | UP | NATIVE",
-      "server": "45.238.57.1",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
       "type": "http",
-      "tag": "🇪🇨-Guayaquil | HTTP+TCP | 5353ms | UP | NATIVE",
-      "server": "45.4.202.170",
-      "server_port": 999,
+      "tag": "🇪🇨-Quito | HTTP+TCP | 566ms | UP | NATIVE",
+      "server": "45.186.6.104",
+      "server_port": 3128,
       "username": "",
       "password": "",
       "tls": {
@@ -114,8 +99,22 @@
       }
     },
     {
+      "type": "socks",
+      "tag": "🇪🇨-Guayaquil | SOCKS4+TCP | 873ms | UP | NATIVE",
+      "server": "160.20.165.242",
+      "server_port": 8080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇨-Guayaquil | SOCKS4+TCP | 965ms | UP | NATIVE",
+      "server": "45.238.57.1",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
       "type": "http",
-      "tag": "🇪🇨-Portoviejo | HTTP+TCP | 5403ms | UP | NATIVE",
+      "tag": "🇪🇨-Portoviejo | HTTP+TCP | 2736ms | UP | NATIVE",
       "server": "45.70.236.194",
       "server_port": 999,
       "username": "",
@@ -126,8 +125,8 @@
     },
     {
       "type": "http",
-      "tag": "🇪🇨-Milagro | HTTP+TCP | 2926ms | UP | NATIVE",
-      "server": "181.78.194.249",
+      "tag": "🇪🇨-Quito | HTTP+TCP | 4414ms | UP | NATIVE",
+      "server": "177.234.217.235",
       "server_port": 999,
       "username": "",
       "password": "",
@@ -137,19 +136,8 @@
     },
     {
       "type": "http",
-      "tag": "🇪🇨-Machala | HTTP+TCP | 2046ms | UP | NATIVE",
-      "server": "177.234.226.83",
-      "server_port": 1994,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇪🇨-Unknown | HTTP+TCP | 5828ms | UP | NATIVE",
-      "server": "200.24.130.146",
+      "tag": "🇪🇨-Zamora_Nuevo | HTTP+TCP | 4888ms | UP | NATIVE",
+      "server": "190.83.15.241",
       "server_port": 999,
       "username": "",
       "password": "",
@@ -159,19 +147,8 @@
     },
     {
       "type": "http",
-      "tag": "🇪🇨-Cuenca | HTTP+TCP | 2620ms | UP | NATIVE",
-      "server": "200.24.159.230",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇪🇨-Cuenca | HTTP+TCP | 4741ms | UP | NATIVE",
-      "server": "181.78.203.148",
+      "tag": "🇪🇨-Quito | HTTP+TCP | 3576ms | UP | NATIVE",
+      "server": "177.234.217.238",
       "server_port": 999,
       "username": "",
       "password": "",
@@ -181,42 +158,9 @@
     },
     {
       "type": "http",
-      "tag": "🇪🇨-Quito | HTTP+TCP | 5720ms | UP | NATIVE",
-      "server": "8.243.197.202",
+      "tag": "🇪🇨-Guayaquil | HTTP+TCP | 3668ms | UP | NATIVE",
+      "server": "45.4.202.170",
       "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇪🇨-Guayaquil | HTTP+TCP | 4881ms | UP | NATIVE",
-      "server": "177.234.194.31",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇪🇨-Unknown | HTTP+TCP | 1343ms | UP | NATIVE",
-      "server": "190.12.150.244",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇪🇨-Unknown | HTTP+TCP | 4586ms | UP | NATIVE",
-      "server": "186.46.238.250",
-      "server_port": 8080,
       "username": "",
       "password": "",
       "tls": {

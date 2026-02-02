@@ -39,7 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇸🇰-Bratislava | VLESS+TCP+REALITY | 582ms | UP | NATIVE"
+        "🇸🇰-Bratislava | VLESS+TCP+REALITY | 599ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,7 +47,7 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇸🇰-Bratislava | VLESS+TCP+REALITY | 582ms | UP | NATIVE"
+        "🇸🇰-Bratislava | VLESS+TCP+REALITY | 599ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -55,7 +55,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇸🇰-Bratislava | VLESS+TCP+REALITY | 582ms | UP | NATIVE",
+      "tag": "🇸🇰-Bratislava | VLESS+TCP+REALITY | 599ms | UP | NATIVE",
       "server": "86.110.243.171",
       "server_port": 25449,
       "uuid": "0df23c07-b289-4d65-822a-228478ca73bd",

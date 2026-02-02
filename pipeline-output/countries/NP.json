@@ -39,13 +39,12 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇳🇵-Unknown | SOCKS4+TCP | 2215ms | UP | NATIVE",
-        "🇳🇵-Unknown | SOCKS4+TCP | 4232ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 2203ms | UP | NATIVE",
-        "🇳🇵-Unknown | HTTP+TCP | 4296ms | UP | NATIVE",
-        "🇳🇵-Unknown | SOCKS4+TCP | 4404ms | UP | NATIVE",
-        "🇳🇵-Unknown | SOCKS4+TCP | 3318ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 5297ms | UP | NATIVE"
+        "🇳🇵-Unknown | SOCKS4+TCP | 5464ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 3240ms | UP | NATIVE",
+        "🇳🇵-Patan | HTTP+TCP | 5631ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 3113ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 2227ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 2140ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -53,13 +52,12 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇳🇵-Unknown | SOCKS4+TCP | 2215ms | UP | NATIVE",
-        "🇳🇵-Unknown | SOCKS4+TCP | 4232ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 2203ms | UP | NATIVE",
-        "🇳🇵-Unknown | HTTP+TCP | 4296ms | UP | NATIVE",
-        "🇳🇵-Unknown | SOCKS4+TCP | 4404ms | UP | NATIVE",
-        "🇳🇵-Unknown | SOCKS4+TCP | 3318ms | UP | NATIVE",
-        "🇳🇵-Kathmandu | SOCKS4+TCP | 5297ms | UP | NATIVE"
+        "🇳🇵-Unknown | SOCKS4+TCP | 5464ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 3240ms | UP | NATIVE",
+        "🇳🇵-Patan | HTTP+TCP | 5631ms | UP | NATIVE",
+        "🇳🇵-Unknown | SOCKS4+TCP | 3113ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 2227ms | UP | NATIVE",
+        "🇳🇵-Kathmandu | SOCKS4+TCP | 2140ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -67,30 +65,23 @@
     },
     {
       "type": "socks",
-      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 2215ms | UP | NATIVE",
-      "server": "202.79.35.12",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 4232ms | UP | NATIVE",
-      "server": "103.28.86.241",
-      "server_port": 57230,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 2203ms | UP | NATIVE",
-      "server": "124.41.213.174",
+      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 5464ms | UP | NATIVE",
+      "server": "202.70.80.153",
       "server_port": 5678,
       "version": "4"
     },
     {
+      "type": "socks",
+      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 3240ms | UP | NATIVE",
+      "server": "202.79.35.143",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
       "type": "http",
-      "tag": "🇳🇵-Unknown | HTTP+TCP | 4296ms | UP | NATIVE",
-      "server": "43.245.93.193",
-      "server_port": 53805,
+      "tag": "🇳🇵-Patan | HTTP+TCP | 5631ms | UP | NATIVE",
+      "server": "110.34.13.4",
+      "server_port": 8080,
       "username": "",
       "password": "",
       "tls": {
@@ -99,23 +90,23 @@
     },
     {
       "type": "socks",
-      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 4404ms | UP | NATIVE",
-      "server": "118.91.175.146",
-      "server_port": 5678,
+      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 3113ms | UP | NATIVE",
+      "server": "202.79.35.12",
+      "server_port": 1080,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇳🇵-Unknown | SOCKS4+TCP | 3318ms | UP | NATIVE",
-      "server": "202.79.35.143",
+      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 2227ms | UP | NATIVE",
+      "server": "202.166.211.182",
+      "server_port": 1488,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 2140ms | UP | NATIVE",
+      "server": "202.166.219.80",
       "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇵-Kathmandu | SOCKS4+TCP | 5297ms | UP | NATIVE",
-      "server": "202.166.196.105",
-      "server_port": 48293,
       "version": "4"
     },
     {

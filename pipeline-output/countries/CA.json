@@ -39,43 +39,44 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇨🇦-Toronto | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 60ms | UP | NATIVE",
-        "🇨🇦-Toronto | SHADOWSOCKS+SS+AES-256-CFB | 77ms | UP | NATIVE",
-        "🇨🇦-Toronto | VLESS+TCP+REALITY | 87ms | UP | NATIVE",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 92ms | UP | NATIVE",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 93ms | UP | NATIVE",
-        "🇨🇦-Toronto | SHADOWSOCKS+TCP+RC4-MD5 | 98ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 99ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 107ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 108ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE",
-        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 114ms | UP | NATIVE",
-        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 117ms | UP | NATIVE",
-        "🇨🇦-Toronto | VLESS+TCP+REALITY | 118ms | UP | NATIVE",
-        "🇨🇦-Montreal | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 121ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS5+TCP | 156ms | UP | NATIVE",
-        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-128-GCM | 172ms | UP | NATIVE",
-        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-256-CFB | 180ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 182ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 185ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 193ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Toronto | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 68ms | UP | NATIVE",
+        "🇨🇦-Toronto | SHADOWSOCKS+SS+AES-256-CFB | 79ms | UP | NATIVE",
+        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 88ms | UP | NATIVE",
+        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 94ms | UP | NATIVE",
+        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-128-GCM | 95ms | UP | NATIVE",
+        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-256-CFB | 97ms | UP | NATIVE",
+        "🇨🇦-Toronto | SHADOWSOCKS+TCP+RC4-MD5 | 97ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 104ms | UP | NATIVE",
+        "🇨🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 111ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 112ms | UP | NATIVE",
+        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 116ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP+REALITY | 126ms | UP | NATIVE",
+        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 127ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP+REALITY | 128ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS5+TCP | 136ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP+REALITY | 140ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 154ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 156ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 157ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 158ms | UP | NATIVE",
+        "🇨🇦-Toronto | SOCKS5+TCP | 160ms | UP | NATIVE",
+        "🇨🇦-Toronto | SOCKS4+TCP | 173ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 184ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 189ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 192ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 195ms | UP | NATIVE",
         "🇨🇦-Unknown | VMESS+WS | 196ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | VMESS+WS | 197ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 217ms | UP | NATIVE",
-        "🇨🇦-Mississauga | SOCKS4+TCP | 235ms | UP | NATIVE",
-        "🇨🇦-Toronto | VMESS+WS+TLS | 334ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS+TLS | 389ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS+TLS | 390ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS+TLS | 395ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 437ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | VMESS+WS | 939ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS4+TCP | 3489ms | UP | NATIVE",
-        "🇨🇦-Sioux_Lookout | SOCKS4+TCP | 5648ms | UP | NATIVE",
-        "🇨🇦-Toronto | HTTP+TCP | 1272ms | UP | NATIVE",
-        "🇨🇦-Unknown | HTTP+TCP | 1524ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS4+TCP | 1738ms | UP | NATIVE",
-        "🇨🇦-Toronto | SOCKS5+TCP | 2501ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 1294ms | UP | NATIVE"
+        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 205ms | UP | NATIVE",
+        "🇨🇦-Toronto | VMESS+WS+TLS | 239ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP | 274ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 330ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 349ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Mississauga | SOCKS4+TCP | 431ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 723ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 745ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS4+TCP | 746ms | UP | NATIVE",
+        "🇨🇦-Toronto | HTTP+TCP | 1175ms | UP | NATIVE",
+        "🇨🇦-Unknown | HTTP+TCP | 2548ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -83,43 +84,44 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇨🇦-Toronto | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 60ms | UP | NATIVE",
-        "🇨🇦-Toronto | SHADOWSOCKS+SS+AES-256-CFB | 77ms | UP | NATIVE",
-        "🇨🇦-Toronto | VLESS+TCP+REALITY | 87ms | UP | NATIVE",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 92ms | UP | NATIVE",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 93ms | UP | NATIVE",
-        "🇨🇦-Toronto | SHADOWSOCKS+TCP+RC4-MD5 | 98ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 99ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 107ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 108ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE",
-        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 114ms | UP | NATIVE",
-        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 117ms | UP | NATIVE",
-        "🇨🇦-Toronto | VLESS+TCP+REALITY | 118ms | UP | NATIVE",
-        "🇨🇦-Montreal | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 121ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS5+TCP | 156ms | UP | NATIVE",
-        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-128-GCM | 172ms | UP | NATIVE",
-        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-256-CFB | 180ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 182ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 185ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 193ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Toronto | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 68ms | UP | NATIVE",
+        "🇨🇦-Toronto | SHADOWSOCKS+SS+AES-256-CFB | 79ms | UP | NATIVE",
+        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 88ms | UP | NATIVE",
+        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 94ms | UP | NATIVE",
+        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-128-GCM | 95ms | UP | NATIVE",
+        "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-256-CFB | 97ms | UP | NATIVE",
+        "🇨🇦-Toronto | SHADOWSOCKS+TCP+RC4-MD5 | 97ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 104ms | UP | NATIVE",
+        "🇨🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 111ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 112ms | UP | NATIVE",
+        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 116ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP+REALITY | 126ms | UP | NATIVE",
+        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 127ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP+REALITY | 128ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS5+TCP | 136ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP+REALITY | 140ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 154ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 156ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 157ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 158ms | UP | NATIVE",
+        "🇨🇦-Toronto | SOCKS5+TCP | 160ms | UP | NATIVE",
+        "🇨🇦-Toronto | SOCKS4+TCP | 173ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS+TLS | 184ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 189ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 192ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 195ms | UP | NATIVE",
         "🇨🇦-Unknown | VMESS+WS | 196ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | VMESS+WS | 197ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 217ms | UP | NATIVE",
-        "🇨🇦-Mississauga | SOCKS4+TCP | 235ms | UP | NATIVE",
-        "🇨🇦-Toronto | VMESS+WS+TLS | 334ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS+TLS | 389ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS+TLS | 390ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS+TLS | 395ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 437ms | UP | NATIVE | SEC:tls_required",
-        "🇨🇦-Unknown | VMESS+WS | 939ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS4+TCP | 3489ms | UP | NATIVE",
-        "🇨🇦-Sioux_Lookout | SOCKS4+TCP | 5648ms | UP | NATIVE",
-        "🇨🇦-Toronto | HTTP+TCP | 1272ms | UP | NATIVE",
-        "🇨🇦-Unknown | HTTP+TCP | 1524ms | UP | NATIVE",
-        "🇨🇦-Montreal | SOCKS4+TCP | 1738ms | UP | NATIVE",
-        "🇨🇦-Toronto | SOCKS5+TCP | 2501ms | UP | NATIVE",
-        "🇨🇦-Unknown | VMESS+WS | 1294ms | UP | NATIVE"
+        "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 205ms | UP | NATIVE",
+        "🇨🇦-Toronto | VMESS+WS+TLS | 239ms | UP | NATIVE",
+        "🇨🇦-Toronto | VLESS+TCP | 274ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 330ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Unknown | VMESS+WS | 349ms | UP | NATIVE | SEC:tls_required",
+        "🇨🇦-Mississauga | SOCKS4+TCP | 431ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 723ms | UP | NATIVE",
+        "🇨🇦-Unknown | VMESS+WS | 745ms | UP | NATIVE",
+        "🇨🇦-Montreal | SOCKS4+TCP | 746ms | UP | NATIVE",
+        "🇨🇦-Toronto | HTTP+TCP | 1175ms | UP | NATIVE",
+        "🇨🇦-Unknown | HTTP+TCP | 2548ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -127,7 +129,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇨🇦-Toronto | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 60ms | UP | NATIVE",
+      "tag": "🇨🇦-Toronto | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 68ms | UP | NATIVE",
       "server": "79.127.200.169",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -135,21 +137,101 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇨🇦-Toronto | SHADOWSOCKS+SS+AES-256-CFB | 77ms | UP | NATIVE",
+      "tag": "🇨🇦-Toronto | SHADOWSOCKS+SS+AES-256-CFB | 79ms | UP | NATIVE",
       "server": "79.127.200.162",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 88ms | UP | NATIVE",
+      "server": "51.161.33.111",
+      "server_port": 11202,
+      "method": "chacha20-ietf-poly1305",
+      "password": "f6c4600d4d513857"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 94ms | UP | NATIVE",
+      "server": "51.161.80.138",
+      "server_port": 27797,
+      "method": "chacha20-ietf-poly1305",
+      "password": "9f99180fc9211c40"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-128-GCM | 95ms | UP | NATIVE",
+      "server": "149.22.95.183",
+      "server_port": 443,
+      "method": "aes-128-gcm",
+      "password": "shadowsocks"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-256-CFB | 97ms | UP | NATIVE",
+      "server": "79.127.233.170",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Toronto | SHADOWSOCKS+TCP+RC4-MD5 | 97ms | UP | NATIVE | SEC:insecure_encryption_method",
+      "server": "137.184.174.93",
+      "server_port": 8080,
+      "method": "rc4-md5",
+      "password": "14fFPrbezE3HDZzsMOr6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 104ms | UP | NATIVE",
+      "server": "148.113.143.102",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "8d90009fa5023cfa"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 111ms | UP | NATIVE",
+      "server": "148.113.138.47",
+      "server_port": 48704,
+      "method": "chacha20-ietf-poly1305",
+      "password": "b27bc0b4fad33e46"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 112ms | UP | NATIVE",
+      "server": "51.79.102.253",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 116ms | UP | NATIVE",
+      "server": "23.95.76.59",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
       "type": "vless",
-      "tag": "🇨🇦-Toronto | VLESS+TCP+REALITY | 87ms | UP | NATIVE",
+      "tag": "🇨🇦-Toronto | VLESS+TCP+REALITY | 126ms | UP | NATIVE",
       "server": "172.105.29.241",
       "server_port": 8031,
       "uuid": "f1097fdb-e664-42b9-82a0-a5e38f7f43e0",
       "tls": {
         "enabled": true,
-        "server_name": "stackoverflow.com",
+        "server_name": "www.stackoverflow.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
@@ -163,104 +245,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 92ms | UP | NATIVE",
-      "server": "51.161.80.138",
-      "server_port": 27797,
-      "method": "chacha20-ietf-poly1305",
-      "password": "9f99180fc9211c40"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 93ms | UP | NATIVE",
-      "server": "148.113.143.102",
-      "server_port": 11201,
-      "method": "chacha20-ietf-poly1305",
-      "password": "8d90009fa5023cfa"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Toronto | SHADOWSOCKS+TCP+RC4-MD5 | 98ms | UP | NATIVE | SEC:insecure_encryption_method",
-      "server": "137.184.174.93",
-      "server_port": 8080,
-      "method": "rc4-md5",
-      "password": "14fFPrbezE3HDZzsMOr6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 99ms | UP | NATIVE",
-      "server": "51.161.33.111",
-      "server_port": 11202,
-      "method": "chacha20-ietf-poly1305",
-      "password": "f6c4600d4d513857"
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 107ms | UP | NATIVE",
-      "server": "15.235.41.200",
-      "server_port": 80,
-      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 108ms | UP | NATIVE | SEC:tls_required",
-      "server": "51.79.102.253",
-      "server_port": 80,
-      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
-        "headers": {
-          "Host": "51.79.102.253",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 113ms | UP | NATIVE",
-      "server": "51.79.102.253",
-      "server_port": 80,
-      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 114ms | UP | NATIVE",
-      "server": "23.95.76.147",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 117ms | UP | NATIVE",
-      "server": "23.95.76.59",
+      "tag": "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 127ms | UP | NATIVE",
+      "server": "45.154.204.7",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
       "type": "vless",
-      "tag": "🇨🇦-Toronto | VLESS+TCP+REALITY | 118ms | UP | NATIVE",
+      "tag": "🇨🇦-Toronto | VLESS+TCP+REALITY | 128ms | UP | NATIVE",
       "server": "85.208.108.136",
       "server_port": 8443,
       "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
@@ -280,42 +273,195 @@
       }
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Montreal | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 121ms | UP | NATIVE",
-      "server": "45.154.204.7",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
       "type": "socks",
-      "tag": "🇨🇦-Montreal | SOCKS5+TCP | 156ms | UP | NATIVE",
-      "server": "184.95.235.194",
+      "tag": "🇨🇦-Montreal | SOCKS5+TCP | 136ms | UP | NATIVE",
+      "server": "184.95.220.42",
       "server_port": 1080,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-128-GCM | 172ms | UP | NATIVE",
-      "server": "149.22.95.183",
-      "server_port": 443,
-      "method": "aes-128-gcm",
-      "password": "shadowsocks"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Vancouver | SHADOWSOCKS+TCP+AES-256-CFB | 180ms | UP | NATIVE",
-      "server": "79.127.233.170",
-      "server_port": 989,
-      "method": "aes-256-cfb",
-      "password": "f8f7aCzcPKbsF8p3"
+      "type": "vless",
+      "tag": "🇨🇦-Toronto | VLESS+TCP+REALITY | 140ms | UP | NATIVE",
+      "server": "172.105.29.241",
+      "server_port": 8031,
+      "uuid": "f1097fdb-e664-42b9-82a0-a5e38f7f43e0",
+      "tls": {
+        "enabled": true,
+        "server_name": "stackoverflow.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "QHg_sq-uc2VPgb4qOTORPT2WFwnsEBmAdmFfywhBhVs",
+          "short_id": "0ae86db71378173b"
+        }
+      }
     },
     {
       "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 182ms | UP | NATIVE | SEC:tls_required",
-      "server": "51.79.103.76",
+      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 154ms | UP | NATIVE",
+      "server": "15.235.83.227",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 156ms | UP | NATIVE",
+      "server": "148.113.176.192",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 157ms | UP | NATIVE | SEC:tls_required",
+      "server": "51.79.102.253",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "51.79.102.253",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 158ms | UP | NATIVE",
+      "server": "15.235.41.200",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇦-Toronto | SOCKS5+TCP | 160ms | UP | NATIVE",
+      "server": "143.110.217.153",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇦-Toronto | SOCKS4+TCP | 173ms | UP | NATIVE",
+      "server": "143.110.217.153",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 184ms | UP | NATIVE",
+      "server": "15.235.50.172",
+      "server_port": 443,
+      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/linkvws",
+        "headers": {
+          "Host": "google.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 189ms | UP | NATIVE | SEC:tls_required",
+      "server": "51.79.102.253",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 192ms | UP | NATIVE | SEC:tls_required",
+      "server": "15.235.41.200",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
+        "headers": {
+          "Host": "15.235.41.200",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇦-Montreal | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 195ms | UP | NATIVE",
+      "server": "23.95.76.147",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "vmess",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 196ms | UP | NATIVE | SEC:tls_required",
+      "server": "15.235.41.200",
       "server_port": 80,
       "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
       "security": "auto",
@@ -331,7 +477,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 185ms | UP | NATIVE",
+      "tag": "🇨🇦-Toronto | TROJAN+GRPC+REALITY | 205ms | UP | NATIVE",
       "server": "209.200.246.248",
       "server_port": 22086,
       "password": "chslToBpxJ",
@@ -354,73 +500,7 @@
     },
     {
       "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 193ms | UP | NATIVE | SEC:tls_required",
-      "server": "15.235.41.200",
-      "server_port": 80,
-      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
-        "headers": {
-          "Host": "google.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 196ms | UP | NATIVE | SEC:tls_required",
-      "server": "51.79.102.253",
-      "server_port": 80,
-      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
-        "headers": {
-          "Host": "wrmelmwxlf.gktevlrqznwqqozy.fabpfs66gizmnojhcvqxwl.kytrcfzqla87gvgvs6c7kjnrubuh.cc",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 197ms | UP | NATIVE | SEC:tls_required",
-      "server": "15.235.41.200",
-      "server_port": 80,
-      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
-        "headers": {
-          "Host": "15.235.41.200",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇨🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 217ms | UP | NATIVE",
-      "server": "148.113.138.47",
-      "server_port": 48704,
-      "method": "chacha20-ietf-poly1305",
-      "password": "b27bc0b4fad33e46"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇦-Mississauga | SOCKS4+TCP | 235ms | UP | NATIVE",
-      "server": "192.158.15.201",
-      "server_port": 50877,
-      "version": "4"
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Toronto | VMESS+WS+TLS | 334ms | UP | NATIVE",
+      "tag": "🇨🇦-Toronto | VMESS+WS+TLS | 239ms | UP | NATIVE",
       "server": "23.162.200.227",
       "server_port": 443,
       "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
@@ -441,74 +521,32 @@
       }
     },
     {
+      "type": "vless",
+      "tag": "🇨🇦-Toronto | VLESS+TCP | 274ms | UP | NATIVE",
+      "server": "72.11.152.180",
+      "server_port": 49981,
+      "uuid": "b540f05e-ee31-490d-9f70-fdb034022bae"
+    },
+    {
       "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 389ms | UP | NATIVE",
-      "server": "148.113.176.192",
-      "server_port": 443,
-      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 330ms | UP | NATIVE | SEC:tls_required",
+      "server": "51.79.103.76",
+      "server_port": 80,
+      "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
       "security": "auto",
       "alter_id": 0,
       "transport": {
         "type": "ws",
-        "path": "linkvws",
+        "path": "/IOebhLMhl1CTbFHbL95myfRX2",
         "headers": {
           "Host": "google.com",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "google.com",
-        "insecure": true
       }
     },
     {
       "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 390ms | UP | NATIVE",
-      "server": "15.235.83.227",
-      "server_port": 443,
-      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/linkvws",
-        "headers": {
-          "Host": "google.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "google.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS+TLS | 395ms | UP | NATIVE",
-      "server": "15.235.50.172",
-      "server_port": 443,
-      "uuid": "03fcc618-b93d-6796-6aed-8a38c975d581",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/linkvws",
-        "headers": {
-          "Host": "google.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "google.com",
-        "insecure": true
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 437ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 349ms | UP | NATIVE | SEC:tls_required",
       "server": "51.79.103.76",
       "server_port": 80,
       "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
@@ -524,8 +562,15 @@
       }
     },
     {
+      "type": "socks",
+      "tag": "🇨🇦-Mississauga | SOCKS4+TCP | 431ms | UP | NATIVE",
+      "server": "192.158.15.201",
+      "server_port": 50877,
+      "version": "4"
+    },
+    {
       "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 939ms | UP | NATIVE",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 723ms | UP | NATIVE",
       "server": "51.79.103.76",
       "server_port": 80,
       "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
@@ -540,60 +585,8 @@
       }
     },
     {
-      "type": "socks",
-      "tag": "🇨🇦-Montreal | SOCKS4+TCP | 3489ms | UP | NATIVE",
-      "server": "24.37.245.42",
-      "server_port": 51056,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇦-Sioux_Lookout | SOCKS4+TCP | 5648ms | UP | NATIVE",
-      "server": "24.76.21.10",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇨🇦-Toronto | HTTP+TCP | 1272ms | UP | NATIVE",
-      "server": "159.203.61.169",
-      "server_port": 3128,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇨🇦-Unknown | HTTP+TCP | 1524ms | UP | NATIVE",
-      "server": "72.10.160.90",
-      "server_port": 32643,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇦-Montreal | SOCKS4+TCP | 1738ms | UP | NATIVE",
-      "server": "45.73.0.118",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇨🇦-Toronto | SOCKS5+TCP | 2501ms | UP | NATIVE",
-      "server": "159.203.61.169",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
       "type": "vmess",
-      "tag": "🇨🇦-Unknown | VMESS+WS | 1294ms | UP | NATIVE",
+      "tag": "🇨🇦-Unknown | VMESS+WS | 745ms | UP | NATIVE",
       "server": "51.79.103.76",
       "server_port": 80,
       "uuid": "58fe1542-5290-40ad-815a-77707a81afe5",
@@ -606,6 +599,35 @@
           "Host": "51.79.103.76",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
         }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇦-Montreal | SOCKS4+TCP | 746ms | UP | NATIVE",
+      "server": "24.37.245.42",
+      "server_port": 51056,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇦-Toronto | HTTP+TCP | 1175ms | UP | NATIVE",
+      "server": "159.203.61.169",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇦-Unknown | HTTP+TCP | 2548ms | UP | NATIVE",
+      "server": "51.79.71.106",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
       }
     },
     {

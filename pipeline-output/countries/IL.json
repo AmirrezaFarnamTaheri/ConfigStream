@@ -39,14 +39,13 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
-        "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 424ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 430ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 431ms | UP | NATIVE",
+        "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 424ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
         "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 435ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 442ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 518ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | VLESS+TCP+REALITY | 2926ms | UP | NATIVE"
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 437ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 521ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | VLESS+TCP+REALITY | 3193ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -54,14 +53,13 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
-        "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 424ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 430ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 431ms | UP | NATIVE",
+        "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 424ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
         "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 435ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 442ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 518ms | UP | NATIVE",
-        "🇮🇱-Tel_Aviv | VLESS+TCP+REALITY | 2926ms | UP | NATIVE"
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 437ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 521ms | UP | NATIVE",
+        "🇮🇱-Tel_Aviv | VLESS+TCP+REALITY | 3193ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -69,15 +67,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
-      "server": "163.171.213.46",
-      "server_port": 11201,
-      "method": "chacha20-ietf-poly1305",
-      "password": "d121385f700a6915"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 424ms | UP | NATIVE",
+      "tag": "🇮🇱-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 422ms | UP | NATIVE",
       "server": "5.188.227.18",
       "server_port": 11202,
       "method": "chacha20-ietf-poly1305",
@@ -85,31 +75,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 430ms | UP | NATIVE",
-      "server": "163.171.213.47",
-      "server_port": 19702,
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 424ms | UP | NATIVE",
+      "server": "163.171.213.46",
+      "server_port": 11201,
       "method": "chacha20-ietf-poly1305",
-      "password": "2e5c75c35d7ee929"
+      "password": "d121385f700a6915"
     },
     {
       "type": "shadowsocks",
-      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 431ms | UP | NATIVE",
-      "server": "163.171.213.47",
-      "server_port": 46282,
-      "method": "chacha20-ietf-poly1305",
-      "password": "08e4090bc46fd8a6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 435ms | UP | NATIVE",
-      "server": "163.171.213.47",
-      "server_port": 12025,
-      "method": "chacha20-ietf-poly1305",
-      "password": "abe595aeb7a6a035"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 442ms | UP | NATIVE",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
       "server": "163.171.213.47",
       "server_port": 46281,
       "method": "chacha20-ietf-poly1305",
@@ -117,7 +91,23 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 518ms | UP | NATIVE",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 435ms | UP | NATIVE",
+      "server": "163.171.213.47",
+      "server_port": 46282,
+      "method": "chacha20-ietf-poly1305",
+      "password": "08e4090bc46fd8a6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 437ms | UP | NATIVE",
+      "server": "163.171.213.47",
+      "server_port": 12025,
+      "method": "chacha20-ietf-poly1305",
+      "password": "abe595aeb7a6a035"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇱-Tel_Aviv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 521ms | UP | NATIVE",
       "server": "89.46.239.231",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -125,8 +115,8 @@
     },
     {
       "type": "vless",
-      "tag": "🇮🇱-Tel_Aviv | VLESS+TCP+REALITY | 2926ms | UP | NATIVE",
-      "server": "20.217.85.18",
+      "tag": "🇮🇱-Tel_Aviv | VLESS+TCP+REALITY | 3193ms | UP | NATIVE",
+      "server": "20.217.81.47",
       "server_port": 443,
       "uuid": "0e8a6896-ad90-4a3b-89a3-77d64aa409e2",
       "flow": "xtls-rprx-vision",

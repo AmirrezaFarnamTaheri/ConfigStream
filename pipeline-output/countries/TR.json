@@ -39,38 +39,33 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 457ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 515ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 526ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 528ms | UP | NATIVE",
-        "🇹🇷-Gaziantep | VLESS+TCP+REALITY | 558ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+TLS | 561ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 564ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 567ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+TLS | 573ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 578ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 436ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 462ms | UP | NATIVE",
+        "🇹🇷-Ankara | VLESS+TCP+REALITY | 502ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 525ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+TLS | 549ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+TLS | 556ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 560ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+TLS | 562ms | UP | NATIVE",
+        "🇹🇷-Gaziantep | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
         "🇹🇷-Izmir | VLESS+TCP+REALITY | 578ms | UP | NATIVE",
-        "🇹🇷-Istanbul | VLESS+TCP+REALITY | 648ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 664ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 670ms | UP | NATIVE",
-        "🇹🇷-Unknown | VLESS+TCP+REALITY | 708ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 758ms | UP | NATIVE",
-        "🇹🇷-Unknown | VLESS+TCP+REALITY | 827ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 845ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 4798ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 1978ms | UP | NATIVE",
-        "🇹🇷-Unknown | SOCKS4+TCP | 2733ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS4+TCP | 1686ms | UP | NATIVE",
-        "🇹🇷-Mersin | HTTP+TCP | 2744ms | UP | NATIVE",
-        "🇹🇷-Unknown | HTTP+TCP | 1464ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS4+TCP | 1737ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 3195ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS5+TCP | 1756ms | UP | NATIVE",
-        "🇹🇷-Ankara | HTTP+TCP | 5206ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 1626ms | UP | NATIVE",
-        "🇹🇷-Istanbul | HTTP+TCP | 3687ms | UP | NATIVE",
-        "🇹🇷-Unknown | SOCKS5+TCP | 1922ms | UP | NATIVE"
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 609ms | UP | NATIVE",
+        "🇹🇷-Istanbul | VLESS+TCP+REALITY | 621ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 627ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 633ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 642ms | UP | NATIVE",
+        "🇹🇷-Istanbul | VLESS+TCP+REALITY | 687ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 737ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 754ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 850ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 1982ms | UP | NATIVE",
+        "🇹🇷-Unknown | HTTP+TCP | 3003ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 3709ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 2254ms | UP | NATIVE",
+        "🇹🇷-Unknown | SOCKS4+TCP | 3903ms | UP | NATIVE",
+        "🇹🇷-Antakya | HTTP+TCP | 3399ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS5+TCP | 1741ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -78,38 +73,33 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 457ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 515ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 526ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 528ms | UP | NATIVE",
-        "🇹🇷-Gaziantep | VLESS+TCP+REALITY | 558ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+TLS | 561ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 564ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 567ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+TLS | 573ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 578ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 436ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 462ms | UP | NATIVE",
+        "🇹🇷-Ankara | VLESS+TCP+REALITY | 502ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 525ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+TLS | 549ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+TLS | 556ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 560ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+TLS | 562ms | UP | NATIVE",
+        "🇹🇷-Gaziantep | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
         "🇹🇷-Izmir | VLESS+TCP+REALITY | 578ms | UP | NATIVE",
-        "🇹🇷-Istanbul | VLESS+TCP+REALITY | 648ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 664ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 670ms | UP | NATIVE",
-        "🇹🇷-Unknown | VLESS+TCP+REALITY | 708ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 758ms | UP | NATIVE",
-        "🇹🇷-Unknown | VLESS+TCP+REALITY | 827ms | UP | NATIVE",
-        "🇹🇷-Izmir | VLESS+TCP+REALITY | 845ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 4798ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 1978ms | UP | NATIVE",
-        "🇹🇷-Unknown | SOCKS4+TCP | 2733ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS4+TCP | 1686ms | UP | NATIVE",
-        "🇹🇷-Mersin | HTTP+TCP | 2744ms | UP | NATIVE",
-        "🇹🇷-Unknown | HTTP+TCP | 1464ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS4+TCP | 1737ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 3195ms | UP | NATIVE",
-        "🇹🇷-Istanbul | SOCKS5+TCP | 1756ms | UP | NATIVE",
-        "🇹🇷-Ankara | HTTP+TCP | 5206ms | UP | NATIVE",
-        "🇹🇷-Antakya | HTTP+TCP | 1626ms | UP | NATIVE",
-        "🇹🇷-Istanbul | HTTP+TCP | 3687ms | UP | NATIVE",
-        "🇹🇷-Unknown | SOCKS5+TCP | 1922ms | UP | NATIVE"
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 609ms | UP | NATIVE",
+        "🇹🇷-Istanbul | VLESS+TCP+REALITY | 621ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 627ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 633ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 642ms | UP | NATIVE",
+        "🇹🇷-Istanbul | VLESS+TCP+REALITY | 687ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 737ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 754ms | UP | NATIVE",
+        "🇹🇷-Izmir | VLESS+TCP+REALITY | 850ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 1982ms | UP | NATIVE",
+        "🇹🇷-Unknown | HTTP+TCP | 3003ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 3709ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS4+TCP | 2254ms | UP | NATIVE",
+        "🇹🇷-Unknown | SOCKS4+TCP | 3903ms | UP | NATIVE",
+        "🇹🇷-Antakya | HTTP+TCP | 3399ms | UP | NATIVE",
+        "🇹🇷-Istanbul | SOCKS5+TCP | 1741ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -117,15 +107,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 457ms | UP | NATIVE",
-      "server": "185.123.101.64",
-      "server_port": 2376,
-      "method": "aes-256-gcm",
-      "password": "faBAoD54k87UJG7"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 466ms | UP | NATIVE",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 436ms | UP | NATIVE",
       "server": "94.131.123.236",
       "server_port": 5223,
       "method": "chacha20-ietf-poly1305",
@@ -133,51 +115,55 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 515ms | UP | NATIVE",
-      "server": "154.205.148.202",
-      "server_port": 11204,
-      "method": "chacha20-ietf-poly1305",
-      "password": "71807718f593d3e6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 526ms | UP | NATIVE",
-      "server": "154.205.148.202",
-      "server_port": 11202,
-      "method": "chacha20-ietf-poly1305",
-      "password": "71807718f593d3e6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 528ms | UP | NATIVE",
-      "server": "154.205.148.202",
-      "server_port": 11203,
-      "method": "chacha20-ietf-poly1305",
-      "password": "71807718f593d3e6"
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 462ms | UP | NATIVE",
+      "server": "185.123.101.64",
+      "server_port": 2376,
+      "method": "aes-256-gcm",
+      "password": "faBAoD54k87UJG7"
     },
     {
       "type": "vless",
-      "tag": "🇹🇷-Gaziantep | VLESS+TCP+REALITY | 558ms | UP | NATIVE",
-      "server": "77.83.203.186",
-      "server_port": 8028,
-      "uuid": "f1097fdb-e664-42b9-82a0-a5e38f7f43e0",
+      "tag": "🇹🇷-Ankara | VLESS+TCP+REALITY | 502ms | UP | NATIVE",
+      "server": "144.31.130.98",
+      "server_port": 443,
+      "uuid": "bbed94d9-1120-4b54-8a9c-72d81e411fb8",
+      "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "stackoverflow.com",
+        "server_name": "google.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "QHg_sq-uc2VPgb4qOTORPT2WFwnsEBmAdmFfywhBhVs",
-          "short_id": "0ae86db71378173b"
+          "public_key": "grtFOGUrAtlH0xAPpkqkXTAnaCHALmEn7nsohxxx3iE",
+          "short_id": "729c8d42f7bb139a"
         }
       }
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 525ms | UP | NATIVE",
+      "server": "154.205.148.202",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "71807718f593d3e6"
+    },
+    {
       "type": "vless",
-      "tag": "🇹🇷-Izmir | VLESS+TCP+TLS | 561ms | UP | NATIVE",
+      "tag": "🇹🇷-Izmir | VLESS+TCP+TLS | 549ms | UP | NATIVE",
+      "server": "103.231.75.110",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "trcdn3.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇹🇷-Izmir | VLESS+TCP+TLS | 556ms | UP | NATIVE",
       "server": "103.231.75.108",
       "server_port": 443,
       "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
@@ -188,7 +174,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 564ms | UP | NATIVE",
+      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 560ms | UP | NATIVE",
       "server": "45.12.143.84",
       "server_port": 8443,
       "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
@@ -208,31 +194,35 @@
       }
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 567ms | UP | NATIVE",
-      "server": "154.205.148.202",
-      "server_port": 11205,
-      "method": "chacha20-ietf-poly1305",
-      "password": "71807718f593d3e6"
-    },
-    {
       "type": "vless",
-      "tag": "🇹🇷-Izmir | VLESS+TCP+TLS | 573ms | UP | NATIVE",
-      "server": "103.231.75.110",
+      "tag": "🇹🇷-Izmir | VLESS+TCP+TLS | 562ms | UP | NATIVE",
+      "server": "103.231.75.108",
       "server_port": 443,
-      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
       "tls": {
         "enabled": true,
-        "server_name": "trcdn3.suio.me"
+        "server_name": "trcdn1.suio.me"
       }
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 578ms | UP | NATIVE",
-      "server": "154.205.148.202",
-      "server_port": 11201,
-      "method": "chacha20-ietf-poly1305",
-      "password": "71807718f593d3e6"
+      "type": "vless",
+      "tag": "🇹🇷-Gaziantep | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
+      "server": "77.83.203.186",
+      "server_port": 8028,
+      "uuid": "f1097fdb-e664-42b9-82a0-a5e38f7f43e0",
+      "tls": {
+        "enabled": true,
+        "server_name": "stackoverflow.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "QHg_sq-uc2VPgb4qOTORPT2WFwnsEBmAdmFfywhBhVs",
+          "short_id": "0ae86db71378173b"
+        }
+      }
     },
     {
       "type": "vless",
@@ -257,28 +247,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇹🇷-Istanbul | VLESS+TCP+REALITY | 648ms | UP | NATIVE",
-      "server": "94.131.123.167",
-      "server_port": 443,
-      "uuid": "a44e0875-210f-4941-9062-89b6361a14c6",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "apple.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "i5a8i2AWUSMZ-rYA6hGBRCBBoe7W5ah33SCdF5JkMk4",
-          "short_id": "8bcfe256cf216fd8"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 664ms | UP | NATIVE",
+      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 609ms | UP | NATIVE",
       "server": "45.12.143.147",
       "server_port": 443,
       "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
@@ -298,37 +267,90 @@
       }
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 670ms | UP | NATIVE",
-      "server": "38.180.113.194",
-      "server_port": 8119,
-      "method": "aes-256-gcm",
-      "password": "cdBIDV42DCwnfIN"
-    },
-    {
       "type": "vless",
-      "tag": "🇹🇷-Unknown | VLESS+TCP+REALITY | 708ms | UP | NATIVE",
-      "server": "188.132.237.158",
-      "server_port": 2443,
-      "uuid": "f90cc83a-97ce-446d-8f80-30d3eef3351c",
+      "tag": "🇹🇷-Istanbul | VLESS+TCP+REALITY | 621ms | UP | NATIVE",
+      "server": "94.131.123.167",
+      "server_port": 443,
+      "uuid": "a44e0875-210f-4941-9062-89b6361a14c6",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "google.com",
+        "server_name": "apple.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc",
-          "short_id": "6ba85179e30d4fc2"
+          "public_key": "i5a8i2AWUSMZ-rYA6hGBRCBBoe7W5ah33SCdF5JkMk4",
+          "short_id": "8bcfe256cf216fd8"
         }
       }
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 627ms | UP | NATIVE",
+      "server": "154.205.148.202",
+      "server_port": 11202,
+      "method": "chacha20-ietf-poly1305",
+      "password": "71807718f593d3e6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 633ms | UP | NATIVE",
+      "server": "154.205.148.202",
+      "server_port": 11203,
+      "method": "chacha20-ietf-poly1305",
+      "password": "71807718f593d3e6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
+      "server": "154.205.148.202",
+      "server_port": 11205,
+      "method": "chacha20-ietf-poly1305",
+      "password": "71807718f593d3e6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 642ms | UP | NATIVE",
+      "server": "154.205.148.202",
+      "server_port": 11204,
+      "method": "chacha20-ietf-poly1305",
+      "password": "71807718f593d3e6"
+    },
+    {
       "type": "vless",
-      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 758ms | UP | NATIVE",
+      "tag": "🇹🇷-Istanbul | VLESS+TCP+REALITY | 687ms | UP | NATIVE",
+      "server": "151.241.226.35",
+      "server_port": 8443,
+      "uuid": "efea752c-8c40-482b-81c9-0c580d3ff365",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "yandex.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "V4UiSCeXTLPWJy8RxthoNmddGjnc67sBamvKQVhVpFE",
+          "short_id": "5ca1a000c018cd1e"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 737ms | UP | NATIVE",
+      "server": "77.83.245.220",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "x9AB9dV6SzcTT_0vPybWbvo43kU2sMFk"
+    },
+    {
+      "type": "vless",
+      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 754ms | UP | NATIVE",
       "server": "103.231.75.115",
       "server_port": 443,
       "uuid": "id6686739236",
@@ -349,28 +371,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇹🇷-Unknown | VLESS+TCP+REALITY | 827ms | UP | NATIVE",
-      "server": "188.132.237.158",
-      "server_port": 2443,
-      "uuid": "a7ef891d-aacf-4ed9-809d-a44168a5fc1c",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "google.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "SbVKOEMjK0sIlbwg4akyBg5mL5KZwwB-ed4eEE7YnRc",
-          "short_id": "6ba85179e30d4fc2"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 845ms | UP | NATIVE",
+      "tag": "🇹🇷-Izmir | VLESS+TCP+REALITY | 850ms | UP | NATIVE",
       "server": "45.12.143.191",
       "server_port": 20329,
       "uuid": "e105e56a-5f81-41a2-ab44-bfffc9b00674",
@@ -389,45 +390,16 @@
       }
     },
     {
-      "type": "http",
-      "tag": "🇹🇷-Antakya | HTTP+TCP | 4798ms | UP | NATIVE",
-      "server": "188.132.222.13",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇹🇷-Antakya | HTTP+TCP | 1978ms | UP | NATIVE",
-      "server": "188.132.222.45",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇹🇷-Unknown | SOCKS4+TCP | 2733ms | UP | NATIVE",
-      "server": "185.86.5.162",
-      "server_port": 8975,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇷-Istanbul | SOCKS4+TCP | 1686ms | UP | NATIVE",
+      "tag": "🇹🇷-Istanbul | SOCKS4+TCP | 1982ms | UP | NATIVE",
       "server": "185.87.121.5",
       "server_port": 8975,
       "version": "4"
     },
     {
       "type": "http",
-      "tag": "🇹🇷-Mersin | HTTP+TCP | 2744ms | UP | NATIVE",
-      "server": "185.135.99.14",
+      "tag": "🇹🇷-Unknown | HTTP+TCP | 3003ms | UP | NATIVE",
+      "server": "176.117.106.126",
       "server_port": 8080,
       "username": "",
       "password": "",
@@ -436,27 +408,31 @@
       }
     },
     {
-      "type": "http",
-      "tag": "🇹🇷-Unknown | HTTP+TCP | 1464ms | UP | NATIVE",
-      "server": "195.62.50.39",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
+      "type": "shadowsocks",
+      "tag": "🇹🇷-Istanbul | SHADOWSOCKS+TCP+AES-256-GCM | 3709ms | UP | NATIVE",
+      "server": "38.180.113.194",
+      "server_port": 8119,
+      "method": "aes-256-gcm",
+      "password": "cdBIDV42DCwnfIN"
     },
     {
       "type": "socks",
-      "tag": "🇹🇷-Istanbul | SOCKS4+TCP | 1737ms | UP | NATIVE",
+      "tag": "🇹🇷-Istanbul | SOCKS4+TCP | 2254ms | UP | NATIVE",
       "server": "185.87.121.35",
       "server_port": 8975,
       "version": "4"
     },
     {
+      "type": "socks",
+      "tag": "🇹🇷-Unknown | SOCKS4+TCP | 3903ms | UP | NATIVE",
+      "server": "141.98.112.161",
+      "server_port": 61337,
+      "version": "4"
+    },
+    {
       "type": "http",
-      "tag": "🇹🇷-Antakya | HTTP+TCP | 3195ms | UP | NATIVE",
-      "server": "188.132.222.21",
+      "tag": "🇹🇷-Antakya | HTTP+TCP | 3399ms | UP | NATIVE",
+      "server": "188.132.222.10",
       "server_port": 8080,
       "username": "",
       "password": "",
@@ -466,50 +442,8 @@
     },
     {
       "type": "socks",
-      "tag": "🇹🇷-Istanbul | SOCKS5+TCP | 1756ms | UP | NATIVE",
-      "server": "185.87.121.35",
-      "server_port": 8975,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "http",
-      "tag": "🇹🇷-Ankara | HTTP+TCP | 5206ms | UP | NATIVE",
-      "server": "212.174.242.114",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇹🇷-Antakya | HTTP+TCP | 1626ms | UP | NATIVE",
-      "server": "194.124.36.26",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇹🇷-Istanbul | HTTP+TCP | 3687ms | UP | NATIVE",
-      "server": "195.87.136.2",
-      "server_port": 5331,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇹🇷-Unknown | SOCKS5+TCP | 1922ms | UP | NATIVE",
-      "server": "185.86.5.162",
+      "tag": "🇹🇷-Istanbul | SOCKS5+TCP | 1741ms | UP | NATIVE",
+      "server": "185.87.121.5",
       "server_port": 8975,
       "username": "",
       "password": "",

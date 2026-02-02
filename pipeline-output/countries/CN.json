@@ -39,7 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇬🇹-Unknown | SOCKS4+TCP | 3560ms | UP | NATIVE"
+        "🇨🇳-Unknown | HTTP+TCP | 2781ms | UP | NATIVE",
+        "🇨🇳-Unknown | HTTP+TCP | 1618ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,18 +48,34 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇬🇹-Unknown | SOCKS4+TCP | 3560ms | UP | NATIVE"
+        "🇨🇳-Unknown | HTTP+TCP | 2781ms | UP | NATIVE",
+        "🇨🇳-Unknown | HTTP+TCP | 1618ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "socks",
-      "tag": "🇬🇹-Unknown | SOCKS4+TCP | 3560ms | UP | NATIVE",
-      "server": "190.14.5.163",
-      "server_port": 5678,
-      "version": "4"
+      "type": "http",
+      "tag": "🇨🇳-Unknown | HTTP+TCP | 2781ms | UP | NATIVE",
+      "server": "120.92.212.16",
+      "server_port": 8890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇳-Unknown | HTTP+TCP | 1618ms | UP | NATIVE",
+      "server": "120.92.212.16",
+      "server_port": 7890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "direct",

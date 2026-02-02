@@ -39,54 +39,48 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 386ms | UP | NATIVE",
         "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 387ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 388ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 390ms | UP | NATIVE",
         "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 391ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 409ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+SS+AES-256-CFB | 459ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 601ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 394ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 395ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+AES-256-CFB | 402ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VLESS+TCP+REALITY | 540ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | HTTP+TCP | 596ms | UP | NATIVE",
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 602ms | UP | NATIVE",
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 603ms | UP | NATIVE",
         "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 604ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 605ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 617ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VLESS+TCP+REALITY | 675ms | UP | NATIVE",
-        "🇧🇷-São_José_dos_Pinhais | HTTP+TCP | 747ms | UP | NATIVE",
-        "🇧🇷-Curitiba | SOCKS4+TCP | 750ms | UP | NATIVE",
-        "🇧🇷-Itaperuna | SOCKS4+TCP | 877ms | UP | NATIVE",
-        "🇧🇷-Ibirité | SOCKS4+TCP | 997ms | UP | NATIVE",
-        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 1072ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VMESS+WS | 1077ms | UP | NATIVE | SEC:tls_required",
-        "🇧🇷-Salvador | SOCKS4+TCP | 1225ms | UP | NATIVE",
-        "🇧🇷-Arraial_do_Cabo | SOCKS5+TCP | 1954ms | UP | NATIVE",
-        "🇧🇷-Campo_Mourão | SOCKS4+TCP | 5193ms | UP | NATIVE",
-        "🇧🇷-Cuiabá | SOCKS4+TCP | 4244ms | UP | NATIVE",
-        "🇧🇷-Salvador | HTTP+TCP | 1903ms | UP | NATIVE",
-        "🇧🇷-Petrópolis | HTTP+TCP | 4717ms | UP | NATIVE",
-        "🇧🇷-Anta_Gorda | SOCKS4+TCP | 4122ms | UP | NATIVE",
-        "🇧🇷-Itabaiana | SOCKS4+TCP | 5116ms | UP | NATIVE",
-        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4187ms | UP | NATIVE",
-        "🇧🇷-Palotina | SOCKS4+TCP | 1198ms | UP | NATIVE",
-        "🇧🇷-Dracena | SOCKS4+TCP | 2069ms | UP | NATIVE",
-        "🇧🇷-Recife | SOCKS4+TCP | 2272ms | UP | NATIVE",
-        "🇧🇷-Macapá | SOCKS4+TCP | 4593ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 2021ms | UP | NATIVE",
-        "🇧🇷-Taboão_da_Serra | SOCKS4+TCP | 3023ms | UP | NATIVE",
-        "🇧🇷-Pelotas | SOCKS4+TCP | 2216ms | UP | NATIVE",
-        "🇧🇷-Itapetinga | SOCKS4+TCP | 1034ms | UP | NATIVE",
-        "🇧🇷-Fortaleza | HTTP+TCP | 5910ms | UP | NATIVE",
-        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4674ms | UP | NATIVE",
-        "🇧🇷-Jaru | HTTP+TCP | 1110ms | UP | NATIVE",
-        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 4141ms | UP | NATIVE",
-        "🇧🇷-São_João_de_Meriti | SOCKS5+TCP | 1255ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VMESS+WS | 1105ms | UP | NATIVE | SEC:tls_required",
-        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 1999ms | UP | NATIVE",
-        "🇧🇷-Osasco | SOCKS4+TCP | 1063ms | UP | NATIVE",
-        "🇧🇷-Brasília | HTTP+TCP | 3000ms | UP | NATIVE",
-        "🇧🇷-Campo_Maior | HTTP+TCP | 3282ms | UP | NATIVE",
-        "🇧🇷-Indaiatuba | HTTP+TCP | 2493ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VMESS+WS | 1278ms | UP | NATIVE",
-        "🇧🇷-Simões_Filho | SOCKS4+TCP | 1146ms | UP | NATIVE"
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 607ms | UP | NATIVE",
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 608ms | UP | NATIVE",
+        "🇧🇷-São_José_dos_Pinhais | HTTP+TCP | 751ms | UP | NATIVE",
+        "🇧🇷-Indaiatuba | HTTP+TCP | 871ms | UP | NATIVE",
+        "🇧🇷-Recife | SOCKS4+TCP | 938ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SOCKS4+TCP | 2703ms | UP | NATIVE",
+        "🇧🇷-Jaru | HTTP+TCP | 1009ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4986ms | UP | NATIVE",
+        "🇧🇷-São_João_de_Meriti | SOCKS5+TCP | 3848ms | UP | NATIVE",
+        "🇧🇷-Salvador | SOCKS4+TCP | 1849ms | UP | NATIVE",
+        "🇧🇷-Petrópolis | HTTP+TCP | 5078ms | UP | NATIVE",
+        "🇧🇷-Osasco | SOCKS4+TCP | 4083ms | UP | NATIVE",
+        "🇧🇷-Palotina | SOCKS4+TCP | 5715ms | UP | NATIVE",
+        "🇧🇷-Arraial_do_Cabo | SOCKS5+TCP | 1807ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 3324ms | UP | NATIVE",
+        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 2070ms | UP | NATIVE",
+        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 2291ms | UP | NATIVE",
+        "🇧🇷-Florianópolis | SOCKS4+TCP | 3475ms | UP | NATIVE",
+        "🇧🇷-Querência | SOCKS5+TCP | 4593ms | UP | NATIVE",
+        "🇧🇷-Recife | SOCKS4+TCP | 5077ms | UP | NATIVE",
+        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 1912ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4520ms | UP | NATIVE",
+        "🇧🇷-Brasília | HTTP+TCP | 1189ms | UP | NATIVE",
+        "🇧🇷-Simões_Filho | SOCKS4+TCP | 2197ms | UP | NATIVE",
+        "🇧🇷-Pelotas | SOCKS4+TCP | 1098ms | UP | NATIVE",
+        "🇧🇷-Sapé | SOCKS4+TCP | 5135ms | UP | NATIVE",
+        "🇧🇷-Macapá | SOCKS4+TCP | 2991ms | UP | NATIVE",
+        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 1415ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VMESS+WS | 1223ms | UP | NATIVE | SEC:tls_required",
+        "🇧🇷-Campo_Mourão | SOCKS4+TCP | 3128ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SOCKS4+TCP | 5065ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -94,54 +88,48 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 386ms | UP | NATIVE",
         "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 387ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 388ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 390ms | UP | NATIVE",
         "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 391ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 409ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SHADOWSOCKS+SS+AES-256-CFB | 459ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 601ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 394ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 395ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+AES-256-CFB | 402ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VLESS+TCP+REALITY | 540ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | HTTP+TCP | 596ms | UP | NATIVE",
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 602ms | UP | NATIVE",
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 603ms | UP | NATIVE",
         "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 604ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 605ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 617ms | UP | NATIVE",
-        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VLESS+TCP+REALITY | 675ms | UP | NATIVE",
-        "🇧🇷-São_José_dos_Pinhais | HTTP+TCP | 747ms | UP | NATIVE",
-        "🇧🇷-Curitiba | SOCKS4+TCP | 750ms | UP | NATIVE",
-        "🇧🇷-Itaperuna | SOCKS4+TCP | 877ms | UP | NATIVE",
-        "🇧🇷-Ibirité | SOCKS4+TCP | 997ms | UP | NATIVE",
-        "🇧🇷-Porto_Seguro | SOCKS4+TCP | 1072ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VMESS+WS | 1077ms | UP | NATIVE | SEC:tls_required",
-        "🇧🇷-Salvador | SOCKS4+TCP | 1225ms | UP | NATIVE",
-        "🇧🇷-Arraial_do_Cabo | SOCKS5+TCP | 1954ms | UP | NATIVE",
-        "🇧🇷-Campo_Mourão | SOCKS4+TCP | 5193ms | UP | NATIVE",
-        "🇧🇷-Cuiabá | SOCKS4+TCP | 4244ms | UP | NATIVE",
-        "🇧🇷-Salvador | HTTP+TCP | 1903ms | UP | NATIVE",
-        "🇧🇷-Petrópolis | HTTP+TCP | 4717ms | UP | NATIVE",
-        "🇧🇷-Anta_Gorda | SOCKS4+TCP | 4122ms | UP | NATIVE",
-        "🇧🇷-Itabaiana | SOCKS4+TCP | 5116ms | UP | NATIVE",
-        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4187ms | UP | NATIVE",
-        "🇧🇷-Palotina | SOCKS4+TCP | 1198ms | UP | NATIVE",
-        "🇧🇷-Dracena | SOCKS4+TCP | 2069ms | UP | NATIVE",
-        "🇧🇷-Recife | SOCKS4+TCP | 2272ms | UP | NATIVE",
-        "🇧🇷-Macapá | SOCKS4+TCP | 4593ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | SOCKS4+TCP | 2021ms | UP | NATIVE",
-        "🇧🇷-Taboão_da_Serra | SOCKS4+TCP | 3023ms | UP | NATIVE",
-        "🇧🇷-Pelotas | SOCKS4+TCP | 2216ms | UP | NATIVE",
-        "🇧🇷-Itapetinga | SOCKS4+TCP | 1034ms | UP | NATIVE",
-        "🇧🇷-Fortaleza | HTTP+TCP | 5910ms | UP | NATIVE",
-        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4674ms | UP | NATIVE",
-        "🇧🇷-Jaru | HTTP+TCP | 1110ms | UP | NATIVE",
-        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 4141ms | UP | NATIVE",
-        "🇧🇷-São_João_de_Meriti | SOCKS5+TCP | 1255ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VMESS+WS | 1105ms | UP | NATIVE | SEC:tls_required",
-        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 1999ms | UP | NATIVE",
-        "🇧🇷-Osasco | SOCKS4+TCP | 1063ms | UP | NATIVE",
-        "🇧🇷-Brasília | HTTP+TCP | 3000ms | UP | NATIVE",
-        "🇧🇷-Campo_Maior | HTTP+TCP | 3282ms | UP | NATIVE",
-        "🇧🇷-Indaiatuba | HTTP+TCP | 2493ms | UP | NATIVE",
-        "🇧🇷-São_Paulo | VMESS+WS | 1278ms | UP | NATIVE",
-        "🇧🇷-Simões_Filho | SOCKS4+TCP | 1146ms | UP | NATIVE"
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 607ms | UP | NATIVE",
+        "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 608ms | UP | NATIVE",
+        "🇧🇷-São_José_dos_Pinhais | HTTP+TCP | 751ms | UP | NATIVE",
+        "🇧🇷-Indaiatuba | HTTP+TCP | 871ms | UP | NATIVE",
+        "🇧🇷-Recife | SOCKS4+TCP | 938ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SOCKS4+TCP | 2703ms | UP | NATIVE",
+        "🇧🇷-Jaru | HTTP+TCP | 1009ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4986ms | UP | NATIVE",
+        "🇧🇷-São_João_de_Meriti | SOCKS5+TCP | 3848ms | UP | NATIVE",
+        "🇧🇷-Salvador | SOCKS4+TCP | 1849ms | UP | NATIVE",
+        "🇧🇷-Petrópolis | HTTP+TCP | 5078ms | UP | NATIVE",
+        "🇧🇷-Osasco | SOCKS4+TCP | 4083ms | UP | NATIVE",
+        "🇧🇷-Palotina | SOCKS4+TCP | 5715ms | UP | NATIVE",
+        "🇧🇷-Arraial_do_Cabo | SOCKS5+TCP | 1807ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 3324ms | UP | NATIVE",
+        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 2070ms | UP | NATIVE",
+        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 2291ms | UP | NATIVE",
+        "🇧🇷-Florianópolis | SOCKS4+TCP | 3475ms | UP | NATIVE",
+        "🇧🇷-Querência | SOCKS5+TCP | 4593ms | UP | NATIVE",
+        "🇧🇷-Recife | SOCKS4+TCP | 5077ms | UP | NATIVE",
+        "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 1912ms | UP | NATIVE",
+        "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4520ms | UP | NATIVE",
+        "🇧🇷-Brasília | HTTP+TCP | 1189ms | UP | NATIVE",
+        "🇧🇷-Simões_Filho | SOCKS4+TCP | 2197ms | UP | NATIVE",
+        "🇧🇷-Pelotas | SOCKS4+TCP | 1098ms | UP | NATIVE",
+        "🇧🇷-Sapé | SOCKS4+TCP | 5135ms | UP | NATIVE",
+        "🇧🇷-Macapá | SOCKS4+TCP | 2991ms | UP | NATIVE",
+        "🇧🇷-Caldas_Novas | SOCKS4+TCP | 1415ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | VMESS+WS | 1223ms | UP | NATIVE | SEC:tls_required",
+        "🇧🇷-Campo_Mourão | SOCKS4+TCP | 3128ms | UP | NATIVE",
+        "🇧🇷-São_Paulo | SOCKS4+TCP | 5065ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -149,15 +137,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 387ms | UP | NATIVE",
-      "server": "157.185.173.60",
-      "server_port": 46727,
-      "method": "chacha20-ietf-poly1305",
-      "password": "29acd960ab8e3408"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 388ms | UP | NATIVE",
+      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 386ms | UP | NATIVE",
       "server": "157.185.173.60",
       "server_port": 18425,
       "method": "chacha20-ietf-poly1305",
@@ -165,15 +145,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 390ms | UP | NATIVE",
-      "server": "157.185.173.60",
-      "server_port": 18427,
-      "method": "chacha20-ietf-poly1305",
-      "password": "97fe6b07cbfaf7e7"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 391ms | UP | NATIVE",
+      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 387ms | UP | NATIVE",
       "server": "157.185.173.60",
       "server_port": 18424,
       "method": "chacha20-ietf-poly1305",
@@ -181,7 +153,23 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 409ms | UP | NATIVE",
+      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 391ms | UP | NATIVE",
+      "server": "157.185.173.60",
+      "server_port": 18426,
+      "method": "chacha20-ietf-poly1305",
+      "password": "97fe6b07cbfaf7e7"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 394ms | UP | NATIVE",
+      "server": "157.185.173.60",
+      "server_port": 46727,
+      "method": "chacha20-ietf-poly1305",
+      "password": "29acd960ab8e3408"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 395ms | UP | NATIVE",
       "server": "38.54.57.90",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -189,55 +177,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+SS+AES-256-CFB | 459ms | UP | NATIVE",
+      "tag": "🇧🇷-São_Paulo | SHADOWSOCKS+TCP+AES-256-CFB | 402ms | UP | NATIVE",
       "server": "38.54.57.90",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 601ms | UP | NATIVE",
-      "server": "5.188.4.103",
-      "server_port": 11205,
-      "method": "chacha20-ietf-poly1305",
-      "password": "a7c205642b302c20"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 604ms | UP | NATIVE",
-      "server": "5.188.4.103",
-      "server_port": 11202,
-      "method": "chacha20-ietf-poly1305",
-      "password": "a7c205642b302c20"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 605ms | UP | NATIVE",
-      "server": "5.188.4.103",
-      "server_port": 11203,
-      "method": "chacha20-ietf-poly1305",
-      "password": "a7c205642b302c20"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 617ms | UP | NATIVE",
-      "server": "5.188.4.103",
-      "server_port": 11204,
-      "method": "chacha20-ietf-poly1305",
-      "password": "a7c205642b302c20"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 637ms | UP | NATIVE",
-      "server": "5.188.4.103",
-      "server_port": 11201,
-      "method": "chacha20-ietf-poly1305",
-      "password": "a7c205642b302c20"
-    },
-    {
       "type": "vless",
-      "tag": "🇧🇷-São_Paulo | VLESS+TCP+REALITY | 675ms | UP | NATIVE",
+      "tag": "🇧🇷-São_Paulo | VLESS+TCP+REALITY | 540ms | UP | NATIVE",
       "server": "167.234.255.2",
       "server_port": 34045,
       "uuid": "d8dd94fd-540e-461d-b5d4-acebef02c22a",
@@ -257,7 +205,58 @@
     },
     {
       "type": "http",
-      "tag": "🇧🇷-São_José_dos_Pinhais | HTTP+TCP | 747ms | UP | NATIVE",
+      "tag": "🇧🇷-São_Paulo | HTTP+TCP | 596ms | UP | NATIVE",
+      "server": "18.228.182.248",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 602ms | UP | NATIVE",
+      "server": "5.188.4.103",
+      "server_port": 11203,
+      "method": "chacha20-ietf-poly1305",
+      "password": "a7c205642b302c20"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 603ms | UP | NATIVE",
+      "server": "5.188.4.103",
+      "server_port": 11201,
+      "method": "chacha20-ietf-poly1305",
+      "password": "a7c205642b302c20"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 604ms | UP | NATIVE",
+      "server": "5.188.4.103",
+      "server_port": 11202,
+      "method": "chacha20-ietf-poly1305",
+      "password": "a7c205642b302c20"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 607ms | UP | NATIVE",
+      "server": "5.188.4.103",
+      "server_port": 11205,
+      "method": "chacha20-ietf-poly1305",
+      "password": "a7c205642b302c20"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇧🇷-Santana_de_Parnaíba | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 608ms | UP | NATIVE",
+      "server": "5.188.4.103",
+      "server_port": 11204,
+      "method": "chacha20-ietf-poly1305",
+      "password": "a7c205642b302c20"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-São_José_dos_Pinhais | HTTP+TCP | 751ms | UP | NATIVE",
       "server": "201.89.97.222",
       "server_port": 8080,
       "username": "",
@@ -267,36 +266,205 @@
       }
     },
     {
+      "type": "http",
+      "tag": "🇧🇷-Indaiatuba | HTTP+TCP | 871ms | UP | NATIVE",
+      "server": "200.174.198.32",
+      "server_port": 8888,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇧🇷-Curitiba | SOCKS4+TCP | 750ms | UP | NATIVE",
-      "server": "45.226.83.146",
+      "tag": "🇧🇷-Recife | SOCKS4+TCP | 938ms | UP | NATIVE",
+      "server": "45.6.95.69",
       "server_port": 4153,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇷-Itaperuna | SOCKS4+TCP | 877ms | UP | NATIVE",
-      "server": "170.244.0.179",
-      "server_port": 4145,
+      "tag": "🇧🇷-São_Paulo | SOCKS4+TCP | 2703ms | UP | NATIVE",
+      "server": "201.46.29.115",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-Jaru | HTTP+TCP | 1009ms | UP | NATIVE",
+      "server": "179.255.219.182",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4986ms | UP | NATIVE",
+      "server": "131.161.68.41",
+      "server_port": 35944,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇷-Ibirité | SOCKS4+TCP | 997ms | UP | NATIVE",
-      "server": "186.248.87.172",
+      "tag": "🇧🇷-São_João_de_Meriti | SOCKS5+TCP | 3848ms | UP | NATIVE",
+      "server": "186.26.95.249",
+      "server_port": 61445,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Salvador | SOCKS4+TCP | 1849ms | UP | NATIVE",
+      "server": "177.136.124.46",
+      "server_port": 56113,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-Petrópolis | HTTP+TCP | 5078ms | UP | NATIVE",
+      "server": "168.205.102.26",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Osasco | SOCKS4+TCP | 4083ms | UP | NATIVE",
+      "server": "187.95.136.46",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇷-Porto_Seguro | SOCKS4+TCP | 1072ms | UP | NATIVE",
-      "server": "201.218.189.212",
+      "tag": "🇧🇷-Palotina | SOCKS4+TCP | 5715ms | UP | NATIVE",
+      "server": "177.39.211.221",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Arraial_do_Cabo | SOCKS5+TCP | 1807ms | UP | NATIVE",
+      "server": "187.63.9.62",
+      "server_port": 63253,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 3324ms | UP | NATIVE",
+      "server": "131.161.68.38",
+      "server_port": 35944,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Caldas_Novas | SOCKS4+TCP | 2070ms | UP | NATIVE",
+      "server": "186.224.225.82",
+      "server_port": 42648,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 2291ms | UP | NATIVE",
+      "server": "186.194.234.18",
       "server_port": 4153,
       "version": "4"
     },
     {
+      "type": "socks",
+      "tag": "🇧🇷-Florianópolis | SOCKS4+TCP | 3475ms | UP | NATIVE",
+      "server": "200.188.246.122",
+      "server_port": 60606,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Querência | SOCKS5+TCP | 4593ms | UP | NATIVE",
+      "server": "45.236.215.111",
+      "server_port": 54029,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Recife | SOCKS4+TCP | 5077ms | UP | NATIVE",
+      "server": "45.6.95.65",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 1912ms | UP | NATIVE",
+      "server": "189.50.138.10",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4520ms | UP | NATIVE",
+      "server": "45.6.101.98",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷-Brasília | HTTP+TCP | 1189ms | UP | NATIVE",
+      "server": "201.88.213.118",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Simões_Filho | SOCKS4+TCP | 2197ms | UP | NATIVE",
+      "server": "177.85.65.177",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Pelotas | SOCKS4+TCP | 1098ms | UP | NATIVE",
+      "server": "187.86.153.254",
+      "server_port": 30660,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Sapé | SOCKS4+TCP | 5135ms | UP | NATIVE",
+      "server": "187.19.127.246",
+      "server_port": 8011,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Macapá | SOCKS4+TCP | 2991ms | UP | NATIVE",
+      "server": "177.131.29.209",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇧🇷-Caldas_Novas | SOCKS4+TCP | 1415ms | UP | NATIVE",
+      "server": "186.224.225.26",
+      "server_port": 42648,
+      "version": "4"
+    },
+    {
       "type": "vmess",
-      "tag": "🇧🇷-São_Paulo | VMESS+WS | 1077ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇧🇷-São_Paulo | VMESS+WS | 1223ms | UP | NATIVE | SEC:tls_required",
       "server": "95.164.4.88",
       "server_port": 80,
       "uuid": "c04c3b34-70fd-4fec-963e-c12d09f36bef",
@@ -313,262 +481,16 @@
     },
     {
       "type": "socks",
-      "tag": "🇧🇷-Salvador | SOCKS4+TCP | 1225ms | UP | NATIVE",
-      "server": "177.136.124.46",
-      "server_port": 56113,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Arraial_do_Cabo | SOCKS5+TCP | 1954ms | UP | NATIVE",
-      "server": "187.63.9.62",
-      "server_port": 63253,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Campo_Mourão | SOCKS4+TCP | 5193ms | UP | NATIVE",
+      "tag": "🇧🇷-Campo_Mourão | SOCKS4+TCP | 3128ms | UP | NATIVE",
       "server": "177.125.212.244",
       "server_port": 4145,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇷-Cuiabá | SOCKS4+TCP | 4244ms | UP | NATIVE",
-      "server": "45.228.151.157",
-      "server_port": 1088,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇷-Salvador | HTTP+TCP | 1903ms | UP | NATIVE",
-      "server": "200.222.211.198",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇷-Petrópolis | HTTP+TCP | 4717ms | UP | NATIVE",
-      "server": "168.205.100.36",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Anta_Gorda | SOCKS4+TCP | 4122ms | UP | NATIVE",
-      "server": "168.227.148.21",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Itabaiana | SOCKS4+TCP | 5116ms | UP | NATIVE",
-      "server": "138.186.133.161",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 4187ms | UP | NATIVE",
-      "server": "131.161.68.41",
-      "server_port": 35944,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Palotina | SOCKS4+TCP | 1198ms | UP | NATIVE",
-      "server": "177.39.211.113",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Dracena | SOCKS4+TCP | 2069ms | UP | NATIVE",
-      "server": "187.17.201.203",
-      "server_port": 38737,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Recife | SOCKS4+TCP | 2272ms | UP | NATIVE",
-      "server": "187.103.74.137",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Macapá | SOCKS4+TCP | 4593ms | UP | NATIVE",
-      "server": "177.131.29.214",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-São_Paulo | SOCKS4+TCP | 2021ms | UP | NATIVE",
-      "server": "177.26.112.65",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Taboão_da_Serra | SOCKS4+TCP | 3023ms | UP | NATIVE",
-      "server": "143.137.116.72",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Pelotas | SOCKS4+TCP | 2216ms | UP | NATIVE",
-      "server": "187.86.153.254",
-      "server_port": 30660,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Itapetinga | SOCKS4+TCP | 1034ms | UP | NATIVE",
-      "server": "170.81.108.153",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇷-Fortaleza | HTTP+TCP | 5910ms | UP | NATIVE",
-      "server": "187.49.178.237",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Presidente_Prudente | SOCKS4+TCP | 4674ms | UP | NATIVE",
-      "server": "186.194.234.18",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇷-Jaru | HTTP+TCP | 1110ms | UP | NATIVE",
-      "server": "179.255.219.182",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Caldas_Novas | SOCKS4+TCP | 4141ms | UP | NATIVE",
-      "server": "186.224.225.82",
-      "server_port": 42648,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-São_João_de_Meriti | SOCKS5+TCP | 1255ms | UP | NATIVE",
-      "server": "186.26.95.249",
-      "server_port": 61445,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "vmess",
-      "tag": "🇧🇷-São_Paulo | VMESS+WS | 1105ms | UP | NATIVE | SEC:tls_required",
-      "server": "95.164.4.88",
-      "server_port": 80,
-      "uuid": "24b6bbfb-9b27-4f17-bd32-67523bf487d9",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/vmess/",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Rio_de_Janeiro | SOCKS4+TCP | 1999ms | UP | NATIVE",
-      "server": "45.6.101.98",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Osasco | SOCKS4+TCP | 1063ms | UP | NATIVE",
-      "server": "187.95.136.46",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇷-Brasília | HTTP+TCP | 3000ms | UP | NATIVE",
-      "server": "187.84.176.20",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇷-Campo_Maior | HTTP+TCP | 3282ms | UP | NATIVE",
-      "server": "179.48.11.6",
-      "server_port": 8085,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇧🇷-Indaiatuba | HTTP+TCP | 2493ms | UP | NATIVE",
-      "server": "200.174.198.32",
-      "server_port": 8888,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇧🇷-São_Paulo | VMESS+WS | 1278ms | UP | NATIVE",
-      "server": "95.164.4.88",
-      "server_port": 80,
-      "uuid": "c04c3b34-70fd-4fec-963e-c12d09f36bef",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/vmess/",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇧🇷-Simões_Filho | SOCKS4+TCP | 1146ms | UP | NATIVE",
-      "server": "177.85.65.177",
-      "server_port": 4153,
+      "tag": "🇧🇷-São_Paulo | SOCKS4+TCP | 5065ms | UP | NATIVE",
+      "server": "201.93.159.234",
+      "server_port": 4145,
       "version": "4"
     },
     {

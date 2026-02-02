@@ -39,12 +39,11 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 402ms | UP | NATIVE",
-        "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 411ms | UP | NATIVE",
-        "🇦🇹-Vienna | VLESS+TCP+REALITY | 507ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 4024ms | UP | NATIVE",
-        "🇦🇹-Vienna | SOCKS4+TCP | 3555ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 4909ms | UP | NATIVE"
+        "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
+        "🇦🇹-Vienna | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
+        "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 520ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 2200ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 4714ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -52,12 +51,11 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 402ms | UP | NATIVE",
-        "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 411ms | UP | NATIVE",
-        "🇦🇹-Vienna | VLESS+TCP+REALITY | 507ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 4024ms | UP | NATIVE",
-        "🇦🇹-Vienna | SOCKS4+TCP | 3555ms | UP | NATIVE",
-        "🇦🇹-Unknown | SOCKS4+TCP | 4909ms | UP | NATIVE"
+        "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
+        "🇦🇹-Vienna | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
+        "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 520ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 2200ms | UP | NATIVE",
+        "🇦🇹-Unknown | SOCKS4+TCP | 4714ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -65,15 +63,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 402ms | UP | NATIVE",
-      "server": "37.235.56.69",
-      "server_port": 989,
-      "method": "aes-256-cfb",
-      "password": "f8f7aCzcPKbsF8p3"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 411ms | UP | NATIVE",
+      "tag": "🇦🇹-Vienna | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 432ms | UP | NATIVE",
       "server": "37.235.56.69",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -81,7 +71,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇦🇹-Vienna | VLESS+TCP+REALITY | 507ms | UP | NATIVE",
+      "tag": "🇦🇹-Vienna | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
       "server": "38.180.144.156",
       "server_port": 8443,
       "uuid": "ae0a43bc-6189-456e-9b8a-a93f39af336e",
@@ -101,22 +91,23 @@
       }
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇦🇹-Vienna | SHADOWSOCKS+SS+AES-256-CFB | 520ms | UP | NATIVE",
+      "server": "37.235.56.69",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
       "type": "socks",
-      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 4024ms | UP | NATIVE",
+      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 2200ms | UP | NATIVE",
       "server": "83.218.186.22",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇹-Vienna | SOCKS4+TCP | 3555ms | UP | NATIVE",
-      "server": "95.163.153.116",
-      "server_port": 44937,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 4909ms | UP | NATIVE",
+      "tag": "🇦🇹-Unknown | SOCKS4+TCP | 4714ms | UP | NATIVE",
       "server": "178.115.255.177",
       "server_port": 5678,
       "version": "4"

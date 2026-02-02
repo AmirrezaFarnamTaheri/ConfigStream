@@ -39,7 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 543ms | UP | NATIVE"
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 453ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 466ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 579ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,7 +49,9 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 543ms | UP | NATIVE"
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 453ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 466ms | UP | NATIVE",
+        "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 579ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -55,17 +59,36 @@
     },
     {
       "type": "trojan",
-      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 543ms | UP | NATIVE",
+      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 453ms | UP | NATIVE",
+      "server": "37.235.49.209",
+      "server_port": 28099,
+      "password": "qmBSKnAl6LYi9=z23Rs.Z",
+      "tls": {
+        "enabled": true,
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 466ms | UP | NATIVE",
       "server": "37.235.49.209",
       "server_port": 28099,
       "password": "qmBSKnAl6LYi9=z23Rs.Z",
       "tls": {
         "enabled": true,
         "server_name": "celestialcorset.crystalhamster.click",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
+        "insecure": true
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇮🇸-Hafnarfjordur | TROJAN+TCP+TLS | 579ms | UP | NATIVE",
+      "server": "37.235.49.209",
+      "server_port": 28099,
+      "password": "qmBSKnAl6LYi9=z23Rs.Z",
+      "tls": {
+        "enabled": true,
+        "server_name": "🔒 [By EbraSha]",
         "insecure": true
       }
     },

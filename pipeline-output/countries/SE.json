@@ -39,23 +39,22 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇸🇪-Stockholm | VLESS+TCP+TLS | 423ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 435ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+GRPC+REALITY | 437ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 448ms | UP | NATIVE",
+        "🇸🇪-Stockholm | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 333ms | UP | NATIVE",
+        "🇸🇪-Stockholm | SHADOWSOCKS+SS+AES-256-CFB | 349ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 408ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+GRPC+REALITY | 443ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
+        "🇸🇪-Tällberg | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
+        "🇸🇪-Unknown | VLESS+TCP+TLS | 521ms | UP | NATIVE",
         "🇸🇪-Unknown | VLESS+TCP+TLS | 532ms | UP | NATIVE",
-        "🇸🇪-Unknown | VLESS+TCP+TLS | 537ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+TLS | 540ms | UP | NATIVE",
-        "🇸🇪-Unknown | VLESS+TCP+TLS | 544ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+TLS | 572ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 581ms | UP | NATIVE",
-        "🇸🇪-Unknown | VLESS+TCP+TLS | 702ms | UP | NATIVE",
-        "🇸🇪-Tällberg | VLESS+TCP+REALITY | 711ms | UP | NATIVE",
-        "🇸🇪-Stockholm | HTTP+TCP | 932ms | UP | NATIVE",
-        "🇸🇪-Stockholm | SOCKS5+TCP | 987ms | UP | NATIVE",
-        "🇸🇪-Unknown | SOCKS4+TCP | 1410ms | UP | NATIVE",
-        "🇸🇪-Stockholm | SOCKS5+TCP | 3708ms | UP | NATIVE",
-        "🇸🇪-Stockholm | SOCKS4+TCP | 1802ms | UP | NATIVE"
+        "🇸🇪-Unknown | VLESS+TCP+TLS | 536ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 537ms | UP | NATIVE",
+        "🇸🇪-Unknown | VLESS+TCP+TLS | 545ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 558ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 566ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 571ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
+        "🇸🇪-Upplands_Vasby | SOCKS4+TCP | 2342ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -63,31 +62,46 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇸🇪-Stockholm | VLESS+TCP+TLS | 423ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 435ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+GRPC+REALITY | 437ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 448ms | UP | NATIVE",
+        "🇸🇪-Stockholm | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 333ms | UP | NATIVE",
+        "🇸🇪-Stockholm | SHADOWSOCKS+SS+AES-256-CFB | 349ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 408ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+GRPC+REALITY | 443ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
+        "🇸🇪-Tällberg | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
+        "🇸🇪-Unknown | VLESS+TCP+TLS | 521ms | UP | NATIVE",
         "🇸🇪-Unknown | VLESS+TCP+TLS | 532ms | UP | NATIVE",
-        "🇸🇪-Unknown | VLESS+TCP+TLS | 537ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+TLS | 540ms | UP | NATIVE",
-        "🇸🇪-Unknown | VLESS+TCP+TLS | 544ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+TLS | 572ms | UP | NATIVE",
-        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 581ms | UP | NATIVE",
-        "🇸🇪-Unknown | VLESS+TCP+TLS | 702ms | UP | NATIVE",
-        "🇸🇪-Tällberg | VLESS+TCP+REALITY | 711ms | UP | NATIVE",
-        "🇸🇪-Stockholm | HTTP+TCP | 932ms | UP | NATIVE",
-        "🇸🇪-Stockholm | SOCKS5+TCP | 987ms | UP | NATIVE",
-        "🇸🇪-Unknown | SOCKS4+TCP | 1410ms | UP | NATIVE",
-        "🇸🇪-Stockholm | SOCKS5+TCP | 3708ms | UP | NATIVE",
-        "🇸🇪-Stockholm | SOCKS4+TCP | 1802ms | UP | NATIVE"
+        "🇸🇪-Unknown | VLESS+TCP+TLS | 536ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 537ms | UP | NATIVE",
+        "🇸🇪-Unknown | VLESS+TCP+TLS | 545ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 558ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 566ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+TLS | 571ms | UP | NATIVE",
+        "🇸🇪-Stockholm | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
+        "🇸🇪-Upplands_Vasby | SOCKS4+TCP | 2342ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇸🇪-Stockholm | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 333ms | UP | NATIVE",
+      "server": "46.246.96.191",
+      "server_port": 15721,
+      "method": "chacha20-ietf-poly1305",
+      "password": "fkZZaQfxglQEbFpiDyKEdN"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇪-Stockholm | SHADOWSOCKS+SS+AES-256-CFB | 349ms | UP | NATIVE",
+      "server": "121.127.46.147",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
       "type": "vless",
-      "tag": "🇸🇪-Stockholm | VLESS+TCP+TLS | 423ms | UP | NATIVE",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+TLS | 408ms | UP | NATIVE",
       "server": "144.31.128.36",
       "server_port": 443,
       "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
@@ -98,27 +112,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 435ms | UP | NATIVE",
-      "server": "46.246.98.74",
-      "server_port": 443,
-      "uuid": "95e118b4-4352-4218-8493-f20cc7fc467a",
-      "tls": {
-        "enabled": true,
-        "server_name": "learn.microsoft.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "nBJICh1KzfMblaXtSxpTiPIHGg2TKP5PF8nq-89Q6jg",
-          "short_id": "6ed3324b"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Stockholm | VLESS+GRPC+REALITY | 437ms | UP | NATIVE",
+      "tag": "🇸🇪-Stockholm | VLESS+GRPC+REALITY | 443ms | UP | NATIVE",
       "server": "84.32.99.186",
       "server_port": 10443,
       "uuid": "bd53dd3b-85f7-4414-95a1-b79c99d16f66",
@@ -141,7 +135,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 448ms | UP | NATIVE",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 447ms | UP | NATIVE",
       "server": "84.32.99.186",
       "server_port": 8443,
       "uuid": "bd53dd3b-85f7-4414-95a1-b79c99d16f66",
@@ -162,93 +156,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 532ms | UP | NATIVE",
-      "server": "193.23.200.51",
-      "server_port": 443,
-      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
-      "tls": {
-        "enabled": true,
-        "server_name": "secdn18.suio.me"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 537ms | UP | NATIVE",
-      "server": "193.23.200.153",
-      "server_port": 443,
-      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
-      "tls": {
-        "enabled": true,
-        "server_name": "secdn17.suio.me"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Stockholm | VLESS+TCP+TLS | 540ms | UP | NATIVE",
-      "server": "91.184.240.121",
-      "server_port": 443,
-      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
-      "tls": {
-        "enabled": true,
-        "server_name": "secdn13.suio.me"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 544ms | UP | NATIVE",
-      "server": "193.23.200.223",
-      "server_port": 443,
-      "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
-      "tls": {
-        "enabled": true,
-        "server_name": "secdn16.suio.me"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Stockholm | VLESS+TCP+TLS | 572ms | UP | NATIVE",
-      "server": "77.221.137.39",
-      "server_port": 443,
-      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
-      "tls": {
-        "enabled": true,
-        "server_name": "secdn11.suio.me"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 581ms | UP | NATIVE",
-      "server": "77.91.84.103",
-      "server_port": 443,
-      "uuid": "772d810c-4886-4475-81b2-2673b682c778",
-      "tls": {
-        "enabled": true,
-        "server_name": "google.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "HLFSR9-jdtfNAwTx3Sf5JKR4cuuhZqUcOlzjPzIsvXQ",
-          "short_id": "9cb177f23e2edd"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 702ms | UP | NATIVE",
-      "server": "193.23.200.223",
-      "server_port": 443,
-      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
-      "tls": {
-        "enabled": true,
-        "server_name": "secdn16.suio.me"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇸🇪-Tällberg | VLESS+TCP+REALITY | 711ms | UP | NATIVE",
+      "tag": "🇸🇪-Tällberg | VLESS+TCP+REALITY | 511ms | UP | NATIVE",
       "server": "78.40.116.165",
       "server_port": 443,
       "uuid": "9b42d012-096a-4be9-a0d2-ef348db3a7da",
@@ -268,46 +176,127 @@
       }
     },
     {
-      "type": "http",
-      "tag": "🇸🇪-Stockholm | HTTP+TCP | 932ms | UP | NATIVE",
-      "server": "89.22.237.70",
-      "server_port": 80,
-      "username": "",
-      "password": "",
+      "type": "vless",
+      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 521ms | UP | NATIVE",
+      "server": "193.23.200.51",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
       "tls": {
-        "enabled": false
+        "enabled": true,
+        "server_name": "secdn18.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 532ms | UP | NATIVE",
+      "server": "193.23.200.223",
+      "server_port": 443,
+      "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
+      "tls": {
+        "enabled": true,
+        "server_name": "secdn16.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 536ms | UP | NATIVE",
+      "server": "193.23.200.223",
+      "server_port": 443,
+      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
+      "tls": {
+        "enabled": true,
+        "server_name": "secdn16.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 537ms | UP | NATIVE",
+      "server": "46.246.98.74",
+      "server_port": 443,
+      "uuid": "95e118b4-4352-4218-8493-f20cc7fc467a",
+      "tls": {
+        "enabled": true,
+        "server_name": "learn.microsoft.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "nBJICh1KzfMblaXtSxpTiPIHGg2TKP5PF8nq-89Q6jg",
+          "short_id": "6ed3324b"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Unknown | VLESS+TCP+TLS | 545ms | UP | NATIVE",
+      "server": "193.23.200.153",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "secdn17.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+TLS | 558ms | UP | NATIVE",
+      "server": "91.184.240.121",
+      "server_port": 443,
+      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
+      "tls": {
+        "enabled": true,
+        "server_name": "secdn13.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+TLS | 566ms | UP | NATIVE",
+      "server": "91.184.240.121",
+      "server_port": 443,
+      "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
+      "tls": {
+        "enabled": true,
+        "server_name": "secdn13.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+TLS | 571ms | UP | NATIVE",
+      "server": "77.221.137.39",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "secdn11.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇪-Stockholm | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
+      "server": "77.91.84.103",
+      "server_port": 443,
+      "uuid": "772d810c-4886-4475-81b2-2673b682c778",
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "HLFSR9-jdtfNAwTx3Sf5JKR4cuuhZqUcOlzjPzIsvXQ",
+          "short_id": "9cb177f23e2edd"
+        }
       }
     },
     {
       "type": "socks",
-      "tag": "🇸🇪-Stockholm | SOCKS5+TCP | 987ms | UP | NATIVE",
-      "server": "89.22.237.70",
-      "server_port": 80,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇪-Unknown | SOCKS4+TCP | 1410ms | UP | NATIVE",
-      "server": "81.228.44.187",
-      "server_port": 65530,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇪-Stockholm | SOCKS5+TCP | 3708ms | UP | NATIVE",
-      "server": "77.221.141.244",
-      "server_port": 21406,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇪-Stockholm | SOCKS4+TCP | 1802ms | UP | NATIVE",
-      "server": "89.22.237.70",
-      "server_port": 80,
+      "tag": "🇸🇪-Upplands_Vasby | SOCKS4+TCP | 2342ms | UP | NATIVE",
+      "server": "85.228.42.230",
+      "server_port": 4153,
       "version": "4"
     },
     {
