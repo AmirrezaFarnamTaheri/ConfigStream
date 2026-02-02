@@ -268,6 +268,11 @@ async def processing_consumer(
                                 f"Go batch tester failed for chunk: {e}. Fallback to Python tester."
                             )
                         )
+                        # [FIX] Record batch error in stats so metadata reflects the failure
+                        async with seen_lock:
+                            stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
+                                "tester_error", 0
+                            ) + len(chunk)
 
                         # Fallback to Python tester for this chunk
                         async def _fallback_test(p: Proxy):

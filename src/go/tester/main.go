@@ -177,6 +177,13 @@ func runTester() {
 }
 
 func testProxy(req ProxyTestRequest) ProxyTestResult {
+	// [HARDENING] Recover from panics to prevent daemon crash
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("PANIC in testProxy: %v", r)
+		}
+	}()
+
 	start := time.Now()
 
 	const maxConfigBytes = 1 << 20 // 1 MiB
@@ -231,7 +238,15 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		instance.Close()
 		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Box start error: " + err.Error()}
 	}
-	defer instance.Close()
+	defer func() {
+		// Recover panic during Close if any (defensive)
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("PANIC during instance.Close: %v", r)
+			}
+		}()
+		instance.Close()
+	}()
 
 	// Determine target
 	target := "http://cp.cloudflare.com"
