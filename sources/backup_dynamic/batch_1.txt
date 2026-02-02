@@ -25,13 +25,12 @@ https://raw.githubusercontent.com/Surfboardv2ray/Subs/main/Xray/sub
 https://raw.githubusercontent.com/itsyebekhe/PSG/main/subscriptions/clash/mix
 https://raw.githubusercontent.com/shabane/kamaji/master/hub/b64/ss.txt
 https://raw.githubusercontent.com/Mohammadgb0078/IRV2ray/main/vless.txt
-https://v2.alicivil.workers.dev
+https://v2.alicivil.workers.dev/?shuffle=true
 https://raw.githubusercontent.com/webdao/v2ray/master/nodes.txt
 https://raw.githubusercontent.com/Jsnzkpg/Jsnzkpg/Jsnzkpg/Jsnzkpg1
 https://raw.githubusercontent.com/lagzian/SS-Collector/main/reality.txt
 https://github.com/MrMohebi/xray-proxy-grabber-telegram/raw/master/collected-proxies/row-url/all.txt
 https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt
-https://t.me/ProxyDailyChannel
 https://raw.githubusercontent.com/mermeroo/Loon/refs/heads/main/all.nodes.txt
 https://raw.githubusercontent.com/Kwinshadow/TelegramV2rayCollector/master/sub/normal
 https://raw.githubusercontent.com/ALIILAPRO/Proxy/main/socks5.txt

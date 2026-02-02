@@ -16,10 +16,8 @@ https://raw.githubusercontent.com/mahsanet/MahsaFreeConfig/main/mci/sub_4.txt
 https://raw.githubusercontent.com/barry-far/V2ray-config/main/Splitted-By-Protocol/ss.txt
 https://raw.githubusercontent.com/wiki/gfpcom/free-proxy-list/lists/socks5.txt
 https://raw.githubusercontent.com/vpei/free-node-1/refs/heads/main/res/nod-4.txt
-https://raw.githubusercontent.com/zengfr/free-vpn-subscribe/main/vpn_sub_raw_.txt
 https://raw.githubusercontent.com/ndsphonemy/proxy-sub/refs/heads/main/wg.txt
 https://raw.githubusercontent.com/Surfboardv2ray/TGParse/main/python/hy2
-https://raw.githubusercontent.com/Mosifree/-FREE2CONFIG
 https://raw.githubusercontent.com/Huibq/TrojanLinks/master/links/vless
 https://raw.githubusercontent.com/Argh94/V2RayAutoConfig/main/configs/Vless.txt
 https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/sub/sub_merge_yaml.yml
