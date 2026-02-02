@@ -210,7 +210,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.post("/api/admin/notify-update")
-async def notify_update(payload: dict):
+async def notify_update(payload: dict, request: Request):
     """
     Internal endpoint called by pipeline when a cycle finishes.
     Requires ADMIN_API_KEY environment variable for authentication
@@ -221,7 +221,7 @@ async def notify_update(payload: dict):
     settings = AppSettings()
     api_key = settings.ADMIN_API_KEY
     if api_key:
-        provided_key = payload.get("api_key")
+        provided_key = request.headers.get("x-admin-api-key") or request.headers.get("authorization")
         # Allow internal pipeline calls without API key if key matches or is from internal source
         # In production, pipeline should include api_key in payload
         if not provided_key:

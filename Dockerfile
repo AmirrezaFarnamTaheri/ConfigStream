@@ -1,6 +1,6 @@
 # Multi-stage build for ConfigStream
 # Stage 1: Build Go Tester
-FROM golang:1.24-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 # Leverage Docker cache for Go modules
@@ -88,5 +88,7 @@ USER runner
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD [ -x "/usr/local/bin/configstream-tester" ] || exit 1
 
-# Entrypoint
-ENTRYPOINT ["python", "-m", "configstream.cli"]
+EXPOSE 8000
+
+# Default: run the API server (web/dashboard)
+CMD ["uvicorn", "configstream.server:app", "--host", "0.0.0.0", "--port", "8000"]
