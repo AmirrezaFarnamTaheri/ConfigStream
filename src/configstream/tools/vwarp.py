@@ -298,6 +298,13 @@ class VwarpTool:
 
         start = time.time()
         while time.time() - start < timeout:
+            # [FIX] Check if process died while waiting
+            if self._tunnel_proc and self._tunnel_proc.returncode is not None:
+                logger.error(
+                    f"Vwarp process died with code {self._tunnel_proc.returncode} while waiting for port."
+                )
+                return False
+
             try:
                 # Use asyncio to avoid blocking the event loop
                 reader, writer = await safe_wait_for(
