@@ -46,7 +46,6 @@ https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/clash.yml
 https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/All_Configs_Sub.txt
 https://raw.githubusercontent.com/AB841V0N/Warp-ON-Warp/main/AB_841-Warp-ON-Warp
 https://raw.githubusercontent.com/MOnday9907/v2ray/main/v2ray.txt
-https://proxychecked.org/
 http://free-proxy.cz/en/proxylist/main
 https://proxymlist.com/freeproxy
 https://raw.githubusercontent.com/Ai123999/WhiteeListSub/refs/heads/main/whitelistkeys

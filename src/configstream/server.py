@@ -221,7 +221,13 @@ async def notify_update(payload: dict, request: Request):
     settings = AppSettings()
     api_key = settings.ADMIN_API_KEY
     if api_key:
-        provided_key = request.headers.get("x-admin-api-key") or request.headers.get("authorization")
+        auth_header = request.headers.get("authorization")
+        provided_key = request.headers.get("x-admin-api-key") or payload.get("api_key")
+
+        if not provided_key and auth_header:
+            parts = auth_header.split(None, 1)  # e.g. "Bearer <token>"
+            provided_key = parts[1] if len(parts) == 2 else auth_header
+
         # Allow internal pipeline calls without API key if key matches or is from internal source
         # In production, pipeline should include api_key in payload
         if not provided_key:

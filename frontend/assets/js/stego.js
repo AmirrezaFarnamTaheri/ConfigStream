@@ -10,7 +10,11 @@ const MAGIC_MARKER = "CSTREAM_PAYLOAD_START>>";
 // NOTE: This key provides OBFUSCATION ONLY, not strong confidentiality, as it is visible in client-side code.
 // Ideally, use per-session keys or public-key crypto if strict confidentiality is required.
 // [SECURITY FIX] Use placeholder that will fail validation if not injected by CI/CD
-const SECRET_KEY = "2z6mzFC4SffLULynmRuwEkFK52x0Ds9XYWxG4eGPqPE=";
+const SECRET_KEY = "PLACEHOLDER_KEY_INJECTED_BY_CI";
+
+if (SECRET_KEY === "PLACEHOLDER_KEY_INJECTED_BY_CI") {
+    throw new Error("SECRET_KEY was not injected at deploy time.");
+}
 
 async function fetchStegoConfig(imageUrl) {
     try {

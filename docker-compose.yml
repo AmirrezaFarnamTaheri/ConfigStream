@@ -4,6 +4,7 @@ services:
   # 1. Web Dashboard (Always Running)
   web:
     build: .
+    entrypoint: ["uvicorn", "configstream.server:app", "--host", "0.0.0.0", "--port", "8000"]
     container_name: configstream_web
     restart: unless-stopped
     ports:
@@ -24,6 +25,7 @@ services:
   # 2. Aggregator Worker (Runs Interval Loop)
   worker:
     build: .  # Use same Dockerfile; override command only
+    entrypoint: ["/bin/sh", "-c"]
     container_name: configstream_worker
     restart: unless-stopped
     volumes:

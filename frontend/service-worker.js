@@ -55,14 +55,10 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const mode = config.CACHE_STRATEGY || 'stale-while-revalidate';
 
-  // Helper to check strategy lists
-  const matchStrategy = (list) => {
-      if (!list) return false;
-      return list.some(pattern => url.pathname.endsWith(pattern) || url.href.includes(pattern));
-  };
-
   const isData = url.pathname.endsWith('.json') || url.pathname.includes('/api/');
-  if (mode === 'network-first' && isData) {
+  const effectiveMode = isData ? 'network-first' : mode;
+
+  if (effectiveMode === 'network-first') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
