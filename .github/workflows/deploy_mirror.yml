@@ -7,7 +7,7 @@ on:
 
 jobs:
   mirror:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
           fi
 
       - name: Deploy to Vercel
-        if: env.VERCEL_TOKEN != ''
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -45,10 +45,10 @@ jobs:
             exit 0
           fi
           npm install -g vercel
-          vercel deploy --prod --token=$VERCEL_TOKEN
+          (cd output && vercel deploy --prod --token=$VERCEL_TOKEN)
 
       - name: Deploy to Netlify
-        if: env.NETLIFY_AUTH_TOKEN != ''
+        if: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
@@ -61,7 +61,7 @@ jobs:
           netlify deploy --prod --dir=output --site=$NETLIFY_SITE_ID --auth=$NETLIFY_AUTH_TOKEN
 
       - name: Deploy to IPFS
-        if: env.PINATA_JWT != ''
+        if: ${{ secrets.PINATA_JWT != '' }}
         env:
           PINATA_JWT: ${{ secrets.PINATA_JWT }}
         run: |

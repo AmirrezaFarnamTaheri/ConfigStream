@@ -23,7 +23,7 @@ jobs:
   # --- Build Docker Image ---
   build_container:
     name: Build & Push Container
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.event_name != 'pull_request'
     outputs:
       repo_lowercase: ${{ steps.repo_name.outputs.repo_lowercase }}
@@ -64,7 +64,7 @@ jobs:
 
   setup_data:
     name: Setup Intelligence Data
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,7 +100,7 @@ jobs:
 
   build_wasm:
     name: Build WASM Module
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
         with:
@@ -126,7 +126,7 @@ jobs:
 
   setup_matrix:
     name: Generate Dynamic Batch Matrix
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -147,10 +147,11 @@ jobs:
 
   pipeline:
     name: Run Batch Shard (${{ matrix.batch_number }})
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [build_container, setup_data, setup_matrix]
     if: github.event_name != 'pull_request'
     strategy:
+      max-parallel: 5
       matrix:
         batch_number: ${{ fromJson(needs.setup_matrix.outputs.matrix) }}
       fail-fast: false
@@ -233,7 +234,7 @@ jobs:
 
   merge_results:
     name: Merge & Fan-Out
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: pipeline
     if: always() && github.event_name != 'pull_request'
     permissions:

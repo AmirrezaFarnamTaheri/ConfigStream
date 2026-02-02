@@ -2,7 +2,7 @@
 // Uses configuration from cache-config.js
 
 // Import shared configuration
-importScripts('assets/js/cache-config.js?v=' + new Date().getTime()); // Bust HTTP cache
+importScripts('assets/js/cache-config.js'); // VERSION/CACHE_NAME is rewritten on deploy
 
 // Access config from global scope (set by cache-config.js)
 const config = self.ConfigStreamCache || {};
@@ -53,17 +53,13 @@ self.addEventListener('activate', (event) => {
 // Fetch Event: Network First for Data, Cache First for Assets
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  const strategy = config.CACHE_STRATEGY || {};
+  const mode = config.CACHE_STRATEGY || 'stale-while-revalidate';
 
-  // Helper to check strategy lists
-  const matchStrategy = (list) => {
-      if (!list) return false;
-      return list.some(pattern => url.pathname.endsWith(pattern) || url.href.includes(pattern));
-  };
+  const isData = url.pathname.endsWith('.json') || url.pathname.includes('/api/');
+  const normalizedMode = (typeof mode === 'string') ? mode : 'stale-while-revalidate';
+  const effectiveMode = isData ? 'network-first' : normalizedMode;
 
-  // Strategy 1: Network First (Fresh Data)
-  // Check explicit list or default logic (JSON/API)
-  if (matchStrategy(strategy.networkFirst) || url.pathname.endsWith('.json') || url.pathname.includes('/api/')) {
+  if (effectiveMode === 'network-first') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
