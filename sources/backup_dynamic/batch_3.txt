@@ -50,7 +50,6 @@ https://raw.githubusercontent.com/Stinsonysm/GO_V2rayCollector/main/trojan_iran.
 https://raw.githubusercontent.com/jiquanxiang/abc/main/v7
 https://raw.githubusercontent.com/V2RET-V2RET-V2RET-V2RET-V2RET-V2RET/v2ret/main/sub.txt
 https://raw.githubusercontent.com/Tenerome/v2ray/main/vmess.txt
-https://raw.githubusercontent.com/AlienVPN402/SFA-Config-Servers/main/index.html
 https://raw.githubusercontent.com/sami-soft/v2rayN_proxy/main/new1.txt
 https://iwxf.netlify.app/
 https://raw.githubusercontent.com/Syavar/V2ray-Configs/main/OK_google.com.txt

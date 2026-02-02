@@ -37,7 +37,6 @@ https://api.proxyscrape.com/v2/?request=getproxies&protocol=http,socks4,socks5&t
 https://raw.githubusercontent.com/ImMyron/V2ray/main/Telegram
 https://raw.githubusercontent.com/dalazhi/v2ray/master/V2RAY.txt
 https://raw.githubusercontent.com/F0rc3Run/F0rc3Run/main/splitted-by-protocol/shadowsocks.txt
-https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/main/mix/sub.html
 http://spys.one/en/free-proxy-list/
 https://raw.githubusercontent.com/Danialsamadi/v2go/refs/heads/main/AllConfigsSub.txt
 https://raw.githubusercontent.com/LalatinaHub/Mineral/refs/heads/master/result/nodes

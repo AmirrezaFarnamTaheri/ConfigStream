@@ -31,7 +31,6 @@ https://raw.githubusercontent.com/prxchk/proxy-list/main/socks5.txt
 https://raw.githubusercontent.com/MuRongPIG/Proxy-Master/main/socks5.txt
 https://raw.githubusercontent.com/chongdong1230/dxz/main/config.txt
 https://raw.githubusercontent.com/nscl5/5/main/configs/all.txt
-https://raw.githubusercontent.com/arshiacomplus/v2rayExtractor/refs/heads/main/mix/sub.html
 https://raw.githubusercontent.com/dongchengjie/airport/main/subs/merged/tested_within.yaml
 https://github.com/jhao104/proxy_pool
 https://raw.githubusercontent.com/sansorchi/sansorchi/refs/heads/main/data.txt

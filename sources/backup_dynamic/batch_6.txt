@@ -38,4 +38,3 @@ https://raw.githubusercontent.com/AB-84-AB/Free-Shadowsocks/refs/heads/main/Tele
 https://vvsub.xyz/api/al/19786-xDX1SCq61Ymi
 https://raw.githubusercontent.com/pojiezhiyuanjun/2023/master/0804clash.yml
 https://raw.githubusercontent.com/rootjazz/proxylist/master/proxylist.txt
-https://stackoverflow.com/questions/tagged/proxy

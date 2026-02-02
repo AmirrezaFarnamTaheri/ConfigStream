@@ -50,7 +50,6 @@ https://12o.ooo/link/JLisT80gOhRkiFnX?sub=1
 https://proxylist.to/api/proxy?all=true
 https://www.allfreevpn.com/proxy-list/
 https://raw.githubusercontent.com/zjr13808836946/zjr_clash/main/V2_SSR_M
-https://stackoverflow.com/questions/tagged/proxy
 https://aliveproxy.com/proxy-list/
 https://raw.githubusercontent.com/abbasdvd3/clash/main/vless/x
 https://www.reddit.com/r/proxylist/
