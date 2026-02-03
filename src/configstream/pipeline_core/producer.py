@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import logging
+import json
+import os
 from typing import List, Optional, TYPE_CHECKING
 from rich.progress import Progress, TaskID
 from functools import partial
@@ -37,6 +39,7 @@ async def source_producer(
     if stop_event is None:
         stop_event = asyncio.Event()
     enable_anomaly_detection = settings.ENABLE_ANOMALY_DETECTION
+    loop = asyncio.get_running_loop()
 
     def _is_direct_proxy(candidate: str) -> bool:
         lower = candidate.lower()
@@ -111,6 +114,31 @@ async def source_producer(
                 if file_lines:
                     metadata: dict[str, object] = {"drop_stats": drop_stats}
                     await work_queue.put((fpath, file_lines, metadata))
+                else:
+                    try:
+                        await loop.run_in_executor(
+                            None, quality_tracker.report_failure, fpath, "no_valid_lines"
+                        )
+                        batch_number = os.getenv("BATCH_NUMBER", "").strip()
+                        batch_source = (
+                            f"batch_{batch_number}" if batch_number else "pipeline"
+                        )
+                        await loop.run_in_executor(
+                            None,
+                            quality_tracker.record_run,
+                            fpath,
+                            {
+                                "timestamp": int(loop.time()),
+                                "duration_ms": 0.0,
+                                "fetched_count": 0,
+                                "working_count": 0,
+                                "geoip_json": "{}",
+                                "failure_modes_json": json.dumps(drop_stats or {}),
+                                "batch_source": batch_source,
+                            },
+                        )
+                    except Exception:
+                        pass
                 if progress and task_fetch:
                     progress.advance(task_fetch)
 
@@ -118,7 +146,6 @@ async def source_producer(
         active_urls = []
         blocked_urls = []
 
-        loop = asyncio.get_running_loop()
         # Use dynamic semaphore limit from settings
         sem_limit = getattr(settings, "PRODUCER_MAX_CONCURRENCY", 100)
         sem_limit = max(1, int(sem_limit))
@@ -221,6 +248,39 @@ async def source_producer(
                                 len(res.content) if res.content else 0,
                                 drop_stats,
                             )
+                            try:
+                                await loop.run_in_executor(
+                                    None,
+                                    quality_tracker.report_failure,
+                                    source,
+                                    "no_valid_lines",
+                                )
+                                batch_number = os.getenv("BATCH_NUMBER", "").strip()
+                                batch_source = (
+                                    f"batch_{batch_number}"
+                                    if batch_number
+                                    else "pipeline"
+                                )
+                                await loop.run_in_executor(
+                                    None,
+                                    quality_tracker.record_run,
+                                    source,
+                                    {
+                                        "timestamp": int(loop.time()),
+                                        "duration_ms": (
+                                            (res.response_time or 0.0) * 1000
+                                        ),
+                                        "fetched_count": 0,
+                                        "working_count": 0,
+                                        "geoip_json": "{}",
+                                        "failure_modes_json": json.dumps(
+                                            drop_stats or {}
+                                        ),
+                                        "batch_source": batch_source,
+                                    },
+                                )
+                            except Exception:
+                                pass
                             continue
 
                         # Offload anomaly check to executor to avoid blocking on DB/ML
@@ -263,6 +323,15 @@ async def source_producer(
                             logger.warning(
                                 f"⚠️ BLOCKING {safe_source}: {reason} (count={count})"
                             )
+                            try:
+                                await loop.run_in_executor(
+                                    None,
+                                    quality_tracker.report_failure,
+                                    source,
+                                    f"anomaly_blocked:{reason}",
+                                )
+                            except Exception:
+                                pass
                             if event_stream:
                                 event_stream.emit(
                                     "fetch_blocked",
@@ -279,6 +348,34 @@ async def source_producer(
                             f"Failed to fetch {safe_source}: {safe_error} "
                             f"(Status: {res.status_code})"
                         )
+                        try:
+                            await loop.run_in_executor(
+                                None, quality_tracker.report_failure, source, safe_error
+                            )
+                            batch_number = os.getenv("BATCH_NUMBER", "").strip()
+                            batch_source = (
+                                f"batch_{batch_number}" if batch_number else "pipeline"
+                            )
+                            await loop.run_in_executor(
+                                None,
+                                quality_tracker.record_run,
+                                source,
+                                {
+                                    "timestamp": int(loop.time()),
+                                    "duration_ms": (
+                                        (res.response_time or 0.0) * 1000
+                                    ),
+                                    "fetched_count": 0,
+                                    "working_count": 0,
+                                    "geoip_json": "{}",
+                                    "failure_modes_json": json.dumps(
+                                        {"fetch_error": safe_error}
+                                    ),
+                                    "batch_source": batch_source,
+                                },
+                            )
+                        except Exception:
+                            pass
     except Exception as e:
         safe_error = SecurityValidator.sanitize_log_message(str(e))
         logger.error(f"Producer failed: {safe_error}")

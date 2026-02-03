@@ -63,6 +63,10 @@ class QualityStorage:
                 conn.execute(
                     "ALTER TABLE source_stats ADD COLUMN trust_score REAL DEFAULT 50.0"
                 )
+            if "status" not in columns:
+                conn.execute(
+                    "ALTER TABLE source_stats ADD COLUMN status TEXT DEFAULT 'active'"
+                )
 
             # History table for detailed run tracing
             conn.execute("""
@@ -210,6 +214,7 @@ class QualityStorage:
             "reliability_score": 100.0,
             "diversity_score": 0.0,
             "trust_score": 50.0,
+            "status": "active",
         }
 
         with self._lock:
@@ -217,7 +222,7 @@ class QualityStorage:
                 conn = self._get_conn()
                 existing = conn.execute(
                     """SELECT total_fetched, total_working, consecutive_failures,
-                              last_checked, reliability_score, diversity_score, trust_score
+                              last_checked, reliability_score, diversity_score, trust_score, status
                        FROM source_stats WHERE url = ?""",
                     (url,),
                 ).fetchone()
@@ -232,13 +237,14 @@ class QualityStorage:
                         "reliability_score": existing[4],
                         "diversity_score": existing[5],
                         "trust_score": existing[6],
+                        "status": existing[7],
                     }
                     merged = {**current, **stats}
                     conn.execute(
                         """
                         UPDATE source_stats
                         SET total_fetched=?, total_working=?, consecutive_failures=?,
-                        last_checked=?, reliability_score=?, diversity_score=?, trust_score=?
+                        last_checked=?, reliability_score=?, diversity_score=?, trust_score=?, status=?
                         WHERE url=?
                         """,
                         (
@@ -249,6 +255,7 @@ class QualityStorage:
                             merged["reliability_score"],
                             merged["diversity_score"],
                             merged["trust_score"],
+                            merged["status"],
                             url,
                         ),
                     )
@@ -258,8 +265,8 @@ class QualityStorage:
                     conn.execute(
                         """
                         INSERT INTO source_stats
-                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score, diversity_score, trust_score)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        (url, total_fetched, total_working, consecutive_failures, last_checked, reliability_score, diversity_score, trust_score, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         (
                             url,
@@ -270,6 +277,7 @@ class QualityStorage:
                             merged["reliability_score"],
                             merged["diversity_score"],
                             merged["trust_score"],
+                            merged["status"],
                         ),
                     )
                 conn.commit()
@@ -360,7 +368,16 @@ class QualityStorage:
                 if rows:
                     cursor = src.execute("SELECT * FROM source_stats LIMIT 1")
                     columns = [d[0] for d in cursor.description]
-                    placeholders = ",".join(["?"] * len(columns))
+                    dst_columns = {
+                        info[1]
+                        for info in dst.execute("PRAGMA table_info(source_stats)")
+                    }
+                    columns_to_use = [c for c in columns if c in dst_columns]
+                    if not columns_to_use:
+                        return
+                    col_indices = [columns.index(c) for c in columns_to_use]
+                    placeholders = ",".join(["?"] * len(columns_to_use))
+                    column_list = ",".join(columns_to_use)
                     url_idx = columns.index("url")
                     last_checked_idx = (
                         columns.index("last_checked")
@@ -381,14 +398,16 @@ class QualityStorage:
 
                         if not existing:
                             dst.execute(
-                                f"INSERT INTO source_stats VALUES ({placeholders})", row
+                                f"INSERT INTO source_stats ({column_list}) VALUES ({placeholders})",
+                                [row[i] for i in col_indices],
                             )
                         elif existing[0] < last_checked:
                             dst.execute(
                                 "DELETE FROM source_stats WHERE url = ?", (url,)
                             )
                             dst.execute(
-                                f"INSERT INTO source_stats VALUES ({placeholders})", row
+                                f"INSERT INTO source_stats ({column_list}) VALUES ({placeholders})",
+                                [row[i] for i in col_indices],
                             )
 
                     # Merge source_runs

@@ -107,6 +107,7 @@ class GoBatchTester:
 
             # Start heartbeat loop
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+            self._heartbeat_task.add_done_callback(self._silence_task)
 
     async def self_test(self) -> bool:
         """
@@ -277,7 +278,15 @@ class GoBatchTester:
             # lazily to respect runtime env changes (important for tests).
             settings = AppSettings()
             if settings.TEST_URLS:
-                urls = ",".join(str(u) for u in settings.TEST_URLS.values())
+                urls_map = settings.TEST_URLS
+                if os.environ.get("CI") == "true":
+                    preferred = ("cloudflare", "gstatic", "google")
+                    urls_map = {
+                        k: v for k, v in urls_map.items() if k in preferred and v
+                    }
+                    if not urls_map:
+                        urls_map = settings.TEST_URLS
+                urls = ",".join(str(u) for u in urls_map.values())
                 cmd.extend(["-urls", urls])
 
             logger.info(f"Starting Go Tester Daemon: {' '.join(cmd)}")
@@ -332,7 +341,9 @@ class GoBatchTester:
                 # Start background readers
                 loop = asyncio.get_running_loop()
                 self._read_task = loop.create_task(self._read_loop())
+                self._read_task.add_done_callback(self._silence_task)
                 self._stderr_task = loop.create_task(self._read_stderr_loop())
+                self._stderr_task.add_done_callback(self._silence_task)
             except Exception as e:
                 logger.error(f"Failed to start Go Tester Daemon: {e}")
                 self._proc = None
@@ -542,6 +553,9 @@ class GoBatchTester:
             payload_str = "\n".join(lines) + "\n"
             self._proc.stdin.write(payload_str.encode())
             await self._proc.stdin.drain()
+        except asyncio.CancelledError:
+            await self._cleanup_pending(list(req_id_map.keys()), futures)
+            raise
         except (BrokenPipeError, ConnectionResetError) as e:
             if not self._stopping:
                 logger.error(f"Go Tester Daemon connection lost: {e}")
@@ -583,6 +597,9 @@ class GoBatchTester:
             completed_results = await safe_wait_for(
                 asyncio.gather(*futures, return_exceptions=True), timeout=total_timeout
             )
+        except asyncio.CancelledError:
+            await self._cleanup_pending(list(req_id_map.keys()), futures)
+            raise
         except asyncio.TimeoutError:
             logger.error(
                 f"Timed out waiting for {len(inputs)} results from Go Tester Daemon. Restarting daemon..."
@@ -776,6 +793,9 @@ class GoBatchTester:
             payload_str = "\n".join(lines) + "\n"
             self._proc.stdin.write(payload_str.encode())
             await self._proc.stdin.drain()
+        except asyncio.CancelledError:
+            await self._cleanup_pending(list(reverse_map.keys()), futures)
+            raise
         except (BrokenPipeError, ConnectionResetError) as e:
             logger.error(
                 f"Go Tester Daemon connection lost during custom config test: {e}"
@@ -794,6 +814,9 @@ class GoBatchTester:
                 asyncio.gather(*futures, return_exceptions=True),
                 timeout=max(120, min(300, len(inputs) * 2 + 40)),
             )
+        except asyncio.CancelledError:
+            await self._cleanup_pending(list(reverse_map.keys()), futures)
+            raise
         except asyncio.TimeoutError:
             # Cleanup under lock to prevent race with _read_loop
             async with self._lock:

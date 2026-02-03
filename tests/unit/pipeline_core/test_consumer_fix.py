@@ -138,7 +138,6 @@ async def test_processing_consumer_revival_crash(mock_dependencies_fix):
                 history=deps["history"],
                 progress=None,
                 task_process=None,
-                max_proxies=None,
                 max_latency=None,
                 country_filter=None,
                 leniency=False,

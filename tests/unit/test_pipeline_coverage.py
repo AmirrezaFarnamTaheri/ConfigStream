@@ -122,7 +122,6 @@ async def test_processing_consumer_basic(
                 MagicMock(),  # history
                 None,  # progress
                 None,  # task_process
-                max_proxies=None,
                 max_latency=None,
                 country_filter=None,
                 leniency=False,

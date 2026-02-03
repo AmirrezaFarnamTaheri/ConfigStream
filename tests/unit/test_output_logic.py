@@ -41,7 +41,10 @@ def sample_proxies():
 
 @pytest.fixture
 def warp_keys():
-    return '[{"id": "key1", "private_key": "priv1", "peer_public_key": "pub1"}]'
+    return (
+        '[{"id": "key1", "private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", '
+        '"peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="}]'
+    )
 
 
 # Remove asyncio marker, as generate_categorized_outputs and wash_batch are sync

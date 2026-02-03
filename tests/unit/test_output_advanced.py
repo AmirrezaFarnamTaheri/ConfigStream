@@ -6,7 +6,7 @@ from unittest.mock import patch
 from configstream.models import Proxy
 from configstream.intelligence.washer import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
-from configstream.output import generate_split_outputs
+from configstream.generators import generate_split_outputs
 
 
 @pytest.fixture
@@ -89,7 +89,10 @@ def test_generate_smart_chains(sample_proxies):
 
 @patch("os.getenv")
 def test_wash_dirty_proxies(mock_getenv, sample_proxies):
-    warp_keys = '[{"private_key": "pk1", "peer_public_key": "pub1"}]'
+    warp_keys = (
+        '[{"private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", '
+        '"peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="}]'
+    )
     mock_getenv.return_value = warp_keys
 
     washer = ProxyWasher(warp_keys)

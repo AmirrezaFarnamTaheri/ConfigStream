@@ -43,6 +43,6 @@ A condensed version of the Analytics page, showing:
 
 ## Technical Implementation
 
-*   **Data Source**: Fetches `metadata.json` and `summary.json` from the `output/` directory.
+*   **Data Source**: Fetches `metadata.json` from the `output/` directory.
 *   **Rendering**: Vanilla JavaScript with direct DOM manipulation for speed.
 *   **Performance**: The 3D globe is lazy-loaded or paused when not in the viewport to save GPU cycles on mobile devices.

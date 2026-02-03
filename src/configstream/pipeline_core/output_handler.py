@@ -11,6 +11,7 @@ from configstream.output_transport import save_json, inject_stego_key_into_front
 from configstream.transport.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
 from configstream.intelligence.chaining import generate_smart_chains
+from configstream.intelligence.vectors import generate_vectors
 from configstream.pipeline_core.stats import PipelineStats
 from configstream.tagging import ProxyTagger
 from configstream.config import AppSettings
@@ -139,6 +140,9 @@ async def generate_pipeline_outputs(
     await loop.run_in_executor(
         None, save_metadata, stats_dict, optimized_proxies, output_path
     )
+
+    # 5b. Vector map for frontend similarity search
+    await loop.run_in_executor(None, generate_vectors, optimized_proxies, output_path)
 
     # 6. Stego Assets + Frontend Key Injection (optional)
     secret_key = settings.STEGO_KEY or settings.CONFIG_STREAM_KEY

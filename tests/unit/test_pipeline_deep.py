@@ -97,7 +97,6 @@ async def test_processing_consumer_flow():
                 history=MagicMock(),
                 progress=None,
                 task_process=None,
-                max_proxies=None,
                 max_latency=None,
                 country_filter=None,
                 leniency=False,

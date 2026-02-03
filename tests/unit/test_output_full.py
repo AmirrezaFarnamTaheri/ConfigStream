@@ -1,12 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
 from unittest.mock import patch
-from configstream.output import (
-    save_json,
-    save_metadata,
-    generate_split_outputs,
-    generate_categorized_outputs,
-)
+from configstream.output import save_json, save_metadata, generate_categorized_outputs
+from configstream.generators import generate_split_outputs
 from configstream.models import Proxy
 
 
@@ -107,7 +103,7 @@ def test_generate_split_outputs(proxies, output_dir):
     with (
         patch("configstream.generators.singbox.to_singbox_outbound") as mock_conv,
         patch(
-            "configstream.output_generators.generate_clash_config", return_value="clash"
+            "configstream.generators.generate_clash_config", return_value="clash"
         ),
     ):
 

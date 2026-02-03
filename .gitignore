@@ -1,5 +1,6 @@
 # Build Artifacts (Intermediate)
 output_batch_*/
+pipeline-output/
 data/
 *.zip
 dist/
@@ -21,6 +22,7 @@ venv/
 htmlcov/
 .coverage
 .hypothesis/
+.tmp/
 
 # Python generated files
 *.py[cod]
@@ -43,6 +45,10 @@ data/*.json
 reports/
 
 # Logs
+*.log
+# TLS keylog artifacts (e.g., SSLKEYLOGFILE=...)
+sslkeylog*
+false
 
 # Docker volumes
 output/
