@@ -16,7 +16,12 @@ async def test_washer_initialization():
 def test_deterministic_warp_keys():
     """Test that the same relay ID produces the same WARP key (deterministic washing)."""
     # Create a washer with some fake keys
-    fake_keys = '[{"private_key": "key1", "peer_public_key": "pub1", "id": "01"}, {"private_key": "key2", "peer_public_key": "pub2", "id": "02"}]'
+    key_a = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    key_b = "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE="
+    fake_keys = (
+        f'[{{"private_key": "{key_a}", "peer_public_key": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg=", "id": "01"}}, '
+        f'{{"private_key": "{key_b}", "peer_public_key": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=", "id": "02"}}]'
+    )
     washer = ProxyWasher(fake_keys)
 
     relay_id = "test-relay-id"
@@ -24,7 +29,7 @@ def test_deterministic_warp_keys():
     exit2 = washer._get_consistent_exit(relay_id, washer.warp_keys)
 
     assert exit1 == exit2
-    assert exit1["private_key"] in ["key1", "key2"]
+    assert exit1["private_key"] in [key_a, key_b]
 
 
 # Remove async because generate_smart_chains is synchronous
@@ -75,7 +80,11 @@ def stats():
 @pytest.fixture
 def washer_stats_fixture():
     # Setup washer with fake keys so washing actually attempts something
-    fake_keys = '[{"private_key": "pk1", "peer_public_key": "pub1", "id": "k1"}]'
+    fake_keys = (
+        '[{"private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", '
+        '"peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=", '
+        '"id": "k1"}]'
+    )
     return ProxyWasher(fake_keys)
 
 

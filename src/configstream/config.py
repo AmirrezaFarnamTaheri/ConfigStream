@@ -168,6 +168,8 @@ class AppSettings(BaseSettings):
     # Fetcher
     MAX_RESPONSE_SIZE: int = 0
     QUALITY_DB_PATH: str = "data/source_quality.db"
+    SOURCE_PROBATION_FAILURES: int = 3
+    SOURCE_DEAD_FAILURES: int = 10
 
     # Score Tuning (Advanced)
     SCORE_SIGMOID_CENTER_RATIO: float = 0.6
@@ -198,3 +200,9 @@ class AppSettings(BaseSettings):
             raise ValueError("BATCH_SIZE must be > 0")
         if self.RATE_LIMIT_REQUESTS <= 0:
             raise ValueError("RATE_LIMIT_REQUESTS must be positive")
+        if self.SOURCE_PROBATION_FAILURES <= 0:
+            raise ValueError("SOURCE_PROBATION_FAILURES must be positive")
+        if self.SOURCE_DEAD_FAILURES < self.SOURCE_PROBATION_FAILURES:
+            raise ValueError(
+                "SOURCE_DEAD_FAILURES must be >= SOURCE_PROBATION_FAILURES"
+            )

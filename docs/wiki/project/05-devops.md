@@ -45,7 +45,7 @@ graph TD
 *   Merges:
     *   Proxy lists (Deduplication).
     *   SQLite Databases (`anomaly.db`, `source_quality.db`) using `merge_from` logic.
-*   Generates final `metadata.json` and `summary.json`.
+*   Generates final `metadata.json`.
 *   Commits updated databases back to a persistent cache branch or artifact storage.
 
 ## 2. Caching Strategy

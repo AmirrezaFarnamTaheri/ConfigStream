@@ -54,7 +54,6 @@ async def run_full_pipeline(
     sources: List[str],
     output_dir: str,
     max_workers: int = 0,  # 0 = Auto
-    max_proxies: Optional[int] = None,
     timeout: int = 10,
     country_filter: Optional[str] = None,
     max_latency: Optional[int] = None,
@@ -72,7 +71,6 @@ async def run_full_pipeline(
         sources: List of source URLs to fetch proxies from
         output_dir: Output directory path for generated files
         max_workers: Maximum concurrent workers (0 = auto-calculate)
-        max_proxies: Deprecated (ignored). Proxy caps are disabled.
         timeout: Proxy test timeout in seconds
         country_filter: ISO country code filter (e.g., "US", "GB")
         max_latency: Maximum acceptable latency in milliseconds
@@ -99,12 +97,6 @@ async def run_full_pipeline(
 
     if max_workers < 0:
         raise ValueError(f"'max_workers' must be >= 0 (got {max_workers})")
-
-    if max_proxies is not None:
-        logger.warning(
-            "max_proxies is deprecated and ignored (proxy caps are disabled)."
-        )
-        max_proxies = None
 
     settings = AppSettings()
     if max_workers <= 0 and settings.MAX_WORKERS > 0:
@@ -322,7 +314,6 @@ async def run_full_pipeline(
                 history,
                 progress,
                 task_process,
-                max_proxies,
                 max_latency,
                 country_filter,
                 leniency,

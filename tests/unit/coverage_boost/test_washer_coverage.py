@@ -7,7 +7,14 @@ from configstream.intelligence.washer.core import ProxyWasher
 
 @pytest.fixture
 def mock_warp_keys():
-    return '[{"private_key": "priv1", "peer_public_key": "pub1", "id": "key1"}, {"private_key": "priv2", "peer_public_key": "pub2", "id": "key2"}]'
+    return (
+        '[{"private_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=", '
+        '"peer_public_key": "AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=", '
+        '"id": "key1"}, '
+        '{"private_key": "AgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg=", '
+        '"peer_public_key": "AwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM=", '
+        '"id": "key2"}]'
+    )
 
 
 @pytest.fixture

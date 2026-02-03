@@ -271,46 +271,6 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	<-done
 }
 
-// checkEndpoint is deprecated in favor of batch scanning but kept for compatibility.
-// It creates a new socket per call (inefficient).
-func checkEndpoint(ip string, port int, timeout time.Duration, packet []byte) (int64, error) {
-	addr := fmt.Sprintf("%s:%d", ip, port)
-
-	// Create UDP Connection
-	conn, err := net.DialTimeout("udp", addr, timeout)
-	if err != nil {
-		return 0, err
-	}
-	defer conn.Close()
-
-	// Write Packet
-	start := time.Now()
-	if _, err := conn.Write(packet); err != nil {
-		return 0, err
-	}
-
-	// Set Deadline for Read
-	conn.SetReadDeadline(time.Now().Add(timeout))
-
-	// Wait for Reply
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	if err != nil {
-		return 0, err
-	}
-
-	latency := time.Since(start).Milliseconds()
-
-	if n >= 32 {
-		msgType := buf[0]
-		if msgType == 2 || msgType == 3 || msgType == 4 {
-			return latency, nil
-		}
-	}
-
-	return 0, fmt.Errorf("invalid response type")
-}
-
 func generateIPList(cidrs []string) []string {
 	var ips []string
 	for _, cidr := range cidrs {

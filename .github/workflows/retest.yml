@@ -1,0 +1,125 @@
+name: Retest
+
+on:
+  schedule:
+    - cron: "0 0-21/3 * * *"
+    - cron: "30 1-22/3 * * *" # Alternating every 1.5h
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  retest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install
+        run: pip install -e .[dev]
+
+      - name: Check for concurrent pipeline run
+        id: check_pipeline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Checking for active pipeline runs..."
+
+          # Check if main pipeline workflow is running
+          ACTIVE_RUN=$(gh run list \
+            --workflow="pipeline.yml" \
+            --status="in_progress" \
+            --json databaseId,startedAt,status \
+            --limit 1 \
+            --jq '.[0] | select(.status == "in_progress")')
+
+          if [ -z "$ACTIVE_RUN" ]; then
+            echo "No active pipeline run found. Proceeding with retest."
+            echo "should_cancel=false" >> $GITHUB_OUTPUT
+          else
+            # Extract start time
+            START_TIME=$(echo "$ACTIVE_RUN" | jq -r '.startedAt')
+            START_EPOCH=$(date -d "$START_TIME" +%s)
+            NOW_EPOCH=$(date +%s)
+            ELAPSED=$((NOW_EPOCH - START_EPOCH))
+            ELAPSED_HOURS=$((ELAPSED / 3600))
+
+            echo "Active pipeline found. Started at: $START_TIME"
+            echo "Elapsed time: ${ELAPSED}s (${ELAPSED_HOURS}h)"
+
+            # Check if pipeline started less than 1.5 hours ago (5400 seconds)
+            if [ $ELAPSED -lt 5400 ]; then
+              echo "Pipeline started less than 1.5 hours ago. Cancelling retest to avoid conflicts."
+              echo "should_cancel=true" >> $GITHUB_OUTPUT
+            else
+              echo "Pipeline has been running for more than 1.5 hours. Proceeding with retest."
+              echo "should_cancel=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Exit if pipeline is running
+        if: steps.check_pipeline.outputs.should_cancel == 'true'
+        run: |
+          echo "⚠️ Retest cancelled: Main pipeline is currently running and started less than 1.5 hours ago."
+          echo "ℹ️ Note: Dynamic cron rescheduling is not supported by GitHub Actions."
+          echo "ℹ️ The next retest will run according to the standard 3-hour schedule."
+          exit 0
+
+      - name: Download latest pipeline output
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LATEST_RUN=$(gh run list --workflow=pipeline.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+          if [ -z "$LATEST_RUN" ]; then
+            echo "No successful pipeline run found; skipping retest."
+            exit 0
+          fi
+          gh run download "$LATEST_RUN" \
+            --name pipeline-output \
+            --dir output
+
+          if [ ! -d "output" ] || [ -z "$(ls -A output)" ]; then
+            echo "No output directory found after download; skipping retest."
+            exit 0
+          fi
+
+      - name: Check previous output existence
+        id: check_output
+        run: |
+          if [ ! -s output/proxies.json ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "No previous output/proxies.json or file is empty; skipping retest."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Retest last export
+        if: steps.check_output.outputs.skip != 'true'
+        run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 45 --max-workers 50 --leniency
+      - name: Validate JSON (non-blocking)
+        run: |
+          pip install jsonschema || true
+          jsonschema -i output/proxies.json schema/proxy.schema.json || echo "::warning ::schema validation failed"
+      - name: Pull latest changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git remote set-url origin https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPOSITORY
+          git checkout main
+          git pull --rebase --autostash origin main
+      - name: Commit updated outputs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: hourly retest refresh [skip ci]"
+          file_pattern: output/**

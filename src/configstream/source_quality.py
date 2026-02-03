@@ -33,6 +33,29 @@ class SourceQualityTracker(QualityStorage):
     Adapter class to make QualityStorage compatible with legacy SourceQualityTracker calls.
     """
 
+    @staticmethod
+    def _derive_status(
+        consecutive_failures: int, reason: Optional[str], settings: AppSettings
+    ) -> str:
+        """Determine source status based on failure count and reason."""
+        probation_threshold = max(1, int(settings.SOURCE_PROBATION_FAILURES))
+        dead_threshold = max(probation_threshold + 1, int(settings.SOURCE_DEAD_FAILURES))
+
+        if reason:
+            permanent_signals = (
+                "Permanent Error: 404",
+                "Permanent Error: 410",
+                "Malformed GitHub URL",
+            )
+            if any(signal in reason for signal in permanent_signals):
+                return "dead"
+
+        if consecutive_failures >= dead_threshold:
+            return "dead"
+        if consecutive_failures >= probation_threshold:
+            return "probation"
+        return "active"
+
     def __init__(self, db_path: Optional[Path] = None):
         if db_path is None:
             # Default path if none provided (e.g. from pipeline)
@@ -73,8 +96,23 @@ class SourceQualityTracker(QualityStorage):
         if reliability is None:
             reliability = (working / fetched * 100) if fetched > 0 else 0.0
 
-        consecutive_failures = 0 if working > 0 else 1
+        state = self.get_source_state(url)
+        prev_failures = state[2] if state and len(state) > 2 else 0
+
+        if working > 0:
+            consecutive_failures = 0
+        else:
+            consecutive_failures = prev_failures + 1
+
         trust_score = 50.0
+        settings = AppSettings()
+        prev_status = state[0] if state else "active"
+        if working > 0:
+            status = "active"
+        elif prev_status == "dead":
+            status = "dead"
+        else:
+            status = self._derive_status(consecutive_failures, None, settings)
 
         stats = {
             "total_fetched": fetched,
@@ -84,6 +122,7 @@ class SourceQualityTracker(QualityStorage):
             "reliability_score": reliability,
             "diversity_score": diversity,
             "trust_score": trust_score,
+            "status": status,
         }
         self.upsert_stats(url, stats)
 
@@ -130,6 +169,7 @@ class SourceQualityTracker(QualityStorage):
             update_stats: Dict[str, Any] = {
                 "consecutive_failures": 0,
                 "last_checked": int(datetime.now(timezone.utc).timestamp()),
+                "status": "active",
             }
             self.upsert_stats(url, update_stats)
         else:
@@ -142,23 +182,28 @@ class SourceQualityTracker(QualityStorage):
                 "reliability_score": 50.0,
                 "diversity_score": 0.0,
                 "trust_score": 50.0,
+                "status": "active",
             }
             self.upsert_stats(url, init_stats)
 
-    def report_failure(self, url: str):
+    def report_failure(self, url: str, reason: Optional[str] = None):
         """
         Legacy method called by orchestrator.py.
         Records a failed fetch for a source, incrementing failure count.
         """
+        settings = AppSettings()
         state = self.get_source_state(url)
         current_failures = 0
         if state:
             # state: (status, last_checked, consecutive_failures, ...)
             current_failures = state[2] if len(state) > 2 else 0
 
+        new_failures = current_failures + 1
+        status = self._derive_status(new_failures, reason, settings)
         stats = {
-            "consecutive_failures": current_failures + 1,
+            "consecutive_failures": new_failures,
             "last_checked": int(datetime.now(timezone.utc).timestamp()),
+            "status": status,
         }
         self.upsert_stats(url, stats)
 

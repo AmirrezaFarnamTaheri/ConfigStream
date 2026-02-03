@@ -14,7 +14,7 @@ from importlib.metadata import version
 
 from .models import Proxy
 from .converters.common import safe_int_conversion
-from .output_generators import (
+from .generators import (
     generate_singbox_config,
     generate_base64_subscription,
     generate_split_outputs,
@@ -395,7 +395,7 @@ def save_metadata(
     total_sourced = total
     parsed_count = total
     tested_count = total
-    reasons = {}
+    reasons: Dict[str, int] = {}
     end_time_iso = datetime.now(timezone.utc).isoformat()
     washed_count = 0
     smart_chain_count = 0
@@ -422,11 +422,17 @@ def save_metadata(
         )
         parsed_count = stats.get("parsed", total)
         tested_count = stats.get("tested", total)
-        # reasons might be in stats['rejection_reasons'] if available, or empty
-        reasons = stats.get("rejection_reasons", {})
-        washed_count = stats.get("washed_chains", 0)
-        smart_chain_count = 0
-        if "smart_chains_breakdown" in stats:
+        # reasons might be in stats['rejection_reasons'] or stats['drop_reasons']
+        raw_reasons = stats.get("rejection_reasons") or stats.get("drop_reasons") or {}
+        if isinstance(raw_reasons, dict):
+            reasons = {
+                str(k): safe_int_conversion(v)
+                for k, v in raw_reasons.items()
+                if k is not None
+            }
+        washed_count = stats.get("washed_chains") or stats.get("washer_success_count", 0)
+        smart_chain_count = stats.get("smart_chain_count", 0)
+        if not smart_chain_count and "smart_chains_breakdown" in stats:
             smart_chain_count = sum(stats["smart_chains_breakdown"].values())
         vwarp_win_rate = stats.get("vwarp_win_rate", 0.0)
         scanner_ips_found = stats.get("scanner_ips_found", 0)
@@ -552,7 +558,14 @@ def save_metadata(
         "total_revived": total_revived_count,
         "total_smart_chains": smart_chain_count,
         "smart_chains_breakdown": smart_chains_breakdown,
-        "total_dirty": reasons.get("dirty_ip", 0) + reasons.get("honeypot", 0),
+        "total_dirty": sum(
+            [
+                int(reasons.get("dirty_ip", 0) or 0),
+                int(reasons.get("DIRTY_IP", 0) or 0),
+                int(reasons.get("honeypot", 0) or 0),
+                int(reasons.get("HONEYPOT", 0) or 0),
+            ]
+        ),
         # Intelligence Layer Stats (canonical keys used by frontend)
         "vwarp_win_rate": vwarp_win_rate,
         "scanner_ips_found": scanner_ips_found,

@@ -13,6 +13,7 @@ from pathlib import Path
 from configstream.models import Proxy
 from configstream.utils import AtomicFileWriter
 from configstream.utils.bool_parser import parse_tls_flag
+from configstream.security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,8 @@ def _compute_vector(proxy: Proxy) -> List[int]:
     """
 
     # 1. Protocol Hash (use SHA-256 for consistency, even though this is not security-critical)
-    h_proto = int(hashlib.sha256(proxy.protocol.encode()).hexdigest(), 16) % 10
+    proto = (proxy.protocol or "unknown").lower()
+    h_proto = int(hashlib.sha256(proto.encode()).hexdigest(), 16) % 10
 
     # 2. Country Hash
     cc = proxy.country_code or "XX"
@@ -50,19 +52,25 @@ def _compute_vector(proxy: Proxy) -> List[int]:
         h_lat = 2
 
     # 4. Port Hash
-    h_port = proxy.port % 10
+    port_value = proxy.port if isinstance(proxy.port, int) else 0
+    h_port = int(port_value) % 10
 
     # 5. ISP Hash
     h_isp = int(hashlib.sha256((proxy.org or "").encode()).hexdigest(), 16) % 10
 
     # 6. Security Score (0-9 based on protocol and TLS)
     security = 0
-    if proxy.protocol in ("vless", "trojan"):
+    if proto in ("vless", "trojan"):
         security += 3
-    if proxy.details and proxy.details.get("security") in ("tls", "reality"):
-        security += 4
-    if proxy.details and parse_tls_flag(proxy.details.get("tls")):
-        security += 2
+    if isinstance(proxy.details, dict):
+        security_value = proxy.details.get("security")
+        if isinstance(security_value, str) and security_value.lower() in (
+            "tls",
+            "reality",
+        ):
+            security += 4
+        if parse_tls_flag(proxy.details.get("tls")):
+            security += 2
     h_security = min(security, 9)
 
     # 7-8. Stability and Reliability (default 5 - middle value)
@@ -98,6 +106,9 @@ def generate_vectors(proxies: List[Proxy], output_dir: Path) -> None:
         AtomicFileWriter.write_text(
             output_file, json.dumps(vector_map, ensure_ascii=False)
         )
-        logger.info(f"Generated static vectors for {len(vector_map)} proxies")
+        logger.info("Generated static vectors for %s proxies", len(vector_map))
     except Exception as e:
-        logger.error(f"Failed to generate vectors: {e}")
+        logger.error(
+            "Failed to generate vectors: %s",
+            SecurityValidator.sanitize_log_message(str(e)),
+        )

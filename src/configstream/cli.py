@@ -183,12 +183,6 @@ def retest(input, output, max_workers, timeout, max_latency, leniency, verbose):
     "--max-latency", default=None, type=int, help="Maximum acceptable latency in ms"
 )
 @click.option(
-    "--max-proxies",
-    default=None,
-    type=int,
-    help="Deprecated (ignored). Proxy caps are disabled.",
-)
-@click.option(
     "--leniency/--strict",
     default=False,
     help="Allow potentially insecure proxies (default: Strict)",
@@ -204,7 +198,6 @@ def merge(
     timeout,
     country,
     max_latency,
-    max_proxies,
     leniency,
     dry_run,
     verbose,
@@ -230,11 +223,6 @@ def merge(
 
     console.print("[bold green]🚀 Starting ConfigStream Pipeline[/bold green]")
     console.print(f"Sources: {len(valid_sources)} | Output: {output}")
-    if max_proxies is not None:
-        console.print(
-            "[yellow]Warning: --max-proxies is deprecated and ignored.[/yellow]"
-        )
-        max_proxies = None
 
     async def _run():
         with Progress(
@@ -249,7 +237,6 @@ def merge(
                 sources=valid_sources,
                 output_dir=output,
                 max_workers=max_workers,
-                max_proxies=max_proxies,
                 timeout=timeout,
                 country_filter=country,
                 max_latency=max_latency,

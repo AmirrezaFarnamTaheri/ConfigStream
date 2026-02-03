@@ -51,7 +51,6 @@ async def processing_consumer(
     history: ProxyHistoryTracker,
     progress: Optional[Progress],
     task_process: Optional[TaskID],
-    max_proxies: Optional[int],
     max_latency: Optional[int],
     country_filter: Optional[str],
     leniency: bool,
@@ -494,6 +493,8 @@ async def processing_consumer(
 
         # Aggregate Failure Modes & GeoIP for logging
         failure_modes: dict = {}  # Already aggregated into stats, local dict for log
+        if metadata and isinstance(metadata.get("drop_stats"), dict):
+            failure_modes.update(metadata.get("drop_stats", {}))
         geoip_stats: dict = {}
         for p in final_batch_for_this_source:
             if p.country_code:

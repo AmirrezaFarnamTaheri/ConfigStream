@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
+import base64
+import binascii
 import json
 import hashlib
 import logging
@@ -156,8 +158,32 @@ class ProxyWasher:
         self.key_gen = KeyGenerator()
 
     @staticmethod
-    def _normalize_warp_keys(entries: List[Any]) -> List[Dict[str, Any]]:
+    def _normalize_wg_key(key: str) -> Optional[str]:
+        if not key:
+            return None
+        cleaned = "".join(str(key).split())
+        if not cleaned:
+            return None
+        cleaned = cleaned.replace("-", "+").replace("_", "/")
+        pad = len(cleaned) % 4
+        if pad:
+            cleaned += "=" * (4 - pad)
+        try:
+            decoded = base64.b64decode(cleaned, validate=True)
+        except (binascii.Error, ValueError):
+            try:
+                decoded = base64.b64decode(cleaned, validate=False)
+            except Exception:
+                return None
+        if len(decoded) != 32:
+            return None
+        return cleaned
+
+    @classmethod
+    def _normalize_warp_keys(cls, entries: List[Any]) -> List[Dict[str, Any]]:
         normalized: List[Dict[str, Any]] = []
+        invalid_private = 0
+        invalid_peer = 0
         for item in entries:
             if isinstance(item, dict):
                 if "private_key" not in item:
@@ -165,13 +191,37 @@ class ProxyWasher:
                         item["private_key"] = item.pop("private-key")
                     elif "privateKey" in item:
                         item["private_key"] = item.pop("privateKey")
-                if item.get("private_key"):
+                private_key = cls._normalize_wg_key(item.get("private_key", ""))
+                if private_key:
+                    item["private_key"] = private_key
+                    peer_key = item.get("peer_public_key")
+                    if peer_key:
+                        peer_norm = cls._normalize_wg_key(peer_key)
+                        if peer_norm:
+                            item["peer_public_key"] = peer_norm
+                        else:
+                            invalid_peer += 1
+                            item.pop("peer_public_key", None)
                     normalized.append(item)
+                else:
+                    invalid_private += 1
                 continue
             if isinstance(item, str):
-                key_str = item.strip()
+                key_str = cls._normalize_wg_key(item)
                 if key_str:
                     normalized.append({"private_key": key_str})
+                else:
+                    invalid_private += 1
+        if invalid_private:
+            logger.warning(
+                "Dropped %d invalid WARP private keys during normalization.",
+                invalid_private,
+            )
+        if invalid_peer and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(
+                "Dropped %d invalid WARP peer public keys during normalization.",
+                invalid_peer,
+            )
         return normalized
 
     @property

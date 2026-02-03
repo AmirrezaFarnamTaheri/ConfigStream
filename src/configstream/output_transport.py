@@ -10,7 +10,7 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import List
 from .models import Proxy
 from .history.tracker import ProxyHistoryTracker
 from .serialize import serialize_proxy
@@ -55,20 +55,6 @@ def save_json(proxies: List[Proxy], path: Path, compress: bool = False) -> None:
             if temp_gz_path.exists():
                 temp_gz_path.unlink()
             raise
-
-
-def save_metadata(  # pylint: disable=too-many-locals,too-many-branches,too-many-statements
-    stats: Dict[str, Union[int, float]], proxies: List[Proxy], output_dir: Path
-) -> None:
-    """
-    Save metadata.json with statistics for the frontend.
-    """
-    from .output_logic import save_metadata as save_metadata_v2
-
-    logger.warning(
-        "output_transport.save_metadata is deprecated; delegating to output_logic.save_metadata."
-    )
-    save_metadata_v2(stats, proxies, output_dir)
 
 
 def inject_stego_key_into_frontend(secret_key: str, js_file_path: Path) -> None:
