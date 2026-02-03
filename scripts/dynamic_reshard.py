@@ -117,10 +117,12 @@ def parse_db_runs(
             if not cursor.fetchone():
                 return {}, {}
 
-            rows = conn.execute("""
+            rows = conn.execute(
+                """
                 SELECT url, timestamp, duration_ms, fetched_count, working_count, batch_source
                 FROM source_runs
-                """).fetchall()
+                """
+            ).fetchall()
     except Exception as e:
         print(f"[WARN] Failed to read {db_path}: {e}")
         return {}, {}

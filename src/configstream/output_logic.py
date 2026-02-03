@@ -430,7 +430,9 @@ def save_metadata(
                 for k, v in raw_reasons.items()
                 if k is not None
             }
-        washed_count = stats.get("washed_chains") or stats.get("washer_success_count", 0)
+        washed_count = stats.get("washed_chains") or stats.get(
+            "washer_success_count", 0
+        )
         smart_chain_count = stats.get("smart_chain_count", 0)
         if not smart_chain_count and "smart_chains_breakdown" in stats:
             smart_chain_count = sum(stats["smart_chains_breakdown"].values())

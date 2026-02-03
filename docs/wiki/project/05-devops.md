@@ -4,7 +4,7 @@ ConfigStream relies on a robust, automated DevOps pipeline. We adhere to "GitOps
 
 ## 1. The GitHub Actions Pipeline
 
-The heart of the system is `.github/workflows/pipeline.yml`.
+The heart of the system is `.github/workflows/main.yml`.
 
 ### Workflow Triggers
 *   **Schedule**: `cron: "0 */5 * * *"` (Every 5 hours).
@@ -93,3 +93,4 @@ docker compose up web
 *   `MAX_WORKERS`: Control concurrency (Default: Auto).
 *   `WARP_KEY_POOL`: JSON list of keys for the Washer.
 *   `TELEGRAM_BOT_TOKEN`: For the bot interface.
+

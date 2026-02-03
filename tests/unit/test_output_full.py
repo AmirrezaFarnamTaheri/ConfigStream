@@ -102,9 +102,7 @@ def test_generate_split_outputs(proxies, output_dir):
 
     with (
         patch("configstream.generators.singbox.to_singbox_outbound") as mock_conv,
-        patch(
-            "configstream.generators.generate_clash_config", return_value="clash"
-        ),
+        patch("configstream.generators.generate_clash_config", return_value="clash"),
     ):
 
         mock_conv.return_value = {"type": "vless", "tag": "vless-out"}
