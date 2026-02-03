@@ -6,6 +6,7 @@ import shutil
 import uuid
 import time
 import os
+import re
 from pathlib import Path
 from typing import List, Dict, Any, Optional, cast
 
@@ -78,6 +79,7 @@ class GoBatchTester:
         self._stderr_task: Optional[asyncio.Task[None]] = None
         self._heartbeat_task: Optional[asyncio.Task[None]] = None
         self._stopping = False
+        self._restart_task: Optional[asyncio.Task[None]] = None
 
         # Log deduplication state
         self._recent_errors: Dict[str, int] = {}
@@ -195,6 +197,7 @@ class GoBatchTester:
     async def close(self) -> None:
         """Stop the tester process and cleanup resources."""
         self._stopping = True
+        pending: List[asyncio.Future[Any]] = []
         async with self._lock:
             if self._proc:
                 try:
@@ -236,12 +239,23 @@ class GoBatchTester:
                     pass
                 self._heartbeat_task = None
 
+            if self._restart_task:
+                self._restart_task.cancel()
+                try:
+                    await self._restart_task
+                except asyncio.CancelledError:
+                    pass
+                self._restart_task = None
+
             # Cancel pending futures
-            for f in self._pending_futures.values():
+            pending = list(self._pending_futures.values())
+            for f in pending:
                 if not f.done():
                     f.cancel()
             self._pending_futures.clear()
-            logger.info("Go Batch Tester shutdown complete.")
+        if pending:
+            await self._consume_futures(pending)
+        logger.info("Go Batch Tester shutdown complete.")
 
     async def _ensure_process(self) -> None:
         """Ensure the Go process is running."""
@@ -323,6 +337,40 @@ class GoBatchTester:
                 logger.error(f"Failed to start Go Tester Daemon: {e}")
                 self._proc = None
 
+    @staticmethod
+    async def _consume_futures(futures: List[asyncio.Future[Any]]) -> None:
+        """Ensure futures are awaited so exceptions don't leak to the event loop."""
+        if not futures:
+            return
+        for f in futures:
+            if not f.done():
+                f.cancel()
+        try:
+            await asyncio.gather(*futures, return_exceptions=True)
+        except Exception:
+            # Swallow any unexpected errors during cleanup
+            pass
+
+    @staticmethod
+    def _silence_task(task: asyncio.Task[Any]) -> None:
+        """Consume task exceptions to avoid 'Task exception was never retrieved'."""
+        try:
+            task.result()
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.debug(f"Background task failed: {e}")
+
+    async def _cleanup_pending(
+        self, req_ids: List[str], futures: List[asyncio.Future[Any]]
+    ) -> None:
+        """Remove pending futures from tracking and consume their results."""
+        if req_ids:
+            async with self._lock:
+                for req_id in req_ids:
+                    self._pending_futures.pop(req_id, None)
+        await self._consume_futures(futures)
+
     async def _read_loop(self) -> None:
         """Background task to read results from stdout."""
         try:
@@ -373,8 +421,10 @@ class GoBatchTester:
                 line = await self._proc.stderr.readline()
                 if not line:
                     break
-                text = line.decode().strip()
+                text = line.decode(errors="ignore").strip()
                 if text:
+                    # Strip ANSI colour codes from Go tester output
+                    text = re.sub(r"\x1b\[[0-9;]*m", "", text)
                     lower = text.lower()
                     if "panic" in lower or "fatal" in lower:
                         logger.error(f"Go Tester Daemon: {text}")
@@ -386,12 +436,15 @@ class GoBatchTester:
                         if (
                             "failed to get peer by public key" in text
                             or "wireguard" in text
+                            or "dns: lookup failed" in lower
                         ):
                             async with self._log_lock:
                                 # Simplify error message for aggregation key
                                 # E.g. "failed to get peer by public key: hex string does not fit the slice"
                                 if "failed to get peer by public key" in text:
                                     key = "WireGuard: failed to get peer by public key"
+                                elif "dns: lookup failed" in lower:
+                                    key = "DNS: lookup failed"
                                 else:
                                     key = text[:50] + "..."  # Truncate for key
 
@@ -492,10 +545,7 @@ class GoBatchTester:
         except (BrokenPipeError, ConnectionResetError) as e:
             if not self._stopping:
                 logger.error(f"Go Tester Daemon connection lost: {e}")
-            # Fail futures to unblock
-            for f in futures:
-                if not f.done():
-                    f.set_exception(e)
+            await self._cleanup_pending(list(req_id_map.keys()), futures)
 
             # Mark all proxies in this batch as failed due to daemon crash
             for proxy_obj in req_id_map.values():
@@ -509,10 +559,7 @@ class GoBatchTester:
             return proxies
         except Exception as e:
             logger.error(f"Failed to write to Go Tester Daemon: {e}")
-            # Fail futures to unblock
-            for f in futures:
-                if not f.done():
-                    f.set_exception(e)
+            await self._cleanup_pending(list(req_id_map.keys()), futures)
 
             # Mark queued proxies as failed (write/IPC failure)
             for p in req_id_map.values():
@@ -560,9 +607,11 @@ class GoBatchTester:
             for f in futures:
                 if not f.done():
                     f.cancel()
+            await self._consume_futures(futures)
 
             # Restart daemon asynchronously to recover for next batch
-            asyncio.create_task(self._restart_daemon())
+            self._restart_task = asyncio.create_task(self._restart_daemon())
+            self._restart_task.add_done_callback(self._silence_task)
             return proxies
 
         # Process Results
@@ -731,16 +780,19 @@ class GoBatchTester:
             logger.error(
                 f"Go Tester Daemon connection lost during custom config test: {e}"
             )
+            await self._cleanup_pending(list(reverse_map.keys()), futures)
             await self.close()
             return {}
         except Exception as e:
             logger.error(f"Failed to write to Go Tester Daemon (custom): {e}")
+            await self._cleanup_pending(list(reverse_map.keys()), futures)
             return {}
 
         # Wait
         try:
             completed = await safe_wait_for(
-                asyncio.gather(*futures, return_exceptions=True), timeout=120
+                asyncio.gather(*futures, return_exceptions=True),
+                timeout=max(120, min(300, len(inputs) * 2 + 40)),
             )
         except asyncio.TimeoutError:
             # Cleanup under lock to prevent race with _read_loop
@@ -750,6 +802,7 @@ class GoBatchTester:
             for f in futures:
                 if not f.done():
                     f.cancel()
+            await self._consume_futures(futures)
             return {}
 
         results = {}

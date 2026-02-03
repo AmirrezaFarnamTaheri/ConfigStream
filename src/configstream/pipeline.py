@@ -33,6 +33,7 @@ from .performance import PerformanceTracker
 from .history.tracker import ProxyHistoryTracker
 from .filtering import dedupe_and_shuffle, filter_unique_endpoints
 from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
+from .async_utils import safe_wait_for
 
 from configstream.pipeline_core.stats import PipelineStats
 from configstream.pipeline_core.models import PipelineResult
@@ -342,7 +343,7 @@ async def run_full_pipeline(
                     getattr(settings, "BATCH_TIME_LIMIT_GRACE_SECONDS", 0)
                 )
                 hard_timeout = time_limit_seconds + max(0, grace_seconds)
-                await asyncio.wait_for(gather_task, timeout=hard_timeout)
+                await safe_wait_for(gather_task, timeout=hard_timeout)
             else:
                 await gather_task
         except asyncio.TimeoutError:
