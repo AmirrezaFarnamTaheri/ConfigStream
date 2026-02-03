@@ -28,7 +28,7 @@ You can customize the behavior using GitHub Repository Secrets/Variables:
 ### Usage
 The pipeline runs automatically:
 -   **Schedule**: Every 5 hours (00:00, 05:00, 10:00, 15:00, 20:00 UTC).
--   **Manual**: Go to Actions > "ConfigStream Pipeline" > "Run workflow".
+-   **Manual**: Go to Actions > "Config's Stream" > "Run workflow".
 
 ---
 
@@ -126,3 +126,5 @@ To serve configurations globally with low latency, putting a CDN in front of you
 ### "Sing-box not found"
 -   **Cause**: The `sing-box` binary is missing from the environment.
 -   **Solution**: Ensure `sing-box` is installed. The Docker image and GitHub Action runner handle this automatically. On a VPS, download it from the official release page and place it in `/usr/local/bin`.
+
+

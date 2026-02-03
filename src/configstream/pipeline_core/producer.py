@@ -117,7 +117,10 @@ async def source_producer(
                 else:
                     try:
                         await loop.run_in_executor(
-                            None, quality_tracker.report_failure, fpath, "no_valid_lines"
+                            None,
+                            quality_tracker.report_failure,
+                            fpath,
+                            "no_valid_lines",
                         )
                         batch_number = os.getenv("BATCH_NUMBER", "").strip()
                         batch_source = (
@@ -362,9 +365,7 @@ async def source_producer(
                                 source,
                                 {
                                     "timestamp": int(loop.time()),
-                                    "duration_ms": (
-                                        (res.response_time or 0.0) * 1000
-                                    ),
+                                    "duration_ms": ((res.response_time or 0.0) * 1000),
                                     "fetched_count": 0,
                                     "working_count": 0,
                                     "geoip_json": "{}",

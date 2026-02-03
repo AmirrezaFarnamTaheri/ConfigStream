@@ -11,6 +11,7 @@ from configstream.pipeline_stages import (
 from configstream.models import Proxy
 from configstream.fetcher import FetchResult
 
+
 @pytest.fixture
 def mock_dependencies():
     queue = asyncio.Queue()
@@ -70,6 +71,7 @@ def mock_dependencies():
         "history": history,
     }
 
+
 @pytest.mark.asyncio
 async def test_pipeline_stats():
     s = PipelineStats()
@@ -78,6 +80,7 @@ async def test_pipeline_stats():
 
     res = PipelineResult(True, s, {}, None)
     assert res.success
+
 
 @pytest.mark.asyncio
 async def test_source_producer_supplied_proxies(mock_dependencies):
@@ -98,6 +101,7 @@ async def test_source_producer_supplied_proxies(mock_dependencies):
     item = await queue.get()
     assert item[0] == "supplied-proxies"
     assert "vmess://test" in item[1]
+
 
 @pytest.mark.asyncio
 async def test_source_producer_local_files(mock_dependencies):
@@ -123,6 +127,7 @@ async def test_source_producer_local_files(mock_dependencies):
     item = await queue.get()
     assert item[0] == "sources/batch_1.txt"
     assert "vmess://file" in item[1]
+
 
 @pytest.mark.asyncio
 async def test_source_producer_remote_urls(mock_dependencies):
@@ -178,6 +183,7 @@ async def test_source_producer_remote_urls(mock_dependencies):
     fetched2 = next((i for i in items if i[0] == "https://web.com/sub2"), None)
     assert fetched2 is not None
 
+
 @pytest.mark.asyncio
 async def test_source_producer_anomaly_block(mock_dependencies):
     queue = mock_dependencies["queue"]
@@ -206,6 +212,7 @@ async def test_source_producer_anomaly_block(mock_dependencies):
     # Queue should only contain None (sentinel)
     item = await queue.get()
     assert item is None
+
 
 @pytest.mark.asyncio
 async def test_processing_consumer_basic_flow(mock_dependencies):
@@ -259,6 +266,7 @@ async def test_processing_consumer_basic_flow(mock_dependencies):
     assert stats.working == 1
     assert final_proxies[0].country_code == "US"  # From GeoIP mock
 
+
 @pytest.mark.asyncio
 async def test_processing_consumer_cached_hit(mock_dependencies):
     queue = mock_dependencies["queue"]
@@ -307,6 +315,7 @@ async def test_processing_consumer_cached_hit(mock_dependencies):
     assert len(final_proxies) == 1
     assert stats.tested == 0  # Was cached
     assert final_proxies[0].latency == 50
+
 
 @pytest.mark.asyncio
 async def test_processing_consumer_cache_miss(mock_dependencies):
@@ -358,6 +367,7 @@ async def test_processing_consumer_cache_miss(mock_dependencies):
     assert len(final_proxies) == 1
     assert stats.cache_misses == 1
     assert stats.tested == 1
+
 
 @pytest.mark.asyncio
 async def test_processing_consumer_go_tester(mock_dependencies):
@@ -411,6 +421,7 @@ async def test_processing_consumer_go_tester(mock_dependencies):
     assert len(final_proxies) == 1
     assert stats.tested == 1
 
+
 @pytest.mark.asyncio
 async def test_processing_consumer_filters(mock_dependencies):
     queue = mock_dependencies["queue"]
@@ -457,6 +468,7 @@ async def test_processing_consumer_filters(mock_dependencies):
 
     assert len(final_proxies) == 0  # Filtered by latency
     assert stats.working == 0
+
 
 @pytest.mark.asyncio
 async def test_processing_consumer_country_filter(mock_dependencies):

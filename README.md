@@ -1,7 +1,6 @@
 # ConfigStream v2.2.0 (Ironclad Edition)
 
-[![ConfigStream Pipeline](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/pipeline.yml)
-[![Pipeline Health Check](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/healthcheck.yml)
+[![Config's Stream](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/main.yml/badge.svg)](https://github.com/AmirrezaFarnamTaheri/ConfigStream/actions/workflows/main.yml)
 [![Security](https://img.shields.io/badge/security-B%2B%20(85%2F100)-brightgreen)](SECURITY.md)
 [![Code Quality](https://img.shields.io/badge/code%20quality-A%20(95%2F100)-brightgreen)](CHANGELOG.md)
 [![Production Ready](https://img.shields.io/badge/production-ready-brightgreen)](CHANGELOG.md)
@@ -410,3 +409,6 @@ This project is licensed under the GNU Affero General Public License v3.0, which
 ---
 
 **ConfigStream** - *Sovereignty through Technology* 🌐
+
+
+

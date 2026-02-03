@@ -221,7 +221,7 @@ def merge(
         s.strip() for s in raw_sources if s.strip() and not s.strip().startswith("#")
     ]
 
-    console.print("[bold green]🚀 Starting ConfigStream Pipeline[/bold green]")
+    console.print("[bold green]🚀 Starting Config's Stream[/bold green]")
     console.print(f"Sources: {len(valid_sources)} | Output: {output}")
 
     async def _run():

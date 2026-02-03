@@ -39,7 +39,9 @@ class SourceQualityTracker(QualityStorage):
     ) -> str:
         """Determine source status based on failure count and reason."""
         probation_threshold = max(1, int(settings.SOURCE_PROBATION_FAILURES))
-        dead_threshold = max(probation_threshold + 1, int(settings.SOURCE_DEAD_FAILURES))
+        dead_threshold = max(
+            probation_threshold + 1, int(settings.SOURCE_DEAD_FAILURES)
+        )
 
         if reason:
             permanent_signals = (

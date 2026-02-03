@@ -146,4 +146,5 @@ To scale indefinitely, we use the **Matrix Strategy**:
     *   It executes `scripts/merge_batches.py` to consolidate the SQLite databases and proxy lists into a single master dataset.
     *   This master dataset generates the final `metadata.json` and subscriptions.
 
-This architecture allows ConfigStream to scale linearly. To double capacity, we just add more batch files and increase the matrix size in `pipeline.yml`.
+This architecture allows ConfigStream to scale linearly. To double capacity, we just add more batch files and increase the matrix size in `main.yml`.
+

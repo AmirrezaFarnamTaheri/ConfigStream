@@ -37,7 +37,7 @@ services:
       python -m configstream.cli update-databases;
 
       while true; do
-        echo '🚀 Starting ConfigStream Pipeline...';
+        echo \"🚀 Starting Config's Stream...\";
         configstream merge --sources sources/batch_1.txt --output output/ --max-workers 30 --timeout 12 --strict;
         echo '✅ Run Complete. Sleeping for 5 hours...';
         sleep 18000;
@@ -52,3 +52,5 @@ services:
 networks:
   confignet:
     driver: bridge
+
+
