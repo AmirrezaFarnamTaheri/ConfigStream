@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 import logging
 
 from ..models import Proxy
+from ..tagging import get_flag_emoji
 from ..utils.bool_parser import parse_bool, parse_tls_flag
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,8 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         ]:
             name = proxy.remarks
         else:
-            name = f"{proxy.country_code}-{proxy.protocol}-{proxy.id[:6]}"
+            flag = get_flag_emoji(proxy.country_code)
+            name = f"{flag}-{proxy.protocol}-{proxy.id[:6]}"
 
         common = {
             "name": name,

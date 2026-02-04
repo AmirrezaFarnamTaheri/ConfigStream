@@ -280,7 +280,7 @@ class ProxyTagger:
 
     # Default template when RENAME_TEMPLATE env var is not set
     DEFAULT_TEMPLATE = (
-        "{geo} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}"
+        "{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}"
     )
 
     def __init__(self, name_template: Optional[str] = None):
@@ -310,9 +310,23 @@ class ProxyTagger:
             f"Applying name template '{self.template}' to {len(proxies)} proxies..."
         )
 
+        seen_names: Dict[str, int] = {}
+
         for proxy in proxies:
             # Format the name using the template
             new_name = format_proxy_name(self.template, proxy)
+
+            # Ensure uniqueness to avoid client tag collisions (sing-box/others).
+            count = seen_names.get(new_name, 0)
+            if count:
+                suffix = proxy.id[:6] if proxy.id else str(count + 1)
+                candidate = f"{new_name}-{suffix}"
+                # If still collides, append counter until unique
+                while candidate in seen_names:
+                    count += 1
+                    candidate = f"{new_name}-{suffix}-{count}"
+                new_name = candidate
+            seen_names[new_name] = seen_names.get(new_name, 0) + 1
 
             # Modify the 'remarks' field IN-PLACE
             proxy.remarks = new_name

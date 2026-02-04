@@ -67,8 +67,9 @@ Returns a delta against the previous `proxies.json` snapshot (if available).
 
 #### `GET /subscribe/{format}`
 Supported formats:
-`base64`, `clash`, `singbox`, `singbox-vpn`, `singbox-chains`,
-`shadowrocket`, `quantumult`, `surge`, `loon`, `sip008`, `revived`
+`base64`, `clash`, `singbox`, `singbox-vpn`, `singbox-chains`, `chains`,
+`shadowrocket`, `quantumult`, `surge`, `loon`, `sip008`, `revived`,
+`proxies`, `proxies-json`, `side-products`
 
 #### `GET /chosen/base64.txt`
 Top picks per protocol (small curated Base64 subscription).
@@ -96,7 +97,12 @@ Summary statistics for the frontend and downstream clients.
   "total_revived": 650,
   "total_smart_chains": 120,
   "sources_count": 800,
-  "update_interval_hours": 5,
+  "total_configured_sources": 800,
+  "country_stats": { "US": 1200, "DE": 300 },
+  "latency_by_country": { "US": 140, "DE": 210 },
+  "latency_by_protocol": { "vless": 180, "trojan": 220 },
+  "chain_outbounds_count": 420,
+  "update_interval_hours": 6,
   "generated_at": "2026-01-25T12:00:00Z"
 }
 ```

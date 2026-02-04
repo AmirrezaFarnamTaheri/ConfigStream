@@ -39,8 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇩🇰-Copenhagen | SHADOWSOCKS+SS+AES-256-CFB | 344ms | UP | NATIVE",
-        "🇩🇰-Asperup | VLESS+WS | 2300ms | UP | NATIVE"
+        "🇩🇰-Copenhagen | SHADOWSOCKS+SS+AES-256-CFB | 349ms | UP | NATIVE",
+        "🇩🇰-Asperup | VLESS+WS | 490ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇩🇰-Copenhagen | SHADOWSOCKS+SS+AES-256-CFB | 344ms | UP | NATIVE",
-        "🇩🇰-Asperup | VLESS+WS | 2300ms | UP | NATIVE"
+        "🇩🇰-Copenhagen | SHADOWSOCKS+SS+AES-256-CFB | 349ms | UP | NATIVE",
+        "🇩🇰-Asperup | VLESS+WS | 490ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,7 +57,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇩🇰-Copenhagen | SHADOWSOCKS+SS+AES-256-CFB | 344ms | UP | NATIVE",
+      "tag": "🇩🇰-Copenhagen | SHADOWSOCKS+SS+AES-256-CFB | 349ms | UP | NATIVE",
       "server": "192.36.27.94",
       "server_port": 989,
       "method": "aes-256-cfb",
@@ -65,7 +65,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇩🇰-Asperup | VLESS+WS | 2300ms | UP | NATIVE",
+      "tag": "🇩🇰-Asperup | VLESS+WS | 490ms | UP | NATIVE",
       "server": "45.148.31.0",
       "server_port": 15855,
       "uuid": "e4fc4761-154f-490e-bbaa-b4fa193f1073",

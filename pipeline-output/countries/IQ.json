@@ -39,9 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇮🇶-Unknown | VLESS+TCP+TLS | 390ms | UP | NATIVE",
-        "🇮🇶-Baghdad | SOCKS4+TCP | 5281ms | UP | NATIVE",
-        "🇮🇶-Unknown | SOCKS4+TCP | 2787ms | UP | NATIVE"
+        "🇮🇶-Unknown | SOCKS4+TCP | 3670ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,36 +47,16 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇮🇶-Unknown | VLESS+TCP+TLS | 390ms | UP | NATIVE",
-        "🇮🇶-Baghdad | SOCKS4+TCP | 5281ms | UP | NATIVE",
-        "🇮🇶-Unknown | SOCKS4+TCP | 2787ms | UP | NATIVE"
+        "🇮🇶-Unknown | SOCKS4+TCP | 3670ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "vless",
-      "tag": "🇮🇶-Unknown | VLESS+TCP+TLS | 390ms | UP | NATIVE",
-      "server": "81.90.29.19",
-      "server_port": 443,
-      "uuid": "ba9ddd0d-5ffd-4d40-b76d-df32ecb092a1",
-      "tls": {
-        "enabled": true,
-        "server_name": "nlcdn5.suio.me"
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇮🇶-Baghdad | SOCKS4+TCP | 5281ms | UP | NATIVE",
-      "server": "109.224.22.36",
-      "server_port": 51372,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇶-Unknown | SOCKS4+TCP | 2787ms | UP | NATIVE",
-      "server": "37.238.168.253",
+      "tag": "🇮🇶-Unknown | SOCKS4+TCP | 3670ms | UP | NATIVE",
+      "server": "176.241.82.149",
       "server_port": 5678,
       "version": "4"
     },

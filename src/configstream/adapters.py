@@ -179,7 +179,7 @@ class LoonAdapter(Adapter):
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
         name = name.replace("=", "_").replace(",", "_").strip()
 
-        if p.protocol == "shadowsocks":
+        if p.protocol in ("shadowsocks", "ss"):
             method = p.details.get("method", "chacha20-ietf-poly1305")
             password = p.details.get("password", "")
             return (
@@ -249,7 +249,7 @@ class QuantumultXAdapter(Adapter):
         name = p.remarks if p.remarks else f"{p.protocol}_{p.address}"
         name = name.replace("=", "").replace(",", "").strip()
 
-        if p.protocol == "shadowsocks":
+        if p.protocol in ("shadowsocks", "ss"):
             method = p.details.get("method", "chacha20-ietf-poly1305")
             password = p.details.get("password", "")
             return f"shadowsocks={name}: {p.address}, {p.port}, method={method}, password={password}"

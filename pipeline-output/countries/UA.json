@@ -39,31 +39,27 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇺🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 291ms | UP | NATIVE",
-        "🇺🇦-Lviv | VLESS+TCP+REALITY | 495ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 541ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 544ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 545ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 550ms | UP | NATIVE",
-        "🇺🇦-Kyiv | VLESS+TCP+REALITY | 738ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS5+TCP | 787ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS4+TCP | 948ms | UP | NATIVE",
-        "🇺🇦-Polonne | SOCKS4+TCP | 5597ms | UP | NATIVE",
-        "🇺🇦-Unknown | SOCKS4+TCP | 3596ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 1456ms | UP | NATIVE",
-        "🇺🇦-Liuboml | SOCKS4+TCP | 5151ms | UP | NATIVE",
-        "🇺🇦-Dnipro | SOCKS4+TCP | 1567ms | UP | NATIVE",
-        "🇺🇦-Odesa | HTTP+TCP | 2758ms | UP | NATIVE",
-        "🇺🇦-Odesa | SOCKS4+TCP | 3406ms | UP | NATIVE",
-        "🇺🇦-Snovsk | SOCKS4+TCP | 2753ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS5+TCP | 2733ms | UP | NATIVE",
-        "🇺🇦-Ternopil | SOCKS4+TCP | 3088ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 2529ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 1116ms | UP | NATIVE",
-        "🇺🇦-Burshtyn | SOCKS4+TCP | 3105ms | UP | NATIVE",
-        "🇺🇦-Odesa | SOCKS4+TCP | 5190ms | UP | NATIVE",
-        "🇺🇦-Dnipro | SOCKS4+TCP | 2213ms | UP | NATIVE"
+        "🇺🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 290ms | UP | NATIVE",
+        "🇺🇦-Lviv | VLESS+TCP+REALITY | 501ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 576ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 579ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 598ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 609ms | UP | NATIVE",
+        "🇺🇦-Kyiv | VLESS+TCP+REALITY | 688ms | UP | NATIVE",
+        "🇺🇦-Lviv | SOCKS4+TCP | 950ms | UP | NATIVE",
+        "🇺🇦-Odesa | SOCKS4+TCP | 1100ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 4081ms | UP | NATIVE",
+        "🇺🇦-Unknown | SOCKS4+TCP | 2061ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 1197ms | UP | NATIVE",
+        "🇺🇦-Polonne | SOCKS4+TCP | 1206ms | UP | NATIVE",
+        "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 4375ms | UP | NATIVE",
+        "🇺🇦-Ternopil | SOCKS4+TCP | 2269ms | UP | NATIVE",
+        "🇺🇦-Dnipro | SOCKS4+TCP | 1134ms | UP | NATIVE",
+        "🇺🇦-Unknown | SOCKS5+TCP | 2148ms | UP | NATIVE",
+        "🇺🇦-Snovsk | SOCKS4+TCP | 2274ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 2329ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 1304ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -71,31 +67,27 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇺🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 291ms | UP | NATIVE",
-        "🇺🇦-Lviv | VLESS+TCP+REALITY | 495ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 541ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 544ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 545ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 550ms | UP | NATIVE",
-        "🇺🇦-Kyiv | VLESS+TCP+REALITY | 738ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS5+TCP | 787ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS4+TCP | 948ms | UP | NATIVE",
-        "🇺🇦-Polonne | SOCKS4+TCP | 5597ms | UP | NATIVE",
-        "🇺🇦-Unknown | SOCKS4+TCP | 3596ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 1456ms | UP | NATIVE",
-        "🇺🇦-Liuboml | SOCKS4+TCP | 5151ms | UP | NATIVE",
-        "🇺🇦-Dnipro | SOCKS4+TCP | 1567ms | UP | NATIVE",
-        "🇺🇦-Odesa | HTTP+TCP | 2758ms | UP | NATIVE",
-        "🇺🇦-Odesa | SOCKS4+TCP | 3406ms | UP | NATIVE",
-        "🇺🇦-Snovsk | SOCKS4+TCP | 2753ms | UP | NATIVE",
-        "🇺🇦-Kyiv | SOCKS5+TCP | 2733ms | UP | NATIVE",
-        "🇺🇦-Ternopil | SOCKS4+TCP | 3088ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 2529ms | UP | NATIVE",
-        "🇺🇦-Kharkiv | SOCKS4+TCP | 1116ms | UP | NATIVE",
-        "🇺🇦-Burshtyn | SOCKS4+TCP | 3105ms | UP | NATIVE",
-        "🇺🇦-Odesa | SOCKS4+TCP | 5190ms | UP | NATIVE",
-        "🇺🇦-Dnipro | SOCKS4+TCP | 2213ms | UP | NATIVE"
+        "🇺🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 290ms | UP | NATIVE",
+        "🇺🇦-Lviv | VLESS+TCP+REALITY | 501ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 576ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 579ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 598ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 609ms | UP | NATIVE",
+        "🇺🇦-Kyiv | VLESS+TCP+REALITY | 688ms | UP | NATIVE",
+        "🇺🇦-Lviv | SOCKS4+TCP | 950ms | UP | NATIVE",
+        "🇺🇦-Odesa | SOCKS4+TCP | 1100ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 4081ms | UP | NATIVE",
+        "🇺🇦-Unknown | SOCKS4+TCP | 2061ms | UP | NATIVE",
+        "🇺🇦-Kyiv | SOCKS4+TCP | 1197ms | UP | NATIVE",
+        "🇺🇦-Polonne | SOCKS4+TCP | 1206ms | UP | NATIVE",
+        "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 4375ms | UP | NATIVE",
+        "🇺🇦-Ternopil | SOCKS4+TCP | 2269ms | UP | NATIVE",
+        "🇺🇦-Dnipro | SOCKS4+TCP | 1134ms | UP | NATIVE",
+        "🇺🇦-Unknown | SOCKS5+TCP | 2148ms | UP | NATIVE",
+        "🇺🇦-Snovsk | SOCKS4+TCP | 2274ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 2329ms | UP | NATIVE",
+        "🇺🇦-Kharkiv | SOCKS4+TCP | 1304ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -103,7 +95,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇺🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 291ms | UP | NATIVE",
+      "tag": "🇺🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 290ms | UP | NATIVE",
       "server": "194.150.220.103",
       "server_port": 443,
       "method": "chacha20-ietf-poly1305",
@@ -111,7 +103,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇺🇦-Lviv | VLESS+TCP+REALITY | 495ms | UP | NATIVE",
+      "tag": "🇺🇦-Lviv | VLESS+TCP+REALITY | 501ms | UP | NATIVE",
       "server": "144.31.131.192",
       "server_port": 443,
       "uuid": "bbed94d9-1120-4b54-8a9c-72d81e411fb8",
@@ -132,31 +124,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
-      "server": "163.171.137.76",
-      "server_port": 48436,
-      "method": "chacha20-ietf-poly1305",
-      "password": "6d0084c6e4502ab7"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 541ms | UP | NATIVE",
-      "server": "163.171.137.76",
-      "server_port": 47395,
-      "method": "chacha20-ietf-poly1305",
-      "password": "eafad96826c79ddd"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 544ms | UP | NATIVE",
-      "server": "163.171.137.76",
-      "server_port": 47392,
-      "method": "chacha20-ietf-poly1305",
-      "password": "eafad96826c79ddd"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 545ms | UP | NATIVE",
+      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 576ms | UP | NATIVE",
       "server": "163.171.137.76",
       "server_port": 47394,
       "method": "chacha20-ietf-poly1305",
@@ -164,15 +132,39 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 550ms | UP | NATIVE",
+      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 579ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 47395,
+      "method": "chacha20-ietf-poly1305",
+      "password": "eafad96826c79ddd"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 586ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 48436,
+      "method": "chacha20-ietf-poly1305",
+      "password": "6d0084c6e4502ab7"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 598ms | UP | NATIVE",
       "server": "163.171.137.76",
       "server_port": 47393,
       "method": "chacha20-ietf-poly1305",
       "password": "eafad96826c79ddd"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇺🇦-Kyiv | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 609ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 47392,
+      "method": "chacha20-ietf-poly1305",
+      "password": "eafad96826c79ddd"
+    },
+    {
       "type": "vless",
-      "tag": "🇺🇦-Kyiv | VLESS+TCP+REALITY | 738ms | UP | NATIVE",
+      "tag": "🇺🇦-Kyiv | VLESS+TCP+REALITY | 688ms | UP | NATIVE",
       "server": "95.164.44.237",
       "server_port": 49790,
       "uuid": "99210efd-1a49-4085-add3-d1d2e4fdd6c2",
@@ -192,128 +184,94 @@
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Kyiv | SOCKS5+TCP | 787ms | UP | NATIVE",
-      "server": "185.210.85.26",
-      "server_port": 56981,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Kyiv | SOCKS4+TCP | 948ms | UP | NATIVE",
-      "server": "194.146.110.228",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Polonne | SOCKS4+TCP | 5597ms | UP | NATIVE",
-      "server": "193.105.62.11",
-      "server_port": 58973,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Unknown | SOCKS4+TCP | 3596ms | UP | NATIVE",
-      "server": "195.74.72.111",
+      "tag": "🇺🇦-Lviv | SOCKS4+TCP | 950ms | UP | NATIVE",
+      "server": "178.210.130.89",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 1456ms | UP | NATIVE",
-      "server": "195.78.100.162",
-      "server_port": 3629,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Liuboml | SOCKS4+TCP | 5151ms | UP | NATIVE",
-      "server": "95.182.78.5",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Dnipro | SOCKS4+TCP | 1567ms | UP | NATIVE",
-      "server": "188.163.170.130",
-      "server_port": 35578,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇺🇦-Odesa | HTTP+TCP | 2758ms | UP | NATIVE",
-      "server": "88.214.10.187",
-      "server_port": 80,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Odesa | SOCKS4+TCP | 3406ms | UP | NATIVE",
+      "tag": "🇺🇦-Odesa | SOCKS4+TCP | 1100ms | UP | NATIVE",
       "server": "195.138.65.34",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Snovsk | SOCKS4+TCP | 2753ms | UP | NATIVE",
-      "server": "195.225.49.138",
-      "server_port": 55774,
+      "tag": "🇺🇦-Kyiv | SOCKS4+TCP | 4081ms | UP | NATIVE",
+      "server": "193.106.57.96",
+      "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Kyiv | SOCKS5+TCP | 2733ms | UP | NATIVE",
-      "server": "31.42.184.144",
-      "server_port": 57752,
-      "username": "",
-      "password": "",
-      "version": "5"
+      "tag": "🇺🇦-Unknown | SOCKS4+TCP | 2061ms | UP | NATIVE",
+      "server": "195.74.72.111",
+      "server_port": 5678,
+      "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Ternopil | SOCKS4+TCP | 3088ms | UP | NATIVE",
+      "tag": "🇺🇦-Kyiv | SOCKS4+TCP | 1197ms | UP | NATIVE",
+      "server": "31.43.63.70",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Polonne | SOCKS4+TCP | 1206ms | UP | NATIVE",
+      "server": "193.105.62.11",
+      "server_port": 58973,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Amvrosiyivka | SOCKS4+TCP | 4375ms | UP | NATIVE",
+      "server": "31.131.135.247",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Ternopil | SOCKS4+TCP | 2269ms | UP | NATIVE",
       "server": "5.58.47.25",
       "server_port": 3629,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 2529ms | UP | NATIVE",
-      "server": "195.78.100.186",
-      "server_port": 3629,
+      "tag": "🇺🇦-Dnipro | SOCKS4+TCP | 1134ms | UP | NATIVE",
+      "server": "188.163.170.130",
+      "server_port": 35578,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 1116ms | UP | NATIVE",
-      "server": "91.247.92.63",
+      "tag": "🇺🇦-Unknown | SOCKS5+TCP | 2148ms | UP | NATIVE",
+      "server": "46.150.102.26",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Snovsk | SOCKS4+TCP | 2274ms | UP | NATIVE",
+      "server": "195.225.49.137",
+      "server_port": 55774,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 2329ms | UP | NATIVE",
+      "server": "195.140.226.32",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇺🇦-Burshtyn | SOCKS4+TCP | 3105ms | UP | NATIVE",
-      "server": "94.231.188.230",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Odesa | SOCKS4+TCP | 5190ms | UP | NATIVE",
-      "server": "185.132.1.221",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇺🇦-Dnipro | SOCKS4+TCP | 2213ms | UP | NATIVE",
-      "server": "46.98.184.203",
+      "tag": "🇺🇦-Kharkiv | SOCKS4+TCP | 1304ms | UP | NATIVE",
+      "server": "91.247.92.63",
       "server_port": 5678,
       "version": "4"
     },

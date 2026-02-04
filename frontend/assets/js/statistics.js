@@ -172,8 +172,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateElement('#networkHealthDesc', `${metrics.successRate}% of proxies are active and responding`);
         }
 
-        if (stats.countries && Object.keys(stats.countries).length > 0) {
-            const topCountry = Object.entries(stats.countries)
+        const countryStats = stats.country_stats || stats.countries || {};
+        if (countryStats && Object.keys(countryStats).length > 0) {
+            const topCountry = Object.entries(countryStats)
                 .sort((a, b) => b[1] - a[1])[0];
 
             const countryKey = topCountry[0];
@@ -288,7 +289,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Country Chart
             const countryChartCanvas = document.getElementById('countryChart');
-            const topCountries = Object.entries(stats.countries || {}).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const countryStats = stats.country_stats || stats.countries || {};
+            const topCountries = Object.entries(countryStats || {}).sort((a, b) => b[1] - a[1]).slice(0, 10);
             if (topCountries.length > 0) {
                 new Chart(countryChartCanvas, {
                     type: 'bar',

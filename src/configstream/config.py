@@ -30,7 +30,7 @@ class AppSettings(BaseSettings):
     SECURITY_CHECK_TIMEOUT: int = 8
     RETEST_TIMEOUT: int = 6
     GEOIP_TIMEOUT: int = 5
-    # Soft time limit for a batch run (0 disables). Default ~5.5 hours.
+    # Soft time limit for a batch run (0 disables). Default ~6.5 hours.
     BATCH_TIME_LIMIT_SECONDS: int = 20000
     # Grace period after soft stop before hard cancellation.
     BATCH_TIME_LIMIT_GRACE_SECONDS: int = 900
@@ -127,7 +127,7 @@ class AppSettings(BaseSettings):
     RENAME_TEMPLATE: Optional[str] = None
 
     # Update Interval
-    UPDATE_INTERVAL_HOURS: int = 5
+    UPDATE_INTERVAL_HOURS: int = 6
 
     # Security Validator
     ALLOW_PRIVATE_IPS: bool = True

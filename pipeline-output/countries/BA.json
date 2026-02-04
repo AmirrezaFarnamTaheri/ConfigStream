@@ -39,8 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 947ms | UP | NATIVE",
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 5996ms | UP | NATIVE"
+        "🇧🇦-Sarajevo | SOCKS4+TCP | 2183ms | UP | NATIVE",
+        "🇧🇦-Sarajevo | SOCKS4+TCP | 2196ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 947ms | UP | NATIVE",
-        "🇧🇦-Sarajevo | SOCKS4+TCP | 5996ms | UP | NATIVE"
+        "🇧🇦-Sarajevo | SOCKS4+TCP | 2183ms | UP | NATIVE",
+        "🇧🇦-Sarajevo | SOCKS4+TCP | 2196ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,14 +57,14 @@
     },
     {
       "type": "socks",
-      "tag": "🇧🇦-Sarajevo | SOCKS4+TCP | 947ms | UP | NATIVE",
+      "tag": "🇧🇦-Sarajevo | SOCKS4+TCP | 2183ms | UP | NATIVE",
       "server": "212.39.114.139",
       "server_port": 5678,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇧🇦-Sarajevo | SOCKS4+TCP | 5996ms | UP | NATIVE",
+      "tag": "🇧🇦-Sarajevo | SOCKS4+TCP | 2196ms | UP | NATIVE",
       "server": "80.65.80.230",
       "server_port": 5678,
       "version": "4"

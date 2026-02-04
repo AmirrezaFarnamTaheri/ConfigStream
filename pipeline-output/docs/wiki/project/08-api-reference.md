@@ -19,7 +19,6 @@ configstream merge --sources sources/batch_1.txt --output output/ --max-workers 
 - `--leniency/--strict`: Allow insecure proxies (default: strict).
 - `--dry-run`: Skip network tests.
 - `--verbose`: Debug logging.
-- `--max-proxies`: Deprecated (ignored).
 
 ### `retest`
 Retest proxies from an existing `proxies.json`.

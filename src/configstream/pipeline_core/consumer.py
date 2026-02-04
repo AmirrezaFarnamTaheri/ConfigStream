@@ -3,6 +3,7 @@ import asyncio
 import logging
 import inspect
 import os
+import time
 import orjson as json
 from typing import List, Optional, Any, TYPE_CHECKING
 
@@ -408,10 +409,25 @@ async def processing_consumer(
                 vwarp_success_ids: set[str] = set()
                 if vwarp_candidates:
                     # Test Vwarp Candidates
-                    await tester.test_batch(vwarp_candidates)
+                    try:
+                        await tester.test_batch(vwarp_candidates)
+                    except Exception as e:
+                        logger.error(
+                            SecurityValidator.sanitize_log_message(
+                                f"Vwarp batch test failed: {e}"
+                            )
+                        )
+                        async with seen_lock:
+                            stats.drop_reasons["tester_error"] = (
+                                stats.drop_reasons.get("tester_error", 0)
+                                + len(vwarp_candidates)
+                            )
+                        vwarp_candidates = []
                     for p in vwarp_candidates:
                         if p.is_working:
                             p.process = "revived-vwarp"
+                            if "revived-vwarp" not in p.tags:
+                                p.tags.append("revived-vwarp")
                             # Recover origin info
                             origin = p.details.get("origin_proxy")
                             if origin:
@@ -440,10 +456,25 @@ async def processing_consumer(
                         remaining_failed, stats=stats, use_vwarp=False
                     )
                     if warp_candidates:
-                        await tester.test_batch(warp_candidates)
+                        try:
+                            await tester.test_batch(warp_candidates)
+                        except Exception as e:
+                            logger.error(
+                                SecurityValidator.sanitize_log_message(
+                                    f"WARP batch test failed: {e}"
+                                )
+                            )
+                            async with seen_lock:
+                                stats.drop_reasons["tester_error"] = (
+                                    stats.drop_reasons.get("tester_error", 0)
+                                    + len(warp_candidates)
+                                )
+                            warp_candidates = []
                         for p in warp_candidates:
                             if p.is_working:
                                 p.process = "revived-warp"
+                                if "revived-warp" not in p.tags:
+                                    p.tags.append("revived-warp")
                                 origin = p.details.get("origin_proxy")
                                 if origin:
                                     p.country_code = origin.get("country_code", "")
@@ -539,7 +570,7 @@ async def processing_consumer(
                     quality_tracker.record_run,
                     source,
                     {
-                        "timestamp": int(process_end_time),
+                        "timestamp": int(time.time()),
                         "duration_ms": full_duration_ms,
                         "fetched_count": fetched_count,
                         "working_count": working_count,

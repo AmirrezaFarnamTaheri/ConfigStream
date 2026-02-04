@@ -73,6 +73,7 @@ async def fetch_from_source(
             )
 
     # Circuit Breaker Check
+    breaker = None
     if breaker_manager:
         try:
             parsed = urlparse(source)
@@ -143,6 +144,8 @@ async def fetch_from_source(
                         await timeout_tracker.record_attempt(
                             source, response_time, success=False
                         )
+                    if breaker:
+                        await breaker.record_failure()
                     retry_after = response.headers.get("Retry-After")
                     wait = float(retry_after) if retry_after else 2.0
                     await asyncio.sleep(wait)
@@ -171,6 +174,8 @@ async def fetch_from_source(
                         await timeout_tracker.record_attempt(
                             source, response_time, success=False
                         )
+                    if breaker:
+                        await breaker.record_failure()
                     attempt += 1
                     last_error = f"HTTP {response.status_code}"
                     await asyncio.sleep(retry_delay * (2**attempt))
@@ -182,6 +187,8 @@ async def fetch_from_source(
                         await timeout_tracker.record_attempt(
                             source, response_time, success=False
                         )
+                    if breaker:
+                        await breaker.record_failure()
                     return FetchResult(
                         success=False,
                         source=source,
@@ -205,6 +212,8 @@ async def fetch_from_source(
                         await timeout_tracker.record_attempt(
                             source, response_time, success=False
                         )
+                    if breaker:
+                        await breaker.record_failure()
                     return FetchResult(
                         success=False,
                         source=source,
@@ -225,6 +234,8 @@ async def fetch_from_source(
                             await timeout_tracker.record_attempt(
                                 source, response_time, success=False
                             )
+                        if breaker:
+                            await breaker.record_failure()
                         return FetchResult(
                             success=False,
                             source=source,
@@ -254,6 +265,8 @@ async def fetch_from_source(
                         await timeout_tracker.record_attempt(
                             source, response_time, success=True
                         )
+                    if breaker:
+                        await breaker.record_success()
                     return FetchResult(
                         success=True,  # Valid HTTP transaction
                         source=source,
@@ -268,6 +281,8 @@ async def fetch_from_source(
                     await timeout_tracker.record_attempt(
                         source, response_time, success=True
                     )
+                if breaker:
+                    await breaker.record_success()
                 return FetchResult(
                     success=True,
                     source=source,
@@ -288,6 +303,11 @@ async def fetch_from_source(
                     await timeout_tracker.record_attempt(
                         source, loop.time() - start_ts, success=False
                     )
+                except Exception:
+                    pass
+            if breaker:
+                try:
+                    await breaker.record_failure()
                 except Exception:
                     pass
             attempt += 1

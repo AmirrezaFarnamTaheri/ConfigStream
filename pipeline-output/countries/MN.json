@@ -39,7 +39,7 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇲🇳-Ulan_Bator | HTTP+TCP | 4253ms | UP | NATIVE"
+        "🇲🇳-Unknown | SOCKS4+TCP | 2267ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -47,22 +47,18 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇲🇳-Ulan_Bator | HTTP+TCP | 4253ms | UP | NATIVE"
+        "🇲🇳-Unknown | SOCKS4+TCP | 2267ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "http",
-      "tag": "🇲🇳-Ulan_Bator | HTTP+TCP | 4253ms | UP | NATIVE",
-      "server": "202.21.115.178",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
+      "type": "socks",
+      "tag": "🇲🇳-Unknown | SOCKS4+TCP | 2267ms | UP | NATIVE",
+      "server": "119.40.98.26",
+      "server_port": 8069,
+      "version": "4"
     },
     {
       "type": "direct",

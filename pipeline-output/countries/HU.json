@@ -39,16 +39,10 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇭🇺-Budapest | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 565ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 568ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 584ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 622ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 709ms | UP | NATIVE",
-        "🇭🇺-Budapest | VLESS+TCP+REALITY | 735ms | UP | NATIVE",
-        "🇭🇺-Unknown | SOCKS4+TCP | 1706ms | UP | NATIVE",
-        "🇭🇺-Debrecen | SOCKS4+TCP | 4033ms | UP | NATIVE",
-        "🇭🇺-Hajdúnánás | SOCKS4+TCP | 2101ms | UP | NATIVE",
-        "🇭🇺-Budapest | SOCKS4+TCP | 2479ms | UP | NATIVE"
+        "🇭🇺-Budapest | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 528ms | UP | NATIVE",
+        "🇭🇺-Budapest | VLESS+TCP+REALITY | 659ms | UP | NATIVE",
+        "🇭🇺-Unknown | VLESS+TCP+REALITY | 691ms | UP | NATIVE",
+        "🇭🇺-Unknown | SOCKS4+TCP | 5527ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -56,16 +50,10 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇭🇺-Budapest | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 565ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 568ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 584ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 622ms | UP | NATIVE",
-        "🇭🇺-Unknown | VLESS+TCP+REALITY | 709ms | UP | NATIVE",
-        "🇭🇺-Budapest | VLESS+TCP+REALITY | 735ms | UP | NATIVE",
-        "🇭🇺-Unknown | SOCKS4+TCP | 1706ms | UP | NATIVE",
-        "🇭🇺-Debrecen | SOCKS4+TCP | 4033ms | UP | NATIVE",
-        "🇭🇺-Hajdúnánás | SOCKS4+TCP | 2101ms | UP | NATIVE",
-        "🇭🇺-Budapest | SOCKS4+TCP | 2479ms | UP | NATIVE"
+        "🇭🇺-Budapest | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 528ms | UP | NATIVE",
+        "🇭🇺-Budapest | VLESS+TCP+REALITY | 659ms | UP | NATIVE",
+        "🇭🇺-Unknown | VLESS+TCP+REALITY | 691ms | UP | NATIVE",
+        "🇭🇺-Unknown | SOCKS4+TCP | 5527ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -73,7 +61,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇭🇺-Budapest | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 565ms | UP | NATIVE",
+      "tag": "🇭🇺-Budapest | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 528ms | UP | NATIVE",
       "server": "5.181.77.247",
       "server_port": 44748,
       "method": "chacha20-ietf-poly1305",
@@ -81,49 +69,27 @@
     },
     {
       "type": "vless",
-      "tag": "🇭🇺-Unknown | VLESS+TCP+REALITY | 568ms | UP | NATIVE",
-      "server": "217.13.104.64",
-      "server_port": 3443,
-      "uuid": "231cd1b7-d0b0-49a7-ab7a-19aab29d036f",
-      "flow": "xtls-rprx-vision",
+      "tag": "🇭🇺-Budapest | VLESS+TCP+REALITY | 659ms | UP | NATIVE",
+      "server": "5.182.38.91",
+      "server_port": 17267,
+      "uuid": "1c7fcc38-e6be-43c5-875f-b8de2516b9f2",
       "tls": {
         "enabled": true,
-        "server_name": "yandex.ru",
+        "server_name": "yahoo.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "bW75Nl37hwxJMa9KrnNKYVWCzuc3pDiGQ9osW-n87Ds",
-          "short_id": "97bd79f6566df3da"
+          "public_key": "SnWZg6ORcQepuWLI1EVCTTVc4KyfDiGWR4o_CXCMhgk",
+          "short_id": "4ae260"
         }
       }
     },
     {
       "type": "vless",
-      "tag": "🇭🇺-Unknown | VLESS+TCP+REALITY | 584ms | UP | NATIVE",
-      "server": "217.13.104.149",
-      "server_port": 443,
-      "uuid": "83dd438b-357b-4060-a633-52e9714afabe",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "travel.yandex.ru",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "FkmYFobwxLMLEktYXywmjthuEYCZggITsxwPNasTKUg",
-          "short_id": "95ec618532fa065e"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇭🇺-Unknown | VLESS+TCP+REALITY | 622ms | UP | NATIVE",
+      "tag": "🇭🇺-Unknown | VLESS+TCP+REALITY | 691ms | UP | NATIVE",
       "server": "217.13.104.133",
       "server_port": 5443,
       "uuid": "030fa0bd-c76d-4b2e-9c49-fe4355bf1c04",
@@ -143,72 +109,10 @@
       }
     },
     {
-      "type": "vless",
-      "tag": "🇭🇺-Unknown | VLESS+TCP+REALITY | 709ms | UP | NATIVE",
-      "server": "217.13.104.64",
-      "server_port": 4443,
-      "uuid": "231cd1b7-d0b0-49a7-ab7a-19aab29d036f",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "max.ru",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "Z7Q7klHiHvg7pmovw4GaFaclRpndtTjHsAUT9s3eqCQ",
-          "short_id": "61e0b077025c9804"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇭🇺-Budapest | VLESS+TCP+REALITY | 735ms | UP | NATIVE",
-      "server": "5.182.38.91",
-      "server_port": 17267,
-      "uuid": "1c7fcc38-e6be-43c5-875f-b8de2516b9f2",
-      "tls": {
-        "enabled": true,
-        "server_name": "yahoo.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "SnWZg6ORcQepuWLI1EVCTTVc4KyfDiGWR4o_CXCMhgk",
-          "short_id": "4ae260"
-        }
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇭🇺-Unknown | SOCKS4+TCP | 1706ms | UP | NATIVE",
+      "tag": "🇭🇺-Unknown | SOCKS4+TCP | 5527ms | UP | NATIVE",
       "server": "46.107.230.122",
       "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇭🇺-Debrecen | SOCKS4+TCP | 4033ms | UP | NATIVE",
-      "server": "91.147.235.203",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇭🇺-Hajdúnánás | SOCKS4+TCP | 2101ms | UP | NATIVE",
-      "server": "84.2.239.42",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇭🇺-Budapest | SOCKS4+TCP | 2479ms | UP | NATIVE",
-      "server": "89.134.125.5",
-      "server_port": 4153,
       "version": "4"
     },
     {

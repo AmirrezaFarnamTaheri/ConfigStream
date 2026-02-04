@@ -13,6 +13,7 @@ from ..constants import (
     MAX_B64_INPUT_SIZE,
     BLOCKED_DOMAINS,
 )
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -383,7 +384,8 @@ def extract_config_lines(
         else:
             drop_stats[reason] = drop_stats.get(reason, 0) + 1
             if len(dropped_samples) < 5:
-                dropped_samples.append(f"{candidate[:50]}... [{reason}]")
+                sample = f"{candidate[:50]}... [{reason}]"
+                dropped_samples.append(SecurityValidator.sanitize_log_message(sample))
 
     if html_drops > 0:
         drop_stats["html_content"] = html_drops
@@ -394,8 +396,13 @@ def extract_config_lines(
         drop_rate = (total_dropped / total_seen) if total_seen else 1.0
         # If > 90% drops are HTML, just say "Source returned HTML content"
         if html_drops > total_dropped * 0.9:
+            safe_source = (
+                SecurityValidator.sanitize_log_message(source_url)
+                if source_url
+                else "unknown"
+            )
             logger.debug(
-                f"Source {source_url} dropped {html_drops} lines of HTML content."
+                f"Source {safe_source} dropped {html_drops} lines of HTML content."
             )
         else:
             log_method = logger.warning if drop_rate > 0.5 else logger.debug

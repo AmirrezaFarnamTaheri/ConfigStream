@@ -3,6 +3,7 @@ import asyncio
 import logging
 import json
 import os
+import time
 from typing import List, Optional, TYPE_CHECKING
 from rich.progress import Progress, TaskID
 from functools import partial
@@ -131,7 +132,7 @@ async def source_producer(
                             quality_tracker.record_run,
                             fpath,
                             {
-                                "timestamp": int(loop.time()),
+                                "timestamp": int(time.time()),
                                 "duration_ms": 0.0,
                                 "fetched_count": 0,
                                 "working_count": 0,
@@ -269,7 +270,7 @@ async def source_producer(
                                     quality_tracker.record_run,
                                     source,
                                     {
-                                        "timestamp": int(loop.time()),
+                                        "timestamp": int(time.time()),
                                         "duration_ms": (
                                             (res.response_time or 0.0) * 1000
                                         ),
@@ -364,7 +365,7 @@ async def source_producer(
                                 quality_tracker.record_run,
                                 source,
                                 {
-                                    "timestamp": int(loop.time()),
+                                    "timestamp": int(time.time()),
                                     "duration_ms": ((res.response_time or 0.0) * 1000),
                                     "fetched_count": 0,
                                     "working_count": 0,

@@ -9,14 +9,19 @@ import sqlite3
 from collections import defaultdict
 from urllib.parse import urlparse
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 # --- Configuration ---
-LOG_PATTERN = "*.log"  # Pattern to match your pipeline logs
+LOG_PATTERNS = [
+    "pipeline-output/consolidated_pipeline.log",
+    "pipeline_batch_*.log",
+    "*.log",
+]  # Patterns to match pipeline logs
 SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
+CONSOLIDATED_SOURCES = Path("consolidated_sources.txt")
 DB_PATH = Path("data/source_quality.db")
-DEFAULT_WEIGHT = 100  # Fallback weight for sources not found in logs
+DEFAULT_WEIGHT = 130  # Fallback weight for sources not found in logs (deciseconds)
 MIN_BATCHES = 14
 MAX_BATCHES = 16
 TARGET_BATCH_SECONDS = 14400  # Aim for <= 4 hours per batch
@@ -26,6 +31,19 @@ RUNS_PER_SOURCE = 5
 # Source Summary [URL]: Raw=123 ... Fetch=500ms Dur=1500ms
 RAW_LINES_REGEX = re.compile(r"Raw=(\d+)")
 FETCH_TIME_REGEX = re.compile(r"Fetch=([\d.]+)ms")
+FETCH_TIME_COLON_REGEX = re.compile(r"Fetch:\s*([\d.]+)ms")
+DURATION_REGEX = re.compile(r"Dur=([\d.]+)ms")
+
+
+def _normalize_source_key(url: str) -> str:
+    if not url:
+        return ""
+    cleaned = url.strip()
+    cleaned = cleaned.replace("[MASKED]", "")
+    cleaned = cleaned.replace("[BASE64]", "")
+    cleaned = cleaned.split("#", 1)[0]
+    cleaned = cleaned.split("?", 1)[0]
+    return cleaned.rstrip()
 
 
 def get_current_batch_count() -> int:
@@ -50,7 +68,10 @@ def _project_key(url: str) -> str:
 
 
 def parse_logs(
-    log_files: List[str], test_time_per_proxy: float
+    log_files: List[str],
+    test_time_per_proxy: float,
+    allowed_urls: Optional[set[str]] = None,
+    normalized_map: Optional[Dict[str, List[str]]] = None,
 ) -> Dict[str, Tuple[int, float]]:
     """
     Scans log files to build a map of {source_url: (proxy_count, total_duration)}.
@@ -67,26 +88,94 @@ def parse_logs(
             for block in blocks[1:]:  # Skip preamble
                 try:
                     # Extract URL (up to closing ])
-                    url_end = block.find("]")
+                    url_end = block.find("]:")
+                    if url_end == -1:
+                        url_end = block.find("]")
                     if url_end == -1:
                         continue
                     url = block[:url_end].strip()
+                    if allowed_urls is not None and url not in allowed_urls:
+                        # Attempt to map sanitized URL to real sources
+                        norm = _normalize_source_key(url)
+                        if normalized_map and norm in normalized_map:
+                            # We'll handle later by applying metrics to mapped sources
+                            pass
+                        else:
+                            # Fallback: prefix match (handles masked/base64 URL segments)
+                            prefix = url.split("[BASE64]", 1)[0].strip()
+                            if not prefix or not allowed_urls:
+                                continue
 
                     # Extract Raw Lines
                     lines_match = RAW_LINES_REGEX.search(block)
                     count = int(lines_match.group(1)) if lines_match else 0
 
-                    # Extract Fetch Time
-                    fetch_match = FETCH_TIME_REGEX.search(block)
-                    fetch_ms = float(fetch_match.group(1)) if fetch_match else 0.0
-                    fetch_duration = fetch_ms / 1000.0
-                    test_duration = count * test_time_per_proxy
-                    total_duration = fetch_duration + test_duration
+                    # Extract Duration (preferred)
+                    dur_match = DURATION_REGEX.search(block)
+                    if dur_match:
+                        total_duration = float(dur_match.group(1)) / 1000.0
+                    else:
+                        # Extract Fetch Time (fallback)
+                        fetch_match = FETCH_TIME_COLON_REGEX.search(block)
+                        if not fetch_match:
+                            fetch_match = FETCH_TIME_REGEX.search(block)
+                        fetch_ms = float(fetch_match.group(1)) if fetch_match else 0.0
+                        fetch_duration = fetch_ms / 1000.0
+                        test_duration = count * test_time_per_proxy
+                        total_duration = fetch_duration + test_duration
 
-                    if count > 0:
-                        existing = source_metrics.get(url, (0, 0.0))
-                        if total_duration > existing[1]:
-                            source_metrics[url] = (count, total_duration)
+                    if total_duration > 0:
+                        # Prefer direct match
+                        if allowed_urls is None or url in allowed_urls:
+                            existing = source_metrics.get(url, (0, 0.0))
+                            if total_duration > existing[1]:
+                                source_metrics[url] = (count, total_duration)
+                        elif normalized_map:
+                            norm = _normalize_source_key(url)
+                            candidates = normalized_map.get(norm, [])
+                            if candidates:
+                                for candidate in candidates:
+                                    existing = source_metrics.get(candidate, (0, 0.0))
+                                    if total_duration > existing[1]:
+                                        source_metrics[candidate] = (
+                                            count,
+                                            total_duration,
+                                        )
+                            else:
+                                if allowed_urls:
+                                    prefix = url.split("[BASE64]", 1)[0].strip()
+                                    if prefix:
+                                        candidates = [
+                                            u for u in allowed_urls if u.startswith(prefix)
+                                        ]
+                                        if candidates:
+                                            duration = total_duration / max(
+                                                len(candidates), 1
+                                            )
+                                            count_each = (
+                                                int(count / max(len(candidates), 1))
+                                                if count
+                                                else 0
+                                            )
+                                            for candidate in candidates:
+                                                existing = source_metrics.get(
+                                                    candidate, (0, 0.0)
+                                                )
+                                                if duration > existing[1]:
+                                                    source_metrics[candidate] = (
+                                                        count_each,
+                                                        duration,
+                                                    )
+                            prefix = url.split("[BASE64]", 1)[0].strip()
+                            if prefix:
+                                candidates = [u for u in allowed_urls if u.startswith(prefix)]
+                                if candidates:
+                                    duration = total_duration / max(len(candidates), 1)
+                                    count_each = int(count / max(len(candidates), 1)) if count else 0
+                                    for candidate in candidates:
+                                        existing = source_metrics.get(candidate, (0, 0.0))
+                                        if duration > existing[1]:
+                                            source_metrics[candidate] = (count_each, duration)
                 except Exception:
                     continue
         except Exception as e:
@@ -97,7 +186,7 @@ def parse_logs(
 
 
 def parse_db_runs(
-    db_path: Path,
+    db_path: Path, allowed_urls: Optional[set[str]] = None
 ) -> Tuple[Dict[str, Tuple[int, float]], Dict[str, Dict[str, float]]]:
     """
     Load recent per-source timing data from source_quality.db.
@@ -130,6 +219,8 @@ def parse_db_runs(
     per_url_runs: Dict[str, List[Tuple[int, float, int, int, str]]] = defaultdict(list)
     for url, ts, duration_ms, fetched_count, working_count, batch_source in rows:
         if not url:
+            continue
+        if allowed_urls is not None and url not in allowed_urls:
             continue
         try:
             ts_i = int(ts or 0)
@@ -241,6 +332,7 @@ def get_existing_sources() -> List[str]:
     that might have failed in the logs.
     """
     urls = set()
+    invalid_count = 0
     if not SOURCES_DIR.exists():
         return []
 
@@ -249,16 +341,51 @@ def get_existing_sources() -> List[str]:
             content = f.read_text(encoding="utf-8").splitlines()
             for line in content:
                 line = line.strip()
-                if line and not line.startswith("#"):
+                if not line or line.startswith("#"):
+                    continue
+                if line.startswith("http://") or line.startswith("https://"):
                     urls.add(line)
+                else:
+                    invalid_count += 1
         except Exception as e:
             print(f"[WARN] Could not read source file {f}: {e}")
+    if invalid_count:
+        print(f"[WARN] Skipped {invalid_count} invalid lines in sources/batch_*.txt")
+    return list(urls)
+
+
+def get_consolidated_sources() -> List[str]:
+    """
+    Reads URLs from consolidated_sources.txt to ensure new sources are included.
+    """
+    urls = set()
+    if not CONSOLIDATED_SOURCES.exists():
+        return []
+    invalid_count = 0
+    try:
+        content = CONSOLIDATED_SOURCES.read_text(encoding="utf-8").splitlines()
+    except Exception as e:
+        print(f"[WARN] Could not read {CONSOLIDATED_SOURCES}: {e}")
+        return []
+    for line in content:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("http://") or line.startswith("https://"):
+            urls.add(line)
+        else:
+            invalid_count += 1
+    if invalid_count:
+        print(f"[WARN] Skipped {invalid_count} invalid lines in {CONSOLIDATED_SOURCES}")
     return list(urls)
 
 
 def main() -> None:
     # 1. Setup Workspace
-    log_files = glob.glob(LOG_PATTERN)
+    log_files: List[str] = []
+    for pattern in LOG_PATTERNS:
+        log_files.extend(glob.glob(pattern))
+    log_files = sorted(set(log_files))
 
     if not SOURCES_DIR.exists():
         print(f"[ERROR] Sources directory '{SOURCES_DIR}' not found.")
@@ -278,20 +405,38 @@ def main() -> None:
             print(f"[WARN] Backup failed for {f}: {e}")
 
     # 3. Gather Data
+    all_urls = set(get_existing_sources())
+    consolidated_urls = get_consolidated_sources()
+    if consolidated_urls:
+        all_urls.update(consolidated_urls)
+    if not all_urls:
+        print("[ERROR] No sources found in sources/batch_*.txt")
+        return
+    normalized_map: Dict[str, List[str]] = defaultdict(list)
+    for url in all_urls:
+        key = _normalize_source_key(url)
+        if key:
+            normalized_map[key].append(url)
+
     # Test time is proportional to proxy count (500 workers, ~0.03s per proxy)
     TEST_TIME_PER_PROXY = 0.03  # seconds (empirical estimate with Go tester)
-    db_metrics, batch_stats = parse_db_runs(DB_PATH)
+    db_metrics, batch_stats = parse_db_runs(DB_PATH, allowed_urls=all_urls)
     observed_metrics: Dict[str, Tuple[int, float]] = {}
     if log_files:
         observed_metrics.update(
-            parse_logs(log_files, test_time_per_proxy=TEST_TIME_PER_PROXY)
+            parse_logs(
+                log_files,
+                test_time_per_proxy=TEST_TIME_PER_PROXY,
+                allowed_urls=all_urls,
+                normalized_map=normalized_map,
+            )
         )
     if db_metrics:
         # Prefer DB metrics when available
         observed_metrics.update(db_metrics)
     if batch_stats:
         _write_batch_stats(batch_stats)
-    all_urls = get_existing_sources()
+    all_urls = list(all_urls)
 
     # 4. Assign Weights Based on Fetch + Test Duration
 
@@ -306,7 +451,7 @@ def main() -> None:
                 weight = 1
         else:
             # Default: assume 10s fetch + 100 proxies * 0.03s = 10s + 3s = 13s
-            weight = 130
+            weight = DEFAULT_WEIGHT
         final_sources.append((url, weight))
 
     # 5. Sort by Weight (Descending) - Critical for Bin Packing

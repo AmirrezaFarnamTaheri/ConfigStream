@@ -8,7 +8,7 @@ for every field, value, and transformation rule used in tag output.
 
 Default template:
 
-`{geo} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}`
+`{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}`
 
 Each section is optional. Missing parts are removed safely, duplicate
 separators are collapsed, and leading/trailing separators are trimmed.
@@ -223,4 +223,3 @@ Tags are added in this order:
   removed earlier in the pipeline.
 - Use the template if you want to add or remove sections without changing the
   structured tag list.
-

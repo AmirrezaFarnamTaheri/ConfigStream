@@ -160,7 +160,6 @@ PROTOCOL_COLORS = {
 BLOCKED_DOMAINS = [
     "github.com",
     "githubusercontent.com",
-    "githubrowcontent.com",
     "raw.githubusercontent.com",
     "gitlab.com",
     "bitbucket.org",

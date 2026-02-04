@@ -301,31 +301,31 @@ CREATE TABLE IF NOT EXISTS history (
                     sqlite3.connect(self.db_path) as dst,
                 ):
                     src.execute("PRAGMA journal_mode=WAL")
-                dst.execute("PRAGMA journal_mode=WAL")
+                    dst.execute("PRAGMA journal_mode=WAL")
 
-                # Copy all history records. We rely on the fact that (url, timestamp) collisions are unlikely
-                # or acceptable (idempotent in spirit, though SQLite doesn't enforce unique on history).
-                # We should probably avoid strict duplicates.
+                    # Copy all history records. We rely on the fact that (url, timestamp) collisions are unlikely
+                    # or acceptable (idempotent in spirit, though SQLite doesn't enforce unique on history).
+                    # We should probably avoid strict duplicates.
 
-                rows = src.execute(
-                    "SELECT url, count, timestamp FROM history"
-                ).fetchall()
+                    rows = src.execute(
+                        "SELECT url, count, timestamp FROM history"
+                    ).fetchall()
 
-                for row in rows:
-                    url, count, ts = row
-                    # Check if exists
-                    exists = dst.execute(
-                        "SELECT 1 FROM history WHERE url = ? AND timestamp = ?",
-                        (url, ts),
-                    ).fetchone()
+                    for row in rows:
+                        url, count, ts = row
+                        # Check if exists
+                        exists = dst.execute(
+                            "SELECT 1 FROM history WHERE url = ? AND timestamp = ?",
+                            (url, ts),
+                        ).fetchone()
 
-                    if not exists:
-                        dst.execute(
-                            "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
-                            (url, count, ts),
-                        )
+                        if not exists:
+                            dst.execute(
+                                "INSERT INTO history (url, count, timestamp) VALUES (?, ?, ?)",
+                                (url, count, ts),
+                            )
 
-                dst.commit()
-                logger.info(f"Merged anomaly stats from {other_db_path}")
+                    dst.commit()
+                    logger.info(f"Merged anomaly stats from {other_db_path}")
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error(f"Failed to merge anomaly DB {other_db_path}: {e}")

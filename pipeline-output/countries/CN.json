@@ -39,8 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇨🇳-Unknown | HTTP+TCP | 2781ms | UP | NATIVE",
-        "🇨🇳-Unknown | HTTP+TCP | 1618ms | UP | NATIVE"
+        "🇨🇳-Unknown | HTTP+TCP | 1444ms | UP | NATIVE",
+        "🇨🇳-Unknown | HTTP+TCP | 1430ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇨🇳-Unknown | HTTP+TCP | 2781ms | UP | NATIVE",
-        "🇨🇳-Unknown | HTTP+TCP | 1618ms | UP | NATIVE"
+        "🇨🇳-Unknown | HTTP+TCP | 1444ms | UP | NATIVE",
+        "🇨🇳-Unknown | HTTP+TCP | 1430ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,7 +57,7 @@
     },
     {
       "type": "http",
-      "tag": "🇨🇳-Unknown | HTTP+TCP | 2781ms | UP | NATIVE",
+      "tag": "🇨🇳-Unknown | HTTP+TCP | 1444ms | UP | NATIVE",
       "server": "120.92.212.16",
       "server_port": 8890,
       "username": "",
@@ -68,7 +68,7 @@
     },
     {
       "type": "http",
-      "tag": "🇨🇳-Unknown | HTTP+TCP | 1618ms | UP | NATIVE",
+      "tag": "🇨🇳-Unknown | HTTP+TCP | 1430ms | UP | NATIVE",
       "server": "120.92.212.16",
       "server_port": 7890,
       "username": "",

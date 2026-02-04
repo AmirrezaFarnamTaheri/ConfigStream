@@ -7,8 +7,9 @@ import uuid
 import time
 import os
 import re
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Dict, Any, Optional, cast
+from typing import List, Dict, Any, Optional, cast, Set
 
 from ..config import AppSettings
 from ..models import Proxy
@@ -493,10 +494,12 @@ class GoBatchTester:
 
         inputs = []
         req_id_map: Dict[str, Proxy] = {}  # Map req_id -> Proxy
+        req_id_order: List[str] = []
         futures: List[asyncio.Future[Any]] = []
         loop = asyncio.get_running_loop()
         settings = AppSettings()
         canary_url = settings.CANARY_URL if check_honeypot else ""
+        batch_tested_at = datetime.now(timezone.utc).isoformat()
 
         for p in proxies:
             outbound = to_singbox_outbound(p)
@@ -521,6 +524,7 @@ class GoBatchTester:
                     payload["target"] = canary_url
                 inputs.append(payload)
                 req_id_map[req_id] = p
+                req_id_order.append(req_id)
 
                 fut = loop.create_future()
                 # [AUDIT FIX] Use lock for thread-safety consistency
@@ -530,6 +534,8 @@ class GoBatchTester:
             else:
                 p.is_working = False
                 p.details["error"] = "CONVERSION_FAILED"
+                p.details["failure_category"] = "CONVERSION_FAILED"
+                p.tested_at = batch_tested_at
 
         if not inputs:
             return proxies
@@ -563,10 +569,13 @@ class GoBatchTester:
 
             # Mark all proxies in this batch as failed due to daemon crash
             for proxy_obj in req_id_map.values():
-                if proxy_obj.is_working is None:  # Only if not already processed
+                if proxy_obj.is_working is not True:
                     proxy_obj.is_working = False
-                    proxy_obj.details["error"] = "DAEMON_CRASHED"
-                    proxy_obj.details["failure_category"] = "CRASH"
+                    if not isinstance(proxy_obj.details, dict):
+                        proxy_obj.details = {}
+                    proxy_obj.details.setdefault("error", "DAEMON_CRASHED")
+                    proxy_obj.details.setdefault("failure_category", "CRASH")
+                    proxy_obj.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
             await self.close()
@@ -577,12 +586,13 @@ class GoBatchTester:
 
             # Mark queued proxies as failed (write/IPC failure)
             for p in req_id_map.values():
-                if p.is_working is None:
+                if p.is_working is not True:
                     p.is_working = False
                     if not isinstance(p.details, dict):
                         p.details = {}
                     p.details.setdefault("error", "DAEMON_WRITE_FAILED")
                     p.details.setdefault("failure_category", "CRASH")
+                    p.tested_at = batch_tested_at
 
             # Process might be dead, ensure restart next time
             await self.close()
@@ -620,6 +630,7 @@ class GoBatchTester:
                     po.is_working = False
                     po.details["error"] = "BATCH_TIMEOUT"
                     po.details["failure_category"] = "TIMEOUT"
+                    po.tested_at = batch_tested_at
             # Cancel futures after cleanup
             for f in futures:
                 if not f.done():
@@ -635,9 +646,20 @@ class GoBatchTester:
         working_count = 0
         failure_reasons: Dict[str, int] = {}
 
-        for res in completed_results:
+        seen_req_ids: Set[str] = set()
+        for idx, res in enumerate(completed_results):
             if isinstance(res, BaseException):
                 logger.debug(f"Go Tester result error: {res}")
+                # Map exception to corresponding proxy (by request order)
+                if idx < len(req_id_order):
+                    req_id = req_id_order[idx]
+                    seen_req_ids.add(req_id)
+                    tp = req_id_map.get(req_id)
+                    if tp:
+                        tp.is_working = False
+                        tp.details["error"] = "GO_TESTER_EXCEPTION"
+                        tp.details["failure_category"] = "IPC_ERROR"
+                        tp.tested_at = batch_tested_at
                 continue
 
             # res is the JSON dict
@@ -651,6 +673,7 @@ class GoBatchTester:
             if tp is None:
                 continue
             target_proxy: Proxy = tp
+            seen_req_ids.add(req_id)
 
             if res_data.get("is_working"):
                 target_proxy.is_working = True
@@ -660,6 +683,7 @@ class GoBatchTester:
                     target_proxy.latency = float(lat)
                 else:
                     target_proxy.latency = None
+                target_proxy.tested_at = batch_tested_at
                 working_count += 1
                 if res_data.get("issues"):
                     for issue in res_data["issues"]:
@@ -676,6 +700,7 @@ class GoBatchTester:
                     lat = res_data.get("latency")
                     if lat is not None:
                         target_proxy.latency = float(lat)
+                    target_proxy.tested_at = batch_tested_at
                     target_proxy.security_issues.setdefault("go_check", []).append(
                         error_msg
                     )
@@ -689,6 +714,7 @@ class GoBatchTester:
 
                 target_proxy.is_working = False
                 target_proxy.details["error"] = error_msg
+                target_proxy.tested_at = batch_tested_at
 
                 # Categorize error
                 if "HONEYPOT" in error_msg:
@@ -709,8 +735,17 @@ class GoBatchTester:
                     error_cat = "OTHER"
 
                 failure_reasons[error_cat] = failure_reasons.get(error_cat, 0) + 1
-                if error_cat not in ["TIMEOUT", "OTHER"]:
-                    target_proxy.details["failure_category"] = error_cat
+                target_proxy.details["failure_category"] = error_cat
+
+        # Mark any proxies that never produced a result
+        missing_ids = [rid for rid in req_id_map.keys() if rid not in seen_req_ids]
+        for rid in missing_ids:
+            tp = req_id_map.get(rid)
+            if tp:
+                tp.is_working = False
+                tp.details["error"] = "MISSING_RESULT"
+                tp.details["failure_category"] = "IPC_ERROR"
+                tp.tested_at = batch_tested_at
 
         # Log summary
         failure_summary = ", ".join([f"{k}: {v}" for k, v in failure_reasons.items()])

@@ -39,8 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
-        "🇳🇿-Wellington | VLESS+TCP+REALITY | 2191ms | UP | NATIVE"
+        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1144ms | UP | NATIVE",
+        "🇳🇿-Wellington | VLESS+TCP+REALITY | 2192ms | UP | NATIVE",
+        "🇳🇿-New_Plymouth | SOCKS4+TCP | 2539ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -48,8 +49,9 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
-        "🇳🇿-Wellington | VLESS+TCP+REALITY | 2191ms | UP | NATIVE"
+        "🇳🇿-Wellington | TROJAN+TCP+TLS | 1144ms | UP | NATIVE",
+        "🇳🇿-Wellington | VLESS+TCP+REALITY | 2192ms | UP | NATIVE",
+        "🇳🇿-New_Plymouth | SOCKS4+TCP | 2539ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -57,7 +59,7 @@
     },
     {
       "type": "trojan",
-      "tag": "🇳🇿-Wellington | TROJAN+TCP+TLS | 1143ms | UP | NATIVE",
+      "tag": "🇳🇿-Wellington | TROJAN+TCP+TLS | 1144ms | UP | NATIVE",
       "server": "45.15.140.107",
       "server_port": 19106,
       "password": "tSk5LQoJr7F.WnRsUM4hT",
@@ -68,7 +70,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇳🇿-Wellington | VLESS+TCP+REALITY | 2191ms | UP | NATIVE",
+      "tag": "🇳🇿-Wellington | VLESS+TCP+REALITY | 2192ms | UP | NATIVE",
       "server": "45.15.140.38",
       "server_port": 28495,
       "uuid": "7e296434-2d17-48d3-928d-19eaa34aecb1",
@@ -85,6 +87,13 @@
           "short_id": "0ecc2c1392"
         }
       }
+    },
+    {
+      "type": "socks",
+      "tag": "🇳🇿-New_Plymouth | SOCKS4+TCP | 2539ms | UP | NATIVE",
+      "server": "43.231.192.105",
+      "server_port": 4145,
+      "version": "4"
     },
     {
       "type": "direct",

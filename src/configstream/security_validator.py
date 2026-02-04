@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import re
 import uuid
+import ipaddress
 
 # Import urlparse directly to allow mocking in tests
 from urllib.parse import urlparse
@@ -61,25 +62,37 @@ LOCAL_IP_RANGES = [
 class SecurityValidator:
     @staticmethod
     def is_local_ip(ip: str) -> bool:
-        for pattern in LOCAL_IP_RANGES:
-            if pattern.match(ip):
-                return True
-        return False
+        if not ip:
+            return False
+        ip_lower = str(ip).strip().lower()
+        if ip_lower in ("localhost",):
+            return True
+        if ip_lower.endswith(".local"):
+            return True
+        try:
+            ip_obj = ipaddress.ip_address(ip)
+            return (
+                ip_obj.is_private
+                or ip_obj.is_loopback
+                or ip_obj.is_link_local
+                or ip_obj.is_reserved
+            )
+        except ValueError:
+            # Fallback for non-IP strings (hostnames)
+            for pattern in LOCAL_IP_RANGES:
+                if pattern.match(ip):
+                    return True
+            return False
 
     @staticmethod
     def is_valid_uuid(val: str) -> bool:
         if not val:
             return False
-        # Relax UUID check but reject obvious bad UUIDs (with hyphens but invalid)
         try:
-            uuid.UUID(val)
+            uuid.UUID(str(val))
             return True
-        except ValueError:
-            # Fallback: Allow "password-style" UUIDs (alphanumeric, underscores)
-            # BUT reject if it contains hyphens (likely a malformed UUID)
-            if "-" in val:
-                return False
-            return bool(re.match(r"^[a-zA-Z0-9_]+$", val))
+        except (ValueError, TypeError, AttributeError):
+            return False
 
     @staticmethod
     def is_hex(val: str) -> bool:
@@ -105,13 +118,33 @@ class SecurityValidator:
         msg = re.sub(r":([^:@]+)@", ":[MASKED]@", msg)
         # Mask common query-style secrets (token, key, secret, password, uuid, id)
         msg = re.sub(
-            r"(?i)(token|key|secret|pass|password|uuid|id)=([^&\s]+)",
+            r"(?i)(token|access_token|api_key|apikey|license_key|key|secret|pass|password|uuid|id|auth|authorization)=([^&\s]+)",
             r"\1=[MASKED]",
+            msg,
+        )
+        # Mask Authorization headers or inline auth blobs (e.g., "Authorization: Bearer ...")
+        msg = re.sub(
+            r"(?i)(authorization|auth)\s*[:=]\s*(bearer|basic)?\s*([A-Za-z0-9\-._~+/]+=*)",
+            r"\1: [MASKED]",
+            msg,
+        )
+        # Mask standalone Bearer tokens
+        msg = re.sub(
+            r"(?i)bearer\s+[A-Za-z0-9\-._~+/]+=*",
+            "Bearer [MASKED]",
             msg,
         )
 
         # Mask likely Base64 strings (long sequences of alphanumeric+ending with =)
         msg = re.sub(r"\b[A-Za-z0-9+/]{20,}={0,2}\b", "[BASE64]", msg)
+        # Mask IPv4 addresses
+        msg = re.sub(r"\b(?:\d{1,3}\.){3}\d{1,3}\b", "[IP]", msg)
+        # Mask IPv6 addresses (best-effort)
+        msg = re.sub(
+            r"\b(?:[0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}\b",
+            "[IP]",
+            msg,
+        )
 
         return msg
 
@@ -150,9 +183,12 @@ class SecurityValidator:
             result = urlparse(url)
             # Restrict schemes to http/https
             if result.scheme in ["http", "https"] and result.netloc:
+                host = result.hostname
+                if not host:
+                    return False, "invalid_host"
                 # Use internal check (to allow mocking by tests)
                 # But careful not to crash if address is netloc
-                if not SecurityValidator._is_address_safe(result.netloc.split(":")[0]):
+                if not SecurityValidator._is_address_safe(host):
                     return False, "unsafe_address"
                 return True, "ok"
             return False, "invalid_scheme_or_netloc"

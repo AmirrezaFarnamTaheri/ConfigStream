@@ -39,57 +39,61 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇮🇩-Jakarta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 666ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 717ms | UP | NATIVE",
-        "🇮🇩-Dukuh_Atas | HTTP+TCP | 5787ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS5+TCP | 3969ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5994ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 5804ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1966ms | UP | NATIVE",
-        "🇮🇩-Bandung | SOCKS5+TCP | 1584ms | UP | NATIVE",
-        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1751ms | UP | NATIVE",
-        "🇮🇩-Malang | HTTP+TCP | 4477ms | UP | NATIVE",
-        "🇮🇩-Bandung | HTTP+TCP | 2323ms | UP | NATIVE",
-        "🇮🇩-Malang | HTTP+TCP | 2502ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5769ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1541ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 1140ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3492ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 1378ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS5+TCP | 2710ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 2304ms | UP | NATIVE",
-        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1930ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1590ms | UP | NATIVE",
-        "🇮🇩-Bogor | SOCKS5+TCP | 1261ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 2220ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 4968ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS5+TCP | 5047ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5710ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 4492ms | UP | NATIVE",
-        "🇮🇩-Bekasi | HTTP+TCP | 5739ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2770ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 5449ms | UP | NATIVE",
-        "🇮🇩-Kebumen_Satu | HTTP+TCP | 5405ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 3842ms | UP | NATIVE",
-        "🇮🇩-Balige | HTTP+TCP | 1806ms | UP | NATIVE",
-        "🇮🇩-Subang | HTTP+TCP | 1442ms | UP | NATIVE",
-        "🇮🇩-Surabaya | HTTP+TCP | 2391ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 3905ms | UP | NATIVE",
-        "🇮🇩-Bandung | SOCKS5+TCP | 5650ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 4879ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 3025ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 1302ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2140ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1483ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 1264ms | UP | NATIVE",
-        "🇮🇩-Bandung | SOCKS5+TCP | 3598ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 5034ms | UP | NATIVE",
-        "🇮🇩-Pangkalpinang | SOCKS5+TCP | 4606ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 2362ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 1613ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1918ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5087ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1723ms | UP | NATIVE"
+        "🇮🇩-Jakarta | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 779ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3564ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5595ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 5945ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS5+TCP | 3581ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4501ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4151ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2243ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 3469ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5073ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2348ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4156ms | UP | NATIVE",
+        "🇮🇩-Jember | HTTP+TCP | 4767ms | UP | NATIVE",
+        "🇮🇩-Surabaya | HTTP+TCP | 4559ms | UP | NATIVE",
+        "🇮🇩-Karet | HTTP+TCP | 4404ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 1078ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1895ms | UP | NATIVE",
+        "🇮🇩-Denpasar | SOCKS5+TCP | 2758ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4829ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3343ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4315ms | UP | NATIVE",
+        "🇮🇩-Pemalang | SOCKS4+TCP | 5049ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4035ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 4907ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2737ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4290ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5221ms | UP | NATIVE",
+        "🇮🇩-Karet | SOCKS4+TCP | 4980ms | UP | NATIVE",
+        "🇮🇩-Bekasi | SOCKS4+TCP | 4844ms | UP | NATIVE",
+        "🇮🇩-Umbulan_Tebingsuluh | HTTP+TCP | 4801ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 3895ms | UP | NATIVE",
+        "🇮🇩-Karet_Semanggi | SOCKS4+TCP | 3061ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 1749ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2799ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4223ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4639ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS5+TCP | 5662ms | UP | NATIVE",
+        "🇮🇩-Bandung | HTTP+TCP | 1781ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 3901ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3674ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 5663ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 5911ms | UP | NATIVE",
+        "🇮🇩-Yogyakarta | HTTP+TCP | 4375ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4913ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3595ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 5373ms | UP | NATIVE",
+        "🇮🇩-Bandung | HTTP+TCP | 3714ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1810ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2933ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5822ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 5932ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 1319ms | UP | NATIVE",
+        "🇮🇩-Kuningan | SOCKS4+TCP | 3016ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 4380ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4660ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -97,57 +101,61 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇮🇩-Jakarta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 666ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 717ms | UP | NATIVE",
-        "🇮🇩-Dukuh_Atas | HTTP+TCP | 5787ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS5+TCP | 3969ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5994ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 5804ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1966ms | UP | NATIVE",
-        "🇮🇩-Bandung | SOCKS5+TCP | 1584ms | UP | NATIVE",
-        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1751ms | UP | NATIVE",
-        "🇮🇩-Malang | HTTP+TCP | 4477ms | UP | NATIVE",
-        "🇮🇩-Bandung | HTTP+TCP | 2323ms | UP | NATIVE",
-        "🇮🇩-Malang | HTTP+TCP | 2502ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5769ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1541ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 1140ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 3492ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 1378ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS5+TCP | 2710ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 2304ms | UP | NATIVE",
-        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1930ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 1590ms | UP | NATIVE",
-        "🇮🇩-Bogor | SOCKS5+TCP | 1261ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 2220ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 4968ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS5+TCP | 5047ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5710ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 4492ms | UP | NATIVE",
-        "🇮🇩-Bekasi | HTTP+TCP | 5739ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2770ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 5449ms | UP | NATIVE",
-        "🇮🇩-Kebumen_Satu | HTTP+TCP | 5405ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 3842ms | UP | NATIVE",
-        "🇮🇩-Balige | HTTP+TCP | 1806ms | UP | NATIVE",
-        "🇮🇩-Subang | HTTP+TCP | 1442ms | UP | NATIVE",
-        "🇮🇩-Surabaya | HTTP+TCP | 2391ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 3905ms | UP | NATIVE",
-        "🇮🇩-Bandung | SOCKS5+TCP | 5650ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 4879ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 3025ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 1302ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 2140ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1483ms | UP | NATIVE",
-        "🇮🇩-Jakarta | HTTP+TCP | 1264ms | UP | NATIVE",
-        "🇮🇩-Bandung | SOCKS5+TCP | 3598ms | UP | NATIVE",
-        "🇮🇩-Jakarta | SOCKS4+TCP | 5034ms | UP | NATIVE",
-        "🇮🇩-Pangkalpinang | SOCKS5+TCP | 4606ms | UP | NATIVE",
-        "🇮🇩-Unknown | HTTP+TCP | 2362ms | UP | NATIVE",
-        "🇮🇩-Karet | SOCKS4+TCP | 1613ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1918ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 5087ms | UP | NATIVE",
-        "🇮🇩-Unknown | SOCKS4+TCP | 1723ms | UP | NATIVE"
+        "🇮🇩-Jakarta | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 779ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 3564ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5595ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 5945ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS5+TCP | 3581ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4501ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4151ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2243ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 3469ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5073ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2348ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4156ms | UP | NATIVE",
+        "🇮🇩-Jember | HTTP+TCP | 4767ms | UP | NATIVE",
+        "🇮🇩-Surabaya | HTTP+TCP | 4559ms | UP | NATIVE",
+        "🇮🇩-Karet | HTTP+TCP | 4404ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 1078ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1895ms | UP | NATIVE",
+        "🇮🇩-Denpasar | SOCKS5+TCP | 2758ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4829ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3343ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4315ms | UP | NATIVE",
+        "🇮🇩-Pemalang | SOCKS4+TCP | 5049ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4035ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 4907ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2737ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4290ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5221ms | UP | NATIVE",
+        "🇮🇩-Karet | SOCKS4+TCP | 4980ms | UP | NATIVE",
+        "🇮🇩-Bekasi | SOCKS4+TCP | 4844ms | UP | NATIVE",
+        "🇮🇩-Umbulan_Tebingsuluh | HTTP+TCP | 4801ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 3895ms | UP | NATIVE",
+        "🇮🇩-Karet_Semanggi | SOCKS4+TCP | 3061ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 1749ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 2799ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4223ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4639ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS5+TCP | 5662ms | UP | NATIVE",
+        "🇮🇩-Bandung | HTTP+TCP | 1781ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 3901ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3674ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 5663ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 5911ms | UP | NATIVE",
+        "🇮🇩-Yogyakarta | HTTP+TCP | 4375ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 4913ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 3595ms | UP | NATIVE",
+        "🇮🇩-Jakarta | HTTP+TCP | 5373ms | UP | NATIVE",
+        "🇮🇩-Bandung | HTTP+TCP | 3714ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1810ms | UP | NATIVE",
+        "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2933ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 5822ms | UP | NATIVE",
+        "🇮🇩-Unknown | SOCKS4+TCP | 5932ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 1319ms | UP | NATIVE",
+        "🇮🇩-Kuningan | SOCKS4+TCP | 3016ms | UP | NATIVE",
+        "🇮🇩-Jakarta | SOCKS4+TCP | 4380ms | UP | NATIVE",
+        "🇮🇩-Unknown | HTTP+TCP | 4660ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -155,204 +163,23 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇮🇩-Jakarta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 666ms | UP | NATIVE",
-      "server": "38.60.171.254",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇮🇩-Jakarta | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 717ms | UP | NATIVE",
+      "tag": "🇮🇩-Jakarta | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 779ms | UP | NATIVE",
       "server": "154.205.159.100",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
-      "type": "http",
-      "tag": "🇮🇩-Dukuh_Atas | HTTP+TCP | 5787ms | UP | NATIVE",
-      "server": "101.255.117.138",
-      "server_port": 2020,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS5+TCP | 3969ms | UP | NATIVE",
-      "server": "223.25.109.163",
-      "server_port": 8199,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5994ms | UP | NATIVE",
-      "server": "27.50.18.113",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Jakarta | HTTP+TCP | 5804ms | UP | NATIVE",
-      "server": "202.165.47.90",
-      "server_port": 55443,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 1966ms | UP | NATIVE",
-      "server": "103.87.81.86",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Bandung | SOCKS5+TCP | 1584ms | UP | NATIVE",
-      "server": "103.148.113.161",
-      "server_port": 8199,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1751ms | UP | NATIVE",
-      "server": "202.162.212.164",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Malang | HTTP+TCP | 4477ms | UP | NATIVE",
-      "server": "157.15.63.32",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Bandung | HTTP+TCP | 2323ms | UP | NATIVE",
-      "server": "36.94.232.177",
-      "server_port": 3113,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Malang | HTTP+TCP | 2502ms | UP | NATIVE",
-      "server": "103.153.191.119",
-      "server_port": 3128,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5769ms | UP | NATIVE",
-      "server": "103.233.103.241",
-      "server_port": 4153,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1541ms | UP | NATIVE",
-      "server": "103.159.224.90",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Unknown | HTTP+TCP | 1140ms | UP | NATIVE",
-      "server": "45.198.10.3",
-      "server_port": 8090,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3492ms | UP | NATIVE",
-      "server": "202.154.18.1",
-      "server_port": 4996,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Unknown | HTTP+TCP | 1378ms | UP | NATIVE",
-      "server": "223.25.100.42",
-      "server_port": 2222,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS5+TCP | 2710ms | UP | NATIVE",
-      "server": "103.76.149.140",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Unknown | HTTP+TCP | 2304ms | UP | NATIVE",
-      "server": "103.18.77.14",
-      "server_port": 1111,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1930ms | UP | NATIVE",
-      "server": "202.162.219.10",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 1590ms | UP | NATIVE",
-      "server": "103.18.47.79",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 3564ms | UP | NATIVE",
+      "server": "203.160.58.194",
       "server_port": 4145,
       "version": "4"
     },
     {
-      "type": "socks",
-      "tag": "🇮🇩-Bogor | SOCKS5+TCP | 1261ms | UP | NATIVE",
-      "server": "103.197.188.63",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
       "type": "http",
-      "tag": "🇮🇩-Unknown | HTTP+TCP | 2220ms | UP | NATIVE",
-      "server": "103.122.65.242",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5595ms | UP | NATIVE",
+      "server": "103.132.52.32",
       "server_port": 8080,
       "username": "",
       "password": "",
@@ -362,180 +189,48 @@
     },
     {
       "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4968ms | UP | NATIVE",
-      "server": "222.165.223.138",
-      "server_port": 41541,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS5+TCP | 5047ms | UP | NATIVE",
-      "server": "223.25.109.146",
-      "server_port": 8199,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5710ms | UP | NATIVE",
-      "server": "103.36.35.251",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Unknown | HTTP+TCP | 4492ms | UP | NATIVE",
-      "server": "103.217.216.40",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Bekasi | HTTP+TCP | 5739ms | UP | NATIVE",
-      "server": "103.76.91.63",
-      "server_port": 8097,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2770ms | UP | NATIVE",
-      "server": "43.248.27.11",
-      "server_port": 54730,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Jakarta | HTTP+TCP | 5449ms | UP | NATIVE",
-      "server": "101.255.166.134",
-      "server_port": 1111,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Kebumen_Satu | HTTP+TCP | 5405ms | UP | NATIVE",
-      "server": "103.124.139.137",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Jakarta | HTTP+TCP | 3842ms | UP | NATIVE",
-      "server": "36.92.140.113",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Balige | HTTP+TCP | 1806ms | UP | NATIVE",
-      "server": "103.139.138.194",
-      "server_port": 3128,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Subang | HTTP+TCP | 1442ms | UP | NATIVE",
-      "server": "103.176.96.134",
-      "server_port": 8082,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Surabaya | HTTP+TCP | 2391ms | UP | NATIVE",
-      "server": "103.142.21.197",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 3905ms | UP | NATIVE",
-      "server": "36.66.111.81",
-      "server_port": 1080,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Bandung | SOCKS5+TCP | 5650ms | UP | NATIVE",
-      "server": "103.148.112.69",
-      "server_port": 8199,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 4879ms | UP | NATIVE",
-      "server": "139.255.54.106",
-      "server_port": 4145,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 3025ms | UP | NATIVE",
-      "server": "103.43.128.123",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇮🇩-Unknown | HTTP+TCP | 1302ms | UP | NATIVE",
-      "server": "103.83.178.221",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2140ms | UP | NATIVE",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5945ms | UP | NATIVE",
       "server": "103.88.169.106",
       "server_port": 33149,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1483ms | UP | NATIVE",
-      "server": "183.81.153.17",
-      "server_port": 5678,
+      "tag": "🇮🇩-Unknown | SOCKS5+TCP | 3581ms | UP | NATIVE",
+      "server": "38.19.236.55",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4501ms | UP | NATIVE",
+      "server": "103.148.195.22",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4151ms | UP | NATIVE",
+      "server": "203.160.61.101",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2243ms | UP | NATIVE",
+      "server": "103.102.141.40",
+      "server_port": 4145,
       "version": "4"
     },
     {
       "type": "http",
-      "tag": "🇮🇩-Jakarta | HTTP+TCP | 1264ms | UP | NATIVE",
+      "tag": "🇮🇩-Jakarta | HTTP+TCP | 3469ms | UP | NATIVE",
       "server": "36.95.27.225",
       "server_port": 8080,
       "username": "",
@@ -545,33 +240,70 @@
       }
     },
     {
-      "type": "socks",
-      "tag": "🇮🇩-Bandung | SOCKS5+TCP | 3598ms | UP | NATIVE",
-      "server": "103.148.113.193",
-      "server_port": 8199,
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5073ms | UP | NATIVE",
+      "server": "103.190.108.97",
+      "server_port": 3128,
       "username": "",
       "password": "",
-      "version": "5"
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "socks",
-      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 5034ms | UP | NATIVE",
-      "server": "103.121.214.50",
-      "server_port": 4145,
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2348ms | UP | NATIVE",
+      "server": "183.81.157.65",
+      "server_port": 5678,
       "version": "4"
     },
     {
-      "type": "socks",
-      "tag": "🇮🇩-Pangkalpinang | SOCKS5+TCP | 4606ms | UP | NATIVE",
-      "server": "103.103.146.149",
-      "server_port": 7080,
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4156ms | UP | NATIVE",
+      "server": "103.190.60.33",
+      "server_port": 9090,
       "username": "",
       "password": "",
-      "version": "5"
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "http",
-      "tag": "🇮🇩-Unknown | HTTP+TCP | 2362ms | UP | NATIVE",
+      "tag": "🇮🇩-Jember | HTTP+TCP | 4767ms | UP | NATIVE",
+      "server": "103.224.65.89",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Surabaya | HTTP+TCP | 4559ms | UP | NATIVE",
+      "server": "103.220.23.57",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Karet | HTTP+TCP | 4404ms | UP | NATIVE",
+      "server": "103.154.117.186",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 1078ms | UP | NATIVE",
       "server": "150.107.140.238",
       "server_port": 3128,
       "username": "",
@@ -582,31 +314,345 @@
     },
     {
       "type": "socks",
-      "tag": "🇮🇩-Karet | SOCKS4+TCP | 1613ms | UP | NATIVE",
-      "server": "36.66.203.163",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1918ms | UP | NATIVE",
-      "server": "103.10.99.110",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5087ms | UP | NATIVE",
-      "server": "103.189.235.233",
+      "tag": "🇮🇩-Duren_Tiga | SOCKS4+TCP | 1895ms | UP | NATIVE",
+      "server": "202.162.219.10",
       "server_port": 1080,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1723ms | UP | NATIVE",
-      "server": "111.68.31.134",
-      "server_port": 40385,
+      "tag": "🇮🇩-Denpasar | SOCKS5+TCP | 2758ms | UP | NATIVE",
+      "server": "103.189.63.149",
+      "server_port": 53053,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4829ms | UP | NATIVE",
+      "server": "103.42.40.50",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 3343ms | UP | NATIVE",
+      "server": "103.159.195.221",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4315ms | UP | NATIVE",
+      "server": "103.154.92.74",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Pemalang | SOCKS4+TCP | 5049ms | UP | NATIVE",
+      "server": "103.167.156.14",
+      "server_port": 1080,
       "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4035ms | UP | NATIVE",
+      "server": "103.174.236.98",
+      "server_port": 8080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 4907ms | UP | NATIVE",
+      "server": "103.18.47.79",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2737ms | UP | NATIVE",
+      "server": "203.160.61.104",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4290ms | UP | NATIVE",
+      "server": "103.102.141.39",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5221ms | UP | NATIVE",
+      "server": "157.66.50.125",
+      "server_port": 1111,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Karet | SOCKS4+TCP | 4980ms | UP | NATIVE",
+      "server": "36.66.170.25",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Bekasi | SOCKS4+TCP | 4844ms | UP | NATIVE",
+      "server": "124.158.149.66",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Umbulan_Tebingsuluh | HTTP+TCP | 4801ms | UP | NATIVE",
+      "server": "103.145.34.100",
+      "server_port": 1111,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 3895ms | UP | NATIVE",
+      "server": "103.121.214.50",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Karet_Semanggi | SOCKS4+TCP | 3061ms | UP | NATIVE",
+      "server": "139.255.94.122",
+      "server_port": 57853,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 1749ms | UP | NATIVE",
+      "server": "103.102.142.98",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 2799ms | UP | NATIVE",
+      "server": "103.184.67.25",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4223ms | UP | NATIVE",
+      "server": "103.133.27.11",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4639ms | UP | NATIVE",
+      "server": "103.144.209.104",
+      "server_port": 8715,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS5+TCP | 5662ms | UP | NATIVE",
+      "server": "103.242.105.199",
+      "server_port": 8199,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Bandung | HTTP+TCP | 1781ms | UP | NATIVE",
+      "server": "103.10.60.178",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Jakarta | HTTP+TCP | 3901ms | UP | NATIVE",
+      "server": "101.255.53.105",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 3674ms | UP | NATIVE",
+      "server": "36.88.170.170",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 5663ms | UP | NATIVE",
+      "server": "36.94.119.218",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 5911ms | UP | NATIVE",
+      "server": "202.51.103.154",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Yogyakarta | HTTP+TCP | 4375ms | UP | NATIVE",
+      "server": "202.169.229.139",
+      "server_port": 53281,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 4913ms | UP | NATIVE",
+      "server": "103.159.113.117",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 3595ms | UP | NATIVE",
+      "server": "103.247.242.22",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Jakarta | HTTP+TCP | 5373ms | UP | NATIVE",
+      "server": "202.165.47.90",
+      "server_port": 55443,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Bandung | HTTP+TCP | 3714ms | UP | NATIVE",
+      "server": "36.94.185.122",
+      "server_port": 60080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇮🇩-Jakarta | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1810ms | UP | NATIVE",
+      "server": "38.60.171.254",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Duren_Tiga | SOCKS4+TCP | 2933ms | UP | NATIVE",
+      "server": "202.162.212.164",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 5822ms | UP | NATIVE",
+      "server": "103.13.235.218",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Unknown | SOCKS4+TCP | 5932ms | UP | NATIVE",
+      "server": "183.81.153.9",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 1319ms | UP | NATIVE",
+      "server": "36.64.27.123",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Kuningan | SOCKS4+TCP | 3016ms | UP | NATIVE",
+      "server": "103.39.51.156",
+      "server_port": 1090,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇮🇩-Jakarta | SOCKS4+TCP | 4380ms | UP | NATIVE",
+      "server": "103.87.81.86",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩-Unknown | HTTP+TCP | 4660ms | UP | NATIVE",
+      "server": "121.101.133.220",
+      "server_port": 7777,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "direct",

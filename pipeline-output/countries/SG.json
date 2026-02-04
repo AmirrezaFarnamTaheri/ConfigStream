@@ -39,65 +39,66 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇸🇬-Singapore | VLESS+WS+TLS | 86ms | UP | NATIVE",
         "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 514ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 536ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 558ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 634ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+TLS | 681ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+REALITY | 681ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+REALITY | 684ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 691ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 698ms | UP | NATIVE",
-        "🇸🇬-Unknown | VLESS+RAW+REALITY | 698ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 704ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 718ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 772ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 851ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 926ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 929ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 934ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 934ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 983ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 983ms | UP | NATIVE",
-        "🇸🇬-Jurong_Town | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1406ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4247ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 5419ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4130ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4661ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2767ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4351ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 3461ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4270ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 2932ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 4164ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1375ms | UP | NATIVE",
-        "🇸🇬-Unknown | SOCKS5+TCP | 3760ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2326ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 1923ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1188ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+REALITY | 1032ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1385ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 1171ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4389ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4613ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 3916ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4892ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 3943ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 2750ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2291ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 1136ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1251ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2990ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4645ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1218ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2625ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1303ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2087ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS4+TCP | 1190ms | UP | NATIVE",
-        "🇸🇬-Jurong_Town | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1962ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4723ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4955ms | UP | NATIVE"
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 516ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 517ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 525ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 526ms | UP | NATIVE",
+        "🇸🇬-Singapore | VLESS+WS+TLS | 637ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 641ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 675ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | HTTP+TCP | 678ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 683ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | VLESS+TCP+REALITY | 686ms | UP | NATIVE",
+        "🇸🇬-Singapore | TROJAN+TCP+TLS | 686ms | UP | NATIVE",
+        "🇸🇬-Singapore | TROJAN+TCP+TLS | 689ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 696ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 700ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | VLESS+RAW+REALITY | 714ms | UP | NATIVE",
+        "🇸🇬-Loyang | VLESS+WS | 736ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 751ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 752ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 763ms | UP | NATIVE",
+        "🇸🇬-Unknown | VLESS+TCP+REALITY | 770ms | UP | NATIVE",
+        "🇸🇬-Singapore | VMESS+NONE+TLS | 793ms | UP | NATIVE",
+        "🇸🇬-Unknown | VLESS+TCP+REALITY | 853ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 854ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 913ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 984ms | UP | NATIVE",
+        "🇸🇬-Unknown | VLESS+TCP+REALITY | 3359ms | UP | NATIVE",
+        "🇸🇬-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 1164ms | UP | NATIVE",
+        "🇸🇬-Unknown | SOCKS4+TCP | 1586ms | UP | NATIVE",
+        "🇸🇬-Jurong_Town | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1958ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2229ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 1588ms | UP | NATIVE",
+        "🇸🇬-Jurong_Town | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1497ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5224ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 1747ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1028ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 4593ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 3000ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2295ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 3026ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5533ms | UP | NATIVE",
+        "🇸🇬-Singapore | VLESS+TCP+REALITY | 1051ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 1409ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 4497ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 2536ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2392ms | UP | NATIVE",
+        "🇸🇬-Singapore | VLESS+TCP+REALITY | 1899ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2968ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 1325ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 1498ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2455ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS4+TCP | 1414ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 4732ms | UP | NATIVE",
+        "🇸🇬-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 1157ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5754ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 1195ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5152ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5746ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5137ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -105,91 +106,90 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇸🇬-Singapore | VLESS+WS+TLS | 86ms | UP | NATIVE",
         "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 514ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 536ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 558ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 634ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+TLS | 681ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+REALITY | 681ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+REALITY | 684ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 691ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 698ms | UP | NATIVE",
-        "🇸🇬-Unknown | VLESS+RAW+REALITY | 698ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 704ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 718ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 772ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 851ms | UP | NATIVE | SEC:insecure_encryption_method",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 926ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 929ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 934ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 934ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 983ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 983ms | UP | NATIVE",
-        "🇸🇬-Jurong_Town | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1406ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4247ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 5419ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4130ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4661ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2767ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4351ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 3461ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4270ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 2932ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 4164ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1375ms | UP | NATIVE",
-        "🇸🇬-Unknown | SOCKS5+TCP | 3760ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2326ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 1923ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1188ms | UP | NATIVE",
-        "🇸🇬-Singapore | VLESS+TCP+REALITY | 1032ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1385ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 1171ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4389ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4613ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 3916ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4892ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 3943ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 2750ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2291ms | UP | NATIVE",
-        "🇸🇬-Singapore | HTTP+TCP | 1136ms | UP | NATIVE",
-        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1251ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2990ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4645ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1218ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2625ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS5+TCP | 1303ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 2087ms | UP | NATIVE",
-        "🇸🇬-Singapore | SOCKS4+TCP | 1190ms | UP | NATIVE",
-        "🇸🇬-Jurong_Town | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1962ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4723ms | UP | NATIVE",
-        "🇸🇬-Loyang | SOCKS5+TCP | 4955ms | UP | NATIVE"
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 516ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 517ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 525ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 526ms | UP | NATIVE",
+        "🇸🇬-Singapore | VLESS+WS+TLS | 637ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 641ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 675ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | HTTP+TCP | 678ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 683ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | VLESS+TCP+REALITY | 686ms | UP | NATIVE",
+        "🇸🇬-Singapore | TROJAN+TCP+TLS | 686ms | UP | NATIVE",
+        "🇸🇬-Singapore | TROJAN+TCP+TLS | 689ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 696ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 700ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | VLESS+RAW+REALITY | 714ms | UP | NATIVE",
+        "🇸🇬-Loyang | VLESS+WS | 736ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 751ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 752ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 763ms | UP | NATIVE",
+        "🇸🇬-Unknown | VLESS+TCP+REALITY | 770ms | UP | NATIVE",
+        "🇸🇬-Singapore | VMESS+NONE+TLS | 793ms | UP | NATIVE",
+        "🇸🇬-Unknown | VLESS+TCP+REALITY | 853ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 854ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 913ms | UP | NATIVE | SEC:insecure_encryption_method",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 984ms | UP | NATIVE",
+        "🇸🇬-Unknown | VLESS+TCP+REALITY | 3359ms | UP | NATIVE",
+        "🇸🇬-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 1164ms | UP | NATIVE",
+        "🇸🇬-Unknown | SOCKS4+TCP | 1586ms | UP | NATIVE",
+        "🇸🇬-Jurong_Town | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1958ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2229ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 1588ms | UP | NATIVE",
+        "🇸🇬-Jurong_Town | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1497ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5224ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 1747ms | UP | NATIVE",
+        "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1028ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 4593ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 3000ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2295ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 3026ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5533ms | UP | NATIVE",
+        "🇸🇬-Singapore | VLESS+TCP+REALITY | 1051ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 1409ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 4497ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 2536ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2392ms | UP | NATIVE",
+        "🇸🇬-Singapore | VLESS+TCP+REALITY | 1899ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2968ms | UP | NATIVE",
+        "🇸🇬-Singapore | HTTP+TCP | 1325ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 1498ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 2455ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS4+TCP | 1414ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 4732ms | UP | NATIVE",
+        "🇸🇬-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 1157ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5754ms | UP | NATIVE",
+        "🇸🇬-Singapore | SOCKS5+TCP | 1195ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5152ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5746ms | UP | NATIVE",
+        "🇸🇬-Loyang | SOCKS5+TCP | 5137ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
-      "type": "vless",
-      "tag": "🇸🇬-Singapore | VLESS+WS+TLS | 86ms | UP | NATIVE",
-      "server": "206.238.238.249",
-      "server_port": 443,
-      "uuid": "e258977b-e413-4718-a3af-02d75492c349",
-      "transport": {
-        "type": "ws",
-        "headers": {
-          "Host": "jp-aniu.xmmaa.dpdns.org",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "jp-aniu.xmmaa.dpdns.org"
-      }
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 514ms | UP | NATIVE",
+      "server": "194.233.73.51",
+      "server_port": 48803,
+      "method": "chacha20-ietf-poly1305",
+      "password": "7afa39016d5a409c"
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 514ms | UP | NATIVE",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 516ms | UP | NATIVE",
+      "server": "194.233.73.51",
+      "server_port": 48802,
+      "method": "chacha20-ietf-poly1305",
+      "password": "7afa39016d5a409c"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 517ms | UP | NATIVE",
       "server": "95.173.218.203",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -197,63 +197,84 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 536ms | UP | NATIVE",
-      "server": "154.26.132.38",
-      "server_port": 27883,
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 524ms | UP | NATIVE",
+      "server": "3.1.195.148",
+      "server_port": 8319,
       "method": "chacha20-ietf-poly1305",
-      "password": "ded718fcb2bb17b7"
+      "password": "ljqdalu13.."
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 558ms | UP | NATIVE",
-      "server": "154.26.132.38",
-      "server_port": 27885,
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 525ms | UP | NATIVE",
+      "server": "3.1.195.148",
+      "server_port": 8313,
       "method": "chacha20-ietf-poly1305",
-      "password": "ded718fcb2bb17b7"
+      "password": "ljqdalu13.."
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 634ms | UP | NATIVE",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 526ms | UP | NATIVE",
+      "server": "194.233.73.51",
+      "server_port": 48804,
+      "method": "chacha20-ietf-poly1305",
+      "password": "7afa39016d5a409c"
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇬-Singapore | VLESS+WS+TLS | 637ms | UP | NATIVE",
+      "server": "206.238.237.211",
+      "server_port": 2083,
+      "uuid": "844e0f15-6ea4-4dd7-8f08-11311c9c23e8",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "sina.sonami.site",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "sina.sonami.site"
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 641ms | UP | NATIVE",
       "server": "154.26.132.38",
       "server_port": 16922,
       "method": "chacha20-ietf-poly1305",
       "password": "42d2b47181a32de7"
     },
     {
-      "type": "vless",
-      "tag": "🇸🇬-Singapore | VLESS+TCP+TLS | 681ms | UP | NATIVE",
-      "server": "172.104.182.108",
-      "server_port": 22539,
-      "uuid": "d6d7e024-0a49-483d-bcd7-048c4d30eca6",
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 675ms | UP | NATIVE | SEC:insecure_encryption_method",
+      "server": "68.183.227.4",
+      "server_port": 8080,
+      "method": "rc4-md5",
+      "password": "14fFPrbezE3HDZzsMOr6"
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 678ms | UP | NATIVE",
+      "server": "34.1.133.104",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
       "tls": {
-        "enabled": true,
-        "server_name": "node1.nanonet.host"
+        "enabled": false
       }
     },
     {
-      "type": "vless",
-      "tag": "🇸🇬-Singapore | VLESS+TCP+REALITY | 681ms | UP | NATIVE",
-      "server": "5.223.67.129",
-      "server_port": 8443,
-      "uuid": "f4e28bf7-c5f6-40de-be3e-b560a4bef575",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "apple.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "kt-wshmPVd-J1dlU-tsXUoGag2-oFwYQ5UafScaAfzQ",
-          "short_id": ""
-        }
-      }
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 683ms | UP | NATIVE | SEC:insecure_encryption_method",
+      "server": "68.183.227.45",
+      "server_port": 8080,
+      "method": "rc4-md5",
+      "password": "14fFPrbezE3HDZzsMOr6"
     },
     {
       "type": "vless",
-      "tag": "🇸🇬-Singapore | VLESS+TCP+REALITY | 684ms | UP | NATIVE",
+      "tag": "🇸🇬-Singapore | VLESS+TCP+REALITY | 686ms | UP | NATIVE",
       "server": "146.190.85.213",
       "server_port": 45989,
       "uuid": "fa7ea4ac-1ed6-467a-ae18-2099ed2bb4ae",
@@ -272,24 +293,184 @@
       }
     },
     {
+      "type": "trojan",
+      "tag": "🇸🇬-Singapore | TROJAN+TCP+TLS | 686ms | UP | NATIVE",
+      "server": "178.128.114.70",
+      "server_port": 443,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇸🇬-Singapore | TROJAN+TCP+TLS | 689ms | UP | NATIVE",
+      "server": "152.42.254.150",
+      "server_port": 443,
+      "password": "c1d83c0c7d57cead4379ba14a82df69b",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.nintendogames.net"
+      }
+    },
+    {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 691ms | UP | NATIVE | SEC:insecure_encryption_method",
-      "server": "68.183.227.4",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 696ms | UP | NATIVE",
+      "server": "154.26.132.38",
+      "server_port": 27885,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ded718fcb2bb17b7"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 700ms | UP | NATIVE | SEC:insecure_encryption_method",
+      "server": "68.183.227.236",
+      "server_port": 8080,
+      "method": "rc4-md5",
+      "password": "14fFPrbezE3HDZzsMOr6"
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇬-Singapore | VLESS+RAW+REALITY | 714ms | UP | NATIVE",
+      "server": "140.245.46.100",
+      "server_port": 25001,
+      "uuid": "302b7370-f6c0-408a-a59c-b56f6cb4a5a0",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.mcdaniel.edu",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "edge"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "5MvE55sHm_m1gELvk4PRRsPU1NEPyBI955o4djmDzEc",
+          "short_id": "5a226d27"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇬-Loyang | VLESS+WS | 736ms | UP | NATIVE",
+      "server": "158.178.234.153",
+      "server_port": 18757,
+      "uuid": "d10b0612-2b05-47c2-99c1-53f0b109d07d",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 751ms | UP | NATIVE | SEC:insecure_encryption_method",
+      "server": "128.199.172.224",
       "server_port": 8080,
       "method": "rc4-md5",
       "password": "14fFPrbezE3HDZzsMOr6"
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 698ms | UP | NATIVE",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 752ms | UP | NATIVE",
       "server": "154.26.132.38",
-      "server_port": 27882,
+      "server_port": 27883,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ded718fcb2bb17b7"
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 763ms | UP | NATIVE",
+      "server": "128.199.202.122",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇬-Unknown | VLESS+TCP+REALITY | 770ms | UP | NATIVE",
+      "server": "8.222.181.231",
+      "server_port": 443,
+      "uuid": "5c183802-747d-4d2f-a6f1-aff2d5d78401",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.autodesk.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "DNdTBHyztOVJOBJQX91YXEhNkWbSAntqUoTFBHc6Clw",
+          "short_id": "6ba85179e30d4fc2"
+        }
+      }
+    },
+    {
+      "type": "vmess",
+      "tag": "🇸🇬-Singapore | VMESS+NONE+TLS | 793ms | UP | NATIVE",
+      "server": "82.21.80.224",
+      "server_port": 17310,
+      "uuid": "656920dc-ed05-4f41-8c49-bdff41e383a9",
+      "security": "auto",
+      "alter_id": 0,
+      "tls": {
+        "enabled": true,
+        "server_name": "viffes.shortanimedrama.space"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇬-Unknown | VLESS+TCP+REALITY | 853ms | UP | NATIVE",
+      "server": "8.222.196.37",
+      "server_port": 443,
+      "uuid": "5c183802-747d-4d2f-a6f1-aff2d5d78401",
+      "tls": {
+        "enabled": true,
+        "server_name": "get.adobe.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "DNdTBHyztOVJOBJQX91YXEhNkWbSAntqUoTFBHc6Clw",
+          "short_id": "6ba85179e30d4fc2"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 854ms | UP | NATIVE",
+      "server": "194.233.73.51",
+      "server_port": 14453,
+      "method": "chacha20-ietf-poly1305",
+      "password": "764a4d8c1c76eb50"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 913ms | UP | NATIVE | SEC:insecure_encryption_method",
+      "server": "68.183.235.122",
+      "server_port": 8080,
+      "method": "rc4-md5",
+      "password": "14fFPrbezE3HDZzsMOr6"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 984ms | UP | NATIVE",
+      "server": "154.26.132.38",
+      "server_port": 27884,
       "method": "chacha20-ietf-poly1305",
       "password": "ded718fcb2bb17b7"
     },
     {
       "type": "vless",
-      "tag": "🇸🇬-Unknown | VLESS+RAW+REALITY | 698ms | UP | NATIVE",
+      "tag": "🇸🇬-Unknown | VLESS+TCP+REALITY | 3359ms | UP | NATIVE",
       "server": "8.219.138.86",
       "server_port": 443,
       "uuid": "5c183802-747d-4d2f-a6f1-aff2d5d78401",
@@ -309,128 +490,39 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 704ms | UP | NATIVE | SEC:insecure_encryption_method",
-      "server": "68.183.227.236",
-      "server_port": 8080,
-      "method": "rc4-md5",
-      "password": "14fFPrbezE3HDZzsMOr6"
+      "tag": "🇸🇬-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 1164ms | UP | NATIVE",
+      "server": "103.36.91.32",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Unknown | SOCKS4+TCP | 1586ms | UP | NATIVE",
+      "server": "47.237.169.183",
+      "server_port": 1080,
+      "version": "4"
     },
     {
       "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 718ms | UP | NATIVE | SEC:insecure_encryption_method",
-      "server": "68.183.235.122",
-      "server_port": 8080,
-      "method": "rc4-md5",
-      "password": "14fFPrbezE3HDZzsMOr6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+RC4-MD5 | 772ms | UP | NATIVE | SEC:insecure_encryption_method",
-      "server": "128.199.172.224",
-      "server_port": 8080,
-      "method": "rc4-md5",
-      "password": "14fFPrbezE3HDZzsMOr6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+SS+RC4-MD5 | 851ms | UP | NATIVE | SEC:insecure_encryption_method",
-      "server": "68.183.227.45",
-      "server_port": 8080,
-      "method": "rc4-md5",
-      "password": "14fFPrbezE3HDZzsMOr6"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 926ms | UP | NATIVE",
-      "server": "194.233.73.51",
-      "server_port": 48803,
-      "method": "chacha20-ietf-poly1305",
-      "password": "7afa39016d5a409c"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 929ms | UP | NATIVE",
-      "server": "194.233.73.51",
-      "server_port": 48804,
-      "method": "chacha20-ietf-poly1305",
-      "password": "7afa39016d5a409c"
-    },
-    {
-      "type": "http",
-      "tag": "🇸🇬-Singapore | HTTP+TCP | 934ms | UP | NATIVE",
-      "server": "101.47.16.15",
-      "server_port": 7890,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 934ms | UP | NATIVE",
-      "server": "194.233.73.51",
-      "server_port": 48801,
-      "method": "chacha20-ietf-poly1305",
-      "password": "7afa39016d5a409c"
-    },
-    {
-      "type": "http",
-      "tag": "🇸🇬-Singapore | HTTP+TCP | 983ms | UP | NATIVE",
-      "server": "45.78.199.53",
-      "server_port": 7777,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 983ms | UP | NATIVE",
-      "server": "154.26.132.38",
-      "server_port": 27884,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ded718fcb2bb17b7"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Jurong_Town | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1406ms | UP | NATIVE",
-      "server": "38.89.142.56",
+      "tag": "🇸🇬-Jurong_Town | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1958ms | UP | NATIVE",
+      "server": "38.247.64.176",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4247ms | UP | NATIVE",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2229ms | UP | NATIVE",
       "server": "213.35.110.67",
-      "server_port": 10852,
+      "server_port": 10809,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 5419ms | UP | NATIVE",
-      "server": "157.245.62.153",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4130ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10808,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4661ms | UP | NATIVE",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 1588ms | UP | NATIVE",
       "server": "213.35.110.67",
       "server_port": 10819,
       "username": "",
@@ -438,55 +530,69 @@
       "version": "5"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Jurong_Town | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1497ms | UP | NATIVE",
+      "server": "38.89.142.56",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2767ms | UP | NATIVE",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 5224ms | UP | NATIVE",
       "server": "213.35.110.67",
-      "server_port": 10864,
+      "server_port": 10810,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4351ms | UP | NATIVE",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 1747ms | UP | NATIVE",
       "server": "213.35.110.67",
-      "server_port": 10850,
+      "server_port": 10814,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1028ms | UP | NATIVE",
+      "server": "154.26.132.38",
+      "server_port": 27882,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ded718fcb2bb17b7"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4593ms | UP | NATIVE",
+      "server": "213.35.110.67",
+      "server_port": 10807,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 3461ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10907,
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 3000ms | UP | NATIVE",
+      "server": "146.235.19.84",
+      "server_port": 10805,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4270ms | UP | NATIVE",
-      "server": "213.35.110.67",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2295ms | UP | NATIVE",
+      "server": "146.235.19.84",
       "server_port": 10801,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
-      "type": "http",
-      "tag": "🇸🇬-Singapore | HTTP+TCP | 2932ms | UP | NATIVE",
-      "server": "128.199.202.122",
-      "server_port": 80,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
       "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 4164ms | UP | NATIVE",
+      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 3026ms | UP | NATIVE",
       "server": "43.153.205.77",
       "server_port": 555,
       "username": "",
@@ -494,52 +600,17 @@
       "version": "5"
     },
     {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1375ms | UP | NATIVE",
-      "server": "194.233.73.51",
-      "server_port": 14453,
-      "method": "chacha20-ietf-poly1305",
-      "password": "764a4d8c1c76eb50"
-    },
-    {
       "type": "socks",
-      "tag": "🇸🇬-Unknown | SOCKS5+TCP | 3760ms | UP | NATIVE",
-      "server": "47.236.53.35",
-      "server_port": 1145,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2326ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10880,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 1923ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10921,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 1188ms | UP | NATIVE",
-      "server": "45.78.199.53",
-      "server_port": 7777,
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 5533ms | UP | NATIVE",
+      "server": "146.235.19.84",
+      "server_port": 10850,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "vless",
-      "tag": "🇸🇬-Singapore | VLESS+TCP+REALITY | 1032ms | UP | NATIVE",
+      "tag": "🇸🇬-Singapore | VLESS+TCP+REALITY | 1051ms | UP | NATIVE",
       "server": "5.34.176.2",
       "server_port": 443,
       "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
@@ -560,18 +631,74 @@
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 1385ms | UP | NATIVE",
-      "server": "43.133.32.76",
-      "server_port": 1777,
+      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 1409ms | UP | NATIVE",
+      "server": "128.199.202.122",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 4497ms | UP | NATIVE",
+      "server": "138.199.25.13",
+      "server_port": 3906,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 2536ms | UP | NATIVE",
+      "server": "23.249.27.167",
+      "server_port": 10808,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2392ms | UP | NATIVE",
+      "server": "213.35.110.67",
+      "server_port": 10805,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇸🇬-Singapore | VLESS+TCP+REALITY | 1899ms | UP | NATIVE",
+      "server": "8.219.75.210",
+      "server_port": 443,
+      "uuid": "5c183802-747d-4d2f-a6f1-aff2d5d78401",
+      "tls": {
+        "enabled": true,
+        "server_name": "j.6sc.co",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "DNdTBHyztOVJOBJQX91YXEhNkWbSAntqUoTFBHc6Clw",
+          "short_id": "6ba85179e30d4fc2"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2968ms | UP | NATIVE",
+      "server": "146.235.19.84",
+      "server_port": 10807,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "http",
-      "tag": "🇸🇬-Singapore | HTTP+TCP | 1171ms | UP | NATIVE",
-      "server": "128.199.202.122",
-      "server_port": 8080,
+      "tag": "🇸🇬-Singapore | HTTP+TCP | 1325ms | UP | NATIVE",
+      "server": "8.219.97.248",
+      "server_port": 80,
       "username": "",
       "password": "",
       "tls": {
@@ -580,7 +707,67 @@
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4389ms | UP | NATIVE",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 1498ms | UP | NATIVE",
+      "server": "146.235.19.84",
+      "server_port": 10808,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2455ms | UP | NATIVE",
+      "server": "146.235.19.84",
+      "server_port": 10800,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Singapore | SOCKS4+TCP | 1414ms | UP | NATIVE",
+      "server": "43.163.86.219",
+      "server_port": 20000,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4732ms | UP | NATIVE",
+      "server": "213.35.110.67",
+      "server_port": 10801,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇸🇬-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF | 1157ms | UP | NATIVE",
+      "server": "103.36.91.23",
+      "server_port": 8388,
+      "method": "chacha20-ietf",
+      "password": "asd123456"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 5754ms | UP | NATIVE",
+      "server": "146.235.19.84",
+      "server_port": 10888,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 1195ms | UP | NATIVE",
+      "server": "138.199.25.13",
+      "server_port": 3907,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "socks",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 5152ms | UP | NATIVE",
       "server": "213.35.110.67",
       "server_port": 10800,
       "username": "",
@@ -589,160 +776,18 @@
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4613ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10810,
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 5746ms | UP | NATIVE",
+      "server": "146.235.19.84",
+      "server_port": 10880,
       "username": "",
       "password": "",
       "version": "5"
     },
     {
       "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 3916ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10809,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4892ms | UP | NATIVE",
+      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 5137ms | UP | NATIVE",
       "server": "213.35.110.67",
       "server_port": 10811,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 3943ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10805,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 2750ms | UP | NATIVE",
-      "server": "34.124.190.108",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2291ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10919,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "http",
-      "tag": "🇸🇬-Singapore | HTTP+TCP | 1136ms | UP | NATIVE",
-      "server": "101.47.16.101",
-      "server_port": 7890,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Singapore | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1251ms | UP | NATIVE",
-      "server": "194.233.73.51",
-      "server_port": 48802,
-      "method": "chacha20-ietf-poly1305",
-      "password": "7afa39016d5a409c"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2990ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10872,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4645ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10846,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 1218ms | UP | NATIVE",
-      "server": "165.22.110.253",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2625ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10888,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS5+TCP | 1303ms | UP | NATIVE",
-      "server": "188.166.211.102",
-      "server_port": 1080,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 2087ms | UP | NATIVE",
-      "server": "146.235.19.84",
-      "server_port": 10801,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Singapore | SOCKS4+TCP | 1190ms | UP | NATIVE",
-      "server": "45.78.199.53",
-      "server_port": 7777,
-      "version": "4"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇸🇬-Jurong_Town | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1962ms | UP | NATIVE",
-      "server": "38.247.64.176",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4723ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10814,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "socks",
-      "tag": "🇸🇬-Loyang | SOCKS5+TCP | 4955ms | UP | NATIVE",
-      "server": "213.35.110.67",
-      "server_port": 10807,
       "username": "",
       "password": "",
       "version": "5"

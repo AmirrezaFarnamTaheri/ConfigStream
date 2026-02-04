@@ -39,10 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇵🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 494ms | UP | NATIVE",
-        "🇵🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 506ms | UP | NATIVE",
-        "🇵🇦-Panama_City | SOCKS4+TCP | 926ms | UP | NATIVE",
-        "🇵🇦-Unknown | HTTP+TCP | 3620ms | UP | NATIVE"
+        "🇵🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 465ms | UP | NATIVE",
+        "🇵🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 467ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -50,10 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇵🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 494ms | UP | NATIVE",
-        "🇵🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 506ms | UP | NATIVE",
-        "🇵🇦-Panama_City | SOCKS4+TCP | 926ms | UP | NATIVE",
-        "🇵🇦-Unknown | HTTP+TCP | 3620ms | UP | NATIVE"
+        "🇵🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 465ms | UP | NATIVE",
+        "🇵🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 467ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -61,37 +57,19 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇵🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 494ms | UP | NATIVE",
-      "server": "138.186.142.81",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇵🇦-Unknown | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 506ms | UP | NATIVE",
+      "tag": "🇵🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 465ms | UP | NATIVE",
       "server": "138.186.142.80",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
-      "type": "socks",
-      "tag": "🇵🇦-Panama_City | SOCKS4+TCP | 926ms | UP | NATIVE",
-      "server": "190.5.234.34",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "http",
-      "tag": "🇵🇦-Unknown | HTTP+TCP | 3620ms | UP | NATIVE",
-      "server": "45.229.56.64",
-      "server_port": 999,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
+      "type": "shadowsocks",
+      "tag": "🇵🇦-Unknown | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 467ms | UP | NATIVE",
+      "server": "138.186.142.81",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
     },
     {
       "type": "direct",
