@@ -39,14 +39,16 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇵🇭-Manila | VMESS+WS | 824ms | UP | NATIVE | SEC:tls_required",
-        "🇵🇭-Unknown | SOCKS5+TCP | 2544ms | UP | NATIVE",
-        "🇵🇭-Manila | HTTP+TCP | 3562ms | UP | NATIVE",
-        "🇵🇭-Unknown | VMESS+WS | 1112ms | UP | NATIVE",
-        "🇵🇭-Pasig | SOCKS4+TCP | 1516ms | UP | NATIVE",
-        "🇵🇭-Cainta | HTTP+TCP | 3212ms | UP | NATIVE",
-        "🇵🇭-Makati_City | SOCKS4+TCP | 4083ms | UP | NATIVE",
-        "🇵🇭-Unknown | SOCKS5+TCP | 2822ms | UP | NATIVE"
+        "🇵🇭-Unknown | VMESS+WS | 161ms | UP | NATIVE",
+        "🇵🇭-Manila | VMESS+WS | 880ms | UP | NATIVE | SEC:tls_required",
+        "🇵🇭-Unknown | SOCKS5+TCP | 3567ms | UP | NATIVE",
+        "🇵🇭-Cabanatuan_City | HTTP+TCP | 1137ms | UP | NATIVE",
+        "🇵🇭-Quezon_City | HTTP+TCP | 3160ms | UP | NATIVE",
+        "🇵🇭-Manila | HTTP+TCP | 4222ms | UP | NATIVE",
+        "🇵🇭-Quezon_City | HTTP+TCP | 5594ms | UP | NATIVE",
+        "🇵🇭-Unknown | SOCKS5+TCP | 1492ms | UP | NATIVE",
+        "🇵🇭-Valenzuela | HTTP+TCP | 2121ms | UP | NATIVE",
+        "🇵🇭-Makati_City | HTTP+TCP | 4805ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -54,14 +56,16 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇵🇭-Manila | VMESS+WS | 824ms | UP | NATIVE | SEC:tls_required",
-        "🇵🇭-Unknown | SOCKS5+TCP | 2544ms | UP | NATIVE",
-        "🇵🇭-Manila | HTTP+TCP | 3562ms | UP | NATIVE",
-        "🇵🇭-Unknown | VMESS+WS | 1112ms | UP | NATIVE",
-        "🇵🇭-Pasig | SOCKS4+TCP | 1516ms | UP | NATIVE",
-        "🇵🇭-Cainta | HTTP+TCP | 3212ms | UP | NATIVE",
-        "🇵🇭-Makati_City | SOCKS4+TCP | 4083ms | UP | NATIVE",
-        "🇵🇭-Unknown | SOCKS5+TCP | 2822ms | UP | NATIVE"
+        "🇵🇭-Unknown | VMESS+WS | 161ms | UP | NATIVE",
+        "🇵🇭-Manila | VMESS+WS | 880ms | UP | NATIVE | SEC:tls_required",
+        "🇵🇭-Unknown | SOCKS5+TCP | 3567ms | UP | NATIVE",
+        "🇵🇭-Cabanatuan_City | HTTP+TCP | 1137ms | UP | NATIVE",
+        "🇵🇭-Quezon_City | HTTP+TCP | 3160ms | UP | NATIVE",
+        "🇵🇭-Manila | HTTP+TCP | 4222ms | UP | NATIVE",
+        "🇵🇭-Quezon_City | HTTP+TCP | 5594ms | UP | NATIVE",
+        "🇵🇭-Unknown | SOCKS5+TCP | 1492ms | UP | NATIVE",
+        "🇵🇭-Valenzuela | HTTP+TCP | 2121ms | UP | NATIVE",
+        "🇵🇭-Makati_City | HTTP+TCP | 4805ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -69,43 +73,7 @@
     },
     {
       "type": "vmess",
-      "tag": "🇵🇭-Manila | VMESS+WS | 824ms | UP | NATIVE | SEC:tls_required",
-      "server": "61.245.11.60",
-      "server_port": 80,
-      "uuid": "a3e3a710-79f8-4ae0-b83c-607aab40d197",
-      "security": "auto",
-      "alter_id": 0,
-      "transport": {
-        "type": "ws",
-        "path": "/vmess/",
-        "headers": {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      }
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇭-Unknown | SOCKS5+TCP | 2544ms | UP | NATIVE",
-      "server": "103.239.200.226",
-      "server_port": 11,
-      "username": "",
-      "password": "",
-      "version": "5"
-    },
-    {
-      "type": "http",
-      "tag": "🇵🇭-Manila | HTTP+TCP | 3562ms | UP | NATIVE",
-      "server": "8.220.188.140",
-      "server_port": 8080,
-      "username": "",
-      "password": "",
-      "tls": {
-        "enabled": false
-      }
-    },
-    {
-      "type": "vmess",
-      "tag": "🇵🇭-Unknown | VMESS+WS | 1112ms | UP | NATIVE",
+      "tag": "🇵🇭-Unknown | VMESS+WS | 161ms | UP | NATIVE",
       "server": "154.83.2.156",
       "server_port": 2086,
       "uuid": "92373ed1-78a8-4cbe-aa06-54af1edd0471",
@@ -121,17 +89,68 @@
       }
     },
     {
+      "type": "vmess",
+      "tag": "🇵🇭-Manila | VMESS+WS | 880ms | UP | NATIVE | SEC:tls_required",
+      "server": "61.245.11.60",
+      "server_port": 80,
+      "uuid": "a3e3a710-79f8-4ae0-b83c-607aab40d197",
+      "security": "auto",
+      "alter_id": 0,
+      "transport": {
+        "type": "ws",
+        "path": "/vmess/",
+        "headers": {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      }
+    },
+    {
       "type": "socks",
-      "tag": "🇵🇭-Pasig | SOCKS4+TCP | 1516ms | UP | NATIVE",
-      "server": "161.49.100.131",
-      "server_port": 1080,
-      "version": "4"
+      "tag": "🇵🇭-Unknown | SOCKS5+TCP | 3567ms | UP | NATIVE",
+      "server": "61.9.34.118",
+      "server_port": 58765,
+      "username": "",
+      "password": "",
+      "version": "5"
     },
     {
       "type": "http",
-      "tag": "🇵🇭-Cainta | HTTP+TCP | 3212ms | UP | NATIVE",
-      "server": "122.3.41.154",
-      "server_port": 8090,
+      "tag": "🇵🇭-Cabanatuan_City | HTTP+TCP | 1137ms | UP | NATIVE",
+      "server": "180.191.16.34",
+      "server_port": 8082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭-Quezon_City | HTTP+TCP | 3160ms | UP | NATIVE",
+      "server": "112.203.34.250",
+      "server_port": 8082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭-Manila | HTTP+TCP | 4222ms | UP | NATIVE",
+      "server": "8.220.188.140",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭-Quezon_City | HTTP+TCP | 5594ms | UP | NATIVE",
+      "server": "112.202.244.101",
+      "server_port": 5050,
       "username": "",
       "password": "",
       "tls": {
@@ -140,19 +159,34 @@
     },
     {
       "type": "socks",
-      "tag": "🇵🇭-Makati_City | SOCKS4+TCP | 4083ms | UP | NATIVE",
-      "server": "124.105.55.176",
-      "server_port": 30906,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇵🇭-Unknown | SOCKS5+TCP | 2822ms | UP | NATIVE",
-      "server": "61.9.34.118",
-      "server_port": 58765,
+      "tag": "🇵🇭-Unknown | SOCKS5+TCP | 1492ms | UP | NATIVE",
+      "server": "103.239.200.226",
+      "server_port": 11,
       "username": "",
       "password": "",
       "version": "5"
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭-Valenzuela | HTTP+TCP | 2121ms | UP | NATIVE",
+      "server": "115.147.20.176",
+      "server_port": 8082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭-Makati_City | HTTP+TCP | 4805ms | UP | NATIVE",
+      "server": "122.2.48.121",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
     },
     {
       "type": "direct",

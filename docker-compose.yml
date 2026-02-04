@@ -29,7 +29,7 @@ services:
       - ./data:/app/data # Persist GeoIP/Cache DBs
       - ./output:/app/output # Write results
       - ./sources:/app/sources # Read sources
-    # Simple shell loop to run pipeline every 5 hours
+    # Simple shell loop to run pipeline every 6 hours
     command: >
       sh -c "
       echo '🔄 Updating GeoIP databases via CLI...';
@@ -39,8 +39,8 @@ services:
       while true; do
         echo \"🚀 Starting Config's Stream...\";
         configstream merge --sources sources/batch_1.txt --output output/ --max-workers 30 --timeout 12 --strict;
-        echo '✅ Run Complete. Sleeping for 5 hours...';
-        sleep 18000;
+        echo '✅ Run Complete. Sleeping for 6 hours...';
+        sleep 21600;
       done"
     deploy:
       resources:

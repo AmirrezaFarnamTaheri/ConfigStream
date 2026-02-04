@@ -27,8 +27,20 @@ Three primary "Action Cards" dominate the view, tailored for the most popular us
     *   *Engine*: Sing-box (Rule Mode).
 
 *   **Universal Subscription**
-    *   *File*: `proxies.json` (or Base64 export)
-    *   *Purpose*: Compatibility. A standard list format that can be imported into almost any client (v2rayN, Shadowrocket, etc.).
+    *   *File*: `base64.txt` (or `proxies.json` for structured data)
+    *   *Purpose*: Compatibility. Base64 subscriptions work in most clients (v2rayN, Shadowrocket, etc.). `proxies.json` is intended for developers and analytics.
+
+*   **Smart Chains**
+    *   *File*: `singbox-chains.json`
+    *   *Purpose*: Prebuilt chain outbounds (revived + smart chains) for advanced routing and DPI-resistant paths.
+
+*   **Revived Proxies (JSON)**
+    *   *File*: `revived.json`
+    *   *Purpose*: Revived-only dataset for diagnostics and chaining workflows.
+
+*   **Full Dataset (JSON)**
+    *   *File*: `proxies.json`
+    *   *Purpose*: Full structured dataset for developers and analytics.
 
 #### 3. 3D Visualization (The Globe)
 *   **Technology**: `globe.gl` (WebGL).

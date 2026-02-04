@@ -39,16 +39,12 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇨🇭-Zurich | VLESS+TCP+REALITY | 384ms | UP | NATIVE",
-        "🇨🇭-Zurich | VLESS+TCP+REALITY | 410ms | UP | NATIVE",
-        "🇨🇭-Unknown | VLESS+TCP+REALITY | 422ms | UP | NATIVE",
-        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 472ms | UP | NATIVE",
-        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
-        "🇨🇭-Unknown | TROJAN+WS+TLS | 572ms | UP | NATIVE",
-        "🇨🇭-Unknown | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
-        "🇨🇭-Unknown | TROJAN+WS+TLS | 577ms | UP | NATIVE",
-        "🇨🇭-Unknown | VLESS+WS+TLS | 681ms | UP | NATIVE",
-        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 701ms | UP | NATIVE"
+        "🇨🇭-Unknown | VLESS+TCP+REALITY | 399ms | UP | NATIVE",
+        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 452ms | UP | NATIVE",
+        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 468ms | UP | NATIVE",
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 489ms | UP | NATIVE",
+        "🇨🇭-Zurich | VLESS+TCP+REALITY | 492ms | UP | NATIVE",
+        "🇨🇭-Unknown | VLESS+WS+TLS | 616ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -56,16 +52,12 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇨🇭-Zurich | VLESS+TCP+REALITY | 384ms | UP | NATIVE",
-        "🇨🇭-Zurich | VLESS+TCP+REALITY | 410ms | UP | NATIVE",
-        "🇨🇭-Unknown | VLESS+TCP+REALITY | 422ms | UP | NATIVE",
-        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 472ms | UP | NATIVE",
-        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
-        "🇨🇭-Unknown | TROJAN+WS+TLS | 572ms | UP | NATIVE",
-        "🇨🇭-Unknown | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
-        "🇨🇭-Unknown | TROJAN+WS+TLS | 577ms | UP | NATIVE",
-        "🇨🇭-Unknown | VLESS+WS+TLS | 681ms | UP | NATIVE",
-        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 701ms | UP | NATIVE"
+        "🇨🇭-Unknown | VLESS+TCP+REALITY | 399ms | UP | NATIVE",
+        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 452ms | UP | NATIVE",
+        "🇨🇭-Rümlang | VLESS+TCP+REALITY | 468ms | UP | NATIVE",
+        "🇨🇭-Unknown | TROJAN+WS+TLS | 489ms | UP | NATIVE",
+        "🇨🇭-Zurich | VLESS+TCP+REALITY | 492ms | UP | NATIVE",
+        "🇨🇭-Unknown | VLESS+WS+TLS | 616ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -73,49 +65,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇨🇭-Zurich | VLESS+TCP+REALITY | 384ms | UP | NATIVE",
-      "server": "178.17.62.16",
-      "server_port": 9443,
-      "uuid": "7a826f5a-9f69-4cd8-8dbc-c32e090eecfc",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "google.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "SS3PlIUow2NHdz1aklglEzVVIsmIzjMhdrLm5jVV51c",
-          "short_id": "0123456789abcdef"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇨🇭-Zurich | VLESS+TCP+REALITY | 410ms | UP | NATIVE",
-      "server": "144.31.94.99",
-      "server_port": 443,
-      "uuid": "bbed94d9-1120-4b54-8a9c-72d81e411fb8",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "google.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "-1F5A8N32UdC6w2NqnAc5-GkQW1dgcrImiQPl4WRikk",
-          "short_id": "ef0b40e707663781"
-        }
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇨🇭-Unknown | VLESS+TCP+REALITY | 422ms | UP | NATIVE",
+      "tag": "🇨🇭-Unknown | VLESS+TCP+REALITY | 399ms | UP | NATIVE",
       "server": "199.68.196.108",
       "server_port": 8443,
       "uuid": "9c42819a-67a6-4742-9c6d-64900ba62160",
@@ -136,7 +86,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇨🇭-Rümlang | VLESS+TCP+REALITY | 472ms | UP | NATIVE",
+      "tag": "🇨🇭-Rümlang | VLESS+TCP+REALITY | 452ms | UP | NATIVE",
       "server": "179.43.191.99",
       "server_port": 443,
       "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
@@ -157,10 +107,10 @@
     },
     {
       "type": "vless",
-      "tag": "🇨🇭-Rümlang | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
-      "server": "179.43.191.101",
+      "tag": "🇨🇭-Rümlang | VLESS+TCP+REALITY | 468ms | UP | NATIVE",
+      "server": "179.43.191.100",
       "server_port": 443,
-      "uuid": "ba77276e-9939-4c6c-a73e-90e02b6faf13",
+      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
@@ -171,14 +121,14 @@
         },
         "reality": {
           "enabled": true,
-          "public_key": "llaiqC-oIhL_bjc236FPq26LSn7IVhIa4cIC6OVytws",
-          "short_id": "f79448a30d"
+          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
+          "short_id": "175d"
         }
       }
     },
     {
       "type": "trojan",
-      "tag": "🇨🇭-Unknown | TROJAN+WS+TLS | 572ms | UP | NATIVE",
+      "tag": "🇨🇭-Unknown | TROJAN+WS+TLS | 489ms | UP | NATIVE",
       "server": "185.18.250.245",
       "server_port": 443,
       "password": "humanity",
@@ -197,48 +147,28 @@
     },
     {
       "type": "vless",
-      "tag": "🇨🇭-Unknown | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
-      "server": "138.124.64.139",
-      "server_port": 5005,
-      "uuid": "c4bfda4b-0652-45a2-86ee-d627e5a2d4a5",
+      "tag": "🇨🇭-Zurich | VLESS+TCP+REALITY | 492ms | UP | NATIVE",
+      "server": "144.31.94.99",
+      "server_port": 443,
+      "uuid": "bbed94d9-1120-4b54-8a9c-72d81e411fb8",
       "flow": "xtls-rprx-vision",
       "tls": {
         "enabled": true,
-        "server_name": "www.google.com",
+        "server_name": "google.com",
         "utls": {
           "enabled": true,
           "fingerprint": "chrome"
         },
         "reality": {
           "enabled": true,
-          "public_key": "1dg2pT6wdWNcW58YktWLFppghpVZE7hQ0KRw_mRztlk",
-          "short_id": ""
+          "public_key": "-1F5A8N32UdC6w2NqnAc5-GkQW1dgcrImiQPl4WRikk",
+          "short_id": "ef0b40e707663781"
         }
-      }
-    },
-    {
-      "type": "trojan",
-      "tag": "🇨🇭-Unknown | TROJAN+WS+TLS | 577ms | UP | NATIVE",
-      "server": "185.18.250.252",
-      "server_port": 443,
-      "password": "humanity",
-      "transport": {
-        "type": "ws",
-        "path": "/assignment",
-        "headers": {
-          "Host": "www.gossipglove.com",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-        }
-      },
-      "tls": {
-        "enabled": true,
-        "server_name": "www.gossipglove.com",
-        "insecure": true
       }
     },
     {
       "type": "vless",
-      "tag": "🇨🇭-Unknown | VLESS+WS+TLS | 681ms | UP | NATIVE",
+      "tag": "🇨🇭-Unknown | VLESS+WS+TLS | 616ms | UP | NATIVE",
       "server": "185.18.250.252",
       "server_port": 443,
       "uuid": "fef4a93d-eb4f-4657-b56b-32a0dc060045",
@@ -252,27 +182,6 @@
       "tls": {
         "enabled": true,
         "server_name": "dev.twistsparrow.xyz"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "🇨🇭-Rümlang | VLESS+TCP+REALITY | 701ms | UP | NATIVE",
-      "server": "179.43.191.100",
-      "server_port": 443,
-      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "hls-svod.itunes.apple.com",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
-          "short_id": "175d"
-        }
       }
     },
     {

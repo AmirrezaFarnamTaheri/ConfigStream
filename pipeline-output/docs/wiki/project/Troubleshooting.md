@@ -7,7 +7,7 @@ ConfigStream v2.0 introduces new components like the Go Scanner and Proxy Washer
 ### `Go Binary Not Found`
 If you see `WarpScannerWorker: Go binary not found`, the pipeline cannot find the compiled Go tester.
 *   **Fix:** Ensure you have compiled the binary: `cd src/go/tester && go build -o configstream-tester .`
-*   **CI:** Check `.github/workflows/pipeline.yml` to ensure the `build_go` step is running correctly.
+*   **CI:** Check `.github/workflows/main.yml` to ensure the `build_go` step is running correctly.
 
 ### `Washing Skipped: No WARP keys`
 This means the environment variable `WARP_KEY_POOL` is empty or malformed.
@@ -41,3 +41,4 @@ If analytics show zeros:
 If proxies tagged `🛡️ Secure` are not connecting:
 *   **Cause:** The Cloudflare endpoint might be blocked in your region, or the WARP key quota is exhausted.
 *   **Fix:** Try a different `clean_ip` or rotate WARP keys.
+

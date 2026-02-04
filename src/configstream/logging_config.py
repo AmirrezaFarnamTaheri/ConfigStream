@@ -116,9 +116,13 @@ class ColoredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         colour = self.COLOURS.get(record.levelno, "")
+        original_levelname = record.levelname
         if colour and sys.stdout.isatty():
             record.levelname = f"{colour}{record.levelname}{self.RESET}"
-        return super().format(record)
+        try:
+            return super().format(record)
+        finally:
+            record.levelname = original_levelname
 
 
 def _resolve_level(level: str) -> int:

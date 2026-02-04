@@ -10,6 +10,8 @@ import threading
 from pathlib import Path
 from typing import Optional, Tuple, Dict, Any, cast, List
 
+from configstream.security_validator import SecurityValidator
+
 logger = logging.getLogger(__name__)
 
 
@@ -172,16 +174,24 @@ class QualityStorage:
                 return row  # type: ignore
             except sqlite3.OperationalError as e:
                 # Database locked or table doesn't exist
-                logger.error(f"SQLite operational error getting state for {url}: {e}")
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.error(
+                    f"SQLite operational error getting state for {safe_url}: {safe_err}"
+                )
                 return None
             except sqlite3.DatabaseError as e:
                 # Database integrity errors
-                logger.error(f"SQLite database error for {url}: {e}")
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.error(f"SQLite database error for {safe_url}: {safe_err}")
                 return None
             except Exception as e:
                 # Unexpected errors
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
                 logger.exception(
-                    f"Unexpected error getting source state for {url}: {e}"
+                    f"Unexpected error getting source state for {safe_url}: {safe_err}"
                 )
                 return None
 
@@ -196,17 +206,25 @@ class QualityStorage:
                 return row[0] if row else 50.0
             except sqlite3.OperationalError as e:
                 # Database locked or table doesn't exist - return default
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
                 logger.debug(
-                    f"SQLite operational error getting trust score for {url}: {e}"
+                    f"SQLite operational error getting trust score for {safe_url}: {safe_err}"
                 )
                 return 50.0
             except sqlite3.DatabaseError as e:
                 # Database integrity errors - return default
-                logger.warning(f"SQLite database error for {url}: {e}")
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.warning(f"SQLite database error for {safe_url}: {safe_err}")
                 return 50.0
             except Exception as e:
                 # Unexpected errors - return default
-                logger.debug(f"Unexpected error getting trust score for {url}: {e}")
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.debug(
+                    f"Unexpected error getting trust score for {safe_url}: {safe_err}"
+                )
                 return 50.0
 
     def upsert_stats(self, url: str, stats: Dict[str, Any]):
@@ -288,7 +306,9 @@ class QualityStorage:
                     )
                 conn.commit()
             except Exception as e:
-                logger.error(f"Failed to update stats for {url}: {e}")
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.error(f"Failed to update stats for {safe_url}: {safe_err}")
 
     def record_run(self, url: str, run_data: Dict[str, Any]):
         """Record a single run detail."""
@@ -314,7 +334,9 @@ class QualityStorage:
                 )
                 conn.commit()
             except Exception as e:
-                logger.error(f"Failed to record run for {url}: {e}")
+                safe_url = SecurityValidator.sanitize_log_message(str(url))
+                safe_err = SecurityValidator.sanitize_log_message(str(e))
+                logger.error(f"Failed to record run for {safe_url}: {safe_err}")
 
     def get_worst_performing(self, limit: int = 5) -> list[Dict[str, Any]]:
         """

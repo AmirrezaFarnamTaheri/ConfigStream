@@ -135,6 +135,7 @@ class SingBoxTester:
                 for p in revived_candidates:
                     is_working = custom_results.get(p.id, False)
                     p.is_working = is_working
+                    p.tested_at = datetime.now(timezone.utc).isoformat()
                     if is_working:
                         # Use estimated latency instead of fixed 500ms
                         # Mark it as estimated so UI can show it

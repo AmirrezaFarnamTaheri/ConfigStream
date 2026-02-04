@@ -21,7 +21,7 @@ We believe that open-source tools must be transparent. By exposing the internal 
 
 #### 3. Latency Distribution (The Bell Curve)
 *   **Type**: Histogram.
-*   **Buckets**: <500ms, 500-1000ms, 1000-2000ms, >2000ms.
+*   **Buckets**: <200ms, 200-800ms, 800-2000ms, >2000ms.
 *   **Insight**: Demonstrates the quality of the "Refining" process. A left-skewed graph (towards lower latency) indicates a high-quality batch.
 
 #### 4. Top ISPs (Internet Service Providers)
@@ -34,6 +34,6 @@ We believe that open-source tools must be transparent. By exposing the internal 
 
 ## Technical Implementation
 
-*   **Data Source**: `metadata.json` (specifically the `stats` and `latency_distribution` fields).
+*   **Data Source**: `metadata.json` (`latency_distribution`, `latency_by_country`, `latency_by_protocol`, `protocols`, `country_stats`).
 *   **Responsiveness**: Charts automatically resize for mobile/desktop screens.
 *   **Interaction**: Tooltips provide exact counts and percentages on hover.

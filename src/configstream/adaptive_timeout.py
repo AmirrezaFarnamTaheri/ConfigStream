@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 from collections import defaultdict
 
+from .security_validator import SecurityValidator
+
 logger = logging.getLogger(__name__)
 
 
@@ -85,7 +87,8 @@ class AdaptiveTimeout:
                 # Evict oldest source (first key in dict - Python 3.7+ maintains insertion order)
                 oldest = next(iter(self.source_latencies))
                 del self.source_latencies[oldest]
-                logger.debug(f"Evicted oldest source {oldest} from latency tracking")
+                safe_source = SecurityValidator.sanitize_log_message(str(oldest))
+                logger.debug(f"Evicted oldest source {safe_source} from latency tracking")
 
             s_list = self.source_latencies[source]
             s_list.append(val)

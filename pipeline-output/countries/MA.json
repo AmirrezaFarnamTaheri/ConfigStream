@@ -39,9 +39,9 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇲🇦-Fes | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 370ms | UP | NATIVE",
-        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 706ms | UP | NATIVE",
-        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1754ms | UP | NATIVE"
+        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 385ms | UP | NATIVE",
+        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 389ms | UP | NATIVE",
+        "🇲🇦-Fes | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1014ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -49,9 +49,9 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇲🇦-Fes | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 370ms | UP | NATIVE",
-        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 706ms | UP | NATIVE",
-        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1754ms | UP | NATIVE"
+        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 385ms | UP | NATIVE",
+        "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 389ms | UP | NATIVE",
+        "🇲🇦-Fes | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1014ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -59,15 +59,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇦-Fes | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 370ms | UP | NATIVE",
-      "server": "154.70.207.97",
-      "server_port": 990,
-      "method": "chacha20-ietf-poly1305",
-      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 706ms | UP | NATIVE",
+      "tag": "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 385ms | UP | NATIVE",
       "server": "188.214.157.58",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -75,7 +67,15 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 1754ms | UP | NATIVE",
+      "tag": "🇲🇦-Fes | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 389ms | UP | NATIVE",
+      "server": "154.70.207.97",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇲🇦-Fes | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1014ms | UP | NATIVE",
       "server": "188.214.157.30",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",

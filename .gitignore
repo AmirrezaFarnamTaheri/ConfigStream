@@ -23,6 +23,7 @@ htmlcov/
 .coverage
 .hypothesis/
 .tmp/
+*.lock
 
 # Python generated files
 *.py[cod]
@@ -43,6 +44,7 @@ data/*.json
 
 # Prevent output bloat in source history
 reports/
+sources/backup_dynamic/
 
 # Logs
 *.log

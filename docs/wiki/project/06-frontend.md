@@ -6,7 +6,7 @@ The ConfigStream frontend is a **Progressive Web App (PWA)** designed for speed,
 
 *   **Framework**: Vanilla ES6+ JavaScript. No React, Vue, or Angular.
 *   **Styling**: Custom CSS variables for theming.
-*   **Data Source**: Static JSON files (`metadata.json`, `proxies.json`) fetched from the `output/` directory.
+*   **Data Source**: Static JSON files (`metadata.json`, `proxies.json`, `revived.json`, `singbox-chains.json`) fetched from the `output/` directory.
 
 ### The "Cache-First" Strategy (Service Worker)
 
@@ -50,14 +50,14 @@ When making changes to the frontend, you **must** adhere to these security pract
 
 ### 1. The Globe (`globe.gl`)
 A WebGL-based 3D globe visualization.
-*   **Data**: Latency distribution from `metadata.json`.
+*   **Data**: Latency distribution from `metadata.json` (`latency_distribution`, `latency_by_country`, `latency_by_protocol`).
 *   **Arcs**: Draws arcs from the user's estimated location to the proxy location.
 *   **Color Coding**: Green (Fast), Yellow (Medium), Red (Slow).
 
 ### 2. Analytics (`Chart.js`)
-*   **Protocol Distribution**: Doughnut chart.
-*   **Country Distribution**: Bar chart.
-*   **Latency Heatmap**: A scatter plot of Ping vs. Time.
+*   **Protocol Distribution**: Doughnut chart (`protocols`).
+*   **Country Distribution**: Bar chart (`country_stats`).
+*   **Latency Heatmap**: Average latency per country (`latency_by_country`).
 
 ### 3. Virtual Scrolling (The Proxy Table)
 Rendering 5,000 DOM elements (table rows) kills the browser.

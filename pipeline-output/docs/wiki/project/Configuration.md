@@ -20,6 +20,8 @@ ConfigStream is configured via Environment Variables.
 | `MAX_RESPONSE_SIZE` | `0` | Max fetch response size (bytes) (0 = unlimited). |
 | `GO_TESTER_BATCH_SIZE` | `0` | Go tester batch size (0 = no chunking). |
 | `PY_TESTER_BATCH_SIZE` | `0` | Python tester batch size (0 = no chunking). |
+| `SOURCE_PROBATION_FAILURES` | `3` | Consecutive failures before a source enters probation (cooldown) status. |
+| `SOURCE_DEAD_FAILURES` | `10` | Consecutive failures before a source is marked dead (skipped). |
 
 ## Intelligence Layer (v2.0)
 

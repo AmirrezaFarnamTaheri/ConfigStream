@@ -44,15 +44,12 @@ def calculate_compound_score(
         base *= stale_penalty
 
     if health_cache:
-        # Health score is 0-100 (higher better).
-        # We want to reduce 'base' (latency-like) if health is high?
-        # Or more simply: Sort Key = Latency / (HealthScore/100)^K
-        # If Health=100 (1.0), Key = Latency.
-        # If Health=50 (0.5), Key = Latency * 2 (penalized).
+        # Health score is 0.0-1.0 (higher better).
+        # We want to reduce 'base' (latency-like) if health is high.
+        # Sort Key = Latency / HealthScore (with a small floor to avoid div/0).
         h_score = health_cache.get_health_score(proxy)
-        # Avoid zero division
-        factor = max(h_score, 1.0) / 100.0
-        # Peninsula factor
+        # Avoid zero division; clamp to a small floor.
+        factor = max(h_score, 0.05)
         base = base / factor
 
     return base

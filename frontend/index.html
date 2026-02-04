@@ -128,7 +128,7 @@
             <section class="hero text-center">
                 <h1 style="--delay: 0.1s;" data-i18n="hero.title">Unlock the Internet</h1>
                 <p class="subtitle" style="--delay: 0.2s;">
-                    <span id="heroSubtitle" data-i18n-html="true">Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from <strong class="highlight-text">815</strong> sources every <strong class="highlight-text">5</strong> hours, ensuring you always have a reliable connection.</span>
+                    <span id="heroSubtitle" data-i18n-html="true">Access the open web with our free, auto-updating VPN configurations. We aggregate fresh proxies from <strong class="highlight-text">{sources}</strong> sources every <strong class="highlight-text">{hours}</strong> hours, ensuring you always have a reliable connection.</span>
                     <br>
                     <span data-i18n="hero.subtitle.powered" data-i18n-html="true">Powered by the <strong>Resilient Core</strong> hybrid engine with <strong>Vwarp Technology</strong>.</span>
                 </p>
@@ -320,7 +320,40 @@
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
-                                     </div>
+                                    </div>
+                                    <div class="download-card" style="--delay: 1.1s;">
+                                        <div class="download-icon"><i data-feather="shuffle"></i></div>
+                                        <div class="download-info">
+                                            <h3 class="download-title" data-i18n="downloads.chains">Smart Chains (Sing-box)</h3>
+                                            <p class="download-desc" data-i18n="downloads.chains.desc">Ready-to-use chain outbounds including revived and smart chains.</p>
+                                        </div>
+                                        <a href="singbox-chains.json" class="btn btn-primary" download="singbox-chains.json">
+                                            <i data-feather="download"></i>
+                                            <span data-i18n="downloads.download">Download</span>
+                                        </a>
+                                    </div>
+                                    <div class="download-card" style="--delay: 1.2s;">
+                                        <div class="download-icon"><i data-feather="database"></i></div>
+                                        <div class="download-info">
+                                            <h3 class="download-title" data-i18n="downloads.proxiesjson">Proxies Dataset (JSON)</h3>
+                                            <p class="download-desc" data-i18n="downloads.proxiesjson.desc">Full structured dataset for developers and analytics.</p>
+                                        </div>
+                                        <a href="proxies.json" class="btn btn-primary" download="proxies.json">
+                                            <i data-feather="download"></i>
+                                            <span data-i18n="downloads.download">Download</span>
+                                        </a>
+                                    </div>
+                                    <div class="download-card" style="--delay: 1.3s;">
+                                        <div class="download-icon"><i data-feather="refresh-cw"></i></div>
+                                        <div class="download-info">
+                                            <h3 class="download-title" data-i18n="downloads.revived">Revived Proxies (JSON)</h3>
+                                            <p class="download-desc" data-i18n="downloads.revived.desc">Revived-only dataset for chaining and diagnostics.</p>
+                                        </div>
+                                        <a href="revived.json" class="btn btn-primary" download="revived.json">
+                                            <i data-feather="download"></i>
+                                            <span data-i18n="downloads.download">Download</span>
+                                        </a>
+                                    </div>
                                      <!-- Raw Configs Download Card -->
                                      <div class="download-card" style="--delay: 1.1s;">
                                          <div class="download-icon"><i data-feather="file-text"></i></div>

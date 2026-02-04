@@ -24,7 +24,7 @@ This document provides a comprehensive overview of ConfigStream's architecture, 
 
 ## System Overview
 
-ConfigStream is an automated VPN configuration aggregator that collects, tests, and publishes working proxy configurations from free public sources. The system operates on a scheduled basis (every 5 hours) via GitHub Actions.
+ConfigStream is an automated VPN configuration aggregator that collects, tests, and publishes working proxy configurations from free public sources. The system operates on a scheduled basis (every 6 hours) via GitHub Actions.
 
 ### Key Characteristics
 
@@ -764,7 +764,7 @@ User Request
 │               GITHUB ACTIONS WORKFLOW                     │
 │                                                           │
 │  ┌────────────────────────────────────────────────────┐  │
-│  │  Trigger: Cron (*/5 * * * *) or Manual            │  │
+│  │  Trigger: Cron (*/6 * * * *) or Manual            │  │
 │  └────────────────────────────────────────────────────┘  │
 │                          │                               │
 │  ┌───────────────────────▼────────────────────────────┐  │
@@ -1111,7 +1111,7 @@ async def continuous_pipeline():
 
 ## Conclusion
 
-ConfigStream's architecture balances **simplicity**, **performance**, and **reliability**. The producer-consumer pipeline, async/await concurrency, and zero-cost deployment strategy enable processing thousands of proxies every 5 hours with minimal infrastructure.
+ConfigStream's architecture balances **simplicity**, **performance**, and **reliability**. The producer-consumer pipeline, async/await concurrency, and zero-cost deployment strategy enable processing thousands of proxies every 6 hours with minimal infrastructure.
 
 Key architectural decisions:
 - ✅ **Async/Await**: 50× better concurrency than threads

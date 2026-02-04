@@ -31,7 +31,7 @@ from .anomaly import AnomalyDetector
 from .security.blocklist import DEFAULT_BLOCKLIST
 from .performance import PerformanceTracker
 from .history.tracker import ProxyHistoryTracker
-from .filtering import dedupe_and_shuffle, filter_unique_endpoints
+from .filtering import dedupe_and_shuffle, filter_unique_endpoints, dedupe_by_config
 from .constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from .async_utils import safe_wait_for
 
@@ -391,8 +391,9 @@ async def run_full_pipeline(
 
         # 5. Final Cleanup & Output
 
-        # Deduplicate configs first, then deduplicate endpoints (IP:Port).
+        # Deduplicate configs first, then drop duplicate tags/remarks, then endpoints (IP:Port).
         optimized_proxies = dedupe_and_shuffle(final_proxies)
+        optimized_proxies = dedupe_by_config(optimized_proxies)
         if settings.ENABLE_ENDPOINT_FILTERING:
             optimized_proxies = filter_unique_endpoints(optimized_proxies)
         else:

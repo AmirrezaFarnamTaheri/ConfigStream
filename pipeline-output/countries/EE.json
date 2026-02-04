@@ -39,11 +39,21 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 358ms | UP | NATIVE",
-        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 369ms | UP | NATIVE",
-        "🇪🇪-Unknown | VLESS+TCP+REALITY | 479ms | UP | NATIVE",
-        "🇪🇪-Tallinn | VLESS+RAW+REALITY | 619ms | UP | NATIVE",
-        "🇪🇪-Unknown | VLESS+TCP+REALITY | 734ms | UP | NATIVE"
+        "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 344ms | UP | NATIVE",
+        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 366ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 386ms | UP | NATIVE",
+        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-GCM | 418ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 449ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+RAW+REALITY | 451ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 466ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 501ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 514ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 565ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 585ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 599ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 613ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 631ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 656ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -51,11 +61,21 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 358ms | UP | NATIVE",
-        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 369ms | UP | NATIVE",
-        "🇪🇪-Unknown | VLESS+TCP+REALITY | 479ms | UP | NATIVE",
-        "🇪🇪-Tallinn | VLESS+RAW+REALITY | 619ms | UP | NATIVE",
-        "🇪🇪-Unknown | VLESS+TCP+REALITY | 734ms | UP | NATIVE"
+        "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 344ms | UP | NATIVE",
+        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 366ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 386ms | UP | NATIVE",
+        "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-GCM | 418ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 449ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+RAW+REALITY | 451ms | UP | NATIVE",
+        "🇪🇪-Unknown | VLESS+TCP+REALITY | 466ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 501ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 514ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 565ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 585ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 599ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 613ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 631ms | UP | NATIVE",
+        "🇪🇪-Tallinn | VLESS+TCP+REALITY | 656ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -63,24 +83,52 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 358ms | UP | NATIVE",
-      "server": "185.193.49.88",
-      "server_port": 989,
-      "method": "aes-256-cfb",
-      "password": "f8f7aCzcPKbsF8p3"
-    },
-    {
-      "type": "shadowsocks",
-      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 369ms | UP | NATIVE",
+      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+SS+AES-256-CFB | 344ms | UP | NATIVE",
       "server": "188.214.36.155",
       "server_port": 989,
       "method": "aes-256-cfb",
       "password": "f8f7aCzcPKbsF8p3"
     },
     {
+      "type": "shadowsocks",
+      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-CFB | 366ms | UP | NATIVE",
+      "server": "185.193.49.88",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
       "type": "vless",
-      "tag": "🇪🇪-Unknown | VLESS+TCP+REALITY | 479ms | UP | NATIVE",
-      "server": "185.215.186.115",
+      "tag": "🇪🇪-Unknown | VLESS+TCP+REALITY | 386ms | UP | NATIVE",
+      "server": "185.73.125.42",
+      "server_port": 2053,
+      "uuid": "943c4137-e92e-4fd8-a3a1-b101f41f8f62",
+      "tls": {
+        "enabled": true,
+        "server_name": "cdn.yektanet.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "14CYRxjc3_NTNZPpIEWL3GiIxGX42Cgdtt4KLN8RoFs",
+          "short_id": "194ac11b09b5"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇪🇪-Tallinn | SHADOWSOCKS+TCP+AES-256-GCM | 418ms | UP | NATIVE",
+      "server": "38.180.216.114",
+      "server_port": 7307,
+      "method": "aes-256-gcm",
+      "password": "FoOiGlkAA9yPEGP"
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Unknown | VLESS+TCP+REALITY | 449ms | UP | NATIVE",
+      "server": "185.215.186.250",
       "server_port": 443,
       "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
       "flow": "xtls-rprx-vision",
@@ -100,7 +148,7 @@
     },
     {
       "type": "vless",
-      "tag": "🇪🇪-Tallinn | VLESS+RAW+REALITY | 619ms | UP | NATIVE",
+      "tag": "🇪🇪-Tallinn | VLESS+RAW+REALITY | 451ms | UP | NATIVE",
       "server": "87.121.86.31",
       "server_port": 57516,
       "uuid": "de2708c5-6e8e-4582-85ed-98f2554e5208",
@@ -121,8 +169,8 @@
     },
     {
       "type": "vless",
-      "tag": "🇪🇪-Unknown | VLESS+TCP+REALITY | 734ms | UP | NATIVE",
-      "server": "185.215.186.250",
+      "tag": "🇪🇪-Unknown | VLESS+TCP+REALITY | 466ms | UP | NATIVE",
+      "server": "185.215.186.115",
       "server_port": 443,
       "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
       "flow": "xtls-rprx-vision",
@@ -137,6 +185,174 @@
           "enabled": true,
           "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
           "short_id": "48720c"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 501ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "3ff03067-b0dd-4361-a21f-27bb9474b9b8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 514ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "5d91fed7-24fc-4ddf-80f1-589a1275035c",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 565ms | UP | NATIVE",
+      "server": "144.31.178.168",
+      "server_port": 443,
+      "uuid": "ce7f5e28-d72d-4006-8d70-f428a4721910",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tbankru.outlinekeys.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 585ms | UP | NATIVE",
+      "server": "144.31.178.168",
+      "server_port": 443,
+      "uuid": "f1870ac5-ab5f-4255-965d-4a0476cb0b1a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tbankru.outlinekeys.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 599ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "ce7f5e28-d72d-4006-8d70-f428a4721910",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 613ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "f1870ac5-ab5f-4255-965d-4a0476cb0b1a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 631ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "59edf6dc-b1f7-4017-8107-aae4f61a173c",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇪🇪-Tallinn | VLESS+TCP+REALITY | 656ms | UP | NATIVE",
+      "server": "144.31.178.150",
+      "server_port": 8080,
+      "uuid": "ca911bd2-e08f-42d8-aefb-3117494d3367",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
         }
       }
     },

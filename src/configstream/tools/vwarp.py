@@ -8,6 +8,9 @@ import os
 import hashlib
 import zipfile
 import stat
+import sys
+import platform
+import shlex
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
@@ -20,8 +23,10 @@ logger = logging.getLogger(__name__)
 
 # Constants for Vwarp binary management
 VWARP_VERSION = "v2.1.0"
-VWARP_SHA256 = "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7"
-VWARP_URL = f"https://github.com/voidr3aper-anon/Vwarp/releases/download/{VWARP_VERSION}/vwarp_linux-amd64.zip"
+VWARP_SHA256_AMD64 = "4b971ed3696ed607bf91000f379f6308459fd1dafa1beae14404a8b7ce068cf7"
+VWARP_ASSET_AMD64 = "vwarp_linux-amd64.zip"
+VWARP_ASSET_ARM64 = "vwarp_linux-arm64.zip"
+VWARP_RELEASE_BASE = "https://github.com/voidr3aper-anon/Vwarp/releases/download"
 
 
 class VwarpTool:
@@ -34,6 +39,49 @@ class VwarpTool:
         self.binary: Optional[str] = self._find_binary()
         self._tunnel_proc: Optional[asyncio.subprocess.Process] = None
         self._install_lock = asyncio.Lock()
+        self._help_text: Optional[str] = None
+
+    @staticmethod
+    def _is_supported_platform() -> bool:
+        """Vwarp binary is currently only available for Linux."""
+        return sys.platform.startswith("linux")
+
+    @staticmethod
+    def _platform_asset() -> Tuple[str, Optional[str]]:
+        """
+        Resolve the appropriate asset and checksum for this platform.
+        Returns (asset_name, sha256_or_none).
+        """
+        machine = (platform.machine() or "").lower()
+        if machine in ("x86_64", "amd64"):
+            return VWARP_ASSET_AMD64, VWARP_SHA256_AMD64
+        if machine in ("aarch64", "arm64"):
+            # SHA256 unknown for arm64 unless provided via env override.
+            return VWARP_ASSET_ARM64, None
+        # Default to amd64 asset for unknown Linux machines.
+        return VWARP_ASSET_AMD64, VWARP_SHA256_AMD64
+
+    @staticmethod
+    def _get_download_spec() -> Tuple[str, Optional[str], str]:
+        """
+        Resolve download URL and checksum.
+        Environment overrides:
+        - VWARP_VERSION
+        - VWARP_URL
+        - VWARP_SHA256
+        """
+        version = os.environ.get("VWARP_VERSION", VWARP_VERSION)
+        env_url = os.environ.get("VWARP_URL", "").strip()
+        env_sha = os.environ.get("VWARP_SHA256", "").strip()
+        asset_name, default_sha = VwarpTool._platform_asset()
+
+        if env_url:
+            url = env_url
+        else:
+            url = f"{VWARP_RELEASE_BASE}/{version}/{asset_name}"
+
+        checksum = env_sha or default_sha
+        return url, checksum or None, version
 
     def _find_binary(self) -> Optional[str]:
         """Locates the vwarp binary in PATH or common locations."""
@@ -61,6 +109,9 @@ class VwarpTool:
         Ensures Vwarp is installed. Downloads if missing.
         Returns True if installed/available, False otherwise.
         """
+        if not self._is_supported_platform():
+            logger.info("Vwarp install skipped: unsupported platform.")
+            return False
         if self.binary and Path(self.binary).exists():
             return True
 
@@ -70,8 +121,9 @@ class VwarpTool:
             if self.binary:
                 return True
 
+            url, checksum, version = self._get_download_spec()
             logger.info(
-                f"Vwarp binary not found. Attempting to download {VWARP_VERSION}..."
+                f"Vwarp binary not found. Attempting to download {version}..."
             )
 
             try:
@@ -92,22 +144,38 @@ class VwarpTool:
                         f"Cannot write to ~/.local/bin, installing to {target_path}"
                     )
 
-                logger.info(f"Downloading Vwarp from {VWARP_URL}")
+                logger.info(f"Downloading Vwarp from {url}")
 
                 async with httpx.AsyncClient(
                     follow_redirects=True, timeout=60.0
                 ) as client:
-                    resp = await client.get(VWARP_URL)
+                    resp = await client.get(url)
                     resp.raise_for_status()
                     content = resp.content
 
-                # Verify Checksum
-                digest = hashlib.sha256(content).hexdigest()
-                if digest != VWARP_SHA256:
-                    logger.error(
-                        f"Vwarp checksum mismatch! Expected {VWARP_SHA256}, got {digest}"
+                # Verify Checksum (if available)
+                if checksum:
+                    digest = hashlib.sha256(content).hexdigest()
+                    if digest != checksum:
+                        if os.environ.get("VWARP_SKIP_CHECKSUM", "").lower() in (
+                            "1",
+                            "true",
+                            "yes",
+                        ):
+                            logger.warning(
+                                "Vwarp checksum mismatch but VWARP_SKIP_CHECKSUM=true; "
+                                "continuing install."
+                            )
+                        else:
+                            logger.error(
+                                f"Vwarp checksum mismatch! Expected {checksum}, got {digest}"
+                            )
+                            return False
+                else:
+                    logger.warning(
+                        "Vwarp checksum not provided for this platform; "
+                        "set VWARP_SHA256 to enforce verification."
                     )
-                    return False
 
                 # Extract
                 with zipfile.ZipFile(BytesIO(content)) as zf:
@@ -137,6 +205,7 @@ class VwarpTool:
                 os.chmod(target_path, st.st_mode | stat.S_IEXEC)
 
                 self.binary = str(target_path)
+                self._help_text = None
 
                 # Verify it runs
                 proc = await asyncio.create_subprocess_exec(
@@ -162,23 +231,97 @@ class VwarpTool:
 
     async def is_available(self) -> bool:
         """Quick health check."""
-        # CI Check: Disable unless forced
-        is_ci = os.environ.get("CI") == "true"
+        if self.binary:
+            if not self._is_supported_platform():
+                logger.debug(
+                    "Vwarp binary found on unsupported platform; skipping platform gate."
+                )
+                return True
+            if Path(self.binary).exists():
+                if await self._verify_binary():
+                    return True
+                logger.warning("Existing Vwarp binary failed health check. Reinstalling.")
+                self.binary = None
+                self._help_text = None
 
-        # Lazy import to avoid circular dependency
-        from configstream.config import AppSettings
-
-        force_scanner = AppSettings().FORCE_SCANNER
-
-        if is_ci and not force_scanner:
-            logger.debug("Vwarp disabled in CI environment (FORCE_SCANNER not set).")
+        if not self._is_supported_platform():
+            logger.debug("Vwarp unavailable: unsupported platform.")
             return False
-
-        if self.binary and Path(self.binary).exists():
-            return True
 
         # Attempt installation if missing
         return await self.ensure_installed()
+
+    async def _verify_binary(self) -> bool:
+        """Verify the existing binary executes properly."""
+        if not self.binary:
+            return False
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                self.binary,
+                "version",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode == 0:
+                return True
+            if stderr:
+                logger.error(f"Vwarp version check failed: {stderr.decode(errors='ignore')}")
+            elif stdout:
+                logger.error(f"Vwarp version check failed: {stdout.decode(errors='ignore')}")
+            return False
+        except Exception as exc:
+            logger.error(f"Vwarp version check error: {exc}")
+            return False
+
+    async def _get_help_text(self) -> str:
+        """Fetch and cache help text to detect supported flags."""
+        if self._help_text is not None:
+            return self._help_text
+        if not self.binary:
+            self._help_text = ""
+            return self._help_text
+        for args in (["--help"], ["-h"]):
+            try:
+                proc = await asyncio.create_subprocess_exec(
+                    self.binary,
+                    *args,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                )
+                stdout, stderr = await proc.communicate()
+                text = (stdout or b"") + (stderr or b"")
+                if text:
+                    self._help_text = text.decode(errors="ignore")
+                    return self._help_text
+            except Exception:
+                continue
+        self._help_text = ""
+        return self._help_text
+
+    async def _build_tunnel_command(self, bind_addr: str, port: int) -> List[str]:
+        """Build the best available tunnel command for the detected Vwarp version."""
+        if not self.binary:
+            return []
+
+        bind_value = f"{bind_addr}:{port}"
+        env_args = os.environ.get("VWARP_TUNNEL_ARGS", "").strip()
+        if env_args:
+            expanded = env_args.replace("{bind}", bind_value)
+            return [self.binary] + shlex.split(expanded)
+
+        help_text = await self._get_help_text()
+        if "--bind" in help_text:
+            return [self.binary, "--bind", bind_value]
+        if "--socks5" in help_text:
+            return [self.binary, "--socks5", bind_value]
+        if "--socks" in help_text:
+            return [self.binary, "--socks", bind_value]
+        if "--listen" in help_text:
+            return [self.binary, "--listen", bind_value]
+
+        # Fallback to historical flag
+        return [self.binary, "--bind", bind_value]
 
     async def scan_endpoints(self, rtt_limit: str = "800ms") -> List[Tuple[str, int]]:
         """
@@ -303,6 +446,14 @@ class VwarpTool:
                 logger.error(
                     f"Vwarp process died with code {self._tunnel_proc.returncode} while waiting for port."
                 )
+                try:
+                    stdout, stderr = await self._tunnel_proc.communicate()
+                    if stdout:
+                        logger.error(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
+                    if stderr:
+                        logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                except Exception:
+                    pass
                 return False
 
             try:
@@ -334,7 +485,10 @@ class VwarpTool:
             # Already running
             return True
 
-        cmd: List[str] = [self.binary, "--bind", f"{bind_addr}:{port}"]
+        cmd = await self._build_tunnel_command(bind_addr, port)
+        if not cmd:
+            logger.error("Vwarp tunnel command could not be constructed.")
+            return False
         try:
             logger.info(f"🚀 Starting Vwarp SOCKS5 Tunnel on {bind_addr}:{port}...")
             # Capture stdout/stderr for debugging if it fails
@@ -343,6 +497,16 @@ class VwarpTool:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
+
+            # Check for immediate failure and capture logs
+            await asyncio.sleep(0.5)
+            if self._tunnel_proc.returncode is not None:
+                stdout, stderr = await self._tunnel_proc.communicate()
+                if stdout:
+                    logger.error(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
+                if stderr:
+                    logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                return False
 
             # Robust port checking
             is_ready = await self._wait_for_port(bind_addr, port)

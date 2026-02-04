@@ -39,11 +39,12 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 391ms | UP | NATIVE",
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 584ms | UP | NATIVE",
-        "🇦🇱-Tirana | VMESS+WS | 708ms | UP | NATIVE | SEC:tls_required",
-        "🇦🇱-Tirana | SOCKS4+TCP | 3631ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 4585ms | UP | NATIVE"
+        "🇦🇱-Unknown | TROJAN+TCP+TLS | 386ms | UP | NATIVE",
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 387ms | UP | NATIVE",
+        "🇦🇱-Tirana | VMESS+WS | 570ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5046ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 2955ms | UP | NATIVE",
+        "🇦🇱-Elbasan | SOCKS4+TCP | 4402ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -51,19 +52,32 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 391ms | UP | NATIVE",
-        "🇦🇱-Unknown | VLESS+TCP+REALITY | 584ms | UP | NATIVE",
-        "🇦🇱-Tirana | VMESS+WS | 708ms | UP | NATIVE | SEC:tls_required",
-        "🇦🇱-Tirana | SOCKS4+TCP | 3631ms | UP | NATIVE",
-        "🇦🇱-Tirana | SOCKS4+TCP | 4585ms | UP | NATIVE"
+        "🇦🇱-Unknown | TROJAN+TCP+TLS | 386ms | UP | NATIVE",
+        "🇦🇱-Unknown | VLESS+TCP+REALITY | 387ms | UP | NATIVE",
+        "🇦🇱-Tirana | VMESS+WS | 570ms | UP | NATIVE | SEC:tls_required",
+        "🇦🇱-Tirana | SOCKS4+TCP | 5046ms | UP | NATIVE",
+        "🇦🇱-Tirana | SOCKS4+TCP | 2955ms | UP | NATIVE",
+        "🇦🇱-Elbasan | SOCKS4+TCP | 4402ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
       "tolerance": 50
     },
     {
+      "type": "trojan",
+      "tag": "🇦🇱-Unknown | TROJAN+TCP+TLS | 386ms | UP | NATIVE",
+      "server": "78.159.131.12",
+      "server_port": 28259,
+      "password": "MeaDiUmPlkWbZJ2BON8tz",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "insecure": true
+      }
+    },
+    {
       "type": "vless",
-      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 391ms | UP | NATIVE",
+      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 387ms | UP | NATIVE",
       "server": "78.159.131.51",
       "server_port": 443,
       "uuid": "40ecece1-edd9-4543-99c7-529ee594135d",
@@ -82,29 +96,8 @@
       }
     },
     {
-      "type": "vless",
-      "tag": "🇦🇱-Unknown | VLESS+TCP+REALITY | 584ms | UP | NATIVE",
-      "server": "78.159.131.5",
-      "server_port": 443,
-      "uuid": "83dd438b-357b-4060-a633-52e9714afabe",
-      "flow": "xtls-rprx-vision",
-      "tls": {
-        "enabled": true,
-        "server_name": "al.cdn.stun.su",
-        "utls": {
-          "enabled": true,
-          "fingerprint": "chrome"
-        },
-        "reality": {
-          "enabled": true,
-          "public_key": "su3dq3BDLDkX-jIjq3GyVUXwqzD7CNVYzKtOcO4HQ24",
-          "short_id": "c643c0d6e9222005"
-        }
-      }
-    },
-    {
       "type": "vmess",
-      "tag": "🇦🇱-Tirana | VMESS+WS | 708ms | UP | NATIVE | SEC:tls_required",
+      "tag": "🇦🇱-Tirana | VMESS+WS | 570ms | UP | NATIVE | SEC:tls_required",
       "server": "45.15.170.237",
       "server_port": 80,
       "uuid": "820d4b4f-3357-4dc7-9381-6e5fd52b5f39",
@@ -120,16 +113,23 @@
     },
     {
       "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 3631ms | UP | NATIVE",
-      "server": "80.78.74.8",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 5046ms | UP | NATIVE",
+      "server": "80.78.73.142",
       "server_port": 65530,
       "version": "4"
     },
     {
       "type": "socks",
-      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 4585ms | UP | NATIVE",
-      "server": "80.78.73.120",
+      "tag": "🇦🇱-Tirana | SOCKS4+TCP | 2955ms | UP | NATIVE",
+      "server": "80.78.77.52",
       "server_port": 65530,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇦🇱-Elbasan | SOCKS4+TCP | 4402ms | UP | NATIVE",
+      "server": "37.26.86.206",
+      "server_port": 4145,
       "version": "4"
     },
     {

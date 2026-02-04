@@ -135,6 +135,37 @@ async def generate_pipeline_outputs(
         generated_files["revived"] = revived_path
 
     # 5. Metadata & Stats
+    # Track total unique chain outbounds (revived + washed + smart chains)
+    chain_outbounds: List[dict] = []
+    seen_tags: set[str] = set()
+
+    def _append_chain(outbounds: List[dict]) -> None:
+        for outbound in outbounds:
+            if not isinstance(outbound, dict):
+                continue
+            tag = outbound.get("tag")
+            if tag and tag in seen_tags:
+                continue
+            chain_outbounds.append(outbound)
+            if tag:
+                seen_tags.add(tag)
+
+    for proxy in optimized_proxies:
+        chain = proxy.details.get("chain_outbounds")
+        if isinstance(chain, list) and chain:
+            _append_chain(chain)
+
+    if washed_outbounds:
+        _append_chain(washed_outbounds)
+
+    if smart_chains:
+        for chain_list in smart_chains.values():
+            for chain in chain_list:
+                if isinstance(chain, list) and chain:
+                    _append_chain(chain)
+
+    stats.chain_outbounds_count = len(chain_outbounds)
+
     stats_dict = await stats.to_dict()
 
     await loop.run_in_executor(

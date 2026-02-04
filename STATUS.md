@@ -29,7 +29,7 @@
 - **Status**: ✅ Production Deployed
 - **Deployment**: GitHub Pages + Actions
 - **Uptime**: 99.8%
-- **Update Frequency**: Every 5 hours (automated)
+- **Update Frequency**: Every 6 hours (automated)
 
 ### Key Metrics
 - **Active Proxies**: 10,000+ (Verified)
@@ -51,7 +51,7 @@
 ### Latest Builds
 | Workflow | Status | Last Run |
 |----------|--------|----------|
-| Config's Stream | ✅ Passing | Auto (every 5h) |
+| Config's Stream | ✅ Passing | Auto (every 6h) |
 | Docker Build | ✅ Passing | On push |
 | GitHub Pages Deploy | ✅ Active | On pipeline success |
 

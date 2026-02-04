@@ -8,6 +8,7 @@ from ..models import Proxy
 from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
 from ..utils.bool_parser import parse_bool, parse_tls_flag
+from ..tagging import get_flag_emoji
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +62,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
     if proxy.remarks and proxy.remarks.lower() not in ["", "defaultproxyname", "none"]:
         tag = proxy.remarks
     else:
-        tag = f"{proxy.protocol}-{proxy.country_code}-{proxy.id[:8]}"
+        flag = get_flag_emoji(proxy.country_code)
+        tag = f"{flag}-{proxy.protocol}-{proxy.id[:8]}"
 
     base: Dict[str, Any] = {
         "tag": tag,

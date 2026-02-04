@@ -3,6 +3,7 @@ import logging
 from typing import Any, Optional
 import urllib.parse
 from ..models import Proxy
+from ..tagging import get_flag_emoji
 
 logger = logging.getLogger(__name__)
 
@@ -60,12 +61,14 @@ def to_uri(proxy: Proxy) -> Optional[str]:
             b64_userinfo = (
                 base64.urlsafe_b64encode(userinfo.encode()).decode().rstrip("=")
             )
-            return f"ss://{b64_userinfo}@{proxy.address}:{proxy.port}#{urllib.parse.quote(proxy.country_code)}"
+            name = proxy.remarks or get_flag_emoji(proxy.country_code) or proxy.country_code
+            return f"ss://{b64_userinfo}@{proxy.address}:{proxy.port}#{urllib.parse.quote(name)}"
 
         elif proxy.protocol == "trojan":
             # trojan://password@host:port#name
             password = proxy.uuid
-            return f"trojan://{password}@{proxy.address}:{proxy.port}#{urllib.parse.quote(proxy.country_code)}"
+            name = proxy.remarks or get_flag_emoji(proxy.country_code) or proxy.country_code
+            return f"trojan://{password}@{proxy.address}:{proxy.port}#{urllib.parse.quote(name)}"
 
         elif proxy.protocol in ["vmess", "vless"]:
             # These are complex JSONs usually, or complex URIs

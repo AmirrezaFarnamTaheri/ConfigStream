@@ -26,6 +26,7 @@ async def fetch_single_source(
     Executes a single fetch attempt with strict size limits and error mapping.
     """
     try:
+        enforce_limit = max_response_size > 0
         # Streaming Request to enforce size limit
         # We assume standard streaming as hedging is complex to stream
         async with client.stream(
@@ -48,10 +49,15 @@ async def fetch_single_source(
 
             # Content Length Header Check
             content_len_header = response.headers.get("Content-Length")
-            if content_len_header and int(content_len_header) > max_response_size:
-                raise ValueError(
-                    f"Response too large (header): {content_len_header} bytes"
-                )
+            if enforce_limit and content_len_header:
+                try:
+                    if int(content_len_header) > max_response_size:
+                        raise ValueError(
+                            f"Response too large (header): {content_len_header} bytes"
+                        )
+                except ValueError:
+                    # If header is malformed, ignore and rely on streamed size checks.
+                    pass
 
             # Stream Content (Binary)
             content_parts = []
@@ -60,7 +66,7 @@ async def fetch_single_source(
             async for chunk in response.aiter_bytes():
                 chunk_len = len(chunk)
                 current_size += chunk_len
-                if current_size > max_response_size:
+                if enforce_limit and current_size > max_response_size:
                     raise ValueError(
                         f"Response too large (streamed): >{max_response_size} bytes"
                     )

@@ -318,6 +318,7 @@ def update_databases():
     console.print("[yellow]Downloading GeoIP databases...[/yellow]")
 
     from .config import AppSettings
+    from .security_validator import SecurityValidator
 
     license_key = AppSettings().MAXMIND_LICENSE_KEY
 
@@ -333,11 +334,12 @@ def update_databases():
     }
 
     def stream_download(url: str, target: Path) -> bool:
+        safe_url = SecurityValidator.sanitize_log_message(url)
         try:
             with requests.get(url, stream=True, timeout=120) as resp:
                 if resp.status_code != 200:
                     console.print(
-                        f"[red]HTTP {resp.status_code} while fetching {url}[/red]"
+                        f"[red]HTTP {resp.status_code} while fetching {safe_url}[/red]"
                     )
                     return False
                 with target.open("wb") as f:
@@ -346,10 +348,12 @@ def update_databases():
                             f.write(chunk)
             return target.exists() and target.stat().st_size > 0
         except requests.RequestException as exc:
-            console.print(f"[red]Request error for {url}: {exc}[/red]")
+            safe_exc = SecurityValidator.sanitize_log_message(str(exc))
+            console.print(f"[red]Request error for {safe_url}: {safe_exc}[/red]")
             return False
         except Exception as exc:  # pragma: no cover - best effort logging
-            console.print(f"[red]Unexpected error for {url}: {exc}[/red]")
+            safe_exc = SecurityValidator.sanitize_log_message(str(exc))
+            console.print(f"[red]Unexpected error for {safe_url}: {safe_exc}[/red]")
             return False
 
     def download_from_maxmind(edition: str, target: Path) -> bool:

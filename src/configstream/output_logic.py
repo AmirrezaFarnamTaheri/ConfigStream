@@ -353,6 +353,10 @@ def save_metadata(
     protocols: Dict[str, int] = {}
     countries: Dict[str, int] = {}
     asns: Dict[str, int] = {}
+    latency_by_country_sum: Dict[str, float] = {}
+    latency_by_country_count: Dict[str, int] = {}
+    latency_by_protocol_sum: Dict[str, float] = {}
+    latency_by_protocol_count: Dict[str, int] = {}
     warp_count_heuristic = 0
     relay_count_heuristic = 0
 
@@ -379,6 +383,18 @@ def save_metadata(
         # Country count
         cc = p.country_code if p.country_code else "XX"
         countries[cc] = countries.get(cc, 0) + 1
+
+        # Latency by country/protocol (avg)
+        if p.latency is not None:
+            latency_by_country_sum[cc] = latency_by_country_sum.get(cc, 0.0) + p.latency
+            latency_by_country_count[cc] = latency_by_country_count.get(cc, 0) + 1
+            proto_key = p.protocol or "unknown"
+            latency_by_protocol_sum[proto_key] = (
+                latency_by_protocol_sum.get(proto_key, 0.0) + p.latency
+            )
+            latency_by_protocol_count[proto_key] = (
+                latency_by_protocol_count.get(proto_key, 0) + 1
+            )
 
         # ASN count
         if p.asn:
@@ -412,6 +428,7 @@ def save_metadata(
     geo_resolved = 0
     cache_misses = 0
     final_count = 0
+    chain_outbounds_count = 0
     time_limited = False
     time_limit_seconds = 0
 
@@ -451,6 +468,7 @@ def save_metadata(
         geo_resolved = stats.get("geo_resolved", 0)
         cache_misses = stats.get("cache_misses", 0)
         final_count = stats.get("final_count", 0)
+        chain_outbounds_count = stats.get("chain_outbounds_count", 0)
         time_limited = bool(stats.get("time_limited", False))
         time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
     else:
@@ -497,6 +515,8 @@ def save_metadata(
             cache_misses = stats.cache_misses
         if hasattr(stats, "final_count"):
             final_count = stats.final_count
+        if hasattr(stats, "chain_outbounds_count"):
+            chain_outbounds_count = stats.chain_outbounds_count
         if hasattr(stats, "time_limited"):
             time_limited = bool(stats.time_limited)
         if hasattr(stats, "time_limit_seconds"):
@@ -518,8 +538,19 @@ def save_metadata(
     except Exception:
         pkg_version = "unknown"
 
-    # Calculate update interval (default 5 hours for production)
+    # Calculate update interval (default 6 hours for production)
     update_interval_hours = AppSettings().UPDATE_INTERVAL_HOURS
+
+    latency_by_country = {
+        cc: round(latency_by_country_sum[cc] / latency_by_country_count[cc])
+        for cc in latency_by_country_sum
+        if latency_by_country_count.get(cc)
+    }
+    latency_by_protocol = {
+        proto: round(latency_by_protocol_sum[proto] / latency_by_protocol_count[proto])
+        for proto in latency_by_protocol_sum
+        if latency_by_protocol_count.get(proto)
+    }
 
     # Compute total_revived properly from both WARP and Vwarp
     total_revived_count = revived_warp + revived_vwarp
@@ -554,6 +585,7 @@ def save_metadata(
         "latency_distribution": lat_dist,
         "protocols": protocols,
         "country_stats": countries,
+        "countries": countries,  # Backward compatibility for statistics.js
         "rejection_reasons": reasons,
         "asns": asns,
         "isp_stats": asns,  # Alias for legacy tests
@@ -573,6 +605,7 @@ def save_metadata(
         "scanner_ips_found": scanner_ips_found,
         "washer_success_count": washed_count,
         "smart_chain_count": smart_chain_count,
+        "chain_outbounds_count": chain_outbounds_count,
         # Export all revive/vwarp stats for complete tracking
         "revived_warp": revived_warp,
         "revived_vwarp": revived_vwarp,
@@ -595,7 +628,10 @@ def save_metadata(
         "sources_count": total_configured_sources or fetched_sources,
         "total_sources": total_configured_sources or fetched_sources,
         "fetched_sources": fetched_sources,  # Actual sources processed
+        "total_configured_sources": total_configured_sources or fetched_sources,
         "update_interval_hours": update_interval_hours,
+        "latency_by_country": latency_by_country,
+        "latency_by_protocol": latency_by_protocol,
         # Legacy mappings for backward compatibility (tests only)
         "fetched_lines": total_sourced,
         "parsed": parsed_count,

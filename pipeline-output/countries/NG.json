@@ -39,10 +39,8 @@
       "outbounds": [
         "⚡ Best Latency",
         "DIRECT",
-        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 917ms | UP | NATIVE",
-        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1128ms | UP | NATIVE",
-        "🇳🇬-Lagos | SOCKS4+TCP | 3488ms | UP | NATIVE",
-        "🇳🇬-Unknown | SOCKS4+TCP | 5762ms | UP | NATIVE"
+        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 668ms | UP | NATIVE",
+        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 906ms | UP | NATIVE"
       ],
       "interrupt_exist_connections": true
     },
@@ -50,10 +48,8 @@
       "type": "urltest",
       "tag": "⚡ Best Latency",
       "outbounds": [
-        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 917ms | UP | NATIVE",
-        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1128ms | UP | NATIVE",
-        "🇳🇬-Lagos | SOCKS4+TCP | 3488ms | UP | NATIVE",
-        "🇳🇬-Unknown | SOCKS4+TCP | 5762ms | UP | NATIVE"
+        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 668ms | UP | NATIVE",
+        "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 906ms | UP | NATIVE"
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "10m",
@@ -61,7 +57,7 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 917ms | UP | NATIVE",
+      "tag": "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 668ms | UP | NATIVE",
       "server": "185.255.123.166",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
@@ -69,25 +65,11 @@
     },
     {
       "type": "shadowsocks",
-      "tag": "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1128ms | UP | NATIVE",
+      "tag": "🇳🇬-Lagos | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 906ms | UP | NATIVE",
       "server": "185.255.123.110",
       "server_port": 990,
       "method": "chacha20-ietf-poly1305",
       "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇬-Lagos | SOCKS4+TCP | 3488ms | UP | NATIVE",
-      "server": "154.113.170.129",
-      "server_port": 5678,
-      "version": "4"
-    },
-    {
-      "type": "socks",
-      "tag": "🇳🇬-Unknown | SOCKS4+TCP | 5762ms | UP | NATIVE",
-      "server": "105.235.201.234",
-      "server_port": 32639,
-      "version": "4"
     },
     {
       "type": "direct",

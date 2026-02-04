@@ -401,7 +401,11 @@ async def download_subscription(format: str):
         "sip008": "sip008.json",
         "singbox-vpn": "singbox-vpn.json",
         "singbox-chains": "singbox-chains.json",
+        "chains": "chains.json",
         "revived": "revived.json",
+        "proxies": "proxies.json",
+        "proxies-json": "proxies.json",
+        "side-products": "side_products.zip",
     }
 
     if format not in file_map:

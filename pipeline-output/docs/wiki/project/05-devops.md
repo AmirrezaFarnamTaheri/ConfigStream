@@ -4,7 +4,7 @@ ConfigStream relies on a robust, automated DevOps pipeline. We adhere to "GitOps
 
 ## 1. The GitHub Actions Pipeline
 
-The heart of the system is `.github/workflows/pipeline.yml`.
+The heart of the system is `.github/workflows/main.yml`.
 
 ### Workflow Triggers
 *   **Schedule**: `cron: "0 */5 * * *"` (Every 5 hours).
@@ -45,7 +45,7 @@ graph TD
 *   Merges:
     *   Proxy lists (Deduplication).
     *   SQLite Databases (`anomaly.db`, `source_quality.db`) using `merge_from` logic.
-*   Generates final `metadata.json` and `summary.json`.
+*   Generates final `metadata.json`.
 *   Commits updated databases back to a persistent cache branch or artifact storage.
 
 ## 2. Caching Strategy
@@ -93,3 +93,4 @@ docker compose up web
 *   `MAX_WORKERS`: Control concurrency (Default: Auto).
 *   `WARP_KEY_POOL`: JSON list of keys for the Washer.
 *   `TELEGRAM_BOT_TOKEN`: For the bot interface.
+

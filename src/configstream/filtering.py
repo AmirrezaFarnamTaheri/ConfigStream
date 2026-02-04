@@ -207,6 +207,63 @@ def filter_unique_endpoints(proxies: List[Proxy]) -> List[Proxy]:
     return list(fingerprint_map.values())
 
 
+def _normalize_config_string(config: str) -> str:
+    """Normalize a config string for deduplication purposes."""
+    normalized = config.strip()
+    if not normalized:
+        return ""
+    # Drop fragment remarks (common source of duplicate outputs)
+    if "#" in normalized:
+        normalized = normalized.split("#", 1)[0].strip()
+    return normalized
+
+
+def dedupe_by_config(proxies: List[Proxy]) -> List[Proxy]:
+    """
+    Final safety-net deduplication based on normalized config strings.
+    This removes duplicates that differ only in tags/remarks.
+    """
+    best: dict[str, Proxy] = {}
+    passthrough: List[Proxy] = []
+
+    for proxy in proxies:
+        if not proxy.config:
+            passthrough.append(proxy)
+            continue
+
+        key = _normalize_config_string(proxy.config)
+        if not key:
+            passthrough.append(proxy)
+            continue
+
+        current = best.get(key)
+        if current is None:
+            best[key] = proxy
+            continue
+
+        if not current.is_working and proxy.is_working:
+            best[key] = proxy
+            continue
+
+        if current.is_working == proxy.is_working:
+            current_latency = (
+                current.latency if current.latency is not None else float("inf")
+            )
+            new_latency = proxy.latency if proxy.latency is not None else float("inf")
+            if new_latency < current_latency:
+                best[key] = proxy
+                continue
+
+    unique = list(best.values()) + passthrough
+    removed_count = len(proxies) - len(unique)
+    if removed_count > 0:
+        logger.info(
+            f"Config deduplication: {len(proxies)} -> {len(unique)} "
+            f"({removed_count} duplicates removed)"
+        )
+    return unique
+
+
 class ProxyFilter:
     """Utility for filtering and sorting collections of proxies."""
 
