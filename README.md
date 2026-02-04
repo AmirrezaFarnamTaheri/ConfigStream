@@ -188,6 +188,14 @@ Optional (enhanced features):
 - VT_API_KEY=your-virustotal-key
 - CANARY_URL=https://example.com/health
 
+Optional (Vwarp tuning):
+- VWARP_TEST_URL=http://1.1.1.1/cdn-cgi/trace
+- VWARP_DNS=1.1.1.1
+- VWARP_ENDPOINT=162.159.192.1:2408
+- VWARP_CONFIG_PATH=/path/to/vwarp.json
+- VWARP_CONFIG_JSON={"version":"1.0","bind":"127.0.0.1:10808"}
+- VWARP_FORCE_MASQUE=true
+
 Optional (production hardening):
 - ADMIN_API_KEY=your-secret-key
 - ALLOWED_ORIGINS=https://yourdomain.com
