@@ -11,6 +11,7 @@ import stat
 import sys
 import platform
 import shlex
+import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, cast, Tuple, Optional
@@ -18,6 +19,7 @@ import httpx
 
 from ..constants import VWARP_SOCKS5_PORT, VWARP_BIND_ADDRESS
 from ..async_utils import safe_wait_for
+from ..security_validator import SecurityValidator
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,10 @@ class VwarpTool:
         self._tunnel_proc: Optional[asyncio.subprocess.Process] = None
         self._install_lock = asyncio.Lock()
         self._help_text: Optional[str] = None
+        self._config_path: Optional[Path] = None
+        self._config_owned: bool = False
+        self._last_failure_reason: Optional[str] = None
+        self._last_failure_details: Optional[str] = None
 
     @staticmethod
     def _is_supported_platform() -> bool:
@@ -299,7 +305,12 @@ class VwarpTool:
         self._help_text = ""
         return self._help_text
 
-    async def _build_tunnel_command(self, bind_addr: str, port: int) -> List[str]:
+    async def _build_tunnel_command(
+        self,
+        bind_addr: str,
+        port: int,
+        config_override: Optional[Dict[str, Any]] = None,
+    ) -> List[str]:
         """Build the best available tunnel command for the detected Vwarp version."""
         if not self.binary:
             return []
@@ -309,6 +320,12 @@ class VwarpTool:
         if env_args:
             expanded = env_args.replace("{bind}", bind_value)
             return [self.binary] + shlex.split(expanded)
+
+        config_path, extra_flags = await self._prepare_tunnel_config(
+            bind_addr, port, config_override=config_override
+        )
+        if config_path:
+            return [self.binary, "--config", str(config_path)] + extra_flags
 
         help_text = await self._get_help_text()
         if "--bind" in help_text:
@@ -322,6 +339,132 @@ class VwarpTool:
 
         # Fallback to historical flag
         return [self.binary, "--bind", bind_value]
+
+    async def _prepare_tunnel_config(
+        self,
+        bind_addr: str,
+        port: int,
+        config_override: Optional[Dict[str, Any]] = None,
+    ) -> Tuple[Optional[Path], List[str]]:
+        """
+        Build a temporary config file for Vwarp if requested via env or needed in CI.
+        Returns (path, extra_flags). If no config is required, returns (None, []).
+        """
+        env_path = os.environ.get("VWARP_CONFIG_PATH", "").strip()
+        if env_path:
+            path = Path(env_path)
+            if path.exists():
+                self._config_path = path
+                self._config_owned = False
+                logger.info(f"Using Vwarp config from path: {path}")
+                extra = self._config_extra_flags({})
+                return path, extra
+            logger.error("VWARP_CONFIG_PATH set but file does not exist.")
+            return None, []
+
+        if config_override is not None:
+            config = dict(config_override)
+            config.setdefault("version", "1.0")
+            config["bind"] = f"{bind_addr}:{port}"
+            self._log_config("fallback override", config)
+            return self._write_temp_config(config)
+
+        env_json = os.environ.get("VWARP_CONFIG_JSON", "").strip()
+        env_dns = os.environ.get("VWARP_DNS", "").strip()
+        env_test_url = os.environ.get("VWARP_TEST_URL", "").strip()
+        env_endpoint = os.environ.get("VWARP_ENDPOINT", "").strip()
+        env_force_config = os.environ.get("VWARP_FORCE_CONFIG", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+
+        # In CI or restricted networks, DNS over UDP can fail.
+        # Prefer an IP-based test URL to avoid DNS lookups.
+        is_ci = os.environ.get("CI") == "true"
+        used_ci_defaults = is_ci and not (
+            env_force_config
+            or env_json
+            or env_dns
+            or env_test_url
+            or env_endpoint
+        )
+        if not env_test_url and is_ci:
+            env_test_url = "http://1.1.1.1/cdn-cgi/trace"
+        if not env_dns and is_ci:
+            env_dns = "1.1.1.1"
+
+        needs_config = bool(
+            env_force_config
+            or env_json
+            or env_dns
+            or env_test_url
+            or env_endpoint
+            or is_ci
+        )
+        if not needs_config:
+            return None, []
+
+        config: Dict[str, Any] = {}
+        if env_json:
+            try:
+                parsed = json.loads(env_json)
+                if isinstance(parsed, dict):
+                    config.update(parsed)
+                else:
+                    logger.warning("VWARP_CONFIG_JSON is not an object; ignoring.")
+            except json.JSONDecodeError:
+                logger.warning("VWARP_CONFIG_JSON is invalid JSON; ignoring.")
+
+        config.setdefault("version", "1.0")
+        config["bind"] = f"{bind_addr}:{port}"
+        if env_endpoint:
+            config["endpoint"] = env_endpoint
+        if env_dns:
+            config["dns"] = env_dns
+        if env_test_url:
+            config["test_url"] = env_test_url
+
+        if used_ci_defaults:
+            self._log_config("CI default", config)
+        elif env_json or env_force_config or env_dns or env_test_url or env_endpoint:
+            self._log_config("env-derived", config)
+
+        return self._write_temp_config(config)
+
+    @staticmethod
+    def _config_extra_flags(config: Dict[str, Any]) -> List[str]:
+        """Determine any extra CLI flags required by the config."""
+        force_masque = os.environ.get("VWARP_FORCE_MASQUE", "").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
+        if force_masque:
+            return ["--masque"]
+        masque_cfg = config.get("masque")
+        if isinstance(masque_cfg, dict) and masque_cfg.get("enabled") is True:
+            return ["--masque"]
+        return []
+
+    def _write_temp_config(
+        self, config: Dict[str, Any]
+    ) -> Tuple[Optional[Path], List[str]]:
+        tmp_dir = Path(tempfile.gettempdir())
+        tmp_dir.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(prefix="vwarp-config-", suffix=".json")
+        os.close(fd)
+        tmp_path = Path(tmp_name)
+        try:
+            tmp_path.write_text(json.dumps(config), encoding="utf-8")
+        except OSError as exc:
+            logger.error(f"Failed to write Vwarp config: {exc}")
+            return None, []
+
+        self._config_path = tmp_path
+        self._config_owned = True
+        extra_flags = self._config_extra_flags(config)
+        return tmp_path, extra_flags
 
     async def scan_endpoints(self, rtt_limit: str = "800ms") -> List[Tuple[str, int]]:
         """
@@ -448,10 +591,14 @@ class VwarpTool:
                 )
                 try:
                     stdout, stderr = await self._tunnel_proc.communicate()
+                    combined = (stdout or b"") + b"\n" + (stderr or b"")
+                    details = combined.decode(errors="ignore")
                     if stdout:
                         logger.error(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
                     if stderr:
                         logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                    if details:
+                        self._record_failure(self._classify_failure(details), details)
                 except Exception:
                     pass
                 return False
@@ -485,9 +632,53 @@ class VwarpTool:
             # Already running
             return True
 
-        cmd = await self._build_tunnel_command(bind_addr, port)
+        async def attempt(
+            label: str, override: Optional[Dict[str, Any]] = None
+        ) -> bool:
+            if override:
+                logger.info(f"Retrying Vwarp tunnel with fallback config: {label}")
+            return await self._start_tunnel_once(bind_addr, port, override)
+
+        success = await attempt("primary")
+        if success:
+            return True
+
+        # Fallback: force a config with IP-based test URL and DNS
+        fallback_enabled = os.environ.get("VWARP_RETRY_FALLBACK", "").lower() not in (
+            "0",
+            "false",
+            "no",
+        )
+        reason = self._last_failure_reason or "unknown"
+        if fallback_enabled and reason in ("connectivity", "dns"):
+            logger.info(f"Vwarp fallback retry triggered (reason={reason}).")
+            fallback_cfg = {
+                "version": "1.0",
+                "bind": f"{bind_addr}:{port}",
+                "test_url": "http://1.1.1.1/cdn-cgi/trace",
+                "dns": "1.1.1.1",
+            }
+            return await attempt("ip-test-url", fallback_cfg)
+
+        if fallback_enabled:
+            logger.info(f"Vwarp fallback skipped (reason={reason}).")
+        return False
+
+    async def _start_tunnel_once(
+        self,
+        bind_addr: str,
+        port: int,
+        config_override: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        self._cleanup_config_file()
+        self._last_failure_reason = None
+        self._last_failure_details = None
+        cmd = await self._build_tunnel_command(
+            bind_addr, port, config_override=config_override
+        )
         if not cmd:
             logger.error("Vwarp tunnel command could not be constructed.")
+            self._cleanup_config_file()
             return False
         try:
             logger.info(f"🚀 Starting Vwarp SOCKS5 Tunnel on {bind_addr}:{port}...")
@@ -502,10 +693,15 @@ class VwarpTool:
             await asyncio.sleep(0.5)
             if self._tunnel_proc.returncode is not None:
                 stdout, stderr = await self._tunnel_proc.communicate()
+                combined = (stdout or b"") + b"\n" + (stderr or b"")
+                details = combined.decode(errors="ignore")
                 if stdout:
                     logger.error(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
                 if stderr:
                     logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                if details:
+                    self._record_failure(self._classify_failure(details), details)
+                self._cleanup_config_file()
                 return False
 
             # Robust port checking
@@ -516,10 +712,16 @@ class VwarpTool:
                 # Check for immediate exit and logs
                 if self._tunnel_proc.returncode is not None:
                     stdout, stderr = await self._tunnel_proc.communicate()
+                    combined = (stdout or b"") + b"\n" + (stderr or b"")
+                    details = combined.decode(errors="ignore")
                     if stdout:
                         logger.debug(f"Vwarp stdout: {stdout.decode(errors='ignore')}")
                     if stderr:
                         logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
+                    if details and not self._last_failure_reason:
+                        self._record_failure(
+                            self._classify_failure(details), details
+                        )
                 else:
                     # Kill and read logs
                     try:
@@ -529,9 +731,15 @@ class VwarpTool:
                             stdout, stderr = await safe_wait_for(
                                 self._tunnel_proc.communicate(), timeout=1.0
                             )
+                            combined = (stdout or b"") + b"\n" + (stderr or b"")
+                            details = combined.decode(errors="ignore")
                             if stderr:
                                 logger.error(
                                     f"Vwarp stderr before kill: {stderr.decode(errors='ignore')}"
+                                )
+                            if details and not self._last_failure_reason:
+                                self._record_failure(
+                                    self._classify_failure(details), details
                                 )
                         except asyncio.TimeoutError:
                             self._tunnel_proc.kill()
@@ -539,6 +747,9 @@ class VwarpTool:
                         logger.debug(f"Error killing hung vwarp: {e}")
 
                 self._tunnel_proc = None
+                if not self._last_failure_reason:
+                    self._record_failure("timeout", "")
+                self._cleanup_config_file()
                 return False
 
             # Check if it died immediately after port check success (rare but possible)
@@ -547,6 +758,7 @@ class VwarpTool:
                     f"Vwarp tunnel exited immediately with code {self._tunnel_proc.returncode}"
                 )
                 self._tunnel_proc = None
+                self._cleanup_config_file()
                 return False
 
             # Start background task to consume logs so buffer doesn't fill up
@@ -573,6 +785,7 @@ class VwarpTool:
                 except ProcessLookupError:
                     pass
                 self._tunnel_proc = None
+            self._cleanup_config_file()
             return False
 
     async def stop_tunnel(self) -> None:
@@ -593,3 +806,72 @@ class VwarpTool:
                 logger.warning(f"Error stopping Vwarp tunnel: {e}")
             finally:
                 self._tunnel_proc = None
+        self._cleanup_config_file()
+
+    def _cleanup_config_file(self) -> None:
+        if self._config_owned and self._config_path:
+            try:
+                self._config_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+            finally:
+                self._config_path = None
+                self._config_owned = False
+
+    def _record_failure(self, reason: str, details: str) -> None:
+        self._last_failure_reason = reason
+        self._last_failure_details = details
+
+    @staticmethod
+    def _classify_failure(text: str) -> str:
+        if not text:
+            return "unknown"
+        lower = text.lower()
+        patterns = (
+            "connectivity test failed",
+            "cdn-cgi/trace",
+            "dial: lookup",
+            "no such host",
+            "temporary failure in name resolution",
+            "server misbehaving",
+            "i/o timeout",
+            "read udp",
+            "context deadline exceeded",
+            "network is unreachable",
+            "tls handshake timeout",
+            "connection refused",
+        )
+        if any(pat in lower for pat in patterns):
+            if "lookup" in lower or "name resolution" in lower:
+                return "dns"
+            return "connectivity"
+        return "other"
+
+    def _log_config(self, label: str, config: Dict[str, Any]) -> None:
+        safe = self._sanitize_config_for_log(config)
+        text = json.dumps(safe, ensure_ascii=True)
+        if os.environ.get("VWARP_LOG_RAW_CONFIG", "").lower() in ("1", "true", "yes"):
+            logger.warning(
+                "VWARP_LOG_RAW_CONFIG requested but sanitized logging is enforced."
+            )
+        text = SecurityValidator.sanitize_log_message(text)
+        logger.info(f"Vwarp config ({label}): {text}")
+
+    @staticmethod
+    def _sanitize_config_for_log(config: Dict[str, Any]) -> Dict[str, Any]:
+        redact_tokens = ("key", "token", "secret", "password", "license")
+
+        def scrub(obj: Any) -> Any:
+            if isinstance(obj, dict):
+                out: Dict[str, Any] = {}
+                for k, v in obj.items():
+                    if any(tok in str(k).lower() for tok in redact_tokens):
+                        out[k] = "[REDACTED]"
+                    else:
+                        out[k] = scrub(v)
+                return out
+            if isinstance(obj, list):
+                return [scrub(i) for i in obj]
+            return obj
+
+        return scrub(dict(config))
