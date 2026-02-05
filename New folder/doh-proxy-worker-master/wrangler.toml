@@ -1,0 +1,20 @@
+name = "high-performance-doh-proxy-worker"
+main = "workers.js"
+compatibility_date = "2023-05-22"
+
+# Development environment
+[env.dev]
+name = "high-performance-doh-proxy-worker-dev"
+vars = { ENVIRONMENT = "development" }
+
+# Production environment
+[env.production]
+name = "high-performance-doh-proxy-worker"
+vars = { ENVIRONMENT = "production" }
+
+# Performance optimizations
+[build]
+command = ""
+
+[placement]
+mode = "smart"

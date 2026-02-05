@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DoH Proxy قدرتمند با Cloudflare Worker - رمزنگاری DNS با امنیت بالا">
+    <meta name="keywords" content="DoH, DNS over HTTPS, Cloudflare Worker, Privacy, Security">
+    <title>Cloudflare DoH Proxy - ساخت DNS امن شخصی</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🔒 Cloudflare DoH Proxy</h1>
+        <p>ساخت DNS over HTTPS شخصی با امنیت بالا - رایگان و آسان</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>🚀 DoH Proxy چیست؟</h2>
+            <p>DNS over HTTPS (DoH) یک پروتکل امنیتی است که درخواست‌های DNS شما را رمزنگاری می‌کند و از سانسور و نظارت جلوگیری می‌کند. با این پروژه می‌توانید یک سرویس DoH شخصی و رایگان برای خود بسازید.</p>
+            
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🔐</div>
+                    <h4>رمزنگاری کامل</h4>
+                    <p>تمام DNS queries شما رمزنگاری می‌شود</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h4>سرعت بالا</h4>
+                    <p>استفاده از شبکه جهانی Cloudflare</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🆓</div>
+                    <h4>کاملاً رایگان</h4>
+                    <p>تا 100,000 درخواست در روز</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🛡️</div>
+                    <h4>امنیت بالا</h4>
+                    <p>محافظت از حریم خصوصی</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📥 نصب و راه‌اندازی</h2>
+            
+            <h3>گام اول: ایجاد Cloudflare Worker</h3>
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>ورود به Cloudflare:</strong> به <a href="https://dash.cloudflare.com" target="_blank">dash.cloudflare.com</a> بروید و وارد حساب کاربری خود شوید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>ساخت Worker:</strong> از منوی سمت چپ Workers & Pages را انتخاب کنید و روی Create Application کلیک کنید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>نام‌گذاری:</strong> یک نام برای Worker خود انتخاب کنید و روی Deploy کلیک کنید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>ویرایش کد:</strong> روی Edit Code کلیک کنید و تمام کد پیش‌فرض را پاک کنید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">5</span>
+                <strong>کپی کردن کد:</strong> فایل <code>manual-worker/worker.js</code> را از repository باز کنید و محتوای آن را در Worker جایگذاری کنید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">6</span>
+                <strong>ذخیره و Deploy:</strong> روی Save and Deploy کلیک کنید.
+            </div>
+            
+            <h3>گزینه جایگزین: استفاده از Cloudflare Pages</h3>
+            <p>علاوه بر Cloudflare Workers، این پروژه از Cloudflare Pages نیز پشتیبانی می‌کند. می‌توانید ریپازیتوری GitHub را مستقیماً به Cloudflare Pages متصل کنید و DoH Proxy خود را بسازید.</p>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <strong>ورود به Cloudflare:</strong> به <a href="https://dash.cloudflare.com" target="_blank">dash.cloudflare.com</a> بروید و وارد حساب کاربری خود شوید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">2</span>
+                <strong>ساخت Page:</strong> از منوی سمت چپ Workers & Pages را انتخاب کنید و روی Create Application کلیک کنید، سپس گزینه Pages را انتخاب کنید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">3</span>
+                <strong>اتصال به GitHub:</strong> روی Connect to Git کلیک کنید و ریپازیتوری <a href="https://github.com/4n0nymou3/cloudflare-doh-proxy" target="_blank">cloudflare-doh-proxy</a> را انتخاب کنید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">4</span>
+                <strong>تنظیمات ساخت:</strong> در بخش Build settings، Framework را None انتخاب کنید و روی Save and Deploy کلیک کنید.
+            </div>
+            
+            <div class="step">
+                <span class="step-number">6</span>
+                <strong>ذخیره و Deploy:</strong> تغییرات را ذخیره کرده و Deploy کنید.
+            </div>
+            
+            <div class="success-box">
+                <strong>✅ تبریک!</strong> DoH Proxy شما آماده است.
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📱 نحوه استفاده</h2>
+            
+            <h3>مرورگر Firefox</h3>
+            <div class="step">
+                Settings → Privacy & Security → DNS over HTTPS → Custom
+            </div>
+            
+            <h3>مرورگر Chrome/Edge</h3>
+            <div class="step">
+                Settings → Privacy and security → Security → Use secure DNS → Custom
+            </div>
+            
+            <h3>اپلیکیشن Intra (اندروید)</h3>
+            <div class="step">
+                اپلیکیشن Intra را نصب کنید → Configure custom server URL → URL خود را وارد کنید
+            </div>
+
+            <h3>iOS, iPadOS و macOS</h3>
+            <div class="step">
+                <strong>دانلود پروفایل شخصی:</strong>
+                <p style="margin-top: 10px;">برای استفاده در دستگاه‌های اپل، پروفایل DoH شخصی خود را دانلود کنید. این پروفایل به صورت خودکار با URL اختصاصی شما ساخته می‌شود.</p>
+                <p style="margin-top: 10px; font-size: 0.9em; color: #94a3b8;">بعد از Deploy کردن Worker، صفحه وب را باز کنید و دکمه دانلود پروفایل iOS/macOS را کلیک کنید.</p>
+            </div>
+
+            <h3>کلاینت‌های Xray (v2rayNG و مشابه)</h3>
+            <div class="step">
+                <strong>برای استفاده در کلاینت‌های مبتنی بر Xray:</strong>
+                <p style="margin-top: 10px;">کانفیگ زیر را دانلود کرده و URL خود را در قسمت مشخص شده جایگزین کنید:</p>
+                <p style="margin-top: 10px;"><a href="https://raw.githubusercontent.com/4n0nymou3/cloudflare-doh-proxy/refs/heads/main/xray-doh-proxy-client-config.jsonc" target="_blank" style="color: #60a5fa; text-decoration: underline;">📥 دانلود کانفیگ Xray</a></p>
+                <p style="margin-top: 10px; font-size: 0.9em; color: #94a3b8;">این کانفیگ یک اتصال مستقیم با DNS امن ایجاد می‌کند. توجه: فقط DNS امن می‌شود، نه ترافیک شما.</p>
+            </div>
+            
+            <h3>ویندوز 11</h3>
+            <div class="step">
+                Settings → Network & Internet → Properties → DNS server assignment → Edit
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>⚙️ ویژگی‌های پیشرفته</h2>
+            
+            <h3>🌐 استفاده از 4 سرور DNS</h3>
+            <p>این DoH Proxy به صورت خودکار از 4 سرور DNS معتبر استفاده می‌کند:</p>
+            <ul>
+                <li>Cloudflare DNS (1.1.1.1)</li>
+                <li>Google DNS (8.8.8.8)</li>
+                <li>Quad9 DNS (9.9.9.9)</li>
+                <li>OpenDNS</li>
+            </ul>
+            
+            <div class="warning-box">
+                <strong>⚠️ توجه مهم:</strong> این سرویس فقط DNS queries را رمزنگاری می‌کند و جایگزین VPN نیست.
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔗 لینک‌های مفید</h2>
+            <div class="button-group">
+                <a href="https://github.com/4n0nymou3/cloudflare-doh-proxy" class="btn-primary" target="_blank">📂 مشاهده در GitHub</a>
+                <a href="https://dash.cloudflare.com" class="btn-primary" target="_blank">☁️ ورود به Cloudflare</a>
+                <a href="https://github.com/4n0nymou3/cloudflare-doh-proxy/blob/main/docs/installation-guide.md" class="btn-primary">📖 راهنمای کامل</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>ساخته شده با ❤️ برای اینترنت آزاد</p>
+        <p>Designed by: <a href="https://t.me/BXAMbot" target="_blank">Anonymous</a></p>
+        <p class="footer-links">
+            <a href="https://github.com/4n0nymou3/cloudflare-doh-proxy" target="_blank">GitHub</a> | 
+            <a href="https://github.com/4n0nymou3/cloudflare-doh-proxy/issues" target="_blank">گزارش مشکل</a> | 
+            <a href="LICENSE" target="_blank">مجوز</a>
+        </p>
+    </div>
+
+    <script src="assets/js/main.js"></script>
+</body>
+</html>

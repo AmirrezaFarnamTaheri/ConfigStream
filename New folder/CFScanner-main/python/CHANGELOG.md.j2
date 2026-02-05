@@ -1,0 +1,16 @@
+# CFSCanner (python) - Change Log
+
+| Version | Date | Type  | Message | Author | Commit |
+|---------|------|-------|---------|--------|--------|
+{% for release in tree %}
+{% set version = release.version|replace('pyv', '') %}
+{% set ns = namespace(first_change=true) %}
+{% for change_type, changes in release.changes.items() %}
+{% set ns.first_change_of_type = true %}
+{% for change in changes %}
+| {{ version if ns.first_change else '' }} | {{ release.date if ns.first_change else '' }} | {{ change_type if ns.first_change_of_type else '' }} | {{ change.message }} | {{ change.author }} | {{ change.sha1[:7] }}
+{% set ns.first_change_of_type = false %}
+{% set ns.first_change = false %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
