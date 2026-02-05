@@ -1,9 +1,10 @@
+from typing import Dict, Any, List, Set
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import asyncio
 import ipaddress
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from configstream.models import Proxy
 from configstream.history.tracker import ProxyHistoryTracker
@@ -13,7 +14,6 @@ from configstream.output_logic import (
     _build_dns_safe_proxies,
     _build_dns_hardened_proxies,
 )
-from typing import Set
 from configstream.output_transport import save_json, inject_stego_key_into_frontend
 from configstream.transport.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
