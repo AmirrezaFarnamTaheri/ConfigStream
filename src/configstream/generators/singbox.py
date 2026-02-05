@@ -8,6 +8,7 @@ from configstream.converters import to_singbox_outbound
 class SingBoxGenerator:
     """
     Generates Sing-Box configuration (config.json) from a list of proxies.
+    Adopts format from chaiin-example-format/e1.json.
     """
 
     def generate(
@@ -29,7 +30,7 @@ class SingBoxGenerator:
         selector_outbound: Dict[str, Any] = {
             "type": "selector",
             "tag": SELECTOR_TAG,
-            "outbounds": [AUTO_TAG, "DIRECT"],
+            "outbounds": [AUTO_TAG, "direct"],
             "interrupt_exist_connections": True,
         }
 
@@ -68,14 +69,10 @@ class SingBoxGenerator:
         # Add Proxy Outbounds
         for p in proxies:
             try:
-                # Use imported function directly
                 outbound_config = to_singbox_outbound(p)
-
-                # Check for None (Mypy)
                 if outbound_config is None:
                     continue
 
-                # Ensure tag exists if converter didn't provide it (Mock case)
                 if "tag" not in outbound_config:
                     t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
                     outbound_config["tag"] = t
@@ -86,9 +83,9 @@ class SingBoxGenerator:
                         if isinstance(extra, dict):
                             _append_outbound(extra, add_to_selector=False)
 
-                # Strip internal metadata
                 self._clean_outbound(outbound_config)
 
+                # Check if this is a chain ending (e.g. valid proxy)
                 added = _append_outbound(outbound_config, add_to_selector=True)
                 tag = outbound_config.get("tag")
                 if added and tag:
@@ -101,97 +98,115 @@ class SingBoxGenerator:
             selector_outbound,
             urltest_outbound,
             *outbounds,
-            {"type": "direct", "tag": "DIRECT"},
-            {"type": "dns", "tag": "dns-out"},
+            {"type": "direct", "tag": "direct"},
             {"type": "block", "tag": "block"},
+            {"type": "dns", "tag": "dns-out"},
         ]
 
-        # Build DNS profile with FakeIP support
-        dns_servers = [
-            {"tag": "remote", "address": "https://8.8.8.8/dns-query", "detour": SELECTOR_TAG},
-            {"tag": "local", "address": "local", "detour": "DIRECT"},
-        ]
-        
-        # Add FakeIP server for DNS-poisoning resistance
-        dns_servers.append({"tag": "fakeip", "address": "fakeip"})
-        
-        dns_rules = [
-            {"outbound": "any", "server": "remote"},
-            {"query_type": ["A", "AAAA"], "server": "fakeip", "rewrite_ttl": 1},
-        ]
-        
+        # DNS Configuration matching e1.json
         dns_config = {
-            "servers": dns_servers,
-            "rules": dns_rules,
-            "fakeip": {
+            "servers": [
+                {"server": "223.5.5.5", "type": "udp", "tag": "local_local"},
+                {
+                    "server": "cloudflare-dns.com",
+                    "domain_resolver": "hosts_dns",
+                    "path": "/dns-query",
+                    "type": "https",
+                    "tag": "remote_dns",
+                    "detour": SELECTOR_TAG,
+                },
+                {
+                    "server": "dns.alidns.com",
+                    "domain_resolver": "hosts_dns",
+                    "path": "/dns-query",
+                    "type": "https",
+                    "tag": "direct_dns",
+                },
+                {
+                    "predefined": {
+                        "dns.google": ["8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844"],
+                        "dns.alidns.com": ["223.5.5.5", "223.6.6.6", "2400:3200::1", "2400:3200:baba::1"],
+                        "one.one.one.one": ["1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"],
+                        "1dot1dot1dot1.cloudflare-dns.com": ["1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"],
+                        "cloudflare-dns.com": ["104.16.249.249", "104.16.248.249", "2606:4700::6810:f8f9", "2606:4700::6810:f9f9"],
+                    },
+                    "type": "hosts",
+                    "tag": "hosts_dns",
+                },
+            ],
+            "rules": [
+                {"server": "local_local", "domain": ["sing_box-ProxyChain"]},
+                {"server": "hosts_dns", "ip_accept_any": True},
+                {"server": "remote_dns", "clash_mode": "Global"},
+                {"server": "direct_dns", "clash_mode": "Direct"},
+                {"action": "predefined", "rcode": "NOTIMP", "query_type": [64, 65]},
+                {"rule_set": ["geosite-category-ads-all"], "action": "predefined", "rcode": "NXDOMAIN"},
+                {"server": "direct_dns", "rule_set": ["geosite-private", "geosite-ir"]},
+            ],
+            "final": "remote_dns",
+            "independent_cache": True,
+        }
+
+        # Experimental Section
+        experimental = {
+            "cache_file": {
                 "enabled": True,
-                "inet4_range": "198.18.0.0/15",
-                "inet6_range": "fc00::/18",
+                "path": "cache.db",
+                "store_fakeip": False,
             },
+            "clash_api": {
+                "external_controller": "127.0.0.1:10813"
+            }
+        }
+
+        # Route Rules
+        route = {
+            "default_domain_resolver": {
+                "server": "direct_dns",
+                "strategy": ""
+            },
+            "rules": [
+                {"action": "sniff"},
+                {"protocol": ["dns"], "action": "hijack-dns"},
+                {"outbound": "direct", "clash_mode": "Direct"},
+                {"outbound": SELECTOR_TAG, "clash_mode": "Global"},
+                {"outbound": "direct", "ip_cidr": ["8.8.8.8"]},
+                {"network": ["udp"], "port": [443], "action": "reject"},
+                {"outbound": "direct", "protocol": ["bittorrent"]},
+                {"rule_set": ["geosite-category-ads-all"], "action": "reject"},
+                {"outbound": "direct", "ip_is_private": True},
+                {"outbound": "direct", "rule_set": ["geosite-private", "geosite-ir", "geoip-ir"]},
+                {"outbound": SELECTOR_TAG, "port_range": ["0:65535"]},
+            ],
+            "rule_set": [
+                {"tag": "geosite-category-ads-all", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-category-ads-all.srs", "download_detour": SELECTOR_TAG},
+                {"tag": "geosite-private", "type": "remote", "format": "binary", "url": "https://raw.githubusercontent.com/SagerNet/sing-geosite/rule-set/geosite-private.srs", "download_detour": SELECTOR_TAG},
+                {"tag": "geosite-ir", "type": "remote", "format": "binary", "url": "https://github.com/chocolate4u/Iran-sing-box-rules/releases/latest/download/geosite-ir.srs", "download_detour": SELECTOR_TAG},
+                {"tag": "geoip-ir", "type": "remote", "format": "binary", "url": "https://github.com/chocolate4u/Iran-sing-box-rules/releases/latest/download/geoip-ir.srs", "download_detour": SELECTOR_TAG},
+            ],
+            "final": SELECTOR_TAG
         }
 
         config = {
             "log": {
-                "level": "info",
+                "level": "warn",
                 "timestamp": True,
             },
             "dns": dns_config,
             "inbounds": [
                 {
                     "type": "mixed",
-                    "tag": "mixed-in",
-                    "listen": "0.0.0.0",
-                    "listen_port": 2080,
-                    "sniff": True,
+                    "tag": "socks",
+                    "listen": "127.0.0.1",
+                    "listen_port": 10808,
                 }
             ],
             "outbounds": final_outbounds,
-            "route": {
-                "rules": self._build_route_rules(SELECTOR_TAG),
-                "auto_detect_interface": True,
-            },
+            "endpoints": [],
+            "route": route,
+            "experimental": experimental,
         }
         return config
-
-    def _build_route_rules(self, selector_tag: str) -> List[Dict[str, Any]]:
-        """Build route rules with optional geosite/geoip support."""
-        rules = [
-            {"protocol": "dns", "outbound": "dns-out"},
-            {"ip_is_private": True, "outbound": "DIRECT"},
-        ]
-        
-        # Check if geosite.db and geoip.db are available
-        from pathlib import Path
-        from configstream.config import AppSettings
-        
-        settings = AppSettings()
-        data_dir = Path(settings.GEOIP_CITY_DB_PATH).parent if hasattr(settings, 'GEOIP_CITY_DB_PATH') else Path("data")
-        singbox_data_dir = data_dir / "singbox"
-        geosite_path = singbox_data_dir / "geosite.db"
-        geoip_path = singbox_data_dir / "geoip.db"
-        
-        # Add geosite/geoip rules if databases are available
-        if geosite_path.exists() and geoip_path.exists():
-            # Domestic bypass for .ir domains and Iran IPs
-            rules.append({
-                "geosite": ["ir", "category-ir"],
-                "geoip": ["ir", "private"],
-                "outbound": "DIRECT",
-            })
-            # Force blocked sites through proxy
-            rules.append({
-                "geosite": ["google", "telegram", "twitter", "youtube", "meta"],
-                "outbound": selector_tag,
-            })
-        else:
-            # Log debug message if databases are missing
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.debug(
-                "geosite.db or geoip.db not found. Run 'configstream update-databases' to enable advanced routing rules."
-            )
-        
-        return rules
 
     def _clean_outbound(self, outbound: Dict[str, Any]):
         keys_to_remove = [
