@@ -23,7 +23,7 @@ class SingBoxGenerator:
         outbounds: List[Dict[str, Any]] = []
 
         # Legacy Tag Names
-        SELECTOR_TAG = "🚀 Select Proxy"
+        SELECTOR_TAG = "🌍 Proxy Select"
         AUTO_TAG = "⚡ Best Latency"
 
         # Selector (Group)
