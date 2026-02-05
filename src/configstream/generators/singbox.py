@@ -22,8 +22,8 @@ class SingBoxGenerator:
         """
         outbounds: List[Dict[str, Any]] = []
 
-        # Tag Names - Standardized to match split.py and dns_profiles
-        SELECTOR_TAG = "🌍 Proxy Select"
+        # Legacy Tag Names
+        SELECTOR_TAG = "🚀 Select Proxy"
         AUTO_TAG = "⚡ Best Latency"
 
         # Selector (Group)
@@ -121,7 +121,7 @@ class SingBoxGenerator:
                     "path": "/dns-query",
                     "type": "https",
                     "tag": "remote_dns",
-                    "detour": SELECTOR_TAG
+                    "detour": SELECTOR_TAG  # Use our selector instead of 'proxy'
                 },
                 {
                     "server": "dns.alidns.com",
@@ -139,22 +139,12 @@ class SingBoxGenerator:
                         "dns.alidns.com": [
                             "223.5.5.5", "223.6.6.6", "2400:3200::1", "2400:3200:baba::1"
                         ],
-                        "one.one.one.one": [
-                            "1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"
-                        ],
                         "cloudflare-dns.com": [
                             "104.16.249.249", "104.16.248.249", "2606:4700::6810:f8f9", "2606:4700::6810:f9f9"
                         ]
                     },
                     "type": "hosts",
                     "tag": "hosts_dns"
-                },
-                {
-                    "server": "dns.alidns.com",
-                    "domain_resolver": "hosts_dns",
-                    "path": "/dns-query",
-                    "type": "https",
-                    "tag": "ech_dns"
                 }
             ],
             "rules": [
@@ -173,11 +163,6 @@ class SingBoxGenerator:
                 {
                     "server": "direct_dns",
                     "clash_mode": "Direct"
-                },
-                {
-                    "action": "predefined",
-                    "rcode": "NOTIMP",
-                    "query_type": [64, 65]
                 },
                 {
                     "rule_set": ["geosite-category-ads-all"],
