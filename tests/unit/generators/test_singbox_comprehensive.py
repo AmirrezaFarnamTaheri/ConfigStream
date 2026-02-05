@@ -41,7 +41,7 @@ def test_generate_singbox_config_basics():
         assert "P1" in tags
         assert "🚀 Select Proxy" in tags
         assert "⚡ Best Latency" in tags
-        assert "DIRECT" in tags
+        assert "direct" in tags
         assert "dns-out" in tags
 
 
