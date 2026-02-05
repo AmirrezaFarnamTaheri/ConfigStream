@@ -416,21 +416,21 @@ class VwarpTool:
             except json.JSONDecodeError:
                 logger.warning("VWARP_CONFIG_JSON is invalid JSON; ignoring.")
 
-        config.setdefault("version", "1.0")
-        config["bind"] = f"{bind_addr}:{port}"
+        vwarp_config.setdefault("version", "1.0")
+        vwarp_config["bind"] = f"{bind_addr}:{port}"
         if env_endpoint:
-            config["endpoint"] = env_endpoint
+            vwarp_config["endpoint"] = env_endpoint
         if env_dns:
-            config["dns"] = env_dns
+            vwarp_config["dns"] = env_dns
         if env_test_url:
-            config["test_url"] = env_test_url
+            vwarp_config["test_url"] = env_test_url
 
         if used_ci_defaults:
-            self._log_config("CI default", config)
-        elif env_json or env_force_config or env_dns or env_test_url or env_endpoint:
-            self._log_config("env-derived", config)
+            self._log_vwarp_config("CI default", vwarp_config)
+        elif env_json or env_force_vwarp_config or env_dns or env_test_url or env_endpoint:
+            self._log_vwarp_config("env-derived", vwarp_config)
 
-        return self._write_temp_config(config)
+        return self._write_temp_vwarp_config(vwarp_config)
 
     @staticmethod
     def _config_extra_flags(config: Dict[str, Any]) -> List[str]:
