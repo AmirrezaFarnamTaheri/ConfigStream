@@ -436,7 +436,7 @@ def main() -> None:
         observed_metrics.update(db_metrics)
     if batch_stats:
         _write_batch_stats(batch_stats)
-    all_urls = set(list(all_urls)))])
+    all_urls = set(all_urls)
 
     # 4. Assign Weights Based on Fetch + Test Duration
 
