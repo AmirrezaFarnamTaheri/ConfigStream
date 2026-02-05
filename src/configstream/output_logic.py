@@ -1303,7 +1303,7 @@ def save_metadata(
         if hasattr(stats, "total_revived"):
             total_revived_count = stats.total_revived
         else:
-                total_revived_count = revived_warp + revived_vwarp
+            total_revived_count = revived_warp + revived_vwarp
 
     # Washing Enabled Logic (Best effort inference for Shards)
     washing_enabled = False
