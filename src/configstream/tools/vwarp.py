@@ -426,11 +426,11 @@ class VwarpTool:
             vwarp_config["test_url"] = env_test_url
 
         if used_ci_defaults:
-            self._log_vwarp_config("CI default", vwarp_config)
+            self._log_config("CI default", vwarp_config)
         elif env_json or env_force_vwarp_config or env_dns or env_test_url or env_endpoint:
-            self._log_vwarp_config("env-derived", vwarp_config)
+            self._log_config("env-derived", vwarp_config)
 
-        return self._write_temp_vwarp_config(vwarp_config)
+        return self._write_temp_config(vwarp_config)
 
     @staticmethod
     def _config_extra_flags(config: Dict[str, Any]) -> List[str]:
