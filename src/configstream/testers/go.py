@@ -504,6 +504,17 @@ class GoBatchTester:
         for p in proxies:
             outbound = to_singbox_outbound(p)
             if outbound:
+                # Apply evasion features to test config to avoid false negatives
+                # Proxies that only work with uTLS/multiplexing should be tested with those features enabled
+                from ..intelligence.evasion import enrich_outbound_with_evasion
+                outbound = enrich_outbound_with_evasion(
+                    outbound,
+                    p.id,
+                    enable_utls=True,
+                    enable_alpn=True,
+                    enable_fragmentation=True,
+                    enable_multiplexing=True,
+                )
                 # Use unique request ID (Full UUID) to handle duplicate proxies collision-free
                 req_id = f"{p.id}-{uuid.uuid4().hex}"
 

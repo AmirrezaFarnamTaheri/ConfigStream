@@ -155,10 +155,47 @@
                             <h3 data-i18n="downloads.chosen.title" style="color: var(--brand-primary); margin: 0; font-size: 1.5rem; font-weight: 700;">Chosen Top 1000</h3>
                         </div>
                         <p class="subtitle-sm" data-i18n="downloads.chosen.desc" style="margin-bottom: 1.25rem; line-height: 1.6; color: var(--text-primary);">Our premium selection: top 50 proxies from each protocol, ranked by lowest latency. The best choice for most users!</p>
-                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt" data-dns-file="chosen/base64-dns-safe.txt" style="box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); font-weight: 600;">
+                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt" data-dns-file="chosen/base64-dns-safe.txt" data-dns-hardened-file="chosen/base64-dns-hardened.txt" style="box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); font-weight: 600;">
                             <i data-feather="copy"></i>
                             <span data-i18n="downloads.chosen.btn">Copy Chosen Subscription</span>
                         </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Gold Connection (Anti-Censorship) -->
+            <section class="gold-tier-box" style="--delay: 0.4s; margin-bottom: 2rem;">
+                <div class="stats-card" style="background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%); border: 2px solid #ffd700; position: relative; overflow: hidden;">
+                    <!-- Decorative accent -->
+                    <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%); border-radius: 50%;"></div>
+                    <div class="text-center" style="padding: 2rem; position: relative; z-index: 1;">
+                        <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <span style="font-size: 28px;">🏆</span>
+                            <h3 style="color: #ffd700; margin: 0; font-size: 1.5rem; font-weight: 700;">Gold Connection (Anti-Censorship)</h3>
+                        </div>
+                        <p class="subtitle-sm" style="margin-bottom: 1.25rem; line-height: 1.6; color: var(--text-primary);">
+                            These connections are <strong>Shielded</strong>. They work even when the internet is severely restricted. 
+                            Dead proxies are resurrected using WARP tunneling (Copper to Gold transformation).
+                        </p>
+                        <div style="margin-bottom: 1.5rem; text-align: left; background: rgba(255, 215, 0, 0.05); padding: 1rem; border-radius: 8px;">
+                            <p style="margin-bottom: 0.75rem; font-weight: 600; color: #ffd700;">📋 Instructions:</p>
+                            <ol style="margin-left: 1.5rem; line-height: 1.8; color: var(--text-primary);">
+                                <li><strong>Step 1:</strong> Download <strong>Nekobox</strong> or <strong>Sing-box</strong> client.</li>
+                                <li><strong>Step 2:</strong> Copy the <strong>JSON Subscription</strong> link below (Do not open it!).</li>
+                                <li><strong>Step 3:</strong> Import it as a <strong>Subscription</strong> (not a Profile) in your client.</li>
+                                <li><strong>Step 4:</strong> Select a proxy tagged with <code>GOLD-</code> prefix.</li>
+                            </ol>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem; align-items: center;">
+                            <div style="display: flex; gap: 0.5rem; width: 100%; max-width: 600px;">
+                                <input type="text" id="gold-subscription-url" value="singbox-chains.json" readonly style="flex: 1; padding: 0.75rem; border: 1px solid #ffd700; border-radius: 4px; background: rgba(255, 255, 255, 0.9); font-family: monospace; font-size: 0.9rem;">
+                                <button class="btn btn-primary copy-btn" data-file="singbox-chains.json" style="background: #ffd700; color: #000; font-weight: 600; white-space: nowrap;">
+                                    <i data-feather="copy"></i>
+                                    <span>Copy Subscription</span>
+                                </button>
+                            </div>
+                            <p style="color: #ff6b6b; font-size: 0.85rem; margin: 0;">⚠️ NOTE: These will NOT work in standard V2RayNG. You must use Nekobox or Sing-box.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -235,6 +272,27 @@
                             <div class="stat-label" data-i18n="stats.vwarp">Vwarp Efficiency</div>
                         </div>
                     </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: #ffd700;"><i data-feather="shield"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="shieldedCount" class="stat-value">0</div>
+                            <div class="stat-label" data-i18n="stats.shielded">Shielded (Gold)</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: #4a90e2;"><i data-feather="lock"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="evasionUtls" class="stat-value">0</div>
+                            <div class="stat-label" data-i18n="stats.evasion_utls">uTLS Enabled</div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon" style="background: #36d299;"><i data-feather="globe"></i></div>
+                        <div class="stat-value-wrapper">
+                            <div id="evasionDnsHardened" class="stat-value">0</div>
+                            <div class="stat-label" data-i18n="stats.evasion_dns">DNS-Hardened</div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -260,7 +318,16 @@
                                         </select>
                                         <i data-feather="chevron-down" class="dropdown-arrow"></i>
                                     </div>
-                                    <p class="subtitle" style="font-size: 0.9rem; max-width: 720px;" data-i18n="downloads.dns_profile.desc">Pick the DNS profile for downloads. DNS-safe uses IP-only endpoints, DNS-hardened keeps hostnames but prefers IP when available and embeds encrypted resolvers.</p>
+                                    <div class="client-dropdown-wrapper" style="min-width: 260px; margin-top: 0.5rem;">
+                                        <label for="evasion-mode-selector" class="sr-only" data-i18n="downloads.evasion_mode.label">Evasion mode</label>
+                                        <select id="evasion-mode-selector" class="client-select" aria-label="Evasion mode">
+                                            <option value="standard" data-i18n="downloads.evasion_mode.standard">Standard (default)</option>
+                                            <option value="stealth" data-i18n="downloads.evasion_mode.stealth">Stealth (TLS frag + uTLS)</option>
+                                            <option value="aggressive" data-i18n="downloads.evasion_mode.aggressive">Aggressive (All evasion)</option>
+                                        </select>
+                                        <i data-feather="chevron-down" class="dropdown-arrow"></i>
+                                    </div>
+                                    <p class="subtitle" style="font-size: 0.9rem; max-width: 720px;" data-i18n="downloads.dns_profile.desc">Pick the DNS profile and evasion mode for downloads. DNS-safe uses IP-only endpoints, DNS-hardened keeps hostnames but prefers IP when available and embeds encrypted resolvers.</p>
                                 </div>
                                 <div class="downloads-grid">
                                     <div class="download-card" style="--delay: 0.6s;">
@@ -269,7 +336,7 @@
                                             <h3 class="download-title" data-i18n="downloads.universal">Universal Subscription</h3>
                                             <p class="download-desc" data-i18n="downloads.universal.desc">Base64 format compatible with V2Ray, Xray, and most clients. Auto-updating.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="base64.txt" data-dns-file="base64-dns-safe.txt">
+                                        <button class="btn btn-primary copy-btn" data-file="base64.txt" data-dns-file="base64-dns-safe.txt" data-dns-hardened-file="base64-dns-hardened.txt">
                                             <i data-feather="copy"></i>
                                             <span data-i18n="table.copy">Copy Link</span>
                                         </button>
@@ -328,7 +395,7 @@
                                             <h3 class="download-title" data-i18n="downloads.sideproducts">Native Configs Pack</h3>
                                             <p class="download-desc" data-i18n="downloads.sideproducts.desc">OpenVPN, WireGuard, and plain URIs for direct client import.</p>
                                         </div>
-                                        <a href="side_products.zip" class="btn btn-primary" download="side_products.zip" id="side-products-download" data-file="side_products.zip" data-dns-file="side_products-dns-safe.zip">
+                                        <a href="side_products.zip" class="btn btn-primary" download="side_products.zip" id="side-products-download" data-file="side_products.zip" data-dns-file="side_products-dns-safe.zip" data-dns-hardened-file="side_products-dns-hardened.zip">
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -350,7 +417,7 @@
                                             <h3 class="download-title" data-i18n="downloads.proxiesjson">Proxies Dataset (JSON)</h3>
                                             <p class="download-desc" data-i18n="downloads.proxiesjson.desc">Full structured dataset for developers and analytics.</p>
                                         </div>
-                                        <a href="proxies.json" class="btn btn-primary" download="proxies.json" data-file="proxies.json" data-dns-file="proxies-dns-safe.json">
+                                        <a href="proxies.json" class="btn btn-primary" download="proxies.json" data-file="proxies.json" data-dns-file="proxies-dns-safe.json" data-dns-hardened-file="proxies-dns-hardened.json">
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -361,7 +428,7 @@
                                             <h3 class="download-title" data-i18n="downloads.revived">Revived Proxies (JSON)</h3>
                                             <p class="download-desc" data-i18n="downloads.revived.desc">Revived-only dataset for chaining and diagnostics.</p>
                                         </div>
-                                        <a href="revived.json" class="btn btn-primary" download="revived.json" data-file="revived.json" data-dns-file="revived-dns-safe.json">
+                                        <a href="revived.json" class="btn btn-primary" download="revived.json" data-file="revived.json" data-dns-file="revived-dns-safe.json" data-dns-hardened-file="revived-dns-hardened.json">
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -373,7 +440,7 @@
                                              <h3 class="download-title" data-i18n="downloads.raw">Raw Configs</h3>
                                              <p class="download-desc" data-i18n="downloads.raw.desc">Plain text list of all proxy URIs.</p>
                                          </div>
-                                         <button class="btn btn-primary copy-btn" data-file="proxies.txt" data-dns-file="proxies-dns-safe.txt">
+                                         <button class="btn btn-primary copy-btn" data-file="proxies.txt" data-dns-file="proxies-dns-safe.txt" data-dns-hardened-file="proxies-dns-hardened.txt">
                                              <i data-feather="copy"></i>
                                              <span data-i18n="table.copy">Copy Link</span>
                                          </button>

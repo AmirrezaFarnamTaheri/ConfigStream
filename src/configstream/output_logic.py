@@ -8,6 +8,7 @@ import re
 import tempfile
 import zipfile
 import ipaddress
+import hashlib
 from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
 from datetime import datetime, timezone
@@ -27,7 +28,11 @@ from .intelligence.washer.core import ProxyWasher
 from .utils import AtomicFileWriter
 from .config import AppSettings
 from .constants import CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
-from .dns_profiles import build_singbox_dns_profile, build_clash_dns_profile
+from .dns_profiles import (
+    build_singbox_dns_profile,
+    build_clash_dns_profile,
+    build_resolver_sets,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -309,6 +314,95 @@ def _filter_outbounds_for_dns_hardened(
     return cleaned
 
 
+def _dns_resolver_sets() -> Tuple[List[str], List[str]]:
+    primary, fallback = build_resolver_sets()
+    if not primary:
+        logger.warning("DNS-hardened outputs: resolver list is empty.")
+    return primary, fallback
+
+
+def _render_dns_comment_block(primary: List[str], fallback: List[str]) -> List[str]:
+    lines = ["# DNS resolvers (DoH/DoT/DoQ):"]
+    for resolver in primary:
+        lines.append(f"# - {resolver}")
+    if fallback:
+        lines.append("# DNS fallback order:")
+        for resolver in fallback:
+            lines.append(f"# - {resolver}")
+    return lines
+
+
+def _wrap_surge_or_loon_profile(
+    adapter_name: str,
+    proxies: List[Proxy],
+    washed_outbounds: Optional[List[Dict[str, Any]]],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    adapter = get_adapter(adapter_name)
+    content = (
+        adapter.export(proxies, washed_outbounds=washed_outbounds)
+        if adapter_name in ("surge", "loon")
+        else adapter.export(proxies)
+    )
+    proxy_lines = content.splitlines()
+    if proxy_lines and proxy_lines[0].startswith("#"):
+        proxy_lines = proxy_lines[1:]
+    lines = [
+        f"# ConfigStream DNS-hardened profile ({adapter_name})",
+        "# Prefer IP when available; SNI/Host pinned for TLS.",
+        "[Proxy]",
+    ]
+    lines.extend(proxy_lines)
+    lines.extend(["", "[DNS]"])
+    if primary:
+        lines.append(f"dns-server = {', '.join(primary)}")
+    if fallback:
+        lines.append(f"fallback-dns-server = {', '.join(fallback)}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _wrap_quantumultx_profile(
+    proxies: List[Proxy],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    adapter = get_adapter("quantumultx")
+    content = adapter.export(proxies)
+    proxy_lines = content.splitlines()
+    lines = [
+        "# ConfigStream DNS-hardened profile (quantumultx)",
+        "# Prefer IP when available; SNI/Host pinned for TLS.",
+        "[server_local]",
+    ]
+    lines.extend(proxy_lines)
+    lines.extend(["", "[dns]"])
+    for resolver in primary:
+        lines.append(f"server={resolver}")
+    for resolver in fallback:
+        lines.append(f"server={resolver}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def _wrap_shadowrocket_profile(
+    proxies: List[Proxy],
+    primary: List[str],
+    fallback: List[str],
+) -> str:
+    adapter = get_adapter("shadowrocket")
+    content = adapter.export(proxies)
+    lines = [
+        "# ConfigStream DNS-hardened list (Shadowrocket)",
+        "# Prefer IP when available; SNI/Host pinned for TLS.",
+    ]
+    lines.extend(_render_dns_comment_block(primary, fallback))
+    if content:
+        lines.append("")
+        lines.append("# Proxy list")
+        lines.extend(content.splitlines())
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _build_wireguard_config(proxy: Proxy) -> Optional[str]:
     details = proxy.details or {}
     private_key = details.get("private_key") or proxy.uuid or ""
@@ -561,7 +655,8 @@ def generate_categorized_outputs(
 
         generated_files[f"proto_{proto}"] = ppath
 
-    # 5. Chain-only output (Washed + Revived + Smart Chains)
+    # 5. Chain-only output (Washed + Revived + Smart Chains + Shielded)
+    # This includes ALL chain types: standard washed, revived (warp/vwarp), smart chains, and shielded (gold)
     chain_outbounds: List[Dict[str, Any]] = []
     seen_tags: set[str] = set()
 
@@ -576,14 +671,18 @@ def generate_categorized_outputs(
             if tag:
                 seen_tags.add(tag)
 
+    # Include all chain types:
+    # 1. Proxy-level chains (from revived proxies)
     for p in proxies:
         chain = p.details.get("chain_outbounds")
         if isinstance(chain, list) and chain:
             _append_chain(copy.deepcopy(chain))
 
+    # 2. Washed outbounds (includes standard washed + shielded/gold chains)
     if washed_outbounds:
         _append_chain(copy.deepcopy(washed_outbounds))
 
+    # 3. Smart chains
     if smart_chains:
         for chain_list in smart_chains.values():
             for chain in chain_list:
@@ -603,6 +702,36 @@ def generate_categorized_outputs(
         chains_alias_path = output_dir / "chains.json"
         AtomicFileWriter.write_text(chains_alias_path, chains_config_content)
         generated_files["chains"] = chains_alias_path
+
+    # 5b. Separate outputs for different revival types (if needed for analytics)
+    # Extract shielded (gold) chains separately for visibility
+    shielded_chains: List[Dict[str, Any]] = []
+    washed_only_chains: List[Dict[str, Any]] = []
+    revived_only_chains: List[Dict[str, Any]] = []
+    
+    if washed_outbounds:
+        for outbound in washed_outbounds:
+            if not isinstance(outbound, dict):
+                continue
+            tag = outbound.get("tag", "")
+            process = outbound.get("_process", "")
+            
+            # Shielded chains (GOLD- prefix or shield_payload process)
+            if tag.startswith("GOLD-") or process == "shield_payload" or process == "shield_base":
+                shielded_chains.append(copy.deepcopy(outbound))
+            # Standard washed chains (not shielded)
+            elif tag.startswith("🛡️") or process == "washed":
+                washed_only_chains.append(copy.deepcopy(outbound))
+    
+    # Revived chains from proxy details
+    for p in proxies:
+        if p.details.get("is_revived") or (p.process or "").startswith("revived"):
+            chain = p.details.get("chain_outbounds")
+            if isinstance(chain, list) and chain:
+                revived_only_chains.extend(copy.deepcopy(chain))
+    
+    # Generate separate outputs for analytics/debugging (optional, not user-facing)
+    # These are kept for backward compatibility and internal tracking
 
     # 6. DNS-safe outputs (IP-only / pre-resolved)
     dns_safe_proxies, host_map = _build_dns_safe_proxies(proxies)
@@ -739,6 +868,7 @@ def generate_categorized_outputs(
     if AppSettings().DNS_HARDENED_OUTPUTS:
         dns_hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
         if dns_hardened_proxies:
+            primary_resolvers, fallback_resolvers = _dns_resolver_sets()
             hardened_washed = (
                 _filter_outbounds_for_dns_hardened(washed_outbounds, hardened_map)
                 if washed_outbounds
@@ -770,7 +900,180 @@ def generate_categorized_outputs(
             )
             generated_files.update(hardened_split_files)
 
-    logger.info(f"Generated {len(generated_files)} output files.")
+            # Base64 + plaintext outputs (DNS-hardened prefer-IP)
+            dns_hardened_base64 = generate_base64_subscription(dns_hardened_proxies)
+            dns_hardened_base64_path = output_dir / "base64-dns-hardened.txt"
+            AtomicFileWriter.write_text(dns_hardened_base64_path, dns_hardened_base64)
+            generated_files["base64_dns_hardened"] = dns_hardened_base64_path
+
+            dns_hardened_raw = generate_plaintext_subscription(dns_hardened_proxies)
+            dns_hardened_txt_path = output_dir / "proxies-dns-hardened.txt"
+            AtomicFileWriter.write_text(dns_hardened_txt_path, dns_hardened_raw)
+            generated_files["proxies_txt_dns_hardened"] = dns_hardened_txt_path
+
+            dns_hardened_chosen = _select_chosen_proxies(dns_hardened_proxies)
+            if dns_hardened_chosen:
+                chosen_dir = output_dir / "chosen"
+                chosen_dir.mkdir(exist_ok=True)
+                chosen_hardened_base64 = generate_base64_subscription(
+                    dns_hardened_chosen
+                )
+                chosen_hardened_path = chosen_dir / "base64-dns-hardened.txt"
+                AtomicFileWriter.write_text(
+                    chosen_hardened_path, chosen_hardened_base64
+                )
+                generated_files["chosen_base64_dns_hardened"] = chosen_hardened_path
+
+            # Adapter-specific outputs (DNS-hardened)
+            try:
+                shadowrocket_hardened = _wrap_shadowrocket_profile(
+                    dns_hardened_proxies, primary_resolvers, fallback_resolvers
+                )
+                out_path = output_dir / "shadowrocket-dns-hardened.txt"
+                AtomicFileWriter.write_text(out_path, shadowrocket_hardened)
+                generated_files["shadowrocket_dns_hardened"] = out_path
+            except Exception as exc:
+                logger.warning("Failed to generate dns-hardened Shadowrocket: %s", exc)
+
+            try:
+                surge_hardened = _wrap_surge_or_loon_profile(
+                    "surge",
+                    dns_hardened_proxies,
+                    hardened_washed,
+                    primary_resolvers,
+                    fallback_resolvers,
+                )
+                out_path = output_dir / "surge-dns-hardened.conf"
+                AtomicFileWriter.write_text(out_path, surge_hardened)
+                generated_files["surge_dns_hardened"] = out_path
+            except Exception as exc:
+                logger.warning("Failed to generate dns-hardened Surge: %s", exc)
+
+            try:
+                loon_hardened = _wrap_surge_or_loon_profile(
+                    "loon",
+                    dns_hardened_proxies,
+                    hardened_washed,
+                    primary_resolvers,
+                    fallback_resolvers,
+                )
+                out_path = output_dir / "loon-dns-hardened.conf"
+                AtomicFileWriter.write_text(out_path, loon_hardened)
+                generated_files["loon_dns_hardened"] = out_path
+            except Exception as exc:
+                logger.warning("Failed to generate dns-hardened Loon: %s", exc)
+
+            try:
+                quantumult_hardened = _wrap_quantumultx_profile(
+                    dns_hardened_proxies, primary_resolvers, fallback_resolvers
+                )
+                out_path = output_dir / "quantumult-dns-hardened.conf"
+                AtomicFileWriter.write_text(out_path, quantumult_hardened)
+                generated_files["quantumult_dns_hardened"] = out_path
+            except Exception as exc:
+                logger.warning("Failed to generate dns-hardened Quantumult X: %s", exc)
+
+            try:
+                sip_adapter = get_adapter("sip008")
+                sip_content = sip_adapter.export(dns_hardened_proxies)
+                sip_path = output_dir / "sip008-dns-hardened.json"
+                AtomicFileWriter.write_text(sip_path, sip_content)
+                generated_files["sip008_dns_hardened"] = sip_path
+            except Exception as exc:
+                logger.warning("Failed to generate dns-hardened SIP008: %s", exc)
+
+            # Side products pack (DNS-hardened)
+            side_hardened_path = output_dir / "side_products-dns-hardened.zip"
+            openvpn_hardened = [
+                p
+                for p in dns_hardened_proxies
+                if (p.protocol or "").lower() == "openvpn" and p.config
+            ]
+            wireguard_hardened = [
+                p
+                for p in dns_hardened_proxies
+                if (p.protocol or "").lower() in ("wireguard", "wg")
+            ]
+            if dns_hardened_raw or openvpn_hardened or wireguard_hardened:
+                tmp_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(
+                        dir=output_dir,
+                        prefix=".side_products_dns_hardened.",
+                        suffix=".tmp",
+                        delete=False,
+                    ) as tmp:
+                        tmp_path = tmp.name
+                    with zipfile.ZipFile(
+                        tmp_path, "w", compression=zipfile.ZIP_DEFLATED
+                    ) as zf:
+                        zf.writestr("proxies.txt", dns_hardened_raw)
+                        for proxy in openvpn_hardened:
+                            original_host = (
+                                proxy.details.get("original_host") or proxy.address
+                            )
+                            rewritten = _rewrite_openvpn_remote(
+                                proxy.config, original_host, proxy.address
+                            )
+                            name = _safe_filename(
+                                proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                            )
+                            zf.writestr(f"openvpn/{name}.ovpn", rewritten)
+                        for proxy in wireguard_hardened:
+                            wg_config = _build_wireguard_config(proxy)
+                            if not wg_config:
+                                continue
+                            name = _safe_filename(
+                                proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                            )
+                            zf.writestr(f"wireguard/{name}.conf", wg_config)
+                    os.replace(tmp_path, side_hardened_path)
+                    generated_files["side_products_dns_hardened"] = side_hardened_path
+                except Exception as exc:
+                    logger.warning(
+                        "Failed to generate side_products-dns-hardened.zip: %s", exc
+                    )
+                    if tmp_path and os.path.exists(tmp_path):
+                        try:
+                            os.unlink(tmp_path)
+                        except OSError:
+                            pass
+
+            # DNS-hardened chains (includes all chain types: washed, revived, smart, shielded)
+            hardened_chain_outbounds: List[Dict[str, Any]] = []
+            if chain_outbounds:
+                hardened_chain_outbounds = _filter_outbounds_for_dns_hardened(
+                    chain_outbounds, hardened_map
+                )
+            if hardened_chain_outbounds:
+                hardened_chains_content = generate_singbox_config(
+                    [], extra_outbounds=hardened_chain_outbounds
+                )
+                hardened_chains_path = output_dir / "singbox-chains-dns-hardened.json"
+                AtomicFileWriter.write_text(hardened_chains_path, hardened_chains_content)
+                generated_files["singbox_chains_dns_hardened"] = hardened_chains_path
+
+                hardened_chains_alias = output_dir / "chains-dns-hardened.json"
+                AtomicFileWriter.write_text(hardened_chains_alias, hardened_chains_content)
+                generated_files["chains_dns_hardened"] = hardened_chains_alias
+
+    # 8. Legacy compatibility: Ensure all legacy outputs are preserved
+    # These are already generated above, but we verify they exist for backward compatibility
+    legacy_required = [
+        "base64",
+        "singbox",
+        "clash",
+        "shadowrocket",
+        "surge",
+        "loon",
+        "quantumult",
+        "sip008",
+    ]
+    for legacy_key in legacy_required:
+        if legacy_key not in generated_files:
+            logger.warning(f"Legacy output '{legacy_key}' not generated - may break compatibility")
+
+    logger.info(f"Generated {len(generated_files)} output files (including all variations).")
     return generated_files
 
 
@@ -795,8 +1098,6 @@ def save_metadata(
     latency_by_country_count: Dict[str, int] = {}
     latency_by_protocol_sum: Dict[str, float] = {}
     latency_by_protocol_count: Dict[str, int] = {}
-    warp_count_heuristic = 0
-    relay_count_heuristic = 0
 
     for p in proxies:
         if not p.is_working:
@@ -838,12 +1139,8 @@ def save_metadata(
         if p.asn:
             asns[p.asn] = asns.get(p.asn, 0) + 1
 
-        # Heuristic counts for WARP/RELAY tags
-        tags_str = str(p.tags)
-        if "WARP" in tags_str:
-            warp_count_heuristic += 1
-        if "RELAY" in tags_str:
-            relay_count_heuristic += 1
+        # Note: Heuristic counts removed - use exact counts from PipelineStats instead
+        # (revived_warp, revived_vwarp, washer_success_count)
 
     # Extract info from stats (dict or object)
     total_sourced = total
@@ -959,12 +1256,16 @@ def save_metadata(
             time_limited = bool(stats.time_limited)
         if hasattr(stats, "time_limit_seconds"):
             time_limit_seconds = int(stats.time_limit_seconds or 0)
+        # Use stats.working as source of truth (more accurate than counting in loop)
+        if hasattr(stats, "working"):
+            working = stats.working
 
-    # Fallback heuristics if counts still 0 (use values from single-pass loop)
-    if washed_count == 0:
-        washed_count = warp_count_heuristic
-    if smart_chain_count == 0:
-        smart_chain_count = relay_count_heuristic
+    # Use stats.working if available (more accurate than loop count)
+    if isinstance(stats, dict):
+        working = stats.get("working", working)
+
+    # Note: Removed heuristic fallbacks - use exact counts from PipelineStats
+    # If counts are 0, they should remain 0 (not estimated from tags)
 
     # Separation of Smart Chains
     smart_chains_breakdown = {}
@@ -990,14 +1291,15 @@ def save_metadata(
         if latency_by_protocol_count.get(proto)
     }
 
-    # Compute total_revived properly from both WARP and Vwarp
-    total_revived_count = revived_warp + revived_vwarp
-    if total_revived_count == 0:
-        total_revived_count = washed_count  # Fallback to heuristic
-
-    # Ensure total_revived is not zero if we have heuristics
-    if total_revived_count == 0 and warp_count_heuristic > 0:
-        total_revived_count = warp_count_heuristic
+    # Compute total_revived from exact counts (no heuristics)
+    # Use PipelineStats.total_revived property if available, otherwise calculate
+    if isinstance(stats, dict):
+        total_revived_count = stats.get("total_revived", revived_warp + revived_vwarp)
+    else:
+        if hasattr(stats, "total_revived"):
+            total_revived_count = stats.total_revived
+        else:
+            total_revived_count = revived_warp + revived_vwarp
 
     # Washing Enabled Logic (Best effort inference for Shards)
     washing_enabled = False
@@ -1061,12 +1363,14 @@ def save_metadata(
         "total_lines_sourced": total_sourced,
         "total_unique_candidates": parsed_count,  # Parsed proxies (before testing)
         "total_valid_proxies": working,
-        # Frontend display values - use total_configured_sources for proper display
-        # sources_count should show total configured sources, not just processed ones
+        # Source counts - consolidated to avoid redundancy
+        # Primary field: total_configured_sources (total sources in config)
+        # Secondary field: fetched_sources (actual sources processed)
+        "total_configured_sources": total_configured_sources or fetched_sources,
+        "fetched_sources": fetched_sources,  # Actual sources processed
+        # Legacy aliases for backward compatibility (deprecated, use total_configured_sources)
         "sources_count": total_configured_sources or fetched_sources,
         "total_sources": total_configured_sources or fetched_sources,
-        "fetched_sources": fetched_sources,  # Actual sources processed
-        "total_configured_sources": total_configured_sources or fetched_sources,
         "update_interval_hours": update_interval_hours,
         "latency_by_country": latency_by_country,
         "latency_by_protocol": latency_by_protocol,

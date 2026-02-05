@@ -11,7 +11,9 @@ from configstream.output_logic import (
     generate_categorized_outputs,
     save_metadata,
     _build_dns_safe_proxies,
+    _build_dns_hardened_proxies,
 )
+from typing import Set
 from configstream.output_transport import save_json, inject_stego_key_into_frontend
 from configstream.transport.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
@@ -112,6 +114,14 @@ async def generate_pipeline_outputs(
     # 0b. DNS-safe resolution (optional)
     if getattr(settings, "DNS_SAFE_OUTPUTS", True):
         await _populate_resolved_ips(optimized_proxies, settings)
+        # Track DNS-safe count
+        dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
+        stats.evasion_dns_safe_count = len(dns_safe_proxies)
+    
+    # Track DNS-hardened count
+    if getattr(settings, "DNS_HARDENED_OUTPUTS", True):
+        dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
+        stats.evasion_dns_hardened_count = len(dns_hardened_proxies)
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
@@ -135,6 +145,35 @@ async def generate_pipeline_outputs(
 
     # Update stats with washing results
     stats.washer_success_count = len(washed_ids)
+
+    # 2b. The "Lazarus Pit" - Resurrect dead proxies with Shielding
+    # Capture failed proxies and attempt to shield them (Copper to Gold transformation)
+    failed_proxies = [p for p in optimized_proxies if not p.is_working]
+    shielded_outbounds: List[Dict[str, Any]] = []
+    shielded_ids: Set[str] = set()
+    
+    if failed_proxies and washer:
+        logger.info(f"⚰️  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy...")
+        try:
+            shielded_outbounds, shielded_ids = washer.shield_batch(failed_proxies, stats=stats)
+            if shielded_outbounds:
+                logger.info(f"✨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} chains.")
+                # Merge shielded outbounds with washed outbounds
+                washed_outbounds.extend(shielded_outbounds)
+                washed_ids.update(shielded_ids)
+                stats.shielded_count = len(shielded_ids)
+            else:
+                logger.info("No dead proxies could be resurrected (no WARP keys or clean IPs available).")
+        except Exception as e:
+            logger.warning(f"Shielding failed: {e}", exc_info=True)
+    
+    # Track evasion metrics (count proxies with evasion features enabled)
+    # Note: These are applied in generate_split_outputs, so we estimate based on working proxies
+    working_with_tls = [p for p in optimized_proxies if p.is_working and p.protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]]
+    stats.evasion_utls_enabled = len(working_with_tls)  # All TLS proxies get uTLS
+    stats.evasion_alpn_enabled = len([p for p in working_with_tls if p.protocol in ["vmess", "vless", "trojan"]])  # ALPN for specific protocols
+    stats.evasion_fragmentation_enabled = len(working_with_tls)  # All TLS proxies get fragmentation
+    stats.evasion_multiplexing_enabled = len([p for p in working_with_tls if p.protocol in ["vmess", "vless", "trojan", "shadowsocks"]])  # Multiplexing for specific protocols
 
     # [FIX] Explicit logging if no chains were created despite having working proxies
     if not washed_outbounds and optimized_proxies:
@@ -184,6 +223,15 @@ async def generate_pipeline_outputs(
         dns_safe_path = output_path / "proxies-dns-safe.json"
         await loop.run_in_executor(None, save_json, dns_safe_proxies, dns_safe_path)
 
+    # DNS-hardened dataset (prefer IP when available)
+    dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
+    dns_hardened_path: Optional[Path] = None
+    if dns_hardened_proxies:
+        dns_hardened_path = output_path / "proxies-dns-hardened.json"
+        await loop.run_in_executor(
+            None, save_json, dns_hardened_proxies, dns_hardened_path
+        )
+
     revived_proxies = [
         p
         for p in optimized_proxies
@@ -191,6 +239,7 @@ async def generate_pipeline_outputs(
     ]
     revived_path = None
     revived_dns_path: Optional[Path] = None
+    revived_hardened_path: Optional[Path] = None
     if revived_proxies:
         revived_path = output_path / "revived.json"
         await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
@@ -204,6 +253,17 @@ async def generate_pipeline_outputs(
                 revived_dns_path = output_path / "revived-dns-safe.json"
                 await loop.run_in_executor(
                     None, save_json, revived_dns_safe, revived_dns_path
+                )
+        if dns_hardened_proxies:
+            revived_dns_hardened = [
+                p
+                for p in dns_hardened_proxies
+                if (p.process or "").startswith("revived") or p.details.get("is_revived")
+            ]
+            if revived_dns_hardened:
+                revived_hardened_path = output_path / "revived-dns-hardened.json"
+                await loop.run_in_executor(
+                    None, save_json, revived_dns_hardened, revived_hardened_path
                 )
     else:
         # [FIX] Log if no revived proxies found, for debugging
@@ -226,8 +286,12 @@ async def generate_pipeline_outputs(
         generated_files["revived"] = revived_path
     if dns_safe_path:
         generated_files["proxies_dns_safe"] = dns_safe_path
+    if dns_hardened_path:
+        generated_files["proxies_dns_hardened"] = dns_hardened_path
     if revived_dns_path:
         generated_files["revived_dns_safe"] = revived_dns_path
+    if revived_hardened_path:
+        generated_files["revived_dns_hardened"] = revived_hardened_path
 
     # 5. Metadata & Stats
     # Track total unique chain outbounds (revived + washed + smart chains)
@@ -306,6 +370,10 @@ async def generate_pipeline_outputs(
     # Also export active trend for analytics chart
     trend_path = output_path / "data" / "active_proxy_trend.json"
     await loop.run_in_executor(None, history.export_active_proxy_trend, trend_path)
+
+    # Export evasion trend for time-series charts
+    evasion_trend_path = output_path / "data" / "evasion_trend.json"
+    await loop.run_in_executor(None, history.export_evasion_trend, stats, evasion_trend_path)
 
     logger.info(f"Output generation complete. Files created in {output_path}")
     return generated_files

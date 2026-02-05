@@ -42,6 +42,20 @@ ConfigStream uses a streaming producer-consumer pipeline.
 
 See docs/ARCHITECTURE.md for the full pipeline design and data flow.
 
+## Evasion Features
+
+ConfigStream includes advanced censorship evasion capabilities:
+
+- **TLS Fingerprint Rotation**: Mimics browser TLS handshakes (Chrome, Firefox, Safari, iOS)
+- **TLS Fragmentation**: Splits TLS packets to bypass stateless DPI
+- **Multiplexing with Padding**: HTTP/2 multiplexing with random padding to hide traffic patterns
+- **ALPN Rotation**: Varies protocol negotiation to prevent fingerprinting
+- **DNS Hardening**: DoH/DoT/DoQ resolvers with prefer-IP strategy
+- **Shielding (Copper to Gold)**: Wraps blocked proxies in WARP tunnels
+- **Revival**: Resurrects failed proxies using WARP or Vwarp chains
+
+See `docs/CENSORSHIP_EVASION.md` for technical details and `docs/USER_GUIDE_EVASION.md` for user instructions.
+
 ## Protocols and Formats
 Supported protocols include VLESS, VMess, Trojan, Shadowsocks, SSR, Hysteria, Hysteria2, TUIC, WireGuard, OpenVPN, HTTP, SOCKS, and SSH. Parsing is resilient against malformed inputs and includes credential recovery for common edge cases.
 
@@ -57,6 +71,7 @@ ConfigStream validates reachability and quality with a dual engine and ranks pro
 - Go sidecar tester for high-concurrency checks
 - Python fallback tester when the binary is unavailable
 - Cache-aware retesting to avoid redundant checks
+- Evasion-aware testing to identify proxies requiring advanced features
 
 ## Smart Chains Explained
 Smart chains are multi-hop routing paths assembled automatically to improve resilience and bypass DPI or hostile networks. A chain is built from multiple outbounds (for example: entry -> relay -> exit), and the system selects relays using latency, reliability, and geography signals to reduce failure rates and improve stability.
@@ -224,6 +239,8 @@ Optional (production hardening):
 - DNS_SAFE_RESOLVE_TIMEOUT=4
 - DNS_SAFE_RESOLVE_BATCH=500
 - DNS_SAFE_RESOLVE_LIMIT=0
+- EVASION_MODE=aggressive (options: standard, stealth, aggressive)
+- EVASION_MODE=aggressive (options: standard, stealth, aggressive)
 
 ## Deployment
 The reference deployment uses GitHub Actions to run the pipeline every 6 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible.

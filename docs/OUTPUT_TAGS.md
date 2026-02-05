@@ -168,7 +168,49 @@ has tags, new tags are appended without duplication.
 - `REVIVED`
   - Added when the washer successfully revives a failed proxy.
 - `WARP` / `VWARP`
-  - Indicates the chain type used for revival.
+  - Indicates the chain type used for revival (WARP or Vwarp).
+
+### Revival Outbound Tags
+
+Revived chains use distinct tag prefixes to differentiate WARP and Vwarp revivals:
+
+- **WARP Revival**: 
+  - Chain tag: `WARP-REVIVE-{id}`
+  - Relay tag: `WARP-RELAY-{id}`
+  
+- **Vwarp Revival**:
+  - Chain tag: `VWARP-REVIVE-{id}`
+  - Relay tag: `VWARP-RELAY-{id}`
+
+This ensures WARP and Vwarp revivals are easily distinguishable in Sing-box configs.
+
+### Shielding Tags (Copper to Gold)
+
+- `SHIELDED`
+  - Added when a dead proxy is resurrected via shielding (Copper to Gold transformation).
+- `GOLD`
+  - Indicates a shielded proxy (Gold class connection).
+  - Topology: Client → WARP (Clean IP) → Proxy → Internet
+  - These proxies are tagged with `GOLD-` prefix in their outbound names.
+  - Process: `shielded` or `shield_payload`
+
+### Evasion Tags
+
+- `EVASION:UTLS`
+  - TLS fingerprint rotation enabled (mimics browser fingerprints).
+- `EVASION:FRAG`
+  - TLS fragmentation enabled (DPI shredder).
+- `EVASION:MUX`
+  - Multiplexing with padding enabled (packet size obfuscation).
+- `EVASION:ALPN`
+  - ALPN rotation enabled (protocol negotiation variation).
+
+### DNS Hardening Tags
+
+- `DNS:SAFE`
+  - DNS-safe output (IP-only endpoints).
+- `DNS:HARDENED`
+  - DNS-hardened output (prefer IP + DoH/DoT/DoQ resolvers).
 
 ### Security Issue Tags
 
