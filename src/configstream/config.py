@@ -101,6 +101,11 @@ class AppSettings(BaseSettings):
 
     # Feature flags
     DNS_CACHE_ENABLED: bool = True
+    DNS_SAFE_OUTPUTS: bool = True
+    DNS_HARDENED_OUTPUTS: bool = True
+    DNS_SAFE_RESOLVE_TIMEOUT: float = 4.0
+    DNS_SAFE_RESOLVE_BATCH: int = 500
+    DNS_SAFE_RESOLVE_LIMIT: int = 0
     CIRCUIT_BREAKER_ENABLED: bool = True
     HEDGING_ENABLED: bool = True
     AIMD_ENABLED: bool = True

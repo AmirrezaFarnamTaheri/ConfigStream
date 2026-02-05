@@ -1,12 +1,17 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import asyncio
+import ipaddress
 from pathlib import Path
 from typing import List, Optional
 
 from configstream.models import Proxy
 from configstream.history.tracker import ProxyHistoryTracker
-from configstream.output_logic import generate_categorized_outputs, save_metadata
+from configstream.output_logic import (
+    generate_categorized_outputs,
+    save_metadata,
+    _build_dns_safe_proxies,
+)
 from configstream.output_transport import save_json, inject_stego_key_into_frontend
 from configstream.transport.stego import generate_stego_assets
 from configstream.intelligence.washer.core import ProxyWasher
@@ -15,8 +20,71 @@ from configstream.intelligence.vectors import generate_vectors
 from configstream.pipeline_core.stats import PipelineStats
 from configstream.tagging import ProxyTagger
 from configstream.config import AppSettings
+from configstream.dns_batch_resolver import BatchDNSResolver
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_host(value: str) -> str:
+    return value.strip().lower().rstrip(".")
+
+
+def _is_ip_literal(value: str) -> bool:
+    try:
+        ipaddress.ip_address(value)
+        return True
+    except ValueError:
+        return False
+
+
+async def _populate_resolved_ips(
+    proxies: List[Proxy], settings: AppSettings
+) -> None:
+    hostnames: List[str] = []
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr or _is_ip_literal(addr):
+            continue
+        hostnames.append(addr)
+
+    if not hostnames:
+        return
+
+    unique_hosts = list(dict.fromkeys(hostnames))
+    limit = int(getattr(settings, "DNS_SAFE_RESOLVE_LIMIT", 0) or 0)
+    if limit > 0:
+        unique_hosts = unique_hosts[:limit]
+
+    resolver = BatchDNSResolver(timeout=float(getattr(settings, "DNS_SAFE_RESOLVE_TIMEOUT", 4.0)))
+    if resolver.resolver is None:
+        logger.debug("DNS-safe outputs: batch resolver unavailable; skipping DNS resolution.")
+        return
+
+    batch_size = int(getattr(settings, "DNS_SAFE_RESOLVE_BATCH", 500) or 500)
+    resolved: dict[str, str] = {}
+    for i in range(0, len(unique_hosts), batch_size):
+        batch = unique_hosts[i : i + batch_size]
+        batch_resolved = await resolver.resolve(batch)
+        for host, ip_value in batch_resolved.items():
+            resolved[_normalize_host(host)] = ip_value
+
+    if not resolved:
+        logger.info("DNS-safe outputs: no hostnames resolved.")
+        return
+
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr:
+            continue
+        key = _normalize_host(addr)
+        if key in resolved:
+            proxy.resolved_ip = resolved[key]
+
+    logger.info(
+        "DNS-safe outputs: resolved %d of %d unique hostnames.",
+        len(resolved),
+        len(unique_hosts),
+    )
 
 
 async def generate_pipeline_outputs(
@@ -40,6 +108,10 @@ async def generate_pipeline_outputs(
     tagger = ProxyTagger(rename_template)
     logger.info(f"Applying proxy tagging with template: {tagger.template}")
     tagger.apply(optimized_proxies)
+
+    # 0b. DNS-safe resolution (optional)
+    if getattr(settings, "DNS_SAFE_OUTPUTS", True):
+        await _populate_resolved_ips(optimized_proxies, settings)
 
     # 1. Initialize Washer & Scanner (The Intelligence Layer)
     # We load keys from Env. If empty, washer degrades gracefully to no-op.
@@ -105,15 +177,34 @@ async def generate_pipeline_outputs(
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, save_json, optimized_proxies, proxies_path)
 
+    # DNS-safe dataset (IP-only)
+    dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
+    dns_safe_path: Optional[Path] = None
+    if dns_safe_proxies:
+        dns_safe_path = output_path / "proxies-dns-safe.json"
+        await loop.run_in_executor(None, save_json, dns_safe_proxies, dns_safe_path)
+
     revived_proxies = [
         p
         for p in optimized_proxies
         if (p.process or "").startswith("revived") or p.details.get("is_revived")
     ]
     revived_path = None
+    revived_dns_path: Optional[Path] = None
     if revived_proxies:
         revived_path = output_path / "revived.json"
         await loop.run_in_executor(None, save_json, revived_proxies, revived_path)
+        if dns_safe_proxies:
+            revived_dns_safe = [
+                p
+                for p in dns_safe_proxies
+                if (p.process or "").startswith("revived") or p.details.get("is_revived")
+            ]
+            if revived_dns_safe:
+                revived_dns_path = output_path / "revived-dns-safe.json"
+                await loop.run_in_executor(
+                    None, save_json, revived_dns_safe, revived_dns_path
+                )
     else:
         # [FIX] Log if no revived proxies found, for debugging
         logger.info(
@@ -133,6 +224,10 @@ async def generate_pipeline_outputs(
     )
     if revived_path:
         generated_files["revived"] = revived_path
+    if dns_safe_path:
+        generated_files["proxies_dns_safe"] = dns_safe_path
+    if revived_dns_path:
+        generated_files["revived_dns_safe"] = revived_dns_path
 
     # 5. Metadata & Stats
     # Track total unique chain outbounds (revived + washed + smart chains)

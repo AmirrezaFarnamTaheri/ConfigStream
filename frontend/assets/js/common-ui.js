@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize copy buttons (if present)
     initCopyButtons();
+    initDnsProfileSelector();
 
     // Initialize inline icons (if present)
     if (window.inlineIcons) {
@@ -128,6 +129,65 @@ function initCopyButtons() {
         });
     });
 }
+
+function getDnsProfile() {
+    const selector = document.getElementById('dns-profile-selector');
+    if (selector && selector.value) {
+        return selector.value;
+    }
+    const legacyToggle = document.getElementById('dns-safe-toggle');
+    if (legacyToggle) {
+        return legacyToggle.checked ? 'dns-safe' : 'standard';
+    }
+    return 'standard';
+}
+
+function initDnsProfileSelector() {
+    const selector = document.getElementById('dns-profile-selector');
+    const legacyToggle = document.getElementById('dns-safe-toggle');
+    if (!selector && !legacyToggle) return;
+
+    const updateTargets = () => {
+        const profile = getDnsProfile();
+        document.querySelectorAll('[data-file]').forEach(el => {
+            if (!el.dataset.baseFile) {
+                el.dataset.baseFile = el.dataset.file || '';
+            }
+            const base = el.dataset.baseFile;
+            const dns = el.dataset.dnsFile;
+            const hardened = el.dataset.dnsHardenedFile;
+            let target = base;
+            if (profile === 'dns-hardened') {
+                if (hardened) {
+                    target = hardened;
+                } else if (dns) {
+                    target = dns;
+                }
+            } else if (profile === 'dns-safe' && dns) {
+                target = dns;
+            }
+            if (!target) return;
+            if (el.tagName === 'A') {
+                el.setAttribute('href', target);
+                el.setAttribute('download', target.split('/').pop());
+            }
+            el.dataset.file = target;
+        });
+        if (typeof window.updateDynamicDownloads === 'function') {
+            window.updateDynamicDownloads();
+        }
+    };
+
+    if (selector) {
+        selector.addEventListener('change', updateTargets);
+    }
+    if (legacyToggle) {
+        legacyToggle.addEventListener('change', updateTargets);
+    }
+    updateTargets();
+}
+
+window.getDnsProfile = getDnsProfile;
 
 function initAccordion() {
     const accordionContainers = document.querySelectorAll('.accordion-container');
