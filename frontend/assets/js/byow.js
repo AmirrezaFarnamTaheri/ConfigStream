@@ -1,130 +1,137 @@
-// frontend/assets/js/byow.js
+// SPDX-License-Identifier: AGPL-3.0-or-later
+/**
+ * BYOW (Bring Your Own Worker) - Platinum Upgrade
+ * Allows users to inject their own Cloudflare Worker URL into Gold configs
+ */
 
-async function applyBYOW() {
-    const workerUrlInput = document.getElementById('worker-url');
-    // Sanitize and validate
-    const rawUrl = workerUrlInput.value.trim();
-
-    // 1. Strict URL Validation
-    // Protocol must be https://
-    if (!rawUrl.startsWith('https://')) {
-        alert("Security Error: Worker URL must start with https://");
+/**
+ * Apply user's Worker URL to Gold/Shielded configs
+ * Fetches singbox-chains.json, modifies VLESS/VMess outbounds to use user's worker, and downloads
+ */
+async function applyUserWorker() {
+    const userUrlRaw = document.getElementById('userWorkerUrl')?.value.trim();
+    if (!userUrlRaw) {
+        alert("⚠️ Please enter your Worker URL!");
         return;
     }
 
-    // Use URL object for robust parsing
-    let urlObj;
+    // Clean the URL (remove https:// and trailing /)
+    let workerHost = userUrlRaw.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+    // Validate it looks like a workers.dev domain
+    if (!workerHost.includes('.workers.dev')) {
+        if (!confirm(`⚠️ "${workerHost}" doesn't look like a Cloudflare Workers URL.\n\nExpected format: your-worker.username.workers.dev\n\nContinue anyway?`)) {
+            return;
+        }
+    }
+
     try {
-        urlObj = new URL(rawUrl);
-    } catch (e) {
-        alert("Invalid URL format.");
-        return;
-    }
-
-    const hostname = urlObj.hostname;
-
-    // 2. Allowlist Check (Optional but recommended)
-    // We allow workers.dev, pages.dev, and custom domains if explicitly trusted by user context
-    // For now, we enforce HTTPS and valid hostname structure to prevent XSS/injection in config.
-    // Audit: Restrict BYOW to fetch from a whitelist of domains (e.g., worker.cloudflare.com) if possible.
-    // Since users bring their OWN worker, we can't strict whitelist everything, but we can enforce HTTPS.
-
-    // Strict hostname validation (dots, hyphens, alphanumeric)
-    const hostnameRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-    if (!hostnameRegex.test(hostname)) {
-        alert("Invalid Hostname.");
-        return;
-    }
-
-    // 3. Fetch Base Configuration
-    let config;
-    try {
-        // Use root-relative path with proper fallback handling
-        const basePath = (window.ROOT_PATH || './').replace(/\/$/, '') + '/';
-
-        // Try fetching from base path first, then fallback to current directory
-        let response;
-        try {
-            response = await fetch(basePath + 'singbox.json');
-        } catch (fetchErr) {
-            console.warn('BYOW: Primary fetch failed, trying fallback path');
-            response = await fetch('./singbox.json');
+        // Show loading state
+        const button = document.querySelector('button[onclick="applyUserWorker()"]');
+        const originalText = button?.innerHTML;
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i data-feather="loader"></i> <span>Processing...</span>';
+            if (window.feather) window.feather.replace();
         }
 
+        // Fetch the Gold chains config
+        const chainsUrl = 'singbox-chains.json';
+        const response = await fetch(chainsUrl);
         if (!response.ok) {
-            throw new Error(`Failed to fetch base config: ${response.status} ${response.statusText}`);
+            throw new Error(`Failed to fetch ${chainsUrl}: ${response.status}`);
         }
-        config = await response.json();
 
-        // 4. Validate Base Config Schema
-        if (!config || typeof config !== 'object' || !Array.isArray(config.outbounds)) {
-             throw new Error("Invalid base configuration format.");
+        const chainsConfig = await response.json();
+
+        // Deep copy to avoid mutating original
+        let modifiedConfig = JSON.parse(JSON.stringify(chainsConfig));
+
+        // The Surgery: Replace the Bridge Address in VLESS/VMess outbounds
+        let modifiedCount = 0;
+
+        if (modifiedConfig.outbounds && Array.isArray(modifiedConfig.outbounds)) {
+            modifiedConfig.outbounds.forEach(outbound => {
+                // Look for VLESS/VMess outbounds with WebSocket transport (these are the bridges)
+                if ((outbound.type === "vless" || outbound.type === "vmess") && 
+                    outbound.transport && 
+                    outbound.transport.type === "ws") {
+                    
+                    // Update the server to point to user's worker
+                    // Keep the IP as a clean Cloudflare IP (or use worker hostname)
+                    // The key is updating TLS server_name and WebSocket Host header
+                    
+                    // Option 1: Use worker hostname directly (if Cloudflare allows)
+                    // outbound.server = workerHost;
+                    // outbound.server_port = 443;
+                    
+                    // Option 2: Use a clean Cloudflare IP and set SNI/Host to worker domain
+                    // This is more reliable as it avoids DNS resolution issues
+                    if (!outbound.server || outbound.server === '127.0.0.1') {
+                        // Use a known Cloudflare IP (104.16.x.x range)
+                        outbound.server = "104.16.20.10"; // Clean Cloudflare IP
+                    }
+                    outbound.server_port = 443;
+                    
+                    // CRITICAL: Set TLS server_name to worker domain
+                    if (outbound.tls) {
+                        outbound.tls.server_name = workerHost;
+                    } else {
+                        outbound.tls = { server_name: workerHost };
+                    }
+                    
+                    // CRITICAL: Set WebSocket Host header to worker domain
+                    if (outbound.transport.headers) {
+                        outbound.transport.headers.Host = workerHost;
+                    } else {
+                        outbound.transport.headers = { Host: workerHost };
+                    }
+                    
+                    // Update WebSocket path if needed (ensure it matches worker's PROXY_PATH)
+                    if (!outbound.transport.path || !outbound.transport.path.includes('/my-secret-tunnel')) {
+                        outbound.transport.path = '/my-secret-tunnel';
+                    }
+                    
+                    modifiedCount++;
+                }
+            });
         }
-    } catch (e) {
-        console.error("BYOW Init Failed:", e);
-        alert(`Error initializing BYOW: ${e.message}. Please try refreshing the page.`);
-        return;
-    }
 
-    const workerUuidInput = document.getElementById('worker-uuid');
-
-    // Generate a random UUID v4 if not provided
-    const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    };
-
-    let workerUuid = workerUuidInput && workerUuidInput.value.trim() ? workerUuidInput.value.trim() : generateUUID();
-
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(workerUuid)) {
-        alert("Invalid UUID format. Using generated UUID.");
-        workerUuid = generateUUID();
-    }
-
-    const userWorker = {
-        "type": "vless",
-        "tag": "🚀 My Private Worker",
-        "server": hostname,
-        "server_port": 443,
-        "uuid": workerUuid,
-        "tls": {
-            "enabled": true,
-            "server_name": hostname,
-            "utls": { "enabled": true, "fingerprint": "chrome" }
-        },
-        "transport": {
-            "type": "ws",
-            "path": urlObj.pathname === '/' ? '/?ed=2048' : urlObj.pathname,
-            "headers": { "Host": hostname }
-        }
-    };
-
-    // Inject into outbounds
-    if (!config.outbounds) config.outbounds = [];
-    config.outbounds.unshift(userWorker);
-
-    // Add to Auto/Manual Groups
-    config.outbounds.forEach(out => {
-        if (out.type === 'selector' || out.type === 'urltest' || out.type === 'fallback') {
-            if (out.outbounds && Array.isArray(out.outbounds)) {
-                out.outbounds.unshift(userWorker.tag);
+        if (modifiedCount === 0) {
+            alert("⚠️ No VLESS/VMess WebSocket outbounds found in the config.\n\nMake sure you're using the Gold/Shielded chains config (singbox-chains.json).");
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = originalText;
+                if (window.feather) window.feather.replace();
             }
+            return;
         }
-    });
 
-    // 5. Generate Download Link (Use Blob for client-side generation)
-    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
+        // Save and Export
+        const blob = new Blob([JSON.stringify(modifiedConfig, null, 2)], {type: "application/json"});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = "platinum-configstream.json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
 
-    const btn = document.getElementById('btn-singbox-byow');
-    btn.href = url;
-    btn.download = "singbox-turbo.json";
+        alert(`✨ Successfully upgraded ${modifiedCount} connection(s) to your Private Bridge!\n\n📥 The config has been downloaded as "platinum-configstream.json".\n\n📋 Next steps:\n1. Import it as a Subscription in Nekobox/Sing-box\n2. Select a GOLD- prefixed proxy\n3. Enjoy your private, unlimited connection!`);
 
-    document.getElementById('byow-links').style.display = 'block';
-    alert("Turbo Config Generated! Download it below.");
+    } catch (error) {
+        console.error('BYOW upgrade failed:', error);
+        alert(`❌ Failed to upgrade config: ${error.message}\n\nPlease check:\n- Your Worker URL is correct\n- The singbox-chains.json file is accessible\n- Your browser console for details`);
+    } finally {
+        // Restore button state
+        const button = document.querySelector('button[onclick="applyUserWorker()"]');
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '<i data-feather="zap"></i> <span>Upgrade to Platinum</span>';
+            if (window.feather) window.feather.replace();
+        }
+    }
 }
+
+// Expose globally
+window.applyUserWorker = applyUserWorker;

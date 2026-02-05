@@ -1,0 +1,19 @@
+# ConfigStream BYOW Worker Configuration
+# Deploy this to Cloudflare Workers (Free Tier)
+# One-click deploy: https://deploy.workers.cloudflare.com/?url=https://github.com/AmirrezaFarnamTaheri/ConfigStream/tree/main/tools
+
+name = "configstream-bridge"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Worker configuration
+[env.production]
+name = "configstream-bridge"
+
+# Optional: Set environment variables in Cloudflare Dashboard
+# [vars]
+# USER_ID = ""  # Optional: Restrict to specific UUID
+# DEFAULT_PROXY_IP = "127.0.0.1"  # Configure your backend proxy IP
+# DEFAULT_PROXY_PORT = "443"  # Configure your backend proxy port
+

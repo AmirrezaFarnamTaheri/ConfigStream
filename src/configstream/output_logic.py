@@ -1257,12 +1257,16 @@ def save_metadata(
         if hasattr(stats, "time_limit_seconds"):
             time_limit_seconds = int(stats.time_limit_seconds or 0)
         # Use stats.working as source of truth (more accurate than counting in loop)
-        if hasattr(stats, "working"):
+        # But only if it's non-zero (to avoid overriding correct loop count)
+        if hasattr(stats, "working") and stats.working > 0:
             working = stats.working
 
     # Use stats.working if available (more accurate than loop count)
+    # But only if it's non-zero (to avoid overriding correct loop count)
     if isinstance(stats, dict):
-        working = stats.get("working", working)
+        stats_working = stats.get("working", 0)
+        if stats_working > 0:
+            working = stats_working
 
     # Note: Removed heuristic fallbacks - use exact counts from PipelineStats
     # If counts are 0, they should remain 0 (not estimated from tags)

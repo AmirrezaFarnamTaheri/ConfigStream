@@ -194,7 +194,13 @@
                                     <span>Copy Subscription</span>
                                 </button>
                             </div>
-                            <p style="color: #ff6b6b; font-size: 0.85rem; margin: 0;">⚠️ NOTE: These will NOT work in standard V2RayNG. You must use Nekobox or Sing-box.</p>
+                            <div style="background: rgba(255, 107, 107, 0.1); border: 2px solid #ff6b6b; border-radius: 8px; padding: 1rem; margin-top: 0.75rem; text-align: center;">
+                                <p style="color: #ff6b6b; font-size: 0.95rem; font-weight: 600; margin: 0 0 0.5rem 0;">⚠️ CRITICAL WARNING</p>
+                                <p style="color: #ff6b6b; font-size: 0.9rem; margin: 0; line-height: 1.5;">
+                                    <strong>Standard V2RayNG will FAIL on these Gold links.</strong><br>
+                                    You <strong>MUST</strong> use <strong>Nekobox</strong> or <strong>Sing-box</strong> and use the <strong>Subscription URL</strong>, not just the text!
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -510,6 +516,54 @@
                             </div>
                         </div>
                     </section>
+                    <section class="card" style="--delay: 1.3s; margin-top: 2rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid #667eea;">
+                        <div class="text-center" style="padding: 2rem;">
+                            <div style="display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <span style="font-size: 28px;">🚀</span>
+                                <h3 style="color: #667eea; margin: 0; font-size: 1.5rem; font-weight: 700;">Deploy Your Own Private Bridge (BYOW)</h3>
+                            </div>
+                            <p class="subtitle-sm" style="margin-bottom: 1.25rem; line-height: 1.6; color: var(--text-primary);">
+                                Bypass the 100k request limit and get a <strong>private, unblockable connection</strong> using your own Cloudflare Worker.
+                            </p>
+                            <div style="margin-bottom: 1.5rem; text-align: left; background: rgba(102, 126, 234, 0.05); padding: 1rem; border-radius: 8px;">
+                                <p style="margin-bottom: 0.75rem; font-weight: 600; color: #667eea;">📋 How It Works:</p>
+                                <ol style="margin-left: 1.5rem; line-height: 1.8; color: var(--text-primary);">
+                                    <li><strong>Step 1:</strong> Click "Deploy to Cloudflare Workers" below (one-click deploy).</li>
+                                    <li><strong>Step 2:</strong> Log in to Cloudflare (free account) and authorize the deployment.</li>
+                                    <li><strong>Step 3:</strong> Copy your Worker URL (e.g., <code>miserable-fog.username.workers.dev</code>).</li>
+                                    <li><strong>Step 4:</strong> Paste it below and click "Upgrade to Platinum" to generate your private config.</li>
+                                </ol>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                                <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/AmirrezaFarnamTaheri/ConfigStream/tree/main/tools" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   class="btn btn-primary" 
+                                   style="background: #667eea; color: white; font-weight: 600; padding: 1rem 2rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                    <i data-feather="cloud"></i>
+                                    <span>Deploy to Cloudflare Workers</span>
+                                </a>
+                                <div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <label for="userWorkerUrl" style="font-weight: 600; color: var(--text-primary);">Your Worker URL:</label>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <input type="text" 
+                                               id="userWorkerUrl" 
+                                               placeholder="your-worker.username.workers.dev" 
+                                               style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: 4px; background: rgba(255, 255, 255, 0.9); font-family: monospace; font-size: 0.9rem;">
+                                        <button onclick="applyUserWorker()" 
+                                                class="btn btn-primary" 
+                                                style="background: #667eea; color: white; font-weight: 600; white-space: nowrap;">
+                                            <i data-feather="zap"></i>
+                                            <span>Upgrade to Platinum</span>
+                                        </button>
+                                    </div>
+                                    <p style="color: #667eea; font-size: 0.85rem; margin: 0; line-height: 1.5;">
+                                        💡 <strong>Benefits:</strong> No request limits, private connection, unblockable by censors (thousands of unique domains).
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                     <section class="card notice-card" style="--delay: 1.4s;">
                         <h3><i data-feather="alert-triangle"></i> <span data-i18n="notice.title">Important Security Notice</span></h3>
                         <p data-i18n="notice.text">These are free, public proxies from unknown operators. We test for safety but cannot guarantee privacy.</p>
@@ -553,6 +607,7 @@
     <script src="assets/js/logo-controller.js" defer></script>
     <script src="assets/js/dynamic-downloads.js" defer></script>
     <script src="assets/js/common-ui.js" defer></script>
+    <script src="assets/js/byow.js" defer></script>
     <script type="module" src="assets/js/main.js" defer></script>
     <script src="assets/js/inline-icons.js" defer></script>
     <script src="assets/js/sw-init.js" defer></script>
