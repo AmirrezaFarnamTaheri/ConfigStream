@@ -1,0 +1,234 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇨🇭 | VLESS+TCP+REALITY | 424ms | UP | NATIVE",
+        "🇨🇭 | TROJAN+WS+TLS | 448ms | UP | NATIVE",
+        "🇨🇭 | VLESS+WS+TLS | 731ms | UP | NATIVE",
+        "🇨🇭 | VLESS+TCP+REALITY | 746ms | UP | NATIVE",
+        "🇨🇭 | VLESS+TCP+REALITY | 1799ms | UP | NATIVE",
+        "🇨🇭 | VLESS+TCP+REALITY | 1103ms | UP | NATIVE",
+        "🇨🇭 | VLESS+WS+TLS | 3678ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇨🇭 | VLESS+TCP+REALITY | 424ms | UP | NATIVE",
+        "🇨🇭 | TROJAN+WS+TLS | 448ms | UP | NATIVE",
+        "🇨🇭 | VLESS+WS+TLS | 731ms | UP | NATIVE",
+        "🇨🇭 | VLESS+TCP+REALITY | 746ms | UP | NATIVE",
+        "🇨🇭 | VLESS+TCP+REALITY | 1799ms | UP | NATIVE",
+        "🇨🇭 | VLESS+TCP+REALITY | 1103ms | UP | NATIVE",
+        "🇨🇭 | VLESS+WS+TLS | 3678ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭 | VLESS+TCP+REALITY | 424ms | UP | NATIVE",
+      "server": "144.31.94.99",
+      "server_port": 443,
+      "uuid": "bbed94d9-1120-4b54-8a9c-72d81e411fb8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "-1F5A8N32UdC6w2NqnAc5-GkQW1dgcrImiQPl4WRikk",
+          "short_id": "ef0b40e707663781"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇨🇭 | TROJAN+WS+TLS | 448ms | UP | NATIVE",
+      "server": "185.18.250.245",
+      "server_port": 443,
+      "password": "humanity",
+      "transport": {
+        "type": "ws",
+        "path": "/assignment",
+        "headers": {
+          "Host": "www.calmlunch.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "www.calmlunch.com",
+        "insecure": true
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭 | VLESS+WS+TLS | 731ms | UP | NATIVE",
+      "server": "185.18.250.252",
+      "server_port": 443,
+      "uuid": "fef4a93d-eb4f-4657-b56b-32a0dc060045",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "dev.twistsparrow.xyz",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "dev.twistsparrow.xyz"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭 | VLESS+TCP+REALITY | 746ms | UP | NATIVE",
+      "server": "179.43.191.100",
+      "server_port": 443,
+      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "hls-svod.itunes.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
+          "short_id": "175d"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭 | VLESS+TCP+REALITY | 1799ms | UP | NATIVE",
+      "server": "179.43.191.99",
+      "server_port": 443,
+      "uuid": "e108f3eb-4d3a-4e20-a09b-7008e333bc23",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "hls-svod.itunes.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "mLmBhbVFfNuo2eUgBh6r9-5Koz9mUCn3aSzlR6IejUg",
+          "short_id": "175d"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭 | VLESS+TCP+REALITY | 1103ms | UP | NATIVE",
+      "server": "45.95.232.10",
+      "server_port": 443,
+      "uuid": "3ff03067-b0dd-4361-a21f-27bb9474b9b8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "srv7.outlinekeys.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "WvNaAxI0W__qfUKbtysH4IwF155YENlv3PG6crCmPkA",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇭 | VLESS+WS+TLS | 3678ms | UP | NATIVE",
+      "server": "185.18.250.252",
+      "server_port": 2053,
+      "uuid": "ec77b9ff-ba31-4b1d-8a81-ee9de133bcf0",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "ds2-mx-hel22-protection.iranlease.com",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "ds2-mx-hel22-protection.iranlease.com"
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 309ms | UP | NATIVE",
+        "🇺🇦 | VLESS+TCP+REALITY | 491ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 538ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 542ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 543ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 554ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 557ms | UP | NATIVE",
+        "🇺🇦 | VLESS+TCP+REALITY | 677ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1262ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1441ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1324ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 4281ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 4839ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 5355ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1177ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 4191ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1811ms | UP | NATIVE",
+        "🇺🇦 | SOCKS5+TCP | 1799ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 309ms | UP | NATIVE",
+        "🇺🇦 | VLESS+TCP+REALITY | 491ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 538ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 542ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 543ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 554ms | UP | NATIVE",
+        "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 557ms | UP | NATIVE",
+        "🇺🇦 | VLESS+TCP+REALITY | 677ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1262ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1441ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1324ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 4281ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 4839ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 5355ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1177ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 4191ms | UP | NATIVE",
+        "🇺🇦 | SOCKS4+TCP | 1811ms | UP | NATIVE",
+        "🇺🇦 | SOCKS5+TCP | 1799ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 309ms | UP | NATIVE",
+      "server": "194.150.220.103",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "6OVeg18ylsOQMOvWVVfddO"
+    },
+    {
+      "type": "vless",
+      "tag": "🇺🇦 | VLESS+TCP+REALITY | 491ms | UP | NATIVE",
+      "server": "144.31.131.192",
+      "server_port": 443,
+      "uuid": "bbed94d9-1120-4b54-8a9c-72d81e411fb8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "VGvu_q0ReJ-Of3rHuYR7RdNnGhcrurMvOrm9EA3dtzM",
+          "short_id": "d73c7f7b13a6a076"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 538ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 48436,
+      "method": "chacha20-ietf-poly1305",
+      "password": "6d0084c6e4502ab7"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 542ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 47394,
+      "method": "chacha20-ietf-poly1305",
+      "password": "eafad96826c79ddd"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 543ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 47393,
+      "method": "chacha20-ietf-poly1305",
+      "password": "eafad96826c79ddd"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 554ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 47392,
+      "method": "chacha20-ietf-poly1305",
+      "password": "eafad96826c79ddd"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇺🇦 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 557ms | UP | NATIVE",
+      "server": "163.171.137.76",
+      "server_port": 47395,
+      "method": "chacha20-ietf-poly1305",
+      "password": "eafad96826c79ddd"
+    },
+    {
+      "type": "vless",
+      "tag": "🇺🇦 | VLESS+TCP+REALITY | 677ms | UP | NATIVE",
+      "server": "95.164.44.237",
+      "server_port": 49790,
+      "uuid": "99210efd-1a49-4085-add3-d1d2e4fdd6c2",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "Xj6-HabAfXfu2dIz1orkRH5rAlbGMs0YMc7Zo4aARlU",
+          "short_id": "9d90d7ada8"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 1262ms | UP | NATIVE",
+      "server": "185.132.1.221",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 1441ms | UP | NATIVE",
+      "server": "194.146.110.228",
+      "server_port": 1080,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 1324ms | UP | NATIVE",
+      "server": "91.247.92.63",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 4281ms | UP | NATIVE",
+      "server": "188.163.170.130",
+      "server_port": 35578,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 4839ms | UP | NATIVE",
+      "server": "193.106.57.96",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 5355ms | UP | NATIVE",
+      "server": "95.46.140.214",
+      "server_port": 1081,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 1177ms | UP | NATIVE",
+      "server": "178.215.163.218",
+      "server_port": 4145,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 4191ms | UP | NATIVE",
+      "server": "195.138.65.34",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS4+TCP | 1811ms | UP | NATIVE",
+      "server": "5.58.47.25",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇺🇦 | SOCKS5+TCP | 1799ms | UP | NATIVE",
+      "server": "195.39.233.14",
+      "server_port": 44567,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

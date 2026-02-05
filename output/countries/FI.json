@@ -1,0 +1,724 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 360ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP | 362ms | UP | NATIVE",
+        "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 390ms | UP | NATIVE",
+        "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 391ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 419ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 424ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 462ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 463ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 470ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 470ms | UP | NATIVE | SEC:invalid_uuid_format",
+        "🇫🇮 | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 494ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 500ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 514ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 543ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 547ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 563ms | UP | NATIVE",
+        "🇫🇮 | VLESS+RAW+REALITY | 571ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 572ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 578ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 605ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 606ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 609ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 625ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 648ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 650ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 667ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 717ms | UP | NATIVE",
+        "🇫🇮 | VLESS+RAW+REALITY | 730ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 730ms | UP | NATIVE",
+        "🇫🇮 | SOCKS5+TCP | 2104ms | UP | NATIVE",
+        "🇫🇮 | VLESS+RAW+REALITY | 1136ms | UP | NATIVE",
+        "🇫🇮 | TROJAN+TCP+TLS | 3676ms | UP | NATIVE",
+        "🇫🇮 | SOCKS5+TCP | 4012ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 360ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP | 362ms | UP | NATIVE",
+        "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 390ms | UP | NATIVE",
+        "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 391ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 419ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 424ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 462ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 463ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 470ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 470ms | UP | NATIVE | SEC:invalid_uuid_format",
+        "🇫🇮 | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 494ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 500ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 514ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 543ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 547ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 563ms | UP | NATIVE",
+        "🇫🇮 | VLESS+RAW+REALITY | 571ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 572ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 578ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 605ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 606ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 609ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+TLS | 625ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 648ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 650ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 667ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 717ms | UP | NATIVE",
+        "🇫🇮 | VLESS+RAW+REALITY | 730ms | UP | NATIVE",
+        "🇫🇮 | VLESS+TCP+REALITY | 730ms | UP | NATIVE",
+        "🇫🇮 | SOCKS5+TCP | 2104ms | UP | NATIVE",
+        "🇫🇮 | VLESS+RAW+REALITY | 1136ms | UP | NATIVE",
+        "🇫🇮 | TROJAN+TCP+TLS | 3676ms | UP | NATIVE",
+        "🇫🇮 | SOCKS5+TCP | 4012ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 360ms | UP | NATIVE",
+      "server": "37.143.129.98",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP | 362ms | UP | NATIVE",
+      "server": "65.109.179.221",
+      "server_port": 26261,
+      "uuid": "ee603510-52e4-29f9-00b0-9a051ad424fb"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 390ms | UP | NATIVE",
+      "server": "38.244.137.202",
+      "server_port": 45380,
+      "method": "chacha20-ietf-poly1305",
+      "password": "43fXf1uMKbIKkxoNYGQMtt"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇫🇮 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 391ms | UP | NATIVE",
+      "server": "38.244.136.233",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "dAHM1pm8ag7KdlrUylQi6t"
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+TLS | 419ms | UP | NATIVE",
+      "server": "45.144.52.197",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn9.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+TLS | 424ms | UP | NATIVE",
+      "server": "45.144.53.98",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn4.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 462ms | UP | NATIVE",
+      "server": "31.13.208.3",
+      "server_port": 443,
+      "uuid": "f3f6f19f-c68a-462c-a534-9b388663fffa",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "fl.mcqueenconnection.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "O2ttHpVFmwoAf-E1rHgOlv7NggcwxcWkHHen7jkIBjY",
+          "short_id": "3396f304f579d51f"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+TLS | 463ms | UP | NATIVE",
+      "server": "45.144.52.229",
+      "server_port": 443,
+      "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn2.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 470ms | UP | NATIVE",
+      "server": "185.92.183.112",
+      "server_port": 443,
+      "uuid": "59edf6dc-b1f7-4017-8107-aae4f61a173c",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "vkru.outlinekeys.net",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "aCIjONksX6QbTfFBxN1eFqf5caspiR7QyttJ3kDH9yY",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 470ms | UP | NATIVE | SEC:invalid_uuid_format",
+      "server": "45.15.127.107",
+      "server_port": 443,
+      "uuid": "id8114764549",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "eh.vk.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "3Q2wyMPpUbyfw7rmNxL25nnsNDmK9mHqcumAxYIGKVk",
+          "short_id": "e3"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 488ms | UP | NATIVE",
+      "server": "65.109.179.221",
+      "server_port": 2053,
+      "uuid": "ee603510-52e4-29f9-00b0-9a051ad424fb",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "dDzlhCAu0FtY4P7bzv8QiJGA0C-qoEUGKeVhXdpSdFg",
+          "short_id": "a1b2c3d4"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 494ms | UP | NATIVE",
+      "server": "78.153.139.68",
+      "server_port": 8443,
+      "uuid": "fd8972d7-cf5e-11f0-9970-45e1d80c4039",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "images.apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "pekfYPV5U8EjfQ4_zS5c6I2NnOZ2jUlyMGAWa4FWPF4",
+          "short_id": "58c512b4422e2517"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 500ms | UP | NATIVE",
+      "server": "5.61.89.225",
+      "server_port": 32061,
+      "uuid": "0df23c07-b289-4d65-822a-228478ca73bd",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "eh.vk.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "e2yc3QjJ1spCe1eLR9cMd_2-TieGJKs2sLKlfW2L-xo",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 514ms | UP | NATIVE",
+      "server": "45.15.127.107",
+      "server_port": 443,
+      "uuid": "8df8d701-38b4-5175-89ef-7447a1250e67",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "eh.vk.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "3Q2wyMPpUbyfw7rmNxL25nnsNDmK9mHqcumAxYIGKVk",
+          "short_id": "e3"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 543ms | UP | NATIVE",
+      "server": "65.109.179.221",
+      "server_port": 2053,
+      "uuid": "e8b127c3-0436-e6fe-156e-5a3b07ae6cf0",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "dDzlhCAu0FtY4P7bzv8QiJGA0C-qoEUGKeVhXdpSdFg",
+          "short_id": "a1b2c3d4"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 547ms | UP | NATIVE",
+      "server": "37.27.254.251",
+      "server_port": 443,
+      "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.cloudflare.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
+          "short_id": "7cad5040"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+TLS | 563ms | UP | NATIVE",
+      "server": "45.144.53.118",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn15.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+RAW+REALITY | 571ms | UP | NATIVE",
+      "server": "93.152.207.254",
+      "server_port": 34045,
+      "uuid": "d8dd94fd-540e-461d-b5d4-acebef02c22a",
+      "tls": {
+        "enabled": true,
+        "server_name": "visit-this-invitation-link-to-join-tg-enkelte-notif.ekt.me",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "cDaDzPr3PlS3NM8lreHZbdo-Mhqz8vMBzMSkHXhGIUA",
+          "short_id": "e8ab71d0"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+TLS | 572ms | UP | NATIVE",
+      "server": "77.110.108.244",
+      "server_port": 443,
+      "uuid": "745d8b0e-1bf2-4921-8058-4d67dd3dbc13",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn21.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 575ms | UP | NATIVE",
+      "server": "217.60.61.89",
+      "server_port": 8443,
+      "uuid": "ca911bd2-e08f-42d8-aefb-3117494d3367",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "P-3bYKbPp5YeCefayC3S3PvLanBv_lp0p_5qfrjbM34",
+          "short_id": "39a1eb3ec417cd66"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 578ms | UP | NATIVE",
+      "server": "217.60.61.89",
+      "server_port": 8443,
+      "uuid": "f1870ac5-ab5f-4255-965d-4a0476cb0b1a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "ads.x5.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "P-3bYKbPp5YeCefayC3S3PvLanBv_lp0p_5qfrjbM34",
+          "short_id": "39a1eb3ec417cd66"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 605ms | UP | NATIVE",
+      "server": "45.144.53.93",
+      "server_port": 443,
+      "uuid": "ced44d8d-1269-4558-adfd-1b456c543e8a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "fi.oncloudvpn.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "1az_XYGwf1SX5RjaXXov8xBFqpbFlzYegZgFWULF1FY",
+          "short_id": "f106"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+TLS | 606ms | UP | NATIVE",
+      "server": "45.144.53.68",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn13.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 609ms | UP | NATIVE",
+      "server": "46.62.128.207",
+      "server_port": 443,
+      "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.cloudflare.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
+          "short_id": "7cad5040"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+TLS | 625ms | UP | NATIVE",
+      "server": "45.144.53.94",
+      "server_port": 443,
+      "uuid": "a7a9f670-44c0-45a9-8047-69db0203c142",
+      "tls": {
+        "enabled": true,
+        "server_name": "ficdn3.suio.me"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 648ms | UP | NATIVE",
+      "server": "38.244.137.198",
+      "server_port": 443,
+      "uuid": "09748875-9da3-440e-9809-9752e1dda1e4",
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "QXGsw1KqljvUiarkvFdBs3T1TeUQq4skwHFlsmbj31o",
+          "short_id": "365c07ed"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 650ms | UP | NATIVE",
+      "server": "65.108.108.151",
+      "server_port": 443,
+      "uuid": "feaf1d64-b44c-4cc8-b114-4001478c1fd0",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "fit.jojack.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "u26A516I3BCfUMPOo6rw0-XYt0C2sCWaPNP2pNdtxzw",
+          "short_id": "f8865ecbb9bc11a3"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 667ms | UP | NATIVE",
+      "server": "62.60.229.32",
+      "server_port": 443,
+      "uuid": "e3379093-7c89-4c8a-be1f-abb92a3305a1",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "web.max.ru",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "X6M54TjT_X10PF8zMBxr_m4Djoyy_m4nhP28o-lGKy8",
+          "short_id": "cf563330b1a8ef60"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 717ms | UP | NATIVE",
+      "server": "64.188.73.31",
+      "server_port": 443,
+      "uuid": "bbed94d9-1120-4b54-8a9c-72d81e411fb8",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "google.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "cnY_-VQGJYosOMtWBxnq8ay71kO_dVB-IBBotP2AJn4",
+          "short_id": "243779c5c1c84b42"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+RAW+REALITY | 730ms | UP | NATIVE",
+      "server": "93.152.207.254",
+      "server_port": 45884,
+      "uuid": "57a5f6b3-ea58-4d4e-ad9c-a9830f148184",
+      "tls": {
+        "enabled": true,
+        "server_name": "yahoo.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "firefox"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "_GoR9cR6JOUmQ1PM-s2GsHiy6OuIo1Ek1a7lhNKkvj4",
+          "short_id": "9a"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+TCP+REALITY | 730ms | UP | NATIVE",
+      "server": "135.181.155.97",
+      "server_port": 443,
+      "uuid": "309fa273-6579-4cb2-9143-7cad50401eba",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "www.cloudflare.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "gZGVp5PUdafgsmi1gawa1yLuha_XhXRc_W9SvPiGmTY",
+          "short_id": "7cad5040"
+        }
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇫🇮 | SOCKS5+TCP | 2104ms | UP | NATIVE",
+      "server": "91.217.76.97",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "vless",
+      "tag": "🇫🇮 | VLESS+RAW+REALITY | 1136ms | UP | NATIVE",
+      "server": "31.59.168.88",
+      "server_port": 6443,
+      "uuid": "4088cb46-66f8-43fa-bf37-6919cdda7830",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "tradingview.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "EhuKqEHHG-dQPFdT55oVEXAi9-cpGXPcxbpd6lGFoz4",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇫🇮 | TROJAN+TCP+TLS | 3676ms | UP | NATIVE",
+      "server": "212.193.18.144",
+      "server_port": 36158,
+      "password": "ZblhWr0mqMakCPg.N",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.avito.ru",
+        "insecure": true
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇫🇮 | SOCKS5+TCP | 4012ms | UP | NATIVE",
+      "server": "193.47.60.119",
+      "server_port": 52681,
+      "username": "",
+      "password": "",
+      "version": "5"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

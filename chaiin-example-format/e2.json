@@ -1,0 +1,342 @@
+{
+  "log": {
+    "level": "warn",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "server": "223.5.5.5",
+        "type": "udp",
+        "tag": "local_local"
+      },
+      {
+        "server": "cloudflare-dns.com",
+        "domain_resolver": "hosts_dns",
+        "path": "/dns-query",
+        "type": "https",
+        "tag": "remote_dns",
+        "detour": "proxy"
+      },
+      {
+        "server": "dns.alidns.com",
+        "domain_resolver": "hosts_dns",
+        "path": "/dns-query",
+        "type": "https",
+        "tag": "direct_dns"
+      },
+      {
+        "predefined": {
+          "dns.google": [
+            "8.8.8.8",
+            "8.8.4.4",
+            "2001:4860:4860::8888",
+            "2001:4860:4860::8844"
+          ],
+          "dns.alidns.com": [
+            "223.5.5.5",
+            "223.6.6.6",
+            "2400:3200::1",
+            "2400:3200:baba::1"
+          ],
+          "one.one.one.one": [
+            "1.1.1.1",
+            "1.0.0.1",
+            "2606:4700:4700::1111",
+            "2606:4700:4700::1001"
+          ],
+          "1dot1dot1dot1.cloudflare-dns.com": [
+            "1.1.1.1",
+            "1.0.0.1",
+            "2606:4700:4700::1111",
+            "2606:4700:4700::1001"
+          ],
+          "cloudflare-dns.com": [
+            "104.16.249.249",
+            "104.16.248.249",
+            "2606:4700::6810:f8f9",
+            "2606:4700::6810:f9f9"
+          ],
+          "dns.cloudflare.com": [
+            "104.16.132.229",
+            "104.16.133.229",
+            "2606:4700::6810:84e5",
+            "2606:4700::6810:85e5"
+          ],
+          "dot.pub": [
+            "1.12.12.12",
+            "120.53.53.53"
+          ],
+          "doh.pub": [
+            "1.12.12.12",
+            "120.53.53.53"
+          ],
+          "dns.quad9.net": [
+            "9.9.9.9",
+            "149.112.112.112",
+            "2620:fe::fe",
+            "2620:fe::9"
+          ],
+          "dns.yandex.net": [
+            "77.88.8.8",
+            "77.88.8.1",
+            "2a02:6b8::feed:0ff",
+            "2a02:6b8:0:1::feed:0ff"
+          ],
+          "dns.sb": [
+            "185.222.222.222",
+            "2a09::"
+          ],
+          "dns.umbrella.com": [
+            "208.67.220.220",
+            "208.67.222.222",
+            "2620:119:35::35",
+            "2620:119:53::53"
+          ],
+          "dns.sse.cisco.com": [
+            "208.67.220.220",
+            "208.67.222.222",
+            "2620:119:35::35",
+            "2620:119:53::53"
+          ],
+          "engage.cloudflareclient.com": [
+            "162.159.192.1",
+            "2606:4700:d0::a29f:c001"
+          ]
+        },
+        "type": "hosts",
+        "tag": "hosts_dns"
+      },
+      {
+        "server": "dns.alidns.com",
+        "domain_resolver": "hosts_dns",
+        "path": "/dns-query",
+        "type": "https",
+        "tag": "ech_dns"
+      }
+    ],
+    "rules": [
+      {
+        "server": "local_local",
+        "domain": [
+          "sing_box-ProxyChain"
+        ]
+      },
+      {
+        "server": "hosts_dns",
+        "ip_accept_any": true
+      },
+      {
+        "server": "remote_dns",
+        "clash_mode": "Global"
+      },
+      {
+        "server": "direct_dns",
+        "clash_mode": "Direct"
+      },
+      {
+        "action": "predefined",
+        "rcode": "NOTIMP",
+        "query_type": [
+          64,
+          65
+        ]
+      },
+      {
+        "rule_set": [
+          "geosite-category-ads-all"
+        ],
+        "action": "predefined",
+        "rcode": "NXDOMAIN"
+      },
+      {
+        "server": "direct_dns",
+        "rule_set": [
+          "geosite-private"
+        ]
+      },
+      {
+        "server": "direct_dns",
+        "rule_set": [
+          "geosite-ir"
+        ]
+      }
+    ],
+    "final": "remote_dns",
+    "independent_cache": true
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "socks",
+      "listen": "127.0.0.1",
+      "listen_port": 10808
+    }
+  ],
+  "outbounds": [
+    {
+      "server": "ProxyIP.US.CMLiussss.net",
+      "server_port": 443,
+      "uuid": "e5474c46-8c77-4f39-96ed-93f5ee5d3b98",
+      "security": "auto",
+      "alter_id": 0,
+      "type": "vmess",
+      "tag": "proxy",
+      "detour": "proxy1",
+      "tls": {
+        "enabled": true,
+        "server_name": "proxyworker.amirrezafarnamtaheri.workers.dev",
+        "insecure": false
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/vm",
+        "headers": {
+          "Host": "proxyworker.amirrezafarnamtaheri.workers.dev"
+        },
+        "max_early_data": 2048,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
+      }
+    },
+    {
+      "server": "5.175.249.174",
+      "server_port": 35000,
+      "up_mbps": 100,
+      "down_mbps": 100,
+      "password": "b4bd0613-ff7c-4f2f-954d-185915e6ddad",
+      "type": "hysteria2",
+      "tag": "proxy1",
+      "tls": {
+        "enabled": true,
+        "server_name": "api.kermanshahi.org",
+        "insecure": false
+      },
+      "obfs": {
+        "type": "salamander",
+        "password": "@JavidnamanIran-Javid-SHAH-KingRezaPahlavi"
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ],
+  "endpoints": [],
+  "route": {
+    "default_domain_resolver": {
+      "server": "direct_dns",
+      "strategy": ""
+    },
+    "rules": [
+      {
+        "action": "sniff"
+      },
+      {
+        "protocol": [
+          "dns"
+        ],
+        "action": "hijack-dns"
+      },
+      {
+        "outbound": "direct",
+        "clash_mode": "Direct"
+      },
+      {
+        "outbound": "proxy",
+        "clash_mode": "Global"
+      },
+      {
+        "outbound": "direct",
+        "ip_cidr": [
+          "8.8.8.8"
+        ]
+      },
+      {
+        "network": [
+          "udp"
+        ],
+        "port": [
+          443
+        ],
+        "action": "reject"
+      },
+      {
+        "outbound": "direct",
+        "protocol": [
+          "bittorrent"
+        ]
+      },
+      {
+        "rule_set": [
+          "geosite-category-ads-all"
+        ],
+        "action": "reject"
+      },
+      {
+        "outbound": "direct",
+        "ip_is_private": true
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geosite-private"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geosite-ir"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geoip-ir"
+        ]
+      },
+      {
+        "outbound": "proxy",
+        "port_range": [
+          "0:65535"
+        ]
+      }
+    ],
+    "rule_set": [
+      {
+        "tag": "geosite-category-ads-all",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geosite-category-ads-all.srs"
+      },
+      {
+        "tag": "geosite-private",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geosite-private.srs"
+      },
+      {
+        "tag": "geosite-ir",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geosite-ir.srs"
+      },
+      {
+        "tag": "geoip-ir",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geoip-ir.srs"
+      }
+    ],
+    "final": "proxy"
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\cache.db",
+      "store_fakeip": false
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:10813"
+    }
+  }
+}

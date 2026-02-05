@@ -1,0 +1,276 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇨🇴 | HTTP+TCP | 541ms | UP | NATIVE",
+        "🇨🇴 | SHADOWSOCKS+TCP+AES-256-CFB | 869ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4814ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 2571ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4242ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5781ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 1734ms | UP | NATIVE",
+        "🇨🇴 | VLESS+WS+TLS | 1135ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 4922ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3763ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1618ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 4840ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 1703ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5005ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3650ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1014ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇨🇴 | HTTP+TCP | 541ms | UP | NATIVE",
+        "🇨🇴 | SHADOWSOCKS+TCP+AES-256-CFB | 869ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4814ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 2571ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4242ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5781ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 1734ms | UP | NATIVE",
+        "🇨🇴 | VLESS+WS+TLS | 1135ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 4922ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3763ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1618ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 4840ms | UP | NATIVE",
+        "🇨🇴 | SOCKS4+TCP | 1703ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5005ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3650ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1014ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 541ms | UP | NATIVE",
+      "server": "190.242.157.215",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇨🇴 | SHADOWSOCKS+TCP+AES-256-CFB | 869ms | UP | NATIVE",
+      "server": "154.223.16.212",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 4814ms | UP | NATIVE",
+      "server": "45.65.137.218",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 2571ms | UP | NATIVE",
+      "server": "190.131.205.150",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 4242ms | UP | NATIVE",
+      "server": "191.102.107.234",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 5781ms | UP | NATIVE",
+      "server": "38.224.21.1",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴 | SOCKS4+TCP | 1734ms | UP | NATIVE",
+      "server": "190.144.224.182",
+      "server_port": 44550,
+      "version": "4"
+    },
+    {
+      "type": "vless",
+      "tag": "🇨🇴 | VLESS+WS+TLS | 1135ms | UP | NATIVE",
+      "server": "91.148.134.83",
+      "server_port": 8443,
+      "uuid": "4c642cae-1a6d-4e51-a1c3-fa5892437aa3",
+      "transport": {
+        "type": "ws",
+        "headers": {
+          "Host": "5465765525.ccfly.tech",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "5465765525.ccfly.tech"
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴 | SOCKS4+TCP | 4922ms | UP | NATIVE",
+      "server": "190.249.169.153",
+      "server_port": 3629,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 3763ms | UP | NATIVE",
+      "server": "45.65.138.48",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 1618ms | UP | NATIVE",
+      "server": "177.93.49.202",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴 | SOCKS4+TCP | 4840ms | UP | NATIVE",
+      "server": "186.190.228.83",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇨🇴 | SOCKS4+TCP | 1703ms | UP | NATIVE",
+      "server": "181.205.46.178",
+      "server_port": 4666,
+      "version": "4"
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 5005ms | UP | NATIVE",
+      "server": "181.143.42.138",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 3650ms | UP | NATIVE",
+      "server": "186.96.109.210",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 1014ms | UP | NATIVE",
+      "server": "190.6.54.12",
+      "server_port": 6969,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

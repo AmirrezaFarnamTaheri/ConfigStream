@@ -53,7 +53,6 @@ sslkeylog*
 false
 
 # Docker volumes
-output/
 data/
 # Exceptions
 !data/.gitkeep
