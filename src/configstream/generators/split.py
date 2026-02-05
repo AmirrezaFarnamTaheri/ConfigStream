@@ -9,6 +9,7 @@ from ..models import Proxy
 from .clash import generate_clash_config
 from ..converters import to_singbox_outbound
 from ..utils import AtomicFileWriter
+from ..dns_profiles import build_singbox_dns_profile
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +17,6 @@ logger = logging.getLogger(__name__)
 def _strip_internal_metadata(outbounds: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Strip internal metadata fields (starting with '_') from outbounds.
-    These fields are used for internal tracking but are not valid Sing-box fields.
-
-    Fixes: unmarshal error: [SingboxParser] outbounds[X]._process: json: "unknown field "_process"
     """
     cleaned = []
     for ob in outbounds:
@@ -65,17 +63,25 @@ def generate_split_outputs(
 ) -> Dict[str, Path]:
     """
     Generates split outputs (Tank/Sniper strategies) and Clash.
+    Updated to match V2RayN format.
     """
     files: Dict[str, Path] = {}
     suffix = f"-{name_suffix}" if name_suffix else ""
     key_suffix_str = f"_{key_suffix}" if key_suffix else ""
+
+    # Ensure DNS profile is robust if not provided
+    if singbox_dns_profile is None:
+        singbox_dns_profile = build_singbox_dns_profile()
+
+    # Selector tag consistent with SingBoxGenerator and V2RayN example
+    SELECTOR_TAG = "🌍 Proxy Select"
+    AUTO_TAG = "⚡ Best Latency"
 
     # 1. Sniper (Standard singbox.json) - Smart Routing + TLS Fragmentation
     outbounds: List[Dict[str, Any]] = []
     selector_tags: List[str] = []
 
     for p in proxies:
-        # Skip washed proxies (they are replaced by washed_outbounds)
         if _is_washed_proxy(p, washed_ids):
             continue
 
@@ -91,159 +97,165 @@ def generate_split_outputs(
             tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
             sb_proxy["tag"] = tag
 
-            # Inject evasion features based on configured mode
+            # Inject evasion features
             from configstream.intelligence.evasion import enrich_outbound_with_evasion
             from configstream.config import AppSettings
             settings = AppSettings()
             evasion_mode = getattr(settings, "EVASION_MODE", "aggressive").lower()
             
-            # Apply evasion features based on mode
-            if evasion_mode == "aggressive":
-                # All evasion features enabled
-                sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=True,
-                    enable_alpn=True,
-                    enable_fragmentation=True,
-                    enable_multiplexing=True,
-                )
-            elif evasion_mode == "stealth":
-                # Only TLS fragmentation + uTLS (minimal evasion)
-                sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=True,
-                    enable_alpn=False,
-                    enable_fragmentation=True,
-                    enable_multiplexing=False,
-                )
-            else:  # standard
-                # No evasion features (compatibility mode)
-                sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=False,
-                    enable_alpn=False,
-                    enable_fragmentation=False,
-                    enable_multiplexing=False,
-                )
-            # Mark evasion features in proxy details for tagging
-            if not p.details:
-                p.details = {}
-            p.details["has_utls"] = True
-            p.details["has_fragmentation"] = True
-            p.details["has_multiplexing"] = True
-            p.details["has_alpn_rotation"] = True
+            enable_utls = evasion_mode in ("aggressive", "stealth")
+            enable_alpn = evasion_mode == "aggressive"
+            enable_fragmentation = evasion_mode in ("aggressive", "stealth")
+            enable_multiplexing = evasion_mode == "aggressive"
+
+            sb_proxy = enrich_outbound_with_evasion(
+                sb_proxy,
+                p.id,
+                enable_utls=enable_utls,
+                enable_alpn=enable_alpn,
+                enable_fragmentation=enable_fragmentation,
+                enable_multiplexing=enable_multiplexing,
+            )
             outbounds.append(sb_proxy)
             _append_unique_tag(selector_tags, tag)
 
-    # Add washed outbounds
     if washed_outbounds:
-        # Clone to avoid mutating shared objects
         washed_clones = copy.deepcopy(washed_outbounds)
         outbounds.extend(washed_clones)
         for w in washed_clones:
             if w.get("tag") and "RELAY" not in w["tag"]:
                 _append_unique_tag(selector_tags, w["tag"])
 
-    # Add Smart Chains to Sniper as well (if available)
-    # Ensure smart chains appear in singbox.json
     if smart_chains:
         for chain_list in smart_chains.values():
             for chain in chain_list:
-                # Add chain outbounds to Sniper list
                 chain_copy = copy.deepcopy(chain)
                 outbounds.extend(chain_copy)
                 _append_unique_tag(selector_tags, _chain_entry_tag(chain_copy))
-                # Add selector tags for chain entry points
-                # Chain entry point is usually the first element or a selector wrapping it?
-                # Usually chains are [Proxy, Proxy...] or [Selector, UrlTest...]
-                # We need to find the "entry point" tag of the chain to add to main selector.
-                # Assuming the last element's tag or a specific tag convention?
-                # Actually, `chain` is a list of outbounds. They are already linked by tags.
-                # The user typically wants to select the "Head" of the chain.
-                # In `tank`, we just add them.
-                # For `sniper` (Selector based), we should add the chain head to `selector_tags`.
-                # But identifying the head is tricky without knowing the structure.
-                # However, usually chains have a main "Selector" or "URLTest" at the top level?
-                # If `chain` contains a "Selector" or "URLTest" with a tag, we add it.
                 for item in chain_copy:
                     if item.get("type") in ("selector", "urltest") and item.get("tag"):
                         _append_unique_tag(selector_tags, item["tag"])
 
-    # Add URLTest
+    # Build Selectors
     if selector_tags:
         outbounds.append(
             {
                 "type": "urltest",
-                "tag": "🚀 Auto",
+                "tag": AUTO_TAG,
                 "outbounds": selector_tags,
-                "url": "http://cp.cloudflare.com/generate_204",
+                "url": "http://www.gstatic.com/generate_204",
                 "interval": "10m",
+                "tolerance": 50,
             }
         )
         outbounds.append(
             {
                 "type": "selector",
-                "tag": "🌍 Proxy Select",  # Sniper usually uses this too? Or just "🚀 Auto"?
-                "outbounds": ["🚀 Auto"] + selector_tags,
-                "default": "🚀 Auto",
+                "tag": SELECTOR_TAG,
+                "outbounds": [AUTO_TAG] + selector_tags,
+                "default": AUTO_TAG,
+                "interrupt_exist_connections": True,
             }
         )
-        # Add "⚡ Auto-Fast" alias for compatibility if needed
-        outbounds.append(
-            {
-                "type": "selector",
-                "tag": "⚡ Auto-Fast",
-                "outbounds": ["🚀 Auto"],
-                "default": "🚀 Auto",
-            }
-        )
-        # Add "🛡️ Auto-Fallback" alias
+        # Compatibility aliases
         outbounds.append(
             {
                 "type": "urltest",
-                "tag": "🛡️ Auto-Fallback",
+                "tag": "🚀 Auto", # Legacy name
                 "outbounds": selector_tags,
                 "url": "http://cp.cloudflare.com/generate_204",
                 "interval": "10m",
             }
         )
-        # Add "🚀 Mode Selector" alias
-        outbounds.append(
-            {
-                "type": "selector",
-                "tag": "🚀 Mode Selector",
-                "outbounds": ["🚀 Auto", "⚡ Auto-Fast", "🛡️ Auto-Fallback"]
-                + selector_tags,
-                "default": "🚀 Auto",
-            }
-        )
 
-    # Strip internal metadata fields (like _process) before serializing
-    # These fields cause Sing-box parse errors: "unknown field "_process""
     clean_outbounds = _strip_internal_metadata(outbounds)
 
-    if singbox_dns_profile:
-        # Ensure direct outbound exists for DNS detours.
-        if not any(o.get("tag") == "direct" for o in clean_outbounds):
-            clean_outbounds.append({"type": "direct", "tag": "direct"})
+    if not any(o.get("tag") == "direct" for o in clean_outbounds):
+        clean_outbounds.append({"type": "direct", "tag": "direct"})
+    if not any(o.get("tag") == "dns-out" for o in clean_outbounds):
+        clean_outbounds.append({"type": "dns", "tag": "dns-out"})
+    if not any(o.get("tag") == "block" for o in clean_outbounds):
+        clean_outbounds.append({"type": "block", "tag": "block"})
+
+    # Common Configuration Parts (aligned with e1.json)
+    route_config = {
+        "default_domain_resolver": {
+            "server": "direct_dns",
+            "strategy": ""
+        },
+        "rules": [
+            {"action": "sniff"},
+            {"protocol": ["dns"], "action": "hijack-dns"},
+            {"outbound": "direct", "clash_mode": "Direct"},
+            {"outbound": SELECTOR_TAG, "clash_mode": "Global"},
+            {"outbound": "direct", "ip_cidr": ["8.8.8.8"]},
+            {"network": ["udp"], "port": [443], "action": "reject"},
+            {"outbound": "direct", "protocol": ["bittorrent"]},
+            {"rule_set": ["geosite-category-ads-all"], "action": "reject"},
+            {"outbound": "direct", "ip_is_private": True},
+            {"outbound": "direct", "rule_set": ["geosite-private", "geosite-ir", "geoip-ir"]},
+            {"outbound": SELECTOR_TAG, "port_range": ["0:65535"]}
+        ],
+        "rule_set": [
+            {
+                "tag": "geosite-category-ads-all",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-category-ads-all.srs",
+                "download_detour": SELECTOR_TAG
+            },
+            {
+                "tag": "geosite-private",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-private.srs",
+                "download_detour": SELECTOR_TAG
+            },
+            {
+                "tag": "geosite-ir",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-ir.srs",
+                "download_detour": SELECTOR_TAG
+            },
+            {
+                "tag": "geoip-ir",
+                "type": "remote",
+                "format": "binary",
+                "url": "https://github.com/SagerNet/sing-geoip/raw/rule-set/geoip-ir.srs",
+                "download_detour": SELECTOR_TAG
+            }
+        ],
+        "final": SELECTOR_TAG
+    }
+
+    experimental_config = {
+        "cache_file": {
+            "enabled": True,
+            "path": "cache.db",
+            "store_fakeip": False
+        },
+        "clash_api": {
+            "external_controller": "127.0.0.1:10813"
+        }
+    }
 
     sniper_config = {
-        "log": {"level": "info", "timestamp": True},
+        "log": {"level": "warn", "timestamp": True},
         "inbounds": [
             {
                 "type": "mixed",
-                "tag": "mixed-in",
+                "tag": "socks",
                 "listen": "127.0.0.1",
-                "listen_port": 2080,
+                "listen_port": 10808,
+                "sniff": True
             }
         ],
         "outbounds": clean_outbounds,
+        "dns": copy.deepcopy(singbox_dns_profile),
+        "route": route_config,
+        "experimental": experimental_config
     }
-    if singbox_dns_profile:
-        sniper_config["dns"] = copy.deepcopy(singbox_dns_profile)
 
     sniper_path = output_dir / f"singbox{suffix}.json"
     AtomicFileWriter.write_text(
@@ -251,11 +263,11 @@ def generate_split_outputs(
     )
     files[f"singbox{key_suffix_str}"] = sniper_path
 
-    # 2. Tank (singbox-vpn.json) - Full VPN/TUN - No Fragmentation (usually)
+    # 2. Tank (singbox-vpn.json) - Full VPN/TUN
     tank_outbounds: List[Dict[str, Any]] = []
     tank_proxy_tags: List[str] = []
 
-    # Re-convert for Tank (clean slate, no frag)
+    # Re-convert for Tank (clean slate)
     for p in proxies:
         if _is_washed_proxy(p, washed_ids):
             continue
@@ -279,15 +291,12 @@ def generate_split_outputs(
 
     if smart_chains:
         for chain_list in smart_chains.values():
-            # Flatten chain list if needed, but it seems chain_list is List[List[Dict]]?
-            # Actually, `generate_smart_chains` returns Dict[str, List[List[Dict]]].
-            # So chain_list is List[List[Dict]]. We need to flatten it or iterate.
             for chain in chain_list:
                 chain_copy = copy.deepcopy(chain)
                 tank_outbounds.extend(chain_copy)
                 _append_unique_tag(tank_proxy_tags, _chain_entry_tag(chain_copy))
 
-    # Add Groups to Tank
+    # Groups
     tank_washed_tags = [
         w["tag"] for w in tank_outbounds if w.get("tag") and "Secure" in w["tag"]
     ]
@@ -302,24 +311,27 @@ def generate_split_outputs(
             }
         )
 
-    tank_intranet_tags = [
-        w["tag"]
-        for w in tank_outbounds
-        if w.get("tag") and "INTRANET" in w["tag"] and "EXIT" in w["tag"]
-    ]
-    if tank_intranet_tags:
+    # Main Selector
+    main_options = [AUTO_TAG]
+    if tank_washed_tags:
+        main_options.append("🛡️ Washed")
+    main_options.extend(tank_proxy_tags)
+
+    existing_tags = set(o.get("tag") for o in tank_outbounds)
+    main_options = [t for t in main_options if t in existing_tags]
+
+    # Add Auto group
+    if tank_proxy_tags:
         tank_outbounds.append(
             {
                 "type": "urltest",
-                "tag": "🇮🇷 Intranet",
-                "outbounds": tank_intranet_tags,
+                "tag": AUTO_TAG,
+                "outbounds": tank_proxy_tags,
                 "url": "http://cp.cloudflare.com/generate_204",
-                "interval": "5m",
+                "interval": "10m",
             }
         )
-
-    # Auto Group (Test expects "🚀 Auto" in Tank)
-    if tank_proxy_tags:
+        # Compatibility Alias for Tank
         tank_outbounds.append(
             {
                 "type": "urltest",
@@ -330,25 +342,12 @@ def generate_split_outputs(
             }
         )
 
-    # Main Selector "🌍 Proxy Select"
-    main_options = ["🚀 Auto"]
-    if tank_washed_tags:
-        main_options.append("🛡️ Washed")
-    if tank_intranet_tags:
-        main_options.append("🇮🇷 Intranet")
-    main_options.extend(tank_proxy_tags)
-
-    # Filter out any missing tags in main_options (e.g. if Auto is empty)
-    # Check if "🚀 Auto" exists in outbounds tags
-    existing_tags = set(o.get("tag") for o in tank_outbounds)
-    main_options = [t for t in main_options if t in existing_tags]
-
     tank_outbounds.append(
         {
             "type": "selector",
-            "tag": "🌍 Proxy Select",
+            "tag": SELECTOR_TAG,
             "outbounds": main_options,
-            "default": "🚀 Auto" if "🚀 Auto" in main_options else None,
+            "default": AUTO_TAG if AUTO_TAG in main_options else None,
         }
     )
 
@@ -356,8 +355,9 @@ def generate_split_outputs(
         tank_outbounds.append({"type": "direct", "tag": "direct"})
     if not any(o.get("tag") == "dns-out" for o in tank_outbounds):
         tank_outbounds.append({"type": "dns", "tag": "dns-out"})
+    if not any(o.get("tag") == "block" for o in tank_outbounds):
+        tank_outbounds.append({"type": "block", "tag": "block"})
 
-    # Strip internal metadata fields from tank outbounds too
     clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
 
     tank_config = {
@@ -373,16 +373,10 @@ def generate_split_outputs(
             }
         ],
         "outbounds": clean_tank_outbounds,
-        "route": {
-            "rules": [
-                {"protocol": "dns", "outbound": "dns-out"},
-                {"clash_mode": "Direct", "outbound": "direct"},
-                {"clash_mode": "Global", "outbound": "🌍 Proxy Select"},
-            ]
-        },
+        "dns": copy.deepcopy(singbox_dns_profile),
+        "route": route_config, # Share route config but might need tweaking for TUN
+        "experimental": experimental_config
     }
-    if singbox_dns_profile:
-        tank_config["dns"] = copy.deepcopy(singbox_dns_profile)
 
     tank_path = output_dir / f"singbox-vpn{suffix}.json"
     AtomicFileWriter.write_text(

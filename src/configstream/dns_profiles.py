@@ -69,42 +69,94 @@ def build_resolver_sets() -> tuple[list[str], list[str]]:
 
 
 def build_singbox_dns_profile() -> Dict[str, Any]:
-    servers: List[Dict[str, Any]] = []
-
-    for idx, address in enumerate(DEFAULT_DOH):
-        servers.append(
-            {
-                "tag": f"doh-{idx}",
-                "address": address,
-                "detour": "direct",
-            }
-        )
-
-    for idx, address in enumerate(DEFAULT_DOT):
-        servers.append(
-            {
-                "tag": f"dot-{idx}",
-                "address": address,
-                "detour": "direct",
-            }
-        )
-
-    for idx, address in enumerate(DEFAULT_DOQ):
-        servers.append(
-            {
-                "tag": f"doq-{idx}",
-                "address": address,
-                "detour": "direct",
-            }
-        )
-
-    servers.append({"tag": "local", "address": "local", "detour": "direct"})
+    """
+    Returns a robust DNS configuration matching the V2RayN example format.
+    """
+    SELECTOR_TAG = "🌍 Proxy Select"
 
     return {
-        "servers": servers,
-        "strategy": "prefer_ipv4",
-        "independent_cache": True,
-        "final": "doh-0",
+        "servers": [
+            {
+                "server": "223.5.5.5",
+                "type": "udp",
+                "tag": "local_local"
+            },
+            {
+                "server": "cloudflare-dns.com",
+                "domain_resolver": "hosts_dns",
+                "path": "/dns-query",
+                "type": "https",
+                "tag": "remote_dns",
+                "detour": SELECTOR_TAG
+            },
+            {
+                "server": "dns.alidns.com",
+                "domain_resolver": "hosts_dns",
+                "path": "/dns-query",
+                "type": "https",
+                "tag": "direct_dns",
+                "detour": "direct"
+            },
+            {
+                "predefined": {
+                    "dns.google": [
+                        "8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844"
+                    ],
+                    "dns.alidns.com": [
+                        "223.5.5.5", "223.6.6.6", "2400:3200::1", "2400:3200:baba::1"
+                    ],
+                    "one.one.one.one": [
+                        "1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"
+                    ],
+                    "cloudflare-dns.com": [
+                        "104.16.249.249", "104.16.248.249", "2606:4700::6810:f8f9", "2606:4700::6810:f9f9"
+                    ]
+                },
+                "type": "hosts",
+                "tag": "hosts_dns"
+            },
+            {
+                "server": "dns.alidns.com",
+                "domain_resolver": "hosts_dns",
+                "path": "/dns-query",
+                "type": "https",
+                "tag": "ech_dns"
+            }
+        ],
+        "rules": [
+            {
+                "server": "local_local",
+                "domain": ["sing_box-ProxyChain"]
+            },
+            {
+                "server": "hosts_dns",
+                "ip_accept_any": True
+            },
+            {
+                "server": "remote_dns",
+                "clash_mode": "Global"
+            },
+            {
+                "server": "direct_dns",
+                "clash_mode": "Direct"
+            },
+            {
+                "action": "predefined",
+                "rcode": "NOTIMP",
+                "query_type": [64, 65]
+            },
+            {
+                "rule_set": ["geosite-category-ads-all"],
+                "action": "predefined",
+                "rcode": "NXDOMAIN"
+            },
+            {
+                "server": "direct_dns",
+                "rule_set": ["geosite-private", "geosite-ir"]
+            }
+        ],
+        "final": "remote_dns",
+        "independent_cache": True
     }
 
 
