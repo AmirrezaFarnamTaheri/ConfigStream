@@ -1,0 +1,30 @@
+{
+  "name": "high-performance-doh-proxy-worker",
+  "version": "2.0.0",
+  "description": "High-performance Cloudflare Worker for proxying DNS-over-HTTPS (DoH) requests with multi-provider support, ad-blocking capabilities, load balancing, caching, and failover",
+  "main": "workers.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler preview"
+  },
+  "keywords": [
+    "cloudflare",
+    "worker",
+    "dns",
+    "doh",
+    "proxy",
+    "dns-over-https",
+    "ad-blocking",
+    "adblock",
+    "privacy",
+    "load-balancing",
+    "failover",
+    "caching"
+  ],
+  "author": "Hossein Pira",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.42.2"
+  }
+}

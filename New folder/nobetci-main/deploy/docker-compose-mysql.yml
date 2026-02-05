@@ -1,0 +1,24 @@
+services:
+  nobetci:
+    image: ghcr.io/muttehit/nobetci:latest
+    container_name: nobetci
+    restart: always
+    env_file: .env
+    network_mode: host
+    environment:
+      SQLALCHEMY_DATABASE_URL: "mysql+pymysql://root:12341234@127.0.0.1/nobetci"
+    volumes:
+      - /var/lib/nobetci:/var/lib/nobetci
+    depends_on:
+      - db
+
+  db:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 12341234
+      MYSQL_DATABASE: nobetci
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - /var/lib/nobetci/mysql:/var/lib/nobetci

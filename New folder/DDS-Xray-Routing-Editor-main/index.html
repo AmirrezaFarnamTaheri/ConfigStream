@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DDS Xray Routing Rules Editor</title>
+
+    <!-- Tailwind -->
+    <script src="./style.js"></script>
+
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial;
+        background: linear-gradient(135deg, #1f2937, #111827);
+        color: #e5e7eb;
+      }
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #475569;
+        border-radius: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #111827;
+      }
+      .fade-in {
+        animation: fadeIn 0.2s ease-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      /* previously used */
+      .table-wrap {
+        overflow: auto;
+      }
+      .cell-pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .btn-ghost {
+        background: transparent;
+        border: 1px dashed #64748b;
+      }
+      .btn-ghost:hover {
+        border-color: #94a3b8;
+      }
+      input,
+      select,
+      textarea {
+        background: #0b1220;
+        border: 1px solid #334155;
+        color: #e5e7eb;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
+        border-color: #a855f7;
+      }
+      .kbd {
+        border: 1px solid #475569;
+        padding: 0.1rem 0.35rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+      }
+      .font-mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+
+      /* === table grid lines + card clip === */
+      .table-grid {
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+      /* vertical lines */
+      .table-grid th,
+      .table-grid td {
+        border-right: 1px solid rgba(148, 163, 184, 0.18); /* slate-400/18 */
+      }
+      .table-grid th:first-child,
+      .table-grid td:first-child {
+        border-left: 1px solid rgba(148, 163, 184, 0.18);
+      }
+      /* header styling + bottom border */
+      .table-grid thead th {
+        background-color: rgba(255, 255, 255, 0.04);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.28);
+      }
+      /* horizontal lines for body cells */
+      .table-grid tbody td {
+        border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+      }
+      /* round card + clip edges */
+      .table-card {
+        border-radius: 0.75rem;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="min-h-screen">
+      <!-- Header -->
+      <header
+        class="sticky top-0 z-10 backdrop-blur bg-black/40 border-b border-white/10"
+      >
+        <div class="mx-auto px-10 py-4 flex items-left justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🧭</span>
+            <div>
+              <h1 class="text-xl sm:text-2xl font-bold text-white">
+                DDS Routing Rules Editor
+              </h1>
+              <p class="text-xs text-slate-300">
+                Edit, sort and export Xray rules
+              </p>
+            </div>
+          </div>
+          <div class="hidden md:flex items-center gap-2 text-xs text-slate-400">
+            <span class="kbd bg-black">
+              <a href="https://t.me/DAILYDIGITALSKILLS">Telegram Channel</a>
+            </span>
+
+            <span class="kbd bg-black">
+              <a href="https://youtube.com/@DAILYDIGITALSKILLS">
+                YouTube Channel
+              </a>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Layout -->
+      <main
+        class="max-w-8xl mx-auto px-4 py-6 xl:grid xl:grid-cols-12 xl:gap-6 xl:grid-flow-row-dense"
+      >
+        <!-- Main Column -->
+        <section class="space-y-6 xl:col-span-9 xl:col-start-1 xl:row-start-1">
+          <!-- Toolbar (compact & grouped) -->
+          <section
+            class="rounded-xl border border-white/10 bg-black/30 p-3 flex flex-wrap items-center gap-2"
+          >
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                @click="openCreate()"
+                class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 transition"
+                title="Add a new rule"
+              >
+                ➕ Add Rule
+              </button>
+
+              <button
+                @click="downloadJSON()"
+                class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition"
+                title="Download JSON file"
+              >
+                ⬇️ Export JSON
+              </button>
+
+              <label
+                class="px-3 py-1.5 rounded-lg cursor-pointer btn-ghost"
+                title="Import from a JSON file"
+              >
+                ⬆️ Import JSON (File)
+                <input
+                  type="file"
+                  accept="application/json"
+                  class="hidden"
+                  @change="importJSON"
+                />
+              </label>
+
+              <button
+                @click="importFromClipboard()"
+                class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition"
+                title="Read JSON from your clipboard"
+              >
+                📋 Import from Clipboard
+              </button>
+
+              <button
+                @click="copyJSON()"
+                class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition"
+                title="Copy JSON to clipboard"
+              >
+                ✅ Copy Output
+              </button>
+
+              <button
+                @click="loadExample()"
+                class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 transition"
+                title="Load sample rules"
+              >
+                🧪 Example
+              </button>
+
+              <button
+                @click="clearAll()"
+                class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 transition"
+                title="Remove all rules"
+              >
+                🗑️ Clear All
+              </button>
+            </div>
+
+            <div class="ml-auto flex items-center gap-2 text-sm text-slate-300">
+              <span class="hidden sm:inline">Rules:</span>
+              <span
+                class="px-2 py-1 rounded bg-slate-800 border border-slate-700"
+              >
+                {{ rules.length }}
+              </span>
+            </div>
+          </section>
+
+          <!-- Rules Table (grouped header, horizontal scroll, thin lines, 3-dots actions) -->
+          <section class="border border-white/10 bg-black/30 table-card">
+            <div class="overflow-x-auto max-w-full">
+              <table class="table-grid w-full text-sm min-w-[1200px]">
+                <thead class="text-slate-300">
+                  <tr>
+                    <th rowspan="2" class="px-3 py-3 text-left w-10">#</th>
+                    <th rowspan="2" class="px-3 py-3 text-left w-10">↕️</th>
+
+                    <th colspan="2" class="px-3 py-3 text-left">Source</th>
+                    <th colspan="3" class="px-3 py-3 text-left">Network</th>
+                    <th colspan="3" class="px-3 py-3 text-left">Destination</th>
+                    <th colspan="2" class="px-3 py-3 text-left">Inbound</th>
+
+                    <th rowspan="2" class="px-3 py-3 text-left">Outbound</th>
+                    <th rowspan="2" class="px-3 py-3 text-left">Balancer</th>
+                    <th rowspan="2" class="px-3 py-3 text-left w-12">
+                      Actions
+                    </th>
+                  </tr>
+                  <tr>
+                    <!-- Source -->
+                    <th class="px-3 py-2 text-left">IP</th>
+                    <th class="px-3 py-2 text-left">Port</th>
+                    <!-- Network -->
+                    <th class="px-3 py-2 text-left">L4</th>
+                    <th class="px-3 py-2 text-left">Protocol</th>
+                    <th class="px-3 py-2 text-left">Attrs</th>
+                    <!-- Destination -->
+                    <th class="px-3 py-2 text-left">IP</th>
+                    <th class="px-3 py-2 text-left">Domain</th>
+                    <th class="px-3 py-2 text-left">Port</th>
+                    <!-- Inbound -->
+                    <th class="px-3 py-2 text-left">Tag</th>
+                    <th class="px-3 py-2 text-left">Client Email</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  <tr v-if="!rules.length">
+                    <td colspan="15" class="text-center py-8 text-slate-400">
+                      No rules yet. Click “Add Rule” to start ✨
+                    </td>
+                  </tr>
+
+                  <tr
+                    v-for="(r, i) in rules"
+                    :key="r._id"
+                    :draggable="true"
+                    @dragstart="onDragStart(i)"
+                    @dragover.prevent
+                    @drop="onDrop(i)"
+                    class="hover:bg-white/5"
+                  >
+                    <!-- # / drag -->
+                    <td class="px-3 py-2 align-top text-slate-400">
+                      {{ i + 1 }}
+                    </td>
+                    <td class="px-3 py-2 align-top cursor-grab text-slate-400">
+                      ⋮⋮
+                    </td>
+
+                    <!-- Source -->
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullList(r.source)"
+                    >
+                      {{ fmtList(r.source) }}
+                    </td>
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullStr(r.sourcePort)"
+                    >
+                      {{ fmtStr(r.sourcePort) }}
+                    </td>
+
+                    <!-- Network -->
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullNetwork(r.network)"
+                    >
+                      {{ fmtNetwork(r.network) }}
+                    </td>
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullList(r.protocol)"
+                    >
+                      {{ fmtList(r.protocol) }}
+                    </td>
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullAttrs(r.attrs)"
+                    >
+                      {{ fmtAttrs(r.attrs) }}
+                    </td>
+
+                    <!-- Destination -->
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullList(r.ip)"
+                    >
+                      {{ fmtList(r.ip) }}
+                    </td>
+                    <td
+                      class="px-3 py-2 align-top text-left cell-pre"
+                      dir="ltr"
+                      :title="fullList(r.domain)"
+                    >
+                      {{ fmtList(r.domain) }}
+                    </td>
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullStr(r.port)"
+                    >
+                      {{ fmtStr(r.port) }}
+                    </td>
+
+                    <!-- Inbound -->
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullList(r.inboundTag)"
+                    >
+                      {{ fmtList(r.inboundTag) }}
+                    </td>
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullList(r.user)"
+                    >
+                      {{ fmtList(r.user) }}
+                    </td>
+
+                    <!-- Outbound / Balancer -->
+                    <td
+                      class="px-3 py-2 align-top font-semibold"
+                      :title="fullStr(r.outboundTag)"
+                    >
+                      {{ fmtStr(r.outboundTag) }}
+                    </td>
+                    <td
+                      class="px-3 py-2 align-top text-left"
+                      dir="ltr"
+                      :title="fullStr(r.balancerTag)"
+                    >
+                      {{ fmtStr(r.balancerTag) }}
+                    </td>
+
+                    <!-- Actions (three-dots menu) -->
+                    <td class="px-3 py-2 align-top">
+                      <div class="relative inline-block text-left" @click.stop>
+                        <button
+                          @click.stop="toggleActions(i)"
+                          :aria-expanded="actionsOpen === i ? 'true' : 'false'"
+                          aria-haspopup="menu"
+                          class="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 focus:outline-none"
+                          title="Actions"
+                        >
+                          ⋯
+                        </button>
+
+                        <div
+                          v-if="actionsOpen === i"
+                          class="absolute right-0 z-20 mt-1 w-36 rounded-md border border-white/10 bg-slate-800 shadow-lg overflow-hidden"
+                          role="menu"
+                          @click.stop
+                        >
+                          <button
+                            @click="openEdit(i); closeActions()"
+                            class="w-full text-left px-3 py-2 hover:bg-white/10"
+                            role="menuitem"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            @click="duplicate(i); closeActions()"
+                            class="w-full text-left px-3 py-2 hover:bg-white/10"
+                            role="menuitem"
+                          >
+                            Duplicate
+                          </button>
+                          <button
+                            @click="remove(i); closeActions()"
+                            class="w-full text-left px-3 py-2 hover:bg-rose-600/20 text-rose-200"
+                            role="menuitem"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Output + Help (cards) -->
+          <section class="grid md:grid-cols-2 gap-4">
+            <div
+              class="space-y-2 rounded-xl border border-white/10 bg-black/30 p-5"
+            >
+              <h3 class="font-bold text-white">Final Output (routing.rules)</h3>
+              <textarea
+                class="w-full h-80 p-3 rounded-lg font-mono"
+                dir="ltr"
+                readonly
+              >
+{{ exportText }}</textarea
+              >
+            </div>
+            <div
+              class="space-y-2 rounded-xl border border-white/10 bg-black/30 p-5 pl-8"
+            >
+              <h3 class="font-bold text-white">Help</h3>
+              <ul class="list-disc list-inside text-slate-300 leading-7">
+                <li>
+                  Drag & drop rules with the
+                  <span class="kbd">⋮⋮</span>
+                  icon.
+                </li>
+                <li>
+                  <span class="kbd">outboundTag</span>
+                  is required.
+                </li>
+                <li>Use commas for multiple values.</li>
+                <li>
+                  You can import either an array of rules or
+                  <span class="kbd">{ routing: { rules: [...] } }</span>
+                  .
+                </li>
+                <li>
+                  <span class="kbd">Import from Clipboard</span>
+                  expects valid JSON in your clipboard.
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+
+        <!-- Sidebar: Donation + Sponsor (Persian allowed) -->
+        <aside
+          class="mt-8 xl:mt-0 xl:col-span-3 xl:col-start-10 xl:row-start-1 rounded-xl border border-white/10 bg-black/30 pt-2 pl-6 pr-4 gap-2"
+        >
+          <div class="mt-6">
+            <h3
+              class="text-xl font-semibold text-purple-400 mb-3 text-left"
+              dir="ltr"
+            >
+              Sponsored Content
+            </h3>
+            <div
+              id="sponsor-content"
+              class="bg-gray-800 text-white p-6 rounded-lg shadow-lg w-full"
+              dir="rtl"
+            >
+              <!-- محتوای اسپانسری -->
+
+              🇮🇷 فروش سرور مجازی ایران
+              <br />
+              <br />
+              <img src="./sponsor content/cover.jpg" />
+
+              آران سرور با ارائه خدمات ابری از جمله سرور ابری، سرور اختصاصی و
+              کولوکیشن در بستری امن، میزبانی مطمئن برای کسب و کار شماست
+
+              <br />
+
+              <p dir="ltr">
+                <br />
+                🌐 :
+                <a href="https://AranServer.com" target="_blank">
+                  AranServer.com
+                </a>
+                <br />
+                📣 :
+                <a href="https://t.me/AranServer" target="_blank">
+                  @AranServer
+                </a>
+                <br />
+                👩‍💻 :
+                <a href="https://t.me/AranServerSup" target="_blank">
+                  @AranServerSup
+                </a>
+              </p>
+            </div>
+          </div>
+          <div class="sticky top-24">
+            <h3
+              class="text-xl font-semibold text-purple-400 pt-6 mb-4"
+              dir="ltr"
+            >
+              Support Us with a Donation
+            </h3>
+            <p class="text-sm text-gray-300 mb-4" dir="rtl">
+              اگر از این ابزار لذت می‌بری، با یک دونیت کوچک بهمون انگیزه بده تا
+              بهتر و بهترش کنیم! ☕❤️
+            </p>
+
+            <!-- Wallets -->
+            <div class="space-y-5">
+              <div
+                v-for="(wallet, index) in wallets"
+                :key="index"
+                class="flex items-center gap-2"
+              >
+                <div class="flex-1">
+                  <label class="text-xs text-gray-400">{{ wallet.name }}</label>
+                  <input
+                    :value="wallet.address"
+                    type="text"
+                    readonly
+                    dir="ltr"
+                    class="w-full p-2 rounded-lg border text-xs truncate"
+                  />
+                </div>
+                <button
+                  @click="copyWalletAddress(wallet.address)"
+                  class="bg-purple-500 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-purple-600 transition-colors"
+                  title="Copy Address"
+                >
+                  <svg
+                    class="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sponsor -->
+          </div>
+        </aside>
+      </main>
+
+      <!-- Modal (compact, labels beside fields, scrollable) -->
+      <div
+        v-if="modalOpen"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 overflow-auto"
+      >
+        <div
+          class="w-full max-w-xl bg-slate-900 rounded-lg border border-white/10 p-4 fade-in max-h-[90vh] overflow-y-auto transform scale-95"
+        >
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-semibold">
+              {{ editIndex === null ? 'Add Rule' : 'Edit Rule' }}
+            </h3>
+            <button
+              @click="closeModal()"
+              class="text-slate-400 hover:text-white text-xl"
+            >
+              &times;
+            </button>
+          </div>
+
+          <!-- Form (labels on the side) -->
+          <div class="space-y-2">
+            <!-- Domain Matcher -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Domain Matcher</label>
+              <select
+                v-model="form.domainMatcher"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+              >
+                <option value="">(empty)</option>
+                <option value="hybrid">hybrid</option>
+                <option value="linear">linear</option>
+              </select>
+            </div>
+
+            <!-- Source IPs -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Source IPs</label>
+              <input
+                v-model.trim="form.sourceText"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="e.g. 192.168.1.1, 10.0.0.0/8"
+              />
+            </div>
+
+            <!-- Source Port -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Source Port</label>
+              <input
+                v-model.trim="form.sourcePort"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="e.g. 1000-2000"
+              />
+            </div>
+
+            <!-- Network -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Network</label>
+              <input
+                v-model.trim="form.networkText"
+                list="networkOptions"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="(empty) / tcp / udp / tcp,udp"
+              />
+              <datalist id="networkOptions">
+                <option value=""></option>
+                <option value="tcp"></option>
+                <option value="udp"></option>
+                <option value="tcp,udp"></option>
+              </datalist>
+            </div>
+
+            <!-- Protocol -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Protocol</label>
+              <input
+                v-model.trim="form.protocolText"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="e.g. bittorrent, tcp"
+              />
+            </div>
+
+            <!-- Attributes header -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Attributes</label>
+              <div class="col-span-2">
+                <button
+                  type="button"
+                  @click="addAttrRow()"
+                  class="px-2 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-sm"
+                >
+                  + Add Attribute
+                </button>
+              </div>
+            </div>
+
+            <!-- IP -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">IP</label>
+              <input
+                v-model.trim="form.ipText"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="1.1.1.1, 8.8.8.8, geoip:ir"
+              />
+            </div>
+
+            <!-- Domain -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Domain</label>
+              <input
+                v-model.trim="form.domainText"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="example.com, geosite:google"
+              />
+            </div>
+
+            <!-- User -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">User</label>
+              <input
+                v-model.trim="form.userText"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="user1, user2"
+              />
+            </div>
+
+            <!-- Port -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Port</label>
+              <input
+                v-model.trim="form.port"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="0-1023,443,8443-9000"
+              />
+            </div>
+
+            <!-- Inbound Tags -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Inbound Tags</label>
+              <input
+                v-model.trim="form.inboundTagText"
+                dir="ltr"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="socks-in, http-in"
+              />
+            </div>
+
+            <!-- Outbound Tag with datalist -->
+            <div class="grid grid-cols-3 gap-2 items-center">
+              <label class="text-sm text-slate-300">Outbound Tag *</label>
+              <input
+                v-model.trim="form.outboundTag"
+                dir="ltr"
+                list="outboundOptions"
+                class="col-span-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                placeholder="direct / block / custom"
+              />
+              <datalist id="outboundOptions">
+                <option value="direct"></option>
+                <option value="block"></option>
+              </datalist>
+            </div>
+
+            <!-- Dynamic custom attributes -->
+            <div
+              v-for="(row, idx) in form.attributes"
+              :key="row._id"
+              class="grid grid-cols-3 gap-2 items-center"
+            >
+              <label class="text-sm text-slate-300">
+                {{ idx === 0 ? 'Custom Attrs' : '' }}
+              </label>
+              <div class="col-span-2 flex gap-2">
+                <input
+                  v-model.trim="row.key"
+                  placeholder="key"
+                  class="w-1/2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                />
+                <input
+                  v-model.trim="row.value"
+                  placeholder="value"
+                  class="w-1/2 px-2 py-1.5 rounded bg-slate-800 border border-slate-700 focus:border-purple-500"
+                />
+                <button
+                  type="button"
+                  @click="removeAttrRow(idx)"
+                  class="px-2 py-1.5 rounded bg-rose-600 hover:bg-rose-700"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer buttons -->
+          <div class="flex justify-end mt-4 gap-2">
+            <button
+              @click="closeModal()"
+              class="px-4 py-1.5 rounded bg-slate-700 hover:bg-slate-600"
+            >
+              Close
+            </button>
+            <button
+              @click="saveRule()"
+              class="px-4 py-1.5 rounded bg-purple-600 hover:bg-purple-700"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vue + App -->
+    <script src="vue.global.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
