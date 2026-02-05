@@ -106,20 +106,36 @@ class SingBoxGenerator:
             {"type": "block", "tag": "block"},
         ]
 
+        # Build DNS profile with FakeIP support
+        dns_servers = [
+            {"tag": "remote", "address": "https://8.8.8.8/dns-query", "detour": SELECTOR_TAG},
+            {"tag": "local", "address": "local", "detour": "DIRECT"},
+        ]
+        
+        # Add FakeIP server for DNS-poisoning resistance
+        dns_servers.append({"tag": "fakeip", "address": "fakeip"})
+        
+        dns_rules = [
+            {"outbound": "any", "server": "remote"},
+            {"query_type": ["A", "AAAA"], "server": "fakeip", "rewrite_ttl": 1},
+        ]
+        
+        dns_config = {
+            "servers": dns_servers,
+            "rules": dns_rules,
+            "fakeip": {
+                "enabled": True,
+                "inet4_range": "198.18.0.0/15",
+                "inet6_range": "fc00::/18",
+            },
+        }
+
         config = {
             "log": {
                 "level": "info",
                 "timestamp": True,
             },
-            "dns": {
-                "servers": [
-                    {"tag": "google", "address": "8.8.8.8", "detour": "DIRECT"},
-                    {"tag": "local", "address": "local", "detour": "DIRECT"},
-                ],
-                "rules": [
-                    {"outbound": "any", "server": "google"},
-                ],
-            },
+            "dns": dns_config,
             "inbounds": [
                 {
                     "type": "mixed",
@@ -131,14 +147,51 @@ class SingBoxGenerator:
             ],
             "outbounds": final_outbounds,
             "route": {
-                "rules": [
-                    {"protocol": "dns", "outbound": "dns-out"},
-                    {"ip_is_private": True, "outbound": "DIRECT"},
-                ],
+                "rules": self._build_route_rules(SELECTOR_TAG),
                 "auto_detect_interface": True,
             },
         }
         return config
+
+    def _build_route_rules(self, selector_tag: str) -> List[Dict[str, Any]]:
+        """Build route rules with optional geosite/geoip support."""
+        rules = [
+            {"protocol": "dns", "outbound": "dns-out"},
+            {"ip_is_private": True, "outbound": "DIRECT"},
+        ]
+        
+        # Check if geosite.db and geoip.db are available
+        from pathlib import Path
+        from configstream.config import AppSettings
+        
+        settings = AppSettings()
+        data_dir = Path(settings.GEOIP_CITY_DB_PATH).parent if hasattr(settings, 'GEOIP_CITY_DB_PATH') else Path("data")
+        singbox_data_dir = data_dir / "singbox"
+        geosite_path = singbox_data_dir / "geosite.db"
+        geoip_path = singbox_data_dir / "geoip.db"
+        
+        # Add geosite/geoip rules if databases are available
+        if geosite_path.exists() and geoip_path.exists():
+            # Domestic bypass for .ir domains and Iran IPs
+            rules.append({
+                "geosite": ["ir", "category-ir"],
+                "geoip": ["ir", "private"],
+                "outbound": "DIRECT",
+            })
+            # Force blocked sites through proxy
+            rules.append({
+                "geosite": ["google", "telegram", "twitter", "youtube", "meta"],
+                "outbound": selector_tag,
+            })
+        else:
+            # Log debug message if databases are missing
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(
+                "geosite.db or geoip.db not found. Run 'configstream update-databases' to enable advanced routing rules."
+            )
+        
+        return rules
 
     def _clean_outbound(self, outbound: Dict[str, Any]):
         keys_to_remove = [

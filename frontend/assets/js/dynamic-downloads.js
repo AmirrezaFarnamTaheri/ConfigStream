@@ -20,6 +20,7 @@ function initDynamicDownloads() {
             desc: "Configuration format optimized for Shadowrocket on iOS.",
             file: "shadowrocket.txt",
             dnsFile: "shadowrocket-dns-safe.txt",
+            dnsHardenedFile: "shadowrocket-dns-hardened.txt",
             icon: "send"
         },
         surge: {
@@ -27,6 +28,7 @@ function initDynamicDownloads() {
             desc: "Powerful rule-based utility for iOS/macOS.",
             file: "surge.conf",
             dnsFile: "surge-dns-safe.conf",
+            dnsHardenedFile: "surge-dns-hardened.conf",
             icon: "zap"
         },
         loon: {
@@ -34,6 +36,7 @@ function initDynamicDownloads() {
             desc: "Lightweight network toolbox for iOS.",
             file: "loon.conf",
             dnsFile: "loon-dns-safe.conf",
+            dnsHardenedFile: "loon-dns-hardened.conf",
             icon: "moon"
         },
         quantumultx: {
@@ -41,6 +44,7 @@ function initDynamicDownloads() {
             desc: "Advanced network debugging tool.",
             file: "quantumult.conf",
             dnsFile: "quantumult-dns-safe.conf",
+            dnsHardenedFile: "quantumult-dns-hardened.conf",
             icon: "box"
         },
         sip008: {
@@ -48,10 +52,13 @@ function initDynamicDownloads() {
             desc: "Standard SIP008 JSON format for Shadowsocks.",
             file: "sip008.json",
             dnsFile: "sip008-dns-safe.json",
+            dnsHardenedFile: "sip008-dns-hardened.json",
             icon: "code"
         }
     };
 
+    const evasionModeSelector = document.getElementById('evasion-mode-selector');
+    
     const dnsProfile = () => {
         if (window.getDnsProfile) {
             return window.getDnsProfile();
@@ -60,6 +67,13 @@ function initDynamicDownloads() {
             return profileSelector.value;
         }
         return dnsToggle && dnsToggle.checked ? 'dns-safe' : 'standard';
+    };
+    
+    const evasionMode = () => {
+        if (evasionModeSelector && evasionModeSelector.value) {
+            return evasionModeSelector.value;
+        }
+        return 'standard';
     };
 
     const updateUI = (clientKey) => {
@@ -104,6 +118,9 @@ function initDynamicDownloads() {
     }
     if (dnsToggle) {
         dnsToggle.addEventListener('change', () => updateUI(dropdown.value || 'shadowrocket'));
+    }
+    if (evasionModeSelector) {
+        evasionModeSelector.addEventListener('change', () => updateUI(dropdown.value || 'shadowrocket'));
     }
     window.addEventListener('languageChanged', () => updateUI(dropdown.value || 'shadowrocket'));
 

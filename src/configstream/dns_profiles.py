@@ -51,6 +51,22 @@ DEFAULT_DOQ = _dedupe(
     ]
 )
 
+DEFAULT_FALLBACK = _dedupe(
+    [
+        "https://dns.quad9.net/dns-query",
+        "https://cloudflare-dns.com/dns-query",
+        "https://dns.google/dns-query",
+        "tls://9.9.9.9",
+        "tls://1.1.1.1",
+    ]
+)
+
+
+def build_resolver_sets() -> tuple[list[str], list[str]]:
+    primary = _dedupe(DEFAULT_DOH + DEFAULT_DOT + DEFAULT_DOQ)
+    fallback = _dedupe(DEFAULT_FALLBACK)
+    return primary, fallback
+
 
 def build_singbox_dns_profile() -> Dict[str, Any]:
     servers: List[Dict[str, Any]] = []
@@ -94,14 +110,7 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
 
 def build_clash_dns_profile() -> Dict[str, Any]:
     nameserver = _dedupe(DEFAULT_DOH + DEFAULT_DOT + DEFAULT_DOQ)
-    fallback = _dedupe(
-        [
-            "https://dns.quad9.net/dns-query",
-            "https://cloudflare-dns.com/dns-query",
-            "tls://9.9.9.9",
-            "tls://1.1.1.1",
-        ]
-    )
+    fallback = _dedupe(DEFAULT_FALLBACK)
 
     return {
         "enable": True,

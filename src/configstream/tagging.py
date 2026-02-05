@@ -126,6 +126,25 @@ def build_proxy_tags(proxy: Proxy) -> List[str]:
     if details.get("is_revived"):
         tags.append("REVIVED")
         tags.append("VWARP" if details.get("use_vwarp") else "WARP")
+    
+    # Shielded/Gold tags (for Copper to Gold transformation)
+    if details.get("is_shielded") or (proxy.process or "").startswith("shield"):
+        tags.append("SHIELDED")
+        tags.append("GOLD")
+    
+    # Evasion tags
+    if details.get("has_utls") or details.get("evasion_utls"):
+        tags.append("EVASION:UTLS")
+    if details.get("has_fragmentation") or details.get("evasion_fragmentation"):
+        tags.append("EVASION:FRAG")
+    if details.get("has_multiplexing") or details.get("evasion_multiplexing"):
+        tags.append("EVASION:MUX")
+    if details.get("has_alpn_rotation") or details.get("evasion_alpn"):
+        tags.append("EVASION:ALPN")
+    
+    # DNS hardening tags
+    if details.get("dns_safe") or details.get("dns_hardened"):
+        tags.append("DNS:SAFE" if details.get("dns_safe") else "DNS:HARDENED")
 
     if proxy.is_working:
         tags.append("STATUS:UP")

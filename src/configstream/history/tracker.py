@@ -356,6 +356,34 @@ class ProxyHistoryTracker:
         data = self._load_all_history()
         HistoryExporter.export_active_proxy_trend(data, output_path)
 
+    def export_evasion_trend(self, stats: Any, output_path: Any) -> None:
+        """Export evasion metrics trend."""
+        # Ensure path is Path object
+        from pathlib import Path
+
+        if not isinstance(output_path, Path):
+            output_path = Path(output_path)
+
+        # Convert stats to dict if it's a PipelineStats object
+        if hasattr(stats, "to_dict"):
+            import asyncio
+            try:
+                # Try async method first
+                if asyncio.iscoroutinefunction(stats.to_dict):
+                    stats_dict = asyncio.run(stats.to_dict())
+                else:
+                    stats_dict = stats.to_dict()
+            except Exception:
+                # Fallback to sync method
+                stats_dict = stats.to_dict() if callable(getattr(stats, "to_dict", None)) else {}
+        elif isinstance(stats, dict):
+            stats_dict = stats
+        else:
+            logger.warning(f"Unknown stats type for evasion trend export: {type(stats)}")
+            stats_dict = {}
+
+        HistoryExporter.export_evasion_trend(stats_dict, output_path)
+
     def close(self):
         """
         Closes the underlying storage connection.

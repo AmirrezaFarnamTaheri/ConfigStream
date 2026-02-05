@@ -81,6 +81,8 @@ ConfigStream is an automated VPN configuration aggregator that collects, tests, 
 │  │             INTELLIGENCE & POST-PROCESSING                 │  │
 │  │  • GeoIP      • Scoring     • Anomaly Detection           │  │
 │  │  • Proxy Washing (WARP)     • Chain Synthesis             │  │
+│  │  • Shielding (Copper→Gold)  • DNS Hardening               │  │
+│  │  • TLS Fingerprint Rotation • Evasion Features            │  │
 │  └────────────────────────────────────────────────────┬──────┘  │
 │                                                        │         │
 │  ┌────────────────────────────────────────────────────▼──────┐  │
@@ -231,8 +233,15 @@ func setupSingbox(ctx context.Context, outboundJSON string) (*box.Box, int, erro
 **Features**:
 1. **Proxy Washing & Revival**: Wraps flagged/dirty proxies AND revives dead/non-working proxies by chaining them through Cloudflare WARP (WireGuard).
 2. **Washer Retest**: Ensures end-to-end connectivity of generated chains by feeding them back into the tester.
-3. **Smart Chaining**: Creates routing chains (e.g., Intranet Bridge, IPv6 Portal)
+3. **Smart Chaining**: Creates routing chains with multi-criteria optimization:
+   - **9 Chain Types**: Intranet, Intranet Washed, IPv6 Portal, Streaming Accelerator, Censorship Resistant, Low Latency, High Anonymity, Load Balanced, Experimental
+   - **4 Optimization Modes**: Stealth, Speed, Reliability, Balanced
+   - **95 Countries**: Expanded geographic coverage for optimal relay selection
+   - **Censorship Awareness**: 15-level severity scale with transition bonuses
+   - **Protocol Intelligence**: Scoring matrix for stealth, speed, and reliability
 4. **Consistent Hashing**: Deterministic exit node selection (Key Rotation).
+
+**Note**: See `docs/SMART_CHAINS_ENHANCEMENT.md` for detailed implementation of v2.1.0 enhancements.
 
 **Implementation**:
 ```python
@@ -1018,6 +1027,27 @@ class PostgreSQLStore(Store): ...
 ---
 
 ## Monitoring & Observability
+
+### Metrics & Analytics
+
+ConfigStream tracks comprehensive metrics and provides time-series visualizations:
+
+**Pipeline Metrics** (in `metadata.json`):
+- Total proxies, working proxies, revived proxies
+- Shielded (Gold) proxies count
+- Evasion metrics (uTLS, fragmentation, multiplexing, DNS-hardened)
+- Smart chain counts
+- Country and protocol distributions
+
+**Time-Series Data** (in `data/evasion_trend.json`):
+- 7-day rolling window of evasion metrics
+- Shielded, revived (WARP/VWARP), uTLS-enabled, DNS-hardened counts over time
+- Exported automatically on each pipeline run
+- Visualized in frontend charts
+
+**Historical Data** (in `data/active_proxy_trend.json`):
+- Active proxy counts over time
+- Used for trend analysis and visualization
 
 ### Metrics
 

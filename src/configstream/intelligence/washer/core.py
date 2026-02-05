@@ -655,7 +655,14 @@ class ProxyWasher:
             if not exit_key:
                 continue
 
-            chain_id = f"REVIVE-{relay.id[:8]}"
+            # Use different tag prefixes for WARP vs Vwarp revivals
+            if use_vwarp:
+                chain_id = f"VWARP-REVIVE-{relay.id[:8]}"
+                relay_tag_prefix = "VWARP-RELAY"
+            else:
+                chain_id = f"WARP-REVIVE-{relay.id[:8]}"
+                relay_tag_prefix = "WARP-RELAY"
+            
             endpoint_data = self._get_clean_endpoint(relay.id)
             if isinstance(endpoint_data, tuple):
                 clean_endpoint, clean_port = endpoint_data
@@ -669,7 +676,7 @@ class ProxyWasher:
             if not relay_out:
                 continue
 
-            relay_out["tag"] = f"RELAY-{chain_id}"
+            relay_out["tag"] = f"{relay_tag_prefix}-{relay.id[:8]}"
 
             reserved_bytes = self._get_optimized_reserved(chain_id)
 
@@ -846,3 +853,75 @@ class ProxyWasher:
                 stats.washer_success_count = len(washed_ids)
 
         return washed_outbounds, washed_ids, skip_reasons
+
+    def shield_batch(
+        self,
+        proxies: List[Proxy],
+        stats: Optional[PipelineStats] = None,
+    ) -> Tuple[List[Dict[str, Any]], Set[str]]:
+        """
+        [ALCHEMY MODE] Shields dead proxies behind a WARP tunnel.
+        Topology: Client -> WARP (Clean Endpoint) -> Proxy -> Internet
+
+        This converts 'Dead Copper' (Blocked Proxy) into 'Gold' (Tunnelled Proxy).
+        Use this to UNBLOCK dead proxies by inverting the topology.
+        """
+        shielded_outbounds: List[Dict[str, Any]] = []
+        shielded_ids: Set[str] = set()
+
+        if not self.warp_keys:
+            return [], set()
+
+        # Iterate through proxies (typically those that failed direct connection)
+        for i, relay in enumerate(proxies):
+            # 1. Generate the Shield (WARP Config)
+            # This uses your existing logic to get clean IPs and keys
+            warp_out = self.get_warp_config(relay.id)
+            if not warp_out:
+                continue
+
+            # Tag the shield uniquely
+            shield_tag = f"SHIELD-{relay.country_code or 'XX'}-{i}"
+            warp_out["tag"] = shield_tag
+            warp_out["_process"] = "shield_base"
+
+            # CRITICAL: The Shield connects DIRECTLY to the internet (or via local gateway)
+            # It does NOT use a detour. It IS the transport.
+            warp_out.pop("detour", None)  # Remove any existing detour
+
+            # 2. Convert the 'Dirty' Proxy
+            relay_out = to_singbox_outbound(relay)
+            if not relay_out:
+                continue
+
+            # 3. THE ALCHEMY: Wrap the Proxy INSIDE the Shield
+            # Sing-box logic: "detour" means "send this outbound's traffic through..."
+            relay_out["detour"] = shield_tag
+
+            # 4. Branding & Optimization
+            # Rename the proxy so the user knows it's a special chain
+            original_tag = relay_out.get("tag", f"proxy-{i}")
+            relay_out["tag"] = f"GOLD-{original_tag}"
+            relay_out["_process"] = "shield_payload"
+            # Mark as shielded in relay details for tagging
+            if not relay.details:
+                relay.details = {}
+            relay.details["is_shielded"] = True
+            relay.process = "shielded"
+
+            # 5. Append to output
+            # Order: Shield first, then Proxy (though Sing-box resolves by tag)
+            shielded_outbounds.append(warp_out)
+            shielded_outbounds.append(relay_out)
+            shielded_ids.add(relay.id)
+
+            # 6. Update Stats
+            if stats:
+                lock = getattr(stats, "_lock", None)
+                if lock:
+                    with lock:
+                        stats.warp_attempts += 1
+                else:
+                    stats.warp_attempts += 1
+
+        return shielded_outbounds, shielded_ids

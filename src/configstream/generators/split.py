@@ -91,13 +91,50 @@ def generate_split_outputs(
             tag = p.remarks or f"{p.protocol}-{p.id[:8]}"
             sb_proxy["tag"] = tag
 
-            # Inject TLS Fragmentation (Sniper default)
-            if "tls" in sb_proxy and isinstance(sb_proxy["tls"], dict):
-                sb_proxy["tls"]["tls_fragment"] = {
-                    "enabled": True,
-                    "size": "100-200",
-                    "sleep": "0-10",
-                }
+            # Inject evasion features based on configured mode
+            from configstream.intelligence.evasion import enrich_outbound_with_evasion
+            from configstream.config import AppSettings
+            settings = AppSettings()
+            evasion_mode = getattr(settings, "EVASION_MODE", "aggressive").lower()
+            
+            # Apply evasion features based on mode
+            if evasion_mode == "aggressive":
+                # All evasion features enabled
+                sb_proxy = enrich_outbound_with_evasion(
+                    sb_proxy,
+                    p.id,
+                    enable_utls=True,
+                    enable_alpn=True,
+                    enable_fragmentation=True,
+                    enable_multiplexing=True,
+                )
+            elif evasion_mode == "stealth":
+                # Only TLS fragmentation + uTLS (minimal evasion)
+                sb_proxy = enrich_outbound_with_evasion(
+                    sb_proxy,
+                    p.id,
+                    enable_utls=True,
+                    enable_alpn=False,
+                    enable_fragmentation=True,
+                    enable_multiplexing=False,
+                )
+            else:  # standard
+                # No evasion features (compatibility mode)
+                sb_proxy = enrich_outbound_with_evasion(
+                    sb_proxy,
+                    p.id,
+                    enable_utls=False,
+                    enable_alpn=False,
+                    enable_fragmentation=False,
+                    enable_multiplexing=False,
+                )
+            # Mark evasion features in proxy details for tagging
+            if not p.details:
+                p.details = {}
+            p.details["has_utls"] = True
+            p.details["has_fragmentation"] = True
+            p.details["has_multiplexing"] = True
+            p.details["has_alpn_rotation"] = True
             outbounds.append(sb_proxy)
             _append_unique_tag(selector_tags, tag)
 

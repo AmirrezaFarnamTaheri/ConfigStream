@@ -6,6 +6,7 @@ import logger from './utils/logger.js';
 document.addEventListener('DOMContentLoaded', async () => {
     // Initialize Stats - with fallback for when API isn't available
     let stats = null;
+    let evasionTrend = null;
 
     // Try multiple data sources - metadata.json is single source of truth
     try {
@@ -19,9 +20,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
+        // Fetch evasion trend data
+        try {
+            const evasionResponse = await fetch('data/evasion_trend.json?cb=' + Date.now());
+            if (evasionResponse.ok) {
+                evasionTrend = await evasionResponse.json();
+            }
+        } catch (e) {
+            logger.warn("Failed to load evasion trend data:", e);
+        }
+
         if (stats) {
             updateStats(stats);
-            initCharts(stats);
+            initCharts(stats, evasionTrend);
             initGlobe(stats);
         } else {
             logger.warn("No analytics data available");
@@ -574,7 +585,7 @@ function _initGlobeInternal(data, container) {
     window.globeInstance = globe;
 }
 
-function initCharts(data) {
+function initCharts(data, evasionTrend = null) {
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.borderColor = '#1e293b';
 
@@ -849,6 +860,101 @@ function initCharts(data) {
                 plugins: { legend: { display: false } }
             }
         });
+    }
+
+    // 9. Evasion Trend Chart (Time-series)
+    const evasionTrendEl = document.getElementById('evasionTrendChart');
+    if (evasionTrendEl && evasionTrend && evasionTrend.length > 0) {
+        const evasionTrendCtx = evasionTrendEl.getContext('2d');
+        const labels = evasionTrend.map(e => {
+            const date = new Date(e.timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        });
+
+        new Chart(evasionTrendCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Shielded (Gold)',
+                        data: evasionTrend.map(e => e.shielded_count || 0),
+                        borderColor: 'rgba(255, 215, 0, 1)',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        fill: true
+                    },
+                    {
+                        label: 'Revived (WARP)',
+                        data: evasionTrend.map(e => e.revived_warp || 0),
+                        borderColor: 'rgba(76, 154, 255, 1)',
+                        backgroundColor: 'rgba(76, 154, 255, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        fill: true
+                    },
+                    {
+                        label: 'Revived (VWARP)',
+                        data: evasionTrend.map(e => e.revived_vwarp || 0),
+                        borderColor: 'rgba(54, 210, 153, 1)',
+                        backgroundColor: 'rgba(54, 210, 153, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        fill: true
+                    },
+                    {
+                        label: 'uTLS Enabled',
+                        data: evasionTrend.map(e => e.evasion_utls_enabled || 0),
+                        borderColor: 'rgba(74, 144, 226, 1)',
+                        backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        fill: false
+                    },
+                    {
+                        label: 'DNS-Hardened',
+                        data: evasionTrend.map(e => e.evasion_dns_hardened_count || 0),
+                        borderColor: 'rgba(54, 210, 153, 1)',
+                        backgroundColor: 'rgba(54, 210, 153, 0.1)',
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 4,
+                        fill: false,
+                        borderDash: [5, 5]
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    } else if (evasionTrendEl) {
+        // Hide chart container if no data
+        evasionTrendEl.closest('.chart-container').style.display = 'none';
     }
 
     // 8. Latency by Protocol

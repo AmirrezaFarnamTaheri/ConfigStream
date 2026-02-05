@@ -17,6 +17,21 @@ from .utils.bool_parser import parse_tls_flag
 logger = logging.getLogger(__name__)
 
 
+def _extract_sni(details: Dict[str, Any]) -> str:
+    for key in (
+        "sni",
+        "server_name",
+        "original_host",
+        "host",
+        "http_host",
+        "ws_host",
+    ):
+        value = details.get(key)
+        if value:
+            return str(value)
+    return ""
+
+
 class Adapter(abc.ABC):
     """Base class for proxy adapters."""
 
@@ -91,27 +106,35 @@ class SurgeAdapter(Adapter):
 
         elif p.protocol == "vmess":
             uuid = p.uuid
-            return f"{name} = vmess, {p.address}, {p.port}, username={uuid}"
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f"{name} = vmess, {p.address}, {p.port}, username={uuid}{sni_part}"
 
         elif p.protocol == "vless":
             # Surge 5 supports VLESS
             uuid = p.uuid
-            return f"{name} = vless, {p.address}, {p.port}, username={uuid}"
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f"{name} = vless, {p.address}, {p.port}, username={uuid}{sni_part}"
 
         elif p.protocol == "trojan":
             password = p.uuid
-            return f"{name} = trojan, {p.address}, {p.port}, password={password}"
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f"{name} = trojan, {p.address}, {p.port}, password={password}{sni_part}"
 
         elif p.protocol in ("hysteria2", "hy2"):
             password = p.uuid or p.details.get("password", "")
-            sni = p.details.get("sni", "")
-            return f"{name} = hysteria2, {p.address}, {p.port}, password={password}, sni={sni}"
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f"{name} = hysteria2, {p.address}, {p.port}, password={password}{sni_part}"
 
         elif p.protocol == "tuic":
             # Surge 5.8+ supports TUIC v5
             password = p.uuid or p.details.get("password", "")
-            sni = p.details.get("sni", "")
-            return f"{name} = tuic, {p.address}, {p.port}, password={password}, sni={sni}, version=5"
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f"{name} = tuic, {p.address}, {p.port}, password={password}{sni_part}, version=5"
 
         elif p.protocol == "http":
             user = p.uuid
@@ -189,27 +212,33 @@ class LoonAdapter(Adapter):
         elif p.protocol == "vmess":
             uuid = p.uuid
             method = p.details.get("method", "auto")
-            return f'{name} = vmess, {p.address}, {p.port}, {method}, "{uuid}"'
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f'{name} = vmess, {p.address}, {p.port}, {method}, "{uuid}"{sni_part}'
 
         elif p.protocol == "trojan":
             password = p.uuid
-            return f'{name} = trojan, {p.address}, {p.port}, "{password}"'
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f'{name} = trojan, {p.address}, {p.port}, "{password}"{sni_part}'
 
         elif p.protocol == "vless":
             # Loon VLESS format: name = vless, host, port, uuid
-            return f'{name} = vless, {p.address}, {p.port}, "{p.uuid}"'
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f'{name} = vless, {p.address}, {p.port}, "{p.uuid}"{sni_part}'
 
         elif p.protocol in ("hysteria2", "hy2"):
             # Loon Hysteria2
-            sni = p.details.get("sni", "")
-            return f'{name} = hysteria2, {p.address}, {p.port}, password="{p.uuid}", sni={sni}'
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f'{name} = hysteria2, {p.address}, {p.port}, password="{p.uuid}"{sni_part}'
 
         elif p.protocol == "tuic":
             # Loon TUIC
-            sni = p.details.get("sni", "")
-            return (
-                f'{name} = tuic, {p.address}, {p.port}, password="{p.uuid}", sni={sni}'
-            )
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f'{name} = tuic, {p.address}, {p.port}, password="{p.uuid}"{sni_part}'
 
         elif p.protocol == "wireguard":
             # Loon WireGuard (standard)
@@ -257,18 +286,22 @@ class QuantumultXAdapter(Adapter):
         elif p.protocol == "vmess":
             uuid = p.uuid
             method = p.details.get("method", "chacha20-poly1305")
-            return (
-                f"vmess={name}: {p.address}, {p.port}, method={method}, password={uuid}"
-            )
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f"vmess={name}: {p.address}, {p.port}, method={method}, password={uuid}{sni_part}"
 
         elif p.protocol == "trojan":
             password = p.uuid
-            return f"trojan={name}: {p.address}, {p.port}, password={password}, over-tls=true, tls-host={p.details.get('sni', '')}"
+            sni = _extract_sni(p.details)
+            sni_part = f", tls-host={sni}" if sni else ""
+            return f"trojan={name}: {p.address}, {p.port}, password={password}, over-tls=true{sni_part}"
 
         elif p.protocol == "vless":
             # QX VLESS format: vless=name: host, port, method=none, uuid=...
             # Note: QX supports VLESS but it requires the 'vless' module/keyword
-            return f"vless={name}: {p.address}, {p.port}, method=none, uuid={p.uuid}"
+            sni = _extract_sni(p.details)
+            sni_part = f", sni={sni}" if sni else ""
+            return f"vless={name}: {p.address}, {p.port}, method=none, uuid={p.uuid}{sni_part}"
 
         elif p.protocol == "http":
             user = p.uuid

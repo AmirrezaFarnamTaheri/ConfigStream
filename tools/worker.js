@@ -2,20 +2,50 @@
 // ConfigStream BYOW Relay v1.0
 // Deploy this to Cloudflare Workers (Free Tier)
 // Based on edgetunnel (simplified)
+// Enhanced with masquerading (fake website) for censorship evasion
+
+const PROXY_PATH = "/my-secret-tunnel"; // Only tunnel traffic here
+const FAKE_SITE_URL = "https://www.kernel.org"; // The "Mask" - harmless technical site
 
 export default {
   async fetch(request, env, ctx) {
-    if (request.headers.get('Upgrade') !== 'websocket') {
-      const url = new URL(request.url);
-      if (url.pathname === '/health') {
-          return new Response('OK', { status: 200 });
-      }
-      return new Response('ConfigStream BYOW Relay Active', { status: 200 });
+    const url = new URL(request.url);
+    
+    // 1. The "Secret Handshake" - Only accept WebSocket connections on the specific path
+    if (url.pathname === PROXY_PATH && request.headers.get("Upgrade") === "websocket") {
+        return handleProxy(request);
+    }
+    
+    // 2. The "Grey Area" Masquerade - For everyone else (Active Probes, Censors), act like a harmless mirror
+    // Fetch content from a legitimate technical site
+    try {
+        const fakeResponse = await fetch(FAKE_SITE_URL + url.pathname, {
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Compatible; ConfigStream/1.0)",
+            }
+        });
+        
+        // Return the fake content seamlessly
+        return new Response(fakeResponse.body, {
+            status: fakeResponse.status,
+            headers: fakeResponse.headers,
+        });
+    } catch (error) {
+        // Fallback to simple response if fetch fails
+        if (url.pathname === '/health') {
+            return new Response('OK', { status: 200 });
+        }
+        return new Response('ConfigStream BYOW Relay Active', { status: 200 });
     }
 
+  }
+};
+
+// Proxy handler function
+async function handleProxy(request) {
     const upgradeHeader = request.headers.get('Upgrade');
     if (!upgradeHeader || upgradeHeader !== 'websocket') {
-      return new Response('Expected Upgrade: websocket', { status: 426 });
+        return new Response('Expected Upgrade: websocket', { status: 426 });
     }
 
     const webSocket = new WebSocketPair();
@@ -35,8 +65,7 @@ export default {
     });
 
     return new Response(null, {
-      status: 101,
-      webSocket: client,
+        status: 101,
+        webSocket: client,
     });
-  }
-};
+}

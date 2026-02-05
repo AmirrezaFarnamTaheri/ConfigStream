@@ -40,6 +40,15 @@ class PipelineStats:
     # Revived Stats
     revived_warp: int = 0
     revived_vwarp: int = 0
+    shielded_count: int = 0  # Proxies resurrected via shielding (Copper to Gold)
+    
+    # Evasion Metrics
+    evasion_utls_enabled: int = 0  # Proxies with uTLS fingerprint rotation
+    evasion_alpn_enabled: int = 0  # Proxies with ALPN rotation
+    evasion_fragmentation_enabled: int = 0  # Proxies with TLS fragmentation
+    evasion_multiplexing_enabled: int = 0  # Proxies with multiplexing
+    evasion_dns_safe_count: int = 0  # Proxies in DNS-safe outputs
+    evasion_dns_hardened_count: int = 0  # Proxies in DNS-hardened outputs
 
     # Vwarp Stats (Efficiency of Vwarp Tool specifically)
     warp_attempts: int = 0  # Standard WARP attempts
@@ -90,8 +99,15 @@ class PipelineStats:
                 "time_limit_seconds": self.time_limit_seconds,
                 "revived_warp": self.revived_warp,
                 "revived_vwarp": self.revived_vwarp,
+                "shielded_count": self.shielded_count,
                 "total_revived": self.total_revived,
                 "warp_attempts": self.warp_attempts,
+                "evasion_utls_enabled": self.evasion_utls_enabled,
+                "evasion_alpn_enabled": self.evasion_alpn_enabled,
+                "evasion_fragmentation_enabled": self.evasion_fragmentation_enabled,
+                "evasion_multiplexing_enabled": self.evasion_multiplexing_enabled,
+                "evasion_dns_safe_count": self.evasion_dns_safe_count,
+                "evasion_dns_hardened_count": self.evasion_dns_hardened_count,
                 "vwarp_attempts": self.vwarp_attempts,
                 "vwarp_success": self.vwarp_success,
                 "vwarp_win_rate": self.vwarp_win_rate,

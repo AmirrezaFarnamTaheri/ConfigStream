@@ -49,6 +49,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    async function fetchEvasionTrend() {
+        try {
+            const url = `data/evasion_trend.json?cb=${Date.now()}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.warn(`Evasion trend fetch failed: ${response.status}`);
+                return null;
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Failed to fetch evasion trend:', error);
+            return null;
+        }
+    }
+
     function calculateMetrics(stats, proxies) {
         // Calculate additional metrics
         const metrics = {};
@@ -111,6 +126,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const vwarpWinRate = (metadata && metadata.vwarp_win_rate) || 0;
         updateElement('#vwarpWinRate', (vwarpWinRate !== undefined) ? Math.round(vwarpWinRate) + '%' : '0%');
+        
+        // Evasion metrics
+        const shielded = (metadata && metadata.shielded_count) || 0;
+        updateElement('#shieldedCount', shielded.toLocaleString());
+        
+        const evasionUtls = (metadata && metadata.evasion_utls_enabled) || 0;
+        updateElement('#evasionUtls', evasionUtls.toLocaleString());
+        
+        const evasionDnsSafe = (metadata && metadata.evasion_dns_safe_count) || 0;
+        updateElement('#evasionDnsSafe', evasionDnsSafe.toLocaleString());
+        
+        const evasionDnsHardened = (metadata && metadata.evasion_dns_hardened_count) || 0;
+        updateElement('#evasionDnsHardened', evasionDnsHardened.toLocaleString());
 
         // Update Hero Stats (Source Count & Frequency)
         const totalSources = (metadata && metadata.total_configured_sources) || 0;
@@ -214,11 +242,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function renderCharts() {
         try {
-            const [stats, history, proxies, metadata] = await Promise.all([
+            const [stats, history, proxies, metadata, evasionTrend] = await Promise.all([
                 fetchStatistics(),
                 fetchProxyHistory(),
                 fetchProxies(),
-                fetchMetadata()
+                fetchMetadata(),
+                fetchEvasionTrend()
             ]);
 
             currentStats = stats;
@@ -364,6 +393,108 @@ document.addEventListener('DOMContentLoaded', async () => {
                         }
                     }
                 });
+            }
+
+            // Evasion Trend Chart (Time-series)
+            const evasionTrendCanvas = document.getElementById('evasionTrendChart');
+            if (evasionTrendCanvas && evasionTrend && evasionTrend.length > 0) {
+                const labels = evasionTrend.map(e => {
+                    const date = new Date(e.timestamp);
+                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                });
+
+                new Chart(evasionTrendCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Shielded (Gold)',
+                                data: evasionTrend.map(e => e.shielded_count || 0),
+                                borderColor: 'rgba(255, 215, 0, 1)',
+                                backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4,
+                                fill: true
+                            },
+                            {
+                                label: 'Revived (WARP)',
+                                data: evasionTrend.map(e => e.revived_warp || 0),
+                                borderColor: 'rgba(76, 154, 255, 1)',
+                                backgroundColor: 'rgba(76, 154, 255, 0.1)',
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4,
+                                fill: true
+                            },
+                            {
+                                label: 'Revived (VWARP)',
+                                data: evasionTrend.map(e => e.revived_vwarp || 0),
+                                borderColor: 'rgba(54, 210, 153, 1)',
+                                backgroundColor: 'rgba(54, 210, 153, 0.1)',
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4,
+                                fill: true
+                            },
+                            {
+                                label: 'uTLS Enabled',
+                                data: evasionTrend.map(e => e.evasion_utls_enabled || 0),
+                                borderColor: 'rgba(74, 144, 226, 1)',
+                                backgroundColor: 'rgba(74, 144, 226, 0.1)',
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4,
+                                fill: false
+                            },
+                            {
+                                label: 'DNS-Hardened',
+                                data: evasionTrend.map(e => e.evasion_dns_hardened_count || 0),
+                                borderColor: 'rgba(54, 210, 153, 1)',
+                                backgroundColor: 'rgba(54, 210, 153, 0.1)',
+                                tension: 0.4,
+                                pointRadius: 2,
+                                pointHoverRadius: 4,
+                                fill: false,
+                                borderDash: [5, 5]
+                            }
+                        ]
+                    },
+                    options: {
+                        ...commonPluginOptions,
+                        ...commonScaleOptions,
+                        plugins: {
+                            ...commonPluginOptions.plugins,
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y}`;
+                                    }
+                                }
+                            },
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        },
+                        scales: {
+                            ...commonScaleOptions.scales,
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            } else if (evasionTrendCanvas) {
+                // Hide chart container if no data
+                const container = evasionTrendCanvas.closest('.chart-container');
+                if (container) container.style.display = 'none';
             }
 
             // Latency by Country Chart
