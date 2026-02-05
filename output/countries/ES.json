@@ -1,0 +1,213 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇪🇸 | TROJAN+WS+TLS | 104ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸 | TROJAN+WS+TLS | 140ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸 | TROJAN+WS+TLS | 167ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸 | SHADOWSOCKS+TCP+AES-256-CFB | 254ms | UP | NATIVE",
+        "🇪🇸 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 371ms | UP | NATIVE",
+        "🇪🇸 | SHADOWSOCKS+SS+AES-256-CFB | 478ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 578ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 918ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 988ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 4097ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇪🇸 | TROJAN+WS+TLS | 104ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸 | TROJAN+WS+TLS | 140ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸 | TROJAN+WS+TLS | 167ms | UP | NATIVE | SEC:weak_trojan_password",
+        "🇪🇸 | SHADOWSOCKS+TCP+AES-256-CFB | 254ms | UP | NATIVE",
+        "🇪🇸 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 371ms | UP | NATIVE",
+        "🇪🇸 | SHADOWSOCKS+SS+AES-256-CFB | 478ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 578ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 918ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 988ms | UP | NATIVE",
+        "🇪🇸 | SOCKS4+TCP | 4097ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "trojan",
+      "tag": "🇪🇸 | TROJAN+WS+TLS | 104ms | UP | NATIVE | SEC:weak_trojan_password",
+      "server": "109.234.211.66",
+      "server_port": 8443,
+      "password": "trojan",
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "store.timimi.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "store.timimi.dpdns.org",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        }
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇪🇸 | TROJAN+WS+TLS | 140ms | UP | NATIVE | SEC:weak_trojan_password",
+      "server": "109.234.211.66",
+      "server_port": 2087,
+      "password": "trojan",
+      "transport": {
+        "type": "ws",
+        "path": "/",
+        "headers": {
+          "Host": "store.timimi.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "store.timimi.dpdns.org"
+      }
+    },
+    {
+      "type": "trojan",
+      "tag": "🇪🇸 | TROJAN+WS+TLS | 167ms | UP | NATIVE | SEC:weak_trojan_password",
+      "server": "109.234.211.66",
+      "server_port": 2087,
+      "password": "trojan",
+      "transport": {
+        "type": "ws",
+        "path": "/?BIA_TELEGRAM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)TM(@AZARBAYJAB1)",
+        "headers": {
+          "Host": "store.timimi.dpdns.org",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        }
+      },
+      "tls": {
+        "enabled": true,
+        "server_name": "store.timimi.dpdns.org"
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇪🇸 | SHADOWSOCKS+TCP+AES-256-CFB | 254ms | UP | NATIVE",
+      "server": "5.188.181.201",
+      "server_port": 9014,
+      "method": "aes-256-cfb",
+      "password": "KnJGad3FqTvjqbaX"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇪🇸 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 371ms | UP | NATIVE",
+      "server": "37.143.130.203",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇪🇸 | SHADOWSOCKS+SS+AES-256-CFB | 478ms | UP | NATIVE",
+      "server": "45.154.206.192",
+      "server_port": 989,
+      "method": "aes-256-cfb",
+      "password": "f8f7aCzcPKbsF8p3"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇸 | SOCKS4+TCP | 578ms | UP | NATIVE",
+      "server": "185.161.186.83",
+      "server_port": 54321,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇸 | SOCKS4+TCP | 918ms | UP | NATIVE",
+      "server": "185.130.219.11",
+      "server_port": 4153,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇸 | SOCKS4+TCP | 988ms | UP | NATIVE",
+      "server": "84.236.185.247",
+      "server_port": 61710,
+      "version": "4"
+    },
+    {
+      "type": "socks",
+      "tag": "🇪🇸 | SOCKS4+TCP | 4097ms | UP | NATIVE",
+      "server": "195.219.98.27",
+      "server_port": 5678,
+      "version": "4"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

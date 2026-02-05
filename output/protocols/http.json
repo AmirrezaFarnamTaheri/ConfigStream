@@ -1,0 +1,2160 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇺🇸 | HTTP+TCP | 39ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 56ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 82ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 88ms | UP | NATIVE",
+        "🇨🇦 | HTTP+TCP | 129ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 161ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 188ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 224ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 227ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 349ms | UP | NATIVE",
+        "🇬🇧 | HTTP+TCP | 397ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 435ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 435ms | UP | NATIVE-36dc8e",
+        "🇦🇪 | HTTP+TCP | 449ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 453ms | UP | NATIVE",
+        "🇦🇪 | HTTP+TCP | 459ms | UP | NATIVE",
+        "🇦🇪 | HTTP+TCP | 471ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 474ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 510ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 541ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 552ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 554ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 561ms | UP | NATIVE",
+        "🇻🇪 | HTTP+TCP | 568ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 576ms | UP | NATIVE",
+        "🇧🇷 | HTTP+TCP | 584ms | UP | NATIVE",
+        "🇫🇷 | HTTP+TCP | 607ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 631ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 649ms | UP | NATIVE",
+        "🇷🇸 | HTTP+TCP | 715ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 738ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 780ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 829ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 902ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 920ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 935ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 936ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 938ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 955ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 962ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 972ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 987ms | UP | NATIVE",
+        "🇨🇦 | HTTP+TCP | 994ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 996ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5905ms | UP | NATIVE",
+        "🇻🇳 | HTTP+TCP | 5269ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4814ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3516ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 2204ms | UP | NATIVE",
+        "🇧🇷 | HTTP+TCP | 4921ms | UP | NATIVE",
+        "🇵🇪 | HTTP+TCP | 4866ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 2571ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5181ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4242ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 1297ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 1788ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 1152ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 2791ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 2105ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 5469ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 4180ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 5758ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5214ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 1419ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 3480ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 2943ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 3740ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5781ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 2518ms | UP | NATIVE",
+        "🇧🇷 | HTTP+TCP | 2459ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 1512ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 2863ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 2946ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 5459ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 1876ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4304ms | UP | NATIVE",
+        "🇻🇪 | HTTP+TCP | 3702ms | UP | NATIVE",
+        "🇵🇭 | HTTP+TCP | 1992ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 3239ms | UP | NATIVE",
+        "🇹🇭 | HTTP+TCP | 5751ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 2232ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5546ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 3332ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 5143ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5185ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 4697ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 3342ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 1050ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 1055ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3763ms | UP | NATIVE",
+        "🇮🇷 | HTTP+TCP | 5863ms | UP | NATIVE",
+        "🇵🇭 | HTTP+TCP | 3895ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 2451ms | UP | NATIVE",
+        "🇮🇷 | HTTP+TCP | 3230ms | UP | NATIVE",
+        "🇦🇷 | HTTP+TCP | 3288ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 1548ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 3623ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1618ms | UP | NATIVE",
+        "🇹🇭 | HTTP+TCP | 2416ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 5051ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 4102ms | UP | NATIVE",
+        "🇮🇶 | HTTP+TCP | 5312ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4416ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 5453ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 3648ms | UP | NATIVE",
+        "🇻🇳 | HTTP+TCP | 4533ms | UP | NATIVE",
+        "🇻🇪 | HTTP+TCP | 3683ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 1585ms | UP | NATIVE",
+        "🇧🇬 | HTTP+TCP | 4354ms | UP | NATIVE",
+        "🇸🇨 | HTTP+TCP | 3139ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4288ms | UP | NATIVE",
+        "🇰🇭 | HTTP+TCP | 3581ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4300ms | UP | NATIVE",
+        "🇪🇬 | HTTP+TCP | 3156ms | UP | NATIVE",
+        "🇺🇿 | HTTP+TCP | 2120ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 5244ms | UP | NATIVE",
+        "🇵🇪 | HTTP+TCP | 4219ms | UP | NATIVE",
+        "🇳🇱 | HTTP+TCP | 1681ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 5200ms | UP | NATIVE",
+        "🇭🇰 | HTTP+TCP | 1233ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5005ms | UP | NATIVE",
+        "🇨🇱 | HTTP+TCP | 3099ms | UP | NATIVE",
+        "🇻🇳 | HTTP+TCP | 5752ms | UP | NATIVE",
+        "🇲🇲 | HTTP+TCP | 1409ms | UP | NATIVE",
+        "🇵🇰 | HTTP+TCP | 1214ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 4979ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5011ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3650ms | UP | NATIVE",
+        "🇬🇪 | HTTP+TCP | 4865ms | UP | NATIVE",
+        "🇨🇦 | HTTP+TCP | 5994ms | UP | NATIVE",
+        "🇨🇱 | HTTP+TCP | 5419ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 4086ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 2640ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 2952ms | UP | NATIVE",
+        "🇸🇾 | HTTP+TCP | 3017ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5494ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4436ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 4107ms | UP | NATIVE",
+        "🇷🇸 | HTTP+TCP | 3017ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 2585ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1014ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 1502ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3117ms | UP | NATIVE",
+        "🇵🇪 | HTTP+TCP | 2508ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 4255ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 3689ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5483ms | UP | NATIVE",
+        "🇩🇴 | HTTP+TCP | 5205ms | UP | NATIVE",
+        "🇹🇭 | HTTP+TCP | 1203ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3886ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5128ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 1155ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 1597ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3819ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 3081ms | UP | NATIVE",
+        "🇳🇵 | HTTP+TCP | 3908ms | UP | NATIVE",
+        "🇵🇭 | HTTP+TCP | 1593ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 1525ms | UP | NATIVE",
+        "🇬🇹 | HTTP+TCP | 4115ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 4798ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇺🇸 | HTTP+TCP | 39ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 56ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 82ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 88ms | UP | NATIVE",
+        "🇨🇦 | HTTP+TCP | 129ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 161ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 188ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 224ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 227ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 349ms | UP | NATIVE",
+        "🇬🇧 | HTTP+TCP | 397ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 435ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 435ms | UP | NATIVE-36dc8e",
+        "🇦🇪 | HTTP+TCP | 449ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 453ms | UP | NATIVE",
+        "🇦🇪 | HTTP+TCP | 459ms | UP | NATIVE",
+        "🇦🇪 | HTTP+TCP | 471ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 474ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 510ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 541ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 552ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 554ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 561ms | UP | NATIVE",
+        "🇻🇪 | HTTP+TCP | 568ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 576ms | UP | NATIVE",
+        "🇧🇷 | HTTP+TCP | 584ms | UP | NATIVE",
+        "🇫🇷 | HTTP+TCP | 607ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 631ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 649ms | UP | NATIVE",
+        "🇷🇸 | HTTP+TCP | 715ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 738ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 780ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 829ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 902ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 920ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 935ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 936ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 938ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 955ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 962ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 972ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 987ms | UP | NATIVE",
+        "🇨🇦 | HTTP+TCP | 994ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 996ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5905ms | UP | NATIVE",
+        "🇻🇳 | HTTP+TCP | 5269ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4814ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3516ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 2204ms | UP | NATIVE",
+        "🇧🇷 | HTTP+TCP | 4921ms | UP | NATIVE",
+        "🇵🇪 | HTTP+TCP | 4866ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 2571ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5181ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 4242ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 1297ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 1788ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 1152ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 2791ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 2105ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 5469ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 4180ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 5758ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5214ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 1419ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 3480ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 2943ms | UP | NATIVE",
+        "🇸🇬 | HTTP+TCP | 3740ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5781ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 2518ms | UP | NATIVE",
+        "🇧🇷 | HTTP+TCP | 2459ms | UP | NATIVE",
+        "🇮🇳 | HTTP+TCP | 1512ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 2863ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 2946ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 5459ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 1876ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4304ms | UP | NATIVE",
+        "🇻🇪 | HTTP+TCP | 3702ms | UP | NATIVE",
+        "🇵🇭 | HTTP+TCP | 1992ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 3239ms | UP | NATIVE",
+        "🇹🇭 | HTTP+TCP | 5751ms | UP | NATIVE",
+        "🇰🇷 | HTTP+TCP | 2232ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5546ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 3332ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 5143ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5185ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 4697ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 3342ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 1050ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 1055ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3763ms | UP | NATIVE",
+        "🇮🇷 | HTTP+TCP | 5863ms | UP | NATIVE",
+        "🇵🇭 | HTTP+TCP | 3895ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 2451ms | UP | NATIVE",
+        "🇮🇷 | HTTP+TCP | 3230ms | UP | NATIVE",
+        "🇦🇷 | HTTP+TCP | 3288ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 1548ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 3623ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1618ms | UP | NATIVE",
+        "🇹🇭 | HTTP+TCP | 2416ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 5051ms | UP | NATIVE",
+        "🇲🇽 | HTTP+TCP | 4102ms | UP | NATIVE",
+        "🇮🇶 | HTTP+TCP | 5312ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4416ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 5453ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 3648ms | UP | NATIVE",
+        "🇻🇳 | HTTP+TCP | 4533ms | UP | NATIVE",
+        "🇻🇪 | HTTP+TCP | 3683ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 1585ms | UP | NATIVE",
+        "🇧🇬 | HTTP+TCP | 4354ms | UP | NATIVE",
+        "🇸🇨 | HTTP+TCP | 3139ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4288ms | UP | NATIVE",
+        "🇰🇭 | HTTP+TCP | 3581ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4300ms | UP | NATIVE",
+        "🇪🇬 | HTTP+TCP | 3156ms | UP | NATIVE",
+        "🇺🇿 | HTTP+TCP | 2120ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 5244ms | UP | NATIVE",
+        "🇵🇪 | HTTP+TCP | 4219ms | UP | NATIVE",
+        "🇳🇱 | HTTP+TCP | 1681ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 5200ms | UP | NATIVE",
+        "🇭🇰 | HTTP+TCP | 1233ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 5005ms | UP | NATIVE",
+        "🇨🇱 | HTTP+TCP | 3099ms | UP | NATIVE",
+        "🇻🇳 | HTTP+TCP | 5752ms | UP | NATIVE",
+        "🇲🇲 | HTTP+TCP | 1409ms | UP | NATIVE",
+        "🇵🇰 | HTTP+TCP | 1214ms | UP | NATIVE",
+        "🇯🇵 | HTTP+TCP | 4979ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5011ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 3650ms | UP | NATIVE",
+        "🇬🇪 | HTTP+TCP | 4865ms | UP | NATIVE",
+        "🇨🇦 | HTTP+TCP | 5994ms | UP | NATIVE",
+        "🇨🇱 | HTTP+TCP | 5419ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 4086ms | UP | NATIVE",
+        "🇺🇸 | HTTP+TCP | 2640ms | UP | NATIVE",
+        "🇩🇪 | HTTP+TCP | 2952ms | UP | NATIVE",
+        "🇸🇾 | HTTP+TCP | 3017ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5494ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 4436ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 4107ms | UP | NATIVE",
+        "🇷🇸 | HTTP+TCP | 3017ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 2585ms | UP | NATIVE",
+        "🇨🇴 | HTTP+TCP | 1014ms | UP | NATIVE",
+        "🌐 | HTTP+H2+TLS | 1502ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3117ms | UP | NATIVE",
+        "🇵🇪 | HTTP+TCP | 2508ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 4255ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 3689ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5483ms | UP | NATIVE",
+        "🇩🇴 | HTTP+TCP | 5205ms | UP | NATIVE",
+        "🇹🇭 | HTTP+TCP | 1203ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3886ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 5128ms | UP | NATIVE",
+        "🇷🇺 | HTTP+TCP | 1155ms | UP | NATIVE",
+        "🇨🇳 | HTTP+TCP | 1597ms | UP | NATIVE",
+        "🇮🇩 | HTTP+TCP | 3819ms | UP | NATIVE",
+        "🇪🇨 | HTTP+TCP | 3081ms | UP | NATIVE",
+        "🇳🇵 | HTTP+TCP | 3908ms | UP | NATIVE",
+        "🇵🇭 | HTTP+TCP | 1593ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 1525ms | UP | NATIVE",
+        "🇬🇹 | HTTP+TCP | 4115ms | UP | NATIVE",
+        "🇧🇩 | HTTP+TCP | 4798ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 39ms | UP | NATIVE",
+      "server": "165.227.5.10",
+      "server_port": 8888,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 56ms | UP | NATIVE",
+      "server": "66.80.0.115",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 82ms | UP | NATIVE",
+      "server": "18.219.243.198",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 88ms | UP | NATIVE",
+      "server": "138.68.60.8",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇦 | HTTP+TCP | 129ms | UP | NATIVE",
+      "server": "159.203.61.169",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 161ms | UP | NATIVE",
+      "server": "209.97.150.167",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 188ms | UP | NATIVE",
+      "server": "52.188.28.218",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 224ms | UP | NATIVE",
+      "server": "70.186.128.126",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 227ms | UP | NATIVE",
+      "server": "35.225.22.61",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 349ms | UP | NATIVE",
+      "server": "198.199.86.11",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇬🇧 | HTTP+TCP | 397ms | UP | NATIVE",
+      "server": "134.209.29.120",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵 | HTTP+TCP | 435ms | UP | NATIVE",
+      "server": "35.72.90.28",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵 | HTTP+TCP | 435ms | UP | NATIVE-36dc8e",
+      "server": "176.34.40.50",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇪 | HTTP+TCP | 449ms | UP | NATIVE",
+      "server": "151.245.215.30",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵 | HTTP+TCP | 453ms | UP | NATIVE",
+      "server": "35.76.216.108",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇪 | HTTP+TCP | 459ms | UP | NATIVE",
+      "server": "151.245.215.19",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇪 | HTTP+TCP | 471ms | UP | NATIVE",
+      "server": "151.245.215.17",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪 | HTTP+TCP | 474ms | UP | NATIVE",
+      "server": "78.47.219.204",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺 | HTTP+TCP | 510ms | UP | NATIVE",
+      "server": "95.213.217.168",
+      "server_port": 52004,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 541ms | UP | NATIVE",
+      "server": "190.242.157.215",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨 | HTTP+TCP | 552ms | UP | NATIVE",
+      "server": "45.186.6.104",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 554ms | UP | NATIVE",
+      "server": "e27bd548-t9zts0-tbpkla-1otc2.se.oshuawei.com",
+      "server_port": 443,
+      "username": "0114339c-488d-11ee-8792-f23c9164ca5d",
+      "password": "0114339c-488d-11ee-8792-f23c9164ca5d",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 561ms | UP | NATIVE",
+      "server": "fe1cdc90-t9zts0-tcp4th-1c4g6.uk.oshuawei.com",
+      "server_port": 443,
+      "username": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "password": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪 | HTTP+TCP | 568ms | UP | NATIVE",
+      "server": "200.59.186.176",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪 | HTTP+TCP | 576ms | UP | NATIVE",
+      "server": "176.65.128.180",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷 | HTTP+TCP | 584ms | UP | NATIVE",
+      "server": "177.71.224.87",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇫🇷 | HTTP+TCP | 607ms | UP | NATIVE",
+      "server": "94.183.188.7",
+      "server_port": 6891,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 631ms | UP | NATIVE",
+      "server": "8cd14f05-ta1og0-tcp4th-1c4g6.uk.oshuawei.com",
+      "server_port": 443,
+      "username": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "password": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷 | HTTP+TCP | 649ms | UP | NATIVE",
+      "server": "211.230.49.122",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇸 | HTTP+TCP | 715ms | UP | NATIVE",
+      "server": "87.121.38.120",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬 | HTTP+TCP | 738ms | UP | NATIVE",
+      "server": "128.199.202.122",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺 | HTTP+TCP | 780ms | UP | NATIVE",
+      "server": "89.208.85.78",
+      "server_port": 443,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷 | HTTP+TCP | 829ms | UP | NATIVE",
+      "server": "218.152.206.92",
+      "server_port": 10080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬 | HTTP+TCP | 902ms | UP | NATIVE",
+      "server": "8.219.97.248",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺 | HTTP+TCP | 920ms | UP | NATIVE",
+      "server": "46.161.6.165",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳 | HTTP+TCP | 935ms | UP | NATIVE",
+      "server": "14.143.222.113",
+      "server_port": 26705,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 936ms | UP | NATIVE",
+      "server": "8cd14f05-ta1og0-tcp4th-1c4g6.uk.oshuawei.com",
+      "server_port": 443,
+      "username": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "password": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳 | HTTP+TCP | 938ms | UP | NATIVE",
+      "server": "115.114.77.133",
+      "server_port": 9090,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 955ms | UP | NATIVE",
+      "server": "59f205c9-t9zts0-thv9l4-1jbj0.hkt.cdnhuawei.com",
+      "server_port": 8443,
+      "username": "<password>",
+      "password": "<password>",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳 | HTTP+TCP | 962ms | UP | NATIVE",
+      "server": "139.59.1.14",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳 | HTTP+TCP | 972ms | UP | NATIVE",
+      "server": "34.14.143.185",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 987ms | UP | NATIVE",
+      "server": "b19bfd44-ta1og0-tcp4th-1c4g6.hkt.cdnhuawei.com",
+      "server_port": 8443,
+      "username": "<password>",
+      "password": "<password>",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇦 | HTTP+TCP | 994ms | UP | NATIVE",
+      "server": "72.10.164.178",
+      "server_port": 9969,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 996ms | UP | NATIVE",
+      "server": "ec5be159-ta1og0-tbpu76-1thmd.hkt.cdnhuawei.com",
+      "server_port": 8443,
+      "username": "<password>",
+      "password": "<password>",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5905ms | UP | NATIVE",
+      "server": "36.88.170.170",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳 | HTTP+TCP | 5269ms | UP | NATIVE",
+      "server": "14.170.154.193",
+      "server_port": 19132,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 4814ms | UP | NATIVE",
+      "server": "45.65.137.218",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 3516ms | UP | NATIVE",
+      "server": "103.156.74.186",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇳 | HTTP+TCP | 2204ms | UP | NATIVE",
+      "server": "120.92.212.16",
+      "server_port": 8890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷 | HTTP+TCP | 4921ms | UP | NATIVE",
+      "server": "189.89.154.130",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇪 | HTTP+TCP | 4866ms | UP | NATIVE",
+      "server": "45.171.167.1",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 2571ms | UP | NATIVE",
+      "server": "190.131.205.150",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5181ms | UP | NATIVE",
+      "server": "103.61.16.50",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 4242ms | UP | NATIVE",
+      "server": "191.102.107.234",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩 | HTTP+TCP | 1297ms | UP | NATIVE",
+      "server": "103.168.207.40",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 1788ms | UP | NATIVE",
+      "server": "4bd8d23d-ta1og0-tcp4th-1c4g6.id.oshuawei.com",
+      "server_port": 32232,
+      "username": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "password": "676c67c6-5e73-11ee-9a79-f23c9164ca5d",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 1152ms | UP | NATIVE",
+      "server": "150.107.140.238",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 2791ms | UP | NATIVE",
+      "server": "209.141.62.12",
+      "server_port": 5555,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 2105ms | UP | NATIVE",
+      "server": "103.133.27.42",
+      "server_port": 8090,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷 | HTTP+TCP | 5469ms | UP | NATIVE",
+      "server": "211.171.114.154",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬 | HTTP+TCP | 4180ms | UP | NATIVE",
+      "server": "8.222.175.80",
+      "server_port": 6128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺 | HTTP+TCP | 5758ms | UP | NATIVE",
+      "server": "89.237.34.190",
+      "server_port": 37647,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5214ms | UP | NATIVE",
+      "server": "103.147.118.142",
+      "server_port": 7777,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 1419ms | UP | NATIVE",
+      "server": "103.171.183.146",
+      "server_port": 7777,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳 | HTTP+TCP | 3480ms | UP | NATIVE",
+      "server": "103.112.212.57",
+      "server_port": 82,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪 | HTTP+TCP | 2943ms | UP | NATIVE",
+      "server": "209.38.222.145",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇬 | HTTP+TCP | 3740ms | UP | NATIVE",
+      "server": "31.58.158.212",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 5781ms | UP | NATIVE",
+      "server": "38.224.21.1",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽 | HTTP+TCP | 2518ms | UP | NATIVE",
+      "server": "148.224.58.230",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇷 | HTTP+TCP | 2459ms | UP | NATIVE",
+      "server": "200.174.198.32",
+      "server_port": 8888,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇳 | HTTP+TCP | 1512ms | UP | NATIVE",
+      "server": "103.169.53.145",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 2863ms | UP | NATIVE",
+      "server": "163.5.128.221",
+      "server_port": 14270,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇳 | HTTP+TCP | 2946ms | UP | NATIVE",
+      "server": "58.221.58.60",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩 | HTTP+TCP | 5459ms | UP | NATIVE",
+      "server": "103.231.239.137",
+      "server_port": 58080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨 | HTTP+TCP | 1876ms | UP | NATIVE",
+      "server": "177.234.194.30",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 4304ms | UP | NATIVE",
+      "server": "103.109.173.173",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪 | HTTP+TCP | 3702ms | UP | NATIVE",
+      "server": "200.59.191.234",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭 | HTTP+TCP | 1992ms | UP | NATIVE",
+      "server": "112.198.131.53",
+      "server_port": 8082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 3239ms | UP | NATIVE",
+      "server": "178.130.47.129",
+      "server_port": 1082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇭 | HTTP+TCP | 5751ms | UP | NATIVE",
+      "server": "125.27.24.41",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇷 | HTTP+TCP | 2232ms | UP | NATIVE",
+      "server": "59.6.25.118",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5546ms | UP | NATIVE",
+      "server": "223.25.100.42",
+      "server_port": 2222,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽 | HTTP+TCP | 3332ms | UP | NATIVE",
+      "server": "201.159.97.109",
+      "server_port": 8081,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩 | HTTP+TCP | 5143ms | UP | NATIVE",
+      "server": "119.148.9.238",
+      "server_port": 16345,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5185ms | UP | NATIVE",
+      "server": "103.125.17.98",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽 | HTTP+TCP | 4697ms | UP | NATIVE",
+      "server": "5.102.109.41",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨 | HTTP+TCP | 3342ms | UP | NATIVE",
+      "server": "177.234.217.236",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 1050ms | UP | NATIVE",
+      "server": "103.157.24.79",
+      "server_port": 7777,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪 | HTTP+TCP | 1055ms | UP | NATIVE",
+      "server": "85.234.69.102",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 3763ms | UP | NATIVE",
+      "server": "45.65.138.48",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇷 | HTTP+TCP | 5863ms | UP | NATIVE",
+      "server": "85.133.227.150",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭 | HTTP+TCP | 3895ms | UP | NATIVE",
+      "server": "49.146.238.76",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽 | HTTP+TCP | 2451ms | UP | NATIVE",
+      "server": "38.65.174.107",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇷 | HTTP+TCP | 3230ms | UP | NATIVE",
+      "server": "185.226.119.114",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇦🇷 | HTTP+TCP | 3288ms | UP | NATIVE",
+      "server": "167.249.52.218",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 1548ms | UP | NATIVE",
+      "server": "0b8b1f48-t9zts0-tiaexf-ufc0.sg.oshuawei.com",
+      "server_port": 443,
+      "username": "22308988-8548-11ea-a22e-f23c91cfbbc9",
+      "password": "22308988-8548-11ea-a22e-f23c91cfbbc9",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪 | HTTP+TCP | 3623ms | UP | NATIVE",
+      "server": "157.230.106.35",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 1618ms | UP | NATIVE",
+      "server": "177.93.49.202",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇭 | HTTP+TCP | 2416ms | UP | NATIVE",
+      "server": "110.49.34.126",
+      "server_port": 32650,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺 | HTTP+TCP | 5051ms | UP | NATIVE",
+      "server": "89.237.32.161",
+      "server_port": 37647,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇽 | HTTP+TCP | 4102ms | UP | NATIVE",
+      "server": "187.190.58.152",
+      "server_port": 8081,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇶 | HTTP+TCP | 5312ms | UP | NATIVE",
+      "server": "109.127.82.4",
+      "server_port": 8085,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 4416ms | UP | NATIVE",
+      "server": "202.154.18.11",
+      "server_port": 9091,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇳 | HTTP+TCP | 5453ms | UP | NATIVE",
+      "server": "120.92.211.211",
+      "server_port": 7890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵 | HTTP+TCP | 3648ms | UP | NATIVE",
+      "server": "140.227.61.201",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳 | HTTP+TCP | 4533ms | UP | NATIVE",
+      "server": "117.5.224.75",
+      "server_port": 10034,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇪 | HTTP+TCP | 3683ms | UP | NATIVE",
+      "server": "190.94.213.80",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨 | HTTP+TCP | 1585ms | UP | NATIVE",
+      "server": "190.12.150.244",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇬 | HTTP+TCP | 4354ms | UP | NATIVE",
+      "server": "85.196.179.34",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇨 | HTTP+TCP | 3139ms | UP | NATIVE",
+      "server": "156.238.253.23",
+      "server_port": 10000,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 4288ms | UP | NATIVE",
+      "server": "161.248.226.7",
+      "server_port": 80,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇰🇭 | HTTP+TCP | 3581ms | UP | NATIVE",
+      "server": "36.37.147.34",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 4300ms | UP | NATIVE",
+      "server": "202.58.77.235",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇬 | HTTP+TCP | 3156ms | UP | NATIVE",
+      "server": "154.236.177.103",
+      "server_port": 1977,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇿 | HTTP+TCP | 2120ms | UP | NATIVE",
+      "server": "195.158.8.123",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 5244ms | UP | NATIVE",
+      "server": "152.70.137.18",
+      "server_port": 8888,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇪 | HTTP+TCP | 4219ms | UP | NATIVE",
+      "server": "190.237.238.153",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇳🇱 | HTTP+TCP | 1681ms | UP | NATIVE",
+      "server": "185.94.165.252",
+      "server_port": 9002,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩 | HTTP+TCP | 5200ms | UP | NATIVE",
+      "server": "118.179.151.57",
+      "server_port": 5020,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇭🇰 | HTTP+TCP | 1233ms | UP | NATIVE",
+      "server": "101.47.73.135",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 5005ms | UP | NATIVE",
+      "server": "181.143.42.138",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇱 | HTTP+TCP | 3099ms | UP | NATIVE",
+      "server": "179.61.110.253",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇻🇳 | HTTP+TCP | 5752ms | UP | NATIVE",
+      "server": "42.116.10.196",
+      "server_port": 443,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇲🇲 | HTTP+TCP | 1409ms | UP | NATIVE",
+      "server": "185.133.213.86",
+      "server_port": 8074,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇰 | HTTP+TCP | 1214ms | UP | NATIVE",
+      "server": "103.157.200.126",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇯🇵 | HTTP+TCP | 4979ms | UP | NATIVE",
+      "server": "94.177.131.12",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5011ms | UP | NATIVE",
+      "server": "103.154.230.94",
+      "server_port": 8090,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 3650ms | UP | NATIVE",
+      "server": "186.96.109.210",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇬🇪 | HTTP+TCP | 4865ms | UP | NATIVE",
+      "server": "85.117.62.70",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇦 | HTTP+TCP | 5994ms | UP | NATIVE",
+      "server": "67.43.236.20",
+      "server_port": 22625,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇱 | HTTP+TCP | 5419ms | UP | NATIVE",
+      "server": "179.57.172.172",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨 | HTTP+TCP | 4086ms | UP | NATIVE",
+      "server": "181.78.194.249",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇺🇸 | HTTP+TCP | 2640ms | UP | NATIVE",
+      "server": "150.241.68.178",
+      "server_port": 1080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇪 | HTTP+TCP | 2952ms | UP | NATIVE",
+      "server": "144.31.116.48",
+      "server_port": 1234,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇸🇾 | HTTP+TCP | 3017ms | UP | NATIVE",
+      "server": "91.144.45.166",
+      "server_port": 8082,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5494ms | UP | NATIVE",
+      "server": "103.124.137.99",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 4436ms | UP | NATIVE",
+      "server": "103.171.83.49",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺 | HTTP+TCP | 4107ms | UP | NATIVE",
+      "server": "194.87.43.46",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇸 | HTTP+TCP | 3017ms | UP | NATIVE",
+      "server": "212.200.39.210",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇳 | HTTP+TCP | 2585ms | UP | NATIVE",
+      "server": "120.92.212.16",
+      "server_port": 7890,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇴 | HTTP+TCP | 1014ms | UP | NATIVE",
+      "server": "190.6.54.12",
+      "server_port": 6969,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🌐 | HTTP+H2+TLS | 1502ms | UP | NATIVE",
+      "server": "6af62621-ta1og0-tb6oza-1mmbp.my.oshuawei.com",
+      "server_port": 31233,
+      "username": "607d365e-7ea1-11ee-95e9-f23c913c8d2b",
+      "password": "607d365e-7ea1-11ee-95e9-f23c913c8d2b",
+      "tls": {
+        "enabled": true
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 3117ms | UP | NATIVE",
+      "server": "8.215.88.68",
+      "server_port": 7777,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇪 | HTTP+TCP | 2508ms | UP | NATIVE",
+      "server": "38.190.100.4",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨 | HTTP+TCP | 4255ms | UP | NATIVE",
+      "server": "45.70.236.194",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩 | HTTP+TCP | 3689ms | UP | NATIVE",
+      "server": "43.225.151.30",
+      "server_port": 20505,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5483ms | UP | NATIVE",
+      "server": "103.165.234.46",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇩🇴 | HTTP+TCP | 5205ms | UP | NATIVE",
+      "server": "38.156.236.101",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇹🇭 | HTTP+TCP | 1203ms | UP | NATIVE",
+      "server": "161.82.141.220",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 3886ms | UP | NATIVE",
+      "server": "202.51.196.230",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 5128ms | UP | NATIVE",
+      "server": "36.95.155.74",
+      "server_port": 3126,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇷🇺 | HTTP+TCP | 1155ms | UP | NATIVE",
+      "server": "81.177.166.169",
+      "server_port": 10809,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇨🇳 | HTTP+TCP | 1597ms | UP | NATIVE",
+      "server": "203.196.8.6",
+      "server_port": 3128,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇮🇩 | HTTP+TCP | 3819ms | UP | NATIVE",
+      "server": "36.93.249.242",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇪🇨 | HTTP+TCP | 3081ms | UP | NATIVE",
+      "server": "45.4.202.170",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇳🇵 | HTTP+TCP | 3908ms | UP | NATIVE",
+      "server": "110.34.8.110",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇵🇭 | HTTP+TCP | 1593ms | UP | NATIVE",
+      "server": "8.220.188.140",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩 | HTTP+TCP | 1525ms | UP | NATIVE",
+      "server": "103.175.245.204",
+      "server_port": 8080,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇬🇹 | HTTP+TCP | 4115ms | UP | NATIVE",
+      "server": "167.250.222.233",
+      "server_port": 999,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "http",
+      "tag": "🇧🇩 | HTTP+TCP | 4798ms | UP | NATIVE",
+      "server": "103.219.160.145",
+      "server_port": 6565,
+      "username": "",
+      "password": "",
+      "tls": {
+        "enabled": false
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}

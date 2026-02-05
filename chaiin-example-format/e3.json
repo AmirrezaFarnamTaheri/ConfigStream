@@ -1,0 +1,335 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "dns": {
+    "hosts": {
+      "geosite:category-ads-all": [
+        "127.0.0.1"
+      ],
+      "genuine-software.autodesk.com": [
+        "127.0.0.1"
+      ],
+      "genuine-software1.autodesk.com": [
+        "127.0.0.1"
+      ],
+      "genuine-software2.autodesk.com": [
+        "127.0.0.1"
+      ],
+      "activate.adobe.com": [
+        "127.0.0.1"
+      ],
+      "activate.wip3.adobe.com": [
+        "127.0.0.1"
+      ],
+      "activate.wip4.adobe.com": [
+        "127.0.0.1"
+      ],
+      "activate-sea.adobe.com": [
+        "127.0.0.1"
+      ],
+      "activate-sjc0.adobe.com": [
+        "127.0.0.1"
+      ],
+      "ereg.adobe.com": [
+        "127.0.0.1"
+      ],
+      "ereg.wip3.adobe.com": [
+        "127.0.0.1"
+      ],
+      "helpexamples.com": [
+        "127.0.0.1"
+      ],
+      "hlrcv.stage.adobe.com": [
+        "127.0.0.1"
+      ],
+      "license.adobe.com": [
+        "127.0.0.1"
+      ],
+      "licenses.adobe.com": [
+        "127.0.0.1"
+      ],
+      "lm.licenses.adobe.com": [
+        "127.0.0.1"
+      ],
+      "lmlicenses.wip4.adobe.com": [
+        "127.0.0.1"
+      ],
+      "lm-prd-da1.licenses.adobe.com": [
+        "127.0.0.1"
+      ],
+      "na1r.services.adobe.com": [
+        "127.0.0.1"
+      ],
+      "practivate.adobe.com": [
+        "127.0.0.1"
+      ],
+      "practivate-da1.adobe.com": [
+        "127.0.0.1"
+      ],
+      "prod.adobegenuine.com": [
+        "127.0.0.1"
+      ],
+      "uds.licenses.adobe.com": [
+        "127.0.0.1"
+      ],
+      "wip3.adobe.com": [
+        "127.0.0.1"
+      ],
+      "wwis-dubc1-vip60.adobe.com": [
+        "127.0.0.1"
+      ],
+      "easeus.com": [
+        "127.0.0.1"
+      ],
+      "activation.easeus.com": [
+        "127.0.0.1"
+      ],
+      "easeus.com.cn": [
+        "127.0.0.1"
+      ],
+      "track.easeus.com": [
+        "127.0.0.1"
+      ],
+      "track.easeus.com.cn": [
+        "127.0.0.1"
+      ],
+      "api.easeus.com": [
+        "127.0.0.1"
+      ],
+      "update.easeus.com": [
+        "127.0.0.1"
+      ],
+      "map2.hwcdn.net": [
+        "127.0.0.1"
+      ],
+      "easeusinfo.us-east-1.log.aliyuncs.com": [
+        "127.0.0.1"
+      ],
+      "aaa100cd68bbe03f3.awsglobalaccelerator.com": [
+        "127.0.0.1"
+      ],
+      "uompro.easeus.com": [
+        "127.0.0.1"
+      ],
+      "order.easeus.com": [
+        "127.0.0.1"
+      ],
+      "curl.haxx.se": [
+        "127.0.0.1"
+      ],
+      "buy.easeus.com": [
+        "127.0.0.1"
+      ],
+      "v2api-uoss.easeus.com": [
+        "127.0.0.1"
+      ],
+      "ic.adobe.io": [
+        "127.0.0.1"
+      ],
+      "1hzopx6nz7.adobe.io": [
+        "127.0.0.1"
+      ]
+    },
+    "servers": [
+      "1.1.1.1",
+      "9.9.9.10",
+      {
+        "address": "8.8.8.8",
+        "domains": [
+          "domain:ir",
+          "geosite:ir"
+        ],
+        "expectIPs": [
+          "geoip:ir"
+        ]
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "tag": "socks",
+      "port": 10808,
+      "listen": "127.0.0.1",
+      "protocol": "mixed",
+      "sniffing": {
+        "enabled": true,
+        "routeOnly": false
+      },
+      "settings": {
+        "auth": "noauth",
+        "udp": true,
+        "allowTransparent": false
+      }
+    },
+    {
+      "tag": "api",
+      "port": 10812,
+      "listen": "127.0.0.1",
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "proxy",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "172.67.65.207",
+            "port": 443,
+            "users": [
+              {
+                "id": "e5474c46-8c77-4f39-96ed-93f5ee5d3b98",
+                "email": "t@t.tt",
+                "security": "auto",
+                "encryption": "none"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "allowInsecure": false,
+          "serverName": "proxyworker.amirrezafarnamtaheri.workers.dev",
+          "fingerprint": "randomized"
+        },
+        "wsSettings": {
+          "path": "/?ed=2048",
+          "host": "proxyworker.amirrezafarnamtaheri.workers.dev",
+          "headers": {}
+        },
+        "sockopt": {
+          "dialerProxy": "chain-proxy1"
+        }
+      },
+      "mux": {
+        "enabled": false,
+        "concurrency": -1
+      }
+    },
+    {
+      "tag": "chain-proxy1",
+      "protocol": "shadowsocks",
+      "settings": {
+        "servers": [
+          {
+            "address": "79.127.227.53",
+            "method": "none",
+            "ota": false,
+            "password": "f8f7aCzcPKbsF8p3",
+            "port": 989,
+            "level": 1
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp"
+      },
+      "mux": {
+        "enabled": false,
+        "concurrency": -1
+      }
+    },
+    {
+      "tag": "direct",
+      "protocol": "freedom",
+      "settings": {
+        "domainStrategy": "UseIP",
+        "userLevel": 0
+      }
+    },
+    {
+      "tag": "block",
+      "protocol": "blackhole"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPOnDemand",
+    "rules": [
+      {
+        "type": "field",
+        "inboundTag": [
+          "api"
+        ],
+        "outboundTag": "api"
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "8.8.8.8"
+        ]
+      },
+      {
+        "type": "field",
+        "port": "443",
+        "network": "udp",
+        "outboundTag": "block"
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "protocol": [
+          "bittorrent"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "block",
+        "domain": [
+          "geosite:category-ads-all"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:private"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "geosite:private"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "domain": [
+          "geosite:ir"
+        ]
+      },
+      {
+        "type": "field",
+        "outboundTag": "direct",
+        "ip": [
+          "geoip:ir"
+        ]
+      },
+      {
+        "type": "field",
+        "port": "0-65535",
+        "outboundTag": "proxy"
+      }
+    ]
+  },
+  "metrics": {
+    "tag": "api"
+  },
+  "policy": {
+    "system": {
+      "statsOutboundUplink": true,
+      "statsOutboundDownlink": true
+    }
+  },
+  "stats": {}
+}

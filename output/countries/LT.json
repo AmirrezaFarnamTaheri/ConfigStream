@@ -1,0 +1,529 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "address": "8.8.8.8",
+        "detour": "DIRECT"
+      },
+      {
+        "tag": "local",
+        "address": "local",
+        "detour": "DIRECT"
+      }
+    ],
+    "rules": [
+      {
+        "outbound": "any",
+        "server": "google"
+      }
+    ]
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "mixed-in",
+      "listen": "0.0.0.0",
+      "listen_port": 2080,
+      "sniff": true
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "🚀 Select Proxy",
+      "outbounds": [
+        "⚡ Best Latency",
+        "DIRECT",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 294ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 296ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE-383191",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE-7a2c45",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE-39c42d",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE-60003b",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 299ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE-2fff21",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE-2c679f",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-efafa2",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-b95003",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-8a9470",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 302ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 303ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 304ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 306ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 306ms | UP | NATIVE-323de8",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 307ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 307ms | UP | NATIVE-47b443",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 311ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 311ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 312ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 336ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 378ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+AES-256-CFB | 417ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 442ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
+        "🇱🇹 | VLESS+TCP+REALITY | 617ms | UP | NATIVE",
+        "🇱🇹 | VLESS+TCP+REALITY | 687ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 766ms | UP | NATIVE",
+        "🇱🇹 | VLESS+TCP+REALITY | 804ms | UP | NATIVE | SEC:invalid_uuid_format",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1119ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1622ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1372ms | UP | NATIVE"
+      ],
+      "interrupt_exist_connections": true
+    },
+    {
+      "type": "urltest",
+      "tag": "⚡ Best Latency",
+      "outbounds": [
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 294ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 296ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE-383191",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE-7a2c45",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE-39c42d",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE-60003b",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 299ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE-2fff21",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE-2c679f",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-efafa2",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-b95003",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-8a9470",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 302ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 303ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 304ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 306ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 306ms | UP | NATIVE-323de8",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 307ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 307ms | UP | NATIVE-47b443",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 311ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 311ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 312ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 336ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 378ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+AES-256-CFB | 417ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 442ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
+        "🇱🇹 | VLESS+TCP+REALITY | 617ms | UP | NATIVE",
+        "🇱🇹 | VLESS+TCP+REALITY | 687ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 766ms | UP | NATIVE",
+        "🇱🇹 | VLESS+TCP+REALITY | 804ms | UP | NATIVE | SEC:invalid_uuid_format",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1119ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1622ms | UP | NATIVE",
+        "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1372ms | UP | NATIVE"
+      ],
+      "url": "http://www.gstatic.com/generate_204",
+      "interval": "10m",
+      "tolerance": 50
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 294ms | UP | NATIVE",
+      "server": "45.158.171.66",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 296ms | UP | NATIVE",
+      "server": "45.87.175.65",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE",
+      "server": "45.87.175.22",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE",
+      "server": "45.87.175.35",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE-383191",
+      "server": "45.87.175.69",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 297ms | UP | NATIVE-7a2c45",
+      "server": "45.87.175.28",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE",
+      "server": "45.87.175.58",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE-39c42d",
+      "server": "45.87.175.192",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "1RWwXhwfAB5gAEozU4G2Pg"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE",
+      "server": "45.158.171.70",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 298ms | UP | NATIVE-60003b",
+      "server": "45.87.175.92",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 299ms | UP | NATIVE",
+      "server": "45.87.175.200",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE",
+      "server": "45.87.175.167",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "QCXDxuDlTTMD7jtgHUjIoj"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE-2fff21",
+      "server": "45.87.175.193",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 300ms | UP | NATIVE-2c679f",
+      "server": "45.87.175.177",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE",
+      "server": "45.87.175.183",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-efafa2",
+      "server": "45.87.175.180",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "QCXDxuDlTTMD7jtgHUjIoj"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE",
+      "server": "45.87.175.10",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "oZIoA69Q8yhcQV8ka3Pa3A"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-b95003",
+      "server": "45.87.175.197",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "k1dBOmOB4oqi7Ump37a1bQ"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 301ms | UP | NATIVE-8a9470",
+      "server": "45.87.175.199",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "1RWwXhwfAB5gAEozU4G2Pg"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 302ms | UP | NATIVE",
+      "server": "45.87.175.175",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "QCXDxuDlTTMD7jtgHUjIoj"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 303ms | UP | NATIVE",
+      "server": "45.87.175.178",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "QCXDxuDlTTMD7jtgHUjIoj"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 304ms | UP | NATIVE",
+      "server": "45.87.175.166",
+      "server_port": 443,
+      "method": "chacha20-ietf-poly1305",
+      "password": "1RWwXhwfAB5gAEozU4G2Pg"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 306ms | UP | NATIVE",
+      "server": "45.87.175.181",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "1RWwXhwfAB5gAEozU4G2Pg"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 306ms | UP | NATIVE-323de8",
+      "server": "45.87.175.185",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 307ms | UP | NATIVE",
+      "server": "45.87.175.166",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "QCXDxuDlTTMD7jtgHUjIoj"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 307ms | UP | NATIVE-47b443",
+      "server": "45.87.175.170",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "QCXDxuDlTTMD7jtgHUjIoj"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 311ms | UP | NATIVE",
+      "server": "45.87.175.171",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+SS+CHACHA20-IETF-POLY1305 | 311ms | UP | NATIVE",
+      "server": "45.87.175.168",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "k1dBOmOB4oqi7Ump37a1bQ"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 312ms | UP | NATIVE",
+      "server": "45.87.175.174",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "k1dBOmOB4oqi7Ump37a1bQ"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 336ms | UP | NATIVE",
+      "server": "45.87.175.155",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "k1dBOmOB4oqi7Ump37a1bQ"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 378ms | UP | NATIVE",
+      "server": "45.87.175.154",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+AES-256-CFB | 417ms | UP | NATIVE",
+      "server": "195.238.126.84",
+      "server_port": 9039,
+      "method": "aes-256-cfb",
+      "password": "qYEN5HX4JKeVCdEC"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 442ms | UP | NATIVE",
+      "server": "185.237.185.89",
+      "server_port": 990,
+      "method": "chacha20-ietf-poly1305",
+      "password": "ARgvGZywA+gacgGV26Bvmu05+wZmRW/j+AdU+Z8Bt44="
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 471ms | UP | NATIVE",
+      "server": "45.87.175.164",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "1RWwXhwfAB5gAEozU4G2Pg"
+    },
+    {
+      "type": "vless",
+      "tag": "🇱🇹 | VLESS+TCP+REALITY | 617ms | UP | NATIVE",
+      "server": "2.59.162.100",
+      "server_port": 443,
+      "uuid": "1004c163-26ea-5662-b5b2-40df01176f8b",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "eH6HWGKJUtp4VmC9KxtdcyxtLI0O52vhAmZx1ybOtUs",
+          "short_id": "ffffffffff"
+        }
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "🇱🇹 | VLESS+TCP+REALITY | 687ms | UP | NATIVE",
+      "server": "195.66.25.21",
+      "server_port": 8443,
+      "uuid": "f1870ac5-ab5f-4255-965d-4a0476cb0b1a",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "sun1-90.userapi.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "m-foGonYn9goyv5U_ffQ-DORHxz4bQ88RIJoim_n228",
+          "short_id": ""
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 766ms | UP | NATIVE",
+      "server": "45.87.175.188",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "vless",
+      "tag": "🇱🇹 | VLESS+TCP+REALITY | 804ms | UP | NATIVE | SEC:invalid_uuid_format",
+      "server": "2.59.162.100",
+      "server_port": 443,
+      "uuid": "Bober_497332",
+      "flow": "xtls-rprx-vision",
+      "tls": {
+        "enabled": true,
+        "server_name": "apple.com",
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "eH6HWGKJUtp4VmC9KxtdcyxtLI0O52vhAmZx1ybOtUs",
+          "short_id": "ffffffffff"
+        }
+      }
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1119ms | UP | NATIVE",
+      "server": "45.87.175.187",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1622ms | UP | NATIVE",
+      "server": "45.87.175.165",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "QCXDxuDlTTMD7jtgHUjIoj"
+    },
+    {
+      "type": "shadowsocks",
+      "tag": "🇱🇹 | SHADOWSOCKS+TCP+CHACHA20-IETF-POLY1305 | 1372ms | UP | NATIVE",
+      "server": "45.87.175.190",
+      "server_port": 8080,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cvII85TrW6n0OGyfpHVS1u"
+    },
+    {
+      "type": "direct",
+      "tag": "DIRECT"
+    },
+    {
+      "type": "dns",
+      "tag": "dns-out"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "rules": [
+      {
+        "protocol": "dns",
+        "outbound": "dns-out"
+      },
+      {
+        "ip_is_private": true,
+        "outbound": "DIRECT"
+      }
+    ],
+    "auto_detect_interface": true
+  }
+}
