@@ -69,12 +69,10 @@ def test_generate_categorized_outputs(tmp_path, sample_proxies, warp_keys):
         outbounds = data["outbounds"]
         tags = [o.get("tag") for o in outbounds if "tag" in o]
 
-        # Updated to match e1.json format
-        assert "socks" in [i["tag"] for i in data["inbounds"]]
-
-        # Check for standardized tags
+        assert "mixed-in" in [i["tag"] for i in data["inbounds"]]
+        # Updated to match 'The Sniper' strategy used in split.py
         assert any("Proxy Select" in t for t in tags if t)
-        assert any("Best Latency" in t for t in tags if t) # "⚡ Best Latency"
+        assert any("Auto" in t for t in tags if t)
 
         # Check if washed proxies are included (via extra_outbounds logic)
         # Note: tags depend on washer generation logic (Secure/Optimal)
