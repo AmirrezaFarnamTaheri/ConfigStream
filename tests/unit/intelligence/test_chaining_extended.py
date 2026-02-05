@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from configstream.intelligence.chaining import (
     find_optimal_relay,
     generate_smart_chains,

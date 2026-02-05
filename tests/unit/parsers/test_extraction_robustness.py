@@ -1,5 +1,4 @@
 import json
-import pytest
 from configstream.parsers.shadowsocks import parse_ss
 from configstream.parsers.others import parse_wireguard
 from configstream.parsers.vmess import parse_vmess
@@ -7,7 +6,6 @@ from configstream.parsers.extraction import (
     extract_config_lines,
     is_plausible_proxy_config,
 )
-from configstream.models import Proxy
 
 
 def test_shadowsocks_short_method():

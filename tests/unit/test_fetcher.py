@@ -6,7 +6,6 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from configstream.fetcher import (
     fetch_from_source,
     fetch_multiple_sources,
-    MAX_RESPONSE_SIZE,
 )
 from configstream.fetcher_core.models import FetchResult
 from configstream.fetcher_core.utils import parse_retry_after as _parse_retry_after

@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
-import asyncio
 from unittest.mock import MagicMock, AsyncMock, patch
 from configstream.pipeline_core.models import PipelineResult
 
@@ -9,7 +8,6 @@ from configstream.pipeline_core.models import PipelineResult
 async def test_run_full_pipeline_dry_run(tmp_path):
     # Import here to avoid stale module reference if other tests reload modules
     from configstream.pipeline import run_full_pipeline
-    import configstream.pipeline
 
     # Patch all possible locations where source_producer might be referenced
     with (

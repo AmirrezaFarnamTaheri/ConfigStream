@@ -8,7 +8,6 @@ import re
 import tempfile
 import zipfile
 import ipaddress
-import hashlib
 from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
 from datetime import datetime, timezone
