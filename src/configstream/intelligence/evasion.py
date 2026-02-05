@@ -274,4 +274,3 @@ def preserve_sni_when_using_ip(
                     transport["host"] = [original_hostname]
 
     return outbound
-
