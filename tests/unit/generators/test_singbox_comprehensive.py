@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import json
-import pytest
 from unittest.mock import patch
 from configstream.models import Proxy
 from configstream.generators.singbox import (
@@ -39,9 +38,9 @@ def test_generate_singbox_config_basics():
         assert "outbounds" in config
         tags = [o.get("tag") for o in config["outbounds"]]
         assert "P1" in tags
-        assert "🚀 Select Proxy" in tags
+        assert "🌍 Proxy Select" in tags
         assert "⚡ Best Latency" in tags
-        assert "DIRECT" in tags
+        assert "direct" in tags
         assert "dns-out" in tags
 
 

@@ -173,4 +173,3 @@ def extract_config_from_html(html_path: Path) -> Optional[str]:
     except Exception as e:
         logger.error(f"Failed to extract config from HTML: {e}")
         return None
-

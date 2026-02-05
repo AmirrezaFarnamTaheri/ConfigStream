@@ -7,7 +7,6 @@ and other evasion techniques to bypass DPI and censorship.
 """
 
 import hashlib
-import random
 import logging
 from typing import Dict, Any, Optional, List
 from enum import Enum
@@ -275,4 +274,3 @@ def preserve_sni_when_using_ip(
                     transport["host"] = [original_hostname]
 
     return outbound
-

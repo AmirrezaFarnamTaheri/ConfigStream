@@ -10,7 +10,6 @@ from configstream.intelligence.evasion import (
     enrich_outbound_with_evasion,
     preserve_sni_when_using_ip,
     TLSFingerprint,
-    ALPNProtocol,
 )
 
 
@@ -203,4 +202,3 @@ class TestSNIPreservation:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
