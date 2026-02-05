@@ -73,6 +73,7 @@ def test_save_metadata_analytics_structure(tmp_path: Path):
 
     p_stats = PipelineStats()
     p_stats.fetched_lines = 100
+    p_stats.working = 5  # Set working count explicitly for test
     # p_stats.end_time is usually set by pipeline context
 
     output_dir = tmp_path / "output"

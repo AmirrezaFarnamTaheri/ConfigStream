@@ -1,4 +1,44 @@
 
+## [2.4.0] - 2026-02-05
+
+### BYOW (Bring Your Own Worker) - Platinum Tier
+
+**Decentralized Infrastructure Strategy**
+- **BYOW Feature**: Users can deploy their own Cloudflare Workers for unlimited, private, unblockable connections
+  - One-click deploy via Cloudflare Deploy Button
+  - Frontend injection logic to personalize Gold configs with user's Worker URL
+  - "Hydra Strategy" - thousands of unique worker domains are unblockable
+- **Worker Enhancements**: Updated `tools/worker.js` with Platinum version
+  - Enhanced masquerading (fake website mode for active probes)
+  - Dynamic routing support (IP:PORT via path)
+  - WebSocket tunneling with proper error handling
+- **Frontend Integration**:
+  - Added BYOW section to `frontend/index.html` with deploy button and URL input
+  - Created `frontend/assets/js/byow.js` for config injection logic
+  - Enhanced Gold Connection warning (V2RayNG incompatibility notice)
+- **Deployment Configuration**: Created `tools/wrangler.toml` for one-click Cloudflare deployment
+
+**Test Fixes**
+- Fixed `test_save_metadata_analytics_structure`: Set `stats.working` explicitly in test
+- Fixed `test_metadata_generation`: Set `stats.working` explicitly in test
+- Fixed `test_create_html_smuggled_config`: Updated regex to match `csrf-token` meta tag specifically
+- Fixed `output_logic.py`: Only use `stats.working` if non-zero (avoids overriding correct loop count)
+
+**Documentation Updates**
+- Updated `README.md`: Added BYOW to evasion features list
+- Updated `docs/CENSORSHIP_EVASION.md`: Added comprehensive BYOW section with "Hydra Strategy" explanation
+- Updated `docs/USER_GUIDE_EVASION.md`: Added BYOW usage instructions and benefits
+
+**Files Modified**
+- `tools/worker.js` - Platinum version with masquerading and dynamic routing
+- `tools/wrangler.toml` - Cloudflare deployment configuration (new)
+- `frontend/index.html` - Added BYOW section and enhanced Gold warning
+- `frontend/assets/js/byow.js` - Worker URL injection logic (new)
+- `src/configstream/output_logic.py` - Fixed stats.working handling
+- `tests/unit/test_analytics_output.py` - Fixed test assertions
+- `tests/unit/test_output.py` - Fixed test assertions
+- `tests/unit/test_html_smuggler.py` - Fixed regex pattern
+
 ## [2.3.0] - 2026-02-05
 
 ### Time-Series Analytics & Evasion Metrics

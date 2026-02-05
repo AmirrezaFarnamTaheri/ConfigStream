@@ -77,15 +77,35 @@ ConfigStream implements multiple layers of censorship evasion to help users bypa
   - Multiple streams per connection
 - **Protocols**: VMess, VLESS, Trojan, Shadowsocks
 
-### 5. Worker Masquerading
+### 5. Worker Masquerading & BYOW (Bring Your Own Worker)
 
-#### Fake Website Mode
+#### Worker Masquerading
 - **Purpose**: Make Cloudflare Worker look like harmless website
 - **Implementation**: 
   - Root path serves content from legitimate site (e.g., kernel.org)
   - Proxy tunnel only accessible via secret path (`/my-secret-tunnel`)
   - Active probes see normal website, not proxy
 - **File**: `tools/worker.js`
+
+#### BYOW (Bring Your Own Worker) - "Platinum" Tier ⭐
+- **Purpose**: Decentralized infrastructure strategy ("Hydra Strategy")
+- **Concept**: Users deploy their own Cloudflare Workers instead of relying on a single shared worker
+- **Benefits**:
+  - **No Request Limits**: Each user has their own 100k/day quota (not shared)
+  - **Private Connection**: User's own infrastructure, not shared with others
+  - **Unblockable**: Censors cannot block thousands of unique `*.workers.dev` domains
+  - **Zero Cost**: Uses Cloudflare's free tier
+  - **Scalability**: System scales to millions of users without infrastructure costs
+- **Implementation**:
+  - One-click deploy via Cloudflare Deploy Button (links to `tools/` directory)
+  - User pastes their Worker URL into frontend
+  - Frontend JavaScript injects Worker URL into Gold/Shielded configs
+  - Downloads personalized "Platinum" config with user's Worker
+- **Files**: 
+  - `tools/worker.js` - Worker code (Platinum version with masquerading)
+  - `tools/wrangler.toml` - Deployment configuration
+  - `frontend/assets/js/byow.js` - Frontend injection logic
+- **Usage**: See frontend "Deploy Your Own Private Bridge" section
 
 ### 6. HTML Smuggling
 

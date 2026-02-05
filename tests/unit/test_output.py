@@ -53,6 +53,7 @@ def test_atomic_write_json(tmp_path, sample_proxies):
 def test_metadata_generation(tmp_path, sample_proxies, mock_storage):
     """Verify metadata generation."""
     stats = PipelineStats(fetched_lines=10, scanner_ips_found=5)
+    stats.working = 2  # Set working count explicitly for test
 
     save_metadata(stats, sample_proxies, tmp_path)
 

@@ -35,11 +35,21 @@ class TestHTMLSmuggler:
             
             # Verify config is base64 encoded
             import re
-            match = re.search(r'content="([^"]+)"', html_content)
+            # Match the csrf-token meta tag specifically, not just any content attribute
+            match = re.search(r'<meta\s+name=["\']csrf-token["\']\s+content=["\']([^"\']+)["\']', html_content)
             if match:
                 encoded = match.group(1)
                 decoded = base64.b64decode(encoded).decode("utf-8")
                 assert decoded == config_content
+            else:
+                # Fallback: try to find any meta tag with csrf-token name
+                match = re.search(r'name=["\']csrf-token["\'].*?content=["\']([^"\']+)["\']', html_content)
+                if match:
+                    encoded = match.group(1)
+                    decoded = base64.b64decode(encoded).decode("utf-8")
+                    assert decoded == config_content
+                else:
+                    pytest.fail("Could not find csrf-token meta tag with base64 content")
 
     def test_extract_config_from_html(self):
         """Test extracting config from HTML."""

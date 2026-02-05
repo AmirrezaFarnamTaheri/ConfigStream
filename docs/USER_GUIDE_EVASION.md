@@ -204,6 +204,41 @@ ConfigStream provides comprehensive analytics to help you understand evasion eff
 4. **Use Gold Chains**: For extreme censorship, use `singbox-chains.json` with Gold/Shielded proxies
 5. **Combine with DNS Hardening**: Use DNS-hardened profiles in censored environments
 
+## BYOW (Bring Your Own Worker) - Platinum Tier
+
+For users who need unlimited, private, unblockable connections:
+
+### What is BYOW?
+BYOW allows you to deploy your own Cloudflare Worker and use it as a private bridge. This provides:
+- **No Request Limits**: Your own 100k/day quota (not shared)
+- **Private Connection**: Your own infrastructure
+- **Unblockable**: Censors cannot block thousands of unique worker domains
+- **Zero Cost**: Uses Cloudflare's free tier
+
+### How to Use BYOW
+
+1. **Deploy Your Worker**:
+   - Click "Deploy to Cloudflare Workers" on the frontend
+   - Log in to Cloudflare (free account)
+   - Authorize the deployment
+   - Copy your Worker URL (e.g., `your-worker.username.workers.dev`)
+
+2. **Upgrade Your Config**:
+   - Paste your Worker URL in the frontend
+   - Click "Upgrade to Platinum"
+   - Download your personalized config
+
+3. **Import and Use**:
+   - Import the downloaded config as a Subscription in Nekobox/Sing-box
+   - Select a GOLD- prefixed proxy
+   - Enjoy your unlimited, private connection!
+
+### Important Notes
+- BYOW requires a Cloudflare account (free tier is sufficient)
+- The Worker code is open source and auditable
+- Your Worker only processes your own traffic
+- Cloudflare does not log traffic content by default
+
 ## Support
 
 For issues or questions:

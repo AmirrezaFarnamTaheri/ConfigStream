@@ -53,6 +53,7 @@ ConfigStream includes advanced censorship evasion capabilities:
 - **DNS Hardening**: DoH/DoT/DoQ resolvers with prefer-IP strategy
 - **Shielding (Copper to Gold)**: Wraps blocked proxies in WARP tunnels
 - **Revival**: Resurrects failed proxies using WARP or Vwarp chains
+- **BYOW (Bring Your Own Worker)**: Users deploy their own Cloudflare Workers for unlimited, private, unblockable connections
 
 See `docs/CENSORSHIP_EVASION.md` for technical details and `docs/USER_GUIDE_EVASION.md` for user instructions.
 
