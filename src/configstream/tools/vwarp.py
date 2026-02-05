@@ -427,7 +427,7 @@ class VwarpTool:
 
         if used_ci_defaults:
             self._log_config("CI default", vwarp_config)
-        elif env_json or env_force_vwarp_config or env_dns or env_test_url or env_endpoint:
+        elif env_json or env_force_config or env_dns or env_test_url or env_endpoint:
             self._log_config("env-derived", vwarp_config)
 
         return self._write_temp_config(vwarp_config)
