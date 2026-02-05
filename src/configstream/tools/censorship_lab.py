@@ -204,4 +204,3 @@ async def run_censorship_test(
         return result
     finally:
         lab.reset()
-
