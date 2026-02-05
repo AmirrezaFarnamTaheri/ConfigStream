@@ -1,11 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
-import os
-from unittest.mock import MagicMock, patch
 from configstream.pipeline import run_full_pipeline
-from configstream.source_quality import SourceQualityTracker
 from configstream.anomaly import AnomalyDetector
-from configstream.config import AppSettings
 
 
 @pytest.mark.asyncio
