@@ -79,7 +79,8 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
             {
                 "server": "223.5.5.5",
                 "type": "udp",
-                "tag": "local_local"
+                "tag": "local_local",
+            "detour": "direct",
             },
             {
                 "server": "cloudflare-dns.com",
