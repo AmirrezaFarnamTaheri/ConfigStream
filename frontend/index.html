@@ -155,7 +155,7 @@
                             <h3 data-i18n="downloads.chosen.title" style="color: var(--brand-primary); margin: 0; font-size: 1.5rem; font-weight: 700;">Chosen Top 1000</h3>
                         </div>
                         <p class="subtitle-sm" data-i18n="downloads.chosen.desc" style="margin-bottom: 1.25rem; line-height: 1.6; color: var(--text-primary);">Our premium selection: top 50 proxies from each protocol, ranked by lowest latency. The best choice for most users!</p>
-                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt" style="box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); font-weight: 600;">
+                        <button class="btn btn-primary copy-btn" data-file="chosen/base64.txt" data-dns-file="chosen/base64-dns-safe.txt" style="box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.3); font-weight: 600;">
                             <i data-feather="copy"></i>
                             <span data-i18n="downloads.chosen.btn">Copy Chosen Subscription</span>
                         </button>
@@ -250,6 +250,18 @@
                         </button>
                         <div class="accordion-content">
                             <div>
+                                <div class="dns-profile-toggle" style="margin: 0 0 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; text-align: center;">
+                                    <div class="client-dropdown-wrapper" style="min-width: 260px;">
+                                        <label for="dns-profile-selector" class="sr-only" data-i18n="downloads.dns_profile.label">DNS profile</label>
+                                        <select id="dns-profile-selector" class="client-select" aria-label="DNS profile">
+                                            <option value="standard" data-i18n="downloads.dns_profile.standard">Standard (default)</option>
+                                            <option value="dns-safe" data-i18n="downloads.dns_profile.safe">DNS-safe (IP-only)</option>
+                                            <option value="dns-hardened" data-i18n="downloads.dns_profile.hardened">DNS-hardened (DoH/DoT/DoQ + prefer IP)</option>
+                                        </select>
+                                        <i data-feather="chevron-down" class="dropdown-arrow"></i>
+                                    </div>
+                                    <p class="subtitle" style="font-size: 0.9rem; max-width: 720px;" data-i18n="downloads.dns_profile.desc">Pick the DNS profile for downloads. DNS-safe uses IP-only endpoints, DNS-hardened keeps hostnames but prefers IP when available and embeds encrypted resolvers.</p>
+                                </div>
                                 <div class="downloads-grid">
                                     <div class="download-card" style="--delay: 0.6s;">
                                         <div class="download-icon"><i data-feather="award"></i></div>
@@ -257,7 +269,7 @@
                                             <h3 class="download-title" data-i18n="downloads.universal">Universal Subscription</h3>
                                             <p class="download-desc" data-i18n="downloads.universal.desc">Base64 format compatible with V2Ray, Xray, and most clients. Auto-updating.</p>
                                         </div>
-                                        <button class="btn btn-primary copy-btn" data-file="base64.txt">
+                                        <button class="btn btn-primary copy-btn" data-file="base64.txt" data-dns-file="base64-dns-safe.txt">
                                             <i data-feather="copy"></i>
                                             <span data-i18n="table.copy">Copy Link</span>
                                         </button>
@@ -268,13 +280,13 @@
                                             <h3 class="download-title" data-i18n="downloads.singbox">Sing-box Config</h3>
                                             <p class="download-desc" data-i18n="downloads.singbox.desc">Optimized JSON configuration.</p>
                                             <div style="margin-top: 10px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;">
-                                                <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox.json">
-                                                    <i data-feather="target"></i> <span data-i18n="downloads.sniper">Sniper</span>
-                                                </button>
-                                                <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox-vpn.json">
-                                                    <i data-feather="shield"></i> <span data-i18n="downloads.tank">Tank</span>
-                                                </button>
-                                            </div>
+                                        <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox.json" data-dns-file="singbox-dns-safe.json" data-dns-hardened-file="singbox-dns-hardened.json">
+                                            <i data-feather="target"></i> <span data-i18n="downloads.sniper">Sniper</span>
+                                        </button>
+                                        <button class="btn btn-sm btn-secondary copy-btn" data-file="singbox-vpn.json" data-dns-file="singbox-vpn-dns-safe.json" data-dns-hardened-file="singbox-vpn-dns-hardened.json">
+                                            <i data-feather="shield"></i> <span data-i18n="downloads.tank">Tank</span>
+                                        </button>
+                                    </div>
                                         </div>
                                     </div>
                                     <div class="download-card" style="--delay: 0.8s;">
@@ -283,7 +295,7 @@
                                             <h3 class="download-title" data-i18n="downloads.clash">Clash Config</h3>
                                             <p class="download-desc" data-i18n="downloads.clash.desc">A ready-to-use YAML file, perfect for Clash users.</p>
                                         </div>
-                                        <a href="clash.yaml" class="btn btn-primary" download="clash.yaml">
+                                        <a href="clash.yaml" class="btn btn-primary" download="clash.yaml" data-file="clash.yaml" data-dns-file="clash-dns-safe.yaml" data-dns-hardened-file="clash-dns-hardened.yaml">
                                             <i data-feather="download-cloud"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -302,7 +314,7 @@
                                                 </select>
                                                 <i data-feather="chevron-down" class="dropdown-arrow"></i>
                                             </div>
-                                            <p class="download-desc" id="client-desc" style="margin-top: 1rem;">Configuration format optimized for Shadowrocket.</p>
+                                            <p class="download-desc" id="client-desc" style="margin-top: 1rem;" data-i18n="downloads.client.shadowrocket.desc">Configuration format optimized for Shadowrocket on iOS.</p>
                                         </div>
                                         <button id="dynamic-copy-btn" class="btn btn-primary copy-btn" data-file="shadowrocket.txt">
                                             <i data-feather="copy"></i>
@@ -316,7 +328,7 @@
                                             <h3 class="download-title" data-i18n="downloads.sideproducts">Native Configs Pack</h3>
                                             <p class="download-desc" data-i18n="downloads.sideproducts.desc">OpenVPN, WireGuard, and plain URIs for direct client import.</p>
                                         </div>
-                                        <a href="side_products.zip" class="btn btn-primary" download="side_products.zip" id="side-products-download">
+                                        <a href="side_products.zip" class="btn btn-primary" download="side_products.zip" id="side-products-download" data-file="side_products.zip" data-dns-file="side_products-dns-safe.zip">
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -327,7 +339,7 @@
                                             <h3 class="download-title" data-i18n="downloads.chains">Smart Chains (Sing-box)</h3>
                                             <p class="download-desc" data-i18n="downloads.chains.desc">Ready-to-use chain outbounds including revived and smart chains.</p>
                                         </div>
-                                        <a href="singbox-chains.json" class="btn btn-primary" download="singbox-chains.json">
+                                        <a href="singbox-chains.json" class="btn btn-primary" download="singbox-chains.json" data-file="singbox-chains.json" data-dns-file="singbox-chains-dns-safe.json">
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -338,7 +350,7 @@
                                             <h3 class="download-title" data-i18n="downloads.proxiesjson">Proxies Dataset (JSON)</h3>
                                             <p class="download-desc" data-i18n="downloads.proxiesjson.desc">Full structured dataset for developers and analytics.</p>
                                         </div>
-                                        <a href="proxies.json" class="btn btn-primary" download="proxies.json">
+                                        <a href="proxies.json" class="btn btn-primary" download="proxies.json" data-file="proxies.json" data-dns-file="proxies-dns-safe.json">
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -349,7 +361,7 @@
                                             <h3 class="download-title" data-i18n="downloads.revived">Revived Proxies (JSON)</h3>
                                             <p class="download-desc" data-i18n="downloads.revived.desc">Revived-only dataset for chaining and diagnostics.</p>
                                         </div>
-                                        <a href="revived.json" class="btn btn-primary" download="revived.json">
+                                        <a href="revived.json" class="btn btn-primary" download="revived.json" data-file="revived.json" data-dns-file="revived-dns-safe.json">
                                             <i data-feather="download"></i>
                                             <span data-i18n="downloads.download">Download</span>
                                         </a>
@@ -361,7 +373,7 @@
                                              <h3 class="download-title" data-i18n="downloads.raw">Raw Configs</h3>
                                              <p class="download-desc" data-i18n="downloads.raw.desc">Plain text list of all proxy URIs.</p>
                                          </div>
-                                         <button class="btn btn-primary copy-btn" data-file="proxies.txt">
+                                         <button class="btn btn-primary copy-btn" data-file="proxies.txt" data-dns-file="proxies-dns-safe.txt">
                                              <i data-feather="copy"></i>
                                              <span data-i18n="table.copy">Copy Link</span>
                                          </button>

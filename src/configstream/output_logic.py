@@ -7,7 +7,8 @@ import os
 import re
 import tempfile
 import zipfile
-from typing import List, Dict, Optional, Any
+import ipaddress
+from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
 from datetime import datetime, timezone
 from importlib.metadata import version
@@ -19,13 +20,14 @@ from .generators import (
     generate_base64_subscription,
     generate_split_outputs,
 )
-from .adapters import get_adapter
+from .adapters import get_adapter, ShadowrocketAdapter
 from .generators.plaintext import generate_plaintext_subscription
 from .intelligence.chaining import generate_smart_chains
 from .intelligence.washer.core import ProxyWasher
 from .utils import AtomicFileWriter
 from .config import AppSettings
 from .constants import CHOSEN_TOP_PER_PROTOCOL, CHOSEN_TOTAL_TARGET
+from .dns_profiles import build_singbox_dns_profile, build_clash_dns_profile
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +37,276 @@ def _safe_filename(value: str, fallback: str) -> str:
         return fallback
     clean = re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._-")
     return clean or fallback
+
+
+def _add_suffix(filename: str, suffix: str) -> str:
+    if not suffix:
+        return filename
+    base, ext = os.path.splitext(filename)
+    return f"{base}{suffix}{ext}"
+
+
+def _normalize_host(value: str) -> str:
+    return value.strip().lower().rstrip(".")
+
+
+def _is_ip_literal(value: str) -> bool:
+    try:
+        ipaddress.ip_address(value)
+        return True
+    except ValueError:
+        return False
+
+
+def _is_global_ip(value: str) -> bool:
+    try:
+        return bool(ipaddress.ip_address(value).is_global)
+    except ValueError:
+        return False
+
+
+def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> str:
+    if not config or not original_host or not ip_value:
+        return config
+    out_lines: List[str] = []
+    for line in config.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or stripped.startswith(";"):
+            out_lines.append(line)
+            continue
+        if stripped.lower().startswith("remote "):
+            parts = stripped.split()
+            if len(parts) >= 2 and _normalize_host(parts[1]) == _normalize_host(
+                original_host
+            ):
+                parts[1] = ip_value
+                line = " ".join(parts)
+        out_lines.append(line)
+    return "\n".join(out_lines) + ("\n" if config.endswith("\n") else "")
+
+
+def _build_dns_safe_proxies(
+    proxies: List[Proxy],
+) -> Tuple[List[Proxy], Dict[str, str]]:
+    safe: List[Proxy] = []
+    host_map: Dict[str, str] = {}
+    adapter = ShadowrocketAdapter()
+
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr:
+            continue
+
+        # If already IP, keep as-is (only global/public addresses).
+        if _is_ip_literal(addr):
+            if _is_global_ip(addr):
+                safe.append(proxy)
+                host_map[_normalize_host(addr)] = addr
+            continue
+
+        resolved = (proxy.resolved_ip or "").strip()
+        if not resolved or not _is_ip_literal(resolved) or not _is_global_ip(resolved):
+            continue
+
+        host_map[_normalize_host(addr)] = resolved
+
+        clone = proxy.model_copy(deep=True)
+        clone.address = resolved
+        clone.resolved_ip = resolved
+
+        details = dict(clone.details or {})
+        details.setdefault("_origin_id", proxy.id)
+        details.setdefault("original_host", addr)
+        if not details.get("sni"):
+            details["sni"] = addr
+        if (
+            not details.get("host")
+            and not details.get("http_host")
+            and not details.get("ws_host")
+        ):
+            details["host"] = addr
+        if details.get("server_name") is None:
+            details["server_name"] = addr
+        clone.details = details
+
+        if isinstance(clone.config, str) and "://" in clone.config:
+            rebuilt = adapter._reconstruct_uri(clone)
+            clone.config = rebuilt or ""
+
+        safe.append(clone)
+
+    return safe, host_map
+
+
+def _build_dns_hardened_proxies(
+    proxies: List[Proxy],
+) -> Tuple[List[Proxy], Dict[str, str]]:
+    """
+    DNS-hardened proxies prefer IPs when available but do not drop
+    entries that could not be resolved.
+    """
+    hardened: List[Proxy] = []
+    host_map: Dict[str, str] = {}
+    adapter = ShadowrocketAdapter()
+
+    for proxy in proxies:
+        addr = (proxy.address or "").strip()
+        if not addr:
+            continue
+
+        if _is_ip_literal(addr):
+            hardened.append(proxy)
+            continue
+
+        resolved = (proxy.resolved_ip or "").strip()
+        if resolved and _is_ip_literal(resolved) and _is_global_ip(resolved):
+            host_map[_normalize_host(addr)] = resolved
+
+            clone = proxy.model_copy(deep=True)
+            clone.address = resolved
+            clone.resolved_ip = resolved
+
+            details = dict(clone.details or {})
+            details.setdefault("_origin_id", proxy.id)
+            details.setdefault("original_host", addr)
+            if not details.get("sni"):
+                details["sni"] = addr
+            if (
+                not details.get("host")
+                and not details.get("http_host")
+                and not details.get("ws_host")
+            ):
+                details["host"] = addr
+            if details.get("server_name") is None:
+                details["server_name"] = addr
+            clone.details = details
+
+            if isinstance(clone.config, str) and "://" in clone.config:
+                rebuilt = adapter._reconstruct_uri(clone)
+                clone.config = rebuilt or ""
+
+            hardened.append(clone)
+        else:
+            hardened.append(proxy)
+
+    return hardened, host_map
+
+
+def _rewrite_outbound_for_dns_safe(
+    outbound: Dict[str, Any], host_map: Dict[str, str]
+) -> Optional[Dict[str, Any]]:
+    server = outbound.get("server")
+    if isinstance(server, str) and server:
+        if _is_ip_literal(server):
+            if not _is_global_ip(server):
+                return None
+            return outbound
+        mapped = host_map.get(_normalize_host(server))
+        if not mapped:
+            return None
+        outbound["server"] = mapped
+        tls = outbound.get("tls")
+        if isinstance(tls, dict) and not tls.get("server_name"):
+            tls = dict(tls)
+            tls["server_name"] = server
+            outbound["tls"] = tls
+        if not outbound.get("sni"):
+            outbound["sni"] = server
+    return outbound
+
+
+def _rewrite_outbound_for_dns_hardened(
+    outbound: Dict[str, Any], host_map: Dict[str, str]
+) -> Dict[str, Any]:
+    server = outbound.get("server")
+    if isinstance(server, str) and server:
+        if _is_ip_literal(server):
+            return outbound
+        mapped = host_map.get(_normalize_host(server))
+        if mapped:
+            outbound["server"] = mapped
+            tls = outbound.get("tls")
+            if isinstance(tls, dict) and not tls.get("server_name"):
+                tls = dict(tls)
+                tls["server_name"] = server
+                outbound["tls"] = tls
+            if not outbound.get("sni"):
+                outbound["sni"] = server
+    return outbound
+
+
+def _filter_outbounds_for_dns_safe(
+    outbounds: List[Dict[str, Any]], host_map: Dict[str, str]
+) -> List[Dict[str, Any]]:
+    cleaned: List[Dict[str, Any]] = []
+    for outbound in outbounds:
+        if not isinstance(outbound, dict):
+            continue
+        candidate = copy.deepcopy(outbound)
+        if "server" in candidate:
+            candidate = _rewrite_outbound_for_dns_safe(candidate, host_map)
+            if candidate is None:
+                continue
+        cleaned.append(candidate)
+
+    changed = True
+    while changed:
+        changed = False
+        tags = {o.get("tag") for o in cleaned if o.get("tag")}
+        new_cleaned: List[Dict[str, Any]] = []
+        for outbound in cleaned:
+            detour = outbound.get("detour")
+            if detour and detour not in tags:
+                changed = True
+                continue
+            if isinstance(outbound.get("outbounds"), list):
+                filtered = [t for t in outbound["outbounds"] if t in tags]
+                if not filtered:
+                    changed = True
+                    continue
+                if filtered != outbound["outbounds"]:
+                    outbound = dict(outbound)
+                    outbound["outbounds"] = filtered
+            new_cleaned.append(outbound)
+        cleaned = new_cleaned
+
+    return cleaned
+
+
+def _filter_outbounds_for_dns_hardened(
+    outbounds: List[Dict[str, Any]], host_map: Dict[str, str]
+) -> List[Dict[str, Any]]:
+    cleaned: List[Dict[str, Any]] = []
+    for outbound in outbounds:
+        if not isinstance(outbound, dict):
+            continue
+        candidate = copy.deepcopy(outbound)
+        if "server" in candidate:
+            candidate = _rewrite_outbound_for_dns_hardened(candidate, host_map)
+        cleaned.append(candidate)
+
+    changed = True
+    while changed:
+        changed = False
+        tags = {o.get("tag") for o in cleaned if o.get("tag")}
+        new_cleaned: List[Dict[str, Any]] = []
+        for outbound in cleaned:
+            detour = outbound.get("detour")
+            if detour and detour not in tags:
+                changed = True
+                continue
+            if isinstance(outbound.get("outbounds"), list):
+                filtered = [t for t in outbound["outbounds"] if t in tags]
+                if not filtered:
+                    changed = True
+                    continue
+                if filtered != outbound["outbounds"]:
+                    outbound = dict(outbound)
+                    outbound["outbounds"] = filtered
+            new_cleaned.append(outbound)
+        cleaned = new_cleaned
+
+    return cleaned
 
 
 def _build_wireguard_config(proxy: Proxy) -> Optional[str]:
@@ -331,6 +603,172 @@ def generate_categorized_outputs(
         chains_alias_path = output_dir / "chains.json"
         AtomicFileWriter.write_text(chains_alias_path, chains_config_content)
         generated_files["chains"] = chains_alias_path
+
+    # 6. DNS-safe outputs (IP-only / pre-resolved)
+    dns_safe_proxies, host_map = _build_dns_safe_proxies(proxies)
+    if dns_safe_proxies:
+        dns_safe_washed = (
+            _filter_outbounds_for_dns_safe(washed_outbounds, host_map)
+            if washed_outbounds
+            else None
+        )
+        dns_safe_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
+        if smart_chains:
+            for group, chains in smart_chains.items():
+                filtered_chains: List[List[Dict[str, Any]]] = []
+                for chain in chains:
+                    if not isinstance(chain, list):
+                        continue
+                    filtered = _filter_outbounds_for_dns_safe(chain, host_map)
+                    if filtered:
+                        filtered_chains.append(filtered)
+                if filtered_chains:
+                    dns_safe_smart_chains[group] = filtered_chains
+
+        dns_split_files = generate_split_outputs(
+            dns_safe_proxies,
+            output_dir,
+            washed_outbounds=dns_safe_washed,
+            washed_ids=washed_ids,
+            smart_chains=dns_safe_smart_chains,
+            name_suffix="dns-safe",
+            key_suffix="dns_safe",
+        )
+        generated_files.update(dns_split_files)
+
+        dns_chain_outbounds: List[Dict[str, Any]] = []
+        if chain_outbounds:
+            dns_chain_outbounds = _filter_outbounds_for_dns_safe(
+                chain_outbounds, host_map
+            )
+        if dns_chain_outbounds:
+            dns_chains_content = generate_singbox_config(
+                [], extra_outbounds=dns_chain_outbounds
+            )
+            dns_chains_path = output_dir / "singbox-chains-dns-safe.json"
+            AtomicFileWriter.write_text(dns_chains_path, dns_chains_content)
+            generated_files["singbox_chains_dns_safe"] = dns_chains_path
+
+            dns_chains_alias = output_dir / "chains-dns-safe.json"
+            AtomicFileWriter.write_text(dns_chains_alias, dns_chains_content)
+            generated_files["chains_dns_safe"] = dns_chains_alias
+
+        dns_safe_base64 = generate_base64_subscription(dns_safe_proxies)
+        dns_base64_path = output_dir / "base64-dns-safe.txt"
+        AtomicFileWriter.write_text(dns_base64_path, dns_safe_base64)
+        generated_files["base64_dns_safe"] = dns_base64_path
+
+        dns_raw_content = generate_plaintext_subscription(dns_safe_proxies)
+        dns_proxies_txt_path = output_dir / "proxies-dns-safe.txt"
+        AtomicFileWriter.write_text(dns_proxies_txt_path, dns_raw_content)
+        generated_files["proxies_txt_dns_safe"] = dns_proxies_txt_path
+
+        dns_chosen = _select_chosen_proxies(dns_safe_proxies)
+        if dns_chosen:
+            chosen_dir = output_dir / "chosen"
+            chosen_dir.mkdir(exist_ok=True)
+            chosen_dns_base64 = generate_base64_subscription(dns_chosen)
+            chosen_dns_path = chosen_dir / "base64-dns-safe.txt"
+            AtomicFileWriter.write_text(chosen_dns_path, chosen_dns_base64)
+            generated_files["chosen_base64_dns_safe"] = chosen_dns_path
+
+        # Adapter-specific outputs (DNS-safe)
+        for key, (adapter_name, filename) in adapter_specs.items():
+            try:
+                adapter = get_adapter(adapter_name)
+                if adapter_name in ("surge", "loon"):
+                    content = adapter.export(dns_safe_proxies, washed_outbounds=dns_safe_washed)
+                else:
+                    content = adapter.export(dns_safe_proxies)
+                dns_filename = _add_suffix(filename, "-dns-safe")
+                out_path = output_dir / dns_filename
+                AtomicFileWriter.write_text(out_path, content)
+                generated_files[f"{key}_dns_safe"] = out_path
+            except Exception as exc:
+                logger.warning(
+                    "Failed to generate dns-safe %s output: %s",
+                    adapter_name,
+                    str(exc),
+                )
+
+        # Side products pack (DNS-safe)
+        side_dns_path = output_dir / "side_products-dns-safe.zip"
+        openvpn_candidates_dns = [
+            p
+            for p in dns_safe_proxies
+            if (p.protocol or "").lower() == "openvpn" and p.config
+        ]
+        wireguard_candidates_dns = [
+            p for p in dns_safe_proxies if (p.protocol or "").lower() in ("wireguard", "wg")
+        ]
+        if dns_raw_content or openvpn_candidates_dns or wireguard_candidates_dns:
+            tmp_path = None
+            try:
+                with tempfile.NamedTemporaryFile(
+                    dir=output_dir, prefix=".side_products_dns.", suffix=".tmp", delete=False
+                ) as tmp:
+                    tmp_path = tmp.name
+                with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                    zf.writestr("proxies.txt", dns_raw_content)
+                    for proxy in openvpn_candidates_dns:
+                        original_host = proxy.details.get("original_host") or proxy.address
+                        rewritten = _rewrite_openvpn_remote(proxy.config, original_host, proxy.address)
+                        name = _safe_filename(
+                            proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
+                        )
+                        zf.writestr(f"openvpn/{name}.ovpn", rewritten)
+                    for proxy in wireguard_candidates_dns:
+                        wg_config = _build_wireguard_config(proxy)
+                        if not wg_config:
+                            continue
+                        name = _safe_filename(
+                            proxy.remarks or proxy.id, f"wireguard-{proxy.id[:8]}"
+                        )
+                        zf.writestr(f"wireguard/{name}.conf", wg_config)
+                os.replace(tmp_path, side_dns_path)
+                generated_files["side_products_dns_safe"] = side_dns_path
+            except Exception as exc:
+                logger.warning("Failed to generate side_products-dns-safe.zip: %s", str(exc))
+                if tmp_path and os.path.exists(tmp_path):
+                    try:
+                        os.unlink(tmp_path)
+                    except OSError:
+                        pass
+
+    # 7. DNS-hardened outputs (prefer IP when available + DoH/DoT/DoQ)
+    if AppSettings().DNS_HARDENED_OUTPUTS:
+        dns_hardened_proxies, hardened_map = _build_dns_hardened_proxies(proxies)
+        if dns_hardened_proxies:
+            hardened_washed = (
+                _filter_outbounds_for_dns_hardened(washed_outbounds, hardened_map)
+                if washed_outbounds
+                else None
+            )
+            hardened_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
+            if smart_chains:
+                for group, chains in smart_chains.items():
+                    filtered_chains: List[List[Dict[str, Any]]] = []
+                    for chain in chains:
+                        if not isinstance(chain, list):
+                            continue
+                        filtered = _filter_outbounds_for_dns_hardened(chain, hardened_map)
+                        if filtered:
+                            filtered_chains.append(filtered)
+                    if filtered_chains:
+                        hardened_smart_chains[group] = filtered_chains
+
+            hardened_split_files = generate_split_outputs(
+                dns_hardened_proxies,
+                output_dir,
+                washed_outbounds=hardened_washed,
+                washed_ids=washed_ids,
+                smart_chains=hardened_smart_chains,
+                name_suffix="dns-hardened",
+                key_suffix="dns_hardened",
+                singbox_dns_profile=build_singbox_dns_profile(),
+                clash_dns_profile=build_clash_dns_profile(),
+            )
+            generated_files.update(hardened_split_files)
 
     logger.info(f"Generated {len(generated_files)} output files.")
     return generated_files

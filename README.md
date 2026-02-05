@@ -92,6 +92,8 @@ Derived outputs:
 Output notes:
 - Base64 subscriptions contain raw proxy URIs for maximum client compatibility.
 - JSON datasets expose metadata and stats used by the frontend and external tooling.
+- DNS-safe variants are available for all major outputs with the `-dns-safe` suffix (IP-only / pre-resolved endpoints).
+- DNS-hardened variants are available for Sing-box and Clash with the `-dns-hardened` suffix. They embed DoH/DoT/DoQ resolvers and prefer IP when available while keeping hostnames intact.
 
 ## Compatibility Matrix
 Use the output that matches your client or use case. This matrix lists every output and its compatible client family.
@@ -108,6 +110,15 @@ Use the output that matches your client or use case. This matrix lists every out
 | `proxies.json` | Developers and tooling | Full dataset with metadata |
 | `revived.json` | Developers and tooling | Revived-only subset |
 
+DNS-safe variants:
+- All primary outputs above have `-dns-safe` equivalents, for example `base64-dns-safe.txt`, `singbox-dns-safe.json`, `clash-dns-safe.yaml`, `shadowrocket-dns-safe.txt`, `proxies-dns-safe.json`, and `side_products-dns-safe.zip`.
+- These files use IP-literal or pre-resolved endpoints and preserve SNI/Host where possible. They are useful when DNS is blocked or poisoned.
+- DNS-safe outputs may be smaller if resolution fails or if a protocol cannot be safely rewritten.
+
+DNS-hardened variants:
+- `singbox-dns-hardened.json`, `singbox-vpn-dns-hardened.json`, and `clash-dns-hardened.yaml` embed DoH/DoT/DoQ resolvers.
+- They keep hostnames but prefer IPs when available, which improves survivability under DNS poisoning without dropping unresolved entries.
+
 Production subscription links:
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-vpn.json
@@ -118,6 +129,14 @@ Production subscription links:
 - https://amirrezafarnamtaheri.github.io/ConfigStream/revived.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/proxies.json
 - https://amirrezafarnamtaheri.github.io/ConfigStream/side_products.zip
+- https://amirrezafarnamtaheri.github.io/ConfigStream/base64-dns-safe.txt
+- https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-dns-safe.json
+- https://amirrezafarnamtaheri.github.io/ConfigStream/clash-dns-safe.yaml
+- https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-dns-hardened.json
+- https://amirrezafarnamtaheri.github.io/ConfigStream/singbox-vpn-dns-hardened.json
+- https://amirrezafarnamtaheri.github.io/ConfigStream/clash-dns-hardened.yaml
+- https://amirrezafarnamtaheri.github.io/ConfigStream/proxies-dns-safe.json
+- https://amirrezafarnamtaheri.github.io/ConfigStream/side_products-dns-safe.zip
 
 Self-hosting note: replace the base URL with your own GitHub Pages or server domain.
 
@@ -200,6 +219,11 @@ Optional (production hardening):
 - ADMIN_API_KEY=your-secret-key
 - ALLOWED_ORIGINS=https://yourdomain.com
 - STEGO_KEY=your-base64-fernet-key (rotate every 6 hours)
+- DNS_SAFE_OUTPUTS=true
+- DNS_HARDENED_OUTPUTS=true
+- DNS_SAFE_RESOLVE_TIMEOUT=4
+- DNS_SAFE_RESOLVE_BATCH=500
+- DNS_SAFE_RESOLVE_LIMIT=0
 
 ## Deployment
 The reference deployment uses GitHub Actions to run the pipeline every 6 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible.

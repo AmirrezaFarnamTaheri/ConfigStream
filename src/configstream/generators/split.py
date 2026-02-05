@@ -40,17 +40,35 @@ def _chain_entry_tag(chain: List[Dict[str, Any]]) -> Optional[str]:
     return None
 
 
+def _is_washed_proxy(proxy: Proxy, washed_ids: Optional[Set[str]]) -> bool:
+    if not washed_ids:
+        return False
+    if proxy.id in washed_ids:
+        return True
+    if isinstance(proxy.details, dict):
+        origin_id = proxy.details.get("_origin_id")
+        if origin_id in washed_ids:
+            return True
+    return False
+
+
 def generate_split_outputs(
     proxies: List[Proxy],
     output_dir: Path,
     washed_outbounds: Optional[List[Dict[str, Any]]] = None,
     washed_ids: Optional[Set[str]] = None,
     smart_chains: Optional[Dict[str, List[List[Dict[str, Any]]]]] = None,
+    name_suffix: str = "",
+    key_suffix: str = "",
+    singbox_dns_profile: Optional[Dict[str, Any]] = None,
+    clash_dns_profile: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Path]:
     """
     Generates split outputs (Tank/Sniper strategies) and Clash.
     """
     files: Dict[str, Path] = {}
+    suffix = f"-{name_suffix}" if name_suffix else ""
+    key_suffix_str = f"_{key_suffix}" if key_suffix else ""
 
     # 1. Sniper (Standard singbox.json) - Smart Routing + TLS Fragmentation
     outbounds: List[Dict[str, Any]] = []
@@ -58,7 +76,7 @@ def generate_split_outputs(
 
     for p in proxies:
         # Skip washed proxies (they are replaced by washed_outbounds)
-        if washed_ids and p.id in washed_ids:
+        if _is_washed_proxy(p, washed_ids):
             continue
 
         chain_outbounds = p.details.get("chain_outbounds")
@@ -170,6 +188,11 @@ def generate_split_outputs(
     # These fields cause Sing-box parse errors: "unknown field "_process""
     clean_outbounds = _strip_internal_metadata(outbounds)
 
+    if singbox_dns_profile:
+        # Ensure direct outbound exists for DNS detours.
+        if not any(o.get("tag") == "direct" for o in clean_outbounds):
+            clean_outbounds.append({"type": "direct", "tag": "direct"})
+
     sniper_config = {
         "log": {"level": "info", "timestamp": True},
         "inbounds": [
@@ -182,12 +205,14 @@ def generate_split_outputs(
         ],
         "outbounds": clean_outbounds,
     }
+    if singbox_dns_profile:
+        sniper_config["dns"] = copy.deepcopy(singbox_dns_profile)
 
-    sniper_path = output_dir / "singbox.json"
+    sniper_path = output_dir / f"singbox{suffix}.json"
     AtomicFileWriter.write_text(
         sniper_path, json.dumps(sniper_config, indent=2, ensure_ascii=False)
     )
-    files["singbox"] = sniper_path
+    files[f"singbox{key_suffix_str}"] = sniper_path
 
     # 2. Tank (singbox-vpn.json) - Full VPN/TUN - No Fragmentation (usually)
     tank_outbounds: List[Dict[str, Any]] = []
@@ -195,7 +220,7 @@ def generate_split_outputs(
 
     # Re-convert for Tank (clean slate, no frag)
     for p in proxies:
-        if washed_ids and p.id in washed_ids:
+        if _is_washed_proxy(p, washed_ids):
             continue
 
         chain_outbounds = p.details.get("chain_outbounds")
@@ -292,6 +317,8 @@ def generate_split_outputs(
 
     if not any(o.get("tag") == "direct" for o in tank_outbounds):
         tank_outbounds.append({"type": "direct", "tag": "direct"})
+    if not any(o.get("tag") == "dns-out" for o in tank_outbounds):
+        tank_outbounds.append({"type": "dns", "tag": "dns-out"})
 
     # Strip internal metadata fields from tank outbounds too
     clean_tank_outbounds = _strip_internal_metadata(tank_outbounds)
@@ -317,18 +344,20 @@ def generate_split_outputs(
             ]
         },
     }
+    if singbox_dns_profile:
+        tank_config["dns"] = copy.deepcopy(singbox_dns_profile)
 
-    tank_path = output_dir / "singbox-vpn.json"
+    tank_path = output_dir / f"singbox-vpn{suffix}.json"
     AtomicFileWriter.write_text(
         tank_path, json.dumps(tank_config, indent=2, ensure_ascii=False)
     )
-    files["singbox_vpn"] = tank_path
+    files[f"singbox_vpn{key_suffix_str}"] = tank_path
 
     # Clash
-    clash_content = generate_clash_config(proxies)
+    clash_content = generate_clash_config(proxies, dns_profile=clash_dns_profile)
     if clash_content:
-        clash_path = output_dir / "clash.yaml"
+        clash_path = output_dir / f"clash{suffix}.yaml"
         AtomicFileWriter.write_text(clash_path, clash_content)
-        files["clash"] = clash_path
+        files[f"clash{key_suffix_str}"] = clash_path
 
     return files

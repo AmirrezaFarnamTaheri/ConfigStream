@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
-from typing import List, Any
+from typing import List, Any, Optional, Dict
 
 try:
     import yaml  # type: ignore
@@ -13,7 +13,11 @@ from ..converters import to_clash_proxy
 logger = logging.getLogger(__name__)
 
 
-def generate_clash_config(proxies: List[Proxy], extra_outbounds: Any = None) -> str:
+def generate_clash_config(
+    proxies: List[Proxy],
+    extra_outbounds: Any = None,
+    dns_profile: Optional[Dict[str, Any]] = None,
+) -> str:
     """
     Generates a Clash YAML configuration.
 
@@ -69,5 +73,8 @@ def generate_clash_config(proxies: List[Proxy], extra_outbounds: Any = None) -> 
         ],
         "rules": ["MATCH,PROXY"],
     }
+
+    if dns_profile:
+        config["dns"] = dns_profile
 
     return str(yaml.dump(config, allow_unicode=True, sort_keys=False))
