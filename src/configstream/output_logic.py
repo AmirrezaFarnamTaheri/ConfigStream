@@ -876,15 +876,15 @@ def generate_categorized_outputs(
             hardened_smart_chains: Dict[str, List[List[Dict[str, Any]]]] = {}
             if smart_chains:
                 for group, chains in smart_chains.items():
-                    filtered_chains: List[List[Dict[str, Any]]] = []
+                    filtered_smart_chains: List[List[Dict[str, Any]]] = []
                     for chain in chains:
                         if not isinstance(chain, list):
                             continue
                         filtered = _filter_outbounds_for_dns_hardened(chain, hardened_map)
                         if filtered:
-                            filtered_chains.append(filtered)
-                    if filtered_chains:
-                        hardened_smart_chains[group] = filtered_chains
+                            filtered_smart_chains.append(filtered)
+                    if filtered_smart_chains:
+                        hardened_smart_chains[group] = filtered_smart_chains
 
             hardened_split_files = generate_split_outputs(
                 dns_hardened_proxies,

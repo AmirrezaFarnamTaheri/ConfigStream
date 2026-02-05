@@ -405,12 +405,12 @@ class VwarpTool:
         if not needs_config:
             return None, []
 
-        config: Dict[str, Any] = {}
+        vwarp_config: Dict[str, Any] = {}
         if env_json:
             try:
                 parsed = json.loads(env_json)
                 if isinstance(parsed, dict):
-                    config.update(parsed)
+                    vwarp_config.update(parsed)
                 else:
                     logger.warning("VWARP_CONFIG_JSON is not an object; ignoring.")
             except json.JSONDecodeError:
