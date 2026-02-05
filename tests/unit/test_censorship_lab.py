@@ -2,7 +2,6 @@
 """Unit tests for censorship lab."""
 
 import pytest
-import asyncio
 from configstream.tools.censorship_lab import (
     CensorshipLab,
     CensorshipMode,
@@ -183,4 +182,3 @@ class TestCensorshipLabIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
