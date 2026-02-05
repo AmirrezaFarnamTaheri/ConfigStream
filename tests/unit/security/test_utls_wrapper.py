@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import asyncio
 import pytest
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.security.utls_wrapper import (

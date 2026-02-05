@@ -9,7 +9,7 @@ under different censorship conditions (DNS poisoning, IP blocking, UDP drops, et
 import asyncio
 import logging
 import random
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Any, Optional, Callable
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ class CensorshipLab:
                 slow_delay=kwargs.get("slow_delay", 5.0),
             )
             self.active_modes.append(mode)
-            logger.info(f"[CensorshipLab] Enabled DNS poisoning mode")
+            logger.info("[CensorshipLab] Enabled DNS poisoning mode")
 
         elif mode == CensorshipMode.IP_BLOCK:
             self.ip_blocklist = IPBlocklist(
@@ -115,14 +115,14 @@ class CensorshipLab:
                 blocked_ranges=kwargs.get("blocked_ranges"),
             )
             self.active_modes.append(mode)
-            logger.info(f"[CensorshipLab] Enabled IP blocking mode")
+            logger.info("[CensorshipLab] Enabled IP blocking mode")
 
         elif mode == CensorshipMode.SLOW_DNS:
             if not self.poisoned_resolver:
                 self.poisoned_resolver = PoisonedDNSResolver()
             self.poisoned_resolver.slow_delay = kwargs.get("slow_delay", 5.0)
             self.active_modes.append(mode)
-            logger.info(f"[CensorshipLab] Enabled slow DNS mode")
+            logger.info("[CensorshipLab] Enabled slow DNS mode")
 
         elif mode == CensorshipMode.TIMEOUT:
             self.timeout_multiplier = kwargs.get("multiplier", 10.0)
@@ -204,4 +204,3 @@ async def run_censorship_test(
         return result
     finally:
         lab.reset()
-

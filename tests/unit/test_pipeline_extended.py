@@ -1,7 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import pytest
-import asyncio
-from pathlib import Path
 from unittest.mock import MagicMock, patch, AsyncMock
 from configstream.pipeline import run_full_pipeline
 from configstream.models import Proxy
