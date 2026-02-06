@@ -5,11 +5,13 @@ import shutil
 import statistics
 import json
 import math
+import hashlib
 import sqlite3
 from collections import defaultdict
 from urllib.parse import urlparse
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Set
+from itertools import combinations
 
 # --- Configuration ---
 LOG_PATTERNS = [
@@ -21,6 +23,7 @@ SOURCES_DIR = Path("sources")  # Directory containing batch_*.txt files
 BACKUP_DIR = SOURCES_DIR / "backup_dynamic"
 CONSOLIDATED_SOURCES = Path("consolidated_sources.txt")
 DB_PATH = Path("data/source_quality.db")
+FINGERPRINT_DIR = Path("data/fingerprints")
 DEFAULT_WEIGHT = 130  # Fallback weight for sources not found in logs (deciseconds)
 MIN_BATCHES = 14
 MAX_BATCHES = 16
@@ -380,6 +383,115 @@ def get_consolidated_sources() -> List[str]:
     return list(urls)
 
 
+def analyze_similarity(
+    observed_metrics: Dict[str, Tuple[int, float]]
+) -> Set[str]:
+    """
+    Analyzes source fingerprints to find duplicates/redundancies.
+    Returns a set of URLs to remove.
+    """
+    print("\n[INFO] Starting Source Similarity Analysis...")
+    if not FINGERPRINT_DIR.exists():
+        print("[WARN] No fingerprint directory found. Skipping analysis.")
+        return set()
+
+    fingerprints: Dict[str, Set[str]] = {}
+    url_map: Dict[str, str] = {}  # Map hash/file to URL
+
+    # 1. Load Fingerprints
+    count = 0
+    for fp_file in FINGERPRINT_DIR.glob("*.json"):
+        try:
+            data = json.loads(fp_file.read_text(encoding="utf-8"))
+            url = data.get("url")
+            proxies = set(data.get("proxies", []))
+            if url and proxies:
+                fingerprints[url] = proxies
+                count += 1
+        except Exception:
+            pass
+    
+    print(f"[INFO] Loaded {count} source fingerprints.")
+    if count < 2:
+        return set()
+
+    to_remove: Set[str] = set()
+    
+    # 2. Pairwise Comparison
+    # Note: O(N^2) complexity. If sources > 1000, this might be slow.
+    # We can optimize by bucketing or MinHash if needed, but N ~ 200-300 is fine.
+    
+    urls = list(fingerprints.keys())
+    
+    for url_a, url_b in combinations(urls, 2):
+        if url_a in to_remove or url_b in to_remove:
+            continue
+            
+        set_a = fingerprints[url_a]
+        set_b = fingerprints[url_b]
+        
+        len_a = len(set_a)
+        len_b = len(set_b)
+        
+        if len_a == 0 or len_b == 0:
+            continue
+            
+        intersection = len(set_a.intersection(set_b))
+        
+        # Logic: If overlap is > 90% of the SMALLER set, the smaller one is redundant.
+        # This covers:
+        # 1. Exact duplicates (overlap = len_a = len_b) -> 100%
+        # 2. Subset (set_a inside set_b) -> intersection = len_a -> 100%
+        # 3. Near duplicate (>90% similar)
+        
+        smaller_len = min(len_a, len_b)
+        overlap_ratio = intersection / smaller_len if smaller_len > 0 else 0
+        
+        if overlap_ratio > 0.90:
+            # Decide which to remove
+            remove_candidate = None
+            keep_candidate = None
+            reason = ""
+            
+            # Prefer to keep the larger set (superset)
+            if len_a > len_b:
+                remove_candidate = url_b
+                keep_candidate = url_a
+                reason = f"Subset/High Overlap ({overlap_ratio:.1%}) of larger source ({len_a} vs {len_b})"
+            elif len_b > len_a:
+                remove_candidate = url_a
+                keep_candidate = url_b
+                reason = f"Subset/High Overlap ({overlap_ratio:.1%}) of larger source ({len_b} vs {len_a})"
+            else:
+                # Same size. Tie-break using observed metrics (working count/reliability)
+                metric_a = observed_metrics.get(url_a, (0, 0)) # (fetched, duration) - wait, observed_metrics is (fetched, duration)?
+                # Wait, parse_db_runs returns (fetched, avg_duration).
+                # Actually dynamic_reshard says: source_metrics[url] = (avg_fetched, max(0.0, avg_duration_s))
+                # Higher fetched count usually implies more stability or simply more proxies.
+                # But here they have same number of unique proxies (fingerprint).
+                # So maybe reliability? We don't have explicit reliability score in observed_metrics here.
+                # We have 'duration'. Lower duration is better.
+                
+                dur_a = metric_a[1]
+                dur_b = observed_metrics.get(url_b, (0, 0))[1]
+                
+                if dur_a < dur_b:
+                     remove_candidate = url_b
+                     keep_candidate = url_a
+                     reason = f"Duplicate ({overlap_ratio:.1%}), slower fetch ({dur_b:.1f}s vs {dur_a:.1f}s)"
+                else:
+                     remove_candidate = url_a
+                     keep_candidate = url_b
+                     reason = f"Duplicate ({overlap_ratio:.1%}), slower fetch ({dur_a:.1f}s vs {dur_b:.1f}s)"
+
+            if remove_candidate:
+                to_remove.add(remove_candidate)
+                print(f"[REMOVE] {remove_candidate}\n  -> Reason: {reason} (Kept: {keep_candidate})")
+
+    print(f"[INFO] Analysis complete. Marked {len(to_remove)} sources for removal.")
+    return to_remove
+
+
 def main() -> None:
     # 1. Setup Workspace
     log_files: List[str] = []
@@ -437,6 +549,11 @@ def main() -> None:
     if batch_stats:
         _write_batch_stats(batch_stats)
     all_urls = set(all_urls)
+
+    # --- SIMILARITY ANALYSIS ---
+    removed_sources = analyze_similarity(observed_metrics)
+    all_urls = all_urls - removed_sources
+    # ---------------------------
 
     # 4. Assign Weights Based on Fetch + Test Duration
 
@@ -542,6 +659,7 @@ def main() -> None:
     print(f"  Slowest Batch: {max_load / 10:.1f}s")
     print(f"  Fastest Batch: {min_load / 10:.1f}s")
     print(f"  Sources with timing data: {len(observed_metrics)}/{len(all_urls)}")
+    print(f"  Sources removed by similarity analysis: {len(removed_sources)}")
 
     if batch_stats:
         print("\n[INFO] Observed Batch Load (latest runs):")
