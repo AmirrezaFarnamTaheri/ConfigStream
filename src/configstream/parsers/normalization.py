@@ -102,7 +102,8 @@ def normalize_proxy_details(proxy: Proxy) -> None:
             elif "short_id" in proxy.details:
                 proxy.details["sid"] = proxy.details["short_id"]
 
-        # Fingerprint Normalization
-        if "fp" not in proxy.details:
-            if "fingerprint" in proxy.details:
-                proxy.details["fp"] = proxy.details["fingerprint"]
+    # Fingerprint Normalization - Always check and normalize to "fp"
+    # Prioritize "fingerprint" if "fp" is missing
+    if "fp" not in proxy.details and "fingerprint" in proxy.details:
+        proxy.details["fp"] = proxy.details["fingerprint"]
+    # If "fp" exists but "fingerprint" is different, "fp" usually wins (shorter key preferred internally)

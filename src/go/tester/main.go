@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -16,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	"configstream-tester/dnstester"
 	"configstream-tester/scanner"
 
 	singbox "github.com/sagernet/sing-box"
@@ -57,7 +59,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&modeFlag, "mode", "test", "Operation mode: 'test' or 'scan'")
+	flag.StringVar(&modeFlag, "mode", "test", "Operation mode: 'test', 'scan', or 'dns-scan'")
 	flag.IntVar(&limitFlag, "limit", 50, "Limit for scan results")
 	flag.IntVar(&workersFlag, "workers", 20, "Number of concurrent workers")
 	flag.StringVar(&timeoutFlagRaw, "timeout", "10s", "Timeout duration (e.g. 10s or 10)")
@@ -100,47 +102,99 @@ func main() {
 		}
 	}
 
-	log.SetOutput(os.Stderr)
-
 	if modeFlag == "scan" {
-		runScanner()
-	} else {
-		runTester()
+		runScanMode()
+		return
 	}
+
+	if modeFlag == "dns-scan" {
+		runDNSScanMode()
+		return
+	}
+
+	runTestMode()
 }
 
-func runScanner() {
-	resultsChan := make(chan scanner.ScanResult)
+func runDNSScanMode() {
+	// Read IPs from stdin
+	var ips []string
 
-	go func() {
-		scanner.RunScan(workersFlag, timeoutDuration, limitFlag, scanner.DefaultCidrs, resultsChan)
-		close(resultsChan)
-	}()
+	// Check if stdin has data
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line != "" {
+				ips = append(ips, line)
+			}
+		}
+	}
 
-	encoder := json.NewEncoder(os.Stdout)
-	count := 0
+	// Fallback defaults
+	if len(ips) == 0 {
+		ips = []string{"8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1", "9.9.9.9"}
+		log.Println("No input provided, scanning default DNS servers:", ips)
+	}
 
-	for res := range resultsChan {
-		if err := encoder.Encode(res); err != nil {
+	results := dnstester.RunScan(ips, workersFlag)
+
+	// Output results as NDJSON
+	enc := json.NewEncoder(os.Stdout)
+	for _, res := range results {
+		if err := enc.Encode(res); err != nil {
 			log.Printf("Encode error: %v", err)
 		}
-		count++
-		if limitFlag > 0 && count >= limitFlag {
-			break
+	}
+}
+
+func runScanMode() {
+	resultsChan := make(chan scanner.ScanResult, 100)
+
+	// Start scanner in background
+	go scanner.RunScan(workersFlag, timeoutDuration, limitFlag, scanner.DefaultCidrs, resultsChan)
+
+	// Consume results and print to stdout as NDJSON
+	enc := json.NewEncoder(os.Stdout)
+	for res := range resultsChan {
+		if err := enc.Encode(res); err != nil {
+			log.Printf("Encode error: %v", err)
 		}
 	}
 }
 
-func runTester() {
+func runTestMode() {
 	decoder := json.NewDecoder(os.Stdin)
 	encoder := json.NewEncoder(os.Stdout)
 
-	// Worker pool
-	sem := make(chan struct{}, workersFlag)
 	var wg sync.WaitGroup
-	var outMu sync.Mutex
+	requestsChan := make(chan ProxyTestRequest, workersFlag)
+	resultsChan := make(chan ProxyTestResult, workersFlag)
 
-	decodeErrors := 0
+	// Start workers
+	for i := 0; i < workersFlag; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for req := range requestsChan {
+				result := testProxy(req)
+				resultsChan <- result
+			}
+		}()
+	}
+
+	// Start result consumer
+	consumerDone := make(chan struct{})
+	go func() {
+		defer close(consumerDone)
+		for res := range resultsChan {
+			if err := encoder.Encode(res); err != nil {
+				log.Printf("Encode error: %v", err)
+			}
+		}
+	}()
+
+	// Feed requests
 	for {
 		var req ProxyTestRequest
 		if err := decoder.Decode(&req); err != nil {
@@ -148,60 +202,36 @@ func runTester() {
 				break
 			}
 			log.Printf("Decode error: %v", err)
-			decodeErrors++
-			if decodeErrors >= 5 {
-				log.Printf("Too many decode errors, stopping")
-				break
-			}
 			continue
 		}
-		decodeErrors = 0
-
-		sem <- struct{}{}
-		wg.Add(1)
-		go func(r ProxyTestRequest) {
-			defer wg.Done()
-			defer func() { <-sem }()
-
-			res := testProxy(r)
-
-			outMu.Lock()
-			if err := encoder.Encode(res); err != nil {
-				log.Printf("Encode error: %v", err)
-			}
-			outMu.Unlock()
-		}(req)
+		requestsChan <- req
 	}
 
+	close(requestsChan)
 	wg.Wait()
+	close(resultsChan)
+	<-consumerDone
 }
 
 func testProxy(req ProxyTestRequest) ProxyTestResult {
-	// [HARDENING] Recover from panics to prevent daemon crash
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("PANIC in testProxy: %v", r)
-		}
-	}()
-
-	start := time.Now()
-
-	const maxConfigBytes = 1 << 20 // 1 MiB
-	if len(req.ConfigStr) > maxConfigBytes {
-		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config too large"}
-	}
-
-	outboundConfig, err := parseConfig(req.ConfigStr)
+	// Parse outbound
+	out, err := parseConfig(req.ConfigStr)
 	if err != nil {
-		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config parse error: " + err.Error()}
+		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Parse error: " + err.Error()}
 	}
 
+	// Create sing-box instance (ephemeral)
 	options := option.Options{
+		Inbounds: []option.Inbound{},
 		Outbounds: []option.Outbound{
-			outboundConfig,
+			out,
 			{
 				Type: "direct",
 				Tag:  "direct",
+			},
+			{
+				Type: "dns",
+				Tag:  "dns-out",
 			},
 		},
 		DNS: &option.DNSOptions{
@@ -332,6 +362,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	}
 
 	// Perform Connectivity Check
+	start := time.Now()
 	if isHTTP {
 		if targetURL == nil || targetURL.Host == "" {
 			return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Invalid HTTP target"}

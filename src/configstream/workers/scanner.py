@@ -4,7 +4,7 @@ import json
 import logging
 import shutil
 import os
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pathlib import Path
 
 # Configure logger for this module
@@ -163,8 +163,6 @@ class WarpScannerWorker:
             )
 
             # Wait for the process to finish and capture output
-            # Note: For massive scans, we might want to iterate stdout line-by-line
-            # while running, but for <1000 items, communicate() is safe and simpler.
             stdout, stderr = await proc.communicate()
 
             if proc.returncode != 0:
@@ -183,8 +181,6 @@ class WarpScannerWorker:
             raw_output = stdout.decode()
 
             if not raw_output.strip():
-                # In CI or restricted environments, exit code 0 with no output might happen
-                # But we should have caught CI above. If it happens here, it's likely a network block.
                 logger.warning(
                     "Scanner finished with exit code 0 but produced NO output. (Possible Firewall/Network Block)"
                 )
@@ -218,4 +214,71 @@ class WarpScannerWorker:
             logger.error(
                 f"Critical error during active scan execution: {e}", exc_info=True
             )
+            return []
+
+    async def scan_dns_hijack(self, ips: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+        """
+        Executes the binary in 'dns-scan' mode to check for DNS hijacking.
+
+        Args:
+            ips: List of IPs to check. If None, uses binary defaults.
+
+        Returns:
+            List[Dict]: List of result objects (ip, is_hijacked, reason, etc.)
+        """
+        if not self.available:
+            logger.warning("DNS scan requested but binary is unavailable.")
+            return []
+
+        cmd = [
+            self.binary_path,
+            "-mode",
+            "dns-scan",
+            "-workers",
+            "20",
+        ]
+
+        try:
+            logger.info("Starting DNS hijack scan...")
+
+            # Ensure cmd only contains strings
+            str_cmd = [str(c) for c in cmd if c is not None]
+
+            proc = await asyncio.create_subprocess_exec(
+                *str_cmd,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+
+            stdin_data = None
+            if ips:
+                # Join with newlines
+                stdin_data = ("\n".join(ips) + "\n").encode("utf-8")
+
+            stdout, stderr = await proc.communicate(input=stdin_data)
+
+            if proc.returncode != 0:
+                logger.error(f"DNS Scanner exited with error code {proc.returncode}")
+                if stderr:
+                    logger.error(f"DNS Scanner stderr: {stderr.decode().strip()}")
+                return []
+
+            results = []
+            raw_output = stdout.decode()
+
+            for line in raw_output.splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    data = json.loads(line)
+                    results.append(data)
+                except json.JSONDecodeError:
+                    continue
+
+            logger.info(f"DNS scan completed. Checked {len(results)} servers.")
+            return results
+
+        except Exception as e:
+            logger.error(f"Critical error during DNS scan: {e}", exc_info=True)
             return []

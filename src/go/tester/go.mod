@@ -5,6 +5,7 @@ go 1.24.0
 toolchain go1.24.3
 
 require (
+	github.com/miekg/dns v1.1.59
 	github.com/sagernet/sing v0.3.8
 	github.com/sagernet/sing-box v1.8.14
 	golang.org/x/crypto v0.45.0
@@ -39,7 +40,6 @@ require (
 	github.com/libdns/libdns v0.2.2 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mholt/acmez v1.2.0 // indirect
-	github.com/miekg/dns v1.1.59 // indirect
 	github.com/onsi/ginkgo/v2 v2.9.7 // indirect
 	github.com/ooni/go-libtor v1.1.8 // indirect
 	github.com/oschwald/maxminddb-golang v1.12.0 // indirect

@@ -18,13 +18,14 @@ class SingBoxGenerator:
         extra_outbounds: Optional[List[Dict[str, Any]]] = None,
     ) -> Dict[str, Any]:
         """
-        Creates a full Sing-Box config structure aligned with V2RayN/Sing-box best practices.
+        Generates the full configuration dictionary.
+        Uses "proxy" as the main selector and "auto" for URL-test, following e1.json/Sing-box best practices.
         """
         outbounds: List[Dict[str, Any]] = []
 
-        # Legacy Tag Names
-        SELECTOR_TAG = "🌍 Proxy Select"
-        AUTO_TAG = "⚡ Best Latency"
+        # Tag Names matching e1.json conventions
+        SELECTOR_TAG = "proxy"
+        AUTO_TAG = "auto"
 
         # Selector (Group)
         selector_outbound: Dict[str, Any] = {
@@ -64,7 +65,9 @@ class SingBoxGenerator:
         if extra_outbounds:
             for extra in extra_outbounds:
                 otype = extra.get("type", "")
-                _append_outbound(extra, add_to_selector=otype == "wireguard")
+                # Wireguard/chains usually go into selector, but dependent proxies (chains) might not.
+                # Assuming extra_outbounds are valid usable proxies.
+                _append_outbound(extra, add_to_selector=True)
 
         # Add Proxy Outbounds
         for p in proxies:
@@ -81,10 +84,13 @@ class SingBoxGenerator:
                     t = p.remarks or p.details.get("name") or f"proxy-{p.id}"
                     outbound_config["tag"] = t
 
+                # Handle Chains (extra outbounds attached to the proxy)
                 extra_chain = outbound_config.pop("_extra_outbounds", None)
                 if isinstance(extra_chain, list):
                     for extra in extra_chain:
                         if isinstance(extra, dict):
+                            # Chained proxies (e.g. the next-hop) should be added to outbounds
+                            # but NOT to the selector (user selects the head, not the tail)
                             _append_outbound(extra, add_to_selector=False)
 
                 # Strip internal metadata
@@ -121,7 +127,7 @@ class SingBoxGenerator:
                     "path": "/dns-query",
                     "type": "https",
                     "tag": "remote_dns",
-                    "detour": SELECTOR_TAG  # Use our selector instead of 'proxy'
+                    "detour": SELECTOR_TAG  # Use our selector
                 },
                 {
                     "server": "dns.alidns.com",

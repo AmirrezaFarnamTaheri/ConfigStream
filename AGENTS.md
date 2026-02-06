@@ -58,6 +58,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   `https://` -> `http` protocol with `tls=True`.
     *   `socks://` -> `socks5`.
     *   `socks4://` -> `socks4` (supported).
+    *   **Fingerprints**: Always normalize uTLS fingerprints to `fp` in `details`.
 
 ### Fetcher (`src/configstream/fetcher.py`)
 *   **Resilience**:
@@ -75,6 +76,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **Dual Engine**:
     *   **Go Sidecar**: Preferred for performance/compatibility. It supports testing single proxies and **Chains** (lists of outbounds).
         *   **Payload Format**: The Go tester expects a valid JSON array of config objects for batch or custom testing. Do NOT send concatenated JSON strings.
+        *   **Concurrency**: Ensure thread-safe output handling (use channels, not shared stdout writers).
     *   **Python Fallback**: Minimal implementation for environments without the binary.
     *   **WASM Tester**: Browser-based verification component (`src/go/tester/wasm_main.go`). Must communicate via JS interop (`syscall/js`) and not use native networking.
 *   **Washer & Revival**:

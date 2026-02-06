@@ -289,3 +289,7 @@ AGPL-3.0. See LICENSE.
 - Live dashboard: https://amirrezafarnamtaheri.github.io/ConfigStream/
 - Issues: https://github.com/AmirrezaFarnamTaheri/ConfigStream/issues
 - Discussions: https://github.com/AmirrezaFarnamTaheri/ConfigStream/discussions
+
+## New Features (Integrated)
+- **V2Ray JSON Support**: ConfigStream now supports generating full V2Ray/Xray JSON configuration (`v2ray.json`) with support for proxy chains (`dialerProxy`).
+- **DNS Hijack Detection**: The `configstream-tester` binary now includes a `dns-scan` mode that checks for DNS hijacking using Cloudflare Trace (CHAOS TXT) and RTT heuristics.

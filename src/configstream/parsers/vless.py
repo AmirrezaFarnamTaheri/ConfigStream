@@ -142,8 +142,10 @@ def parse_vless(url: str) -> Proxy | None:
         if sid:
             proxy.details["sid"] = sid
 
+        # Normalize fingerprint to 'fp'
         if "fp" in params:
-            proxy.details["fingerprint"] = params["fp"]
+            proxy.details["fp"] = params["fp"]
+
         if "alpn" in params:
             proxy.details["alpn"] = params["alpn"]
 
