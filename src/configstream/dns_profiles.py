@@ -152,7 +152,7 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
     # Merge optimized IPs into Cloudflare definition
     cf_ips = [
         "104.16.249.249", "104.16.248.249", "2606:4700::6810:f8f9", "2606:4700::6810:f9f9"
-    ] + CLOUDFLARE_OPTIMIZED_IPS[:4] # Add top 4 optimized IPs
+    ] + CLOUDFLARE_OPTIMIZED_IPS[:4]  # Add top 4 optimized IPs
 
     return {
         "servers": [

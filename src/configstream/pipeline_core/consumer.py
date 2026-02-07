@@ -182,7 +182,7 @@ async def processing_consumer(
                     with open(tmp_fp, "wb") as f:
                         f.write(json.dumps(fp_data))
                     tmp_fp.replace(fp_file)
-            except Exception as e:
+            except Exception:
                 pass
 
         await loop.run_in_executor(None, _save_fingerprint, parsed_batch, source)

@@ -5,7 +5,7 @@ import shutil
 import statistics
 import json
 import math
-import hashlib
+
 import sqlite3
 from collections import defaultdict
 from urllib.parse import urlparse
@@ -396,7 +396,6 @@ def analyze_similarity(
         return set()
 
     fingerprints: Dict[str, Set[str]] = {}
-    url_map: Dict[str, str] = {}  # Map hash/file to URL
 
     # 1. Load Fingerprints
     count = 0
@@ -461,28 +460,21 @@ def analyze_similarity(
             elif len_b > len_a:
                 remove_candidate = url_a
                 keep_candidate = url_b
-                reason = f"Subset/High Overlap ({overlap_ratio:.1%}) of larger source ({len_b} vs {len_a})"
             else:
                 # Same size. Tie-break using observed metrics (working count/reliability)
-                metric_a = observed_metrics.get(url_a, (0, 0)) # (fetched, duration) - wait, observed_metrics is (fetched, duration)?
-                # Wait, parse_db_runs returns (fetched, avg_duration).
-                # Actually dynamic_reshard says: source_metrics[url] = (avg_fetched, max(0.0, avg_duration_s))
-                # Higher fetched count usually implies more stability or simply more proxies.
-                # But here they have same number of unique proxies (fingerprint).
-                # So maybe reliability? We don't have explicit reliability score in observed_metrics here.
-                # We have 'duration'. Lower duration is better.
+                metric_a = observed_metrics.get(url_a, (0, 0))  # (fetched, duration)
 
                 dur_a = metric_a[1]
                 dur_b = observed_metrics.get(url_b, (0, 0))[1]
 
                 if dur_a < dur_b:
-                     remove_candidate = url_b
-                     keep_candidate = url_a
-                     reason = f"Duplicate ({overlap_ratio:.1%}), slower fetch ({dur_b:.1f}s vs {dur_a:.1f}s)"
+                    remove_candidate = url_b
+                    keep_candidate = url_a
+                    reason = f"Duplicate ({overlap_ratio:.1%}), slower fetch ({dur_b:.1f}s vs {dur_a:.1f}s)"
                 else:
-                     remove_candidate = url_a
-                     keep_candidate = url_b
-                     reason = f"Duplicate ({overlap_ratio:.1%}), slower fetch ({dur_a:.1f}s vs {dur_b:.1f}s)"
+                    remove_candidate = url_a
+                    keep_candidate = url_b
+                    reason = f"Duplicate ({overlap_ratio:.1%}), slower fetch ({dur_a:.1f}s vs {dur_b:.1f}s)"
 
             if remove_candidate:
                 to_remove.add(remove_candidate)
