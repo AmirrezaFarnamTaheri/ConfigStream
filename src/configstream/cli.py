@@ -547,7 +547,7 @@ def scan_dns():
         console.print(f"[bold red]Error: Scanner script not found at {scanner_script}[/bold red]")
         sys.exit(1)
 
-    console.print(f"[green]Launching DNS Scanner TUI...[/green]")
+    console.print("[green]Launching DNS Scanner TUI...[/green]")
     try:
         subprocess.run([sys.executable, str(scanner_script)], check=True)
     except subprocess.CalledProcessError as e:

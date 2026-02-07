@@ -15,4 +15,4 @@ def test_cert_generation_mock():
     try:
         generate_self_signed_cert()
     except Exception:
-        pass # Expected due to mock return values not being full objects
+        pass  # Expected due to mock return values not being full objects
