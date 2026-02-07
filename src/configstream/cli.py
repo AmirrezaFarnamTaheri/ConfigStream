@@ -533,5 +533,28 @@ def backup(days, dir):
         console.print(f"[green]Backed up {b.name}[/green]")
 
 
+
+@main.command()
+def scan_dns():
+    """Launch the interactive DNS Scanner TUI."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    scanner_script = Path(__file__).parent / "tools" / "dns_scanner" / "python" / "dnsscanner_tui.py"
+
+    if not scanner_script.exists():
+        console.print(f"[bold red]Error: Scanner script not found at {scanner_script}[/bold red]")
+        sys.exit(1)
+
+    console.print(f"[green]Launching DNS Scanner TUI...[/green]")
+    try:
+        subprocess.run([sys.executable, str(scanner_script)], check=True)
+    except subprocess.CalledProcessError as e:
+        console.print(f"[red]Scanner exited with error: {e}[/red]")
+        sys.exit(e.returncode)
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Scanner interrupted.[/yellow]")
+
 if __name__ == "__main__":
     main()
