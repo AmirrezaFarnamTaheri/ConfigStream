@@ -146,19 +146,17 @@ const SEC_CH_UA_PLATFORM = [
 
 const SEC_CH_UA_MOBILE = ['?0', '?1'];
 
-addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request));
-});
-
-async function handleRequest(request) {
+export async function onRequest(context) {
+  const { request, env } = context;
   const url = new URL(request.url);
 
   if (url.pathname === '/apple') {
     return generateAppleProfile(request.url);
   }
-  
-  const clientIP = request.headers.get('CF-Connecting-IP') || 
-                   request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() || 
+
+  const clientIP = request.headers.get('CF-Connecting-IP') ||
+                   request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
+                   request.headers.get('X-Real-IP') ||
                    'unknown';
 
   cleanupRateLimitMap();
@@ -185,7 +183,7 @@ async function handleRequest(request) {
       }
     });
   }
-  
+
   if (url.pathname !== '/dns-query') {
     return new Response(getHomePage(request.url), {
       status: 200,
@@ -210,13 +208,13 @@ async function handleRequest(request) {
 
   try {
     let dnsResponse;
-    
+
     if (request.method === 'GET') {
       dnsResponse = await handleGetRequest(url);
     } else if (request.method === 'POST') {
       dnsResponse = await handlePostRequest(request);
     } else {
-      return new Response('Method not allowed', { 
+      return new Response('Method not allowed', {
         status: 405,
         headers: {
           'Allow': 'GET, POST, OPTIONS',
@@ -230,7 +228,7 @@ async function handleRequest(request) {
     }
 
     const responseBody = await dnsResponse.arrayBuffer();
-    
+
     if (responseBody.byteLength > MAX_DNS_RESPONSE_SIZE) {
       throw new Error('DNS response too large');
     }
@@ -247,7 +245,7 @@ async function handleRequest(request) {
         'Cache-Control': `public, max-age=${cacheTTL}`,
         'X-Content-Type-Options': 'nosniff',
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-        'X-DNS-Proxy': 'Cloudflare-Worker-Ultimate'
+        'X-DNS-Proxy': 'Cloudflare-Pages-Ultimate'
       }
     });
   } catch (error) {
@@ -257,7 +255,7 @@ async function handleRequest(request) {
       timestamp: new Date().toISOString()
     });
 
-    return new Response('DNS query failed: ' + error.message, { 
+    return new Response('DNS query failed: ' + error.message, {
       status: 500,
       headers: {
         'Content-Type': 'text/plain',
@@ -340,7 +338,7 @@ Designed by: Anonymous</string>
 
 async function handleGetRequest(url) {
   const dnsParam = url.searchParams.get('dns');
-  
+
   if (!dnsParam) {
     throw new Error('Missing dns parameter');
   }
@@ -370,7 +368,7 @@ async function handleGetRequest(url) {
       const response = await queryDNSWithRace(providers, (provider) => {
         const upstreamUrl = new URL(provider.url);
         upstreamUrl.searchParams.set('dns', dnsParam);
-        
+
         url.searchParams.forEach((value, key) => {
           if (key !== 'dns') {
             upstreamUrl.searchParams.set(key, value);
@@ -388,7 +386,7 @@ async function handleGetRequest(url) {
 
       const responseBody = await response.arrayBuffer();
       setCachedResponse(cacheKey, responseBody);
-      
+
       return new Response(responseBody, {
         status: 200,
         headers: { 'X-Cache': 'MISS' }
@@ -409,7 +407,7 @@ async function handlePostRequest(request) {
   }
 
   const body = await request.arrayBuffer();
-  
+
   if (body.byteLength === 0 || body.byteLength > MAX_DNS_REQUEST_SIZE) {
     throw new Error(`Invalid DNS message size: ${body.byteLength} bytes`);
   }
@@ -447,7 +445,7 @@ async function handlePostRequest(request) {
 
       const responseBody = await response.arrayBuffer();
       setCachedResponse(cacheKey, responseBody);
-      
+
       return new Response(responseBody, {
         status: 200,
         headers: { 'X-Cache': 'MISS' }
@@ -463,14 +461,14 @@ async function handlePostRequest(request) {
 
 async function queryDNSWithRace(providers, fetchFunction) {
   const errors = [];
-  
+
   if (Math.random() < DECOY_REQUEST_PROBABILITY) {
     sendDecoyRequest().catch(() => {});
   }
-  
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const availableProviders = providers.filter(p => !isCircuitBreakerOpen(p));
-    
+
     if (availableProviders.length === 0) {
       await sleep(1000);
       continue;
@@ -480,7 +478,7 @@ async function queryDNSWithRace(providers, fetchFunction) {
       const startTime = Date.now();
       try {
         const response = await fetchFunction(provider);
-        
+
         if (response.ok) {
           const contentType = response.headers.get('Content-Type');
           if (contentType && contentType.includes('application/dns-message')) {
@@ -490,7 +488,7 @@ async function queryDNSWithRace(providers, fetchFunction) {
           }
           throw new Error(`Invalid content type: ${contentType}`);
         }
-        
+
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       } catch (error) {
         const duration = Date.now() - startTime;
@@ -523,7 +521,7 @@ async function queryDNSWithRace(providers, fetchFunction) {
 async function fetchWithTimeout(url, options, timeout) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -629,7 +627,7 @@ function handleOptions() {
 function checkRateLimit(clientIP) {
   const now = Date.now();
   const clientData = rateLimitMap.get(clientIP);
-  
+
   if (!clientData) {
     rateLimitMap.set(clientIP, {
       count: 1,
@@ -637,7 +635,7 @@ function checkRateLimit(clientIP) {
     });
     return true;
   }
-  
+
   if (now > clientData.resetTime) {
     rateLimitMap.set(clientIP, {
       count: 1,
@@ -645,30 +643,30 @@ function checkRateLimit(clientIP) {
     });
     return true;
   }
-  
+
   if (clientData.count >= RATE_LIMIT_REQUESTS) {
     return false;
   }
-  
+
   clientData.count++;
   return true;
 }
 
 function cleanupRateLimitMap() {
   const now = Date.now();
-  
+
   if (now - lastCleanupTime < RATE_LIMIT_CLEANUP_INTERVAL) {
     return;
   }
-  
+
   lastCleanupTime = now;
-  
+
   for (const [clientIP, data] of rateLimitMap.entries()) {
     if (now > data.resetTime) {
       rateLimitMap.delete(clientIP);
     }
   }
-  
+
   if (dnsCache.size > 2000) {
     const entriesToDelete = dnsCache.size - 1000;
     let deleted = 0;
@@ -685,12 +683,12 @@ function cleanupRateLimitMap() {
 function getCachedResponse(key) {
   const cached = dnsCache.get(key);
   if (!cached) return null;
-  
+
   if (Date.now() > cached.expiresAt) {
     dnsCache.delete(key);
     return null;
   }
-  
+
   return cached.data;
 }
 
@@ -704,17 +702,17 @@ function calculateDynamicTTL(responseData) {
   try {
     const view = new DataView(responseData);
     if (view.byteLength < 12) return DNS_CACHE_TTL_DEFAULT;
-    
+
     const ancount = view.getUint16(6);
-    
+
     if (ancount === 0) {
       return DNS_CACHE_TTL_MIN;
     }
-    
+
     if (ancount > 8) {
       return DNS_CACHE_TTL_MAX;
     }
-    
+
     return DNS_CACHE_TTL_DEFAULT;
   } catch (e) {
     return DNS_CACHE_TTL_DEFAULT;
@@ -743,11 +741,11 @@ function recordSuccess(provider, duration) {
   provider.consecutiveFailures = 0;
   provider.healthScore = Math.min(100, provider.healthScore + 8);
   provider.lastCheck = Date.now();
-  
+
   if (!providerMetrics.has(provider.url)) {
     providerMetrics.set(provider.url, { successes: 0, failures: 0, avgDuration: 0 });
   }
-  
+
   const metrics = providerMetrics.get(provider.url);
   metrics.successes++;
   metrics.avgDuration = (metrics.avgDuration * (metrics.successes - 1) + duration) / metrics.successes;
@@ -757,11 +755,11 @@ function recordFailure(provider, duration) {
   provider.consecutiveFailures++;
   provider.healthScore = Math.max(0, provider.healthScore - 15);
   provider.lastCheck = Date.now();
-  
+
   if (!providerMetrics.has(provider.url)) {
     providerMetrics.set(provider.url, { successes: 0, failures: 0, avgDuration: 0 });
   }
-  
+
   const metrics = providerMetrics.get(provider.url);
   metrics.failures++;
 }
@@ -770,13 +768,13 @@ function isCircuitBreakerOpen(provider) {
   if (provider.consecutiveFailures < CIRCUIT_BREAKER_THRESHOLD) {
     return false;
   }
-  
+
   const timeSinceLastCheck = Date.now() - provider.lastCheck;
   if (timeSinceLastCheck > CIRCUIT_BREAKER_TIMEOUT) {
     provider.consecutiveFailures = Math.floor(provider.consecutiveFailures / 2);
     return false;
   }
-  
+
   return true;
 }
 
@@ -785,14 +783,14 @@ function performHealthCheckIfNeeded() {
   if (now - lastHealthCheck < HEALTH_CHECK_INTERVAL) {
     return;
   }
-  
+
   lastHealthCheck = now;
-  
+
   UPSTREAM_DNS_PROVIDERS.forEach(provider => {
     if (provider.healthScore < 60) {
       provider.healthScore = Math.min(100, provider.healthScore + 15);
     }
-    
+
     if (now - provider.lastCheck > HEALTH_CHECK_INTERVAL * 2) {
       provider.healthScore = 100;
       provider.consecutiveFailures = 0;
@@ -812,7 +810,7 @@ function isValidBase64Url(str) {
   if (!str || str.length === 0 || str.length > 2048) {
     return false;
   }
-  
+
   const base64UrlRegex = /^[A-Za-z0-9_-]+={0,2}$/;
   return base64UrlRegex.test(str);
 }
@@ -834,7 +832,7 @@ function getHomePage(requestUrl) {
   const fullDohUrl = new URL('/dns-query', requestUrl).href;
   const appleProfileUrl = new URL('/apple', requestUrl).href;
   const workerHostname = new URL(requestUrl).hostname;
-  
+
   return `<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -1104,7 +1102,7 @@ function getHomePage(requestUrl) {
                 <span>✓ فعال و آماده به کار - نسخه ضد سانسور</span>
             </div>
         </div>
-        
+
         <div class="info-box">
             <strong>این یک سرویس DNS over HTTPS (DoH) پیشرفته با قابلیت‌های Anti-Censorship است.</strong>
         </div>
@@ -1149,24 +1147,24 @@ function getHomePage(requestUrl) {
         <div class="warning">
             <strong>💡 درک انواع فیلترینگ:</strong><br><br>
             فیلترینگ در شبکه در لایه‌های مختلف انجام می‌شود:<br><br>
-            
+
             <strong>1. DNS Filtering (فیلترینگ DNS):</strong><br>
             • سایت در سطح DNS مسدود می‌شود<br>
             • <span class="highlight">✓ این DoH Proxy این نوع فیلترینگ را دور می‌زند</span><br>
             • مثال: بسیاری از وب‌سایت‌ها در کشورهای مختلف<br><br>
-            
+
             <strong>2. SNI Filtering (فیلترینگ SNI):</strong><br>
             • سایت بر اساس Server Name Indication مسدود می‌شود<br>
             • ✗ این DoH به تنهایی کافی نیست (نیاز به ECH یا ابزار اضافی)<br><br>
-            
+
             <strong>3. IP Blocking (مسدودسازی IP):</strong><br>
             • آدرس IP سرور مستقیماً مسدود می‌شود<br>
             • ✗ این DoH به تنهایی کافی نیست (نیاز به VPN)<br><br>
-            
+
             <strong>4. Deep Packet Inspection - DPI:</strong><br>
             • بررسی عمیق محتوای بسته‌های شبکه<br>
             • ✗ این DoH به تنهایی کافی نیست (نیاز به VPN یا پروکسی پیشرفته)<br><br>
-            
+
             <strong>نتیجه:</strong> اگر سایت مورد نظر شما فقط با DNS فیلتر شده، این DoH کافی است. اگر از روش‌های دیگر فیلتر شده، به VPN نیاز دارید.
         </div>
 
@@ -1275,12 +1273,12 @@ function getHomePage(requestUrl) {
             <strong>سناریو 1 - فقط فیلترینگ DNS:</strong><br>
             ✓ از این DoH Proxy استفاده کنید<br>
             ✓ بسیاری از سایت‌ها قابل دسترسی می‌شوند<br><br>
-            
+
             <strong>سناریو 2 - فیلترینگ پیشرفته‌تر:</strong><br>
             ✓ از این DoH Proxy استفاده کنید<br>
             ✓ ECH را در مرورگر فعال کنید<br>
             ✓ از VPN برای لایه‌های دیگر استفاده کنید<br><br>
-            
+
             <strong>نکات عمومی:</strong><br>
             • از مرورگرهای به‌روز استفاده کنید<br>
             • HTTPS را همیشه فعال نگه دارید<br>
@@ -1292,19 +1290,19 @@ function getHomePage(requestUrl) {
         <div class="info-box">
             <strong>Q: آیا با این DoH می‌توانم به سایت‌های فیلتر شده دسترسی داشته باشم؟</strong><br>
             A: بله، اگر سایت فقط با DNS فیلتر شده باشد. اگر از روش‌های دیگر (IP blocking, DPI) فیلتر شده، به VPN نیاز دارید.<br><br>
-            
+
             <strong>Q: ECH چیست و چگونه کمک می‌کند؟</strong><br>
             A: ECH یا Encrypted Client Hello تکنیکی است که SNI را رمزنگاری می‌کند و از فیلترینگ مبتنی بر SNI جلوگیری می‌کند. برای استفاده باید هم مرورگر و هم سرور از آن پشتیبانی کنند.<br><br>
-            
+
             <strong>Q: این DoH چه تفاوتی با 1.1.1.1 دارد؟</strong><br>
-            A: این DoH Proxy شخصی شماست که روی Cloudflare Worker اجرا می‌شود و تکنیک‌های ضد سانسور اضافی دارد. در نهایت از همان سرورهای DNS معتبر مثل Cloudflare استفاده می‌کند.<br><br>
-            
+            A: این DoH Proxy شخصی شماست که روی Cloudflare Pages اجرا می‌شود و تکنیک‌های ضد سانسور اضافی دارد. در نهایت از همان سرورهای DNS معتبر مثل Cloudflare استفاده می‌کند.<br><br>
+
             <strong>Q: آیا این سرویس رایگان است؟</strong><br>
-            A: بله، اگر در محدوده رایگان Cloudflare Workers باشید (100,000 request در روز) کاملاً رایگان است.<br><br>
-            
+            A: بله، Cloudflare Pages کاملاً رایگان است و محدودیت ترافیک ندارد.<br><br>
+
             <strong>Q: آیا این سرویس سرعت اینترنت من را کاهش می‌دهد؟</strong><br>
             A: خیر، بلکه ممکن است سرعت را بهبود بخشد چون از Cache هوشمند استفاده می‌کند و از سرورهای سریع DNS بهره می‌برد.<br><br>
-            
+
             <strong>Q: آیا کسی می‌تواند ببیند من از این سرویس استفاده می‌کنم؟</strong><br>
             A: درخواست‌های DNS شما رمزنگاری شده و ISP نمی‌تواند محتوای آن‌ها را ببیند. فقط می‌تواند ببیند که به سرور Cloudflare متصل هستید.
         </div>
@@ -1321,7 +1319,7 @@ function getHomePage(requestUrl) {
             const text = element.textContent;
             const btn = event.target;
             const originalHTML = btn.innerHTML;
-            
+
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => {
                     btn.classList.add('copied');
@@ -1337,7 +1335,7 @@ function getHomePage(requestUrl) {
                 fallbackCopy(text, btn, originalHTML);
             }
         }
-        
+
         function fallbackCopy(text, btn, originalHTML) {
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -1345,7 +1343,7 @@ function getHomePage(requestUrl) {
             textArea.style.left = '-999999px';
             document.body.appendChild(textArea);
             textArea.select();
-            
+
             try {
                 document.execCommand('copy');
                 btn.classList.add('copied');

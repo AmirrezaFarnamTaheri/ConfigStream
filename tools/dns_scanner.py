@@ -41,7 +41,7 @@ async def test_dns(ip: str, domain: str, timeout: float = 2.0) -> Tuple[str, boo
 
 async def scan_cidrs(cidrs: List[str], concurrency: int = 100, output_file: str = "dns_results.txt"):
     """Scan IPs generated from CIDRs."""
-    
+
     ips = []
     console.print(f"[cyan]Generating IPs from {len(cidrs)} CIDRs...[/cyan]")
     for cidr in cidrs:
@@ -58,13 +58,13 @@ async def scan_cidrs(cidrs: List[str], concurrency: int = 100, output_file: str 
     # Shuffle for better distribution
     rng = secrets.SystemRandom()
     rng.shuffle(ips)
-    
+
     total_ips = len(ips)
     console.print(f"[green]Starting scan on {total_ips} IPs with {concurrency} concurrency...[/green]")
-    
+
     sem = asyncio.Semaphore(concurrency)
     found_servers = []
-    
+
     async def worker(ip):
         async with sem:
             result = await test_dns(ip, "google.com")
@@ -79,19 +79,19 @@ async def scan_cidrs(cidrs: List[str], concurrency: int = 100, output_file: str 
         console=console
     ) as progress:
         task = progress.add_task("[cyan]Scanning...", total=total_ips)
-        
+
         # Chunking to avoid massive memory usage with gather
         chunk_size = 1000
         for i in range(0, total_ips, chunk_size):
             chunk = ips[i : i + chunk_size]
             coros = [worker(ip) for ip in chunk]
             results = await asyncio.gather(*coros)
-            
+
             for ip, success, lat in results:
                 if success:
                     found_servers.append((ip, lat))
                     # console.print(f"[green]Found: {ip} ({lat*1000:.0f}ms)[/green]")
-            
+
             progress.update(task, advance=len(chunk), description=f"[cyan]Scanning... Found: {len(found_servers)}")
 
     # Save results
@@ -101,22 +101,22 @@ async def scan_cidrs(cidrs: List[str], concurrency: int = 100, output_file: str 
         f.write(f"# Scanned: {total_ips} | Found: {len(found_servers)}\n")
         for ip, lat in found_servers:
             f.write(f"{ip}\t# {lat*1000:.0f}ms\n")
-    
+
     console.print(f"[bold green]Scan Complete! Found {len(found_servers)} servers. Saved to {output_file}[/bold green]")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         console.print("Usage: python3 dns_scanner.py <cidr_file_or_cidr> [concurrency]")
         sys.exit(1)
-        
+
     input_arg = sys.argv[1]
     concurrency = int(sys.argv[2]) if len(sys.argv) > 2 else 100
-    
+
     cidrs = []
     if Path(input_arg).exists():
         with open(input_arg, "r") as f:
             cidrs = [line.strip() for line in f if line.strip() and not line.startswith("#")]
     else:
         cidrs = [input_arg]
-        
+
     asyncio.run(scan_cidrs(cidrs, concurrency))

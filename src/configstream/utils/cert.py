@@ -22,11 +22,11 @@ def generate_self_signed_cert(cn: str = "configstream-local") -> Dict[str, str]:
     cert = crypto.X509()
     cert.get_subject().CN = cn
     cert.gmtime_adj_notBefore(0)
-    cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60) # 10 years
+    cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)  # 10 years
     cert.set_issuer(cert.get_subject())
     cert.set_pubkey(k)
     cert.sign(k, "sha512")
-    
+
     cert_pem = crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode("utf-8")
     key_pem = crypto.dump_privatekey(crypto.FILETYPE_PEM, k).decode("utf-8")
 

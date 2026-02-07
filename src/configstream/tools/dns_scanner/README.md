@@ -1,5 +1,5 @@
 # DNS Scanner
-This script scans Millions of IP addresses and generates a result file containing the IPs which are DNS 
+This script scans Millions of IP addresses and generates a result file containing the IPs which are DNS
 
 ## Bash
 
