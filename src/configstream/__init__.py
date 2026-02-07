@@ -80,7 +80,7 @@ def _patch_sniffio_for_asyncio() -> None:
             try:
                 asyncio.get_running_loop()
             except RuntimeError:
-                raise
+                raise sniffio.AsyncLibraryNotFoundError("No running event loop")
             return "asyncio"
 
     sniffio.current_async_library = _patched_async_library  # type: ignore[assignment]
