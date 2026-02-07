@@ -1,5 +1,0 @@
-{
-	"frontDomain": "speed.cloudflare.com/__down?bytes=1000",
-	"scanDomain": "speed.cloudflare.com/__down?bytes=",
-	"clientConfigUrl": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/ClientConfig.json"
-}
