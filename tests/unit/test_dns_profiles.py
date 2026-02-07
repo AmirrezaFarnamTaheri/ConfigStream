@@ -1,7 +1,7 @@
 import pytest
 from configstream.dns_profiles import (
-    build_singbox_dns_profile, 
-    build_clash_dns_profile, 
+    build_singbox_dns_profile,
+    build_clash_dns_profile,
     IRAN_INFRASTRUCTURE_DNS,
     CLOUDFLARE_OPTIMIZED_IPS
 )
@@ -18,18 +18,18 @@ def test_singbox_dns_profile_structure():
     profile = build_singbox_dns_profile()
     assert "servers" in profile
     assert "rules" in profile
-    
+
     # Check for new keys
     servers = {s.get("tag"): s for s in profile["servers"]}
     assert "local_local" in servers
     assert "hosts_dns" in servers
     assert "remote_dns" in servers
-    
+
     # Check predefined hosts
     hosts_server = servers["hosts_dns"]
     assert "predefined" in hosts_server
     assert "cloudflare-dns.com" in hosts_server["predefined"]
-    
+
     # Verify optimized IPs are used
     cf_ips = hosts_server["predefined"]["cloudflare-dns.com"]
     assert any(ip in CLOUDFLARE_OPTIMIZED_IPS for ip in cf_ips)

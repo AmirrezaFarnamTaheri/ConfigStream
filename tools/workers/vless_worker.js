@@ -7,7 +7,7 @@ import { connect } from "cloudflare:sockets";
 // [Windows] Press "Win + R", input cmd and run:  Powershell -NoExit -Command "[guid]::NewGuid()"
 let userID = "db7dfe45-b10c-457c-81d2-0c934f3b0100";
 
-const proxyIPs = ["\u0074\u0073\u002e\u0068\u0070\u0063\u002e\u0074\u0077"]; 
+const proxyIPs = ["\u0074\u0073\u002e\u0068\u0070\u0063\u002e\u0074\u0077"];
 const cn_hostnames = [''];
 let CDNIP = '\u0077\u0077\u0077\u002e\u0076\u0069\u0073\u0061\u002e\u0063\u006f\u006d\u002e\u0073\u0067'
 // http_ip
@@ -67,23 +67,23 @@ export default {
 					let lastColonIndex = proxyip.lastIndexOf(':');
 					proxyPort = proxyip.slice(lastColonIndex + 1);
 					proxyIP = proxyip.slice(0, lastColonIndex);
-					
+
 				} else if (!proxyip.includes(']:') && !proxyip.includes(']')) {
 					[proxyIP, proxyPort = '443'] = proxyip.split(':');
 				} else {
 					proxyPort = '443';
 					proxyIP = proxyip;
-				}				
+				}
 			} else {
 				if (proxyIP.includes(']:')) {
 					let lastColonIndex = proxyIP.lastIndexOf(':');
 					proxyPort = proxyIP.slice(lastColonIndex + 1);
-					proxyIP = proxyIP.slice(0, lastColonIndex);	
+					proxyIP = proxyIP.slice(0, lastColonIndex);
 				} else if (!proxyIP.includes(']:') && !proxyIP.includes(']')) {
 					[proxyIP, proxyPort = '443'] = proxyIP.split(':');
 				} else {
 					proxyPort = '443';
-				}	
+				}
 			}
 			console.log('ProxyIP:', proxyIP);
 			console.log('ProxyPort:', proxyPort);
@@ -228,13 +228,13 @@ export default {
 					if (proxyIP.includes(']:')) {
 						let lastColonIndex = proxyIP.lastIndexOf(':');
 						proxyPort = proxyIP.slice(lastColonIndex + 1);
-						proxyIP = proxyIP.slice(0, lastColonIndex);	
+						proxyIP = proxyIP.slice(0, lastColonIndex);
 					} else if (!proxyIP.includes(']:') && !proxyIP.includes(']')) {
 						[proxyIP, proxyPort = '443'] = proxyIP.split(':');
 					} else {
 						proxyPort = '443';
 					}
-				}	
+				}
 			}
         return await \u0076\u006c\u0065\u0073\u0073OverWSHandler(request);
 		}
@@ -759,7 +759,7 @@ function stringify(arr, offset = 0) {
   }
   return uuid;
 }
- 
+
 /**
  *
  * @param {import("@cloudflare/workers-types").WebSocket} webSocket
@@ -852,9 +852,9 @@ function get\u0076\u006c\u0065\u0073\u0073Config(userID, hostName) {
   const wk\u0076\u006c\u0065\u0073\u0073share = btoa(`\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP1}:${PT1}?encryption=none&security=none&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V1_${IP1}_${PT1}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP2}:${PT2}?encryption=none&security=none&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V2_${IP2}_${PT2}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP3}:${PT3}?encryption=none&security=none&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V3_${IP3}_${PT3}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP4}:${PT4}?encryption=none&security=none&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V4_${IP4}_${PT4}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP5}:${PT5}?encryption=none&security=none&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V5_${IP5}_${PT5}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP6}:${PT6}?encryption=none&security=none&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V6_${IP6}_${PT6}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP7}:${PT7}?encryption=none&security=none&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V7_${IP7}_${PT7}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP8}:${PT8}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V8_${IP8}_${PT8}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP9}:${PT9}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V9_${IP9}_${PT9}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP10}:${PT10}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V10_${IP10}_${PT10}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP11}:${PT11}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V11_${IP11}_${PT11}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP12}:${PT12}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V12_${IP12}_${PT12}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP13}:${PT13}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V13_${IP13}_${PT13}`);
 
 
-  const pg\u0076\u006c\u0065\u0073\u0073share = btoa(`\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP8}:${PT8}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V8_${IP8}_${PT8}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP9}:${PT9}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V9_${IP9}_${PT9}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP10}:${PT10}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V10_${IP10}_${PT10}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP11}:${PT11}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V11_${IP11}_${PT11}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP12}:${PT12}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V12_${IP12}_${PT12}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP13}:${PT13}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V13_${IP13}_${PT13}`);	
+  const pg\u0076\u006c\u0065\u0073\u0073share = btoa(`\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP8}:${PT8}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V8_${IP8}_${PT8}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP9}:${PT9}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V9_${IP9}_${PT9}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP10}:${PT10}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V10_${IP10}_${PT10}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP11}:${PT11}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V11_${IP11}_${PT11}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP12}:${PT12}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V12_${IP12}_${PT12}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP13}:${PT13}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V13_${IP13}_${PT13}`);
 
-	
+
   const noteshow = note.replace(/\n/g, '<br>');
   const displayHtml = `
 <head>
@@ -943,7 +943,7 @@ ${displayHtml}
 				<tbody>
 					<tr>
 						<td class="limited-width">TLS encryption has been enabled，<br>If the client supports the Fragment function, it is recommended to enable it to prevent domain blocking.</td>
-						<td class="limited-width">${p\u0076\u006c\u0065\u0073\u0073wstls}</td>	
+						<td class="limited-width">${p\u0076\u006c\u0065\u0073\u0073wstls}</td>
 						<td><button class="btn btn-primary" onclick="copyToClipboard('${p\u0076\u006c\u0065\u0073\u0073wstls}')">Click to copy link</button></td>
 					</tr>
 				</tbody>
@@ -962,7 +962,7 @@ ${displayHtml}
 			<hr>
 			<hr>
 			<hr>
-			<br>	
+			<br>
 			<br>
 			<h3>3：General Aggregation、Clash-meta、Sing-box subscription link is as follows：</h3>
 			<hr>
@@ -984,7 +984,7 @@ ${displayHtml}
 				</table>
 
 
-   
+
 			<table class="table">
 					<thead>
 						<tr>
@@ -993,11 +993,11 @@ ${displayHtml}
 					</thead>
 					<tbody>
 						<tr>
-							<td class="limited-width">${ty}</td>	
+							<td class="limited-width">${ty}</td>
 							<td><button class="btn btn-primary" onclick="copyToClipboard('${ty}')">Click to copy link</button></td>
 						</tr>
 					</tbody>
-				</table>	
+				</table>
 
 				<table class="table">
 						<thead>
@@ -1007,7 +1007,7 @@ ${displayHtml}
 						</thead>
 						<tbody>
 							<tr>
-								<td class="limited-width">${cl}</td>	
+								<td class="limited-width">${cl}</td>
 								<td><button class="btn btn-primary" onclick="copyToClipboard('${cl}')">Click to copy link</button></td>
 							</tr>
 						</tbody>
@@ -1021,7 +1021,7 @@ ${displayHtml}
 					</thead>
 					<tbody>
 						<tr>
-							<td class="limited-width">${sb}</td>	
+							<td class="limited-width">${sb}</td>
 							<td><button class="btn btn-primary" onclick="copyToClipboard('${sb}')">Click to copy link</button></td>
 						</tr>
 					</tbody>
@@ -1111,11 +1111,11 @@ ${displayHtml}
 					</thead>
 					<tbody>
 						<tr>
-							<td class="limited-width">${pty}</td>	
+							<td class="limited-width">${pty}</td>
 							<td><button class="btn btn-primary" onclick="copyToClipboard('${pty}')">Click to copy link</button></td>
 						</tr>
 					</tbody>
-				</table>	
+				</table>
 
 				<table class="table">
 						<thead>
@@ -1125,7 +1125,7 @@ ${displayHtml}
 						</thead>
 						<tbody>
 							<tr>
-								<td class="limited-width">${pcl}</td>	
+								<td class="limited-width">${pcl}</td>
 								<td><button class="btn btn-primary" onclick="copyToClipboard('${pcl}')">Click to copy link</button></td>
 							</tr>
 						</tbody>
@@ -1139,7 +1139,7 @@ ${displayHtml}
 					</thead>
 					<tbody>
 						<tr>
-							<td class="limited-width">${psb}</td>	
+							<td class="limited-width">${psb}</td>
 							<td><button class="btn btn-primary" onclick="copyToClipboard('${psb}')">Click to copy link</button></td>
 						</tr>
 					</tbody>
@@ -1173,7 +1173,7 @@ dns:
   ipv6: true
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
-  default-nameserver: 
+  default-nameserver:
     - 223.5.5.5
     - 114.114.114.114
     - 8.8.8.8
@@ -1431,7 +1431,7 @@ rules:
   - GEOIP,CN,DIRECT
   - MATCH,🌍Select proxy`
 }
-	
+
 function getsbConfig(userID, hostName) {
 return `{
 	  "log": {
@@ -1666,7 +1666,7 @@ return `{
 		  "type": "\u0076\u006c\u0065\u0073\u0073",
 		  "uuid": "${userID}"
 		},
-		{     
+		{
 		  "server": "${IP8}",
 		  "server_port": ${PT8},
 		  "tag": "CF_V8_${IP8}_${PT8}",
@@ -1930,10 +1930,10 @@ return `{
 }
 
 function getptyConfig(userID, hostName) {
-	const \u0076\u006c\u0065\u0073\u0073share = btoa(`\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP8}:${PT8}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V8_${IP8}_${PT8}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP9}:${PT9}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V9_${IP9}_${PT9}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP10}:${PT10}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V10_${IP10}_${PT10}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP11}:${PT11}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V11_${IP11}_${PT11}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP12}:${PT12}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V12_${IP12}_${PT12}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP13}:${PT13}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V13_${IP13}_${PT13}`);	
+	const \u0076\u006c\u0065\u0073\u0073share = btoa(`\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP8}:${PT8}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V8_${IP8}_${PT8}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP9}:${PT9}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V9_${IP9}_${PT9}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP10}:${PT10}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V10_${IP10}_${PT10}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP11}:${PT11}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V11_${IP11}_${PT11}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP12}:${PT12}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V12_${IP12}_${PT12}\n\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${IP13}:${PT13}?encryption=none&security=tls&sni=${hostName}&fp=randomized&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#CF_V13_${IP13}_${PT13}`);
 		return `${\u0076\u006c\u0065\u0073\u0073share}`
 	}
-	
+
 function getpclConfig(userID, hostName) {
 return `
 port: 7890
@@ -1948,7 +1948,7 @@ dns:
   ipv6: true
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
-  default-nameserver: 
+  default-nameserver:
     - 223.5.5.5
     - 114.114.114.114
     - 8.8.8.8
@@ -2093,7 +2093,7 @@ rules:
   - GEOIP,CN,DIRECT
   - MATCH,🌍Select proxy`
 }
-		
+
 function getpsbConfig(userID, hostName) {
 return `{
 		  "log": {
@@ -2456,4 +2456,4 @@ return `{
 			"detour": "direct"
 		  }
 		}`;
-} 
+}

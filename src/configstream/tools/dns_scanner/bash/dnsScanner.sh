@@ -12,13 +12,13 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 19/01/2026 15:36:57 PM
-#      CONTRIBUTORS: MortezaBashsiz 
+#      CONTRIBUTORS: MortezaBashsiz
 #===============================================================================
 
 export TOP_PID=$$
 
 # Function fncLongIntToStr
-# converts IP in long integer format to a string 
+# converts IP in long integer format to a string
 fncLongIntToStr() {
     local IFS=. num quad ip e
     num=$1
@@ -34,7 +34,7 @@ fncLongIntToStr() {
 # End of Function fncLongIntToStr
 
 # Function fncIpToLongInt
-# converts IP to long integer 
+# converts IP to long integer
 fncIpToLongInt() {
     local IFS=. ip num e
     # shellcheck disable=SC2206
@@ -100,7 +100,7 @@ fncSubnetToIP() {
     # Choose random IP addresses from generated IP list
     mapfile -t ipList < <(shuf -e "${ipList[@]}")
     mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
-    for i in "${ipList[@]}"; do 
+    for i in "${ipList[@]}"; do
       echo "$i"
     done
   elif [[ "$randomNumber" == "NULL" ]]
@@ -135,7 +135,7 @@ function fncShowProgress {
 
   barSize="$(($(tput cols)-70))" # 70 cols for description characters
 
-  # calculate the progress in percentage 
+  # calculate the progress in percentage
   percent=$(bc <<< "scale=$barPercentageScale; 100 * $current / $total" )
   # The number of done and todo characters
   done=$(bc <<< "scale=0; $barSize * $percent / 100" )
@@ -161,12 +161,12 @@ function fncCheckIPList {
   randomSubdomainFlagLocal="${6:-0}"
 
   # set proper command for linux
-  if command -v timeout >/dev/null 2>&1; 
+  if command -v timeout >/dev/null 2>&1;
   then
       timeoutCommand="timeout"
   else
     # set proper command for mac
-    if command -v gtimeout >/dev/null 2>&1; 
+    if command -v gtimeout >/dev/null 2>&1;
     then
         timeoutCommand="gtimeout"
     else
@@ -222,7 +222,7 @@ function fncCreateDir {
 # Function fncMainCFFindSubnet
 # main Function for Subnet
 function fncMainCFFindSubnet {
-  local threads progressBar resultFile subnetsFile breakedSubnets network netmask 
+  local threads progressBar resultFile subnetsFile breakedSubnets network netmask
   threads="${1}"
   progressBar="${2}"
   resultFile="${3}"
@@ -230,7 +230,7 @@ function fncMainCFFindSubnet {
   local dnsTypeLocal="${5:-TXT}"
   local randomSubdomainFlagLocal="${6:-0}"
 
-  if [[ "$subnetsFile" == "NULL" ]] 
+  if [[ "$subnetsFile" == "NULL" ]]
   then
     echo "Specify subnet file"
     exit 0
@@ -238,7 +238,7 @@ function fncMainCFFindSubnet {
     echo "Reading subnets from file $subnetsFile"
     dnsSubnetList=$(cat "$subnetsFile")
   fi
-  
+
   ipListLength="0"
   for subNet in ${dnsSubnetList}
   do

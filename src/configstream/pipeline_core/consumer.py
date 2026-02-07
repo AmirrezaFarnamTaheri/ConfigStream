@@ -4,6 +4,8 @@ import logging
 import inspect
 import os
 import time
+import hashlib
+from pathlib import Path
 import orjson as json
 from typing import List, Optional, Any, TYPE_CHECKING
 
@@ -152,6 +154,38 @@ async def processing_consumer(
         if not parsed_batch:
             work_queue.task_done()
             continue
+
+        # [FINGERPRINT] Save source fingerprint for similarity analysis
+        # Done in executor to avoid I/O blocking
+        def _save_fingerprint(batch, src_url):
+            try:
+                fingerprint_keys = []
+                for p in batch:
+                    k = proxy_unique_key(p)
+                    fingerprint_keys.append(k)
+
+                fingerprint_set = list(set(fingerprint_keys))
+
+                if fingerprint_set:
+                    src_hash = hashlib.md5(src_url.encode("utf-8", errors="ignore")).hexdigest()
+                    fp_dir = Path("data/fingerprints")
+                    fp_dir.mkdir(parents=True, exist_ok=True)
+                    fp_file = fp_dir / f"{src_hash}.json"
+
+                    fp_data = {
+                        "url": src_url,
+                        "proxies": fingerprint_set,
+                        "timestamp": int(time.time())
+                    }
+
+                    tmp_fp = fp_file.with_suffix(".tmp")
+                    with open(tmp_fp, "wb") as f:
+                        f.write(json.dumps(fp_data))
+                    tmp_fp.replace(fp_file)
+            except Exception:
+                pass
+
+        await loop.run_in_executor(None, _save_fingerprint, parsed_batch, source)
 
         unique_batch = []
         duplicates_count = 0
