@@ -894,8 +894,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function exportChartData(canvas, title) {
         try {
-            const ctx = canvas.getContext('2d');
-            const chartInstance = ctx && (canvas.__chart__ || canvas.chart || ctx.canvas.chart);
+            // [FIX] Use Chart.js 4.x API instead of deprecated internal properties
+            const chartInstance = (typeof Chart !== 'undefined' && Chart.getChart) ? Chart.getChart(canvas) : null;
             if (!chartInstance || !chartInstance.data) {
                 alert('Unable to export chart data. Chart instance not found.');
                 return;

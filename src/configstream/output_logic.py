@@ -246,11 +246,12 @@ def _filter_outbounds_for_dns_safe(
     for outbound in outbounds:
         if not isinstance(outbound, dict):
             continue
-        candidate = copy.deepcopy(outbound)
+        candidate: Dict[str, Any] = copy.deepcopy(outbound)
         if "server" in candidate:
-            candidate = _rewrite_outbound_for_dns_safe(candidate, host_map)
-            if candidate is None:
+            rewritten = _rewrite_outbound_for_dns_safe(candidate, host_map)
+            if rewritten is None:
                 continue
+            candidate = rewritten
         cleaned.append(candidate)
 
     changed = True
@@ -673,7 +674,8 @@ def generate_categorized_outputs(
     # Include all chain types:
     # 1. Proxy-level chains (from revived proxies)
     for p in proxies:
-        chain = p.details.get("chain_outbounds")
+        # [FIX] Guard against None details to prevent AttributeError
+        chain = (p.details or {}).get("chain_outbounds")
         if isinstance(chain, list) and chain:
             _append_chain(copy.deepcopy(chain))
 
@@ -724,8 +726,10 @@ def generate_categorized_outputs(
     
     # Revived chains from proxy details
     for p in proxies:
-        if p.details.get("is_revived") or (p.process or "").startswith("revived"):
-            chain = p.details.get("chain_outbounds")
+        # [FIX] Guard against None details to prevent AttributeError
+        _det = p.details or {}
+        if _det.get("is_revived") or (p.process or "").startswith("revived"):
+            chain = _det.get("chain_outbounds")
             if isinstance(chain, list) and chain:
                 revived_only_chains.extend(copy.deepcopy(chain))
     

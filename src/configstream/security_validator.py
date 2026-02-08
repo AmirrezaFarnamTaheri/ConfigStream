@@ -107,7 +107,7 @@ class SecurityValidator:
         """Sanitizes sensitive info like UUIDs or IPs from logs."""
         if not mask_patterns:
             return msg
-        # placeholder
+        # Mask UUIDs (common in VMess/VLESS configs)
         msg = re.sub(
             r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
             "[UUID]",

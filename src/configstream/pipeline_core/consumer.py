@@ -487,7 +487,8 @@ async def processing_consumer(
         for p in final_batch_for_this_source:
             if not p.is_working:
                 continue
-            if max_latency and (p.latency or 9999) > max_latency:
+            # [FIX] Use explicit None check; 0.0 latency is valid, not missing
+            if max_latency and (p.latency if p.latency is not None else 9999) > max_latency:
                 continue
             if not p.country_code:
                 with tracker.phase("geo"):

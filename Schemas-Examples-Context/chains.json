@@ -1,0 +1,236 @@
+{
+  "log": {
+    "level": "warn",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "address": "1.1.1.1",
+        "strategy": "prefer_ipv4",
+        "tag": "remote",
+        "detour": "proxy"
+      },
+      {
+        "address": "8.8.8.8",
+        "strategy": "prefer_ipv4",
+        "tag": "local",
+        "detour": "direct"
+      },
+      {
+        "address": "rcode://success",
+        "tag": "block"
+      },
+      {
+        "address": "8.8.8.8",
+        "tag": "local_local",
+        "detour": "direct"
+      }
+    ],
+    "rules": [
+      {
+        "server": "local_local",
+        "domain": [
+          "sing_box-ProxyChain"
+        ]
+      },
+      {
+        "server": "remote",
+        "clash_mode": "Global"
+      },
+      {
+        "server": "local_local",
+        "clash_mode": "Direct"
+      },
+      {
+        "server": "block",
+        "rule_set": [
+          "geosite-category-ads-all"
+        ]
+      },
+      {
+        "server": "local",
+        "domain_suffix": [
+          ".ir"
+        ],
+        "rule_set": [
+          "geosite-ir"
+        ]
+      }
+    ],
+    "final": "remote"
+  },
+  "inbounds": [
+    {
+      "type": "mixed",
+      "tag": "socks",
+      "listen": "127.0.0.1",
+      "listen_port": 10808
+    }
+  ],
+  "outbounds": [
+    {
+      "server": "213.156.137.142",
+      "server_port": 43661,
+      "method": "chacha20-ietf-poly1305",
+      "password": "cc27a3012d81a44c",
+      "type": "shadowsocks",
+      "tag": "proxy",
+      "detour": "proxy1"
+    },
+    {
+      "server": "5.188.4.103",
+      "server_port": 11205,
+      "method": "chacha20-ietf-poly1305",
+      "password": "a7c205642b302c20",
+      "type": "shadowsocks",
+      "tag": "proxy1",
+      "detour": "proxy2"
+    },
+    {
+      "server": "65.108.108.151",
+      "server_port": 443,
+      "uuid": "feaf1d64-b44c-4cc8-b114-4001478c1fd0",
+      "flow": "xtls-rprx-vision",
+      "packet_encoding": "xudp",
+      "type": "vless",
+      "tag": "proxy2",
+      "tls": {
+        "enabled": true,
+        "server_name": "fit.jojack.ru",
+        "insecure": false,
+        "utls": {
+          "enabled": true,
+          "fingerprint": "chrome"
+        },
+        "reality": {
+          "enabled": true,
+          "public_key": "u26A516I3BCfUMPOo6rw0-XYt0C2sCWaPNP2pNdtxzw",
+          "short_id": "f8865ecbb9bc11a3"
+        }
+      }
+    },
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ],
+  "endpoints": [],
+  "route": {
+    "default_domain_resolver": {
+      "server": "local_local",
+      "strategy": ""
+    },
+    "rules": [
+      {
+        "action": "sniff"
+      },
+      {
+        "protocol": [
+          "dns"
+        ],
+        "action": "hijack-dns"
+      },
+      {
+        "outbound": "direct",
+        "clash_mode": "Direct"
+      },
+      {
+        "outbound": "proxy",
+        "clash_mode": "Global"
+      },
+      {
+        "outbound": "direct",
+        "ip_cidr": [
+          "8.8.8.8"
+        ]
+      },
+      {
+        "network": [
+          "udp"
+        ],
+        "port": [
+          443
+        ],
+        "action": "reject"
+      },
+      {
+        "outbound": "direct",
+        "protocol": [
+          "bittorrent"
+        ]
+      },
+      {
+        "rule_set": [
+          "geosite-category-ads-all"
+        ],
+        "action": "reject"
+      },
+      {
+        "outbound": "direct",
+        "ip_is_private": true
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geosite-private"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geosite-ir"
+        ]
+      },
+      {
+        "outbound": "direct",
+        "rule_set": [
+          "geoip-ir"
+        ]
+      },
+      {
+        "outbound": "proxy",
+        "port_range": [
+          "0:65535"
+        ]
+      }
+    ],
+    "rule_set": [
+      {
+        "tag": "geosite-category-ads-all",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geosite-category-ads-all.srs"
+      },
+      {
+        "tag": "geosite-private",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geosite-private.srs"
+      },
+      {
+        "tag": "geosite-ir",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geosite-ir.srs"
+      },
+      {
+        "tag": "geoip-ir",
+        "type": "local",
+        "format": "binary",
+        "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\srss\\geoip-ir.srs"
+      }
+    ],
+    "final": "proxy"
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true,
+      "path": "C:\\Users\\Acer\\Downloads\\v2rayN-windows-64\\bin\\cache.db",
+      "store_fakeip": false
+    },
+    "clash_api": {
+      "external_controller": "127.0.0.1:10813"
+    }
+  }
+}

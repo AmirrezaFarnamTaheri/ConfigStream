@@ -16,11 +16,15 @@ RUN CGO_ENABLED=0 go build -ldflags="-s -w" -tags "with_quic,with_dhcp,with_wire
 FROM python:3.12-slim
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+# [FIX] Added tini for proper PID 1 signal handling and zombie reaping.
+# Without tini, the Python process runs as PID 1 and cannot properly
+# handle SIGTERM/SIGINT signals, causing unclean container shutdowns.
+RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     curl \
     wget \
     unzip \
+    tini \
     libmaxminddb0 \
     && rm -rf /var/lib/apt/lists/*
 
@@ -88,5 +92,6 @@ USER runner
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD [ -x "/usr/local/bin/configstream-tester" ] || exit 1
 
-# Entrypoint
-ENTRYPOINT ["python", "-m", "configstream.cli"]
+# [FIX] Use tini as entrypoint for proper PID 1 signal forwarding
+ENTRYPOINT ["tini", "--"]
+CMD ["python", "-m", "configstream.cli"]

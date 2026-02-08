@@ -97,6 +97,7 @@ VALID_PROTOCOLS = [
     "hysteria",
     "hysteria2",
     "hy2",
+    "husi",  # [FIX] Hysteria2/Sing-box URI scheme used in the wild
     "tuic",
     "wireguard",
     "wg",
@@ -116,6 +117,7 @@ VALID_PROTOCOLS = [
     "socks",
     "socks4",
     "socks5",
+    "anytls",
 ]
 
 # Security issue categories (standardized)

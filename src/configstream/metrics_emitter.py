@@ -19,7 +19,11 @@ class HostMetrics:
 
 
 class MetricsEmitter:
-    """Collects and emits performance metrics to a file."""
+    """Collects and emits performance metrics to a file.
+
+    [FIX] Changed from overwrite ('w') to append ('a') mode to preserve
+    metrics across batches. Added clear() to prevent memory leaks.
+    """
 
     def __init__(self, output_path: Path):
         self._output_path = output_path
@@ -31,6 +35,12 @@ class MetricsEmitter:
 
     def write_metrics(self) -> None:
         """Write the collected metrics to the output file in JSONL format."""
-        with self._output_path.open("w") as f:
+        if not self._metrics:
+            return
+        self._output_path.parent.mkdir(parents=True, exist_ok=True)
+        # [FIX] Append mode preserves data from previous batches
+        with self._output_path.open("a") as f:
             for metric in self._metrics:
                 f.write(json.dumps(asdict(metric)) + "\n")
+        # [FIX] Clear buffer after writing to prevent memory leak
+        self._metrics.clear()

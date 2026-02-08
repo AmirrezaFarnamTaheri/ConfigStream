@@ -34,8 +34,9 @@ def normalize_proxy_details(proxy: Proxy) -> None:
     if proxy.protocol == "shadowsocks" and "plugin" in proxy.details:
         plugin_str = proxy.details.get("plugin", "")
         if isinstance(plugin_str, str):
+            # [FIX] Use split("=", 1) to handle values containing "=" characters
             plugin_opts = dict(
-                item.split("=") for item in plugin_str.split(";") if "=" in item
+                item.split("=", 1) for item in plugin_str.split(";") if "=" in item
             )
             if "obfs-host" in plugin_opts:
                 proxy.details.setdefault("sni", plugin_opts["obfs-host"])

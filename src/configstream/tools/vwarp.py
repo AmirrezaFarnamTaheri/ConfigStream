@@ -394,13 +394,14 @@ class VwarpTool:
         if not env_dns and is_ci:
             env_dns = "1.1.1.1"
 
+        # [FIX] Don't force config generation just because CI is true.
+        # The test_url field is NOT supported by Vwarp v2.1.0 in the config file,
+        # causing "parse config file: test_url: unknown flag" errors.
         needs_config = bool(
             env_force_config
             or env_json
             or env_dns
-            or env_test_url
             or env_endpoint
-            or is_ci
         )
         if not needs_config:
             return None, []
@@ -422,15 +423,26 @@ class VwarpTool:
             vwarp_config["endpoint"] = env_endpoint
         if env_dns:
             vwarp_config["dns"] = env_dns
+        # [FIX] Do NOT inject test_url into config file - Vwarp v2.1.0 rejects it.
+        # Instead, pass it as a CLI flag if the binary supports --test-url.
+        extra_flags: List[str] = []
         if env_test_url:
-            vwarp_config["test_url"] = env_test_url
+            help_text = await self._get_help_text()
+            if "--test-url" in help_text:
+                extra_flags.append(f"--test-url={env_test_url}")
+            else:
+                logger.debug(
+                    "Vwarp binary does not support --test-url CLI flag; "
+                    "skipping test_url configuration."
+                )
 
         if used_ci_defaults:
             self._log_config("CI default", vwarp_config)
-        elif env_json or env_force_config or env_dns or env_test_url or env_endpoint:
+        elif env_json or env_force_config or env_dns or env_endpoint:
             self._log_config("env-derived", vwarp_config)
 
-        return self._write_temp_config(vwarp_config)
+        path_result, config_extra = self._write_temp_config(vwarp_config)
+        return path_result, config_extra + extra_flags
 
     @staticmethod
     def _config_extra_flags(config: Dict[str, Any]) -> List[str]:
@@ -643,22 +655,22 @@ class VwarpTool:
         if success:
             return True
 
-        # Fallback: force a config with IP-based test URL and DNS
+        # Fallback: force a minimal config (no test_url which causes parse errors)
         fallback_enabled = os.environ.get("VWARP_RETRY_FALLBACK", "").lower() not in (
             "0",
             "false",
             "no",
         )
         reason = self._last_failure_reason or "unknown"
-        if fallback_enabled and reason in ("connectivity", "dns"):
+        if fallback_enabled and reason in ("connectivity", "dns", "config"):
             logger.info(f"Vwarp fallback retry triggered (reason={reason}).")
+            # [FIX] Minimal config without test_url to avoid config parse errors
             fallback_cfg = {
                 "version": "1.0",
                 "bind": f"{bind_addr}:{port}",
-                "test_url": "http://1.1.1.1/cdn-cgi/trace",
                 "dns": "1.1.1.1",
             }
-            return await attempt("ip-test-url", fallback_cfg)
+            return await attempt("minimal-dns-only", fallback_cfg)
 
         if fallback_enabled:
             logger.info(f"Vwarp fallback skipped (reason={reason}).")
@@ -827,7 +839,16 @@ class VwarpTool:
         if not text:
             return "unknown"
         lower = text.lower()
-        patterns = (
+        # [FIX] Detect config parse errors specifically
+        config_patterns = (
+            "parse config file",
+            "unknown flag",
+            "invalid config",
+            "unmarshal",
+        )
+        if any(pat in lower for pat in config_patterns):
+            return "config"
+        connectivity_patterns = (
             "connectivity test failed",
             "cdn-cgi/trace",
             "dial: lookup",
@@ -841,7 +862,7 @@ class VwarpTool:
             "tls handshake timeout",
             "connection refused",
         )
-        if any(pat in lower for pat in patterns):
+        if any(pat in lower for pat in connectivity_patterns):
             if "lookup" in lower or "name resolution" in lower:
                 return "dns"
             return "connectivity"

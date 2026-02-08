@@ -1,6 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 from configstream.models import Proxy
-from configstream.converters.singbox import to_singbox_outbound
+from configstream.converters.singbox import (
+    to_singbox_outbound,
+    VALID_SS_METHODS,
+    VALID_VLESS_FLOWS,
+    _sanitize_ss_method,
+    _sanitize_vless_flow,
+)
 
 
 def test_singbox_vless_missing_uuid():
@@ -78,3 +84,151 @@ def test_singbox_wireguard_unique_ip():
     assert out3 is not None
     # Same private key should produce same IP (collision prevention)
     assert out1["local_address"][0] == out3["local_address"][0]
+
+
+# --- New tests for schema alignment fixes ---
+
+def test_ss_method_whitelist_schema_compliance():
+    """Verify VALID_SS_METHODS matches sing-box schema."""
+    # These must be in the whitelist (per sing-box schema)
+    assert "aes-128-gcm" in VALID_SS_METHODS
+    assert "aes-256-gcm" in VALID_SS_METHODS
+    assert "chacha20-ietf-poly1305" in VALID_SS_METHODS
+    assert "xchacha20-ietf-poly1305" in VALID_SS_METHODS
+    assert "2022-blake3-aes-128-gcm" in VALID_SS_METHODS
+    assert "2022-blake3-aes-256-gcm" in VALID_SS_METHODS
+    assert "2022-blake3-chacha20-poly1305" in VALID_SS_METHODS
+    assert "xchacha20" in VALID_SS_METHODS
+    assert "none" in VALID_SS_METHODS
+    # These must NOT be in the whitelist (not in sing-box schema)
+    assert "chacha20" not in VALID_SS_METHODS
+    assert "plain" not in VALID_SS_METHODS
+
+
+def test_ss_method_alias_mapping():
+    """Test that removed methods map to valid aliases."""
+    # "plain" -> "none"
+    assert _sanitize_ss_method("plain") == "none"
+    # "chacha20" -> "chacha20-ietf"
+    assert _sanitize_ss_method("chacha20") == "chacha20-ietf"
+    # "auto" -> "chacha20-ietf-poly1305"
+    assert _sanitize_ss_method("auto") == "chacha20-ietf-poly1305"
+    # Garbage should return None
+    assert _sanitize_ss_method("un;k") is None
+    assert _sanitize_ss_method("}k") is None
+
+
+def test_vless_flow_schema_compliance():
+    """Verify VALID_VLESS_FLOWS matches sing-box schema."""
+    assert "" in VALID_VLESS_FLOWS
+    assert "xtls-rprx-vision" in VALID_VLESS_FLOWS
+    # Removed: not in sing-box schema
+    assert "xtls-rprx-vision-udp443" not in VALID_VLESS_FLOWS
+
+
+def test_vless_flow_sanitization():
+    """Test that invalid/deprecated flows are stripped."""
+    assert _sanitize_vless_flow("xtls-rprx-vision") == "xtls-rprx-vision"
+    assert _sanitize_vless_flow("") == ""
+    assert _sanitize_vless_flow(None) == ""
+    # Deprecated flows should be stripped to ""
+    assert _sanitize_vless_flow("xtls-rprx-direct") == ""
+    assert _sanitize_vless_flow("xtls-rprx-splice") == ""
+    # Unknown flows should be stripped to ""
+    assert _sanitize_vless_flow("xtls-rprx-vision-udp443") == ""
+
+
+def test_httpupgrade_transport():
+    """Test httpupgrade transport support (per sing-box schema)."""
+    proxy = Proxy(
+        config="vless://uuid@example.com:443",
+        protocol="vless",
+        address="example.com",
+        port=443,
+        uuid="test-uuid-1234",
+        details={"net": "httpupgrade", "path": "/upgrade", "host": "cdn.example.com", "tls": "tls"},
+    )
+    out = to_singbox_outbound(proxy)
+    assert out is not None
+    assert out["transport"]["type"] == "httpupgrade"
+    assert out["transport"]["path"] == "/upgrade"
+    assert out["transport"]["host"] == "cdn.example.com"
+
+
+def test_vless_packet_encoding():
+    """Test that VLESS gets default packet_encoding=xudp."""
+    proxy = Proxy(
+        config="vless://uuid@example.com:443",
+        protocol="vless",
+        address="example.com",
+        port=443,
+        uuid="test-uuid-1234",
+        details={"tls": "tls"},
+    )
+    out = to_singbox_outbound(proxy)
+    assert out is not None
+    assert out.get("packet_encoding") == "xudp"
+
+
+def test_tuic_udp_relay_mode():
+    """Test TUIC udp_relay_mode per sing-box schema."""
+    proxy = Proxy(
+        config="tuic://example.com:443",
+        protocol="tuic",
+        address="example.com",
+        port=443,
+        uuid="test-uuid",
+        details={"password": "pass", "udp_relay_mode": "native", "sni": "example.com"},
+    )
+    out = to_singbox_outbound(proxy)
+    assert out is not None
+    assert out["udp_relay_mode"] == "native"
+
+
+def test_socks4a_support():
+    """Test socks4a version support per sing-box schema."""
+    proxy = Proxy(
+        config="socks4a://example.com:1080",
+        protocol="socks4a",
+        address="example.com",
+        port=1080,
+    )
+    out = to_singbox_outbound(proxy)
+    assert out is not None
+    assert out["version"] == "4a"
+
+
+def test_ssh_host_key_as_array():
+    """Test that SSH host_key is emitted as array per sing-box schema."""
+    proxy = Proxy(
+        config="ssh://user@example.com:22",
+        protocol="ssh",
+        address="example.com",
+        port=22,
+        uuid="root",
+        details={"password": "pass", "host_key": "ssh-rsa AAAA..."},
+    )
+    out = to_singbox_outbound(proxy)
+    assert out is not None
+    assert isinstance(out["host_key"], list)
+    assert len(out["host_key"]) == 1
+
+
+def test_wireguard_pre_shared_key():
+    """Test WireGuard pre_shared_key support per sing-box schema."""
+    proxy = Proxy(
+        config="wireguard://example.com:51820",
+        protocol="wireguard",
+        address="example.com",
+        port=51820,
+        details={
+            "private_key": "private_key_1",
+            "peer_public_key": "pub",
+            "pre_shared_key": "psk_key_value",
+            "mtu": "1400",
+        },
+    )
+    out = to_singbox_outbound(proxy)
+    assert out is not None
+    assert out["pre_shared_key"] == "psk_key_value"
+    assert out["mtu"] == 1400

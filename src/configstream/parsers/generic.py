@@ -143,7 +143,7 @@ def parse_generic_url_scheme(config: str) -> Optional[Proxy]:
         if not (1 <= port <= 65535):
             return None
 
-        details: dict[str, object] = {"password": parsed.password or ""}
+        details: Dict[str, Any] = {"password": parsed.password or ""}
         if tls:
             details["tls"] = True
 
@@ -176,7 +176,7 @@ def parse_naive(config: str) -> Optional[Proxy]:
             return None
         scheme = parsed.scheme.lower()
         tls = scheme == "https"
-        details: dict[str, object] = {"password": parsed.password or ""}
+        details: Dict[str, Any] = {"password": parsed.password or ""}
         if tls:
             details["tls"] = True
         proxy = Proxy(

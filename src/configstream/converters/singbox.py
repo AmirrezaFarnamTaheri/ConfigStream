@@ -3,7 +3,8 @@ import logging
 import hashlib
 import base64
 import ipaddress
-from typing import Any, Dict, Optional
+import re
+from typing import Any, Dict, Optional, Set
 from ..models import Proxy
 from ..security_validator import SecurityValidator
 from .singbox_utils import add_transport_sb, apply_stealth_profile
@@ -11,6 +12,139 @@ from ..utils.bool_parser import parse_bool, parse_tls_flag
 from ..tagging import get_flag_emoji
 
 logger = logging.getLogger(__name__)
+
+# --- Strict Whitelists (Sing-box compatible ciphers) ---
+# Official Sing-box supported Shadowsocks methods
+VALID_SS_METHODS: Set[str] = {
+    # AEAD ciphers
+    "aes-128-gcm",
+    "aes-192-gcm",
+    "aes-256-gcm",
+    "chacha20-ietf-poly1305",
+    "xchacha20-ietf-poly1305",
+    # AEAD 2022 ciphers
+    "2022-blake3-aes-128-gcm",
+    "2022-blake3-aes-256-gcm",
+    "2022-blake3-chacha20-poly1305",
+    # Legacy ciphers (still accepted by some builds)
+    "aes-128-ctr",
+    "aes-192-ctr",
+    "aes-256-ctr",
+    "aes-128-cfb",
+    "aes-192-cfb",
+    "aes-256-cfb",
+    "rc4-md5",
+    "chacha20-ietf",
+    "xchacha20",
+    "none",
+    # [FIX] Removed "chacha20" (not in sing-box schema; use "chacha20-ietf" instead)
+    # [FIX] Removed "plain" (sing-box uses "none" for no encryption)
+}
+
+# Valid VLESS flow values supported by Sing-box
+# [FIX] Removed "xtls-rprx-vision-udp443" - NOT in the sing-box schema.
+# The schema only permits "" and "xtls-rprx-vision". Sending the udp443
+# variant causes sing-box to reject the outbound config entirely.
+VALID_VLESS_FLOWS: Set[str] = {
+    "",
+    "xtls-rprx-vision",
+}
+
+# Regex to detect garbage/binary characters in method fields
+_GARBAGE_PATTERN = re.compile(r"[^a-z0-9\-_]")
+
+# Hostnames that should never be treated as real proxies
+_LOCAL_HOSTNAMES: Set[str] = {
+    "localhost",
+    "localhost.localdomain",
+    "ip6-localhost",
+    "ip6-loopback",
+}
+
+
+def _sanitize_ss_method(method: str, default: str = "chacha20-ietf-poly1305") -> Optional[str]:
+    """
+    Validate and sanitize a Shadowsocks encryption method.
+    Returns the cleaned method if valid, or None if the proxy should be dropped.
+    """
+    if not method or not isinstance(method, str):
+        return default
+
+    cleaned = method.lower().strip()
+
+    # Reject garbage characters immediately (e.g., 'un;k', '}k')
+    if _GARBAGE_PATTERN.search(cleaned):
+        logger.warning(
+            "Dropping proxy with garbage Shadowsocks method: %s",
+            SecurityValidator.sanitize_log_message(repr(cleaned[:30])),
+        )
+        return None
+
+    if cleaned in VALID_SS_METHODS:
+        return cleaned
+
+    # Common aliases
+    # [FIX] Added "plain" -> "none" and "chacha20" -> "chacha20-ietf" per sing-box schema
+    alias_map = {
+        "chacha20-poly1305": "chacha20-ietf-poly1305",
+        "aes-128-gcm-siv": "aes-128-gcm",
+        "auto": "chacha20-ietf-poly1305",
+        "plain": "none",
+        "chacha20": "chacha20-ietf",
+    }
+    if cleaned in alias_map:
+        return alias_map[cleaned]
+
+    logger.warning(
+        "Dropping proxy with unknown Shadowsocks method: %s",
+        SecurityValidator.sanitize_log_message(repr(cleaned[:30])),
+    )
+    return None
+
+
+def _sanitize_vless_flow(flow: Optional[str]) -> Optional[str]:
+    """
+    Validate and sanitize a VLESS flow value.
+    Returns the cleaned flow, empty string if no flow, or None to drop the proxy.
+    """
+    if not flow or not isinstance(flow, str):
+        return ""
+
+    cleaned = flow.strip().lower()
+
+    if cleaned in VALID_VLESS_FLOWS:
+        return cleaned
+
+    # Unsupported legacy flows - drop or strip
+    deprecated_flows = {
+        "xtls-rprx-direct",
+        "xtls-rprx-direct-udp443",
+        "xtls-rprx-splice",
+        "xtls-rprx-splice-udp443",
+        "xtls-rprx-origin",
+    }
+    if cleaned in deprecated_flows:
+        logger.debug(
+            "Stripping deprecated VLESS flow '%s' (unsupported by Sing-box)", cleaned
+        )
+        return ""
+
+    # Unknown flow - strip it rather than crash the tester
+    logger.debug(
+        "Stripping unknown VLESS flow '%s'",
+        SecurityValidator.sanitize_log_message(repr(cleaned[:30])),
+    )
+    return ""
+
+
+def _is_local_hostname(address: str) -> bool:
+    """Check if the address is a local/loopback hostname."""
+    addr_lower = address.lower().strip()
+    if addr_lower in _LOCAL_HOSTNAMES:
+        return True
+    if addr_lower.endswith(".local"):
+        return True
+    return False
 
 
 def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
@@ -48,7 +182,10 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         )
         return None
 
-    # [FIX] Silently drop loopback/private IPs to reduce log noise from local proxies
+    # [FIX] Drop loopback/private IPs AND local hostnames
+    if _is_local_hostname(proxy.address):
+        logger.debug(f"Dropped local hostname proxy: {proxy.address}:{proxy.port}")
+        return None
     try:
         ip = ipaddress.ip_address(proxy.address)
         if ip.is_loopback or ip.is_private:
@@ -112,7 +249,8 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "uuid": str(uuid),
             "security": "auto",
-            "alter_id": 0,
+            # [FIX] Read alter_id from parsed details instead of hardcoding 0
+            "alter_id": int(proxy.details.get("aid", 0)),
         }
         if not add_transport_sb(out, proxy.details):
             return None
@@ -130,11 +268,16 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             **base,
             "uuid": str(uuid),
         }
-        flow_val = proxy.details.get("flow")
-        if isinstance(flow_val, str):
-            flow_val = flow_val.strip()
-        if flow_val:
-            out["flow"] = str(flow_val)
+        # [FIX] Validate VLESS flow against supported values
+        raw_flow = proxy.details.get("flow")
+        sanitized_flow = _sanitize_vless_flow(raw_flow)
+        if sanitized_flow is None:
+            logger.warning(
+                f"Dropping VLESS proxy with invalid flow: {proxy.address}:{proxy.port}"
+            )
+            return None
+        if sanitized_flow:
+            out["flow"] = sanitized_flow
         if not add_transport_sb(out, proxy.details):
             return None
 
@@ -151,7 +294,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         else:
             default_method = "chacha20-ietf-poly1305"
 
-        method = str(proxy.details.get("method", default_method)).lower().strip()
+        raw_method = str(proxy.details.get("method", default_method))
+        # [FIX] Strict whitelist validation for SS methods - prevents garbage like 'un;k'
+        method = _sanitize_ss_method(raw_method, default=default_method)
+        if method is None:
+            # Proxy has garbage method - drop it entirely to prevent tester crash
+            return None
 
         out = {
             "type": "shadowsocks",
@@ -222,7 +370,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         if "private_key" in proxy.details:
             out["private_key"] = str(proxy.details["private_key"])
         if "host_key" in proxy.details:
-            out["host_key"] = str(proxy.details["host_key"])
+            # [FIX] host_key must be an array per sing-box schema, not a string
+            hk = proxy.details["host_key"]
+            if isinstance(hk, list):
+                out["host_key"] = hk
+            elif isinstance(hk, str) and hk:
+                out["host_key"] = [hk]
 
     elif protocol == "hysteria":
         up_mbps = proxy.details.get("up_mbps") or proxy.details.get("up", 100)
@@ -230,10 +383,21 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
         out = {
             "type": "hysteria",
             **base,
-            "auth_str": str(proxy.details.get("auth_str", "")),
             "up_mbps": int(up_mbps) if str(up_mbps).isdigit() else 100,
             "down_mbps": int(down_mbps) if str(down_mbps).isdigit() else 100,
         }
+        # [FIX] Support both auth (base64) and auth_str (plaintext) per schema
+        auth_str = proxy.details.get("auth_str") or proxy.details.get("auth-str")
+        auth = proxy.details.get("auth")
+        if auth_str:
+            out["auth_str"] = str(auth_str)
+        elif auth:
+            out["auth"] = str(auth)
+        # [FIX] Support obfs field per schema (string obfuscation password)
+        obfs = proxy.details.get("obfs")
+        if obfs and str(obfs).lower() not in ("none", ""):
+            out["obfs"] = str(obfs)
+
         is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
             proxy.details.get("skip_cert_verify")
         )
@@ -252,11 +416,12 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "version": "5",
         }
 
-    elif protocol == "socks4":
+    elif protocol in ("socks4", "socks4a"):
+        # [FIX] Support socks4a per sing-box schema (versions "4", "4a", "5")
         out = {
             "type": "socks",
             **base,
-            "version": "4",
+            "version": "4a" if protocol == "socks4a" else "4",
         }
 
     elif protocol == "naive":
@@ -365,6 +530,14 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 isinstance(x, int) for x in reserved_val
             ):
                 out["reserved"] = reserved_val
+        # [FIX] Support pre_shared_key per sing-box schema
+        psk = proxy.details.get("pre_shared_key") or proxy.details.get("presharedKey")
+        if psk and isinstance(psk, str) and psk.strip():
+            out["pre_shared_key"] = psk.strip()
+        # [FIX] Support mtu per sing-box schema (default 1408)
+        mtu = proxy.details.get("mtu")
+        if mtu and str(mtu).isdigit() and 1280 <= int(mtu) <= 1500:
+            out["mtu"] = int(mtu)
 
     elif protocol == "hysteria2":
         out = {
@@ -402,9 +575,18 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             "uuid": str(uuid),
             "password": str(proxy.details.get("password", "")),
             "congestion_control": str(
-                proxy.details.get("congestion_controller", "bbr")
+                proxy.details.get("congestion_controller")
+                or proxy.details.get("congestion_control", "bbr")
             ),
         }
+        # [FIX] Add udp_relay_mode per sing-box schema (native/quic)
+        udp_relay = proxy.details.get("udp_relay_mode") or proxy.details.get("udpRelayMode")
+        if udp_relay and str(udp_relay).lower() in ("native", "quic"):
+            out["udp_relay_mode"] = str(udp_relay).lower()
+        # [FIX] Add udp_over_stream if specified
+        if parse_bool(proxy.details.get("udp_over_stream")):
+            out["udp_over_stream"] = True
+
         is_insecure = parse_bool(proxy.details.get("allowInsecure")) or parse_bool(
             proxy.details.get("skip_cert_verify")
         )

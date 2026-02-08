@@ -391,6 +391,28 @@ async def run_full_pipeline(
 
         # 5. Final Cleanup & Output
 
+        # [FIX] Fail-closed on 0 working proxies to prevent empty output distribution
+        if stats.tested > 0 and stats.working == 0:
+            logger.critical(
+                f"FATAL: All {stats.tested} proxy tests failed across all sources! "
+                "This indicates a systemic testing failure (tester crash, config error, "
+                "or network issue). Pipeline will NOT produce empty outputs."
+            )
+            # In CI, this should fail the job. Locally, allow override.
+            fail_on_zero = os.environ.get("FAIL_ON_ZERO_WORKING", "").lower()
+            if fail_on_zero in ("0", "false", "no"):
+                logger.warning(
+                    "FAIL_ON_ZERO_WORKING=false: Continuing despite 0 working proxies."
+                )
+            else:
+                stats.end_time = datetime.now(timezone.utc)
+                stats.duration = float(
+                    (stats.end_time - start_time).total_seconds()
+                )
+                return PipelineResult(
+                    success=False, stats=stats, output_files={}
+                )
+
         # Deduplicate configs first, then drop duplicate tags/remarks, then endpoints (IP:Port).
         optimized_proxies = dedupe_and_shuffle(final_proxies)
         optimized_proxies = dedupe_by_config(optimized_proxies)
@@ -452,7 +474,7 @@ async def run_full_pipeline(
             async with httpx.AsyncClient(timeout=1.0) as client:
                 await client.post(
                     "http://127.0.0.1:8000/api/admin/notify-update",
-                    json={"timestamp": stats.end_time or duration},
+                    json={"timestamp": stats.end_time.isoformat() if stats.end_time else duration},
                 )
         except (httpx.TimeoutException, httpx.ConnectError) as e:
             # Server not running or unreachable - expected in standalone mode

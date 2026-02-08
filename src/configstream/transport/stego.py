@@ -104,7 +104,10 @@ def generate_stego_assets(
     if secret_key:
         try:
             key = secret_key.encode()
+            # [FIX] Validate the key is a valid Fernet key before using it
+            Fernet(key)
         except Exception:
+            logger.warning("Invalid STEGO_KEY provided, generating ephemeral key.")
             key = Fernet.generate_key()
     else:
         key = Fernet.generate_key()

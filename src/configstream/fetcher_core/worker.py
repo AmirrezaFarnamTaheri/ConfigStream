@@ -51,13 +51,13 @@ async def fetch_single_source(
             content_len_header = response.headers.get("Content-Length")
             if enforce_limit and content_len_header:
                 try:
-                    if int(content_len_header) > max_response_size:
-                        raise ValueError(
-                            f"Response too large (header): {content_len_header} bytes"
-                        )
-                except ValueError:
-                    # If header is malformed, ignore and rely on streamed size checks.
-                    pass
+                    cl_size = int(content_len_header)
+                except (TypeError, ValueError):
+                    cl_size = None  # Malformed header, rely on streamed size checks
+                if cl_size is not None and cl_size > max_response_size:
+                    raise ValueError(
+                        f"Response too large (header): {content_len_header} bytes"
+                    )
 
             # Stream Content (Binary)
             content_parts = []

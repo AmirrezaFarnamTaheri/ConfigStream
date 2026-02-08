@@ -795,14 +795,13 @@ class GoBatchTester:
             if not chain_id or not outbounds:
                 continue
 
-            # FIX: Send as proper JSON array string
-            raw_json = json.dumps(outbounds)
-            if isinstance(raw_json, bytes):
-                config_str = raw_json.decode()
-            else:
-                config_str = raw_json
+            # [FIX] Check for empty list before serialization to avoid waste
             if isinstance(outbounds, list) and not outbounds:
                 continue
+
+            # Send as proper JSON array string
+            raw_json = json.dumps(outbounds)
+            config_str = raw_json if isinstance(raw_json, str) else raw_json.decode()
 
             # Unique request ID (Full UUID)
             req_id = f"{chain_id}-{uuid.uuid4().hex}"
@@ -826,7 +825,7 @@ class GoBatchTester:
         if not inputs:
             return {}
 
-        # Send
+        # [FIX] Send with lock-protected process access to prevent NoneType.stdin race
         try:
             lines = []
             for i in inputs:
@@ -837,8 +836,15 @@ class GoBatchTester:
                     lines.append(dumped)
 
             payload_str = "\n".join(lines) + "\n"
-            self._proc.stdin.write(payload_str.encode())
-            await self._proc.stdin.drain()
+            # [FIX] Capture proc reference under lock to prevent race with close()
+            async with self._lock:
+                proc = self._proc
+                if proc is None or proc.stdin is None:
+                    logger.error("Go Tester process is dead, cannot send custom configs.")
+                    await self._cleanup_pending(list(reverse_map.keys()), futures)
+                    return {}
+                proc.stdin.write(payload_str.encode())
+                await proc.stdin.drain()
         except asyncio.CancelledError:
             await self._cleanup_pending(list(reverse_map.keys()), futures)
             raise

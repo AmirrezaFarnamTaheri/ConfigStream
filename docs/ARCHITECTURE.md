@@ -24,7 +24,7 @@ This document provides a comprehensive overview of ConfigStream's architecture, 
 
 ## System Overview
 
-ConfigStream is an automated VPN configuration aggregator that collects, tests, and publishes working proxy configurations from free public sources. The system operates on a scheduled basis (every 6 hours) via GitHub Actions.
+ConfigStream is an automated VPN configuration aggregator that collects, tests, and publishes working proxy configurations from free public sources. The system operates on a scheduled basis (every 5 hours) via GitHub Actions.
 
 ### Key Characteristics
 
@@ -43,7 +43,7 @@ ConfigStream is an automated VPN configuration aggregator that collects, tests, 
 ┌─────────────────────────────────────────────────────────────────┐
 │                        GITHUB ACTIONS                            │
 │  ┌────────────────────────────────────────────────────────────┐ │
-│  │  Scheduler (Every 3 Hours)                                 │ │
+│  │  Scheduler (Every 5 Hours)                                 │ │
 │  └────────────────┬───────────────────────────────────────────┘ │
 └───────────────────┼──────────────────────────────────────────────┘
                     │
@@ -792,7 +792,7 @@ User Request
 │  └────────────────────────────────────────────────────┘  │
 │                          │                               │
 │  ┌───────────────────────▼────────────────────────────┐  │
-│  │  Job: Process (Matrix: batch 1-14)                 │  │
+│  │  Job: Process (Matrix: batch 1-15)                 │  │
 │  │  • Run pipeline for batch_N.txt                   │  │
 │  │  • Test proxies (parallel)                        │  │
 │  │  • Upload shard artifact                          │  │
@@ -831,7 +831,7 @@ User Request
 ```yaml
 strategy:
   matrix:
-    batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+    batch: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 ```
 
 **Benefits**:
@@ -1141,7 +1141,7 @@ async def continuous_pipeline():
 
 ## Conclusion
 
-ConfigStream's architecture balances **simplicity**, **performance**, and **reliability**. The producer-consumer pipeline, async/await concurrency, and zero-cost deployment strategy enable processing thousands of proxies every 6 hours with minimal infrastructure.
+ConfigStream's architecture balances **simplicity**, **performance**, and **reliability**. The producer-consumer pipeline, async/await concurrency, and zero-cost deployment strategy enable processing thousands of proxies every 5 hours with minimal infrastructure.
 
 Key architectural decisions:
 - ✅ **Async/Await**: 50× better concurrency than threads
@@ -1153,6 +1153,6 @@ Key architectural decisions:
 
 ---
 
-**Last Updated**: 2025-12-23
-**Version**: 2.0.12
+**Last Updated**: 2026-02-08
+**Version**: 2.2.0
 **Author**: ConfigStream Team

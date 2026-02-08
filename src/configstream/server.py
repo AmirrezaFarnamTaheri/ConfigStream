@@ -4,6 +4,7 @@ import json
 import logging
 import re
 import mimetypes
+import secrets
 import importlib.metadata
 from pathlib import Path
 from typing import Optional, List
@@ -266,7 +267,8 @@ async def notify_update(payload: dict):
                     "Forbidden: API key required for external calls. "
                     "Include 'api_key' in payload or set ENVIRONMENT=development",
                 )
-        elif provided_key != api_key:
+        elif not secrets.compare_digest(str(provided_key), str(api_key)):
+            # [FIX] Use constant-time comparison to prevent timing attacks
             raise HTTPException(403, "Forbidden: Invalid API key")
 
     await manager.broadcast(
@@ -578,7 +580,8 @@ async def health_check():
 
     return {
         "status": "ok",
-        "output_dir": str(OUTPUT_DIR),
+        # [FIX] Don't expose absolute filesystem paths to clients
+        "output_available": OUTPUT_DIR.exists(),
         "files_present": files_count,
         "version": VERSION,
     }

@@ -20,10 +20,12 @@ class CircuitBreaker:
         self.last_failure_time: float = 0.0
         self._lock = asyncio.Lock()
         self._logged_open = False  # Track if we've logged the open state
+        self._probe_in_flight = False  # [FIX] Prevent thundering herd during recovery
 
     async def record_failure(self) -> None:
         """Record a failure (async-safe with lock)"""
         async with self._lock:
+            self._probe_in_flight = False  # [FIX] Reset probe flag
             self.failure_count += 1
             if self.failure_count >= self.failure_threshold:
                 self.state = CircuitBreakerState.OPEN
@@ -37,19 +39,30 @@ class CircuitBreaker:
             self.failure_count = 0
             self.state = CircuitBreakerState.CLOSED
             self._logged_open = False  # Reset logged state on recovery
+            self._probe_in_flight = False  # [FIX] Reset probe flag
 
     async def is_open(self) -> bool:
-        """Check if circuit breaker is open (async-safe with lock)"""
+        """Check if circuit breaker is open (async-safe with lock).
+
+        [FIX] Added _probe_in_flight flag to prevent thundering herd.
+        Only one request can probe during HALF_OPEN transition.
+        """
         async with self._lock:
             if self.state == CircuitBreakerState.OPEN:
                 if time.monotonic() - self.last_failure_time > self.recovery_timeout:
-                    self.state = CircuitBreakerState.HALF_OPEN
-                    # Allow a probe request
-                    return False
+                    # [FIX] Only allow a single probe request to avoid thundering herd
+                    if not self._probe_in_flight:
+                        self.state = CircuitBreakerState.HALF_OPEN
+                        self._probe_in_flight = True
+                        return False  # Allow exactly one probe
+                    # Another probe is already in flight - block this request
+                    return True
                 return True
-            # In HALF_OPEN, we allow requests. If they fail, it trips back to OPEN (via record_failure).
-            # We don't enforce a strict 'single probe' here to keep it simple, but rely on concurrent
-            # requests racing. If one succeeds, it closes. If one fails, it opens.
+            if self.state == CircuitBreakerState.HALF_OPEN:
+                # [FIX] Block additional requests while probe is in flight
+                if self._probe_in_flight:
+                    return True
+                return False
             return False
 
     async def should_log_open(self) -> bool:

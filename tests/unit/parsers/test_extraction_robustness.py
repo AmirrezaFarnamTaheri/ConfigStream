@@ -130,9 +130,15 @@ def test_is_plausible_proxy_config_relaxed():
     assert is_plausible_proxy_config(bad_config) is False
 
     # Borderline case
-    # 97 bad, 3 good. 97/100 = 0.97. Should PASS (<= 0.98)
+    # [FIX] Threshold was tightened from 0.98 to 0.50. A config with 97% special
+    # chars is garbage and should now be rejected. Test updated to reflect this.
+    # 97 bad, 3 good -> ratio 0.97 -> FAIL (> 0.50)
     borderline_config = "vmess://" + "ABC" + "^" * 97
-    assert is_plausible_proxy_config(borderline_config) is True
+    assert is_plausible_proxy_config(borderline_config) is False
+
+    # New borderline: 40% bad, 60% good -> ratio 0.40 -> PASS (< 0.50)
+    mostly_good = "vmess://" + "A" * 60 + "^" * 40
+    assert is_plausible_proxy_config(mostly_good) is True
 
     # Real world case: VLESS with complex params including allowed special chars
     # encryption=none&pbk=...&fp=chrome

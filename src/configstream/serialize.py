@@ -4,7 +4,7 @@ Serialization Helpers.
 Converts Proxy objects to dictionary/JSON-safe formats.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
 from .models import Proxy
 
 # Proxy object serialization.
@@ -43,7 +43,8 @@ def serialize_proxy(
         "is_working": proxy.is_working,
         "tags": proxy.tags,
         "last_checked": proxy.tested_at,
-        "source": proxy.details.get("_source"),
+        # [FIX] Guard against None details
+        "source": (proxy.details or {}).get("_source"),
         "security": proxy.security_issues,
         "details": proxy.details,
         "config": proxy.config,
@@ -62,18 +63,40 @@ def serialize_proxy(
     return data
 
 
+def _json_default(obj: Any) -> Any:
+    """Custom JSON serializer for types not handled by default.
+
+    [FIX] Handles set, tuple, datetime, and other common Python types
+    to prevent TypeError crashes during output generation (Zone 6).
+    """
+    if isinstance(obj, set):
+        return sorted(obj)  # Consistent ordering for sets
+    if isinstance(obj, tuple):
+        return list(obj)
+    if isinstance(obj, bytes):
+        return obj.decode("utf-8", errors="replace")
+    # datetime handling
+    if hasattr(obj, "isoformat"):
+        return obj.isoformat()
+    return str(obj)
+
+
 def to_json(data: Any) -> str:
     """
     Dump to JSON string.
     """
     if hasattr(json_lib, "dumps"):
         # Standard json or compatible
-        val = json_lib.dumps(data)
-        if isinstance(val, bytes):
-            return val.decode("utf-8")
-        return str(val)  # Ensure string return
+        try:
+            result: Union[str, bytes] = json_lib.dumps(data)
+        except TypeError:
+            # [FIX] Fallback with custom default handler for non-serializable types
+            import json
+            result = json.dumps(data, indent=2, default=_json_default)
+        if isinstance(result, bytes):
+            return result.decode("utf-8")
+        return str(result)  # Ensure string return
     else:
         # Fallback
         import json
-
-        return json.dumps(data, indent=2, default=str)
+        return json.dumps(data, indent=2, default=_json_default)

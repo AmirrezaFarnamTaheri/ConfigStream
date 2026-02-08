@@ -68,19 +68,22 @@ class PipelineStats:
     def total_revived(self) -> int:
         return self.revived_warp + self.revived_vwarp
 
-    async def get_snapshot(self) -> Dict[str, Any]:
+    def get_snapshot(self) -> Dict[str, Any]:
         """
         Thread-safe method to get a snapshot of stats.
         """
-        return await self.to_dict()
+        return self.to_dict()
 
-    async def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """
         Return a dictionary representation of stats.
-        Uses defensive copies for complex types.
+        Uses a threading.Lock for thread-safe access to dict fields.
+        This is intentionally synchronous since it only uses threading.Lock.
         """
         with self._lock:
             return {
+                "start_time": self.start_time.isoformat() if self.start_time else None,
+                "end_time": self.end_time.isoformat() if self.end_time else None,
                 "total_configured_sources": self.total_configured_sources,
                 "fetched_sources": self.fetched_sources,
                 "fetched_lines": self.fetched_lines,

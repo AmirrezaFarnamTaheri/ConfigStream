@@ -44,6 +44,8 @@ except ImportError:
             * math.cos(math.radians(lat2))
             * math.sin(dlon / 2) ** 2
         )
+        # [FIX] Clamp to prevent domain error on near-antipodal coordinates
+        a = min(1.0, max(0.0, a))
         c = 2 * math.asin(math.sqrt(a))
         return DistanceStub(R * c)
 
