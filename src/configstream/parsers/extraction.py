@@ -53,12 +53,16 @@ def is_plausible_proxy_config(config: str) -> bool:
     if not protocol or len(protocol) > 20 or len(rest) < 4:
         return False
 
-    # Relax noise check (allowed up to 98% special chars for base64 heavy VLESS)
+    # [FIX] Tightened noise check from 0.98 to 0.50 to reject binary garbage.
+    # The previous 98% threshold allowed high-entropy garbage (e.g., 'un;k')
+    # to pass through and crash the Go tester with "unknown method" FATAL errors.
+    # Valid Base64-heavy VLESS URIs still pass at 50% because Base64 chars
+    # (A-Z, a-z, 0-9, +, /, =) are alphanumeric.
     special_char_count = sum(
         1 for c in rest if not c.isalnum() and c not in ":-_./@#%?&=+,;()~[]!*'|$"
     )
 
-    if len(rest) > 20 and special_char_count > len(rest) * 0.98:
+    if len(rest) > 20 and special_char_count > len(rest) * 0.50:
         return False
 
     # [Check] Double protocol

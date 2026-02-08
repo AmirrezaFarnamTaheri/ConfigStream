@@ -170,13 +170,13 @@ class WarpScannerWorker:
             if proc.returncode != 0:
                 logger.error(f"Scanner binary exited with error code {proc.returncode}")
                 if stderr:
-                    logger.error(f"Scanner stderr: {stderr.decode().strip()}")
+                    logger.error(f"Scanner stderr: {stderr.decode(errors='replace').strip()}")
                 return []
 
             # Log any debug info from the binary (if present)
             if stderr and len(stderr) > 0:
                 # Only log stderr at DEBUG level unless it's a crash
-                logger.debug(f"Scanner internals: {stderr.decode().strip()}")
+                logger.debug(f"Scanner internals: {stderr.decode(errors='replace').strip()}")
 
             # Parse Results
             clean_ips = []

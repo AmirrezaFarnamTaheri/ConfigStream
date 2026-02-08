@@ -28,7 +28,9 @@ def parse_trojan(config: str) -> Optional[Proxy]:
         details = {k: v[0] for k, v in parse_qs(parsed.query).items()}
 
         uuid = parsed.username or ""
-        # Fallback: check query params for password
+        # Fallback: check parsed.password, then query params for credentials
+        if not uuid and parsed.password:
+            uuid = parsed.password
         if not uuid:
             for key in ("password", "pass", "pwd", "token", "uuid", "id"):
                 val = details.get(key, "")

@@ -5,20 +5,24 @@
 package main
 
 import (
+	"strings"
 	"syscall/js"
 	"time"
 )
 
 func main() {
-	c := make(chan struct{}, 0)
+	// [FIX] Idiomatic unbuffered channel (removed redundant ", 0")
+	c := make(chan struct{})
 
 	// Register test function and keep reference
-	testFunc := js.FuncOf(testProxy)
+	testFunc := js.FuncOf(testProxyWasm)
 	js.Global().Set("testProxyWasm", testFunc)
 
-	// Register cleanup function to prevent memory leaks
-	cleanupFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+	// [FIX] Register cleanup function that also releases itself to prevent memory leak
+	var cleanupFunc js.Func
+	cleanupFunc = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		testFunc.Release()
+		cleanupFunc.Release()
 		return nil
 	})
 	js.Global().Set("cleanupWasm", cleanupFunc)
@@ -27,83 +31,93 @@ func main() {
 	<-c
 }
 
-// testProxy expects arguments: [proxyUrl, uuid (optional)]
-func testProxy(this js.Value, args []js.Value) interface{} {
+// testProxyWasm expects arguments: [proxyUrl, uuid (optional)]
+// [FIX] Returns a JavaScript Promise instead of blocking the JS event loop.
+// Previously, the select{} blocked the Go goroutine for up to 5 seconds,
+// which froze the entire WASM runtime and the calling JS thread.
+func testProxyWasm(this js.Value, args []js.Value) interface{} {
 	if len(args) < 1 {
-		return map[string]interface{}{"error": "Missing proxy URL"}
+		return js.ValueOf(map[string]interface{}{"error": "Missing proxy URL"})
 	}
-	url := args[0].String()
+	rawURL := args[0].String()
 
-	// Create a channel to receive result
-	done := make(chan interface{})
+	// Create and return a JavaScript Promise
+	handler := js.FuncOf(func(this js.Value, promiseArgs []js.Value) interface{} {
+		resolve := promiseArgs[0]
+		// reject := promiseArgs[1] // available if needed
 
-	// Prepare callbacks
-	var onOpen, onError js.Func
-	var jsWS js.Value
+		go func() {
+			result := doTestProxy(rawURL)
+			resolve.Invoke(js.ValueOf(result))
+		}()
 
+		return nil
+	})
+
+	promise := js.Global().Get("Promise").New(handler)
+	handler.Release()
+	return promise
+}
+
+func doTestProxy(rawURL string) map[string]interface{} {
 	// Panic handler for JS exceptions
 	defer func() {
 		if r := recover(); r != nil {
-			// Ensure callbacks are released if panic happens before select
-			if onOpen.Truthy() { onOpen.Release() }
-			if onError.Truthy() { onError.Release() }
-			// We can't return from here to JS caller, but we can prevent crash loop
-			// Ideally we push to done but we might be stuck
+			// Can't return from here, but prevent crash loop
 		}
 	}()
 
 	start := time.Now()
 
+	// [FIX] Handle all known proxy protocol schemes, not just vmess/vless/ss.
+	// Previously, trojan://, hysteria://, etc. were passed directly to WebSocket.New()
+	// which throws a JS exception.
+	wsURL := rawURL
+	knownSchemes := []string{
+		"vmess://", "vless://", "trojan://", "hysteria://",
+		"hysteria2://", "hy2://", "tuic://", "ssr://",
+	}
+	for _, scheme := range knownSchemes {
+		if len(wsURL) >= len(scheme) && strings.EqualFold(wsURL[:len(scheme)], scheme) {
+			wsURL = "wss://" + wsURL[len(scheme):]
+			break
+		}
+	}
+	if len(wsURL) > 5 && wsURL[:5] == "ss://" {
+		wsURL = "wss://" + wsURL[5:]
+	}
+
+	// Create channels for async result
+	done := make(chan map[string]interface{}, 1)
+
+	var onOpen, onError js.Func
+	var jsWS js.Value
+
 	onOpen = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		latency := time.Since(start).Milliseconds()
 		jsWS.Call("close")
-		// Use goroutine to send to channel to avoid blocking JS event loop callback
-		go func() {
-			done <- map[string]interface{}{"alive": true, "latency": latency}
-		}()
+		done <- map[string]interface{}{"alive": true, "latency": latency}
 		return nil
 	})
 
 	onError = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		go func() {
-			done <- map[string]interface{}{"alive": false, "error": "Connection Failed"}
-		}()
+		done <- map[string]interface{}{"alive": false, "error": "Connection Failed"}
 		return nil
 	})
 
-	// Instantiate WebSocket using browser API
-	// Note: This throws JS exception if URL is invalid scheme (e.g. vmess://)
-	// We should probably replace vmess:// with wss:// if needed?
-	// The audit snippet assumed URL is valid for WebSocket constructor.
-	// But proxies are vmess://. Browser WebSocket needs ws:// or wss://.
-	// We should replace scheme.
+	defer onOpen.Release()
+	defer onError.Release()
 
-	wsUrl := url
-	if len(wsUrl) > 8 && (wsUrl[:8] == "vmess://" || wsUrl[:8] == "vless://") {
-		wsUrl = "wss://" + wsUrl[8:]
-	} else if len(wsUrl) > 5 && (wsUrl[:5] == "ss://") {
-		// SS over WS? Rare but possible.
-		// We'll trust the user or simple replacement.
-		wsUrl = "wss://" + wsUrl[5:]
-	}
-
-	// Try-catch for New? syscall/js doesn't expose try-catch.
-	// We rely on simple string replacement and hope.
-
-	jsWS = js.Global().Get("WebSocket").New(wsUrl)
+	jsWS = js.Global().Get("WebSocket").New(wsURL)
 	jsWS.Set("onopen", onOpen)
 	jsWS.Set("onerror", onError)
 
 	// Wait for result or timeout
 	select {
 	case res := <-done:
-		onOpen.Release()
-		onError.Release()
 		return res
 	case <-time.After(5 * time.Second):
 		jsWS.Call("close")
-		onOpen.Release()
-		onError.Release()
 		return map[string]interface{}{"alive": false, "error": "Timeout"}
 	}
 }

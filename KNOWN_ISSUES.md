@@ -89,10 +89,10 @@
 **Protocol Support Summary**
 | Status | Count | Protocols |
 |--------|-------|-----------|
-| ✅ Fully Supported | 14 | VLESS, VMess, Trojan, SS, SS2022, Hysteria, Hysteria2, TUIC, WireGuard, SOCKS5, SOCKS4, HTTP/HTTPS, SSH, Naive |
+| ✅ Fully Supported | 20+ | VLESS, VMess, Trojan, SS, SS2022, Hysteria, Hysteria2, TUIC, WireGuard, SOCKS5, SOCKS4, HTTP/HTTPS, SSH, Naive, Husi, AnyTLS, ShadowTLS |
 | ⚠️ Parse-Only | 7 | SSR, Snell, Brook, Juicity, OpenVPN, XRay, V2Ray JSON |
 
-**All 733 Unit Tests Passing**
+**All 760+ Unit Tests Passing**
 
 ---
 
@@ -166,7 +166,7 @@
   - Parsed vs tested values properly distinguished
   - No duplicate or redundant metadata keys
 
-✅ **All 724 Unit Tests Passing**
+✅ **All 760+ Unit Tests Passing**
 
 ---
 

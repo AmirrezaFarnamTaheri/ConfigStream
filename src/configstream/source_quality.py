@@ -131,6 +131,10 @@ class SourceQualityTracker(QualityStorage):
     def should_fetch(self, url: str) -> bool:
         """
         Determines if a source should be fetched based on its state.
+
+        [FIX] Dead sources now have a "resurrection" window (7 days by default)
+        to prevent permanent death spirals where a temporarily unavailable source
+        is never retried.  Permanent failures (404/410) remain permanently dead.
         """
         state = self.get_source_state(url)
         if not state:
@@ -138,13 +142,28 @@ class SourceQualityTracker(QualityStorage):
 
         # state: (status, last_checked, consecutive_failures, reliability_score, total_fetched, total_working)
         status = state[0]
+        last_checked = state[1] if len(state) > 1 else 0
+        now = datetime.now(timezone.utc).timestamp()
+        settings = AppSettings()
+
         if status == "dead":
+            # [FIX] Resurrection window: allow retry after a long cooling period
+            # unless the source had a permanent error (consecutive_failures >= 100
+            # is used as a sentinel for permanent 404/410 errors)
+            consecutive_failures = state[2] if len(state) > 2 else 0
+            if consecutive_failures >= 100:
+                # Truly permanent failure (404/410) - never retry
+                return False
+            resurrection_hours = getattr(settings, "SOURCE_RESURRECTION_HOURS", 168)  # 7 days
+            if (now - last_checked) >= (resurrection_hours * 3600):
+                logger.info(f"Resurrecting dead source for retry: {url[:60]}...")
+                return True
             return False
+
         if status == "probation":
-            last_checked = state[1]
             # Retry at the configured pipeline interval
-            retry_seconds = AppSettings().UPDATE_INTERVAL_HOURS * 3600
-            if (datetime.now(timezone.utc).timestamp() - last_checked) < retry_seconds:
+            retry_seconds = settings.UPDATE_INTERVAL_HOURS * 3600
+            if (now - last_checked) < retry_seconds:
                 return False
         return True
 

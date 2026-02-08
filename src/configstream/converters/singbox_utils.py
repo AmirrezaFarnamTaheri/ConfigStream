@@ -27,15 +27,35 @@ def add_transport_sb(out: Dict[str, Any], details: Dict[str, Any]) -> Dict[str, 
             # Prevent str(None) → "None" string corruption
             if service_name and str(service_name).lower() != "none":
                 transport["service_name"] = str(service_name)
-    elif net == "http" or net == "h2":
+    elif net in ("http", "h2"):
         transport["type"] = "http"
         if "path" in details:
             transport["path"] = str(details["path"])
         if "host" in details:
             transport["host"] = [str(details["host"])]
+    # [FIX] Add httpupgrade transport support per sing-box schema.
+    # Previously silently dropped, causing proxies using httpupgrade to fail.
+    elif net == "httpupgrade":
+        transport["type"] = "httpupgrade"
+        if "path" in details:
+            transport["path"] = str(details["path"])
+        if "host" in details or "sni" in details:
+            host_val = details.get("host") or details.get("sni")
+            if host_val and str(host_val).lower() != "none":
+                transport["host"] = str(host_val)
 
     if transport:
         out["transport"] = transport
+
+    # [FIX] Add packet_encoding for VLESS/VMess (critical for UDP support).
+    # Without this, UDP traffic is silently dropped by some servers.
+    if out.get("type") in ("vless", "vmess"):
+        pkt_enc = details.get("packet_encoding") or details.get("packetEncoding")
+        if pkt_enc and str(pkt_enc).lower() in ("xudp", "packetaddr"):
+            out["packet_encoding"] = str(pkt_enc).lower()
+        elif out.get("type") == "vless":
+            # Default to xudp for VLESS (recommended by sing-box docs)
+            out["packet_encoding"] = "xudp"
 
     # TLS
     security = details.get("security", "")

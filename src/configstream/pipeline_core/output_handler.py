@@ -325,7 +325,7 @@ async def generate_pipeline_outputs(
 
     stats.chain_outbounds_count = len(chain_outbounds)
 
-    stats_dict = await stats.to_dict()
+    stats_dict = stats.to_dict()
 
     await loop.run_in_executor(
         None, save_metadata, stats_dict, optimized_proxies, output_path

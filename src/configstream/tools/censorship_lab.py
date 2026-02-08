@@ -77,7 +77,15 @@ class IPBlocklist:
             return True
         if asn and asn in self.blocked_asns:
             return True
-        # TODO: Implement CIDR range checking if needed
+        # Check CIDR ranges
+        try:
+            import ipaddress
+            ip_addr = ipaddress.ip_address(ip)
+            for cidr in self.blocked_ranges:
+                if ip_addr in ipaddress.ip_network(cidr, strict=False):
+                    return True
+        except (ValueError, TypeError):
+            pass
         return False
 
 

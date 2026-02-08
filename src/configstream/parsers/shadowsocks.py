@@ -90,6 +90,10 @@ def parse_ss(config: str) -> Optional[Proxy]:
                 if isinstance(val, str) and val.strip():
                     password = val.strip()
                     break
+            # [FIX] Drop proxy if password still missing after all fallback attempts
+            if not password:
+                logger.debug("Shadowsocks proxy dropped: no password after fallback check")
+                return None
 
         # Parse host_info
         # Check for plugin params (SIP003 simple-obfs etc often appended as /?plugin=...)

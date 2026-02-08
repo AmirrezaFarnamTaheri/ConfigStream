@@ -365,17 +365,12 @@ class ProxyHistoryTracker:
             output_path = Path(output_path)
 
         # Convert stats to dict if it's a PipelineStats object
-        if hasattr(stats, "to_dict"):
-            import asyncio
+        if hasattr(stats, "to_dict") and callable(stats.to_dict):
             try:
-                # Try async method first
-                if asyncio.iscoroutinefunction(stats.to_dict):
-                    stats_dict = asyncio.run(stats.to_dict())
-                else:
-                    stats_dict = stats.to_dict()
+                stats_dict = stats.to_dict()
             except Exception:
-                # Fallback to sync method
-                stats_dict = stats.to_dict() if callable(getattr(stats, "to_dict", None)) else {}
+                logger.warning("Failed to convert stats to dict, using empty dict")
+                stats_dict = {}
         elif isinstance(stats, dict):
             stats_dict = stats
         else:

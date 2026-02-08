@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -176,11 +177,15 @@ func runTester() {
 	wg.Wait()
 }
 
-func testProxy(req ProxyTestRequest) ProxyTestResult {
-	// [HARDENING] Recover from panics to prevent daemon crash
+func testProxy(req ProxyTestRequest) (result ProxyTestResult) {
+	// [FIX] Use named return so panic recovery can populate the ID field.
+	// Previously, panic recovery returned zero-value ProxyTestResult{} with empty ID,
+	// causing the Python side to never match the result and hang until timeout.
+	result = ProxyTestResult{ID: req.ID, IsWorking: false}
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("PANIC in testProxy: %v", r)
+			log.Printf("PANIC in testProxy for %s: %v", req.ID, r)
+			result.Error = "PANIC: " + fmt.Sprintf("%v", r)
 		}
 	}()
 
@@ -191,19 +196,22 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config too large"}
 	}
 
-	outboundConfig, err := parseConfig(req.ConfigStr)
+	// [FIX] parseConfig now returns ALL outbounds (supporting chains/detour).
+	// Previously it returned only one outbound, discarding chain dependencies
+	// and causing ALL chain/shield/revival testing to fail with "outbound not found".
+	outbounds, proxyTag, err := parseConfig(req.ConfigStr)
 	if err != nil {
 		return ProxyTestResult{ID: req.ID, IsWorking: false, Error: "Config parse error: " + err.Error()}
 	}
 
+	// Append the "direct" outbound that all configs need
+	outbounds = append(outbounds, option.Outbound{
+		Type: "direct",
+		Tag:  "direct",
+	})
+
 	options := option.Options{
-		Outbounds: []option.Outbound{
-			outboundConfig,
-			{
-				Type: "direct",
-				Tag:  "direct",
-			},
-		},
+		Outbounds: outbounds,
 		DNS: &option.DNSOptions{
 			Servers: []option.DNSServerOptions{
 				{
@@ -217,6 +225,7 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 			Level: "error",
 		},
 	}
+	_ = proxyTag // proxyTag is "proxy" (used for Router().Outbound lookup below)
 
 	// Determine timeout (Request override > Global flag)
 	timeout := timeoutDuration
@@ -303,12 +312,19 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 			if err == nil && u.Host != "" {
 				targetURL = u
 				hostPort := u.Host
-				if !strings.Contains(hostPort, ":") {
+				// [FIX] Use net.SplitHostPort instead of string search for ":".
+				// The old check `strings.Contains(hostPort, ":")` broke for IPv6
+				// addresses like [::1] which contain ":" but have no port.
+				if _, _, splitErr := net.SplitHostPort(hostPort); splitErr != nil {
+					// No port present, add default based on scheme
+					host := u.Hostname()
 					switch u.Scheme {
 					case "https":
-						hostPort += ":443"
+						hostPort = net.JoinHostPort(host, "443")
 					case "http":
-						hostPort += ":80"
+						hostPort = net.JoinHostPort(host, "80")
+					default:
+						hostPort = net.JoinHostPort(host, "80")
 					}
 				}
 				dest = metadata.ParseSocksaddr(hostPort)
@@ -430,14 +446,48 @@ func testProxy(req ProxyTestRequest) ProxyTestResult {
 	}
 }
 
-func parseConfig(configStr string) (option.Outbound, error) {
+// parseConfig parses a config string and returns ALL outbounds plus the tag of
+// the "entry point" outbound (the one the router should use as "proxy").
+//
+// [FIX] Previously this returned a SINGLE outbound, discarding chain dependencies.
+// For chain configs like [WARP -> VLESS], the VLESS outbound references WARP via
+// its "detour" field. Returning only the VLESS outbound caused sing-box to fail
+// with "outbound not found" because the WARP outbound it depends on was discarded.
+// This was the ROOT CAUSE of all chain/shield/revival testing failing (0% success).
+//
+// Now returns ([]option.Outbound, proxyTag, error) so testProxy can insert ALL
+// outbounds into the sing-box instance.
+func parseConfig(configStr string) ([]option.Outbound, string, error) {
 	if strings.TrimSpace(configStr) == "" {
-		return option.Outbound{}, errors.New("empty config string")
+		return nil, "", errors.New("empty config string")
 	}
 
-	// 0) Try: JSON array of outbounds (batch/chain payloads)
+	// Helper: find the entry-point outbound tag in a slice.
+	// Priority: explicit "proxy" tag > first non-infrastructure outbound.
+	findEntryPoint := func(outs []option.Outbound) (string, bool) {
+		for i := range outs {
+			if outs[i].Tag == "proxy" && outs[i].Type != "" {
+				return "proxy", true
+			}
+		}
+		// No explicit "proxy" tag; pick the first usable outbound and rename it.
+		for i := range outs {
+			if outs[i].Type == "" {
+				continue
+			}
+			switch outs[i].Type {
+			case "direct", "block", "dns":
+				continue
+			}
+			outs[i].Tag = "proxy"
+			return "proxy", true
+		}
+		return "", false
+	}
+
+	// 0) Try: JSON array of outbounds (chain payloads from Python)
 	var outs []option.Outbound
-	if err := json.Unmarshal([]byte(configStr), &outs); err == nil {
+	if err := json.Unmarshal([]byte(configStr), &outs); err == nil && len(outs) > 0 {
 		hasCandidate := false
 		for i := range outs {
 			if outs[i].Type != "" {
@@ -446,30 +496,11 @@ func parseConfig(configStr string) (option.Outbound, error) {
 			}
 		}
 		if hasCandidate {
-			for i := range outs {
-				if outs[i].Type == "" {
-					continue
-				}
-				if outs[i].Tag == "proxy" {
-					// Ensure canonical tag without mutating unrelated entries.
-					out := outs[i]
-					out.Tag = "proxy"
-					return out, nil
-				}
+			tag, ok := findEntryPoint(outs)
+			if !ok {
+				return nil, "", errors.New("no usable outbound found in config array")
 			}
-			for i := range outs {
-				if outs[i].Type == "" {
-					continue
-				}
-				switch outs[i].Type {
-				case "direct", "block", "dns":
-					continue
-				}
-				out := outs[i]
-				out.Tag = "proxy"
-				return out, nil
-			}
-			return option.Outbound{}, errors.New("no usable outbound found in config array")
+			return outs, tag, nil
 		}
 	}
 
@@ -477,7 +508,7 @@ func parseConfig(configStr string) (option.Outbound, error) {
 	var out option.Outbound
 	if err := json.Unmarshal([]byte(configStr), &out); err == nil && out.Type != "" {
 		out.Tag = "proxy"
-		return out, nil
+		return []option.Outbound{out}, "proxy", nil
 	}
 
 	// 2) Try: full options object with outbounds
@@ -487,51 +518,27 @@ func parseConfig(configStr string) (option.Outbound, error) {
 		Proxy     *option.Outbound  `json:"proxy"`
 	}
 	if err := json.Unmarshal([]byte(configStr), &wrapper); err != nil {
-		return option.Outbound{}, err
+		return nil, "", err
 	}
 
 	switch {
 	case wrapper.Proxy != nil && wrapper.Proxy.Type != "":
 		wrapper.Proxy.Tag = "proxy"
-		return *wrapper.Proxy, nil
+		return []option.Outbound{*wrapper.Proxy}, "proxy", nil
 
 	case wrapper.Outbound != nil && wrapper.Outbound.Type != "":
 		wrapper.Outbound.Tag = "proxy"
-		return *wrapper.Outbound, nil
+		return []option.Outbound{*wrapper.Outbound}, "proxy", nil
 
 	case len(wrapper.Outbounds) > 0:
-		// Prefer explicit "proxy" tag if present.
-		for i := range wrapper.Outbounds {
-			if wrapper.Outbounds[i].Type == "" {
-				continue
-			}
-			switch wrapper.Outbounds[i].Type {
-			case "direct", "block", "dns":
-				continue
-			}
-			if wrapper.Outbounds[i].Tag == "proxy" {
-				out := wrapper.Outbounds[i]
-				out.Tag = "proxy"
-				return out, nil
-			}
+		tag, ok := findEntryPoint(wrapper.Outbounds)
+		if !ok {
+			return nil, "", errors.New("no usable outbound found in outbounds")
 		}
-		// Otherwise pick the first usable outbound.
-		for i := range wrapper.Outbounds {
-			if wrapper.Outbounds[i].Type == "" {
-				continue
-			}
-			switch wrapper.Outbounds[i].Type {
-			case "direct", "block", "dns":
-				continue
-			}
-			out := wrapper.Outbounds[i]
-			out.Tag = "proxy"
-			return out, nil
-		}
-		return option.Outbound{}, errors.New("no usable outbound found in outbounds")
+		return wrapper.Outbounds, tag, nil
 
 	default:
-		return option.Outbound{}, errors.New("no outbound found in config")
+		return nil, "", errors.New("no outbound found in config")
 	}
 }
 
@@ -551,7 +558,10 @@ func isHoneypot(ctx context.Context, dialer OutboundDialer) bool {
 	}
 
 	buf := make([]byte, 1024)
-	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	// [FIX] Check SetReadDeadline error to prevent indefinite blocking
+	if err := conn.SetReadDeadline(time.Now().Add(2 * time.Second)); err != nil {
+		return false
+	}
 	n, err := conn.Read(buf)
 	if err != nil {
 		return false

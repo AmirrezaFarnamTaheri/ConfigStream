@@ -1,11 +1,20 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+"""
+DNS resolver profiles for Sing-box and Clash output configurations.
+Imports intelligence data from the single source of truth in dns_lists.py.
+"""
 from __future__ import annotations
 
 from typing import Dict, Any, List
 
+from .intelligence.dns_lists import (
+    CLOUDFLARE_OPTIMIZED_IPS,
+    ZEUS_DNS,
+)
+
 
 def _dedupe(items: List[str]) -> List[str]:
-    seen = set()
+    seen: set[str] = set()
     out: List[str] = []
     for item in items:
         if not item or item in seen:
@@ -47,7 +56,7 @@ DEFAULT_DOQ = _dedupe(
     [
         "quic://dns.adguard.com",
         "quic://dns.google",
-        "quic://dns.cloudflare-dns.com",
+        # Note: Cloudflare DoQ removed — CF does not offer public DoQ service
     ]
 )
 
@@ -71,8 +80,15 @@ def build_resolver_sets() -> tuple[list[str], list[str]]:
 def build_singbox_dns_profile() -> Dict[str, Any]:
     """
     Returns a robust DNS configuration matching the V2RayN example format.
+    Updated with intelligence data (Iran infrastructure DNS, CF optimized IPs, Zeus DNS).
     """
     SELECTOR_TAG = "🌍 Proxy Select"
+
+    # Merge standard + optimized Cloudflare IPs for hosts resolution
+    cf_ips = [
+        "104.16.249.249", "104.16.248.249",
+        "2606:4700::6810:f8f9", "2606:4700::6810:f9f9",
+    ] + CLOUDFLARE_OPTIMIZED_IPS[:4]
 
     return {
         "servers": [
@@ -88,7 +104,7 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
                 "path": "/dns-query",
                 "type": "https",
                 "tag": "remote_dns",
-                "detour": SELECTOR_TAG
+                "detour": SELECTOR_TAG,
             },
             {
                 "server": "dns.alidns.com",
@@ -96,68 +112,70 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
                 "path": "/dns-query",
                 "type": "https",
                 "tag": "direct_dns",
-                "detour": "direct"
+                "detour": "direct",
             },
             {
                 "predefined": {
                     "dns.google": [
-                        "8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844"
+                        "8.8.8.8", "8.8.4.4",
+                        "2001:4860:4860::8888", "2001:4860:4860::8844",
                     ],
                     "dns.alidns.com": [
-                        "223.5.5.5", "223.6.6.6", "2400:3200::1", "2400:3200:baba::1"
+                        "223.5.5.5", "223.6.6.6",
+                        "2400:3200::1", "2400:3200:baba::1",
                     ],
                     "one.one.one.one": [
-                        "1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"
+                        "1.1.1.1", "1.0.0.1",
+                        "2606:4700:4700::1111", "2606:4700:4700::1001",
                     ],
-                    "cloudflare-dns.com": [
-                        "104.16.249.249", "104.16.248.249", "2606:4700::6810:f8f9", "2606:4700::6810:f9f9"
-                    ]
+                    "cloudflare-dns.com": cf_ips,
+                    "zeus-dns": ZEUS_DNS,
                 },
                 "type": "hosts",
-                "tag": "hosts_dns"
+                "tag": "hosts_dns",
             },
             {
                 "server": "dns.alidns.com",
                 "domain_resolver": "hosts_dns",
                 "path": "/dns-query",
                 "type": "https",
-                "tag": "ech_dns"
-            }
+                "tag": "ech_dns",
+            },
         ],
         "rules": [
             {
                 "server": "local_local",
-                "domain": ["sing_box-ProxyChain"]
+                "domain": ["sing_box-ProxyChain"],
             },
             {
                 "server": "hosts_dns",
-                "ip_accept_any": True
+                "ip_accept_any": True,
             },
             {
                 "server": "remote_dns",
-                "clash_mode": "Global"
+                "clash_mode": "Global",
             },
             {
                 "server": "direct_dns",
-                "clash_mode": "Direct"
+                "clash_mode": "Direct",
             },
             {
                 "action": "predefined",
                 "rcode": "NOTIMP",
-                "query_type": [64, 65]
+                "query_type": [64, 65],
             },
             {
                 "rule_set": ["geosite-category-ads-all"],
                 "action": "predefined",
-                "rcode": "NXDOMAIN"
+                "rcode": "NXDOMAIN",
             },
             {
                 "server": "direct_dns",
-                "rule_set": ["geosite-private", "geosite-ir"]
-            }
+                "rule_set": ["geosite-private", "geosite-ir"],
+            },
         ],
         "final": "remote_dns",
-        "independent_cache": True
+        "independent_cache": True,
     }
 
 

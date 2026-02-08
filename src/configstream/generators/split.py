@@ -74,6 +74,12 @@ def generate_split_outputs(
     outbounds: List[Dict[str, Any]] = []
     selector_tags: List[str] = []
 
+    # [FIX] Pre-load evasion config outside the per-proxy loop (was instantiating AppSettings per-proxy)
+    from configstream.intelligence.evasion import enrich_outbound_with_evasion
+    from configstream.config import AppSettings
+    _split_settings = AppSettings()
+    evasion_mode = getattr(_split_settings, "EVASION_MODE", "aggressive").lower()
+
     for p in proxies:
         # Skip washed proxies (they are replaced by washed_outbounds)
         if _is_washed_proxy(p, washed_ids):
@@ -92,49 +98,32 @@ def generate_split_outputs(
             sb_proxy["tag"] = tag
 
             # Inject evasion features based on configured mode
-            from configstream.intelligence.evasion import enrich_outbound_with_evasion
-            from configstream.config import AppSettings
-            settings = AppSettings()
-            evasion_mode = getattr(settings, "EVASION_MODE", "aggressive").lower()
-            
-            # Apply evasion features based on mode
+            # [FIX] Moved imports and settings outside the per-proxy loop for performance
             if evasion_mode == "aggressive":
-                # All evasion features enabled
                 sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=True,
-                    enable_alpn=True,
-                    enable_fragmentation=True,
-                    enable_multiplexing=True,
+                    sb_proxy, p.id,
+                    enable_utls=True, enable_alpn=True,
+                    enable_fragmentation=True, enable_multiplexing=True,
                 )
             elif evasion_mode == "stealth":
-                # Only TLS fragmentation + uTLS (minimal evasion)
                 sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=True,
-                    enable_alpn=False,
-                    enable_fragmentation=True,
-                    enable_multiplexing=False,
+                    sb_proxy, p.id,
+                    enable_utls=True, enable_alpn=False,
+                    enable_fragmentation=True, enable_multiplexing=False,
                 )
-            else:  # standard
-                # No evasion features (compatibility mode)
+            else:  # standard - no evasion (compatibility mode)
                 sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy,
-                    p.id,
-                    enable_utls=False,
-                    enable_alpn=False,
-                    enable_fragmentation=False,
-                    enable_multiplexing=False,
+                    sb_proxy, p.id,
+                    enable_utls=False, enable_alpn=False,
+                    enable_fragmentation=False, enable_multiplexing=False,
                 )
-            # Mark evasion features in proxy details for tagging
+            # [FIX] Mark evasion features based on actual mode, not unconditionally True
             if not p.details:
                 p.details = {}
-            p.details["has_utls"] = True
-            p.details["has_fragmentation"] = True
-            p.details["has_multiplexing"] = True
-            p.details["has_alpn_rotation"] = True
+            p.details["has_utls"] = evasion_mode in ("aggressive", "stealth")
+            p.details["has_fragmentation"] = evasion_mode in ("aggressive", "stealth")
+            p.details["has_multiplexing"] = evasion_mode == "aggressive"
+            p.details["has_alpn_rotation"] = evasion_mode == "aggressive"
             outbounds.append(sb_proxy)
             _append_unique_tag(selector_tags, tag)
 

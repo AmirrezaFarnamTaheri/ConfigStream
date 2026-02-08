@@ -143,23 +143,25 @@ def parse_vless(url: str) -> Proxy | None:
             proxy.details["sid"] = sid
 
         if "fp" in params:
-            proxy.details["fingerprint"] = params["fp"]
+            # [FIX] Store as "fp" directly so converters find it for all TLS modes
+            proxy.details["fp"] = params["fp"]
         if "alpn" in params:
             proxy.details["alpn"] = params["alpn"]
 
-        # WS / GRPC / HTTP Params
+        # WS / GRPC / HTTP transport params
+        # [FIX] Store under standard keys that converters expect (path, host, serviceName)
         if params.get("type") == "ws":
-            proxy.details["ws_path"] = params.get("path", "/")
+            proxy.details["path"] = params.get("path", "/")
             if "host" in params:
-                proxy.details["ws_headers"] = {"Host": params["host"]}
+                proxy.details["host"] = params["host"]
 
         elif params.get("type") == "grpc":
-            proxy.details["grpc_service_name"] = params.get("serviceName", "")
+            proxy.details["serviceName"] = params.get("serviceName", "")
 
         elif params.get("type") in ["http", "h2"]:
-            proxy.details["http_path"] = params.get("path", "/")
+            proxy.details["path"] = params.get("path", "/")
             if "host" in params:
-                proxy.details["http_host"] = params["host"]
+                proxy.details["host"] = params["host"]
 
         normalize_proxy_details(proxy)
         return proxy

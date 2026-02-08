@@ -333,11 +333,7 @@ def update_databases():
         "GeoLite2-ASN.mmdb": "GeoLite2-ASN",
     }
     
-    # Geosite and GeoIP databases for Sing-box routing rules
-    singbox_databases = {
-        "geosite.db": "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db",
-        "geoip.db": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db",
-    }
+    # [FIX] Removed duplicate singbox_databases definition (dead code; redefined at line 437)
 
     def stream_download(url: str, target: Path) -> bool:
         safe_url = SecurityValidator.sanitize_log_message(url)

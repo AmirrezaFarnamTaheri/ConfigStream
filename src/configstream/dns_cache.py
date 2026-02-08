@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import socket
 import logging
 from dataclasses import dataclass
@@ -11,6 +12,26 @@ from time import monotonic
 from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
+
+
+def _is_bogon_ip(address: str) -> bool:
+    """Check if an IP is a bogon (loopback, private, link-local, multicast).
+
+    [FIX] Prevents SSRF attacks where a malicious DNS response resolves
+    a domain to a local/private IP, causing the tester to attack internal
+    infrastructure.
+    """
+    try:
+        ip = ipaddress.ip_address(address)
+        return (
+            ip.is_loopback
+            or ip.is_private
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_link_local
+        )
+    except ValueError:
+        return False
 
 
 @dataclass
@@ -66,6 +87,16 @@ class DNSCache:
             return None
 
         address = info[0][4][0]
+
+        # [FIX] Reject bogon IPs to prevent SSRF attacks
+        if _is_bogon_ip(address):
+            logger.warning(
+                "DNS resolved %s to bogon IP %s - rejecting to prevent SSRF",
+                host,
+                address,
+            )
+            return None
+
         async with self._lock:
             # Enforce size limit before adding new entry
             await self._enforce_size_limit_locked()

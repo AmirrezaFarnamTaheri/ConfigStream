@@ -38,7 +38,7 @@ We are actively looking for help with the following "Next Generation" features:
 ConfigStream v2.0 is modular. Please respect the folder structure:
 
 *   `src/configstream/pipeline_core/`: Core logic for sorting and output generation.
-*   `src/configstream/plugins/`: Protocol parsers (add new protocols here).
+*   `src/configstream/parsers/`: Protocol parsers (add new protocols here).
 *   `src/configstream/transport/`: Transport layers (Steganography, etc.).
 *   `src/go/tester/`: High-performance Go components.
 

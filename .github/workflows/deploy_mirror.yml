@@ -19,7 +19,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          LATEST_RUN=$(gh run list --workflow=pipeline.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
+          LATEST_RUN=$(gh run list --workflow=main.yml --status=success --limit=1 --json databaseId --jq '.[0].databaseId')
           if [ -z "$LATEST_RUN" ]; then
             echo "No successful pipeline run found; skipping mirror deploy."
             exit 0

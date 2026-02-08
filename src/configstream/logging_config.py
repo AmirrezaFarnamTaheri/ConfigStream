@@ -40,47 +40,60 @@ class TraceIdFilter(logging.Filter):
 
 
 class SensitiveDataFilter(logging.Filter):
-    """Filter to mask sensitive information in log messages."""
+    """Filter to mask sensitive information in log messages.
+
+    [FIX] The previous implementation extracted URLs *before* masking secrets,
+    which meant credentials embedded in URLs (e.g., vless://uuid@host,
+    https://api.service.com?token=secret) were whitelisted from redaction.
+    Now we apply masking to the ENTIRE string first, including URL contents.
+    """
 
     PATTERNS = {
         "uuid": r"(?:id|uuid|password|token)\s*[=:]\s*[a-f0-9\-]{16,}",
         "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
     }
 
-    # URL pattern to detect and preserve URLs from masking
-    URL_PATTERN = re.compile(r"https?://\S+")
+    # Pattern for standalone UUIDs (common in proxy URIs)
+    UUID_PATTERN = re.compile(
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        re.IGNORECASE,
+    )
+
+    # Pattern for tokens/secrets in query strings
+    QUERY_SECRET_PATTERN = re.compile(
+        r"((?:token|key|secret|password|auth|apikey)=)([^&\s]+)",
+        re.IGNORECASE,
+    )
+
+    # Pattern for userinfo in URLs (user:pass@host)
+    USERINFO_PATTERN = re.compile(r"://([^@/\s]+)@")
 
     def filter(self, record: logging.LogRecord) -> bool:
         message = record.getMessage()
 
-        # Extract URLs and temporarily replace them with placeholders
-        urls = []
-
-        def url_replacer(match):
-            urls.append(match.group(0))
-            return f"__URL_PLACEHOLDER_{len(urls)-1}__"
-
-        # Temporarily remove URLs
-        message_without_urls = self.URL_PATTERN.sub(url_replacer, message)
-
-        # Apply masking to non-URL content only
-        message_without_urls = re.sub(
+        # [FIX] Apply ALL masking patterns to the ENTIRE string (including URLs)
+        # 1. Mask credentials in key=value patterns
+        message = re.sub(
             self.PATTERNS["uuid"],
             "[MASKED_CREDENTIAL]",
-            message_without_urls,
+            message,
             flags=re.IGNORECASE,
         )
-        message_without_urls = re.sub(
-            self.PATTERNS["email"], "[MASKED_EMAIL]", message_without_urls
+        # 2. Mask emails
+        message = re.sub(
+            self.PATTERNS["email"], "[MASKED_EMAIL]", message
         )
+        # 3. Mask standalone UUIDs (proxy credentials)
+        message = self.UUID_PATTERN.sub("[MASKED_UUID]", message)
+        # 4. Mask query string secrets
+        message = self.QUERY_SECRET_PATTERN.sub(r"\1[MASKED]", message)
+        # 5. Mask userinfo in URLs (user:pass@host -> [MASKED]@host)
+        message = self.USERINFO_PATTERN.sub("://[MASKED]@", message)
+        # 6. Escape newlines to prevent log injection
+        message = message.replace("\n", "\\n").replace("\r", "\\r")
 
-        # Restore URLs
-        for i, url in enumerate(urls):
-            message_without_urls = message_without_urls.replace(
-                f"__URL_PLACEHOLDER_{i}__", url
-            )
-
-        record.msg = SecurityValidator.sanitize_log_message(message_without_urls)
+        # Final pass through SecurityValidator for additional sanitization
+        record.msg = SecurityValidator.sanitize_log_message(message)
         record.args = ()
         return True
 

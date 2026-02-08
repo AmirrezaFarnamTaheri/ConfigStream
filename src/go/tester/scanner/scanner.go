@@ -4,6 +4,7 @@ package scanner
 import (
 	"crypto/rand"
 	"fmt"
+	"log"
 	mrand "math/rand"
 	"net"
 	"sync"
@@ -49,13 +50,18 @@ func ConstructHandshakePacket() []byte {
 	// 2. Reserved (3 bytes) - Zeroed by make()
 
 	// 3. Sender Index (4 bytes) - Random arbitrary ID
-	rand.Read(packet[4:8])
+	// [FIX] Check crypto/rand.Read errors to prevent sending zeroed packets
+	if _, err := rand.Read(packet[4:8]); err != nil {
+		return nil
+	}
 
 	// 4. Ephemeral Public Key (32 bytes)
 	// We generate a random private key and derive the public key
 	var priv [32]byte
 	var pub [32]byte
-	rand.Read(priv[:])
+	if _, err := rand.Read(priv[:]); err != nil {
+		return nil
+	}
 	curve25519.ScalarBaseMult(&pub, &priv)
 	copy(packet[8:40], pub[:])
 
@@ -64,7 +70,9 @@ func ConstructHandshakePacket() []byte {
 	// However, for scanning "aliveness", filling this with random noise
 	// often triggers a "cookie reply" or "under load" response from the server,
 	// which is sufficient to measure RTT.
-	rand.Read(packet[40 : 40+EncryptedStatic+EncryptedTime])
+	if _, err := rand.Read(packet[40 : 40+EncryptedStatic+EncryptedTime]); err != nil {
+		return nil
+	}
 
 	// 6. MAC1 & MAC2 (16 + 16 bytes)
 	// Again, strictly these are Blake2s hashes. Random noise works for simple liveness
@@ -88,7 +96,10 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 	// Listen on an ephemeral port
 	conn, err := net.ListenPacket("udp4", ":0")
 	if err != nil {
-		fmt.Printf("Error creating scanner socket: %v\n", err)
+		// [FIX] Use log.Printf instead of fmt.Printf to write to stderr.
+		// fmt.Printf writes to stdout which corrupts the NDJSON result stream
+		// that the Python consumer is parsing, causing decode errors.
+		log.Printf("Error creating scanner socket: %v", err)
 		return
 	}
 	defer conn.Close()
@@ -154,11 +165,14 @@ func RunScan(workers int, timeout time.Duration, limit int, cidrs []string, resu
 					}
 					continue
 				}
-				// Exit on non-temporary errors (e.g., socket closed)
-				if ne, ok := err.(net.Error); !ok || !ne.Temporary() {
-					return
-				}
-				continue
+				// [FIX] Removed deprecated ne.Temporary() check (always returns false
+			// in Go 1.18+, causing premature exit on any non-timeout error).
+			// During the sending phase, non-timeout errors are recoverable.
+			// After sending completes, any error means we're done.
+			if !sending {
+				return
+			}
+			continue
 			}
 
 			recvTime := time.Now()
@@ -279,12 +293,18 @@ func generateIPList(cidrs []string) []string {
 			continue
 		}
 		for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
-			// Skip network and broadcast (simplified)
+			// [FIX] Actually skip network (.0) and broadcast (.255) addresses.
+			// Previously the comment said "skip" but the code didn't filter them,
+			// wasting time scanning unreachable addresses and triggering alerts.
+			last := ip[len(ip)-1]
+			if last == 0 || last == 255 {
+				continue
+			}
 			ips = append(ips, ip.String())
 		}
 	}
-	// Shuffle IPs here for better distribution
-	mrand.Seed(time.Now().UnixNano())
+	// Shuffle IPs for better distribution
+	// [FIX] Removed deprecated mrand.Seed() call (auto-seeded since Go 1.20)
 	mrand.Shuffle(len(ips), func(i, j int) {
 		ips[i], ips[j] = ips[j], ips[i]
 	})

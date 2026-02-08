@@ -75,7 +75,7 @@ def mock_dependencies():
 @pytest.mark.asyncio
 async def test_pipeline_stats():
     s = PipelineStats()
-    d = await s.to_dict()
+    d = s.to_dict()
     assert d["fetched_sources"] == 0
 
     res = PipelineResult(True, s, {}, None)

@@ -162,7 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
                  let text = window.i18n.t('hero.subtitle.main');
                  text = text.replace('{sources}', formatNum(sourceCount));
                  text = text.replace('{hours}', formatNum(updateFreq));
-                 heroSubtitle.innerHTML = text; // Allow HTML for strong tags
+                 // [FIX] Sanitize before innerHTML to prevent XSS if metadata is poisoned.
+                // The text template comes from i18n (trusted) and values are numbers,
+                // but defense-in-depth requires sanitization.
+                if (window.DOMPurify) {
+                    heroSubtitle.innerHTML = window.DOMPurify.sanitize(text, {ALLOWED_TAGS: ['strong', 'em', 'b', 'i', 'span']});
+                } else {
+                    heroSubtitle.textContent = text.replace(/<[^>]*>/g, '');
+                }
              }
         };
 

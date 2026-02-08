@@ -194,6 +194,11 @@ class BoundedConcurrencyManager:
     def limit(self):
         return self._limit
 
+    @property
+    def active_count(self) -> int:
+        """[FIX] Expose active permit count for monitoring/diagnostics."""
+        return self._active
+
     @asynccontextmanager
     async def acquire(self):
         """
@@ -209,7 +214,8 @@ class BoundedConcurrencyManager:
             yield
         finally:
             async with self._cond:
-                self._active -= 1
+                # [FIX] Guard against negative active count from double-release
+                self._active = max(0, self._active - 1)
                 self._cond.notify()
 
     # Async context manager protocol support
@@ -222,7 +228,8 @@ class BoundedConcurrencyManager:
 
     async def __aexit__(self, exc_type, exc, tb):
         async with self._cond:
-            self._active -= 1
+            # [FIX] Guard against negative active count
+            self._active = max(0, self._active - 1)
             self._cond.notify()
 
     async def set_limit(self, new_limit: int):
@@ -232,3 +239,24 @@ class BoundedConcurrencyManager:
             # If we increased the limit, wake up waiters to check if they can run
             if self._active < self._limit:
                 self._cond.notify_all()
+
+    async def drain(self, timeout: float = 30.0) -> bool:
+        """[FIX] Wait for all active permits to be released.
+
+        Useful during graceful shutdown to ensure no tasks are orphaned.
+        Returns True if drained within timeout, False otherwise.
+        """
+        deadline = time.monotonic() + timeout
+        async with self._cond:
+            while self._active > 0:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    logger.warning(
+                        f"BoundedConcurrencyManager drain timed out with {self._active} active permits"
+                    )
+                    return False
+                try:
+                    await asyncio.wait_for(self._cond.wait(), timeout=remaining)
+                except asyncio.TimeoutError:
+                    return False
+        return True
