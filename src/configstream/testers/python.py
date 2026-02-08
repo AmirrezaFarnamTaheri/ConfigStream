@@ -1,3 +1,4 @@
+import traceback
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import asyncio
 import logging
@@ -231,7 +232,7 @@ class PythonTester:
                         SecurityValidator.sanitize_log_message(
                             f"{proxy.address}:{proxy.port}"
                         ),
-                        SecurityValidator.sanitize_log_message(str(e)),
+                        SecurityValidator.sanitize_log_message(str(e)) + "\n" + traceback.format_exc(),
                     )
                 proxy.is_working = False
                 proxy.details["error"] = SecurityValidator.sanitize_log_message(str(e))
