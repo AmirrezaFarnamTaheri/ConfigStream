@@ -416,7 +416,6 @@ class VwarpTool:
             except json.JSONDecodeError:
                 logger.warning("VWARP_CONFIG_JSON is invalid JSON; ignoring.")
 
-        vwarp_config.setdefault("version", "1.0")
         vwarp_config["bind"] = f"{bind_addr}:{port}"
         if env_endpoint:
             vwarp_config["endpoint"] = env_endpoint
@@ -653,7 +652,6 @@ class VwarpTool:
         if fallback_enabled and reason in ("connectivity", "dns"):
             logger.info(f"Vwarp fallback retry triggered (reason={reason}).")
             fallback_cfg = {
-                "version": "1.0",
                 "bind": f"{bind_addr}:{port}",
                 "test_url": "http://1.1.1.1/cdn-cgi/trace",
                 "dns": "1.1.1.1",
