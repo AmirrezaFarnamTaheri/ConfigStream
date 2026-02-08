@@ -118,7 +118,7 @@ def _build_dns_safe_proxies(
         clone.address = resolved
         clone.resolved_ip = resolved
 
-        details = dict(clone.details or {})
+        details: Dict[str, Any] = dict(clone.details or {})
         details.setdefault("_origin_id", proxy.id)
         details.setdefault("original_host", addr)
         if not details.get("sni"):
@@ -170,7 +170,7 @@ def _build_dns_hardened_proxies(
             clone.address = resolved
             clone.resolved_ip = resolved
 
-            details = dict(clone.details or {})
+            details: Dict[str, Any] = dict(clone.details or {})
             details.setdefault("_origin_id", proxy.id)
             details.setdefault("original_host", addr)
             if not details.get("sni"):

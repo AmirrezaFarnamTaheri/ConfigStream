@@ -417,7 +417,6 @@ class VwarpTool:
             except json.JSONDecodeError:
                 logger.warning("VWARP_CONFIG_JSON is invalid JSON; ignoring.")
 
-        vwarp_config.setdefault("version", "1.0")
         vwarp_config["bind"] = f"{bind_addr}:{port}"
         if env_endpoint:
             vwarp_config["endpoint"] = env_endpoint
@@ -666,7 +665,6 @@ class VwarpTool:
             logger.info(f"Vwarp fallback retry triggered (reason={reason}).")
             # [FIX] Minimal config without test_url to avoid config parse errors
             fallback_cfg = {
-                "version": "1.0",
                 "bind": f"{bind_addr}:{port}",
                 "dns": "1.1.1.1",
             }
