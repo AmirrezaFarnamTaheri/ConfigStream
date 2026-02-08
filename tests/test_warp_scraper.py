@@ -12,7 +12,7 @@ async def test_scrape_endpoint_list():
         {"name": "test", "url": "http://test", "kind": "endpoint_list"}
     ]):
         proxies = await scraper.scrape_warp_sources()
-        assert len(proxies) == 0 # endpoint_list produces no proxies directly
+        assert len(proxies) == 0  # endpoint_list produces no proxies directly
         endpoints = scraper.get_scraped_endpoints()
         assert "162.159.192.1" in endpoints
         assert "1.1.1.1" in endpoints

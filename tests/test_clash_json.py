@@ -26,7 +26,7 @@ def test_parse_clash_json_invalid_json():
 
 def test_parse_clash_json_missing_fields():
     assert parse_clash_json(json.dumps({"name": "No Type"})) is None
-    assert parse_clash_json(json.dumps({"type": "vmess", "server": "example.com"})) is None # Missing name
+    assert parse_clash_json(json.dumps({"type": "vmess", "server": "example.com"})) is None  # Missing name
 
 def test_parse_clash_json_shadowsocks():
     config = json.dumps({

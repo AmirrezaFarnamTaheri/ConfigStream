@@ -14,6 +14,8 @@ This roadmap tracks the evolution of ConfigStream towards a fully autonomous, re
 - **Active Scanning**: Added `dnsscanner_tui.py` for active endpoint discovery.
 - **Rate Limiting**: Protected API endpoints against abuse.
 - **Type Safety**: Achieved 100% MyPy compliance in core modules.
+- **Censorship Check**: Integrated active checks for sensitive site reachability.
+- **Deprecation Cleanup**: Removed legacy tools and consolidated validation logic.
 
 ### Frontend & UX
 - **Asset Minification**: Automated JS/CSS minification in CI pipeline.
