@@ -1,7 +1,8 @@
+from __future__ import annotations
+from typing import Any
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from __future__ import annotations
 
 import asyncio
 import ipaddress
@@ -15,7 +16,7 @@ import time
 from collections import deque
 from datetime import datetime
 from pathlib import Path
-from typing import Set, AsyncGenerator, Optional
+from typing import Set, AsyncGenerator, Optional, Deque
 
 import aiodns
 import httpx
@@ -122,7 +123,7 @@ class SlipstreamManager:
                 return exe_path
 
         # Fall back to primary filename (for new downloads)
-        filename = self.FILENAMES.get(platform_key)
+        primary_filename: Optional[str] = self.FILENAMES.get(platform_key)
         if not filename:
             raise RuntimeError(f"Unsupported platform: {self.system} {self.machine}")
 
@@ -140,8 +141,8 @@ class SlipstreamManager:
                 return True
 
         # Also check primary filename
-        primary_filename = self.FILENAMES.get(platform_key)
-        if primary_filename and (platform_dir / primary_filename).exists():
+        primary_primary_filename: Optional[str] = self.FILENAMES.get(platform_key)
+        if filename and (platform_dir / filename).exists():
             return True
 
         return False
@@ -620,9 +621,9 @@ class DNSScannerTUI(App):
         # Slipstream parallel testing config
         self.slipstream_max_concurrent = 3
         self.slipstream_base_port = 10800  # Base port, will use 10800, 10801, 10802
-        self.available_ports: deque = deque()  # Available ports for testing
+        self.available_ports: Deque[int] = deque()  # Available ports for testing
         self.slipstream_semaphore: asyncio.Semaphore = None  # Will be created in async context
-        self.pending_slipstream_tests: deque = deque()  # Queue for pending tests
+        self.pending_slipstream_tests: Deque[Any] = deque()  # Queue for pending tests
         self.slipstream_tasks: set = set()  # Track running slipstream tasks
         self.active_scan_tasks: list = []  # Track active DNS scan tasks for cleanup
         self._shutdown_event: asyncio.Event = None  # Signal for graceful shutdown
@@ -1013,7 +1014,8 @@ class DNSScannerTUI(App):
 
                 # self._log(f"[dim]Processing chunk {chunk_num}...[/dim]")
                 # Wait for some tasks to complete
-                done, active_tasks = await asyncio.wait(active_tasks, return_when=asyncio.FIRST_COMPLETED)
+                done, pending_set = await asyncio.wait(active_tasks, return_when=asyncio.FIRST_COMPLETED)
+                active_tasks = list(pending_set)
 
                 # Process completed results
                 for task in done:
@@ -1125,13 +1127,13 @@ class DNSScannerTUI(App):
             # Fallback to regular reading if mmap fails (e.g., empty file)
             try:
                 with open(self.subnet_file, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith("#"):
+                    for line_txt in f:
+                        line_clean = line_txt.strip()
+                        if line_clean and not line_clean.startswith("#"):
                             try:
-                                subnets.append(ipaddress.IPv4Network(line, strict=False))
+                                subnets.append(ipaddress.IPv4Network(line_clean, strict=False))
                             except Exception as e:
-                                logger.warning(f"Failed to parse line: {line[:50]} - {e}")
+                                logger.warning(f"Failed to parse line: {line_clean[:50]} - {e}")
                                 pass
             except Exception as e:
                 logger.error(f"Failed to read subnet file: {e}")
@@ -1478,7 +1480,7 @@ class DNSScannerTUI(App):
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT,
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+                creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0) if sys.platform == 'win32' else 0
             )
 
             logger.debug(f"[{dns_ip}] Process started with PID {process.pid}")
