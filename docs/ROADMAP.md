@@ -1,6 +1,6 @@
 # ConfigStream Roadmap
 
-_Last updated: 2026-02-07_
+_Last updated: 2026-02-08_
 
 This roadmap tracks the evolution of ConfigStream towards a fully autonomous, resilient anti-censorship platform.
 
@@ -26,6 +26,29 @@ This roadmap tracks the evolution of ConfigStream towards a fully autonomous, re
 - **Test Coverage**: Expanded unit tests to >96% coverage for critical paths.
 - **Go Tester Refactor**: Rewrote WASM integration for better stability.
 - **SlowAPI Fixes**: Resolved conflicts between rate limiting and test clients.
+
+---
+
+## 1b. Completed Items (v2.5.0) ✅
+
+### Laboratory Page
+- **Chain Builder**: 5-step walkthrough with network diagnosis, clean IP discovery, multi-strategy chain building, live testing, and export.
+- **5 Chain Strategies**: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON.
+- **8 Export Formats**: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox Link, URI, QR, Python script, Bash script.
+- **Advanced Evasion**: uTLS fingerprint, ALPN, multiplex (h2mux/smux/yamux), padding.
+- **Layer 1 Support**: Users with local proxies (Psiphon, Lantern, V2RayN) can stack them as the base of the chain.
+- **Network Diagnosis**: Browser-based connectivity tests with tailored strategy advice.
+
+### Offline Tools
+- **`tools/lab-scanner.py`**: Zero-dependency Python tool — network diagnosis, clean IP scan, proxy discovery, DNS probe, interactive chain builder.
+- **`tools/lab-runner.sh`**: Bash chain runner — auto-installs sing-box, tests chains, scans IPs through proxies.
+- **`frontend/lab-offline.html`**: Self-contained offline Lab page — full multi-layer chain builder in a single HTML file.
+
+### Code Quality (v2.5.0)
+- **800 tests passing**, 0 failures, 3 skipped.
+- **flake8**: 0 errors across 135 source files.
+- **black**: 100% formatted.
+- Shared utility consolidation (`utils/net.py`), dead code removal, SHA256 hashing fix.
 
 ---
 

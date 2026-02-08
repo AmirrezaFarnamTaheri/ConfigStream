@@ -1,6 +1,5 @@
 # Build Artifacts (Intermediate)
 output_batch_*/
-pipeline-output/
 data/
 *.zip
 dist/
@@ -48,6 +47,9 @@ sources/backup_dynamic/
 
 # Logs
 *.log
+
+# Pipeline runtime artifacts
+consolidated_sources.txt
 # TLS keylog artifacts (e.g., SSLKEYLOGFILE=...)
 sslkeylog*
 false

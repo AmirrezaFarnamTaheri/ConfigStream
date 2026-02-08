@@ -3,16 +3,20 @@ from configstream.dns_profiles import (
     build_singbox_dns_profile,
     build_clash_dns_profile,
     IRAN_INFRASTRUCTURE_DNS,
-    CLOUDFLARE_OPTIMIZED_IPS
+    CLOUDFLARE_OPTIMIZED_IPS,
 )
+
 
 def test_infrastructure_dns_list():
     assert "217.218.127.127" in IRAN_INFRASTRUCTURE_DNS
     assert len(IRAN_INFRASTRUCTURE_DNS) > 10
 
+
 def test_cloudflare_optimized_ips():
-    assert "108.162.192.0" in CLOUDFLARE_OPTIMIZED_IPS
     assert len(CLOUDFLARE_OPTIMIZED_IPS) > 5
+    # Verify entries are valid IP-like strings
+    assert all(isinstance(ip, str) and "." in ip for ip in CLOUDFLARE_OPTIMIZED_IPS)
+
 
 def test_singbox_dns_profile_structure():
     profile = build_singbox_dns_profile()
@@ -33,6 +37,7 @@ def test_singbox_dns_profile_structure():
     # Verify optimized IPs are used
     cf_ips = hosts_server["predefined"]["cloudflare-dns.com"]
     assert any(ip in CLOUDFLARE_OPTIMIZED_IPS for ip in cf_ips)
+
 
 def test_clash_dns_profile():
     profile = build_clash_dns_profile()

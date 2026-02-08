@@ -1,4 +1,107 @@
 
+## [2.5.1] - 2026-02-08
+
+### Final Deep Audit
+
+**Fixes**
+- **Version**: Updated `pyproject.toml` version from 2.2.0 to 2.5.0
+- **Dependencies**: Removed unused `scikit-learn`, `numpy`, `scipy` from `pyproject.toml` (anomaly detection uses stdlib `statistics`)
+- **Mypy**: Fixed missing `Optional` import in `security/censorship.py`
+- **Mypy**: Added `type: ignore` for optional `crypto` assignment in `utils/cert.py`
+- **Duplicate Code**: Removed duplicate comment block in `score.py` `_latency_points`
+- **Duplicate Line**: Removed duplicate `EVASION_MODE` line in `README.md`
+
+**Documentation**
+- Updated `STATUS.md` version from v2.2.0 to v2.5.0, audit file count 400→900+
+- Updated `SECURITY.md` supported versions (added 2.5.x), audit date and score
+- Updated `README.md` with Chain Laboratory section
+
+**QA Results**
+- **pytest**: 800 passed, 0 failed, 3 skipped
+- **mypy**: 0 errors
+- **black**: 135/135 files formatted
+- **flake8**: 0 errors
+
+---
+
+## [2.5.0] - 2026-02-08
+
+### Deep Audit & Laboratory Page
+
+**Code Quality Fixes**
+- **Security**: Replaced MD5 with SHA256 for source URL fingerprinting in `consumer.py`
+- **Dead Code Removal**: Deleted `tools/vwarp_tool.py` stub, consolidated `validate_warp_key` into canonical `VwarpTool`
+- **Dead Code Removal**: Removed unused `vwarp_proc` variable and cleanup path in `pipeline.py`
+- **Dead Code Removal**: Removed duplicate standalone `validate_proxy_config` in `security_validator.py`
+- **Dead Code Removal**: Removed unused `subprocess` import from `pipeline.py`
+- **Dead Code Removal**: Removed unused `socket` import from `security/censorship.py`
+- **Bug Fix**: Fixed `dnsscanner_tui.py` shebang position, unused variables, and comment style
+- **Bug Fix**: Renamed `format` parameter to `fmt` in `server.py` to avoid shadowing Python builtin
+- **Bug Fix**: Fixed SPDX license header ordering in `output_handler.py` and `testers/python.py`
+- **Bug Fix**: Fixed Go tester `main.go` import indentation (`crypto/tls`)
+- **Refactor**: Created shared `utils/net.py` with `normalize_host`, `is_ip_literal`, `is_global_ip`
+- **Refactor**: Updated `output_logic.py` and `output_handler.py` to use shared `utils.net` module
+- **DNS Profiles**: Re-exported `IRAN_INFRASTRUCTURE_DNS` from `dns_profiles.py` for test compatibility
+
+**Frontend**
+- **Laboratory Page** (`frontend/lab.html` + `assets/js/lab.js`): 5-step chain builder walkthrough
+  1. Parse proxy URI (VLESS, VMess, Trojan, SS, Hysteria2, TUIC, WireGuard)
+  2. Discover clean Cloudflare IPs (auto, manual, or local scan)
+  3. Build chain — 5 strategies: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON
+     - Advanced evasion: uTLS fingerprint, ALPN, multiplex (h2mux/smux/yamux), padding
+  4. Test chain (live API or manual fallback with sing-box CLI instructions)
+  5. Export: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox link, URI, QR, Python script, Bash script
+- **Nav Consistency**: Added "Lab" link to all 6 HTML pages (index, proxies, analytics, wiki, about, lab)
+
+**Test Fixes**
+- Fixed 3 test files asserting removed `output_dir` field in `/health` endpoint (now checks `output_available`)
+- Fixed `test_cloudflare_optimized_ips` to not hardcode a specific IP that rotated out of curated list
+- Updated `test_vwarp_tool.py` to import from canonical `VwarpTool` in `tools/vwarp.py`
+- **800 tests passing**, 0 failures, 3 skipped
+
+**Offline Tools & Scripts**
+- **`tools/lab-scanner.py`**: Zero-dependency Python network diagnostic tool
+  - 4-phase scan: basic connectivity, local proxy discovery, clean Cloudflare IP scan, DNS server probe
+  - Interactive multi-layer chain builder with JSON config export
+  - Tests through existing proxies, finds SOCKS5/HTTP proxies on localhost and LAN
+  - Scans 17 Cloudflare IPs x 17 ports with concurrent UDP/TCP probes
+- **`tools/lab-runner.sh`**: Bash chain runner for Linux/Mac
+  - Auto-downloads sing-box binary, runs chain configs, tests connectivity end-to-end
+  - Layer-by-layer testing (TCP, SOCKS5, HTTP, TLS)
+  - Clean IP scanning with proxy passthrough support
+- **`frontend/lab-offline.html`**: Self-contained offline Lab page
+  - Full multi-layer chain builder in a single HTML file (no server needed)
+  - Dynamic layer add/remove with visual chain diagram
+  - Sing-Box JSON, Clash YAML, Xray JSON export
+
+**Documentation**
+- Updated `AGENTS.md` with Shared Utilities section, VwarpTool canonical location, and Laboratory page docs
+- Updated `STATUS.md` with current test count (800+) and v2.5.0 roadmap items
+- Updated `CHANGELOG.md` with comprehensive v2.5.0 release notes
+
+**Files Modified**
+- `src/configstream/pipeline_core/consumer.py` - SHA256 hashing
+- `src/configstream/pipeline_core/output_handler.py` - SPDX + shared utils import
+- `src/configstream/output_logic.py` - shared utils import
+- `src/configstream/pipeline.py` - dead code removal
+- `src/configstream/server.py` - parameter rename
+- `src/configstream/security_validator.py` - dead code removal
+- `src/configstream/security/censorship.py` - unused import removal
+- `src/configstream/tools/vwarp.py` - consolidated validate_warp_key
+- `src/configstream/testers/python.py` - SPDX fix
+- `src/configstream/dns_profiles.py` - re-export fix
+- `src/configstream/utils/net.py` - new shared utility module
+- `src/configstream/tools/dns_scanner/python/dnsscanner_tui.py` - shebang/variable fixes
+- `src/go/tester/main.go` - import indentation fix
+- `frontend/lab.html` - new Laboratory page
+- `frontend/assets/js/lab.js` - new Laboratory page logic
+- `frontend/{index,proxies,analytics,wiki,about}.html` - added Lab nav link
+- `tests/unit/coverage_boost/test_server_coverage.py` - health endpoint fix
+- `tests/unit/test_server.py` - health endpoint fix
+- `tests/unit/test_server_new.py` - health endpoint fix
+- `tests/unit/test_dns_profiles.py` - IP list fix
+- `tests/unit/tools/test_vwarp_tool.py` - import fix
+
 ## [2.4.0] - 2026-02-05
 
 ### BYOW (Bring Your Own Worker) - Platinum Tier

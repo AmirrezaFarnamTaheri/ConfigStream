@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "configstream"
-version = "2.2.0"
+version = "2.5.0"
 description = "High-performance VPN configuration aggregator with smart scheduling"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -66,11 +66,6 @@ dependencies = [
 
     # Crypto (for WARP)
     "cryptography",
-
-    # Data Science (Anomaly Detection)
-    "scikit-learn",
-    "numpy",
-    "scipy",
 
     # HTML Parsing (Security)
     "beautifulsoup4"

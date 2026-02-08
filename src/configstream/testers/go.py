@@ -507,6 +507,7 @@ class GoBatchTester:
                 # Apply evasion features to test config to avoid false negatives
                 # Proxies that only work with uTLS/multiplexing should be tested with those features enabled
                 from ..intelligence.evasion import enrich_outbound_with_evasion
+
                 outbound = enrich_outbound_with_evasion(
                     outbound,
                     p.id,
@@ -840,7 +841,9 @@ class GoBatchTester:
             async with self._lock:
                 proc = self._proc
                 if proc is None or proc.stdin is None:
-                    logger.error("Go Tester process is dead, cannot send custom configs.")
+                    logger.error(
+                        "Go Tester process is dead, cannot send custom configs."
+                    )
                     await self._cleanup_pending(list(reverse_map.keys()), futures)
                     return {}
                 proc.stdin.write(payload_str.encode())

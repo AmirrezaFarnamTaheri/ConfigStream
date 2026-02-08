@@ -291,14 +291,6 @@ def _should_include_insecure(reason: str) -> bool:
     return reason not in fatal_reasons
 
 
-# [BACKWARD COMPATIBILITY]
-def validate_proxy_config(
-    proxy: "Proxy", policy: dict = STRICT_POLICY
-) -> Tuple[bool, str]:
-    """Alias for validate_proxy to maintain backward compatibility."""
-    return validate_proxy(proxy, policy)
-
-
 def validate_batch_configs(
     proxies: List["Proxy"], policy: dict = STRICT_POLICY
 ) -> List["Proxy"]:

@@ -7,8 +7,9 @@ from __future__ import annotations
 
 from typing import Dict, Any, List
 
-from .intelligence.dns_lists import (
+from .intelligence.dns_lists import (  # noqa: F401
     CLOUDFLARE_OPTIMIZED_IPS,
+    IRAN_INFRASTRUCTURE_DNS,
     ZEUS_DNS,
 )
 
@@ -86,8 +87,10 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
 
     # Merge standard + optimized Cloudflare IPs for hosts resolution
     cf_ips = [
-        "104.16.249.249", "104.16.248.249",
-        "2606:4700::6810:f8f9", "2606:4700::6810:f9f9",
+        "104.16.249.249",
+        "104.16.248.249",
+        "2606:4700::6810:f8f9",
+        "2606:4700::6810:f9f9",
     ] + CLOUDFLARE_OPTIMIZED_IPS[:4]
 
     return {
@@ -117,16 +120,22 @@ def build_singbox_dns_profile() -> Dict[str, Any]:
             {
                 "predefined": {
                     "dns.google": [
-                        "8.8.8.8", "8.8.4.4",
-                        "2001:4860:4860::8888", "2001:4860:4860::8844",
+                        "8.8.8.8",
+                        "8.8.4.4",
+                        "2001:4860:4860::8888",
+                        "2001:4860:4860::8844",
                     ],
                     "dns.alidns.com": [
-                        "223.5.5.5", "223.6.6.6",
-                        "2400:3200::1", "2400:3200:baba::1",
+                        "223.5.5.5",
+                        "223.6.6.6",
+                        "2400:3200::1",
+                        "2400:3200:baba::1",
                     ],
                     "one.one.one.one": [
-                        "1.1.1.1", "1.0.0.1",
-                        "2606:4700:4700::1111", "2606:4700:4700::1001",
+                        "1.1.1.1",
+                        "1.0.0.1",
+                        "2606:4700:4700::1111",
+                        "2606:4700:4700::1001",
                     ],
                     "cloudflare-dns.com": cf_ips,
                     "zeus-dns": ZEUS_DNS,

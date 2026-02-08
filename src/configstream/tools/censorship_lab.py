@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class CensorshipMode(Enum):
     """Censorship simulation modes."""
+
     DNS_POISON = "dns_poison"
     IP_BLOCK = "ip_block"
     UDP_BLOCK = "udp_block"
@@ -80,6 +81,7 @@ class IPBlocklist:
         # Check CIDR ranges
         try:
             import ipaddress
+
             ip_addr = ipaddress.ip_address(ip)
             for cidr in self.blocked_ranges:
                 if ip_addr in ipaddress.ip_network(cidr, strict=False):
@@ -135,7 +137,9 @@ class CensorshipLab:
         elif mode == CensorshipMode.TIMEOUT:
             self.timeout_multiplier = kwargs.get("multiplier", 10.0)
             self.active_modes.append(mode)
-            logger.info(f"[CensorshipLab] Enabled timeout simulation (x{self.timeout_multiplier})")
+            logger.info(
+                f"[CensorshipLab] Enabled timeout simulation (x{self.timeout_multiplier})"
+            )
 
         elif mode == CensorshipMode.RATE_LIMIT:
             self.rate_limit_threshold = kwargs.get("threshold", 10)

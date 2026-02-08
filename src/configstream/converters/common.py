@@ -61,13 +61,21 @@ def to_uri(proxy: Proxy) -> Optional[str]:
             b64_userinfo = (
                 base64.urlsafe_b64encode(userinfo.encode()).decode().rstrip("=")
             )
-            name = proxy.remarks or get_flag_emoji(proxy.country_code) or proxy.country_code
+            name = (
+                proxy.remarks
+                or get_flag_emoji(proxy.country_code)
+                or proxy.country_code
+            )
             return f"ss://{b64_userinfo}@{proxy.address}:{proxy.port}#{urllib.parse.quote(name)}"
 
         elif proxy.protocol == "trojan":
             # trojan://password@host:port#name
             password = proxy.uuid
-            name = proxy.remarks or get_flag_emoji(proxy.country_code) or proxy.country_code
+            name = (
+                proxy.remarks
+                or get_flag_emoji(proxy.country_code)
+                or proxy.country_code
+            )
             return f"trojan://{password}@{proxy.address}:{proxy.port}#{urllib.parse.quote(name)}"
 
         elif proxy.protocol in ["vmess", "vless"]:

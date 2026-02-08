@@ -414,9 +414,9 @@ async def get_proxies(
     return FileResponse(master_path, media_type="application/json")
 
 
-@app.get("/subscribe/{format}")
+@app.get("/subscribe/{fmt}")
 @limiter.limit("5/minute")
-async def download_subscription(request: Request, format: str):
+async def download_subscription(request: Request, fmt: str):
     """
     Download subscription file.
     Formats: base64, clash, singbox, shadowrocket, quantumult, quantumultx, loon, sip008, surge
@@ -468,14 +468,14 @@ async def download_subscription(request: Request, format: str):
         "side-products-dns-hardened": "side_products-dns-hardened.zip",
     }
 
-    if format not in file_map:
+    if fmt not in file_map:
         raise HTTPException(400, f"Invalid format. Options: {list(file_map.keys())}")
 
-    target = OUTPUT_DIR / file_map[format]
+    target = OUTPUT_DIR / file_map[fmt]
     if not target.exists():
         raise HTTPException(404, "File not generated yet")
 
-    return FileResponse(target, filename=file_map[format])
+    return FileResponse(target, filename=file_map[fmt])
 
 
 def _serve_output_subpath(prefix: str, path: str) -> FileResponse:

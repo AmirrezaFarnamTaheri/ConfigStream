@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 from configstream.output_transport import save_json, inject_stego_key_into_frontend
 from configstream.models import Proxy
 
+
 @pytest.fixture
 def mock_history():
     with patch("configstream.output_transport.ProxyHistoryTracker") as MockHistory:
@@ -11,8 +12,11 @@ def mock_history():
         hist.get_history.return_value = {}
         yield hist
 
+
 def test_save_json(tmp_path, mock_history):
-    proxy = Proxy(config="test", protocol="vmess", address="1.1.1.1", port=443, uuid="u")
+    proxy = Proxy(
+        config="test", protocol="vmess", address="1.1.1.1", port=443, uuid="u"
+    )
     proxies = [proxy]
 
     out_file = tmp_path / "proxies.json"
@@ -21,8 +25,11 @@ def test_save_json(tmp_path, mock_history):
     assert out_file.exists()
     assert "1.1.1.1" in out_file.read_text()
 
+
 def test_save_json_compress(tmp_path, mock_history):
-    proxy = Proxy(config="test", protocol="vmess", address="1.1.1.1", port=443, uuid="u")
+    proxy = Proxy(
+        config="test", protocol="vmess", address="1.1.1.1", port=443, uuid="u"
+    )
     proxies = [proxy]
 
     out_file = tmp_path / "proxies.json"
@@ -30,6 +37,7 @@ def test_save_json_compress(tmp_path, mock_history):
 
     gz_file = tmp_path / "proxies.json.gz"
     assert gz_file.exists()
+
 
 def test_inject_stego_key(tmp_path):
     js_file = tmp_path / "app.js"

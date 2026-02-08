@@ -80,9 +80,7 @@ class SensitiveDataFilter(logging.Filter):
             flags=re.IGNORECASE,
         )
         # 2. Mask emails
-        message = re.sub(
-            self.PATTERNS["email"], "[MASKED_EMAIL]", message
-        )
+        message = re.sub(self.PATTERNS["email"], "[MASKED_EMAIL]", message)
         # 3. Mask standalone UUIDs (proxy credentials)
         message = self.UUID_PATTERN.sub("[MASKED_UUID]", message)
         # 4. Mask query string secrets

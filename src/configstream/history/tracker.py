@@ -374,7 +374,9 @@ class ProxyHistoryTracker:
         elif isinstance(stats, dict):
             stats_dict = stats
         else:
-            logger.warning(f"Unknown stats type for evasion trend export: {type(stats)}")
+            logger.warning(
+                f"Unknown stats type for evasion trend export: {type(stats)}"
+            )
             stats_dict = {}
 
         HistoryExporter.export_evasion_trend(stats_dict, output_path)

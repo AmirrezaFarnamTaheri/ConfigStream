@@ -1,8 +1,9 @@
 import pytest
-from src.configstream.tools.vwarp_tool import VWarpTool
+from src.configstream.tools.vwarp import VwarpTool
+
 
 def test_key_validation():
-    tool = VWarpTool()
+    tool = VwarpTool()
 
     # Valid-looking key (alphanumeric + length check)
     valid_key = "a" * 45

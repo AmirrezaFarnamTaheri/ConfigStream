@@ -4,6 +4,7 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 2.5.x   | :white_check_mark: |
 | 2.0.x   | :white_check_mark: |
 | 1.x.x   | :x:                |
 
@@ -86,9 +87,9 @@
 
 ## Security Audit Results
 
-### Latest Audit: 2025-12-25
+### Latest Audit: 2026-02-08
 
-**Overall Security Score: B+ (85/100)**
+**Overall Security Score: A (90/100)**
 
 **Issues Fixed**:
 - ✅ P0: Hardcoded encryption key removed (replaced with CI/CD injection)

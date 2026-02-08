@@ -62,7 +62,8 @@ async def test_server_health_check(async_client):
     assert response.status_code == 200
     json_data = response.json()
     assert json_data["status"] == "ok"
-    assert "output_dir" in json_data
+    # output_dir removed from health endpoint for security (no filesystem path exposure)
+    assert "output_available" in json_data
 
 
 @pytest.mark.asyncio

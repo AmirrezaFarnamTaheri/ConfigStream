@@ -70,6 +70,7 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
 *   **UUIDs**: For VMess/VLESS, a missing UUID is a fatal error. Drop the proxy.
 *   **Sanitization**: Ensure tokens, passwords, and UUIDs are masked in logs.
 *   **Blocklists**: Ensure `DEFAULT_BLOCKLIST` is updated before processing begins.
+*   **Singletons**: Both `BlocklistManager` and `GeoIPResolver` use `threading.Lock` in `__new__` for thread-safe instantiation. Any new singleton **MUST** follow this pattern.
 
 ### Testing (`src/configstream/testers.py`)
 *   **Dual Engine**:
@@ -83,12 +84,35 @@ The system follows a **Streaming Pipeline Architecture** (`Producer-Consumer`):
     *   **Retesting**: Washed chains (Relay -> WARP) are re-tested immediately. Successful revivals are tagged as `revived-warp` or `revived-vwarp`.
 *   **Cache**: Use `TestResultCache` to skip re-testing recently verified proxies. Ensure path persistence.
 
+### Shared Utilities (`src/configstream/utils/`)
+*   **`net.py`**: Shared network helpers (`normalize_host`, `is_ip_literal`, `is_global_ip`). Used by `output_logic.py` and `pipeline_core/output_handler.py`. Do NOT duplicate these — always import from `utils.net`.
+*   **`__init__.py`**: `AtomicFileWriter`, `BoundedConcurrencyManager`, `_FileLock`.
+
+### VwarpTool (`src/configstream/tools/vwarp.py`)
+*   The **canonical** Vwarp tool class is `VwarpTool` in `tools/vwarp.py`.
+*   `validate_warp_key()` is a static method on this class.
+*   The legacy stub `tools/vwarp_tool.py` has been **removed** — do not recreate it.
+*   **Structured Logging**: Scan and tunnel operations log timing (`%.1fs`), PID, and command used. Failure classification (`_classify_failure`) routes to `config`, `dns`, `connectivity`, or `other` for targeted retry logic.
+
+### AnomalyDetector (`src/configstream/anomaly.py`)
+*   Uses a persistent SQLite connection with `threading.Lock` and WAL mode.
+*   **MUST** call `.close()` during pipeline shutdown to release the DB connection.
+*   Implements fail-open behaviour: transient DB errors allow sources through rather than blocking the pipeline.
+
 ## 5. Metrics & Analytics
 *   **Stats Tracking**:
-    *   `PipelineStats` tracks granular metrics: `revived_warp`, `revived_vwarp`, `smart_chain_count`, etc.
+    *   `PipelineStats` tracks granular metrics: `revived_warp`, `revived_vwarp`, `smart_chain_count`, `shielded_count`, evasion metrics, etc.
     *   `total_proxies` in metadata includes Native + Revived + Smart Chains.
+    *   **Metadata Completeness**: `save_metadata` in `output_logic.py` **MUST** export every field that `PipelineStats.to_dict()` produces and that the frontend reads. Key fields: `shielded_count`, `evasion_utls_enabled`, `evasion_alpn_enabled`, `evasion_fragmentation_enabled`, `evasion_multiplexing_enabled`, `evasion_dns_safe_count`, `evasion_dns_hardened_count`.
 *   **Frontend**:
     *   Analytics dashboard displays split stats for Revived proxies (Warp vs Vwarp).
+    *   **Laboratory page** (`frontend/lab.html` + `assets/js/lab.js`) provides a 5-step chain builder walkthrough for end users:
+        1. Parse proxy URI (VLESS, VMess, Trojan, SS, Hysteria2, TUIC, WireGuard)
+        2. Discover clean Cloudflare IPs (auto, manual, local scan)
+        3. Build chain — 5 strategies: **WARP**, **Double WARP**, **TLS Fragment**, **CDN Worker**, **Custom JSON**
+           - Advanced evasion: uTLS fingerprint, ALPN, multiplex (h2mux/smux/yamux), padding
+        4. Test chain (live API or manual fallback with sing-box CLI instructions)
+        5. Export: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox link, URI, QR, **Python script**, **Bash script**
 
 ## 6. Git & Version Control
 *   **Diffs**: When generating patches, ensure context is accurate.

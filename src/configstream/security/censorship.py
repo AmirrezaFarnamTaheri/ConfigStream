@@ -1,29 +1,30 @@
-import socket
 import time
 import requests
 import logging
-from typing import List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 # Setup local logger since importing from ..logging_config failed or was circular
 logger = logging.getLogger(__name__)
+
 
 class CensorshipLab:
     """
     Checks connectivity to sensitive sites to determine censorship status.
     """
+
     SENSITIVE_SITES = [
         "https://www.google.com",
         "https://www.facebook.com",
         "https://www.twitter.com",
         "https://www.youtube.com",
         "https://www.instagram.com",
-        "https://www.wikipedia.org"
+        "https://www.wikipedia.org",
     ]
 
     def __init__(self):
         self.results = {}
 
-    def check_connectivity(self, sites: List[str] = None) -> Dict[str, Any]:
+    def check_connectivity(self, sites: Optional[List[str]] = None) -> Dict[str, Any]:
         """
         Checks if sensitive sites are reachable.
         """
@@ -38,14 +39,11 @@ class CensorshipLab:
                 results[site] = {
                     "status": "reachable",
                     "code": response.status_code,
-                    "latency_ms": round(latency, 2)
+                    "latency_ms": round(latency, 2),
                 }
                 logger.info(f"Successfully connected to {site}")
             except requests.RequestException as e:
-                results[site] = {
-                    "status": "blocked",
-                    "error": str(e)
-                }
+                results[site] = {"status": "blocked", "error": str(e)}
                 logger.warning(f"Failed to connect to {site}: {e}")
 
         self.results = results
@@ -71,5 +69,5 @@ class CensorshipLab:
             "status": status,
             "blocked_count": blocked,
             "total_sites": total,
-            "details": self.results
+            "details": self.results,
         }

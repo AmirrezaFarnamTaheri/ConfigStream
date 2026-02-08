@@ -143,7 +143,7 @@ class HistoryExporter:
         """
         logger.info("Generating evasion trend data...")
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Read existing trend data if available
         existing_data = []
         if output_path.exists():
@@ -153,7 +153,7 @@ class HistoryExporter:
             except (json.JSONDecodeError, IOError) as e:
                 logger.warning(f"Failed to read existing evasion trend data: {e}")
                 existing_data = []
-        
+
         # Extract evasion metrics from stats
         current_timestamp = datetime.now(timezone.utc).isoformat()
         current_entry = {
@@ -164,35 +164,37 @@ class HistoryExporter:
             "total_revived": stats.get("total_revived", 0),
             "evasion_utls_enabled": stats.get("evasion_utls_enabled", 0),
             "evasion_alpn_enabled": stats.get("evasion_alpn_enabled", 0),
-            "evasion_fragmentation_enabled": stats.get("evasion_fragmentation_enabled", 0),
-            "evasion_multiplexing_enabled": stats.get("evasion_multiplexing_enabled", 0),
+            "evasion_fragmentation_enabled": stats.get(
+                "evasion_fragmentation_enabled", 0
+            ),
+            "evasion_multiplexing_enabled": stats.get(
+                "evasion_multiplexing_enabled", 0
+            ),
             "evasion_dns_safe_count": stats.get("evasion_dns_safe_count", 0),
             "evasion_dns_hardened_count": stats.get("evasion_dns_hardened_count", 0),
             "total_valid_proxies": stats.get("total_valid_proxies", 0),
         }
-        
+
         # Filter out old entries (keep only last N hours)
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_to_track)
         filtered_data = []
-        
+
         for entry in existing_data:
             try:
-                ts = datetime.fromisoformat(
-                    entry["timestamp"].replace("Z", "+00:00")
-                )
+                ts = datetime.fromisoformat(entry["timestamp"].replace("Z", "+00:00"))
                 if ts.tzinfo is None:
                     ts = ts.replace(tzinfo=timezone.utc)
                 if ts >= cutoff:
                     filtered_data.append(entry)
             except (ValueError, TypeError, KeyError):
                 continue
-        
+
         # Append current entry (avoid duplicates if same timestamp exists)
         # Check if we already have an entry for this timestamp (within 1 minute)
         current_ts = datetime.fromisoformat(current_timestamp.replace("Z", "+00:00"))
         if current_ts.tzinfo is None:
             current_ts = current_ts.replace(tzinfo=timezone.utc)
-        
+
         # Remove any entry within 1 minute of current timestamp to avoid duplicates
         def get_entry_ts(entry):
             """Helper to parse timestamp from entry."""
@@ -203,21 +205,24 @@ class HistoryExporter:
                 return ts
             except (ValueError, TypeError, KeyError):
                 return None
-        
+
         filtered_data = [
-            e for e in filtered_data
+            e
+            for e in filtered_data
             if abs((get_entry_ts(e) or current_ts) - current_ts).total_seconds() > 60
         ]
-        
+
         filtered_data.append(current_entry)
-        
+
         # Sort by timestamp
         filtered_data.sort(key=lambda x: cast(str, x["timestamp"]))
-        
+
         try:
             AtomicFileWriter.write_text(
                 output_path, json.dumps(filtered_data, indent=2, ensure_ascii=False)
             )
-            logger.info(f"Exported evasion trend data to {output_path} ({len(filtered_data)} entries)")
+            logger.info(
+                f"Exported evasion trend data to {output_path} ({len(filtered_data)} entries)"
+            )
         except Exception as e:
             logger.error(f"Failed to export evasion trend data: {e}")

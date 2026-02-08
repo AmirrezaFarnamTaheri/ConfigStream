@@ -4,10 +4,12 @@ Certificate generation utilities.
 Derived from nobetci-main.
 """
 from typing import Dict
+
 try:
     from OpenSSL import crypto
 except ImportError:
-    crypto = None  # Optional dependency
+    crypto = None  # type: ignore[assignment]  # Optional dependency
+
 
 def generate_self_signed_cert(cn: str = "configstream-local") -> Dict[str, str]:
     """

@@ -11,7 +11,6 @@ import asyncio
 import logging
 import multiprocessing
 import os
-import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Dict
@@ -187,7 +186,7 @@ async def run_full_pipeline(
     from configstream.tools.vwarp import VwarpTool
 
     vwarp_tool = VwarpTool()
-    vwarp_proc = None  # We will access vwarp_tool._tunnel_proc if needed for cleanup but better to use stop_tunnel
+    # Tunnel lifecycle managed entirely by vwarp_tool.start_tunnel/stop_tunnel
 
     if settings.USE_VWARP_TUNNEL:
         if await vwarp_tool.is_available():
@@ -406,12 +405,8 @@ async def run_full_pipeline(
                 )
             else:
                 stats.end_time = datetime.now(timezone.utc)
-                stats.duration = float(
-                    (stats.end_time - start_time).total_seconds()
-                )
-                return PipelineResult(
-                    success=False, stats=stats, output_files={}
-                )
+                stats.duration = float((stats.end_time - start_time).total_seconds())
+                return PipelineResult(success=False, stats=stats, output_files={})
 
         # Deduplicate configs first, then drop duplicate tags/remarks, then endpoints (IP:Port).
         optimized_proxies = dedupe_and_shuffle(final_proxies)
@@ -474,7 +469,11 @@ async def run_full_pipeline(
             async with httpx.AsyncClient(timeout=1.0) as client:
                 await client.post(
                     "http://127.0.0.1:8000/api/admin/notify-update",
-                    json={"timestamp": stats.end_time.isoformat() if stats.end_time else duration},
+                    json={
+                        "timestamp": (
+                            stats.end_time.isoformat() if stats.end_time else duration
+                        )
+                    },
                 )
         except (httpx.TimeoutException, httpx.ConnectError) as e:
             # Server not running or unreachable - expected in standalone mode
@@ -502,24 +501,12 @@ async def run_full_pipeline(
             await tester.close()
 
         # Shutdown Vwarp tunnel (Robust cleanup)
-        # [FIX] Use tool method for consistent cleanup
         if "vwarp_tool" in locals() and vwarp_tool:
             await vwarp_tool.stop_tunnel()
-        elif vwarp_proc:
-            # Fallback for manual Popen (legacy) - shouldn't be hit with new logic
-            try:
-                vwarp_proc.terminate()
-                try:
-                    loop = asyncio.get_running_loop()
-                    await loop.run_in_executor(None, lambda: vwarp_proc.wait(timeout=2))
-                except subprocess.TimeoutExpired:
-                    # Process didn't terminate gracefully - force kill
-                    logger.warning(
-                        "Vwarp process didn't terminate gracefully, forcing kill"
-                    )
-                    vwarp_proc.kill()
-            except Exception:
-                pass
+
+        # Close anomaly detector DB connection
+        if "anomaly_detector" in locals() and anomaly_detector:
+            anomaly_detector.close()
 
         # Ensure event stream is always closed to flush handles/buffers
         try:

@@ -88,6 +88,7 @@ def test_singbox_wireguard_unique_ip():
 
 # --- New tests for schema alignment fixes ---
 
+
 def test_ss_method_whitelist_schema_compliance():
     """Verify VALID_SS_METHODS matches sing-box schema."""
     # These must be in the whitelist (per sing-box schema)
@@ -146,7 +147,12 @@ def test_httpupgrade_transport():
         address="example.com",
         port=443,
         uuid="test-uuid-1234",
-        details={"net": "httpupgrade", "path": "/upgrade", "host": "cdn.example.com", "tls": "tls"},
+        details={
+            "net": "httpupgrade",
+            "path": "/upgrade",
+            "host": "cdn.example.com",
+            "tls": "tls",
+        },
     )
     out = to_singbox_outbound(proxy)
     assert out is not None

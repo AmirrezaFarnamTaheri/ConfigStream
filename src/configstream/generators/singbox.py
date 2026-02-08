@@ -110,18 +110,14 @@ class SingBoxGenerator:
         # DNS Configuration matched to e1.json
         dns_config = {
             "servers": [
-                {
-                    "server": "223.5.5.5",
-                    "type": "udp",
-                    "tag": "local_local"
-                },
+                {"server": "223.5.5.5", "type": "udp", "tag": "local_local"},
                 {
                     "server": "cloudflare-dns.com",
                     "domain_resolver": "hosts_dns",
                     "path": "/dns-query",
                     "type": "https",
                     "tag": "remote_dns",
-                    "detour": SELECTOR_TAG  # Use our selector instead of 'proxy'
+                    "detour": SELECTOR_TAG,  # Use our selector instead of 'proxy'
                 },
                 {
                     "server": "dns.alidns.com",
@@ -129,53 +125,47 @@ class SingBoxGenerator:
                     "path": "/dns-query",
                     "type": "https",
                     "tag": "direct_dns",
-                    "detour": "direct"
+                    "detour": "direct",
                 },
                 {
                     "predefined": {
                         "dns.google": [
-                            "8.8.8.8", "8.8.4.4", "2001:4860:4860::8888", "2001:4860:4860::8844"
+                            "8.8.8.8",
+                            "8.8.4.4",
+                            "2001:4860:4860::8888",
+                            "2001:4860:4860::8844",
                         ],
                         "dns.alidns.com": [
-                            "223.5.5.5", "223.6.6.6", "2400:3200::1", "2400:3200:baba::1"
+                            "223.5.5.5",
+                            "223.6.6.6",
+                            "2400:3200::1",
+                            "2400:3200:baba::1",
                         ],
                         "cloudflare-dns.com": [
-                            "104.16.249.249", "104.16.248.249", "2606:4700::6810:f8f9", "2606:4700::6810:f9f9"
-                        ]
+                            "104.16.249.249",
+                            "104.16.248.249",
+                            "2606:4700::6810:f8f9",
+                            "2606:4700::6810:f9f9",
+                        ],
                     },
                     "type": "hosts",
-                    "tag": "hosts_dns"
-                }
+                    "tag": "hosts_dns",
+                },
             ],
             "rules": [
-                {
-                    "server": "local_local",
-                    "domain": ["sing_box-ProxyChain"]
-                },
-                {
-                    "server": "hosts_dns",
-                    "ip_accept_any": True
-                },
-                {
-                    "server": "remote_dns",
-                    "clash_mode": "Global"
-                },
-                {
-                    "server": "direct_dns",
-                    "clash_mode": "Direct"
-                },
+                {"server": "local_local", "domain": ["sing_box-ProxyChain"]},
+                {"server": "hosts_dns", "ip_accept_any": True},
+                {"server": "remote_dns", "clash_mode": "Global"},
+                {"server": "direct_dns", "clash_mode": "Direct"},
                 {
                     "rule_set": ["geosite-category-ads-all"],
                     "action": "predefined",
-                    "rcode": "NXDOMAIN"
+                    "rcode": "NXDOMAIN",
                 },
-                {
-                    "server": "direct_dns",
-                    "rule_set": ["geosite-private", "geosite-ir"]
-                }
+                {"server": "direct_dns", "rule_set": ["geosite-private", "geosite-ir"]},
             ],
             "final": "remote_dns",
-            "independent_cache": True
+            "independent_cache": True,
         }
 
         # Inbounds matched to e1.json
@@ -184,16 +174,13 @@ class SingBoxGenerator:
                 "type": "mixed",
                 "tag": "socks",
                 "listen": "127.0.0.1",
-                "listen_port": 10808
+                "listen_port": 10808,
             }
         ]
 
         # Route matched to e1.json
         route = {
-            "default_domain_resolver": {
-                "server": "direct_dns",
-                "strategy": ""
-            },
+            "default_domain_resolver": {"server": "direct_dns", "strategy": ""},
             "rules": [
                 {"action": "sniff"},
                 {"protocol": ["dns"], "action": "hijack-dns"},
@@ -204,8 +191,11 @@ class SingBoxGenerator:
                 {"outbound": "direct", "protocol": ["bittorrent"]},
                 {"rule_set": ["geosite-category-ads-all"], "action": "reject"},
                 {"outbound": "direct", "ip_is_private": True},
-                {"outbound": "direct", "rule_set": ["geosite-private", "geosite-ir", "geoip-ir"]},
-                {"outbound": SELECTOR_TAG, "port_range": ["0:65535"]}
+                {
+                    "outbound": "direct",
+                    "rule_set": ["geosite-private", "geosite-ir", "geoip-ir"],
+                },
+                {"outbound": SELECTOR_TAG, "port_range": ["0:65535"]},
             ],
             "rule_set": [
                 {
@@ -213,43 +203,37 @@ class SingBoxGenerator:
                     "type": "remote",
                     "format": "binary",
                     "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-category-ads-all.srs",
-                    "download_detour": SELECTOR_TAG
+                    "download_detour": SELECTOR_TAG,
                 },
                 {
                     "tag": "geosite-private",
                     "type": "remote",
                     "format": "binary",
                     "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-private.srs",
-                    "download_detour": SELECTOR_TAG
+                    "download_detour": SELECTOR_TAG,
                 },
                 {
                     "tag": "geosite-ir",
                     "type": "remote",
                     "format": "binary",
                     "url": "https://github.com/SagerNet/sing-geosite/raw/rule-set/geosite-ir.srs",
-                    "download_detour": SELECTOR_TAG
+                    "download_detour": SELECTOR_TAG,
                 },
                 {
                     "tag": "geoip-ir",
                     "type": "remote",
                     "format": "binary",
                     "url": "https://github.com/SagerNet/sing-geoip/raw/rule-set/geoip-ir.srs",
-                    "download_detour": SELECTOR_TAG
-                }
+                    "download_detour": SELECTOR_TAG,
+                },
             ],
-            "final": SELECTOR_TAG
+            "final": SELECTOR_TAG,
         }
 
         # Experimental matched to e1.json
         experimental = {
-            "cache_file": {
-                "enabled": True,
-                "path": "cache.db",
-                "store_fakeip": False
-            },
-            "clash_api": {
-                "external_controller": "127.0.0.1:10813"
-            }
+            "cache_file": {"enabled": True, "path": "cache.db", "store_fakeip": False},
+            "clash_api": {"external_controller": "127.0.0.1:10813"},
         }
 
         config = {
@@ -262,7 +246,7 @@ class SingBoxGenerator:
             "outbounds": final_outbounds,
             "endpoints": [],
             "route": route,
-            "experimental": experimental
+            "experimental": experimental,
         }
         return config
 

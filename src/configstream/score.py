@@ -23,10 +23,6 @@ def _latency_points(lat_ms: float | None, soft_cap: int, max_points: float) -> f
     # CENTER_RATIO (default 0.6) controls where the dropoff starts relative to soft_cap
     # SLOPE_RATIO (default 0.2) controls how steep the dropoff is
 
-    # Allow tuning of sigmoid parameters via env
-    # CENTER_RATIO (default 0.6) controls where the dropoff starts relative to soft_cap
-    # SLOPE_RATIO (default 0.2) controls how steep the dropoff is
-
     settings = AppSettings()
     center_ratio = settings.SCORE_SIGMOID_CENTER_RATIO
     slope_ratio = settings.SCORE_SIGMOID_SLOPE_RATIO

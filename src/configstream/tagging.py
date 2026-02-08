@@ -126,12 +126,12 @@ def build_proxy_tags(proxy: Proxy) -> List[str]:
     if details.get("is_revived"):
         tags.append("REVIVED")
         tags.append("VWARP" if details.get("use_vwarp") else "WARP")
-    
+
     # Shielded/Gold tags (for Copper to Gold transformation)
     if details.get("is_shielded") or (proxy.process or "").startswith("shield"):
         tags.append("SHIELDED")
         tags.append("GOLD")
-    
+
     # Evasion tags
     if details.get("has_utls") or details.get("evasion_utls"):
         tags.append("EVASION:UTLS")
@@ -141,7 +141,7 @@ def build_proxy_tags(proxy: Proxy) -> List[str]:
         tags.append("EVASION:MUX")
     if details.get("has_alpn_rotation") or details.get("evasion_alpn"):
         tags.append("EVASION:ALPN")
-    
+
     # DNS hardening tags
     if details.get("dns_safe") or details.get("dns_hardened"):
         tags.append("DNS:SAFE" if details.get("dns_safe") else "DNS:HARDENED")
@@ -298,9 +298,7 @@ class ProxyTagger:
     """
 
     # Default template when RENAME_TEMPLATE env var is not set
-    DEFAULT_TEMPLATE = (
-        "{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}"
-    )
+    DEFAULT_TEMPLATE = "{country_flag} | {stack} | {latency_tag} | {status_tag} | {process_tag} | {issue_tag}"
 
     def __init__(self, name_template: Optional[str] = None):
         """

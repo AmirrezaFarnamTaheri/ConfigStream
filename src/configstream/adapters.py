@@ -121,7 +121,9 @@ class SurgeAdapter(Adapter):
             password = p.uuid
             sni = _extract_sni(p.details)
             sni_part = f", sni={sni}" if sni else ""
-            return f"{name} = trojan, {p.address}, {p.port}, password={password}{sni_part}"
+            return (
+                f"{name} = trojan, {p.address}, {p.port}, password={password}{sni_part}"
+            )
 
         elif p.protocol in ("hysteria2", "hy2"):
             password = p.uuid or p.details.get("password", "")
@@ -214,7 +216,9 @@ class LoonAdapter(Adapter):
             method = p.details.get("method", "auto")
             sni = _extract_sni(p.details)
             sni_part = f", sni={sni}" if sni else ""
-            return f'{name} = vmess, {p.address}, {p.port}, {method}, "{uuid}"{sni_part}'
+            return (
+                f'{name} = vmess, {p.address}, {p.port}, {method}, "{uuid}"{sni_part}'
+            )
 
         elif p.protocol == "trojan":
             password = p.uuid
@@ -238,7 +242,9 @@ class LoonAdapter(Adapter):
             # Loon TUIC
             sni = _extract_sni(p.details)
             sni_part = f", sni={sni}" if sni else ""
-            return f'{name} = tuic, {p.address}, {p.port}, password="{p.uuid}"{sni_part}'
+            return (
+                f'{name} = tuic, {p.address}, {p.port}, password="{p.uuid}"{sni_part}'
+            )
 
         elif p.protocol == "wireguard":
             # Loon WireGuard (standard)

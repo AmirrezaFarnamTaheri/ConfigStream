@@ -77,6 +77,7 @@ def generate_split_outputs(
     # [FIX] Pre-load evasion config outside the per-proxy loop (was instantiating AppSettings per-proxy)
     from configstream.intelligence.evasion import enrich_outbound_with_evasion
     from configstream.config import AppSettings
+
     _split_settings = AppSettings()
     evasion_mode = getattr(_split_settings, "EVASION_MODE", "aggressive").lower()
 
@@ -101,21 +102,30 @@ def generate_split_outputs(
             # [FIX] Moved imports and settings outside the per-proxy loop for performance
             if evasion_mode == "aggressive":
                 sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy, p.id,
-                    enable_utls=True, enable_alpn=True,
-                    enable_fragmentation=True, enable_multiplexing=True,
+                    sb_proxy,
+                    p.id,
+                    enable_utls=True,
+                    enable_alpn=True,
+                    enable_fragmentation=True,
+                    enable_multiplexing=True,
                 )
             elif evasion_mode == "stealth":
                 sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy, p.id,
-                    enable_utls=True, enable_alpn=False,
-                    enable_fragmentation=True, enable_multiplexing=False,
+                    sb_proxy,
+                    p.id,
+                    enable_utls=True,
+                    enable_alpn=False,
+                    enable_fragmentation=True,
+                    enable_multiplexing=False,
                 )
             else:  # standard - no evasion (compatibility mode)
                 sb_proxy = enrich_outbound_with_evasion(
-                    sb_proxy, p.id,
-                    enable_utls=False, enable_alpn=False,
-                    enable_fragmentation=False, enable_multiplexing=False,
+                    sb_proxy,
+                    p.id,
+                    enable_utls=False,
+                    enable_alpn=False,
+                    enable_fragmentation=False,
+                    enable_multiplexing=False,
                 )
             # [FIX] Mark evasion features based on actual mode, not unconditionally True
             if not p.details:

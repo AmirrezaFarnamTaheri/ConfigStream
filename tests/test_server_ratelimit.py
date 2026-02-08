@@ -6,6 +6,7 @@ from configstream.server import app
 # Apply nest_asyncio to allow re-entrant loops which TestClient might trigger
 nest_asyncio.apply()
 
+
 # Use 'asyncio' mark to ensure pytest-asyncio handles loop management
 @pytest.mark.asyncio
 async def test_rate_limit_proxies_endpoint():
@@ -22,6 +23,7 @@ async def test_rate_limit_proxies_endpoint():
         # We expect rate limiting to kick in.
         assert len(rate_limited) > 0
 
+
 @pytest.mark.asyncio
 async def test_rate_limit_subscribe_endpoint():
     with TestClient(app) as client:
@@ -31,6 +33,7 @@ async def test_rate_limit_subscribe_endpoint():
 
         rate_limited = [r for r in responses if r.status_code == 429]
         assert len(rate_limited) > 0
+
 
 @pytest.mark.asyncio
 async def test_health_endpoint_no_limit():

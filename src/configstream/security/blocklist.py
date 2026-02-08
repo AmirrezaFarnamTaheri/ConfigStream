@@ -8,6 +8,7 @@ Also detects potential honey pots based on traffic patterns.
 import asyncio
 import logging
 import ipaddress
+import threading
 from pathlib import Path
 from typing import Set, Optional
 
@@ -28,11 +29,13 @@ HONEYPOT_ASNS: Set[str] = set()  # Reserved for known research scanner ASNs
 
 class BlocklistManager:
     _instance: Optional["BlocklistManager"] = None
+    _instance_lock: threading.Lock = threading.Lock()
 
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(BlocklistManager, cls).__new__(cls)
-            cls._instance._initialized = False
+        with cls._instance_lock:
+            if cls._instance is None:
+                cls._instance = super(BlocklistManager, cls).__new__(cls)
+                cls._instance._initialized = False
         return cls._instance
 
     def __init__(self):

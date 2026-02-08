@@ -62,7 +62,9 @@ _LOCAL_HOSTNAMES: Set[str] = {
 }
 
 
-def _sanitize_ss_method(method: str, default: str = "chacha20-ietf-poly1305") -> Optional[str]:
+def _sanitize_ss_method(
+    method: str, default: str = "chacha20-ietf-poly1305"
+) -> Optional[str]:
     """
     Validate and sanitize a Shadowsocks encryption method.
     Returns the cleaned method if valid, or None if the proxy should be dropped.
@@ -580,7 +582,9 @@ def to_singbox_outbound(proxy: Proxy) -> Optional[Dict[str, Any]]:
             ),
         }
         # [FIX] Add udp_relay_mode per sing-box schema (native/quic)
-        udp_relay = proxy.details.get("udp_relay_mode") or proxy.details.get("udpRelayMode")
+        udp_relay = proxy.details.get("udp_relay_mode") or proxy.details.get(
+            "udpRelayMode"
+        )
         if udp_relay and str(udp_relay).lower() in ("native", "quic"):
             out["udp_relay_mode"] = str(udp_relay).lower()
         # [FIX] Add udp_over_stream if specified
