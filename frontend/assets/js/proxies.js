@@ -150,7 +150,7 @@ function processProxyData(raw) {
 
     return {
         ...raw,
-        latencyVal: raw.latency || 9999,
+        latencyVal: raw.latency ?? 9999,
         region: raw.country_code || 'XX',
         protocol: raw.protocol || 'unknown',
         typeTag: typeTag
@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupFilters();
     setupSorting();
     setupPagination();
+    setupActionButtons();
 
     const loadingEl = document.getElementById('loadingContainer');
     const tableEl = document.getElementById('proxiesTable');
@@ -373,7 +374,7 @@ function renderTable() {
         // We use data-config attribute or just pass it
         // p.config might be the full URL/URI
         const configStr = p.config || '';
-        btn.onclick = (e) => { e.stopPropagation(); copyToClipboard(configStr, btn); };
+        btn.onclick = (e) => { e.stopPropagation(); window.copyToClipboard(configStr, btn); };
         actionCell.appendChild(btn);
         row.appendChild(actionCell);
 
@@ -587,4 +588,49 @@ function updatePaginationInfo() {
     container.appendChild(createBtn('›', currentPage + 1, currentPage === totalPages));
 }
 
-// Use global window.copyToClipboard from dom.js instead of local duplicate
+// --- Copy All / Copy Filtered / Download Filtered ---
+function getVisibleConfigs(useAll) {
+    const source = useAll ? allProxies : filteredProxies;
+    return source.map(p => p.config).filter(Boolean);
+}
+
+function setupActionButtons() {
+    const copyAllBtn = document.getElementById('copyAll');
+    if (copyAllBtn) {
+        copyAllBtn.addEventListener('click', async () => {
+            const configs = getVisibleConfigs(true);
+            if (configs.length === 0) return;
+            if (window.copyToClipboard) {
+                await window.copyToClipboard(configs.join('\n'), copyAllBtn);
+            }
+        });
+    }
+
+    const copyFilteredBtn = document.getElementById('copyFiltered');
+    if (copyFilteredBtn) {
+        copyFilteredBtn.addEventListener('click', async () => {
+            const configs = getVisibleConfigs(false);
+            if (configs.length === 0) return;
+            if (window.copyToClipboard) {
+                await window.copyToClipboard(configs.join('\n'), copyFilteredBtn);
+            }
+        });
+    }
+
+    const downloadFilteredBtn = document.getElementById('downloadFiltered');
+    if (downloadFilteredBtn) {
+        downloadFilteredBtn.addEventListener('click', () => {
+            const configs = getVisibleConfigs(false);
+            if (configs.length === 0) return;
+            const blob = new Blob([configs.join('\n')], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'configstream-proxies.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    }
+}

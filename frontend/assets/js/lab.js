@@ -13,6 +13,10 @@
     let chainConfig = null;       // Generated sing-box JSON object
     let warpKey = '';
 
+    // Pipeline proxy cache
+    let pipelineProxies = [];   // [{ uri, protocol, address, port, remark, country, latency }]
+    let pipelineLoaded = false;
+
     // Default clean IPs from ConfigStream (fallback)
     const DEFAULT_CLEAN_IPS = [
         '162.159.192.1:2408', '188.114.98.224:854', '162.159.192.166:5956',
@@ -66,6 +70,71 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // --- Censorship Gauge ---
+    function renderGauge(score, total) {
+        const gaugeWrap = $('#diagGauge');
+        const arc = $('#gaugeArc');
+        const label = $('#gaugeScore');
+        const caption = $('#gaugeCaption');
+        const detail = $('#gaugeDetail');
+        if (!gaugeWrap || !arc) return;
+
+        gaugeWrap.style.display = 'flex';
+        const pct = Math.round((score / total) * 100);
+        // Arc length for a semicircle of radius 75: pi * 75 ≈ 235.6
+        const arcLen = 235.6;
+        const offset = arcLen - (arcLen * pct / 100);
+        arc.style.strokeDasharray = arcLen;
+        arc.style.strokeDashoffset = offset;
+
+        // Color: green (>70) -> yellow (40-70) -> red (<40)
+        let color, captionText, detailText;
+        if (pct >= 75) {
+            color = '#10b981';
+            captionText = 'Minimal Censorship';
+            detailText = 'Your network has good access. All strategies work: WARP, Proxy Cascade, Fragment, Worker, or direct.';
+        } else if (pct >= 50) {
+            color = '#3b82f6';
+            captionText = 'Moderate Filtering';
+            detailText = 'Some services are blocked. Try WARP, TLS Fragment, or Proxy Cascade through a local tool.';
+        } else if (pct >= 25) {
+            color = '#f59e0b';
+            captionText = 'Heavy Censorship';
+            detailText = 'Significant blocking. Try Proxy Cascade, Intranet Relay, Double WARP, or CDN Worker. Run lab-scanner.py --auto-chain.';
+        } else {
+            color = '#ef4444';
+            captionText = 'Severe Restrictions';
+            detailText = 'Very little is reachable. Use a local proxy as Layer 1, find a LAN relay (--scan-lan), or download lab-scanner.py for offline scanning.';
+        }
+        arc.style.stroke = color;
+        if (label) { label.textContent = pct + '%'; label.style.color = color; }
+        if (caption) { caption.textContent = captionText; caption.style.color = color; }
+        if (detail) detail.textContent = detailText;
+    }
+
+    function renderHealthBadges(results) {
+        const container = $('#diagBadges');
+        if (!container) return;
+        container.style.display = 'flex';
+        container.innerHTML = '';
+        const badges = [
+            { key: 'cf', label: 'Cloudflare' },
+            { key: 'google', label: 'Google' },
+            { key: 'cf_tls', label: 'CF TLS' },
+            { key: 'github', label: 'GitHub' },
+            { key: 'wikipedia', label: 'Wikipedia' },
+            { key: 'doh', label: 'DoH DNS' },
+        ];
+        for (const b of badges) {
+            if (!(b.key in results)) continue;
+            const cls = results[b.key] ? 'ok' : 'fail';
+            const badge = document.createElement('span');
+            badge.className = 'chain-health-badge ' + cls;
+            badge.innerHTML = `<span class="dot"></span>${b.label}`;
+            container.appendChild(badge);
+        }
+    }
+
     // --- Network Diagnosis ---
     async function runDiagnosis() {
         const tbody = $('#diagTableBody');
@@ -80,6 +149,8 @@
             { name: 'Google HTTP', url: 'https://connectivitycheck.gstatic.com/generate_204', key: 'google' },
             { name: 'Cloudflare TLS', url: 'https://1.1.1.1/cdn-cgi/trace', key: 'cf_tls' },
             { name: 'GitHub API', url: 'https://api.github.com', key: 'github' },
+            { name: 'Wikipedia', url: 'https://en.wikipedia.org/w/api.php?action=sitematrix&format=json', key: 'wikipedia' },
+            { name: 'Cloudflare DoH', url: 'https://cloudflare-dns.com/dns-query?dns=AAABAAABAAAAAAAAB2V4YW1wbGUDY29tAAABAAE', key: 'doh' },
         ];
         const results = {};
         tbody.innerHTML = '';
@@ -88,7 +159,7 @@
             const tr = document.createElement('tr');
             const start = performance.now();
             try {
-                const resp = await fetch(t.url, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(6000) });
+                await fetch(t.url, { mode: 'no-cors', cache: 'no-store', signal: AbortSignal.timeout(6000) });
                 const lat = Math.round(performance.now() - start);
                 results[t.key] = true;
                 tr.innerHTML = `<td>${t.name}</td><td>${lat}ms</td><td class="status-ok">Reachable</td>`;
@@ -99,17 +170,48 @@
             tbody.appendChild(tr);
         }
 
-        // Advice
+        // Render gauge + badges
+        const reachable = Object.values(results).filter(Boolean).length;
+        renderGauge(reachable, tests.length);
+        renderHealthBadges(results);
+
+        // Advice — multi-strategy aware
         if (advice) {
-            const reachable = Object.values(results).filter(Boolean).length;
-            if (reachable >= 3) {
-                showResult('diagAdvice', 'success', '<strong>Good connectivity!</strong> You can use WARP, Fragment, or Worker chains directly.');
+            if (reachable >= 5) {
+                showResult('diagAdvice', 'success',
+                    '<strong>Excellent connectivity!</strong> All strategies work: ' +
+                    'WARP, Proxy Cascade, TLS Fragment, CDN Worker, or direct connection. ' +
+                    'Pick whichever is most convenient.');
+            } else if (reachable >= 3) {
+                showResult('diagAdvice', 'success',
+                    '<strong>Good connectivity</strong> with some filtering. ' +
+                    'Best strategies: <strong>WARP</strong>, <strong>Proxy Cascade</strong>, or <strong>TLS Fragment</strong>. ' +
+                    'If you have a working local proxy (Psiphon, V2RayN), cascade through it.');
             } else if (results.cf || results.cf_tls) {
-                showResult('diagAdvice', 'info', '<strong>Cloudflare reachable</strong> but other sites filtered. WARP chain is your best bet.');
+                showResult('diagAdvice', 'info',
+                    '<strong>Cloudflare reachable</strong> but other sites are filtered. ' +
+                    'Strategies: <strong>WARP chain</strong>, <strong>TLS Fragment</strong>, or <strong>Double WARP</strong>. ' +
+                    'If you have a local proxy with broader access, try <strong>Proxy Cascade</strong> instead.');
+            } else if (results.doh) {
+                showResult('diagAdvice', 'info',
+                    '<strong>DNS-over-HTTPS works</strong> but direct HTTPS is blocked. ' +
+                    'Strategies: <strong>CDN Worker relay</strong>, <strong>Proxy Cascade</strong> through a local tool, ' +
+                    'or <strong>Intranet Relay</strong> if a LAN host has less-filtered access. ' +
+                    'Run <code>python lab-scanner.py --scan-lan</code> to find LAN relays.');
             } else if (reachable > 0) {
-                showResult('diagAdvice', 'info', '<strong>Limited access.</strong> Try TLS Fragment or CDN Worker strategy. If you have a local proxy, use it as Layer 1.');
+                showResult('diagAdvice', 'info',
+                    '<strong>Limited access.</strong> Most services are blocked. ' +
+                    'Strategies: Use a local proxy (Psiphon, Lantern, V2RayN, Tor) as Layer 1, ' +
+                    'then <strong>cascade</strong> your destination proxy on top. ' +
+                    'Or find a <strong>LAN relay</strong> with internet: <code>python lab-scanner.py --scan-lan</code>. ' +
+                    'WARP may also work if stacked on top of the local proxy.');
             } else {
-                showResult('diagAdvice', 'error', '<strong>No direct internet detected.</strong> You need a local proxy (Psiphon, Lantern, V2RayN) as Layer 1. Then stack WARP on top. Download <code>lab-scanner.py</code> below for offline scanning.');
+                showResult('diagAdvice', 'error',
+                    '<strong>No direct internet detected.</strong> ' +
+                    'Strategies: 1) Install Psiphon/Lantern/Tor as Layer 1, then cascade. ' +
+                    '2) Find a LAN machine with internet: <code>python lab-scanner.py --scan-lan</code>. ' +
+                    '3) Ask your network admin for proxy settings. ' +
+                    '4) Run <code>python lab-scanner.py --auto-chain</code> for automatic path discovery (tries 6 strategies).');
             }
         }
     }
@@ -129,6 +231,99 @@
             `<code>curl -x ${type}://${addr} --connect-timeout 5 http://cp.cloudflare.com/generate_204</code><br><br>` +
             `If it returns HTTP 204, your proxy works. It will be added as Layer 1 of your chain.`
         );
+    }
+
+    // --- Pipeline Proxy Integration ---
+    const PIPELINE_BASE = 'output/';
+    const PIPELINE_URLS = [
+        'base64.txt',           // Base64-encoded URI list
+        'base64-dns-safe.txt',  // DNS-safe variant (IP-only)
+    ];
+
+    async function fetchPipelineProxies() {
+        if (pipelineLoaded) return pipelineProxies;
+        const results = [];
+        for (const file of PIPELINE_URLS) {
+            try {
+                const resp = await fetch(PIPELINE_BASE + file, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+                if (!resp.ok) continue;
+                const text = await resp.text();
+                // Decode base64
+                let decoded;
+                try { decoded = atob(text.trim()); } catch { decoded = text; }
+                const lines = decoded.split('\n').map(l => l.trim()).filter(Boolean);
+                for (const line of lines) {
+                    const parsed = parseProxyUri(line);
+                    if (parsed) {
+                        results.push({
+                            uri: line,
+                            protocol: parsed.protocol,
+                            address: parsed.address,
+                            port: parsed.port,
+                            remark: parsed.remark || `${parsed.protocol}@${parsed.address}`,
+                        });
+                    }
+                    if (results.length >= 200) break; // Cap to avoid memory bloat
+                }
+                if (results.length > 0) break; // Got proxies from first successful file
+            } catch { /* network error, try next */ }
+        }
+        pipelineProxies = results;
+        pipelineLoaded = true;
+        return results;
+    }
+
+    async function handleLoadPipelineProxies() {
+        const btn = document.getElementById('loadPipelineBtn');
+        const select = document.getElementById('pipelineProxySelect');
+        const container = document.getElementById('pipelineProxyPicker');
+        if (!container) return;
+
+        if (btn) btn.textContent = 'Loading...';
+        const proxies = await fetchPipelineProxies();
+        if (btn) btn.textContent = 'Load Pre-Tested Proxies';
+
+        if (proxies.length === 0) {
+            showResult('step1Result', 'info',
+                '<strong>No pipeline proxies available.</strong> Paste your own proxy URI above, or run ' +
+                '<code>python lab-scanner.py --test-proxy socks5://127.0.0.1:1080</code> to test a local proxy.');
+            return;
+        }
+
+        // Group by protocol for easier browsing
+        const grouped = {};
+        for (const p of proxies) {
+            const key = p.protocol.toUpperCase();
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(p);
+        }
+
+        // Build select dropdown
+        if (select) {
+            select.innerHTML = '<option value="">-- Select a pre-tested proxy (' + proxies.length + ' available) --</option>';
+            for (const [proto, list] of Object.entries(grouped)) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = proto + ' (' + list.length + ')';
+                for (const p of list.slice(0, 30)) { // Show up to 30 per protocol
+                    const opt = document.createElement('option');
+                    opt.value = p.uri;
+                    opt.textContent = p.remark.substring(0, 60) + ' (' + p.address + ':' + p.port + ')';
+                    optgroup.appendChild(opt);
+                }
+                select.appendChild(optgroup);
+            }
+            select.style.display = '';
+            select.onchange = function () {
+                if (this.value) {
+                    const input = $('#proxyUri');
+                    if (input) input.value = this.value;
+                }
+            };
+        }
+        container.style.display = '';
+        showResult('step1Result', 'success',
+            '<strong>' + proxies.length + ' pre-tested proxies loaded</strong> from ConfigStream pipeline output. ' +
+            'Select one from the dropdown or paste your own URI above.');
     }
 
     // --- Step 1: Parse Proxy ---
@@ -326,6 +521,7 @@
     const CHAIN_HINTS = {
         'warp': 'Traffic flows through Cloudflare WARP to hide the proxy from your ISP.',
         'warp-in-warp': 'Double encapsulation: outer WARP wraps inner WARP wraps your proxy. Maximum obfuscation.',
+        'relay-chain': 'Up to 4 intermediate hops of any protocol (SOCKS5, HTTP, VLESS, VMess, Trojan, SS, WARP). Use local proxies, LAN relays, or pipeline proxies.',
         'fragment': 'Splits TLS handshake into small fragments to bypass stateless DPI. No tunnel needed.',
         'worker': 'Routes traffic through your own Cloudflare Worker. Unblockable private relay.',
         'custom': 'Define your own outbound chain in raw Sing-box JSON format.'
@@ -342,12 +538,16 @@
         if (el('warpInWarpRow')) el('warpInWarpRow').style.display = ct === 'warp-in-warp' ? '' : 'none';
         if (el('fragmentOptions')) el('fragmentOptions').style.display = ct === 'fragment' ? '' : 'none';
         if (el('workerOptions')) el('workerOptions').style.display = ct === 'worker' ? '' : 'none';
+        if (el('relayChainOptions')) el('relayChainOptions').style.display = ct === 'relay-chain' ? '' : 'none';
         if (el('customChainOptions')) el('customChainOptions').style.display = ct === 'custom' ? '' : 'none';
 
         // Update chain visual layer1 label
         const l1 = $('#chainLayer1Label');
         if (l1) {
-            const labels = { 'warp': 'WARP', 'warp-in-warp': 'WARP x2', 'fragment': 'Fragment', 'worker': 'Worker', 'custom': 'Custom' };
+            const labels = {
+                'warp': 'WARP', 'warp-in-warp': 'WARP x2', 'fragment': 'Fragment',
+                'worker': 'Worker', 'relay-chain': 'Relay', 'custom': 'Custom'
+            };
             l1.textContent = labels[ct] || 'WARP';
         }
     }
@@ -405,6 +605,13 @@
                 return;
             }
             chainConfig = buildWorkerChain(parsedProxy, workerUrl, evasion);
+        } else if (chainType === 'relay-chain') {
+            const layers = collectRelayLayers();
+            if (layers.length === 0) {
+                showResult('step3Result', 'error', 'Please configure at least Layer 1 for the relay chain.');
+                return;
+            }
+            chainConfig = buildRelayChain(parsedProxy, layers, evasion);
         } else if (chainType === 'custom') {
             try {
                 const raw = ($('#customOutboundsJson') || {}).value || '[]';
@@ -530,6 +737,77 @@
             proxyOut.transport = { type: 'ws', path: '/' + proxy.address + ':' + proxy.port, headers: { Host: u.hostname } };
         } catch { /* keep as-is if URL invalid */ }
         return wrapConfig([proxyOut], proxyOut.tag);
+    }
+
+    // --- Relay Layer Helpers ---
+    function collectRelayLayers() {
+        // Read up to 4 layer slots from the relay chain UI
+        const layers = [];
+        for (let i = 1; i <= 4; i++) {
+            const typeEl = document.querySelector(`.relay-layer-type[data-layer="${i}"]`);
+            const addrEl = document.querySelector(`.relay-layer-addr[data-layer="${i}"]`);
+            if (!typeEl || !addrEl) continue;
+            const layerType = typeEl.value;
+            const addr = (addrEl.value || '').trim();
+            if (!layerType || !addr) continue;
+            layers.push({ layerType, addr });
+        }
+        return layers;
+    }
+
+    function layerToOutbound(layerType, addr, tag) {
+        // Convert a relay layer definition to a sing-box outbound object
+        if (layerType === 'uri') {
+            // Parse full proxy URI → full outbound
+            const parsed = parseProxyUri(addr);
+            if (parsed) {
+                const out = buildProxyOutbound(parsed);
+                out.tag = tag;
+                return out;
+            }
+            // Fallback: treat as socks5 host:port
+            layerType = 'socks5';
+        }
+
+        if (layerType === 'warp') {
+            const parts = addr.includes(':') ? addr.split(':') : [addr, '2408'];
+            return makeWarpOutbound(tag, parts[0], parseInt(parts[1]) || 2408, warpKey);
+        }
+
+        // socks5 or http
+        const parts = addr.includes(':') ? addr.split(':') : [addr, '1080'];
+        const out = {
+            type: layerType === 'socks5' ? 'socks' : 'http',
+            tag: tag,
+            server: parts[0],
+            server_port: parseInt(parts[1]) || 1080
+        };
+        if (layerType === 'socks5') out.version = '5';
+        return out;
+    }
+
+    function buildRelayChain(proxy, layers, evasion) {
+        // Chain: [You] → Layer1 → Layer2 → ... → Destination Proxy → Internet
+        // layers: [{ layerType, addr }, ...] — up to 4 intermediate hops
+        const proxyOut = applyEvasion(buildProxyOutbound(proxy), evasion);
+        const outbounds = [proxyOut];
+
+        // Build outbounds from innermost (closest to proxy) to outermost (closest to you)
+        // The proxy detours through the first layer (closest to it), which detours through the next, etc.
+        const layerOuts = layers.map((l, i) => layerToOutbound(l.layerType, l.addr, 'relay-layer' + (i + 1)));
+
+        // Wire the chain: proxy → layerN → layerN-1 → ... → layer1 → Internet
+        // layers[0] = outermost (closest to you), layers[last] = closest to proxy
+        if (layerOuts.length > 0) {
+            proxyOut.detour = layerOuts[layerOuts.length - 1].tag;
+        }
+        for (let i = layerOuts.length - 1; i > 0; i--) {
+            layerOuts[i].detour = layerOuts[i - 1].tag;
+        }
+        // Layer 1 (outermost) has no detour — it connects directly to the network
+
+        outbounds.push(...layerOuts.reverse()); // reverse so outermost is last in array
+        return wrapConfig(outbounds, proxyOut.tag);
     }
 
     function buildCustomChain(proxy, customOutbounds, evasion) {
@@ -689,49 +967,54 @@
         showResult('step5Result', 'success', `${format.toUpperCase()} export ready. Copy or download the config.`);
     }
 
-    function buildClashYaml() {
-        if (!parsedProxy || !selectedCleanIp) return '# Error: missing data';
-        const [warpIp, warpPort] = selectedCleanIp.split(':');
-        const p = parsedProxy;
-
-        let proxyBlock = '';
-        switch (p.protocol) {
-            case 'vless':
-                proxyBlock = `  - name: "chain-proxy"\n    type: vless\n    server: ${p.address}\n    port: ${p.port}\n    uuid: ${p.uuid}\n    tls: true\n    servername: ${p.address}`;
-                break;
-            case 'vmess':
-                proxyBlock = `  - name: "chain-proxy"\n    type: vmess\n    server: ${p.address}\n    port: ${p.port}\n    uuid: ${p.uuid}\n    alterId: 0\n    cipher: auto\n    tls: true\n    servername: ${p.address}`;
-                break;
-            case 'trojan':
-                proxyBlock = `  - name: "chain-proxy"\n    type: trojan\n    server: ${p.address}\n    port: ${p.port}\n    password: ${p.uuid}\n    sni: ${p.address}`;
-                break;
-            default:
-                proxyBlock = `  - name: "chain-proxy"\n    type: ${p.protocol}\n    server: ${p.address}\n    port: ${p.port}`;
+    function singboxOutboundToClash(sbOut) {
+        // Convert a single sing-box outbound to Clash/Mihomo YAML proxy block
+        const t = sbOut.type;
+        const name = sbOut.tag;
+        if (t === 'vless') {
+            return `  - name: "${name}"\n    type: vless\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    tls: true\n    servername: ${(sbOut.tls && sbOut.tls.server_name) || sbOut.server}`;
+        } else if (t === 'vmess') {
+            return `  - name: "${name}"\n    type: vmess\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    uuid: ${sbOut.uuid || ''}\n    alterId: 0\n    cipher: auto\n    tls: true\n    servername: ${(sbOut.tls && sbOut.tls.server_name) || sbOut.server}`;
+        } else if (t === 'trojan') {
+            return `  - name: "${name}"\n    type: trojan\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    password: ${sbOut.password || ''}\n    sni: ${(sbOut.tls && sbOut.tls.server_name) || sbOut.server}`;
+        } else if (t === 'shadowsocks') {
+            return `  - name: "${name}"\n    type: ss\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    cipher: ${sbOut.method || 'aes-128-gcm'}\n    password: ${sbOut.password || ''}`;
+        } else if (t === 'socks') {
+            return `  - name: "${name}"\n    type: socks5\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
+        } else if (t === 'http') {
+            return `  - name: "${name}"\n    type: http\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
+        } else if (t === 'wireguard') {
+            return `  - name: "${name}"\n    type: wireguard\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}\n    ip: 172.16.0.2\n    private-key: ${sbOut.private_key || 'YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ='}\n    public-key: ${sbOut.peer_public_key || WARP_PUBLIC_KEY}\n    mtu: ${sbOut.mtu || 1280}`;
         }
+        return `  - name: "${name}"\n    type: ${t}\n    server: ${sbOut.server}\n    port: ${sbOut.server_port}`;
+    }
 
+    function buildClashYaml() {
+        if (!chainConfig || !chainConfig.outbounds) return '# Error: missing chain config';
+        // Filter out direct/block, build proxy blocks with dialer-proxy for chaining
+        const proxyOuts = chainConfig.outbounds.filter(o => o.type !== 'direct' && o.type !== 'block');
+        const blocks = [];
+        for (const out of proxyOuts) {
+            let block = singboxOutboundToClash(out);
+            if (out.detour) {
+                block += `\n    dialer-proxy: "${out.detour}"`;
+            }
+            blocks.push(block);
+        }
+        const primaryTag = proxyOuts.length > 0 ? proxyOuts[0].tag : 'DIRECT';
         return `# ConfigStream Chain Config (Clash/Mihomo)
 # Generated by ConfigStream Laboratory
 mixed-port: 2080
 allow-lan: false
 
 proxies:
-  - name: "warp"
-    type: wireguard
-    server: ${warpIp}
-    port: ${warpPort || 2408}
-    ip: 172.16.0.2
-    private-key: YNS+CEQE6JIQiVWcOUJd0K8FLFeCQBONJnXCdFnMRlQ=
-    public-key: ${WARP_PUBLIC_KEY}
-    mtu: 1280
-
-${proxyBlock}
-    dialer-proxy: "warp"
+${blocks.join('\n\n')}
 
 proxy-groups:
   - name: "Chain"
     type: select
     proxies:
-      - "chain-proxy"
+      - "${primaryTag}"
       - DIRECT
 
 rules:
@@ -739,29 +1022,63 @@ rules:
 `;
     }
 
+    function singboxOutboundToXray(sbOut) {
+        // Convert a single sing-box outbound to Xray/V2Ray format
+        const xOut = { tag: sbOut.tag };
+        const t = sbOut.type;
+        if (t === 'vless') {
+            xOut.protocol = 'vless';
+            xOut.settings = { vnext: [{ address: sbOut.server, port: sbOut.server_port, users: [{ id: sbOut.uuid || '', encryption: 'none', flow: sbOut.flow || '' }] }] };
+            xOut.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: (sbOut.tls && sbOut.tls.server_name) || sbOut.server } };
+        } else if (t === 'vmess') {
+            xOut.protocol = 'vmess';
+            xOut.settings = { vnext: [{ address: sbOut.server, port: sbOut.server_port, users: [{ id: sbOut.uuid || '', alterId: 0, security: 'auto' }] }] };
+            xOut.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: (sbOut.tls && sbOut.tls.server_name) || sbOut.server } };
+        } else if (t === 'trojan') {
+            xOut.protocol = 'trojan';
+            xOut.settings = { servers: [{ address: sbOut.server, port: sbOut.server_port, password: sbOut.password || '' }] };
+            xOut.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: (sbOut.tls && sbOut.tls.server_name) || sbOut.server } };
+        } else if (t === 'shadowsocks') {
+            xOut.protocol = 'shadowsocks';
+            xOut.settings = { servers: [{ address: sbOut.server, port: sbOut.server_port, method: sbOut.method || 'aes-128-gcm', password: sbOut.password || '' }] };
+        } else if (t === 'socks') {
+            xOut.protocol = 'socks';
+            xOut.settings = { servers: [{ address: sbOut.server, port: sbOut.server_port }] };
+        } else if (t === 'http') {
+            xOut.protocol = 'http';
+            xOut.settings = { servers: [{ address: sbOut.server, port: sbOut.server_port }] };
+        } else if (t === 'wireguard') {
+            // Xray does not natively support WireGuard outbound — fall back to freedom with a note
+            xOut.protocol = 'freedom';
+            xOut._note = 'WireGuard outbounds require sing-box or a WireGuard tunnel. Xray does not support WireGuard natively.';
+        } else {
+            xOut.protocol = t || 'freedom';
+        }
+        // Chain: sing-box "detour" → Xray "proxySettings.tag"
+        if (sbOut.detour) {
+            xOut.proxySettings = { tag: sbOut.detour };
+        }
+        return xOut;
+    }
+
     function buildXrayJson() {
-        if (!parsedProxy) return '{}';
-        const p = parsedProxy;
+        if (!chainConfig || !chainConfig.outbounds) return '{}';
         const xray = {
             log: { loglevel: 'warning' },
             inbounds: [{ tag: 'socks', port: 2080, listen: '127.0.0.1', protocol: 'socks', settings: { udp: true } }],
-            outbounds: []
+            outbounds: [],
+            routing: { rules: [{ type: 'field', inboundTag: ['socks'], outboundTag: chainConfig.outbounds[0].tag }] }
         };
-        const base = { tag: 'proxy', protocol: p.protocol === 'shadowsocks' ? 'shadowsocks' : p.protocol };
-        if (p.protocol === 'vless') {
-            base.settings = { vnext: [{ address: p.address, port: p.port, users: [{ id: p.uuid, encryption: 'none' }] }] };
-            base.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: p.address } };
-        } else if (p.protocol === 'vmess') {
-            base.settings = { vnext: [{ address: p.address, port: p.port, users: [{ id: p.uuid, alterId: 0, security: 'auto' }] }] };
-            base.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: p.address } };
-        } else if (p.protocol === 'trojan') {
-            base.settings = { servers: [{ address: p.address, port: p.port, password: p.uuid }] };
-            base.streamSettings = { network: 'tcp', security: 'tls', tlsSettings: { serverName: p.address } };
-        } else if (p.protocol === 'shadowsocks' || p.protocol === 'ss') {
-            base.protocol = 'shadowsocks';
-            base.settings = { servers: [{ address: p.address, port: p.port, method: 'aes-128-gcm', password: p.uuid }] };
+        // Convert each sing-box outbound to Xray format, preserving chain via proxySettings
+        for (const sbOut of chainConfig.outbounds) {
+            if (sbOut.type === 'direct') {
+                xray.outbounds.push({ tag: sbOut.tag, protocol: 'freedom' });
+            } else if (sbOut.type === 'block') {
+                xray.outbounds.push({ tag: sbOut.tag, protocol: 'blackhole' });
+            } else {
+                xray.outbounds.push(singboxOutboundToXray(sbOut));
+            }
         }
-        xray.outbounds.push(base, { tag: 'direct', protocol: 'freedom' }, { tag: 'block', protocol: 'blackhole' });
         return JSON.stringify(xray, null, 2);
     }
 
@@ -941,6 +1258,8 @@ sing-box run -c "$CFG"
         if (step1Next) step1Next.addEventListener('click', handleStep1Next);
         const loadSub = $('#loadFromSub');
         if (loadSub) loadSub.addEventListener('click', handleLoadFromSub);
+        const loadPipeline = document.getElementById('loadPipelineBtn');
+        if (loadPipeline) loadPipeline.addEventListener('click', handleLoadPipelineProxies);
 
         // Step 2
         const method = $('#cleanIpMethod');
@@ -957,6 +1276,31 @@ sing-box run -c "$CFG"
         if (step3Next) step3Next.addEventListener('click', handleStep3Next);
         const step3Back = $('#step3Back');
         if (step3Back) step3Back.addEventListener('click', () => goToStep(2));
+
+        // Relay layer pipeline picker buttons
+        document.querySelectorAll('.relay-pipeline-btn').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const layerIdx = this.dataset.layer;
+                const addrInput = document.querySelector(`.relay-layer-addr[data-layer="${layerIdx}"]`);
+                const typeSelect = document.querySelector(`.relay-layer-type[data-layer="${layerIdx}"]`);
+                if (!addrInput) return;
+                this.textContent = 'Loading...';
+                const proxies = await fetchPipelineProxies();
+                this.textContent = '\u{1F4E6} Pipeline';
+                if (proxies.length === 0) {
+                    showResult('step3Result', 'info', 'No pipeline proxies available. Paste a URI manually.');
+                    return;
+                }
+                // Show a simple prompt with first 20 proxies
+                const labels = proxies.slice(0, 20).map((p, i) => `${i + 1}. ${p.protocol.toUpperCase()} ${p.remark.substring(0, 40)} (${p.address}:${p.port})`);
+                const choice = prompt('Select a pipeline proxy (enter number 1-' + Math.min(20, proxies.length) + '):\n\n' + labels.join('\n'));
+                const idx = parseInt(choice);
+                if (idx >= 1 && idx <= proxies.length) {
+                    addrInput.value = proxies[idx - 1].uri;
+                    if (typeSelect) typeSelect.value = 'uri';
+                }
+            });
+        });
 
         // Step 4
         const step4Test = $('#step4Test');

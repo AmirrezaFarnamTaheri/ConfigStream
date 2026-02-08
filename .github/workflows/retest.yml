@@ -2,17 +2,104 @@ name: Retest
 
 on:
   schedule:
-    - cron: "0 0-21/3 * * *"
-    - cron: "30 1-22/3 * * *" # Alternating every 1.5h
+    - cron: "0 */4 * * *"
+    - cron: "30 1-23/4 * * *" # Alternating every 2h (4h base with 30m offset)
   workflow_dispatch:
+
+# Concurrency: only one retest run active at a time.
+# cancel-in-progress: false → queues ONE pending run; GitHub automatically
+# drops any further queued runs, so at most 1 running + 1 waiting.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
 jobs:
+  # --- Schedule Gate ---
+  # Enforces smart scheduling for cron-triggered runs:
+  #   • After a SUCCESS (main OR retest): wait at least 2 h since last run finished.
+  #   • After a FAILURE (main OR retest): if 4 h have elapsed, start instantly; otherwise wait.
+  #   • workflow_dispatch: always proceed.
+  schedule_gate:
+    name: Schedule Gate
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.gate.outputs.proceed }}
+    steps:
+      - name: Check schedule eligibility
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Non-schedule triggers always proceed
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Query the last completed run of BOTH main and retest workflows on this branch
+          MAIN_RUN=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/main.yml/runs?branch=${{ github.ref_name }}&status=completed&per_page=1" \
+            --jq '.workflow_runs[0] // empty' 2>/dev/null || true)
+          RETEST_RUN=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/retest.yml/runs?branch=${{ github.ref_name }}&status=completed&per_page=1" \
+            --jq '.workflow_runs[0] // empty' 2>/dev/null || true)
+
+          # Find the most recent of the two
+          if [ -n "$MAIN_RUN" ] && [ -n "$RETEST_RUN" ]; then
+            MAIN_TIME=$(echo "$MAIN_RUN" | jq -r '.updated_at')
+            RETEST_TIME=$(echo "$RETEST_RUN" | jq -r '.updated_at')
+            if [ "$MAIN_TIME" \> "$RETEST_TIME" ]; then
+              LAST_RUN="$MAIN_RUN"
+            else
+              LAST_RUN="$RETEST_RUN"
+            fi
+          elif [ -n "$MAIN_RUN" ]; then
+            LAST_RUN="$MAIN_RUN"
+          elif [ -n "$RETEST_RUN" ]; then
+            LAST_RUN="$RETEST_RUN"
+          else
+            echo "No previous run found — proceeding"
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          CONCLUSION=$(echo "$LAST_RUN" | jq -r '.conclusion')
+          UPDATED_AT=$(echo "$LAST_RUN" | jq -r '.updated_at')
+          NOW_EPOCH=$(date +%s)
+          LAST_EPOCH=$(date -d "$UPDATED_AT" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$UPDATED_AT" +%s 2>/dev/null || echo 0)
+          ELAPSED=$(( NOW_EPOCH - LAST_EPOCH ))
+
+          echo "Last run conclusion: $CONCLUSION"
+          echo "Elapsed since last run: ${ELAPSED}s"
+
+          if [ "$CONCLUSION" = "success" ]; then
+            # After success: require at least 2 h (7200 s) gap
+            if [ "$ELAPSED" -lt 7200 ]; then
+              echo "Success cooldown active (${ELAPSED}s < 7200s) — skipping"
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
+            # After failure: require 4 h (14400 s) before retry
+            if [ "$ELAPSED" -lt 14400 ]; then
+              echo "Failure retry cooldown (${ELAPSED}s < 14400s) — skipping"
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          echo "Gate passed — proceeding"
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
+
   retest:
+    name: Retest
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    needs: [schedule_gate]
+    if: "!needs.schedule_gate.outputs.proceed || needs.schedule_gate.outputs.proceed == 'true'"
     env:
       PYTHONPATH: src
     steps:
@@ -104,7 +191,7 @@ jobs:
           fi
       - name: Retest last export
         if: steps.check_output.outputs.skip != 'true'
-        run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 45 --max-workers 50 --leniency
+        run: python -m configstream.cli retest --input output/proxies.json --output output --timeout 310 --max-workers 50 --leniency
       - name: Validate JSON (non-blocking)
         run: |
           pip install jsonschema || true

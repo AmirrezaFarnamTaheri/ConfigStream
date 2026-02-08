@@ -308,6 +308,98 @@
         .lab-ip-table .status-ok { color: #10b981; font-weight: 600; }
         .lab-ip-table .status-fail { color: #ef4444; font-weight: 600; }
 
+        /* Censorship Score Gauge */
+        .lab-gauge-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+        .lab-gauge {
+            position: relative;
+            width: 180px;
+            height: 100px;
+            overflow: hidden;
+        }
+        .lab-gauge svg {
+            width: 180px;
+            height: 100px;
+        }
+        .lab-gauge-bg {
+            fill: none;
+            stroke: var(--border-color);
+            stroke-width: 14;
+        }
+        .lab-gauge-fill {
+            fill: none;
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.2s ease, stroke 0.6s ease;
+        }
+        .lab-gauge-label {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+        .lab-gauge-caption {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .lab-gauge-detail {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 280px;
+        }
+
+        /* Chain Health Badges */
+        .chain-health-row {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+        .chain-health-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+        .chain-health-badge.ok { border-color: #10b981; color: #10b981; }
+        .chain-health-badge.warn { border-color: #f59e0b; color: #f59e0b; }
+        .chain-health-badge.fail { border-color: #ef4444; color: #ef4444; }
+        .chain-health-badge .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            display: inline-block;
+        }
+        .chain-health-badge.ok .dot { background: #10b981; }
+        .chain-health-badge.warn .dot { background: #f59e0b; }
+        .chain-health-badge.fail .dot { background: #ef4444; }
+
+        /* Tip Callout */
+        .lab-tip {
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.18);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            margin: 1rem 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+        .lab-tip strong { color: #3b82f6; }
+
         /* Hidden panels */
         .lab-step-panel { display: none; }
         .lab-step-panel.active { display: block; }
@@ -435,9 +527,24 @@
                 <details open style="margin-bottom:1.5rem;">
                     <summary style="cursor:pointer;font-weight:600;color:var(--text-primary);font-size:0.95rem;">Network Diagnosis (click to run)</summary>
                     <div style="padding:1rem 0 0;">
-                        <p class="hint" style="margin-bottom:0.75rem;">We'll test what your network can access. This helps pick the right chain strategy.</p>
+                        <p class="hint" style="margin-bottom:0.75rem;">We'll test what your network can access. This determines the best chain strategy for your situation.</p>
                         <button class="lab-btn lab-btn-secondary" id="runDiagnosis">Run Quick Diagnosis</button>
                         <div id="diagResults" style="margin-top:1rem;display:none;">
+                            <!-- Censorship Score Gauge -->
+                            <div class="lab-gauge-wrapper" id="diagGauge" style="display:none;">
+                                <div class="lab-gauge">
+                                    <svg viewBox="0 0 180 100">
+                                        <path d="M 15 90 A 75 75 0 0 1 165 90" class="lab-gauge-bg"/>
+                                        <path d="M 15 90 A 75 75 0 0 1 165 90" class="lab-gauge-fill" id="gaugeArc"/>
+                                    </svg>
+                                    <div class="lab-gauge-label" id="gaugeScore">-</div>
+                                </div>
+                                <div class="lab-gauge-caption" id="gaugeCaption">Checking...</div>
+                                <div class="lab-gauge-detail" id="gaugeDetail"></div>
+                            </div>
+                            <!-- Health Badges -->
+                            <div class="chain-health-row" id="diagBadges" style="display:none;"></div>
+                            <!-- Results Table -->
                             <table class="lab-ip-table">
                                 <tbody id="diagTableBody"></tbody>
                             </table>
@@ -478,8 +585,15 @@
                 </div>
 
                 <div class="lab-form-group">
-                    <label>Or load from subscription:</label>
-                    <button class="lab-btn lab-btn-secondary" id="loadFromSub">Load from ConfigStream</button>
+                    <label>Or use pre-tested proxies from ConfigStream:</label>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <button class="lab-btn lab-btn-secondary" id="loadFromSub">Load from Subscription</button>
+                        <button class="lab-btn lab-btn-secondary" id="loadPipelineBtn">Load Pre-Tested Proxies</button>
+                    </div>
+                    <div id="pipelineProxyPicker" style="display:none;margin-top:0.75rem;">
+                        <select class="lab-select" id="pipelineProxySelect" style="display:none;"></select>
+                        <div class="hint" style="margin-top:0.25rem;">These proxies were verified by ConfigStream's pipeline. Select one, or paste your own URI above.</div>
+                    </div>
                 </div>
 
                 <div id="step1Result" class="lab-test-result"></div>
@@ -504,6 +618,8 @@
                         <option value="scan">Local Scan (advanced - requires curl)</option>
                     </select>
                 </div>
+
+                <div class="lab-tip"><strong>Tip:</strong> "Auto" works for most users. If your ISP aggressively blocks Cloudflare, use "Local Scan" with the offline <code>lab-scanner.py</code> tool to find IPs that work from your specific network.</div>
 
                 <div id="manualIpInput" style="display:none;">
                     <div class="lab-form-group">
@@ -535,19 +651,20 @@
         <div class="lab-panel lab-step-panel" id="step-3">
             <div class="lab-card">
                 <h2><span class="step-badge">Step 3</span> Build Your Chain</h2>
-                <p class="step-desc">Choose a chain strategy and customize evasion options. The chain wraps your proxy in an outer tunnel to hide it from your ISP.</p>
+                <p class="step-desc">Choose a chain strategy based on what works on your network. WARP is not the only option &mdash; you can cascade proxies, use a LAN relay, apply TLS fragmentation, or route through a CDN Worker.</p>
 
                 <!-- Chain Type Selector -->
                 <div class="lab-form-group">
                     <label for="chainType">Chain Strategy</label>
                     <select class="lab-select" id="chainType">
-                        <option value="warp">WARP Tunnel (Recommended)</option>
+                        <option value="warp">WARP Tunnel</option>
                         <option value="warp-in-warp">Double WARP (WARP-in-WARP)</option>
-                        <option value="fragment">TLS Fragment (No tunnel needed)</option>
+                        <option value="relay-chain">Relay Chain (multi-hop, any protocol)</option>
+                        <option value="fragment">TLS Fragment (no tunnel needed)</option>
                         <option value="worker">CDN Worker Relay</option>
                         <option value="custom">Custom Chain (Advanced)</option>
                     </select>
-                    <div class="hint" id="chainTypeHint">Traffic flows through Cloudflare WARP to hide the proxy from your ISP.</div>
+                    <div class="hint" id="chainTypeHint">Pick a strategy based on what works on your network. Not sure? Run the scanner's <code>--auto-chain</code> to find out.</div>
                 </div>
 
                 <!-- Visual Chain Diagram -->
@@ -625,6 +742,100 @@
                         <label for="workerUrl">Worker URL</label>
                         <input type="text" class="lab-input" id="workerUrl" placeholder="https://my-worker.username.workers.dev">
                         <div class="hint">Deploy your own Cloudflare Worker for unlimited private relay. See the <a href="wiki.html" style="color:var(--brand-primary);">Wiki</a> for setup guide.</div>
+                    </div>
+                </div>
+
+                <!-- Relay Chain Options (shown for relay-chain type) -->
+                <div id="relayChainOptions" style="display:none;">
+                    <div class="tip-callout" style="margin-bottom:0.75rem;">
+                        <strong>Relay Chain:</strong> Add up to 4 intermediate hops before your destination proxy (Step 1). Each layer can be any protocol &mdash; a local SOCKS5/HTTP proxy, a LAN machine, a pipeline proxy, or a full proxy URI (VLESS, VMess, Trojan, SS, WARP).
+                        Your traffic flows: You &rarr; Layer 1 &rarr; Layer 2 &rarr; ... &rarr; Destination Proxy &rarr; Internet.
+                    </div>
+                    <div id="relayLayerSlots">
+                        <div class="relay-layer-slot" data-layer="1">
+                            <div class="lab-row" style="align-items:flex-end;">
+                                <div class="lab-form-group" style="flex:0 0 140px;">
+                                    <label>Layer 1 Type</label>
+                                    <select class="lab-select relay-layer-type" data-layer="1">
+                                        <option value="socks5">SOCKS5</option>
+                                        <option value="http">HTTP</option>
+                                        <option value="uri">Proxy URI</option>
+                                        <option value="warp">WARP</option>
+                                    </select>
+                                </div>
+                                <div class="lab-form-group" style="flex:1;">
+                                    <label>Address / URI</label>
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="1" placeholder="127.0.0.1:1080 or vless://...">
+                                </div>
+                                <div style="flex:0 0 auto;padding-bottom:0.25rem;">
+                                    <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="1" title="Pick from pipeline proxies">&#128230; Pipeline</button>
+                                </div>
+                            </div>
+                            <div class="hint" style="margin-top:-0.5rem;">Local proxy (Psiphon, Tor, Clash), LAN relay, or any proxy URI. <code>--scan-lan</code> finds LAN relays.</div>
+                        </div>
+                        <div class="relay-layer-slot" data-layer="2">
+                            <div class="lab-row" style="align-items:flex-end;">
+                                <div class="lab-form-group" style="flex:0 0 140px;">
+                                    <label>Layer 2 Type</label>
+                                    <select class="lab-select relay-layer-type" data-layer="2">
+                                        <option value="">None (skip)</option>
+                                        <option value="socks5">SOCKS5</option>
+                                        <option value="http">HTTP</option>
+                                        <option value="uri">Proxy URI</option>
+                                        <option value="warp">WARP</option>
+                                    </select>
+                                </div>
+                                <div class="lab-form-group" style="flex:1;">
+                                    <label>Address / URI</label>
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="2" placeholder="10.0.0.50:3128 or trojan://...">
+                                </div>
+                                <div style="flex:0 0 auto;padding-bottom:0.25rem;">
+                                    <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="2" title="Pick from pipeline proxies">&#128230; Pipeline</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relay-layer-slot" data-layer="3">
+                            <div class="lab-row" style="align-items:flex-end;">
+                                <div class="lab-form-group" style="flex:0 0 140px;">
+                                    <label>Layer 3 Type</label>
+                                    <select class="lab-select relay-layer-type" data-layer="3">
+                                        <option value="">None (skip)</option>
+                                        <option value="socks5">SOCKS5</option>
+                                        <option value="http">HTTP</option>
+                                        <option value="uri">Proxy URI</option>
+                                        <option value="warp">WARP</option>
+                                    </select>
+                                </div>
+                                <div class="lab-form-group" style="flex:1;">
+                                    <label>Address / URI</label>
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="3" placeholder="162.159.192.1:2408 or vmess://...">
+                                </div>
+                                <div style="flex:0 0 auto;padding-bottom:0.25rem;">
+                                    <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="3" title="Pick from pipeline proxies">&#128230; Pipeline</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="relay-layer-slot" data-layer="4">
+                            <div class="lab-row" style="align-items:flex-end;">
+                                <div class="lab-form-group" style="flex:0 0 140px;">
+                                    <label>Layer 4 Type</label>
+                                    <select class="lab-select relay-layer-type" data-layer="4">
+                                        <option value="">None (skip)</option>
+                                        <option value="socks5">SOCKS5</option>
+                                        <option value="http">HTTP</option>
+                                        <option value="uri">Proxy URI</option>
+                                        <option value="warp">WARP</option>
+                                    </select>
+                                </div>
+                                <div class="lab-form-group" style="flex:1;">
+                                    <label>Address / URI</label>
+                                    <input type="text" class="lab-input relay-layer-addr" data-layer="4" placeholder="ss://... or socks5://...">
+                                </div>
+                                <div style="flex:0 0 auto;padding-bottom:0.25rem;">
+                                    <button type="button" class="lab-btn lab-btn-secondary lab-btn-sm relay-pipeline-btn" data-layer="4" title="Pick from pipeline proxies">&#128230; Pipeline</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -715,24 +926,38 @@
                     <button class="lab-btn lab-btn-secondary" id="step4Next" disabled>Continue to Export</button>
                 </div>
 
+                <div class="lab-tip"><strong>Tip:</strong> If the live test is unavailable, you can still test manually. Save the config, run <code>sing-box run -c chain.json</code>, then visit <a href="https://ip.gs" target="_blank" rel="noopener" style="color:var(--brand-primary);">ip.gs</a> through the proxy to verify your exit IP changes.</div>
+
                 <!-- Troubleshooting -->
                 <div style="margin-top: 2rem;">
-                    <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Troubleshooting</h3>
+                    <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Troubleshooting Guide</h3>
                     <div class="lab-trouble-item">
                         <strong>Connection timed out</strong>
-                        <p>The clean IP may be blocked by your ISP. Go back to Step 2 and try different IPs. Try ports 854, 859, 864, 878, 880, 890, 891, 894, 903.</p>
+                        <p>The clean IP may be blocked by your ISP. Go back to Step 2 and try different IPs. Best ports to try: 854, 859, 864, 878, 880, 890, 891, 894, 903, 908, 928, 2408, 4500. Use <code>lab-scanner.py --scan-ips</code> to find working IP:port combos automatically.</p>
                     </div>
                     <div class="lab-trouble-item">
                         <strong>TLS handshake failed</strong>
-                        <p>Your ISP may be doing deep packet inspection (DPI). Enable TLS fragmentation in your client, or try enabling the "Randomized" uTLS fingerprint.</p>
+                        <p>Your ISP is likely doing deep packet inspection (DPI). Solutions: 1) Enable TLS Fragment in Step 3. 2) Try the "Randomized" uTLS fingerprint. 3) Switch to ALPN "h2" only. 4) Try Double WARP strategy.</p>
                     </div>
                     <div class="lab-trouble-item">
                         <strong>WARP connects but proxy fails</strong>
-                        <p>The inner proxy might be down. Try a different base proxy from Step 1. Check if the proxy requires a specific SNI or transport (WebSocket vs gRPC).</p>
+                        <p>The inner proxy might be down or misconfigured. Try: 1) A different base proxy from Step 1. 2) Check if the proxy requires WebSocket or gRPC transport. 3) Verify the UUID/password is correct. 4) Test the proxy directly (without WARP) first.</p>
                     </div>
                     <div class="lab-trouble-item">
                         <strong>Very slow speed</strong>
-                        <p>Try a clean IP with lower latency. Use WARP+ key for better routing. Consider switching to a geographically closer proxy exit node.</p>
+                        <p>Try a clean IP with lower latency. Use a WARP+ key for better routing. Enable multiplex (h2mux or yamux) in Advanced Evasion. Consider switching to a geographically closer proxy exit node.</p>
+                    </div>
+                    <div class="lab-trouble-item">
+                        <strong>Works for a while then stops</strong>
+                        <p>Your ISP may be detecting and blocking the connection after a period. Try: 1) Switch to a different clean IP. 2) Enable multiplex with padding. 3) Use the Double WARP strategy. 4) Rotate clean IPs periodically.</p>
+                    </div>
+                    <div class="lab-trouble-item">
+                        <strong>DNS resolution fails</strong>
+                        <p>Your ISP may be hijacking DNS. In your VPN client settings, force DNS to use DoH (DNS-over-HTTPS): <code>https://1.1.1.1/dns-query</code> or <code>https://dns.google/dns-query</code>. Also try setting the remote DNS in sing-box config.</p>
+                    </div>
+                    <div class="lab-trouble-item">
+                        <strong>SNI blocked for specific sites</strong>
+                        <p>Some ISPs block by SNI (Server Name Indication). Use TLS Fragment strategy or ECH (Encrypted Client Hello) if supported. Reality protocol is also effective against SNI-based filtering.</p>
                     </div>
                 </div>
             </div>
@@ -815,32 +1040,51 @@
                 </div>
 
                 <details style="margin-top:1.5rem;">
-                    <summary style="cursor:pointer;font-weight:600;color:var(--text-primary);font-size:0.95rem;">Quick Start Commands</summary>
+                    <summary style="cursor:pointer;font-weight:600;color:var(--text-primary);font-size:0.95rem;">Quick Start Commands (v2.1.0)</summary>
                     <div style="padding:1rem 0 0;">
-                        <div class="lab-config-output" style="max-height:200px;">
-<code># Full network diagnostic
+                        <div class="lab-config-output" style="max-height:340px;">
+<code># Full network diagnostic (all phases)
 python lab-scanner.py
 
-# Scan for clean Cloudflare IPs only
-python lab-scanner.py --scan-ips
+# Quick connectivity check (ICMP, TCP, DNS, TLS, HTTPS)
+python lab-scanner.py --quick
+
+# Scan for clean Cloudflare IPs
+python lab-scanner.py --scan-ips --top-n 20
+
+# Include your own IPs in the scan
+python lab-scanner.py --scan-ips --custom-ips "1.2.3.4:2408,5.6.7.8"
+
+# Find working DNS servers (UDP, DoH, DoT)
+python lab-scanner.py --scan-dns
+
+# Detect SNI-based domain blocking (25 domains)
+python lab-scanner.py --scan-sni
+
+# TCP port reachability matrix (includes alt CDN IPs)
+python lab-scanner.py --scan-ports
 
 # Find local SOCKS/HTTP proxies
 python lab-scanner.py --scan-proxies
 
+# Find intranet/LAN relays with internet access
+python lab-scanner.py --scan-lan
+
+# Auto-detect best chain path (6 strategies, not just WARP)
+python lab-scanner.py --auto-chain
+
+# Auto-chain with your own proxy as Layer 1
+python lab-scanner.py --auto-chain --custom-proxy socks5://127.0.0.1:1080
+
 # Interactive multi-layer chain builder
+# (paste URIs, import IPs, remove layers, mid-build testing)
 python lab-scanner.py --interactive
 
-# Test through existing proxy
+# Test through existing proxy (HTTP + HTTPS + speed test)
 python lab-scanner.py --test-proxy socks5://127.0.0.1:1080
 
-# Run a chain config (Bash)
-bash lab-runner.sh run chain.json
-
-# Test a chain config end-to-end
-bash lab-runner.sh test chain.json
-
-# Scan IPs through a local proxy
-bash lab-runner.sh scan-ips --through socks5://127.0.0.1:1080</code>
+# Export results as JSON
+python lab-scanner.py --scan-ips --json > clean-ips.json</code>
                         </div>
                     </div>
                 </details>

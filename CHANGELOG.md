@@ -1,4 +1,42 @@
 
+## [2.5.2] - 2026-02-09
+
+### Lab Scanner v2.1.0 & Documentation Enrichment
+
+**Lab Scanner (`tools/lab-scanner.py`)**
+- **New Phase: Intranet Relay Discovery** (`--scan-lan`): Probes 5 LAN subnets × 8 ports for SOCKS5/HTTP/HTTPS hosts with internet access
+- **Multi-Strategy Auto-Chain** (`--auto-chain`): Rewritten with 6 strategies — direct proxy, proxy cascade, intranet relay, WARP tunnel, local proxy + WARP, LAN relay + WARP
+- **New CLI Options**: `--scan-lan`, `--custom-ips`, `--custom-proxy` for user-supplied resources
+- **Enhanced Interactive Builder**: Paste proxy URIs, import clean IPs from file, remove last layer
+- **Updated Recommendations**: All diagnostic summaries now suggest multi-strategy approaches (not just WARP)
+
+**Frontend Lab (`lab.html` + `lab.js`)**
+- **Pipeline Proxy Integration**: "Load Pre-Tested Proxies" button fetches working proxies from pipeline output (`output/base64.txt`), grouped by protocol in a dropdown
+- **2 New Chain Strategies**: Proxy Cascade (1-2 hop SOCKS/HTTP chain) and Intranet/LAN Relay
+- **New Builder Functions**: `buildProxyCascadeChain()`, `buildIntranetRelayChain()` generate sing-box configs
+- **Multi-Strategy Advice**: All 6 diagnosis tiers updated with strategy-agnostic recommendations
+- **Quick Start Commands**: Updated to v2.1.0 with all new CLI options
+
+**Documentation Enrichment**
+- **Wiki Home** (`Home.md`): Complete documentation index, getting started for 3 user types, multi-strategy concepts
+- **Encyclopedia — Networking Terms**: Added DPI (stateless/stateful/ML), CDN/domain fronting, QUIC, HTTP CONNECT, SOCKS5, Reality protocol, uTLS, BGP, RST injection, ECH, TLS fragmentation
+- **Encyclopedia — Security Concepts**: Added active probing (replay attacks, GFW), traffic analysis, circuit breaker pattern, adaptive timeout, FireHol integration
+- **Encyclopedia — WARP**: Added how WARP works, 50+ ports, scanner details, 3 chain topologies, alternatives to WARP, key management, WireGuard config fields
+- **Encyclopedia — Topology**: Added 6 chaining strategies with diagrams, 9 smart chain types, intranet vs internet explanation
+- **Encyclopedia — Trojan**: Added fallback deep dive, Trojan-Go/Xray variants, parsing logic, validation rules, CDN-compatible config, client compatibility matrix
+- **Encyclopedia — Firewalls**: Added Iran/Russia-specific censorship details, honeypot detection signs, expanded defense categories
+- **Encyclopedia — Sing-box Guide**: Added detour chaining explanation, 4 chain config examples, evasion options, DNS profiles, Lab integration
+- **Wiki 06-Frontend**: Full Chain Laboratory documentation (5 steps, 7 strategies, pipeline proxies, offline tools)
+- **Wiki 10-Troubleshooting**: Lab Scanner troubleshooting, multi-strategy decision flowchart
+
+**QA Results**
+- **flake8**: 0 errors
+- **black**: Clean
+- **mypy**: 0 errors (notes only)
+- **node -c**: lab.js syntax OK
+
+---
+
 ## [2.5.1] - 2026-02-08
 
 ### Final Deep Audit

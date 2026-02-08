@@ -1379,6 +1379,7 @@ def save_metadata(
         "asns": asns,
         "isp_stats": asns,  # Alias for legacy tests
         "total_revived": total_revived_count,
+        "total_clean": max(0, working - total_revived_count),
         "total_smart_chains": smart_chain_count,
         "smart_chains_breakdown": smart_chains_breakdown,
         "total_dirty": sum(
