@@ -108,6 +108,21 @@ function updateStats(data) {
     update('revivedVwarp', formatNum(revivedVwarp));
     update('threatsBlocked', formatNum(data.total_dirty));
 
+    // Smart Chains
+    const smartChains = data.total_smart_chains;
+    update('smartChains', formatNum(smartChains));
+
+    // Vwarp Win Rate
+    const vwarpWinRate = data.vwarp_win_rate;
+    const washingEnabled = data.washing_enabled;
+    const winRateDisplay = (washingEnabled !== false && vwarpWinRate !== undefined)
+        ? `${Math.round(vwarpWinRate)}%` : 'N/A';
+    update('vwarpWinRate', winRateDisplay);
+
+    // Update Frequency
+    const updateFreq = data.update_interval_hours || 6;
+    update('updateFrequency', `${updateFreq} hrs`);
+
     // Update timestamp if available
     if (data.last_updated_utc) {
         const date = new Date(data.last_updated_utc);
@@ -632,7 +647,9 @@ function initCharts(data, evasionTrend = null) {
     }
 
     // 1. Protocol Distribution
-    const protoCtx = document.getElementById('protocolChart').getContext('2d');
+    const protoEl = document.getElementById('protocolChart');
+    if (protoEl) {
+    const protoCtx = protoEl.getContext('2d');
     const protoLabels = Object.keys(data.protocols || {});
     // F6 Fix: Use centralized color logic
     const protoColors = protoLabels.map((p, i) => generateColor(p, i));
@@ -653,9 +670,12 @@ function initCharts(data, evasionTrend = null) {
             plugins: { legend: { position: 'right' } }
         }
     });
+    }
 
     // 2. Latency Distribution
-    const latencyCtx = document.getElementById('latencyChart').getContext('2d');
+    const latencyEl = document.getElementById('latencyChart');
+    if (latencyEl) {
+    const latencyCtx = latencyEl.getContext('2d');
     const latData = data.latency_distribution || {};
     // Sync labels with backend thresholds (output_logic.py:150-158)
     // Backend: fast<200ms, medium:200-800ms, slow:800-2000ms, very_slow>2000ms
@@ -676,6 +696,7 @@ function initCharts(data, evasionTrend = null) {
             scales: { y: { beginAtZero: true } }
         }
     });
+    }
 
     // 3. Rejection Reasons
     const rejEl = document.getElementById('rejectionChart');
@@ -805,7 +826,9 @@ function initCharts(data, evasionTrend = null) {
     }
 
     // 6. Top Countries
-    const countryCtx = document.getElementById('countryChart').getContext('2d');
+    const countryEl = document.getElementById('countryChart');
+    if (countryEl) {
+    const countryCtx = countryEl.getContext('2d');
     const sortedCountries = Object.entries(data.country_stats || {})
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10);
@@ -827,6 +850,7 @@ function initCharts(data, evasionTrend = null) {
             maintainAspectRatio: false
         }
     });
+    }
 
     // 7. Latency by Country
     const latencyByCountryEl = document.getElementById('latencyByCountryChart');

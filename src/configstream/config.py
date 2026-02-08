@@ -138,7 +138,7 @@ class AppSettings(BaseSettings):
     RENAME_TEMPLATE: Optional[str] = None
 
     # Update Interval
-    UPDATE_INTERVAL_HOURS: int = 6
+    UPDATE_INTERVAL_HOURS: int = 4
 
     # Security Validator
     ALLOW_PRIVATE_IPS: bool = True
