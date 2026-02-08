@@ -332,7 +332,7 @@ def update_databases():
         "GeoLite2-City.mmdb": "GeoLite2-City",
         "GeoLite2-ASN.mmdb": "GeoLite2-ASN",
     }
-    
+
     # [FIX] Removed duplicate singbox_databases definition (dead code; redefined at line 437)
 
     def stream_download(url: str, target: Path) -> bool:
@@ -426,24 +426,28 @@ def update_databases():
             success = False
 
     # Download Sing-box databases (geosite.db and geoip.db) for routing rules
-    console.print("[yellow]Downloading Sing-box databases (geosite.db, geoip.db)...[/yellow]")
+    console.print(
+        "[yellow]Downloading Sing-box databases (geosite.db, geoip.db)...[/yellow]"
+    )
     singbox_data_dir = data_dir / "singbox"
     singbox_data_dir.mkdir(parents=True, exist_ok=True)
-    
+
     singbox_databases = {
         "geosite.db": "https://github.com/SagerNet/sing-geosite/releases/latest/download/geosite.db",
         "geoip.db": "https://github.com/SagerNet/sing-geoip/releases/latest/download/geoip.db",
     }
-    
+
     singbox_success = True
     for db_name, db_url in singbox_databases.items():
         target = singbox_data_dir / db_name
-        
+
         if target.exists() and target.stat().st_size > 0:
             size_mb = target.stat().st_size / (1024 * 1024)
-            console.print(f"[green]OK {db_name} already exists ({size_mb:.1f} MB)[/green]")
+            console.print(
+                f"[green]OK {db_name} already exists ({size_mb:.1f} MB)[/green]"
+            )
             continue
-        
+
         console.print(f"[cyan]Downloading {db_name}...[/cyan]")
         if stream_download(db_url, target):
             if target.stat().st_size > 0:
@@ -455,12 +459,14 @@ def update_databases():
         else:
             console.print(f"[red]Failed to download {db_name}[/red]")
             singbox_success = False
-    
+
     if success and singbox_success:
         console.print("[bold green]All databases updated successfully[/bold green]")
         sys.exit(0)
     elif success:
-        console.print("[yellow]GeoIP databases updated, but Sing-box databases failed[/yellow]")
+        console.print(
+            "[yellow]GeoIP databases updated, but Sing-box databases failed[/yellow]"
+        )
         sys.exit(0)  # Non-fatal for Sing-box DBs
     else:
         console.print("[bold red]Failed to download one or more databases[/bold red]")
@@ -529,7 +535,6 @@ def backup(days, dir):
         console.print(f"[green]Backed up {b.name}[/green]")
 
 
-
 @main.command()
 def scan_dns():
     """Launch the interactive DNS Scanner TUI."""
@@ -537,10 +542,14 @@ def scan_dns():
     import sys
     from pathlib import Path
 
-    scanner_script = Path(__file__).parent / "tools" / "dns_scanner" / "python" / "dnsscanner_tui.py"
+    scanner_script = (
+        Path(__file__).parent / "tools" / "dns_scanner" / "python" / "dnsscanner_tui.py"
+    )
 
     if not scanner_script.exists():
-        console.print(f"[bold red]Error: Scanner script not found at {scanner_script}[/bold red]")
+        console.print(
+            f"[bold red]Error: Scanner script not found at {scanner_script}[/bold red]"
+        )
         sys.exit(1)
 
     console.print("[green]Launching DNS Scanner TUI...[/green]")
@@ -551,6 +560,7 @@ def scan_dns():
         sys.exit(e.returncode)
     except KeyboardInterrupt:
         console.print("\n[yellow]Scanner interrupted.[/yellow]")
+
 
 if __name__ == "__main__":
     main()

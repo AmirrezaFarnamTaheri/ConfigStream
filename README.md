@@ -241,7 +241,6 @@ Optional (production hardening):
 - DNS_SAFE_RESOLVE_BATCH=500
 - DNS_SAFE_RESOLVE_LIMIT=0
 - EVASION_MODE=aggressive (options: standard, stealth, aggressive)
-- EVASION_MODE=aggressive (options: standard, stealth, aggressive)
 
 ## Deployment
 The reference deployment uses GitHub Actions to run the pipeline every 5 hours and GitHub Pages to host outputs. This keeps infrastructure free and globally accessible.
@@ -268,6 +267,23 @@ See SECURITY.md for policies, threat model, and disclosure process.
 3. Vwarp not being used: set `USE_VWARP_TUNNEL=true`, install the binary, and check probe logs.
 4. Frontend shows stale data: verify metadata timestamps in `proxies.json` and GitHub Pages cache refresh.
 5. Local runs differ from CI: align environment variables, Python version, and dependencies.
+
+## Chain Laboratory
+The Laboratory page helps users build custom proxy chains step-by-step, even when starting from zero internet access.
+
+Online: https://amirrezafarnamtaheri.github.io/ConfigStream/lab.html
+
+Features:
+- Network diagnosis to understand what your connection can reach
+- Layer 1 support for local proxies (Psiphon, Lantern, V2RayN)
+- 5 chain strategies: WARP, Double WARP, TLS Fragment, CDN Worker, Custom JSON
+- Advanced evasion: uTLS fingerprint, ALPN, multiplex, padding
+- 8 export formats: Sing-Box JSON, Clash YAML, Xray JSON, Nekobox, URI, QR, Python script, Bash script
+
+Offline tools (no internet required):
+- `tools/lab-scanner.py`: Python network diagnostic — clean IP scan, proxy discovery, DNS probe, interactive chain builder
+- `tools/lab-runner.sh`: Bash chain runner — auto-installs sing-box, tests chains, scans IPs
+- `frontend/lab-offline.html`: Self-contained offline chain builder in a single HTML file
 
 ## Documentation
 - README.md: you are here

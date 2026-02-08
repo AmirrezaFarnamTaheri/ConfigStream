@@ -35,9 +35,7 @@ def _compute_and_sort(
         # Reliability (History Success): 30%
         # Stability (Uptime): 20%
         score = (
-            (norm_latency * 0.5)
-            + ((1.0 - reliability) * 0.3)
-            + ((1.0 - uptime) * 0.2)
+            (norm_latency * 0.5) + ((1.0 - reliability) * 0.3) + ((1.0 - uptime) * 0.2)
         )
         return float(score)
 

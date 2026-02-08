@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 from configstream.workers.scanner import WarpScannerWorker
 
+
 @pytest.mark.asyncio
 async def test_scanner_ci_disabled():
     # Mock settings to NOT force scanner
@@ -10,6 +11,7 @@ async def test_scanner_ci_disabled():
         with patch.dict("os.environ", {"CI": "true"}):
             worker = WarpScannerWorker()
             assert not worker.available
+
 
 @pytest.mark.asyncio
 async def test_scanner_ci_force_enabled():
@@ -21,6 +23,7 @@ async def test_scanner_ci_force_enabled():
                 worker = WarpScannerWorker()
                 assert worker.available
 
+
 @pytest.mark.asyncio
 async def test_scan_endpoints_disabled_settings():
     worker = WarpScannerWorker("/bin/ls")
@@ -30,6 +33,7 @@ async def test_scan_endpoints_disabled_settings():
 
         ips = await worker.scan_endpoints()
         assert ips == []
+
 
 @pytest.mark.asyncio
 async def test_scan_endpoints_execution_success():
@@ -44,7 +48,7 @@ async def test_scan_endpoints_execution_success():
         proc.returncode = 0
         proc.communicate.return_value = (
             b'{"ip":"162.159.192.1", "port":2408, "latency":50}\n{"ip":"162.159.192.2", "port":2408, "latency":1000}',
-            b""
+            b"",
         )
 
         with patch("asyncio.create_subprocess_exec", return_value=proc):
@@ -52,6 +56,7 @@ async def test_scan_endpoints_execution_success():
             assert len(ips) == 1
             assert "162.159.192.1" in ips
             assert "162.159.192.2" not in ips  # Latency 1000 > 800
+
 
 @pytest.mark.asyncio
 async def test_scan_endpoints_execution_failure():

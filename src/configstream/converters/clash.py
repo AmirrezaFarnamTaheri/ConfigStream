@@ -52,7 +52,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
                 raw_opts = proxy.details.get("plugin_opts", {})
                 if isinstance(raw_opts, str) and raw_opts:
                     common["plugin-opts"] = dict(
-                        item.split("=", 1) for item in raw_opts.split(";") if "=" in item
+                        item.split("=", 1)
+                        for item in raw_opts.split(";")
+                        if "=" in item
                     )
                 elif isinstance(raw_opts, dict):
                     common["plugin-opts"] = raw_opts
@@ -63,7 +65,9 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
         elif proxy.protocol == "vmess":
             common["uuid"] = proxy.uuid
             # [FIX] Parser stores as "aid", not "alterId"
-            common["alterId"] = proxy.details.get("aid", proxy.details.get("alterId", 0))
+            common["alterId"] = proxy.details.get(
+                "aid", proxy.details.get("alterId", 0)
+            )
             common["cipher"] = (
                 proxy.details.get("scy") or proxy.details.get("cipher") or "auto"
             )
@@ -113,7 +117,12 @@ def to_clash_proxy(proxy: Proxy) -> Optional[Dict[str, Any]]:
 
             # Transport & TLS similar to VMess
             # [FIX] Also check "net" and "type" keys (parsers use different keys)
-            net = proxy.details.get("network") or proxy.details.get("net") or proxy.details.get("type") or "tcp"
+            net = (
+                proxy.details.get("network")
+                or proxy.details.get("net")
+                or proxy.details.get("type")
+                or "tcp"
+            )
             common["network"] = net
             if net == "ws":
                 common["ws-opts"] = {

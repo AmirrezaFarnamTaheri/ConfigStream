@@ -1,5 +1,5 @@
-import traceback
 # SPDX-License-Identifier: AGPL-3.0-or-later
+import traceback
 import asyncio
 import logging
 import json
@@ -148,6 +148,7 @@ class PythonTester:
         # Apply evasion features to test config to avoid false negatives
         # Proxies that only work with uTLS/multiplexing should be tested with those features enabled
         from ..intelligence.evasion import enrich_outbound_with_evasion
+
         outbound_config = enrich_outbound_with_evasion(
             outbound_config,
             proxy.id,
@@ -232,7 +233,9 @@ class PythonTester:
                         SecurityValidator.sanitize_log_message(
                             f"{proxy.address}:{proxy.port}"
                         ),
-                        SecurityValidator.sanitize_log_message(str(e)) + "\n" + traceback.format_exc(),
+                        SecurityValidator.sanitize_log_message(str(e))
+                        + "\n"
+                        + traceback.format_exc(),
                     )
                 proxy.is_working = False
                 proxy.details["error"] = SecurityValidator.sanitize_log_message(str(e))

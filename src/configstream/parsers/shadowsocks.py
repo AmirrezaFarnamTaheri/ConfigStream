@@ -92,7 +92,9 @@ def parse_ss(config: str) -> Optional[Proxy]:
                     break
             # [FIX] Drop proxy if password still missing after all fallback attempts
             if not password:
-                logger.debug("Shadowsocks proxy dropped: no password after fallback check")
+                logger.debug(
+                    "Shadowsocks proxy dropped: no password after fallback check"
+                )
                 return None
 
         # Parse host_info

@@ -1,7 +1,7 @@
 # ConfigStream Project Status
 
 **Last Updated**: 2026-02-08
-**Version**: v2.2.0
+**Version**: v2.5.0
 **Status**: ✅ **PRODUCTION READY**
 
 ---
@@ -24,8 +24,8 @@
 
 ## 🚀 Current Release Status
 
-### v2.2.0 (2025-01-07)
-- **Release Date**: January 7, 2025
+### v2.5.0 (2026-02-08)
+- **Release Date**: February 8, 2026
 - **Status**: ✅ Production Deployed
 - **Deployment**: GitHub Pages + Actions
 - **Uptime**: 99.8%
@@ -61,7 +61,7 @@
 
 ### Security Audit (2026-02-08)
 - **Audit Type**: Full backend logic audit & source expansion
-- **Files Audited**: 400+ files
+- **Files Audited**: 900+ files
 - **Methodology**: Automated linting/typing + Manual logic review
 
 ### Security Score: **A (90/100)** ✅
@@ -81,7 +81,7 @@
 - **Black**: ✅ 100% formatted
 
 ### Test Coverage
-- **Total Tests**: 743+ Unit Tests
+- **Total Tests**: 800+ Unit Tests
 - **Success Rate**: 100% passing
 
 ---
@@ -107,6 +107,18 @@
 - [x] Integrate reliability scoring into ranking
 - [x] Thread-safe stats collection
 - [x] Full test suite pass (Unit + Advanced)
+
+### Completed ✅ (v2.5.0)
+- [x] Laboratory page — 5-step chain builder, 5 chain strategies, 8 export formats, network diagnosis, Layer 1 support
+- [x] Offline tools: `lab-scanner.py` (Python diagnostic), `lab-runner.sh` (Bash runner), `lab-offline.html`
+- [x] Shared utility consolidation (`utils/net.py`)
+- [x] Dead code removal (`vwarp_tool.py` stub, `vwarp_proc`, duplicate functions)
+- [x] MD5→SHA256 hashing fix in consumer
+- [x] Parameter shadowing fix in server.py
+- [x] SPDX header ordering fixes
+- [x] Go tester import formatting fix
+- [x] Frontend nav consistency (Lab link on all 6 pages)
+- [x] Pre-existing test fixes (health endpoint, DNS profiles, server coverage)
 
 ### In Progress
 - [ ] Real-time API rate limiting

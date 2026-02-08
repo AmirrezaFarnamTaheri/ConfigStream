@@ -13,7 +13,9 @@ def test_calculate_optimal_workers_auto():
         with patch("configstream.adaptive_workers.psutil_module", None):
             # [FIX] Updated: non-CI = 4 * 15 = 60, CI = 4 * 10 = 40
             # Mock CI detection to False for deterministic test
-            with patch("configstream.adaptive_workers._is_ci_environment", return_value=False):
+            with patch(
+                "configstream.adaptive_workers._is_ci_environment", return_value=False
+            ):
                 assert calculate_optimal_workers(0) == 60
 
 
@@ -21,7 +23,9 @@ def test_calculate_optimal_workers_ci_mode():
     """Test that CI environments get lower worker limits."""
     with patch("multiprocessing.cpu_count", return_value=4):
         with patch("configstream.adaptive_workers.psutil_module", None):
-            with patch("configstream.adaptive_workers._is_ci_environment", return_value=True):
+            with patch(
+                "configstream.adaptive_workers._is_ci_environment", return_value=True
+            ):
                 # CI: 4 * 10 = 40, capped at 50
                 assert calculate_optimal_workers(0) == 40
 
@@ -35,7 +39,9 @@ def test_calculate_optimal_workers_with_memory_constraint():
         mock_psutil.virtual_memory.return_value = mock_mem
 
         with patch("configstream.adaptive_workers.psutil_module", mock_psutil):
-            with patch("configstream.adaptive_workers._is_ci_environment", return_value=False):
+            with patch(
+                "configstream.adaptive_workers._is_ci_environment", return_value=False
+            ):
                 workers = calculate_optimal_workers(0)
                 assert workers == 26
 
@@ -48,12 +54,16 @@ def test_calculate_optimal_workers_hard_limits():
         mock_psutil.virtual_memory.return_value = mock_mem
 
         with patch("configstream.adaptive_workers.psutil_module", mock_psutil):
-            with patch("configstream.adaptive_workers._is_ci_environment", return_value=False):
+            with patch(
+                "configstream.adaptive_workers._is_ci_environment", return_value=False
+            ):
                 workers = calculate_optimal_workers(0)
                 # [FIX] Updated: max is now 150 (non-CI) instead of 200
                 assert workers <= 150
 
-            with patch("configstream.adaptive_workers._is_ci_environment", return_value=True):
+            with patch(
+                "configstream.adaptive_workers._is_ci_environment", return_value=True
+            ):
                 workers = calculate_optimal_workers(0)
                 # CI max is 50
                 assert workers <= 50

@@ -92,6 +92,7 @@ def to_json(data: Any) -> str:
         except TypeError:
             # [FIX] Fallback with custom default handler for non-serializable types
             import json
+
             result = json.dumps(data, indent=2, default=_json_default)
         if isinstance(result, bytes):
             return result.decode("utf-8")
@@ -99,4 +100,5 @@ def to_json(data: Any) -> str:
     else:
         # Fallback
         import json
+
         return json.dumps(data, indent=2, default=_json_default)

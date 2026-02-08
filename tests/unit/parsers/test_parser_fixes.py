@@ -17,6 +17,7 @@ import threading
 # Shadowsocks: Password drop after failed fallback
 # ---------------------------------------------------------------------------
 
+
 class TestShadowsocksPasswordDrop:
     """Tests for the password drop logic in parse_ss."""
 
@@ -34,6 +35,7 @@ class TestShadowsocksPasswordDrop:
         """SS config with method: (empty password) and no fallback should be dropped."""
         # aes-256-gcm: (note the colon but no password) -> YWVzLTI1Ni1nY206
         import base64
+
         encoded = base64.urlsafe_b64encode(b"aes-256-gcm:").decode().rstrip("=")
         config = f"ss://{encoded}@1.2.3.4:8388#test"
         proxy = parse_ss(config)
@@ -42,6 +44,7 @@ class TestShadowsocksPasswordDrop:
     def test_ss_empty_password_with_query_fallback(self):
         """SS config with empty password but valid password in query params should parse."""
         import base64
+
         encoded = base64.urlsafe_b64encode(b"aes-256-gcm:").decode().rstrip("=")
         config = f"ss://{encoded}@1.2.3.4:8388/?password=secretpass#test"
         proxy = parse_ss(config)
@@ -56,7 +59,12 @@ class TestShadowsocksPasswordDrop:
     def test_ss_valid_password_parses_normally(self):
         """SS config with valid method:password should not trigger the drop."""
         import base64
-        encoded = base64.urlsafe_b64encode(b"chacha20-ietf-poly1305:mysecretpw").decode().rstrip("=")
+
+        encoded = (
+            base64.urlsafe_b64encode(b"chacha20-ietf-poly1305:mysecretpw")
+            .decode()
+            .rstrip("=")
+        )
         config = f"ss://{encoded}@10.0.0.1:443#myserver"
         proxy = parse_ss(config)
         assert proxy is not None
@@ -66,6 +74,7 @@ class TestShadowsocksPasswordDrop:
 # ---------------------------------------------------------------------------
 # Trojan: parsed.password fallback
 # ---------------------------------------------------------------------------
+
 
 class TestTrojanPasswordFallback:
     """Tests for the Trojan parsed.password fallback."""
@@ -96,15 +105,16 @@ class TestTrojanPasswordFallback:
 # PipelineStats: to_dict() is synchronous
 # ---------------------------------------------------------------------------
 
+
 class TestPipelineStatsSync:
     """Tests that PipelineStats.to_dict() is synchronous."""
 
     def test_to_dict_is_not_async(self):
         """to_dict must be a regular function, not a coroutine."""
         stats = PipelineStats()
-        assert not inspect.iscoroutinefunction(stats.to_dict), (
-            "to_dict must be synchronous (not async) to avoid coroutine-without-await bugs"
-        )
+        assert not inspect.iscoroutinefunction(
+            stats.to_dict
+        ), "to_dict must be synchronous (not async) to avoid coroutine-without-await bugs"
 
     def test_to_dict_returns_dict_directly(self):
         """to_dict should return a dict, not a coroutine object."""
@@ -155,6 +165,7 @@ class TestPipelineStatsSync:
 # ---------------------------------------------------------------------------
 # Signer: Input validation
 # ---------------------------------------------------------------------------
+
 
 class TestSignerInputValidation:
     """Tests for Signer input validation."""

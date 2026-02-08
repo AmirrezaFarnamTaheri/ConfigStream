@@ -149,7 +149,9 @@ def parse_logs(
                                     prefix = url.split("[BASE64]", 1)[0].strip()
                                     if prefix:
                                         candidates = [
-                                            u for u in allowed_urls if u.startswith(prefix)
+                                            u
+                                            for u in allowed_urls
+                                            if u.startswith(prefix)
                                         ]
                                         if candidates:
                                             duration = total_duration / max(
@@ -171,14 +173,25 @@ def parse_logs(
                                                     )
                             prefix = url.split("[BASE64]", 1)[0].strip()
                             if prefix:
-                                candidates = [u for u in allowed_urls if u.startswith(prefix)]
+                                candidates = [
+                                    u for u in allowed_urls if u.startswith(prefix)
+                                ]
                                 if candidates:
                                     duration = total_duration / max(len(candidates), 1)
-                                    count_each = int(count / max(len(candidates), 1)) if count else 0
+                                    count_each = (
+                                        int(count / max(len(candidates), 1))
+                                        if count
+                                        else 0
+                                    )
                                     for candidate in candidates:
-                                        existing = source_metrics.get(candidate, (0, 0.0))
+                                        existing = source_metrics.get(
+                                            candidate, (0, 0.0)
+                                        )
                                         if duration > existing[1]:
-                                            source_metrics[candidate] = (count_each, duration)
+                                            source_metrics[candidate] = (
+                                                count_each,
+                                                duration,
+                                            )
                 except Exception:
                     continue
         except Exception as e:
@@ -383,9 +396,7 @@ def get_consolidated_sources() -> List[str]:
     return list(urls)
 
 
-def analyze_similarity(
-    observed_metrics: Dict[str, Tuple[int, float]]
-) -> Set[str]:
+def analyze_similarity(observed_metrics: Dict[str, Tuple[int, float]]) -> Set[str]:
     """
     Analyzes source fingerprints to find duplicates/redundancies.
     Returns a set of URLs to remove.
@@ -478,7 +489,9 @@ def analyze_similarity(
 
             if remove_candidate:
                 to_remove.add(remove_candidate)
-                print(f"[REMOVE] {remove_candidate}\n  -> Reason: {reason} (Kept: {keep_candidate})")
+                print(
+                    f"[REMOVE] {remove_candidate}\n  -> Reason: {reason} (Kept: {keep_candidate})"
+                )
 
     print(f"[INFO] Analysis complete. Marked {len(to_remove)} sources for removal.")
     return to_remove

@@ -154,7 +154,9 @@ class SourceQualityTracker(QualityStorage):
             if consecutive_failures >= 100:
                 # Truly permanent failure (404/410) - never retry
                 return False
-            resurrection_hours = getattr(settings, "SOURCE_RESURRECTION_HOURS", 168)  # 7 days
+            resurrection_hours = getattr(
+                settings, "SOURCE_RESURRECTION_HOURS", 168
+            )  # 7 days
             if (now - last_checked) >= (resurrection_hours * 3600):
                 logger.info(f"Resurrecting dead source for retry: {url[:60]}...")
                 return True

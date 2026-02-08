@@ -167,7 +167,9 @@ async def processing_consumer(
                 fingerprint_set = list(set(fingerprint_keys))
 
                 if fingerprint_set:
-                    src_hash = hashlib.md5(src_url.encode("utf-8", errors="ignore")).hexdigest()
+                    src_hash = hashlib.sha256(
+                        src_url.encode("utf-8", errors="ignore")
+                    ).hexdigest()
                     fp_dir = Path("data/fingerprints")
                     fp_dir.mkdir(parents=True, exist_ok=True)
                     fp_file = fp_dir / f"{src_hash}.json"
@@ -175,7 +177,7 @@ async def processing_consumer(
                     fp_data = {
                         "url": src_url,
                         "proxies": fingerprint_set,
-                        "timestamp": int(time.time())
+                        "timestamp": int(time.time()),
                     }
 
                     tmp_fp = fp_file.with_suffix(".tmp")
@@ -452,10 +454,9 @@ async def processing_consumer(
                             )
                         )
                         async with seen_lock:
-                            stats.drop_reasons["tester_error"] = (
-                                stats.drop_reasons.get("tester_error", 0)
-                                + len(vwarp_candidates)
-                            )
+                            stats.drop_reasons["tester_error"] = stats.drop_reasons.get(
+                                "tester_error", 0
+                            ) + len(vwarp_candidates)
                         vwarp_candidates = []
                     for p in vwarp_candidates:
                         if p.is_working:
@@ -522,7 +523,10 @@ async def processing_consumer(
             if not p.is_working:
                 continue
             # [FIX] Use explicit None check; 0.0 latency is valid, not missing
-            if max_latency and (p.latency if p.latency is not None else 9999) > max_latency:
+            if (
+                max_latency
+                and (p.latency if p.latency is not None else 9999) > max_latency
+            ):
                 continue
             if not p.country_code:
                 with tracker.phase("geo"):

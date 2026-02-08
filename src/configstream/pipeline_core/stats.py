@@ -41,7 +41,7 @@ class PipelineStats:
     revived_warp: int = 0
     revived_vwarp: int = 0
     shielded_count: int = 0  # Proxies resurrected via shielding (Copper to Gold)
-    
+
     # Evasion Metrics
     evasion_utls_enabled: int = 0  # Proxies with uTLS fingerprint rotation
     evasion_alpn_enabled: int = 0  # Proxies with ALPN rotation

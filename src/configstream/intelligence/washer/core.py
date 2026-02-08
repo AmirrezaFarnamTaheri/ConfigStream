@@ -1070,7 +1070,7 @@ class ProxyWasher:
             else:
                 chain_id = f"WARP-REVIVE-{relay.id[:8]}"
                 relay_tag_prefix = "WARP-RELAY"
-            
+
             endpoint_data = self._get_clean_endpoint(relay.id)
             if isinstance(endpoint_data, tuple):
                 clean_endpoint, clean_port = endpoint_data

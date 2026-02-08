@@ -7,7 +7,6 @@ import os
 import re
 import tempfile
 import zipfile
-import ipaddress
 from typing import List, Dict, Optional, Any, Tuple
 from pathlib import Path
 from datetime import datetime, timezone
@@ -32,6 +31,11 @@ from .dns_profiles import (
     build_clash_dns_profile,
     build_resolver_sets,
 )
+from .utils.net import (
+    normalize_host as _normalize_host,
+    is_ip_literal as _is_ip_literal,
+    is_global_ip as _is_global_ip,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -48,25 +52,6 @@ def _add_suffix(filename: str, suffix: str) -> str:
         return filename
     base, ext = os.path.splitext(filename)
     return f"{base}{suffix}{ext}"
-
-
-def _normalize_host(value: str) -> str:
-    return value.strip().lower().rstrip(".")
-
-
-def _is_ip_literal(value: str) -> bool:
-    try:
-        ipaddress.ip_address(value)
-        return True
-    except ValueError:
-        return False
-
-
-def _is_global_ip(value: str) -> bool:
-    try:
-        return bool(ipaddress.ip_address(value).is_global)
-    except ValueError:
-        return False
 
 
 def _rewrite_openvpn_remote(config: str, original_host: str, ip_value: str) -> str:
@@ -709,21 +694,25 @@ def generate_categorized_outputs(
     shielded_chains: List[Dict[str, Any]] = []
     washed_only_chains: List[Dict[str, Any]] = []
     revived_only_chains: List[Dict[str, Any]] = []
-    
+
     if washed_outbounds:
         for outbound in washed_outbounds:
             if not isinstance(outbound, dict):
                 continue
             tag = outbound.get("tag", "")
             process = outbound.get("_process", "")
-            
+
             # Shielded chains (GOLD- prefix or shield_payload process)
-            if tag.startswith("GOLD-") or process == "shield_payload" or process == "shield_base":
+            if (
+                tag.startswith("GOLD-")
+                or process == "shield_payload"
+                or process == "shield_base"
+            ):
                 shielded_chains.append(copy.deepcopy(outbound))
             # Standard washed chains (not shielded)
             elif tag.startswith("🛡️") or process == "washed":
                 washed_only_chains.append(copy.deepcopy(outbound))
-    
+
     # Revived chains from proxy details
     for p in proxies:
         # [FIX] Guard against None details to prevent AttributeError
@@ -732,7 +721,7 @@ def generate_categorized_outputs(
             chain = _det.get("chain_outbounds")
             if isinstance(chain, list) and chain:
                 revived_only_chains.extend(copy.deepcopy(chain))
-    
+
     # Generate separate outputs for analytics/debugging (optional, not user-facing)
     # These are kept for backward compatibility and internal tracking
 
@@ -809,7 +798,9 @@ def generate_categorized_outputs(
             try:
                 adapter = get_adapter(adapter_name)
                 if adapter_name in ("surge", "loon"):
-                    content = adapter.export(dns_safe_proxies, washed_outbounds=dns_safe_washed)
+                    content = adapter.export(
+                        dns_safe_proxies, washed_outbounds=dns_safe_washed
+                    )
                 else:
                     content = adapter.export(dns_safe_proxies)
                 dns_filename = _add_suffix(filename, "-dns-safe")
@@ -831,20 +822,31 @@ def generate_categorized_outputs(
             if (p.protocol or "").lower() == "openvpn" and p.config
         ]
         wireguard_candidates_dns = [
-            p for p in dns_safe_proxies if (p.protocol or "").lower() in ("wireguard", "wg")
+            p
+            for p in dns_safe_proxies
+            if (p.protocol or "").lower() in ("wireguard", "wg")
         ]
         if dns_raw_content or openvpn_candidates_dns or wireguard_candidates_dns:
             tmp_path = None
             try:
                 with tempfile.NamedTemporaryFile(
-                    dir=output_dir, prefix=".side_products_dns.", suffix=".tmp", delete=False
+                    dir=output_dir,
+                    prefix=".side_products_dns.",
+                    suffix=".tmp",
+                    delete=False,
                 ) as tmp:
                     tmp_path = tmp.name
-                with zipfile.ZipFile(tmp_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+                with zipfile.ZipFile(
+                    tmp_path, "w", compression=zipfile.ZIP_DEFLATED
+                ) as zf:
                     zf.writestr("proxies.txt", dns_raw_content)
                     for proxy in openvpn_candidates_dns:
-                        original_host = proxy.details.get("original_host") or proxy.address
-                        rewritten = _rewrite_openvpn_remote(proxy.config, original_host, proxy.address)
+                        original_host = (
+                            proxy.details.get("original_host") or proxy.address
+                        )
+                        rewritten = _rewrite_openvpn_remote(
+                            proxy.config, original_host, proxy.address
+                        )
                         name = _safe_filename(
                             proxy.remarks or proxy.id, f"openvpn-{proxy.id[:8]}"
                         )
@@ -860,7 +862,9 @@ def generate_categorized_outputs(
                 os.replace(tmp_path, side_dns_path)
                 generated_files["side_products_dns_safe"] = side_dns_path
             except Exception as exc:
-                logger.warning("Failed to generate side_products-dns-safe.zip: %s", str(exc))
+                logger.warning(
+                    "Failed to generate side_products-dns-safe.zip: %s", str(exc)
+                )
                 if tmp_path and os.path.exists(tmp_path):
                     try:
                         os.unlink(tmp_path)
@@ -884,7 +888,9 @@ def generate_categorized_outputs(
                     for chain in chains:
                         if not isinstance(chain, list):
                             continue
-                        filtered = _filter_outbounds_for_dns_hardened(chain, hardened_map)
+                        filtered = _filter_outbounds_for_dns_hardened(
+                            chain, hardened_map
+                        )
                         if filtered:
                             filtered_smart_chains.append(filtered)
                     if filtered_smart_chains:
@@ -1053,11 +1059,15 @@ def generate_categorized_outputs(
                     [], extra_outbounds=hardened_chain_outbounds
                 )
                 hardened_chains_path = output_dir / "singbox-chains-dns-hardened.json"
-                AtomicFileWriter.write_text(hardened_chains_path, hardened_chains_content)
+                AtomicFileWriter.write_text(
+                    hardened_chains_path, hardened_chains_content
+                )
                 generated_files["singbox_chains_dns_hardened"] = hardened_chains_path
 
                 hardened_chains_alias = output_dir / "chains-dns-hardened.json"
-                AtomicFileWriter.write_text(hardened_chains_alias, hardened_chains_content)
+                AtomicFileWriter.write_text(
+                    hardened_chains_alias, hardened_chains_content
+                )
                 generated_files["chains_dns_hardened"] = hardened_chains_alias
 
     # 8. Legacy compatibility: Ensure all legacy outputs are preserved
@@ -1074,9 +1084,13 @@ def generate_categorized_outputs(
     ]
     for legacy_key in legacy_required:
         if legacy_key not in generated_files:
-            logger.warning(f"Legacy output '{legacy_key}' not generated - may break compatibility")
+            logger.warning(
+                f"Legacy output '{legacy_key}' not generated - may break compatibility"
+            )
 
-    logger.info(f"Generated {len(generated_files)} output files (including all variations).")
+    logger.info(
+        f"Generated {len(generated_files)} output files (including all variations)."
+    )
     return generated_files
 
 
@@ -1169,6 +1183,13 @@ def save_metadata(
     chain_outbounds_count = 0
     time_limited = False
     time_limit_seconds = 0
+    shielded_count = 0
+    evasion_utls_enabled = 0
+    evasion_alpn_enabled = 0
+    evasion_fragmentation_enabled = 0
+    evasion_multiplexing_enabled = 0
+    evasion_dns_safe_count = 0
+    evasion_dns_hardened_count = 0
 
     if isinstance(stats, dict):
         # Stats is a dict (from merge script)
@@ -1209,6 +1230,13 @@ def save_metadata(
         chain_outbounds_count = stats.get("chain_outbounds_count", 0)
         time_limited = bool(stats.get("time_limited", False))
         time_limit_seconds = int(stats.get("time_limit_seconds", 0) or 0)
+        shielded_count = stats.get("shielded_count", 0)
+        evasion_utls_enabled = stats.get("evasion_utls_enabled", 0)
+        evasion_alpn_enabled = stats.get("evasion_alpn_enabled", 0)
+        evasion_fragmentation_enabled = stats.get("evasion_fragmentation_enabled", 0)
+        evasion_multiplexing_enabled = stats.get("evasion_multiplexing_enabled", 0)
+        evasion_dns_safe_count = stats.get("evasion_dns_safe_count", 0)
+        evasion_dns_hardened_count = stats.get("evasion_dns_hardened_count", 0)
     else:
         # Stats is an object (PipelineStats)
         if hasattr(stats, "fetched_lines"):
@@ -1259,6 +1287,20 @@ def save_metadata(
             time_limited = bool(stats.time_limited)
         if hasattr(stats, "time_limit_seconds"):
             time_limit_seconds = int(stats.time_limit_seconds or 0)
+        if hasattr(stats, "shielded_count"):
+            shielded_count = stats.shielded_count
+        if hasattr(stats, "evasion_utls_enabled"):
+            evasion_utls_enabled = stats.evasion_utls_enabled
+        if hasattr(stats, "evasion_alpn_enabled"):
+            evasion_alpn_enabled = stats.evasion_alpn_enabled
+        if hasattr(stats, "evasion_fragmentation_enabled"):
+            evasion_fragmentation_enabled = stats.evasion_fragmentation_enabled
+        if hasattr(stats, "evasion_multiplexing_enabled"):
+            evasion_multiplexing_enabled = stats.evasion_multiplexing_enabled
+        if hasattr(stats, "evasion_dns_safe_count"):
+            evasion_dns_safe_count = stats.evasion_dns_safe_count
+        if hasattr(stats, "evasion_dns_hardened_count"):
+            evasion_dns_hardened_count = stats.evasion_dns_hardened_count
         # Use stats.working as source of truth (more accurate than counting in loop)
         # But only if it's non-zero (to avoid overriding correct loop count)
         if hasattr(stats, "working") and stats.working > 0:
@@ -1359,6 +1401,14 @@ def save_metadata(
         "vwarp_attempts": vwarp_attempts,
         "vwarp_success": vwarp_success,
         "washing_enabled": washing_enabled,
+        # Shielded & Evasion stats (consumed by frontend statistics.js)
+        "shielded_count": shielded_count,
+        "evasion_utls_enabled": evasion_utls_enabled,
+        "evasion_alpn_enabled": evasion_alpn_enabled,
+        "evasion_fragmentation_enabled": evasion_fragmentation_enabled,
+        "evasion_multiplexing_enabled": evasion_multiplexing_enabled,
+        "evasion_dns_safe_count": evasion_dns_safe_count,
+        "evasion_dns_hardened_count": evasion_dns_hardened_count,
         # Export pipeline performance metrics
         "duration_seconds": duration_seconds,
         "geo_resolved": geo_resolved,

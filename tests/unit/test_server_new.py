@@ -75,4 +75,5 @@ async def test_api_stats_endpoint(async_client):
 async def test_health_check(async_client):
     response = await async_client.get("/health")
     assert response.status_code == 200
-    assert "output_dir" in response.json()
+    # output_dir removed from health endpoint for security (no filesystem path exposure)
+    assert "output_available" in response.json()

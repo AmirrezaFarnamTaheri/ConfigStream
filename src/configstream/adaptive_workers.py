@@ -22,6 +22,7 @@ except ImportError:
 def _is_ci_environment() -> bool:
     """[FIX] Detect CI/CD environments to apply conservative limits."""
     import os
+
     ci_vars = ("CI", "GITHUB_ACTIONS", "GITLAB_CI", "JENKINS_URL", "CIRCLECI")
     return any(os.environ.get(v) for v in ci_vars)
 

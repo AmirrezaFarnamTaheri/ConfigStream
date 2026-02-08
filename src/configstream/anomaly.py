@@ -329,3 +329,13 @@ CREATE TABLE IF NOT EXISTS history (
                     logger.info(f"Merged anomaly stats from {other_db_path}")
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.error(f"Failed to merge anomaly DB {other_db_path}: {e}")
+
+    def close(self) -> None:
+        """Close the persistent SQLite connection."""
+        with self._lock:
+            if self._conn:
+                try:
+                    self._conn.close()
+                except Exception:
+                    pass
+                self._conn = None

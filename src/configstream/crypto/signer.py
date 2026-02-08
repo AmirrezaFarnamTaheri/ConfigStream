@@ -22,14 +22,18 @@ class Signer:
         self._private_key = None
         if private_key_hex:
             if not isinstance(private_key_hex, str) or len(private_key_hex) % 2 != 0:
-                raise ValueError("Private key must be a valid hex string with even length")
+                raise ValueError(
+                    "Private key must be a valid hex string with even length"
+                )
             # Ed25519PrivateKey.from_private_bytes expects 32 bytes
             key_bytes = bytes.fromhex(private_key_hex)
             if len(key_bytes) == 64:
                 # If full key (seed + pub), take first 32 bytes (seed)
                 key_bytes = key_bytes[:32]
             elif len(key_bytes) != 32:
-                raise ValueError(f"Private key must be 32 or 64 bytes (got {len(key_bytes)})")
+                raise ValueError(
+                    f"Private key must be 32 or 64 bytes (got {len(key_bytes)})"
+                )
             self._private_key = ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
 
     def sign_subscription(self, content: str) -> Dict[str, Any]:

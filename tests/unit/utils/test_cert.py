@@ -8,6 +8,7 @@ sys.modules["OpenSSL.crypto"] = MagicMock()
 
 from configstream.utils.cert import generate_self_signed_cert
 
+
 def test_cert_generation_mock():
     # Since we mocked OpenSSL, we just check if the function runs without import error
     # and tries to access the mocked object.

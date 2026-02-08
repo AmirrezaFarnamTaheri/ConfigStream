@@ -1,10 +1,8 @@
-from typing import Dict, Any, List, Set
 # SPDX-License-Identifier: AGPL-3.0-or-later
+from typing import Dict, Any, List, Optional, Set
 import logging
 import asyncio
-import ipaddress
 from pathlib import Path
-from typing import Optional
 
 from configstream.models import Proxy
 from configstream.history.tracker import ProxyHistoryTracker
@@ -23,25 +21,15 @@ from configstream.pipeline_core.stats import PipelineStats
 from configstream.tagging import ProxyTagger
 from configstream.config import AppSettings
 from configstream.dns_batch_resolver import BatchDNSResolver
+from configstream.utils.net import (
+    normalize_host as _normalize_host,
+    is_ip_literal as _is_ip_literal,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def _normalize_host(value: str) -> str:
-    return value.strip().lower().rstrip(".")
-
-
-def _is_ip_literal(value: str) -> bool:
-    try:
-        ipaddress.ip_address(value)
-        return True
-    except ValueError:
-        return False
-
-
-async def _populate_resolved_ips(
-    proxies: List[Proxy], settings: AppSettings
-) -> None:
+async def _populate_resolved_ips(proxies: List[Proxy], settings: AppSettings) -> None:
     hostnames: List[str] = []
     for proxy in proxies:
         addr = (proxy.address or "").strip()
@@ -57,9 +45,13 @@ async def _populate_resolved_ips(
     if limit > 0:
         unique_hosts = unique_hosts[:limit]
 
-    resolver = BatchDNSResolver(timeout=float(getattr(settings, "DNS_SAFE_RESOLVE_TIMEOUT", 4.0)))
+    resolver = BatchDNSResolver(
+        timeout=float(getattr(settings, "DNS_SAFE_RESOLVE_TIMEOUT", 4.0))
+    )
     if resolver.resolver is None:
-        logger.debug("DNS-safe outputs: batch resolver unavailable; skipping DNS resolution.")
+        logger.debug(
+            "DNS-safe outputs: batch resolver unavailable; skipping DNS resolution."
+        )
         return
 
     batch_size = int(getattr(settings, "DNS_SAFE_RESOLVE_BATCH", 500) or 500)
@@ -117,7 +109,7 @@ async def generate_pipeline_outputs(
         # Track DNS-safe count
         dns_safe_proxies, _ = _build_dns_safe_proxies(optimized_proxies)
         stats.evasion_dns_safe_count = len(dns_safe_proxies)
-    
+
     # Track DNS-hardened count
     if getattr(settings, "DNS_HARDENED_OUTPUTS", True):
         dns_hardened_proxies, _ = _build_dns_hardened_proxies(optimized_proxies)
@@ -151,29 +143,52 @@ async def generate_pipeline_outputs(
     failed_proxies = [p for p in optimized_proxies if not p.is_working]
     shielded_outbounds: List[Dict[str, Any]] = []
     shielded_ids: Set[str] = set()
-    
+
     if failed_proxies and washer:
-        logger.info(f"⚰️  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy...")
+        logger.info(
+            f"⚰️  Attempting to resurrect {len(failed_proxies)} dead proxies with Alchemy..."
+        )
         try:
-            shielded_outbounds, shielded_ids = washer.shield_batch(failed_proxies, stats=stats)
+            shielded_outbounds, shielded_ids = washer.shield_batch(
+                failed_proxies, stats=stats
+            )
             if shielded_outbounds:
-                logger.info(f"✨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} chains.")
+                logger.info(
+                    f"✨  Alchemy Success! Resurrected {len(shielded_outbounds)//2} chains."
+                )
                 # Merge shielded outbounds with washed outbounds
                 washed_outbounds.extend(shielded_outbounds)
                 washed_ids.update(shielded_ids)
                 stats.shielded_count = len(shielded_ids)
             else:
-                logger.info("No dead proxies could be resurrected (no WARP keys or clean IPs available).")
+                logger.info(
+                    "No dead proxies could be resurrected (no WARP keys or clean IPs available)."
+                )
         except Exception as e:
             logger.warning(f"Shielding failed: {e}", exc_info=True)
-    
+
     # Track evasion metrics (count proxies with evasion features enabled)
     # Note: These are applied in generate_split_outputs, so we estimate based on working proxies
-    working_with_tls = [p for p in optimized_proxies if p.is_working and p.protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]]
+    working_with_tls = [
+        p
+        for p in optimized_proxies
+        if p.is_working
+        and p.protocol in ["vmess", "vless", "trojan", "hysteria2", "tuic"]
+    ]
     stats.evasion_utls_enabled = len(working_with_tls)  # All TLS proxies get uTLS
-    stats.evasion_alpn_enabled = len([p for p in working_with_tls if p.protocol in ["vmess", "vless", "trojan"]])  # ALPN for specific protocols
-    stats.evasion_fragmentation_enabled = len(working_with_tls)  # All TLS proxies get fragmentation
-    stats.evasion_multiplexing_enabled = len([p for p in working_with_tls if p.protocol in ["vmess", "vless", "trojan", "shadowsocks"]])  # Multiplexing for specific protocols
+    stats.evasion_alpn_enabled = len(
+        [p for p in working_with_tls if p.protocol in ["vmess", "vless", "trojan"]]
+    )  # ALPN for specific protocols
+    stats.evasion_fragmentation_enabled = len(
+        working_with_tls
+    )  # All TLS proxies get fragmentation
+    stats.evasion_multiplexing_enabled = len(
+        [
+            p
+            for p in working_with_tls
+            if p.protocol in ["vmess", "vless", "trojan", "shadowsocks"]
+        ]
+    )  # Multiplexing for specific protocols
 
     # [FIX] Explicit logging if no chains were created despite having working proxies
     if not washed_outbounds and optimized_proxies:
@@ -247,7 +262,8 @@ async def generate_pipeline_outputs(
             revived_dns_safe = [
                 p
                 for p in dns_safe_proxies
-                if (p.process or "").startswith("revived") or p.details.get("is_revived")
+                if (p.process or "").startswith("revived")
+                or p.details.get("is_revived")
             ]
             if revived_dns_safe:
                 revived_dns_path = output_path / "revived-dns-safe.json"
@@ -258,7 +274,8 @@ async def generate_pipeline_outputs(
             revived_dns_hardened = [
                 p
                 for p in dns_hardened_proxies
-                if (p.process or "").startswith("revived") or p.details.get("is_revived")
+                if (p.process or "").startswith("revived")
+                or p.details.get("is_revived")
             ]
             if revived_dns_hardened:
                 revived_hardened_path = output_path / "revived-dns-hardened.json"
@@ -373,7 +390,9 @@ async def generate_pipeline_outputs(
 
     # Export evasion trend for time-series charts
     evasion_trend_path = output_path / "data" / "evasion_trend.json"
-    await loop.run_in_executor(None, history.export_evasion_trend, stats, evasion_trend_path)
+    await loop.run_in_executor(
+        None, history.export_evasion_trend, stats, evasion_trend_path
+    )
 
     logger.info(f"Output generation complete. Files created in {output_path}")
     return generated_files

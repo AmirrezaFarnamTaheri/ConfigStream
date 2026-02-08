@@ -61,7 +61,7 @@ class AppSettings(BaseSettings):
     INTRANET_ORIGIN: str = "IR"
     OPTIMAL_RELAY_ORIGIN: str = "IR"
     WARP_PEER_KEY: Optional[str] = None  # Added for washer/core.py
-    
+
     # Evasion Configuration
     EVASION_MODE: str = "aggressive"  # Options: "standard", "stealth", "aggressive"
     # Standard: No evasion features

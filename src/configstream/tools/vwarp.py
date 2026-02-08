@@ -48,6 +48,18 @@ class VwarpTool:
         self._last_failure_details: Optional[str] = None
 
     @staticmethod
+    def validate_warp_key(key: str) -> bool:
+        """Validates a WARP key structure."""
+        import re as _re
+
+        if not key:
+            return False
+        if not _re.match(r"^[a-zA-Z0-9+/=_-]{40,}$", key):
+            logger.warning("Invalid WARP key format")
+            return False
+        return True
+
+    @staticmethod
     def _is_supported_platform() -> bool:
         """Vwarp binary is currently only available for Linux."""
         return sys.platform.startswith("linux")
@@ -128,9 +140,7 @@ class VwarpTool:
                 return True
 
             url, checksum, version = self._get_download_spec()
-            logger.info(
-                f"Vwarp binary not found. Attempting to download {version}..."
-            )
+            logger.info(f"Vwarp binary not found. Attempting to download {version}...")
 
             try:
                 # Determine install location
@@ -246,7 +256,9 @@ class VwarpTool:
             if Path(self.binary).exists():
                 if await self._verify_binary():
                     return True
-                logger.warning("Existing Vwarp binary failed health check. Reinstalling.")
+                logger.warning(
+                    "Existing Vwarp binary failed health check. Reinstalling."
+                )
                 self.binary = None
                 self._help_text = None
 
@@ -272,9 +284,13 @@ class VwarpTool:
             if proc.returncode == 0:
                 return True
             if stderr:
-                logger.error(f"Vwarp version check failed: {stderr.decode(errors='ignore')}")
+                logger.error(
+                    f"Vwarp version check failed: {stderr.decode(errors='ignore')}"
+                )
             elif stdout:
-                logger.error(f"Vwarp version check failed: {stdout.decode(errors='ignore')}")
+                logger.error(
+                    f"Vwarp version check failed: {stdout.decode(errors='ignore')}"
+                )
             return False
         except Exception as exc:
             logger.error(f"Vwarp version check error: {exc}")
@@ -383,11 +399,7 @@ class VwarpTool:
         # Prefer an IP-based test URL to avoid DNS lookups.
         is_ci = os.environ.get("CI") == "true"
         used_ci_defaults = is_ci and not (
-            env_force_config
-            or env_json
-            or env_dns
-            or env_test_url
-            or env_endpoint
+            env_force_config or env_json or env_dns or env_test_url or env_endpoint
         )
         if not env_test_url and is_ci:
             env_test_url = "http://1.1.1.1/cdn-cgi/trace"
@@ -397,12 +409,7 @@ class VwarpTool:
         # [FIX] Don't force config generation just because CI is true.
         # The test_url field is NOT supported by Vwarp v2.1.0 in the config file,
         # causing "parse config file: test_url: unknown flag" errors.
-        needs_config = bool(
-            env_force_config
-            or env_json
-            or env_dns
-            or env_endpoint
-        )
+        needs_config = bool(env_force_config or env_json or env_dns or env_endpoint)
         if not needs_config:
             return None, []
 
@@ -499,7 +506,12 @@ class VwarpTool:
         cmd: List[str] = [self.binary, "--scan", "--rtt", rtt_limit]
 
         try:
-            logger.info("📡 Starting Vwarp active scanner...")
+            scan_start = time.time()
+            logger.info(
+                "📡 Starting Vwarp active scanner (rtt_limit=%s, cmd=%s)...",
+                rtt_limit,
+                " ".join(cmd),
+            )
             proc = await asyncio.create_subprocess_exec(
                 *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
@@ -510,6 +522,10 @@ class VwarpTool:
                 else:
                     stdout, _ = await safe_wait_for(proc.communicate(), timeout=30)
             except asyncio.TimeoutError:
+                elapsed = time.time() - scan_start
+                logger.warning(
+                    "Vwarp scan timed out after %.1fs. Killing process.", elapsed
+                )
                 try:
                     proc.kill()
                 except ProcessLookupError:
@@ -562,11 +578,18 @@ class VwarpTool:
 
                         endpoints.append((host, port))
 
-            logger.info(f"✅ Vwarp found {len(endpoints)} healthy endpoints.")
+            elapsed = time.time() - scan_start
+            logger.info(
+                "✅ Vwarp scan complete: found %d healthy endpoints in %.1fs.",
+                len(endpoints),
+                elapsed,
+            )
             return endpoints
 
         except Exception as e:
-            logger.error(f"Vwarp scan failed: {e}")
+            logger.error(
+                "Vwarp scan failed after %.1fs: %s", time.time() - scan_start, e
+            )
             return []
 
     async def generate_masque_config(self, preset: str = "gfw") -> Dict[str, Any]:
@@ -691,7 +714,13 @@ class VwarpTool:
             self._cleanup_config_file()
             return False
         try:
-            logger.info(f"🚀 Starting Vwarp SOCKS5 Tunnel on {bind_addr}:{port}...")
+            tunnel_start = time.time()
+            logger.info(
+                "🚀 Starting Vwarp SOCKS5 Tunnel on %s:%d (cmd: %s)...",
+                bind_addr,
+                port,
+                " ".join(cmd),
+            )
             # Capture stdout/stderr for debugging if it fails
             self._tunnel_proc = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -729,9 +758,7 @@ class VwarpTool:
                     if stderr:
                         logger.error(f"Vwarp stderr: {stderr.decode(errors='ignore')}")
                     if details and not self._last_failure_reason:
-                        self._record_failure(
-                            self._classify_failure(details), details
-                        )
+                        self._record_failure(self._classify_failure(details), details)
                 else:
                     # Kill and read logs
                     try:
@@ -786,6 +813,14 @@ class VwarpTool:
                 consume_stream(self._tunnel_proc.stderr, logging.WARNING)
             )
 
+            elapsed = time.time() - tunnel_start
+            logger.info(
+                "✅ Vwarp tunnel ready on %s:%d (startup took %.1fs, pid=%s).",
+                bind_addr,
+                port,
+                elapsed,
+                self._tunnel_proc.pid,
+            )
             return True
         except Exception as e:
             logger.warning(f"Failed to start Vwarp tunnel: {e}")
@@ -803,17 +838,22 @@ class VwarpTool:
         Stops the background tunnel process.
         """
         if self._tunnel_proc:
-            logger.info("Stopping Vwarp tunnel...")
+            pid = self._tunnel_proc.pid
+            logger.info("Stopping Vwarp tunnel (pid=%s)...", pid)
             try:
                 self._tunnel_proc.terminate()
                 try:
                     await safe_wait_for(self._tunnel_proc.wait(), timeout=2.0)
+                    logger.info("Vwarp tunnel (pid=%s) stopped gracefully.", pid)
                 except asyncio.TimeoutError:
                     self._tunnel_proc.kill()
+                    logger.warning(
+                        "Vwarp tunnel (pid=%s) did not stop gracefully; killed.", pid
+                    )
             except ProcessLookupError:
-                pass
+                logger.debug("Vwarp tunnel (pid=%s) already exited.", pid)
             except Exception as e:
-                logger.warning(f"Error stopping Vwarp tunnel: {e}")
+                logger.warning("Error stopping Vwarp tunnel (pid=%s): %s", pid, e)
             finally:
                 self._tunnel_proc = None
         self._cleanup_config_file()

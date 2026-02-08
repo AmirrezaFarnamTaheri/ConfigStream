@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class TLSFingerprint(Enum):
     """Supported TLS fingerprints."""
+
     CHROME = "chrome"
     FIREFOX = "firefox"
     SAFARI = "safari"
@@ -27,6 +28,7 @@ class TLSFingerprint(Enum):
 
 class ALPNProtocol(Enum):
     """Supported ALPN protocols."""
+
     H2 = "h2"
     HTTP1_1 = "http/1.1"
     HTTP1_0 = "http/1.0"

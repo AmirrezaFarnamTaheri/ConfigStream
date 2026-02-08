@@ -100,7 +100,8 @@ async def test_health_check(mock_output_dir, async_client):
         # Check keys existence and status value
         json_resp = response.json()
         assert json_resp["status"] == "ok"
-        assert "output_dir" in json_resp
+        # output_dir removed from health endpoint for security (no filesystem path exposure)
+        assert "output_available" in json_resp
         # files_present might be 5 or 6 depending on hidden files/impl
         assert json_resp["files_present"] >= 0
 

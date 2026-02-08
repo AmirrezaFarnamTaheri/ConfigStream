@@ -88,7 +88,9 @@ class AdaptiveTimeout:
                 oldest = next(iter(self.source_latencies))
                 del self.source_latencies[oldest]
                 safe_source = SecurityValidator.sanitize_log_message(str(oldest))
-                logger.debug(f"Evicted oldest source {safe_source} from latency tracking")
+                logger.debug(
+                    f"Evicted oldest source {safe_source} from latency tracking"
+                )
 
             s_list = self.source_latencies[source]
             s_list.append(val)
