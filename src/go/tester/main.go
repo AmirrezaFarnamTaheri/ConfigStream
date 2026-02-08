@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+"crypto/tls"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -363,6 +364,7 @@ func testProxy(req ProxyTestRequest) (result ProxyTestResult) {
 			},
 			DisableKeepAlives:   true,
 			ForceAttemptHTTP2:   false,
+			TLSNextProto:        make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
 			TLSHandshakeTimeout: 5 * time.Second,
 		}
 		defer transport.CloseIdleConnections()
