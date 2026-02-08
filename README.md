@@ -12,8 +12,10 @@ ConfigStream is a sovereignty-grade, zero-budget anti-censorship platform. It co
 - **Smart Chains**: Automatically builds multi-hop routing paths (Entry -> Relay -> Exit) to bypass severe censorship.
 - **Vwarp Revival**: Resurrects dead or blocked proxies by wrapping them in clean Cloudflare WARP/Vwarp tunnels.
 - **Active Scanning**: Optional active scanning for fresh, low-latency WARP endpoints using `dnsscanner_tui.py`.
+- **Censorship Check**: Integrated active health checks (`CensorshipLab`) to verify connectivity to sensitive sites.
+- **WARP Validation**: Built-in tools to validate and manage Cloudflare WARP keys and endpoints.
 - **Evasion**: TLS fingerprint rotation, ALPN shuffling, and multiplexing to evade DPI.
-- **Rate Limiting**: Protects distribution endpoints from abuse.
+- **Rate Limiting**: Protects distribution endpoints from abuse using SlowAPI.
 
 ## Quickstart
 
@@ -27,6 +29,11 @@ docker compose up --build
 pip install -e ".[dev]"
 configstream merge --sources sources/batch_1.txt --output output
 pytest
+```
+
+### Running the DNS Scanner
+```bash
+python src/configstream/tools/dns_scanner/python/dnsscanner_tui.py
 ```
 
 ## Outputs (Updated Every 6 Hours)

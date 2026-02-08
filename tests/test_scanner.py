@@ -15,7 +15,7 @@ async def test_scanner_ci_disabled():
 async def test_scanner_ci_force_enabled():
     with patch("configstream.config.AppSettings") as MockSettings:
         MockSettings.return_value.FORCE_SCANNER = True
-        MockSettings.return_value.CONFIGSTREAM_TESTER_BIN = "/bin/ls" # Dummy path
+        MockSettings.return_value.CONFIGSTREAM_TESTER_BIN = "/bin/ls"  # Dummy path
         with patch.dict("os.environ", {"CI": "true"}):
             with patch("os.path.exists", return_value=True):
                 worker = WarpScannerWorker()
@@ -51,7 +51,7 @@ async def test_scan_endpoints_execution_success():
             ips = await worker.scan_endpoints(limit=2, max_latency=800)
             assert len(ips) == 1
             assert "162.159.192.1" in ips
-            assert "162.159.192.2" not in ips # Latency 1000 > 800
+            assert "162.159.192.2" not in ips  # Latency 1000 > 800
 
 @pytest.mark.asyncio
 async def test_scan_endpoints_execution_failure():

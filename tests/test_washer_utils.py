@@ -2,7 +2,7 @@ import pytest
 from configstream.intelligence.washer.utils import make_entry
 
 def test_make_entry_valid():
-    key = "a" * 44 # Mock key
+    key = "a" * 44  # Mock key
     proxy = make_entry("test", key, "1.1.1.1", None, [0,0,0])
     assert proxy is not None
     assert proxy.protocol == "wireguard"

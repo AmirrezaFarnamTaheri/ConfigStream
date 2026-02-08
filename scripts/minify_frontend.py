@@ -1,59 +1,40 @@
-#!/usr/bin/env python3
-import os
 import sys
-from pathlib import Path
-import logging
+import re
 
-try:
-    import rjsmin
-    import rcssmin
-except ImportError:
-    print("Error: rjsmin and rcssmin are required. Install with: pip install rjsmin rcssmin")
-    sys.exit(1)
+def minify_html(content):
+    # Remove comments
+    content = re.sub(r'<!--(.*?)-->', '', content, flags=re.DOTALL)
+    # Remove whitespace between tags
+    content = re.sub(r'>\s+<', '><', content)
+    # Collapse multiple spaces
+    content = re.sub(r'\s+', ' ', content)
+    return content.strip()
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+def minify_css(content):
+    # Remove comments
+    content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+    # Remove whitespace
+    content = re.sub(r'\s*([:;{}])\s*', r'\1', content)
+    return content.strip()
 
-def minify_frontend(frontend_dir: Path):
-    if not frontend_dir.exists():
-        logger.error(f"Frontend directory not found: {frontend_dir}")
-        return
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python minify_frontend.py <file>")
+        sys.exit(1)
 
-    assets_dir = frontend_dir / "assets"
-    if not assets_dir.exists():
-        logger.error(f"Assets directory not found: {assets_dir}")
-        return
+    filepath = sys.argv[1]
+    with open(filepath, 'r') as f:
+        content = f.read()
 
-    logger.info(f"Minifying assets in {assets_dir}")
+    if filepath.endswith('.html'):
+        minified = minify_html(content)
+    elif filepath.endswith('.css'):
+        minified = minify_css(content)
+    else:
+        minified = content
 
-    # Minify JS
-    for js_file in assets_dir.rglob("*.js"):
-        if js_file.name.endswith(".min.js"):
-            continue
-
-        try:
-            content = js_file.read_text(encoding="utf-8")
-            minified = rjsmin.jsmin(content)
-            # Overwrite original file for deployment
-            js_file.write_text(minified, encoding="utf-8")
-            logger.info(f"Minified JS: {js_file.relative_to(frontend_dir)}")
-        except Exception as e:
-            logger.error(f"Failed to minify {js_file}: {e}")
-
-    # Minify CSS
-    for css_file in assets_dir.rglob("*.css"):
-        if css_file.name.endswith(".min.css"):
-            continue
-
-        try:
-            content = css_file.read_text(encoding="utf-8")
-            minified = rcssmin.cssmin(content)
-            css_file.write_text(minified, encoding="utf-8")
-            logger.info(f"Minified CSS: {css_file.relative_to(frontend_dir)}")
-        except Exception as e:
-            logger.error(f"Failed to minify {css_file}: {e}")
+    with open(filepath, 'w') as f:
+        f.write(minified)
 
 if __name__ == "__main__":
-    base_dir = Path(__file__).resolve().parent.parent
-    frontend_path = base_dir / "frontend"
-    minify_frontend(frontend_path)
+    main()
