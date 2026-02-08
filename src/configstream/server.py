@@ -280,7 +280,8 @@ async def notify_update(payload: dict):
 
 
 @app.get("/api/diff/proxies")
-async def get_proxy_diff(base_version: str):
+@limiter.limit("5/minute")
+async def get_proxy_diff(request: Request, base_version: str):
     """
     Returns a JSON patch or delta between the client's version and current version.
     Requires server to maintain 'proxies.json' and 'proxies.old.json'.
@@ -412,7 +413,8 @@ async def get_proxies(
 
 
 @app.get("/subscribe/{format}")
-async def download_subscription(format: str):
+@limiter.limit("5/minute")
+async def download_subscription(request: Request, format: str):
     """
     Download subscription file.
     Formats: base64, clash, singbox, shadowrocket, quantumult, quantumultx, loon, sip008, surge

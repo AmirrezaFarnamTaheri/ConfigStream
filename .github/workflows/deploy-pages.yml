@@ -82,6 +82,16 @@ jobs:
           test -f output/metadata.json
           test -f output/proxies.json
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Minify Frontend Assets
+        run: |
+          pip install rjsmin rcssmin
+          python scripts/minify_frontend.py
+
       - name: Build Pages artifact
         run: |
           set -euxo pipefail
